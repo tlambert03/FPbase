@@ -4389,7 +4389,7 @@ body {
   box-shadow: inset 1rem 1rem 8rem rgba(0, 0, 0, 0.15); }
   @media (max-width: 767px) {
     .cover-wrapper {
-      background: url(../images/blurry_egfp.png) no-repeat center center; } }
+      background: url("/static/images/blurry_egfp.png") no-repeat center center; } }
 
 .cover-wrapper-inner {
   display: table-cell;
