@@ -269,6 +269,9 @@ $RECYCLE.BIN/
 .AppleDouble
 .LSOverride
 
+# icloud
+*.icloud
+
 # Icon must end with two \r
 Icon
 
