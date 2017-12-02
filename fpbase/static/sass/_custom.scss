@@ -70,17 +70,17 @@ $search-colors: rgba($white,0.4);
       color:white;
       font-size:1.2rem;
       padding-left:1.2rem;
-      @include media-breakpoint-down(sm) {
-        font-size:1rem;
-      }
+      padding-top: 0.3rem;
+      padding-bottom: 0.3rem;
+      font-weight: 300;
       @include media-breakpoint-down(xs) {
         text-align: center;
       }
       &::placeholder {
         color:$search-colors;
-        font-weight: 100;
+        font-weight: 300;
         @include media-breakpoint-down(xs) {
-          color: rgba($white,0.5);
+          color: rgba($white,0.8);
         }
       }
     }
@@ -99,9 +99,21 @@ $search-colors: rgba($white,0.4);
       }
     }
   }
-  .advanced-search a{
-    color: rgba($white, 0.5);
-    font-size: 0.9rem;
-    padding-right: 0.7rem;
+  .advanced-search {
+    text-align: right;
+    @include media-breakpoint-down(xs) {
+      text-align: center;
+    }
+    a {
+      color: rgba($white, 0.5);
+      font-size: 0.9rem;
+      padding-right: 0.7rem;
+      line-height: 2rem;
+      @include media-breakpoint-down(xs) {
+        color: rgba($white,0.8);
+        font-size: 1rem;
+        text-align: center;
+      }
+    }
   }
 }

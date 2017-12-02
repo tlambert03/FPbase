@@ -4433,24 +4433,26 @@ body {
     font-size: 19.2px;
     font-size: 1.2rem;
     padding-left: 19.2px;
-    padding-left: 1.2rem; }
-    @media (max-width: 767px) {
-      .search-col .home-search input {
-        font-size: 1rem; } }
+    padding-left: 1.2rem;
+    padding-top: 4.8px;
+    padding-top: 0.3rem;
+    padding-bottom: 4.8px;
+    padding-bottom: 0.3rem;
+    font-weight: 300; }
     @media (max-width: 575px) {
       .search-col .home-search input {
         text-align: center; } }
     .search-col .home-search input:-ms-input-placeholder {
       color: rgba(255, 255, 255, 0.4);
-      font-weight: 100; }
+      font-weight: 300; }
     .search-col .home-search input::placeholder {
       color: rgba(255, 255, 255, 0.4);
-      font-weight: 100; }
+      font-weight: 300; }
       @media (max-width: 575px) {
         .search-col .home-search input:-ms-input-placeholder {
-          color: rgba(255, 255, 255, 0.5); }
+          color: rgba(255, 255, 255, 0.8); }
         .search-col .home-search input::placeholder {
-          color: rgba(255, 255, 255, 0.5); } }
+          color: rgba(255, 255, 255, 0.8); } }
   .search-col .home-search button {
     background: rgba(255, 255, 255, 0);
     border-radius: 10rem;
@@ -4460,12 +4462,24 @@ body {
     .search-col .home-search button:hover {
       background: rgba(255, 255, 255, 0.2); }
 
-.search-col .advanced-search a {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14.4px;
-  font-size: 0.9rem;
-  padding-right: 11.2px;
-  padding-right: 0.7rem; }
+.search-col .advanced-search {
+  text-align: right; }
+  @media (max-width: 575px) {
+    .search-col .advanced-search {
+      text-align: center; } }
+  .search-col .advanced-search a {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14.4px;
+    font-size: 0.9rem;
+    padding-right: 11.2px;
+    padding-right: 0.7rem;
+    line-height: 32px;
+    line-height: 2rem; }
+    @media (max-width: 575px) {
+      .search-col .advanced-search a {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+        text-align: center; } }
 
 .navbar {
   -webkit-font-smoothing: antialiased !important;
