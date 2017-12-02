@@ -1,0 +1,177 @@
+{% extends "__base.html" %}
+{% load static %}
+
+{% block extra_head %}
+{% endblock %}
+
+{% block page-title %}FPbase: {{ protein.name  }} {% endblock %}
+
+{% block container-class %}protein{% endblock %}
+
+{% block main-container %}
+
+		<h1 class="name">{{ protein.name }}</h1>
+
+		<div class="spectra">
+			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
+		</div>
+
+		<div class="attributes">
+			<h3>Attributes</h3>
+			<div class="table-bordered">
+				<table class="table table-striped mobile">
+					<thead>
+						<tr class="table-header">
+							{% if protein.states.count > 1 %}
+							<th>State</th>
+							{% endif %}
+							<th>Ex &lambda;</th>
+				  			<th>Em &lambda;</th>
+				  			<th>EC</th>
+				  			<th>QY</th>
+				  			<th>Brightness</th>
+				  			<th>pKa</th>
+						</tr>
+					</thead>
+					<tbody>
+					{% for state in protein.states.all|dictsortreversed:"default" %}
+						<tr >
+							{% if protein.states.count > 1 %}
+							<td data-title="State">{{ state.state_name }}</td>
+							{% endif %}
+							<td data-title="Ex &lambda;">{{ state.ex_max | default:"&nbsp;" }}</td>
+				  			<td data-title="Em &lambda;">{{ state.em_max | default:"&nbsp;"}}</td>
+				  			<td data-title="EC">{{ state.ext_coeff | default:"&nbsp;"}}</td>
+				  			<td data-title="QY">{{ state.qy | default:"&nbsp;"}}</td>
+				  			<td data-title="Brightness">{{ state.brightness | default:"&nbsp;"}}</td>
+				  			<td data-title="pKa">{{ state.pka | default:"&nbsp;"}}</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		{% if protein.transitions.count > 0 %}
+		<div class="attributes">
+			<h3>Transitions</h3>
+			<div class="table-bordered">
+				<table class="table table-striped mobile">
+					<thead>
+						<tr class="table-header">
+							<th>From</th>
+				  			<th>To</th>
+				  			<th>Switch &lambda;</th>
+						</tr>
+					</thead>
+					<tbody>
+					{% for t in protein.transitions.all|dictsort:"trans_wave" %}
+						<tr >
+							<td data-title="From State">{{ t.from_state.state_name | default:"&nbsp;"}}</td>
+							<td data-title="To State">{{ t.to_state.state_name | default:"&nbsp;"}}</td>
+							<td data-title="Switch &lambda;">{{ t.trans_wave | default:"&nbsp;" }}</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{% endif %}
+
+		<div class="sequence">
+			<h3>Amino Acid Sequence</h3>
+			<p>{{ protein.seq | default_if_none:"no sequence available ... <a href='#'>add one!</a>"}}</p>
+            {% if protein.ipg_id %}
+            <p>Identical Protein Group ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]">{{ protein.ipg_id }}</a></p>
+            {% endif %}
+		</div>
+
+		<div class="primary-ref references">
+			<h3>Primary Reference</h3>
+			<h4>{{ protein.primary_reference.title }}</h4>
+			<p>
+				{% for author in protein.primary_reference.author_list %}
+					{{ author }},
+				{% endfor %}
+			</p>
+			<p>
+				<em>{{ protein.primary_reference.journal }}.</em> {{ protein.primary_reference.so }} <a href="http://dx.doi.org/{{ protein.primary_reference.doi }}">doi: {{ protein.primary_reference.doi }}</a>
+			</p>
+
+
+		</div>
+
+		<div class="additional-ref references">
+			<h3>References</h3>
+			{% if protein.references.all < 1 %}
+				<a>add one</a>
+				{% endif%}
+			<ol>
+				{% for ref in protein.references.all %}
+					<li><h4>{{ ref.title }}</h4>
+					<p>
+						{% for author in ref.authors.all %}
+							{{ author }},
+						{% endfor %}
+					</p>
+					<p>
+						<em>{{ ref.journal }}.</em> {{ ref.so }} <a href="http://dx.doi.org/{{ ref.doi }}">doi: {{ ref.doi }}</a>
+					</p>
+					</li>
+				{% endfor %}
+			</ol>
+
+		</div>
+
+	</div>
+{% endblock %}
+
+
+{% block foot-js %}
+    <script src="{% static "js/d3.v3.min.js" %}" charset="utf-8"></script>
+    <script src="{% static "js/nv.d3.min.js" %}"> </script>
+    <script src="{% static "js/nvd3spectra.js" %}"> </script>
+{% endblock %}
+
+
+{% block js-onpage %}
+    {% if protein.has_spectra %}
+        <script>
+            var myData = {{ spectra|safe }};
+            var chart = nv.models.lineChart();
+            svg = d3.select('#spectra').append('svg');
+            chart.options({
+                margin: {left:20},
+                noData: "Unable to load data...",
+                transitionDuration: 200,
+                showLegend: false,
+                showXAxis: true,
+                showYAxis: false,
+                useInteractiveGuideline: true,
+                forceY: [0,1],
+                forceX: [350, 750],
+            });
+
+            /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
+            nv.addGraph(function() {
+                chart.xAxis     //Chart x-axis settings
+                //.axisLabel('Wavelength (nm)')
+                .tickFormat(d3.format(',r'));
+
+                // chart.yAxis     //Chart y-axis settings
+                //   .axisLabel('Normalized Ex/Em')
+                //   .tickFormat(d3.format('1%'));
+
+                svg.datum(myData)         //Populate the <svg> element with chart data...
+                .call(chart);	       //Finally, render the chart!
+
+                //Update the chart when window resizes.
+                nv.utils.windowResize(function() { chart.update() });
+                return chart;
+            });
+        </script>
+    {% endif %}
+{% endblock %}
+
+
+

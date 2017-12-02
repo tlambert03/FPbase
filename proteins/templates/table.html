@@ -1,0 +1,104 @@
+{% extends "__base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static "css/tablesorter/theme.default.css" %}">
+{% endblock %}
+
+{% block title %}Fluorescent Protein Properties Table{% endblock %}
+
+
+{% block main-container %}
+	<div class="table attributes">
+
+		<div class="attributes">
+
+			<h3>Fluorescent Proteins</h3>
+
+			<div class="table-bordered table-responsive">
+				<table class="table table-striped tablesorter" id="proteinTable">
+					<thead>
+						<tr class="table-header">
+							<th data-sortable="true" >Name</th>
+							<th data-sortable="true" >&lambda;<sub>ex</sub></th>
+				  			<th data-sortable="true" >&lambda;<sub>em</sub></th>
+				  			<th data-sortable="true" class="hidden-xs hidden-sm">Stokes</th>
+				  			<th data-sortable="true" >EC</th>
+				  			<th data-sortable="true" >QY</th>
+				  			<th data-sortable="true" class="hidden-xs ">Bright</th>
+				  			<th data-sortable="true" >&#1642; EGFP</th>
+				  			<th data-sortable="true" >Bleach</th>
+				  			<th data-sortable="true" class="hidden-xs" >pKa</th>
+				  			<th data-sortable="true" class="hidden-xs" >Agg</th>
+				  			<th data-sortable="true" class="hidden-xs hidden-sm" >Maturation</th>
+				  			<th data-sortable="true" class="hidden-xs hidden-sm" >Lifetime</th>
+						</tr>
+					</thead>
+					<tbody>
+					{% for protein in proteins %}
+						<tr class="data">
+							<td class="col protein" data-field='Name'><a href="{{ protein.get_absolute_url }}">{{ protein.name}}</a></td>
+							<td class="col numeric" data-field='&lambda;<sub>ex</sub>'>{{ protein.default_state.ex_max | default_if_none:"-" }}</td>
+							<td class="col numeric" data-field='&lambda;<sub>em</sub>'>{{ protein.default_state.em_max | default_if_none:"-" }}</td>
+							<td class="col numeric hidden-xs hidden-sm" data-field='Stokes'>{{ protein.default_state.stokes | default:"-" }}</td>
+							<td class="col numeric" data-field='EC'>{{ protein.default_state.ext_coeff | default_if_none:"-" }}</td>
+							<td class="col numeric" data-field='QY'>{{ protein.default_state.qy | default_if_none:"-" }}</td>
+							<td class="col numeric hidden-xs" data-field='brightness'>{{ protein.default_state.brightness | default:"-" }}</td>
+							<td class="col numeric" data-field='brightness'>{{ protein.default_state.bright_rel_egfp | default:"-" }}</td>
+							<td class="col numeric" data-field='bleaching'>{{ protein.default_state.bleach_wide | default_if_none:"-" }}</td>
+							<td class="col numeric hidden-xs" data-field='pka'>{{ protein.default_state.pka | default_if_none:"-" }}</td>
+							<td class="col numeric hidden-xs" data-field='agg'>{{ protein.agg | default_if_none:"-" }}</td>
+							<td class="col numeric hidden-xs hidden-sm" data-field='maturation'>{{ protein.default_state.maturation | default_if_none:"-" }}</td>
+							<td class="col numeric hidden-xs hidden-sm" data-field='lifetime'>{{ protein.default_state.lifetime | default_if_none:"-" }}</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+
+			</div>
+
+		</div>
+
+
+		<div class="additional-ref references">
+			<h3>Additional References</h3>
+			{% if protein.references.all < 1 %}
+				<a>add one</a>
+				{% endif%}
+			<ol>
+				{% for ref in protein.references.all %}
+					<li><h4>{{ ref.title }}</h4>
+					<p>
+						{% for author in ref.author_list %}
+							{{ author }},
+						{% endfor %}
+					</p>
+					<p>
+						<em>{{ ref.journal }}.</em> {{ ref.so }} <a href="http://dx.doi.org/{{ ref.doi }}">doi: {{ ref.doi }}</a>
+					</p>
+					</li>
+				{% endfor %}
+			</ol>
+
+		</div>
+
+	</div>
+{% endblock %}
+
+
+{% block extra_foot %}
+<script src="{% static "js/jquery.tablesorter.min.js" %}"> </script>
+<script>
+	$(function(){
+		$("#proteinTable").tablesorter();
+		g =
+		$.getJSON('/dump/', function(data) {
+		  console.log(data);
+		});
+});
+
+</script>
+{% endblock	%}
+
+
+

@@ -1,0 +1,43 @@
+{% extends '__base.html' %}
+{% load crispy_forms_tags %}
+{% load bootstrap4 %}
+
+{% block main-container %}
+
+    <h2>Search</h2>
+
+        {% crispy form %}
+
+
+            <h3>Results</h3>
+
+            <ul class="row" style="list-style: none">
+            {% for protein in proteins %}
+                <a href="{% url 'single-protein' protein.slug %}">
+                <li class="protein_search_item col-lg-2 col-md-2 col-sm-3 col-xs-4" style="
+                min-width:210px;
+                float:left;
+                border: 2px solid green;
+                margin: 5px;
+                padding: 0px 10px 20px;
+                text-align: center;">
+                    <h3>{{ protein.name }}</h3>
+                    {{ protein.default_state.ex_max }} / {{ protein.default_state.em_max }}
+                </li></a>
+            {% empty %}
+                <p>No results found.</p>
+            {% endfor %}
+            </ul>
+
+            {% if page.has_previous or page.has_next %}
+                <div>
+                    {% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}
+                    |
+                    {% if page.has_next %}<a href="?q={{ query }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
+                </div>
+            {% endif %}
+
+
+
+</div>
+{% endblock %}
