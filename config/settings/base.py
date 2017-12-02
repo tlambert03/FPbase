@@ -56,6 +56,8 @@ LOCAL_APPS = [
     # custom users app
     'fpbase.users.apps.UsersConfig',
     # Your stuff: custom apps go here
+    'proteins.apps.ProteinsConfig',
+    'references.apps.ReferencesConfig',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
