@@ -4387,7 +4387,7 @@ body {
   /* For at least Firefox */
   min-height: 100%;
   box-shadow: inset 1rem 1rem 8rem rgba(0, 0, 0, 0.15); }
-  @media (max-width: 575px) {
+  @media (max-width: 767px) {
     .cover-wrapper {
       background: url(../images/blurry_egfp.png) no-repeat center center; } }
 
@@ -4403,7 +4403,7 @@ body {
   padding: 32px;
   padding: 2rem; }
 
-@media (max-width: 575px) {
+@media (max-width: 767px) {
   .protein-image {
     display: none; } }
 
@@ -4448,9 +4448,6 @@ body {
           color: rgba(255, 255, 255, 0.5); }
         .search-col .home-search input::placeholder {
           color: rgba(255, 255, 255, 0.5); } }
-  @media (max-width: 575px) {
-    .search-col .home-search {
-      background-color: rgba(255, 255, 255, 0.4); } }
   .search-col .home-search button {
     background: rgba(255, 255, 255, 0);
     border-radius: 10rem;

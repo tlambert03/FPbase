@@ -21,8 +21,8 @@ body{
   width: 100%;
   height: 100%; /* For at least Firefox */
   min-height: 100%;
-  box-shadow: inset 1rem 1rem 8rem rgba(0,0,0,.15);
-  @include media-breakpoint-down(xs) {
+  box-shadow: inset 1rem 1rem 8rem rgba($black,0.15);
+  @include media-breakpoint-down(sm) {
     background: url(../images/blurry_egfp.png) no-repeat center center;
   }
 }
@@ -39,12 +39,12 @@ body{
 }
 
 .protein-image{
-  @include media-breakpoint-down(xs) {
+  @include media-breakpoint-down(sm) {
     display:none;
   }
 }
 
-$search-colors: rgba(255,255,255,0.4);
+$search-colors: rgba($white,0.4);
 
 .search-col{
   .cover-heading {
@@ -60,7 +60,7 @@ $search-colors: rgba(255,255,255,0.4);
     }
   }
   .home-search{
-    background-color: rgba(255,255,255,0.25);
+    background-color: rgba($white,0.25);
     border-radius: 10rem;
     // the search form itself
     input{
@@ -83,9 +83,7 @@ $search-colors: rgba(255,255,255,0.4);
         }
       }
     }
-    @include media-breakpoint-down(xs) {
-      background-color: rgba($white,0.4);
-    }
+
     // the little looking-glass search button
     button{
       background: rgba($white, 0.0);
