@@ -4387,15 +4387,16 @@ body {
   /* For at least Firefox */
   min-height: 100%;
   box-shadow: inset 1rem 1rem 8rem rgba(0, 0, 0, 0.15); }
-  @media (max-width: 767px) {
-    .cover-wrapper {
-      background: url("/static/images/blurry_egfp.png") no-repeat center center; } }
 
 .cover-wrapper-inner {
   display: table-cell;
   vertical-align: middle;
-  background-image: linear-gradient(160deg, rgba(58, 139, 61, 0.6), rgba(105, 193, 109, 0.6));
+  background-image: linear-gradient(160deg, #3a8b3d, #69c16d);
   background-repeat: repeat-x; }
+  @media (max-width: 767px) {
+    .cover-wrapper-inner {
+      background-image: linear-gradient(160deg, rgba(58, 139, 61, 0.6), rgba(105, 193, 109, 0.6));
+      background-repeat: repeat-x; } }
 
 /* Padding for spacing */
 .cover-container {
@@ -4412,9 +4413,11 @@ body {
   -moz-osx-font-smoothing: grayscale !important;
   color: white;
   font-family: Raleway, sans-serif;
-  font-weight: 300;
+  font-weight: 100;
   font-size: 40px;
-  font-size: 2.5rem; }
+  font-size: 2.5rem;
+  margin-left: -12.8px;
+  margin-left: -0.8rem; }
   @media (max-width: 767px) {
     .search-col .cover-heading {
       font-size: 2rem;

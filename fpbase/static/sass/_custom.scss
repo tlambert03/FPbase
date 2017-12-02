@@ -22,14 +22,14 @@ body{
   height: 100%; /* For at least Firefox */
   min-height: 100%;
   box-shadow: inset 1rem 1rem 8rem rgba($black,0.15);
-  @include media-breakpoint-down(sm) {
-    background: url("/static/images/blurry_egfp.png") no-repeat center center;
-  }
 }
 .cover-wrapper-inner {
   display: table-cell;
   vertical-align: middle;
-  @include gradient-directional(rgba(darken($primary,5%), 0.6), rgba(lighten($primary, 15%),0.6), 160deg);
+  @include gradient-directional(rgba(darken($primary,5%), 1), rgba(lighten($primary, 15%),1), 160deg);
+  @include media-breakpoint-down(sm) {
+    @include gradient-directional(rgba(darken($primary,5%), 0.6), rgba(lighten($primary, 15%),0.6), 160deg);
+  }
 }
 
 /* Padding for spacing */
@@ -52,8 +52,9 @@ $search-colors: rgba($white,0.4);
     -moz-osx-font-smoothing: grayscale !important;
     color: white;
     font-family: Raleway, sans-serif;
-    font-weight: 300;
+    font-weight:100;
     font-size: 2.5rem;
+    margin-left:-0.8rem;
     @include media-breakpoint-down(sm) {
       font-size: 2rem;
       margin-top: 2rem;
