@@ -1,0 +1,26 @@
+.navbar {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+
+  .navbar-brand{
+      span{
+        font-size: 2.5rem;
+        font-weight: 100;
+        font-family: Raleway, sans-serif !important;
+        color: $logo-color;
+        @include media-breakpoint-down(sm) { font-size: 2rem }
+        &.brand-FP{
+        font-weight: 600;
+        margin-left: -0.8rem;
+        @include media-breakpoint-down(sm) { font-size: 2rem }
+      }
+    }
+    .logo-svg{
+      fill: $logo-color;
+      fill-rule: evenodd;
+      height: 2.6rem;
+      padding-top: .8rem;
+      @include media-breakpoint-down(sm) { height: 2.2rem; }
+    }
+  }
+}

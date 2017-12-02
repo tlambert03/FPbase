@@ -1,0 +1,108 @@
+
+
+/*
+ * Base structure
+ */
+
+html{
+  height: 100vh;
+}
+
+body{
+  @extend html;
+  @include gradient-directional(darken($primary,5%), lighten($primary, 15%), 160deg);
+  //text-shadow: 0 .05rem .1rem rgba(0,0,0,.2);
+}
+
+
+/* Extra markup and styles for table-esque vertical and horizontal centering */
+.cover-wrapper {
+  display: table;
+  width: 100%;
+  height: 100%; /* For at least Firefox */
+  min-height: 100%;
+  box-shadow: inset 1rem 1rem 8rem rgba(0,0,0,.15);
+  @include media-breakpoint-down(xs) {
+    background: url(../images/blurry_egfp.png) no-repeat center center;
+  }
+}
+.cover-wrapper-inner {
+  display: table-cell;
+  vertical-align: middle;
+  @include gradient-directional(rgba(darken($primary,5%), 0.6), rgba(lighten($primary, 15%),0.6), 160deg);
+}
+
+/* Padding for spacing */
+.cover-container {
+  font-family: Raleway;
+  padding: 2rem;
+}
+
+.protein-image{
+  @include media-breakpoint-down(xs) {
+    display:none;
+  }
+}
+
+$search-colors: rgba(255,255,255,0.4);
+
+.search-col{
+  .cover-heading {
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    color: white;
+    font-family: Raleway, sans-serif;
+    font-weight: 300;
+    font-size: 2.5rem;
+    @include media-breakpoint-down(sm) {
+      font-size: 2rem;
+      margin-top: 2rem;
+    }
+  }
+  .home-search{
+    background-color: rgba(255,255,255,0.25);
+    border-radius: 10rem;
+    // the search form itself
+    input{
+      background-color:transparent;
+      border: none;
+      color:white;
+      font-size:1.2rem;
+      padding-left:1.2rem;
+      @include media-breakpoint-down(sm) {
+        font-size:1rem;
+      }
+      @include media-breakpoint-down(xs) {
+        text-align: center;
+      }
+      &::placeholder {
+        color:$search-colors;
+        font-weight: 100;
+        @include media-breakpoint-down(xs) {
+          color: rgba($white,0.5);
+        }
+      }
+    }
+    @include media-breakpoint-down(xs) {
+      background-color: rgba($white,0.4);
+    }
+    // the little looking-glass search button
+    button{
+      background: rgba($white, 0.0);
+      border-radius: 10rem;
+      border: none;
+      //margin-right:.1rem;
+      &.fa-search:before {
+        color: rgba($white,0.75);
+      }
+      &:hover{
+        background: rgba($white, 0.2);
+      }
+    }
+  }
+  .advanced-search a{
+    color: rgba($white, 0.5);
+    font-size: 0.9rem;
+    padding-right: 0.7rem;
+  }
+}
