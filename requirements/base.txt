@@ -51,3 +51,9 @@ django-compressor==2.2
 
 
 # Your custom requirements go here
+
+# for publication searching
+metapub==0.4.3.6
+# for pub search and protein processing
+biopython==1.70
+
