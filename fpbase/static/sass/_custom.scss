@@ -4,16 +4,6 @@
  * Base structure
  */
 
-html{
-  height: 100vh;
-}
-
-body{
-  @extend html;
-  @include gradient-directional(darken($primary,5%), lighten($primary, 15%), 160deg);
-  //text-shadow: 0 .05rem .1rem rgba(0,0,0,.2);
-}
-
 
 /* Extra markup and styles for table-esque vertical and horizontal centering */
 .cover-wrapper {
@@ -38,9 +28,14 @@ body{
   padding: 2rem;
 }
 
-.protein-image{
+#protein-image{
+  display: block;
+  height:420px;
   @include media-breakpoint-down(sm) {
     display:none;
+  }
+  @include media-breakpoint-down(md) {
+    height:340px;
   }
 }
 

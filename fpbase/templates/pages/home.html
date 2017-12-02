@@ -1,80 +1,56 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
+
+{% block extrahead %}
+<style>
+body,
+html {
+	height: 100vh;
+}
+
+body {
+	background-image: linear-gradient(160deg, #3a8b3d, #69c16d);
+	text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .2);
+}
+</style>
+{% endblock extrahead %}
 
 {% block body %}
-
 <div class="cover-wrapper" style='background: url("/static/images/blurry_egfp.png") no-repeat center center'>
-
-            <div class="cover-wrapper-inner">
-
-              <nav class="navbar navbar-expand-sm navbar-dark bg-transparent fixed-top">
-                <div class="container">
-                  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
-                      <span class="navbar-toggler-icon"></span>
-                  </button>
-                    <!-- Brand -->
-                    <a class="navbar-brand" href="#">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="logo-svg" viewBox="0 0 2947 1061">
-                        <path d="M2947,1060.88s-624.57-60.18-1103.06-405.741C1525.93,409.081,1419.45-13.191,1341.92.314c-95.24,10.978-78.62,259.289-202.86,656.871-130.38,402.445-420.5,403.7-420.5,403.7H2947Zm-1445.59,0s-201.41-.43-287.43-335.216C1110.65,323.49,1096.05,1,1047.32,1.221,977.2,1.535,902.926,557.3,647.811,769.037,308.211,1050.89,0,1060.88,0,1060.88H1501.41Z" style="&#10;    background: red;&#10;"/>
-                      </svg>
-                      <span class='brand-FP'>FP</span><span class='brand-base'>base</span>
-                    </a>
-
-                    <!-- Links -->
-                    <div class="collapse navbar-collapse" id="collapsingNavbar">
-                      <ul class="nav navbar-nav ml-auto w-100 justify-content-end">
-                        <li class="nav-item dropdown">
-                          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            explore
-                          </a>
-                          <div class="dropdown-menu  bg-transparent" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="#">advanced search</a>
-                            <a class="dropdown-item" href="#">interactive chart</a>
-                            <a class="dropdown-item" href="#">table</a>
-
-                          </div>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="#">sign up</a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="#">log in</a>
-                        </li>
-                      </ul>
-                    </div>
-                </div>
-              </nav>
-
-                <main role="main" class="cover-container container">
-                  <div class="row">
-                    <div class="col-md-7 align-self-center text-center search-col order-sm-2 search-col" style="display: none;">
-                      <p class="cover-heading">Find a Protein</h1>
-                        <div class="input-group home-search">
-                          <input type="text" class="form-control" placeholder="protein or accession id...">
-                          <span class="input-group-btn">
-                            <button class="btn btn-secondary fa fa-search" type="button"></button>
-                          </span>
-                        </div>
-                      <p class="m-t-4 advanced-search"><a href="#">advanced search</a></p>
-                    </div>
-
-                    <div class="col-md-4 align-self-center order-sm-1 protein-image">
-                      <img src="{% static 'images/blurry_egfp.png' %}" style="display: none;" class="img-fluid" alt="EGFP image">
-                    </div>
-                  </div>
-                </main>
-
-            </div> <!-- cover-wrapper-inner -->
-
-          </div><!-- cover-wrapper -->
-
+	<div class="cover-wrapper-inner">
+		<nav class="navbar navbar-expand-sm navbar-dark bg-transparent fixed-top">
+			{% block navcontainer %} {% include "_nav.html" %} {% endblock navcontainer %}
+		</nav>
+		<main role="main" class="cover-container container">
+			<div class="row">
+				<div class="col-md-7 align-self-center text-center search-col order-sm-2 search-col" style="display: none;">
+					<p class="cover-heading">Find a Protein</h1>
+						<div class="input-group home-search">
+							<input type="text" class="form-control" placeholder="protein or accession id...">
+							<span class="input-group-btn">
+								<button class="btn btn-secondary fa fa-search" type="button"></button>
+							</span>
+						</div>
+					<p class="m-t-4 advanced-search"><a href="#">advanced search</a></p>
+				</div>
+				<div class="col-md-4 align-self-center order-sm-1" id="protein-image">
+					<img src="{% static 'images/blurry_egfp.png' %}" style="position: absolute;" class="img-fluid no-glow" alt="EGFP image">
+					<img src="{% static 'images/blurry_egfp_glow.png' %}" style="display: none; position: absolute;" class="img-fluid glow" alt="EGFP image">
+				</div>
+			</div>
+		</main>
+	</div>
+	<!-- cover-wrapper-inner -->
+</div>
+<!-- cover-wrapper -->
 {% endblock body %}
 
 {% block javascript %}
 <script type="text/javascript">
-  $(document).ready(function() {
-    $(".search-col").fadeIn(600)
-    $(".protein-image img").fadeIn(2000)
-  });
+	$(document).ready(function() {
+		$(".search-col").fadeIn(600)
+		$("#protein-image img.no-glow").fadeOut(2400)
+		$("#protein-image img.glow").fadeIn(2400)
+	});
 </script>
 {% endblock javascript %}

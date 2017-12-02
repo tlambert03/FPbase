@@ -27,14 +27,20 @@
     {% endcompress %}
     {% endblock %}
 
+    {% block extrahead %}
+    {% endblock extrahead %}
   </head>
 
   <body>
     {% block body %}
 
-    {% block navbar %}
-        {% include "_nav.html" %}
-    {% endblock %}
+    <div class="mb-4">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
+          {% block navcontainer %}
+              {% include "_nav.html" %}
+          {% endblock navcontainer %}
+        </nav>
+    </div>
 
 
     <div class="container">
