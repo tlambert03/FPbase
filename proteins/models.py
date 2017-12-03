@@ -44,7 +44,6 @@ SWITCHING_CHOICES = (
 
 
 def wave_to_hex(wavelength, gamma=0.8):
-
     '''This converts a given wavelength into an approximate RGB value.
     The given wavelength is in nanometers.
     The range of wavelength is 380 nm through 750 nm.
@@ -490,6 +489,20 @@ class State(models.Model):
     @property
     def nvd3em(self):
         return self.nvd3dict('em')
+
+    @property
+    def emhex(self):
+        if self.em_max and self.em_max > 0:
+            return wave_to_hex(self.em_max)
+        else:
+            return '#000'
+
+    @property
+    def exhex(self):
+        if self.ex_max and self.ex_max > 0:
+            return wave_to_hex(self.ex_max)
+        else:
+            return '#000'
 
     # Methods
     def has_spectra(self):
