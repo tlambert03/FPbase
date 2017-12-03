@@ -1,61 +1,26 @@
 //Spectra page
 //-----------------
 
-path.line {
-  stroke-width:1px;
-  opacity: .9;
+path.nv-line {
+  stroke-width: .06rem;
+  opacity: .6;
   fill:none;
 }
 
-.axis text {
-    font-family: sans-serif;
+.nv-axis text {
+    //font-family: sans-serif;
     font-size: 11px;
 }
 
-.axis line, .axis path {
+.nv-line, .nv-axis path {
     fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
+    //stroke: #000;
+    //shape-rendering: crispEdges;
 }
 
-.x.axis path {
-    stroke-width:2px;
+path.nv-area {
+  opacity: 0.8;
 }
-
-.arrow {
-  stroke: #000;
-  stroke-width: 1.5px;
-}
-
-.outer,
-.inner {
-  shape-rendering: crispEdges;
-}
-
-.outer {
-  fill: none;
-  stroke: #000;
-}
-
-.inner {
-  fill: #ccc;
-  stroke: #000;
-  stroke-dasharray: 3, 4;
-}
-
-path.area {
-  opacity: .6;
-}
-
-
-.grid .tick {
-    stroke: lightgrey;
-    opacity: 0.6;
-}
-.grid path {
-      stroke-width: 0;
-}
-
 
 
 /* hides NVD3 gridlines */
@@ -70,7 +35,6 @@ path.area {
 #spectra .nvd3 .nv-axis .nv-axisMaxMin text {
   font-weight: normal;
 }
-
 
 
 #spectra {

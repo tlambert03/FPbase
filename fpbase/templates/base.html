@@ -32,7 +32,7 @@
     {% endblock extrahead %}
   </head>
 
-  <body>
+  <body class="{% block body-class %}{% endblock %}">
     {% block body %}
 
     <div class="mb-4">

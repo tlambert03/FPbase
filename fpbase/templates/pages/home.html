@@ -2,19 +2,9 @@
 {% load static i18n %}
 
 {% block extrahead %}
-<style>
-body,
-html {
-	height: 100vh;
-}
-
-body {
-	background-image: linear-gradient(160deg, #3a8b3d, #69c16d);
-	text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .2);
-}
-</style>
 {% endblock extrahead %}
 
+{% block body-class %}home-body{% endblock body-class %}
 {% block body %}
 <div class="cover-wrapper" style='background: url("/static/images/blurry_egfp.png") no-repeat center center'>
 	<div class="cover-wrapper-inner">

@@ -18,8 +18,7 @@
 
 /* Padding for spacing */
 .cover-container {
-  font-family: Raleway;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 #protein-image{
@@ -40,7 +39,7 @@ $search-colors: rgba($white,0.4);
     -webkit-font-smoothing: antialiased !important;
     -moz-osx-font-smoothing: grayscale !important;
     color: white;
-    font-family: Raleway, sans-serif;
+    //font-family: Raleway, sans-serif;
     font-weight:100;
     font-size: 2.5rem;
     margin-left:-0.8rem;
@@ -58,17 +57,17 @@ $search-colors: rgba($white,0.4);
       background-color:transparent;
       border: none;
       color:white;
-      font-size:1.2rem;
+      font-size:1.1rem;
       padding-left:1.2rem;
       padding-top: 0.3rem;
       padding-bottom: 0.3rem;
-      font-weight: 300;
+//      font-weight: 500;
       @include media-breakpoint-down(xs) {
         text-align: center;
       }
       &::placeholder {
-        color:$search-colors;
-        font-weight: 300;
+        color: rgba($white,0.5);
+//        font-weight: 300;
         @include media-breakpoint-down(xs) {
           color: rgba($white,0.8);
         }
@@ -105,6 +104,16 @@ $search-colors: rgba($white,0.4);
         font-size: 1rem;
         text-align: center;
       }
+      &:hover{
+        color: rgba(white,0.9);
+        text-decoration: none;
+        text-shadow: 0 0rem 1rem rgba(black, 0.1);
+      }
     }
   }
+}
+
+.home-body{
+  height: 100vh;
+  @include gradient-directional(rgba(darken($primary,5%), 1), rgba(lighten($primary, 15%),1), 160deg);
 }

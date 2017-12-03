@@ -1,6 +1,6 @@
 // fonts
 
-@import url('https://fonts.googleapis.com/css?family=Roboto:100,300');
+//@import url('https://fonts.googleapis.com/css?family=Roboto:100,300');
 @import url('https://fonts.googleapis.com/css?family=Raleway:100,600');
 
 
@@ -62,7 +62,7 @@ $colors: map-merge((
   "gray-dark":  $gray-800
 ), $colors);
 
-$primary:       $green !default;
+$primary:       saturate($green, 10%) !default;
 $secondary:     $blue !default;
 $success:       $green !default;
 $info:          $cyan !default;
@@ -94,6 +94,6 @@ $dropdown-bg: $white;
 $dropdown-link-hover-bg: rgba($primary,0.3);
 $dropdown-box-shadow: 0 0.5rem 1rem rgba(black, .15);
 
-$navbar-dark-color:                 rgba($white,.75) ;
-$navbar-dark-hover-color:           rgba($white,.9) ;
+$navbar-dark-color:        rgba($white,.8) ;
+$navbar-dark-hover-color:  rgba($white,.95) ;
 
