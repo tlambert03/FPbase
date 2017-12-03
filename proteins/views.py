@@ -41,6 +41,9 @@ def search(request):
             # proteins = [Protein.objects.get(id=record['external_id']) for record in query['records']['proteins']]
         #    id_list = [record['external_id'] for record in query['records']['proteins']]
         proteins = Protein.objects.filter(name__icontains=request.GET['q'])
+        # if there's only a single result, just go to that page
+        if proteins.count() == 1:
+            return single_protein(request, proteins.first().slug)
         form = ProteinSearchForm(
             initial={'name': q, 'ex_range': '10', 'em_range': '10'}
         )
@@ -75,8 +78,10 @@ def search(request):
                 else:
                     r = 5
                 proteins = proteins.filter(states__em_max__lte=(m+r), states__em_max__gte=(m-r))
-
-            return render(request, 'search.html', {'proteins': proteins, 'form': form})
+            # if there's only a single result, just go to that page
+            if proteins.count() == 1:
+                return single_protein(request, proteins.first().slug)
+            return render(request, 'search.html', {'proteins': proteins.order_by('default_state__em_max'), 'form': form})
         else:
             return render(request, 'search.html', {'form': form})
     else:
