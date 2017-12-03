@@ -1,7 +1,7 @@
 import pandas as pd
 from proteins.models import Protein, State, BASIC, StateTransition
 from references.models import Reference
-from django.contrib.auth.models import User
+from fpbase.users.models import User
 from django.template.defaultfilters import slugify
 import traceback
 from metapub import CrossRef, PubMedFetcher
@@ -329,8 +329,8 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
         return None
 
     print("Found protein with ID {}: {}".format(ipg_uid, prot_name))
-    prot_count = docsum.find('ProteinCount').text
-    #assert prot_count == '1', 'Non-unique result returned'
+    # prot_count = docsum.find('ProteinCount').text
+    # assert prot_count == '1', 'Non-unique result returned'
     seq_len = docsum.find('Slen').text
     accession = docsum.find('Accession').text
     with Entrez.efetch(db='protein', id=accession, retmode='xml') as handle:

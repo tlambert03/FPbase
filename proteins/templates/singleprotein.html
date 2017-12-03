@@ -1,16 +1,16 @@
-{% extends "__base.html" %}
+{% extends "base.html" %}
 {% load static %}
-
-{% block extra_head %}
-{% endblock %}
 
 {% block page-title %}FPbase: {{ protein.name  }} {% endblock %}
 
+{% block vendorcss %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+{% endblock vendorcss %}
 {% block container-class %}protein{% endblock %}
 
-{% block main-container %}
+{% block content %}
 
-		<h1 class="name">{{ protein.name }}</h1>
+		<h1 class="name display-4">{{ protein.name }}</h1>
 
 		<div class="spectra">
 			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
@@ -29,7 +29,7 @@
 				  			<th>Em &lambda;</th>
 				  			<th>EC</th>
 				  			<th>QY</th>
-				  			<th>Brightness</th>
+				  			<th class='d-none d-md-block'>Brightness</th>
 				  			<th>pKa</th>
 						</tr>
 					</thead>
@@ -43,7 +43,7 @@
 				  			<td data-title="Em &lambda;">{{ state.em_max | default:"&nbsp;"}}</td>
 				  			<td data-title="EC">{{ state.ext_coeff | default:"&nbsp;"}}</td>
 				  			<td data-title="QY">{{ state.qy | default:"&nbsp;"}}</td>
-				  			<td data-title="Brightness">{{ state.brightness | default:"&nbsp;"}}</td>
+				  			<td data-title="Brightness" class='d-none d-md-block'>{{ state.brightness | default:"&nbsp;"}}</td>
 				  			<td data-title="pKa">{{ state.pka | default:"&nbsp;"}}</td>
 						</tr>
 					{% endfor %}
@@ -89,8 +89,8 @@
 		<div class="primary-ref references">
 			<h3>Primary Reference</h3>
 			<h4>{{ protein.primary_reference.title }}</h4>
-			<p>
-				{% for author in protein.primary_reference.author_list %}
+			<p class='authorlist'>
+				{% for author in protein.primary_reference.authors.all %}
 					{{ author }},
 				{% endfor %}
 			</p>
@@ -109,7 +109,7 @@
 			<ol>
 				{% for ref in protein.references.all %}
 					<li><h4>{{ ref.title }}</h4>
-					<p>
+					<p class='authorlist'>
 						{% for author in ref.authors.all %}
 							{{ author }},
 						{% endfor %}
@@ -124,17 +124,14 @@
 		</div>
 
 	</div>
-{% endblock %}
-
-
-{% block foot-js %}
-    <script src="{% static "js/d3.v3.min.js" %}" charset="utf-8"></script>
-    <script src="{% static "js/nv.d3.min.js" %}"> </script>
-    <script src="{% static "js/nvd3spectra.js" %}"> </script>
-{% endblock %}
+{% endblock content %}
 
 
 {% block js-onpage %}
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+    <script src="{% static "js/nvd3spectra.js" %}"> </script>
+
     {% if protein.has_spectra %}
         <script>
             var myData = {{ spectra|safe }};

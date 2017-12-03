@@ -1,10 +1,4 @@
 
-
-/*
- * Base structure
- */
-
-
 /* Extra markup and styles for table-esque vertical and horizontal centering */
 .cover-wrapper {
   display: table;
@@ -60,6 +54,7 @@ $search-colors: rgba($white,0.4);
     border-radius: 10rem;
     // the search form itself
     input{
+      box-shadow: none;
       background-color:transparent;
       border: none;
       color:white;
@@ -82,6 +77,7 @@ $search-colors: rgba($white,0.4);
 
     // the little looking-glass search button
     button{
+      box-shadow: none;
       background: rgba($white, 0.0);
       border-radius: 10rem;
       border: none;
@@ -100,7 +96,7 @@ $search-colors: rgba($white,0.4);
       text-align: center;
     }
     a {
-      color: rgba($white, 0.5);
+      color: rgba($white, 0.65);
       font-size: 0.9rem;
       padding-right: 0.7rem;
       line-height: 2rem;

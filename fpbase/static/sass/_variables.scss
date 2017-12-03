@@ -34,7 +34,7 @@ $grays: map-merge((
   "900": $gray-900
 ), $grays);
 
-$blue:    #007bff !default;
+$blue:    #3085d6 !default;
 $indigo:  #6610f2 !default;
 $purple:  #6f42c1 !default;
 $pink:    #e83e8c !default;
@@ -63,7 +63,7 @@ $colors: map-merge((
 ), $colors);
 
 $primary:       $green !default;
-$secondary:     $gray-600 !default;
+$secondary:     $blue !default;
 $success:       $green !default;
 $info:          $cyan !default;
 $warning:       $yellow !default;
@@ -89,4 +89,11 @@ $theme-colors: map-merge((
 
 $headings-font-weight: 100;
 $headings-color: $primary;
-$logo-color: #efe;
+
+$dropdown-bg: $white;
+$dropdown-link-hover-bg: rgba($primary,0.3);
+$dropdown-box-shadow: 0 0.5rem 1rem rgba(black, .15);
+
+$navbar-dark-color:                 rgba($white,.75) ;
+$navbar-dark-hover-color:           rgba($white,.9) ;
+

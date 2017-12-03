@@ -1,0 +1,88 @@
+//Spectra page
+//-----------------
+
+path.line {
+  stroke-width:1px;
+  opacity: .9;
+  fill:none;
+}
+
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+.axis line, .axis path {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.x.axis path {
+    stroke-width:2px;
+}
+
+.arrow {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.outer,
+.inner {
+  shape-rendering: crispEdges;
+}
+
+.outer {
+  fill: none;
+  stroke: #000;
+}
+
+.inner {
+  fill: #ccc;
+  stroke: #000;
+  stroke-dasharray: 3, 4;
+}
+
+path.area {
+  opacity: .6;
+}
+
+
+.grid .tick {
+    stroke: lightgrey;
+    opacity: 0.6;
+}
+.grid path {
+      stroke-width: 0;
+}
+
+
+
+/* hides NVD3 gridlines */
+#spectra .tick line {display: none;}
+
+/* change opacity of spectrum paths */
+
+#spectra .nv-group {
+  fill-opacity: .6 !important;
+}
+
+#spectra .nvd3 .nv-axis .nv-axisMaxMin text {
+  font-weight: normal;
+}
+
+
+
+#spectra {
+  height: 150px;
+  @include media-breakpoint-up(xs){ height: 140px; }
+  @include media-breakpoint-up(sm){ height: 190px; }
+  @include media-breakpoint-up(md){ height: 240px; }
+}
+
+svg.nvd3-svg {
+  width:100%;
+  @include media-breakpoint-up(xs){ height: 170px; }
+  @include media-breakpoint-up(sm){ height: 230px; }
+  @include media-breakpoint-up(md){ height: 270px; }
+}

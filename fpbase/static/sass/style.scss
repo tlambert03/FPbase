@@ -2,7 +2,6 @@
 // Option B: Include parts of Bootstrap
 
 @import "options"; // my overrides
-
 // Required
 @import "../../../node_modules/bootstrap/scss/functions";
 @import "variables"; // my overrides
@@ -17,7 +16,7 @@
 @import "../../../node_modules/bootstrap/scss/images";			//*
 // @import "../../../node_modules/bootstrap/scss/code";				//*
 @import "../../../node_modules/bootstrap/scss/grid";				//*
-// @import "../../../node_modules/bootstrap/scss/tables";
+@import "../../../node_modules/bootstrap/scss/tables";
 @import "../../../node_modules/bootstrap/scss/forms";
 @import "../../../node_modules/bootstrap/scss/buttons";
 @import "../../../node_modules/bootstrap/scss/transitions";
@@ -32,7 +31,7 @@
 // @import "../../../node_modules/bootstrap/scss/pagination";
 // @import "../../../node_modules/bootstrap/scss/badge";
 // @import "../../../node_modules/bootstrap/scss/jumbotron";
-// @import "../../../node_modules/bootstrap/scss/alert";
+@import "../../../node_modules/bootstrap/scss/alert";
 // @import "../../../node_modules/bootstrap/scss/progress";
 // @import "../../../node_modules/bootstrap/scss/media";
 // @import "../../../node_modules/bootstrap/scss/list-group";
@@ -43,9 +42,11 @@
 // @import "../../../node_modules/bootstrap/scss/carousel";
 @import "../../../node_modules/bootstrap/scss/utilities";
 
-
-@import "custom";
+@import "main";
+@import "home";
 @import "nav";
+@import "protein";
+@import "spectra";
 
 
 ////////////////////////////////

@@ -20,6 +20,7 @@
     {% block css %}
     <!-- Your stuff: Third-party CSS libraries go here -->
     <link rel='stylesheet' href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    {% block vendorcss %}{% endblock vendorcss %}
 
     {% compress css %}
     <!-- This file stores project-specific CSS -->
@@ -43,7 +44,7 @@
     </div>
 
 
-    <div class="container">
+    <div class="container {% block container-class %}{% endblock %}">
 
       {% if messages %}
           {% for message in messages %}
@@ -79,9 +80,18 @@
       {% compress js %}
       <script src="{% static 'js/project.js' %}"></script>
       {% endcompress %}
-    {% block javascript %}
 
-    {% endblock javascript %}
+      <script type="text/javascript">
+          $(document).ready(function() {
+              {% block jquery-docready %}{% endblock %}
+          });
+          $(window).on('load', function() {
+              {% block jquery-winload %}{% endblock %}
+          });
+      </script>
+
+      {% block js-onpage %}{% endblock %}
+
   </body>
 </html>
 
