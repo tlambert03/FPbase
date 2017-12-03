@@ -201,7 +201,9 @@ def importPSFPs(file=None):
 
 def importSeqs(file=None):
     if file is None:
-        url = '~/Library/Mobile Documents/com~apple~CloudDocs/Code/fpbase/_data/FPseqs.csv'
+        import os
+        basedir = os.path.dirname(os.path.dirname(__file__))
+        url = os.path.join(basedir, '_data/FPseqs.csv')
         df = pd.read_csv(url)
     else:
         df = pd.read_csv(file)
@@ -234,7 +236,10 @@ def importSeqs(file=None):
 
 def importSpectra(file=None):
     if file is None:
-        url = '~/Library/Mobile Documents/com~apple~CloudDocs/Code/fpbase/_data/FLUOR.csv'
+        import os
+        basedir = os.path.dirname(os.path.dirname(__file__))
+        print(basedir)
+        url = os.path.join(basedir, '_data/FLUOR.csv')
         df = pd.read_csv(url)
     else:
         df = pd.read_csv(file)
@@ -260,7 +265,6 @@ def importSpectra(file=None):
                 print(e)
 
     print("Imported {} spectra".format(sp))
-
 
 
 def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochose=10):
@@ -309,7 +313,6 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochose=1
         return None
 
 
-
 def fetch_ipg_sequence(protein_name=None, uid=None):
     """Retrieve protein sequence and IPG ID by name"""
 
@@ -342,9 +345,14 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
     return (ipg_uid, prot_seq)
 
 
-# for P in Protein.objects.all():
-#     Q = fetch_ipg_sequence(P.name)
-#     if Q:
-#         P.seq = Q[1]
-#         P.ipg_id = Q[0]
-#         P.save()
+def reload_all():
+    importCSV()
+    importPSFPs()
+    importSeqs()
+    importSpectra()
+    for P in Protein.objects.all():
+        Q = fetch_ipg_sequence(P.name)
+        if Q:
+            P.seq = Q[1]
+            P.ipg_id = Q[0]
+            P.save()
