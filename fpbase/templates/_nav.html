@@ -14,9 +14,9 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">explore</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                     <a class="dropdown-item" href="{% url 'about' %}">about FPbase</a>
-                    <a class="dropdown-item" href="#">advanced search</a>
+                    <a class="dropdown-item" href="{% url 'search' %}">advanced search</a>
                     <a class="dropdown-item" href="#">interactive chart</a>
-                    <a class="dropdown-item" href="#">table</a>
+                    <a class="dropdown-item" href="{% url 'table' %}">table</a>
                 </div>
             </li>
             {% if request.user.is_authenticated %}

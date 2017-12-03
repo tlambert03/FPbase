@@ -5464,5 +5464,40 @@ svg.nvd3-svg {
     svg.nvd3-svg {
       height: 270px; } }
 
+#proteinTable {
+  font-weight: 500; }
+  #proteinTable td.protein {
+    font-weight: 600; }
+  @media (min-width: 768px) {
+    #proteinTable {
+      font-size: 0.9rem; } }
+  @media (max-width: 991px) {
+    #proteinTable {
+      font-size: .6rem;
+      font-weight: 600; }
+      #proteinTable td.protein a {
+        font-size: 0.8rem; } }
+  @media (max-width: 767px) {
+    #proteinTable {
+      font-weight: 600;
+      font-size: 0.6rem; }
+      #proteinTable td.protein a {
+        font-size: 0.7rem; } }
+
+#proteinTable_length > label, #proteinTable_filter > label {
+  display: -ms-inline-flexbox;
+  display: inline-flex; }
+  #proteinTable_length > label select, #proteinTable_filter > label select {
+    margin: 0 4.8px;
+    margin: 0 0.3rem; }
+
+#proteinTable_info {
+  font-size: 12.8px;
+  font-size: 0.8rem; }
+
+#proteinTable_paginate {
+  font-size: 14.4px;
+  font-size: 0.9rem; }
+
 [hidden][style="display: block;"] {
   display: block !important; }

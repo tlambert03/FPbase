@@ -1,0 +1,45 @@
+#proteinTable {
+
+	font-weight: 500;
+	td.protein{
+		font-weight: 600;
+	}
+	@include media-breakpoint-up(md) {
+		font-size: 0.9rem;
+	}
+	@include media-breakpoint-down(md) {
+		font-size: .6rem;
+		font-weight: 600;
+		td.protein a{
+			font-size: 0.8rem;
+		}
+	}
+	@include media-breakpoint-down(sm) {
+		font-weight: 600;
+		font-size: 0.6rem;
+		td.protein a{
+			font-size: 0.7rem;
+		}
+	}
+}
+
+#proteinTable_length{
+	&>label{
+		display: inline-flex;
+		select {
+			margin: 0 0.3rem;
+		}
+	}
+}
+
+#proteinTable_filter{
+	@extend #proteinTable_length
+}
+
+#proteinTable_info{
+	font-size:0.8rem;
+}
+
+#proteinTable_paginate{
+	font-size:0.9rem;
+}

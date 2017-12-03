@@ -476,11 +476,24 @@ class State(models.Model):
 
     @property
     def bright_rel_egfp(self):
-        return round(float(self.brightness) / .336, 1)
+        try:
+            return round(float(self.brightness) / .336, 1)
+        except TypeError:
+            return None
 
     @property
     def stokes(self):
-        return self.em_max - self.ex_max
+        try:
+            return self.em_max - self.ex_max
+        except TypeError:
+            return None
+
+    @property
+    def bleach(self):
+        try:
+            return self.bleach_measurement.first().rate
+        except AttributeError:
+            return None
 
     @property
     def nvd3ex(self):

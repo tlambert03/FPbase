@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^protein/(.+)/$', proteins.views.single_protein, name='single-protein'),
     url(r'^search/', proteins.views.search, name='search'),
     url(r'^submit/', proteins.views.submit),
+    url(r'^table/', proteins.views.protein_table, name='table'),
 
     # Django Admin, use {% url 'admin:index' %}
     url(settings.ADMIN_URL, admin.site.urls),

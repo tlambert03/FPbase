@@ -21,6 +21,11 @@ def single_protein(request, slug):
     return render(request, 'singleprotein.html', {"protein": protein, "spectra": spectra})
 
 
+def protein_table(request):
+    ''' renders html for single protein page  '''
+    return render(request, 'table.html', {"proteins": Protein.objects.select_related('default_state')})
+
+
 def submit(request):
     form = ProteinSubmitForm()
     return render(request, 'submit.html', {'form': form})
