@@ -201,7 +201,9 @@ def importPSFPs(file=None):
 
 def importSeqs(file=None):
     if file is None:
-        url = '~/Library/Mobile Documents/com~apple~CloudDocs/Code/fpbase/_data/FPseqs.csv'
+        import os
+        basedir = os.path.dirname(os.path.dirname(__file__))
+        url = os.path.join(basedir, '_data/FPseqs.csv')
         df = pd.read_csv(url)
     else:
         df = pd.read_csv(file)
