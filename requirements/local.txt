@@ -17,6 +17,3 @@ ipdb==0.10.3
 
 pytest-django==3.1.2
 pytest-sugar==0.9.0
-
-# for csv reading ... might not need for production
-pandas==0.21.0
