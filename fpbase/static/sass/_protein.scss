@@ -63,5 +63,32 @@
 	}
 }
 
+.protein_results ul {
+//padding-left: 0;
+}
 
-
+.protein_result_item {
+	opacity: 0.75;
+	&:hover{
+		opacity: 1;
+		text-decoration: none;
+		box-shadow: inset 0rem 0rem 3rem rgba($black,0.1);
+		color: white;
+	}
+	min-width: 260px;
+	@include media-breakpoint-up(sm) {
+		min-width: 160px;
+		max-width: 160px;
+	}
+    text-align: center;
+    color: black;
+    border-radius: .6rem;
+    margin:.2rem;
+    padding: 0.6rem 0.3rem;
+    h4{
+    	font-weight: 500;
+    	font-size: 1rem;
+    	color: black;
+    	margin: 0;
+    }
+}

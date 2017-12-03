@@ -1,8 +1,7 @@
-{% extends '__base.html' %}
+{% extends 'base.html' %}
 {% load crispy_forms_tags %}
-{% load bootstrap4 %}
 
-{% block main-container %}
+{% block content %}
 
     <h2>Search</h2>
 
@@ -11,23 +10,41 @@
 
             <h3>Results</h3>
 
-            <ul class="row" style="list-style: none">
-            {% for protein in proteins %}
-                <a href="{% url 'single-protein' protein.slug %}">
-                <li class="protein_search_item col-lg-2 col-md-2 col-sm-3 col-xs-4" style="
-                min-width:210px;
-                float:left;
-                border: 2px solid green;
-                margin: 5px;
-                padding: 0px 10px 20px;
-                text-align: center;">
-                    <h3>{{ protein.name }}</h3>
-                    {{ protein.default_state.ex_max }} / {{ protein.default_state.em_max }}
-                </li></a>
-            {% empty %}
-                <p>No results found.</p>
-            {% endfor %}
-            </ul>
+            <div class="container protein_results">
+                <ul class="row" style="list-style: none">
+                {% for protein in proteins %}
+                    <a href="{% url 'single-protein' protein.slug %}" class="protein_result_item" style="background-color:
+                        {% if protein.default_state %}
+                            {{ protein.default_state.emhex }}
+                        {% else %}
+                            #000
+                        {% endif %};">
+                        <li class="col-sm">
+                            <h4 style="color:
+                            {% if  protein.default_state.em_max > 477 and protein.default_state.em_max < 620 %}
+                                #222
+                            {% else %}
+                                #eee
+                            {% endif %}
+                            ;">
+                            {{ protein.name }}
+                            </h4>
+                            <span class='attributes' style="color:
+                                {% if  protein.default_state.em_max > 477 and protein.default_state.em_max < 620 %}
+                                    #222
+                                {% else %}
+                                    #eee
+                                {% endif %}
+                                ;">
+                                {{ protein.default_state.ex_max }} / {{ protein.default_state.em_max }}
+                            </span>
+                        </li>
+                    </a>
+                {% empty %}
+                    <p>No results found.</p>
+                {% endfor %}
+                </ul>
+            </div>
 
             {% if page.has_previous or page.has_next %}
                 <div>
