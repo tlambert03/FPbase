@@ -134,7 +134,7 @@ class StateForm(forms.ModelForm):
 
     class Meta:
         model = State
-        fields = ['protein', 'default', 'state_name', 'ex_max', 'em_max', 'ex_spectra', 'em_spectra', 'ext_coeff', 'qy', 'pka', 'bleach_wide', 'bleach_conf', 'maturation', 'lifetime', 'added_by', 'updated_by']
+        fields = ['protein', 'default', 'state_name', 'ex_max', 'em_max', 'ex_spectra', 'em_spectra', 'ext_coeff', 'qy', 'pka', 'maturation', 'lifetime', 'added_by', 'updated_by']
 
     def __init__(self, *args, **kwargs):
         super(StateForm, self).__init__(*args, **kwargs)  # populates the post

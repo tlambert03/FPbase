@@ -265,7 +265,7 @@ class Protein(models.Model):
     seq         = models.CharField(max_length=512, unique=True, blank=True, null=True, help_text="Amino acid sequence")  # consider adding Protein Sequence validator
     gb_prot     = models.CharField(max_length=10, null=True, blank=True, help_text="Enter the GenBank protein Accession number (e.g. AFR60231) and the sequence will be retrieved automatically",)  # genbank protein accession number
     gb_nuc      = models.CharField(max_length=10, null=True, blank=True)  # genbank nucleotide accession number
-    ipg_id      = models.CharField(max_length=12, null=True, blank=True, unique=True)  # identical protein group uid
+    ipg_id      = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='IPG ID', help_text="Identical Protein Group ID at Pubmed")  # identical protein group uid
     mw          = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
     agg         = models.CharField(max_length=2, choices=OLIGOMER_CHOICES, blank=True, help_text="Oligomerization tendency",)
     switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True, verbose_name='Type', help_text="Photoswitching type (basic if none)",)
@@ -455,8 +455,8 @@ class State(models.Model):
     ext_coeff   = models.IntegerField(blank=True, null=True, help_text="Extinction Coefficient",)  # extinction coefficient
     qy          = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True, help_text="Quantum Yield")  # quantum yield
     pka         = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True, verbose_name=u'pKa')  # pKa acid dissociation constant
-    bleach_wide = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name='Bleach Widefield', help_text="Widefield photobleaching rate",)  # bleaching half-life for widefield microscopy
-    bleach_conf = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name='Bleach Confocal', help_text="Confocal photobleaching rate",)  # bleaching half-life for confocal microscopy
+#    bleach_wide = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name='Bleach Widefield', help_text="Widefield photobleaching rate",)  # bleaching half-life for widefield microscopy
+#    bleach_conf = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name='Bleach Confocal', help_text="Confocal photobleaching rate",)  # bleaching half-life for confocal microscopy
     maturation  = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True, help_text="Maturation time (seconds)")  # maturation half-life in minutes
     lifetime    = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True, help_text="Fluorescence Lifetime (nanoseconds)",)  # fluorescence lifetime in nanoseconds
     created_at  = models.DateTimeField(auto_now_add=True)
@@ -561,6 +561,13 @@ class State(models.Model):
     def save(self, *args, **kwargs):
         self.state_id = self.protein.slug + "~" + slugify(self.state_name)
         super(State, self).save(*args, **kwargs)
+
+
+class BleachMeasurement(models.Model):
+    rate      = models.DecimalField(max_digits=6, decimal_places=1, verbose_name='Bleach Rate', help_text="Photobleaching rate",)  # bleaching half-life
+    modality  = models.CharField(max_length=100, null=True, blank=True, verbose_name='Illumination Modality', help_text="Type of microscopy/illumination used for measurement",)
+    reference = models.ForeignKey(Reference, related_name='bleach_measurement', verbose_name="Measurement Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Reference where the measurement was made",)  # usually, the original paper that published the protein
+    state     = models.ForeignKey(State, related_name='bleach_measurement', verbose_name="Protein (state)", help_text="The protein (state) for which this measurement was observed", on_delete=models.CASCADE)
 
 
 class StateTransition(models.Model):

@@ -15,10 +15,13 @@ class StateInline(admin.StackedInline):
         }),
         ('Attributes', {
             'classes': ('collapse',),
-            'fields': ('ex_max', 'em_max', 'ext_coeff', 'qy', 'pka', 'bleach_wide', 'bleach_conf', 'maturation', 'lifetime',)
+            'fields': ('ex_max', 'em_max', 'ext_coeff', 'qy', 'pka', 'maturation', 'lifetime',)
         }),
         # ('Switching', {
         #     'fields': ('trans_wave', 'to_state')
+        # }),
+        # ('Bleach Measurements', {
+        #     'fields': ()
         # }),
         ('Spectra', {
             'classes': ('collapse',),
@@ -44,7 +47,7 @@ class ProteinAdmin(admin.ModelAdmin):
     ]
     fieldsets = [
         ('Protein', {
-            'fields': ('name', 'slug', 'gb_prot', 'gb_nuc', 'seq', 'parent_organism', 'switch_type', 'agg', 'mw')
+            'fields': ('name', 'slug', 'ipg_id', 'seq', 'gb_prot', 'gb_nuc', 'parent_organism', 'switch_type', 'agg', 'mw')
         }),
         ('References', {
             'classes': ('collapse',),
