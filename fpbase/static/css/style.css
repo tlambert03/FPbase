@@ -5248,6 +5248,7 @@ body {
   background-color: rgba(255, 255, 255, 0.25);
   border-radius: 10rem; }
   .search-col .home-search input {
+    border-radius: 10rem;
     box-shadow: none;
     background-color: transparent;
     border: none;
@@ -5391,6 +5392,32 @@ body {
     font-size: .8em; }
     .protein .references p.authorlist {
       color: #868e96; }
+
+.protein_result_item {
+  opacity: 0.75;
+  min-width: 260px;
+  text-align: center;
+  color: black;
+  border-radius: .6rem;
+  margin: 3.2px;
+  margin: .2rem;
+  padding: 9.6px 4.8px;
+  padding: 0.6rem 0.3rem; }
+  .protein_result_item:hover {
+    opacity: 1;
+    text-decoration: none;
+    box-shadow: inset 0rem 0rem 3rem rgba(0, 0, 0, 0.1);
+    color: white; }
+  @media (min-width: 576px) {
+    .protein_result_item {
+      min-width: 160px;
+      max-width: 160px; } }
+  .protein_result_item h4 {
+    font-weight: 500;
+    font-size: 16px;
+    font-size: 1rem;
+    color: black;
+    margin: 0; }
 
 path.nv-line {
   stroke-width: .06rem;

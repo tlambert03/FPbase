@@ -10,6 +10,9 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='pages/home.html'), name='home'),
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name='about'),
     url(r'^protein/(.+)/$', proteins.views.single_protein, name='single-protein'),
+    url(r'^search/', proteins.views.search, name='search'),
+    url(r'^submit/', proteins.views.submit),
+
     # Django Admin, use {% url 'admin:index' %}
     url(settings.ADMIN_URL, admin.site.urls),
 
