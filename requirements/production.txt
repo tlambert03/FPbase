@@ -3,7 +3,6 @@
 -r base.txt
 
 
-
 # WSGI Handler
 # ------------------------------------------------
 gevent==1.2.2
@@ -26,3 +25,7 @@ raven==6.3.0
 # Opbeat agent for performance monitoring
 # -----------------------------------------
 opbeat==3.5.3
+
+# New relic monitoring
+# -----------------------------------------
+newrelic
