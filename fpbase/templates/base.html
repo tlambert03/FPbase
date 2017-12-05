@@ -36,7 +36,7 @@
     {% block body %}
 
     <div class="mb-4">
-        <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary fixed-top">
           {% block navcontainer %}
               {% include "_nav.html" %}
           {% endblock navcontainer %}
@@ -87,6 +87,19 @@
           });
           $(window).on('load', function() {
               {% block jquery-winload %}{% endblock %}
+          });
+
+          //Navbar Scroll Event
+          var lastScrollTop = 0;
+          var navbar        = $('.navbar');
+          $(window).scroll(function(event){
+             var st = $(this).scrollTop();
+             if (st > lastScrollTop){
+                 navbar.addClass('navbar-scroll-custom');
+             } else {
+                navbar.removeClass('navbar-scroll-custom');
+             }
+             lastScrollTop = st;
           });
       </script>
 

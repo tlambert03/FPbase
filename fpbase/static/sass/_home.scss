@@ -115,6 +115,7 @@ $search-colors: rgba($white,0.4);
 }
 
 .home-body{
+  padding-top: 0;
   height: 100vh;
   @include gradient-directional(rgba(darken($primary,5%), 1), rgba(lighten($primary, 15%),1), 160deg);
 }
