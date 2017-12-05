@@ -3,6 +3,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
+import logging
+logger = logging.getLogger(__name__)
 
 
 def transfer_timestamp(apps, schema_editor):
@@ -17,9 +19,12 @@ def transfer_timestamp(apps, schema_editor):
 
     for model in MODELS:
         for instance in model.objects.all():
-            instance.created = instance.created_at
-            instance.modified = instance.updated_at
-            instance.save()
+            try:
+                instance.created = instance.created_at
+                instance.modified = instance.updated_at
+                instance.save()
+            except Exception as e:
+                logger.warn('error in migration: {}'.format(e))
 
 
 class Migration(migrations.Migration):
