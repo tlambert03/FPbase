@@ -15,35 +15,6 @@ Entrez.email = "talley_lambert@hms.harvard.edu"
 
 User = settings.AUTH_USER_MODEL
 
-MONOMER = 'm'
-DIMER = 'd'
-TANDEM_DIMER = 'td'
-WEAK_DIMER = 'wd'
-TETRAMER = 't'
-OLIGOMER_CHOICES = (
-    (MONOMER, 'Monomer'),
-    (DIMER, 'Dimer'),
-    (TANDEM_DIMER, 'Tandem dimer'),
-    (WEAK_DIMER, 'Weak dimer'),
-    (TETRAMER, 'Tetramer'),
-)
-
-
-BASIC = 'b'
-ACTIVATABLE = 'pa'
-SWITCHABLE = 'ps'
-CONVERTIBLE = 'pc'
-TIMER = 't'
-OTHER = 'o'
-SWITCHING_CHOICES = (
-    (BASIC, 'Basic'),
-    (ACTIVATABLE, 'Photoactivatable'),
-    (SWITCHABLE, 'Photoswitchable'),
-    (CONVERTIBLE, 'Photoconvertible'),
-    (TIMER, 'Timer'),
-    (OTHER, 'Other'),
-)
-
 
 def wave_to_hex(wavelength, gamma=0.8):
     '''This converts a given wavelength into an approximate RGB value.
@@ -178,7 +149,7 @@ class Spectrum(object):
 
     def wave_value_pairs(self):
         output = {}
-        arrayLength = len(self.data)
+        #arrayLength = len(self.data)
         for elem in self.data:
             output[elem[0]] = elem[1]
         return output
@@ -251,8 +222,34 @@ class Organism(TimeStampedModel):
 
 class Protein(StatusModel, TimeStampedModel):
     """ Protein class to store individual proteins, each with a unique AA sequence and name  """
-
     STATUS = Choices('uncurated', 'curated', 'rejected')
+    MONOMER = 'm'
+    DIMER = 'd'
+    TANDEM_DIMER = 'td'
+    WEAK_DIMER = 'wd'
+    TETRAMER = 't'
+    AGG_CHOICES = (
+        (MONOMER, 'Monomer'),
+        (DIMER, 'Dimer'),
+        (TANDEM_DIMER, 'Tandem dimer'),
+        (WEAK_DIMER, 'Weak dimer'),
+        (TETRAMER, 'Tetramer'),
+    )
+
+    BASIC = 'b'
+    ACTIVATABLE = 'pa'
+    SWITCHABLE = 'ps'
+    CONVERTIBLE = 'pc'
+    TIMER = 't'
+    OTHER = 'o'
+    SWITCHING_CHOICES = (
+        (BASIC, 'Basic'),
+        (ACTIVATABLE, 'Photoactivatable'),
+        (SWITCHABLE, 'Photoswitchable'),
+        (CONVERTIBLE, 'Photoconvertible'),
+        (TIMER, 'Timer'),
+        (OTHER, 'Other'),
+    )
 
     # Attributes
     name        = models.CharField(max_length=128, help_text="Enter the name of the protein (required)", db_index=True)
@@ -263,7 +260,7 @@ class Protein(StatusModel, TimeStampedModel):
     gb_nuc      = models.CharField(max_length=10, null=True, blank=True)  # genbank nucleotide accession number
     ipg_id      = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='IPG ID', help_text="Identical Protein Group ID at Pubmed")  # identical protein group uid
     mw          = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
-    agg         = models.CharField(max_length=2, choices=OLIGOMER_CHOICES, blank=True, help_text="Oligomerization tendency",)
+    agg         = models.CharField(max_length=2, choices=AGG_CHOICES, blank=True, help_text="Oligomerization tendency",)
     switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True, verbose_name='Type', help_text="Photoswitching type (basic if none)",)
     blurb       = models.CharField(max_length=512, blank=True, help_text="Brief descriptive blurb",)
 
