@@ -4,6 +4,8 @@ from django.conf import settings
 from references.models import Reference
 from django.template.defaultfilters import slugify
 from django.core.exceptions import ValidationError
+from model_utils.models import StatusModel, TimeStampedModel
+from model_utils import Choices
 import json
 import re
 
@@ -216,7 +218,7 @@ class SpectrumField(models.TextField):
     #     return self.get_prep_value(value)
 
 
-class Organism(models.Model):
+class Organism(TimeStampedModel):
     """ A class for the parental organism (species) from which the protein has been engineered  """
 
     # Attributes
@@ -226,8 +228,6 @@ class Organism(models.Model):
     common_name = models.CharField(max_length=128, blank=True)
     species     = models.CharField(max_length=128, blank=True)
     genus       = models.CharField(max_length=128, blank=True)
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
 
     # Relations
     added_by    = models.ForeignKey(User, related_name='organism_author', blank=True, null=True)  # the user who added the state
@@ -249,13 +249,10 @@ class Organism(models.Model):
         super(Organism, self).save(*args, **kwargs)
 
 
-class ProteinManager(models.Manager):
-    def get_queryset(self):
-        return super(ProteinManager, self).get_queryset().filter(author='Roald Dahl')
-
-
-class Protein(models.Model):
+class Protein(StatusModel, TimeStampedModel):
     """ Protein class to store individual proteins, each with a unique AA sequence and name  """
+
+    STATUS = Choices('uncurated', 'curated', 'rejected')
 
     # Attributes
     name        = models.CharField(max_length=128, help_text="Enter the name of the protein (required)", db_index=True)
@@ -268,8 +265,6 @@ class Protein(models.Model):
     mw          = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
     agg         = models.CharField(max_length=2, choices=OLIGOMER_CHOICES, blank=True, help_text="Oligomerization tendency",)
     switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True, verbose_name='Type', help_text="Photoswitching type (basic if none)",)
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
     blurb       = models.CharField(max_length=512, blank=True, help_text="Brief descriptive blurb",)
 
     # Relations
@@ -440,7 +435,7 @@ class Protein(models.Model):
         ordering = ['name']
 
 
-class State(models.Model):
+class State(TimeStampedModel):
     """ A class for the states that a given protein can be in (including spectra and other state-dependent properties)  """
 
     # Attributes
@@ -458,8 +453,6 @@ class State(models.Model):
 #    bleach_conf = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name='Bleach Confocal', help_text="Confocal photobleaching rate",)  # bleaching half-life for confocal microscopy
     maturation  = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True, help_text="Maturation time (seconds)")  # maturation half-life in minutes
     lifetime    = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True, help_text="Fluorescence Lifetime (nanoseconds)",)  # fluorescence lifetime in nanoseconds
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
     transitions = models.ManyToManyField('State', related_name='transition_state', verbose_name="State Transitions", blank=True, through='StateTransition')  # any additional papers that reference the protein
     # Relations
     protein     = models.ForeignKey(Protein, related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
@@ -589,14 +582,14 @@ class State(models.Model):
         super(State, self).save(*args, **kwargs)
 
 
-class BleachMeasurement(models.Model):
+class BleachMeasurement(TimeStampedModel):
     rate      = models.DecimalField(max_digits=6, decimal_places=1, verbose_name='Bleach Rate', help_text="Photobleaching rate",)  # bleaching half-life
     modality  = models.CharField(max_length=100, null=True, blank=True, verbose_name='Illumination Modality', help_text="Type of microscopy/illumination used for measurement",)
     reference = models.ForeignKey(Reference, related_name='bleach_measurement', verbose_name="Measurement Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Reference where the measurement was made",)  # usually, the original paper that published the protein
     state     = models.ForeignKey(State, related_name='bleach_measurement', verbose_name="Protein (state)", help_text="The protein (state) for which this measurement was observed", on_delete=models.CASCADE)
 
 
-class StateTransition(models.Model):
+class StateTransition(TimeStampedModel):
     trans_wave = models.IntegerField(
             blank=True,
             null=True,
@@ -626,7 +619,7 @@ class StateTransition(models.Model):
 
 
 # relational class for FRET pairs to hold attributes about the pair
-class FRETpair(models.Model):
+class FRETpair(TimeStampedModel):
 
     # Attributes
     radius   = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
@@ -637,8 +630,6 @@ class FRETpair(models.Model):
 
     added_by    = models.ForeignKey(User, related_name="FRETpair_author", blank=True, null=True)  # the user who added the pair
     updated_by = models.ForeignKey(User, related_name='FRETpair_modifiers', blank=True, null=True)  # the user who last modified the FRET pair data
-    created_at  = models.DateTimeField(auto_now_add=True)
-    updated_at  = models.DateTimeField(auto_now=True)
     pair_references = models.ManyToManyField(Reference, related_name='FK_FRETpair_reference', blank=True)  # any additional papers that reference the FRET pair
 
     @property

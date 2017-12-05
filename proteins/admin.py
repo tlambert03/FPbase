@@ -29,17 +29,17 @@ class StateInline(admin.StackedInline):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created_at', 'added_by', 'updated_at', 'updated_by')
+            'fields': ('created', 'added_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('state_id', 'created_at', 'added_by', 'updated_at', 'updated_by')
+    readonly_fields = ('state_id', 'created', 'added_by', 'modified', 'updated_by')
 
 
 @admin.register(Protein)
 class ProteinAdmin(admin.ModelAdmin):
     form = ProteinForm
-    list_display = ('__str__', 'gb_prot', 'gb_nuc', 'switch_type', 'created_at', 'updated_at')
-    list_filter = ('created_at', 'updated_at', 'switch_type')
+    list_display = ('__str__', 'gb_prot', 'gb_nuc', 'switch_type', 'created', 'modified')
+    list_filter = ('created', 'modified', 'switch_type')
     search_fields = ('name', 'slug', 'gb_prot', 'gb_nuc', 'added_by__username', 'added_by__first_name', 'added_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [
@@ -55,10 +55,10 @@ class ProteinAdmin(admin.ModelAdmin):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created_at', 'added_by', 'updated_at', 'updated_by')
+            'fields': ('created', 'added_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('created_at', 'added_by', 'updated_at', 'updated_by')
+    readonly_fields = ('created', 'added_by', 'modified', 'updated_by')
     filter_horizontal = ('references',)
 
     def save_model(self, request, obj, form, change):
@@ -79,8 +79,8 @@ class ProteinAdmin(admin.ModelAdmin):
 
 @admin.register(FRETpair)
 class FRETpairAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'donor', 'acceptor', 'radius', 'added_by', 'created_at', 'updated_at')
-    list_filter = ('created_at', 'updated_at')
+    list_display = ('__str__', 'donor', 'acceptor', 'radius', 'added_by', 'created', 'modified')
+    list_filter = ('created', 'modified')
     search_fields = ('name', 'donor', 'acceptor', 'added_by__username', 'added_by__first_name', 'added_by__last_name')
     fieldsets = [
         ('FRET Pair', {
@@ -92,10 +92,10 @@ class FRETpairAdmin(admin.ModelAdmin):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created_at', 'added_by', 'updated_at', 'updated_by')
+            'fields': ('created', 'added_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('name', 'created_at', 'added_by', 'updated_at', 'updated_by')
+    readonly_fields = ('name', 'created', 'added_by', 'modified', 'updated_by')
 
     def save_model(self, request, obj, form, change):
         if not obj.added_by:
@@ -106,8 +106,8 @@ class FRETpairAdmin(admin.ModelAdmin):
 
 @admin.register(Organism)
 class OrganismAdmin(admin.ModelAdmin):
-    list_display = ('scientific_name', 'tax_id', 'added_by', 'created_at', 'updated_at')
-    list_filter = ('created_at', 'updated_at')
+    list_display = ('scientific_name', 'tax_id', 'added_by', 'created', 'modified')
+    list_filter = ('created', 'modified')
     search_fields = ('scientific_name', 'common_name', 'tax_id', 'added_by__username', 'added_by__first_name', 'added_by__last_name')
 
     fieldsets = [
@@ -116,10 +116,10 @@ class OrganismAdmin(admin.ModelAdmin):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created_at', 'added_by', 'updated_at', 'updated_by')
+            'fields': ('created', 'added_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('scientific_name', 'common_name', 'division', 'genus', 'species', 'created_at', 'added_by', 'updated_at', 'updated_by')
+    readonly_fields = ('scientific_name', 'common_name', 'division', 'genus', 'species', 'created', 'added_by', 'modified', 'updated_by')
 
     def save_model(self, request, obj, form, change):
         if not obj.added_by:
