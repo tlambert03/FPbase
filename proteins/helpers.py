@@ -1,5 +1,5 @@
 import pandas as pd
-from proteins.models import Protein, State, BASIC, StateTransition
+from proteins.models import Protein, State, StateTransition, BleachMeasurement
 from references.models import Reference
 from fpbase.users.models import User
 from django.template.defaultfilters import slugify
@@ -16,7 +16,17 @@ Entrez.email = "talley_lambert@hms.harvard.edu"
 #       Importing Tools
 ############################################
 
-TALLEY = User.objects.get(username='talley')
+SUPERUSER = User.objects.filter(is_superuser=True).first()
+
+
+def require_superuser(func):
+    def wrapper(*args, **kwargs):
+        if not SUPERUSER:
+            raise ValueError('No SUPERUSER in database... cannot run function: {}'.format(func.__name__))
+        return func(*args, **kwargs)
+    return wrapper
+
+
 aggLookup = {
     'Tetramer': 't',
     'Monomer': 'm',
@@ -32,6 +42,7 @@ def get_nonan(obj, item):
     return val
 
 
+@require_superuser
 def add_ref_to_prot(protein, doi, showexisting=False):
     if Reference.objects.filter(doi=doi).exists():
         ref = Reference.objects.get(doi=doi)
@@ -40,7 +51,7 @@ def add_ref_to_prot(protein, doi, showexisting=False):
         rf = 0
     else:
         # use create here to auto-fetch pmid from doi
-        ref = Reference.create(doi=doi, added_by=TALLEY)
+        ref = Reference.create(doi=doi, added_by=SUPERUSER)
         ref.save()
         print("REFERENCE CREATED: {}".format(ref))
         rf = 1
@@ -53,6 +64,7 @@ def add_ref_to_prot(protein, doi, showexisting=False):
     return rf
 
 
+@require_superuser
 def importCSV(file=None):
     '''
     mainly intended as an import function for the proteins in the NIC table
@@ -71,32 +83,40 @@ def importCSV(file=None):
             print("importing {}...".format(prot.Name))
             p = Protein(
                 name        = prot.Name,
-                added_by    = TALLEY,
+                added_by    = SUPERUSER,
                 gb_prot     = None,
                 gb_nuc      = None,
-                agg         = prot.get('agg', None),
-                switch_type = BASIC,
+                agg         = get_nonan(prot, 'agg'),
+                switch_type = Protein.BASIC,
             )
             p.save()
             ps+=1
 
             s = State(
-                state_name  = 'default',
-                default     = True,
-                ex_max      = prot.get('lambda_ex'),
-                em_max      = prot.get('lambda_em'),
-                ext_coeff   = prot.get('E'),
-                qy          = prot.get('QY'),
-                pka         = prot.get('pka'),
-                bleach_wide = prot.get('bleach'),
-                maturation  = prot.get('mature'),
-                lifetime    = prot.get('lifetime'),
+                # name        = 'default',  # now the default state name
+                ex_max      = get_nonan(prot, 'lambda_ex'),
+                em_max      = get_nonan(prot, 'lambda_em'),
+                ext_coeff   = get_nonan(prot, 'E'),
+                qy          = get_nonan(prot, 'QY'),
+                pka         = get_nonan(prot, 'pka'),
+                maturation  = get_nonan(prot, 'mature'),
+                lifetime    = get_nonan(prot, 'lifetime'),
                 protein     = p,
-                added_by    = TALLEY,
+                added_by    = SUPERUSER,
             )
             s.save()
             st += 1
 
+            # add it as default state
+            p.default_state = s
+            p.save()
+
+            # add bleach numbers
+            if get_nonan(prot, 'bleach'):
+                BleachMeasurement.objects.update_or_create(
+                    rate=get_nonan(prot, 'bleach'),
+                    state=s,
+                )
         else:
             print("{} already in database...".format(prot.Name))
             p = Protein.objects.get(slug=slugify(prot.Name))
@@ -122,8 +142,8 @@ def linkstates(df):
 
     for i, link in linksdf.iterrows():
         p = Protein.objects.get(slug=slugify(q['Name'][link.state1]))
-        fromState = p.states.get(state_name=q['state'][link.state1])
-        toState = p.states.get(state_name=q['state'][link.state2])
+        fromState = p.states.get(name=q['state'][link.state1])
+        toState = p.states.get(name=q['state'][link.state2])
 
         t, created = StateTransition.objects.get_or_create(
             protein=p,
@@ -135,6 +155,7 @@ def linkstates(df):
             print('created: {}'.format(t))
 
 
+@require_superuser
 def importPSFPs(file=None):
     if file is None:
         url = 'https://raw.githubusercontent.com/kthorn/FPvisualization/master/PSFPs.csv'
@@ -152,9 +173,9 @@ def importPSFPs(file=None):
                 slug=slugify(prot.Name),
                 defaults={
                     'name': prot.Name,
-                    'added_by': TALLEY,
+                    'added_by': SUPERUSER,
                     'switch_type': prot.type,
-                    'agg': aggLookup[prot.Aggregation] if prot.get('Aggregation') else None
+                    'agg': aggLookup[prot.Aggregation] if get_nonan(prot, 'Aggregation') else None
                 }
             )
             if created:
@@ -170,21 +191,36 @@ def importPSFPs(file=None):
                     # traceback.print_exc()
                     print('Error importing reference: {}'.format(e))
 
-            state, created = p.states.get_or_create(state_name=prot.state,
+            state, created = p.states.get_or_create(name=prot.state,
                                    defaults={
-                                       'state_name': prot.state,
-                                       'default': prot.get('initialState', 0),
+                                       'name': prot.state,
+                                       'is_dark': 'True' if 'off' in prot.state.lower() else False,
                                        'ex_max': get_nonan(prot, 'lambda_ex'),
                                        'em_max': get_nonan(prot, 'lambda_em'),
                                        'ext_coeff': get_nonan(prot, 'E'),
                                        'qy': get_nonan(prot, 'QY'),
                                        'pka': get_nonan(prot, 'pka'),
-                                       'bleach_wide': get_nonan(prot, 'bleach'),
                                        'maturation': get_nonan(prot, 'mature'),
                                        'lifetime': get_nonan(prot, 'lifetime'),
                                        'protein': p,
-                                       'added_by': TALLEY,
+                                       'added_by': SUPERUSER,
                                    })
+
+            # needs work... would like ON state to show up in tables...
+            # but only if it is a DARK -> ON protein
+            if p.switch_type == 'ps' or p.switch_type == 'pa':
+                if not state.is_dark:
+                    p.default_state = state
+                    p.save()
+            elif prot.get('initialState', False):
+                p.default_state = state
+                p.save()
+
+            if get_nonan(prot, 'bleach'):
+                BleachMeasurement.objects.update_or_create(
+                    rate=get_nonan(prot, 'bleach'),
+                    state=state,
+                )
             if created:
                 print("STATE CREATED  : {}".format(prot.state))
                 st += 1
@@ -267,10 +303,14 @@ def importSpectra(file=None):
     print("Imported {} spectra".format(sp))
 
 
-def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochose=10):
+def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=0):
+    # autochoose value is the difference in protein counts required to autochoose
+    # the most abundant protein count over the second-most abundant
+    # example: autochoose=0 -> always choose the highest count, even in a tie
+    #          autochoose=1 -> only chose if the highest is at least 1 greater...
     with Entrez.esearch(db='ipg', term=str(protein_name) + '[protein name]') as handle:
         record = Entrez.read(handle)
-    if record['Count'] == '1': # we got a unique hit
+    if record['Count'] == '1':  # we got a unique hit
         return record['IdList'][0]
     elif record['Count'] == '0':
         # try without spaces
@@ -280,11 +320,11 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochose=1
             alternate_names.append(alternate_names[0].replace('-', ''))
             for name in set(alternate_names):
                 if name != protein_name:
-                    print('Trying alternate name: {} -> {}'.format(protein_name, name))
+                    # print('Trying alternate name: {} -> {}'.format(protein_name, name))
                     uid = get_ipgid_by_name(name, recurse=False)
                     if uid:
                         return uid
-            print('No results from IPG')
+            print('No results at IPG for: {}'.format(protein_name))
         return 0
     else:
         print('cowardly refusing to fetch squence with {} records at IPG'.format(record['Count']))
@@ -299,17 +339,21 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochose=1
                 name = docsum.find('Title').text
                 print('{:>2}. {:<11}{:<30}{:<5}'.format(i + 1, ipg_uid, name[:28], prot_count))
                 idlist.append((ipg_uid, prot_count))
-            diff = abs(idlist[0][1] - idlist[1][1])
-            if autochose and (diff > autochose):
-                print('Autochoosing row number 1 with {} proteins:'.format(idlist[0][1]))
-                rownum = 1
+            sorted_by_count = sorted(idlist, key=lambda tup: tup[1])
+            sorted_by_count.reverse()
+            diff = abs(sorted_by_count[0][1] - sorted_by_count[1][1])
+            print('diff=', diff)
+            if (autochoose >= 0) and (diff >= autochoose):
+                outID = sorted_by_count[0][0]
+                print('Autochoosing id {} with {} proteins:'.format(outID, sorted_by_count[0][1]))
             else:
                 rownum = input('Enter the row number you want to lookup, or press enter to cancel: ')
-            try:
-                rownum = int(rownum) - 1
-                return idlist[rownum][0]
-            except ValueError:
-                print('Exiting...')
+                try:
+                    rownum = int(rownum) - 1
+                    outID = idlist[rownum][0]
+                except ValueError:
+                    print('Exiting...')
+            return outID
         return None
 
 
@@ -345,6 +389,7 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
     return (ipg_uid, prot_seq)
 
 
+@require_superuser
 def reload_all():
     importCSV()
     importPSFPs()

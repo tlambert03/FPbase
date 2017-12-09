@@ -34,10 +34,10 @@
 						</tr>
 					</thead>
 					<tbody>
-					{% for state in protein.states.all|dictsortreversed:"default" %}
+					{% for state in protein.states.all %}
 						<tr >
 							{% if protein.states.count > 1 %}
-							<td data-title="State">{{ state.state_name }}</td>
+							<td data-title="State">{{ state.name }}</td>
 							{% endif %}
 							<td data-title="Ex &lambda;">{{ state.ex_max | default:"&nbsp;" }}</td>
 				  			<td data-title="Em &lambda;">{{ state.em_max | default:"&nbsp;"}}</td>
@@ -67,8 +67,8 @@
 					<tbody>
 					{% for t in protein.transitions.all|dictsort:"trans_wave" %}
 						<tr >
-							<td data-title="From State">{{ t.from_state.state_name | default:"&nbsp;"}}</td>
-							<td data-title="To State">{{ t.to_state.state_name | default:"&nbsp;"}}</td>
+							<td data-title="From State">{{ t.from_state.name | default:"&nbsp;"}}</td>
+							<td data-title="To State">{{ t.to_state.name | default:"&nbsp;"}}</td>
 							<td data-title="Switch &lambda;">{{ t.trans_wave | default:"&nbsp;" }}</td>
 						</tr>
 					{% endfor %}
@@ -134,7 +134,7 @@
 
     {% if protein.has_spectra %}
         <script>
-            var myData = {{ spectra|safe }};
+            var myData = {{ protein.spectra|safe }};
             var chart = nv.models.lineChart();
             svg = d3.select('#spectra').append('svg');
             chart.options({
@@ -145,7 +145,7 @@
                 showXAxis: true,
                 showYAxis: false,
                 useInteractiveGuideline: true,
-                forceY: [0,1],
+                forceY: [0,1.04],
                 forceX: [350, 750],
             });
 

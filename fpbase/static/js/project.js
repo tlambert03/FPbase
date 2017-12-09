@@ -20,3 +20,17 @@ Issues with the above approach:
 */
 $('.form-group').removeClass('row');
 
+//Navbar Scroll Event.
+// comment this out to remove "navbar hiding" when the user scrolls down
+var lastScrollTop = 0;
+var navbar        = $('.navbar');
+$(window).scroll(function(event){
+   var st = $(this).scrollTop();
+   if (st > lastScrollTop){
+       navbar.addClass('navbar-scroll-custom');
+   } else {
+      navbar.removeClass('navbar-scroll-custom');
+   }
+   lastScrollTop = st;
+});
+

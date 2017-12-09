@@ -4,15 +4,16 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
 from django.views import defaults as default_views
-import proteins.views
+from rest_framework.documentation import include_docs_urls
+
+import fpbase.views
+
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='pages/home.html'), name='home'),
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name='about'),
-    url(r'^protein/(.+)/$', proteins.views.single_protein, name='single-protein'),
-    url(r'^search/', proteins.views.search, name='search'),
-    url(r'^submit/', proteins.views.submit),
-    url(r'^table/', proteins.views.protein_table, name='table'),
+    url(r'^contact/$', fpbase.views.ContactView.as_view(), name='contact'),
+    url(r'^thanks/$', TemplateView.as_view(template_name='pages/thanks.html'), name='thanks'),
 
     # Django Admin, use {% url 'admin:index' %}
     url(settings.ADMIN_URL, admin.site.urls),
@@ -23,8 +24,16 @@ urlpatterns = [
 
     # Your stuff: custom urls includes go here
 
+    # api-auth for DRF
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api-docs/', include_docs_urls(title='FPbase API docs')),
+
+    # custom apps
+    url(r'^', include('proteins.urls')),  # NOTE: without $
+
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

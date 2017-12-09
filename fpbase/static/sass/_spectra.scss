@@ -1,48 +1,59 @@
 //Spectra page
 //-----------------
 
-path.nv-line {
-  stroke-width: .06rem;
-  opacity: .6;
-  fill:none;
-}
-
-.nv-axis text {
-    //font-family: sans-serif;
-    font-size: 11px;
-}
-
-.nv-line, .nv-axis path {
-    fill: none;
-    //stroke: #000;
-    //shape-rendering: crispEdges;
-}
-
-path.nv-area {
-  opacity: 0.8;
-}
-
 
 /* hides NVD3 gridlines */
-#spectra .tick line {display: none;}
-
-/* change opacity of spectrum paths */
-
-#spectra .nv-group {
-  fill-opacity: .6 !important;
-}
-
-#spectra .nvd3 .nv-axis .nv-axisMaxMin text {
-  font-weight: normal;
-}
-
-
 #spectra {
   height: 150px;
   @include media-breakpoint-up(xs){ height: 140px; }
   @include media-breakpoint-up(sm){ height: 190px; }
   @include media-breakpoint-up(md){ height: 240px; }
+
+  // spectra area fill and outline
+  path {
+    &.nv-line {
+      stroke-width: .06rem;
+      opacity: .6;
+      fill:none;
+    }
+    &.nv-area {
+      opacity: 0.8;
+    }
+  }
+
+  // x axis numbers
+  .tick{
+    stroke: none;
+    text-rendering: optimizeLegibility;
+    line {
+      display: none;
+    }
+  }
+
+  /* change opacity of spectrum paths */
+  .nv-group {
+    fill-opacity: .6 !important;
+  }
+  // prevent first and last numbers from being bold
+  .nv-axisMaxMin text {
+    font-weight: normal;
+  }
+
+  .nv-axis text {
+      //font-family: sans-serif;
+      font-size: 0.8rem;
+      font-weight: 100;
+  }
+
+  .nv-line, .nv-axis path {
+      fill: none;
+      stroke: rgba($gray-700, 0.3);
+      shape-rendering: geometricPrecision;
+  }
+
+
 }
+
 
 svg.nvd3-svg {
   width:100%;

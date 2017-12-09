@@ -13,7 +13,7 @@
             <div class="container protein_results">
                 <ul class="row" style="list-style: none">
                 {% for protein in proteins %}
-                    <a href="{% url 'single-protein' protein.slug %}" class="protein_result_item" style="background-color:
+                    <a href="{{ protein.get_absolute_url }}" class="protein_result_item" style="background-color:
                         {% if protein.default_state %}
                             {{ protein.default_state.emhex }}
                         {% else %}

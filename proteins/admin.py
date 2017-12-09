@@ -1,17 +1,17 @@
 from django.contrib import admin
 from proteins.models import Protein, State, Organism, FRETpair
-from proteins.forms import ProteinForm, StateForm, StateFormSet
+from proteins.forms import ProteinForm, StateForm # StateFormSet
 
 
 class StateInline(admin.StackedInline):
     form = StateForm
-    formset = StateFormSet
+#    formset = StateFormSet
     model = State
     extra = 0
     can_delete = True
     fieldsets = [
         ('State', {
-            'fields': ('default', 'state_name', 'state_id')
+            'fields': ('is_dark', 'name', 'slug')
         }),
         ('Attributes', {
             'classes': ('collapse',),
@@ -32,7 +32,7 @@ class StateInline(admin.StackedInline):
             'fields': ('created', 'added_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('state_id', 'created', 'added_by', 'modified', 'updated_by')
+    readonly_fields = ('slug', 'created', 'added_by', 'modified', 'updated_by')
 
 
 @admin.register(Protein)

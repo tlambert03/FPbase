@@ -4,8 +4,10 @@ from django.conf import settings
 from references.models import Reference
 from django.template.defaultfilters import slugify
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from model_utils.models import StatusModel, TimeStampedModel
 from model_utils import Choices
+import uuid as uuid_lib
 import json
 import re
 
@@ -16,7 +18,7 @@ Entrez.email = "talley_lambert@hms.harvard.edu"
 User = settings.AUTH_USER_MODEL
 
 
-def wave_to_hex(wavelength, gamma=0.8):
+def wave_to_hex(wavelength, gamma=1):
     '''This converts a given wavelength into an approximate RGB value.
     The given wavelength is in nanometers.
     The range of wavelength is 380 nm through 750 nm.
@@ -26,6 +28,9 @@ def wave_to_hex(wavelength, gamma=0.8):
     '''
 
     wavelength = float(wavelength)
+    if 520 <= wavelength:
+        #pass
+        wavelength += 40
 
     if wavelength >= 380 and wavelength <= 440:
         attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380)
@@ -48,8 +53,8 @@ def wave_to_hex(wavelength, gamma=0.8):
         R = 1.0
         G = (-(wavelength - 645) / (645 - 580)) ** gamma
         B = 0.0
-    elif wavelength >= 645 and wavelength <= 750:
-        attenuation = 0.3 + 0.7 * (750 - wavelength) / (750 - 645)
+    elif wavelength >= 645 and wavelength <= 850:
+        attenuation = 0.3 + 0.7 * (770 - wavelength) / (770 - 645)
         R = (1.0 * attenuation) ** gamma
         G = 0.0
         B = 0.0
@@ -193,7 +198,7 @@ class Organism(TimeStampedModel):
     """ A class for the parental organism (species) from which the protein has been engineered  """
 
     # Attributes
-    tax_id      = models.CharField(max_length=8, verbose_name='Taxonomy ID', help_text="Enter the NCBI Taxonomy ID (e.g. 6100 for Aequorea victora) and the info will be retrieved automatically",)  # genbank protein accession number
+    tax_id      = models.CharField(max_length=8, verbose_name='Taxonomy ID', help_text="NCBI Taxonomy ID (e.g. 6100 for Aequorea victora)",)  # genbank protein accession number
     scientific_name = models.CharField(max_length=128, blank=True)
     division    = models.CharField(max_length=128, blank=True)
     common_name = models.CharField(max_length=128, blank=True)
@@ -252,20 +257,20 @@ class Protein(StatusModel, TimeStampedModel):
     )
 
     # Attributes
-    name        = models.CharField(max_length=128, help_text="Enter the name of the protein (required)", db_index=True)
+    uuid        = models.UUIDField(db_index=True, default=uuid_lib.uuid4, editable=False, unique=True)  # for API
+    name        = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
     slug        = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name   = models.CharField(max_length=128)  # easily searchable "family" name
     seq         = models.CharField(max_length=512, unique=True, blank=True, null=True, help_text="Amino acid sequence")  # consider adding Protein Sequence validator
-    gb_prot     = models.CharField(max_length=10, null=True, blank=True, help_text="Enter the GenBank protein Accession number (e.g. AFR60231) and the sequence will be retrieved automatically",)  # genbank protein accession number
+    gb_prot     = models.CharField(max_length=10, null=True, blank=True, help_text="GenBank protein Accession number (e.g. AFR60231)",)  # genbank protein accession number
     gb_nuc      = models.CharField(max_length=10, null=True, blank=True)  # genbank nucleotide accession number
     ipg_id      = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='IPG ID', help_text="Identical Protein Group ID at Pubmed")  # identical protein group uid
-    mw          = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
+    mw          = models.FloatField(null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
     agg         = models.CharField(max_length=2, choices=AGG_CHOICES, blank=True, help_text="Oligomerization tendency",)
     switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True, verbose_name='Type', help_text="Photoswitching type (basic if none)",)
     blurb       = models.CharField(max_length=512, blank=True, help_text="Brief descriptive blurb",)
 
     # Relations
-    # default_state = models.ForeignKey('State', related_name='FK_defaultState_state', blank=True, null=True)  # default protein state
     parent_organism = models.ForeignKey(Organism, related_name='proteins', verbose_name="Parental organism", blank=True, null=True, help_text="Organism from which the protein was engineered",)
     primary_reference = models.ForeignKey(Reference, related_name='primary_proteins', verbose_name="Primary Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Preferably the publication that introduced the protein",)  # usually, the original paper that published the protein
     references = models.ManyToManyField(Reference, related_name='proteins', verbose_name="References", blank=True)  # all papers that reference the protein
@@ -359,6 +364,9 @@ class Protein(StatusModel, TimeStampedModel):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse("proteins:protein-detail", args=[self.slug])
+
     # move these two methods to the state model
     def within_ex_band(self, value, height=0.7):
         if self.has_default():
@@ -390,6 +398,9 @@ class Protein(StatusModel, TimeStampedModel):
                 return True
         return False
 
+    def spectra(self):
+        return json.dumps([self.default_state.nvd3ex, self.default_state.nvd3em])
+
     def clean(self):
         # Don't allow protein sequences to have non valid amino acid letters:
         errors = {}
@@ -418,7 +429,7 @@ class Protein(StatusModel, TimeStampedModel):
                     self.seq = pubmed_record[0]['GBSeq_sequence'].upper()
                 except Exception:
                     self.seq = None
-        self.slug = slugify(self.name)
+        self.slug = slugify(self.name.lower().replace('monomeric ', 'm'))
         self.base_name = self._base_name
         try:
             self.default_state = self.states.get(default=True)
@@ -432,35 +443,38 @@ class Protein(StatusModel, TimeStampedModel):
         ordering = ['name']
 
 
-class State(TimeStampedModel):
+class State(StatusModel, TimeStampedModel):
     """ A class for the states that a given protein can be in (including spectra and other state-dependent properties)  """
+    STATUS = Choices('uncurated', 'curated', 'rejected')
 
     # Attributes
-    state_name  = models.CharField(max_length=128)  # required
-    state_id    = models.CharField(max_length=128, unique=True)  # required
-    default     = models.BooleanField(default=False, help_text="Check if this is the default (basal) state for the protein",)
+    name        = models.CharField(max_length=64, default='default')  # required
+    slug        = models.SlugField(max_length=128, unique=True, help_text="Unique slug for the state")  # calculated at save
+    is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This is a dark state, exhibiting no fluorescence",)
     ex_max      = models.IntegerField(blank=True, null=True)
     em_max      = models.IntegerField(blank=True, null=True)
-    ex_spectra  = SpectrumField(blank=True, null=True, help_text='Enter spectrum information as a list of [wavelength, value] pairs, e.g. [[300, 0.5],[301, 0.6] ... ]')  # excitation spectra (list of x,y coordinate pairs)
-    em_spectra  = SpectrumField(blank=True, null=True, help_text='Enter spectrum information as a list of [wavelength, value] pairs, e.g. [[300, 0.5],[301, 0.6] ... ]')  # emission spectra (list of x,y coordinate pairs)
+    ex_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of (wavelength, value) pairs, e.g. [(300, 0.5), (301, 0.6),... ]')  # excitation spectra (list of x,y coordinate pairs)
+    em_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of (wavelength, value) pairs, e.g. [(300, 0.5), (301, 0.6),... ]')  # emission spectra (list of x,y coordinate pairs)
     ext_coeff   = models.IntegerField(blank=True, null=True, help_text="Extinction Coefficient",)  # extinction coefficient
-    qy          = models.DecimalField(max_digits=4, decimal_places=3, null=True, blank=True, help_text="Quantum Yield")  # quantum yield
-    pka         = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True, verbose_name=u'pKa')  # pKa acid dissociation constant
-#    bleach_wide = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name='Bleach Widefield', help_text="Widefield photobleaching rate",)  # bleaching half-life for widefield microscopy
-#    bleach_conf = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name='Bleach Confocal', help_text="Confocal photobleaching rate",)  # bleaching half-life for confocal microscopy
-    maturation  = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True, help_text="Maturation time (seconds)")  # maturation half-life in minutes
-    lifetime    = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True, help_text="Fluorescence Lifetime (nanoseconds)",)  # fluorescence lifetime in nanoseconds
-    transitions = models.ManyToManyField('State', related_name='transition_state', verbose_name="State Transitions", blank=True, through='StateTransition')  # any additional papers that reference the protein
+    qy          = models.FloatField(null=True, blank=True, help_text="Quantum Yield")  # quantum yield
+    pka         = models.FloatField(null=True, blank=True, verbose_name=u'pKa')  # pKa acid dissociation constant
+    maturation  = models.FloatField(null=True, blank=True, help_text="Maturation time (seconds)")  # maturation half-life in seconds
+    lifetime    = models.FloatField(null=True, blank=True, help_text="Fluorescence Lifetime (nanoseconds)")  # fluorescence lifetime in nanoseconds
+
     # Relations
+    transitions = models.ManyToManyField('State', related_name='transition_state', verbose_name="State Transitions", blank=True, through='StateTransition')  # any additional papers that reference the protein
     protein     = models.ForeignKey(Protein, related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
     added_by    = models.ForeignKey(User, related_name='state_author', blank=True, null=True)  # the user who added the state
     updated_by  = models.ForeignKey(User, related_name='state_modifiers', blank=True, null=True)  # the user who last modified the state
+    #    bleach_wide = models.FloatField(null=True, blank=True, verbose_name='Bleach Widefield', help_text="Widefield photobleaching rate",)  # bleaching half-life for widefield microscopy
+    #    bleach_conf = models.FloatField(null=True, blank=True, verbose_name='Bleach Confocal', help_text="Confocal photobleaching rate",)  # bleaching half-life for confocal microscopy
+
 
     # Properties
     @property
     def brightness(self):
         try:
-            return round(self.ext_coeff * self.qy / 1000, 2)
+            return float(round(self.ext_coeff * self.qy / 1000, 2))
         except TypeError:
             return None
 
@@ -480,6 +494,7 @@ class State(TimeStampedModel):
 
     @property
     def bleach(self):
+        #TODO: this only gets the first bleaching measurement
         try:
             return self.bleach_measurement.first().rate
         except AttributeError:
@@ -566,21 +581,21 @@ class State(TimeStampedModel):
         return d
 
     def __str__(self):
-        return self.state_name
+        return self.slug
 
     def __repr__(self):
-        return "<State: {}>".format(self.state_id)
+        return "<State: {}>".format(self.slug)
 
     class Meta:
         verbose_name = u'State'
 
     def save(self, *args, **kwargs):
-        self.state_id = self.protein.slug + "~" + slugify(self.state_name)
+        self.slug = self.protein.slug + '_' + slugify(self.name)
         super(State, self).save(*args, **kwargs)
 
 
 class BleachMeasurement(TimeStampedModel):
-    rate      = models.DecimalField(max_digits=6, decimal_places=1, verbose_name='Bleach Rate', help_text="Photobleaching rate",)  # bleaching half-life
+    rate      = models.FloatField(verbose_name='Bleach Rate', help_text="Photobleaching rate",)  # bleaching half-life
     modality  = models.CharField(max_length=100, null=True, blank=True, verbose_name='Illumination Modality', help_text="Type of microscopy/illumination used for measurement",)
     reference = models.ForeignKey(Reference, related_name='bleach_measurement', verbose_name="Measurement Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Reference where the measurement was made",)  # usually, the original paper that published the protein
     state     = models.ForeignKey(State, related_name='bleach_measurement', verbose_name="Protein (state)", help_text="The protein (state) for which this measurement was observed", on_delete=models.CASCADE)
@@ -619,7 +634,7 @@ class StateTransition(TimeStampedModel):
 class FRETpair(TimeStampedModel):
 
     # Attributes
-    radius   = models.DecimalField(max_digits=4, decimal_places=2, blank=True, null=True)
+    radius   = models.FloatField(blank=True, null=True)
 
     # Relations
     donor    = models.ForeignKey(Protein, null=False, blank=False, verbose_name='donor', related_name='FK_FRETdonor_protein')

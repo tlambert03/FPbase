@@ -1,11 +1,12 @@
 from django.conf.urls import url
+from django.contrib.admin.views.decorators import staff_member_required
 
 from . import views
 
 urlpatterns = [
     url(
         regex=r'^$',
-        view=views.UserListView.as_view(),
+        view=staff_member_required(views.UserListView.as_view()),
         name='list'
     ),
     url(

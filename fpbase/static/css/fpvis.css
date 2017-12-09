@@ -1,0 +1,201 @@
+body {
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+	font-weight: 300;
+	width: 1100px;
+	margin: auto;
+	padding-top:20px;
+}
+
+/* Graph Styles */
+.FP, .PSFP
+{
+	shape-rendering: geometricPrecision;
+	opacity: 0.7;
+}
+
+.PSFP
+{
+	stroke-width: 1.5px;
+}
+line.PSFP
+{
+	stroke-width: 1px;
+}
+
+.PSFP.ps
+{
+	stroke-dasharray: 3,2; /*make photoswitchable proteins dashed */
+}
+
+.label
+{
+	stroke-width:0.2;
+	font-size: 12px;
+	text-rendering: optimizeLegibility;
+}
+.axis text
+{
+	stroke-width:0.2;
+	font-size: 10px;
+	text-rendering: optimizeLegibility;
+}
+.axis path,
+.axis line {
+	fill: none;
+	stroke: black;
+	shape-rendering: crispEdges;
+}
+.tick
+{
+	stroke: black;
+}
+.pane
+{
+	fill: none;
+	pointer-events: all;
+	cursor: default;
+}
+rect,
+circle {
+	cursor: pointer;  /* this is to make the circles appear "clickable" upon hover */
+}
+
+#tooltip {
+        position: absolute;
+        width: 150px;
+        height: auto;
+        padding: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        -webkit-box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        -moz-box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        pointer-events: none;
+        color: #333;
+}
+
+#tooltip h3{
+        margin: 0 0 5px 0;
+        line-height: 20px;
+
+}
+
+#tooltip p {
+        margin: 0;
+        font-size: 16px;
+        line-height: 20px;
+}
+
+/* Content */
+
+.left {
+	position: relative;
+	float: left;
+	width: 750px;
+}
+.right {
+	position: relative;
+	float: right;
+	width: 310px;
+}
+
+#blurb {
+	margin-top: 30px;
+	font-size: .95em;
+	font-style: italic;
+	text-align: justify;
+}
+.bibliography {
+		font-family: sans-serif;
+		font-size: 12px;
+}
+.bibliography li{
+		padding-bottom: 6px;
+}
+.footer{
+	border-top: 1px solid #ddd;
+	font-size: 12px;
+}
+
+/* Controls area */
+.radioboxes {
+	width:150px;
+	font-size: .82em;
+	float:left;
+	text-align:center;
+}
+.radioboxes label{
+	width:130px;
+	height: 29px;
+}
+
+.ui-buttonset div{
+	margin: 0 !important;
+}
+
+
+/* Misc Styles */
+.cf:before,
+.cf:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+
+.cf:after {
+    clear: both;
+}
+
+.hidden {
+        display: none;
+}
+
+/* Table Styles */
+table
+{
+	border-collapse: collapse;
+	empty-cells: show;
+	border-spacing: 0;
+	border: 1px solid #ccc;
+	line-height: 1.4;
+	font-size: 14px;
+	width: 100%;
+	margin-top: 20px;
+}
+
+tr {
+	border: 1px solid #ccc;
+}
+
+tr:nth-child(odd)		{ background-color:#f0f0f0; }
+tr:nth-child(even)		{ background-color:#fff; }
+
+th,
+td {
+	border: 1px solid #ccc;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+.tablename h4 {
+	padding-bottom: 0px;
+	line-height: 0px;
+	padding-top: 10px;
+}
+
+.col.numeric
+{
+	text-align: right;
+}
+
+.col.protein {
+	width: 200px;		/* constant width here gives column width consistency to the different table groupings */
+	text-align: left;
+}
+
+.tabletitle{	/*banner titles for tables*/
+text-align: left;
+font-size: 16px;
+}

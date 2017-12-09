@@ -43,9 +43,6 @@ pytz==2017.3
 django-redis==4.8.0
 redis>=2.10.5
 
-
-
-
 rcssmin==1.0.6 
 django-compressor==2.2
 
@@ -56,6 +53,10 @@ django-compressor==2.2
 metapub==0.4.3.6
 # for pub search and protein processing
 biopython==1.70
-
 # for csv reading ... might not need for production
 pandas==0.21.0
+
+# DRF
+djangorestframework
+coreapi
+markdown

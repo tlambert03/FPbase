@@ -85,7 +85,8 @@ gulp.task('runServer', function(cb) {
 gulp.task('browserSync', function() {
     browserSync.init(
       [paths.css + "/*.css", paths.js + "*.js", paths.templates + '*.html'], {
-        proxy:  "localhost:8000"
+        proxy:  "localhost:8000",
+        notify: false,
     });
 });
 

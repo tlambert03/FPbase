@@ -134,12 +134,12 @@ class StateForm(forms.ModelForm):
 
     class Meta:
         model = State
-        fields = ['protein', 'default', 'state_name', 'ex_max', 'em_max', 'ex_spectra', 'em_spectra', 'ext_coeff', 'qy', 'pka', 'maturation', 'lifetime', 'added_by', 'updated_by']
+        fields = ['protein', 'is_dark', 'name', 'ex_max', 'em_max', 'ex_spectra', 'em_spectra', 'ext_coeff', 'qy', 'pka', 'maturation', 'lifetime', 'added_by', 'updated_by']
 
     def __init__(self, *args, **kwargs):
         super(StateForm, self).__init__(*args, **kwargs)  # populates the post
         try:
-            self.fields['to_state'].queryset = State.objects.filter(protein=self.instance.protein).exclude(state_id=self.instance.state_id)
+            self.fields['to_state'].queryset = State.objects.filter(protein=self.instance.protein).exclude(slug=self.instance.slug)
             if self.instance.protein.switch_type == '1':
                 pass
                 # would like to remove fields from basic type proteins
@@ -147,7 +147,7 @@ class StateForm(forms.ModelForm):
         except Exception:
             #FIXME: update state business
             pass
-            # self.fields['to_state'].queryset = State.objects.filter(state_name='')
+            # self.fields['to_state'].queryset = State.objects.filter(name='')
 
     def clean_added_by(self):
         if not self.cleaned_data['added_by']:
@@ -160,18 +160,18 @@ class StateForm(forms.ModelForm):
         return self.cleaned_data['updated_by']
 
 
-class StateFormSet(BaseInlineFormSet):
-    def clean(self):
-        super(StateFormSet, self).clean()
-        if any(self.errors):
-            # Don't bother validating the formset unless each form is valid on its own
-            return
-        defaults = 0
-        for form in self.forms:
-            if form.cleaned_data['default']:
-                defaults += 1
-            if defaults > 1:
-                raise forms.ValidationError("Only one default state is allowed.")
+# class StateFormSet(BaseInlineFormSet):
+#     def clean(self):
+#         super(StateFormSet, self).clean()
+#         if any(self.errors):
+#             # Don't bother validating the formset unless each form is valid on its own
+#             return
+#         defaults = 0
+#         for form in self.forms:
+#             if form.cleaned_data['default']:
+#                 defaults += 1
+#             if defaults > 1:
+#                 raise forms.ValidationError("Only one default state is allowed.")
 
 
 # notes:
