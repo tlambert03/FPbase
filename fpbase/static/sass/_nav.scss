@@ -7,7 +7,7 @@ $logo-color: #efe;
 }
 
 .navbar {
-  height: $navbar-height;
+  //height: $navbar-height;  // this screws up dropdown menus in the nav
   transition-duration: 0.3s;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;

@@ -5337,6 +5337,13 @@ body {
   padding-top: 56px;
   padding-top: 3.5rem; }
 
+.favorite {
+  color: #ffc107;
+  border: 1px black;
+  font-size: 32px;
+  font-size: 2rem;
+  float: right; }
+
 /* Extra markup and styles for table-esque vertical and horizontal centering */
 .cover-wrapper {
   display: table;
@@ -5459,8 +5466,6 @@ body {
   transition-duration: 0.6s; }
 
 .navbar {
-  height: 56px;
-  height: 3.5rem;
   transition-duration: 0.3s;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;

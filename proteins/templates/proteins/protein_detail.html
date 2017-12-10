@@ -10,7 +10,16 @@
 
 {% block content %}
 
-		<h1 class="name display-4">{{ protein.name }}</h1>
+		<div class="container">
+			<div class="row">
+				<div class="col-10 offset-sm">
+					<h1 class="name display-4">{{ protein.name }}</h1>
+				</div>
+				<div class="col-1">
+					<i class="fa{% if not request.user.is_authenticated %}r{% endif %} fa-star favorite align-self-bottom"></i>
+				</div>
+			</div>
+		</div>
 
 		<div class="spectra">
 			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
