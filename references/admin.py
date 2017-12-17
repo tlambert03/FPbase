@@ -8,10 +8,10 @@ from references.forms import ReferenceForm, AuthorForm
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('last_name', 'initials')
-    fields = (('last_name', 'initials'), 'ref_links', 'protein_links')
+    list_display = ('family', 'given')
+    fields = (('family', 'given'), 'ref_links', 'protein_links')
     readonly_fields = ('ref_links', 'protein_links')
-    search_fields = ('last_name',)
+    search_fields = ('family',)
 
     def ref_links(self, obj):
         refs = obj.publications.all()
@@ -34,24 +34,25 @@ class AuthorAdmin(admin.ModelAdmin):
     ref_links.short_description = 'References'
     protein_links.short_description = 'Proteins'
 
+
 @admin.register(Reference)
 class ReferenceAdmin(admin.ModelAdmin):
     form = ReferenceForm
 
-    list_display = ('__str__',  'protein_links', 'title', 'pmid', 'doi', 'created_at')
-    list_filter = ('created_at', 'updated_at')
-    search_fields = ('pmid', 'doi', 'added_by__username', 'added_by__first_name', 'added_by__last_name', 'title')
+    list_display = ('__str__',  'protein_links', 'title', 'pmid', 'doi', 'created')
+    list_filter = ('created', 'modified')
+    search_fields = ('pmid', 'doi', 'created_by__username', 'created_by__first_name', 'created_by__last_name', 'title')
 
     fieldsets = [
         ('Reference', {
-            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'journal', 'volume', 'pages', 'pubdate', 'so', 'ref')
+            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'journal', 'volume', 'pages', 'issue', 'year')
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created_at', 'added_by', 'updated_at', 'updated_by')
+            'fields': ('created', 'created_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('title', 'author_links', 'protein_links', 'journal', 'pages', 'volume', 'pubdate', 'so', 'ref', 'created_at', 'added_by', 'updated_at', 'updated_by')
+    readonly_fields = ('title', 'author_links', 'protein_links', 'journal', 'pages', 'volume', 'issue', 'year', 'created', 'created_by', 'modified', 'updated_by')
 
     def author_links(self, obj):
         authors = obj.authors.all()
@@ -75,7 +76,7 @@ class ReferenceAdmin(admin.ModelAdmin):
     protein_links.short_description = 'Proteins'
 
     def save_model(self, request, obj, form, change):
-        if not obj.added_by:
-            obj.added_by = request.user
+        if not obj.created_by:
+            obj.created_by = request.user
         obj.updated_by = request.user
         obj.save()

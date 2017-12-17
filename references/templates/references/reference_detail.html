@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}{{ reference.citation  }} :: Fluorescent Protein Database {% endblock %}
+
+{% block content %}
+
+	<div class="primary-ref references">
+		{% include "_reference.html" with ref=reference %}
+	</div>
+
+	<ol class='protein-list'>
+		<h5>Primary Proteins: </h5>
+		{% for protein in reference.primary_proteins.all %}
+			<li><a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a></li>
+		{% endfor %}
+	</ol>
+
+	{% if ref.protein_secondary_reference.count > 0 %}
+	    <ol class='protein-list'>
+	    	<h5>Additional Proteins:</h5>
+	    	{% for protein in reference.protein_secondary_reference.all %}
+	    		<li><a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a></li>
+	    	{% endfor %}
+	    </ol>
+	{% endif %}
+
+
+
+{% endblock content %}

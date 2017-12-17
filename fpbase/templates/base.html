@@ -35,7 +35,7 @@
     {% block body %}
 
     <div class="mb-4">
-        <nav class="navbar navbar-expand-sm navbar-dark bg-primary fixed-top">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
           {% block navcontainer %}
               {% include "_nav.html" %}
           {% endblock navcontainer %}
@@ -45,11 +45,13 @@
 
     <div class="{% block container-class %}container{% endblock %}">
 
-      {% if messages %}
-          {% for message in messages %}
-              <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
-          {% endfor %}
-      {% endif %}
+      {% block messages %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}info{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+      {% endblock messages %}
 
       {% block content %}
       {% endblock content %}

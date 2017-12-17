@@ -1,0 +1,12 @@
+<div class="reference">
+	<h4><a href="{{ ref.get_absolute_url }}">{{ ref.title }}</a></h4>
+	<p class='authorlist'>
+		{% for author in ref.ordered_authors %}
+			<a href="{{ author.get_absolute_url }}">{{ author }}</a>{% if not forloop.last %},{% endif %}
+		{% endfor %}
+	</p>
+	<p class='reference-details'>
+		({{ ref.year }}). <em>{{ ref.journal }}, {{ ref.volume }}</em>{% if ref.issue %}({{ ref.issue }}) {% endif %}, {{ ref.pages }}. <a href="http://dx.doi.org/{{ ref.doi }}">doi: {{ ref.doi | lower }}</a>
+		{% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}">Pubmed Link</a>{% endif %}
+	</p>
+</div>

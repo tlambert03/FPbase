@@ -1,15 +1,19 @@
+import xml.etree.ElementTree as ET
 import pandas as pd
+import traceback
+
 from proteins.models import Protein, State, StateTransition, BleachMeasurement
 from references.models import Reference
 from fpbase.users.models import User
 from django.template.defaultfilters import slugify
-import traceback
+from Bio import Entrez
+
 from metapub import CrossRef, PubMedFetcher
 CR = CrossRef()
 PMF = PubMedFetcher()
 # Entrez.parse doesn't seem to work with ipg results
-import xml.etree.ElementTree as ET
-from Bio import Entrez
+
+
 Entrez.email = "talley_lambert@hms.harvard.edu"
 
 ############################################
@@ -44,23 +48,12 @@ def get_nonan(obj, item):
 
 @require_superuser
 def add_ref_to_prot(protein, doi, showexisting=False):
-    if Reference.objects.filter(doi=doi).exists():
-        ref = Reference.objects.get(doi=doi)
-        if showexisting:
-            print("Reference exists: {}".format(ref))
-        rf = 0
-    else:
-        # use create here to auto-fetch pmid from doi
-        ref = Reference.create(doi=doi, added_by=SUPERUSER)
-        ref.save()
-        print("REFERENCE CREATED: {}".format(ref))
-        rf = 1
-
+    ref, created = Reference.objects.get_or_create(doi=doi)
+    rf = 1 if created else 0
     protein.references.add(ref)
     if not protein.primary_reference:
         protein.primary_reference = ref
     protein.save()
-
     return rf
 
 
@@ -82,27 +75,25 @@ def importCSV(file=None):
         if not Protein.objects.filter(slug=slugify(prot.Name)).exists():
             print("importing {}...".format(prot.Name))
             p = Protein(
-                name        = prot.Name,
-                added_by    = SUPERUSER,
-                gb_prot     = None,
-                gb_nuc      = None,
-                agg         = get_nonan(prot, 'agg'),
-                switch_type = Protein.BASIC,
+                name=prot.Name,
+                created_by=SUPERUSER,
+                agg=get_nonan(prot, 'agg'),
+                switch_type=Protein.BASIC,
             )
             p.save()
-            ps+=1
+            ps += 1
 
             s = State(
                 # name        = 'default',  # now the default state name
-                ex_max      = get_nonan(prot, 'lambda_ex'),
-                em_max      = get_nonan(prot, 'lambda_em'),
-                ext_coeff   = get_nonan(prot, 'E'),
-                qy          = get_nonan(prot, 'QY'),
-                pka         = get_nonan(prot, 'pka'),
-                maturation  = get_nonan(prot, 'mature'),
-                lifetime    = get_nonan(prot, 'lifetime'),
-                protein     = p,
-                added_by    = SUPERUSER,
+                ex_max=get_nonan(prot, 'lambda_ex'),
+                em_max=get_nonan(prot, 'lambda_em'),
+                ext_coeff=get_nonan(prot, 'E'),
+                qy=get_nonan(prot, 'QY'),
+                pka=get_nonan(prot, 'pka'),
+                maturation=get_nonan(prot, 'mature'),
+                lifetime=get_nonan(prot, 'lifetime'),
+                protein=p,
+                created_by=SUPERUSER,
             )
             s.save()
             st += 1
@@ -173,7 +164,7 @@ def importPSFPs(file=None):
                 slug=slugify(prot.Name),
                 defaults={
                     'name': prot.Name,
-                    'added_by': SUPERUSER,
+                    'created_by': SUPERUSER,
                     'switch_type': prot.type,
                     'agg': aggLookup[prot.Aggregation] if get_nonan(prot, 'Aggregation') else None
                 }
@@ -203,7 +194,7 @@ def importPSFPs(file=None):
                                        'maturation': get_nonan(prot, 'mature'),
                                        'lifetime': get_nonan(prot, 'lifetime'),
                                        'protein': p,
-                                       'added_by': SUPERUSER,
+                                       'created_by': SUPERUSER,
                                    })
 
             # needs work... would like ON state to show up in tables...

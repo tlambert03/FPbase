@@ -13,8 +13,8 @@
 
 	h3{
     color: lighten($primary,10%);
-		font-weight: 300;
-    font-size: 1.6rem;
+		font-weight: 400;
+    font-size: 1.3rem;
     padding-top: 1rem;
 	}
 
@@ -46,21 +46,6 @@
 	.sequence {
 		word-wrap: break-word;
 	}
-
-
-	.references {
-		h4 {
-			margin: 4px 0;
-		}
-		p {
- 			margin: 3px 0;
- 			padding:0 inherit;
- 			font-size: .8em;
-      &.authorlist {
-        color: $gray-600;
-      }
- 		}
-	}
 }
 
 .protein_results ul {
@@ -91,4 +76,31 @@
     	color: black;
     	margin: 0;
     }
+}
+
+
+.aminosequence{
+	//
+	//border: 1px dashed $gray-500;
+	box-shadow: inset 0 0 1rem $gray-400;
+	border-radius: 5px;
+	font-size: 1.2rem;
+	font-family: monospace;
+	color: $gray-700;
+	padding: 1rem;
+	.formatted_aminosquence {
+		padding: 0;
+		margin: 0;
+		position: relative;
+		left: 2.7rem;
+		margin-right: 2rem;
+	}
+	.sequence_count {
+		float: left;
+		text-align: right;
+		color: red;
+		position: absolute;
+		margin: 0;
+		padding: 0;
+	}
 }

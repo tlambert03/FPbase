@@ -1,0 +1,33 @@
+.state-col{
+	padding-right:0;
+	margin-right:0;
+}
+
+.stateform_block{
+	padding:1rem;
+	border-radius : 1rem 0 0 1rem;
+	background-color: #eee;
+	margin-bottom: 1rem;
+	margin-right: 0;
+}
+
+.state-delete-button {
+	border-radius : 0 1rem 1rem 0;
+	border: 0px;
+	margin-bottom: 1rem;
+	@include button-variant(lighten($danger,10), $white, lighten($danger,10));
+	display: inline;
+}
+
+.form-group small a{
+	text-decoration: none;
+	color: inherit;
+	font-weight: 600;
+	&:hover {
+		color: $primary;
+	}
+}
+
+span.invalid-feedback {
+  display: block;
+}

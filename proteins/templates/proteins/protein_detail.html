@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block page-title %}FPbase: {{ protein.name  }} {% endblock %}
+{% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
 
 {% block vendorcss %}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
@@ -89,46 +89,31 @@
 
 		<div class="sequence">
 			<h3>Amino Acid Sequence</h3>
-			<p>{{ protein.seq | default_if_none:"no sequence available ... <a href='#'>add one!</a>"}}</p>
-            {% if protein.ipg_id %}
-            <p>Identical Protein Group ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]">{{ protein.ipg_id }}</a></p>
-            {% endif %}
+			{% if protein.ipg_id %}
+			<p>Identical Protein Group ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]">{{ protein.ipg_id }}</a></p>
+			{% endif %}
+			{% if protein.seq %}
+				<div class='aminosequence container'>{{ protein.seq }}</div>
+			{% else %}
+			    <p>no sequence available ... <a href='#'>add one!</a></p>
+			{% endif %}
 		</div>
 
 		<div class="primary-ref references">
 			<h3>Primary Reference</h3>
-			<h4>{{ protein.primary_reference.title }}</h4>
-			<p class='authorlist'>
-				{% for author in protein.primary_reference.authors.all %}
-					{{ author }},
-				{% endfor %}
-			</p>
-			<p>
-				<em>{{ protein.primary_reference.journal }}.</em> {{ protein.primary_reference.so }} <a href="http://dx.doi.org/{{ protein.primary_reference.doi }}">doi: {{ protein.primary_reference.doi }}</a>
-			</p>
-
-
+			{% if protein.primary_reference %}
+				{% include "_reference.html" with ref=protein.primary_reference %}
+			{% endif %}
 		</div>
 
 		<div class="additional-ref references">
-			<h3>References</h3>
-			{% if protein.references.all < 1 %}
-				<a>add one</a>
-				{% endif%}
+			<h3>Additional References</h3>
 			<ol>
-				{% for ref in protein.references.all %}
-					<li><h4>{{ ref.title }}</h4>
-					<p class='authorlist'>
-						{% for author in ref.authors.all %}
-							{{ author }},
-						{% endfor %}
-					</p>
-					<p>
-						<em>{{ ref.journal }}.</em> {{ ref.so }} <a href="http://dx.doi.org/{{ ref.doi }}">doi: {{ ref.doi }}</a>
-					</p>
-					</li>
+				{% for ref in protein.additional_references %}
+					<li>{% include "_reference.html" %}</li>
 				{% endfor %}
 			</ol>
+			<a href="#" data-toggle="tooltip" data-placement="right" title="Add a publication that references this fluorescent protein.  It does not need to be the paper that introduced the protein."><button class='btn btn-primary btn-sm'>Add Reference</button></a>
 
 		</div>
 
@@ -141,8 +126,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
     <script src="{% static "js/nvd3spectra.js" %}"> </script>
 
+    <script type="text/javascript">
+    	$(function(){
+    		$('[data-toggle="tooltip"]').tooltip()
+    	})
+    </script>
+
     {% if protein.has_spectra %}
-        <script>
+        <script type="text/javascript">
             var myData = {{ protein.spectra|safe }};
             var chart = nv.models.lineChart();
             svg = d3.select('#spectra').append('svg');

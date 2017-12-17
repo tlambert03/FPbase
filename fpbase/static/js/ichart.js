@@ -85,7 +85,7 @@ var filters = {
 	"lambda_em" : [350,800,1],
 	"E"			: [10000,170000,1000],
 	"QY"		: [0,1,0.01],
-	"brightness": [0,100,1]
+	"brightness": [0,125,1]
 }
 //string variables for updating the axis labels
 var strings = {

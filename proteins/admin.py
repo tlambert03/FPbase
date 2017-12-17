@@ -29,10 +29,10 @@ class StateInline(admin.StackedInline):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created', 'added_by', 'modified', 'updated_by')
+            'fields': ('created', 'created_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('slug', 'created', 'added_by', 'modified', 'updated_by')
+    readonly_fields = ('slug', 'created', 'created_by', 'modified', 'updated_by')
 
 
 @admin.register(Protein)
@@ -40,7 +40,7 @@ class ProteinAdmin(admin.ModelAdmin):
     form = ProteinForm
     list_display = ('__str__', 'gb_prot', 'gb_nuc', 'switch_type', 'created', 'modified')
     list_filter = ('created', 'modified', 'switch_type')
-    search_fields = ('name', 'slug', 'gb_prot', 'gb_nuc', 'added_by__username', 'added_by__first_name', 'added_by__last_name')
+    search_fields = ('name', 'slug', 'gb_prot', 'gb_nuc', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [
         StateInline,
@@ -55,23 +55,23 @@ class ProteinAdmin(admin.ModelAdmin):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created', 'added_by', 'modified', 'updated_by')
+            'fields': ('created', 'created_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('created', 'added_by', 'modified', 'updated_by')
+    readonly_fields = ('created', 'created_by', 'modified', 'updated_by')
     filter_horizontal = ('references',)
 
     def save_model(self, request, obj, form, change):
-        if not obj.added_by:
-            obj.added_by = request.user
+        if not obj.created_by:
+            obj.created_by = request.user
         obj.updated_by = request.user
         obj.save()
 
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
         for instance in instances:
-            if not instance.added_by:
-                instance.added_by = request.user
+            if not instance.created_by:
+                instance.created_by = request.user
             instance.updated_by = request.user
             instance.save()
         formset.save()
@@ -79,9 +79,9 @@ class ProteinAdmin(admin.ModelAdmin):
 
 @admin.register(FRETpair)
 class FRETpairAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'donor', 'acceptor', 'radius', 'added_by', 'created', 'modified')
+    list_display = ('__str__', 'donor', 'acceptor', 'radius', 'created_by', 'created', 'modified')
     list_filter = ('created', 'modified')
-    search_fields = ('name', 'donor', 'acceptor', 'added_by__username', 'added_by__first_name', 'added_by__last_name')
+    search_fields = ('name', 'donor', 'acceptor', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     fieldsets = [
         ('FRET Pair', {
             'fields': ('name', 'donor', 'acceptor', 'radius')
@@ -92,23 +92,23 @@ class FRETpairAdmin(admin.ModelAdmin):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created', 'added_by', 'modified', 'updated_by')
+            'fields': ('created', 'created_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('name', 'created', 'added_by', 'modified', 'updated_by')
+    readonly_fields = ('name', 'created', 'created_by', 'modified', 'updated_by')
 
     def save_model(self, request, obj, form, change):
-        if not obj.added_by:
-            obj.added_by = request.user
+        if not obj.created_by:
+            obj.created_by = request.user
         obj.updated_by = request.user
         obj.save()
 
 
 @admin.register(Organism)
 class OrganismAdmin(admin.ModelAdmin):
-    list_display = ('scientific_name', 'tax_id', 'added_by', 'created', 'modified')
+    list_display = ('scientific_name', 'tax_id', 'created_by', 'created', 'modified')
     list_filter = ('created', 'modified')
-    search_fields = ('scientific_name', 'common_name', 'tax_id', 'added_by__username', 'added_by__first_name', 'added_by__last_name')
+    search_fields = ('scientific_name', 'common_name', 'tax_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
 
     fieldsets = [
         ('Organism', {
@@ -116,13 +116,13 @@ class OrganismAdmin(admin.ModelAdmin):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created', 'added_by', 'modified', 'updated_by')
+            'fields': ('created', 'created_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('scientific_name', 'common_name', 'division', 'genus', 'species', 'created', 'added_by', 'modified', 'updated_by')
+    readonly_fields = ('scientific_name', 'common_name', 'division', 'genus', 'species', 'created', 'created_by', 'modified', 'updated_by')
 
     def save_model(self, request, obj, form, change):
-        if not obj.added_by:
-            obj.added_by = request.user
+        if not obj.created_by:
+            obj.created_by = request.user
         obj.updated_by = request.user
         obj.save()

@@ -36,7 +36,7 @@
 		<tbody>
 		{% for protein in proteins %}
 			<tr class="data">
-				<td class="col protein"><a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a></td>
+				<td class="col protein"><a href="{{ protein.get_absolute_url }}">{{ protein.name | safe }}</a></td>
 				<td class="col numeric">{{ protein.default_state.ex_max | default_if_none:"-" }}</td>
 				<td class="col numeric">{{ protein.default_state.em_max | default_if_none:"-" }}</td>
 				<td class="col numeric">{{ protein.default_state.stokes | default:"-" }}</td>

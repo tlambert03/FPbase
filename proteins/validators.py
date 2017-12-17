@@ -1,6 +1,9 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from proteins.models import Spectrum
 import ast
+
+validate_doi = RegexValidator(r"^10.\d{4,9}/[-._;()/:a-zA-Z0-9]+$", 'Not a valid DOI string')
 
 
 def validate_spectrum(value):
@@ -10,7 +13,7 @@ def validate_spectrum(value):
         return
     try:
         obj = ast.literal_eval(value)
-    except:
+    except Exception:
         raise ValidationError("Invalid input for a Spectrum instance")
     if not isinstance(obj, list):                           # must be a list
         raise ValidationError("Spectrum object must be of type List")

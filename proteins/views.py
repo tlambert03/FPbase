@@ -1,9 +1,10 @@
-from django.views.generic import DetailView, ListView
-from django.http import Http404
+from django.views.generic import DetailView, ListView, CreateView
 from django.shortcuts import render, redirect
 from .models import Protein
-from .forms import ProteinSearchForm, ProteinSubmitForm
+from references.models import Reference  # breaks application modularity # FIXME
+from .forms import ProteinSearchForm, ProteinSubmitForm, StateFormSet
 from django.core import serializers
+from django.db import transaction
 
 
 class ProteinChartList(ListView):
@@ -30,14 +31,71 @@ class ProteinDetailView(DetailView):
     model = Protein
 
 
+# help from https://medium.com/@adandan01/django-inline-formsets-example-mybook-420cc4b6225d
+class ProteinCreateView(CreateView):
+    ''' renders html for single protein page  '''
+    model = Protein
+    form_class = ProteinSubmitForm
+    # success_url --> used for redirect on success... by default shows new protein
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:
+            data['states'] = StateFormSet(self.request.POST)
+        else:
+            data['states'] = StateFormSet()
+        return data
+
+    def form_valid(self, form):
+        # This method is called when valid form data has been POSTed.
+        form.instance.created_by = self.request.user  # login_required in url.py
+        context = self.get_context_data()
+        states = context['states']
+        # FIXME: save references here
+
+        with transaction.atomic():
+            # only save the form if all the states are also valid
+            if states.is_valid():
+                self.object = form.save()
+                doi = form.cleaned_data.get('reference_doi')
+                ref, created = Reference.objects.get_or_create(doi=doi)
+                self.object.primary_reference = ref
+
+                states.instance = self.object
+                saved_states = states.save()
+                if len(saved_states) == 1:
+                    # if only 1 state, make it the default state
+                    self.object.default_state = saved_states[0]
+                elif len(saved_states) > 1:
+                    # otherwise use first non-dark state
+                    for S in saved_states:
+                        if not S.is_dark:
+                            self.object.default_state = S
+                            break
+                self.object.save()
+            else:
+                context.update({
+                    'states': states
+                })
+                return self.render_to_response(context)
+        return super().form_valid(form)
+
+
+
+# class StateCreateView(CreateView):
+#     ''' renders html for single protein page  '''
+#     model = State
+#     form_class = StateSubmitForm
+#     template_name = 'submit.html'
+
+#     def form_valid(self, form):
+#         form.instance.created_by = self.request.user
+#         return super().form_valid(form)
+
+
 def protein_table(request):
     ''' renders html for single protein page  '''
     return render(request, 'table.html', {"proteins": Protein.objects.select_related('default_state')})
-
-
-def submit(request):
-    form = ProteinSubmitForm()
-    return render(request, 'submit.html', {'form': form})
 
 
 def search(request):

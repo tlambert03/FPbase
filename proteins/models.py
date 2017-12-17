@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from django.conf import settings
+from django.contrib.auth import get_user_model
 from references.models import Reference
-from django.template.defaultfilters import slugify
+from django.utils.text import slugify
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.urls import reverse
 from model_utils.models import StatusModel, TimeStampedModel
 from model_utils import Choices
@@ -15,7 +16,23 @@ from Bio import Entrez
 from Bio.Alphabet.IUPAC import protein as protein_alphabet
 Entrez.email = "talley_lambert@hms.harvard.edu"
 
-User = settings.AUTH_USER_MODEL
+User = get_user_model()
+
+
+def protein_sequence_validator(seq):
+    seq = "".join(seq.split()).upper()  # remove whitespace
+    badletters = []
+    for letter in seq:
+        if letter not in protein_alphabet.letters:
+            badletters.append(letter)
+    if len(badletters):
+        badletters = set(badletters)
+        raise ValidationError('Invalid letter(s) found in amino acid sequence: {}'.format("".join(badletters)))
+
+
+# protein_sequence_validator = RegexValidator(
+#     '^{}$'.format(protein_alphabet.letters.lower() + protein_alphabet.letters),
+#     'Protein sequence contains invalid letters.')
 
 
 def wave_to_hex(wavelength, gamma=1):
@@ -206,8 +223,8 @@ class Organism(TimeStampedModel):
     genus       = models.CharField(max_length=128, blank=True)
 
     # Relations
-    added_by    = models.ForeignKey(User, related_name='organism_author', blank=True, null=True)  # the user who added the state
-    updated_by  = models.ForeignKey(User, related_name='organism_modifiers', blank=True, null=True)  # the user who last modified the state
+    created_by    = models.ForeignKey(User, related_name='organism_author', blank=True, null=True)  # the user who added the state
+    updated_by  = models.ForeignKey(User, related_name='organism_modifier', blank=True, null=True)  # the user who last modified the state
 
     def __str__(self):
         return self.scientific_name
@@ -261,9 +278,11 @@ class Protein(StatusModel, TimeStampedModel):
     name        = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
     slug        = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name   = models.CharField(max_length=128)  # easily searchable "family" name
-    seq         = models.CharField(max_length=512, unique=True, blank=True, null=True, help_text="Amino acid sequence")  # consider adding Protein Sequence validator
-    gb_prot     = models.CharField(max_length=10, null=True, blank=True, help_text="GenBank protein Accession number (e.g. AFR60231)",)  # genbank protein accession number
-    gb_nuc      = models.CharField(max_length=10, null=True, blank=True)  # genbank nucleotide accession number
+    seq         = models.CharField(max_length=512, unique=True, blank=True, null=True,
+                    help_text="Amino acid sequence (IPG ID is preferred)",
+                    validators=[protein_sequence_validator])  # consider adding Protein Sequence validator
+    gb_prot     = models.CharField(max_length=10, default='', blank=True, help_text="GenBank protein Accession number (e.g. AFR60231)",)  # genbank protein accession number
+    gb_nuc      = models.CharField(max_length=10, default='', blank=True)  # genbank nucleotide accession number
     ipg_id      = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='IPG ID', help_text="Identical Protein Group ID at Pubmed")  # identical protein group uid
     mw          = models.FloatField(null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
     agg         = models.CharField(max_length=2, choices=AGG_CHOICES, blank=True, help_text="Oligomerization tendency",)
@@ -275,8 +294,8 @@ class Protein(StatusModel, TimeStampedModel):
     primary_reference = models.ForeignKey(Reference, related_name='primary_proteins', verbose_name="Primary Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Preferably the publication that introduced the protein",)  # usually, the original paper that published the protein
     references = models.ManyToManyField(Reference, related_name='proteins', verbose_name="References", blank=True)  # all papers that reference the protein
     FRET_partner = models.ManyToManyField('self', symmetrical=False, through='FRETpair', blank=True)
-    added_by = models.ForeignKey(User, related_name='proteins_author', blank=True, null=True)  # the user who added the protein
-    updated_by = models.ForeignKey(User, related_name='proteins_modifiers', blank=True, null=True)
+    created_by = models.ForeignKey(User, related_name='proteins_author', blank=True, null=True)  # the user who added the protein
+    updated_by = models.ForeignKey(User, related_name='proteins_modifier', blank=True, null=True)
     default_state = models.ForeignKey('State', related_name='parent_protein', blank=True, null=True)
 
     # Manager
@@ -360,6 +379,10 @@ class Protein(StatusModel, TimeStampedModel):
                     a.append(s.em_spectra.data)
         return a
 
+    @property
+    def additional_references(self):
+        return self.references.exclude(id=self.primary_reference_id)
+
     # Methods
     def __str__(self):
         return self.name
@@ -406,13 +429,6 @@ class Protein(StatusModel, TimeStampedModel):
         errors = {}
         if self.seq:
             self.seq = "".join(self.seq.split()).upper()  # remove whitespace
-            badletters = []
-            for letter in self.seq:
-                if letter not in protein_alphabet.letters:
-                    badletters.append(letter)
-            if len(badletters):
-                badletters = set(badletters)
-                errors.update({'seq': 'Invalid letter(s) found in amino acid sequence: {}'.format("".join(badletters))})
 
         # Don't allow basic switch_types to have more than one state.
         if self.switch_type == 'b' and self.states.count() > 1:
@@ -429,7 +445,7 @@ class Protein(StatusModel, TimeStampedModel):
                     self.seq = pubmed_record[0]['GBSeq_sequence'].upper()
                 except Exception:
                     self.seq = None
-        self.slug = slugify(self.name.lower().replace('monomeric ', 'm'))
+        self.slug = slugify(self.name)
         self.base_name = self._base_name
         try:
             self.default_state = self.states.get(default=True)
@@ -450,22 +466,30 @@ class State(StatusModel, TimeStampedModel):
     # Attributes
     name        = models.CharField(max_length=64, default='default')  # required
     slug        = models.SlugField(max_length=128, unique=True, help_text="Unique slug for the state")  # calculated at save
-    is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This is a dark state, exhibiting no fluorescence",)
-    ex_max      = models.IntegerField(blank=True, null=True)
-    em_max      = models.IntegerField(blank=True, null=True)
-    ex_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of (wavelength, value) pairs, e.g. [(300, 0.5), (301, 0.6),... ]')  # excitation spectra (list of x,y coordinate pairs)
-    em_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of (wavelength, value) pairs, e.g. [(300, 0.5), (301, 0.6),... ]')  # emission spectra (list of x,y coordinate pairs)
-    ext_coeff   = models.IntegerField(blank=True, null=True, help_text="Extinction Coefficient",)  # extinction coefficient
-    qy          = models.FloatField(null=True, blank=True, help_text="Quantum Yield")  # quantum yield
-    pka         = models.FloatField(null=True, blank=True, verbose_name=u'pKa')  # pKa acid dissociation constant
-    maturation  = models.FloatField(null=True, blank=True, help_text="Maturation time (seconds)")  # maturation half-life in seconds
-    lifetime    = models.FloatField(null=True, blank=True, help_text="Fluorescence Lifetime (nanoseconds)")  # fluorescence lifetime in nanoseconds
+    is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence",)
+    ex_max      = models.PositiveSmallIntegerField(blank=True, null=True,
+                    validators=[MinValueValidator(300), MaxValueValidator(900)])
+    em_max      = models.PositiveSmallIntegerField(blank=True, null=True,
+                    validators=[MinValueValidator(300), MaxValueValidator(1000)])
+    ex_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]')  # excitation spectra (list of x,y coordinate pairs)
+    em_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]')  # emission spectra (list of x,y coordinate pairs)
+    ext_coeff   = models.IntegerField(blank=True, null=True,
+                    validators=[MinValueValidator(0), MaxValueValidator(300000)],
+                    help_text="Extinction Coefficient")  # extinction coefficient
+    qy          = models.FloatField(null=True, blank=True, help_text="Quantum Yield",
+                    validators=[MinValueValidator(0), MaxValueValidator(1)])  # quantum yield
+    pka         = models.FloatField(null=True, blank=True, verbose_name='pKa',
+                    validators=[MinValueValidator(2), MaxValueValidator(12)])  # pKa acid dissociation constant
+    maturation  = models.FloatField(null=True, blank=True, help_text="Maturation time (min)",  # maturation half-life in min
+                    validators=[MinValueValidator(0), MaxValueValidator(1400)])
+    lifetime    = models.FloatField(null=True, blank=True, help_text="Fluorescence Lifetime (ns)",
+                    validators=[MinValueValidator(0), MaxValueValidator(20)])  # fluorescence lifetime in nanoseconds
 
     # Relations
     transitions = models.ManyToManyField('State', related_name='transition_state', verbose_name="State Transitions", blank=True, through='StateTransition')  # any additional papers that reference the protein
     protein     = models.ForeignKey(Protein, related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
-    added_by    = models.ForeignKey(User, related_name='state_author', blank=True, null=True)  # the user who added the state
-    updated_by  = models.ForeignKey(User, related_name='state_modifiers', blank=True, null=True)  # the user who last modified the state
+    created_by    = models.ForeignKey(User, related_name='state_author', blank=True, null=True)  # the user who added the state
+    updated_by  = models.ForeignKey(User, related_name='state_modifier', blank=True, null=True)  # the user who last modified the state
     #    bleach_wide = models.FloatField(null=True, blank=True, verbose_name='Bleach Widefield', help_text="Widefield photobleaching rate",)  # bleaching half-life for widefield microscopy
     #    bleach_conf = models.FloatField(null=True, blank=True, verbose_name='Bleach Confocal', help_text="Confocal photobleaching rate",)  # bleaching half-life for confocal microscopy
 
@@ -596,7 +620,7 @@ class State(StatusModel, TimeStampedModel):
 
 class BleachMeasurement(TimeStampedModel):
     rate      = models.FloatField(verbose_name='Bleach Rate', help_text="Photobleaching rate",)  # bleaching half-life
-    modality  = models.CharField(max_length=100, null=True, blank=True, verbose_name='Illumination Modality', help_text="Type of microscopy/illumination used for measurement",)
+    modality  = models.CharField(max_length=100, blank=True, verbose_name='Illumination Modality', help_text="Type of microscopy/illumination used for measurement",)
     reference = models.ForeignKey(Reference, related_name='bleach_measurement', verbose_name="Measurement Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Reference where the measurement was made",)  # usually, the original paper that published the protein
     state     = models.ForeignKey(State, related_name='bleach_measurement', verbose_name="Protein (state)", help_text="The protein (state) for which this measurement was observed", on_delete=models.CASCADE)
 
@@ -640,8 +664,8 @@ class FRETpair(TimeStampedModel):
     donor    = models.ForeignKey(Protein, null=False, blank=False, verbose_name='donor', related_name='FK_FRETdonor_protein')
     acceptor = models.ForeignKey(Protein, null=False, blank=False, verbose_name='acceptor', related_name='FK_FRETacceptor_protein')
 
-    added_by    = models.ForeignKey(User, related_name="FRETpair_author", blank=True, null=True)  # the user who added the pair
-    updated_by = models.ForeignKey(User, related_name='FRETpair_modifiers', blank=True, null=True)  # the user who last modified the FRET pair data
+    created_by    = models.ForeignKey(User, related_name="FRETpair_author", blank=True, null=True)  # the user who added the pair
+    updated_by = models.ForeignKey(User, related_name='FRETpair_modifier', blank=True, null=True)  # the user who last modified the FRET pair data
     pair_references = models.ManyToManyField(Reference, related_name='FK_FRETpair_reference', blank=True)  # any additional papers that reference the FRET pair
 
     @property

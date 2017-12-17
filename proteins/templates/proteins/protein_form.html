@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags compress static %}
+
+{% block content %}
+
+	<div class="container">
+	    <form action="" method="post">
+	    	{% csrf_token %}
+	        <div class='row'>
+	        	<div class='col'>
+	        		{% crispy form %}
+				</div>
+			</div>
+
+	        {{ states.management_form|crispy }}
+	        {% for stateform in states.forms %}
+			<div class="row formset_div">
+				<div class='col state-col'>{% crispy stateform stateform.helper %}</div>
+	        </div>
+	        {% endfor %}  <!-- end formset loop  -->
+
+	        <input type="submit" class='btn btn-primary mb-4' value="Save"/>
+	    </form>
+	</div>
+
+{% endblock %}
+
+
+{% block js-onpage %}
+
+{% compress js %}
+<script src="{% static 'js/jquery.formset.js' %}"></script>
+{% endcompress %}
+
+<script type="text/javascript">
+
+	$(function () {
+
+	  $('[data-toggle="tooltip"]').tooltip()
+
+	  $('.formset_div').formset({
+	      addText: 'Add State',
+	      addCssClass: 'btn btn-info mb-4',
+	      deleteCssClass: 'state-delete-button btn btn-danger align-middle',
+	      deleteText: 'Remove',
+	      prefix: 'states' 	 // it's important that this match the string used for the
+	      					 // related_name attribute in the "protein" foreign key field
+	      					 // in the State model
+	  });
+
+	})
+
+</script>
+
+{% endblock %}
+

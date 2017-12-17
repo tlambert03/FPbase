@@ -37,8 +37,8 @@
 // @import "../../../node_modules/bootstrap/scss/list-group";
 @import "../../../node_modules/bootstrap/scss/close";
 @import "../../../node_modules/bootstrap/scss/modal";
-// @import "../../../node_modules/bootstrap/scss/tooltip";
-// @import "../../../node_modules/bootstrap/scss/popover";
+@import "../../../node_modules/bootstrap/scss/tooltip";
+@import "../../../node_modules/bootstrap/scss/popover";
 // @import "../../../node_modules/bootstrap/scss/carousel";
 @import "../../../node_modules/bootstrap/scss/utilities";
 
@@ -46,9 +46,11 @@
 @import "home";
 @import "nav";
 @import "protein";
+@import "reference";
 @import "spectra";
 @import "table";
 @import "ichart";
+@import "forms";
 
 ////////////////////////////////
 		//Django Toolbar//

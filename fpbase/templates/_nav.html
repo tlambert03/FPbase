@@ -11,12 +11,21 @@
     <div class="collapse navbar-collapse" id="collapsingNavbar">
         <ul class="nav navbar-nav navbar-dark ml-auto w-100 justify-content-end">
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">explore</a>
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">info</a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                     <a class="dropdown-item" href="{% url 'about' %}">about FPbase</a>
+                    <a class="dropdown-item" href="">help</a>
+                    <a class="dropdown-item" href="{% url 'contact' %}">contact</a>
+                    <a class="dropdown-item" href="{% url 'proteins:protein-api' %}">API</a>
+                </div>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">explore</a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="{% url 'proteins:submit' %}">submit a protein</a>
                     <a class="dropdown-item" href="{% url 'proteins:search' %}">advanced search</a>
                     <a class="dropdown-item" href="{% url 'proteins:ichart' %}">interactive chart</a>
-                    <a class="dropdown-item" href="{% url 'proteins:table' %}">table</a>
+                    <a class="dropdown-item" href="{% url 'proteins:table' %}">protein table</a>
                 </div>
             </li>
             {% if request.user.is_authenticated %}
@@ -35,7 +44,7 @@
             </li>
             <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% trans "sign in" %}</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">{% trans "sign in" %}</a>
             </li>
             {% endif %}
         </ul>

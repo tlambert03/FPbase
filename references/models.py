@@ -1,47 +1,25 @@
 # -*- coding: utf-8 -*-
-import json
 from datetime import datetime
 from django.db import models
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from metapub import pubmedcentral, CrossRef, PubMedFetcher
-from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import MinValueValidator, MaxValueValidator
+from model_utils.models import TimeStampedModel
+from .helpers import doi_lookup, name_to_initials
+from django.urls import reverse
 
-#TODO: remove this alltogether
-from Bio import Entrez
-Entrez.email = "talley_lambert@hms.harvard.edu"
-
-User = settings.AUTH_USER_MODEL
-
-
-def get_pmid_from_doi(doi):
-    CR = CrossRef()
-    PMF = PubMedFetcher()
-
-    pubmedID = pubmedcentral.get_pmid_for_otherid(doi)
-    if not pubmedID:
-        # wasn't found based on DOI
-        # try crossref:
-        results = CR.query(doi)
-        if len(results) == 1:
-            ids = PMF.pmids_for_query(results[0]['title'])
-            if len(ids) == 1:
-                pubmedID = ids[0]
-            else:
-                ids = PMF.pmids_for_citation(**results[0]['slugs'])
-                if len(ids) == 1 and not ids[0] == 'NOT_FOUND':
-                    pubmedID = ids[0]
-    return pubmedID
+User = get_user_model()
 
 
 class Author(models.Model):
-    initials = models.CharField(max_length=4)
-    last_name = models.CharField(max_length=80)
+    family = models.CharField(max_length=80)
+    given = models.CharField(max_length=80)
+    initials = models.CharField(max_length=10)
     publications = models.ManyToManyField('Reference', through='ReferenceAuthor')
 
     @property
     def protein_contributions(self):
-        return set([p for ref in self.publications.all() for p in ref.protein_primary_reference.all()])
+        return set([p for ref in self.publications.all() for p in ref.primary_proteins.all()])
 
     @property
     def first_authorships(self):
@@ -49,124 +27,111 @@ class Author(models.Model):
 
     @property
     def last_authorships(self):
-        return [p.reference for p in self.referenceauthor_set.filter(author_idx=0)]
+        return [p.reference for p in self.referenceauthor_set.all() if p.author_idx == p.author_count-1]
+
+    def save(self, *args, **kwargs):
+        self.initials = name_to_initials(self.initials)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("references:author-detail", args=[self.id])
+
+    def full_name(self):
+        if self.given:
+            return "{} {}".format(self.given, self.family)
+        else:
+            return "{} {}".format(self.initials, self.family)
+
+    def __repr__(self):
+        return "Author(family='{}', initials='{}')".format(self.family, self.initials)
 
     def __str__(self):
-        return self.last_name + ' ' + self.initials
+        return self.family + ' ' + self.initials
+
+    class Meta:
+        unique_together = (('family', 'initials'),)
 
 
-class Reference(models.Model):
-    pmid = models.CharField(max_length=15, unique=True, blank=True, null=True, verbose_name="PMID")
-    doi = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name="DOI")
-    added_by = models.ForeignKey(User, related_name='entries', blank=True, null=True)
-    updated_by = models.ForeignKey(User, related_name='entries_modifiers', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Reference(TimeStampedModel):
+    doi = models.CharField(max_length=50, unique=True, blank=False, verbose_name="DOI")
+    pmid = models.CharField(max_length=15, unique=True, null=True, blank=True, verbose_name="Pubmed ID")
     title = models.CharField(max_length=512, blank=True)
     journal = models.CharField(max_length=512, blank=True)
     pages = models.CharField(max_length=20, blank=True)
-    volume = models.CharField(max_length=10, blank=True, null=True)
-    #_author_list = models.CharField(max_length=300, blank=True, db_column="author_list")
+    volume = models.CharField(max_length=10, blank=True, default='')
+    issue = models.CharField(max_length=10, blank=True, default='')
+    year = models.PositiveIntegerField(
+            validators=[
+                MinValueValidator(1960),
+                MaxValueValidator(datetime.now().year)],
+            help_text="Use the following format: <YYYY>")
     authors = models.ManyToManyField("Author", through='ReferenceAuthor')
-    #pubdate = models.CharField(max_length=64, blank=True)
-    pubdate = models.DateTimeField(blank=True, null=True)
-    so = models.CharField(max_length=128, blank=True, verbose_name=u'SO')
-    ref = models.CharField(max_length=512, blank=True, null=True)
+
+    created_by = models.ForeignKey(User, related_name='reference_author', blank=True, null=True)
+    updated_by = models.ForeignKey(User, related_name='reference_modifier', blank=True, null=True)
 
     @property
     def first_author(self):
-        return self.referenceauthor_set.get(author_idx=0).author
+        try:
+            return self.referenceauthor_set.get(author_idx=0).author
+        except Exception:
+            return None
 
-    @classmethod
-    def create(cls, pmid=None, doi=None, **kwargs):
-        """creation method that allows passing either pmid or doi and the other will be looked up"""
-        if not (pmid or doi):
-            raise ValueError("Must provide at least pmid or doi when creating Reference")
-        if doi and not pmid:
-            pmid = get_pmid_from_doi(doi)
-        if pmid and not doi:
-            doi = pubmedcentral.get_doi_for_otherid(pmid)
-        ref = cls(pmid=pmid, doi=doi, **kwargs)
-        return ref
+    @property
+    def ordered_authors(self):
+        return [ra.author for ra in self.referenceauthor_set.all()]
 
-    def populate_from_pubmed(self):
-        if self.pmid:
-            pubmed_record = Entrez.read(Entrez.esummary(db='pubmed', id=self.pmid, retmode='xml'))
-            if len(pubmed_record):
-                pubmed_record = pubmed_record[0]
-                if not self.doi:
-                    try:
-                        self.doi = pubmed_record['DOI']
-                    except AttributeError:
-                        self.doi = None
-                self.title = pubmed_record['Title']
-                self.journal = pubmed_record['Source']
-                self.pages = pubmed_record['Pages']
-                self.volume = pubmed_record['Volume']
-                # FIXME: this is going to break
-                try:
-                    self.pubdate = datetime.strptime(pubmed_record['PubDate'], '%Y %b %d')
-                except ValueError:
-                    try:
-                        self.pubdate = datetime.strptime(pubmed_record['PubDate'], '%Y %b')
-                    except ValueError:
-                        self.pubdate = datetime.strptime(pubmed_record['PubDate'].split(' ')[0], '%Y')
-
-                self.so = pubmed_record['SO']
-                try:
-                    self.ref = pubmed_record['References']
-                except IndexError:
-                    self.ref = None
-                super(Reference, self).save()
-                for idx, auth in enumerate(pubmed_record['AuthorList']):
-                    authsplit = auth.split(' ')
-                    last_name = authsplit[0] if len(authsplit) else None
-                    initials = authsplit[1] if len(authsplit) > 1 else None
-
-                    author, created = Author.objects.get_or_create(
-                        initials=initials,
-                        last_name=last_name,
-                    )
-                    authmemb = ReferenceAuthor(
-                        reference=self,
-                        author=author,
-                        author_idx=idx,
-                    )
-                    authmemb.save()
-        elif self.doi:
-            CR = CrossRef()
-            query = CR.query(self.doi)
-            if len(query) == 1:
-                query = query[0]
-                self.title = query.get('title')
-                self.journal = query['slugs'].get('jtitle')
-                self.pages = "-".join([query['slugs'].get('spage'), query['slugs'].get('epage')])
-                self.volume = query['slugs'].get('volume')
-                self.pubdate = datetime.strptime(query.get('year'), '%Y')
-            else:
-                return
-
-    def clean(self):
-        super(Reference, self).clean()
-        if self.pmid is None and self.doi is None:
-            raise ValidationError('Reference must have either pmid or doi')
+    @property
+    def protein_secondary_reference(self):
+        return self.proteins.exclude(id__in=self.primary_proteins.all())
 
     def save(self, *args, **kwargs):
-        self.populate_from_pubmed()
-        super(Reference, self).save(*args, **kwargs)
+        info = doi_lookup(self.doi)
+        authors = info.pop('authors')
+        authorlist = []
+        for author in authors:
+            auth, _ = Author.objects.get_or_create(
+                initials=name_to_initials(author['given']),
+                family=author['family'],
+                defaults={'given': author['given'].replace('.', '')}
+            )
+            authorlist.append(auth)
+        for k, v in info.items():
+            setattr(self, k, v)
+        super().save(*args, **kwargs)
+        for idx, author in enumerate(authorlist):
+            authmemb = ReferenceAuthor(
+                reference=self,
+                author=author,
+                author_idx=idx,
+            )
+            authmemb.save()
 
     @property
     def citation(self):
         try:
-            return "{} ({})".format(self.first_author.last_name, self.pubdate.strftime('%Y'))
+            if self.authors.count() == 0:
+                if self.title:
+                    return "{}...".format(self.title[:30])
+                else:
+                    return "{}".format(self.doi)
+            elif self.authors.count() > 2:
+                middle = ' et al. '
+            elif self.authors.count() == 2:
+                secondauthor = self.referenceauthor_set.get(author_idx=1).author.family
+                middle = ' & {} '.format(secondauthor)
+            else:
+                middle = ' '
+
+            return "{}{}({})".format(self.first_author.family, middle, self.year)
         except ObjectDoesNotExist:
-            if self.pmid:
-                return "PMID: {}".format(self.pmid)
-            elif self.doi:
-                return "DOI: {}".format(self.doi)
+                return "doi: {}".format(self.doi)
+
+    def get_absolute_url(self):
+        return reverse("references:reference-detail", args=[self.id])
 
     def __repr__(self):
-        return "Reference(pmid={})".format(self.pmid)
+        return "Reference(doi={})".format(self.doi)
 
     def __str__(self):
         try:
@@ -180,8 +145,12 @@ class ReferenceAuthor(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     author_idx = models.PositiveSmallIntegerField()
 
+    @property
+    def author_count(self):
+        return self.reference.authors.count()
+
     def __str__(self):
-        return "<AuthorMembership: {} in PMID: {}>".format(self.author, self.reference.pmid)
+        return "<AuthorMembership: {} in doi: {}>".format(self.author, self.reference.doi)
 
     class Meta:
         ordering = ['author_idx']

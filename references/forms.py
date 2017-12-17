@@ -6,7 +6,7 @@ from references.models import Reference, Author
 class AuthorForm(ModelForm):
     class Meta:
         model = Author
-        fields = ['last_name', 'initials']
+        fields = ['family', 'given']
 
     def clean_user(self):
         if not self.cleaned_data['added_by']:
