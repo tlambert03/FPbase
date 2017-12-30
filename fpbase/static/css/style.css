@@ -5562,7 +5562,9 @@ a.text-dark:focus, a.text-dark:hover {
 
 body {
   -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important; }
+  -moz-osx-font-smoothing: grayscale !important;
+  padding-bottom: 32px;
+  padding-bottom: 2rem; }
 
 .favorite {
   color: #ffc107;
@@ -6195,6 +6197,10 @@ circle {
 
 span.invalid-feedback {
   display: block; }
+
+textarea#id_seq, .spectrum-field textarea {
+  font-size: 12.8px;
+  font-size: 0.8rem; }
 
 [hidden][style="display: block;"] {
   display: block !important; }

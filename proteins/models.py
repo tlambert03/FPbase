@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from references.models import Reference
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import Lookup
 from django.urls import reverse
 from model_utils.models import StatusModel, TimeStampedModel
 from model_utils import Choices
@@ -12,6 +13,7 @@ import uuid as uuid_lib
 import json
 import re
 
+from .helpers import fetch_ipg_sequence
 from Bio import Entrez
 from Bio.Alphabet.IUPAC import protein as protein_alphabet
 Entrez.email = "talley_lambert@hms.harvard.edu"
@@ -29,6 +31,18 @@ def protein_sequence_validator(seq):
         badletters = set(badletters)
         raise ValidationError('Invalid letter(s) found in amino acid sequence: {}'.format("".join(badletters)))
 
+
+class Around(Lookup):
+    lookup_name = 'around'
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params + lhs_params + rhs_params
+        return '%s > %s - 16 AND %s < %s + 16' % (lhs, rhs, lhs, rhs), params
+
+
+models.fields.PositiveSmallIntegerField.register_lookup(Around)
 
 # protein_sequence_validator = RegexValidator(
 #     '^{}$'.format(protein_alphabet.letters.lower() + protein_alphabet.letters),
@@ -171,7 +185,7 @@ class Spectrum(object):
 
     def wave_value_pairs(self):
         output = {}
-        #arrayLength = len(self.data)
+        # arrayLength = len(self.data)
         for elem in self.data:
             output[elem[0]] = elem[1]
         return output
@@ -198,7 +212,7 @@ class SpectrumField(models.TextField):
         try:
             obj = json.loads(value)
             return Spectrum(obj)
-        except:
+        except Exception:
             raise ValidationError("Invalid input for a Spectrum instance")
 
     def get_prep_value(self, value):
@@ -426,33 +440,29 @@ class Protein(StatusModel, TimeStampedModel):
 
     def clean(self):
         # Don't allow protein sequences to have non valid amino acid letters:
-        errors = {}
         if self.seq:
             self.seq = "".join(self.seq.split()).upper()  # remove whitespace
 
+        errors = {}
         # Don't allow basic switch_types to have more than one state.
-        if self.switch_type == 'b' and self.states.count() > 1:
-            errors.update({'switch_type': 'Basic (non photoconvertible) proteins cannot have more than one state.'})
-
+#        if self.switch_type == 'b' and self.states.count() > 1:
+#            errors.update({'switch_type': 'Basic (non photoconvertible) proteins cannot have more than one state.'})
         if errors:
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        if self.gb_prot:
-            pubmed_record = Entrez.read(Entrez.efetch(db='protein', id=self.gb_prot, retmode='xml'))
-            if not self.seq:
-                try:
-                    self.seq = pubmed_record[0]['GBSeq_sequence'].upper()
-                except Exception:
-                    self.seq = None
+        if self.ipg_id and not self.seq:
+            s = fetch_ipg_sequence(uid=self.ipg_id)
+            self.seq = s[1] if s else None
+
         self.slug = slugify(self.name)
         self.base_name = self._base_name
         try:
             self.default_state = self.states.get(default=True)
         except Exception:
             pass
-        self.full_clean()
-        super(Protein, self).save(*args, **kwargs)
+
+        super().save(*args, **kwargs)
 
     # Meta
     class Meta:
@@ -478,6 +488,7 @@ class State(StatusModel, TimeStampedModel):
                     help_text="Extinction Coefficient")  # extinction coefficient
     qy          = models.FloatField(null=True, blank=True, help_text="Quantum Yield",
                     validators=[MinValueValidator(0), MaxValueValidator(1)])  # quantum yield
+    brightness  = models.FloatField(null=True, blank=True, editable=False)
     pka         = models.FloatField(null=True, blank=True, verbose_name='pKa',
                     validators=[MinValueValidator(2), MaxValueValidator(12)])  # pKa acid dissociation constant
     maturation  = models.FloatField(null=True, blank=True, help_text="Maturation time (min)",  # maturation half-life in min
@@ -493,14 +504,18 @@ class State(StatusModel, TimeStampedModel):
     #    bleach_wide = models.FloatField(null=True, blank=True, verbose_name='Bleach Widefield', help_text="Widefield photobleaching rate",)  # bleaching half-life for widefield microscopy
     #    bleach_conf = models.FloatField(null=True, blank=True, verbose_name='Bleach Confocal', help_text="Confocal photobleaching rate",)  # bleaching half-life for confocal microscopy
 
-
-    # Properties
     @property
-    def brightness(self):
+    def local_brightness(self):
+        """ brightness relative to spectral neighbors.  1 = average """
+        from django.db.models import Avg
+        em_min = self.em_max - 15
+        em_max = self.em_max + 15
+        B = State.objects.exclude(id=self.id).filter(em_max__gt=em_min, em_max__lt=em_max).aggregate(Avg('brightness'))
         try:
-            return float(round(self.ext_coeff * self.qy / 1000, 2))
+            v = round(self.brightness / B['brightness__avg'], 4)
         except TypeError:
-            return None
+            v = 1
+        return v
 
     @property
     def bright_rel_egfp(self):
@@ -615,6 +630,8 @@ class State(StatusModel, TimeStampedModel):
 
     def save(self, *args, **kwargs):
         self.slug = self.protein.slug + '_' + slugify(self.name)
+        if self.qy and self.ext_coeff:
+            self.brightness = float(round(self.ext_coeff * self.qy / 1000, 2))
         super(State, self).save(*args, **kwargs)
 
 

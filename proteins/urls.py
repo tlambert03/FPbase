@@ -11,11 +11,15 @@ app_name = 'proteins'
 
 urlpatterns = [
     # detail view: /:slug
-    url(r'^search/', views.search, name='search'),
+    url(r'^search/', views.protein_search, name='search'),
     url(r'^submit/',
         login_required(views.ProteinCreateView.as_view(),
                        message="You must be logged in to submit a new protein"),
         name='submit'),
+    url(r'^protein/(?P<slug>[-\w]+)/update/',
+        login_required(views.ProteinUpdateView.as_view(),
+                       message="You must be logged in to submit a new protein"),
+        name='update'),
     url(r'^table/', views.protein_table, name='table'),
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
 

@@ -4,19 +4,17 @@ from django.utils.text import slugify
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
-from django.utils.translation import ugettext_lazy as _
 from proteins.models import Protein, State
 from proteins.validators import validate_spectrum, validate_doi
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, ButtonHolder, Submit, Div, Fieldset, HTML
-from crispy_forms.bootstrap import Accordion, AccordionGroup
+from crispy_forms.layout import Layout, Div, HTML
 
 
 def popover_html(label, content, side='right'):
     return '<label data-toggle="tooltip" style="padding-' + side + ': 1rem;" data-placement="' + side + '" title="' + content + '">' + label + '</label>'
 
 
-class ProteinSubmitForm(forms.ModelForm):
+class ProteinUpdateForm(forms.ModelForm):
     '''Form class for user-facing protein creation/submission form '''
     reference_doi = forms.CharField(max_length=100, label='Reference DOI',
         required=True, validators=[validate_doi],
@@ -47,6 +45,22 @@ class ProteinSubmitForm(forms.ModelForm):
             )
         )
 
+    class Meta:
+        model = Protein
+        fields = ('name', 'ipg_id', 'seq', 'agg', 'parent_organism', 'reference_doi')
+        widgets = {
+            'seq': forms.Textarea(attrs={'rows': 3}),
+        }
+        labels = {
+            "seq": popover_html('Sequence', "If you enter an IPG ID, the sequence can be automatically fetched from NCBI"),
+            "agg": "Oligomerization",
+        }
+        help_texts = {
+            'ipg_id': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/">Identical Protein Group ID</a>',
+        }
+
+
+class ProteinSubmitForm(ProteinUpdateForm):
     def clean_name(self):
         name = self.cleaned_data['name']
         slug = slugify(name)
@@ -63,6 +77,8 @@ class ProteinSubmitForm(forms.ModelForm):
 
     def clean_seq(self):
         seq = self.cleaned_data['seq']
+        if not seq:
+            return None
         query = Protein.objects.filter(seq=seq)
         if query.exists():
             prot = query.first()
@@ -73,6 +89,8 @@ class ProteinSubmitForm(forms.ModelForm):
 
     def clean_ipg_id(self):
         ipg_id = self.cleaned_data['ipg_id']
+        if not ipg_id:
+            return None
         query = Protein.objects.filter(ipg_id=ipg_id)
         if query.exists():
             prot = query.first()
@@ -80,21 +98,6 @@ class ProteinSubmitForm(forms.ModelForm):
                 '<a href="{}" style="text-decoration: underline;">{}</a> already has this ID'.format(
                     prot.get_absolute_url(), prot.name)))
         return ipg_id
-
-    class Meta:
-        model = Protein
-        fields = ('name', 'ipg_id', 'seq', 'agg', 'parent_organism',
-                  'reference_doi')
-        widgets = {
-            'seq': forms.Textarea(attrs={'rows': 3}),
-        }
-        labels = {
-            "seq": popover_html('Sequence', "If you enter an IPG ID, the sequence can be automatically fetched from NCBI"),
-            "agg": "Oligomerization",
-        }
-        help_texts = {
-            'ipg_id': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/">Identical Protein Group ID</a>',
-        }
 
 
 class SpectrumFormField(forms.CharField):
@@ -149,6 +152,14 @@ class StateSubmitForm(forms.ModelForm):
             )
         )
 
+    def clean(self):
+        super().clean()
+        is_dark = self.cleaned_data.get("is_dark")
+        ex_max = self.cleaned_data.get("ex_max")
+        em_max = self.cleaned_data.get("em_max")
+        if not is_dark and not (ex_max and em_max):
+            raise forms.ValidationError("Must provide both ex & em maxima for non-dark state")
+
     class Meta:
         model = State
         fields = ('name', 'is_dark', 'ex_max', 'em_max', 'ext_coeff', 'qy',
@@ -168,98 +179,27 @@ class StateSubmitForm(forms.ModelForm):
         }
 
 
-StateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, extra=1)
-
-
-class ProteinSearchForm(forms.ModelForm):
-    ex_max = forms.IntegerField(required=False, help_text='Search for protein with Ex max around this wavelength')
-    ex_range = forms.IntegerField(required=False, help_text='Bandwidth range for Ex max search')
-    em_max = forms.IntegerField(required=False, help_text='Search for protein with Em max around this wavelength')
-    em_range = forms.IntegerField(required=False, help_text='Bandwidth range for Em max search')
-    name = forms.CharField(required=False)
-
-    class Meta:
-        model = Protein
-        fields = ['name', 'gb_prot', 'gb_nuc', 'agg', 'switch_type', 'parent_organism', 'FRET_partner']
-        help_texts = {
-            'name': _('Query string (will search within names)'),
-            'gb_prot': _('GenBank protein Accession number (e.g. AFR60231)'),
-            'gb_nuc': _('GenBank nucleotide Accession number'),
-            'switch_type': _('Photoswitching type'),
-        }
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'myfieldclass'}),
-        }
-
+class BaseStateFormSet(forms.BaseInlineFormSet):
     def clean(self):
-        cleaned_data = super(ProteinSearchForm, self).clean()
-        form_empty = True
-        for field_value in cleaned_data.values():
-            # Check for None or '', so IntegerFields with 0 or similar things don't seem empty.
-            if not (field_value is None or field_value == ''):
-                if not field_value:
-                    continue
-                form_empty = False
-                break
-        if form_empty:
-            raise forms.ValidationError(_("You must fill at least one field!"))
-        return cleaned_data   # Important that clean should return cleaned_data!
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+        names = []
+        darkcount = 0
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+            name = form.cleaned_data.get('name')
+            if name in names:
+                raise forms.ValidationError("Different states must have distinct names.")
+            names.append(name)
+            darkcount += 1 if form.cleaned_data.get('is_dark') else 0
+            if darkcount > 1:
+                raise forms.ValidationError("A protein can only have a single dark state")
 
-    helper = FormHelper()
-    helper.form_method = 'post'
-    helper.form_action = '/search/'
-    helper.layout = Layout(
-        Fieldset(
-            'Search',
-            'name',
-        ),
-        Accordion(
-            AccordionGroup(
-                'Advanced Search Parameters...',
-                Div(
-                    Div('gb_prot',
-                        css_class='col-sm-6',
-                        ),
-                    Div('gb_nuc',
-                        css_class='col-sm-6',
-                        ),
-                    css_class='row',
-                ),
-                Div(
-                    Div('switch_type',
-                        css_class='col-sm-4',
-                        ),
-                    Div('agg',
-                        css_class='col-sm-4',
-                        ),
-                    Div('parent_organism',
-                        css_class='col-sm-4',
-                        ),
-                    css_class='row',
-                ),
-                Div(
-                    Div('ex_max',
-                        css_class='col-sm-4',
-                        ),
-                    Div('ex_range',
-                        css_class='col-sm-2',
-                        ),
-                    Div('em_max',
-                        css_class='col-sm-4',
-                        ),
-                    Div('em_range',
-                        css_class='col-sm-2',
-                        ),
-                    css_class='row',
-                ),
-                'FRET_partner',
-                active=False,
-            ),
-            ),
-        ButtonHolder(
-            Submit('submit', 'Submit', css_class='button white')
-        ),
-    )
+
+StateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, formset=BaseStateFormSet, extra=1)
+StateUpdateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, formset=BaseStateFormSet, extra=1, can_delete=True)
 
 
 class ProteinForm(forms.ModelForm):
@@ -309,24 +249,3 @@ class StateForm(forms.ModelForm):
         if not self.cleaned_data['updated_by']:
             return User()
         return self.cleaned_data['updated_by']
-
-
-# class StateFormSet(BaseInlineFormSet):
-#     def clean(self):
-#         super(StateFormSet, self).clean()
-#         if any(self.errors):
-#             # Don't bother validating the formset unless each form is valid on its own
-#             return
-#         defaults = 0
-#         for form in self.forms:
-#             if form.cleaned_data['default']:
-#                 defaults += 1
-#             if defaults > 1:
-#                 raise forms.ValidationError("Only one default state is allowed.")
-
-
-# notes:
-
-# it is strongly recommended that you explicitly set all fields that should be edited in the form using the fields attribute
-# Failure to do so can easily lead to security problems when a form unexpectedly allows a user to set certain fields
-# https://docs.djangoproject.com/en/1.7/topics/forms/modelforms/#model-formsets

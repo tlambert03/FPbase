@@ -361,5 +361,6 @@ pip-selfcheck.json
 
 
 fpbase/media/
-
+_data/fpbase_psd/
+_data/FPD-non-redundant-processed.csv
 

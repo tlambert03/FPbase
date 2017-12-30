@@ -50,6 +50,14 @@ $('.dark_state_button input').click(function(){
 	}
 })
 
+function reset_ipgid(hintstring){
+    if (hintstring){
+        $("#hint_id_ipg_id").html(hintstring)
+    }
+    $("#id_seq").prop('disabled', false);
+    $("#hint_id_seq").html('Amino acid sequence (IPG ID is preferred)')
+}
+
 $("#id_ipg_id").change(function(){
     ipg_id = $(this).val()
     protein_uri = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&retmode=json&rettype=fasta&id="
@@ -59,13 +67,13 @@ $("#id_ipg_id").change(function(){
         url: ipg_uri + ipg_id + fpbase_params,
         context: document.body,
         success: function(data){
-            if (ipg_id in data.result){
+            if (!('result' in data)){
+                reset_ipgid('NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/">Identical Protein Group ID</a>')
+            } else if (ipg_id in data.result){
                 var accession = data.result[ipg_id].accession
                 title = data.result[ipg_id].title
-                $("#hint_id_ipg_id").html(title)
-
+                $("#hint_id_ipg_id").html("IPG name: " + title)
                 $.ajax({
-
                     url: protein_uri + accession + fpbase_params,
                     context: document.body,
                     success: function(data2){
@@ -77,12 +85,17 @@ $("#id_ipg_id").change(function(){
                             }
                         }
                         $("#id_seq").val(seq)
+                        $("#id_seq").prop('disabled', true);
+                        $("#hint_id_seq").html('Sequence input disabled when IPG ID provided')
                     },
+                    error: function(data){
+                        reset_ipgid('Unrecognized IPG ID')
+                    }
                 })
             }
         },
         error: function(data){
-            $("#hint_id_ipg_id").html("Protein ID not found in the NCBI IPG database")
+            reset_ipgid('Unrecognized IPG ID')
         }
     });
 

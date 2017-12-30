@@ -2,6 +2,18 @@
 {% load crispy_forms_tags compress static %}
 
 {% block content %}
+	{% if object %}
+	    <h1>Update {{ object.name }}</h1>
+	{% else %}
+	    <h1>Submit a new protein</h1>
+	{% endif %}
+
+	{% if states.non_form_errors %}
+		<h5>There were errors in the form...</h5>
+		<div class="alert alert-danger" role="alert">
+		  {{ states.non_form_errors }}
+		</div>
+	{% endif %}
 
 	<div class="container">
 	    <form action="" method="post">
@@ -14,12 +26,22 @@
 
 	        {{ states.management_form|crispy }}
 	        {% for stateform in states.forms %}
-			<div class="row formset_div">
-				<div class='col state-col'>{% crispy stateform stateform.helper %}</div>
-	        </div>
+		        {% for hidden in stateform.hidden_fields %}
+	                {{ hidden }}
+	            {% endfor %}
+				<div class="row formset_div">
+					<div class='col state-col'>
+						{% if stateform.instance.pk %}{{ stateform.DELETE }}{% endif %}
+						{% crispy stateform stateform.helper %}
+					</div>
+		        </div>
 	        {% endfor %}  <!-- end formset loop  -->
 
-	        <input type="submit" class='btn btn-primary mb-4' value="Save"/>
+	        {% if object %}
+	            <input type="submit" class='btn btn-primary mb-4' value="Update {{ object.name }}" />
+	        {% else %}
+	            <input type="submit" class='btn btn-primary mb-4' value="Save Protein"/>
+	        {% endif %}
 	    </form>
 	</div>
 
@@ -36,17 +58,32 @@
 
 	$(function () {
 
-	  $('[data-toggle="tooltip"]').tooltip()
+		$('[data-toggle="tooltip"]').tooltip()
 
-	  $('.formset_div').formset({
-	      addText: 'Add State',
-	      addCssClass: 'btn btn-info mb-4',
-	      deleteCssClass: 'state-delete-button btn btn-danger align-middle',
-	      deleteText: 'Remove',
-	      prefix: 'states' 	 // it's important that this match the string used for the
-	      					 // related_name attribute in the "protein" foreign key field
-	      					 // in the State model
-	  });
+		var deleteclass = 'state-delete-button'
+
+		$('.formset_div').formset({
+			addText: 'Add State',
+			addCssClass: 'btn btn-info mb-4',
+			deleteCssClass: deleteclass + ' btn btn-danger align-middle',
+			deleteText: 'Remove',
+			prefix: 'states' 	 // it's important that this match the string used for the
+								 // related_name attribute in the "protein" foreign key field
+								 // in the State model
+		});
+
+		if ($("#id_ipg_id").val()){
+			$("#id_seq").prop('disabled', true);
+			$("#hint_id_seq").html('Sequence input disabled when IPG ID provided');
+		}
+
+		// if this is an update view without post data, remove the last (empty) state
+		{% if object %}
+			{% if not request.POST %}
+			$('.dynamic-form').last().find('.' + deleteclass).click()
+			{% endif %}
+		{% endif %}
+
 
 	})
 

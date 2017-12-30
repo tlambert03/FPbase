@@ -61,4 +61,5 @@ djangorestframework
 coreapi
 markdown
 
-crossrefapi
+crossrefapi==1.2.0
+django-filter==1.1.0
