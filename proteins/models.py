@@ -310,7 +310,7 @@ class Protein(StatusModel, TimeStampedModel):
     FRET_partner = models.ManyToManyField('self', symmetrical=False, through='FRETpair', blank=True)
     created_by = models.ForeignKey(User, related_name='proteins_author', blank=True, null=True)  # the user who added the protein
     updated_by = models.ForeignKey(User, related_name='proteins_modifier', blank=True, null=True)
-    default_state = models.ForeignKey('State', related_name='parent_protein', blank=True, null=True)
+    default_state = models.ForeignKey('State', related_name='parent_protein', blank=True, null=True, on_delete=models.SET_NULL)
 
     # Manager
     # consider writing a manager to retrieve spectra or for custom queries
