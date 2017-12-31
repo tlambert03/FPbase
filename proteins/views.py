@@ -53,6 +53,8 @@ class ProteinCreateUpdateMixin:
                         s.created_by = self.request.user
                     s.updated_by = self.request.user
                     s.save()
+                for s in states.deleted_objects:
+                    s.delete()
 
                 # FIXME: should allow control of default states in form
                 # if only 1 state, make it the default state
