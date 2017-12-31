@@ -85,6 +85,10 @@ class Reference(TimeStampedModel):
     def protein_secondary_reference(self):
         return self.proteins.exclude(id__in=self.primary_proteins.all())
 
+    def clean(self):
+        if self.doi:
+            self.doi = self.doi.strip()
+
     def save(self, *args, **kwargs):
         info = doi_lookup(self.doi)
         authors = info.pop('authors')

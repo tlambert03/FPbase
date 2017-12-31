@@ -48,7 +48,7 @@ def get_nonan(obj, item):
 
 @require_superuser
 def add_ref_to_prot(protein, doi, showexisting=False):
-    ref, created = Reference.objects.get_or_create(doi=doi)
+    ref, created = Reference.objects.get_or_create(doi=doi.strip())
     rf = 1 if created else 0
     protein.references.add(ref)
     if not protein.primary_reference:
