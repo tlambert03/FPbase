@@ -395,9 +395,7 @@ class Protein(StatusModel, TimeStampedModel):
 
     @property
     def additional_references(self):
-        return self.references.exclude(id=self.primary_reference_id)
-        # sometimes not working above...
-        # return self.references.exclude(doi__contains=self.primary_reference.doi)
+        return self.references.exclude(id=self.primary_reference_id).order_by('-year')
 
     # Methods
     def __str__(self):
