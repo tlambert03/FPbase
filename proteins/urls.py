@@ -23,6 +23,8 @@ urlpatterns = [
     url(r'^table/', views.protein_table, name='table'),
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
 
+    url(r'^ajax/add_protein_reference/$', views.add_reference, name='add_protein_reference'),
+
     url(r'^protein/(?P<slug>[-\w]+)/$', ProteinDetailView.as_view(), name='protein-detail'),
 
     # /proteins/api

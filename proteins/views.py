@@ -47,14 +47,21 @@ class ProteinCreateUpdateMixin:
                 self.object.primary_reference = ref
 
                 states.instance = self.object
-                saved_states = states.save()
+                saved_states = states.save(commit=False)
+                for s in saved_states:
+                    if not s.created_by:
+                        s.created_by = self.request.user
+                    s.updated_by = self.request.user
+                    s.save()
+
+                # FIXME: should allow control of default states in form
                 # if only 1 state, make it the default state
-                if len(saved_states) == 1:
-                    self.object.default_state = saved_states[0]
+                if self.object.states.count() == 1:
+                    self.object.default_state = self.object.states.first()
                 # otherwise use first non-dark state
-                elif len(saved_states) > 1:
-                    for S in saved_states:
-                        if not S.is_dark:
+                elif self.object.states.count() > 1:
+                    for S in self.object.states.all():
+                        if not S.is_dark and S not in states.deleted_objects:
                             self.object.default_state = S
                             break
                 self.object.save()
@@ -122,4 +129,18 @@ def protein_search(request):
     else:
         f = ProteinFilter(request.GET, queryset=Protein.objects.none())
     return render(request, 'proteins/protein_filter.html', {'filter': f})
+
+
+from django.http import JsonResponse
+def add_reference(request):
+    try:
+        slug = request.POST.get('protein')
+        doi = request.POST.get('reference_doi')
+        P = Protein.objects.get(slug=slug)
+        ref, created = Reference.objects.get_or_create(doi=doi)
+        P.references.add(ref)
+        P.save()
+        return JsonResponse({'url': P.get_absolute_url()})
+    except Exception:
+        pass
 
