@@ -63,3 +63,11 @@
 [hidden][style="display: block;"] {
   display: block !important;
 }
+
+.modal-open .modal.modal-center {
+    display: flex!important;
+    align-items: center!important;
+    .modal-dialog {
+        flex-grow: 1;
+    }
+}

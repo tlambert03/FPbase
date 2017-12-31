@@ -6204,3 +6204,12 @@ textarea#id_seq, .spectrum-field textarea {
 
 [hidden][style="display: block;"] {
   display: block !important; }
+
+.modal-open .modal.modal-center {
+  display: -ms-flexbox !important;
+  display: flex !important;
+  -ms-flex-align: center !important;
+      align-items: center !important; }
+  .modal-open .modal.modal-center .modal-dialog {
+    -ms-flex-positive: 1;
+        flex-grow: 1; }
