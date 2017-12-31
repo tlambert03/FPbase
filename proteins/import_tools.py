@@ -295,17 +295,18 @@ def importSpectra(file=None):
 
 
 @require_superuser
-def reload_all():
+def reload_all(seqs=False):
     importCSV()
     importPSFPs()
     importSeqs()
     importSpectra()
-    for P in Protein.objects.all():
-        Q = fetch_ipg_sequence(P.name)
-        if Q:
-            P.seq = Q[1]
-            P.ipg_id = Q[0]
-            P.save()
+    if seqs:
+        for P in Protein.objects.all():
+            Q = fetch_ipg_sequence(P.name)
+            if Q:
+                P.seq = Q[1]
+                P.ipg_id = Q[0]
+                P.save()
 
 
 #########################
