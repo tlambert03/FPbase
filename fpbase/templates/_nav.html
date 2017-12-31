@@ -31,7 +31,7 @@
             {% if request.user.is_authenticated %}
             <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a class="nav-link" href="{% url 'account_logout' %}">{% trans "sign out" %}</a>
+                <a class="nav-link" href="{% url 'account_logout' %}?next={% firstof request.path '/' %}">{% trans "sign out" %}</a>
             </li>
             <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
