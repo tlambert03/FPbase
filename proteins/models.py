@@ -288,7 +288,7 @@ class Protein(StatusModel, TimeStampedModel):
     )
 
     # Attributes
-    uuid        = models.UUIDField(db_index=True, default=uuid_lib.uuid4, editable=False, unique=True)  # for API
+    uuid        = models.UUIDField(default=uuid_lib.uuid4, editable=False, unique=True)  # for API
     name        = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
     slug        = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name   = models.CharField(max_length=128)  # easily searchable "family" name
@@ -480,9 +480,9 @@ class State(StatusModel, TimeStampedModel):
     slug        = models.SlugField(max_length=128, unique=True, help_text="Unique slug for the state")  # calculated at save
     is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence",)
     ex_max      = models.PositiveSmallIntegerField(blank=True, null=True,
-                    validators=[MinValueValidator(300), MaxValueValidator(900)])
+                    validators=[MinValueValidator(300), MaxValueValidator(900)], db_index=True)
     em_max      = models.PositiveSmallIntegerField(blank=True, null=True,
-                    validators=[MinValueValidator(300), MaxValueValidator(1000)])
+                    validators=[MinValueValidator(300), MaxValueValidator(1000)], db_index=True)
     ex_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]')  # excitation spectra (list of x,y coordinate pairs)
     em_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]')  # emission spectra (list of x,y coordinate pairs)
     ext_coeff   = models.IntegerField(blank=True, null=True,
