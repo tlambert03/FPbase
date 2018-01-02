@@ -29,13 +29,12 @@
                 </div>
             </li>
             {% if request.user.is_authenticated %}
-            <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a class="nav-link" href="{% url 'account_logout' %}?next={% firstof request.path '/' %}">{% trans "sign out" %}</a>
-            </li>
-            <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a class="nav-link" href="{% url 'users:detail' request.user.username  %}">{{ request.user.get_username }}</a>
+            <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ request.user.get_username }}</a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    {# URL provided by django-allauth/account/urls.py #}
+                    <a class="dropdown-item" href="{% url 'users:detail' request.user.username  %}">profile</a>
+                    <a class="dropdown-item" href="{% url 'account_logout' %}?next={% firstof request.path '/' %}">{% trans "sign out" %}</a>
+                </div>
             </li>
             {% else %}
             <li class="nav-item">
@@ -44,8 +43,19 @@
             </li>
             <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">{% trans "sign in" %}</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">{% trans "log in" %}</a>
             </li>
+            {% endif %}
+            {% if not request.get_full_path == "/" %}
+            <form class="form-inline nav-search" method="get" action="/search/">
+                    <div class='input-group'>
+                    <input class="form-control" type="search" placeholder="Search" name="name__icontains" aria-label="Search">
+                    <span class="input-group-btn">
+                        <button class="btn btn-outline" type="submit"><i class="fas fa-search"></i></button>
+                    </span>
+                    </div>
+                </span>
+            </form>
             {% endif %}
         </ul>
     </div>

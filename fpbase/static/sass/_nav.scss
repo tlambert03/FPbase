@@ -47,6 +47,31 @@ $logo-color: #efe;
       @include media-breakpoint-down(sm) { height: 2.2rem; }
     }
   }
+  .nav-search{
+    input{
+      background: rgba(white, 0.25);
+      border: none;
+      color: white;
+      font-weight: 600;
+      &::placeholder {
+        font-weight: 200;
+        color: rgba($white,0.7);
+        @include media-breakpoint-down(xs) {
+          color: rgba($white,0.8);
+        }
+      }
+      @include media-breakpoint-up(lg) { margin-left: 1rem; }
+      @include media-breakpoint-down(md) { width: 170px; }
+    }
+    button{
+      background: rgba(black, 0.15);
+      color: #fff;
+      border:none;
+      &:hover {
+        background: rgba(black, 0.25);
+      }
+    }
+  }
 }
 
 .home-body .navbar{

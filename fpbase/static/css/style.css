@@ -5653,7 +5653,8 @@ body {
     box-shadow: none;
     background: rgba(255, 255, 255, 0);
     border-radius: 10rem;
-    border: none; }
+    border: none;
+    color: white; }
     .search-col .home-search button.fa-search:before {
       color: rgba(255, 255, 255, 0.75); }
     .search-col .home-search button:hover {
@@ -5746,6 +5747,34 @@ body {
       @media (max-width: 767px) {
         .navbar .navbar-brand .logo-svg {
           height: 2.2rem; } }
+  .navbar .nav-search input {
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    color: white;
+    font-weight: 600; }
+    .navbar .nav-search input:-ms-input-placeholder {
+      font-weight: 200;
+      color: rgba(255, 255, 255, 0.7); }
+    .navbar .nav-search input::placeholder {
+      font-weight: 200;
+      color: rgba(255, 255, 255, 0.7); }
+      @media (max-width: 575px) {
+        .navbar .nav-search input:-ms-input-placeholder {
+          color: rgba(255, 255, 255, 0.8); }
+        .navbar .nav-search input::placeholder {
+          color: rgba(255, 255, 255, 0.8); } }
+    @media (min-width: 992px) {
+      .navbar .nav-search input {
+        margin-left: 1rem; } }
+    @media (max-width: 991px) {
+      .navbar .nav-search input {
+        width: 170px; } }
+  .navbar .nav-search button {
+    background: rgba(0, 0, 0, 0.15);
+    color: #fff;
+    border: none; }
+    .navbar .nav-search button:hover {
+      background: rgba(0, 0, 0, 0.25); }
 
 .home-body .navbar {
   box-shadow: 0 0 0 transparent; }
