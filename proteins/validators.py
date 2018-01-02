@@ -1,12 +1,40 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-from proteins.models import Spectrum
+
+# from django.utils.translation import gettext as _
 import ast
+from Bio import Alphabet, Seq, Data
+
 
 validate_doi = RegexValidator(r"^10.\d{4,9}/[-._;()/:a-zA-Z0-9]+$", 'Not a valid DOI string')
 
 
+def cdna_sequence_validator(seq):
+    badletters = []
+    for letter in seq:
+        if letter not in Alphabet.IUPAC.unambiguous_dna.letters:
+            badletters.append(letter)
+    if len(badletters):
+        raise ValidationError('Invalid DNA letters: {}'.format("".join(set(badletters))))
+    try:
+        Seq.Seq(seq, Alphabet.IUPAC.unambiguous_dna).translate()
+    except Data.CodonTable.TranslationError as e:
+        raise ValidationError(e)
+
+
+def protein_sequence_validator(seq):
+    seq = "".join(seq.split()).upper()  # remove whitespace
+    badletters = []
+    for letter in seq:
+        if letter not in Alphabet.IUPAC.protein.letters:
+            badletters.append(letter)
+    if len(badletters):
+        badletters = set(badletters)
+        raise ValidationError('Invalid letter(s) found in amino acid sequence: {}'.format("".join(badletters)))
+
+
 def validate_spectrum(value):
+    from proteins.models import Spectrum
     if not value:
         return None
     if isinstance(value, Spectrum):
