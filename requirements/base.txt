@@ -6,7 +6,7 @@ wheel==0.30.0
 
 
 # Bleeding edge Django
-django==1.11.7 # pyup: >=1.11,<1.12
+django==1.11.9 # pyup: <2.0
 
 # Configuration
 django-environ==0.4.4
@@ -57,9 +57,9 @@ biopython==1.70
 pandas==0.21.0
 
 # DRF
-djangorestframework
-coreapi
-markdown
+djangorestframework==3.7.3
+coreapi==2.3.3
+markdown==2.6.9
 
 crossrefapi==1.2.0
 django-filter==1.1.0

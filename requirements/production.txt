@@ -10,7 +10,7 @@ gunicorn==19.7.1
 
 # Static and Media Storage
 # ------------------------------------------------
-boto3==1.4.7
+boto3==1.5.6
 django-storages==1.6.5
 
 
@@ -20,11 +20,11 @@ django-anymail==1.2
 
 # Raven is the Sentry client
 # --------------------------
-raven==6.3.0
+raven==6.4.0
 
 # Opbeat agent for performance monitoring
 # -----------------------------------------
-opbeat==3.5.3
+opbeat==3.6.0
 
 # New relic monitoring
 # -----------------------------------------
