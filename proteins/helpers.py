@@ -8,6 +8,57 @@ PMF = PubMedFetcher()
 Entrez.email = "talley_lambert@hms.harvard.edu"
 
 
+def get_color_group(ex_max, em_max):
+    if (em_max - ex_max) > 90:
+        return "Long Stokes Shift", "#80A0FF"
+    if ex_max < 380:
+        return "UV", "#C080FF"
+    if ex_max < 421:
+        return "Blue", "#8080FF"
+    if ex_max < 473:
+        return "Cyan", "#80FFFF"
+    if ex_max < 505:
+        return "Green", "#80FF80"
+    if ex_max < 515:
+        return "Green/Yellow", "#CCFF80"
+    if ex_max < 531:
+        return "Yellow", "#FFFF80"
+    if ex_max < 555:
+        return "Orange", "#FFC080"
+    if ex_max < 600:
+        return "Red", "#FFA080"
+    if ex_max < 631:
+        return "Far Red", "#FF8080"
+    if ex_max < 800:
+        return "Near IR", "#B09090"
+
+
+def get_taxonomy_id(term, autochoose=False):
+    record = Entrez.read(Entrez.esearch(db='taxonomy', term=term))
+    if 'ErrorList' in record and 'PhraseNotFound' in record['ErrorList']:
+        spell_cor = get_entrez_spelling(term)
+        if spell_cor:
+            if autochoose:
+                response = 'y'
+            else:
+                response = input('By "{}", did you mean "{}"? (y/n): '.format(spell_cor))
+            if response.lower() == 'y':
+                record = Entrez.read(Entrez.esearch(db='taxonomy', term=spell_cor))
+    if record['Count'] == '1':
+        return record['IdList'][0]
+    elif int(record['Count']) > 1:
+        print('multiple records found:\n{}'.format('\n'.join(record['IdList'])))
+    return None
+
+
+def get_entrez_spelling(term, db='taxonomy'):
+    record = Entrez.read(Entrez.espell(db=db, term=term))
+    if record.get('CorrectedQuery'):
+        return record.get('CorrectedQuery')
+    else:
+        return term
+
+
 def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=0):
     # autochoose value is the difference in protein counts required to autochoose
     # the most abundant protein count over the second-most abundant
