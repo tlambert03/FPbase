@@ -6,9 +6,9 @@ from django.views.generic import DetailView
 
 class AuthorDetailView(DetailView):
     ''' renders html for single author page  '''
-    model = Author
+    queryset = Author.objects.all().prefetch_related('publications', 'publications__authors', 'publications__primary_proteins')
 
 
 class ReferenceDetailView(DetailView):
     ''' renders html for single reference page  '''
-    model = Reference
+    queryset = Reference.objects.all().prefetch_related('authors')

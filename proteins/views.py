@@ -28,7 +28,7 @@ class ProteinChartList(ListView):
 
 class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
-    model = Protein
+    queryset = Protein.objects.all().prefetch_related('states')
 
 
 class ProteinCreateUpdateMixin:
@@ -125,8 +125,9 @@ def protein_search(request):
     ''' renders html for protein search page  '''
     from .filters import ProteinFilter
     if request.GET:
-        f = ProteinFilter(request.GET, queryset=Protein.objects.all().order_by('default_state__em_max'))
-        if f.qs.count() == 1:
+        f = ProteinFilter(request.GET, queryset=Protein.objects.all().order_by('default_state__em_max').prefetch_related('default_state'))
+        print(f.qs)
+        if len(f.qs) == 1:
             return redirect(f.qs.first())
     else:
         f = ProteinFilter(request.GET, queryset=Protein.objects.none())
