@@ -53,6 +53,7 @@ THIRD_PARTY_APPS = [
     'allauth',  # registration
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
+    'django_filters',
 ]
 
 # Apps specific for this project go here.
@@ -282,4 +283,3 @@ ADMIN_URL = r'^admin/'
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
-INSTALLED_APPS += ['django_filters', ]
