@@ -13,23 +13,14 @@ import uuid as uuid_lib
 import json
 import re
 
-from .helpers import fetch_ipg_sequence
+from .helpers import fetch_ipg_sequence, get_color_group
+from .validators import protein_sequence_validator
+
 from Bio import Entrez
 from Bio.Alphabet.IUPAC import protein as protein_alphabet
 Entrez.email = "talley_lambert@hms.harvard.edu"
 
 User = get_user_model()
-
-
-def protein_sequence_validator(seq):
-    seq = "".join(seq.split()).upper()  # remove whitespace
-    badletters = []
-    for letter in seq:
-        if letter not in protein_alphabet.letters:
-            badletters.append(letter)
-    if len(badletters):
-        badletters = set(badletters)
-        raise ValidationError('Invalid letter(s) found in amino acid sequence: {}'.format("".join(badletters)))
 
 
 class Around(Lookup):
@@ -43,10 +34,6 @@ class Around(Lookup):
 
 
 models.fields.PositiveSmallIntegerField.register_lookup(Around)
-
-# protein_sequence_validator = RegexValidator(
-#     '^{}$'.format(protein_alphabet.letters.lower() + protein_alphabet.letters),
-#     'Protein sequence contains invalid letters.')
 
 
 def wave_to_hex(wavelength, gamma=1):
@@ -235,6 +222,7 @@ class Organism(TimeStampedModel):
     common_name = models.CharField(max_length=128, blank=True)
     species     = models.CharField(max_length=128, blank=True)
     genus       = models.CharField(max_length=128, blank=True)
+    rank        = models.CharField(max_length=128, blank=True)
 
     # Relations
     created_by    = models.ForeignKey(User, related_name='organism_author', blank=True, null=True)  # the user who added the state
@@ -245,6 +233,7 @@ class Organism(TimeStampedModel):
 
     class Meta:
         verbose_name = u'Organism'
+        ordering = ['scientific_name']
 
     def save(self, *args, **kwargs):
         pubmed_record = Entrez.read(Entrez.esummary(db='taxonomy', id=self.tax_id, retmode='xml'))
@@ -253,6 +242,7 @@ class Organism(TimeStampedModel):
         self.common_name = pubmed_record[0]['CommonName']
         self.species = pubmed_record[0]['Species']
         self.genus = pubmed_record[0]['Genus']
+        self.rank = pubmed_record[0]['Rank']
         super(Organism, self).save(*args, **kwargs)
 
 
@@ -434,6 +424,9 @@ class Protein(StatusModel, TimeStampedModel):
             if state.has_spectra():
                 return True
         return False
+
+    def color(self):
+        return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]
 
     def spectra(self):
         return json.dumps([self.default_state.nvd3ex, self.default_state.nvd3em])
