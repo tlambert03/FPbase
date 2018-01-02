@@ -23,38 +23,40 @@
 
 		<div class="attributes">
 			<h3>Attributes</h3>
-			<div class="table-bordered">
-				<table class="table table-striped mobile">
+				<table class="table table-striped" id='flip-scroll'>
 					<thead>
 						<tr class="table-header">
-							{% if protein.states.count > 1 %}
-							<th>State</th>
-							{% endif %}
+							{% if protein.states.count > 1 %}<th>State</th>{% endif %}
 							<th>Ex &lambda;</th>
 				  			<th>Em &lambda;</th>
 				  			<th>EC</th>
 				  			<th>QY</th>
-				  			<th>Brightness</th>
 				  			<th>pKa</th>
+				  			<th>Brightness</th>
+				  			<th>Stability</th>
+				  			<th>Maturation</th>
+				  			<th>Lifetime</th>
 						</tr>
 					</thead>
 					<tbody>
 					{% for state in protein.states.all %}
 						<tr >
 							{% if protein.states.count > 1 %}
-							<td data-title="State">{{ state.name }}</td>
+							<td>{{ state.name }}</td>
 							{% endif %}
-							<td data-title="Ex &lambda;">{{ state.ex_max | default:"&nbsp;" }}</td>
-				  			<td data-title="Em &lambda;">{{ state.em_max | default:"&nbsp;"}}</td>
-				  			<td data-title="EC">{{ state.ext_coeff | default:"&nbsp;"}}</td>
-				  			<td data-title="QY">{{ state.qy | default:"&nbsp;"}}</td>
-				  			<td data-title="Brightness">{{ state.brightness | default:"&nbsp;"}}</td>
-				  			<td data-title="pKa">{{ state.pka | default:"&nbsp;"}}</td>
+							<td>{{ state.ex_max | default:"&nbsp;" }}</td>
+				  			<td>{{ state.em_max | default:"&nbsp;"}}</td>
+				  			<td>{{ state.ext_coeff | default:"&nbsp;"}}</td>
+				  			<td>{{ state.qy | default:"&nbsp;"}}</td>
+				  			<td>{{ state.brightness | default:"&nbsp;"}}</td>
+				  			<td>{{ state.bleach | default:"&nbsp;"}}</td>
+				  			<td>{{ state.pka | default:"&nbsp;"}}</td>
+				  			<td>{{ state.maturation | default:"&nbsp;"}}</td>
+				  			<td>{{ state.lifetime | default:"&nbsp;"}}</td>
 						</tr>
 					{% endfor %}
 					</tbody>
 				</table>
-			</div>
 		</div>
 
 		{% if protein.transitions.count > 0 %}

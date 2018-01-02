@@ -486,7 +486,7 @@ class State(StatusModel, TimeStampedModel):
                     validators=[MinValueValidator(2), MaxValueValidator(12)])  # pKa acid dissociation constant
     maturation  = models.FloatField(null=True, blank=True, help_text="Maturation time (min)",  # maturation half-life in min
                     validators=[MinValueValidator(0), MaxValueValidator(1400)])
-    lifetime    = models.FloatField(null=True, blank=True, help_text="Fluorescence Lifetime (ns)",
+    lifetime    = models.FloatField(null=True, blank=True, help_text="Lifetime (ns)",
                     validators=[MinValueValidator(0), MaxValueValidator(20)])  # fluorescence lifetime in nanoseconds
 
     # Relations
@@ -494,8 +494,6 @@ class State(StatusModel, TimeStampedModel):
     protein     = models.ForeignKey(Protein, related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
     created_by    = models.ForeignKey(User, related_name='state_author', blank=True, null=True)  # the user who added the state
     updated_by  = models.ForeignKey(User, related_name='state_modifier', blank=True, null=True)  # the user who last modified the state
-    #    bleach_wide = models.FloatField(null=True, blank=True, verbose_name='Bleach Widefield', help_text="Widefield photobleaching rate",)  # bleaching half-life for widefield microscopy
-    #    bleach_conf = models.FloatField(null=True, blank=True, verbose_name='Bleach Confocal', help_text="Confocal photobleaching rate",)  # bleaching half-life for confocal microscopy
 
     @property
     def local_brightness(self):
@@ -630,6 +628,7 @@ class State(StatusModel, TimeStampedModel):
 
 class BleachMeasurement(TimeStampedModel):
     rate      = models.FloatField(verbose_name='Bleach Rate', help_text="Photobleaching rate",)  # bleaching half-life
+    power     = models.FloatField(null=True, blank=True, verbose_name='Illumination Power', help_text="Illumination power (W/cm2)",)
     modality  = models.CharField(max_length=100, blank=True, verbose_name='Illumination Modality', help_text="Type of microscopy/illumination used for measurement",)
     reference = models.ForeignKey(Reference, related_name='bleach_measurement', verbose_name="Measurement Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Reference where the measurement was made",)  # usually, the original paper that published the protein
     state     = models.ForeignKey(State, related_name='bleach_measurement', verbose_name="Protein (state)", help_text="The protein (state) for which this measurement was observed", on_delete=models.CASCADE)

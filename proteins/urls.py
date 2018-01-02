@@ -18,7 +18,7 @@ urlpatterns = [
         name='submit'),
     url(r'^protein/(?P<slug>[-\w]+)/update/',
         login_required(views.ProteinUpdateView.as_view(),
-                       message="You must be logged in to submit a new protein"),
+                       message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),

@@ -203,7 +203,6 @@ function format_protein(elem, breakpoint) {
             //console.log(words[i])
             seqcount.append((i*breakpoint) + 1 + '<br>')
             height = seqdiv.height();
-            console.log("height: " + height, "length: ", seqdiv.text().length)
         }
     }
     elem.show()
