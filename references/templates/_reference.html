@@ -1,7 +1,7 @@
 <div class="reference">
 	<h4><a href="{{ ref.get_absolute_url }}">{{ ref.title }}</a></h4>
 	<p class='authorlist'>
-		{% for author in ref.ordered_authors %}
+		{% for author in ref.get_authors %}
 			<a href="{{ author.get_absolute_url }}">{{ author }}</a>{% if not forloop.last %},{% endif %}
 		{% endfor %}
 	</p>

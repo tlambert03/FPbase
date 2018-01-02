@@ -43,7 +43,7 @@ class Author(models.Model):
             return "{} {}".format(self.initials, self.family)
 
     def __repr__(self):
-        return "Author(family='{}', initials='{}')".format(self.family, self.initials)
+        return "Author(family='{}', given='{}'')".format(self.family, self.given)
 
     def __str__(self):
         return self.family + ' ' + self.initials
@@ -70,16 +70,15 @@ class Reference(TimeStampedModel):
     created_by = models.ForeignKey(User, related_name='reference_author', blank=True, null=True)
     updated_by = models.ForeignKey(User, related_name='reference_modifier', blank=True, null=True)
 
+    def get_authors(self):
+        return self.authors.order_by('referenceauthor')
+
     @property
     def first_author(self):
         try:
             return self.referenceauthor_set.get(author_idx=0).author
         except Exception:
             return None
-
-    @property
-    def ordered_authors(self):
-        return [ra.author for ra in self.referenceauthor_set.all()]
 
     @property
     def protein_secondary_reference(self):
