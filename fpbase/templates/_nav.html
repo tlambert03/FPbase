@@ -39,11 +39,7 @@
             {% else %}
             <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% trans "sign up" %}</a>
-            </li>
-            <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">{% trans "log in" %}</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">{% trans "sign in" %}</a>
             </li>
             {% endif %}
             {% if not request.get_full_path == "/" %}

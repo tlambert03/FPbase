@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load account socialaccount %}
+{% providers_media_js %}
 {% load crispy_forms_tags %}
 
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
@@ -13,17 +14,22 @@
 {% get_providers as socialaccount_providers %}
 
 {% if socialaccount_providers %}
-<p>{% blocktrans with site.name as site_name %}Please sign in with one
-of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
-for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
+<p>{% blocktrans with site.name as site_name %}You may sign in with one
+of your existing third party accounts. {% endblocktrans %}</p>
 
-<div class="socialaccount_ballot">
+<div class="socialaccount_ballot text-center">
 
-  <ul class="socialaccount_providers">
-    {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-  </ul>
+  <div class="socialaccount_providers">
 
-  <div class="login-or">{% trans 'or' %}</div>
+
+     <a href="{% provider_login_url 'google' %}" class="btn btn-google"><i class="fab fa-google"></i> &nbsp; Log in with Google</a>
+     <a href="{% provider_login_url 'facebook'%}" class="btn btn-facebook"><i class="fab fa-facebook-f"></i> &nbsp; Log in with Facebook</a>
+
+
+  </div>
+
+  <br><hr>Or<hr> <a href="{{ signup_url }}">Sign up</a>
+for an FPbase account and sign in below:<br><br>
 
 </div>
 
@@ -45,4 +51,3 @@ for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
 </form>
 
 {% endblock %}
-

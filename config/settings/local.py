@@ -68,3 +68,5 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # Your local stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
 
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
+SITE_ID = 1
