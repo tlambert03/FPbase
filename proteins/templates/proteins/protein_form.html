@@ -24,6 +24,23 @@
 				</div>
 			</div>
 
+			{% if not 'update' in request.get_full_path %}
+				<div class="alert alert-info alert-dismissible fade show" role="alert">
+				  <div class='h3 text-info'><i class="fas fa-info-circle mr-2 "></i> <strong>States</strong></div>
+				  FPbase uses <strong>states</strong> to define the various fluorescence characteristics that a protein can have.  Even a constitutively active "basic" protein is given a (single) state.  Rather than directly specifying the "type" of protein, FPbase uses the number of states and transitions between them to determine the type of fluorescent protein.
+				  <ul class='pt-3 pb-1'>
+				  	<li><strong>Basic</strong> <i class="fas fa-long-arrow-alt-right"></i> <em>Single state</em></li>
+				  	<li><strong>Photoactivatable</strong> <i class="fas fa-long-arrow-alt-right"></i><em> One transition betwen dark and fluorescent states</em></li>
+				  	<li><strong>Photoconvertible</strong> <i class="fas fa-long-arrow-alt-right"></i><em> One transition betwen two fluorescent states</em></li>
+				  	<li><strong>Photoswitchable</strong> <i class="fas fa-long-arrow-alt-right"></i> <em>Multiple transitions between multiple states</em></li>
+				  </ul>
+				  More info available on the <a href="#" class="alert-link">database model</a> info page.
+				  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				      <span aria-hidden="true">&times;</span>
+				    </button>
+				</div>
+			{% endif %}
+
 	        {{ states.management_form|crispy }}
 	        {% for stateform in states.forms %}
 		        {% for hidden in stateform.hidden_fields %}
