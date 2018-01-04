@@ -246,9 +246,10 @@ class Organism(TimeStampedModel):
         super(Organism, self).save(*args, **kwargs)
 
 
-class Protein(StatusModel, TimeStampedModel):
+class Protein(TimeStampedModel):
     """ Protein class to store individual proteins, each with a unique AA sequence and name  """
-    STATUS = Choices('uncurated', 'curated', 'rejected')
+
+#    STATUS = Choices('uncurated', 'curated', 'rejected')
     MONOMER = 'm'
     DIMER = 'd'
     TANDEM_DIMER = 'td'
@@ -263,16 +264,16 @@ class Protein(StatusModel, TimeStampedModel):
     )
 
     BASIC = 'b'
-    ACTIVATABLE = 'pa'
-    SWITCHABLE = 'ps'
-    CONVERTIBLE = 'pc'
+    PHOTOACTIVATABLE = 'pa'
+    PHOTOSWITCHABLE = 'ps'
+    PHOTOCONVERTIBLE = 'pc'
     TIMER = 't'
     OTHER = 'o'
     SWITCHING_CHOICES = (
         (BASIC, 'Basic'),
-        (ACTIVATABLE, 'Photoactivatable'),
-        (SWITCHABLE, 'Photoswitchable'),
-        (CONVERTIBLE, 'Photoconvertible'),
+        (PHOTOACTIVATABLE, 'Photoactivatable'),
+        (PHOTOSWITCHABLE, 'Photoswitchable'),
+        (PHOTOCONVERTIBLE, 'Photoconvertible'),
         (TIMER, 'Timer'),
         (OTHER, 'Other'),
     )
@@ -426,7 +427,10 @@ class Protein(StatusModel, TimeStampedModel):
         return False
 
     def color(self):
-        return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]
+        try:
+            return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]
+        except Exception:
+            return ''
 
     def spectra(self):
         return json.dumps([self.default_state.nvd3ex, self.default_state.nvd3em])
@@ -450,10 +454,32 @@ class Protein(StatusModel, TimeStampedModel):
 
         self.slug = slugify(self.name)
         self.base_name = self._base_name
+
+        # FIXME: should allow control of default states in form
+        # if only 1 state, make it the default state
         try:
             self.default_state = self.states.get(default=True)
         except Exception:
             pass
+        if not self.default_state:
+            if self.states.count() == 1 and not self.states.first().is_dark:
+                self.default_state = self.states.first()
+            # otherwise use farthest red non-dark state
+            elif self.states.count() > 1:
+                self.default_state = self.states.exclude(is_dark=True).order_by('-em_max').first()
+
+        if self.states.count() == 1:
+            self.switch_type = self.BASIC
+        elif self.states.count() > 1:
+            if not self.transitions.count():
+                self.switch_type = self.OTHER
+            if self.transitions.count() == 1:
+                if self.states.filter(is_dark=True).count():
+                    self.switch_type = self.PHOTOACTIVATABLE
+                else:
+                    self.switch_type = self.PHOTOCONVERTIBLE
+            elif self.transitions.count() > 1:
+                self.switch_type = self.PHOTOSWITCHABLE
 
         super().save(*args, **kwargs)
 
