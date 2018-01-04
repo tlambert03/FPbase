@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<h1><strong>FP</strong>base Database Schema</h1>
+
+<p>FPbase is a database designed specifically for fluorescent proteins.  The goal is to come up with a single database design that can categorize the majority of the many subtle properties that fluorescent proteins can possess.  This site is designed by microscopists, so currently the emphasis is on properties that affect the <em>usage</em> of fluorescent proteins.  If you have suggestions for ways to extend the database model to incorporate additional properties (<em>e.g.</em> protein structure, etc...), feel free to <a href="{% url 'contact' %}">contact us</a>.  A graphical representation of the current database schema is shown below.   </p>
+
+
+<h5 class='text-center pt-3'><strong>FPbase Database Schema</strong></h5>
+<img src="{% static 'images/schema_fig.png' %}" class="img-fluid" alt="FPbase database schema">
+
+<div class="list-group">
+  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start active">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">List group item heading</h5>
+      <small>3 days ago</small>
+    </div>
+    <p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
+    <small>Donec id elit non mi porta.</small>
+  </a>
+  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">List group item heading</h5>
+      <small class="text-muted">3 days ago</small>
+    </div>
+    <p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
+    <small class="text-muted">Donec id elit non mi porta.</small>
+  </a>
+  <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">List group item heading</h5>
+      <small class="text-muted">3 days ago</small>
+    </div>
+    <p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
+    <small class="text-muted">Donec id elit non mi porta.</small>
+  </a>
+</div>
+
+{% endblock content %}
