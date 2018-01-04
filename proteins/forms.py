@@ -17,7 +17,7 @@ def popover_html(label, content, side='right'):
 class ProteinUpdateForm(forms.ModelForm):
     '''Form class for user-facing protein creation/submission form '''
     reference_doi = forms.CharField(max_length=100, label='Reference DOI',
-        required=True, validators=[validate_doi],
+        required=False, validators=[validate_doi],
         help_text='e.g. 10.1038/nmeth.2413')
     # reference_pmid = forms.CharField(max_length=24, label='Reference Pubmed ID',
     #     required=False, help_text='e.g. 23524392 (must provide either DOI or PMID)')
@@ -56,11 +56,15 @@ class ProteinUpdateForm(forms.ModelForm):
             "agg": "Oligomerization",
         }
         help_texts = {
-            'ipg_id': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/">Identical Protein Group ID</a>',
+            'ipg_id': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/" target="_blank">Identical Protein Group ID</a>',
         }
 
 
 class ProteinSubmitForm(ProteinUpdateForm):
+    reference_doi = forms.CharField(max_length=100, label='Reference DOI',
+        required=True, validators=[validate_doi],
+        help_text='e.g. 10.1038/nmeth.2413')
+
     def clean_name(self):
         name = self.cleaned_data['name']
         slug = slugify(name)
