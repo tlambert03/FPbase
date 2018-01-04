@@ -23,6 +23,7 @@
 
 		<div class="attributes">
 			<h3>Attributes</h3>
+			{% if protein.states.count %}
 				<table class="table table-striped" id='flip-scroll'>
 					<thead>
 						<tr class="table-header">
@@ -57,6 +58,9 @@
 					{% endfor %}
 					</tbody>
 				</table>
+			{% else %}
+				<p>This protein does not yet have any states assigned. <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>Submit a change.</a></p>
+			{% endif %}
 		</div>
 
 		{% if protein.transitions.count > 0 %}
@@ -86,10 +90,17 @@
 		{% endif %}
 
 		<div class="sequence">
-			<h3>Amino Acid Sequence</h3>
-			{% if protein.ipg_id %}
-			<p>Identical Protein Group ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]">{{ protein.ipg_id }}</a></p>
-			{% endif %}
+			<div class="row justify-content-between">
+			  	<div class="col-sm">
+				  <h3>Amino Acid Sequence</h3>
+				</div>
+				<div class="col-sm align-self-end mb-2 text-sm-right">
+					{% if protein.ipg_id %}
+					<small>Identical Protein Group ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]">{{ protein.ipg_id }}</a></small>
+					{% endif %}
+				</div>
+			</div>
+
 			{% if protein.seq %}
 				<div class='aminosequence container'>{{ protein.seq }}</div>
 			{% else %}
@@ -118,12 +129,15 @@
 			<a href="#" class='text-info' data-toggle="modal" data-target="#referenceModal">Add a reference</a>
 		</div>
 
-		<div class="additional-ref references">
+		<div class="external-resources">
 			<h3>External Resources</h3>
 			<ul>
 				<li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}">BioNumbers</a> for {{ protein.name }}</li>
 				<li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}">Addgene</a> for {{ protein.name }}</li>
+
 			</ul>
+
+
 		</div>
 
 
