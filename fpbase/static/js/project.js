@@ -44,11 +44,20 @@ $('.dark_state_button input').click(function(){
 	neighbors = $(this).closest('.stateform_block').children('.hide_if_dark')
 	if ($(this)[0].checked){
 		neighbors.hide()
+        $(this).find("input[name*='max']").empty()
 	}
 	else{
 		neighbors.show()
+        $(this).closest('.stateform_block')
 	}
-})
+});
+
+$(function() {
+    $('.dark_state_button input:checked').each(function(){
+        neighbors = $(this).closest('.stateform_block').children('.hide_if_dark')
+        neighbors.hide()
+    });
+});
 
 function reset_ipgid(hintstring){
     if (hintstring){
