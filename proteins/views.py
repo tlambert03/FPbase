@@ -1,11 +1,16 @@
 from django.views.generic import DetailView, ListView, CreateView, UpdateView
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
-from .models import Protein
-from references.models import Reference  # breaks application modularity # FIXME
-from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateUpdateFormSet
+from django.contrib import messages
 from django.core import serializers
 from django.db import transaction
+from django.http import JsonResponse
+
+
+from .models import Protein
+from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateUpdateFormSet
+
+from references.models import Reference  # breaks application modularity # FIXME
 
 
 class ProteinChartList(ListView):
@@ -33,6 +38,31 @@ class ProteinDetailView(DetailView):
 
 class ProteinCreateUpdateMixin:
 
+    def get_form_type(self):
+        return self.request.resolver_match.url_name
+
+    def moderate(self, obj):
+        from moderation.helpers import automoderate
+        status = automoderate(obj, self.request.user)
+        if isinstance(obj, Protein):
+            if status == 2:  # PENDING
+                if self.get_form_type() == 'update':
+                    messages.add_message(self.request, messages.INFO,
+                        'Your update to {} has been submitted and will appear after moderation.'.format(obj))
+                else:
+                    messages.add_message(self.request, messages.INFO,
+                        'Thank you for submitting {}.  It will appear shortly, after moderation.'.format(obj))
+            elif status == 1:  # APPROVED
+                if self.get_form_type() == 'update':
+                    messages.add_message(self.request, messages.SUCCESS,
+                        'Your update to {} has been approved.'.format(obj))
+                else:
+                    messages.add_message(self.request, messages.SUCCESS,
+                        'Thank you for submitting {}!'.format(obj))
+            else:  # REJECTED
+                messages.add_message(self.request, messages.ERROR,
+                    '{} rejected.  Please contact us with questions.'.format(self.get_form_type().title()))
+
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         context = self.get_context_data()
@@ -41,10 +71,13 @@ class ProteinCreateUpdateMixin:
         with transaction.atomic():
             # only save the form if all the states are also valid
             if states.is_valid():
-                self.object = form.save(commit=False)
+                self.object = form.save()
                 doi = form.cleaned_data.get('reference_doi')
-                ref, created = Reference.objects.get_or_create(doi=doi)
-                self.object.primary_reference = ref
+                if doi:
+                    ref, created = Reference.objects.get_or_create(doi=doi)
+                    self.object.primary_reference = ref
+                else:
+                    self.object.primary_reference = None
 
                 states.instance = self.object
                 saved_states = states.save(commit=False)
@@ -53,26 +86,26 @@ class ProteinCreateUpdateMixin:
                         s.created_by = self.request.user
                     s.updated_by = self.request.user
                     s.save()
+                    self.moderate(s)
                 for s in states.deleted_objects:
                     s.delete()
+                    # FIXME: state deletions currently unmoderated?
+                    # self.moderate(s)
 
-                # FIXME: should allow control of default states in form
-                # if only 1 state, make it the default state
-                if self.object.states.count() == 1:
-                    self.object.default_state = self.object.states.first()
-                # otherwise use first non-dark state
-                elif self.object.states.count() > 1:
-                    for S in self.object.states.all():
-                        if not S.is_dark and S not in states.deleted_objects:
-                            self.object.default_state = S
-                            break
                 self.object.save()
+                self.moderate(self.object)
             else:
                 context.update({
                     'states': states
                 })
                 return self.render_to_response(context)
-        return HttpResponseRedirect(self.get_success_url())
+        if self.get_form_type() == 'update':
+            return HttpResponseRedirect(self.get_success_url())
+        else:
+            if self.object in Protein.objects.all():
+                return HttpResponseRedirect(self.get_success_url())
+            else:
+                return HttpResponseRedirect(self.request.path_info)
 
 
 # help from https://medium.com/@adandan01/django-inline-formsets-example-mybook-420cc4b6225d
@@ -108,7 +141,8 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
             data['states'].full_clean()
         else:
             data['states'] = StateUpdateFormSet(instance=self.object)
-            data['form'].fields['reference_doi'].initial = self.object.primary_reference.doi
+            if self.object.primary_reference:
+                data['form'].fields['reference_doi'].initial = self.object.primary_reference.doi
         return data
 
     def form_valid(self, form):
@@ -134,7 +168,6 @@ def protein_search(request):
     return render(request, 'proteins/protein_filter.html', {'filter': f})
 
 
-from django.http import JsonResponse
 def add_reference(request):
     try:
         slug = request.POST.get('protein')

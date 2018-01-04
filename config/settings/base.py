@@ -55,17 +55,21 @@ THIRD_PARTY_APPS = [
     'allauth.socialaccount',  # registration
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
-#    'allauth.socialaccount.providers.linkedin_oauth2',
+    #  'allauth.socialaccount.providers.linkedin_oauth2',
+
     'django_filters',
 ]
 
 # Apps specific for this project go here.
 LOCAL_APPS = [
     # custom users app
-    'fpbase.users.apps.UsersConfig',
+    'fpbase.users',  # 'fpbase.users.apps.UsersConfig',
+
     # Your stuff: custom apps go here
-    'proteins.apps.ProteinsConfig',
-    'references.apps.ReferencesConfig',
+    'proteins',  # 'proteins.apps.ProteinsConfig',
+    'references',  # 'references.apps.ReferencesConfig',
+
+    'moderation',  # 'moderation.apps.SimpleModerationConfig',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -283,3 +287,5 @@ ADMIN_URL = r'^admin/'
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
+
+MODERATION_MODERATORS=('talley.lambert+fpbase@gmail.com',)
