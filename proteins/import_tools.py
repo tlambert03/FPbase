@@ -307,6 +307,7 @@ def reload_all(seqs=False):
     importPSFPs()
     importSeqs()
     importSpectra()
+    import_organisms()
     if seqs:
         for P in Protein.objects.all():
             Q = fetch_ipg_sequence(P.name)
