@@ -4,14 +4,16 @@ from .models import Protein, State
 
 
 class MyBaseModerator(GenericModerator):
-    notify_user = True
-    notify_moderator = True
+    notify_user = False
+    notify_moderator = False
     auto_approve_for_superusers = True
+    auto_approve_for_staff = True
+    auto_reject_for_anonymous = False
     fields_exclude = ['created', 'modified']
 
 
 class ProteinModerator(MyBaseModerator):
-    pass
+    manager_names = ['objects']
 
 
 class StateModerator(MyBaseModerator):

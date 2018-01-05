@@ -99,11 +99,15 @@ class ProteinCreateUpdateMixin:
                     'states': states
                 })
                 return self.render_to_response(context)
+
+        # if this is an update form, just pass on the sucess_url
         if self.get_form_type() == 'update':
             return HttpResponseRedirect(self.get_success_url())
+        # otherwise we need to know whether there is a moderated protein to show or now
         else:
             if self.object in Protein.objects.all():
                 return HttpResponseRedirect(self.get_success_url())
+            # if not: just go back to the submit page
             else:
                 return HttpResponseRedirect(self.request.path_info)
 
