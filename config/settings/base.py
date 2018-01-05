@@ -69,8 +69,8 @@ LOCAL_APPS = [
     'proteins',  # 'proteins.apps.ProteinsConfig',
     'references',  # 'references.apps.ReferencesConfig',
 
-    'moderation.apps.SimpleModerationConfig',
-    # 'moderation',
+    # 'moderation.apps.SimpleModerationConfig',
+    'moderation',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
