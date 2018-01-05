@@ -9,3 +9,19 @@ body{
 	border: 1px black;
 	font-size: 2rem;
 }
+
+.description-list {
+	h1,h2,h3,h4,h5{
+		&.strong{
+			font-weight: 600;
+			color: $primary;
+			margin-top: 1.5rem;
+		}
+	}
+
+	dd{
+		dt{
+			color: darken($primary, 15%);
+		}
+	}
+}

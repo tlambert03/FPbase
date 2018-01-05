@@ -5572,6 +5572,15 @@ body {
   font-size: 32px;
   font-size: 2rem; }
 
+.description-list h1.strong, .description-list h2.strong, .description-list h3.strong, .description-list h4.strong, .description-list h5.strong {
+  font-weight: 600;
+  color: #36a83b;
+  margin-top: 24px;
+  margin-top: 1.5rem; }
+
+.description-list dd dt {
+  color: #236e27; }
+
 /* Extra markup and styles for table-esque vertical and horizontal centering */
 .cover-wrapper {
   display: table;
