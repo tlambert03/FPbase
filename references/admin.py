@@ -8,10 +8,14 @@ from references.forms import ReferenceForm, AuthorForm
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('family', 'given')
+    list_display = ('full_name', 'num_refs')
     fields = (('family', 'given'), 'ref_links', 'protein_links')
     readonly_fields = ('ref_links', 'protein_links')
     search_fields = ('family',)
+    ordering = ('family',)
+
+    def num_refs(self, obj):
+        return mark_safe(obj.publications.all().count())
 
     def ref_links(self, obj):
         refs = obj.publications.all()
@@ -34,12 +38,16 @@ class AuthorAdmin(admin.ModelAdmin):
     ref_links.short_description = 'References'
     protein_links.short_description = 'Proteins'
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request).prefetch_related('publications')
+        return queryset
+
 
 @admin.register(Reference)
 class ReferenceAdmin(admin.ModelAdmin):
     form = ReferenceForm
-
-    list_display = ('__str__',  'protein_links', 'title', 'pmid', 'doi', 'created')
+    ordering = ('-year', 'citation', 'created',)
+    list_display = ('citation',  'protein_links', 'title', 'year', 'doi', 'created')
     list_filter = ('created', 'modified')
     search_fields = ('pmid', 'doi', 'created_by__username', 'created_by__first_name', 'created_by__last_name', 'title')
 
@@ -64,7 +72,7 @@ class ReferenceAdmin(admin.ModelAdmin):
         return mark_safe(", ".join(links))
 
     def protein_links(self, obj):
-        proteins = obj.protein_primary_reference.all()
+        proteins = obj.primary_proteins.all()
         links = []
         for prot in proteins:
             url = reverse("admin:proteins_protein_change", args=(prot.pk,))
@@ -80,3 +88,8 @@ class ReferenceAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         obj.updated_by = request.user
         obj.save()
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request).prefetch_related('authors', 'primary_proteins')
+        return queryset
+

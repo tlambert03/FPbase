@@ -38,9 +38,9 @@ class StateInline(admin.StackedInline):
 @admin.register(Protein)
 class ProteinAdmin(admin.ModelAdmin):
     form = ProteinForm
-    list_display = ('__str__', 'gb_prot', 'gb_nuc', 'switch_type', 'created', 'modified')
+    list_display = ('__str__', 'ipg_id', 'switch_type', 'created', 'modified')
     list_filter = ('created', 'modified', 'switch_type')
-    search_fields = ('name', 'slug', 'gb_prot', 'gb_nuc', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
+    search_fields = ('name', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [
         StateInline,
@@ -58,7 +58,7 @@ class ProteinAdmin(admin.ModelAdmin):
             'fields': ('created', 'created_by', 'modified', 'updated_by')
         })
     ]
-    readonly_fields = ('created', 'created_by', 'modified', 'updated_by')
+    readonly_fields = ('created', 'created_by', 'modified', 'updated_by', 'switch_type')
     filter_horizontal = ('references',)
 
     def save_model(self, request, obj, form, change):
