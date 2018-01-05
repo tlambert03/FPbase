@@ -303,6 +303,12 @@ class Protein(TimeStampedModel):
     updated_by = models.ForeignKey(User, related_name='proteins_modifier', blank=True, null=True)
     default_state = models.ForeignKey('State', related_name='parent_protein', blank=True, null=True, on_delete=models.SET_NULL)
 
+    __original_ipg_id = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__original_ipg_id = self.ipg_id
+
     # Manager
     # consider writing a manager to retrieve spectra or for custom queries
 
@@ -448,7 +454,8 @@ class Protein(TimeStampedModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        if self.ipg_id and not self.seq:
+        # if the IPG ID has changed... refetch the sequence
+        if self.ipg_id != self.__original_ipg_id:
             s = fetch_ipg_sequence(uid=self.ipg_id)
             self.seq = s[1] if s else None
 
@@ -482,6 +489,7 @@ class Protein(TimeStampedModel):
                 self.switch_type = self.PHOTOSWITCHABLE
 
         super().save(*args, **kwargs)
+        self.__original_ipg_id = self.ipg_id
 
     # Meta
     class Meta:
