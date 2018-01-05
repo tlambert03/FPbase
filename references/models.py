@@ -60,6 +60,7 @@ class Reference(TimeStampedModel):
     pages = models.CharField(max_length=20, blank=True)
     volume = models.CharField(max_length=10, blank=True, default='')
     issue = models.CharField(max_length=10, blank=True, default='')
+    citation = models.CharField(max_length=256, blank=True, default='')
     year = models.PositiveIntegerField(
             validators=[
                 MinValueValidator(1960),
@@ -76,13 +77,44 @@ class Reference(TimeStampedModel):
     @property
     def first_author(self):
         try:
-            return self.referenceauthor_set.get(author_idx=0).author
+            return self.get_authors()[0]
         except Exception:
             return None
 
     @property
     def protein_secondary_reference(self):
         return self.proteins.exclude(id__in=self.primary_proteins.all())
+
+    def get_citation(self, authorlist):
+        try:
+            if len(authorlist) == 0:
+                if self.title:
+                    return "{}...".format(self.title[:30])
+                else:
+                    return "{}".format(self.doi)
+            elif len(authorlist) > 2:
+                middle = ' et al. '
+            elif len(authorlist) == 2:
+                secondauthor = authorlist[1].family
+                middle = ' & {} '.format(secondauthor)
+            else:
+                middle = ' '
+
+            return "{}{}({})".format(authorlist[0].family, middle, self.year)
+        except ObjectDoesNotExist:
+                return "doi: {}".format(self.doi)
+
+    def get_absolute_url(self):
+        return reverse("references:reference-detail", args=[self.id])
+
+    def __repr__(self):
+        return "Reference(doi={})".format(self.doi)
+
+    def __str__(self):
+        try:
+            return self.citation
+        except Exception:
+            return super(Reference, self).__str__()
 
     def clean(self):
         if self.doi:
@@ -101,7 +133,9 @@ class Reference(TimeStampedModel):
             authorlist.append(auth)
         for k, v in info.items():
             setattr(self, k, v)
+        self.citation = self.get_citation(authorlist)
         super().save(*args, **kwargs)
+        ReferenceAuthor.objects.filter(reference_id=self.id).delete()
         for idx, author in enumerate(authorlist):
             authmemb = ReferenceAuthor(
                 reference=self,
@@ -109,38 +143,6 @@ class Reference(TimeStampedModel):
                 author_idx=idx,
             )
             authmemb.save()
-
-    @property
-    def citation(self):
-        try:
-            if self.authors.count() == 0:
-                if self.title:
-                    return "{}...".format(self.title[:30])
-                else:
-                    return "{}".format(self.doi)
-            elif self.authors.count() > 2:
-                middle = ' et al. '
-            elif self.authors.count() == 2:
-                secondauthor = self.referenceauthor_set.get(author_idx=1).author.family
-                middle = ' & {} '.format(secondauthor)
-            else:
-                middle = ' '
-
-            return "{}{}({})".format(self.first_author.family, middle, self.year)
-        except ObjectDoesNotExist:
-                return "doi: {}".format(self.doi)
-
-    def get_absolute_url(self):
-        return reverse("references:reference-detail", args=[self.id])
-
-    def __repr__(self):
-        return "Reference(doi={})".format(self.doi)
-
-    def __str__(self):
-        try:
-            return self.citation
-        except Exception:
-            return super(Reference, self).__str__()
 
 
 class ReferenceAuthor(models.Model):
