@@ -5579,7 +5579,15 @@ body {
   margin-top: 1.5rem; }
 
 .description-list dd dt {
-  color: #236e27; }
+  color: #236e27;
+  font-size: 13.6px;
+  font-size: 0.85rem; }
+  @media (min-width: 576px) {
+    .description-list dd dt {
+      font-size: 1rem; } }
+
+.btn.active, .btn:active {
+  box-shadow: 0px 1px 5px rgba(23, 162, 184, 0.8) !important; }
 
 /* Extra markup and styles for table-esque vertical and horizontal centering */
 .cover-wrapper {
@@ -5820,26 +5828,23 @@ body {
   .protein .sequence {
     word-wrap: break-word; }
 
-.protein_result_item {
+.protein_result_item:hover {
+  text-decoration: none; }
+
+.protein_result_item div {
   opacity: 0.75;
-  min-width: 260px;
   text-align: center;
   color: black;
-  border-radius: .6rem;
-  margin: 3.2px;
-  margin: .2rem;
-  padding: 9.6px 4.8px;
-  padding: 0.6rem 0.3rem; }
-  .protein_result_item:hover {
+  border-radius: .4rem;
+  margin: 3.2px 0;
+  margin: .2rem 0;
+  padding: 9.6px 9.6px;
+  padding: 0.6rem 0.6rem;
+  height: 90%; }
+  .protein_result_item div:hover {
     opacity: 1;
-    text-decoration: none;
-    box-shadow: inset 0rem 0rem 3rem rgba(0, 0, 0, 0.1);
-    color: white; }
-  @media (min-width: 576px) {
-    .protein_result_item {
-      min-width: 160px;
-      max-width: 160px; } }
-  .protein_result_item h4 {
+    box-shadow: inset 0rem 0rem 3rem rgba(0, 0, 0, 0.1); }
+  .protein_result_item div h4 {
     font-weight: 500;
     font-size: 16px;
     font-size: 1rem;
@@ -6024,17 +6029,39 @@ svg.nvd3-svg {
     svg.nvd3-svg {
       height: 270px; } }
 
+@media (min-width: 1200px) {
+  .tablecontainer {
+    max-width: 1140px;
+    margin: auto; } }
+
+.tablecontainer .form-group {
+  margin: 16px;
+  margin: 1rem; }
+
 #proteinTable {
+  line-height: 14.4px;
+  line-height: 0.9rem;
+  margin-top: 16px;
+  margin-top: 1rem;
   font-weight: 500; }
   #proteinTable td.protein {
-    font-weight: 600; }
-  @media (min-width: 768px) {
+    font-weight: 600;
+    font-size: 16px;
+    font-size: 1rem; }
+  @media (min-width: 992px) {
     #proteinTable {
-      font-size: 0.9rem; } }
+      font-size: 0.9rem; }
+      #proteinTable td.protein a {
+        font-size: 0.9rem; } }
   @media (max-width: 991px) {
     #proteinTable {
-      font-size: .6rem;
-      font-weight: 600; }
+      font-weight: 600;
+      font-size: 0.7rem; }
+      #proteinTable td {
+        padding-top: 0.5rem;
+        padding-bottom: 0.4rem; }
+      #proteinTable th {
+        font-weight: 800; }
       #proteinTable td.protein a {
         font-size: 0.8rem; } }
   @media (max-width: 767px) {

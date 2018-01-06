@@ -10,6 +10,7 @@ body{
 	font-size: 2rem;
 }
 
+// for definition lists, like on the schema page
 .description-list {
 	h1,h2,h3,h4,h5{
 		&.strong{
@@ -18,10 +19,16 @@ body{
 			margin-top: 1.5rem;
 		}
 	}
-
+	//@include media-breakpoint-down(xs) { font-size: 0.9rem;}
 	dd{
 		dt{
 			color: darken($primary, 15%);
+			@include media-breakpoint-up(xs) { font-size: 0.85rem;}
+			@include media-breakpoint-up(sm) { font-size: 1rem;}
 		}
 	}
+}
+
+.btn.active, .btn:active{
+	box-shadow: 0px 1px 5px rgba($info, 0.8) !important;
 }
