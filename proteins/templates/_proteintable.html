@@ -1,0 +1,49 @@
+<table class="table" id="proteinTable">
+	<thead>
+		<tr class="table-header">
+			<th>Name</th>
+			<th>&lambda;<sub>ex</sub></th>
+  			<th>&lambda;<sub>em</sub></th>
+  			<th>Stokes</th>
+  			<th>EC</th>
+  			<th>QY</th>
+  			<th>Bright</th>
+  			<!-- <th data-sortable="true" >&#1642;EGFP</th> -->
+  			{% if showbleach %}<th>Bleach</th>{% endif %}
+  			<th>pKa</th>
+  			<th class='agg_type'>Agg</th>
+  			<th>Mat</th>
+  			<th>Lifetime</th>
+  			<th class='hidden switch_type'>type</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for protein in proteins  %}
+			{% for state in protein.states.all %}
+				{% if not state.is_dark %}
+					<tr class="data">
+						<td class="col protein">
+							<a href="{{ protein.get_absolute_url }}">
+								{{ protein | safe }}
+								{% if not 'default' in state.name %} <small>({{ state.name }})</small>{% endif %}
+							</a>
+						</td>
+						<td class="col numeric exmax">{{ state.ex_max | default_if_none:"-" }}</td>
+						<td class="col numeric">{{ state.em_max | default_if_none:"-" }}</td>
+						<td class="col numeric">{{ state.stokes | default:"-" }}</td>
+						<td class="col numeric">{{ state.ext_coeff | default_if_none:"-" }}</td>
+						<td class="col numeric">{{ state.qy | default_if_none:"-" }}</td>
+						<td class="col numeric">{{ state.brightness | default:"-" }}</td>
+						<!-- <td class="col numeric">{{ state.bright_rel_egfp | default:"-" }}</td> -->
+						{% if showbleach %}<td class="col numeric">{{ state.bleach_measurement.all.0.rate | default_if_none:"-" }}</td>{% endif %}
+						<td class="col numeric">{{ state.pka | default_if_none:"-" }}</td>
+						<td class="col numeric">{{ protein.agg | default_if_none:"-" }}</td>
+						<td class="col numeric">{{ state.maturation | default_if_none:"-" }}</td>
+						<td class="col numeric">{{ state.lifetime | default_if_none:"-" }}</td>
+						<td class='hidden'>{{ state.protein.switch_type }}</td>
+					</tr>
+				{% endif %}
+			{% endfor %}
+		{% endfor %}
+	</tbody>
+</table>

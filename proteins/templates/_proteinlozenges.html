@@ -1,0 +1,35 @@
+<div class="row ml-0 mr-0">
+    {% for protein in proteins %}
+    <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 ml-0 mr-0 pl-1 pr-1">
+        <a href="{{ protein.get_absolute_url }}" class='protein_result_item'>
+            <div style="background-color:
+        {% if protein.default_state %}
+            {{ protein.default_state.emhex }}
+        {% else %}
+            #000
+        {% endif %};">
+
+            <h4 style="color:
+            {% if  protein.default_state.em_max > 477 and protein.default_state.em_max < 620 %}
+                #222
+            {% else %}
+                #eee
+            {% endif %}
+            ;">
+            {{ protein.name }}
+            </h4>
+            <span class='attributes' style="color:
+                {% if  protein.default_state.em_max > 477 and protein.default_state.em_max < 620 %}
+                    #222
+                {% else %}
+                    #eee
+                {% endif %}
+                ;">
+                {{ protein.default_state.ex_max }} / {{ protein.default_state.em_max }}
+            </span>
+
+    </div>
+    </a>
+    </div>
+    {% endfor %}
+</div>

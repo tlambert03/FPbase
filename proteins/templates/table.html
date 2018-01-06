@@ -8,69 +8,85 @@
 {% block title %}Fluorescent Protein Properties Table{% endblock %}
 
 
-{% block container-class %}container-fluid{% endblock %}
+{% block container-class %}tablecontainer{% endblock %}
 
 {% block content %}
 
 <h2 class="text-center">Fluorescent Protein Table</h2>
-
 <div class="table-responsive">
-	<table class="table table-striped" id="proteinTable">
-		<thead>
-			<tr class="table-header">
-				<th data-sortable="true" >Name</th>
-				<th data-sortable="true" >&lambda;<sub>ex</sub></th>
-	  			<th data-sortable="true" >&lambda;<sub>em</sub></th>
-	  			<th data-sortable="true" >Stokes</th>
-	  			<th data-sortable="true" >EC</th>
-	  			<th data-sortable="true" >QY</th>
-	  			<th data-sortable="true" >Bright</th>
-	  			<!-- <th data-sortable="true" >&#1642;EGFP</th> -->
-	  			<th data-sortable="true" >Bleach</th>
-	  			<th data-sortable="true" >pKa</th>
-	  			<th data-sortable="true" >Agg</th>
-	  			<th data-sortable="true" >Mat</th>
-	  			<th data-sortable="true" >Lifetime</th>
-			</tr>
-		</thead>
-		<tbody>
-		{% for protein in proteins %}
-			<tr class="data">
-				<td class="col protein"><a href="{{ protein.get_absolute_url }}">{{ protein.name | safe }}</a></td>
-				<td class="col numeric">{{ protein.default_state.ex_max | default_if_none:"-" }}</td>
-				<td class="col numeric">{{ protein.default_state.em_max | default_if_none:"-" }}</td>
-				<td class="col numeric">{{ protein.default_state.stokes | default:"-" }}</td>
-				<td class="col numeric">{{ protein.default_state.ext_coeff | default_if_none:"-" }}</td>
-				<td class="col numeric">{{ protein.default_state.qy | default_if_none:"-" }}</td>
-				<td class="col numeric">{{ protein.default_state.brightness | default:"-" }}</td>
-				<!-- <td class="col numeric">{{ protein.default_state.bright_rel_egfp | default:"-" }}</td> -->
-				<td class="col numeric">{{ protein.default_state.bleach | default_if_none:"-" }}</td>
-				<td class="col numeric">{{ protein.default_state.pka | default_if_none:"-" }}</td>
-				<td class="col numeric">{{ protein.agg | default_if_none:"-" }}</td>
-				<td class="col numeric">{{ protein.default_state.maturation | default_if_none:"-" }}</td>
-				<td class="col numeric">{{ protein.default_state.lifetime | default_if_none:"-" }}</td>
-			</tr>
-		{% endfor %}
-		</tbody>
-	</table>
+
+	<form class='form-inline'>
+	<div class="form-group">
+	  <label for="switch_filter" class='pr-2'>Switch Type: </label>
+	  <select class="form-control table-filter" id='switch_filter' data-col='switch_type'>
+	  	<option value=''>All</option>
+	  	{% for choice in proteins.0.SWITCHING_CHOICES %}
+	    <option value='{{ choice.0 }}'>{{ choice.1 }}</option>
+	    {% endfor %}
+	  </select>
+	</div>
+	<div class="form-group">
+	  <label for="agg_filter" class='pr-2'>Aggregation Type: </label>
+	  <select class="form-control table-filter" id='agg_filter' data-col='agg_type'>
+	  	<option value=''>All</option>
+	  	{% for choice in proteins.0.AGG_CHOICES %}
+	    <option value='{{ choice.0 }}'>{{ choice.1 }}</option>
+	    {% endfor %}
+	  </select>
+	</div>
+	<form class='form-inline'>
+
+
+	{% with showbleach=True %}{% include '_proteintable.html' %}{% endwith %}
 </div>
 {% endblock %}
 
-{% block jquery-docready %}
+
+{% block js-onpage %}
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-print-1.4.2/cr-1.4.1/fc-3.2.3/fh-3.1.3/r-2.2.0/datatables.min.js"></script>
+
+<script type="text/javascript">
+
+function get_color_group(exwave){
+    if (exwave < 380){ return "#C080FF" } //
+    if (exwave < 420){ return "#8080FF" } // Blue
+    if (exwave < 473){ return "#80FFFF" } // Cyan
+    if (exwave < 507){ return "#80FF80" } // Green
+    if (exwave < 515){ return "#CCFF80" } // Yellow-Green
+    if (exwave < 531){ return "#FFFF80" } // Yellow
+    if (exwave < 555){ return "#FFC080" } // Orange
+    if (exwave < 600){ return "#FFA080" } // Red
+    if (exwave < 631){ return "#FF8080" } // Far red
+    if (exwave < 800){ return "#B09090" } // Near IR
+}
+
+$(function() {
 	$('#proteinTable').DataTable({
 		"pageLength": 50,
+		"autoWidth": false,
 		"lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100,"All"] ],
 		'fixedHeader': {
 		    'header': false,
 		    'footer': true
 		},
-		"order": [[ 2, 'asc' ], [ 1, 'asc' ]]
+		"order": [[ 2, 'asc' ], [ 1, 'asc' ]],
 	});
-{% endblock %}
 
-{% block js-onpage %}
+	$('.table-filter').change(function(){
+		var searchval = this.value;
+		if (searchval != ''){
+			searchval = '^' + this.value +'$';
+		}
+		searchcol = $(this).attr('data-col')
+		$('#proteinTable').DataTable().column('.' + searchcol).search(searchval, true, false).draw();
+	});
 
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.16/b-1.4.2/b-colvis-1.4.2/b-print-1.4.2/cr-1.4.1/fc-3.2.3/fh-3.1.3/r-2.2.0/datatables.min.js"></script>
+	// $('.exmax').each(function(){
+	// 	$(this).closest('tr').css('background-color', get_color_group($(this).html()))
+	// })
+
+});
+</script>
 {% endblock	%}
 
 
