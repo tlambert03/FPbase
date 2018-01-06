@@ -3,6 +3,9 @@
 
 {% block content %}
 <h1><strong>FP</strong>base Database Schema</h1>
+<a class="navbar-brand" href="{% url 'home' %}" style='fill:red;'>
+{% include "_logo.html" %}
+</a>
 
 <p>FPbase is a database designed specifically for fluorescent proteins.  The goal is to come up with a single database design that can categorize the majority of the many subtle properties that fluorescent proteins can possess.  This site is designed by microscopists, so currently the emphasis is on properties that affect the <em>usage</em> of fluorescent proteins.  If you have suggestions for ways to extend the database model to incorporate additional properties (<em>e.g.</em> protein structure, etc...), feel free to <a href="{% url 'contact' %}">contact us</a>.  A graphical representation of the current database schema is shown below, followed by a definition of terms and relationships.</p>
 
@@ -11,6 +14,8 @@
 <img src="{% static 'images/schema_fig.png' %}" class="img-fluid mb-5" alt="FPbase database schema">
 
 <div class='description-list'>
+  <hr>
+
   <h3 class='strong mb-3'>Protein</h3>
   <dl class="row">
     <dt class="col-sm-3">Name</dt>
@@ -50,6 +55,8 @@
       <dd class="col-sm-9">Any paper that provides additional characterization or testing of a given protein makes for an ideal additional reference to link to the protein.</dd>
   </dl>
 
+  <hr>
+
   <h3 class='strong mb-3'>State</h3>
   <dl class="row">
     <dt class="col-sm-3">Name</dt>
@@ -80,6 +87,8 @@
     <dd class="col-sm-9">This field is reserved for proteins that can have multiple states, not necessarily through photoactivation or switching, but through environmental factors such as pH or calcium.</dd>
   </dl>
 
+  <hr>
+
   <h3 class='strong mb-3'>Transition</h3>
   <dl class="row">
     <dt class="col-sm-3">From (State)</dt>
@@ -89,6 +98,8 @@
     <dt class="col-sm-3">Transition Wavelength</dt>
     <dd class="col-sm-9">The wavelength of light that drives this particular state transition</dd>
   </dl>
+
+  <hr>
 
   <h3 class='strong mb-3'>Bleach Measurement</h3>
   <p>We believe that reported measurements of photostability often lack sufficient information for making comparisons across experiments.  The goal of the bleach measurement object in the database is to encapsulate more information about a bleaching measurment.  We hope to add a bleach-measurement protocol in the future with the hopes of potentially to collect user-contributed data, with a common baseline for comparison.  Of course, <a href="{% url 'contact' %}">suggestions</a> are always welcome!</p>
@@ -107,6 +118,8 @@
     <dd class="col-sm-9">The reference ID for the publication that reported this measurement.</dd>
   </dl>
 
+  <hr>
+
   <h3 class='strong mb-3'>FRET Pair</h3>
   <dl class="row">
     <dt class="col-sm-3">Donor</dt>
@@ -117,11 +130,15 @@
     <dd class="col-sm-9">The Förster radius is the distance at which half of the excitation energy of donor is transferred to the acceptor chromophore.  Larger distances represent more efficient FRET pairings.  With complete spectral information for the donor and acceptor, along with donor QY, we can calculate/predict FRET properties of a protein pair.</dd>
   </dl>
 
+  <hr>
+
   <h3 class='strong mb-3'>Organism</h3>
   <dl class="row">
     <dt class="col-sm-3">Taxonomy ID</dt>
     <dd class="col-sm-9">The parental organism from which a fluorescent protein was derived is stored in the database as an <a href"https://www.ncbi.nlm.nih.gov/taxonomy" rel="nofollow" target="_blank">NCBI Taxonomy</a> ID.  All other properties (genus, species, etc...) will be pulled from NCBI.</dd>
   </dl>
+
+  <hr>
 
   <h3 class='strong mb-3'>Reference</h3>
   <dl class="row">
