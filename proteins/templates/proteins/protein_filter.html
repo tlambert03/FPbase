@@ -15,52 +15,58 @@ If you find that you are not getting results, relax your query.</p>
 </div>
 
 <form action="" method="get">
-	<div id="query_builder">Building query form...</div>
-	<button type="button" class="btn btn-info form-group" id="add-row-btn"><i class="fas fa-filter"></i> Add Filter</button>
-	<button type="submit" class="btn btn-primary form-group"><i class="fas fa-search"></i> Search</button>
-
+    <div id="query_builder">Building query form...</div>
+    <div class='clearfix'>
+    <button type="submit" class="btn btn-sm btn-primary form-group"><i class="fas fa-search"></i> Search</button>
+    <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn"><i class="fas fa-filter"></i> Add Filter</button>
+    <div class="btn-group float-right displaybuttons" data-toggle="buttons" >
+      <label class="btn btn-info btn-sm active form-group">
+        <input type="radio" name="display" id="lbutton" autocomplete="off" checked value='l'><i class="fas fa-th"></i> display lozenges
+      </label>
+      <label class="btn btn-info btn-sm form-group">
+        <input type="radio" name="display" id="tbutton" autocomplete="off" value='t'><i class="fas fa-table"></i> display table
+      </label>
+    </div></div>
 </form>
 
-	{% if request.GET %}
 
-    <h2>Search Results</h2>
-    <div class="container protein_results">
-        <ul class="row" style="list-style: none">
-        {% for protein in filter.qs %}
-            <a href="{{ protein.get_absolute_url }}" class="protein_result_item" style="background-color:
-                {% if protein.default_state %}
-                    {{ protein.default_state.emhex }}
+    {% if request.GET %}
+        <h2>Search Results</h2>
+
+        <div class="container protein_results pl-0 pr-0">
+            {% if filter.qs.count %}
+                <div id="ldisplay" {% if request.GET.display == 't' %}class="hidden"{% endif %}>
+                {% with proteins=filter.qs %}
+                    {% include '_proteinlozenges.html' %}
+                {% endwith %}
+                </div>
+                <div id="tdisplay" class="{% if request.GET.display == 'l' or not request.GET.display %}hidden{% endif %}">
+                {% with proteins=filter.qs %}
+                    {% include '_proteintable.html' %}
+                {% endwith %}
+                </div>
+            {% else %}
+                {% if filter.recs %}
+                    <p>There were no exact results, but the following proteins were similar to your query:</p>
+
+                    <div id="ldisplay" {% if request.GET.display == 't' %}class="hidden"{% endif %}>
+                    {% with proteins=filter.recs %}
+                        {% include '_proteinlozenges.html' %}
+                    {% endwith %}
+                    </div>
+                    <div id="tdisplay" class="{% if request.GET.display == 'l' or not request.GET.display %}hidden{% endif %}">
+                    {% with proteins=filter.recs %}
+                        {% include '_proteintable.html' %}
+                    {% endwith %}
+                    </div>
+
                 {% else %}
-                    #000
-                {% endif %};">
-                <li class="col-sm">
-                    <h4 style="color:
-                    {% if  protein.default_state.em_max > 477 and protein.default_state.em_max < 620 %}
-                        #222
-                    {% else %}
-                        #eee
-                    {% endif %}
-                    ;">
-                    {{ protein.name }}
-                    </h4>
-                    <span class='attributes' style="color:
-                        {% if  protein.default_state.em_max > 477 and protein.default_state.em_max < 620 %}
-                            #222
-                        {% else %}
-                            #eee
-                        {% endif %}
-                        ;">
-                        {{ protein.default_state.ex_max }} / {{ protein.default_state.em_max }}
-                    </span>
-                </li>
-            </a>
-        {% empty %}
-            <p>No results found.</p>
-        {% endfor %}
-        </ul>
-    </div>
-
-	{% endif %}
+                <p>No results found.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+        {{proteins}}
+    {% endif %}
 
 
 
@@ -70,305 +76,306 @@ If you find that you are not getting results, relax your query.</p>
 
 {% block js-onpage %}
 
-	<script>
+    <script>
 
-	var formfields = {
-		{% for key, val in filter.form.fields.items %}
+    var formfields = {
+        {% for key, val in filter.form.fields.items %}
 
-			{{ key | safe }}: {
-				type: '{{ val.widget.input_type }}',
-				attrs:  {{ val.widget.attrs | safe }},
-				{% if val.widget.input_type == 'select' %}
-				choices: {
-					{% for choice in val.widget.choices.choices %}
-						'{{ choice.1 }}': '{{ choice.0}}',
-					{% endfor %}
-				}
-				{% endif %}
-			},
+            {{ key | safe }}: {
+                type: '{{ val.widget.input_type }}',
+                attrs:  {{ val.widget.attrs | safe }},
+                {% if val.widget.input_type == 'select' %}
+                choices: {
+                    {% for choice in val.widget.choices.choices %}
+                        '{{ choice.1 }}': '{{ choice.0}}',
+                    {% endfor %}
+                }
+                {% endif %}
+            },
 
-		{% endfor %}
-		};
-	var fields = {
-		{% for key, val in filter.Meta.fields.items %}
-			{{ key | safe }}: new Set({{ val | safe }}),
-		{% endfor %}
-	}
-	var operatorLookup = {{ filter.Meta.operators | safe }};
-	var labelLookup = {{ filter.Meta.labels | safe }};
-	var available_fields = new Set(Object.keys(fields));
-	var i = 0;
-	var prevName;
-	var prevOperator
+        {% endfor %}
+        };
+    var fields = {
+        {% for key, val in filter.Meta.fields.items %}
+            {{ key | safe }}: new Set({{ val | safe }}),
+        {% endfor %}
+    }
+    var operatorLookup = {{ filter.Meta.operators | safe }};
+    var labelLookup = {{ filter.Meta.labels | safe }};
+    var available_fields = new Set(Object.keys(fields));
+    var i = 0;
+    var prevName;
+    var prevOperator
 
-	function toTitleCase(str)
-	{
-		str = str.split('__').join('_');
-		str = str.split('_').join(' ');
-	    return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-	}
+    function toTitleCase(str)
+    {
+        str = str.split('__').join('_');
+        str = str.split('_').join(' ');
+        return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+    }
 
-	function name_options(){
-		out = '';
-		for (let n of available_fields){
-			if (n in labelLookup){
-				name = labelLookup[n];
-			} else{
-				name = toTitleCase(n);
-			}
-			out += '<option value='+ n +'>' + name + "</option>";
-		}
-		return out
-	}
+    function name_options(){
+        out = '';
+        for (let n of available_fields){
+            if (n in labelLookup){
+                name = labelLookup[n];
+            } else{
+                name = toTitleCase(n);
+            }
+            out += '<option value='+ n +'>' + name + "</option>";
+        }
+        return out
+    }
 
-	function input_choices(name){
-		choices = formfields[name].choices
-		out = '<div class="form-group"><select name="' + name + '" class="form-control input-select" id="id_' + name + '">'
-		for (var c in choices){
-			out += '<option value="' + choices[c] + '">' + c + '</option>'
-		}
-		out += '</select></div>'
-		return out
-	}
+    function input_choices(name){
+        choices = formfields[name].choices
+        out = '<div class="form-group"><select name="' + name + '" class="form-control input-select" id="id_' + name + '">'
+        for (var c in choices){
+            out += '<option value="' + choices[c] + '">' + c + '</option>'
+        }
+        out += '</select></div>'
+        return out
+    }
 
-	function operator_options(ops){
-		console.log('generating operator options with: ' + Array.from(ops).join(' '))
-		var out = ''
-		for (let o of ops){
-			if (o in operatorLookup){
-				op = operatorLookup[o];
-			} else{
-				op = toTitleCase(ops[o]);
-			}
-			out += '<option value='+ o +'>' + op + "</option>";
-		}
-		return out
-	}
+    function operator_options(ops){
+        console.log('generating operator options with: ' + Array.from(ops).join(' '))
+        var out = ''
+        for (let o of ops){
+            if (o in operatorLookup){
+                op = operatorLookup[o];
+            } else{
+                op = toTitleCase(ops[o]);
+            }
+            out += '<option value='+ o +'>' + op + "</option>";
+        }
+        return out
+    }
 
-	$.fn.exists = function () {
-	    return this.length !== 0;
-	}
+    $.fn.exists = function () {
+        return this.length !== 0;
+    }
 
-	function updateInputField(row, keepValue){
-		// figure out filter name and operator
-		filter_name = row.find('.filter-select').val()
-		operation = row.find('.operator-select').val()
-		if (operation == 'exact'){
-			name = filter_name
-		} else {
-			name = filter_name + '__' + operation
-		}
+    function updateInputField(row, keepValue){
+        // figure out filter name and operator
+        filter_name = row.find('.filter-select').val()
+        operation = row.find('.operator-select').val()
+        if (operation == 'exact'){
+            name = filter_name
+        } else {
+            name = filter_name + '__' + operation
+        }
 
-		// hide the current input field by putting it in the hidden #crispy-form
-		// FIXME: change this to a variable selector
-		inputcol = row.find('.input-col');
-		if (keepValue){
-			value = inputcol.find('input').val();
-		}
-		inputcol.find('.form-group').appendTo('#crispy-form');
+        // hide the current input field by putting it in the hidden #crispy-form
+        // FIXME: change this to a variable selector
+        inputcol = row.find('.input-col');
+        if (keepValue){
+            value = inputcol.find('input').val();
+        }
+        inputcol.find('.form-group').appendTo('#crispy-form');
 
-		// grab the form div that we want to put here
-		formdiv = $("#div_id_"+name)
-		formdiv.appendTo(inputcol);
+        // grab the form div that we want to put here
+        formdiv = $("#div_id_"+name)
+        formdiv.appendTo(inputcol);
 
-		// for some reason range input is losing this class
-		formdiv.find('input').addClass('form-control')
-		//formdiv.find('input').prop('required',true);
-		if (keepValue){
-			formdiv.find('input').val(value);
-		}
+        // for some reason range input is losing this class
+        formdiv.find('input').addClass('form-control')
+        //formdiv.find('input').prop('required',true);
+        if (keepValue){
+            formdiv.find('input').val(value);
+        }
 
-	}
+    }
 
-	function queryRow(id) {
-		var out = '<div class="form-row query-row" id="query-row-' + id + '">\
-		<div class="col-sm-4 names-col">\
-				<div class="form-group"><select class="form-control filter-select" id="filter-select-' + id + '">'
-				+ name_options() +
-				'</select>\
-			</div>\
-		</div>\
-		<div class="col-sm-4 operator-col">\
-			<div class="form-group"><select class="form-control operator-select">\
-			</select></div>\
-		</div>\
-		<div class="col-sm-3">\
-			<div class="form-group input-col">\
-			</div>\
-		</div>\
-		<div class="col-sm-1 align-right">\
-			<div class="">\
-				<button type="button" class="btn btn-danger remove-row-btn form-group"><strong>&times;</strong></button>\
-			</div>\
-		</div>\
-		</div>'
-	  return out;
-	}
+    function queryRow(id) {
+        var out = '\
+        <div class="form-row query-row" id="query-row-' + id + '">\
+            <div class="col-sm-4 names-col d-flex justify-content-between align-items-start">\
+            <button type="button" class="btn btn-danger remove-row-btn form-group mr-2" ><strong>&times;</strong></button>\
+                    <div class="form-group" style="width:100%;"><select class="form-control filter-select" id="filter-select-' + id + '">'
+                    + name_options() +
+                    '</select>\
+                </div>\
+            </div>\
+            <div class="col-sm-4 operator-col">\
+                <div class="form-group"><select class="form-control operator-select">\
+                </select></div>\
+            </div>\
+            <div class="col-sm-4">\
+                    <div class="form-group input-col"></div>\
+            </div>\
+        </div>'
+      return out;
+    }
 
-	function addRow(target, filter, operator){
-		console.log('>>>Row added')
-		newrow = $(queryRow(i)).appendTo(target);
+    function addRow(target, filter, operator){
+        console.log('>>>Row added')
+        newrow = $(queryRow(i)).appendTo(target);
 
-		if (filter) {
-			newrow.find('.filter-select').val(filter)
-		}
+        if (filter) {
+            newrow.find('.filter-select').val(filter)
+        }
 
-		filterSelector = newrow.find('.filter-select')
-		filterName = filterSelector.val()
+        filterSelector = newrow.find('.filter-select')
+        filterName = filterSelector.val()
 
-		operatorSelect = newrow.find('.operator-select')
-		operatorSelect.html(operator_options(fields[filterName]))
-		operatorSelect.removeClass()
-		operatorSelect.addClass('form-control operator-select ' + filterName + '_operator' )
+        operatorSelect = newrow.find('.operator-select')
+        operatorSelect.html(operator_options(fields[filterName]))
+        operatorSelect.removeClass()
+        operatorSelect.addClass('form-control operator-select ' + filterName + '_operator' )
 
-		if (operator) {
-			operatorSelect.val(operator);
-		} else {
-			operator = operatorSelect.val()
-		}
+        if (operator) {
+            operatorSelect.val(operator);
+        } else {
+            operator = operatorSelect.val()
+        }
 
-		disableOperator(filterName, operator);
-		updateOperators(filterName, operatorSelect);
-		updateInputField(newrow);
+        disableOperator(filterName, operator);
+        updateOperators(filterName, operatorSelect);
+        updateInputField(newrow);
 
-		//updateOperators(row.find('.filter-select').val());
-		i += 1;
-	}
+        //updateOperators(row.find('.filter-select').val());
+        i += 1;
+    }
 
-	function disableOperator(name, op){
-		fields[name].delete(op);
-		console.log('Disabling: ' + name + " " + op)
-		if (fields[name].size == 0){
-			available_fields.delete(name);
-			console.log('Field now unavailable: ' + name);
-		}
-	}
+    function disableOperator(name, op){
+        fields[name].delete(op);
+        console.log('Disabling: ' + name + " " + op)
+        if (fields[name].size == 0){
+            available_fields.delete(name);
+            console.log('Field now unavailable: ' + name);
+        }
+    }
 
-	function enableOperator(name, op){
-		fields[name].add(op);
-		available_fields.add(name);
-		console.log('Enabled: ' + name + " " + op)
-	}
+    function enableOperator(name, op){
+        fields[name].add(op);
+        available_fields.add(name);
+        console.log('Enabled: ' + name + " " + op)
+    }
 
-	function updateOperators(filterName, sender){
-		// where sender is the operatorSelect that sent the update command
-		selector = $('.' + filterName + '_operator').not(sender)
-		if(selector.length > 0){
-			console.log('updating operators for filter: ' + filterName);
-			selector.find('option').not(':selected').remove();
-			selector.append(operator_options(fields[filterName]));
-		}
-	}
+    function updateOperators(filterName, sender){
+        // where sender is the operatorSelect that sent the update command
+        selector = $('.' + filterName + '_operator').not(sender)
+        if(selector.length > 0){
+            console.log('updating operators for filter: ' + filterName);
+            selector.find('option').not(':selected').remove();
+            selector.append(operator_options(fields[filterName]));
+        }
+    }
 
-	$("body").on('focus', '.filter-select', function (event) {
-	    // Store the current value on focus and on change
-	    prevName = this.value;
-	    prevOperator = $(this).closest('.query-row').find('.operator-select').val();
-	    console.log('Focused on: ' + prevName + " " + prevOperator)
+    $("body").on('focus', '.filter-select', function (event) {
+        // Store the current value on focus and on change
+        prevName = this.value;
+        prevOperator = $(this).closest('.query-row').find('.operator-select').val();
+        console.log('Focused on: ' + prevName + " " + prevOperator)
 
-	})
-	$("body").on('focus', '.operator-select', function (event) {
-	    // Store the current value on focus and on change
-	    prevOperator = this.value;
-	})
+    })
+    $("body").on('focus', '.operator-select', function (event) {
+        // Store the current value on focus and on change
+        prevOperator = this.value;
+    })
 
-	$('#add-row-btn').on('click', function(){
-		addRow('#query_builder');
-	})
+    $('#add-row-btn').on('click', function(){
+        addRow('#query_builder');
+    })
 
-	$("body").on("click", ".remove-row-btn", function(){
-		console.log(">>>Row removed")
-		thisrow = $(this).closest('.query-row')
-		filterName = thisrow.find('.filter-select').val()
-		operatorSelect = thisrow.find('.operator-select')
-		enableOperator(filterName, operatorSelect.val());
-		updateOperators(filterName, operatorSelect);
+    $("body").on("click", ".remove-row-btn", function(){
+        console.log(">>>Row removed")
+        thisrow = $(this).closest('.query-row')
+        filterName = thisrow.find('.filter-select').val()
+        operatorSelect = thisrow.find('.operator-select')
+        enableOperator(filterName, operatorSelect.val());
+        updateOperators(filterName, operatorSelect);
 
-		inputfield = thisrow.find('.input-col').find('.form-group');
-		inputfield.appendTo('#crispy-form');
+        inputfield = thisrow.find('.input-col').find('.form-group');
+        inputfield.appendTo('#crispy-form');
 
-		thisrow.remove();
-		i -= 1;
-	});
+        thisrow.remove();
+        i -= 1;
+    });
 
 
-	$("body").on("change", ".filter-select", function(){
-		console.log(">>>Filter selector changed")
-		//when the filter name selector gets changed (or added)
-		dropdownSelect = $(this)
-		filterName = dropdownSelect.val()
+    $("body").on("change", ".filter-select", function(){
+        console.log(">>>Filter selector changed")
+        //when the filter name selector gets changed (or added)
+        dropdownSelect = $(this)
+        filterName = dropdownSelect.val()
 
-		thisrow = $(this).closest('.query-row')
+        thisrow = $(this).closest('.query-row')
 
-		// remove the old operator dropdown and add the new one
-		operatorSelect = thisrow.find('.operator-select')
-		operatorSelect.empty()
-		operatorSelect.html(operator_options(fields[filterName]))
-		operatorSelect.removeClass()
-		operatorSelect.addClass('form-control operator-select ' + filterName + '_operator' )
+        // remove the old operator dropdown and add the new one
+        operatorSelect = thisrow.find('.operator-select')
+        operatorSelect.empty()
+        operatorSelect.html(operator_options(fields[filterName]))
+        operatorSelect.removeClass()
+        operatorSelect.addClass('form-control operator-select ' + filterName + '_operator' )
 
-		if (prevName && prevOperator){
-			enableOperator(prevName, prevOperator)
-		}
-		disableOperator(filterName, operatorSelect.val())
-		updateOperators(prevName);
-		updateOperators(filterName, operatorSelect);
-		updateInputField(thisrow);
+        if (prevName && prevOperator){
+            enableOperator(prevName, prevOperator)
+        }
+        disableOperator(filterName, operatorSelect.val())
+        updateOperators(prevName);
+        updateOperators(filterName, operatorSelect);
+        updateInputField(thisrow);
 
-		prevName = this.value;
-		prevOperator = $(this).closest('.query-row').find('.operator-select').val();
-	})
+        prevName = this.value;
+        prevOperator = $(this).closest('.query-row').find('.operator-select').val();
+    })
 
-	$("body").on("change", ".operator-select", function(){
-		console.log(">>>Operator selector changed")
-		thisrow = $(this).closest('.query-row')
-		filterName = thisrow.find('.filter-select').val()
-		enableOperator(filterName, prevOperator);
-		disableOperator(filterName, this.value);
-		updateOperators(filterName);
-		updateInputField(thisrow, true);
+    $("body").on("change", ".operator-select", function(){
+        console.log(">>>Operator selector changed")
+        thisrow = $(this).closest('.query-row')
+        filterName = thisrow.find('.filter-select').val()
+        enableOperator(filterName, prevOperator);
+        disableOperator(filterName, this.value);
+        updateOperators(filterName);
+        updateInputField(thisrow, true);
 
-		prevOperator = this.value;
-	})
-
-
+        prevOperator = this.value;
+    })
 
 
+    function loadState(state){
+        for (key in state){
+            value = state[key]
+            if (key === 'display') {
+                $("#" + value + "button").click()
+                continue;
+            }
+            if (key in fields){
+                filter = key;
+                operator = 'exact';
+            } else {
+                splits = key.split('__')
+                filter = splits.slice(0, splits.length-1).join('__')
+                operator = splits[splits.length-1];
+            }
+            addRow('#query_builder', filter, operator)
+        }
+    }
 
+    $(function(){
 
+        $('#crispy-form label').remove();
 
-	function loadState(state){
-		for (key in state){
-			value = state[key]
-			if (key in fields){
-				filter = key;
-				operator = 'exact';
-			} else {
-				splits = key.split('__')
-				filter = splits.slice(0, splits.length-1).join('__')
-				operator = splits[splits.length-1];
-			}
-			addRow('#query_builder', filter, operator)
-		}
-	}
+        var search = location.search.substring(1);
+        if(search!=""){
+            var URLobj = search?JSON.parse('{"' + search.replace(/&/g, '","').replace(/=/g,'":"') + '"}',
+            function(key, value) {
+                return key===""?value:decodeURIComponent(value);
+            }):{};
+            $('#query_builder').empty();
+            loadState(URLobj)
+        }else{
+            $('#query_builder').empty();
+            addRow('#query_builder');
+        }
 
-	$(function(){
-
-		$('label').remove();
-
-		var search = location.search.substring(1);
-		if(search!=""){
-			var URLobj = search?JSON.parse('{"' + search.replace(/&/g, '","').replace(/=/g,'":"') + '"}',
-			function(key, value) {
-			    return key===""?value:decodeURIComponent(value);
-			}):{};
-			$('#query_builder').empty();
-			loadState(URLobj)
-		}else{
-			$('#query_builder').empty();
-			addRow('#query_builder');
-		}
-	})
+        $('.displaybuttons input').change(function(){
+            var display_type = $(this).val()
+            $("#" +  display_type + "display").show()
+            $("#" +  display_type + "display").siblings('div').hide()
+        })
+    })
 
 </script>
 
