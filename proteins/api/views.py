@@ -24,7 +24,7 @@ class BasicProteinListCreateAPIView(ListAPIView):
 
 
 class ProteinListCreateAPIView(ListCreateAPIView):
-    queryset = Protein.objects.all()
+    queryset = Protein.objects.all().prefetch_related('states', 'transitions')
     permission_classes = (IsAuthenticated, )
     serializer_class = ProteinSerializer
     lookup_field = 'slug'  # Don't use Protein.id!
