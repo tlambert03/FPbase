@@ -10,10 +10,11 @@ class MyBaseModerator(GenericModerator):
     auto_approve_for_staff = True
     auto_reject_for_anonymous = False
     fields_exclude = ['created', 'modified']
+    visibility_column = 'visible'
 
 
 class ProteinModerator(MyBaseModerator):
-    manager_names = ['objects']
+    pass
 
 
 class StateModerator(MyBaseModerator):

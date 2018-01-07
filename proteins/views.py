@@ -5,13 +5,14 @@ from django.contrib import messages
 from django.core import serializers
 from django.db import transaction
 from django.http import JsonResponse
+from django.contrib.postgres.search import TrigramSimilarity
 
-
-from .models import Protein
+from .models import Protein, State
 from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateUpdateFormSet
 
 from references.models import Reference  # breaks application modularity # FIXME
 
+from moderation import constants
 
 class ProteinChartList(ListView):
     ''' renders html for interactive chart  '''
@@ -34,6 +35,20 @@ class ProteinChartList(ListView):
 class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
     queryset = Protein.objects.all().prefetch_related('states')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            if self.moderated_object.status == constants.MODERATION_STATUS_PENDING:
+                context['pending_protein'] = self.object.moderated_object.changed_object
+        except Exception:
+            pass
+        try:
+            context['pending_states'] = [s.moderated_object.changed_object for s in State.unmoderated_objects.filter(protein=self.object).all()]
+
+        except Exception:
+            pass
+        return context
 
 
 class ProteinCreateUpdateMixin:
@@ -156,15 +171,26 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
 
 def protein_table(request):
     ''' renders html for protein table page  '''
-    return render(request, 'table.html', {"proteins": Protein.objects.select_related('default_state')})
+    #  return render(request, 'table.html', {"states": State.objects.notdark().select_related('protein').prefetch_related('bleach_measurement')})
+    return render(request, 'table.html', {"proteins": Protein.objects.all().prefetch_related('states', 'states__bleach_measurement')})
 
 
 def protein_search(request):
     ''' renders html for protein search page  '''
     from .filters import ProteinFilter
+
     if request.GET:
-        f = ProteinFilter(request.GET, queryset=Protein.objects.all().order_by('default_state__em_max').prefetch_related('default_state'))
-        print(f.qs)
+        f = ProteinFilter(request.GET, queryset=Protein.objects.select_related('default_state').prefetch_related('states').order_by('default_state__em_max'))
+
+        # if no hits, but name was provided... try trigram search
+        if len(f.qs) == 0:
+            name = None
+            if 'name__icontains' in f.form.data:
+                name = f.form.data['name__icontains']
+            elif 'name__iexact' in f.form.data:
+                name = f.form.data['name__iexact']
+            if name:
+                f.recs = Protein.objects.annotate(similarity=TrigramSimilarity('name', name)).filter(similarity__gt=0.2).order_by('-similarity')
         if len(f.qs) == 1:
             return redirect(f.qs.first())
     else:
@@ -179,8 +205,9 @@ def add_reference(request):
         P = Protein.objects.get(slug=slug)
         ref, created = Reference.objects.get_or_create(doi=doi)
         P.references.add(ref)
-        P.save()
+        #P.save()
         return JsonResponse({'url': P.get_absolute_url()})
     except Exception:
         pass
+
 

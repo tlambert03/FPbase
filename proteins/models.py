@@ -294,6 +294,8 @@ class Protein(TimeStampedModel):
     switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True, verbose_name='Type', help_text="Photoswitching type (basic if none)",)
     blurb       = models.CharField(max_length=512, blank=True, help_text="Brief descriptive blurb",)
 
+    visible     = models.BooleanField(default=False)
+
     # Relations
     parent_organism = models.ForeignKey(Organism, related_name='proteins', verbose_name="Parental organism", blank=True, null=True, help_text="Organism from which the protein was engineered",)
     primary_reference = models.ForeignKey(Reference, related_name='primary_proteins', verbose_name="Primary Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Preferably the publication that introduced the protein",)  # usually, the original paper that published the protein
@@ -311,6 +313,16 @@ class Protein(TimeStampedModel):
 
     # Manager
     # consider writing a manager to retrieve spectra or for custom queries
+
+    def pending_states(self):
+        states = []
+        for s in State.unmoderated_objects.filter(protein=self):
+            try:
+                if s.moderated_status == 'Pending':
+                    states.append(s.moderated_object.changed_object)
+            except Exception:
+                pass
+        return states
 
     @property
     def mless(self):
@@ -496,9 +508,13 @@ class Protein(TimeStampedModel):
         ordering = ['name']
 
 
-class State(StatusModel, TimeStampedModel):
+class StatesManager(models.Manager):
+    def notdark(self):
+        return self.filter(is_dark=False)
+
+
+class State(TimeStampedModel):
     """ A class for the states that a given protein can be in (including spectra and other state-dependent properties)  """
-    STATUS = Choices('uncurated', 'curated', 'rejected')
 
     # Attributes
     name        = models.CharField(max_length=64, default='default')  # required
@@ -529,6 +545,11 @@ class State(StatusModel, TimeStampedModel):
     created_by    = models.ForeignKey(User, related_name='state_author', blank=True, null=True)  # the user who added the state
     updated_by  = models.ForeignKey(User, related_name='state_modifier', blank=True, null=True)  # the user who last modified the state
 
+    visible     = models.BooleanField(default=False)
+
+    # Managers
+    objects = StatesManager()
+
     @property
     def local_brightness(self):
         """ brightness relative to spectral neighbors.  1 = average """
@@ -556,13 +577,13 @@ class State(StatusModel, TimeStampedModel):
         except TypeError:
             return None
 
-    @property
-    def bleach(self):
-        #TODO: this only gets the first bleaching measurement
-        try:
-            return self.bleach_measurement.first().rate
-        except AttributeError:
-            return None
+    # @property
+    # def bleach(self):
+    #     #TODO: this only gets the first bleaching measurement
+    #     try:
+    #         return self.bleach_measurement.first().rate
+    #     except AttributeError:
+    #         return None
 
     @property
     def nvd3ex(self):
