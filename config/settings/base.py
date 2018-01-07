@@ -63,14 +63,11 @@ THIRD_PARTY_APPS = [
 # Apps specific for this project go here.
 LOCAL_APPS = [
     # custom users app
-    'fpbase.users',  # 'fpbase.users.apps.UsersConfig',
+    'fpbase.users.apps.UsersConfig',
 
     # Your stuff: custom apps go here
-    'proteins',  # 'proteins.apps.ProteinsConfig',
-    'references',  # 'references.apps.ReferencesConfig',
-
-    # 'moderation.apps.SimpleModerationConfig',
-    'moderation',
+    'proteins.apps.ProteinsConfig',
+    'references.apps.ReferencesConfig',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

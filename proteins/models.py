@@ -294,8 +294,6 @@ class Protein(TimeStampedModel):
     switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True, verbose_name='Type', help_text="Photoswitching type (basic if none)",)
     blurb       = models.CharField(max_length=512, blank=True, help_text="Brief descriptive blurb",)
 
-    visible     = models.BooleanField(default=False)
-
     # Relations
     parent_organism = models.ForeignKey(Organism, related_name='proteins', verbose_name="Parental organism", blank=True, null=True, help_text="Organism from which the protein was engineered",)
     primary_reference = models.ForeignKey(Reference, related_name='primary_proteins', verbose_name="Primary Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Preferably the publication that introduced the protein",)  # usually, the original paper that published the protein
@@ -310,19 +308,6 @@ class Protein(TimeStampedModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__original_ipg_id = self.ipg_id
-
-    # Manager
-    # consider writing a manager to retrieve spectra or for custom queries
-
-    def pending_states(self):
-        states = []
-        for s in State.unmoderated_objects.filter(protein=self):
-            try:
-                if s.moderated_status == 'Pending':
-                    states.append(s.moderated_object.changed_object)
-            except Exception:
-                pass
-        return states
 
     @property
     def mless(self):
@@ -544,8 +529,6 @@ class State(TimeStampedModel):
     protein     = models.ForeignKey(Protein, related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
     created_by    = models.ForeignKey(User, related_name='state_author', blank=True, null=True)  # the user who added the state
     updated_by  = models.ForeignKey(User, related_name='state_modifier', blank=True, null=True)  # the user who last modified the state
-
-    visible     = models.BooleanField(default=False)
 
     # Managers
     objects = StatesManager()

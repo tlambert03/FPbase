@@ -12,7 +12,6 @@ from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateUpda
 
 from references.models import Reference  # breaks application modularity # FIXME
 
-from moderation import constants
 
 class ProteinChartList(ListView):
     ''' renders html for interactive chart  '''
@@ -36,47 +35,34 @@ class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
     queryset = Protein.objects.all().prefetch_related('states')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        try:
-            if self.moderated_object.status == constants.MODERATION_STATUS_PENDING:
-                context['pending_protein'] = self.object.moderated_object.changed_object
-        except Exception:
-            pass
-        try:
-            context['pending_states'] = [s.moderated_object.changed_object for s in State.unmoderated_objects.filter(protein=self.object).all()]
-
-        except Exception:
-            pass
-        return context
-
 
 class ProteinCreateUpdateMixin:
 
     def get_form_type(self):
         return self.request.resolver_match.url_name
 
-    def moderate(self, obj):
-        from moderation.helpers import automoderate
-        status = automoderate(obj, self.request.user)
-        if isinstance(obj, Protein):
-            if status == 2:  # PENDING
-                if self.get_form_type() == 'update':
-                    messages.add_message(self.request, messages.INFO,
-                        'Your update to {} has been submitted and will appear after moderation.'.format(obj))
-                else:
-                    messages.add_message(self.request, messages.INFO,
-                        'Thank you for submitting {}.  It will appear shortly, after moderation.'.format(obj))
-            elif status == 1:  # APPROVED
-                if self.get_form_type() == 'update':
-                    messages.add_message(self.request, messages.SUCCESS,
-                        'Your update to {} has been approved.'.format(obj))
-                else:
-                    messages.add_message(self.request, messages.SUCCESS,
-                        'Thank you for submitting {}!'.format(obj))
-            else:  # REJECTED
-                messages.add_message(self.request, messages.ERROR,
-                    '{} rejected.  Please contact us with questions.'.format(self.get_form_type().title()))
+    # TODO: pull out the good message parts... remove the moderation parts
+    # def moderate(self, obj):
+    #     from moderation.helpers import automoderate
+    #     status = automoderate(obj, self.request.user)
+    #     if isinstance(obj, Protein):
+    #         if status == 2:  # PENDING
+    #             if self.get_form_type() == 'update':
+    #                 messages.add_message(self.request, messages.INFO,
+    #                     'Your update to {} has been submitted and will appear after moderation.'.format(obj))
+    #             else:
+    #                 messages.add_message(self.request, messages.INFO,
+    #                     'Thank you for submitting {}.  It will appear shortly, after moderation.'.format(obj))
+    #         elif status == 1:  # APPROVED
+    #             if self.get_form_type() == 'update':
+    #                 messages.add_message(self.request, messages.SUCCESS,
+    #                     'Your update to {} has been approved.'.format(obj))
+    #             else:
+    #                 messages.add_message(self.request, messages.SUCCESS,
+    #                     'Thank you for submitting {}!'.format(obj))
+    #         else:  # REJECTED
+    #             messages.add_message(self.request, messages.ERROR,
+    #                 '{} rejected.  Please contact us with questions.'.format(self.get_form_type().title()))
 
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
@@ -101,14 +87,10 @@ class ProteinCreateUpdateMixin:
                         s.created_by = self.request.user
                     s.updated_by = self.request.user
                     s.save()
-                    self.moderate(s)
                 for s in states.deleted_objects:
                     s.delete()
-                    # FIXME: state deletions currently unmoderated?
-                    # self.moderate(s)
 
                 self.object.save()
-                self.moderate(self.object)
             else:
                 context.update({
                     'states': states
@@ -118,7 +100,7 @@ class ProteinCreateUpdateMixin:
         # if this is an update form, just pass on the sucess_url
         if self.get_form_type() == 'update':
             return HttpResponseRedirect(self.get_success_url())
-        # otherwise we need to know whether there is a moderated protein to show or now
+        # otherwise we need to know whether there new protein to show or not (moderation?)
         else:
             if self.object in Protein.objects.all():
                 return HttpResponseRedirect(self.get_success_url())
