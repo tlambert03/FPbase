@@ -58,6 +58,9 @@ THIRD_PARTY_APPS = [
     #  'allauth.socialaccount.providers.linkedin_oauth2',
 
     'django_filters',
+    'reversion',
+    'reversion_compare',
+
 ]
 
 # Apps specific for this project go here.

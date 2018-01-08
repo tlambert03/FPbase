@@ -1,7 +1,18 @@
 from django.contrib import admin
-from proteins.models import Protein, State, Organism, FRETpair
-from proteins.forms import ProteinForm, StateForm # StateFormSet
+from proteins.models import Protein, State, StateTransition, Organism, FRETpair, BleachMeasurement
+from proteins.forms import ProteinForm, StateForm  # StateFormSet
+from reversion_compare.admin import CompareVersionAdmin
 
+
+class BleachInline(admin.StackedInline):
+    model = BleachMeasurement
+
+@admin.register(State)
+class StateAdmin(CompareVersionAdmin):
+    form = StateForm
+    model = State
+    search_fields = ('protein__name',)
+    inlines = (BleachInline,)
 
 class StateInline(admin.StackedInline):
     form = StateForm
@@ -35,19 +46,23 @@ class StateInline(admin.StackedInline):
     readonly_fields = ('slug', 'created', 'created_by', 'modified', 'updated_by')
 
 
+class StateTransitionInline(admin.StackedInline):
+    model = StateTransition
+
+
 @admin.register(Protein)
-class ProteinAdmin(admin.ModelAdmin):
+class ProteinAdmin(CompareVersionAdmin):
     form = ProteinForm
     list_display = ('__str__', 'ipg_id', 'switch_type', 'created', 'modified')
-    list_filter = ('created', 'modified', 'switch_type')
+    list_filter = ('created', 'modified', 'switch_type', 'created_by__username')
     search_fields = ('name', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [
-        StateInline,
+        StateInline, StateTransitionInline,
     ]
     fieldsets = [
         ('Protein', {
-            'fields': ('name', 'slug', 'ipg_id', 'seq', 'gb_prot', 'gb_nuc', 'parent_organism', 'switch_type', 'agg', 'mw')
+            'fields': ('name', 'newtest', 'slug', 'ipg_id', 'seq', 'gb_prot', 'gb_nuc', 'parent_organism', 'switch_type', 'agg', 'mw')
         }),
         ('References', {
             'classes': ('collapse',),
@@ -78,7 +93,7 @@ class ProteinAdmin(admin.ModelAdmin):
 
 
 @admin.register(FRETpair)
-class FRETpairAdmin(admin.ModelAdmin):
+class FRETpairAdmin(CompareVersionAdmin):
     list_display = ('__str__', 'donor', 'acceptor', 'radius', 'created_by', 'created', 'modified')
     list_filter = ('created', 'modified')
     search_fields = ('name', 'donor', 'acceptor', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
@@ -105,7 +120,7 @@ class FRETpairAdmin(admin.ModelAdmin):
 
 
 @admin.register(Organism)
-class OrganismAdmin(admin.ModelAdmin):
+class OrganismAdmin(CompareVersionAdmin):
     list_display = ('scientific_name', 'tax_id', 'created_by', 'created', 'modified')
     list_filter = ('created', 'modified')
     search_fields = ('scientific_name', 'common_name', 'tax_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')

@@ -11,7 +11,7 @@ from .models import Protein, State
 from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateUpdateFormSet
 
 from references.models import Reference  # breaks application modularity # FIXME
-
+import reversion
 
 class ProteinChartList(ListView):
     ''' renders html for interactive chart  '''
@@ -72,25 +72,28 @@ class ProteinCreateUpdateMixin:
         with transaction.atomic():
             # only save the form if all the states are also valid
             if states.is_valid():
-                self.object = form.save()
-                doi = form.cleaned_data.get('reference_doi')
-                if doi:
-                    ref, created = Reference.objects.get_or_create(doi=doi)
-                    self.object.primary_reference = ref
-                else:
-                    self.object.primary_reference = None
+                with reversion.create_revision():
+                    self.object = form.save()
+                    doi = form.cleaned_data.get('reference_doi')
+                    if doi:
+                        ref, created = Reference.objects.get_or_create(doi=doi)
+                        self.object.primary_reference = ref
+                    else:
+                        self.object.primary_reference = None
 
-                states.instance = self.object
-                saved_states = states.save(commit=False)
-                for s in saved_states:
-                    if not s.created_by:
-                        s.created_by = self.request.user
-                    s.updated_by = self.request.user
-                    s.save()
-                for s in states.deleted_objects:
-                    s.delete()
+                    states.instance = self.object
+                    saved_states = states.save(commit=False)
+                    for s in saved_states:
+                        if not s.created_by:
+                            s.created_by = self.request.user
+                        s.updated_by = self.request.user
+                        s.save()
+                    for s in states.deleted_objects:
+                        s.delete()
 
-                self.object.save()
+                    self.object.save()
+                    reversion.set_user(self.request.user)
+
             else:
                 context.update({
                     'states': states
@@ -182,12 +185,14 @@ def protein_search(request):
 
 def add_reference(request):
     try:
-        slug = request.POST.get('protein')
-        doi = request.POST.get('reference_doi')
-        P = Protein.objects.get(slug=slug)
-        ref, created = Reference.objects.get_or_create(doi=doi)
-        P.references.add(ref)
-        #P.save()
+        with reversion.create_revision():
+            slug = request.POST.get('protein')
+            doi = request.POST.get('reference_doi')
+            P = Protein.objects.get(slug=slug)
+            ref, created = Reference.objects.get_or_create(doi=doi)
+            P.references.add(ref)
+            P.save()
+            reversion.set_user(request.user)
         return JsonResponse({'url': P.get_absolute_url()})
     except Exception:
         pass
