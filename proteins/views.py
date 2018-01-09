@@ -12,6 +12,8 @@ from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateUpda
 
 from references.models import Reference  # breaks application modularity # FIXME
 import reversion
+from reversion.views import _RollBackRevisionView
+from reversion.models import Version
 
 class ProteinChartList(ListView):
     ''' renders html for interactive chart  '''
@@ -34,6 +36,32 @@ class ProteinChartList(ListView):
 class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
     queryset = Protein.objects.all().prefetch_related('states')
+
+    def historical_view(self, request, rev, *args, **kwargs):
+        versions = Version.objects.get_for_object(self.get_object())
+        version = versions[min(versions.count() - 1, rev)]
+        try:
+            with transaction.atomic(using=version.db):
+                # Revert the revision.
+                version.revision.revert(delete=True)
+                # Run the normal changeform view.
+                self.object = self.get_object()
+                context = self.get_context_data(object=self.object)
+                context['version'] = version
+                response = self.render_to_response(context)
+                response.render()  # eager rendering of response is necessary before db rollback
+                raise _RollBackRevisionView(response)
+        except _RollBackRevisionView as ex:
+            return ex.response
+
+    def get(self, request, *args, **kwargs):
+        try:
+            rev = int(self.request.GET.get('rev', False))
+        except Exception:
+            rev = 0
+        if rev > 0:
+            return self.historical_view(request, rev, *args, **kwargs)
+        return super().get(request, *args, **kwargs)
 
 
 class ProteinCreateUpdateMixin:
@@ -99,17 +127,8 @@ class ProteinCreateUpdateMixin:
                     'states': states
                 })
                 return self.render_to_response(context)
+        return HttpResponseRedirect(self.get_success_url())
 
-        # if this is an update form, just pass on the sucess_url
-        if self.get_form_type() == 'update':
-            return HttpResponseRedirect(self.get_success_url())
-        # otherwise we need to know whether there new protein to show or not (moderation?)
-        else:
-            if self.object in Protein.objects.all():
-                return HttpResponseRedirect(self.get_success_url())
-            # if not: just go back to the submit page
-            else:
-                return HttpResponseRedirect(self.request.path_info)
 
 
 # help from https://medium.com/@adandan01/django-inline-formsets-example-mybook-420cc4b6225d
@@ -156,8 +175,8 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
 
 def protein_table(request):
     ''' renders html for protein table page  '''
-    #  return render(request, 'table.html', {"states": State.objects.notdark().select_related('protein').prefetch_related('bleach_measurement')})
-    return render(request, 'table.html', {"proteins": Protein.objects.all().prefetch_related('states', 'states__bleach_measurement')})
+    #  return render(request, 'table.html', {"states": State.objects.notdark().select_related('protein').prefetch_related('bleach_measurements')})
+    return render(request, 'table.html', {"proteins": Protein.objects.all().prefetch_related('states', 'states__bleach_measurements')})
 
 
 def protein_search(request):
@@ -191,7 +210,6 @@ def add_reference(request):
             P = Protein.objects.get(slug=slug)
             ref, created = Reference.objects.get_or_create(doi=doi)
             P.references.add(ref)
-            P.save()
             reversion.set_user(request.user)
         return JsonResponse({'url': P.get_absolute_url()})
     except Exception:

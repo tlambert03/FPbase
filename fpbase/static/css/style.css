@@ -6039,8 +6039,6 @@ svg.nvd3-svg {
   margin: 1rem; }
 
 #proteinTable {
-  line-height: 14.4px;
-  line-height: 0.9rem;
   margin-top: 16px;
   margin-top: 1rem;
   font-weight: 500; }
@@ -6055,6 +6053,7 @@ svg.nvd3-svg {
         font-size: 0.9rem; } }
   @media (max-width: 991px) {
     #proteinTable {
+      line-height: 0.9rem;
       font-weight: 600;
       font-size: 0.7rem; }
       #proteinTable td {

@@ -298,7 +298,7 @@ def import_organisms():
     with open('_data/species.json', 'r') as f:
         D = json.load(f)
     for k in D.keys():
-        o = Organism(tax_id=k)
+        o = Organism(id=k)
         o.save()
 
 @require_superuser

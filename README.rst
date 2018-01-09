@@ -65,5 +65,11 @@ TODO
 *
 
 
+dropdb fpbase
+createdb fpbase
+./manage.py migrate
+./manage.py loaddata users
+./manage.py loaddata proteins
+./manage.py createinitialrevisions
 
 

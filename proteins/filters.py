@@ -46,7 +46,7 @@ class ProteinFilter(filters.FilterSet):
             'default_state__qy': ['gte',  'lte', 'range', 'exact'],
             'default_state__brightness': ['gte',  'lte', 'range', 'exact'],
             'default_state__pka': ['gte',  'lte', 'range', 'exact'],
-            'default_state__bleach_measurement__rate': ['gte',  'lte', 'range', 'exact'],
+            'default_state__bleach_measurements__rate': ['gte',  'lte', 'range', 'exact'],
             'agg': ['exact'],
             #'status': ['exact'],
             'switch_type': ['exact'],
@@ -80,7 +80,7 @@ class ProteinFilter(filters.FilterSet):
             'seq': 'Sequence',
             'agg': 'Oligomerization',
             'primary_reference__year': 'Year published',
-            'default_state__bleach_measurement__rate': 'Photostability (s)',
+            'default_state__bleach_measurements__rate': 'Photostability (s)',
         }
 
     def get_specbright(self, queryset, name, value):

@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 
 from references.models import Reference, Author
 from references.forms import ReferenceForm, AuthorForm
+from reversion_compare.admin import CompareVersionAdmin
 
 
 @admin.register(Author)
@@ -43,13 +44,23 @@ class AuthorAdmin(admin.ModelAdmin):
         return queryset
 
 
+class ReferenceInline(admin.StackedInline):
+    # form = StateForm
+    # formset = StateFormSet
+    model = Reference
+    extra = 0
+    can_delete = True
+    show_change_link = True
+
+
 @admin.register(Reference)
-class ReferenceAdmin(admin.ModelAdmin):
+class ReferenceAdmin(CompareVersionAdmin):
     form = ReferenceForm
+    moder = Reference
     ordering = ('-year', 'citation', 'created',)
-    list_display = ('citation',  'protein_links', 'title', 'year', 'doi', 'created')
+    list_display = ('id', 'citation',  'protein_links', 'title', 'year', 'doi', 'created')
     list_filter = ('created', 'modified')
-    search_fields = ('pmid', 'doi', 'created_by__username', 'created_by__first_name', 'created_by__last_name', 'title')
+    search_fields = ('id', 'pmid', 'doi', 'created_by__username', 'created_by__first_name', 'created_by__last_name', 'title')
 
     fieldsets = [
         ('Reference', {
@@ -57,7 +68,7 @@ class ReferenceAdmin(admin.ModelAdmin):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': ('created', 'created_by', 'modified', 'updated_by')
+            'fields': (('created', 'created_by'), ('modified', 'updated_by'))
         })
     ]
     readonly_fields = ('title', 'author_links', 'protein_links', 'journal', 'pages', 'volume', 'issue', 'year', 'created', 'created_by', 'modified', 'updated_by')

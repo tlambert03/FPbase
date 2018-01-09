@@ -206,50 +206,34 @@ StateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, forms
 StateUpdateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, formset=BaseStateFormSet, extra=1, can_delete=True)
 
 
-class ProteinForm(forms.ModelForm):
-    class Meta:
-        model = Protein
-        # fields = ['name', 'slug', 'gb_prot', 'gb_nuc', 'seq', 'parent_organism', 'primary_reference', 'references', 'FRET_partner', 'created_by', 'updated_by']
-        fields = ['name', 'slug', 'gb_prot', 'gb_nuc', 'seq', 'parent_organism', 'FRET_partner', 'created_by', 'updated_by']
 
-    def clean_created_by(self):
-        if not self.cleaned_data['created_by']:
-            return User()
-        return self.cleaned_data['created_by']
+# class StateForm(forms.ModelForm):
+#     ex_spectra = SpectrumFormField(required=False)
+#     em_spectra = SpectrumFormField(required=False)
 
-    def clean_updated_by(self):
-        if not self.cleaned_data['updated_by']:
-            return User()
-        return self.cleaned_data['updated_by']
+#     class Meta:
+#         model = State
+#         fields = ['protein', 'is_dark', 'name', 'ex_max', 'em_max', 'ex_spectra', 'em_spectra', 'ext_coeff', 'qy', 'pka', 'maturation', 'lifetime', 'created_by', 'updated_by']
 
+#     def __init__(self, *args, **kwargs):
+#         super(StateForm, self).__init__(*args, **kwargs)  # populates the post
+#         try:
+#             self.fields['to_state'].queryset = State.objects.filter(protein=self.instance.protein).exclude(slug=self.instance.slug)
+#             if self.instance.protein.switch_type == '1':
+#                 pass
+#                 # would like to remove fields from basic type proteins
+#                 # del self.fields['to_state']
+#         except Exception:
+#             #FIXME: update state business
+#             pass
+#             # self.fields['to_state'].queryset = State.objects.filter(name='')
 
-class StateForm(forms.ModelForm):
-    ex_spectra = SpectrumFormField(required=False)
-    em_spectra = SpectrumFormField(required=False)
+#     def clean_created_by(self):
+#         if not self.cleaned_data['created_by']:
+#             return User()
+#         return self.cleaned_data['created_by']
 
-    class Meta:
-        model = State
-        fields = ['protein', 'is_dark', 'name', 'ex_max', 'em_max', 'ex_spectra', 'em_spectra', 'ext_coeff', 'qy', 'pka', 'maturation', 'lifetime', 'created_by', 'updated_by']
-
-    def __init__(self, *args, **kwargs):
-        super(StateForm, self).__init__(*args, **kwargs)  # populates the post
-        try:
-            self.fields['to_state'].queryset = State.objects.filter(protein=self.instance.protein).exclude(slug=self.instance.slug)
-            if self.instance.protein.switch_type == '1':
-                pass
-                # would like to remove fields from basic type proteins
-                # del self.fields['to_state']
-        except Exception:
-            #FIXME: update state business
-            pass
-            # self.fields['to_state'].queryset = State.objects.filter(name='')
-
-    def clean_created_by(self):
-        if not self.cleaned_data['created_by']:
-            return User()
-        return self.cleaned_data['created_by']
-
-    def clean_updated_by(self):
-        if not self.cleaned_data['updated_by']:
-            return User()
-        return self.cleaned_data['updated_by']
+#     def clean_updated_by(self):
+#         if not self.cleaned_data['updated_by']:
+#             return User()
+#         return self.cleaned_data['updated_by']

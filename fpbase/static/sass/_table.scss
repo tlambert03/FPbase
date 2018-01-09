@@ -12,7 +12,6 @@
 }
 
 #proteinTable {
-	line-height: 0.9rem;
 	margin-top: 1rem;
 	font-weight: 500;
 	td.protein{
@@ -24,6 +23,7 @@
 		td.protein a{ font-size: 0.9rem; }
 	}
 	@include media-breakpoint-down(md) {
+		line-height: 0.9rem;
 		font-weight: 600;
 		font-size: 0.7rem;
 		td {padding-top: 0.5rem; padding-bottom: 0.4rem;}

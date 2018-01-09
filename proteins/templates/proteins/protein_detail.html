@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n %}
+{% load static i18n humanize %}
 
 {% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
 
@@ -13,9 +13,15 @@
 		<div class="container">
 			<h1 class="name display-4">{{ protein.name }}</h1>
 
-			{% include "_protein_blurb.html" %}
+			{% if version %}
+				<div class="alert alert-warning" role="alert">
+				<strong>NOTICE: </strong>You are viewing an older revision of this protein, from {{version.revision.date_created|date:"M j, Y H:i:s"}}.  <a href="{{ protein.get_absolute_url }}" class="alert-link">Click here</a> to view the current version.
+				</div>
+			{% endif %}
 
+			{% include "_protein_blurb.html" %}
 		</div>
+
 
 		<div class="spectra">
 			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
@@ -47,10 +53,10 @@
 							{% endif %}
 							<td>{{ state.ex_max | default:"&nbsp;" }}</td>
 				  			<td>{{ state.em_max | default:"&nbsp;"}}</td>
-				  			<td>{{ state.ext_coeff | default:"&nbsp;"}}</td>
+				  			<td>{{ state.ext_coeff|intcomma | default:"&nbsp;"}}</td>
 				  			<td>{{ state.qy | default:"&nbsp;"}}</td>
 				  			<td>{{ state.brightness | default:"&nbsp;"}}</td>
-				  			<td>{{ state.bleach_measurement.all.0.rate | default:"&nbsp;"}}</td>
+				  			<td>{{ state.bleach_measurements.all.0.rate | default:"&nbsp;"}}</td>
 				  			<td>{{ state.pka | default:"&nbsp;"}}</td>
 				  			<td>{{ state.maturation | default:"&nbsp;"}}</td>
 				  			<td>{{ state.lifetime | default:"&nbsp;"}}</td>

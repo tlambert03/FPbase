@@ -1,3 +1,5 @@
+{% load humanize %}
+
 <table class="table" id="proteinTable">
 	<thead>
 		<tr class="table-header">
@@ -31,11 +33,11 @@
 						<td class="col numeric exmax">{{ state.ex_max | default_if_none:"-" }}</td>
 						<td class="col numeric">{{ state.em_max | default_if_none:"-" }}</td>
 						<td class="col numeric">{{ state.stokes | default:"-" }}</td>
-						<td class="col numeric">{{ state.ext_coeff | default_if_none:"-" }}</td>
+						<td class="col numeric">{{ state.ext_coeff|intcomma | default_if_none:"-" }}</td>
 						<td class="col numeric">{{ state.qy | default_if_none:"-" }}</td>
 						<td class="col numeric">{{ state.brightness | default:"-" }}</td>
 						<!-- <td class="col numeric">{{ state.bright_rel_egfp | default:"-" }}</td> -->
-						{% if showbleach %}<td class="col numeric">{{ state.bleach_measurement.all.0.rate | default_if_none:"-" }}</td>{% endif %}
+						{% if showbleach %}<td class="col numeric">{{ state.bleach_measurements.all.0.rate | default_if_none:"-" }}</td>{% endif %}
 						<td class="col numeric">{{ state.pka | default_if_none:"-" }}</td>
 						<td class="col numeric">{{ protein.agg | default_if_none:"-" }}</td>
 						<td class="col numeric">{{ state.maturation | default_if_none:"-" }}</td>

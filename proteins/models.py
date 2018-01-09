@@ -216,7 +216,7 @@ class Organism(TimeStampedModel):
     """ A class for the parental organism (species) from which the protein has been engineered  """
 
     # Attributes
-    tax_id      = models.CharField(max_length=8, verbose_name='Taxonomy ID', help_text="NCBI Taxonomy ID (e.g. 6100 for Aequorea victora)",)  # genbank protein accession number
+    id          = models.PositiveIntegerField(primary_key=True, verbose_name='Taxonomy ID', help_text="NCBI Taxonomy ID")  # genbank protein accession number
     scientific_name = models.CharField(max_length=128, blank=True)
     division    = models.CharField(max_length=128, blank=True)
     common_name = models.CharField(max_length=128, blank=True)
@@ -236,7 +236,7 @@ class Organism(TimeStampedModel):
         ordering = ['scientific_name']
 
     def save(self, *args, **kwargs):
-        pubmed_record = Entrez.read(Entrez.esummary(db='taxonomy', id=self.tax_id, retmode='xml'))
+        pubmed_record = Entrez.read(Entrez.esummary(db='taxonomy', id=self.id, retmode='xml'))
         self.scientific_name = pubmed_record[0]['ScientificName']
         self.division = pubmed_record[0]['Division']
         self.common_name = pubmed_record[0]['CommonName']
@@ -283,11 +283,9 @@ class Protein(TimeStampedModel):
     name        = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
     slug        = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name   = models.CharField(max_length=128)  # easily searchable "family" name
-    seq         = models.CharField(max_length=512, unique=True, blank=True, null=True,
+    seq         = models.CharField(max_length=1024, unique=True, blank=True, null=True,
                     help_text="Amino acid sequence (IPG ID is preferred)",
                     validators=[protein_sequence_validator])  # consider adding Protein Sequence validator
-    gb_prot     = models.CharField(max_length=10, default='', blank=True, help_text="GenBank protein Accession number (e.g. AFR60231)",)  # genbank protein accession number
-    gb_nuc      = models.CharField(max_length=10, default='', blank=True)  # genbank nucleotide accession number
     ipg_id      = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='IPG ID', help_text="Identical Protein Group ID at Pubmed")  # identical protein group uid
     mw          = models.FloatField(null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
     agg         = models.CharField(max_length=2, choices=AGG_CHOICES, blank=True, help_text="Oligomerization tendency",)
@@ -326,13 +324,7 @@ class Protein(TimeStampedModel):
         name = self.name
 
         # remove PA/(Pa), PS, PC, from beginning
-        if re.match('P[Aa]', name):
-            name = name[2:]
-        if re.match('P[Ss]', name):
-            name = name[2:]
-        if re.match('[Pp][Cc]', name):
-            name = name[2:]
-        if re.match('rs', name):
+        if name.startswith(('PA', 'Pa', 'PS', 'Ps', 'PC', 'pc', 'rs')):
             name = name[2:]
 
         if re.match('LSS', name):
@@ -341,16 +333,13 @@ class Protein(TimeStampedModel):
         # remove m (if next letter is caps) or monomeric
         if re.match('m[A-Z]', name):
             name = name[1:]
-        if name.startswith('monomeric'):
-            name = name.lstrip('monomeric')
-        if name.startswith('Monomeric'):
-            name = name.lstrip('Monomeric')
 
         # get rid of Td or td
         if re.match('[Tt][Dd][A-Z]', name):
             name = name[2:]
-        if re.match('Tag', name):
-            name = name[3:]
+
+        name = name.lstrip('Monomeric')
+        name = name.lstrip('Tag')
 
         # remove E at beginning (if second letter is caps)
         if re.match('E[A-Z]', name):
@@ -358,7 +347,6 @@ class Protein(TimeStampedModel):
         # remove S at beginning (if second letter is caps)
         if re.match('S[A-Z]', name):
             name = name[1:]
-
         # remove T- at beginning (if second letter is caps)
         if re.match('T-', name):
             name = name[2:]
@@ -366,14 +354,6 @@ class Protein(TimeStampedModel):
         name = name.lstrip('-').lstrip(' ')
 
         return name
-
-    @property
-    def transitions(self):
-        return [T for S in self.states.all() for T in S.transitions.all()]
-
-    @property
-    def count_states(self):
-        return self.states.count()
 
     @property
     def all_spectra(self):
@@ -391,6 +371,13 @@ class Protein(TimeStampedModel):
     def additional_references(self):
         return self.references.exclude(id=self.primary_reference_id).order_by('-year')
 
+    @property
+    def color(self):
+        try:
+            return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]
+        except Exception:
+            return ''
+
     # Methods
     def __str__(self):
         return self.name
@@ -398,42 +385,14 @@ class Protein(TimeStampedModel):
     def get_absolute_url(self):
         return reverse("proteins:protein-detail", args=[self.slug])
 
-    # move these two methods to the state model
-    def within_ex_band(self, value, height=0.7):
-        if self.has_default():
-            if self.default_state.has_spectra():
-                minRange = self.default_state.ex_band(height)[0]
-                maxRange = self.default_state.ex_band(height)[1]
-                if minRange < value < maxRange:
-                    return True
-        return False
-
-    def within_em_band(self, value, height=0.7):
-        if self.has_default():
-            if self.default_state.has_spectra():
-                minRange = self.default_state.em_band(height)[0]
-                maxRange = self.default_state.em_band(height)[1]
-                if minRange < value < maxRange:
-                    return True
-        return False
-
     def has_default(self):
-        if self.states.filter(default=True).count() > 0:
-            return True
-        else:
-            return False
+        return bool(self.default_state)
 
     def has_spectra(self):
         for state in self.states.all():
             if state.has_spectra():
                 return True
         return False
-
-    def color(self):
-        try:
-            return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]
-        except Exception:
-            return ''
 
     def spectra(self):
         return json.dumps([self.default_state.nvd3ex, self.default_state.nvd3em])
@@ -509,8 +468,8 @@ class State(TimeStampedModel):
                     validators=[MinValueValidator(300), MaxValueValidator(900)], db_index=True)
     em_max      = models.PositiveSmallIntegerField(blank=True, null=True,
                     validators=[MinValueValidator(300), MaxValueValidator(1000)], db_index=True)
-    ex_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]')  # excitation spectra (list of x,y coordinate pairs)
-    em_spectra  = SpectrumField(blank=True, null=True, help_text='Spectrum information as a list of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]')  # emission spectra (list of x,y coordinate pairs)
+    ex_spectra  = SpectrumField(blank=True, null=True, help_text='List of [[wavelength, value],...] pairs')  # excitation spectra (list of x,y coordinate pairs)
+    em_spectra  = SpectrumField(blank=True, null=True, help_text='List of [[wavelength, value],...] pairs')  # emission spectra (list of x,y coordinate pairs)
     ext_coeff   = models.IntegerField(blank=True, null=True,
                     validators=[MinValueValidator(0), MaxValueValidator(300000)],
                     help_text="Extinction Coefficient")  # extinction coefficient
@@ -527,7 +486,7 @@ class State(TimeStampedModel):
     # Relations
     transitions = models.ManyToManyField('State', related_name='transition_state', verbose_name="State Transitions", blank=True, through='StateTransition')  # any additional papers that reference the protein
     protein     = models.ForeignKey(Protein, related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
-    created_by    = models.ForeignKey(User, related_name='state_author', blank=True, null=True)  # the user who added the state
+    created_by  = models.ForeignKey(User, related_name='state_author', blank=True, null=True)  # the user who added the state
     updated_by  = models.ForeignKey(User, related_name='state_modifier', blank=True, null=True)  # the user who last modified the state
 
     # Managers
@@ -559,14 +518,6 @@ class State(TimeStampedModel):
             return self.em_max - self.ex_max
         except TypeError:
             return None
-
-    # @property
-    # def bleach(self):
-    #     #TODO: this only gets the first bleaching measurement
-    #     try:
-    #         return self.bleach_measurement.first().rate
-    #     except AttributeError:
-    #         return None
 
     @property
     def nvd3ex(self):
@@ -610,16 +561,14 @@ class State(TimeStampedModel):
 
     def within_ex_band(self, value, height=0.7):
         if self.has_spectra():
-            minRange = self.ex_band(height)[0]
-            maxRange = self.ex_band(height)[1]
+            minRange, maxRange = self.ex_band(height)
             if minRange < value < maxRange:
                 return True
         return False
 
     def within_em_band(self, value, height=0.7):
         if self.has_spectra():
-            minRange = self.em_band(height)[0]
-            maxRange = self.em_band(height)[1]
+            minRange, maxRange = self.em_band(height)
             if minRange < value < maxRange:
                 return True
         return False
@@ -649,7 +598,7 @@ class State(TimeStampedModel):
         return d
 
     def __str__(self):
-        return self.slug
+        return "{} ({} state)".format(self.protein.name, self.name)
 
     def __repr__(self):
         return "<State: {}>".format(self.slug)
@@ -668,8 +617,14 @@ class BleachMeasurement(TimeStampedModel):
     rate      = models.FloatField(verbose_name='Bleach Rate', help_text="Photobleaching rate",)  # bleaching half-life
     power     = models.FloatField(null=True, blank=True, verbose_name='Illumination Power', help_text="Illumination power (W/cm2)",)
     modality  = models.CharField(max_length=100, blank=True, verbose_name='Illumination Modality', help_text="Type of microscopy/illumination used for measurement",)
-    reference = models.ForeignKey(Reference, related_name='bleach_measurement', verbose_name="Measurement Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Reference where the measurement was made",)  # usually, the original paper that published the protein
-    state     = models.ForeignKey(State, related_name='bleach_measurement', verbose_name="Protein (state)", help_text="The protein (state) for which this measurement was observed", on_delete=models.CASCADE)
+    reference = models.ForeignKey(Reference, related_name='bleach_measurements', verbose_name="Measurement Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Reference where the measurement was made",)  # usually, the original paper that published the protein
+    state     = models.ForeignKey(State, related_name='bleach_measurements', verbose_name="Protein (state)", help_text="The protein (state) for which this measurement was observed", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "{}: {}{}".format(
+            self.state,
+            '{} s'.format(self.rate) if self.rate else '',
+            'with'.format(self.modality) if self.modality else '')
 
 
 class StateTransition(TimeStampedModel):
@@ -697,8 +652,8 @@ class StateTransition(TimeStampedModel):
             on_delete=models.CASCADE)
 
     def __str__(self):
-        return "<StateTransition: {} {}->{}>".format(self.protein.name,
-            self.from_state, self.to_state)
+        return "Transition: {} {} -> {}".format(self.protein.name,
+            self.from_state.name, self.to_state.name)
 
 
 # relational class for FRET pairs to hold attributes about the pair
