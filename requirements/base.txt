@@ -64,3 +64,4 @@ markdown==2.6.9
 crossrefapi==1.2.0
 django-filter==1.1.0
 django-reversion==2.0.12
+django-reversion-compare==0.8.3
