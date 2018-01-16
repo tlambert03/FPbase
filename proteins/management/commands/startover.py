@@ -11,5 +11,5 @@ class Command(BaseCommand):
         call(['createdb', 'fpbase'])
         call(['python', 'manage.py', 'migrate'])
         call(['python', 'manage.py', 'loaddata', 'users'])
-        #call(['python', 'manage.py', 'loaddata', 'proteins', '-i'])
-        #call(['python', 'manage.py', 'createinitialrevisions'])
+        call(['python', 'manage.py', 'loaddata', 'proteins', '-i'])
+        call(['python', 'manage.py', 'createinitialrevisions'])
