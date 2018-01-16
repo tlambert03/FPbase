@@ -21,6 +21,7 @@ urlpatterns = [
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
+    url(r'^collections/(?P<owner>[-\w]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),
     url(r'^collection/(?P<pk>\d+)/$', views.CollectionDetail.as_view(), name='collection-detail'),
 
@@ -29,6 +30,7 @@ urlpatterns = [
     url(r'^ajax/admin_revert_version/(?P<ver>\d+)$', views.revert_version, name='admin_revert_version'),
     url(r'^ajax/update_transitions/(?P<slug>[-\w]+)/$', views.update_transitions, name='update_transitions'),
     url(r'^ajax/validate_proteinname/$', views.validate_proteinname, name='validate_proteinname'),
+    url(r'^ajax/remove_from_collection/$', views.collection_remove, name='collection-remove'),
 
     url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),

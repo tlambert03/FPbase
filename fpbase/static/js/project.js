@@ -305,7 +305,43 @@ $(window).resize(function() {
       e.preventDefault(); // avoid to execute the actual submit of the form.
   });
 
-  /////////////////// END PROTEIN DETAIL PAGE //////////////////////
+/////////////////// END PROTEIN DETAIL PAGE //////////////////////
+
+
+////////////////// AJAX REMOVE FROM COLLECTION ////////////////////
+
+$(document).ready(function() {
+
+  $('.btn.collection-remove').click(function(e) {
+    var button = $(this);
+    button.prop('disabled', true);
+    $.ajax({
+      url: button.attr('data-action-url'),
+      type: 'POST',
+      data: {
+        target_protein: button.data('object'),
+        target_collection: button.data('collection'),
+        csrfmiddlewaretoken:  window.CSRF_TOKEN,
+      },
+      success: function(response) {
+        if (response.status == 'deleted') {
+          button.closest('tr').remove()
+        }
+      },
+    });
+    e.preventDefault();
+
+  });
+});
+
+
+
+
+
+
+
+
+
 
 
 window.mobilecheck = function() {

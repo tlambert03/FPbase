@@ -1,8 +1,15 @@
 {% load humanize %}
+{% comment %}
+	variables:
+		showbleach [Bool]: whether to show the bleach column,
+		removebutton [Bool]: whether to include the remove button column
+		proteins [List, Queryset]: List or queryset of proteins to show in the table
+{% endcomment %}
 
 <table class="table" id="proteinTable">
 	<thead>
 		<tr class="table-header">
+			{% if removebutton %}<th class='remove-button'>Remove</th>{% endif %}
 			<th>Name</th>
 			<th>&lambda;<sub>ex</sub></th>
   			<th>&lambda;<sub>em</sub></th>
@@ -17,6 +24,7 @@
   			<th>Mat</th>
   			<th>Lifetime</th>
   			<th class='hidden switch_type'>type</th>
+
 		</tr>
 	</thead>
 	<tbody>
@@ -24,25 +32,30 @@
 			{% for state in protein.states.all %}
 				{% if not state.is_dark %}
 					<tr class="data">
-						<td class="col protein">
+						{% if removebutton %}
+						{% load protein_tags %}
+							<td class="remove-button">{% collection_remove_button protein %}</td>
+						{% endif %}
+						<td class="protein">
 							<a href="{{ protein.get_absolute_url }}">
 								{{ protein | safe }}
 								{% if not 'default' in state.name %} <small>({{ state.name }})</small>{% endif %}
 							</a>
 						</td>
-						<td class="col numeric exmax">{{ state.ex_max | default_if_none:"-" }}</td>
-						<td class="col numeric">{{ state.em_max | default_if_none:"-" }}</td>
-						<td class="col numeric">{{ state.stokes | default:"-" }}</td>
-						<td class="col numeric">{{ state.ext_coeff|intcomma | default_if_none:"-" }}</td>
-						<td class="col numeric">{{ state.qy | default_if_none:"-" }}</td>
-						<td class="col numeric">{{ state.brightness | default:"-" }}</td>
-						<!-- <td class="col numeric">{{ state.bright_rel_egfp | default:"-" }}</td> -->
-						{% if showbleach %}<td class="col numeric">{{ state.bleach_measurements.all.0.rate | default_if_none:"-" }}</td>{% endif %}
-						<td class="col numeric">{{ state.pka | default_if_none:"-" }}</td>
-						<td class="col numeric">{{ protein.agg | default_if_none:"-" }}</td>
-						<td class="col numeric">{{ state.maturation | default_if_none:"-" }}</td>
-						<td class="col numeric">{{ state.lifetime | default_if_none:"-" }}</td>
+						<td class="numeric exmax">{{ state.ex_max | default_if_none:"-" }}</td>
+						<td class="numeric">{{ state.em_max | default_if_none:"-" }}</td>
+						<td class="numeric">{{ state.stokes | default:"-" }}</td>
+						<td class="numeric">{{ state.ext_coeff|intcomma | default_if_none:"-" }}</td>
+						<td class="numeric">{{ state.qy | default_if_none:"-" }}</td>
+						<td class="numeric">{{ state.brightness | default:"-" }}</td>
+						<!-- <td class="numeric">{{ state.bright_rel_egfp | default:"-" }}</td> -->
+						{% if showbleach %}<td class="numeric">{{ state.bleach_measurements.all.0.rate | default_if_none:"-" }}</td>{% endif %}
+						<td class="numeric">{{ state.pka | default_if_none:"-" }}</td>
+						<td class="numeric">{{ protein.agg | default_if_none:"-" }}</td>
+						<td class="numeric">{{ state.maturation | default_if_none:"-" }}</td>
+						<td class="numeric">{{ state.lifetime | default_if_none:"-" }}</td>
 						<td class='hidden'>{{ state.protein.switch_type }}</td>
+
 					</tr>
 				{% endif %}
 			{% endfor %}

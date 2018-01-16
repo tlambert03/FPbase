@@ -518,6 +518,7 @@ class ProteinCollection(TimeStampedModel):
     description = models.CharField(max_length=512, blank=True)
     proteins = models.ManyToManyField(Protein, related_name='collection_memberships')
     owner = models.ForeignKey(User, blank=True, null=True, related_name='collections', verbose_name='Protein Collection', on_delete=models.SET_NULL,)
+    private = models.BooleanField(default=False, verbose_name="Make Private")
 
     def __str__(self):
         return self.name

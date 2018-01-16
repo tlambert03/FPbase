@@ -1,6 +1,6 @@
 from django.views.generic import DetailView, ListView, CreateView, UpdateView
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.contrib import messages
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
@@ -20,12 +20,30 @@ from reversion.models import Version
 
 
 class CollectionList(ListView):
-    model = ProteinCollection
+    def get_queryset(self):
+        # get all collections for current user and all other non-private collections
+        qs = ProteinCollection.objects.exclude(private=True)
+        if self.request.user.is_authenticated:
+            qs = qs | ProteinCollection.objects.filter(owner=self.request.user)
+        if 'owner' in self.kwargs:
+            qs = qs.filter(owner__username=self.kwargs['owner'])
+        return qs.order_by('modified')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'owner' in self.kwargs:
+            context['owner'] = self.kwargs['owner']
+        return context
 
 
 class CollectionDetail(DetailView):
-    model = ProteinCollection
     queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__default_state')
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        context['isowner'] = self.request.user == self.object.owner
+        return context
 
 
 class ProteinChartList(ListView):
@@ -354,3 +372,29 @@ def validate_proteinname(request):
             'is_taken': False,
         }
     return JsonResponse(data)
+
+
+@login_required
+def collection_remove(request):
+
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+
+    try:
+        protein = int(request.POST["target_protein"])
+        collection = int(request.POST["target_collection"])
+    except (KeyError, ValueError):
+        return HttpResponseBadRequest()
+
+    col = ProteinCollection.objects.get(id=collection)
+    if not col.owner == request.user:
+        return HttpResponseNotAllowed([])
+
+    col.proteins.remove(protein)
+
+    response = {
+        'status': 'deleted',
+    }
+
+    return JsonResponse(response)
+

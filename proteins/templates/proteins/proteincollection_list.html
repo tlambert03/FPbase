@@ -1,10 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>User Protein collections</h1>
-<ul>
-	{% for object in object_list %}
-		<li><a href="{{ object.get_absolute_url }}">{{object}}</a>, <em>{{ object.owner }} - {{ object.created|date:"M j, Y" }} </em></li>
-	{% endfor %}
-</ul>
+
+
+	<h1 class='mb-5'>{% if owner %}Protein collections for {{owner}}{% else %}All protein collections{% endif %}</h1>
+
+	<ul class='mb-5'>
+		{% for object in object_list %}
+			{% if request.user.id == object.owner.id %}
+			<li><strong><a href="{{ object.get_absolute_url }}">{{object}}</a>, Created by you - {{ object.created|date:"M j, Y" }} </em></strong></li>
+			{% else %}
+			<li><a href="{{ object.get_absolute_url }}">{{object}}</a>, <em>Created by {{ object.owner }} - {{ object.created|date:"M j, Y" }} </em></li>
+			{% endif %}
+		{% empty %}
+			{% if owner %}
+			    <p>User {{owner}} does not have any public collections.</p>
+			{% else%}
+				<p>There are currently no public protein collections to show.</p>
+			{% endif %}
+		{% endfor %}
+	</ul>
+
+	{% if request.user.is_authenticated  %}
+	<small style='color: gray'><em>Note: bolded collections are owned by you, and only visible to others if the collection is public.</em></small>
+	{% endif %}
 {% endblock content %}

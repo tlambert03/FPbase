@@ -25,7 +25,9 @@
                     #eee
                 {% endif %}
                 ;">
-                {{ protein.default_state.ex_max }} / {{ protein.default_state.em_max }}
+                {% if protein.default_state %}
+                    {{ protein.default_state.ex_max }} / {{ protein.default_state.em_max }}
+                {% endif %}
             </span>
 
     </div>

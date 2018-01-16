@@ -6,7 +6,8 @@
 
 <div class="container clearfix">
 <h1>{{ object.name }}</h1>
-<p><em>Created by: </em>{{ object.owner }}</p>
+
+<p><em>Created by: </em>{% if object.owner.id == request.user.id %}You{% else %}{{ object.owner }}{% endif %}</p>
 <p><em>Last Modified: </em>{{ object.modified|date:"M j, Y" }}</p>
 <div class="btn-group float-right displaybuttons" data-toggle="buttons" >
   <label class="btn btn-info btn-sm form-group">
@@ -18,7 +19,6 @@
 </div>
 </div>
 
-
     <div class="container protein_results pl-0 pr-0">
         {% if object.proteins.count %}
             <div id="ldisplay" class="{% if request.GET.display == 't' or not request.GET.display %}hidden{% endif %}">
@@ -27,7 +27,7 @@
             {% endwith %}
             </div>
             <div id="tdisplay" {% if request.GET.display == 'l' %}class="hidden"{% endif %}>
-            {% with proteins=object.proteins.all %}
+            {% with proteins=object.proteins.all removebutton=isowner %}
                 {% include '_proteintable.html' %}
             {% endwith %}
             </div>
@@ -43,6 +43,8 @@
 {% endblock content %}
 
 {% block javascript %}
+<script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+
 <script type="text/javascript">
     $(function(){
 

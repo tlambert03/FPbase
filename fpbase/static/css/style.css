@@ -6037,7 +6037,8 @@ html.fa-events-typefaces-orbitron-loading .brand {
     font-size: 16px;
     font-size: 1rem;
     color: black;
-    margin: 0; }
+    margin: 0;
+    word-wrap: break-word; }
 
 .aminosequence {
   box-shadow: inset 0 0 2rem #dee2e6;
@@ -6275,8 +6276,8 @@ svg.nvd3-svg {
 
 .loadinggif {
   display: block;
-  top: 5%;
-  left: 37%;
+  top: 30%;
+  left: 40%;
   position: absolute; }
 
 .d3-container {

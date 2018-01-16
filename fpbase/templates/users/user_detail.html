@@ -32,16 +32,15 @@
 {% include "_favorite_proteins.html" with user=object %}
 
 <h3 class='mt-3'>My Collections</h3>
-{% if object.collections.count %}
 <ul>
-{% for collection in object.collections.all %}
-      <li><a href="{{ collection.get_absolute_url }}">{{ collection }}</a></li>
-{% endfor %}
+  {% for collection in object.collections.all %}
+    <li><a href="{{ collection.get_absolute_url }}">{{ collection }}</a></li>
+  {% empty %}
+    <p>You have not created any collections.</p>
+  {% endfor %}
 </ul>
-{% else %}
-You have not created any collections.
-{% endif %}
 
+<p><em>Your public collections can be viewed and shared with others <a href="{% url 'proteins:collections' owner=object %}">here</a>.</p></em>
 
 <!-- End Action buttons -->
 {% endif %}
