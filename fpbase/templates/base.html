@@ -18,11 +18,11 @@
     <![endif]-->
 
     {% block css %}
-    <!-- Your stuff: Third-party CSS libraries go here -->
+
     {% block vendorcss %}{% endblock vendorcss %}
 
     {% compress css %}
-    <!-- This file stores project-specific CSS -->
+
     <link href="{% static 'css/style.min.css' %}" rel="stylesheet">
     {% endcompress %}
     {% endblock %}
@@ -58,19 +58,27 @@
 
     </div> <!-- /container -->
 
-<!--     <footer class="footer bg-dark container-fluid">
+<footer class="footer container-fluid">
       <div class="container">
-        <p>© Company 2017</p>{% block extrafooter %}{% endblock extrafooter %}
+        <div class="row">
+          <div class="col">
+            {% include '_twittershare.html' %}<br>
+            {% if request.user.is_staff %}
+              {% load admin_urls %}
+              <a href="{% url 'admin:index' %}">Admin Site</a><br>
+            {% endif %}
+            {% block extrafooter %}{% endblock extrafooter %}
+          </div>
+          <div class="col text-right">
+            <p>© FPbase <span id='curyear'>2018</span></p>
+          </div>
+        </div>
       </div>
-    </footer> -->
+    </footer>
 
     {% block modal %}{% endblock modal %}
 
     {% endblock body %}
-
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
 
       <!-- Required by Bootstrap v4 beta -->
       <script
@@ -80,24 +88,17 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
       <script defer src="https://use.fontawesome.com/releases/v5.0.1/js/all.js"></script>
-      <!-- Your stuff: Third-party javascript libraries go here -->
+
+      <!-- Third-party javascript libraries go here -->
       {% block vendorjs %}{% endblock vendorjs %}
 
-      <!-- place project specific Javascript in this file -->
+      <!-- place project specific Javascript -->
       {% compress js %}
       <script src="{% static 'js/project.js' %}"></script>
       {% endcompress %}
 
-      <script type="text/javascript">
-          $(document).ready(function() {
-              {% block jquery-docready %}{% endblock %}
-          });
-          $(window).on('load', function() {
-              {% block jquery-winload %}{% endblock %}
-          });
-      </script>
-
-      {% block js-onpage %}{% endblock %}
+      <script type="text/javascript">$("#curyear").html((new Date()).getFullYear())</script>
+      {% block javascript %}{% endblock %}
 
   </body>
 </html>

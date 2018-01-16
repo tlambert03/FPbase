@@ -71,6 +71,7 @@ LOCAL_APPS = [
     # Your stuff: custom apps go here
     'proteins.apps.ProteinsConfig',
     'references.apps.ReferencesConfig',
+    'favit',
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

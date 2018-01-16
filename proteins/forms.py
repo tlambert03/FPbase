@@ -1,24 +1,33 @@
 from django import forms
-from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
-from proteins.models import Protein, State
+from proteins.models import Protein, State, StateTransition, Organism
 from proteins.validators import validate_spectrum, validate_doi
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML
-
+from references.models import Reference
 
 def popover_html(label, content, side='right'):
     return '<label data-toggle="tooltip" style="padding-' + side + ': 1rem;" data-placement="' + side + '" title="' + content + '">' + label + '</label>'
 
 
+class DOIField(forms.CharField):
+    max_length = 100
+    label = 'Reference DOI'
+    required = True
+    default_validators = [validate_doi]
+
+    def to_python(self, value):
+        if value and isinstance(value, str):
+            value = value.lstrip('https://dx.doi.org/')
+        return super().to_python(value)
+
+
 class ProteinUpdateForm(forms.ModelForm):
     '''Form class for user-facing protein creation/submission form '''
-    reference_doi = forms.CharField(max_length=100, label='Reference DOI',
-        required=False, validators=[validate_doi],
-        help_text='e.g. 10.1038/nmeth.2413')
+    reference_doi = DOIField(required=False, help_text = 'e.g. 10.1038/nmeth.2413')
     # reference_pmid = forms.CharField(max_length=24, label='Reference Pubmed ID',
     #     required=False, help_text='e.g. 23524392 (must provide either DOI or PMID)')
 
@@ -47,7 +56,7 @@ class ProteinUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Protein
-        fields = ('name', 'ipg_id', 'seq', 'agg', 'parent_organism', 'reference_doi')
+        fields = ('name', 'ipg_id', 'seq', 'agg', 'parent_organism', 'reference_doi', 'aliases', 'chromophore', 'genbank', 'uniprot', 'blurb')
         widgets = {
             'seq': forms.Textarea(attrs={'rows': 3}),
         }
@@ -61,9 +70,7 @@ class ProteinUpdateForm(forms.ModelForm):
 
 
 class ProteinSubmitForm(ProteinUpdateForm):
-    reference_doi = forms.CharField(max_length=100, label='Reference DOI',
-        required=True, validators=[validate_doi],
-        help_text='e.g. 10.1038/nmeth.2413')
+    reference_doi = DOIField(required=True, help_text = 'e.g. 10.1038/nmeth.2413')
 
     def clean_name(self):
         name = self.cleaned_data['name']
@@ -166,7 +173,7 @@ class StateSubmitForm(forms.ModelForm):
 
     class Meta:
         model = State
-        fields = ('name', 'is_dark', 'ex_max', 'em_max', 'ext_coeff', 'qy',
+        fields = ('name', 'is_dark', 'ex_max', 'em_max', 'ext_coeff', 'qy', 'protein',
                   'pka', 'maturation', 'lifetime', 'ex_spectra', 'em_spectra')
         widgets = {
             'ex_spectra': forms.Textarea(attrs={'rows': 2}),
@@ -202,9 +209,33 @@ class BaseStateFormSet(forms.BaseInlineFormSet):
                 raise forms.ValidationError("A protein can only have a single dark state")
 
 
-StateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, formset=BaseStateFormSet, extra=1)
-StateUpdateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, formset=BaseStateFormSet, extra=1, can_delete=True)
+StateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, formset=BaseStateFormSet, extra=1, can_delete=True)
 
+
+class StateTransitionForm(forms.ModelForm):
+
+    class Meta:
+        model = StateTransition
+        fields = ('trans_wave', 'protein', 'from_state', 'to_state',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Div('from_state', css_class='col-md-4'),
+                    Div('to_state', css_class='col-md-4'),
+                    Div('trans_wave', css_class='col-md-4'),
+                    css_class='row',
+                ),
+            )
+        )
+
+
+StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=StateTransitionForm, extra=1)
 
 
 # class StateForm(forms.ModelForm):

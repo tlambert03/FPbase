@@ -1,0 +1,32 @@
+{% load i18n %}
+
+<div class="modal fade" id="transitionModal" tabindex="-1" role="dialog" aria-labelledby="transitionModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="transitionModalLongTitle"><strong>Edit {{ protein.name }} Transitions</strong></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% if user.is_authenticated %}
+      <div class="container">
+      	<p class='mt-2 small'><em>If you need to add states, please use the <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>protein update form</a> first, then return to this form.</em></p>
+      		<form id="transitionForm" class='mt-2' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
+            <input type="hidden" name="protein" value="{{ protein.slug }}">
+      		</form>
+          </div>
+	  {% else %}
+  	      <div class="modal-body">
+  	      	<div>
+  	      		<p>You must be logged in to make transition updates</p>
+  	      		<a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}"><button type="submit" class="btn btn-primary">{% trans "sign in" %}</button></a>
+  	      	</div>
+  	      </div>
+  	      <div class="modal-footer">
+  	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+  	      </div>
+	  {% endif %}
+    </div>
+  </div>
+</div>

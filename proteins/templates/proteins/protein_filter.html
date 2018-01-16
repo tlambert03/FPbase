@@ -74,7 +74,7 @@ If you find that you are not getting results, relax your query.</p>
 
 {% endblock %}
 
-{% block js-onpage %}
+{% block javascript %}
 
     <script>
 
@@ -375,9 +375,9 @@ If you find that you are not getting results, relax your query.</p>
             $("#" +  display_type + "display").show()
             $("#" +  display_type + "display").siblings('div').hide()
         })
-    })
+    });
 
 </script>
 
-{% endblock js-onpage %}
+{% endblock javascript %}
 

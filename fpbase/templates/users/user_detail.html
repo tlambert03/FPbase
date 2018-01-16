@@ -27,6 +27,22 @@
   </div>
 
 </div>
+
+<h3 class='mt-3'>My Favorite Proteins</h3>
+{% include "_favorite_proteins.html" with user=object %}
+
+<h3 class='mt-3'>My Collections</h3>
+{% if object.collections.count %}
+<ul>
+{% for collection in object.collections.all %}
+      <li><a href="{{ collection.get_absolute_url }}">{{ collection }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+You have not created any collections.
+{% endif %}
+
+
 <!-- End Action buttons -->
 {% endif %}
 
@@ -34,3 +50,10 @@
 </div>
 {% endblock content %}
 
+
+{% block javascript %}
+
+  <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+  <script src="{% static 'favit/js/favorite.js' %}"></script>
+
+{% endblock javascript%}

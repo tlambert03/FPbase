@@ -2,7 +2,7 @@
 {% load crispy_forms_tags compress static %}
 
 {% block content %}
-	{% if object %}
+	{% if object %} {% comment %} object means this is an update form {% endcomment %}
 	    <h1>Update {{ object.name }}</h1>
 	{% else %}
 	    <h1>Submit a new protein</h1>
@@ -16,7 +16,7 @@
 	{% endif %}
 
 	<div class="container">
-	    <form action="" method="post">
+	    <form action="" method="post" data-validate-proteinname-url="{% url 'proteins:validate_proteinname' %}">
 	    	{% csrf_token %}
 	        <div class='row'>
 	        	<div class='col'>
@@ -25,16 +25,20 @@
 			</div>
 
 			{% if not 'update' in request.get_full_path %}
-				<div class="alert alert-info alert-dismissible fade show" role="alert">
-				  <div class='h3 text-info'><i class="fas fa-info-circle mr-2 "></i> <strong>States</strong></div>
-				  FPbase uses <strong>states</strong> to define the various fluorescence characteristics that a protein can have.  Even a constitutively active "basic" protein is given a (single) state.  Rather than directly specifying the "type" of protein, FPbase uses the number of states and transitions between them to determine the type of fluorescent protein.
-				  <ul class='pt-3 pb-1'>
-				  	<li><strong>Basic</strong> <i class="fas fa-long-arrow-alt-right"></i> <em>Single state</em></li>
-				  	<li><strong>Photoactivatable</strong> <i class="fas fa-long-arrow-alt-right"></i><em> One transition betwen dark and fluorescent states</em></li>
-				  	<li><strong>Photoconvertible</strong> <i class="fas fa-long-arrow-alt-right"></i><em> One transition betwen two fluorescent states</em></li>
-				  	<li><strong>Photoswitchable</strong> <i class="fas fa-long-arrow-alt-right"></i> <em>Multiple transitions between multiple states</em></li>
-				  </ul>
-				  More info available on the <a href="#" class="alert-link">database model</a> info page.
+				<div class="small alert alert-info alert-dismissible fade show" role="alert">
+				  <div class='h5 text-info'><i class="fas fa-info-circle mr-2 "></i> <strong>States</strong></div>
+				  FPbase uses <strong>states</strong> to define the various fluorescence characteristics that a protein can have.  Even a constitutively active "basic" protein is given a (single) state.  Rather than directly specifying the "type" of protein, FPbase uses the number of states and transitions between them to determine the type of fluorescent protein:
+				  <dl class="row mt-4 mb-3">
+				    <dt class="col-sm-4 col-lg-3 text-sm-right">Basic</dt>
+				    <dd class="col-sm-8 col-lg-9"><em>Single constitutively fluorescent state.</em></dd>
+				    <dt class="col-sm-4 col-lg-3 text-sm-right">Photoactivatable</dt>
+				    <dd class="col-sm-8 col-lg-9"><em>One transition, from dark state to fluorescent state.</em></dd>
+				    <dt class="col-sm-4 col-lg-3 text-sm-right">Photoconvertible</dt>
+				    <dd class="col-sm-8 col-lg-9"><em>One transition, from one fluorescent state to another.</em></dd>
+				    <dt class="col-sm-4 col-lg-3 text-sm-right">Photoswitchable</dt>
+				    <dd class="col-sm-8 col-lg-9"><em>Multiple transition, between multiple fluorescent or dark states.</em></dd>
+				  </dl>
+				  For <span style='color: green'>photo</span><span style='color: red'>chromic</span> proteins, first declare all states on this form (including dark states), then add state transitions on the main protein page.<br>More info available on the <a href="{% url 'schema' %}" class="alert-link">database model</a> info page.
 				  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
 				      <span aria-hidden="true">&times;</span>
 				    </button>
@@ -55,56 +59,104 @@
 	        {% endfor %}  <!-- end formset loop  -->
 
 	        {% if object %}
-	            <input type="submit" class='btn btn-primary mb-4' value="Update {{ object.name }}" />
+	            <input type="submit" class='btn btn-primary mb-4' value="Submit" />
+	            <a href="{{ protein.get_absolute_url }}"><input type="button" class='btn btn-danger mb-4' value="Cancel" /></a>
 	        {% else %}
 	            <input type="submit" class='btn btn-primary mb-4' value="Save Protein"/>
 	        {% endif %}
+	        <p style='color: gray; font-size: 0.8rem;' class='hidden transition-note'><em><i class='fas fa-exchange-alt mr-2'></i>For <span style='color: green'>photo</span><span style='color: red'>chromic</span> proteins, first declare all states on this form (including dark states), then add state transitions on the main protein page.</em></p>
 	    </form>
 	</div>
 
 {% endblock %}
 
 
-{% block js-onpage %}
+{% block javascript %}
 
-{% compress js %}
-<script src="{% static 'js/jquery.formset.js' %}"></script>
-{% endcompress %}
+	{% compress js %}
+	<script src="{% static 'js/jquery.formset.js' %}"></script>
+	{% endcompress %}
 
-<script type="text/javascript">
+	<script type="text/javascript">
 
-	$(function () {
+		$(function () {
 
-		$('[data-toggle="tooltip"]').tooltip()
+			$('[data-toggle="tooltip"]').tooltip()
 
-		var deleteclass = 'state-delete-button'
+			var deleteclass = 'state-delete-button'
 
-		$('.formset_div').formset({
-			addText: 'Add State',
-			addCssClass: 'btn btn-info mb-4',
-			deleteCssClass: deleteclass + ' btn btn-danger align-middle',
-			deleteText: 'Remove',
-			prefix: 'states' 	 // it's important that this match the string used for the
-								 // related_name attribute in the "protein" foreign key field
-								 // in the State model
-		});
+			$('.formset_div').formset({
+				addText: 'Add State',
+				addCssClass: 'btn btn-info mb-4',
+				deleteCssClass: deleteclass + ' btn btn-danger align-middle',
+				deleteText: 'Remove',
+				processHidden: true,
+				prefix: 'states' 	 // it's important that this match the string used for the
+									 // related_name attribute in the "protein" foreign key field
+									 // in the State model
 
-		if ($("#id_ipg_id").val()){
-			$("#id_seq").prop('disabled', true);
-			$("#hint_id_seq").html('Sequence input disabled when IPG ID provided');
-		}
+			});
 
-		// if this is an update view without post data, remove the last (empty) state
-		{% if object %}
-			{% if not request.POST %}
-			$('.dynamic-form').last().find('.' + deleteclass).click()
-			{% endif %}
-		{% endif %}
+			if ($("#id_ipg_id").val()){
+				$("#id_seq").prop('disabled', true);
+				$("#hint_id_seq").html('Sequence input disabled when IPG ID provided');
+			}
 
 
-	})
+			$('#id_states-TOTAL_FORMS').change(function(){
+				if (this.value > 1){
+					$('.transition-note').show()
+				} else {
+					$('.transition-note').hide()
+				}
+			});
 
-</script>
+			$("#id_name").change(function () {
+		      var form = $(this).closest("form");
+		      $.ajax({
+		      	method: 'POST',
+		        url: form.attr("data-validate-proteinname-url"),
+		        data: form.serialize(),
+		        dataType: 'json',
+		        success: function (data) {
+		          if (data.is_taken) {
+		          	var namelink = '<a href="' + data.url + '" style="text-decoration: underline;">' + data.name + '</a>';
+		            var message = '<strong>' + namelink + ' already exists in the database.</strong>';
+		            console.log(message)
+		            $("#id_name").addClass('is-invalid');
+		            $("#div_id_name").addClass('has-danger');
 
-{% endblock %}
+		            if ($('#error_1_id_name').length) {
+		            	$("#error_1_id_name").html(message);
+		            } else{
+	    	            span = $('<span/>', {
+	    				    id: 'error_1_id_name',
+	    				    class: 'invalid-feedback',
+	    				}).append(message);
+	    	            $("#hint_id_name").before(span);
+		            }
+		          } else {
+		          	if ($('#error_1_id_name').length) {
+		          		$('#error_1_id_name').remove();
+		          		$("#id_name").removeClass('is-invalid');
+		          		$("#div_id_name").removeClass('has-danger');
+		          	}
+		          }
+		        }
+		      });
+		    });
+
+			$("form").submit(function (e) {
+			   if ($("#id_name").hasClass('is-invalid')) {
+			      e.preventDefault();
+			      $("html, body").animate({ scrollTop: 0 }, "slow");
+			      return false;
+			   }
+			});
+
+		})
+
+	</script>
+
+{% endblock javascript%}
 

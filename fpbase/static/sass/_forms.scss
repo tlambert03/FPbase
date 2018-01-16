@@ -35,3 +35,50 @@ span.invalid-feedback {
 textarea#id_seq, .spectrum-field textarea{
 	font-size:0.8rem;
 }
+
+i {
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+}
+
+// adds a little arrow to the right of something...
+// but not using because Bootstrap accordion gives same
+// id to multiple elements
+// $arrow-size: 5px;
+// .panel-title{
+// 	a{
+// 		font-size: 1rem;
+// 		font-weight: 500;
+// 		color: $gray-600;
+// 		&::after{
+// 			    content: '';
+// 			    position: relative;
+// 			    left: 0.6rem;
+// 			    top: -0.7rem;
+// 			    width: 0;
+// 			    height: 0;
+// 			    border-left: $arrow-size solid transparent;
+// 			    border-right: $arrow-size solid transparent;
+// 			    border-bottom: $arrow-size solid $gray-600;
+// 			    border-top: none;
+// 			    clear: both;
+// 		}
+// 		&:not([aria-expanded="true"]) {
+// 			&::after{
+// 				    content: '';
+// 				    position: relative;
+// 				    left: 0.6rem;
+// 				    top: 0.7rem;
+// 				    width: 0;
+// 				    height: 0;
+// 				    border-left: $arrow-size solid transparent;
+// 				    border-right: $arrow-size solid transparent;
+// 				    border-top: $arrow-size solid $gray-600;
+// 				    border-bottom: none;
+// 				    clear: both;
+// 			}
+// 		}
+// 	}
+// }

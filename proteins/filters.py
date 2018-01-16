@@ -8,8 +8,12 @@ from .validators import cdna_sequence_validator
 
 class ProteinFilterForm(forms.Form):
     def clean_seq__cdna_contains(self):
-        seq = self.cleaned_data['seq__cdna_contains'].replace(' ', '').upper()
+        seq = self.cleaned_data['seq__cdna_contains'].replace(' ', '').replace('\n', '').upper()
         cdna_sequence_validator(seq)
+        return seq
+
+    def clean_seq__icontains(self):
+        seq = self.cleaned_data['seq__icontains'].replace(' ', '').replace('\n', '').upper()
         return seq
 
 
@@ -50,6 +54,7 @@ class ProteinFilter(filters.FilterSet):
             'agg': ['exact'],
             #'status': ['exact'],
             'switch_type': ['exact'],
+            'parent_organism': ['exact'],
             'primary_reference__year': ['gte', 'gt', 'lt', 'lte', 'range', 'exact'],
             'spectral_brightness': ['gt', 'lt'],
         }

@@ -4,9 +4,10 @@ from django.core.validators import RegexValidator
 # from django.utils.translation import gettext as _
 import ast
 from Bio import Alphabet, Seq, Data
-
+from .fields import Spectrum
 
 validate_doi = RegexValidator(r"^10.\d{4,9}/[-._;()/:a-zA-Z0-9]+$", 'Not a valid DOI string')
+validate_mutation = RegexValidator(r"^[%(foo)s-][1-9][0-9]{0,2}[%(foo)s]$" % {'foo': Alphabet.IUPAC.protein.letters}, 'not a valid mutation code: eg S65T')
 
 
 def cdna_sequence_validator(seq):
@@ -34,7 +35,6 @@ def protein_sequence_validator(seq):
 
 
 def validate_spectrum(value):
-    from proteins.models import Spectrum
     if not value:
         return None
     if isinstance(value, Spectrum):

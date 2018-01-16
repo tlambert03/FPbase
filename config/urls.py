@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'^', include('proteins.urls')),  # NOTE: without $
     url(r'^reference/', include('references.urls')),  # NOTE: without $
 
+    url(r'^fav/', include('favit.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

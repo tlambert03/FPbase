@@ -1,0 +1,15 @@
+{% load crispy_forms_tags %}
+{% csrf_token %}
+{{ transition_form.management_form|crispy }}
+{% for transform in transition_form.forms %}
+    {% for hidden in transform.hidden_fields %}
+        {{ hidden }}
+    {% endfor %}
+	<div class="row trans_formset_div">
+		<div class='col transition-col'>
+			{% if transform.instance.pk %}{{ transform.DELETE }}{% endif %}
+			{% crispy transform transform.helper %}
+		</div>
+    </div>
+{% endfor %}  <!-- end formset loop  -->
+<input type="submit" class='btn btn-primary mb-4' value="Submit"/>

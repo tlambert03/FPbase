@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+
+<div class="container clearfix">
+<h1>{{ object.name }}</h1>
+<p><em>Created by: </em>{{ object.owner }}</p>
+<p><em>Last Modified: </em>{{ object.modified|date:"M j, Y" }}</p>
+<div class="btn-group float-right displaybuttons" data-toggle="buttons" >
+  <label class="btn btn-info btn-sm form-group">
+    <input type="radio" name="display" id="lbutton" autocomplete="off" checked value='l'><i class="fas fa-th"></i> display lozenges
+  </label>
+  <label class="btn btn-info btn-sm active form-group">
+    <input type="radio" name="display" id="tbutton" autocomplete="off" value='t'><i class="fas fa-table"></i> display table
+  </label>
+</div>
+</div>
+
+
+    <div class="container protein_results pl-0 pr-0">
+        {% if object.proteins.count %}
+            <div id="ldisplay" class="{% if request.GET.display == 't' or not request.GET.display %}hidden{% endif %}">
+            {% with proteins=object.proteins.all %}
+                {% include '_proteinlozenges.html' %}
+            {% endwith %}
+            </div>
+            <div id="tdisplay" {% if request.GET.display == 'l' %}class="hidden"{% endif %}>
+            {% with proteins=object.proteins.all %}
+                {% include '_proteintable.html' %}
+            {% endwith %}
+            </div>
+        {% else %}
+            <p>There are no proteins in this collection yet.  Go add some!</p>
+        {% endif %}
+    </div>
+    {{proteins}}
+
+
+
+
+{% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript">
+    $(function(){
+
+        $('.displaybuttons input').change(function(){
+            var display_type = $(this).val()
+            $("#" +  display_type + "display").show()
+            $("#" +  display_type + "display").siblings('div').hide()
+        })
+    });
+
+</script>
+
+{% endblock javascript %}
+

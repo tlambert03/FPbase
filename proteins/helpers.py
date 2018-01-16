@@ -1,11 +1,62 @@
 import xml.etree.ElementTree as ET
 from metapub import CrossRef, PubMedFetcher
 from Bio import Entrez
+import re
 CR = CrossRef()
 PMF = PubMedFetcher()
 # Entrez.parse doesn't seem to work with ipg results
 
 Entrez.email = "talley_lambert@hms.harvard.edu"
+
+
+def wave_to_hex(wavelength, gamma=1):
+    '''This converts a given wavelength into an approximate RGB value.
+    The given wavelength is in nanometers.
+    The range of wavelength is 380 nm through 750 nm.
+
+    Based on code by Dan Bruton
+    http://www.physics.sfasu.edu/astro/color/spectra.html
+    '''
+
+    wavelength = float(wavelength)
+    if 520 <= wavelength:
+        #pass
+        wavelength += 40
+
+    if wavelength >= 380 and wavelength <= 440:
+        attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380)
+        R = ((-(wavelength - 440) / (440 - 380)) * attenuation) ** gamma
+        G = 0.0
+        B = (1.0 * attenuation) ** gamma
+    elif wavelength >= 440 and wavelength <= 490:
+        R = 0.0
+        G = ((wavelength - 440) / (490 - 440)) ** gamma
+        B = 1.0
+    elif wavelength >= 490 and wavelength <= 510:
+        R = 0.0
+        G = 1.0
+        B = (-(wavelength - 510) / (510 - 490)) ** gamma
+    elif wavelength >= 510 and wavelength <= 580:
+        R = ((wavelength - 510) / (580 - 510)) ** gamma
+        G = 1.0
+        B = 0.0
+    elif wavelength >= 580 and wavelength <= 645:
+        R = 1.0
+        G = (-(wavelength - 645) / (645 - 580)) ** gamma
+        B = 0.0
+    elif wavelength >= 645 and wavelength <= 850:
+        attenuation = 0.3 + 0.7 * (770 - wavelength) / (770 - 645)
+        R = (1.0 * attenuation) ** gamma
+        G = 0.0
+        B = 0.0
+    else:
+        R = 0.0
+        G = 0.0
+        B = 0.0
+    R *= 255
+    G *= 255
+    B *= 255
+    return '#%02x%02x%02x' % (int(R), int(G), int(B))
 
 
 def get_color_group(ex_max, em_max):
@@ -41,7 +92,7 @@ def get_taxonomy_id(term, autochoose=False):
             if autochoose:
                 response = 'y'
             else:
-                response = input('By "{}", did you mean "{}"? (y/n): '.format(spell_cor))
+                response = input('By "{}", did you mean "{}"? (y/n): '.format(term, spell_cor))
             if response.lower() == 'y':
                 record = Entrez.read(Entrez.esearch(db='taxonomy', term=spell_cor))
     if record['Count'] == '1':
@@ -143,3 +194,50 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
     prot_seq = record['GBSeq_sequence'].upper()
     assert len(prot_seq) == int(seq_len), 'Protein database sequence different length {} than IPG database{}'.format(len(prot_seq), int(seq_len))
     return (ipg_uid, prot_seq)
+
+
+def mless(name):
+    if re.search('^m[A-Z]', name):
+        return name.lstrip('m')
+    if name.startswith('monomeric'):
+        name = name.lstrip('monomeric')
+    if name.startswith('Monomeric'):
+        name = name.lstrip('Monomeric')
+    return name.lstrip(' ')
+
+
+def get_base_name(name):
+    '''return core name of protein, stripping prefixes like "m" or "Tag"'''
+
+    # remove PA/(Pa), PS, PC, from beginning
+    if name.startswith(('PA', 'Pa', 'PS', 'Ps', 'PC', 'pc', 'rs')):
+        name = name[2:]
+
+    if re.match('LSS', name):
+        name = name[3:].lstrip('-')
+
+    # remove m (if next letter is caps) or monomeric
+    if re.match('m[A-Z]', name):
+        name = name[1:]
+
+    # get rid of Td or td
+    if re.match('[Tt][Dd][A-Z]', name):
+        name = name[2:]
+
+    name = name.lstrip('Monomeric')
+    name = name.lstrip('Tag')
+
+    # remove E at beginning (if second letter is caps)
+    if re.match('E[A-Z]', name):
+        name = name[1:]
+    # remove S at beginning (if second letter is caps)
+    if re.match('S[A-Z]', name):
+        name = name[1:]
+    # remove T- at beginning (if second letter is caps)
+    if re.match('T-', name):
+        name = name[2:]
+
+    name = name.lstrip('-').lstrip(' ')
+
+    return name
+

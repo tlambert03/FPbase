@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n humanize %}
+{% load static i18n compress favit_tags %}
 
 {% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
 
@@ -11,11 +11,34 @@
 {% block content %}
 
 		<div class="container">
-			<h1 class="name display-4">{{ protein.name }}</h1>
+			<h1 class="name display-4">{{ protein.name }}{% favorite_button protein %}</h1>
 
 			{% if version %}
-				<div class="alert alert-warning" role="alert">
-				<strong>NOTICE: </strong>You are viewing an older revision of this protein, from {{version.revision.date_created|date:"M j, Y H:i:s"}}.  <a href="{{ protein.get_absolute_url }}" class="alert-link">Click here</a> to view the current version.
+				<div class="alert alert-warning clearfix" role="alert">
+					<strong><i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i></strong>You are viewing an older revision of this protein, from {{ version.revision.date_created|date:"M j, Y H:i:s"}}.  <a href="{{ protein.get_absolute_url }}" class="alert-link">Click here</a> to view the current version.
+
+				    {% if request.user.is_staff %}
+					<form id="adminRevert" class='float-sm-right' data-action-url="{% url 'proteins:admin_revert_version' ver=version.id %}">
+					{% csrf_token %}
+				    <button type="submit" class="btn btn-danger btn-sm btn-block-xs">Revert</button>
+					</form>
+				    {% endif %}
+				</div>
+			{% endif %}
+
+			{% if not protein.status == 'approved' %}
+				<div class="alert alert-info clearfix" role="alert">
+				    <div class="d-inline-block align-middle">
+				    	<strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>This protein has unmoderated changes.
+					    {% if last_approved %}
+					       <a href="{% url 'proteins:protein-detail' slug=protein.slug ver=last_approved.id %}" class="alert-link">Click here</a> to view the last moderated version of this protein from {{ last_approved.revision.date_created|date:"M j, Y H:i:s" }}.
+					    {% endif %}
+				    </div>
+				    {% if request.user.is_staff %}
+					 	<form id="adminApprove" class='float-sm-right' data-action-url="{% url 'proteins:admin_approve_protein' slug=protein.slug %}">{% csrf_token %}
+						    <button type="submit" class="btn btn-info btn-sm btn-block-xs">Approve</button>
+					 	</form>
+				    {% endif %}
 				</div>
 			{% endif %}
 
@@ -29,50 +52,13 @@
 
 		<div class="attributes">
 			<h3>Attributes</h3>
-			{% if protein.states.count %}
-				<table class="table table-striped" id='flip-scroll'>
-					<thead>
-						<tr class="table-header">
-							{% if protein.states.count > 1 %}<th>State</th>{% endif %}
-							<th>Ex &lambda;</th>
-				  			<th>Em &lambda;</th>
-				  			<th>EC</th>
-				  			<th>QY</th>
-				  			<th>Brightness</th>
-				  			<th>Stability</th>
-				  			<th>pKa</th>
-				  			<th>Maturation</th>
-				  			<th>Lifetime</th>
-						</tr>
-					</thead>
-					<tbody>
-					{% for state in protein.states.all %}
-						<tr >
-							{% if protein.states.count > 1 %}
-							<td>{{ state.name }}</td>
-							{% endif %}
-							<td>{{ state.ex_max | default:"&nbsp;" }}</td>
-				  			<td>{{ state.em_max | default:"&nbsp;"}}</td>
-				  			<td>{{ state.ext_coeff|intcomma | default:"&nbsp;"}}</td>
-				  			<td>{{ state.qy | default:"&nbsp;"}}</td>
-				  			<td>{{ state.brightness | default:"&nbsp;"}}</td>
-				  			<td>{{ state.bleach_measurements.all.0.rate | default:"&nbsp;"}}</td>
-				  			<td>{{ state.pka | default:"&nbsp;"}}</td>
-				  			<td>{{ state.maturation | default:"&nbsp;"}}</td>
-				  			<td>{{ state.lifetime | default:"&nbsp;"}}</td>
-						</tr>
-					{% endfor %}
-					</tbody>
-				</table>
-			{% else %}
-				<p>This protein does not yet have any states assigned. <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>Submit a change.</a></p>
-			{% endif %}
+			{% include '_states_table.html' with protein=protein %}
 		</div>
 
 		{% if protein.transitions.count > 0 %}
 		<div class="attributes">
 			<h3>Transitions</h3>
-			<div class="table-bordered">
+			<div class="table">
 				<table class="table table-striped mobile">
 					<thead>
 						<tr class="table-header">
@@ -92,6 +78,9 @@
 					</tbody>
 				</table>
 			</div>
+			<div class="align-self-end text-sm-right mt-1">
+				<small><a href="#" class='text-info' data-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">Edit transitions</a></small>
+			</div>
 		</div>
 		{% endif %}
 
@@ -110,7 +99,7 @@
 			{% if protein.seq %}
 				<div class='aminosequence container'>{{ protein.seq }}</div>
 			{% else %}
-			    <p>no sequence available ... <a href='#'>add one!</a></p>
+			    <p>no sequence available ... <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
 			{% endif %}
 		</div>
 
@@ -131,8 +120,8 @@
 				{% else %}
 				    <p style='color: #888;'>No additional references yet...<p>
 				{% endif %}
+				<a href="#" class='text-info' data-toggle="modal" data-target="#referenceModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-book mr-2"></i>Add a reference</button></a>
 			</ol>
-			<a href="#" class='text-info' data-toggle="modal" data-target="#referenceModal">Add a reference</a>
 		</div>
 
 		<div class="external-resources">
@@ -140,137 +129,91 @@
 			<ul>
 				<li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}">BioNumbers</a> for {{ protein.name }}</li>
 				<li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}">Addgene</a> for {{ protein.name }}</li>
-
 			</ul>
-
-
 		</div>
 
-
 		<div class="container" style='text-align:right; margin-top: 2rem;'>
-			<p>Something missing or incorrect? <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>Suggest a change</a></p>
+			<p>Something missing or incorrect? <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>Submit a change</a></p>
 		</div>
 
 
 	</div>
 
 
+<!-- Modals -->
+{% include 'proteins/modals/_reference_modal.html' with user=user protein=protein %}
 
-<!-- Modal -->
-<div class="modal modal-center fade" id="referenceModal" tabindex="-1" role="dialog" aria-labelledby="referenceModalTitle" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title" id="referenceModalLongTitle"><strong>Add a reference</strong></h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      {% if user.is_authenticated %}
-	      <form id="refModalForm">
-	      {% csrf_token %}
-	      <div class="modal-body">
-	      	<p>Add a publication that references {{ protein.name }}.  It does not need to be the paper that introduced the protein.</p>
-		        <div id="div_id_reference_doi" class="form-group">
-		        	<label for="id_reference_doi" class="form-control-label">Reference DOI</label>
-		        	<div class="">
-		        		<input type="text" name="reference_doi" maxlength="100" class="textinput textInput form-control" required="" id="id_reference_doi" pattern="10.\d{4,9}/[-._;()/:a-zA-Z0-9]+" oninvalid="setCustomValidity('Not a valid DOI string')" oninput="setCustomValidity('')" >
-		        	</div>
-		        	<small id="hint_id_reference_doi" class="text-muted">e.g. 10.1038/nmeth.2413</small>
-		        </div>
-
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-	        <button type="submit" class="btn btn-primary">Add reference</button>
-	      </div>
-	      </form>
-	  {% else %}
-  	      <div class="modal-body">
-  	      	<div>
-  	      		<p>You must be logged in to add references to FPbase</p>
-  	      		<a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}"><button type="submit" class="btn btn-primary">{% trans "sign in" %}</button></a>
-  	      	</div>
-  	      </div>
-  	      <div class="modal-footer">
-  	        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-  	      </div>
-
-	  {% endif %}
-    </div>
-  </div>
-</div>
-
+{% if protein.states.count > 1 %}
+	{% include 'proteins/modals/_state_transition_modal.html' with transition_form=transition_form %}
+{% endif %}
 
 {% endblock content %}
 
 
+{% block extrafooter %}
+    {% if request.user.is_staff %}
+      {% load admin_urls %}
+      <a href="{% url 'admin:proteins_protein_change' protein.id %}">{{ protein.name}} on admin</a><br>
+    {% endif %}
+{% endblock extrafooter %}
 
-{% block js-onpage %}
+{% block javascript %}
+
+<script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+  {% compress js %}
+  <script src="{% static 'favit/js/favorite.js' %}"></script>
+	<script src="{% static 'js/jquery.formset.js' %}"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
-    <script src="{% static "js/nvd3spectra.js" %}"> </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+  <script src="{% static "js/nvd3spectra.js" %}"> </script>
+  {% endcompress %}
+
 
     <script type="text/javascript">
-    $("#refModalForm").submit(function(e) {
 
-        var url = "{% url 'proteins:add_protein_reference' %}"; // the script where you handle the form input.
+      $(function () {
+        $('[data-toggle="tooltip"]').tooltip({
+        	trigger : 'hover',
+        	delay: { "show": 400 },
+        });
+      });
 
-        var data = $('#refModalForm').serializeArray();
-        data.push({name: 'protein', value: '{{ protein.slug }}'});
+      {% if protein.has_spectra %}
+      var myData = {{ protein.spectra|safe }};
+      var chart = nv.models.lineChart();
+      svg = d3.select('#spectra').append('svg');
+      chart.options({
+          margin: {left:20},
+          noData: "Unable to load data...",
+          transitionDuration: 200,
+          showLegend: myData.length > 2,
+          showXAxis: true,
+          showYAxis: false,
+          useInteractiveGuideline: !window.mobilecheck(),
+          forceY: [0,1.04],
+          forceX: [350, 750],
+      });
 
-        $.ajax({
-               type: "POST",
-               url: url,
-               data: data,
-               dataType: 'json',
-               success: function(data)
-               {
-                   window.location=data.url
-               }
-             });
+      /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
+      nv.addGraph(function() {
+          chart.xAxis     //Chart x-axis settings
+          //.axisLabel('Wavelength (nm)')
+          .tickFormat(d3.format(',r'));
 
-        e.preventDefault(); // avoid to execute the actual submit of the form.
-    });
+          // chart.yAxis     //Chart y-axis settings
+          //   .axisLabel('Normalized Ex/Em')
+          //   .tickFormat(d3.format('1%'));
+
+          svg.datum(myData)         //Populate the <svg> element with chart data...
+          .call(chart);	       //Finally, render the chart!
+
+          //Update the chart when window resizes.
+          nv.utils.windowResize(function() { chart.update() });
+          return chart;
+      });
+      {% endif %}
     </script>
 
-
-    {% if protein.has_spectra %}
-        <script type="text/javascript">
-            var myData = {{ protein.spectra|safe }};
-            var chart = nv.models.lineChart();
-            svg = d3.select('#spectra').append('svg');
-            chart.options({
-                margin: {left:20},
-                noData: "Unable to load data...",
-                transitionDuration: 200,
-                showLegend: false,
-                showXAxis: true,
-                showYAxis: false,
-                useInteractiveGuideline: true,
-                forceY: [0,1.04],
-                forceX: [350, 750],
-            });
-
-            /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
-            nv.addGraph(function() {
-                chart.xAxis     //Chart x-axis settings
-                //.axisLabel('Wavelength (nm)')
-                .tickFormat(d3.format(',r'));
-
-                // chart.yAxis     //Chart y-axis settings
-                //   .axisLabel('Normalized Ex/Em')
-                //   .tickFormat(d3.format('1%'));
-
-                svg.datum(myData)         //Populate the <svg> element with chart data...
-                .call(chart);	       //Finally, render the chart!
-
-                //Update the chart when window resizes.
-                nv.utils.windowResize(function() { chart.update() });
-                return chart;
-            });
-        </script>
-    {% endif %}
 {% endblock %}
 
 

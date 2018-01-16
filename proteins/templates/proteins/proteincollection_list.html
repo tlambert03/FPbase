@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>User Protein collections</h1>
+<ul>
+	{% for object in object_list %}
+		<li><a href="{{ object.get_absolute_url }}">{{object}}</a>, <em>{{ object.owner }} - {{ object.created|date:"M j, Y" }} </em></li>
+	{% endfor %}
+</ul>
+{% endblock content %}

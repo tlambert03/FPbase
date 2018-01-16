@@ -6,6 +6,7 @@ from references.models import Reference, Author
 from references.forms import ReferenceForm, AuthorForm
 from reversion_compare.admin import CompareVersionAdmin
 
+from proteins.models import Protein
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
@@ -53,6 +54,12 @@ class ReferenceInline(admin.StackedInline):
     show_change_link = True
 
 
+class PrimaryProteinInline(admin.TabularInline):
+    model = Protein.references.through
+    extra = 0
+    can_delete = True
+    show_change_link = True
+
 @admin.register(Reference)
 class ReferenceAdmin(CompareVersionAdmin):
     form = ReferenceForm
@@ -61,7 +68,7 @@ class ReferenceAdmin(CompareVersionAdmin):
     list_display = ('id', 'citation',  'protein_links', 'title', 'year', 'doi', 'created')
     list_filter = ('created', 'modified')
     search_fields = ('id', 'pmid', 'doi', 'created_by__username', 'created_by__first_name', 'created_by__last_name', 'title')
-
+    inlines = (PrimaryProteinInline,)
     fieldsets = [
         ('Reference', {
             'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'journal', 'volume', 'pages', 'issue', 'year')
@@ -92,7 +99,7 @@ class ReferenceAdmin(CompareVersionAdmin):
         return mark_safe(", ".join(links))
 
     author_links.short_description = 'Authors'
-    protein_links.short_description = 'Proteins'
+    protein_links.short_description = 'Primary Proteins'
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:

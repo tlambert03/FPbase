@@ -29,3 +29,11 @@
 	</div>
 
 {% endblock content %}
+
+
+{% block extrafooter %}
+    {% if request.user.is_staff %}
+      {% load admin_urls %}
+      <a href="{% url 'admin:references_author_change' author.id %}">{{ author}} on admin</a><br>
+    {% endif %}
+{% endblock extrafooter %}

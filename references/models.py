@@ -3,9 +3,10 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, MinLengthValidator, MaxLengthValidator
 from model_utils.models import TimeStampedModel
 from .helpers import doi_lookup, name_to_initials
+from proteins.validators import validate_doi
 from django.urls import reverse
 
 User = get_user_model()
@@ -53,7 +54,7 @@ class Author(models.Model):
 
 
 class Reference(TimeStampedModel):
-    doi = models.CharField(max_length=50, unique=True, blank=False, verbose_name="DOI")
+    doi = models.CharField(max_length=50, unique=True, blank=False, verbose_name="DOI", validators=[validate_doi])
     pmid = models.CharField(max_length=15, unique=True, null=True, blank=True, verbose_name="Pubmed ID")
     title = models.CharField(max_length=512, blank=True)
     journal = models.CharField(max_length=512, blank=True)
@@ -62,10 +63,9 @@ class Reference(TimeStampedModel):
     issue = models.CharField(max_length=10, blank=True, default='')
     citation = models.CharField(max_length=256, blank=True, default='')
     year = models.PositiveIntegerField(
-            validators=[
-                MinValueValidator(1960),
-                MaxValueValidator(datetime.now().year)],
-            help_text="Use the following format: <YYYY>")
+            validators=[MinLengthValidator(4), MaxLengthValidator(4),
+                MinValueValidator(1960), MaxValueValidator(datetime.now().year)],
+            help_text="YYYY")
     authors = models.ManyToManyField("Author", through='ReferenceAuthor')
 
     created_by = models.ForeignKey(User, related_name='reference_author', blank=True, null=True)

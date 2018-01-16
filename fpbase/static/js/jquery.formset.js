@@ -89,7 +89,7 @@
                         row.remove();
                         // Update the TOTAL_FORMS count:
                         forms = $('.' + options.formCssClass).not('.formset-custom-template');
-                        totalForms.val(forms.length);
+                        totalForms.val(forms.length).trigger('change');
                     }
                     for (var i=0, formCount=forms.length; i<formCount; i++) {
                         // Apply `extraClasses` to form rows so they're nicely alternating:
@@ -135,7 +135,8 @@
             }
             if (hasChildElements(row)) {
                 row.addClass(options.formCssClass);
-                if (row.is(':visible')) {
+                console.log(row.is(':visible'))
+                if (row.is(':visible') || options.processHidden) {
                     insertDeleteLink(row);
                     applyExtraClasses(row, i);
                 }
@@ -198,7 +199,7 @@
                 row.find(childElementSelector).each(function() {
                     updateElementIndex($(this), options.prefix, formCount);
                 });
-                totalForms.val(formCount + 1);
+                totalForms.val(formCount + 1).trigger('change');;
                 // Check if we're above the minimum allowed number of forms -> show all delete link(s)
                 if (showDeleteLinks()){
                     $('a.' + delCssSelector).each(function(){$(this).show();});

@@ -1,0 +1,14 @@
+<div class="favit" data-toggle="tooltip" data-placement="left" title="Add to favorites" >
+  <a class="btn favorite" href="" data-action-url="{% url 'favit:add_or_remove' %}" model="{{ target_model }}" id="target_{{ target_object_id }}">
+    <i class="fa{% if not undo %}r{% else %}s{% endif %} fa-heart"></i>
+  </a>
+  <span class="fav-count badge badge-warning" >{{ fav_count }}</span>
+</div>
+
+{% comment %}
+    <div class="favit" data-toggle="tooltip" data-placement="top" title="Add to Collection" >
+  <a class="btn favorite" href="" data-action-url="{% url 'favit:add_or_remove' %}" model="{{ target_model }}" id="target_{{ target_object_id }}">
+    <i class="fas fa-book"></i>
+  </a>
+</div>
+{% endcomment %}

@@ -2955,6 +2955,92 @@ tbody.collapse.show {
     .navbar-dark .navbar-text a:focus, .navbar-dark .navbar-text a:hover {
       color: #fff; }
 
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.4em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem; }
+  .badge:empty {
+    display: none; }
+
+.btn .badge {
+  position: relative;
+  top: -1px; }
+
+.badge-pill {
+  padding-right: 0.6em;
+  padding-left: 0.6em;
+  border-radius: 10rem; }
+
+.badge-primary {
+  color: #fff;
+  background-color: #36a83b; }
+  .badge-primary[href]:focus, .badge-primary[href]:hover {
+    color: #fff;
+    text-decoration: none;
+    background-color: #2a812d; }
+
+.badge-secondary {
+  color: #fff;
+  background-color: #3085d6; }
+  .badge-secondary[href]:focus, .badge-secondary[href]:hover {
+    color: #fff;
+    text-decoration: none;
+    background-color: #236bb0; }
+
+.badge-success {
+  color: #fff;
+  background-color: #419d45; }
+  .badge-success[href]:focus, .badge-success[href]:hover {
+    color: #fff;
+    text-decoration: none;
+    background-color: #327935; }
+
+.badge-info {
+  color: #fff;
+  background-color: #17a2b8; }
+  .badge-info[href]:focus, .badge-info[href]:hover {
+    color: #fff;
+    text-decoration: none;
+    background-color: #117a8b; }
+
+.badge-warning {
+  color: #111;
+  background-color: #ffc107; }
+  .badge-warning[href]:focus, .badge-warning[href]:hover {
+    color: #111;
+    text-decoration: none;
+    background-color: #d39e00; }
+
+.badge-danger {
+  color: #fff;
+  background-color: #dc3545; }
+  .badge-danger[href]:focus, .badge-danger[href]:hover {
+    color: #fff;
+    text-decoration: none;
+    background-color: #bd2130; }
+
+.badge-light {
+  color: #111;
+  background-color: #f8f9fa; }
+  .badge-light[href]:focus, .badge-light[href]:hover {
+    color: #111;
+    text-decoration: none;
+    background-color: #dae0e5; }
+
+.badge-dark {
+  color: #fff;
+  background-color: #343a40; }
+  .badge-dark[href]:focus, .badge-dark[href]:hover {
+    color: #fff;
+    text-decoration: none;
+    background-color: #1d2124; }
+
 .alert {
   position: relative;
   padding: 12px 20px;
@@ -5565,12 +5651,36 @@ body {
   -moz-osx-font-smoothing: grayscale !important;
   padding-bottom: 32px;
   padding-bottom: 2rem; }
+  body.home-body {
+    padding-bottom: 0; }
 
-.favorite {
-  color: #ffc107;
-  border: 1px black;
-  font-size: 32px;
-  font-size: 2rem; }
+footer {
+  font-size: 12.8px;
+  font-size: 0.8rem;
+  margin-top: 51.2px;
+  margin-top: 3.2rem;
+  padding-top: 28.8px;
+  padding-top: 1.8rem;
+  padding-bottom: 0px;
+  padding-bottom: 0rem;
+  background: #0C4B33;
+  color: #2B8C67;
+  box-shadow: 0px 700px 0px 700px #0C4B33; }
+  footer a {
+    color: #2B8C67; }
+    footer a:hover {
+      color: #31a075; }
+
+.home-body .twitter-share-button {
+  position: absolute;
+  bottom: 0;
+  right: 16px;
+  right: 1rem; }
+
+.twitter-share-button .fa-twitter {
+  color: rgba(255, 255, 255, 0.7); }
+  .twitter-share-button .fa-twitter:hover {
+    color: rgba(255, 255, 255, 0.9); }
 
 .description-list h1.strong, .description-list h2.strong, .description-list h3.strong, .description-list h4.strong, .description-list h5.strong {
   font-weight: 600;
@@ -5588,6 +5698,66 @@ body {
 
 .btn.active, .btn:active {
   box-shadow: 0px 1px 5px rgba(23, 162, 184, 0.8) !important; }
+
+@media (max-width: 575px) {
+  .btn-block-xs {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem; } }
+
+@media (max-width: 767px) {
+  .btn-block-sm {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem; } }
+
+.modal-lg {
+  max-width: 85%; }
+  .modal-lg .container {
+    padding: 0 40px 0 32px;
+    padding: 0 2.5rem 0 2rem; }
+  @media (max-width: 575px) {
+    .modal-lg {
+      max-width: 100%; } }
+
+.favit {
+  position: relative;
+  float: right;
+  margin-left: 0px;
+  margin-left: 0rem;
+  margin-top: 16px;
+  margin-top: 1rem; }
+  .favit .favorite, .favit .favorite:active {
+    color: #ffc107;
+    font-size: 25.6px;
+    font-size: 1.6rem;
+    box-shadow: none !important;
+    padding: 0; }
+    .favit .favorite:hover, .favit .favorite:active:hover {
+      color: orange; }
+  .favit .badge {
+    position: absolute;
+    bottom: 9.6px;
+    bottom: 0.6rem;
+    right: -6.4px;
+    right: -0.4rem;
+    font-size: 8px;
+    font-size: 0.5rem;
+    background: rgba(255, 193, 7, 0.6);
+    color: #495057; }
+
+html.fa-events-icons-loading .brand,
+html.fa-events-typefaces-orbitron-loading .brand {
+  visibility: hidden; }
+
+.fontawesome-i2svg-pending body {
+  display: none; }
+
+.tooltip .tooltip-inner {
+  background-color: #adb5bd; }
+
+.tooltip .arrow:before {
+  border-color: #adb5bd !important; }
 
 /* Extra markup and styles for table-esque vertical and horizontal centering */
 .cover-wrapper {
@@ -5780,6 +5950,9 @@ body {
           color: rgba(255, 255, 255, 0.8); }
         .navbar .nav-search input::placeholder {
           color: rgba(255, 255, 255, 0.8); } }
+    .navbar .nav-search input:focus {
+      background: white;
+      color: #343a40; }
     @media (min-width: 992px) {
       .navbar .nav-search input {
         margin-left: 1rem; } }
@@ -5787,14 +5960,27 @@ body {
       .navbar .nav-search input {
         width: 170px; } }
   .navbar .nav-search button {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.15);
     color: #fff;
     border: none; }
     .navbar .nav-search button:hover {
-      background: rgba(0, 0, 0, 0.25); }
+      background: rgba(0, 0, 0, 0.15); }
+
+.input-group-btn:not(:first-child) > .btn-group:first-child, .input-group-btn:not(:first-child) > .btn:first-child {
+  margin-left: 0; }
 
 .home-body .navbar {
   box-shadow: 0 0 0 transparent; }
+
+.protein-blurb {
+  font-style: italic;
+  color: #999;
+  font-weight: 400;
+  margin-top: 32px;
+  margin-top: 2rem;
+  margin-bottom: 16px;
+  margin-bottom: 1rem;
+  padding-bottom: 0; }
 
 .protein {
   font-size: 14.4px;
@@ -5802,6 +5988,8 @@ body {
   .protein .name {
     padding-top: 24px;
     padding-top: 1.5rem;
+    padding-bottom: 24px;
+    padding-bottom: 1.5rem;
     color: #4cc551;
     text-align: center; }
   .protein h3 {
@@ -5943,10 +6131,10 @@ body {
     border-bottom: 0px solid #babcbf; } }
 
 .reference {
-  margin-top: 22.4px;
-  margin-top: 1.4rem;
-  margin-bottom: 8px;
-  margin-bottom: 0.5rem; }
+  margin-top: 11.2px;
+  margin-top: 0.7rem;
+  margin-bottom: 9.6px;
+  margin-bottom: 0.6rem; }
   .reference h4 {
     margin: 4px 0; }
     .reference h4 a {
@@ -6329,6 +6517,12 @@ span.invalid-feedback {
 textarea#id_seq, .spectrum-field textarea {
   font-size: 12.8px;
   font-size: 0.8rem; }
+
+i {
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px; }
 
 /*
  * Social Buttons for Bootstrap

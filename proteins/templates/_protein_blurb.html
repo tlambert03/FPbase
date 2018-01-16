@@ -1,6 +1,6 @@
 {% if protein.default_state or protein.primary_reference %}
 
-	<p style="font-style:italic; color: #999; font-weight: 400; margin-top:2rem;" class='protein-description'>{{ protein.name }} is a {{ protein.get_switch_type_display | lower }} {{ protein.color | lower }} fluorescent protein{% if protein.primary_reference %} published in {{ protein.primary_reference.year }}{% endif %}.
+	<div class='protein-blurb'>{{ protein.name }} is a {{ protein.get_switch_type_display | lower }} {{ protein.color | lower }} fluorescent protein{% if protein.primary_reference %} published in {{ protein.primary_reference.year }}{% endif %}.
 
 	{% if protein.default_state.brightness %}
 		It is
@@ -60,6 +60,6 @@
 		{% endif %}
 	{% endif %}
 
-	</p>
+	</div>
 
 {% endif %}

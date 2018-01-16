@@ -33,7 +33,6 @@ class ProteinSerializer(serializers.HyperlinkedModelSerializer):
             'name',
             'slug',
             'seq',
-            'gb_prot',
             'ipg_id',
             'agg',
             'switch_type',
