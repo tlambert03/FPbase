@@ -16,11 +16,15 @@ $logo-color: #efe;
   .navbar-brand{
     padding:0;
     span{
-      font-size: 2.5rem;
+      font-size: 2.2rem;
+      line-height: 2.6rem;
       font-weight: 100;
       font-family: Raleway, sans-serif !important;
       color: $logo-color;
-      @include media-breakpoint-down(sm) { font-size: 2rem }
+      @include media-breakpoint-down(sm) {
+        //font-size: 2.3rem;
+        line-height: 1.6rem;
+      }
       &.brand-FP{
         font-weight: 600;
         margin-left: -0.8rem;
@@ -42,7 +46,7 @@ $logo-color: #efe;
     .logo-svg{
       fill: $logo-color;
       fill-rule: evenodd;
-      height: 2.7rem;
+      height: 2.5rem;
       padding-top: .9rem;
       @include media-breakpoint-down(sm) { height: 2.2rem; }
     }

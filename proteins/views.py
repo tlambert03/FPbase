@@ -9,9 +9,10 @@ from django.core import serializers
 from django.db import transaction
 from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
-
+from django import forms
+import json
 from .models import Protein, State, ProteinCollection
-from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateTransitionFormSet
+from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateTransitionFormSet, CollectionForm
 
 from references.models import Reference  # breaks application modularity # FIXME
 import reversion
@@ -376,25 +377,82 @@ def validate_proteinname(request):
 
 @login_required
 def collection_remove(request):
-
     if not request.is_ajax():
         return HttpResponseNotAllowed([])
-
     try:
         protein = int(request.POST["target_protein"])
         collection = int(request.POST["target_collection"])
     except (KeyError, ValueError):
         return HttpResponseBadRequest()
-
     col = ProteinCollection.objects.get(id=collection)
     if not col.owner == request.user:
         return HttpResponseNotAllowed([])
-
     col.proteins.remove(protein)
-
     response = {
         'status': 'deleted',
     }
-
     return JsonResponse(response)
 
+
+@login_required
+def add_to_collection(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+
+    if request.method == 'GET':
+        qs = ProteinCollection.objects.filter(owner=request.user)
+        widget = forms.Select(attrs={'class': 'form-control custom-select', 'id': 'collectionSelect'})
+        choicefield = forms.ChoiceField(choices=qs.values_list('id', 'name'), widget=widget)
+
+        members = []
+        if request.GET.get('id'):
+            try:
+                qs = ProteinCollection.objects.filter(proteins=int(request.GET.get('id')))
+                members = [(item.name, item.get_absolute_url()) for item in qs]
+            except Exception as e:
+                print(e)
+                pass
+
+        response = {
+            'widget': choicefield.widget.render('collectionChoice', ''),
+            'members': json.dumps(members),
+        }
+        return JsonResponse(response)
+
+    elif request.method == 'POST':
+        try:
+            collection = ProteinCollection.objects.get(id=request.POST.get('collectionChoice'))
+            collection.proteins.add(int(request.POST.get('protein')))
+            status = 'success'
+        except Exception as e:
+            status = 'error'
+            print(e)
+        return JsonResponse({'status': status})
+
+    return HttpResponseNotAllowed([])
+
+
+class CollectionCreateView(CreateView):
+    model = ProteinCollection
+    form_class = CollectionForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form):
+        collection = form.save(commit=False)
+        collection.owner = self.request.user
+        collection.save()
+        return HttpResponseRedirect(collection.get_absolute_url())
+
+
+class CollectionUpdateView(UpdateView):
+    model = ProteinCollection
+    form_class = CollectionForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs

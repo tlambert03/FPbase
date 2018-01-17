@@ -1,4 +1,4 @@
-<div class="favit" data-toggle="tooltip" data-placement="left" title="Add to favorites" >
+<div class="favit" data-toggle="tooltip" data-placement="top" title="Add to favorites" >
   <a class="btn favorite" href="" data-action-url="{% url 'favit:add_or_remove' %}" model="{{ target_model }}" id="target_{{ target_object_id }}">
     <i class="fa{% if not undo %}r{% else %}s{% endif %} fa-heart"></i>
   </a>

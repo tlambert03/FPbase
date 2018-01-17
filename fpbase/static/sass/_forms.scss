@@ -43,6 +43,12 @@ i {
     padding: 3px;
 }
 
+// fix for corner radius on collection form
+#collectionForm .input-group-append .btn{
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
 // adds a little arrow to the right of something...
 // but not using because Bootstrap accordion gives same
 // id to multiple elements

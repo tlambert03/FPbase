@@ -63,14 +63,10 @@
         <div class="row">
           <div class="col">
             {% include '_twittershare.html' %}<br>
-            {% if request.user.is_staff %}
-              {% load admin_urls %}
-              <a href="{% url 'admin:index' %}">Admin Site</a><br>
-            {% endif %}
-            {% block extrafooter %}{% endblock extrafooter %}
           </div>
           <div class="col text-right">
-            <p>© FPbase <span id='curyear'>2018</span></p>
+            <p>©FPbase, <span id='curyear'>2018</span><br><a href="{% url 'privacy' %}">Privacy Policy</a><br>
+            {% block extrafooter %}{% endblock extrafooter %}</p>
           </div>
         </div>
       </div>

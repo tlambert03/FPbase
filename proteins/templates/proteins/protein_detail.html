@@ -11,7 +11,7 @@
 {% block content %}
 
 		<div class="container">
-			<h1 class="name display-4">{{ protein.name }}{% favorite_button protein %}</h1>
+			<h1 class="name display-4">{{ protein.name }}</h1>
 
 			{% if version %}
 				<div class="alert alert-warning clearfix" role="alert">
@@ -41,6 +41,17 @@
 				    {% endif %}
 				</div>
 			{% endif %}
+
+		</div>
+		<div class="container clearfix">
+			<div class="like_buttons float-right">
+				<div class="container-button" data-toggle="tooltip" data-placement="top" title="Add to collection">
+					<a class="btn collection-add-button" href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal">
+					  <i class="fas fa-book"></i>
+					</a>
+				</div>
+				{% favorite_button protein %}
+			</div>
 
 			{% include "_protein_blurb.html" %}
 		</div>
@@ -142,6 +153,7 @@
 
 <!-- Modals -->
 {% include 'proteins/modals/_reference_modal.html' with user=user protein=protein %}
+{% include 'proteins/modals/_add_to_collection_modal.html' with user=user protein=protein %}
 
 {% if protein.states.count > 1 %}
 	{% include 'proteins/modals/_state_transition_modal.html' with transition_form=transition_form %}

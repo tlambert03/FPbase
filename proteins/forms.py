@@ -3,11 +3,12 @@ from django.utils.text import slugify
 from django.utils.safestring import mark_safe
 from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
-from proteins.models import Protein, State, StateTransition, Organism
+from proteins.models import Protein, State, StateTransition, Organism, ProteinCollection
 from proteins.validators import validate_spectrum, validate_doi
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML
 from references.models import Reference
+
 
 def popover_html(label, content, side='right'):
     return '<label data-toggle="tooltip" style="padding-' + side + ': 1rem;" data-placement="' + side + '" title="' + content + '">' + label + '</label>'
@@ -236,6 +237,31 @@ class StateTransitionForm(forms.ModelForm):
 
 
 StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=StateTransitionForm, extra=1)
+
+
+class CollectionForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+
+    class Meta:
+        model = ProteinCollection
+        fields = ('name', 'description', 'private')
+
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        # on update form allow for the same name (case insensitive)
+        if hasattr(self, 'instance') and self.instance.name.lower() == name.lower():
+            return name
+        try:
+            col = ProteinCollection.objects.get(name__iexact=name, owner=self.request.user)
+        except ProteinCollection.DoesNotExist:
+            return name
+
+        raise ValidationError(mark_safe(
+            'You already have a collection named <a href="{}" style="text-decoration: underline;">{}</a>'.format(
+                col.get_absolute_url(), col.name)))
 
 
 # class StateForm(forms.ModelForm):

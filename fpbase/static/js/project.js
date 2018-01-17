@@ -222,9 +222,14 @@ function formatAAseq(elem, breakpoint) {
     elem.show()
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 $(function(){
-	$('.aminosequence').each(function(){
-		formatAAseq($(this));
+	$('.aminosequence').each( async function(){
+		await sleep(1); // hack for the moment... doesn't work unless you wait
+    formatAAseq($(this));
 	})
 })
 
@@ -330,17 +335,54 @@ $(document).ready(function() {
       },
     });
     e.preventDefault();
-
   });
+
+  $('.collection-add-button').click(function(e){
+      var button = $(this);
+      $.ajax({
+          type: 'GET',
+          url:  $(this).attr('data-action-url'),
+          dataType: 'json',
+          success: function (data, status) {
+              if ('members' in data){
+                members = JSON.parse(data.members)
+                if (members.length){
+                  $('#currentmemberships').empty()
+                  $('<p>This protein is currently a member of these collections </p>').appendTo('#currentmemberships')
+                  list = $('<ul>').appendTo('#currentmemberships')
+                  $.each(members, function(e){
+                    li = $('<li>')
+                    $('<a>').html(this[0]).attr('href',this[1]).appendTo(li)
+                    li.appendTo(list)
+                  })
+                }
+              }
+              if (!$('#collectionSelect').length){ // only retrieve once
+                $("#collectionSelection").prepend(data.widget)
+                $('#collectionModal').modal()
+              }
+          }
+      });
+      e.preventDefault();
+  });
+
+  $("#collectionForm").submit(function(e) {
+    var form = $(this).closest("form");
+    data = form.serialize(),
+    $.ajax({
+        type: "POST",
+        url: form.attr("data-action-url"),
+        data: data,
+        cache: false,
+        success: function (data, status) {
+        },
+    });
+    $('#collectionModal').modal('hide');
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+  });
+
+
 });
-
-
-
-
-
-
-
-
 
 
 

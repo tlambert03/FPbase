@@ -54,7 +54,8 @@ THIRD_PARTY_APPS = [
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
     'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.twitter',
+    # 'allauth.socialaccount.providers.facebook',
     #  'allauth.socialaccount.providers.linkedin_oauth2',
 
     'django_filters',
@@ -270,6 +271,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_ALLOW_REGISTRATION = env.bool('DJANGO_ACCOUNT_ALLOW_REGISTRATION', True)
 ACCOUNT_ADAPTER = 'fpbase.users.adapters.AccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'fpbase.users.adapters.SocialAccountAdapter'
+SOCIALACCOUNT_AUTO_SIGNUP = False
 
 # Custom user app defaults
 # Select the correct user model

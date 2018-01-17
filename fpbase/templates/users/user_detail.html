@@ -23,6 +23,7 @@
   <div class="col-sm-12">
     <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Info</a>
     <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">E-Mail</a>
+    <a class="btn btn-primary" href="{% url 'socialaccount_connections' %}" role="button">Social Login</a>
     <!-- Your Stuff: Custom user template urls -->
   </div>
 
@@ -39,9 +40,8 @@
     <p>You have not created any collections.</p>
   {% endfor %}
 </ul>
-
-<p><em>Your public collections can be viewed and shared with others <a href="{% url 'proteins:collections' owner=object %}">here</a>.</p></em>
-
+<a href="{% url 'proteins:newcollection' %}"><button class='btn btn-primary btn-sm'>Create collection</button></a>
+<p class='mt-4'><em>Your can view and share your public collections with others at <a href="{% url 'proteins:collections' owner=object %}">{{ request.META.HTTP_HOST }}{% url 'proteins:collections' owner=object %}</a></p></em>
 <!-- End Action buttons -->
 {% endif %}
 

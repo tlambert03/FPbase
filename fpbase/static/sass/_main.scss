@@ -91,27 +91,41 @@ footer {
     @include media-breakpoint-down(xs) { max-width: 100%; }
 }
 
-.favit{
-	position: relative;
-	float: right;
-	margin-left: 0rem;
-	margin-top: 1rem;
-	.favorite, .favorite:active{
+
+.like_buttons{
+	padding-left: 1rem;
+	div {
+		display: inline;
+	}
+	a, a.active {
 		color: $yellow;
-		font-size: 1.6rem;
+		font-size:1.4rem;
+		padding: 0;
 		box-shadow:none !important;
 		&:hover{
 			color: orange;
 		}
-		padding: 0;
 	}
-	.badge {
-		position: absolute;
-		bottom: 0.6rem;
-		right: -0.4rem;
-		font-size: 0.5rem;
-		background: rgba($warning, 0.6);
-		color: $gray-700;
+	.container-button{
+
+	}
+	.favit{
+		// fix slight shift when clicking icon
+		svg[data-prefix='fas']{
+			margin-right: 0.1rem;
+		}
+		.favorite, .favorite:active{
+			box-shadow:none !important;
+			padding: 0;
+		}
+		.badge {
+			position: relative;
+			bottom: -0.7rem;
+			right: 0.7rem;
+			font-size: 0.4rem;
+			background: rgba($warning, 0.6);
+			color: $gray-700;
+		}
 	}
 }
 
@@ -129,6 +143,6 @@ html.fa-events-typefaces-orbitron-loading .brand {
    		background-color: $gray-500;
 	}
 	.arrow:before {
-		border-color: $gray-500 !important;
+		border-top-color: $gray-500 !important;
 	}
 }
