@@ -222,15 +222,13 @@ function formatAAseq(elem, breakpoint) {
     elem.show()
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
-$(function(){
-	$('.aminosequence').each( async function(){
-		await sleep(1); // hack for the moment... doesn't work unless you wait
-    formatAAseq($(this));
-	})
+$(function(){ setTimeout( function(){
+  // waiting is just a hack...
+    $('.aminosequence').each(function(){
+      formatAAseq($(this));
+    })
+  }, 1);
 })
 
 $(window).resize(function() {
