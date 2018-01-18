@@ -12,9 +12,16 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def favorite_button(context, target):
     user = context['request'].user
-    # do nothing when user isn't authenticated
+
+    # moved to the template
     if not user.is_authenticated():
-        return ''
+        return render_to_string(
+            'favit/button.html', {
+                'authenticated': False,
+                'path': context['request'].path,
+                'fav_count': Favorite.objects.for_object(target).count()
+            }
+        )
 
     target_model = '.'.join((target._meta.app_label, target._meta.object_name))
 
@@ -29,6 +36,7 @@ def favorite_button(context, target):
             'target_model': target_model,
             'target_object_id': target.id,
             'undo': undo,
+            'authenticated': True,
             'fav_count': Favorite.objects.for_object(target).count()
         }
     )

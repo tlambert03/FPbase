@@ -1,15 +1,6 @@
 // single protein pages
 // ------------------------
 
-.protein-blurb {
-	font-style:italic;
-	color: #999;
-	font-weight: 400;
-	margin-top: 2rem;
-	margin-bottom: 1rem;
-	padding-bottom:0;
-}
-
 .protein {
 	font-size: 0.9rem;
 
@@ -18,7 +9,9 @@
 		padding-bottom: 1.5rem;
 		color: lighten($primary,10%);
 		text-align: center;
-	//	font-weight: 500;
+		word-wrap: break-word;
+		@include media-breakpoint-down(md){ font-size: 3rem;}
+		@include media-breakpoint-down(sm){ font-size: 2.4rem;}
 	}
 
 	h3{
@@ -32,6 +25,25 @@
     color: $gray-700;
     font-size: 1.0rem;
   }
+
+ 	.aliases {
+ 		font-family: Raleway, sans-serif;
+ 		color: $gray-500;
+ 		font-size: 1.4rem;
+ 		font-weight: 600;
+ 		padding-top: 0;
+ 		margin-top: 0;
+ 	}
+
+  .protein-blurb {
+  	font-style:italic;
+  	color: $gray-600;
+  	font-weight: 400;
+  	margin-top: 2rem;
+  	margin-bottom: 1rem;
+  	padding-bottom:0;
+  }
+
 
 	.attributes {
 

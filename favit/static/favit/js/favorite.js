@@ -1,13 +1,13 @@
 $(document).ready(function() {
-  $('.btn.favorite').click(function(e) {
+  $('#add_remove_favorite').click(function(e) {
       var $obj = $(this);
-      var target_id = $obj.attr('id').split('_')[1];
+      var target_id = $obj.data('target').split('_')[1];
       $obj.prop('disabled', true);
       $.ajax({
       url: $obj.attr('data-action-url'),
       type: 'POST',
-      data: {target_model: $obj.attr('model'),
-             target_object_id: target_id,
+      data: {target_model: $obj.data('model'),
+             target_object_id: $obj.data('target').split('_')[1],
              csrfmiddlewaretoken: window.CSRF_TOKEN},
       success: function(response) {
           if (response.status == 'added') {

@@ -18,6 +18,25 @@ Issues with the above approach:
 3. Really Unforgiving: No way to override this behavior
 4. Undocumented: No mention in the documentation, or it's too hard for me to find
 */
+
+$(function(){
+
+  var $quote = $(".protein .name:first");
+  var $numChar = $quote.text().length;
+
+  if ($numChar >= 40) {
+      $quote.css("font-size", "28px");
+  } else if ($numChar >= 35) {
+    $quote.css("font-size", "32px");
+  } else if ($numChar >= 28) {
+    $quote.css("font-size", "36px");
+  }
+  else {
+
+  }
+});
+
+
 $('.form-group').removeClass('row');
 
 //Navbar Scroll Event.
@@ -303,7 +322,7 @@ $(window).resize(function() {
         url: form.attr("data-action-url"),
         data: form.serialize(),
         dataType: 'json',
-        success: function(data) {window.location = '{{ protein.get_absolute_url }}'},
+        success: function(data) {window.location = form.data('success')},
     });
       e.preventDefault(); // avoid to execute the actual submit of the form.
   });

@@ -501,20 +501,8 @@ def import_fpd(file=None):
     for rownum, row in enumerate(data.dict):
         try:
             print(row['name'])
-            # add the doi to the database
-            # this is a workaround to use the web form, which asks for "reference_doi"
-            # but converts it to the primary_reference primary key in the form view
-            # try:
-            #     doi = row.get('reference_doi', '').lstrip('https://dx.doi.org/')
-            #     if doi:
-            #         r, c = Reference.objects.get_or_create(doi=doi)
-            #     if r:
-            #         row['reference_doi'] = r.doi
-            #     if c:
-            #         print("created reference {}".format(r))
-            # except Exception:
-            #     r = None
-            # add organism to database
+
+            #TODO: get rid of empty values so they don't overwrite previous ones
 
             # just remove bad sequences
             try:

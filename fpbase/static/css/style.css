@@ -6155,16 +6155,6 @@ html.fa-events-typefaces-orbitron-loading .brand {
 .home-body .navbar {
   box-shadow: 0 0 0 transparent; }
 
-.protein-blurb {
-  font-style: italic;
-  color: #999;
-  font-weight: 400;
-  margin-top: 32px;
-  margin-top: 2rem;
-  margin-bottom: 16px;
-  margin-bottom: 1rem;
-  padding-bottom: 0; }
-
 .protein {
   font-size: 14.4px;
   font-size: 0.9rem; }
@@ -6174,7 +6164,14 @@ html.fa-events-typefaces-orbitron-loading .brand {
     padding-bottom: 24px;
     padding-bottom: 1.5rem;
     color: #4cc551;
-    text-align: center; }
+    text-align: center;
+    word-wrap: break-word; }
+    @media (max-width: 991px) {
+      .protein .name {
+        font-size: 3rem; } }
+    @media (max-width: 767px) {
+      .protein .name {
+        font-size: 2.4rem; } }
   .protein h3 {
     color: #4cc551;
     font-weight: 400;
@@ -6186,6 +6183,23 @@ html.fa-events-typefaces-orbitron-loading .brand {
     color: #495057;
     font-size: 16px;
     font-size: 1.0rem; }
+  .protein .aliases {
+    font-family: Raleway, sans-serif;
+    color: #adb5bd;
+    font-size: 22.4px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    padding-top: 0;
+    margin-top: 0; }
+  .protein .protein-blurb {
+    font-style: italic;
+    color: #868e96;
+    font-weight: 400;
+    margin-top: 32px;
+    margin-top: 2rem;
+    margin-bottom: 16px;
+    margin-bottom: 1rem;
+    padding-bottom: 0; }
   .protein .attributes .table {
     margin-bottom: 0;
     font-weight: 100; }

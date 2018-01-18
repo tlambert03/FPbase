@@ -10,16 +10,16 @@
 
 {% block content %}
 
-		<div class="container">
-			<h1 class="name display-4">{{ protein.name }}</h1>
+
+			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name }}</h1>
 
 			{% if protein.aliases %}
-			<div class='text-center'>
-				aka
-			{% for alias in protein.aliases  %}
-				{{alias}}
-			{% endfor %}
-			</div>
+				<p class='text-center aliases pb-2'>
+					a.k.a.
+				{% for alias in protein.aliases  %}
+					{{alias}}{% if not forloop.last %},{% endif %}
+				{% endfor %}
+				</p>
 			{% endif %}
 
 			{% if version %}
@@ -27,7 +27,7 @@
 					<strong><i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i></strong>You are viewing an older revision of this protein, from {{ version.revision.date_created|date:"M j, Y H:i:s"}}.  <a href="{{ protein.get_absolute_url }}" class="alert-link">Click here</a> to view the current version.
 
 				    {% if request.user.is_staff %}
-					<form id="adminRevert" class='float-sm-right' data-action-url="{% url 'proteins:admin_revert_version' ver=version.id %}">
+					<form id="adminRevert" class='float-sm-right' data-action-url="{% url 'proteins:admin_revert_version' ver=version.id %}" data-success="{{ protein.get_absolute_url }}">
 					{% csrf_token %}
 				    <button type="submit" class="btn btn-danger btn-sm btn-block-xs">Revert</button>
 					</form>
@@ -44,15 +44,14 @@
 					    {% endif %}
 				    </div>
 				    {% if request.user.is_staff %}
-					 	<form id="adminApprove" class='float-sm-right' data-action-url="{% url 'proteins:admin_approve_protein' slug=protein.slug %}">{% csrf_token %}
+					 	<form id="adminApprove" class='float-sm-right' data-action-url="{% url 'proteins:admin_approve_protein' slug=protein.slug %}" data-success="{{ protein.get_absolute_url }}">{% csrf_token %}
 						    <button type="submit" class="btn btn-info btn-sm btn-block-xs">Approve</button>
 					 	</form>
 				    {% endif %}
 				</div>
 			{% endif %}
 
-		</div>
-		<div class="container clearfix">
+		<div class="clearfix">
 			<div class="like_buttons float-right">
 				<div class="container-button" data-toggle="tooltip" data-placement="top" title="Add to collection">
 					<a class="btn collection-add-button" href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal">
