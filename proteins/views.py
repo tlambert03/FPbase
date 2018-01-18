@@ -10,6 +10,10 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
 from django import forms
+from django.urls import resolve
+
+from allauth.account.adapter import get_adapter
+
 import json
 from .models import Protein, State, ProteinCollection
 from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateTransitionFormSet, CollectionForm
@@ -18,33 +22,6 @@ from references.models import Reference  # breaks application modularity # FIXME
 import reversion
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
-
-
-class CollectionList(ListView):
-    def get_queryset(self):
-        # get all collections for current user and all other non-private collections
-        qs = ProteinCollection.objects.exclude(private=True)
-        if self.request.user.is_authenticated:
-            qs = qs | ProteinCollection.objects.filter(owner=self.request.user)
-        if 'owner' in self.kwargs:
-            qs = qs.filter(owner__username=self.kwargs['owner'])
-        return qs.order_by('modified')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if 'owner' in self.kwargs:
-            context['owner'] = self.kwargs['owner']
-        return context
-
-
-class CollectionDetail(DetailView):
-    queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__default_state')
-
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(**kwargs)
-        context['isowner'] = self.request.user == self.object.owner
-        return context
 
 
 class ProteinChartList(ListView):
@@ -375,6 +352,38 @@ def validate_proteinname(request):
     return JsonResponse(data)
 
 
+class CollectionList(ListView):
+    def get_queryset(self):
+        # get all collections for current user and all other non-private collections
+        qs = ProteinCollection.objects.exclude(private=True)
+        if self.request.user.is_authenticated:
+            qs = qs | ProteinCollection.objects.filter(owner=self.request.user)
+        if 'owner' in self.kwargs:
+            qs = qs.filter(owner__username=self.kwargs['owner'])
+        return qs.order_by('-created')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'owner' in self.kwargs:
+            context['owner'] = self.kwargs['owner']
+        return context
+
+
+class CollectionDetail(DetailView):
+    queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__default_state')
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        context['isowner'] = self.request.user == self.object.owner
+        return context
+
+    def render_to_response(self, *args, **kwargs):
+        if self.object.private and (self.object.owner != self.request.user):
+            return render(self.request, 'proteins/private_collection.html', {'foo': 'bar'})
+        return super().render_to_response(*args, **kwargs)
+
+
 @login_required
 def collection_remove(request):
     if not request.is_ajax():
@@ -407,7 +416,7 @@ def add_to_collection(request):
         members = []
         if request.GET.get('id'):
             try:
-                qs = ProteinCollection.objects.filter(proteins=int(request.GET.get('id')))
+                qs = qs.filter(proteins=int(request.GET.get('id')))
                 members = [(item.name, item.get_absolute_url()) for item in qs]
             except Exception as e:
                 print(e)
@@ -442,10 +451,19 @@ class CollectionCreateView(CreateView):
         return kwargs
 
     def form_valid(self, form):
-        collection = form.save(commit=False)
-        collection.owner = self.request.user
-        collection.save()
-        return HttpResponseRedirect(collection.get_absolute_url())
+        self.object = form.save(commit=False)
+        self.object.owner = self.request.user
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        redirect_url = self.request.POST.get('next') or self.request.GET.get('next', None)
+        try:
+            # check that this is an internal redirection
+            resolve(redirect_url)
+        except Exception as ex:
+            redirect_url = None
+        return redirect_url or super().get_success_url()
 
 
 class CollectionUpdateView(UpdateView):

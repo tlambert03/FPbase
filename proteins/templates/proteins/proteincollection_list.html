@@ -8,7 +8,7 @@
 	<ul class='mb-5'>
 		{% for object in object_list %}
 			{% if request.user.id == object.owner.id %}
-			<li><strong><a href="{{ object.get_absolute_url }}">{{object}}</a>, Created by you - {{ object.created|date:"M j, Y" }} </em></strong></li>
+			<li><strong><a href="{{ object.get_absolute_url }}">{{object}}</a>, Created by you {% if object.private %}(Private){% endif %}- {{ object.created|date:"M j, Y" }} </em></strong></li>
 			{% else %}
 			<li><a href="{{ object.get_absolute_url }}">{{object}}</a>, <em>Created by {{ object.owner }} - {{ object.created|date:"M j, Y" }} </em></li>
 			{% endif %}
