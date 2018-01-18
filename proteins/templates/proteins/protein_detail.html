@@ -13,6 +13,15 @@
 		<div class="container">
 			<h1 class="name display-4">{{ protein.name }}</h1>
 
+			{% if protein.aliases %}
+			<div class='text-center'>
+				aka
+			{% for alias in protein.aliases  %}
+				{{alias}}
+			{% endfor %}
+			</div>
+			{% endif %}
+
 			{% if version %}
 				<div class="alert alert-warning clearfix" role="alert">
 					<strong><i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i></strong>You are viewing an older revision of this protein, from {{ version.revision.date_created|date:"M j, Y H:i:s"}}.  <a href="{{ protein.get_absolute_url }}" class="alert-link">Click here</a> to view the current version.
@@ -56,7 +65,6 @@
 			{% include "_protein_blurb.html" %}
 		</div>
 
-
 		<div class="spectra">
 			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
 		</div>
@@ -97,14 +105,28 @@
 
 		<div class="sequence">
 			<div class="row justify-content-between">
-			  	<div class="col-sm">
+			  	<div class="col-md-4">
 				  <h3>Amino Acid Sequence</h3>
 				</div>
-				<div class="col-sm align-self-end mb-2 text-sm-right">
-					{% if protein.ipg_id %}
-					<small>Identical Protein Group ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]">{{ protein.ipg_id }}</a></small>
-					{% endif %}
+
+				<div class="col-md-8 align-self-end">
+					<div class="row text-sm-right justify-content-end">
+
+					<div class="col-sm-4 pr-0">
+					<small>GenBank: <a href="https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}'); return false;" target="_blank">{{ protein.genbank | default:''}}</a></small>
+					</div>
+
+					<div class="col-sm-4 pr-0">
+					<small>UniProtKB: <a href="https://www.uniprot.org/uniprot/{{ protein.uniprot }}" onclick="trackOutboundLink('https://www.uniprot.org/uniprot/{{ protein.uniprot }}'); return false;" target="_blank">{{ protein.uniprot | default:''}}</a></small>
+					</div>
+
+					<div class="col-sm-4">
+					<small>IPG ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]'); return false;" target="_blank">{{ protein.ipg_id | default:''}}</a></small>
+					</div>
+
+					</div>
 				</div>
+
 			</div>
 
 			{% if protein.seq %}
@@ -138,8 +160,8 @@
 		<div class="external-resources">
 			<h3>External Resources</h3>
 			<ul>
-				<li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}">BioNumbers</a> for {{ protein.name }}</li>
-				<li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}">Addgene</a> for {{ protein.name }}</li>
+				<li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" onclick="trackOutboundLink('http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}'); return false;" target="_blank">BioNumbers</a> for {{ protein.name }}</li>
+				<li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" onclick="trackOutboundLink('https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}'); return false;" target="_blank">Addgene</a> for {{ protein.name }}</li>
 			</ul>
 		</div>
 
@@ -189,6 +211,7 @@
         	trigger : 'hover',
         	delay: { "show": 400 },
         });
+
       });
 
       {% if protein.has_spectra %}

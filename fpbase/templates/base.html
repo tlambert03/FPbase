@@ -1,6 +1,12 @@
 {% load static i18n compress%}<!DOCTYPE html>
 <html lang="en">
   <head>
+    {% block ga %}
+      {% if not debug %}
+        {% include "_ga.html" with ga_tracking_id=ga_tracking_id %}
+      {% endif %}
+    {% endblock ga %}
+
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>{% block title %}FPbase - Fluorescent Protein Database{% endblock title %}</title>
