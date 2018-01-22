@@ -10,7 +10,7 @@
 	<thead>
 		<tr class="table-header">
 			{% if removebutton %}<th class='remove-button'>Remove</th>{% endif %}
-			<th>Name</th>
+			<th class="protein">Name</th>
 			<th>&lambda;<sub>ex</sub></th>
   			<th>&lambda;<sub>em</sub></th>
   			<th>Stokes</th>
@@ -45,13 +45,13 @@
 						<td class="numeric exmax">{{ state.ex_max | default_if_none:"-" }}</td>
 						<td class="numeric">{{ state.em_max | default_if_none:"-" }}</td>
 						<td class="numeric">{{ state.stokes | default:"-" }}</td>
-						<td class="numeric">{{ state.ext_coeff|intcomma | default_if_none:"-" }}</td>
+						<td class="numeric">{% if state.ext_coeff %}{{ state.ext_coeff|intcomma}}{%else%}-{%endif%}</td>
 						<td class="numeric">{{ state.qy | default_if_none:"-" }}</td>
 						<td class="numeric">{{ state.brightness | default:"-" }}</td>
 						<!-- <td class="numeric">{{ state.bright_rel_egfp | default:"-" }}</td> -->
 						{% if showbleach %}<td class="numeric">{{ state.bleach_measurements.all.0.rate | default_if_none:"-" }}</td>{% endif %}
 						<td class="numeric">{{ state.pka | default_if_none:"-" }}</td>
-						<td class="numeric">{{ protein.agg | default_if_none:"-" }}</td>
+						<td class="numeric">{% if protein.agg %}{{ protein.agg }}{%else%}-{%endif%}</td>
 						<td class="numeric">{{ state.maturation | default_if_none:"-" }}</td>
 						<td class="numeric">{{ state.lifetime | default_if_none:"-" }}</td>
 						<td class='hidden'>{{ state.protein.switch_type }}</td>

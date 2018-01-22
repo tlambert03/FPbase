@@ -1,10 +1,10 @@
 {% load favit_tags %}
 {% user_favorites user "proteins.Protein" as favorite_list %}
 {% if favorite_list %}
-<ul>
+<ul style='list-style: none;'>
 {% for fav_obj in favorite_list %}
   {% with protein=fav_obj|get_object %}
-      <li><a href="{{ protein.get_absolute_url }}">{{ protein }}</a>{% unfave_button protein %}</li>
+      <li>{% unfave_button protein %}<a href="{{ protein.get_absolute_url }}">{{ protein }}</a></li>
   {% endwith %}
 {% endfor %}
 </ul>

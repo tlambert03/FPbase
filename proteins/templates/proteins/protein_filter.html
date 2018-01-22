@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
+{% block title %}FPbase: Advanced Fluorescent Protein Search{% endblock %}
+{% block meta-description %}Build complex queries to search for fluorescent proteins in FPbase using multiple filters.{% endblock %}
 
 {% block content %}
 
@@ -16,7 +18,7 @@ If you find that you are not getting results, relax your query.</p>
 
 <form action="" method="get">
     <div id="query_builder">Building query form...</div>
-    <div class='clearfix'>
+    <div class='clearfix button-row'>
     <button type="submit" class="btn btn-sm btn-primary form-group"><i class="fas fa-search"></i> Search</button>
     <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn"><i class="fas fa-filter"></i> Add Filter</button>
     <div class="btn-group float-right displaybuttons" data-toggle="buttons" >
@@ -34,7 +36,7 @@ If you find that you are not getting results, relax your query.</p>
         <h2>Search Results</h2>
 
         <div class="container protein_results pl-0 pr-0">
-            {% if filter.qs.count %}
+            {% if filter.qs %}
                 <div id="ldisplay" {% if request.GET.display == 't' %}class="hidden"{% endif %}>
                 {% with proteins=filter.qs %}
                     {% include '_proteinlozenges.html' %}

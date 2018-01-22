@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
+
+{% block title %}FPbase :: Table of Fluorescent Protein Properties{% endblock %}
+{% block meta-description %}A comprehensive, sortable, searchable table of all the fluorescent proteins in the fluorescent protein database.{% endblock %}
+
+
 {% block vendorcss %}
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.16/css/jquery.dataTables.css">
 {% endblock %}
 
-{% block title %}Fluorescent Protein Properties Table{% endblock %}
 
 
 {% block container-class %}tablecontainer{% endblock %}

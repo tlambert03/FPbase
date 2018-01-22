@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags compress static %}
 
+
+{% block title %}{% if object %}Update {{ object.name }}{% else %}Submit a protein to FPbase{% endif %}{% endblock %}
+
+{% block meta-description %}{% if object %}This page allows users with an account at FPbase to update information relating to the protein {{ object.name}}{% else %}This page allows users with an account at FPbase to add a new protein to the database{% endif %}{% endblock %}
+
+
 {% block content %}
 	{% if object %} {% comment %} object means this is an update form {% endcomment %}
 	    <h1>Update {{ object.name }}</h1>
@@ -16,8 +22,9 @@
 	{% endif %}
 
 	<div class="container">
-	    <form action="" method="post" data-validate-proteinname-url="{% url 'proteins:validate_proteinname' %}">
+	    <form id="proteinform" action="" method="post" data-validate-proteinname-url="{% url 'proteins:validate_proteinname' %}">
 	    	{% csrf_token %}
+	    	<input type="hidden" name="slug" id="id_slug" value='{{ protein.slug }}'>
 	        <div class='row'>
 	        	<div class='col'>
 	        		{% crispy form %}
@@ -89,7 +96,7 @@
 				addText: 'Add State',
 				addCssClass: 'btn btn-info mb-4',
 				deleteCssClass: deleteclass + ' btn btn-danger align-middle',
-				deleteText: 'Remove',
+				deleteText: '&times;',
 				processHidden: true,
 				prefix: 'states' 	 // it's important that this match the string used for the
 									 // related_name attribute in the "protein" foreign key field
@@ -102,6 +109,13 @@
 				$("#hint_id_seq").html('Sequence input disabled when IPG ID provided');
 			}
 
+			// if this is an update view without post data, remove the last (empty) state
+			{% if object %}
+				{% if not request.POST %}
+				$('.dynamic-form').last().find('.' + deleteclass).click()
+				{% endif %}
+			{% endif %}
+
 
 			$('#id_states-TOTAL_FORMS').change(function(){
 				if (this.value > 1){
@@ -110,41 +124,6 @@
 					$('.transition-note').hide()
 				}
 			});
-
-			$("#id_name").change(function () {
-		      var form = $(this).closest("form");
-		      $.ajax({
-		      	method: 'POST',
-		        url: form.attr("data-validate-proteinname-url"),
-		        data: form.serialize(),
-		        dataType: 'json',
-		        success: function (data) {
-		          if (data.is_taken) {
-		          	var namelink = '<a href="' + data.url + '" style="text-decoration: underline;">' + data.name + '</a>';
-		            var message = '<strong>' + namelink + ' already exists in the database.</strong>';
-		            console.log(message)
-		            $("#id_name").addClass('is-invalid');
-		            $("#div_id_name").addClass('has-danger');
-
-		            if ($('#error_1_id_name').length) {
-		            	$("#error_1_id_name").html(message);
-		            } else{
-	    	            span = $('<span/>', {
-	    				    id: 'error_1_id_name',
-	    				    class: 'invalid-feedback',
-	    				}).append(message);
-	    	            $("#hint_id_name").before(span);
-		            }
-		          } else {
-		          	if ($('#error_1_id_name').length) {
-		          		$('#error_1_id_name').remove();
-		          		$("#id_name").removeClass('is-invalid');
-		          		$("#div_id_name").removeClass('has-danger');
-		          	}
-		          }
-		        }
-		      });
-		    });
 
 			$("form").submit(function (e) {
 			   if ($("#id_name").hasClass('is-invalid')) {

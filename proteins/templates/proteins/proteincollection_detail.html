@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
+{% block title %}FPbase Collection :: {{ object.name }}{% endblock %}
+{% block meta-description %}A user-created fluorescent protein collection: {{object.description}}{% endblock %}
+
+
 {% block content %}
-
-
 
 <div class="container clearfix">
 <h1>{{ object.name }}</h1>

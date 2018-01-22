@@ -2,6 +2,7 @@
 {% load static i18n compress favit_tags %}
 
 {% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
+{% block meta-description %}{{ protein.description }}{% endblock %}
 
 {% block vendorcss %}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
@@ -61,7 +62,7 @@
 				{% favorite_button protein %}
 			</div>
 
-			{% include "_protein_blurb.html" %}
+			<div class='protein-blurb'>{{ protein.description }}</div>
 		</div>
 
 		<div class="spectra">
@@ -102,30 +103,26 @@
 		</div>
 		{% endif %}
 
+		<dl class="row mt-4 pb-0 mb-0">
+			<div class="col-md-6">
+				<div class="row">
+				  <dt class="col-sm-4 col-lg-3 text-sm-right">Aggregation:</dt>
+				  <dd class="col-sm-8 col-lg-9"><em>{{protein.get_agg_display}}</em></dd>
+				  </div>
+			</div>
+			<div class="col-md-6">
+				<div class="row">
+			  <dt class="col-sm-4 col-lg-3 text-sm-right">Organism:</dt>
+			  <dd class="col-sm-8 col-lg-9"><em><a href="{{protein.parent_organism.get_absolute_url}}">{{protein.parent_organism}}</a></em></dd>
+			</div>
+			</div>
+		</dl>
+
 		<div class="sequence">
-			<div class="row justify-content-between">
-			  	<div class="col-md-4">
+			<div class="row">
+			  	<div class="col">
 				  <h3>Amino Acid Sequence</h3>
 				</div>
-
-				<div class="col-md-8 align-self-end">
-					<div class="row text-sm-right justify-content-end">
-
-					<div class="col-sm-4 pr-0">
-					<small>GenBank: <a href="https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}'); return false;" target="_blank">{{ protein.genbank | default:''}}</a></small>
-					</div>
-
-					<div class="col-sm-4 pr-0">
-					<small>UniProtKB: <a href="https://www.uniprot.org/uniprot/{{ protein.uniprot }}" onclick="trackOutboundLink('https://www.uniprot.org/uniprot/{{ protein.uniprot }}'); return false;" target="_blank">{{ protein.uniprot | default:''}}</a></small>
-					</div>
-
-					<div class="col-sm-4">
-					<small>IPG ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]'); return false;" target="_blank">{{ protein.ipg_id | default:''}}</a></small>
-					</div>
-
-					</div>
-				</div>
-
 			</div>
 
 			{% if protein.seq %}
@@ -133,6 +130,39 @@
 			{% else %}
 			    <p>no sequence available ... <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
 			{% endif %}
+
+			{% if protein.genbank or protein.uniprot or protein.ipg_id or protein.pdb %}
+			<div class="row text-right justify-content-end">
+					{% if protein.genbank %}
+					<div class="col-md-3 col-sm-6">
+					<small>GenBank: <a href="https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}'); return false;" target="_blank">{{ protein.genbank | default:''}}</a></small>
+					</div>
+					{% endif %}
+
+					{% if protein.uniprot %}
+					<div class="col-md-3 col-sm-6">
+					<small>UniProtKB: <a href="https://www.uniprot.org/uniprot/{{ protein.uniprot }}" onclick="trackOutboundLink('https://www.uniprot.org/uniprot/{{ protein.uniprot }}'); return false;" target="_blank">{{ protein.uniprot | default:''}}</a></small>
+					</div>
+					{% endif %}
+
+					{% if protein.ipg_id %}
+					<div class="col-md-3 col-sm-6">
+					<small>IPG ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]'); return false;" target="_blank">{{ protein.ipg_id | default:''}}</a></small>
+					</div>
+					{% endif %}
+
+					{% if protein.pdb %}
+					<div class="col-md-3 col-sm-6">
+					<small>PDB ID:
+						{% for pdbid in protein.pdb %}
+							<a href="https://www.rcsb.org/structure/{{pdbid}}" onclick="trackOutboundLink('https://www.rcsb.org/structure/{{pdbid}}'); return false;" target="_blank">{{ pdbid | default:''}}{% if not forloop.last %}, {% endif %}</a>
+						{% endfor %}
+					</small>
+					</div>
+					{% endif %}
+			</div>
+			{% endif %}
+
 		</div>
 
 		<div class="primary-ref references">
@@ -204,17 +234,8 @@
 
 
     <script type="text/javascript">
-
-      $(function () {
-        $('[data-toggle="tooltip"]').tooltip({
-        	trigger : 'hover',
-        	delay: { "show": 400 },
-        });
-
-      });
-
       {% if protein.has_spectra %}
-      var myData = {{ protein.spectra|safe }};
+      var myData = {{ protein.spectra_json|safe }};
       var chart = nv.models.lineChart();
       svg = d3.select('#spectra').append('svg');
       chart.options({

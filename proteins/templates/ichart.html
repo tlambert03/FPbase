@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 {% load static compress%}
 
+{% block title %}Interactive Fluorescent Protein Property Visualization{% endblock %}
+{% block meta-description %}Here, you can plot a variety of fluorescent protein properties in different ways.  Interactively change the axes of the graph and filter proteins based on certain characteristics.{% endblock %}
+
+
 {% block vendorcss %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
 {% endblock %}
 
-{% block title %}Interactive Fluorescent Protein Properties{% endblock %}
 
 {% block container-class %}container-fluid{% endblock %}
 {% block content %}
@@ -96,10 +99,10 @@
 	 		return;
 	 	}
 		data.forEach(function(d){
-			d.lambda_em = +d.lambda_em;		// typing these variables here for simplicity of code later on
-			d.lambda_ex = +d.lambda_ex;
-			d.E = +d.E;
-			d.QY = +d.QY;
+			d.em_max = +d.em_max;		// typing these variables here for simplicity of code later on
+			d.ex_max = +d.ex_max;
+			d.ext_coeff = +d.ext_coeff;
+			d.qy = +d.qy;
 			d.brightness = +d.brightness;
 		})
 
@@ -108,7 +111,7 @@
 		//Only update max of saturation scale, so that gray corresponds to 0 brightness
 		//Use 80th percentile as max saturation so that not everything is muddy gray
 		saturationScale.domain([0,
-			d3.quantile(FPdata.map(function(a) {return (+a.brightness)}).sort(function(a,b){return a-b}),0.8)
+			d3.quantile(FPdata.map(function(a) {return (+a.brightness)}).sort(function(a,b){return a-b}),0.7)
 		]);
 
 		plot();
