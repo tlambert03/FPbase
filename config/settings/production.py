@@ -233,6 +233,3 @@ ADMIN_URL = env('DJANGO_ADMIN_URL')
 # ------------------------------------------------------------------------------
 
 GA_TRACKING_ID = env('GA_TRACKING_ID')
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
-SITE_ID = 1

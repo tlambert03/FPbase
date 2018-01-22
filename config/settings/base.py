@@ -290,6 +290,9 @@ STATICFILES_FINDERS += ['compressor.finders.CompressorFinder']
 # Location of root django.contrib.admin URL, use {% url 'admin:index' %}
 ADMIN_URL = r'^admin/'
 
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
+SITE_ID = 1
+
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
 

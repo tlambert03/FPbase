@@ -1,5 +1,5 @@
 [run]
-include = fpbase/*
+include = fpbase/*, proteins/*, references/*
 omit = *migrations*, *tests*
 plugins =
     django_coverage_plugin
