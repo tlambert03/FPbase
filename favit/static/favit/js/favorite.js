@@ -44,5 +44,6 @@ $(document).ready(function() {
         $obj.prop('disabled', false);
       }
     });
+    e.preventDefault(); // avoid to execute the actual submit of the form.
   });
 });

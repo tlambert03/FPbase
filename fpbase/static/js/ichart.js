@@ -75,43 +75,43 @@
 
 
 //global variables to hold the current variables plotted on each axis
-var currentX = "lambda_ex"
-var currentY = "lambda_em"
+var currentX = "ex_max"
+var currentY = "em_max"
 var symbolsize = 8; //radius of circle
 var bigscale = 1.5; //how much to scale up on mouseover
 //global varable to set the ranges over which the data is filtered.
 var filters = {
-	"lambda_ex" : [350,800,1],		// array values represent [min range, max range, step (for the range slider)]
-	"lambda_em" : [350,800,1],
-	"E"			: [10000,170000,1000],
-	"QY"		: [0,1,0.01],
+	"ex_max" : [350,800,1],		// array values represent [min range, max range, step (for the range slider)]
+	"em_max" : [350,800,1],
+	"ext_coeff"	: [10000,170000,1000],
+	"qy"		: [0,1,0.01],
 	"brightness": [0,125,1]
 }
 //string variables for updating the axis labels
 var strings = {
-	"lambda_em" : "Emission Wavelength (nm)",
-	"lambda_ex" : "Excitation Wavelength (nm)",
+	"em_max" : "Emission Wavelength (nm)",
+	"ex_max" : "Excitation Wavelength (nm)",
 	"stokes"	: "Stokes Shift (nm)",
-	"E"			: "Extinction Coefficient",
-	"QY"		: "Quantum Yield",
+	"ext_coeff"	: "Extinction Coefficient",
+	"qy"		: "Quantum Yield",
 	"brightness": "Brightness",
 	"pka" 		: "pKa",
 	"bleach" 	: "Bleaching Half-life (s)",
-	"mature" 	: "Maturation Half-time (min)",
+	"maturation": "Maturation Half-time (min)",
 	"lifetime" 	: "Lifetime (ns)",
 }
 
 //shorter strings for the table
 var tableStrings = {
 	"Name"		: "Protein",
-	"lambda_ex" : "&lambda;<sub>ex</sub> (nm)",
-	"lambda_em" : "&lambda;<sub>em</sub> (nm)",
-	"E"			: "EC",
-	"QY"		: "QY",
+	"ex_max"    : "&lambda;<sub>ex</sub> (nm)",
+	"em_max"    : "&lambda;<sub>em</sub> (nm)",
+	"ext_coeff"	: "EC",
+	"qy"		: "QY",
 	"brightness": "Brightness",
 	"pka" 		: "pKa",
 	"bleach" 	: "Bleaching (s)",
-	"mature" 	: "Maturation (min)",
+	"maturation": "Maturation (min)",
 	"lifetime" 	: "Lifetime (ns)",
 	"RefNum"	: "Reference"
 }
@@ -279,7 +279,7 @@ function plotcircle(sel){
 		.attr("r", symbolsize)
 		.attr("stroke", "#000")
 		.attr("opacity", 0.7)
-		.style("fill", function (d) { return d3.hsl(hueScale (d.lambda_em), saturationScale (d.brightness), 0.5)});
+		.style("fill", function (d) { return d3.hsl(hueScale (d.em_max), saturationScale (d.brightness), 0.5)});
 		addactions(circle);
 	}
 
@@ -290,7 +290,7 @@ function plotsquare(sel){
 		.attr("height", symbolsize*2)
 		.attr("stroke", "#000")
 		.attr("opacity", 0.7)
-		.style("fill", function (d) { return d3.hsl(hueScale (d.lambda_em), saturationScale (d.brightness), 0.5)});
+		.style("fill", function (d) { return d3.hsl(hueScale (d.em_max), saturationScale (d.brightness), 0.5)});
 		addactions(square);
 	}
 
@@ -336,16 +336,16 @@ function addactions(sel){
 				.style("left", xPosition + "px")
 				.style("top", yPosition + "px")
 				.select("#exvalue")
-				.text(d.lambda_ex)
+				.text(d.ex_max)
 			d3.select("#tooltip")
 				.select("#emvalue")
-				.text(d.lambda_em);
+				.text(d.em_max);
 			d3.select("#tooltip")
 				.select("#ecvalue")
-				.text(d.E);
+				.text(d.ext_coeff);
 			d3.select("#tooltip")
 				.select("#qyvalue")
-				.text(d.QY);
+				.text(d.qy);
 			d3.select("#tooltip")
 				.select("h3")
 				.html(d.name);
@@ -490,16 +490,21 @@ function plot(xvar,yvar,data){
 }
 
 
+var danceInterval;
 function doalittledance(int) {
-	var s = ["QY","E","lambda_em","lambda_ex","brightness"];
-	setInterval(function() {
+	var int = int | 1000;
+	var s = ["qy","ext_coeff","em_max","ex_max","brightness"];
+	danceInterval = setInterval(function() {
 	  var x = s[Math.floor(Math.random() * s.length)];
 	  do{
 	    var y = s[Math.floor(Math.random() * s.length)];
 	  }	while (x == y);
 	  plot(x,y);
 	}, int);
+}
 
+function stopdancing(){
+	clearInterval(danceInterval);
 }
 
 

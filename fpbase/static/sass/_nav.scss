@@ -1,10 +1,14 @@
 $logo-color: #efe;
 
-
 .navbar-scroll-custom {
   transform: translateY(-$navbar-height - .5);
   transition-duration: 0.6s;
 }
+
+// AUTO DROPDOWN MENU ON HOVER
+// ul.nav li.dropdown:hover > .dropdown-menu {
+//     display: block;
+// }
 
 .navbar {
   //height: $navbar-height;  // this screws up dropdown menus in the nav

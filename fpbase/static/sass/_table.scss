@@ -12,25 +12,42 @@
 }
 
 #proteinTable {
+	table-layout: fixed;
 	margin-top: 1rem;
 	font-weight: 500;
+	width:100%;
+	td {vertical-align: middle;}
 	td.protein{
 		font-weight: 600;
 		font-size: 1rem;
+		a{
+			word-wrap: break-word;
+		}
 	}
-	@include media-breakpoint-up(lg) {
+
+	@include media-breakpoint-down(xl) {
+		.protein{ width: 280px; }
 		font-size: 0.9rem;
 		td.protein a{ font-size: 0.9rem; }
+		td {padding-top: 0.6rem; padding-bottom: 0.5rem;}
+	}
+	@include media-breakpoint-down(lg) {
+		.protein{ width: 210px; }
+		font-size: 0.8rem;
+		td.protein a{ font-size: 0.8rem; }
+		td {padding-top: 0.5rem; padding-bottom: 0.4rem;}
 	}
 	@include media-breakpoint-down(md) {
-		line-height: 0.9rem;
+		.protein{ width: 180px; }
 		font-weight: 600;
 		font-size: 0.7rem;
-		td {padding-top: 0.5rem; padding-bottom: 0.4rem;}
+		td {padding-top: 0.4rem;
+			padding-bottom: 0.3rem;}
 		th {font-weight: 800;}
 		td.protein a{font-size: 0.8rem;}
 	}
 	@include media-breakpoint-down(sm) {
+		table-layout: auto;
 		font-weight: 600;
 		font-size: 0.6rem;
 		td.protein a{font-size: 0.7rem;}

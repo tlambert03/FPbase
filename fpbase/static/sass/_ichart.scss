@@ -128,7 +128,6 @@ circle {
 	position: relative;
 }
 
-
 .noUi-slider{
   margin: 3rem 1rem 0.3rem;
   .noUi-connect{
@@ -136,9 +135,18 @@ circle {
   }
   .noUi-tooltip {
   /*  position: relative;*/
-    font-size: smaller;
+    font-size: 0.75rem;
     background: white;
     padding: 0.1rem 0.4rem;
+    @include media-breakpoint-down(lg){
+      font-size: 0.75rem;
+    }
+    @include media-breakpoint-down(md){
+      font-size: 0.6rem;
+    }
+    @include media-breakpoint-down(sm){
+      font-size: 0.8rem;
+    }
     &:after{  // adds arrows
       top: 100%;
       left: 50%;
@@ -185,6 +193,7 @@ circle {
     box-shadow: none !important;
     margin:0;
     font-size: 0.9rem;
+    font-weight: 500;
     @include media-breakpoint-down(lg){
       font-size: 0.75rem;
     }
@@ -194,7 +203,6 @@ circle {
     @include media-breakpoint-down(sm){
       font-size: 0.8rem;
     }
-    font-weight: 500;
     @include button-variant($chart-theme, $chart-theme);
   }
 }

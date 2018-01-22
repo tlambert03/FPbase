@@ -4,19 +4,28 @@
 }
 
 .stateform_block{
-	padding:1rem;
-	border-radius : 1rem 0 0 1rem;
+	padding:1.3rem;
+	border-radius : 0.5rem 0 0 0.5rem;
 	background-color: #eee;
 	margin-bottom: 1rem;
 	margin-right: 0;
 }
 
 .state-delete-button {
-	border-radius : 0 1rem 1rem 0;
+	border-radius : 0 0.5rem 0.5rem 0;
 	border: 0px;
 	margin-bottom: 1rem;
+	font-weight: 700;
+	font-size:1.4rem;
 	@include button-variant(lighten($danger,10), $white, lighten($danger,10));
-	display: inline;
+	&:hover{
+		background-color:$green;
+	}
+	//display: inline;
+}
+
+.formset_div {
+	padding-right: 0.9rem;
 }
 
 .form-group small a{
@@ -49,6 +58,23 @@ i {
 	border-bottom-left-radius: 0;
 }
 
+.query-row {
+	padding: 0.2rem 0;
+	.form-group{
+		margin-top: 0.3rem;;
+		margin-bottom: 0.2rem;
+	}
+}
+
+.button-row {
+	margin-top:0.5rem;
+}
+@include media-breakpoint-down(xs) {
+	.query-row:nth-child(even) {
+		background: $gray-300;
+		border-radius: 3px;
+	}
+}
 // adds a little arrow to the right of something...
 // but not using because Bootstrap accordion gives same
 // id to multiple elements

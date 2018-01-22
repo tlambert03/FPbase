@@ -97,3 +97,11 @@ $dropdown-box-shadow: 0 0.5rem 1rem rgba(black, .15);
 $navbar-dark-color:        rgba($white,.8) ;
 $navbar-dark-hover-color:  rgba($white,.95) ;
 $navbar-height: 3.5rem;
+
+$footer-background: desaturate(darken($primary,26),40);
+$footer-background:#0C4B33;
+$footer-color:#2B8C67;
+
+$tooltip-text: $white;
+$tooltip-color: $footer-background;
+

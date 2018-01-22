@@ -7,9 +7,7 @@ body{
 	}
 }
 
-$footer-background: desaturate(darken($primary,26),40);
-$footer-background:#0C4B33;
-$footer-color:#2B8C67;
+
 footer {
 	font-size: 0.8rem;
 	margin-top: 3.2rem;
@@ -24,8 +22,14 @@ footer {
     		color: lighten($footer-color,5);
     	}
     }
-
+    #licenselink{
+    	img{opacity: 0.6;
+    		&:hover{opacity: 0.9;}}
+    }
 }
+
+
+
 
 .home-body .twitter-share-button{
 	position: absolute;
@@ -91,6 +95,17 @@ footer {
     @include media-breakpoint-down(xs) { max-width: 100%; }
 }
 
+.example-like-button {
+	padding:0;
+	svg {
+		color: $yellow;
+		&:hover{
+			color: orange;
+			box-shadow:none !important;
+		}
+	}
+}
+
 
 .like_buttons{
 	padding-left: 1rem;
@@ -106,9 +121,7 @@ footer {
 			color: orange;
 		}
 	}
-	.container-button{
 
-	}
 	.favit{
 		// fix slight shift when clicking icon
 		svg[data-prefix='fas']{
@@ -129,6 +142,25 @@ footer {
 	}
 }
 
+.tooltip {
+	.tooltip-inner, {
+		color: $tooltip-text;
+   		background-color: $tooltip-color;
+	}
+	&.bs-tooltip-top .arrow:before {
+		border-top-color: $tooltip-color !important;
+	}
+	&.bs-tooltip-right .arrow:before {
+		border-right-color: $tooltip-color !important;
+	}
+	&.bs-tooltip-left .arrow:before {
+		border-left-color: $tooltip-color !important;
+	}
+	&.bs-tooltip-bottom .arrow:before {
+		border-bottom-color: $tooltip-color !important;
+	}
+}
+
 html.fa-events-icons-loading .brand,
 html.fa-events-typefaces-orbitron-loading .brand {
   visibility: hidden;
@@ -136,13 +168,4 @@ html.fa-events-typefaces-orbitron-loading .brand {
 
 .fontawesome-i2svg-pending body {
   display: none;
-}
-
-.tooltip {
-	.tooltip-inner, {
-   		background-color: $gray-500;
-	}
-	.arrow:before {
-		border-top-color: $gray-500 !important;
-	}
 }

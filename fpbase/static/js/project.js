@@ -126,8 +126,43 @@ $("#id_ipg_id").change(function(){
             reset_ipgid('Unrecognized IPG ID')
         }
     });
-
 })
+
+
+$("#proteinform #id_name").change(function () {
+    var form = $(this).closest("form");
+    $.ajax({
+      method: 'POST',
+      url: form.data("validate-proteinname-url"),
+      data: form.find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']").serialize(),
+      dataType: 'json',
+      success: function (data) {
+        if (data.is_taken) {
+          var namelink = '<a href="' + data.url + '" style="text-decoration: underline;">' + data.name + '</a>';
+          var message = '<strong>' + namelink + ' already exists in the database.</strong>';
+          $("#id_name").addClass('is-invalid');
+          $("#div_id_name").addClass('has-danger');
+
+          if ($('#error_1_id_name').length) {
+            $("#error_1_id_name").html(message);
+          } else{
+              span = $('<span/>', {
+            id: 'error_1_id_name',
+            class: 'invalid-feedback',
+        }).append(message);
+              $("#hint_id_name").before(span);
+          }
+        } else {
+          if ($('#error_1_id_name').length) {
+            $('#error_1_id_name').remove();
+            $("#id_name").removeClass('is-invalid');
+            $("#div_id_name").removeClass('has-danger');
+          }
+        }
+      }
+    });
+  });
+
 
 // auto populate PMID after DOI input
 $('#id_reference_doi').change(function(){
