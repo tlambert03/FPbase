@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static i18n compress favit_tags %}
+
+{% block title %}{{ object }} :: Fluorescent Protein Database {% endblock %}
+{% block meta-description %}FPbase Fluorescent proteins derived from {{ object.scientific_name }}{% endblock %}
+
+{% block content %}
+
+			<h1 class="name text-center mb-4">{{ object }}</h1>
+
+			<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}'); return false;" target="_blank"><i class="fas fa-external-link-alt"></i> View on Pubmed Taxonomy Browser</a>
+
+			<div class="row mt-2">
+				<dt class="col-sm-3">scientific_name</dt>
+				<dd class="col-sm-9"><em>{{ object.scientific_name }}</em></dd>
+				<dt class="col-sm-3">division</dt>
+				<dd class="col-sm-9"><em>{{ object.division }}</em></dd>
+				{% if object.common_name %}
+				    <dt class="col-sm-3">common_name</dt>
+				    <dd class="col-sm-9"><em>{{ object.common_name | default:''}}</em></dd>
+				{% endif %}
+			</div>
+
+
+
+			<h5 class='pt-3'><strong>Proteins derived from this organism</strong></h5>
+			{% with proteins=object.proteins.all removebutton=False %}
+			    {% include '_proteintable.html' %}
+			{% endwith %}
+
+{% endblock content %}
+
+
+
