@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}FPbase Database Design{% endblock %}
+{% block meta-description %}The FPbase database schema is designed to capture and categorize the important characteristics of fluorescent proteins for storage in a relational database.{% endblock %}
+
 {% block content %}
 <h1><strong>FP</strong>base Database Schema</h1>
 <a class="navbar-brand" href="{% url 'home' %}" style='fill:red;'>

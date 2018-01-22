@@ -1,15 +1,58 @@
 {% extends "base.html" %}
+{% load static %}
+{% block title %}About FPbase: The Fluorescent Protein Database {% endblock %}
+{% block meta-description %}FPbase was created in 2018 by microscopists at Harvard Medical School, in order to facility the collection and dissemination of information about fluorescent proteins and their characterstics.  It accepts user contributions but is also moderated.{% endblock %}
 
 {% block content %}
 <h1 class='mb-4'><strong>FP</strong>base</h1>
 
 <h3><strong>A database for users of fluorescent proteins</strong></h3>
 
-<p>FPbase is designed to be a source of information for people using fluorescent proteins in their research (such as in fluorescence microscopy).  It is not (at least intially) designed to be a comprehensive source of information about all fluorescent proteins ever developed.  However, we welcome additions and suggestions!  If there is an aspect of fluorescent proteins that you think should be represented here, let us know!</p>
+<p>FPbase is designed to be a source of information for people using fluorescent proteins in their research (such as in fluorescence microscopy).
+Fluorescent proteins are tremendously complex.  Even "basic" fluorescent proteins demonstrate complex environmentally-dependent variations.  As such, any attempt to classify and categorize something as multifacted as fluorescent proteins will innevitably miss important details.  Please use the data on this website as the starting point (and not the ending point) in your search for the right protein for your experiments.  If there is an aspect of fluorescent proteins that you think should be represented here, let us know!</p>
+
+<p>For more technical information about the structure of the FPbase database, please refer to the <a href="{% url 'schema' %}">database schema</a> page.</p>
 
 <h3><strong>How to use this site</strong></h3>
 
 <h5><strong>Search</strong></h5>
-There are many ways to find and compare fluorescent proteins on this site.  Of course, you can always just type the name of the protein you're looking for into the search box on the home page or the top right corner of this page.  To perform more complicated searches, use the <a href="{% url 'proteins:search' %}">advanced query builder</a>, where you can search using a number of fields (e.g. Name, Sequence, EC, QY, Spectra, Oligomerization, Year Published, etc...) and a variety of operators (e.g. contains, greater than, etc...).
+<p>There are many ways to find and compare fluorescent proteins on this site.  Of course, you can always just type the name of the protein you're looking for into the search box on the home page or the top right corner of this page.  To perform more complicated searches, use the <a href="{% url 'proteins:search' %}">advanced query builder</a>, where you can search using a number of fields (<em>e.g. Name, Sequence, EC, QY, Spectra, Oligomerization, Year Published, etc...</em>) and a variety of operators (<em>e.g. contains, greater than, etc...</em>):</p>
+
+<div class="card">
+  <div class="card-body">
+   <h5 class="card-title"> <a href='{% url 'proteins:search' %}'><strong>Advanced Query Builder</strong></a></h5>
+    <p class="card-text"><img src="{% static 'images/query.png' %}" class='img-fluid'></p>
+  </div>
+</div>
+
+<h5 class='mt-4'><strong>Browse</strong></h5>
+<p>If you just want to browse the database without searching something specific, you may find the <a href="{% url 'proteins:table' %}">Table</a> and <a href="{% url 'proteins:ichart' %}">Interactive Chart</a> views usful.</p>
+
+<p><strong>Table</strong></p>
+
+<p>The <a href="{% url 'proteins:table' %}">table</a> page shows all proteins in the databse, with each row representing a single protein "state" (that is, a multi-state protein such as a photoconvertible protein will appear in multiple rows of the table;  multistate proteins have small a parenthetical state name in the protein name).  You can sort this table by any of the paremeters, filter based on aggregation or switching type, or enter text in the search field ot limit the proteins displayed.</p>
+
+<p><strong>Interactive Chart</strong></p>
+<p>The <a href="{% url 'proteins:ichart' %}">Interactive Chart</a> allows visualization of the many parameters of fluorescent proteins, along with the ability to filter down to a subset of proteins based on certain attributes.  Change the axes to explore the relationship between fluorescent protein properties.  Hover over the circles to identify each protein on the scatter plot, and click on the circles to go to the FPbase page for that protein.</p>
+
+<div class="card">
+  <div class="card-body">
+   <h5 class="card-title"> <a href='{% url 'proteins:search' %}'><strong>Interactive Viewer</strong></a></h5>
+    <p class="card-text text-center"><img src="{% static 'images/ichart.png' %}" class='img-fluid'><br><br>This page is based on the original <a href="https://github.com/FPvisualization/fpvisualization.github.io">GitHub project</a> by Talley Lambert and Kurt Thorn</p>
+  </div>
+</div>
+
+<h5 class='mt-4'><strong>Collect</strong></h5>
+<p>Click the heart (<a class="btn example-like-button"><i class="fas fa-heart"></i></a>) icon at the top right of any protein page to quickly add it to your favorites, which can be seen on your profile page.  You may also <a href="{% url 'proteins:newcollection' %}">create collections of fluorescent proteins</a> for private use or for sharing publicly.  You may view your own collections in your profile, or <a href='{% url 'proteins:collections' %}'>view all public collections</a> created on FPbase.  On each protein page, you can click the book icon (<a class="btn example-like-button"><i class="fas fa-book"></i></a>) to add the current protein to one of your collections.</p>
+
+<h5 class='mt-4'><strong>Contribute</strong></h5>
+<p>If you would like to help expand the FPbase database, please consider contributing information to the database.  This can be as small as adding an additional reference to a protein, or creating new protein records altogether.  Please read the <a href="{% url "contributing" %}">guide to contributing</a> for more information.</p>
+
+<h3 class='mt-4'><strong>REST API</strong></h3>
+<p>FPbase includes a <a href="{%url 'proteins:protein-api' %}">REST API</a> that allows programatic access to the data in JSON, or CSV format.  Documentation coming soon.</p>
+
+
+<h3 class='mt-4'><strong>Moderation</strong></h3>
+{% include 'pages/_moderation.html' %}
 
 {% endblock content %}

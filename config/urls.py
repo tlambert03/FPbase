@@ -12,8 +12,11 @@ import fpbase.views
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='pages/home.html'), name='home'),
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name='about'),
-    url(r'^privacy/$', TemplateView.as_view(template_name='pages/privacy.html'), name='privacy'),
+    url(r'^terms/$', TemplateView.as_view(template_name='pages/terms.html'), name='terms'),
+    url(r'^privacy/$', TemplateView.as_view(template_name='pages/terms.html'), name='privacy'),
+    url(r'^contributing/$', TemplateView.as_view(template_name='pages/contributing.html'), name='contributing'),
     url(r'^schema/$', TemplateView.as_view(template_name='pages/schema.html'), name='schema'),
+    url(r'^robots.txt$', TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots"),
 
     url(r'^contact/$', fpbase.views.ContactView.as_view(), name='contact'),
     url(r'^thanks/$', TemplateView.as_view(template_name='pages/thanks.html'), name='thanks'),
