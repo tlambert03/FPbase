@@ -43,12 +43,14 @@ urlpatterns = [
     url(r'^ajax/add_to_collection/$', views.add_to_collection, name='add_to_collection'),
 
     url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
+    url(r'^organism/(?P<pk>\d+)/$', views.OrganismDetailView.as_view(), name='organism-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/ver/(?P<ver>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
 
     # /proteins/api
-    url(r'^api/$', apiviews.ProteinListCreateAPIView.as_view(), name='protein-api'),
-    url(r'^api/basic/$', apiviews.BasicProteinListCreateAPIView.as_view(), name='basic-protein-api'),
+    url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
+    url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
+    url(r'^api/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
     # /proteins/api/:slug/
     url(r'^api/(?P<slug>[-\w]+)/$', apiviews.ProteinRetrieveUpdateDestroyAPIView.as_view(), name='protein-api')
 
