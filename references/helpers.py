@@ -4,7 +4,9 @@ from crossref.restful import Works, Etiquette
 from fpbase import __version__
 import re
 
-email = 'talley.lambert+fpbase@gmail.com'
+from Bio import Entrez
+Entrez.email = 'talley.lambert+fpbase@gmail.com'
+email = Entrez.email
 my_etiquette = Etiquette('FPbase', __version__, 'http://fpbase.org', email)
 ID_CONVERT_URL = 'https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?tool=FPbase&email='+email+'&ids=%s&format=json'
 
@@ -48,9 +50,15 @@ def get_doi_info(doi):
 	}
 
 
+def get_doi_from_pmid(pmid):
+	pubmed_record = Entrez.read(Entrez.esummary(db='pubmed', id=pmid, retmode='xml'))
+	try:
+		return pubmed_record[0].get('DOI')
+	except Exception:
+		return None
+
+
 def get_pmid_info(pmid):
-	from Bio import Entrez
-	Entrez.email = "talley_lambert@hms.harvard.edu"
 	pubmed_record = Entrez.read(Entrez.esummary(db='pubmed', id=pmid, retmode='xml'))
 	if len(pubmed_record):
 		pubmed_record = pubmed_record[0]
