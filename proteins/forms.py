@@ -1,17 +1,45 @@
 from django import forms
 from django.utils.text import slugify
 from django.utils.safestring import mark_safe
-from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
-from proteins.models import Protein, State, StateTransition, Organism, ProteinCollection
-from proteins.validators import validate_spectrum, validate_doi
+from proteins.models import Protein, State, StateTransition, ProteinCollection, BleachMeasurement
+from proteins.validators import validate_spectrum, validate_doi, protein_sequence_validator
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML
-from references.models import Reference
 
 
 def popover_html(label, content, side='right'):
     return '<label data-toggle="tooltip" style="padding-' + side + ': 1rem;" data-placement="' + side + '" title="' + content + '">' + label + '</label>'
+
+
+def check_existence(form, fieldname, value):
+    # check whether another Protein already has this
+    # value for this fieldname
+    # return value if not
+    if not value:
+        return None
+
+    # on update form allow for the same sequence (case insensitive)
+    if hasattr(form, 'instance'):
+        instanceVal = getattr(form.instance, fieldname)
+        if isinstance(instanceVal, str) and instanceVal.upper() == value.upper():
+            return value
+
+    if fieldname == 'name':
+        slug = slugify(value)
+        query = Protein.objects.filter(slug=slug)
+        query = query | Protein.objects.filter(name__iexact=value)
+        query = query | Protein.objects.filter(name__iexact=value.replace(' ', ''))
+        query = query | Protein.objects.filter(name__iexact=value.replace(' ', '').replace('monomeric', 'm'))
+    else:
+        query = Protein.objects.filter(**{fieldname: value})
+
+    if query.exists():
+        prot = query.first()
+        raise forms.ValidationError(mark_safe(
+            '<a href="{}" style="text-decoration: underline;">{}</a> already has this {}'.format(
+                prot.get_absolute_url(), prot.name, Protein._meta.get_field(fieldname).verbose_name.lower())))
+    return value
 
 
 class DOIField(forms.CharField):
@@ -26,9 +54,27 @@ class DOIField(forms.CharField):
         return super().to_python(value)
 
 
-class ProteinUpdateForm(forms.ModelForm):
+class SequenceField(forms.CharField):
+    widget = forms.Textarea(attrs={
+        'class': 'vLargeTextField',
+        'rows': 3,
+    })
+    max_length = 1024
+    label = 'AA Sequence'
+    default_validators = [protein_sequence_validator]
+    strip = True
+
+    def to_python(self, value):
+        if value and isinstance(value, str):
+            value = value.replace(' ', '').upper()
+        return super().to_python(value)
+
+
+class ProteinForm(forms.ModelForm):
     '''Form class for user-facing protein creation/submission form '''
-    reference_doi = DOIField(required=False, help_text = 'e.g. 10.1038/nmeth.2413')
+    reference_doi = DOIField(required=False, help_text='e.g. 10.1038/nmeth.2413')
+    seq = SequenceField(required=False, help_text='Amino acid sequence (IPG ID is preferred)',
+        label=popover_html('Sequence', "If you enter an IPG ID, the sequence can be automatically fetched from NCBI"),)
     # reference_pmid = forms.CharField(max_length=24, label='Reference Pubmed ID',
     #     required=False, help_text='e.g. 23524392 (must provide either DOI or PMID)')
 
@@ -39,14 +85,21 @@ class ProteinUpdateForm(forms.ModelForm):
         self.helper.error_text_inline = True
         self.helper.layout = Layout(
             Div(
-                Div('name', css_class='col-sm-6'),
-                Div('reference_doi', css_class='col-sm-6'),
+                Div('name', css_class='col-md-4 col-sm-12'),
+                Div('aliases', css_class='col-md-4 col-sm-6'),
+                Div('reference_doi', css_class='col-md-4 col-sm-6'),
                 css_class='row',
             ),
             Div(
-                Div('ipg_id', css_class='col-sm-4'),
-                Div('agg', css_class='col-sm-4'),
-                Div('parent_organism', css_class='col-sm-4'),
+                Div('agg', css_class='col-sm-6'),
+                Div('parent_organism', css_class='col-sm-6'),
+                css_class='row',
+            ),
+            Div(
+                Div('ipg_id', css_class='col-lg-3 col-sm-6'),
+                Div('genbank', css_class='col-lg-3 col-sm-6'),
+                Div('uniprot', css_class='col-lg-3 col-sm-6'),
+                Div('pdb', css_class='col-lg-3 col-sm-6'),
                 css_class='row',
             ),
             Div(
@@ -57,59 +110,64 @@ class ProteinUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Protein
-        fields = ('name', 'ipg_id', 'seq', 'agg', 'parent_organism', 'reference_doi', 'aliases', 'chromophore', 'genbank', 'uniprot', 'blurb')
-        widgets = {
-            'seq': forms.Textarea(attrs={'rows': 3}),
-        }
+        fields = ('name', 'ipg_id', 'seq', 'agg', 'parent_organism', 'pdb', 'reference_doi',
+                  'aliases', 'chromophore', 'genbank', 'uniprot', 'blurb')
         labels = {
-            "seq": popover_html('Sequence', "If you enter an IPG ID, the sequence can be automatically fetched from NCBI"),
             "agg": "Oligomerization",
         }
         help_texts = {
+            'aliases': 'Comma seperated list of aliases',
+            'pdb': 'Comma seperated list of <a href="https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html" target="_blank">PDB IDs</a>',
             'ipg_id': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/" target="_blank">Identical Protein Group ID</a>',
+            'genbank': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/genbank/sequenceids/" target="_blank">GenBank ID</a>',
+            'uniprot': '<a href="https://www.uniprot.org/help/accession_numbers" target="_blank">UniProt accession number</a>'
         }
 
-
-class ProteinSubmitForm(ProteinUpdateForm):
-    reference_doi = DOIField(required=True, help_text = 'e.g. 10.1038/nmeth.2413')
-
     def clean_name(self):
-        name = self.cleaned_data['name']
-        slug = slugify(name)
-        query = Protein.objects.filter(slug=slug)
-        query = query | Protein.objects.filter(name__iexact=name)
-        query = query | Protein.objects.filter(name__iexact=name.replace(' ', ''))
-        query = query | Protein.objects.filter(name__iexact=name.replace(' ', '').replace('monomeric', 'm'))
-        if query.exists():
-            prot = query.first()
-            raise ValidationError(mark_safe(
-                '<a href="{}" style="text-decoration: underline;">{}</a> already exists in the database'.format(
-                    prot.get_absolute_url(), prot.name)))
-        return name
+        return check_existence(self, 'name', self.cleaned_data['name'])
 
     def clean_seq(self):
-        seq = self.cleaned_data['seq']
-        if not seq:
-            return None
-        query = Protein.objects.filter(seq=seq)
-        if query.exists():
-            prot = query.first()
-            raise ValidationError(mark_safe(
-                '<a href="{}" style="text-decoration: underline;">{}</a> already has this sequence'.format(
-                    prot.get_absolute_url(), prot.name)))
-        return seq
+        return check_existence(self, 'seq', self.cleaned_data['seq'])
 
     def clean_ipg_id(self):
-        ipg_id = self.cleaned_data['ipg_id']
-        if not ipg_id:
-            return None
-        query = Protein.objects.filter(ipg_id=ipg_id)
-        if query.exists():
-            prot = query.first()
-            raise ValidationError(mark_safe(
-                '<a href="{}" style="text-decoration: underline;">{}</a> already has this ID'.format(
-                    prot.get_absolute_url(), prot.name)))
-        return ipg_id
+        return check_existence(self, 'ipg_id', self.cleaned_data['ipg_id'])
+
+    def clean_genbank(self):
+        return check_existence(self, 'genbank', self.cleaned_data['genbank'])
+
+    def clean_uniprot(self):
+        return check_existence(self, 'uniprot', self.cleaned_data['uniprot'])
+
+    def save_new_only(self, commit=True):
+        # check the current db Instance for all of the changed_data values
+        # if there is currently a non-null value in the database,
+        # don't overwrite it ...
+        # repopulate self.instance with form data afterwards, so that calling
+        # self.save() again in the future WILL overwrite the database values
+        isupdate = bool(hasattr(self, 'instance') and self.instance.pk)
+        backup = {}
+        if not isupdate:
+            return super().save(commit=commit)
+        else:
+            dbInstance = Protein.objects.get(pk=self.instance.pk)
+            for field in self.changed_data:
+                if not hasattr(dbInstance, field):
+                    continue
+                dbValue = getattr(dbInstance, field)
+                formValue = getattr(self.instance, field)
+                if field in ('pdb', 'aliases'):
+                    continue
+                    for val in formValue:
+                        if val not in dbValue:
+                            getattr(self.instance, field).append(val)
+                else:
+                    if dbValue and formValue != dbValue:
+                        backup[field] = formValue
+                        setattr(self.instance, field, dbValue)
+        self.instance = super().save(commit=commit)
+        for field, value in backup.items():
+            setattr(self.instance, field, value)
+        return self.instance
 
 
 class SpectrumFormField(forms.CharField):
@@ -125,7 +183,7 @@ class SpectrumFormField(forms.CharField):
         super().__init__(*args, **kwargs)
 
 
-class StateSubmitForm(forms.ModelForm):
+class StateForm(forms.ModelForm):
     ex_spectra = SpectrumFormField(required=False, label='Excitation Spectrum')
     em_spectra = SpectrumFormField(required=False, label='Emission Spectrum')
 
@@ -164,13 +222,17 @@ class StateSubmitForm(forms.ModelForm):
             )
         )
 
-    def clean(self):
-        super().clean()
-        is_dark = self.cleaned_data.get("is_dark")
+    def clean_ex_max(self):
         ex_max = self.cleaned_data.get("ex_max")
+        if not self.cleaned_data['is_dark'] and not ex_max:
+            raise forms.ValidationError("Must provide Ex Max for non-dark state")
+        return ex_max
+
+    def clean_em_max(self):
         em_max = self.cleaned_data.get("em_max")
-        if not is_dark and not (ex_max and em_max):
-            raise forms.ValidationError("Must provide both ex & em maxima for non-dark state")
+        if not self.cleaned_data['is_dark'] and not em_max:
+            raise forms.ValidationError("Must provide Em Max for non-dark state")
+        return em_max
 
     class Meta:
         model = State
@@ -181,13 +243,9 @@ class StateSubmitForm(forms.ModelForm):
             'em_spectra': forms.Textarea(attrs={'rows': 2}),
         }
         labels = {
-            "ext_coeff": "Extinction Coefficient",
             "ex_max": "Excitation Max (nm)",
             "em_max": "Emission Max (nm)",
-            "qy": "Quantum Yield",
             "pka": "pKa",
-            "ex_spectra": popover_html('Excitation Spectrum', "If you enter an IPG ID, the sequence can be automatically fetched from NCBI"),
-            "em_spectra": "Emission Spectrum",
         }
 
 
@@ -210,7 +268,7 @@ class BaseStateFormSet(forms.BaseInlineFormSet):
                 raise forms.ValidationError("A protein can only have a single dark state")
 
 
-StateFormSet = inlineformset_factory(Protein, State, form=StateSubmitForm, formset=BaseStateFormSet, extra=1, can_delete=True)
+StateFormSet = inlineformset_factory(Protein, State, form=StateForm, formset=BaseStateFormSet, extra=1, can_delete=True)
 
 
 class StateTransitionForm(forms.ModelForm):
@@ -239,10 +297,16 @@ class StateTransitionForm(forms.ModelForm):
 StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=StateTransitionForm, extra=1)
 
 
+class BleachMeasurementForm(forms.ModelForm):
+    class Meta:
+        model = BleachMeasurement
+        fields = ('rate', 'power', 'modality', 'reference', 'state', )
+
+
 class CollectionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
     class Meta:
@@ -252,45 +316,14 @@ class CollectionForm(forms.ModelForm):
     def clean_name(self):
         name = self.cleaned_data['name']
         # on update form allow for the same name (case insensitive)
-        if hasattr(self, 'instance') and self.instance.name.lower() == name.lower():
+        isupdate = bool(hasattr(self, 'instance') and self.instance.pk)
+        if isupdate and self.instance.name.lower() == name.lower():
             return name
         try:
-            col = ProteinCollection.objects.get(name__iexact=name, owner=self.request.user)
+            col = ProteinCollection.objects.get(name__iexact=name, owner=self.user)
         except ProteinCollection.DoesNotExist:
             return name
 
-        raise ValidationError(mark_safe(
+        raise forms.ValidationError(mark_safe(
             'You already have a collection named <a href="{}" style="text-decoration: underline;">{}</a>'.format(
                 col.get_absolute_url(), col.name)))
-
-
-# class StateForm(forms.ModelForm):
-#     ex_spectra = SpectrumFormField(required=False)
-#     em_spectra = SpectrumFormField(required=False)
-
-#     class Meta:
-#         model = State
-#         fields = ['protein', 'is_dark', 'name', 'ex_max', 'em_max', 'ex_spectra', 'em_spectra', 'ext_coeff', 'qy', 'pka', 'maturation', 'lifetime', 'created_by', 'updated_by']
-
-#     def __init__(self, *args, **kwargs):
-#         super(StateForm, self).__init__(*args, **kwargs)  # populates the post
-#         try:
-#             self.fields['to_state'].queryset = State.objects.filter(protein=self.instance.protein).exclude(slug=self.instance.slug)
-#             if self.instance.protein.switch_type == '1':
-#                 pass
-#                 # would like to remove fields from basic type proteins
-#                 # del self.fields['to_state']
-#         except Exception:
-#             #FIXME: update state business
-#             pass
-#             # self.fields['to_state'].queryset = State.objects.filter(name='')
-
-#     def clean_created_by(self):
-#         if not self.cleaned_data['created_by']:
-#             return User()
-#         return self.cleaned_data['created_by']
-
-#     def clean_updated_by(self):
-#         if not self.cleaned_data['updated_by']:
-#             return User()
-#         return self.cleaned_data['updated_by']
