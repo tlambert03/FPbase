@@ -2,12 +2,13 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
-from django.db.models import Avg
+from django.db.models import Avg, Q, Count
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.urls import reverse
 from model_utils.models import StatusModel, TimeStampedModel
+from model_utils.managers import QueryManager
 from model_utils import Choices
 import uuid as uuid_lib
 import json
@@ -15,8 +16,9 @@ import re
 
 from references.models import Reference
 from .helpers import fetch_ipg_sequence, get_color_group, wave_to_hex, mless, get_base_name
-from .validators import protein_sequence_validator, validate_mutation
+from .validators import protein_sequence_validator, validate_mutation, validate_uniprot
 from .fields import SpectrumField
+from . import util
 from reversion.models import Version
 
 from Bio import Entrez
@@ -52,6 +54,9 @@ class Organism(Authorable, TimeStampedModel):
         verbose_name = u'Organism'
         ordering = ['scientific_name']
 
+    def get_absolute_url(self):
+        return reverse("proteins:organism-detail", args=[self.pk])
+
     def save(self, *args, **kwargs):
         pubmed_record = Entrez.read(Entrez.esummary(db='taxonomy', id=self.id, retmode='xml'))
         self.scientific_name = pubmed_record[0]['ScientificName']
@@ -63,10 +68,31 @@ class Organism(Authorable, TimeStampedModel):
         super(Organism, self).save(*args, **kwargs)
 
 
+class ProteinManager(models.Manager):
+    def with_counts(self):
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT p.id, p.name, p.slug, COUNT(*)
+                FROM proteins_protein p, proteins_state s
+                WHERE p.id = s.protein_id
+                GROUP BY p.id, p.name, p.slug
+                ORDER BY COUNT(*) DESC""")
+            result_list = []
+            for row in cursor.fetchall():
+                p = self.model(id=row[0], name=row[1], slug=row[2])
+                p.num_states = row[3]
+                result_list.append(p)
+        return result_list
+
+    def annotated(self):
+        return self.get_queryset().annotate(Count('states'), Count('transitions'))
+
+
 class Protein(Authorable, StatusModel, TimeStampedModel):
     """ Protein class to store individual proteins, each with a unique AA sequence and name  """
 
-    STATUS = Choices('pending', 'approved')
+    STATUS = Choices('pending', 'approved', 'hidden')
 
     MONOMER = 'm'
     DIMER = 'd'
@@ -93,7 +119,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         (PHOTOSWITCHABLE, 'Photoswitchable'),
         (PHOTOCONVERTIBLE, 'Photoconvertible'),
         (TIMER, 'Timer'),
-        (OTHER, 'Other'),
+        (OTHER, 'Multistate'),
     )
 
     # Attributes
@@ -103,11 +129,12 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     base_name   = models.CharField(max_length=128)  # easily searchable "family" name
     aliases     = ArrayField(models.CharField(max_length=200), blank=True, null=True)
     chromophore = models.CharField(max_length=5, null=True, blank=True)
-    seq         = models.CharField(max_length=1024, unique=True, blank=True, null=True,
+    seq         = models.CharField(max_length=1024, unique=True, blank=True, null=True, verbose_name='Sequence',
                     help_text="Amino acid sequence (IPG ID is preferred)",
                     validators=[protein_sequence_validator])  # consider adding Protein Sequence validator
-    genbank     = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='Genbank Accession')
-    uniprot     = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='UniProtKB Accession')
+    pdb         = ArrayField(models.CharField(max_length=4), blank=True, null=True, verbose_name='Protein DataBank ID')
+    genbank     = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='Genbank Accession', help_text="NCBI Genbank Accession")
+    uniprot     = models.CharField(max_length=10, null=True, blank=True, unique=True, verbose_name='UniProtKB Accession', validators=[validate_uniprot])
     ipg_id      = models.CharField(max_length=12, null=True, blank=True, unique=True,
                     verbose_name='IPG ID', help_text="Identical Protein Group ID at Pubmed")  # identical protein group uid
     mw          = models.FloatField(null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
@@ -125,6 +152,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     __original_ipg_id = None
 
+    #managers
+    objects = ProteinManager()
+    visible = QueryManager(~Q(status='hidden'))
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # store IPG_ID so that we know if it changes
@@ -133,6 +164,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     @property
     def mless(self):
         return mless(self.name)
+
+    @property
+    def description(self):
+        return util.long_blurb(self)
 
     @property
     def _base_name(self):
@@ -152,18 +187,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                                   .first()
         except Exception:
             return None
-
-    @property
-    def all_spectra(self):
-        a = False
-        if self.states.exists():
-            a = []
-            for s in self.states.all():
-                if s.ex_spectra is not None:
-                    a.append(s.ex_spectra.data)
-                if s.em_spectra is not None:
-                    a.append(s.em_spectra.data)
-        return a
 
     @property
     def additional_references(self):
@@ -192,11 +215,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 return True
         return False
 
-    def spectra(self):
+    def spectra_json(self):
         spectra = []
         for state in self.states.all():
-            spectra.append(state.nvd3ex)
-            spectra.append(state.nvd3em)
+            spectra.append(state.nvd3ex) if state.ex_spectra else None
+            spectra.append(state.nvd3em) if state.em_spectra else None
         return json.dumps(spectra)
 
     def set_state_and_type(self):
@@ -223,11 +246,17 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 self.switch_type = self.PHOTOSWITCHABLE
 
     def clean(self):
-
         errors = {}
         # Don't allow basic switch_types to have more than one state.
 #        if self.switch_type == 'b' and self.states.count() > 1:
 #            errors.update({'switch_type': 'Basic (non photoconvertible) proteins cannot have more than one state.'})
+        if self.pdb:
+            self.pdb = list(set(self.pdb))
+            for item in self.pdb:
+                if Protein.objects.exclude(id=self.id).filter(pdb__contains=[item]).exists():
+                    p = Protein.objects.filter(pdb__contains=[item]).first()
+                    errors.update({'pdb': 'PDB ID {} is already in use by protein {}'.format(item, p.name)})
+
         if errors:
             raise ValidationError(errors)
 
@@ -273,8 +302,8 @@ class State(Authorable, TimeStampedModel):
     em_spectra  = SpectrumField(blank=True, null=True, help_text='List of [[wavelength, value],...] pairs')  # emission spectra (list of x,y coordinate pairs)
     ext_coeff   = models.IntegerField(blank=True, null=True,
                     validators=[MinValueValidator(0), MaxValueValidator(300000)],
-                    help_text="Extinction Coefficient")  # extinction coefficient
-    qy          = models.FloatField(null=True, blank=True, help_text="Quantum Yield",
+                    verbose_name="Extinction Coefficient")  # extinction coefficient
+    qy          = models.FloatField(null=True, blank=True, verbose_name="Quantum Yield",
                     validators=[MinValueValidator(0), MaxValueValidator(1)])  # quantum yield
     brightness  = models.FloatField(null=True, blank=True, editable=False)
     pka         = models.FloatField(null=True, blank=True, verbose_name='pKa',
@@ -296,9 +325,8 @@ class State(Authorable, TimeStampedModel):
         """ brightness relative to spectral neighbors.  1 = average """
         if not (self.em_max and self.brightness):
             return 1
-        em_min = self.em_max - 15
-        em_max = self.em_max + 15
-        B = State.objects.exclude(id=self.id).filter(em_max__gt=em_min, em_max__lt=em_max).aggregate(Avg('brightness'))
+        B = State.objects.exclude(id=self.id).filter(
+                em_max__around=self.em_max).aggregate(Avg('brightness'))
         try:
             v = round(self.brightness / B['brightness__avg'], 4)
         except TypeError:
@@ -455,9 +483,9 @@ class StateTransition(TimeStampedModel):
     def clean(self):
         errors = {}
         if self.from_state.protein != self.protein:
-            errors.update({'from_state': '"From" state must belong to protein {}'.format(protein.name)})
+            errors.update({'from_state': '"From" state must belong to protein {}'.format(self.protein.name)})
         if self.to_state.protein != self.protein:
-            errors.update({'to_state': '"To" state must belong to protein {}'.format(protein.name)})
+            errors.update({'to_state': '"To" state must belong to protein {}'.format(self.protein.name)})
         if errors:
             raise ValidationError(errors)
 
