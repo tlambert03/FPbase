@@ -26,6 +26,8 @@ Entrez.email = "talley_lambert@hms.harvard.edu"
 
 SUPERUSER = User.objects.filter(is_superuser=True).first()
 
+BASEDIR = os.path.dirname(os.path.dirname(__file__))
+
 
 def require_superuser(func):
     def wrapper(*args, **kwargs):
@@ -467,7 +469,6 @@ ORGLOOKUP = {'Acanthastrea sp. ': None,
  'Zoanthus sp. ': 105402,
  'Zoanthus sp.2': 105402}
 
-BASEDIR = os.path.dirname(os.path.dirname(__file__))
 
 def name_check(name):
     switch = None
@@ -490,7 +491,7 @@ def parensplit(st):
     return st.strip(')').replace('(', '').split()
 
 
-def import_fpd(file=None):
+def import_fpd(file=None, overwrite=True):
     if file and os.path.isfile(os.path.join(BASEDIR, '_data', file)):
         file = os.path.join(BASEDIR, '_data', file)
     if not file:
@@ -500,9 +501,9 @@ def import_fpd(file=None):
     errors = []
     for rownum, row in enumerate(data.dict):
         try:
+            for k, v in row.items():
+                row[k] = v.strip()
             print(row['name'])
-
-            #TODO: get rid of empty values so they don't overwrite previous ones
 
             # just remove bad sequences
             try:
@@ -510,6 +511,16 @@ def import_fpd(file=None):
             except Exception:
                 row['seq'] = None
             row['agg'] = row['agg'].strip()
+
+            if row.get('pdb', False):
+                row['pdb'] = [i.strip() for i in row['pdb'].split(',') if i.strip()]
+            else:
+                row['pdb'] = []
+
+            if row.get('aliases', False):
+                row['aliases'] = [i.strip() for i in row['aliases'].split(',') if i.strip()]
+            else:
+                row['aliases'] = []
 
             org = None
             if ORGLOOKUP.get(row.get('parent_organism')):
@@ -524,11 +535,16 @@ def import_fpd(file=None):
             namemismatch = False  # will be true if something already has this sequence with a diff name
 
             # check if protein already exists a variety of ways
-            if row.get('seq') and Protein.objects.filter(seq=row.get('seq')).count():
-                p = Protein.objects.get(seq=row.get('seq'))
-            elif Protein.objects.filter(slug=slugify(row.get('name'))).count():
+            if Protein.objects.filter(slug=slugify(row.get('name'))).exists():
                 p = Protein.objects.get(slug=slugify(row.get('name')))
-            elif Protein.objects.filter(genbank=row['genbank']).count():
+                if Protein.objects.filter(seq=row.get('seq')).exists():
+                    p2 = Protein.objects.get(seq=row.get('seq'))
+                    if p2 != p:
+                        row['seq'] = None
+                        errors.append('cannot assign {} sequence, {} already has it'.format(row.get('name'), p2.name))
+            elif row.get('seq') and Protein.objects.filter(seq=row.get('seq')).exists():
+                p = Protein.objects.get(seq=row.get('seq'))
+            elif Protein.objects.filter(genbank=row['genbank']).exists():
                 p = Protein.objects.get(genbank=row['genbank'])
             else:
                 p = None
@@ -549,17 +565,19 @@ def import_fpd(file=None):
                             # errors.append('UniProt mismatch between {} and {}'.format(p.name, row.get('name')))
                     else:
                         row['uniprot'] = p.uniprot
+
                 if not p.name == row.get('name', None):
                     namemismatch = True
                     # errors.append('same sequence name mismatch between {} and {}'.format(p.name, row.get('name')))
-                    row['aliases'] = row.get('name')
+                    row['aliases'].append(row.get('name'))
                     row['name'] = p.name
 
+
             # create the protein form and validate/sve
-            pform = forms.ProteinUpdateForm(row, instance=p) if p else forms.ProteinSubmitForm(row)
-            pform.fields['reference_doi'].required = False
+            ref = None
+            pform = forms.ProteinForm(row, instance=p) if p else forms.ProteinForm(row)
             if pform.is_valid():
-                p = pform.save()
+                p = pform.save() if overwrite else pform.save_new_only()
                 doi = pform.cleaned_data.get('reference_doi')
                 if pform.cleaned_data.get('reference_doi'):
                     ref, created = Reference.objects.get_or_create(doi=doi)
@@ -568,7 +586,7 @@ def import_fpd(file=None):
                     ref.proteins.add(p)
                     if not p.primary_reference:
                         p.primary_reference = ref
-                        p.save()
+                        p = pform.save() if overwrite else pform.save_new_only()
             else:
                 errors.append("name: {}, row: {}, {}".format(data.dict[rownum]['name'], rownum, pform.errors.as_text()))
 
@@ -618,7 +636,7 @@ def import_fpd(file=None):
                 except Exception:
                     pass
                 state['protein'] = p.pk
-                sform = forms.StateSubmitForm(state)
+                sform = forms.StateForm(state)
                 if sform.is_valid():
                     sinstances.append(sform.save())
                 else:
@@ -641,7 +659,12 @@ def import_fpd(file=None):
                 except Exception:
                     print('failed to link states {} > {} '.format())
 
-            p.save()  # register states
+            if row['bleach']:
+                state = sinstances[-1] if len(sinstances) else None
+                bm = BleachMeasurement(rate=float(row['bleach']), reference=ref, state=state)
+                bm.save()
+
+            p = pform.save() if overwrite else pform.save_new_only()  # register states
 
         except KeyboardInterrupt:
             raise
