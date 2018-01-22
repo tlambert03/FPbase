@@ -1,7 +1,10 @@
 import xml.etree.ElementTree as ET
 from metapub import CrossRef, PubMedFetcher
-from Bio import Entrez
+from Bio import Entrez, SeqIO
+from references.helpers import get_doi_from_pmid
 import re
+import json
+
 CR = CrossRef()
 PMF = PubMedFetcher()
 # Entrez.parse doesn't seem to work with ipg results
@@ -241,3 +244,140 @@ def get_base_name(name):
 
     return name
 
+
+# genbank protein accession
+gbprotrx = re.compile('^[A-Za-z]{3}\d{5}\.?\d?')
+# genbank nucleotide accession
+gbnucrx = re.compile('^([A-Za-z]{2}\d{6}\.?\d?)|([A-Za-z]{1}\d{5}\.?\d?)')
+# refseq accession
+refseqrx = re.compile('(NC|AC|NG|NT|NW|NZ|NM|NR|XM|XR|NP|AP|XP|YP|ZP)_[0-9]+')
+
+
+def get_ipgid_from_gbid(gbid):
+    with Entrez.esearch(db='ipg', term=gbid) as handle:
+        record = Entrez.read(handle)
+    if record['Count'] == '1':  # we got a unique hit
+        return record['IdList'][0]
+
+
+# ## MAIN FUNCTION ##
+# use this to get lots of other info based on a genbank ID
+def get_gb_info(gbid):
+    if gbprotrx.match(gbid):  # it is a protein accession
+        database = 'protein'
+    elif gbnucrx.match(gbid):
+        database = 'nuccore'
+
+    with Entrez.efetch(db=database, id=gbid, rettype="gb", retmode="text") as handle:
+        record = SeqIO.read(handle, "genbank")
+
+    if record:
+        if database == 'protein':
+            D = parse_gbprot_record(record)
+        elif database == 'nuccore':
+            D = parse_gbnuc_record(record)
+        D['ipg_id'] = get_ipgid_from_gbid(gbid)
+        if len(D['pmids']):
+            pmids = D.pop('pmids')
+            D['refs'] = [{'pmid': pmid, 'doi': get_doi_from_pmid(pmid)} for pmid in pmids]
+        return D
+    else:
+        return None
+
+
+def parse_gbnuc_record(record):
+    """
+    returns (possible)
+        desc: description
+        seq: protein sequence
+        pmids: [list of pmids]
+        organism: name of organism
+        gb_prot: protein accession
+        gb_nuc:  nucleotide accession
+        product: description of protein product
+        gene: addition description of the gene (might have protein name)
+    """
+    D = {}
+    annotations = getattr(record, 'annotations')
+    features = getattr(record, 'features')
+    D['desc'] = getattr(record, 'description', None)
+    if annotations:
+        refs = annotations.get('references')
+        if refs:
+            D['pmids'] = [getattr(r, 'pubmed_id') for r in refs if
+                     getattr(r, 'pubmed_id', False)]
+        D['organism'] = annotations.get('organism', None)
+        nuc = annotations.get('accessions', [])
+        if len(nuc):
+            D['gb_nuc'] = nuc[0]
+    if features:
+        CDSs = [f for f in features if f.type == 'CDS']
+        if len(CDSs) == 1:
+            cds = CDSs[0]
+            quals = getattr(cds, 'qualifiers')
+            if quals:
+                trans = quals.get('translation', [])
+                if len(trans):
+                    D['seq'] = trans[0]
+                protid = quals.get('protein_id', [])
+                if len(protid):
+                    D['gb_prot'] = protid[0]
+                gene = quals.get('gene', [])
+                if len(gene):
+                    D['gene'] = gene[0]
+                product = quals.get('product', [])
+                if len(product):
+                    D['product'] = product[0]
+    return D
+
+
+def parse_gbprot_record(record):
+    """
+    returns (possible)
+        desc: description
+        seq: protein sequence
+        pmids: [list of pmids]
+        organism: name of organism
+        gb_prot: protein accession
+        gb_nuc:  nucleotide accession
+        product: description of protein product
+    """
+    D = {}
+    annotations = getattr(record, 'annotations')
+    features = getattr(record, 'features')
+    D['desc'] = getattr(record, 'description', None)
+    if hasattr(record, '_seq'):
+        if hasattr(record._seq, 'data'):
+            D['seq'] = record._seq._data
+
+    if annotations:
+        refs = annotations.get('references')
+        if refs:
+            D['pmids'] = [getattr(r, 'pubmed_id') for r in refs if
+                     getattr(r, 'pubmed_id', False)]
+        D['organism'] = annotations.get('organism', None)
+        acc = annotations.get('accessions', [])
+        if len(acc):
+            D['gb_prot'] = acc[0]
+        source = annotations.get('db_source')
+        if source:
+            D['gb_nuc'] = source.lstrip('accession ')
+    if features:
+        prots = [f for f in features if f.type == 'Protein']
+        if len(prots) == 1:
+            prot = prots[0]
+            quals = getattr(prot, 'qualifiers')
+            if quals:
+                product = quals.get('product', [])
+                if len(product):
+                    D['product'] = product[0]
+    return D
+
+
+def get_otherid_from_ipgid(ipgid):
+    with Entrez.esummary(db='ipg', id=ipgid, retmode='json') as handle:
+        record = json.loads(handle.read())
+        try:
+            return record['result'][ipgid]['accession']
+        except Exception:
+            return None
