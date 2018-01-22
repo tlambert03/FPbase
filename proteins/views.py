@@ -5,41 +5,21 @@ from django.contrib import messages
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.core import serializers
 from django.db import transaction
 from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
 from django import forms
 from django.urls import resolve
 
-from allauth.account.adapter import get_adapter
-
 import json
-from .models import Protein, State, ProteinCollection
-from .forms import ProteinSubmitForm, ProteinUpdateForm, StateFormSet, StateTransitionFormSet, CollectionForm
+from .models import Protein, State, ProteinCollection, Organism
+from .forms import ProteinForm, StateFormSet, StateTransitionFormSet, CollectionForm
+from .filters import ProteinFilter
 
 from references.models import Reference  # breaks application modularity # FIXME
 import reversion
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
-
-
-class ProteinChartList(ListView):
-    ''' renders html for interactive chart  '''
-    template_name = 'ichart.html'
-    model = Protein
-    queryset = Protein.objects.filter(switch_type=Protein.BASIC).select_related('default_state')
-
-    def get_context_data(self, **kwargs):
-        # Call the base implementation first to get a context
-        context = super().get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
-        filtered_data = []
-        filtered_data = serializers.serialize('json', self.get_queryset,
-            fields=('name', 'default_state__em_max')
-        )
-        context['data'] = filtered_data
-        return context
 
 
 class ProteinDetailView(DetailView):
@@ -165,8 +145,14 @@ class ProteinCreateUpdateMixin:
 class ProteinCreateView(ProteinCreateUpdateMixin, CreateView):
     ''' renders html for protein submission page '''
     model = Protein
-    form_class = ProteinSubmitForm
+    form_class = ProteinForm
     # success_url --> used for redirect on success... by default shows new protein
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+        # make reference doi required when creating a protein
+        form.fields['reference_doi'].required = True
+        return form
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -184,17 +170,16 @@ class ProteinCreateView(ProteinCreateUpdateMixin, CreateView):
 class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
     ''' renders html for protein submission page '''
     model = Protein
-    form_class = ProteinUpdateForm
+    form_class = ProteinForm
     # success_url --> used for redirect on success... by default shows new protein
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         if self.request.POST:
             data['states'] = StateFormSet(self.request.POST, instance=self.object)
-            data['states'].full_clean()
+            data['states'].full_clean()  # why is this here?
         else:
             data['states'] = StateFormSet(instance=self.object)
-            data['states'].extra = 0
             if self.object.primary_reference:
                 data['form'].fields['reference_doi'].initial = self.object.primary_reference.doi
         return data
@@ -229,13 +214,11 @@ class TransitionUpdateView(UpdateView):
 
 def protein_table(request):
     ''' renders html for protein table page  '''
-    #  return render(request, 'table.html', {"states": State.objects.notdark().select_related('protein').prefetch_related('bleach_measurements')})
     return render(request, 'table.html', {"proteins": Protein.objects.all().prefetch_related('states', 'states__bleach_measurements')})
 
 
 def protein_search(request):
     ''' renders html for protein search page  '''
-    from .filters import ProteinFilter
 
     if request.GET:
         f = ProteinFilter(request.GET, queryset=Protein.objects.select_related('default_state').prefetch_related('states').order_by('default_state__em_max'))
@@ -336,20 +319,34 @@ def update_transitions(request, slug=None):
 
 
 def validate_proteinname(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+
     name = request.POST.get('name', None)
+    slug = request.POST.get('slug', None)
     try:
-        prot = Protein.objects.get(slug=slugify(name.replace(' ', '')))
-        data = {
-            'is_taken': True,
-            'id': prot.id,
-            'url': prot.get_absolute_url(),
-            'name': prot.name,
-        }
+        prot = Protein.objects.get(slug=slugify(name.replace(' ', '').replace('monomeric', 'm')))
+        if slug and prot.slug == slug:
+            data = {
+                'is_taken': False,
+            }
+        else:
+            data = {
+                'is_taken': True,
+                'id': prot.id,
+                'url': prot.get_absolute_url(),
+                'name': prot.name,
+            }
     except Protein.DoesNotExist:
         data = {
             'is_taken': False,
         }
     return JsonResponse(data)
+
+
+class OrganismDetailView(DetailView):
+    ''' renders html for single reference page  '''
+    queryset = Organism.objects.all().prefetch_related('proteins')
 
 
 class CollectionList(ListView):
@@ -447,7 +444,7 @@ class CollectionCreateView(CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request
+        kwargs['user'] = self.request.user
         return kwargs
 
     def form_valid(self, form):
@@ -461,7 +458,7 @@ class CollectionCreateView(CreateView):
         try:
             # check that this is an internal redirection
             resolve(redirect_url)
-        except Exception as ex:
+        except Exception:
             redirect_url = None
         return redirect_url or super().get_success_url()
 
@@ -472,5 +469,5 @@ class CollectionUpdateView(UpdateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request
+        kwargs['user'] = self.request.user
         return kwargs
