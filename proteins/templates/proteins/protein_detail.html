@@ -69,13 +69,34 @@
 			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
 		</div>
 
+		<dl class="row mt-4 pt-3">
+			<div class="col-md-6">
+				<div class="row">
+				  <dt class="col-sm-4 col-lg-3 text-sm-right">Aggregation:</dt>
+				  <dd class="col-sm-8 col-lg-9">{{protein.get_agg_display}}</dd>
+				  </div>
+			</div>
+			<div class="col-md-6">
+				<div class="row">
+			  <dt class="col-sm-4 col-lg-3 text-sm-right">Organism:</dt>
+			  <dd class="col-sm-8 col-lg-9"><em>
+			  	{% if protein.parent_organism %}
+			  	<a href="{{protein.parent_organism.get_absolute_url}}">{{protein.parent_organism}}</a>
+			  	{% else %}
+			  	<a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>&lt;add one&gt;</a>
+			  	{% endif %}
+			  </em></dd>
+			</div>
+			</div>
+		</dl>
+
 		<div class="attributes">
 			<h3>Attributes</h3>
-			{% include '_states_table.html' with protein=protein %}
+			{% include '_states_table.html' %}
 		</div>
 
 		{% if protein.transitions.count > 0 %}
-		<div class="attributes">
+		<div class="attributes mt-2">
 			<h3>Transitions</h3>
 			<div class="table">
 				<table class="table table-striped mobile">
@@ -103,20 +124,17 @@
 		</div>
 		{% endif %}
 
-		<dl class="row mt-4 pb-0 mb-0">
-			<div class="col-md-6">
-				<div class="row">
-				  <dt class="col-sm-4 col-lg-3 text-sm-right">Aggregation:</dt>
-				  <dd class="col-sm-8 col-lg-9"><em>{{protein.get_agg_display}}</em></dd>
-				  </div>
-			</div>
-			<div class="col-md-6">
-				<div class="row">
-			  <dt class="col-sm-4 col-lg-3 text-sm-right">Organism:</dt>
-			  <dd class="col-sm-8 col-lg-9"><em><a href="{{protein.parent_organism.get_absolute_url}}">{{protein.parent_organism}}</a></em></dd>
-			</div>
-			</div>
-		</dl>
+
+
+	    <div class="attributes mt-2">
+	    	<h3>Photostability</h3>
+	    	{% if protein.has_bleach_measurements %}
+	    	    {% include '_bleach_table.html' %}
+	    	{% else %}
+	    		<p>no photostability measurements available ... <a href="{% url 'proteins:protein-bleach-form' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
+	    	{% endif %}
+	    </div>
+
 
 		<div class="sequence">
 			<div class="row">

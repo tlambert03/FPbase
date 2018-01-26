@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.db import models
+from django.apps import apps
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
 from django.db.models import Avg, Q, Count
@@ -88,6 +89,14 @@ class ProteinManager(models.Manager):
     def annotated(self):
         return self.get_queryset().annotate(Count('states'), Count('transitions'))
 
+    # def with_spectra(self):
+    #     pids = [s.protein.id for s in
+    #         State.objects.exclude(ex_spectra=None, em_spectra=None).distinct('protein')]
+    #     return self.get_queryset().filter(id__in=pids)
+
+    def with_spectra(self):
+        return self.get_queryset().filter(states__ex_spectra__isnull=False, states__em_spectra__isnull=False).distinct()
+
 
 class Protein(Authorable, StatusModel, TimeStampedModel):
     """ Protein class to store individual proteins, each with a unique AA sequence and name  """
@@ -144,7 +153,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     blurb       = models.CharField(max_length=512, blank=True, help_text="Brief descriptive blurb",)
 
     # Relations
-    parent_organism = models.ForeignKey(Organism, related_name='proteins', verbose_name="Parental organism", blank=True, null=True, help_text="Organism from which the protein was engineered",)
+    parent_organism = models.ForeignKey(Organism, related_name='proteins', verbose_name="Parental organism", on_delete=models.SET_NULL, blank=True, null=True, help_text="Organism from which the protein was engineered",)
     primary_reference = models.ForeignKey(Reference, related_name='primary_proteins', verbose_name="Primary Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Preferably the publication that introduced the protein",)  # usually, the original paper that published the protein
     references = models.ManyToManyField(Reference, related_name='proteins', blank=True)  # all papers that reference the protein
     FRET_partner = models.ManyToManyField('self', symmetrical=False, through='FRETpair', blank=True)
@@ -152,7 +161,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     __original_ipg_id = None
 
-    #managers
+    # managers
     objects = ProteinManager()
     visible = QueryManager(~Q(status='hidden'))
 
@@ -214,6 +223,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             if state.has_spectra():
                 return True
         return False
+
+    def has_bleach_measurements(self):
+        return self.states.filter(bleach_measurements__isnull=False).exists()
 
     def spectra_json(self):
         spectra = []
@@ -443,11 +455,54 @@ class State(Authorable, TimeStampedModel):
 
 
 class BleachMeasurement(Authorable, TimeStampedModel):
-    rate      = models.FloatField(verbose_name='Bleach Rate', help_text="Photobleaching rate",)  # bleaching half-life
-    power     = models.FloatField(null=True, blank=True, verbose_name='Illumination Power', help_text="Illumination power (W/cm2)",)
-    modality  = models.CharField(max_length=100, blank=True, verbose_name='Illumination Modality', help_text="Type of microscopy/illumination used for measurement",)
+    POINTSCANNER = 'ps'
+    SPINNINGDISC = 'sd'
+    WIDEFIELD = 'wf'
+    TIRF = 't'
+    SPECTROPHOTOMETER = 's'
+    OTHER = 'o'
+    MODALITY_CHOICES = (
+        (WIDEFIELD, 'Widefield'),
+        (POINTSCANNER, 'Point Scanning Confocal'),
+        (SPINNINGDISC, 'Spinning Disc Confocal'),
+        (SPECTROPHOTOMETER, 'Spectrophotometer'),
+        (TIRF, 'TIRF'),
+        (OTHER, 'Other'),
+    )
+
+    ARCLAMP = 'a'
+    LASER = 'la'
+    LED = 'le'
+    OTHER = 'o'
+    LIGHT_CHOICES = (
+        (ARCLAMP, 'Arc-lamp'),
+        (LASER, 'Laser'),
+        (LED, 'LED'),
+        (OTHER, 'Other'),
+    )
+
+    UNKNOWN = -1
+    NO = 0
+    YES = 1
+    INCELL_CHOICES = (
+        (UNKNOWN, 'Unkown'),
+        (NO, 'No'),
+        (YES, 'Yes'),
+    )
+
+    rate      = models.FloatField(verbose_name='Bleach Rate', help_text="Photobleaching half-life (s)",
+                validators=[MinValueValidator(0), MaxValueValidator(3000)])  # bleaching half-life
+    power     = models.FloatField(null=True, blank=True, verbose_name='Illumination Power',
+                validators=[MinValueValidator(-1)], help_text="If not reported, use '-1'",)
+    units     = models.CharField(max_length=100, blank=True, verbose_name='Power Unit', help_text="e.g. W/cm2",)
+    light     = models.CharField(max_length=2, choices=LIGHT_CHOICES, blank=True, verbose_name='Light Source')
+    modality  = models.CharField(max_length=2, choices=MODALITY_CHOICES, blank=True, verbose_name='Imaging Modality')
+    temp      = models.FloatField(null=True, blank=True, verbose_name='Temperature',)
+    fusion    = models.CharField(max_length=60, blank=True, verbose_name='Fusion Protein', help_text="(if applicable)",)
+    in_cell   = models.IntegerField(default=-1, choices=INCELL_CHOICES, blank=True, verbose_name='In cells?', help_text="protein expressed in living cells",)
+
     reference = models.ForeignKey(Reference, related_name='bleach_measurements', verbose_name="Measurement Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Reference where the measurement was made",)  # usually, the original paper that published the protein
-    state     = models.ForeignKey(State, related_name='bleach_measurements', verbose_name="Protein (state)", help_text="The protein (state) for which this measurement was observed", on_delete=models.CASCADE)
+    state     = models.ForeignKey(State, related_name='bleach_measurements', verbose_name="Protein (state)", help_text="The state on which this measurement was made", on_delete=models.CASCADE)
 
     def __str__(self):
         return "{}: {}{}".format(

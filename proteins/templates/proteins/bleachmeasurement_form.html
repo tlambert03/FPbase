@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>Create a Bleach Measurement</h2>
+<form method="post">
+{% crispy form %}
+<input type="submit" class='btn btn-primary mb-4' value="Submit"/>
+</form>
+{% endblock content %}

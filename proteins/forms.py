@@ -44,7 +44,6 @@ def check_existence(form, fieldname, value):
 
 class DOIField(forms.CharField):
     max_length = 100
-    label = 'Reference DOI'
     required = True
     default_validators = [validate_doi]
 
@@ -70,9 +69,13 @@ class SequenceField(forms.CharField):
         return super().to_python(value)
 
 
+class SelectAddWidget(forms.widgets.Select):
+    template_name = 'proteins/forms/widgets/select_add.html'
+
+
 class ProteinForm(forms.ModelForm):
     '''Form class for user-facing protein creation/submission form '''
-    reference_doi = DOIField(required=False, help_text='e.g. 10.1038/nmeth.2413')
+    reference_doi = DOIField(required=False, help_text='e.g. 10.1038/nmeth.2413', label='Reference DOI')
     seq = SequenceField(required=False, help_text='Amino acid sequence (IPG ID is preferred)',
         label=popover_html('Sequence', "If you enter an IPG ID, the sequence can be automatically fetched from NCBI"),)
     # reference_pmid = forms.CharField(max_length=24, label='Reference Pubmed ID',
@@ -121,6 +124,9 @@ class ProteinForm(forms.ModelForm):
             'ipg_id': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/" target="_blank">Identical Protein Group ID</a>',
             'genbank': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/genbank/sequenceids/" target="_blank">GenBank ID</a>',
             'uniprot': '<a href="https://www.uniprot.org/help/accession_numbers" target="_blank">UniProt accession number</a>'
+        }
+        widgets = {
+            'parent_organism': SelectAddWidget(),
         }
 
     def clean_name(self):
@@ -297,12 +303,6 @@ class StateTransitionForm(forms.ModelForm):
 StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=StateTransitionForm, extra=1)
 
 
-class BleachMeasurementForm(forms.ModelForm):
-    class Meta:
-        model = BleachMeasurement
-        fields = ('rate', 'power', 'modality', 'reference', 'state', )
-
-
 class CollectionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -327,3 +327,36 @@ class CollectionForm(forms.ModelForm):
         raise forms.ValidationError(mark_safe(
             'You already have a collection named <a href="{}" style="text-decoration: underline;">{}</a>'.format(
                 col.get_absolute_url(), col.name)))
+
+
+class BleachMeasurementForm(forms.ModelForm):
+    reference_doi = DOIField(required=False, help_text='e.g. 10.1038/nmeth.2413', label='Reference DOI')
+
+    class Meta:
+        model = BleachMeasurement
+        fields = ('rate', 'power', 'units', 'modality', 'reference_doi',
+                  'state', 'light', 'temp', 'fusion', 'in_cell')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Div('state', css_class='col-md-4 col-xs-12'),
+                    Div('rate', css_class='col-md-4 col-xs-12'),
+                    Div('reference_doi', css_class='col-md-4 col-xs-12'),
+                    Div('light', css_class='col-md-4 col-xs-12'),
+                    Div('power', css_class='col-md-4 col-xs-12'),
+                    Div('units', css_class='col-md-4 col-xs-12'),
+                    Div('modality', css_class='col-md-3 col-xs-12'),
+                    Div('temp', css_class='col-md-3 col-xs-12'),
+                    Div('fusion', css_class='col-md-3 col-xs-12'),
+                    Div('in_cell', css_class='col-md-3 col-xs-12'),
+                    css_class='row',
+                ),
+            )
+        )
+

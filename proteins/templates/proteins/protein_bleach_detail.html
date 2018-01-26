@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+
+{% block title %}FPbase: {{ object.name  }} Photostability Measurements {% endblock %}
+
+{% block content %}
+
+
+	<table class="table">
+		<thead>
+			<tr class="table-header">
+				<th>State</th>
+				<th>Half-Life</th>
+				<th>Power</th>
+				<th>Modality</th>
+				<th>reference</th>
+
+			</tr>
+		</thead>
+		<tbody>
+			{% for state in protein.states.all  %}
+				{% for measurement in state.bleach_measurements.all  %}
+					<tr class="data">
+						<td>{{measurement.state}}</td>
+						<td>{{measurement.rate}}</td>
+						<td>
+						{% if measurement.power %}{{measurement.power}}{% if measurement.units %} ({{measurement.units}}){% endif %}{% endif %}
+						</td>
+						<td>{{measurement.get_modality_display}}</td>
+						<td><a href="{{measurement.reference.get_absolute_url}}">{{measurement.reference}}</a></td>
+					</tr>
+				{% endfor %}
+			{% endfor %}
+		</tbody>
+	</table>
+
+
+
+{% endblock content %}
