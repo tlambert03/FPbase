@@ -1,0 +1,177 @@
+body {
+  -webkit-font-smoothing: antialiased;
+  margin: 60px;
+}
+.navbar {
+  font-size: 16px;
+  font-weight: 400;
+}
+.navbar-brand {
+  width: 209px;
+  height: 55px;
+  text-indent: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  background: url('../img/logo.svg') no-repeat;
+  background-size: 209px 55px;
+}
+@media (min-width: 768px) {
+  ul.ac-results.dropdown-menu {
+    margin: 0 15px;
+    width: 87%;
+  }
+}
+@media (min-width: 992px) {
+  ul.ac-results.dropdown-menu li.result-wrapper a {
+    padding: 7px 20px;
+  }
+}
+.jumbotron {
+  padding: 120px 20px;
+  text-align: center;
+}
+@media (min-width: 768px) {
+  .jumbotron {
+    padding: 60px 20px;
+  }
+}
+@media (min-width: 992px) {
+  .jumbotron {
+    padding: 80px 20px;
+  }
+}
+@media (min-width: 1200px) {
+  .jumbotron {
+    padding: 120px 20px;
+  }
+}
+.jumbotron h1 {
+  padding-bottom: .2em;
+}
+.jumbotron input {
+  margin: auto;
+  text-align: center;
+  height: 3em;
+  font-size: .6em;
+}
+@media (min-width: 768px) {
+  .jumbotron input {
+    width: 90%;
+    font-size: .9em;
+    height: 2.2em;
+  }
+}
+@media (min-width: 992px) {
+  .jumbotron input {
+    width: 70%;
+    font-size: 1.2em;
+    height: 2em;
+  }
+}
+footer {
+  font-size: 1em;
+  background-color: #333333;
+  color: #eeeeee;
+  padding: 25px inherit;
+  margin-top: 50px;
+}
+footer li {
+  list-style: none;
+}
+footer .copy {
+  font-size: .9em;
+  color: #999999;
+}
+.protein {
+  font-size: 1.15em;
+}
+.protein .name {
+  padding: 30px;
+  color: #29db31;
+  font-size: 4em;
+  text-align: center;
+  font-weight: 500;
+}
+.protein h3 {
+  color: #29db31;
+  font-weight: 400;
+}
+.protein .attributes .table {
+  margin-bottom: 0;
+}
+.protein .attributes .table-header th {
+  background-color: #3085d6;
+  border: none;
+  color: white;
+  text-align: center;
+  line-height: 2em;
+}
+.protein .attributes td {
+  line-height: 2em;
+  text-align: center;
+}
+.protein .sequence {
+  word-wrap: break-word;
+}
+.protein .references h4 {
+  margin: 1px 0;
+}
+.protein .references p {
+  margin: 1px 0;
+  padding: 0 inherit;
+  font-size: .8em;
+}
+
+svg {
+  shape-rendering: crispEdges;
+}
+
+path.line {
+  stroke-width: 1.5px;
+  opacity: .9;
+  fill: none;
+}
+.axis text {
+  font-family: sans-serif;
+  font-size: 11px;
+}
+.axis line,
+.axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.x.axis path {
+  stroke-width: 2px;
+}
+.arrow {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+.outer,
+.inner {
+  shape-rendering: crispEdges;
+}
+.outer {
+  fill: none;
+  stroke: #000;
+}
+.inner {
+  fill: #ccc;
+  stroke: #000;
+  stroke-dasharray: 3, 4;
+}
+path.area {
+  opacity: .5;
+}
+.grid .tick {
+  stroke: lightgrey;
+  opacity: 0.6;
+}
+.grid path {
+  stroke-width: 0;
+}
+
+rect {
+  fill:white;
+}

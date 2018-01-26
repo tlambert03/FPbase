@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static i18n compress favit_tags %}
+
+{% block title %} {% endblock %}
+{% block meta-description %}{% endblock %}
+
+{% block vendorcss %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+{% endblock vendorcss %}
+
+{% block container-class %}container protein{% endblock %}
+
+{% block content %}
+
+    <h1 class='text-center'>FPbase Spectra Viewer</h1>
+  	<div class="spectra mb-4">
+        <div id="spectra"></div>
+    </div>
+
+    <div class="container">
+    {{widget}}
+    </div>
+{% endblock content %}
+
+{% block javascript %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+
+    <script type="text/javascript">
+
+    	var chart = nv.models.lineChart();
+
+    	$(function() {
+
+    		//initialize chart
+    		var myData = [];
+    		svg = d3.select('#spectra').append('svg');
+    		chart.xDomain([300,800]);
+    		chart.yDomain([0,1]);
+    		chart.yAxis.axisLabelDistance(25);
+    		chart.options({
+    			noData: "Please select at least one fluorophore or filter ...",
+    			showLegend: true,
+    			showXAxis: true,
+    			showYAxis: true,
+    			clipEdge: true,
+                margin: {left:40},
+                transitionDuration: 200,
+                //useInteractiveGuideline: !window.mobilecheck(),
+                forceY: [0,1.04],
+                forceX: [350, 750],
+
+    		});
+
+    		/*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
+    		nv.addGraph(function() {
+    			chart.xAxis     //Chart x-axis settings
+    			  .axisLabel('Wavelength (nm)')
+    			  .tickFormat(d3.format(',r'));
+
+    			chart.yAxis     //Chart y-axis settings
+    			  .axisLabel('Normalized Ex/Em/Transmission')
+    			  .tickFormat(d3.format('1%'));
+
+    		   	svg.datum(myData)         //Populate the <svg> element with chart data...
+    			      .call(chart);	       //Finally, render the chart!
+
+    		  //Update the chart when window resizes.
+    		  nv.utils.windowResize(function() { chart.update() });
+    		  return chart;
+    		});
+
+    		var spectraData = {};
+
+    		$("#ProteinSelect").change(function(e) {
+    		  var slug = $(this).val();
+    		  if (!(slug in spectraData)){
+    		  	$.ajax({
+    		  	    type: "GET",
+    		  	    url: slug,
+    		  	    data: {},
+    		  	    dataType: 'json',
+    		  	    success: function(data) {
+    		  	    	spectraData[slug] = JSON.parse(data.spectra);
+    		  	    	svg.datum(spectraData[slug]);
+    		  	    	chart.update();
+    		  	    },
+    		  	});
+    		  } else{
+	    		  	svg.datum(spectraData[slug]);
+	    		  	chart.update();
+    		  }
+
+    		});
+
+    	});
+
+
+    </script>
+{% endblock javascript %}
