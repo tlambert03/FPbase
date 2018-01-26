@@ -1,7 +1,8 @@
 from django.views.generic import DetailView, ListView, CreateView, UpdateView
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.contrib import messages
+from django.forms.models import modelformset_factory
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -11,9 +12,11 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django import forms
 from django.urls import resolve
 
+
 import json
-from .models import Protein, State, ProteinCollection, Organism
-from .forms import ProteinForm, StateFormSet, StateTransitionFormSet, CollectionForm
+from .models import Protein, State, ProteinCollection, Organism, BleachMeasurement
+from .forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
+                    CollectionForm, BleachMeasurementForm)
 from .filters import ProteinFilter
 
 from references.models import Reference  # breaks application modularity # FIXME
@@ -52,12 +55,10 @@ class ProteinDetailView(DetailView):
                 version = versions[min(versions.count() - 1, rev)]
                 return self.version_view(request, version, *args, **kwargs)
         elif 'ver' in kwargs:
-            try:
-                version = Version.objects.get(id=kwargs['ver'])
-                if int(version.object_id) == self.get_object().id:
-                    return self.version_view(request, version, *args, **kwargs)
-            except Version.DoesNotExist:
-                pass
+            version = get_object_or_404(Version, id=kwargs['ver'])
+            if int(version.object_id) == self.get_object().id:
+                return self.version_view(request, version, *args, **kwargs)
+            # TODO:  ELSE WHAT??
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -189,32 +190,45 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         return super().form_valid(form)
 
 
-class TransitionUpdateView(UpdateView):
-    model = Protein
+# class TransitionUpdateView(UpdateView):
+#     model = Protein
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.POST:
-            context['transition_form'] = StateTransitionFormSet(self.request.POST,  instance=self.object)
-        else:
-            context['transition_form'] = StateTransitionFormSet()
-        return context
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         if self.request.POST:
+#             context['transition_form'] = StateTransitionFormSet(self.request.POST,  instance=self.object)
+#         else:
+#             context['transition_form'] = StateTransitionFormSet()
+#         return context
 
-    def form_valid(self, form):
-        context = self.get_context_data()
-        transition_form = context['transition_form']
-        if transition_form.is_valid():
-            self.object = form.save()
-            transition_form.instance = self.object
-            transition_form.save()
-            return HttpResponseRedirect(self.object.get_absolute_url())
-        else:
-            return self.render_to_response(self.get_context_data(form=form))
+#     def form_valid(self, form):
+#         context = self.get_context_data()
+#         transition_form = context['transition_form']
+#         if transition_form.is_valid():
+#             self.object = form.save()
+#             transition_form.instance = self.object
+#             transition_form.save()
+#             return HttpResponseRedirect(self.object.get_absolute_url())
+#         else:
+#             return self.render_to_response(self.get_context_data(form=form))
 
 
 def protein_table(request):
     ''' renders html for protein table page  '''
     return render(request, 'table.html', {"proteins": Protein.objects.all().prefetch_related('states', 'states__bleach_measurements')})
+
+
+def protein_spectra(request, slug=None):
+    ''' renders html for protein spectra page  '''
+    if request.is_ajax() and slug is not None:
+        protein = Protein.objects.get(slug=slug)
+        return JsonResponse({'spectra': protein.spectra_json()})
+    if request.method == 'GET':
+        qs = Protein.objects.with_spectra().values_list('slug', 'name')
+        widget = forms.Select(attrs={'class': 'form-control custom-select', 'id': 'ProteinSelect'})
+        choicefield = forms.ChoiceField(choices=qs, widget=widget)
+
+    return render(request, 'spectra.html', {'widget': choicefield.widget.render('ProteinSelect', '')})
 
 
 def protein_search(request):
@@ -256,10 +270,29 @@ def add_reference(request, slug=None):
         pass
 
 
+@login_required
+def add_organism(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+    try:
+        tax_id = request.POST.get('taxonomy_id', None)
+        if not tax_id:
+            raise Exception()
+        org, created = Organism.objects.get_or_create(id=tax_id)
+        print(request.user)
+        if created:
+            if request.user.is_authenticated:
+                org.created_by = request.user
+                org.save()
+        return JsonResponse({'status': 'success', 'created': created,
+                             'org_id': org.id, 'org_name': org.scientific_name})
+    except Exception:
+        return JsonResponse({'status': 'failed'})
+
+
 @staff_member_required
 def approve_protein(request, slug=None):
     try:
-
         P = Protein.objects.get(slug=slug)
         if not P.status == 'pending':
             return JsonResponse({})
@@ -344,6 +377,49 @@ def validate_proteinname(request):
     return JsonResponse(data)
 
 
+@login_required
+def protein_bleach_formsets(request, slug):
+    template_name = 'proteins/protein_bleach_form.html'
+    BleachMeasurementFormSet = modelformset_factory(BleachMeasurement,
+                        BleachMeasurementForm, extra=1, can_delete=True)
+    protein = get_object_or_404(Protein, slug=slug)
+    qs = BleachMeasurement.objects.filter(state__protein=protein)
+    if request.method == 'POST':
+        formset = BleachMeasurementFormSet(request.POST, queryset=qs)
+        formset.form.base_fields['state'].queryset = State.objects.filter(protein__slug=slug)
+        print(formset.management_form.__dict__)
+        if formset.is_valid():
+            with transaction.atomic():
+                with reversion.create_revision():
+
+                    saved = formset.save(commit=False)
+                    for s in saved:
+                        if not s.created_by:
+                            s.created_by = request.user
+                        s.updated_by = request.user
+                        s.save()
+                    for s in formset.deleted_objects:
+                        s.delete()
+
+                    if not request.user.is_staff:
+                        protein.status = 'pending'
+                    else:
+                        protein.status = 'approved'
+
+                    protein.save()
+                    reversion.set_user(request.user)
+                    reversion.set_comment('Updated bleach measurement on {}'.format(protein))
+            return HttpResponseRedirect(protein.get_absolute_url())
+        else:
+            return render(request, template_name, {'formset': formset, 'protein': protein})
+    else:
+        formset = BleachMeasurementFormSet(queryset=qs)
+        formset.form.base_fields['state'].queryset = State.objects.filter(protein__slug=slug)
+    return render(request, template_name, {'formset': formset, 'protein': protein})
+
+
+
+
 class OrganismDetailView(DetailView):
     ''' renders html for single reference page  '''
     queryset = Organism.objects.all().prefetch_related('proteins')
@@ -366,8 +442,31 @@ class CollectionList(ListView):
         return context
 
 
+def serialized_proteins_response(queryset, format='json', filename='FPbase_proteins'):
+    from proteins.api.serializers import ProteinSerializer as PS
+    PS.Meta.on_demand_fields = ()
+    serializer = PS(queryset, many=True)
+    if format == 'json':
+        from rest_framework.renderers import JSONRenderer as rend
+        response = JsonResponse(serializer.data, safe=False)
+    elif format == 'csv':
+        from rest_framework_csv.renderers import CSVStreamingRenderer as rend
+        from django.http import StreamingHttpResponse
+        response = StreamingHttpResponse(rend().render(serializer.data), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(filename)
+    return response
+
+
 class CollectionDetail(DetailView):
     queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__default_state')
+
+    def get(self, request, *args, **kwargs):
+        format = request.GET.get('format', '').lower()
+        if format in ('json', 'csv'):
+            col = self.get_object()
+            return serialized_proteins_response(col.proteins.all(), format,
+                    filename=slugify(col.name))
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -390,7 +489,9 @@ def collection_remove(request):
         collection = int(request.POST["target_collection"])
     except (KeyError, ValueError):
         return HttpResponseBadRequest()
-    col = ProteinCollection.objects.get(id=collection)
+
+    col = get_object_or_404(ProteinCollection, id=collection)
+
     if not col.owner == request.user:
         return HttpResponseNotAllowed([])
     col.proteins.remove(protein)
