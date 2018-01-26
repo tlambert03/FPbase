@@ -3,7 +3,7 @@ import traceback
 import os
 import tablib
 import json
-from proteins.models import Protein, State, StateTransition, BleachMeasurement, Organism
+from proteins.models import Protein, State, StateTransition, BleachMeasurement, Organism, ProteinCollection
 from references.models import Reference
 from fpbase.users.models import User
 from django.template.defaultfilters import slugify
@@ -672,6 +672,16 @@ def import_fpd(file=None, overwrite=True):
             print(ex)
 
     return errors
+
+
+def create_collection(name='New Collection', desc=''):
+    file = os.path.join(BASEDIR, '_data/FPs.csv')
+    data = tablib.Dataset().load(open(file).read())
+    col = ProteinCollection.objects.create(name=name, description=desc, owner=SUPERUSER)
+    col.save()
+    for row in data.dict:
+        p = Protein.objects.get(name=row['name'])
+        col.proteins.add(p)
 
 
 @require_superuser
