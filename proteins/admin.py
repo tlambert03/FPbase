@@ -200,7 +200,7 @@ class ProteinAdmin(CompareVersionAdmin):
     ]
     fieldsets = [
         (None, {
-            'fields': (('name', 'slug',), ('aliases', 'chromophore'), 'seq', ('ipg_id', 'genbank', 'uniprot'), ('parent_organism', 'switch_type'), ('agg', 'mw'))
+            'fields': (('name', 'slug',), ('aliases', 'chromophore'), 'seq', ('ipg_id', 'genbank', 'uniprot', 'pdb'), ('parent_organism', 'switch_type'), ('agg', 'mw'))
         }),
         (None, {
             'fields': (('primary_reference', 'references'),)
