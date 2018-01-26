@@ -6,7 +6,6 @@
 
 {% block content %}
 
-
 	<h1 class='mb-5'>{% if owner %}Protein collections created by {{owner}}{% else %}All protein collections{% endif %}</h1>
 
 	<ul class='mb-5'>
@@ -18,7 +17,7 @@
 			{% endif %}
 		{% empty %}
 			{% if owner %}
-			    <p>User {{owner}} does not have any public collections.</p>
+			    <p>{% if request.user.username == owner %}You do not have any collections.{% else %}User {{owner}} does not have any public collections.{%endif%}</p>
 			{% else%}
 				<p>There are currently no public protein collections to show.</p>
 			{% endif %}

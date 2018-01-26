@@ -31,26 +31,17 @@
 				</div>
 			</div>
 
-			{% if not 'update' in request.get_full_path %}
-				<div class="small alert alert-info alert-dismissible fade show" role="alert">
-				  <div class='h5 text-info'><i class="fas fa-info-circle mr-2 "></i> <strong>States</strong></div>
-				  FPbase uses <strong>states</strong> to define the various fluorescence characteristics that a protein can have.  Even a constitutively active "basic" protein is given a (single) state.  Rather than directly specifying the "type" of protein, FPbase uses the number of states and transitions between them to determine the type of fluorescent protein:
-				  <dl class="row mt-4 mb-3">
-				    <dt class="col-sm-4 col-lg-3 text-sm-right">Basic</dt>
-				    <dd class="col-sm-8 col-lg-9"><em>Single constitutively fluorescent state.</em></dd>
-				    <dt class="col-sm-4 col-lg-3 text-sm-right">Photoactivatable</dt>
-				    <dd class="col-sm-8 col-lg-9"><em>One transition, from dark state to fluorescent state.</em></dd>
-				    <dt class="col-sm-4 col-lg-3 text-sm-right">Photoconvertible</dt>
-				    <dd class="col-sm-8 col-lg-9"><em>One transition, from one fluorescent state to another.</em></dd>
-				    <dt class="col-sm-4 col-lg-3 text-sm-right">Photoswitchable</dt>
-				    <dd class="col-sm-8 col-lg-9"><em>Multiple transition, between multiple fluorescent or dark states.</em></dd>
-				  </dl>
-				  For <span style='color: green'>photo</span><span style='color: red'>chromic</span> proteins, first declare all states on this form (including dark states), then add state transitions on the main protein page.<br>More info available on the <a href="{% url 'schema' %}" class="alert-link">database model</a> info page.
-				  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-				      <span aria-hidden="true">&times;</span>
-				    </button>
-				</div>
-			{% endif %}
+
+			<div class="small alert alert-info alert-dismissible fade show" role="alert">
+			  <div class='h5 text-info'><i class="fas fa-info-circle mr-2 "></i> <strong>States</strong></div>
+			  FPbase uses <strong>states</strong> to encapsulate the various fluorescence characteristics that a protein can have.  Even a constitutively active "basic" protein is given a (single) state.  Rather than directly specifying the "type" of protein, FPbase uses the number of states and transitions between them to determine the type of fluorescent protein.<br><br>
+
+			  For <span style='color: green'>photo</span><span style='color: red'>chromic</span> proteins, first declare all states on this form (including dark states), then add state transitions on the main protein page.<br>More info available on the <a href="{% url 'schema' %}" class="alert-link">database model</a> info page.
+			  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			      <span aria-hidden="true">&times;</span>
+			    </button>
+			</div>
+
 
 	        {{ states.management_form|crispy }}
 	        {% for stateform in states.forms %}
@@ -75,6 +66,8 @@
 	    </form>
 	</div>
 
+{% include 'proteins/modals/_organism_modal.html'  %}
+
 {% endblock %}
 
 
@@ -95,7 +88,7 @@
 			$('.formset_div').formset({
 				addText: 'Add State',
 				addCssClass: 'btn btn-info mb-4',
-				deleteCssClass: deleteclass + ' btn btn-danger align-middle',
+				deleteCssClass: deleteclass,
 				deleteText: '&times;',
 				processHidden: true,
 				prefix: 'states' 	 // it's important that this match the string used for the

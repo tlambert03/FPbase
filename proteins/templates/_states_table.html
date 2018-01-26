@@ -10,7 +10,7 @@
 	  			<th>EC</th>
 	  			<th>QY</th>
 	  			<th>Brightness</th>
-	  			<th>Stability</th>
+{# 	  			<th>Stability</th> #}
 	  			<th>pKa</th>
 	  			<th>Maturation</th>
 	  			<th>Lifetime</th>
@@ -27,7 +27,7 @@
 	  			<td>{% if state.ext_coeff %}{{ state.ext_coeff|intcomma }}{% endif%}</td>
 	  			<td>{{ state.qy | default:"&nbsp;"}}</td>
 	  			<td>{{ state.brightness | default:"&nbsp;"}}</td>
-	  			<td>{{ state.bleach_measurements.all.0.rate | default:"&nbsp;"}}</td>
+{# 	  			<td>{{ state.bleach_measurements.all.0.rate | default:"&nbsp;"}}</td> #}
 	  			<td>{{ state.pka | default:"&nbsp;"}}</td>
 	  			<td>{{ state.maturation | default:"&nbsp;"}}</td>
 	  			<td>{{ state.lifetime | default:"&nbsp;"}}</td>
@@ -40,6 +40,10 @@
 		<div class="align-self-end text-sm-right mt-1">
 			<small><a href="#" class='text-info' data-toggle="modal" id='show_transition_modal'>Edit state transitions</a></small>
 		</div>
+	{% elif protein.states.count == 1 %}
+	<div class="align-self-end text-sm-right mt-1">
+		<small><a href="{% url 'proteins:update' slug=protein.slug %}" class='text-info'>Edit States&sol;Attributes</a></small>
+	</div>
 	{% endif %}
 
 {% else %}
