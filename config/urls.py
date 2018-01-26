@@ -8,14 +8,8 @@ from rest_framework.documentation import include_docs_urls
 
 import fpbase.views
 
-from django.http import HttpResponse
-def loaderio(request):
-    return HttpResponse('loaderio-ccc20113551bc5ea61557beec320de98', content_type='text/plain')
-
-
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='pages/home.html'), name='home'),
-    url(r'^loaderio-ccc20113551bc5ea61557beec320de98/$', loaderio),
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name='about'),
     url(r'^terms/$', TemplateView.as_view(template_name='pages/terms.html'), name='terms'),
     url(r'^privacy/$', TemplateView.as_view(template_name='pages/terms.html'), name='privacy'),
