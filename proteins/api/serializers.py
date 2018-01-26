@@ -12,6 +12,50 @@ class StateTransitionSerializer(serializers.ModelSerializer):
         fields = ('from_state', 'to_state', 'trans_wave')
 
 
+class SpectrumField(serializers.Field):
+    def to_representation(self, obj):
+        return obj.data
+
+
+class StateSpectraSerializer(serializers.ModelSerializer):
+    ex_spectra = SpectrumField()  # adds significant time overhead
+    em_spectra = SpectrumField()  # adds significant time overhead
+
+    class Meta:
+        model = State
+        fields = ('name', 'ex_max', 'ex_spectra', 'em_max', 'em_spectra', 'ext_coeff', 'qy')
+
+
+class ProteinSpectraSerializer(ModelSerializer):
+    states = StateSpectraSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Protein
+        fields = ('name', 'slug', 'states')
+
+    def to_representation(self, obj):
+        """Move fields from spectra to protein representation."""
+        representation = super().to_representation(obj)
+        spectra_repr = representation.pop('states')
+        representation['spectra'] = []
+        for spectrum in spectra_repr:
+            if spectrum['ex_spectra']:
+                representation['spectra'].append({
+                    'state': spectrum['name'] + str('_ex'),
+                    'ec': spectrum['ext_coeff'],
+                    'max': spectrum['ex_max'],
+                    'data': spectrum['ex_spectra'],
+                })
+            if spectrum['em_spectra']:
+                representation['spectra'].append({
+                    'state': spectrum['name'] + str('_em'),
+                    'qy': spectrum['qy'],
+                    'max': spectrum['em_max'],
+                    'data': spectrum['em_spectra']
+                })
+        return representation
+
+
 class StateSerializer(ModelSerializer):
     protein = serializers.SlugRelatedField(slug_field='slug', read_only=True)
 

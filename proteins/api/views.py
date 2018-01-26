@@ -2,7 +2,7 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 
 from ..models import Protein, State
-from .serializers import ProteinSerializer, BasicProteinSerializer, StateSerializer
+from .serializers import ProteinSerializer, BasicProteinSerializer, StateSerializer, ProteinSpectraSerializer
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -47,3 +47,9 @@ class StatesListAPIView(ListAPIView):
     renderer_classes = [r.CSVRenderer, ] + api_settings.DEFAULT_RENDERER_CLASSES
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = StateFilter
+
+
+class ProteinSpectraListAPIView(ListAPIView):
+    permission_classes = (AllowAny, )
+    serializer_class = ProteinSpectraSerializer
+    queryset = Protein.objects.with_spectra().prefetch_related('states')
