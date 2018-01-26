@@ -76,17 +76,17 @@ class Spectrum(object):
 
     def change_x(self, value):
         if not isinstance(value, list):
-            raise Exception("X values be a python list")
+            raise TypeError("X values must be a python list")
         if len(value) != len(self.data):
-            raise Exception("Error: array length must match existing data")
+            raise ValueError("Error: array length must match existing data")
         for i in range(len(value)):
             self.data[i][0] = value[i]
 
     def change_y(self, value):
         if not isinstance(value, list):
-            raise Exception("Y values be a python list")
+            raise TypeError("Y values must be a python list")
         if len(value) != len(self.data):
-            raise Exception("Error: array length must match existing data")
+            raise ValueError("Error: array length must match existing data")
         for i in range(len(value)):
             self.data[i][1] = value[i]
 
@@ -137,3 +137,39 @@ class SpectrumField(TextField):
         if value is None:
             return value
         return str(value)
+
+
+# from django.utils.inspect import func_supports_parameter
+# from django.contrib.postgres.fields import ArrayField
+
+# class specField(ArrayField):
+
+#     def _from_db_value(self, value, expression, connection):
+#         if value is None:
+#             return value
+#         return Spectrum([
+#             self.base_field.from_db_value(item, expression, connection, {})
+#             if func_supports_parameter(self.base_field.from_db_value, 'context')  # RemovedInDjango30Warning
+#             else self.base_field.from_db_value(item, expression, connection)
+#             for item in value
+#         ])
+
+#     def to_python(self, value):
+#         if isinstance(value, Spectrum):
+#             return value
+#         # Assume we're deserializing
+#         if isinstance(value, str):
+#             # Assume we're deserializing
+#             vals = json.loads(value)
+#             value = [self.base_field.to_python(val) for val in vals]
+#         try:
+#             return Spectrum(value)
+#         except Exception:
+#             raise ValidationError("Invalid input for a Spectrum instance")
+
+#     def get_db_prep_value(self, value, connection, prepared=False):
+#         if isinstance(value, Spectrum):
+#             value = value.data
+#         if isinstance(value, (list, tuple)):
+#             return [self.base_field.get_db_prep_value(i, connection, prepared=False) for i in value]
+#         return value
