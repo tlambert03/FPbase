@@ -59,17 +59,11 @@ Moved to `Live reloading and SASS compilation`_.
 TODO
 ~~~~
 
-* create "glossary" of terms
-* create "how to use this" page detailing features of the site
-* implement moderation
+* mutations / lineages
+* FRET views and FRET partners
+* weighted scoring based on user-selected attributes
+* spectra page
+* allow users to copy other collections
+* download collection as csv or json
 *
-
-
-dropdb fpbase
-createdb fpbase
-./manage.py migrate
-./manage.py loaddata users
-./manage.py loaddata proteins
-./manage.py createinitialrevisions
-
 
