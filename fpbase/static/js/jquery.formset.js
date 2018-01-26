@@ -135,7 +135,6 @@
             }
             if (hasChildElements(row)) {
                 row.addClass(options.formCssClass);
-                console.log(row.is(':visible'))
                 if (row.is(':visible') || options.processHidden) {
                     insertDeleteLink(row);
                     applyExtraClasses(row, i);
