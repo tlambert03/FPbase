@@ -20,6 +20,9 @@ urlpatterns = [
                        message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
+    url(r'^spectra/(?P<slug>[-\w]+)', views.protein_spectra, name='spectra'),
+    url(r'^spectra/', views.protein_spectra, name='spectra'),
+
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
     url(r'^collections/(?P<owner>[-\w]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),
@@ -28,12 +31,13 @@ urlpatterns = [
         login_required(views.CollectionUpdateView.as_view(),
         message="You must be logged in to delete collections"),
         name='updatecollection'),
-    url(r'^newcollection/',
+    url(r'^collection/create/',
         login_required(views.CollectionCreateView.as_view(),
         message="You must be logged in to create a new collection"),
         name='newcollection'),
 
 
+    url(r'^ajax/add_taxonomy/$', views.add_organism, name='add_taxonomy'),
     url(r'^ajax/add_protein_reference/(?P<slug>[-\w]+)/$', views.add_reference, name='add_protein_reference'),
     url(r'^ajax/admin_approve_protein/(?P<slug>[-\w]+)/$', views.approve_protein, name='admin_approve_protein'),
     url(r'^ajax/admin_revert_version/(?P<ver>\d+)$', views.revert_version, name='admin_revert_version'),
@@ -42,13 +46,16 @@ urlpatterns = [
     url(r'^ajax/remove_from_collection/$', views.collection_remove, name='collection-remove'),
     url(r'^ajax/add_to_collection/$', views.add_to_collection, name='add_to_collection'),
 
-    url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^organism/(?P<pk>\d+)/$', views.OrganismDetailView.as_view(), name='organism-detail'),
+
+    url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
+    url(r'^protein/(?P<slug>[-\w]+)/bleach/$', views.protein_bleach_formsets, name='protein-bleach-form'),
     url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/ver/(?P<ver>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
 
     # /proteins/api
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
+    url(r'^api/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
     url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
     url(r'^api/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
     # /proteins/api/:slug/
