@@ -381,3 +381,60 @@ def get_otherid_from_ipgid(ipgid):
             return record['result'][ipgid]['accession']
         except Exception:
             return None
+
+
+# ###########################################
+#       Misc Functions
+# ###########################################
+
+def calculate_spectral_overlap(donor, acceptor):
+    accEx  = acceptor.default_state.ex_spectra
+    accEC  = acceptor.default_state.ext_coeff
+    donEm  = donor.default_state.em_spectra
+    # donQY  = donor.default_state.qy
+    donCum = sum(donEm.y)
+
+    minAcc = accEx.min_wave
+    maxAcc = accEx.max_wave
+    minEm  = donEm.min_wave
+    maxEm  = donEm.max_wave
+
+    startingwave = int(max(minAcc, minEm))
+    endingwave = int(min(maxAcc, maxEm))
+
+    A = accEx.wave_value_pairs()
+    D = donEm.wave_value_pairs()
+    overlap = [(pow(wave, 4) * A[wave] * accEC * D[wave] / donCum) for
+               wave in range(startingwave, endingwave+1)]
+
+    return sum(overlap)
+
+
+def forsterDist(donor, acceptor, n=1.4, k=2./3.):
+    overlap = calculate_spectral_overlap(donor, acceptor)
+    return .2108*(pow((k)*(pow(n, -4)*overlap), (1./6.)))
+
+
+def fretEfficiency(distance, forster):
+    return 1/(1+pow(distance/forster, 6))
+
+
+def find_best_forster():
+    from .models import Protein
+    qs = Protein.objects.with_spectra()
+    out = []
+    withSpectra = []
+    for p in qs:
+        try:
+            p.default_state.em_spectra.data
+        except Exception:
+            continue
+        withSpectra.append(p)
+    for donor in withSpectra:
+        for acceptor in withSpectra:
+            try:
+                out.append([forsterDist(donor, acceptor), donor.name, acceptor.name])
+            except Exception:
+                continue
+    return sorted(out, key=lambda x: x[0].real)
+
