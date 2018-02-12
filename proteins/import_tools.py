@@ -8,7 +8,7 @@ from references.models import Reference
 from fpbase.users.models import User
 from django.template.defaultfilters import slugify
 from Bio import Entrez
-from .helpers import fetch_ipg_sequence
+from .extrest.entrez import fetch_ipg_sequence
 from .validators import protein_sequence_validator
 from proteins import forms
 
@@ -467,7 +467,10 @@ ORGLOOKUP = {'Acanthastrea sp. ': None,
  'Verrillofungia concinna (Fungia concinna)': 496660,
  'Zoanthus sp.': 105402,
  'Zoanthus sp. ': 105402,
- 'Zoanthus sp.2': 105402}
+ 'Zoanthus sp.2': 105402,
+ 'Anthomedusae sp.': 406427,
+ 'Acanthastrea sp.': 406427,
+ }
 
 
 def name_check(name):
@@ -523,8 +526,8 @@ def import_fpd(file=None, overwrite=True):
                 row['aliases'] = []
 
             org = None
-            if ORGLOOKUP.get(row.get('parent_organism')):
-                org, ocreated = Organism.objects.get_or_create(id=ORGLOOKUP[row['parent_organism']])
+            if row.get('parent_organism'):
+                org, ocreated = Organism.objects.get_or_create(id=row['parent_organism'])
                 if ocreated:
                     print("created organism {}".format(org))
             row['parent_organism'] = org.pk if org else None
@@ -567,10 +570,12 @@ def import_fpd(file=None, overwrite=True):
                         row['uniprot'] = p.uniprot
 
                 if not p.name == row.get('name', None):
-                    namemismatch = True
+                    print('Protein "{}" already has the same sequence as {}... skipping'.format(p.name, row['name']))
+                    continue
+                    #namemismatch = True
                     # errors.append('same sequence name mismatch between {} and {}'.format(p.name, row.get('name')))
-                    row['aliases'].append(row.get('name'))
-                    row['name'] = p.name
+                    #row['aliases'].append(row.get('name'))
+                    #row['name'] = p.name
 
 
             # create the protein form and validate/sve
@@ -587,6 +592,12 @@ def import_fpd(file=None, overwrite=True):
                     if not p.primary_reference:
                         p.primary_reference = ref
                         p = pform.save() if overwrite else pform.save_new_only()
+                if row['additional_refs']:
+                    for doi in row['additional_refs'].split(','):
+                        ref, created = Reference.objects.get_or_create(doi=doi.strip())
+                        ref.proteins.add(p)
+                        if created:
+                            print("created Reference {}".format(ref))
             else:
                 errors.append("name: {}, row: {}, {}".format(data.dict[rownum]['name'], rownum, pform.errors.as_text()))
 
@@ -674,14 +685,18 @@ def import_fpd(file=None, overwrite=True):
     return errors
 
 
-def create_collection(name='New Collection', desc=''):
-    file = os.path.join(BASEDIR, '_data/FPs.csv')
-    data = tablib.Dataset().load(open(file).read())
+def create_collection(name='FPvis Collection', desc='Proteins selected by Kurt Thorn at fpvis.org'):
+    url = 'https://raw.githubusercontent.com/FPvisualization/fpvisualization.github.io/master/FPs.csv'
+    df = pd.read_csv(url)
     col = ProteinCollection.objects.create(name=name, description=desc, owner=SUPERUSER)
     col.save()
-    for row in data.dict:
-        p = Protein.objects.get(name=row['name'])
-        col.proteins.add(p)
+    for n in df['Name']:
+        try:
+            p = Protein.objects.get(name=n)
+            col.proteins.add(p)
+        except:
+            print('{} failed'.format(n))
+            pass
 
 
 @require_superuser
