@@ -17,6 +17,19 @@ class Around(Lookup):
 fields.PositiveSmallIntegerField.register_lookup(Around)
 
 
+class NotEqual(Lookup):
+    lookup_name = 'ne'
+
+    def as_sql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params
+        return '%s <> %s' % (lhs, rhs), params
+
+
+fields.CharField.register_lookup(NotEqual)
+
+
 class Spectrum(object):
     """ Python class for spectra as a list of lists """
 
