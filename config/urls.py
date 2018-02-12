@@ -4,9 +4,18 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
 from django.views import defaults as default_views
+from django.contrib.sitemaps.views import sitemap
 from rest_framework.documentation import include_docs_urls
-
+from fpbase.sitemaps import *
 import fpbase.views
+
+sitemaps = {
+    'proteins': ProteinSitemap(),
+   # 'protstat': ProteinStaticSitemap(),
+    'organisms': OrganismsSitemap(),
+    'static': StaticSitemap(),
+}
+
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name='pages/home.html'), name='home'),
@@ -15,7 +24,8 @@ urlpatterns = [
     url(r'^privacy/$', TemplateView.as_view(template_name='pages/terms.html'), name='privacy'),
     url(r'^contributing/$', TemplateView.as_view(template_name='pages/contributing.html'), name='contributing'),
     url(r'^schema/$', TemplateView.as_view(template_name='pages/schema.html'), name='schema'),
-    url(r'^robots.txt$', TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots"),
+    url(r'^robots\.txt$', TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots"),
+    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 
     url(r'^contact/$', fpbase.views.ContactView.as_view(), name='contact'),
     url(r'^thanks/$', TemplateView.as_view(template_name='pages/thanks.html'), name='thanks'),
