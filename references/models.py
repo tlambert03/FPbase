@@ -12,7 +12,7 @@ from django.urls import reverse
 User = get_user_model()
 
 
-class Author(models.Model):
+class Author(TimeStampedModel):
     family = models.CharField(max_length=80)
     given = models.CharField(max_length=80)
     initials = models.CharField(max_length=10)
@@ -67,6 +67,7 @@ class Reference(TimeStampedModel):
                 MinValueValidator(1960), MaxValueValidator(datetime.now().year)],
             help_text="YYYY")
     authors = models.ManyToManyField("Author", through='ReferenceAuthor')
+    summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
 
     created_by = models.ForeignKey(User, related_name='reference_author', blank=True, null=True)
     updated_by = models.ForeignKey(User, related_name='reference_modifier', blank=True, null=True)
