@@ -61,6 +61,49 @@ $('.form-group').removeClass('row');
 // });
 
 
+///////////DATA TABLE
+
+$(function() {
+  $('#proteinTable').DataTable({
+    "pageLength": 100,
+    "autoWidth": false,
+    "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100,"All"] ],
+    'fixedHeader': {
+        'header': false,
+        'footer': true
+    },
+    "order": [[ 2, 'asc' ], [ 1, 'asc' ]],
+  });
+
+  $('.table-filter').change(function(){
+    var searchval = this.value;
+    if (searchval != ''){
+      searchval = '^' + this.value +'$';
+    }
+    searchcol = $(this).attr('data-col')
+    $('#proteinTable').DataTable().column('.' + searchcol).search(searchval, true, false).draw();
+  });
+
+  // $('.exmax').each(function(){
+  //  $(this).closest('tr').css('background-color', get_color_group($(this).html()))
+  // })
+
+});
+
+function get_color_group(exwave){
+    if (exwave < 380){ return "#C080FF" } //
+    if (exwave < 420){ return "#8080FF" } // Blue
+    if (exwave < 473){ return "#80FFFF" } // Cyan
+    if (exwave < 507){ return "#80FF80" } // Green
+    if (exwave < 515){ return "#CCFF80" } // Yellow-Green
+    if (exwave < 531){ return "#FFFF80" } // Yellow
+    if (exwave < 555){ return "#FFC080" } // Orange
+    if (exwave < 600){ return "#FFA080" } // Red
+    if (exwave < 631){ return "#FF8080" } // Far red
+    if (exwave < 800){ return "#B09090" } // Near IR
+}
+
+
 ///////////////////////
 // FORM BEHAVIOR
 ///////////////////////
