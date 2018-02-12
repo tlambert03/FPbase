@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from django.db import models
-from django.apps import apps
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
 from django.db.models import Avg, Q, Count
@@ -16,7 +15,8 @@ import json
 import re
 
 from references.models import Reference
-from .helpers import fetch_ipg_sequence, get_color_group, wave_to_hex, mless, get_base_name
+from .helpers import get_color_group, wave_to_hex, mless, get_base_name
+# from .extrest.entrez import fetch_ipg_sequence
 from .validators import protein_sequence_validator, validate_mutation, validate_uniprot
 from .fields import SpectrumField
 from . import util
@@ -95,7 +95,8 @@ class ProteinManager(models.Manager):
     #     return self.get_queryset().filter(id__in=pids)
 
     def with_spectra(self):
-        return self.get_queryset().filter(states__ex_spectra__isnull=False, states__em_spectra__isnull=False).distinct()
+        return self.get_queryset().filter(states__ex_spectra__isnull=False,
+                    states__em_spectra__isnull=False).distinct()
 
 
 class Protein(Authorable, StatusModel, TimeStampedModel):
@@ -278,9 +279,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             self.seq = "".join(self.seq.split()).upper()  # remove whitespace
 
         # if the IPG ID has changed... refetch the sequence
-        if self.ipg_id != self.__original_ipg_id:
-            s = fetch_ipg_sequence(uid=self.ipg_id)
-            self.seq = s[1] if s else None
+        # if self.ipg_id != self.__original_ipg_id:
+        #    s = fetch_ipg_sequence(uid=self.ipg_id)
+        #    self.seq = s[1] if s else None
 
         self.slug = slugify(self.name)
         self.base_name = self._base_name
@@ -447,7 +448,7 @@ class State(Authorable, TimeStampedModel):
         self.slug = self.protein.slug + '_' + slugify(self.name)
         if self.qy and self.ext_coeff:
             self.brightness = float(round(self.ext_coeff * self.qy / 1000, 2))
-        super(State, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = u'State'
