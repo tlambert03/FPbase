@@ -12,7 +12,7 @@
 {% block content %}
 
 
-			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name }}</h1>
+			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name | safe }}</h1>
 
 			{% if protein.aliases %}
 				<p class='text-center aliases pb-2'>
@@ -62,7 +62,7 @@
 				{% favorite_button protein %}
 			</div>
 
-			<div class='protein-blurb'>{{ protein.description }}</div>
+			<div class='protein-blurb'>{{ protein.description | safe }}</div>
 		</div>
 
 		<div class="spectra">
