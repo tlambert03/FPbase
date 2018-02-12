@@ -235,7 +235,8 @@ def protein_search(request):
     ''' renders html for protein search page  '''
 
     if request.GET:
-        f = ProteinFilter(request.GET, queryset=Protein.objects.select_related('default_state').prefetch_related('states').order_by('default_state__em_max'))
+        f = ProteinFilter(request.GET, queryset=Protein.objects.select_related('default_state')
+                        .prefetch_related('states').order_by('default_state__em_max'))
 
         # if no hits, but name was provided... try trigram search
         if len(f.qs) == 0:
