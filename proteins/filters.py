@@ -89,6 +89,18 @@ class ProteinFilter(filters.FilterSet):
         help_text='cDNA sequence (in frame)')
     pdb__contains = CharArrayFilter(name='pdb', lookup_expr='contains')
     # aliases__contains = CharArrayFilter(name='aliases', lookup_expr='icontains')
+    name__icontains = django_filters.CharFilter(
+        name='name',
+        method='name_or_alias_icontains', lookup_expr='icontains')
+    # name__iexact = django_filters.CharFilter(
+    #     name='name',
+    #     method='name_or_alias_iexact', lookup_expr='iexact')
+    # name__iendswith = django_filters.CharFilter(
+    #     name='name',
+    #     method='name_or_alias_iendswith', lookup_expr='iendswith')
+    # name__istartswith = django_filters.CharFilter(
+    #     name='name',
+    #     method='name_or_alias_istartswith', lookup_expr='istartswith')
 
     class Meta:
         model = Protein
@@ -150,6 +162,18 @@ class ProteinFilter(filters.FilterSet):
             'primary_reference__year': 'Year published',
             'default_state__bleach_measurements__rate': 'Photostability (s)',
         }
+
+    def name_or_alias_icontains(self, queryset, name, value):
+        return queryset.filter(name__icontains=value) | queryset.filter(aliases__icontains=value)
+
+    # def name_or_alias_iexact(self, queryset, name, value):
+    #     return queryset.filter(name__iexact=value) | queryset.filter(aliases__iexact=value)
+
+    # def name_or_alias_iendswith(self, queryset, name, value):
+    #     return queryset.filter(name__iendswith=value) | queryset.filter(aliases__iendswith=value)
+
+    # def name_or_alias_istartswith(self, queryset, name, value):
+    #     return queryset.filter(name__istartswith=value) | queryset.filter(aliases__istartswith=value)
 
     def get_specbright(self, queryset, name, value):
         qsALL = list(queryset.all())
