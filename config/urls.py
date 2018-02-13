@@ -29,6 +29,7 @@ urlpatterns = [
 
     url(r'^contact/$', fpbase.views.ContactView.as_view(), name='contact'),
     url(r'^thanks/$', TemplateView.as_view(template_name='pages/thanks.html'), name='thanks'),
+    url(r'^beta/$', TemplateView.as_view(template_name='pages/beta.html'), name='beta'),
 
     # Django Admin, use {% url 'admin:index' %}
     url(settings.ADMIN_URL, admin.site.urls),

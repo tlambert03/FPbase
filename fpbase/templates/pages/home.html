@@ -25,7 +25,7 @@
 							</span>
 						</form>
 					<p class="m-t-4 advanced-search"><a href="{% url 'proteins:search' %}">advanced search</a></p>
-{# 					<p class='m-t-4 small text-white'><br><em>please note: <a href='beta' class='text-white'>FPbase is in beta <i class='far fa-question-circle'></i></a></em></p> #}
+					<p class='m-t-4' style="color:#ccc"><br><i class='fa fa-info-circle'></i>  <em><a href='{% url "beta" %}' style="color:#ccc">FPbase is in beta</a></em></p>
 				</div>
 				<div class="col-md-4 align-self-center order-sm-1" id="protein-image">
 					<img src="{% static 'images/blurry_egfp.png' %}" style="position: absolute;" class="img-fluid no-glow" alt="EGFP image">

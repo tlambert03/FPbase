@@ -119,8 +119,8 @@ class ProteinForm(forms.ModelForm):
             "agg": "Oligomerization",
         }
         help_texts = {
-            'aliases': 'Comma seperated list of aliases',
-            'pdb': 'Comma seperated list of <a href="https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html" target="_blank">PDB IDs</a>',
+            'aliases': 'Comma separated list of aliases',
+            'pdb': 'Comma separated list of <a href="https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html" target="_blank">PDB IDs</a>',
             'ipg_id': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/" target="_blank">Identical Protein Group ID</a>',
             'genbank': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/genbank/sequenceids/" target="_blank">GenBank ID</a>',
             'uniprot': '<a href="https://www.uniprot.org/help/accession_numbers" target="_blank">UniProt accession number</a>'
