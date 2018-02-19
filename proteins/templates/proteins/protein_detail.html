@@ -53,16 +53,19 @@
 			{% endif %}
 
 		<div class="clearfix">
-			<div class="like_buttons float-right">
+			<div class="like_buttons float-sm-right">
 				<div class="container-button" data-toggle="tooltip" data-placement="top" title="Add to collection">
 					<a class="btn collection-add-button" href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal">
-					  <i class="fas fa-book"></i>
+					  <i class="fas fa-book d-none d-sm-inline"></i>
+					  	<a class='collection-add-button d-block d-sm-none' href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal" style="text-decoration: none;"><button type="button" class="btn btn-info btn-block"><i class="fas fa-book mr-2"></i>Add to collection</button>
+					  	</a>
 					</a>
 				</div>
 				{% favorite_button protein %}
 			</div>
 
 			<div class='protein-blurb'>{{ protein.description | safe }}</div>
+
 		</div>
 
 		<div class="spectra">
@@ -119,7 +122,14 @@
 				</table>
 			</div>
 			<div class="align-self-end text-sm-right mt-1">
-				<small><a href="#" class='text-info' data-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">Edit transitions</a></small>
+				<a href="#" class='text-info' data-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
+				<div class="align-self-end text-sm-right mt-1">
+					<a href="#" class='text-info' data-toggle="modal" id='show_transition_modal'>
+						<small class="d-none d-sm-inline">Edit state transitions</small>
+						<button type="button" class="btn btn-secondary btn-block mt-3 d-block d-sm-none"><i class="fas fa-exchange-alt mr-2"></i>Edit state transitions</button>
+					</a>
+				</div>
+				</a>
 			</div>
 		</div>
 		{% endif %}

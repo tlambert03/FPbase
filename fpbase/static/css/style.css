@@ -6102,6 +6102,9 @@ footer {
 .like_buttons {
   padding-left: 16px;
   padding-left: 1rem; }
+  @media (max-width: 575px) {
+    .like_buttons {
+      padding-left: 0rem; } }
   .like_buttons div {
     display: inline; }
   .like_buttons a, .like_buttons a.active {
@@ -6116,8 +6119,10 @@ footer {
     margin-right: 1.6px;
     margin-right: 0.1rem; }
   .like_buttons .favit .favorite, .like_buttons .favit .favorite:active {
-    box-shadow: none !important;
-    padding: 0; }
+    box-shadow: none !important; }
+    @media (min-width: 576px) {
+      .like_buttons .favit .favorite, .like_buttons .favit .favorite:active {
+        padding: 0; } }
   .like_buttons .favit .badge {
     position: relative;
     bottom: -11.2px;
@@ -6128,6 +6133,10 @@ footer {
     font-size: 0.4rem;
     background: rgba(255, 193, 7, 0.6);
     color: #495057; }
+  @media (max-width: 575px) {
+    .like_buttons a.btn.favorite, .like_buttons a.btn.favorite.active, .like_buttons a.btn.favorite:focus {
+      display: block;
+      padding-top: 0.5rem; } }
 
 .tooltip .tooltip-inner {
   color: #fff;

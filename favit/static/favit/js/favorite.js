@@ -12,9 +12,11 @@ $(document).ready(function() {
       success: function(response) {
           if (response.status == 'added') {
             $obj.find('svg').attr('data-prefix', 'fas');
+            $obj.find('span').text('Remove from favorites');
           }
           else {
             $obj.find('svg').attr('data-prefix', 'far');
+            $obj.find('span').text('Add to favorites');
           }
           $obj.parent('.favit').children('.fav-count').text(response.fav_count);
           $obj.prop('disabled', false);

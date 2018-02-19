@@ -109,6 +109,7 @@ footer {
 
 .like_buttons{
 	padding-left: 1rem;
+	@include media-breakpoint-down(xs) { padding-left: 0rem;}
 	div {
 		display: inline;
 	}
@@ -129,7 +130,7 @@ footer {
 		}
 		.favorite, .favorite:active{
 			box-shadow:none !important;
-			padding: 0;
+			@include media-breakpoint-up(sm) {padding: 0;}
 		}
 		.badge {
 			position: relative;
@@ -139,6 +140,10 @@ footer {
 			background: rgba($warning, 0.6);
 			color: $gray-700;
 		}
+	}
+
+	a.btn.favorite, a.btn.favorite.active, a.btn.favorite:focus{
+		@include media-breakpoint-down(xs) {display: block; padding-top:0.5rem;}
 	}
 }
 

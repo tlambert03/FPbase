@@ -36,15 +36,21 @@
 		</tbody>
 	</table>
 
+	<div class="align-self-end text-sm-right mt-1">
+		<a href="{% url 'proteins:update' slug=protein.slug %}" class='text-info'>
+			<small class="d-none d-sm-inline">Edit States&sol;Attributes</small>
+			<button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none"><i class="fas fa-sun mr-2"></i>Edit States&sol;Attributes</button>
+		</a>
+	</div>
 	{% if protein.states.count > 1 and protein.transitions.count == 0 %}
 		<div class="align-self-end text-sm-right mt-1">
-			<small><a href="#" class='text-info' data-toggle="modal" id='show_transition_modal'>Edit state transitions</a></small>
+			<a href="#" class='text-info' data-toggle="modal" id='show_transition_modal'>
+				<small class="d-none d-sm-inline">Edit state transitions</small>
+				<button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none"><i class="fas fa-exchange-alt mr-2"></i>Edit state transitions</button>
+			</a>
 		</div>
-	{% elif protein.states.count == 1 %}
-	<div class="align-self-end text-sm-right mt-1">
-		<small><a href="{% url 'proteins:update' slug=protein.slug %}" class='text-info'>Edit States&sol;Attributes</a></small>
-	</div>
 	{% endif %}
+
 
 {% else %}
 	<p>This protein does not yet have any states assigned. <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>Submit a change.</a></p>

@@ -29,7 +29,7 @@
 	  {% else %}
   	      <div class="modal-body">
   	      	<div>
-  	      		<p>You must be logged in to make transition updates</p>
+  	      		<p>You must be logged in to create protein collections</p>
   	      		<a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}"><button type="submit" class="btn btn-primary">{% trans "sign in" %}</button></a>
   	      	</div>
   	      </div>
