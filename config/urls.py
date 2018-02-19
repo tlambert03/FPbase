@@ -10,10 +10,11 @@ from fpbase.sitemaps import *
 import fpbase.views
 
 sitemaps = {
+    'static': StaticSitemap(),
     'proteins': ProteinSitemap(),
    # 'protstat': ProteinStaticSitemap(),
     'organisms': OrganismsSitemap(),
-    'static': StaticSitemap(),
+
 }
 
 
