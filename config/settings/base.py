@@ -185,7 +185,8 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 # Your stuff: custom template context processors go here
-                'fpbase.context_processors.ga_tracking_id'
+                'fpbase.context_processors.ga_tracking_id',
+                'fpbase.context_processors.canonical',
             ],
         },
     },
@@ -293,6 +294,7 @@ ADMIN_URL = r'^admin/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
+CANONICAL_URL = env('CANONICAL_URL', default='https://www.fpbase.org')
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
