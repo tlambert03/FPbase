@@ -21,7 +21,7 @@ class CanonicalDomainMiddleware(object):
         if hostname in ("testserver", "localhost", "127.0.0.1"):
             return self.get_response(request)
         # Check against the site domain.
-        canonical_hostname = settings.CANONICAL_URL.split(":", 1)[0]
+        canonical_hostname = settings.CANONICAL_URL.split("://", 1)[1]
         if hostname != canonical_hostname:
             canonical_url = settings.CANONICAL_URL + request.get_full_path()
             return redirect(canonical_url, permanent=True)
