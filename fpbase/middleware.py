@@ -20,6 +20,8 @@ class CanonicalDomainMiddleware(object):
         # Don't perform redirection for testing or local development.
         if hostname in ("testserver", "localhost", "127.0.0.1"):
             return self.get_response(request)
+        if 'googleaecf5301782589e7' in request.get_full_path():
+            return self.get_response(request)
         # Check against the site domain.
         canonical_hostname = settings.CANONICAL_URL.split("://", 1)[1]
         if hostname != canonical_hostname:
