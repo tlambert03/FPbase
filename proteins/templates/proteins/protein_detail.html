@@ -23,6 +23,16 @@
 				</p>
 			{% endif %}
 
+			{% if similar.exists %}
+				<p class='text-center text-muted'>
+					similar:
+				{% for p in similar.all  %}
+					<a href="{{p.get_absolute_url}}">{{p}}</a>{% if not forloop.last %},{% endif %}
+				{% endfor %}
+				</p>
+			{% endif %}
+
+
 			{% if version %}
 				<div class="alert alert-warning clearfix" role="alert">
 					<strong><i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i></strong>You are viewing an older revision of this protein, from {{ version.revision.date_created|date:"M j, Y H:i:s"}}.  <a href="{{ protein.get_absolute_url }}" class="alert-link">Click here</a> to view the current version.

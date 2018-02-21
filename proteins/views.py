@@ -27,7 +27,7 @@ from reversion.models import Version
 
 class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
-    queryset = Protein.objects.all().prefetch_related('states')
+    queryset = Protein.visible.all().prefetch_related('states')
 
     def version_view(self, request, version, *args, **kwargs):
         try:
@@ -65,6 +65,12 @@ class ProteinDetailView(DetailView):
         data = super().get_context_data(**kwargs)
         if not self.object.status == 'approved':
             data['last_approved'] = self.object.last_approved_version()
+
+        similar = Protein.visible.filter(name__iexact='m'+self.object.name)
+        similar = similar | Protein.visible.filter(name__iexact='monomeric'+self.object.name)
+        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip('m'))
+        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip('monomeric'))
+        data['similar'] = similar.exclude(id=self.object.id)
         return data
 
 
