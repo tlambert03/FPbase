@@ -553,12 +553,19 @@ class CollectionCreateView(CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
+        if len(self.request.POST.getlist('protein')):
+            kwargs['proteins'] = self.request.POST.getlist('protein')
+        elif self.request.POST.get('dupcollection', False):
+            id = self.request.POST.get('dupcollection')
+            kwargs['proteins'] = [p.id for p in ProteinCollection.objects.get(id=id).proteins.all()]
         return kwargs
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.owner = self.request.user
         self.object.save()
+        if getattr(form, 'proteins', None):
+            self.object.proteins.add(*form.proteins)
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
@@ -569,6 +576,12 @@ class CollectionCreateView(CreateView):
         except Exception:
             redirect_url = None
         return redirect_url or super().get_success_url()
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST.get('colname', False):
+            data['colname'] = self.request.POST.get('colname')
+        return data
 
 
 class CollectionUpdateView(UpdateView):

@@ -307,6 +307,7 @@ class CollectionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        self.proteins = kwargs.pop('proteins', None)
         super().__init__(*args, **kwargs)
 
     class Meta:
