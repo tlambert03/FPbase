@@ -6,7 +6,11 @@
 
 {% block content %}
 
-	<h1 class='mb-5'>{% if owner %}Protein collections created by {{owner}}{% else %}All protein collections{% endif %}</h1>
+	{% if request.user.username == owner %}
+		<h1 class='mb-4'>Your Protein Collections</h1>
+	{% else %}
+		<h1 class='mb-4'>{% if owner %}Protein collections created by {{owner}}{% else %}All protein collections{% endif %}</h1>
+	{% endif %}
 
 	<ul class='mb-5'>
 		{% for object in object_list %}

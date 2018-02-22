@@ -9,7 +9,11 @@
 <div class="clearfix">
     <h1>{{ object.name }}</h1>
 
-    <a href="{% url 'proteins:updatecollection' object.id %}"><button class='btn btn-primary btn-sm'>Edit Details</button></a>
+    {% if object.owner.id == request.user.id %}
+        <a href="{% url 'proteins:updatecollection' object.id %}"><button class='btn btn-primary btn-sm'>Edit Collection Details</button></a>
+        <a href="{% url 'proteins:deletecollection' object.id %}"><button class='btn btn-primary btn-sm'>Delete Collection</button></a>
+    {% endif %}
+
     <p>{{ object.proteins.count }} proteins <br><em>Created by: </em>{% if object.owner.id == request.user.id %}You{% else %}{{ object.owner }}{% endif %}<br><em>Last Modified: </em>{{ object.modified|date:"M j, Y" }}<br>
     {% if object.private %}Private{% else %}Public{% endif %} Collection</p>
     {% if object.description %}

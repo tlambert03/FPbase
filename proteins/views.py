@@ -1,4 +1,4 @@
-from django.views.generic import DetailView, ListView, CreateView, UpdateView
+from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.contrib import messages
@@ -10,7 +10,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
 from django import forms
-from django.urls import resolve
+from django.urls import resolve, reverse_lazy
 
 
 import json
@@ -592,3 +592,17 @@ class CollectionUpdateView(UpdateView):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+
+class CollectionDeleteView(DeleteView):
+    model = ProteinCollection
+    success_url = reverse_lazy('proteins:collections')
+
+    def get_success_url(self):
+        redirect_url = reverse_lazy('proteins:collections', kwargs={'owner': self.request.user})
+        try:
+            # check that this is an internal redirection
+            resolve(redirect_url)
+        except Exception:
+            redirect_url = None
+        return redirect_url or super().get_success_url()
