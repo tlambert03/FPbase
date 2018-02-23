@@ -128,3 +128,23 @@ def file2spectra(file, dtype=''):
 # Run it as follows:
 # x, y = get_file_data('/Users/talley/Desktop/CyOFP1em.txt')
 # x, y = interp_and_norm(x, y)
+
+if __name__ == '__main__':
+
+    import json
+    import subprocess
+    import sys
+
+    def setClipboardData(data):
+        data = json.dumps(data, separators=(',', ':'))
+        p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+        p.stdin.write(bytes(data.strip('"'), 'utf-8'))
+        p.stdin.close()
+        p.wait()
+
+    infile = sys.argv[1]
+    x, y = get_file_data(infile)
+    x, y = interp_and_norm(x, y)
+    out = [list(a) for a in zip(x, y)]
+    setClipboardData(out)
+    print('data copied to clipboard')
