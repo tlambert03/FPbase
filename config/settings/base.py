@@ -118,11 +118,15 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.s
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#admins
 ADMINS = [
-    ("""Talley Lambert""", 'talley.lambert@gmail.com'),
+    ('Talley Lambert', 'talley.lambert+fpbase@gmail.com'),
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#managers
-MANAGERS = ADMINS
+MANAGERS = ADMINS + [('Anna Jost',  'anna_jost@hms.harvard.edu')]
+
+EMAIL_SUBJECT_PREFIX = '[FPbase] '
+SERVER_EMAIL = 'noreply@fpbase.org'
+DEFAULT_FROM_EMAIL = 'noreply@fpbase.org'
 
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------

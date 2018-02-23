@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
 from django import forms
 from django.urls import resolve, reverse_lazy
-
+from django.core.mail import mail_managers, mail_admins
 
 import json
 from .models import Protein, State, ProteinCollection, Organism, BleachMeasurement
@@ -133,6 +133,12 @@ class ProteinCreateUpdateMixin:
 
                     if not self.request.user.is_staff:
                         self.object.status = 'pending'
+                        mail_managers('Protein {} {}'.format(self.object, self.get_form_type() + 'ed'),
+                            "User: {}\nProtein: {}\n{}".format(
+                                self.request.user.username,
+                                self.object,
+                                self.request.build_absolute_uri(self.object.get_absolute_url())),
+                            fail_silently=True)
                     else:
                         self.object.status = 'approved'
 
@@ -269,6 +275,11 @@ def add_reference(request, slug=None):
             P.references.add(ref)
             if not request.user.is_staff:
                 P.status = 'pending'
+                mail_managers('Reference Added',
+                    "User: {}\nProtein: {}\nReference: {}, {}\n{}".format(
+                        request.user.username, P, ref, ref.title,
+                        request.build_absolute_uri(P.get_absolute_url())),
+                    fail_silently=True)
             P.save()
             reversion.set_user(request.user)
             reversion.set_comment('Ref: {} added to {}'.format(ref, P))
@@ -286,11 +297,16 @@ def add_organism(request):
         if not tax_id:
             raise Exception()
         org, created = Organism.objects.get_or_create(id=tax_id)
-        print(request.user)
         if created:
             if request.user.is_authenticated:
                 org.created_by = request.user
                 org.save()
+            if not request.user.is_staff:
+                mail_managers('Organism Added',
+                    "User: {}\nOrganism: {}\n{}".format(
+                        request.user.username, org,
+                        request.build_absolute_uri(org.get_absolute_url())),
+                    fail_silently=True)
         return JsonResponse({'status': 'success', 'created': created,
                              'org_id': org.id, 'org_name': org.scientific_name})
     except Exception:
@@ -344,6 +360,9 @@ def update_transitions(request, slug=None):
                         obj.status = 'approved'
                     else:
                         obj.status = 'pending'
+                        mail_managers('Transition updated',
+                            "User: {}\nProtein: {}\nForm: {}".format(request.user.username, obj, formset),
+                            fail_silently=True)
                     obj.save()
                     reversion.set_user(request.user)
                     reversion.set_comment('Transitions edited on {}'.format(obj))
@@ -394,7 +413,6 @@ def protein_bleach_formsets(request, slug):
     if request.method == 'POST':
         formset = BleachMeasurementFormSet(request.POST, queryset=qs)
         formset.form.base_fields['state'].queryset = State.objects.filter(protein__slug=slug)
-        print(formset.management_form.__dict__)
         if formset.is_valid():
             with transaction.atomic():
                 with reversion.create_revision():
@@ -410,6 +428,11 @@ def protein_bleach_formsets(request, slug):
 
                     if not request.user.is_staff:
                         protein.status = 'pending'
+                        mail_managers('BleachMeasurement Added',
+                            "User: {}\nProtein: {}\n{}".format(
+                                request.user.username, protein,
+                                request.build_absolute_uri(protein.get_absolute_url())),
+                            fail_silently=True)
                     else:
                         protein.status = 'approved'
 
@@ -423,8 +446,6 @@ def protein_bleach_formsets(request, slug):
         formset = BleachMeasurementFormSet(queryset=qs)
         formset.form.base_fields['state'].queryset = State.objects.filter(protein__slug=slug)
     return render(request, template_name, {'formset': formset, 'protein': protein})
-
-
 
 
 class OrganismDetailView(DetailView):
@@ -566,6 +587,13 @@ class CollectionCreateView(CreateView):
         self.object.save()
         if getattr(form, 'proteins', None):
             self.object.proteins.add(*form.proteins)
+        if not self.request.user.is_staff:
+            mail_admins('Collection Created',
+                "User: {}\nCollection: {}\n{}".format(
+                    self.request.user.username,
+                    self.object,
+                    self.request.build_absolute_uri(self.object.get_absolute_url())),
+                fail_silently=True)
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
