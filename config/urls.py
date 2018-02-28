@@ -39,6 +39,8 @@ urlpatterns = [
     # User management
     url(r'^users/', include('fpbase.users.urls', namespace='users')),
     url(r'^accounts/', include('allauth.urls')),
+    url(r'^api/$', TemplateView.as_view(template_name='pages/api.html'), name='api'),
+
 
     # Your stuff: custom urls includes go here
 

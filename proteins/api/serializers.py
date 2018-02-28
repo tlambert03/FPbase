@@ -92,7 +92,7 @@ class ProteinSerializer(ModelSerializer):
             'transitions',
             'doi',
         )
-        on_demand_fields = ('seq', 'states', 'transitions')
+        on_demand_fields = ()
 
 
 # NOT DRY

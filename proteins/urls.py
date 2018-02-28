@@ -59,9 +59,9 @@ urlpatterns = [
 
     # /proteins/api
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
-    url(r'^api/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
+    url(r'^api/proteins/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
     url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
-    url(r'^api/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
+    url(r'^api/proteins/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
     # /proteins/api/:slug/
     url(r'^api/(?P<slug>[-\w]+)/$', apiviews.ProteinRetrieveUpdateDestroyAPIView.as_view(), name='protein-api')
 
