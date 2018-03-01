@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from allauth.account.models import EmailAddress
 from .models import User
 
 
@@ -33,7 +34,11 @@ class MyUserAdmin(AuthUserAdmin):
     form = MyUserChangeForm
     add_form = MyUserCreationForm
     fieldsets = (
-            ('User Profile', {'fields': ('name',)}),
+            ('User Profile', {'fields': ('name', 'email_verified')}),
     ) + AuthUserAdmin.fieldsets
     list_display = ('username', 'name', 'is_superuser')
     search_fields = ['name']
+    readonly_fields = ('email_verified',)
+
+    def email_verified(self, obj):
+        return EmailAddress.objects.filter(verified=True, user=obj).exists()
