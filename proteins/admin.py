@@ -3,13 +3,19 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.db import models
 from django.forms import Textarea, TextInput
-from proteins.models import Protein, State, StateTransition, Organism, FRETpair, BleachMeasurement, SpectrumField
+from proteins.models import (Protein, State, StateTransition, Organism,
+    FRETpair, BleachMeasurement, SpectrumField, Mutation)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.models import Version
 from reversion.admin import VersionAdmin
 
 
 # ############ INLINES ###############
+
+# placeholder... not yet used
+@admin.register(Mutation)
+class MutationAdmin(VersionAdmin):
+    model = Mutation
 
 
 class BleachInline(admin.TabularInline):
@@ -187,7 +193,7 @@ class OrganismAdmin(CompareVersionAdmin):
         obj.updated_by = request.user
         obj.save()
 
-from django.contrib.postgres.forms import SimpleArrayField
+
 @admin.register(Protein)
 class ProteinAdmin(CompareVersionAdmin):
     list_display = ('__str__', 'ipg_id', 'switch_type', 'created', 'modified', 'states_all_count')
@@ -196,7 +202,7 @@ class ProteinAdmin(CompareVersionAdmin):
     prepopulated_fields = {'slug': ('name',)}
     raw_id_fields = ("primary_reference", "references", 'parent_organism')
     inlines = [
-        StateInline, StateTransitionInline, FRETpairInline,
+        StateInline, StateTransitionInline, FRETpairInline
     ]
     fieldsets = [
         (None, {
