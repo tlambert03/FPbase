@@ -36,9 +36,10 @@ class MyUserAdmin(AuthUserAdmin):
     fieldsets = (
             ('User Profile', {'fields': ('name', 'email_verified')}),
     ) + AuthUserAdmin.fieldsets
-    list_display = ('username', 'name', 'is_superuser')
+    list_display = ('username', 'email', 'email_verified', 'is_superuser')
     search_fields = ['name']
     readonly_fields = ('email_verified',)
 
     def email_verified(self, obj):
         return EmailAddress.objects.filter(verified=True, user=obj).exists()
+    email_verified.boolean = True
