@@ -163,8 +163,8 @@ $("#id_ipg_id").change(function(){
                             }
                         }
                         $("#id_seq").val(seq)
-                        $("#id_seq").prop('disabled', true);
-                        $("#hint_id_seq").html('Sequence input disabled when IPG ID provided')
+                        //$("#id_seq").prop('disabled', true);
+                        //$("#hint_id_seq").html('Sequence input disabled when IPG ID provided')
                     },
                     error: function(data){
                         reset_ipgid('Unrecognized IPG ID')
