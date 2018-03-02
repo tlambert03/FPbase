@@ -429,7 +429,8 @@ class State(Authorable, TimeStampedModel):
         except Exception:
             return None
         d = {
-            "key": self.protein.name + " " + spectrum,
+            "key": "{}{} {}".format(self.protein.name,
+                " " + self.name if not self.name == 'default' else "", spectrum),
             "values": spec,
             "peak": peak,
             "type": spectrum,
