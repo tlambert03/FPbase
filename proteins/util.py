@@ -1,4 +1,4 @@
-def long_blurb(self):
+def long_blurb(self, withbleach=False):
     blurb = self.name
     switch = self.get_switch_type_display().lower()
     blurb += " is a{}{}{} fluorescent protein".format(
@@ -26,18 +26,19 @@ def long_blurb(self):
             blurb += "It is {} other proteins in the database with similar emission spectra".format(bright)
 
         bleach = None
-        BM = self.default_state.bleach_measurements.first()
-        if BM:
-            if BM.rate > 300:
-                bleach = 'excellent'
-            elif BM.rate > 200:
-                bleach = 'very good'
-            elif BM.rate > 100:
-                bleach = 'decent'
-            elif BM.rate > 50:
-                bleach = 'relatively poor'
-            elif BM.rate < 50:
-                bleach = 'very poor'
+        if withbleach:
+            BM = self.default_state.bleach_measurements.first()
+            if BM:
+                if BM.rate > 300:
+                    bleach = 'excellent'
+                elif BM.rate > 200:
+                    bleach = 'very good'
+                elif BM.rate > 100:
+                    bleach = 'decent'
+                elif BM.rate > 50:
+                    bleach = 'relatively poor'
+                elif BM.rate < 50:
+                    bleach = 'very poor'
         if bleach:
             if bright:
                 if ((BM.rate > 100 and self.default_state.local_brightness < 0.9) or
