@@ -503,8 +503,9 @@ class CollectionDetail(DetailView):
         return context
 
     def render_to_response(self, *args, **kwargs):
-        if self.object.private and (self.object.owner != self.request.user):
-            return render(self.request, 'proteins/private_collection.html', {'foo': 'bar'})
+        if not self.request.user.is_superuser:
+            if self.object.private and (self.object.owner != self.request.user):
+                return render(self.request, 'proteins/private_collection.html', {'foo': 'bar'})
         return super().render_to_response(*args, **kwargs)
 
 
