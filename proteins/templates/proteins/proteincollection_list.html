@@ -4,12 +4,25 @@
 {% block meta-description %}View all of the custom-created collections of fluorescent proteins by users at FPbase, the fluorescent protein database.{% endblock %}
 
 
+{% comment %}
+    if the "owner" variable is set, we are viewing the collections a specific user, otherwise it is all user protein collections
+{% endcomment %}
+
 {% block content %}
+
+	{% if not owner %}
+	<h1 class='mb-4'>Protein Collections</h1>
+	<p>Protein collections are user-selected sets of proteins that fit criteria that are important to that user.  For instance, you might create a collection to store the fluorescent proteins you have available as plasmids in your lab freezer, or a set of proteins that you think represent the best currently available proteins for your application.  Collections can be shared publicly (or kept private).  Collections can be created based on complicated <a href="{% url "proteins:search" %}">search queries</a>, manually by adding proteins from the respective protein pages, or they can be duplicated from existing collections and modified to suit your needs.  Lastly, collections can be easily downloaded in CSV or JSON format.</p>
+	{% endif %}
 
 	{% if request.user.username == owner %}
 		<h1 class='mb-4'>Your Protein Collections</h1>
 	{% else %}
-		<h1 class='mb-4'>{% if owner %}Protein collections created by {{owner}}{% else %}All protein collections{% endif %}</h1>
+		{% if owner %}
+			<h1 class='mb-4'>Protein collections created by {{owner}}</h1>
+		{% else %}
+			<h3>Current user protein collections</h3>
+		{% endif %}
 	{% endif %}
 
 	<ul class='mb-5'>

@@ -15,7 +15,12 @@
     {% endif %}
 
     <p>{{ object.proteins.count }} proteins <br><em>Created by: </em>{% if object.owner.id == request.user.id %}You{% else %}{{ object.owner }}{% endif %}<br><em>Last Modified: </em>{{ object.modified|date:"M j, Y" }}<br>
-    {% if object.private %}Private{% else %}Public{% endif %} Collection</p>
+    {% if object.private %}Private{% else %}Public{% endif %} Collection<br><br>
+    <a href="?format=json"><button class='btn btn-info btn-sm'>Download as JSON</button></a>
+    <a href="?format=csv"><button class='btn btn-info btn-sm'>Download as CSV</button></a>
+
+    </p>
+
     {% if object.description %}
         <div class="alert alert-info" role="alert">
             {{object.description}}
