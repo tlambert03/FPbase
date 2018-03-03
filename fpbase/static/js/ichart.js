@@ -85,7 +85,8 @@ var filters = {
 	"em_max" : [350,800,1],
 	"ext_coeff"	: [10000,170000,1000],
 	"qy"		: [0,1,0.01],
-	"brightness": [0,125,1]
+	"brightness": [0,125,1],
+	"agg"	 	: '',
 }
 //string variables for updating the axis labels
 var strings = {
@@ -138,6 +139,9 @@ $(function() {
 
 	//dynamically generate filter sliders based on "filters" object
 	$.each(filters, function(i,v){
+		if(i == 'agg') {
+		    return true;
+		}
 		$("<div id='"+i+"' class='noUi-slider'/>").appendTo("#sliders");
 		slider = document.getElementById(i)
 		var label = $("<label class='noUi-slider-label' for="+i+">"+strings[i]+"</label>").appendTo(slider);
@@ -171,6 +175,13 @@ $(function() {
 
 	});
 
+	$( "#aggselect").change(function() {
+	  aggchoice = $(this).val();
+	  console.log(aggchoice)
+	  filters['agg'] = aggchoice;
+	  plot();
+	});
+
     $( "#Xradio label").click(function() {
 	  currentX = $(this).children('input').val();
 	  plot();
@@ -183,6 +194,7 @@ $(function() {
 	//easter egg
 	$("#doalittledance").click(function(){doalittledance(1600);});
 	});
+
 
 
 // Chart dimensions.
@@ -300,6 +312,7 @@ function plotsquare(sel){
 		.text(function (d) {
 			if (d["agg"] == "d") { return "2"}
 			else if (d["agg"] == "td") { return "t"}
+			else if (d["agg"] == "wd") { return "2"}
 			else if (d["agg"] == "t") { return "4"}
 		;} )
 	}
@@ -410,8 +423,14 @@ function plot(xvar,yvar,data){
 	// helper function to iterate through all of the data filters (without having to type them all out)
 	function filtercheck(data){
 		for (f in filters){
-			v = filters[f];
-			if( data[f] < v[0] || data[f] > v[1] ) {return false;}
+			if (f == 'agg'){
+				if(filters[f]){
+					if( data[f] != filters[f] ) {return false;}
+				}
+			}else {
+				v = filters[f];
+				if( data[f] < v[0] || data[f] > v[1] ) {return false;}
+			}
 		}
 		return true;
 	}
