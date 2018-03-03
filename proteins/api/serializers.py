@@ -95,6 +95,16 @@ class ProteinSerializer(ModelSerializer):
         on_demand_fields = ()
 
 
+class BleachField(serializers.Field):
+
+    def to_representation(self, obj):
+        if obj.default_state.bleach_measurements.count():
+            rate = obj.default_state.bleach_measurements.first().rate
+            return rate
+        else:
+            return None
+
+
 # NOT DRY
 # TODO: figure out how to combine this with above
 class BasicProteinSerializer(ModelSerializer, serializers.HyperlinkedModelSerializer):
@@ -108,7 +118,7 @@ class BasicProteinSerializer(ModelSerializer, serializers.HyperlinkedModelSerial
     ext_coeff = serializers.FloatField(source='default_state.ext_coeff', read_only=True)
     qy = serializers.FloatField(source='default_state.qy', read_only=True)
     brightness = serializers.FloatField(source='default_state.brightness', read_only=True)
-    bleach = serializers.FloatField(source='default_state.bleach', read_only=True)
+    bleach = BleachField(source='*', read_only=True)
     maturation = serializers.FloatField(source='default_state.maturation', read_only=True)
     lifetime = serializers.FloatField(source='default_state.lifetime', read_only=True)
     pka = serializers.FloatField(source='default_state.pka', read_only=True)

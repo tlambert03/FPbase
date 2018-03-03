@@ -177,7 +177,6 @@ $(function() {
 
 	$( "#aggselect").change(function() {
 	  aggchoice = $(this).val();
-	  console.log(aggchoice)
 	  filters['agg'] = aggchoice;
 	  plot();
 	});
