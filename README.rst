@@ -62,8 +62,9 @@ TODO
 * mutations / lineages
 * FRET views and FRET partners
 * weighted scoring based on user-selected attributes
-* spectra page
-* allow users to copy other collections
-* download collection as csv or json
-*
-
+* user scoring/comments
+* user submit unpublished data
+* 2P absorption cross-section
+* photoswitchable chart
+* add aggregation filter to current chart
+* bleach comparisons within studies
