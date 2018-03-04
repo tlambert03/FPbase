@@ -26,7 +26,7 @@
     stroke: none;
     text-rendering: optimizeLegibility;
     line {
-      display: none;
+      opacity: 0;
     }
   }
 
@@ -64,4 +64,36 @@ svg.nvd3-svg {
   @include media-breakpoint-up(xs){ height: 170px; }
   @include media-breakpoint-up(sm){ height: 230px; }
   @include media-breakpoint-up(md){ height: 270px; }
+}
+
+@supports (zoom:2) {
+  .big-checkbox{
+  zoom: 1.5;
+  }
+}
+@supports not (zoom:2) {
+  .big-checkbox{
+    transform: scale(1.5);
+    margin: 15px;
+  }
+}
+
+.big-checkbox {
+  margin: auto;
+}
+
+.protein-spectra-select {
+  max-width: 95%;
+}
+
+table.spectra-form {
+  td {
+    border-top: none;
+  }
+  tr{
+    td:nth-child(1){ width: 5%; height: 80%}
+    td:nth-child(2){ width: 70%}
+    td:nth-child(3){ width: 10%; padding-top: 18px;}
+    td:nth-child(4){ width: 10%; padding-top: 18px;}
+  }
 }

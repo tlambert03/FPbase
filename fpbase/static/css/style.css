@@ -6618,7 +6618,7 @@ html.fa-events-typefaces-orbitron-loading .brand {
     stroke: none;
     text-rendering: optimizeLegibility; }
     #spectra .tick line {
-      display: none; }
+      opacity: 0; }
   #spectra .nv-group {
     fill-opacity: .6 !important; }
   #spectra .nv-axisMaxMin text {
@@ -6645,6 +6645,39 @@ svg.nvd3-svg {
   @media (min-width: 768px) {
     svg.nvd3-svg {
       height: 270px; } }
+
+@supports (zoom: 2) {
+  .big-checkbox {
+    zoom: 1.5; } }
+
+@supports not (zoom: 2) {
+  .big-checkbox {
+    transform: scale(1.5);
+    margin: 15px; } }
+
+.big-checkbox {
+  margin: auto; }
+
+.protein-spectra-select {
+  max-width: 95%; }
+
+table.spectra-form td {
+  border-top: none; }
+
+table.spectra-form tr td:nth-child(1) {
+  width: 5%;
+  height: 80%; }
+
+table.spectra-form tr td:nth-child(2) {
+  width: 70%; }
+
+table.spectra-form tr td:nth-child(3) {
+  width: 10%;
+  padding-top: 18px; }
+
+table.spectra-form tr td:nth-child(4) {
+  width: 10%;
+  padding-top: 18px; }
 
 @media (min-width: 1200px) {
   .tablecontainer {
@@ -7741,7 +7774,7 @@ i {
     stroke: none;
     text-rendering: optimizeLegibility; }
     #spectra .tick line {
-      display: none; }
+      opacity: 0; }
   #spectra .nv-group {
     fill-opacity: .6 !important; }
   #spectra .nv-axisMaxMin text {
@@ -7768,6 +7801,39 @@ svg.nvd3-svg {
   @media (min-width: 768px) {
     svg.nvd3-svg {
       height: 270px; } }
+
+@supports (zoom: 2) {
+  .big-checkbox {
+    zoom: 1.5; } }
+
+@supports not (zoom: 2) {
+  .big-checkbox {
+    transform: scale(1.5);
+    margin: 15px; } }
+
+.big-checkbox {
+  margin: auto; }
+
+.protein-spectra-select {
+  max-width: 95%; }
+
+table.spectra-form td {
+  border-top: none; }
+
+table.spectra-form tr td:nth-child(1) {
+  width: 5%;
+  height: 80%; }
+
+table.spectra-form tr td:nth-child(2) {
+  width: 70%; }
+
+table.spectra-form tr td:nth-child(3) {
+  width: 10%;
+  padding-top: 18px; }
+
+table.spectra-form tr td:nth-child(4) {
+  width: 10%;
+  padding-top: 18px; }
 
 [hidden][style="display: block;"] {
   display: block !important; }

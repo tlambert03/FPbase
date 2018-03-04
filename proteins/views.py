@@ -236,11 +236,12 @@ def protein_spectra(request, slug=None):
         protein = Protein.objects.get(slug=slug)
         return JsonResponse({'spectra': protein.spectra_json()})
     if request.method == 'GET':
-        qs = Protein.objects.with_spectra().values_list('slug', 'name')
-        widget = forms.Select(attrs={'class': 'form-control custom-select', 'id': 'ProteinSelect'})
+        qs = list(Protein.objects.with_spectra().values_list('slug', 'name'))
+        widget = forms.Select(attrs={'class': 'form-control form-control-sm custom-select custom-select-sm protein-spectra-select'})
+        qs.insert(0, ('', '----'))
         choicefield = forms.ChoiceField(choices=qs, widget=widget)
 
-    return render(request, 'spectra.html', {'widget': choicefield.widget.render('ProteinSelect', '')})
+    return render(request, 'spectra.html', {'protein_widget': choicefield.widget.render('ProteinSelect', '')})
 
 
 def protein_search(request):

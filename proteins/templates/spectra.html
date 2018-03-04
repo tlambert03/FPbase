@@ -8,18 +8,75 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
 {% endblock vendorcss %}
 
+{% block extrahead %}
+<style type="text/css">
+    #spectra .tick line{
+        opacity: .35;
+    }
+</style>
+{% endblock extrahead %}
+
 {% block container-class %}container protein{% endblock %}
 
 {% block content %}
 
-    <h1 class='text-center'>FPbase Spectra Viewer</h1>
+    <h2 class='text-center'>FPbase Spectra Viewer</h2>
+
   	<div class="spectra mb-4">
         <div id="spectra"></div>
     </div>
 
-    <div class="container">
-    {{widget}}
+
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+        <a class="nav-link active" href="#proteintab" data-toggle="tab">Proteins</a>
+        </li>
+
+        <li class="nav-item">
+        <a class="nav-link" href="#extab" data-toggle="tab">Excitation</a>
+        </li>
+
+        <li class="nav-item">
+        <a class="nav-link" href="#emtab" data-toggle="tab">Emission</a>
+        </li>
+    </ul>
+
+    <div class="tab-content ">
+        <div class="tab-pane active" id="proteintab">
+            <table class='table spectra-form' id='protein-table'>
+                <tbody>
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-info btn-sm" id="addproteinbutton">Add protein</button>
+        </div>
+
+        <div class="tab-pane" id="extab">
+
+            <table class='table spectra-form' id='excitation-table'>
+                <tbody>
+                </tbody>
+            </table>
+            <p>not yet implemented... coming soon</p>
+
+        <button type="button" class="btn btn-info btn-sm" id="addexcitationbutton">Add excitation</button>
+
+        </div>
+
+        <div class="tab-pane" id="emtab">
+            <table class='table spectra-form' id='emission-table'>
+                <tbody>
+                </tbody>
+            </table>
+            <p>not yet implemented... coming soon</p>
+        <button type="button" class="btn btn-info btn-sm" id="addemissionbutton">Add emission filter</button>
+        </div>
     </div>
+
+
+<div class="hidden" id='widg'>
+    {{protein_widget}}
+</div>
+
 {% endblock content %}
 
 {% block javascript %}
@@ -29,13 +86,33 @@
     <script type="text/javascript">
 
     	var chart = nv.models.lineChart();
+        var spectraData = {};
+
+        var widg = $("#widg").html();
+        var proteinrow = '\
+        <tr class="protein-row">\
+          <td><button type="button" class="btn btn-danger btn-sm remove-row" ><strong>&times;</strong></button></td>\
+          <td>' + widg + '</td>\
+          <td>\
+            <input class="form-check-input big-checkbox excheck" type="checkbox" checked>\
+            <label class="form-check-label ml-2">ex</label>\
+          </td>\
+          <td>\
+            <input class="form-check-input big-checkbox emcheck" type="checkbox" checked>\
+            <label class="form-check-label ml-2">em</label>\
+          </td>\
+        </tr>\
+        '
+
 
     	$(function() {
+
+            $(proteinrow).appendTo($('#protein-table').find('tbody'));
 
     		//initialize chart
     		var myData = [];
     		svg = d3.select('#spectra').append('svg');
-    		chart.xDomain([300,800]);
+    		//chart.xDomain([300,800]);
     		chart.yDomain([0,1]);
     		chart.yAxis.axisLabelDistance(25);
     		chart.options({
@@ -46,9 +123,9 @@
     			clipEdge: true,
                 margin: {left:40},
                 transitionDuration: 200,
-                //useInteractiveGuideline: !window.mobilecheck(),
+                useInteractiveGuideline: !window.mobilecheck(),
                 forceY: [0,1.04],
-                forceX: [350, 750],
+                //forceX: [350, 750],
 
     		});
 
@@ -70,31 +147,68 @@
     		  return chart;
     		});
 
-    		var spectraData = {};
-
-    		$("#ProteinSelect").change(function(e) {
-    		  var slug = $(this).val();
-    		  if (!(slug in spectraData)){
-    		  	$.ajax({
-    		  	    type: "GET",
-    		  	    url: slug,
-    		  	    data: {},
-    		  	    dataType: 'json',
-    		  	    success: function(data) {
-    		  	    	spectraData[slug] = JSON.parse(data.spectra);
-    		  	    	svg.datum(spectraData[slug]);
-    		  	    	chart.update();
-    		  	    },
-    		  	});
-    		  } else{
-	    		  	svg.datum(spectraData[slug]);
-	    		  	chart.update();
-    		  }
-
-    		});
+            $("#addproteinbutton").click(function(e) {
+                $(proteinrow).appendTo($('#protein-table').find('tbody'));
+            });
 
     	});
 
+
+        function refreshChart(){
+            var currentData = []
+            $('.protein-row').each(function(){
+
+                var slug = $(this).find('.protein-spectra-select').val();
+                if(!slug){
+                    return true;
+                }
+                var ex = $(this).find('.excheck').prop('checked');
+                var em = $(this).find('.emcheck').prop('checked');
+                for (var i = 0; i < spectraData[slug].length; i++) {
+                    d = spectraData[slug][i];
+                    if (d.type == 'ex' && ex){
+                        currentData.push(d);
+                    }
+                    else if (d.type == 'em' && em){
+                        currentData.push(d);
+                    }
+
+                }
+            });
+            svg.datum(currentData);
+            chart.update();
+        }
+
+        $("body").on('change', '.protein-spectra-select', function (e) {
+          var slug = $(this).val();
+          if (!(slug in spectraData)){
+            $.ajax({
+                type: "GET",
+                url: slug,
+                data: {},
+                dataType: 'json',
+                success: function(data) {
+                    spectraData[slug] = JSON.parse(data.spectra);
+                    refreshChart()
+                },
+            });
+          } else{
+                refreshChart()
+          }
+        })
+
+        $("body").on('click', '.remove-row', function (e) {
+            $(this).closest('tr').remove()
+            refreshChart()
+        })
+
+        $("body").on('click', '.emcheck', function (e) {
+            refreshChart()
+        })
+
+        $("body").on('click', '.excheck', function (e) {
+            refreshChart()
+        })
 
     </script>
 {% endblock javascript %}
