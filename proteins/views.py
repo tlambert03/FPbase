@@ -240,8 +240,10 @@ def protein_spectra(request, slug=None):
         widget = forms.Select(attrs={'class': 'form-control form-control-sm custom-select custom-select-sm protein-spectra-select'})
         qs.insert(0, ('', '----'))
         choicefield = forms.ChoiceField(choices=qs, widget=widget)
-
-    return render(request, 'spectra.html', {'protein_widget': choicefield.widget.render('ProteinSelect', '')})
+        protein_widget = choicefield.widget.render('ProteinSelect', '')
+    else:
+        protein_widget = None
+    return render(request, 'spectra.html', {'protein_widget': protein_widget})
 
 
 def protein_search(request):
