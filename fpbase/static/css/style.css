@@ -6646,6 +6646,10 @@ svg.nvd3-svg {
     svg.nvd3-svg {
       height: 270px; } }
 
+@media (max-width: 767px) {
+  ul.spectra-tabs a.nav-link {
+    font-size: small; } }
+
 @supports (zoom: 2) {
   .big-checkbox {
     zoom: 1.5; } }
@@ -7848,6 +7852,10 @@ svg.nvd3-svg {
   @media (min-width: 768px) {
     svg.nvd3-svg {
       height: 270px; } }
+
+@media (max-width: 767px) {
+  ul.spectra-tabs a.nav-link {
+    font-size: small; } }
 
 @supports (zoom: 2) {
   .big-checkbox {

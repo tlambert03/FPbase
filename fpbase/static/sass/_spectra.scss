@@ -66,6 +66,13 @@ svg.nvd3-svg {
   @include media-breakpoint-up(md){ height: 270px; }
 }
 
+
+ul.spectra-tabs{
+  a.nav-link{
+    @include media-breakpoint-down(sm){ font-size: small;}
+  }
+}
+
 @supports (zoom:2) {
   .big-checkbox{
   zoom: 1.5;
