@@ -6661,23 +6661,70 @@ svg.nvd3-svg {
 .protein-spectra-select {
   max-width: 95%; }
 
+#efficiency-table th {
+  border-top: none; }
+
 table.spectra-form td {
   border-top: none; }
 
-table.spectra-form tr td:nth-child(1) {
+table.spectra-form tr.protein-row td:nth-child(1) {
   width: 5%;
-  height: 80%; }
+  margin-right: 0;
+  padding-right: 0; }
 
-table.spectra-form tr td:nth-child(2) {
-  width: 70%; }
-
-table.spectra-form tr td:nth-child(3) {
+table.spectra-form tr.protein-row td:nth-child(3) {
   width: 10%;
   padding-top: 18px; }
 
-table.spectra-form tr td:nth-child(4) {
+table.spectra-form tr.protein-row td:nth-child(4) {
   width: 10%;
   padding-top: 18px; }
+
+table.spectra-form tr.emission-row input[type=number]::-webkit-inner-spin-button,
+table.spectra-form tr.emission-row input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0; }
+
+table.spectra-form tr.emission-row input {
+  width: 48px;
+  width: 3rem; }
+
+table.spectra-form tr.emission-row td:nth-child(1) {
+  width: 2%;
+  margin-right: 0;
+  padding-right: 0; }
+
+table.spectra-form tr.emission-row td:nth-child(3) {
+  width: 110px;
+  margin: 0 inherit;
+  padding: 0 inherit; }
+
+table.spectra-form tr.emission-row td:nth-child(4) {
+  width: 100px;
+  margin: 0 inherit;
+  padding: 0 inherit; }
+
+table.spectra-form tr.emission-row td:nth-child(5) {
+  width: 7%; }
+  table.spectra-form tr.emission-row td:nth-child(5) input {
+    width: 49.6px;
+    width: 3.1rem; }
+
+.efficiency-vgood {
+  font-weight: 700;
+  color: #212529; }
+
+.efficiency-good {
+  font-weight: 500;
+  color: #343a40; }
+
+.efficiency-bad {
+  font-weight: 300;
+  color: #495057; }
+
+.efficiency-vbad {
+  font-weight: 200;
+  color: #868e96; }
 
 @media (min-width: 1200px) {
   .tablecontainer {
@@ -7817,23 +7864,70 @@ svg.nvd3-svg {
 .protein-spectra-select {
   max-width: 95%; }
 
+#efficiency-table th {
+  border-top: none; }
+
 table.spectra-form td {
   border-top: none; }
 
-table.spectra-form tr td:nth-child(1) {
+table.spectra-form tr.protein-row td:nth-child(1) {
   width: 5%;
-  height: 80%; }
+  margin-right: 0;
+  padding-right: 0; }
 
-table.spectra-form tr td:nth-child(2) {
-  width: 70%; }
-
-table.spectra-form tr td:nth-child(3) {
+table.spectra-form tr.protein-row td:nth-child(3) {
   width: 10%;
   padding-top: 18px; }
 
-table.spectra-form tr td:nth-child(4) {
+table.spectra-form tr.protein-row td:nth-child(4) {
   width: 10%;
   padding-top: 18px; }
+
+table.spectra-form tr.emission-row input[type=number]::-webkit-inner-spin-button,
+table.spectra-form tr.emission-row input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0; }
+
+table.spectra-form tr.emission-row input {
+  width: 48px;
+  width: 3rem; }
+
+table.spectra-form tr.emission-row td:nth-child(1) {
+  width: 2%;
+  margin-right: 0;
+  padding-right: 0; }
+
+table.spectra-form tr.emission-row td:nth-child(3) {
+  width: 110px;
+  margin: 0 inherit;
+  padding: 0 inherit; }
+
+table.spectra-form tr.emission-row td:nth-child(4) {
+  width: 100px;
+  margin: 0 inherit;
+  padding: 0 inherit; }
+
+table.spectra-form tr.emission-row td:nth-child(5) {
+  width: 7%; }
+  table.spectra-form tr.emission-row td:nth-child(5) input {
+    width: 49.6px;
+    width: 3.1rem; }
+
+.efficiency-vgood {
+  font-weight: 700;
+  color: #212529; }
+
+.efficiency-good {
+  font-weight: 500;
+  color: #343a40; }
+
+.efficiency-bad {
+  font-weight: 300;
+  color: #495057; }
+
+.efficiency-vbad {
+  font-weight: 200;
+  color: #868e96; }
 
 [hidden][style="display: block;"] {
   display: block !important; }

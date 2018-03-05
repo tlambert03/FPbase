@@ -86,14 +86,48 @@ svg.nvd3-svg {
   max-width: 95%;
 }
 
+
+#efficiency-table {
+  th { border-top: none;}
+}
+
 table.spectra-form {
   td {
     border-top: none;
   }
-  tr{
-    td:nth-child(1){ width: 5%; height: 80%}
-    td:nth-child(2){ width: 70%}
+  tr.protein-row{
+    td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
     td:nth-child(3){ width: 10%; padding-top: 18px;}
     td:nth-child(4){ width: 10%; padding-top: 18px;}
   }
+  tr.emission-row{
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input {width:3rem;}
+    td:nth-child(1){ width: 2%; margin-right: 0; padding-right: 0;}
+    td:nth-child(3){ width: 110px; margin: 0 inherit; padding: 0 inherit;}
+    td:nth-child(4){ width: 100px; margin: 0 inherit; padding: 0 inherit;}
+    td:nth-child(5){ width: 7%; input {width:3.1rem;}}
+  }
+}
+
+
+.efficiency-vgood {
+  font-weight: 700;
+  color: $gray-900;
+}
+.efficiency-good {
+  font-weight: 500;
+  color: $gray-800;
+}
+.efficiency-bad {
+  font-weight: 300;
+  color: $gray-700;
+}
+.efficiency-vbad {
+  font-weight: 200;
+  color: $gray-600;
 }
