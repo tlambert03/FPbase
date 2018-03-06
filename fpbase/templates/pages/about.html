@@ -8,12 +8,12 @@
 
 <h3><strong>A database for users of fluorescent proteins</strong></h3>
 
-<p>FPbase is designed to be a source of information for people using fluorescent proteins in their research (such as in fluorescence microscopy).
-Fluorescent proteins are tremendously complex.  Even "basic" fluorescent proteins demonstrate complex environmentally-dependent variations.  As such, any attempt to classify and categorize something as multifacted as fluorescent proteins will innevitably miss important details.  Please use the data on this website as the starting point (and not the ending point) in your search for the right protein for your experiments.  If there is an aspect of fluorescent proteins that you think should be represented here, let us know!</p>
+<p>FPbase was designed and created by Talley Lambert at Harvard Medical School to be a source of information for people using fluorescent proteins in their research (such as in fluorescence microscopy).
+Fluorescent proteins are tremendously complex.  Even "basic" fluorescent proteins demonstrate complex environmentally-dependent variations.  As such, any attempt to classify and categorize something as multifacted as fluorescent proteins will innevitably miss important details.  Please use the data on this website as the starting point (and not the ending point) in your search for the right protein for your experiments.  If there is an aspect of fluorescent proteins that you think should be represented here, <a href="{% url 'contact' %}">let us know</a>!</p>
 
 <p>For more technical information about the structure of the FPbase database, please refer to the <a href="{% url 'schema' %}">database schema</a> page.</p>
 
-<h3><strong>A Caution About Overinterpretation and Comparison</strong></h3>
+<h4><strong>A Caution About Overinterpretation and Comparison</strong></h4>
 
 <p>Fluorescent proteins are tremendously complicated entities.  The distillation of any photophysical or photochemical attribute down to a single number belies the tremendous underlying variation and environmental-dependencies of these measurements.  While this database aggregates these numbers reported in publications for the purpose of convenience and comparison, please bear in mind that &mdash; in almost every case &mdash; this presentation is too facile.  When comparing protein attributes on this site, remember that <em>all measurements reflect the conditions under which they were performed</em>, in addition to the fluorescent protein being measured.  Conditions such as temperature, pH, fusion protein, expression level, etc... can all dramatically affect the performance and characteristics of a fluorescent protein and a protein that looks inferior to another based on attributes catalogued in FPbase may actually be superior when used in a particular biological environment.  When searching for a fluorescent protein to be used in a biological experiment, it is always advisable to narrow your choices based on a few critical parameters (e.g. spectra), and then test <strong>multiple</strong> candidate proteins in your biological system.</p>
 
@@ -58,5 +58,6 @@ Fluorescent proteins are tremendously complex.  Even "basic" fluorescent protein
 
 <h3 class='mt-4'><strong>Moderation</strong></h3>
 {% include 'pages/_moderation.html' %}
+
 
 {% endblock content %}
