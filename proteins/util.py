@@ -1,6 +1,8 @@
 def long_blurb(self, withbleach=False):
     blurb = self.name
     switch = self.get_switch_type_display().lower()
+    if switch == 'basic':
+        switch += ' (constitutively fluorescent)'
     blurb += " is a{}{}{} fluorescent protein".format(
         'n' if switch.startswith(('a', 'e', 'i', 'o', 'u')) else '',
         " " + switch if switch else '',
