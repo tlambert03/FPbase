@@ -70,7 +70,7 @@ class ProteinDetailView(DetailView):
         similar = similar | Protein.visible.filter(name__iexact='monomeric'+self.object.name)
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip('m'))
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip('monomeric'))
-        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip('td'))
+        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip('td'))
         similar = similar | Protein.visible.filter(name__iexact='td'+self.object.name)
         data['similar'] = similar.exclude(id=self.object.id)
         return data
