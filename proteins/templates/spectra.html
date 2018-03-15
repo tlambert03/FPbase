@@ -11,7 +11,7 @@
 {% block extrahead %}
 <style type="text/css">
     #spectra .tick line{
-        opacity: .35;
+        opacity: .5;
     }
 </style>
 {% endblock extrahead %}
@@ -32,10 +32,10 @@
         <a class="nav-link active" href="#proteintab" data-toggle="tab">Proteins</a>
         </li>
 
-   <!--     <li class="nav-item">
+        <li class="nav-item">
         <a class="nav-link" href="#extab" data-toggle="tab">Excitation</a>
         </li>
-
+        <!--
         <li class="nav-item">
         <a class="nav-link" href="#dichroictab" data-toggle="tab">Dichroic</a>
         </li> -->
@@ -56,17 +56,24 @@
                 </tbody>
             </table>
             <button type="button" class="btn btn-info btn-sm" id="addproteinbutton">Add protein</button>
+            <div class="float-right hidden" id='toggle_alls'>
+                <input type="checkbox" id="toggle_all_ex" class="big-checkbox">
+                <label for="toggle_all_em" class='mr-2 pr-1'>all ex</label>
+                <input type="checkbox" id="toggle_all_em" class="big-checkbox">
+                <label for="toggle_all_em" class='mr-2 pr-1'>all em</label>
+                <input type="checkbox" id="toggle_all_2p" class="big-checkbox">
+                <label for="toggle_all_em" class='mr-2 pr-1'>all 2p</label>
+            </div>
         </div>
 
         <div class="tab-pane" id="extab">
-            <table class='table spectra-form' id='excitation-table'>
-                <tbody>
-                </tbody>
-            </table>
-            <p>not yet implemented... coming soon</p>
-
-        <button type="button" class="btn btn-info btn-sm" id="addexcitationbutton">Add excitation</button>
-
+            <div class="form-inline mt-3 ml-4">
+                <div class="form-group">
+                    <input class="form-check-input" type="checkbox" id='norm_to_ex_checkbox'>
+                    <label class="form-check-label ml-2">Normalize emission to excitation efficiency at </label>
+                  <input class="form-control form-control-sm ml-2 mr-2" id="excitation-line" type="number" step="1" name="custom_em_trans" min="300" max="900" value="488"> nm
+                </div>
+            </div>
         </div>
 
         <div class="tab-pane" id="dichroictab">
@@ -118,7 +125,10 @@
     <script type="text/javascript">
 
     	var chart = nv.models.lineChart();
-        var spectraData = {};
+        var scalefactor = 100;
+        var excitationline = 488;
+        var scaleToExcitation = false;
+        var localData = {};
         var currentData = [];
         var emspectra = [];
         var emfilters = [];
@@ -193,6 +203,21 @@
             return sum;
         }
 
+        function getDomainLimits(data){
+            min = 100000;
+            max = -100000;
+            for (n=0; n < data.length; n++){
+                d = data[n]
+                if (d.values[0].x < min){
+                    min = d.values[0].x;
+                }
+                if (d.values[d.values.length-1].x > max) {
+                    max = d.values[d.values.length-1].x;
+                }
+            }
+            return [min, max]
+        }
+
         var eyebutton = $("#eyeball").html();
         var widg = $("#widg").html();
         var proteinrow = '\
@@ -200,12 +225,16 @@
           <td><button type="button" class="btn btn-danger btn-sm remove-row" ><strong>&times;</strong></button></td>\
           <td>' + widg + '</td>\
           <td>\
-            <input class="form-check-input big-checkbox excheck" type="checkbox" checked>\
+            <input class="form-check-input big-checkbox excheck singlecheck" data-checktype="ex" type="checkbox" checked>\
             <label class="form-check-label ml-2">ex</label>\
           </td>\
           <td>\
-            <input class="form-check-input big-checkbox emcheck" type="checkbox" checked>\
+            <input class="form-check-input big-checkbox emcheck singlecheck" data-checktype="em" type="checkbox" checked>\
             <label class="form-check-label ml-2">em</label>\
+          </td>\
+          <td class="2pcheck-td">\
+            <input class="form-check-input big-checkbox 2pcheck singlecheck" data-checktype="2p" type="checkbox" name="twopcheck">\
+            <label class="form-check-label ml-2" for="twopcheck">2P</label>\
           </td>\
         </tr>\
         '
@@ -223,14 +252,14 @@
               <div class="form-group">\
                 <label class="form-control-label mr-2">center</label>\
                 <input class="form-control form-control-sm custom_em_value" type="number" name="custom_em_center" min="200" max="800" value="525">\
-              <div>\
+              </div>\
           </div>\          </td>\
           <td>\
               <div class="form-inline">\
                   <div class="form-group">\
                     <label class="form-control-label mr-2">width</label>\
                     <input class="form-control form-control-sm custom_em_value" type="number" name="custom_em_bandwidth" min="0" max="500" value="50">\
-                  <div>\
+                  </div>\
               </div>\
           </td>\
           <td>\
@@ -238,7 +267,7 @@
                 <div class="form-group">\
                   <label class="form-control-label mr-2">%t</label>\
                   <input class="form-control form-control-sm custom_em_value" type="number" step="0.01" name="custom_em_trans" min="0" max="1" value="0.95">\
-                <div>\
+                </div>\
             </div>\
           </td>\
         </tr>\
@@ -252,6 +281,7 @@
 
     		//initialize chart
     		var myData = [];
+            var scalefactor = 1;
     		svg = d3.select('#spectra').append('svg');
     		chart.xDomain([350,750]);
     		chart.yDomain([0,1]);
@@ -263,7 +293,7 @@
     			showYAxis: true,
     			clipEdge: true,
                 margin: {left:40},
-                transitionDuration: 200,
+                duration: 200,
                 useInteractiveGuideline: !window.mobilecheck(),
                 forceY: [0,1.04],
                 //forceX: [350, 750],
@@ -273,8 +303,7 @@
     		/*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
     		nv.addGraph(function() {
     			chart.xAxis     //Chart x-axis settings
-    			  .axisLabel('Wavelength (nm)')
-    			  .tickFormat(d3.format(',r'));
+    			  .axisLabel('Wavelength (nm)');
 
     			chart.yAxis     //Chart y-axis settings
     			  .axisLabel('Normalized Ex/Em/Transmission')
@@ -290,6 +319,9 @@
 
             $("#addproteinbutton").click(function(e) {
                 $(proteinrow).appendTo($('#protein-table').find('tbody'));
+                if ($('.protein-row').length > 1) {
+                    $("#toggle_alls").show();
+                }
             });
 
             $("#addemissionbutton").click(function(e) {
@@ -359,17 +391,30 @@
                     } else {
                         effclass = 'efficiency-vbad'
                     }
-                    eyeb = $(eyebutton);
+                    eyeb = $(eyebutton).clone();
                     eyeb.attr("data-emspectrum", s);
                     eyeb.attr("data-emfilter", n);
-                    $("#efficiency-table tbody").find('tr:last')
-                        .append('<td class="' + effclass + '">' + eyeb.prop('outerHTML') + formatted + ' %</td>')
+
+                    $('<td class="' + effclass + '">' + eyeb.prop('outerHTML') + formatted + ' %</td>').appendTo($("#efficiency-table tbody").find('tr:last'))
                 }
             }
         }
 
         function refreshChart(){
             currentData = []
+            if (scaleToExcitation) {
+                currentData.push({
+                    key: excitationline + 'ex',
+                    area: true,
+                    values: [
+                        {x: excitationline-2, y: 0},
+                        {x: excitationline-1, y: 0.5},
+                        {x: excitationline, y: 1},
+                        {x: excitationline+1, y: 0.5},
+                        {x: excitationline+2, y: 0},
+                    ]
+                })
+            }
             $('.protein-row').each(function(){
                 var slug = $(this).find('.protein-spectra-select').val();
                 if(!slug){
@@ -377,12 +422,27 @@
                 }
                 var ex = $(this).find('.excheck').prop('checked');
                 var em = $(this).find('.emcheck').prop('checked');
-                for (var i = 0; i < spectraData[slug].length; i++) {
-                    d = spectraData[slug][i];
+                var twop = $(this).find('.2pcheck').prop('checked');
+                for (var i = 0; i < localData[slug].length; i++) {
+                    d = $.extend({}, localData[slug][i]);
                     if (d.type == 'ex' && ex){
                         currentData.push(d);
                     }
+                    else if (d.type == '2p' && twop){
+                        currentData.push(d);
+                    }
                     else if (d.type == 'em' && em){
+                        if (scaleToExcitation) {
+                            var expair = currentData.find(function(element) {
+                              return element.key == d.key.replace('em','ex');;
+                            });
+                            console.log(expair)
+                            scalefactor = expair.values[expair.values.findIndex(x => x.x== excitationline)].y
+                        } else {
+                            scalefactor = 1
+                        }
+
+                        d.values = d.values.map(function(x) { return {x: x.x, y: x.y * scalefactor} })
                         currentData.push(d);
                     }
                 }
@@ -402,27 +462,83 @@
             });
 
             svg.datum(currentData);
+            chart.xDomain(getDomainLimits(currentData));
             chart.update();
             calculateEfficiency();
         }
 
+        function update2Pcheckbox(elem, data){
+            chckbx = elem.find('.2pcheck-td');
+            hastwop = false;
+            for (n = 0; n < data.length; n++){
+                if (data[n].type == '2p'){
+                    hastwop = true;
+                    break;
+                }
+            }
+            if (hastwop){
+                //chckbx.removeAttr("disabled");
+                chckbx.show();
+            } else {
+                //chckbx.attr("disabled", true);
+                chckbx.hide();
+            }
+
+        }
+
         $("body").on('change', '.protein-spectra-select', function (e) {
           var slug = $(this).val();
-          if (!(slug in spectraData)){
+          row = $(this).closest('tr');
+          if (!(slug in localData)){
             $.ajax({
                 type: "GET",
                 url: slug,
                 data: {},
                 dataType: 'json',
                 success: function(data) {
-                    spectraData[slug] = JSON.parse(data.spectra);
+                    localData[slug] = JSON.parse(data.spectra);
+                    update2Pcheckbox(row, localData[slug]);
                     refreshChart()
                 },
             });
           } else{
+                update2Pcheckbox(row, localData[slug]);
                 refreshChart()
           }
         })
+
+        $(function () {
+            $('#toggle_all_em').change (function () {
+                $('.emcheck').prop('checked', $(this).is(':checked'));
+                refreshChart();
+            });
+            $('#toggle_all_ex').change (function () {
+                $('.excheck').prop('checked', $(this).is(':checked'));
+                refreshChart();
+            });
+            $('#toggle_all_2p').change (function () {
+                $('.2pcheck').prop('checked', $(this).is(':checked'));
+                refreshChart();
+            });
+        });
+
+        $("body").on('change', '.singlecheck', function (e) {
+            type = $(this).data('checktype')
+            checkclass = '.' + type + 'check'
+            if ($(checkclass + ':checked').length == $(checkclass).length) {
+                $('#toggle_all_' + type).
+                    prop("indeterminate", false).
+                    prop('checked', true);
+            } else if ($(checkclass + ':checked').length == 0) {
+                $('#toggle_all_' + type).
+                    prop("indeterminate", false).
+                    prop('checked', false);
+            } else {
+                $('#toggle_all_' + type).
+                    prop("indeterminate", true);
+            }
+        });
+
 
         $("body").on('change', '.filter-select', function (e) {
             refreshChart();
@@ -431,6 +547,9 @@
         $("body").on('click', '.remove-row', function (e) {
             $(this).closest('tr').remove()
             refreshChart();
+            if ($('.protein-row').length <= 1) {
+                $("#toggle_alls").hide();
+            }
         })
 
         $("body").on('click', '.emcheck', function (e) {
@@ -441,9 +560,24 @@
             refreshChart();
         })
 
+        $("body").on('click', '.2pcheck', function (e) {
+            refreshChart();
+        })
+
         $("body").on('change', '.custom_em_value', function (e) {
             refreshChart()
         })
+
+        $("body").on('change', '#excitation-line', function (e) {
+            var excitationline = $(this).val();
+            refreshChart()
+        })
+
+        $("body").on('click', '#norm_to_ex_checkbox', function (e) {
+            scaleToExcitation = $(this).prop('checked');
+            refreshChart();
+        })
+
 
         $("body").on('mousedown', '.effbutton', function (e) {
             emspectrum = emspectra[$(this).data('emspectrum')]
@@ -453,6 +587,7 @@
             $EMtrans.key = emfilter.key + ' collection';
             svg.datum([$EMtrans, emspectrum]); chart.update();
         });
+
         $("body").on('mouseup', '.effbutton', function (e) {
             refreshChart();
         });
