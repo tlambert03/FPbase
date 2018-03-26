@@ -12,9 +12,9 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django import forms
 from django.core.mail import mail_managers
 
-from .models import Protein, State, Organism, BleachMeasurement
-from .forms import ProteinForm, StateFormSet, StateTransitionFormSet, BleachMeasurementForm
-from .filters import ProteinFilter
+from ..models import Protein, State, Organism, BleachMeasurement
+from ..forms import ProteinForm, StateFormSet, StateTransitionFormSet, BleachMeasurementForm
+from ..filters import ProteinFilter
 
 from references.models import Reference  # breaks application modularity # FIXME
 import reversion

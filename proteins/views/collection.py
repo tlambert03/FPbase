@@ -44,28 +44,28 @@ class CollectionList(ListView):
             context['owner'] = self.kwargs['owner']
         return context
 
-        class CollectionDetail(DetailView):
-            queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__default_state')
+class CollectionDetail(DetailView):
+    queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__default_state')
 
-            def get(self, request, *args, **kwargs):
-                format = request.GET.get('format', '').lower()
-                if format in ('json', 'csv'):
-                    col = self.get_object()
-                    return serialized_proteins_response(col.proteins.all(), format,
-                            filename=slugify(col.name))
-                return super().get(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):
+        format = request.GET.get('format', '').lower()
+        if format in ('json', 'csv'):
+            col = self.get_object()
+            return serialized_proteins_response(col.proteins.all(), format,
+                    filename=slugify(col.name))
+        return super().get(request, *args, **kwargs)
 
-            def get_context_data(self, **kwargs):
-                # Call the base implementation first to get a context
-                context = super().get_context_data(**kwargs)
-                context['isowner'] = self.request.user == self.object.owner
-                return context
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        context['isowner'] = self.request.user == self.object.owner
+        return context
 
-            def render_to_response(self, *args, **kwargs):
-                if not self.request.user.is_superuser:
-                    if self.object.private and (self.object.owner != self.request.user):
-                        return render(self.request, 'proteins/private_collection.html', {'foo': 'bar'})
-                return super().render_to_response(*args, **kwargs)
+    def render_to_response(self, *args, **kwargs):
+        if not self.request.user.is_superuser:
+            if self.object.private and (self.object.owner != self.request.user):
+                return render(self.request, 'proteins/private_collection.html', {'foo': 'bar'})
+        return super().render_to_response(*args, **kwargs)
 
 
 @login_required
