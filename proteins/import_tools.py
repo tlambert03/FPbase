@@ -699,6 +699,27 @@ def create_collection(name='FPvis Collection', desc='Proteins selected by Kurt T
             pass
 
 
+def import2P():
+    from . import spectra as sp
+
+    d = '/Users/talley/Dropbox (HMS)/Python/fpbase/_data/2p_spectra'
+    for f in os.listdir(d):
+        name = f.replace('_w.txt', '')
+        qs = Protein.objects.filter(name__iexact=name)
+        if qs.count() == 1:
+            P = qs.first()
+            infile = os.path.join(d, f)
+            x, y = sp.get_file_data(infile)
+            x, y = sp.interp_linear(x, y)
+            y, ymax, maxind = sp.norm2P(y)
+            maxwave = x[maxind]
+            spectra = [list(a) for a in zip(x, y)]
+
+            P.default_state.twop_ex_spectra = spectra
+            P.default_state.twop_ex_max = maxwave
+            P.default_state.twop_peakGM = ymax
+            P.default_state.save()
+
 @require_superuser
 def reload_all(seqs=False):
     importCSV()
