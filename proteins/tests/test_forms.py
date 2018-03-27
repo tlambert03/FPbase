@@ -1,6 +1,6 @@
 from test_plus.test import TestCase
 
-from ..models import Protein, State, ProteinCollection
+from ..models import Protein, State
 from ..forms import ProteinForm, StateForm, CollectionForm
 
 

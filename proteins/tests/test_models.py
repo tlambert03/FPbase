@@ -10,7 +10,7 @@ class TestProteinModel(TestCase):
         cls.protB = Protein.objects.create(name='ProteinB')
 
     def test_protein_str(self):
-        self.assertEquals(str(self.protA), 'Protein')
+        self.assertEquals(str(self.protA), 'ProteinA')
 
     def test_get_absolute_url(self):
         # This will also fail if the urlconf is not defined.
