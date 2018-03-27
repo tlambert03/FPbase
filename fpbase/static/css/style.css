@@ -6653,17 +6653,19 @@ svg.nvd3-svg {
   ul.spectra-tabs a.nav-link {
     font-size: small; } }
 
-@supports (zoom: 2) {
+@media (min-width: 576px) {
+  @supports (zoom: 2) {
+    .big-checkbox {
+      zoom: 1.5; } }
+  @supports not (zoom: 2) {
+    .big-checkbox {
+      transform: scale(1.5);
+      margin: 15px; } }
   .big-checkbox {
-    zoom: 1.5; } }
-
-@supports not (zoom: 2) {
-  .big-checkbox {
-    transform: scale(1.5);
-    margin: 15px; } }
+    margin: auto; } }
 
 .big-checkbox {
-  margin: auto; }
+  margin-left: 0px; }
 
 .protein-spectra-select {
   max-width: 95%; }
@@ -6680,11 +6682,15 @@ table.spectra-form tr.protein-row td:nth-child(1) {
   padding-right: 0; }
 
 table.spectra-form tr.protein-row td:nth-child(3) {
-  width: 10%;
+  width: 7%;
   padding-top: 18px; }
 
 table.spectra-form tr.protein-row td:nth-child(4) {
-  width: 10%;
+  width: 7%;
+  padding-top: 18px; }
+
+table.spectra-form tr.protein-row td:nth-child(5) {
+  width: 7%;
   padding-top: 18px; }
 
 table.spectra-form tr.emission-row input[type=number]::-webkit-inner-spin-button,
@@ -7860,17 +7866,19 @@ svg.nvd3-svg {
   ul.spectra-tabs a.nav-link {
     font-size: small; } }
 
-@supports (zoom: 2) {
+@media (min-width: 576px) {
+  @supports (zoom: 2) {
+    .big-checkbox {
+      zoom: 1.5; } }
+  @supports not (zoom: 2) {
+    .big-checkbox {
+      transform: scale(1.5);
+      margin: 15px; } }
   .big-checkbox {
-    zoom: 1.5; } }
-
-@supports not (zoom: 2) {
-  .big-checkbox {
-    transform: scale(1.5);
-    margin: 15px; } }
+    margin: auto; } }
 
 .big-checkbox {
-  margin: auto; }
+  margin-left: 0px; }
 
 .protein-spectra-select {
   max-width: 95%; }
@@ -7887,11 +7895,15 @@ table.spectra-form tr.protein-row td:nth-child(1) {
   padding-right: 0; }
 
 table.spectra-form tr.protein-row td:nth-child(3) {
-  width: 10%;
+  width: 7%;
   padding-top: 18px; }
 
 table.spectra-form tr.protein-row td:nth-child(4) {
-  width: 10%;
+  width: 7%;
+  padding-top: 18px; }
+
+table.spectra-form tr.protein-row td:nth-child(5) {
+  width: 7%;
   padding-top: 18px; }
 
 table.spectra-form tr.emission-row input[type=number]::-webkit-inner-spin-button,

@@ -73,20 +73,25 @@ ul.spectra-tabs{
   }
 }
 
-@supports (zoom:2) {
-  .big-checkbox{
-  zoom: 1.5;
-  }
-}
-@supports not (zoom:2) {
-  .big-checkbox{
-    transform: scale(1.5);
-    margin: 15px;
-  }
-}
 
+@include media-breakpoint-up(sm){
+  @supports (zoom:2) {
+    .big-checkbox{
+    zoom: 1.5;
+    }
+  }
+  @supports not (zoom:2) {
+    .big-checkbox{
+      transform: scale(1.5);
+      margin: 15px;
+    }
+  }
+  .big-checkbox {
+    margin: auto;
+  }
+}
 .big-checkbox {
-  margin: auto;
+  margin-left: 0px;
 }
 
 .protein-spectra-select {
@@ -104,8 +109,9 @@ table.spectra-form {
   }
   tr.protein-row{
     td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
-    td:nth-child(3){ width: 10%; padding-top: 18px;}
-    td:nth-child(4){ width: 10%; padding-top: 18px;}
+    td:nth-child(3){ width: 7%; padding-top: 18px;}
+    td:nth-child(4){ width: 7%; padding-top: 18px;}
+    td:nth-child(5){ width: 7%; padding-top: 18px;}
   }
   tr.emission-row{
     input[type=number]::-webkit-inner-spin-button,
