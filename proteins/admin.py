@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.db import models
-from django.forms import Textarea, TextInput
+from django.forms import Textarea
 from proteins.models import (Protein, State, StateTransition, Organism,
     FRETpair, BleachMeasurement, SpectrumField, Mutation)
 from reversion_compare.admin import CompareVersionAdmin
