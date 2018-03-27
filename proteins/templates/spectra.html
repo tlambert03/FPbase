@@ -57,9 +57,9 @@
             </table>
             <button type="button" class="btn btn-info btn-sm" id="addproteinbutton">Add protein</button>
             <div class="float-right hidden" id='toggle_alls'>
-                <input type="checkbox" id="toggle_all_ex" class="big-checkbox">
+                <input type="checkbox" id="toggle_all_ex" class="big-checkbox" checked>
                 <label for="toggle_all_em" class='mr-2 pr-1'>all ex</label>
-                <input type="checkbox" id="toggle_all_em" class="big-checkbox">
+                <input type="checkbox" id="toggle_all_em" class="big-checkbox" checked>
                 <label for="toggle_all_em" class='mr-2 pr-1'>all em</label>
                 <input type="checkbox" id="toggle_all_2p" class="big-checkbox">
                 <label for="toggle_all_em" class='mr-2 pr-1'>all 2p</label>
@@ -122,475 +122,459 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
-    	var chart = nv.models.lineChart();
-        var scalefactor = 100;
-        var excitationline = 488;
-        var scaleToExcitation = false;
-        var localData = {};
-        var currentData = [];
-        var emspectra = [];
-        var emfilters = [];
+	var chart = nv.models.lineChart();
+    var scalefactor = 100;
+    var excitationline = 488;
+    var scaleToExcitation = false;
+    var localData = {};
+    var currentData = [];
+    var emspectra = [];
+    var emfilters = [];
 
-        function randomhex(){
-            return '#'+Math.floor(Math.random()*16777215).toString(16);
-        }
-        function realColor(d) {
-            return d3.hsl(hueScale(d), 1, 0.5);
-        }
-        var hueScale = d3.scale.linear()
-                        .domain([200, 380, 500, 640, 850])
-                        .range([300, 300, 180,0, 0]);
+    function randomhex(){
+        return '#'+Math.floor(Math.random()*16777215).toString(16);
+    }
+    function realColor(d) {
+        return d3.hsl(hueScale(d), 1, 0.5);
+    }
+    var hueScale = d3.scale.linear()
+                    .domain([200, 380, 500, 640, 850])
+                    .range([300, 300, 180,0, 0]);
 
-        function overlap(ar1, ar2){
-            arr1 = ar1.values;
-            arr2 = ar2.values;
-            output = [];
-            a1 = {};
-            a2 = {};
-            a1.min = arr1[0].x;
-            a1.max = arr1[0].x+arr1.length-1;
-            a2.min = arr2[0].x;
-            a2.max = arr2[0].x+arr2.length-1;
-            offsetA = a2.min - a1.min;
-            offsetB = a2.max - a1.max;
+    function overlap(ar1, ar2){
+        arr1 = ar1.values;
+        arr2 = ar2.values;
+        output = [];
+        a1 = {};
+        a2 = {};
+        a1.min = arr1[0].x;
+        a1.max = arr1[0].x+arr1.length-1;
+        a2.min = arr2[0].x;
+        a2.max = arr2[0].x+arr2.length-1;
+        offsetA = a2.min - a1.min;
+        offsetB = a2.max - a1.max;
 
 
-            if (offsetA >= 0) {
-                if (offsetB >= 0) {
-                    for (var i=0; i < a1.max - a2.min; i++) {
-                        output.push({x: a2.min+i, y: arr2[i].y*arr1[offsetA+i].y});
-                    }
-                }
-                else if (offsetB < 0) {
-                    for (var i=0; i < a2.max - a2.min; i++) {
-                        output.push({x: a2.min+i, y: arr2[i].y*arr1[offsetA+i].y});
-                    }
+        if (offsetA >= 0) {
+            if (offsetB >= 0) {
+                for (var i=0; i < a1.max - a2.min; i++) {
+                    output.push({x: a2.min+i, y: arr2[i].y*arr1[offsetA+i].y});
                 }
             }
-            else if (offsetA < 0) {
-
-                if (offsetB >= 0) {
-                    for (var i=0; i < a1.max - a1.min; i++) {
-                        output.push({x: a1.min+i, y: arr1[i].y*arr2[Math.abs(offsetA)+i].y});
-                    }
-                }
-                else if (offsetB < 0) {
-                    for (var i=0; i < a2.max - a1.min; i++) {
-                        output.push({x: a1.min+i, y: arr1[i].y*arr2[Math.abs(offsetA)+i].y});
-                    }
+            else if (offsetB < 0) {
+                for (var i=0; i < a2.max - a2.min; i++) {
+                    output.push({x: a2.min+i, y: arr2[i].y*arr1[offsetA+i].y});
                 }
             }
-
-            return {key: 'Efficiency', values: output, color: 'black', area: true};
         }
+        else if (offsetA < 0) {
 
-
-        function trapz(arr,min,max){
-            min = min || 350;
-            max = max || 750;
-            var sum = 0;
-            for (i = 0; i < arr.length-1; i++){
-                if (arr[i].x > min) {
-                    d = (arr[i].y+arr[i+1].y)/2;
-                    sum += d;
-                }
-                if (arr[i].x > max) {
-                    break;
+            if (offsetB >= 0) {
+                for (var i=0; i < a1.max - a1.min; i++) {
+                    output.push({x: a1.min+i, y: arr1[i].y*arr2[Math.abs(offsetA)+i].y});
                 }
             }
-            return sum;
-        }
-
-        function getDomainLimits(data){
-            min = 100000;
-            max = -100000;
-            for (n=0; n < data.length; n++){
-                d = data[n]
-                if (d.values[0].x < min){
-                    min = d.values[0].x;
-                }
-                if (d.values[d.values.length-1].x > max) {
-                    max = d.values[d.values.length-1].x;
+            else if (offsetB < 0) {
+                for (var i=0; i < a2.max - a1.min; i++) {
+                    output.push({x: a1.min+i, y: arr1[i].y*arr2[Math.abs(offsetA)+i].y});
                 }
             }
-            return [min, max]
         }
 
-        var eyebutton = $("#eyeball").html();
-        var widg = $("#widg").html();
-        var proteinrow = '\
-        <tr class="protein-row">\
-          <td><button type="button" class="btn btn-danger btn-sm remove-row" ><strong>&times;</strong></button></td>\
-          <td>' + widg + '</td>\
-          <td>\
-            <input class="form-check-input big-checkbox excheck singlecheck" data-checktype="ex" type="checkbox" checked>\
-            <label class="form-check-label ml-2">ex</label>\
-          </td>\
-          <td>\
-            <input class="form-check-input big-checkbox emcheck singlecheck" data-checktype="em" type="checkbox" checked>\
-            <label class="form-check-label ml-2">em</label>\
-          </td>\
-          <td class="2pcheck-td">\
-            <input class="form-check-input big-checkbox 2pcheck singlecheck" data-checktype="2p" type="checkbox" name="twopcheck">\
-            <label class="form-check-label ml-2" for="twopcheck">2P</label>\
-          </td>\
-        </tr>\
-        '
+        return {key: 'Efficiency', values: output, color: 'black', area: true};
+    }
 
-        var emissionrow = '\
-        <tr class="emission-row">\
-          <td><button type="button" class="btn btn-danger btn-sm remove-row" ><strong>&times;</strong></button></td>\
-          <td>\
-          <select class="form-control form-control-sm custom-select custom-select-sm filter-select">\
-              <option value="custom">Custom Bandpass Filter</option>\
-          </select>\
-          </td>\
-          <td>\
+
+    function trapz(arr,min,max){
+        min = min || 350;
+        max = max || 750;
+        var sum = 0;
+        for (i = 0; i < arr.length-1; i++){
+            if (arr[i].x > min) {
+                d = (arr[i].y+arr[i+1].y)/2;
+                sum += d;
+            }
+            if (arr[i].x > max) {
+                break;
+            }
+        }
+        return sum;
+    }
+
+    function getDomainLimits(data){
+        min = 100000;
+        max = -100000;
+        for (n=0; n < data.length; n++){
+            d = data[n]
+            if (d.values[0].x < min){
+                min = d.values[0].x;
+            }
+            if (d.values[d.values.length-1].x > max) {
+                max = d.values[d.values.length-1].x;
+            }
+        }
+        return [min, max]
+    }
+
+    var eyebutton = $("#eyeball").html();
+    var widg = $("#widg").html();
+    var proteinrow = '\
+    <tr class="protein-row">\
+      <td><button type="button" class="btn btn-danger btn-sm remove-row" ><strong>&times;</strong></button></td>\
+      <td>' + widg + '</td>\
+      <td>\
+        <input class="form-check-input big-checkbox excheck singlecheck" data-checktype="ex" type="checkbox" checked>\
+        <label class="form-check-label ml-2">ex</label>\
+      </td>\
+      <td>\
+        <input class="form-check-input big-checkbox emcheck singlecheck" data-checktype="em" type="checkbox" checked>\
+        <label class="form-check-label ml-2">em</label>\
+      </td>\
+      <td class="2pcheck-td">\
+        <input class="form-check-input big-checkbox 2pcheck singlecheck" data-checktype="2p" type="checkbox" name="twopcheck">\
+        <label class="form-check-label ml-2" for="twopcheck">2P</label>\
+      </td>\
+    </tr>\
+    '
+
+    var emissionrow = '\
+    <tr class="emission-row">\
+      <td><button type="button" class="btn btn-danger btn-sm remove-row" ><strong>&times;</strong></button></td>\
+      <td>\
+      <select class="form-control form-control-sm custom-select custom-select-sm filter-select">\
+          <option value="custom">Custom Bandpass Filter</option>\
+      </select>\
+      </td>\
+      <td>\
+      <div class="form-inline">\
+          <div class="form-group">\
+            <label class="form-control-label mr-2">center</label>\
+            <input class="form-control form-control-sm custom_em_value" type="number" name="custom_em_center" min="200" max="800" value="525">\
+          </div>\
+      </div>\          </td>\
+      <td>\
           <div class="form-inline">\
               <div class="form-group">\
-                <label class="form-control-label mr-2">center</label>\
-                <input class="form-control form-control-sm custom_em_value" type="number" name="custom_em_center" min="200" max="800" value="525">\
+                <label class="form-control-label mr-2">width</label>\
+                <input class="form-control form-control-sm custom_em_value" type="number" name="custom_em_bandwidth" min="0" max="500" value="50">\
               </div>\
-          </div>\          </td>\
-          <td>\
-              <div class="form-inline">\
-                  <div class="form-group">\
-                    <label class="form-control-label mr-2">width</label>\
-                    <input class="form-control form-control-sm custom_em_value" type="number" name="custom_em_bandwidth" min="0" max="500" value="50">\
-                  </div>\
-              </div>\
-          </td>\
-          <td>\
-            <div class="form-inline">\
-                <div class="form-group">\
-                  <label class="form-control-label mr-2">%t</label>\
-                  <input class="form-control form-control-sm custom_em_value" type="number" step="0.01" name="custom_em_trans" min="0" max="1" value="0.95">\
-                </div>\
+          </div>\
+      </td>\
+      <td>\
+        <div class="form-inline">\
+            <div class="form-group">\
+              <label class="form-control-label mr-2">%t</label>\
+              <input class="form-control form-control-sm custom_em_value" type="number" step="0.01" name="custom_em_trans" min="0" max="1" value="0.95">\
             </div>\
-          </td>\
-        </tr>\
-        '
+        </div>\
+      </td>\
+    </tr>\
+    '
 
 
-    	$(function() {
+	$(function() {
 
+        $(proteinrow).appendTo($('#protein-table').find('tbody'));
+        //$(emissionrow).appendTo($('#emission-table').find('tbody'));
+
+		//initialize chart
+        var scalefactor = 1;
+		svg = d3.select('#spectra').append('svg');
+		chart.xDomain([350,750]);
+		chart.yDomain([0,1]);
+		chart.yAxis.axisLabelDistance(25);
+		chart.options({
+			noData: "Please select a fluorophore ...",
+			showLegend: true,
+			showXAxis: true,
+			showYAxis: true,
+			clipEdge: true,
+            margin: {left:40},
+            duration: 200,
+            useInteractiveGuideline: !window.mobilecheck(),
+            forceY: [0,1.04],
+            //forceX: [350, 750],
+
+		});
+
+		/*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
+		nv.addGraph(function() {
+			chart.xAxis     //Chart x-axis settings
+			  .axisLabel('Wavelength (nm)');
+
+			chart.yAxis     //Chart y-axis settings
+			  .axisLabel('Normalized Ex/Em/Transmission')
+			  .tickFormat(d3.format('1%'));
+
+		   	svg.datum([])         //Populate the <svg> element with chart data...
+			      .call(chart);	       //Finally, render the chart!
+
+		  //Update the chart when window resizes.
+		  nv.utils.windowResize(function() { chart.update() });
+		  return chart;
+		});
+
+        $("#addproteinbutton").click(function(e) {
             $(proteinrow).appendTo($('#protein-table').find('tbody'));
-            //$(emissionrow).appendTo($('#emission-table').find('tbody'));
-
-    		//initialize chart
-    		var myData = [];
-            var scalefactor = 1;
-    		svg = d3.select('#spectra').append('svg');
-    		chart.xDomain([350,750]);
-    		chart.yDomain([0,1]);
-    		chart.yAxis.axisLabelDistance(25);
-    		chart.options({
-    			noData: "Please select a fluorophore ...",
-    			showLegend: true,
-    			showXAxis: true,
-    			showYAxis: true,
-    			clipEdge: true,
-                margin: {left:40},
-                duration: 200,
-                useInteractiveGuideline: !window.mobilecheck(),
-                forceY: [0,1.04],
-                //forceX: [350, 750],
-
-    		});
-
-    		/*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
-    		nv.addGraph(function() {
-    			chart.xAxis     //Chart x-axis settings
-    			  .axisLabel('Wavelength (nm)');
-
-    			chart.yAxis     //Chart y-axis settings
-    			  .axisLabel('Normalized Ex/Em/Transmission')
-    			  .tickFormat(d3.format('1%'));
-
-    		   	svg.datum(myData)         //Populate the <svg> element with chart data...
-    			      .call(chart);	       //Finally, render the chart!
-
-    		  //Update the chart when window resizes.
-    		  nv.utils.windowResize(function() { chart.update() });
-    		  return chart;
-    		});
-
-            $("#addproteinbutton").click(function(e) {
-                $(proteinrow).appendTo($('#protein-table').find('tbody'));
-                if ($('.protein-row').length > 1) {
-                    $("#toggle_alls").show();
-                }
-            });
-
-            $("#addemissionbutton").click(function(e) {
-                $(emissionrow).appendTo($('#emission-table').find('tbody'));
-                refreshChart()
-            });
-
-    	});
-
-        function customFilter(center, width, trans){
-            minX = parseFloat(center) - width/2
-            maxX = parseFloat(center) + width/2
-            vals = []
-            for(n=Math.min(minX,350); n < Math.max(maxX,750); n++){
-                if (n >= minX && n <= maxX){
-                    vals.push({x: n, y: parseFloat(trans), series: 0});
-                } else {
-                    vals.push({x: n, y: 0, series: 0});
-                }
+            if ($('.protein-row').length > 1) {
+                $("#toggle_alls").show();
             }
-            return {
-                area: true,
-                key: center + "/" + width + "m",
-                values: vals,
-                peak: center,
-                type: "em_filter",
-                color: realColor(center)}
+        });
+
+        $("#addemissionbutton").click(function(e) {
+            $(emissionrow).appendTo($('#emission-table').find('tbody'));
+            refreshChart()
+        });
+
+	});
+
+    function customFilter(center, width, trans){
+        minX = parseFloat(center) - width/2
+        maxX = parseFloat(center) + width/2
+        vals = []
+        for(n=Math.min(minX,350); n < Math.max(maxX,750); n++){
+            if (n >= minX && n <= maxX){
+                vals.push({x: n, y: parseFloat(trans), series: 0});
+            } else {
+                vals.push({x: n, y: 0, series: 0});
+            }
+        }
+        return {
+            area: true,
+            key: center + "/" + width + "m",
+            values: vals,
+            peak: center,
+            type: "em_filter",
+            color: realColor(center)}
+    }
+
+    function calculateEfficiency(){
+        emspectra = [];
+        emfilters = [];
+        $("#efficiency-table tbody").empty()
+        $("#efficiency-table thead").empty()
+        for (i = 0; i < currentData.length; i++){
+            if (currentData[i].type == 'em') {
+                emspectra.push(currentData[i]);
+            } else if (currentData[i].type == 'em_filter') {
+                emfilters.push(currentData[i])
+                $('<th>').text(currentData[i].key).appendTo($("#efficiency-table").find('thead tr'))
+            }
+        }
+        if (emspectra.length && emfilters.length){
+            $('#efftab_blurb').hide();
+            $("#efficiency-table thead").append($('<tr>').append($('<th>')))
+            for (x = 0; x < emfilters.length; x++){
+                $('<th>').text(emfilters[x].key).appendTo($("#efficiency-table").find('thead tr'));
+            }
+        } else {
+            $('#efftab_blurb').show();
+            return true;
         }
 
-        function calculateEfficiency(){
-            emspectra = [];
-            emfilters = [];
-            $("#efficiency-table tbody").empty()
-            $("#efficiency-table thead").empty()
-            for (i = 0; i < currentData.length; i++){
-                if (currentData[i].type == 'em') {
-                    emspectra.push(currentData[i]);
-                } else if (currentData[i].type == 'em_filter') {
-                    emfilters.push(currentData[i])
-                    $('<th>').text(currentData[i].key).appendTo($("#efficiency-table").find('thead tr'))
+        for (s = 0; s < emspectra.length; s++ ){
+            emspectrum = emspectra[s];
+            $('<tr><td>' + emspectrum.key + '</td></tr>').appendTo($("#efficiency-table tbody"))
+            for (n = 0; n < emfilters.length; n++ ){
+                $EMtrans = overlap(emfilters[n], emspectrum);
+                $EMpower = trapz($EMtrans.values)/trapz(emspectrum.values);
+                formatted = Math.round($EMpower*10000)/100;
+                if (formatted > 75) {
+                    effclass = 'efficiency-vgood';
+                } else if (formatted > 50) {
+                    effclass = 'efficiency-good'
+                } else if (formatted > 25) {
+                    effclass = 'efficiency-bad'
+                } else {
+                    effclass = 'efficiency-vbad'
                 }
+                eyeb = $(eyebutton).clone();
+                eyeb.attr("data-emspectrum", s);
+                eyeb.attr("data-emfilter", n);
+
+                $('<td class="' + effclass + '">' + eyeb.prop('outerHTML') + formatted + ' %</td>').appendTo($("#efficiency-table tbody").find('tr:last'))
             }
-            if (emspectra.length && emfilters.length){
-                $('#efftab_blurb').hide();
-                $("#efficiency-table thead").append($('<tr>').append($('<th>')))
-                for (x = 0; x < emfilters.length; x++){
-                    $('<th>').text(emfilters[x].key).appendTo($("#efficiency-table").find('thead tr'));
-                }
-            } else {
-                $('#efftab_blurb').show();
+        }
+    }
+
+    function refreshChart(){
+        console.time('someFunction');
+        currentData = []
+        if (scaleToExcitation) {
+            currentData.push({
+                key: excitationline + 'ex',
+                area: true,
+                values: [
+                    {x: excitationline-1, y: 0},
+                    {x: excitationline, y: 1},
+                    {x: excitationline+1, y: 0},
+                ]
+            })
+        }
+        $('.protein-row').each(function(){
+            var slug = $(this).find('.protein-spectra-select').val();
+            if(!slug){
                 return true;
             }
-
-            for (s = 0; s < emspectra.length; s++ ){
-                emspectrum = emspectra[s];
-                $('<tr><td>' + emspectrum.key + '</td></tr>').appendTo($("#efficiency-table tbody"))
-                for (n = 0; n < emfilters.length; n++ ){
-                    $EMtrans = overlap(emfilters[n], emspectrum);
-                    $EMpower = trapz($EMtrans.values)/trapz(emspectrum.values);
-                    formatted = Math.round($EMpower*10000)/100;
-                    if (formatted > 75) {
-                        effclass = 'efficiency-vgood';
-                    } else if (formatted > 50) {
-                        effclass = 'efficiency-good'
-                    } else if (formatted > 25) {
-                        effclass = 'efficiency-bad'
+            var ex = $(this).find('.excheck').prop('checked');
+            var em = $(this).find('.emcheck').prop('checked');
+            var twop = $(this).find('.2pcheck').prop('checked');
+            for (var i = 0; i < localData[slug].length; i++) {
+                d = $.extend({}, localData[slug][i]);
+                if (d.type == 'ex' && ex){
+                    currentData.push(d);
+                }
+                else if (d.type == '2p' && twop){
+                    currentData.push(d);
+                }
+                else if (d.type == 'em' && em){
+                    if (scaleToExcitation) {
+                        var expair = currentData.find(function(element) {
+                          return element.key == d.key.replace('em','ex');;
+                        });
+                        console.log(expair)
+                        scalefactor = expair.values[expair.values.findIndex(x => x.x== excitationline)].y
                     } else {
-                        effclass = 'efficiency-vbad'
+                        scalefactor = 1
                     }
-                    eyeb = $(eyebutton).clone();
-                    eyeb.attr("data-emspectrum", s);
-                    eyeb.attr("data-emfilter", n);
 
-                    $('<td class="' + effclass + '">' + eyeb.prop('outerHTML') + formatted + ' %</td>').appendTo($("#efficiency-table tbody").find('tr:last'))
+                    d.values = d.values.map(function(x) { return {x: x.x, y: x.y * scalefactor} })
+                    currentData.push(d);
                 }
-            }
-        }
-
-        function refreshChart(){
-            currentData = []
-            if (scaleToExcitation) {
-                currentData.push({
-                    key: excitationline + 'ex',
-                    area: true,
-                    values: [
-                        {x: excitationline-2, y: 0},
-                        {x: excitationline-1, y: 0.5},
-                        {x: excitationline, y: 1},
-                        {x: excitationline+1, y: 0.5},
-                        {x: excitationline+2, y: 0},
-                    ]
-                })
-            }
-            $('.protein-row').each(function(){
-                var slug = $(this).find('.protein-spectra-select').val();
-                if(!slug){
-                    return true;
-                }
-                var ex = $(this).find('.excheck').prop('checked');
-                var em = $(this).find('.emcheck').prop('checked');
-                var twop = $(this).find('.2pcheck').prop('checked');
-                for (var i = 0; i < localData[slug].length; i++) {
-                    d = $.extend({}, localData[slug][i]);
-                    if (d.type == 'ex' && ex){
-                        currentData.push(d);
-                    }
-                    else if (d.type == '2p' && twop){
-                        currentData.push(d);
-                    }
-                    else if (d.type == 'em' && em){
-                        if (scaleToExcitation) {
-                            var expair = currentData.find(function(element) {
-                              return element.key == d.key.replace('em','ex');;
-                            });
-                            console.log(expair)
-                            scalefactor = expair.values[expair.values.findIndex(x => x.x== excitationline)].y
-                        } else {
-                            scalefactor = 1
-                        }
-
-                        d.values = d.values.map(function(x) { return {x: x.x, y: x.y * scalefactor} })
-                        currentData.push(d);
-                    }
-                }
-            });
-
-            $('.emission-row').each(function(){
-                var type = $(this).find('select').val();
-                if(!type){
-                    return true;
-                } else if (type == 'custom'){
-                    center = $(this).find('input[name="custom_em_center"]').val();
-                    width = $(this).find('input[name="custom_em_bandwidth"]').val();
-                    trans = $(this).find('input[name="custom_em_trans"]').val();
-                    currentData.push(customFilter(center,width,trans));
-                }
-
-            });
-
-            svg.datum(currentData);
-            chart.xDomain(getDomainLimits(currentData));
-            chart.update();
-            calculateEfficiency();
-        }
-
-        function update2Pcheckbox(elem, data){
-            chckbx = elem.find('.2pcheck-td');
-            hastwop = false;
-            for (n = 0; n < data.length; n++){
-                if (data[n].type == '2p'){
-                    hastwop = true;
-                    break;
-                }
-            }
-            if (hastwop){
-                //chckbx.removeAttr("disabled");
-                chckbx.show();
-            } else {
-                //chckbx.attr("disabled", true);
-                chckbx.hide();
-            }
-
-        }
-
-        $("body").on('change', '.protein-spectra-select', function (e) {
-          var slug = $(this).val();
-          row = $(this).closest('tr');
-          if (!(slug in localData)){
-            $.ajax({
-                type: "GET",
-                url: slug,
-                data: {},
-                dataType: 'json',
-                success: function(data) {
-                    localData[slug] = JSON.parse(data.spectra);
-                    update2Pcheckbox(row, localData[slug]);
-                    refreshChart()
-                },
-            });
-          } else{
-                update2Pcheckbox(row, localData[slug]);
-                refreshChart()
-          }
-        })
-
-        $(function () {
-            $('#toggle_all_em').change (function () {
-                $('.emcheck').prop('checked', $(this).is(':checked'));
-                refreshChart();
-            });
-            $('#toggle_all_ex').change (function () {
-                $('.excheck').prop('checked', $(this).is(':checked'));
-                refreshChart();
-            });
-            $('#toggle_all_2p').change (function () {
-                $('.2pcheck').prop('checked', $(this).is(':checked'));
-                refreshChart();
-            });
-        });
-
-        $("body").on('change', '.singlecheck', function (e) {
-            type = $(this).data('checktype')
-            checkclass = '.' + type + 'check'
-            if ($(checkclass + ':checked').length == $(checkclass).length) {
-                $('#toggle_all_' + type).
-                    prop("indeterminate", false).
-                    prop('checked', true);
-            } else if ($(checkclass + ':checked').length == 0) {
-                $('#toggle_all_' + type).
-                    prop("indeterminate", false).
-                    prop('checked', false);
-            } else {
-                $('#toggle_all_' + type).
-                    prop("indeterminate", true);
             }
         });
 
+        $('.emission-row').each(function(){
+            var type = $(this).find('select').val();
+            if(!type){
+                return true;
+            } else if (type == 'custom'){
+                center = $(this).find('input[name="custom_em_center"]').val();
+                width = $(this).find('input[name="custom_em_bandwidth"]').val();
+                trans = $(this).find('input[name="custom_em_trans"]').val();
+                currentData.push(customFilter(center,width,trans));
+            }
 
-        $("body").on('change', '.filter-select', function (e) {
-            refreshChart();
         });
 
-        $("body").on('click', '.remove-row', function (e) {
-            $(this).closest('tr').remove()
-            refreshChart();
-            if ($('.protein-row').length <= 1) {
-                $("#toggle_alls").hide();
-            }
-        })
+        console.timeEnd('someFunction');
+        console.time('update');
+        svg.datum(currentData);
+        chart.xDomain(getDomainLimits(currentData));
+        chart.update();
+        console.timeEnd('update');
+        console.time('eff');
+        calculateEfficiency();
+        console.timeEnd('eff');
+    }
 
-        $("body").on('click', '.emcheck', function (e) {
-            refreshChart();
-        })
+    function update2Pcheckbox(row, slug){
+        if (localData[slug].map(function(e) { return e.type }).indexOf('2p') > -1) {
+            row.find('.2pcheck-td').show();
+        } else {
+            row.find('.2pcheck-td').hide();
+        }
+    }
 
-        $("body").on('click', '.excheck', function (e) {
-            refreshChart();
+    function getAjaxSpectra(slug){
+        console.log('AJAX')
+     return $.ajax({
+            type: "GET",
+            url: slug,
+            data: {},
+            dataType: 'json',
         })
+    }
 
-        $("body").on('click', '.2pcheck', function (e) {
-            refreshChart();
-        })
-
-        $("body").on('change', '.custom_em_value', function (e) {
+    $("body").on('change', '.protein-spectra-select', function (e) {
+      slug = $(this).val();
+      row = $(this).closest('tr');
+      if (!(slug in localData)){
+        getAjaxSpectra(slug).then(function(data){
+            localData[slug] = JSON.parse(data.spectra);
+            update2Pcheckbox(row, slug);
             refreshChart()
         })
+      } else {
+        update2Pcheckbox(row, slug);
+        refreshChart()
+      }
+    })
 
-        $("body").on('change', '#excitation-line', function (e) {
-            var excitationline = $(this).val();
-            refreshChart()
-        })
-
-        $("body").on('click', '#norm_to_ex_checkbox', function (e) {
-            scaleToExcitation = $(this).prop('checked');
-            refreshChart();
-        })
-
-
-        $("body").on('mousedown', '.effbutton', function (e) {
-            emspectrum = emspectra[$(this).data('emspectrum')]
-            emfilter = emfilters[$(this).data('emfilter')]
-            $EMtrans = overlap(emfilter, emspectrum);
-            $EMpower = trapz($EMtrans.values)/trapz(emspectrum.values);
-            $EMtrans.key = emfilter.key + ' collection';
-            svg.datum([$EMtrans, emspectrum]); chart.update();
-        });
-
-        $("body").on('mouseup', '.effbutton', function (e) {
+    $(function () {
+        $('#toggle_all_em').change (function () {
+            $('.emcheck').prop('checked', $(this).is(':checked'));
             refreshChart();
         });
+        $('#toggle_all_ex').change (function () {
+            $('.excheck').prop('checked', $(this).is(':checked'));
+            refreshChart();
+        });
+        $('#toggle_all_2p').change (function () {
+            $('.2pcheck').prop('checked', $(this).is(':checked'));
+            refreshChart();
+        });
+    });
 
-    </script>
+    $("body").on('change', '.singlecheck', function (e) {
+        type = $(this).data('checktype')
+        checkclass = '.' + type + 'check'
+        if ($(checkclass + ':checked').length == $(checkclass).length) {
+            $('#toggle_all_' + type).
+                prop("indeterminate", false).
+                prop('checked', true);
+        } else if ($(checkclass + ':checked').length == 0) {
+            $('#toggle_all_' + type).
+                prop("indeterminate", false).
+                prop('checked', false);
+        } else {
+            $('#toggle_all_' + type).
+                prop("indeterminate", true);
+        }
+    });
+
+
+    $("body").on('click', '.remove-row', function (e) {
+        $(this).closest('tr').remove()
+        refreshChart();
+        if ($('.protein-row').length <= 1) {
+            $("#toggle_alls").hide();
+        }
+    })
+
+    $("body").on('click', '.emcheck, .excheck, .2pcheck, .custom_em_value, .filter-select', function (e) {
+        refreshChart();
+    })
+
+    $("body").on('change', '#excitation-line', function (e) {
+        excitationline = parseFloat($(this).val());
+        refreshChart()
+    })
+
+    $("body").on('click', '#norm_to_ex_checkbox', function (e) {
+        scaleToExcitation = $(this).prop('checked');
+        refreshChart();
+    })
+
+
+    $("body").on('mousedown', '.effbutton', function (e) {
+        var temp
+        emspectrum = emspectra[$(this).data('emspectrum')]
+        emfilter = emfilters[$(this).data('emfilter')]
+        $EMtrans = overlap(emfilter, emspectrum);
+        $EMpower = trapz($EMtrans.values)/trapz(emspectrum.values);
+        $EMtrans.key = emfilter.key + ' collection';
+        svg.datum([$EMtrans, emspectrum]);
+        chart.update();
+    });
+
+    $("body").on('mouseup', '.effbutton', function (e) {
+        svg.datum(currentData);
+        chart.xDomain(getDomainLimits(currentData));
+        chart.update();
+    });
+
+</script>
 {% endblock javascript %}

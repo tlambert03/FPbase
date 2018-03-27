@@ -288,13 +288,19 @@
 
       {% if protein.has_spectra %}
       var myData = {{ protein.spectra_json|safe }};
+      for (n = 0; n < myData.length; n++){
+      	if (myData[n].key.includes('2p')) {
+      		myData[n].disabled = true;
+      	}
+      };
       var chart = nv.models.lineChart();
+      chart.yDomain([0,1.04])
       svg = d3.select('#spectra').append('svg');
       chart.options({
           margin: {left:20},
           noData: "Unable to load data...",
           transitionDuration: 200,
-          showLegend: myData.length > 2,
+          showLegend: myData.length > 2 || myData.some(function(a){return a.type=='2p'}),
           showXAxis: true,
           showYAxis: false,
           useInteractiveGuideline: !window.mobilecheck(),

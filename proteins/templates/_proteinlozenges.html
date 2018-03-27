@@ -16,7 +16,7 @@
                 #eee
             {% endif %}
             ;">
-            {{ protein.name }}
+            {{ protein.name | safe }}
             </h4>
             <span class='attributes' style="color:
                 {% if  protein.default_state.em_max > 477 and protein.default_state.em_max < 620 %}
