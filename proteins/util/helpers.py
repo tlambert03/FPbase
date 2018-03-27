@@ -12,7 +12,6 @@ def wave_to_hex(wavelength, gamma=1):
 
     wavelength = float(wavelength)
     if 520 <= wavelength:
-        #pass
         wavelength += 40
 
     if wavelength >= 380 and wavelength <= 440:

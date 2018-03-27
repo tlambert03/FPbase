@@ -14,7 +14,7 @@ import json
 
 from references.models import Reference
 from .mixins import Authorable
-from ..helpers import get_color_group, mless, get_base_name
+from ..util.helpers import get_color_group, mless, get_base_name
 # from .extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator, validate_uniprot
 from .. import util

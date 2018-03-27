@@ -1,7 +1,7 @@
 from django.db.models import Lookup, fields, TextField
 from django.core.exceptions import ValidationError
 import json
-from .helpers import wave_to_hex
+from .util.helpers import wave_to_hex
 
 
 class Around(Lookup):

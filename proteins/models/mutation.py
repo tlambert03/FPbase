@@ -5,8 +5,6 @@ from django.core.exceptions import ValidationError
 import re
 from ..validators import validate_mutation
 
-from .protein import Protein
-
 # WORK IN PROGRESS
 
 
@@ -43,70 +41,70 @@ class Mutations(models.Model):
         super().save(*args, **kwargs)
 
 
-class Mutation(object):
+# class Mutation(object):
 
-    def __init__(self, mutstring, delim=':'):
-        self.delim = delim
-        try:
-            splits = mutstring.split(delim)
-            parent = splits[0]
-            self.parent = Protein.object.get(id=parent)
-            mutations = splits[1]
-        except IndexError:
-            raise
-        except Exception:
-            raise
+#     def __init__(self, mutstring, delim=':'):
+#         self.delim = delim
+#         try:
+#             splits = mutstring.split(delim)
+#             parent = splits[0]
+#             self.parent = Protein.object.get(id=parent)
+#             mutations = splits[1]
+#         except IndexError:
+#             raise
+#         except Exception:
+#             raise
 
-        if mutations:
-            if isinstance(mutations, (list, set, tuple)):  # must be a list
-                self.mutations = set(mutations)
-            elif isinstance(mutations, str):
-                splits = mutations.split('/')
-                for item in splits:
-                    validate_mutation(item)
-                self.mutations = set(splits)
-            else:
-                raise TypeError("mutations input must be list, set, tuple, or str")
-        else:
-            self.mutations = set()
+#         if mutations:
+#             if isinstance(mutations, (list, set, tuple)):  # must be a list
+#                 self.mutations = set(mutations)
+#             elif isinstance(mutations, str):
+#                 splits = mutations.split('/')
+#                 for item in splits:
+#                     validate_mutation(item)
+#                 self.mutations = set(splits)
+#             else:
+#                 raise TypeError("mutations input must be list, set, tuple, or str")
+#         else:
+#             self.mutations = set()
 
-    def mutnum(self, val):
-        num = re.search(r'\d+', val)
-        if num:
-            return int(num.group())
-        else:
-            return None
+#     def mutnum(self, val):
+#         num = re.search(r'\d+', val)
+#         if num:
+#             return int(num.group())
+#         else:
+#             return None
 
-    def __str__(self):
-        ordered_mutations = list(self.mutations)
-        ordered_mutations.sort(key=self.mutnum)
-        return "{}{}{}".format(self.parent, self.delim, "/".join(ordered_mutations))
+#     def __str__(self):
+#         ordered_mutations = list(self.mutations)
+#         ordered_mutations.sort(key=self.mutnum)
+#         return "{}{}{}".format(self.parent, self.delim, "/".join(ordered_mutations))
 
 
-class MutationsField(models.TextField):
-    description = "Stores a mutation object"
+# class MutationsField(models.TextField):
+#     description = "Stores a mutation object"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
 
-    def from_db_value(self, value, expression, connection, context):
-        if not value:
-            return None
-        return Mutation(value)
+#     def from_db_value(self, value, expression, connection, context):
+#         if not value:
+#             return None
+#         return Mutation(value)
 
-    def to_python(self, value):
-        if isinstance(value, Mutation):
-            return value
+#     def to_python(self, value):
+#         if isinstance(value, Mutation):
+#             return value
 
-        if not value:
-            return None
+#         if not value:
+#             return None
 
-        try:
-            return Mutation(value)
-        except Exception:
-            raise ValidationError("Invalid input for a Mutation instance")
+#         try:
+#             return Mutation(value)
+#         except Exception:
+#             raise ValidationError("Invalid input for a Mutation instance")
 
-    def get_prep_value(self, value):
-        if value is None:
-            return value
-        return str(value)
+#     def get_prep_value(self, value):
+#         if value is None:
+#             return value
+#         return str(value)

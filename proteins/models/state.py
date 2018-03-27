@@ -7,7 +7,7 @@ from model_utils.models import TimeStampedModel
 
 from ..fields import SpectrumField
 from .mixins import Authorable
-from ..helpers import wave_to_hex
+from ..util.helpers import wave_to_hex
 
 
 class StatesManager(models.Manager):

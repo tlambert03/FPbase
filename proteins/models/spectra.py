@@ -1,6 +1,8 @@
 import tablib
 from scipy import interpolate
 from scipy.signal import savgol_filter
+from scipy.signal import argrelextrema
+import numpy as np
 
 # if no scipy
 # import numpy as np
@@ -95,7 +97,8 @@ def get_file_data(file):
         except ValueError:
             # first number is not a float... probably a header
             data = tablib.Dataset().load(text)
-    assert data.width == 2, "get_file_data assumes a file with 2 columns"
+    if data.width != 2:
+        print("get_file_data only takes data from the first two columns")
     x = data['x'] if data.headers and 'x' in data.headers else data.get_col(0)
     y = data['y'] if data.headers and 'y' in data.headers else data.get_col(1)
     x = [float(xx) for xx in x]
@@ -104,20 +107,55 @@ def get_file_data(file):
     return x, y
 
 
-def interp_and_norm(x, y):
+def interp2int(x, y, s=1):
+    '''Interpolate pair of vectors at integer increments between min(x) and max(x)'''
     xnew = range(int(min(x)), int(max(x)))
     # ynew = cubic_interp1d(xnew, x, y)  # if no scipy
-    tck = interpolate.splrep(x, y, s=0)
+    tck = interpolate.splrep(x, y, s=s)
     ynew = interpolate.splev(xnew, tck, der=0)
     ynew = savgol_filter(ynew, 15, 2)
-    maxy = max(ynew)
-    ynorm = [round(max(yy/maxy, 0), 4) for yy in ynew]
-    return xnew, ynorm
+    return xnew, ynew
 
 
-def file2spectra(file, dtype=''):
+def interp_univar(x, y, s=1):
+    '''Interpolate pair of vectors at integer increments between min(x) and max(x)'''
+    xnew = range(int(min(x)), int(max(x)))
+    F = interpolate.UnivariateSpline(x, y, s=s)
+    ynew = F(xnew)
+    # ynew = savgol_filter(ynew, 15, 2)
+    return xnew, ynew
+
+
+def interp_linear(x, y, s=1):
+    '''Interpolate pair of vectors at integer increments between min(x) and max(x)'''
+    xnew = range(int(min(x)), int(max(x)))
+    F = interpolate.interp1d(x, y)
+    ynew = F(xnew)
+    ynew = savgol_filter(ynew, 9, 2)
+    return xnew, ynew
+
+
+def norm2one(y):
+    '''Normalize peak value of vector to one'''
+    return [round(max(yy/max(y), 0), 4) for yy in y]
+
+
+def norm2P(y):
+    '''Normalize peak value of vector to one'''
+    localmax = argrelextrema(y, np.greater, order=100)
+    # can't be within first 10 points
+    localmax = [i for i in localmax[0] if i > 10]
+    maxind = localmax[np.argmax(y[localmax])]
+    maxy = y[maxind]
+    return [round(max(yy/maxy, 0), 4) for yy in y], maxy, maxind
+
+
+def file2spectra(file, interp=True, norm=True, dtype=''):
     x, y = get_file_data(file)
-    x, y = interp_and_norm(x, y)
+    if interp:
+        x, y = interp2int(x, y)
+    if norm:
+        y = norm2one(y)
     spectra = [list(x) for x in zip(x, y)]
     if dtype.lower() == 'json':
         import json
@@ -144,7 +182,9 @@ if __name__ == '__main__':
 
     infile = sys.argv[1]
     x, y = get_file_data(infile)
-    x, y = interp_and_norm(x, y)
+    x, y = interp2int(x, y)
+    y = norm2one(y)
     out = [list(a) for a in zip(x, y)]
     setClipboardData(out)
     print('data copied to clipboard')
+

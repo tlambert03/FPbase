@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 from django.db import models
 from django.forms import Textarea
 from proteins.models import (Protein, State, StateTransition, Organism,
-    FRETpair, BleachMeasurement, SpectrumField, Mutation)
+    FRETpair, BleachMeasurement, SpectrumField)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.models import Version
 from reversion.admin import VersionAdmin
@@ -13,9 +13,9 @@ from reversion.admin import VersionAdmin
 # ############ INLINES ###############
 
 # placeholder... not yet used
-@admin.register(Mutation)
-class MutationAdmin(VersionAdmin):
-    model = Mutation
+# @admin.register(Mutation)
+# class MutationAdmin(VersionAdmin):
+#     model = Mutation
 
 
 class BleachInline(admin.TabularInline):
