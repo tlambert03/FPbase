@@ -26,9 +26,11 @@ class State(Authorable, TimeStampedModel):
                     validators=[MinValueValidator(300), MaxValueValidator(900)], db_index=True)
     em_max      = models.PositiveSmallIntegerField(blank=True, null=True,
                     validators=[MinValueValidator(300), MaxValueValidator(1000)], db_index=True)
-    ex_spectra  = SpectrumField(blank=True, null=True, help_text='List of [[wavelength, value],...] pairs')  # excitation spectra (list of x,y coordinate pairs)
-    em_spectra  = SpectrumField(blank=True, null=True, help_text='List of [[wavelength, value],...] pairs')  # emission spectra (list of x,y coordinate pairs)
-    twop_ex_spectra = SpectrumField(blank=True, null=True, help_text='List of [[wavelength, value],...] pairs')  # 2 photon cross-section
+
+    ex_spectra  = models.OneToOneField('Spectrum', on_delete=models.SET_NULL, related_name="state_ex", blank=True, null=True)
+    em_spectra  = models.OneToOneField('Spectrum', on_delete=models.SET_NULL, related_name="state_em", blank=True, null=True)
+    twop_spectra = models.OneToOneField('Spectrum', on_delete=models.SET_NULL, related_name="state_twop", blank=True, null=True)
+
     twop_ex_max = models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Peak 2P excitation',
                     validators=[MinValueValidator(700), MaxValueValidator(1600)], db_index=True)
     twop_peakGM = models.FloatField(null=True, blank=True, verbose_name='Peak 2P cross-section of S0->S1 (GM)',
@@ -110,7 +112,7 @@ class State(Authorable, TimeStampedModel):
 
     # Methods
     def has_spectra(self):
-        if self.ex_spectra is None and self.em_spectra is None and self.twop_ex_spectra is None:
+        if self.ex_spectra is None and self.em_spectra is None and self.twop_spectra is None:
             return False
         return True
 
@@ -145,13 +147,13 @@ class State(Authorable, TimeStampedModel):
             if spectrum == 'ex':
                 spec = self.ex_spectra
                 peak = self.ex_max
-                color = self.ex_spectra.color
+                color = wave_to_hex(self.ex_max)
             elif spectrum == 'em':
                 spec = self.em_spectra
                 peak = self.em_max
-                color = self.em_spectra.color
+                color = wave_to_hex(self.em_max)
             elif spectrum == '2p':
-                spec = self.twop_ex_spectra
+                spec = self.twop_spectra
                 peak = self.twop_ex_max
                 color = wave_to_hex(self.twop_ex_max)
             else:

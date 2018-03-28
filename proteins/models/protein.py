@@ -194,7 +194,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         for state in self.states.all():
             spectra.append(state.nvd3ex) if state.ex_spectra else None
             spectra.append(state.nvd3em) if state.em_spectra else None
-            spectra.append(state.nvd32p) if state.twop_ex_spectra else None
+            spectra.append(state.nvd32p) if state.twop_spectra else None
         return json.dumps(spectra)
 
     def set_state_and_type(self):

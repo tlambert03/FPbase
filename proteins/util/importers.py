@@ -8,8 +8,11 @@ from references.models import Reference
 from fpbase.users.models import User
 from django.template.defaultfilters import slugify
 from Bio import Entrez
-from .extrest.entrez import fetch_ipg_sequence
-from .validators import protein_sequence_validator
+from ..extrest.entrez import fetch_ipg_sequence
+from ..validators import protein_sequence_validator
+from ..models import spectra as sp
+from ..models.spectrum import Spectrum
+
 from proteins import forms
 
 from metapub import CrossRef, PubMedFetcher
@@ -700,7 +703,6 @@ def create_collection(name='FPvis Collection', desc='Proteins selected by Kurt T
 
 
 def import2P():
-    from . import spectra as sp
 
     d = '/Users/talley/Dropbox (HMS)/Python/fpbase/_data/2p_spectra'
     for f in os.listdir(d):
@@ -713,9 +715,9 @@ def import2P():
             x, y = sp.interp_linear(x, y)
             y, ymax, maxind = sp.norm2P(y)
             maxwave = x[maxind]
-            spectra = [list(a) for a in zip(x, y)]
-
-            P.default_state.twop_ex_spectra = spectra
+            S = Spectrum(data=[list(a) for a in zip(x, y)], state=P.default_state)
+            S.save()
+            P.default_state.twop_spectra = S
             P.default_state.twop_ex_max = maxwave
             P.default_state.twop_peakGM = ymax
             P.default_state.save()
