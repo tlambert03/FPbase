@@ -9,7 +9,7 @@ from ..validators import validate_mutation
 
 
 class Mutation(models.Model):
-    parent      = models.ForeignKey('Protein', related_name='proteins', verbose_name="Parent Protein")
+    parent      = models.ForeignKey('Protein', related_name='proteins', verbose_name="Parent Protein", on_delete=models.CASCADE)
     mutations   = ArrayField(models.CharField(max_length=5), validators=[validate_mutation])
     InvalidAlignment = Exception
 

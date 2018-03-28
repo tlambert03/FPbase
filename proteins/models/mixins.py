@@ -4,8 +4,8 @@ User = get_user_model()
 
 
 class Authorable(models.Model):
-    created_by = models.ForeignKey(User, blank=True, null=True, related_name='%(class)s_author')
-    updated_by = models.ForeignKey(User, blank=True, null=True, related_name='%(class)s_modifier')
+    created_by = models.ForeignKey(User, blank=True, null=True, related_name='%(class)s_author', on_delete=models.SET_NULL)
+    updated_by = models.ForeignKey(User, blank=True, null=True, related_name='%(class)s_modifier', on_delete=models.SET_NULL)
 
     class Meta:
         abstract = True

@@ -69,8 +69,8 @@ class Reference(TimeStampedModel):
     authors = models.ManyToManyField("Author", through='ReferenceAuthor')
     summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
 
-    created_by = models.ForeignKey(User, related_name='reference_author', blank=True, null=True)
-    updated_by = models.ForeignKey(User, related_name='reference_modifier', blank=True, null=True)
+    created_by = models.ForeignKey(User, related_name='reference_author', blank=True, null=True, on_delete=models.CASCADE)
+    updated_by = models.ForeignKey(User, related_name='reference_modifier', blank=True, null=True, on_delete=models.CASCADE)
 
     def get_authors(self):
         return self.authors.order_by('referenceauthor')

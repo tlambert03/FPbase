@@ -11,6 +11,9 @@ Local settings for FPbase project.
 
 from .base import *  # noqa
 
+env.read_env(ROOT_DIR('.env'))
+
+
 # DEBUG
 # ------------------------------------------------------------------------------
 DEBUG = env.bool('DJANGO_DEBUG', default=True)
@@ -21,7 +24,7 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 # SECRET CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
-# Note: This key only used for development and testing.
+# Note: This random key only used for development and testing, not on live site.
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='w)CU)uzJ<JMlkGTrfz?:)W>]EG!PFngIvQZq#9.r=sfHUmCPIe')
 
 # Mail settings

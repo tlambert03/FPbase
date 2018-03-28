@@ -12,8 +12,8 @@ class FRETpair(Authorable, TimeStampedModel):
     radius   = models.FloatField(blank=True, null=True)
 
     # Relations
-    donor    = models.ForeignKey('Protein', null=False, blank=False, verbose_name='donor', related_name='FK_FRETdonor_protein')
-    acceptor = models.ForeignKey('Protein', null=False, blank=False, verbose_name='acceptor', related_name='FK_FRETacceptor_protein')
+    donor    = models.ForeignKey('Protein', null=False, blank=False, verbose_name='donor', related_name='FK_FRETdonor_protein', on_delete=models.CASCADE)
+    acceptor = models.ForeignKey('Protein', null=False, blank=False, verbose_name='acceptor', related_name='FK_FRETacceptor_protein', on_delete=models.CASCADE)
 
     pair_references = models.ManyToManyField(Reference, related_name='FK_FRETpair_reference', blank=True)  # any additional papers that reference the FRET pair
 
