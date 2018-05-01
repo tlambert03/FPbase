@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'^spectra/', views.protein_spectra, name='spectra'),
 
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
-    url(r'^collections/(?P<owner>[-\w]+)/?$', views.CollectionList.as_view(), name='collections'),
+    url(r'^collections/(?P<owner>[-\w.]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),
     url(r'^collection/(?P<pk>\d+)/$', views.CollectionDetail.as_view(), name='collection-detail'),
     url(r'^collection/(?P<pk>\d+)/update/',
