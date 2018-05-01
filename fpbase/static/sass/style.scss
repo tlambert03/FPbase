@@ -73,3 +73,9 @@
         flex-grow: 1;
     }
 }
+
+.btn-xs {
+  @include button-size(.15rem, .45rem, ($font-size-base * .70), 1.1rem, $btn-border-radius-sm);
+}
+
+.btn-group-xs > .btn { @extend .btn-xs; }

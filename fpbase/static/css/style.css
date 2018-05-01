@@ -6600,54 +6600,107 @@ a:focus {
     margin-right: 1.4rem;
     display: inline; }
 
+.spectrumpage .spectra-tabs {
+  font-size: small;
+  margin-top: 0px;
+  margin-top: 0rem;
+  padding-top: 0px; }
+  @media (max-width: 767px) {
+    .spectrumpage .spectra-tabs {
+      font-size: 0.70rem;
+      bottom: 15px; } }
+
 /* hides NVD3 gridlines */
-#spectra {
-  height: 150px;
-  height: 140px;
+#spectra, #spectrasvg {
   /* change opacity of spectrum paths */ }
-  @media (min-width: 576px) {
-    #spectra {
-      height: 190px; } }
-  @media (min-width: 768px) {
-    #spectra {
-      height: 240px; } }
-  #spectra path.nv-line {
+  #spectra path.nv-line, #spectrasvg path.nv-line {
     stroke-width: .06rem;
-    opacity: .6;
+    opacity: .5;
     fill: none; }
-  #spectra path.nv-area {
+  #spectra path.nv-area, #spectrasvg path.nv-area {
     opacity: 0.8; }
-  #spectra .tick {
+  #spectra .tick, #spectrasvg .tick {
     stroke: none;
     text-rendering: optimizeLegibility; }
-    #spectra .tick line {
+    #spectra .tick line, #spectrasvg .tick line {
       opacity: 0; }
-  #spectra .nv-group {
+  #spectra #spectrasvg .tick line, #spectrasvg #spectrasvg .tick line {
+    opacity: 0.3; }
+  #spectra .nv-group, #spectrasvg .nv-group {
     fill-opacity: .6 !important; }
-  #spectra .nv-axisMaxMin text {
+  #spectra .nv-axisMaxMin text, #spectrasvg .nv-axisMaxMin text {
     font-weight: normal; }
-  #spectra .nv-axis text {
+  #spectra .nv-axis text, #spectrasvg .nv-axis text {
     font-size: 12.8px;
     font-size: 0.8rem;
     font-weight: 100; }
-  #spectra .nv-line, #spectra .nv-axis path {
+    #spectra .nv-axis text line, #spectrasvg .nv-axis text line {
+      stroke: none;
+      fill: none; }
+  #spectra .nv-line, #spectra .nv-axis path, #spectrasvg .nv-line, #spectrasvg .nv-axis path {
     fill: none;
     stroke: rgba(73, 80, 87, 0.3);
     shape-rendering: geometricPrecision; }
+  #spectra .scale-btns, #spectrasvg .scale-btns {
+    float: right;
+    margin-right: 20px;
+    margin-right: 1.25rem; }
 
 .nvtooltip {
   border: 0.5px solid #e9ecef;
   box-shadow: 0px 1px 2px 0px #ced4da; }
 
-svg.nvd3-svg {
+.protein svg.nvd3-svg {
   width: 100%;
   height: 170px; }
   @media (min-width: 576px) {
-    svg.nvd3-svg {
+    .protein svg.nvd3-svg {
+      height: 190px; } }
+  @media (min-width: 768px) {
+    .protein svg.nvd3-svg {
+      height: 200px; } }
+  @media (min-width: 992px) {
+    .protein svg.nvd3-svg {
+      height: 230px; } }
+  @media (min-width: 1200px) {
+    .protein svg.nvd3-svg {
+      height: 290px; } }
+
+.spectrumpage svg.nvd3-svg {
+  width: 100%;
+  height: 210px;
+  margin-bottom: -30px; }
+  @media (min-width: 576px) {
+    .spectrumpage svg.nvd3-svg {
       height: 230px; } }
   @media (min-width: 768px) {
-    svg.nvd3-svg {
-      height: 270px; } }
+    .spectrumpage svg.nvd3-svg {
+      height: 290px; } }
+  @media (min-width: 992px) {
+    .spectrumpage svg.nvd3-svg {
+      height: 360px; } }
+  @media (min-width: 1200px) {
+    .spectrumpage svg.nvd3-svg {
+      height: 390px; } }
+
+.focusnote {
+  position: relative;
+  bottom: 16px;
+  bottom: 1rem;
+  right: 42px;
+  text-align: right;
+  font-size: 14.88px;
+  font-size: 0.93rem;
+  font-weight: bold;
+  color: #CDD;
+  z-index: -1; }
+  @media (max-width: 767px) {
+    .focusnote {
+      font-size: 0.85rem;
+      bottom: 15px; } }
+
+.nv-focusWrap.nvd3-svg {
+  opacity: 0.55; }
 
 @media (max-width: 767px) {
   ul.spectra-tabs a.nav-link {
@@ -6667,7 +6720,7 @@ svg.nvd3-svg {
 .big-checkbox {
   margin-left: 0px; }
 
-.protein-spectra-select {
+.fluor-selector {
   max-width: 95%; }
 
 #efficiency-table th {
@@ -6676,22 +6729,55 @@ svg.nvd3-svg {
 table.spectra-form td {
   border-top: none; }
 
-table.spectra-form tr.protein-row td:nth-child(1) {
+table.spectra-form tr.fluor-row td:nth-child(1) {
   width: 5%;
   margin-right: 0;
   padding-right: 0; }
 
-table.spectra-form tr.protein-row td:nth-child(3) {
+table.spectra-form tr.fluor-row td:nth-child(3) {
   width: 7%;
   padding-top: 18px; }
 
-table.spectra-form tr.protein-row td:nth-child(4) {
+table.spectra-form tr.fluor-row td:nth-child(4) {
   width: 7%;
   padding-top: 18px; }
 
-table.spectra-form tr.protein-row td:nth-child(5) {
+table.spectra-form tr.fluor-row td:nth-child(5) {
   width: 7%;
   padding-top: 18px; }
+
+table.spectra-form tr.light-row td:nth-child(1) {
+  width: 5%;
+  margin-right: 0;
+  padding-right: 0; }
+
+table.spectra-form tr.light-row td:nth-child(3) {
+  width: 35%;
+  padding-top: 18px; }
+
+table.spectra-form tr.filter-row label {
+  margin-right: 8px;
+  margin-right: 0.5rem; }
+
+table.spectra-form tr.filter-row td:nth-child(1) {
+  width: 5%;
+  margin-right: 0;
+  padding-right: 0; }
+
+table.spectra-form tr.filter-row td:nth-child(2) {
+  width: 40%; }
+
+table.spectra-form tr.filter-row td:nth-child(3) {
+  padding: 0;
+  padding-top: 12px; }
+
+table.spectra-form tr.filter-row td:nth-child(4) {
+  padding: 0;
+  padding-top: 12px; }
+
+table.spectra-form tr.filter-row td:nth-child(5) {
+  padding: 0;
+  padding-top: 12px; }
 
 table.spectra-form tr.emission-row input[type=number]::-webkit-inner-spin-button,
 table.spectra-form tr.emission-row input[type=number]::-webkit-outer-spin-button {
@@ -7157,10 +7243,10 @@ i {
       width: 32px;
       width: 2rem;
       font-size: 1.4em; }
-  .btn-social.btn-xs, .btn-xs.btn-social-icon {
+  .btn-social.btn-xs, .btn-xs.btn-social-icon, .btn-group-xs > .btn-social-icon.btn, .btn-group-xs > .btn-social.btn {
     padding-left: 36px;
     padding-left: 2.25rem; }
-    .btn-social.btn-xs > :first-child, .btn-xs.btn-social-icon > :first-child {
+    .btn-social.btn-xs > :first-child, .btn-xs.btn-social-icon > :first-child, .btn-group-xs > .btn-social-icon.btn > :first-child, .btn-group-xs > .btn-social.btn > :first-child {
       line-height: 32px;
       line-height: 2rem;
       width: 32px;
@@ -7207,7 +7293,7 @@ i {
     width: 2rem;
     padding-left: 0;
     padding-right: 0; }
-  .btn-social-icon.btn-xs {
+  .btn-social-icon.btn-xs, .btn-group-xs > .btn-social-icon.btn {
     height: 32px;
     height: 2rem;
     width: 32px;
@@ -7813,54 +7899,107 @@ i {
     border-color: #1b9d4c;
     box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125), 0 0 0 0.2rem rgba(37, 211, 102, 0.5); }
 
+.spectrumpage .spectra-tabs {
+  font-size: small;
+  margin-top: 0px;
+  margin-top: 0rem;
+  padding-top: 0px; }
+  @media (max-width: 767px) {
+    .spectrumpage .spectra-tabs {
+      font-size: 0.70rem;
+      bottom: 15px; } }
+
 /* hides NVD3 gridlines */
-#spectra {
-  height: 150px;
-  height: 140px;
+#spectra, #spectrasvg {
   /* change opacity of spectrum paths */ }
-  @media (min-width: 576px) {
-    #spectra {
-      height: 190px; } }
-  @media (min-width: 768px) {
-    #spectra {
-      height: 240px; } }
-  #spectra path.nv-line {
+  #spectra path.nv-line, #spectrasvg path.nv-line {
     stroke-width: .06rem;
-    opacity: .6;
+    opacity: .5;
     fill: none; }
-  #spectra path.nv-area {
+  #spectra path.nv-area, #spectrasvg path.nv-area {
     opacity: 0.8; }
-  #spectra .tick {
+  #spectra .tick, #spectrasvg .tick {
     stroke: none;
     text-rendering: optimizeLegibility; }
-    #spectra .tick line {
+    #spectra .tick line, #spectrasvg .tick line {
       opacity: 0; }
-  #spectra .nv-group {
+  #spectra #spectrasvg .tick line, #spectrasvg #spectrasvg .tick line {
+    opacity: 0.3; }
+  #spectra .nv-group, #spectrasvg .nv-group {
     fill-opacity: .6 !important; }
-  #spectra .nv-axisMaxMin text {
+  #spectra .nv-axisMaxMin text, #spectrasvg .nv-axisMaxMin text {
     font-weight: normal; }
-  #spectra .nv-axis text {
+  #spectra .nv-axis text, #spectrasvg .nv-axis text {
     font-size: 12.8px;
     font-size: 0.8rem;
     font-weight: 100; }
-  #spectra .nv-line, #spectra .nv-axis path {
+    #spectra .nv-axis text line, #spectrasvg .nv-axis text line {
+      stroke: none;
+      fill: none; }
+  #spectra .nv-line, #spectra .nv-axis path, #spectrasvg .nv-line, #spectrasvg .nv-axis path {
     fill: none;
     stroke: rgba(73, 80, 87, 0.3);
     shape-rendering: geometricPrecision; }
+  #spectra .scale-btns, #spectrasvg .scale-btns {
+    float: right;
+    margin-right: 20px;
+    margin-right: 1.25rem; }
 
 .nvtooltip {
   border: 0.5px solid #e9ecef;
   box-shadow: 0px 1px 2px 0px #ced4da; }
 
-svg.nvd3-svg {
+.protein svg.nvd3-svg {
   width: 100%;
   height: 170px; }
   @media (min-width: 576px) {
-    svg.nvd3-svg {
+    .protein svg.nvd3-svg {
+      height: 190px; } }
+  @media (min-width: 768px) {
+    .protein svg.nvd3-svg {
+      height: 200px; } }
+  @media (min-width: 992px) {
+    .protein svg.nvd3-svg {
+      height: 230px; } }
+  @media (min-width: 1200px) {
+    .protein svg.nvd3-svg {
+      height: 290px; } }
+
+.spectrumpage svg.nvd3-svg {
+  width: 100%;
+  height: 210px;
+  margin-bottom: -30px; }
+  @media (min-width: 576px) {
+    .spectrumpage svg.nvd3-svg {
       height: 230px; } }
   @media (min-width: 768px) {
-    svg.nvd3-svg {
-      height: 270px; } }
+    .spectrumpage svg.nvd3-svg {
+      height: 290px; } }
+  @media (min-width: 992px) {
+    .spectrumpage svg.nvd3-svg {
+      height: 360px; } }
+  @media (min-width: 1200px) {
+    .spectrumpage svg.nvd3-svg {
+      height: 390px; } }
+
+.focusnote {
+  position: relative;
+  bottom: 16px;
+  bottom: 1rem;
+  right: 42px;
+  text-align: right;
+  font-size: 14.88px;
+  font-size: 0.93rem;
+  font-weight: bold;
+  color: #CDD;
+  z-index: -1; }
+  @media (max-width: 767px) {
+    .focusnote {
+      font-size: 0.85rem;
+      bottom: 15px; } }
+
+.nv-focusWrap.nvd3-svg {
+  opacity: 0.55; }
 
 @media (max-width: 767px) {
   ul.spectra-tabs a.nav-link {
@@ -7880,7 +8019,7 @@ svg.nvd3-svg {
 .big-checkbox {
   margin-left: 0px; }
 
-.protein-spectra-select {
+.fluor-selector {
   max-width: 95%; }
 
 #efficiency-table th {
@@ -7889,22 +8028,55 @@ svg.nvd3-svg {
 table.spectra-form td {
   border-top: none; }
 
-table.spectra-form tr.protein-row td:nth-child(1) {
+table.spectra-form tr.fluor-row td:nth-child(1) {
   width: 5%;
   margin-right: 0;
   padding-right: 0; }
 
-table.spectra-form tr.protein-row td:nth-child(3) {
+table.spectra-form tr.fluor-row td:nth-child(3) {
   width: 7%;
   padding-top: 18px; }
 
-table.spectra-form tr.protein-row td:nth-child(4) {
+table.spectra-form tr.fluor-row td:nth-child(4) {
   width: 7%;
   padding-top: 18px; }
 
-table.spectra-form tr.protein-row td:nth-child(5) {
+table.spectra-form tr.fluor-row td:nth-child(5) {
   width: 7%;
   padding-top: 18px; }
+
+table.spectra-form tr.light-row td:nth-child(1) {
+  width: 5%;
+  margin-right: 0;
+  padding-right: 0; }
+
+table.spectra-form tr.light-row td:nth-child(3) {
+  width: 35%;
+  padding-top: 18px; }
+
+table.spectra-form tr.filter-row label {
+  margin-right: 8px;
+  margin-right: 0.5rem; }
+
+table.spectra-form tr.filter-row td:nth-child(1) {
+  width: 5%;
+  margin-right: 0;
+  padding-right: 0; }
+
+table.spectra-form tr.filter-row td:nth-child(2) {
+  width: 40%; }
+
+table.spectra-form tr.filter-row td:nth-child(3) {
+  padding: 0;
+  padding-top: 12px; }
+
+table.spectra-form tr.filter-row td:nth-child(4) {
+  padding: 0;
+  padding-top: 12px; }
+
+table.spectra-form tr.filter-row td:nth-child(5) {
+  padding: 0;
+  padding-top: 12px; }
 
 table.spectra-form tr.emission-row input[type=number]::-webkit-inner-spin-button,
 table.spectra-form tr.emission-row input[type=number]::-webkit-outer-spin-button {
@@ -7963,3 +8135,12 @@ table.spectra-form tr.emission-row td:nth-child(5) {
   .modal-open .modal.modal-center .modal-dialog {
     -ms-flex-positive: 1;
         flex-grow: 1; }
+
+.btn-xs, .btn-group-xs > .btn {
+  padding: 2.4px 7.2px;
+  padding: 0.15rem 0.45rem;
+  font-size: 11.2px;
+  font-size: 0.7rem;
+  line-height: 17.6px;
+  line-height: 1.1rem;
+  border-radius: 0.2rem; }

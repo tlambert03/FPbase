@@ -346,17 +346,41 @@ $(window).resize(function() {
 });
 
 
-  $("#refModalForm").submit(function(e) {
-      var form = $(this).closest("form");
-      $.ajax({
-             type: "POST",
-             url: form.attr("data-action-url"),
-             data: form.serialize(),
-             dataType: 'json',
-             success: function(data) {location.reload();}
-           });
-      e.preventDefault(); // avoid to execute the actual submit of the form.
-  });
+$("#refModalForm").submit(function(e) {
+    var form = $(this).closest("form");
+    $.ajax({
+           type: "POST",
+           url: form.attr("data-action-url"),
+           data: form.serialize(),
+           dataType: 'json',
+           success: function(data) {location.reload();}
+         });
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+});
+
+$("#specImoportModalForm").submit(function(e) {
+  console.log('hi')
+    var form = $(this).closest("form");
+    console.log(form)
+    $.ajax({
+           type: "POST",
+           url: form.attr("data-action-url"),
+           data: form.serialize(),
+           dataType: 'json',
+           success: function(data) {
+              if (data.status){
+                //console.log(data.objects)
+                spectra_options = JSON.parse(data.spectra_options) // override global variable with new options
+                $('#importModal').modal('hide');
+              }
+              else {
+                $("#chromaHelp").text('ERROR: ' + data.message)
+              }
+           }
+         });
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+});
+
 
   function register_transition_form(){
     $('.trans_formset_div').formset({
