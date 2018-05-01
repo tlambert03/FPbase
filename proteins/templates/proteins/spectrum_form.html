@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<form method="post">
+{% csrf_token %}
+{{ form | crispy }}
+<input type="submit" class='btn btn-primary mb-4' value="Submit"/>
+</form>
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script type="text/javascript">
+ $("#id_category").change(function(){
+  var category $(this).val();
+
+ });
+</script>
+
+{% endblock javascript %}
+

@@ -30,6 +30,11 @@ class NotEqual(Lookup):
 fields.CharField.register_lookup(NotEqual)
 
 
+########################################################################
+# These spectrum objects and fields need to remain for the purpose of
+# forward/reverse migrations for now
+########################################################################
+
 class Spectrum(object):
     """ Python class for spectra as a list of lists """
 
@@ -103,7 +108,7 @@ class Spectrum(object):
         for i in range(len(value)):
             self.data[i][1] = value[i]
 
-    def nvd3Format(self):
+    def d3data(self):
         output = []
         # arrayLength = len(self.data)
         for wave in range(350, int(self.min_wave)):
@@ -126,7 +131,7 @@ class SpectrumField(TextField):
     description = "Stores a spectrum object"
 
     def __init__(self, *args, **kwargs):
-        super(SpectrumField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def from_db_value(self, value, expression, connection, context):
         if not value:
@@ -150,39 +155,3 @@ class SpectrumField(TextField):
         if value is None:
             return value
         return str(value)
-
-
-# from django.utils.inspect import func_supports_parameter
-# from django.contrib.postgres.fields import ArrayField
-
-# class specField(ArrayField):
-
-#     def _from_db_value(self, value, expression, connection):
-#         if value is None:
-#             return value
-#         return Spectrum([
-#             self.base_field.from_db_value(item, expression, connection, {})
-#             if func_supports_parameter(self.base_field.from_db_value, 'context')  # RemovedInDjango30Warning
-#             else self.base_field.from_db_value(item, expression, connection)
-#             for item in value
-#         ])
-
-#     def to_python(self, value):
-#         if isinstance(value, Spectrum):
-#             return value
-#         # Assume we're deserializing
-#         if isinstance(value, str):
-#             # Assume we're deserializing
-#             vals = json.loads(value)
-#             value = [self.base_field.to_python(val) for val in vals]
-#         try:
-#             return Spectrum(value)
-#         except Exception:
-#             raise ValidationError("Invalid input for a Spectrum instance")
-
-#     def get_db_prep_value(self, value, connection, prepared=False):
-#         if isinstance(value, Spectrum):
-#             value = value.data
-#         if isinstance(value, (list, tuple)):
-#             return [self.base_field.get_db_prep_value(i, connection, prepared=False) for i in value]
-#         return value

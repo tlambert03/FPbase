@@ -20,11 +20,12 @@ urlpatterns = [
                        message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
+    url(r'^spectra/submit', views.SpectrumCreateView.as_view(), name='submit-spectra'),
     url(r'^spectra/(?P<slug>[-\w]+)', views.protein_spectra, name='spectra'),
     url(r'^spectra/', views.protein_spectra, name='spectra'),
 
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
-    url(r'^collections/(?P<owner>[-\w]+)/?$', views.CollectionList.as_view(), name='collections'),
+    url(r'^collections/(?P<owner>[-\w.]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),
     url(r'^collection/(?P<pk>\d+)/$', views.CollectionDetail.as_view(), name='collection-detail'),
     url(r'^collection/(?P<pk>\d+)/update/',
@@ -42,6 +43,7 @@ urlpatterns = [
 
 
     url(r'^ajax/add_taxonomy/$', views.add_organism, name='add_taxonomy'),
+    url(r'^ajax/chroma_import/$', views.chroma_import, name='chroma_import'),
     url(r'^ajax/add_protein_reference/(?P<slug>[-\w]+)/$', views.add_reference, name='add_protein_reference'),
     url(r'^ajax/admin_approve_protein/(?P<slug>[-\w]+)/$', views.approve_protein, name='admin_approve_protein'),
     url(r'^ajax/admin_revert_version/(?P<ver>\d+)$', views.revert_version, name='admin_revert_version'),

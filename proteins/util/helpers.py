@@ -9,12 +9,18 @@ def wave_to_hex(wavelength, gamma=1):
     Based on code by Dan Bruton
     http://www.physics.sfasu.edu/astro/color/spectra.html
     '''
+    if not wavelength:
+        return '#000'
 
     wavelength = float(wavelength)
     if 520 <= wavelength:
         wavelength += 40
 
-    if wavelength >= 380 and wavelength <= 440:
+    if wavelength < 380:
+        R = 0.05
+        G = 0.0
+        B = 0.15
+    elif wavelength >= 380 and wavelength <= 440:
         attenuation = 0.3 + 0.7 * (wavelength - 380) / (440 - 380)
         R = ((-(wavelength - 440) / (440 - 380)) * attenuation) ** gamma
         G = 0.0
@@ -41,14 +47,23 @@ def wave_to_hex(wavelength, gamma=1):
         G = 0.0
         B = 0.0
     else:
-        R = 0.0
+        R = 0.18
         G = 0.0
-        B = 0.0
+        B = 0.05
     R *= 255
     G *= 255
     B *= 255
     return '#%02x%02x%02x' % (int(R), int(G), int(B))
 
+
+#def wave_to_hex(wave):
+#    wave = int(wave)
+#    if wave < 380:
+#        return "#000000"
+#    if wave > 780:
+#        return "#FFFF00"
+#    else:
+#        return COLORS[wave]
 
 def get_color_group(ex_max, em_max):
     if (em_max - ex_max) > 90:
@@ -175,4 +190,3 @@ def find_best_forster():
             except Exception:
                 continue
     return sorted(out, key=lambda x: x[0].real)
-

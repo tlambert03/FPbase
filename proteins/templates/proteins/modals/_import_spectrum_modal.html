@@ -1,0 +1,45 @@
+{% load i18n %}
+
+<div class="modal modal-center fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="referimportTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="referenceimportTitle"><strong>Import a Spectrum</strong></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% if user.is_authenticated %}
+        <div class="modal-body">
+
+          <form id="specImoportModalForm" data-action-url="{% url 'proteins:chroma_import' %}" method='post'>
+            {% csrf_token %}
+
+            <div class="form-group">
+              <label for="chromaPart">Chroma Part Number</label>
+              <input type="text" class="form-control" id="chromaPart" name="chromaPart" aria-describedby="chromaHelp" placeholder="Enter Chroma Part Number">
+              <small id="chromaHelp" class="form-text text-muted">e.g. ET25/50m</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Fetch Chroma Spectra</button>
+          </form>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      {% else %}
+      <div class="modal-body">
+        <div>
+          <p>You must be logged in to add spectra to FPbase</p>
+          <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">
+            <button type="submit" class="btn btn-primary">{% trans "sign in" %}</button>
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
