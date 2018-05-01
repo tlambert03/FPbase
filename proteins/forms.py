@@ -2,7 +2,10 @@ from django import forms
 from django.utils.text import slugify
 from django.utils.safestring import mark_safe
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
-from proteins.models import Protein, State, StateTransition, ProteinCollection, BleachMeasurement
+from django.apps import apps
+from django.core.exceptions import ObjectDoesNotExist
+from proteins.models import (Protein, State, StateTransition, Spectrum,
+                             ProteinCollection, BleachMeasurement)
 from proteins.validators import validate_spectrum, validate_doi, protein_sequence_validator
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML
@@ -189,9 +192,72 @@ class SpectrumFormField(forms.CharField):
         super().__init__(*args, **kwargs)
 
 
+class SpectrumForm(forms.ModelForm):
+    lookup = {
+        Spectrum.DYE:       ('owner_dye', 'Dye'),
+        Spectrum.PROTEIN:   ('owner_state', 'State'),
+        Spectrum.FILTER:    ('owner_filter', 'Filter'),
+        Spectrum.CAMERA:    ('owner_camera', 'Camera'),
+        Spectrum.LIGHT:     ('owner_light', 'Light')
+    }
+
+    owner = forms.CharField(max_length=100, label='Item Name', required=False)
+    data = SpectrumFormField(required=True, label='Data')
+
+    class Meta:
+        model = Spectrum
+        fields = ('category', 'subtype', 'data', 'ph', 'solvent', 'owner')
+        widgets = {'data': forms.Textarea(attrs={'class': 'vLargeTextField', 'rows': 2})}
+
+    def save(self, commit=True):
+        owner_name = self.cleaned_data.get("owner")
+        cat = self.cleaned_data.get('category')
+        owner_model = apps.get_model('proteins', self.lookup[cat][1])
+        if cat == Spectrum.PROTEIN:
+            owner_obj = owner_model.objects.get(protein__name__iexact=owner_name)
+        else:
+            owner_obj, _ = owner_model.objects.get_or_create(name=owner_name)
+        setattr(self.instance, self.lookup[cat][0], owner_obj)
+        return super().save(commit=commit)
+
+    def clean_owner(self):
+        # make sure an owner with the same category and name doesn't already exist
+        owner = self.cleaned_data.get("owner")
+        cat = self.cleaned_data.get('category')
+        stype = self.cleaned_data.get('subtype')
+        try:
+            mod = apps.get_model('proteins', self.lookup[cat][1])
+            if cat == Spectrum.PROTEIN:
+                obj = mod.objects.get(protein__slug=slugify(owner))
+            else:
+                obj = mod.objects.get(slug=slugify(owner))
+        except ObjectDoesNotExist:
+            # new object will be made in save()
+            return owner
+        except KeyError:
+            # this might be repetitive... since a missing category will already
+            # throw an error prior to this point
+            if not cat:
+                raise forms.ValidationError("Category not provided")
+            else:
+                raise forms.ValidationError("Category not recognized")
+        else:
+            # object exists... check if it has this type of spectrum
+            if obj.spectra.filter(subtype=stype).exists():
+                if cat == Spectrum.PROTEIN:
+                    raise forms.ValidationError(
+                        "The default state for protein {} already has a spectrum of type {}."
+                        .format(owner, stype))
+                raise forms.ValidationError(
+                    "A {} with the slug {} already has a spectrum of type {}."
+                    .format(self.lookup[cat][1].lower(), slugify(owner), stype))
+            else:
+                return owner
+
+
 class StateForm(forms.ModelForm):
-    ex_spectra = SpectrumFormField(required=False, label='Excitation Spectrum')
-    em_spectra = SpectrumFormField(required=False, label='Emission Spectrum')
+    # ex_spectra = SpectrumFormField(required=False, label='Excitation Spectrum')
+    # em_spectra = SpectrumFormField(required=False, label='Emission Spectrum')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -219,11 +285,11 @@ class StateForm(forms.ModelForm):
                     Div('lifetime', css_class='col-md-4'),
                     css_class='row hide_if_dark',
                 ),
-                Div(
-                    Div('ex_spectra', css_class='col-md-6 spectrum-field'),
-                    Div('em_spectra', css_class='col-md-6 spectrum-field'),
-                    css_class='row hide_if_dark',
-                ),
+                #Div(
+                #    Div('ex_spectra', css_class='col-md-6 spectrum-field'),
+                #    Div('em_spectra', css_class='col-md-6 spectrum-field'),
+                #    css_class='row hide_if_dark',
+                #),
                 css_class='stateform_block'
             )
         )
@@ -243,11 +309,13 @@ class StateForm(forms.ModelForm):
     class Meta:
         model = State
         fields = ('name', 'is_dark', 'ex_max', 'em_max', 'ext_coeff', 'qy', 'protein',
-                  'pka', 'maturation', 'lifetime', 'ex_spectra', 'em_spectra')
-        widgets = {
-            'ex_spectra': forms.Textarea(attrs={'rows': 2}),
-            'em_spectra': forms.Textarea(attrs={'rows': 2}),
-        }
+                  'pka', 'maturation', 'lifetime',
+                  # 'ex_spectra', 'em_spectra',
+                  )
+        # widgets = {
+        #    'ex_spectra': forms.Textarea(attrs={'rows': 2}),
+        #    'em_spectra': forms.Textarea(attrs={'rows': 2}),
+        # }
         labels = {
             "ex_max": "Excitation Max (nm)",
             "em_max": "Emission Max (nm)",

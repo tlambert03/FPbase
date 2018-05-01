@@ -157,26 +157,26 @@
         offsetB = a2.max - a1.max;
 
 
-        if (offsetA >= 0) {
-            if (offsetB >= 0) {
+        if (offsetA >= 0) {  // if a1 min <= a2 min
+            if (offsetB >= 0) {  // if a2 max >= a1max
                 for (var i=0; i < a1.max - a2.min; i++) {
                     output.push({x: a2.min+i, y: arr2[i].y*arr1[offsetA+i].y});
                 }
             }
-            else if (offsetB < 0) {
+            else if (offsetB < 0) {  // if a1 max > a2 max
                 for (var i=0; i < a2.max - a2.min; i++) {
                     output.push({x: a2.min+i, y: arr2[i].y*arr1[offsetA+i].y});
                 }
             }
         }
-        else if (offsetA < 0) {
+        else if (offsetA < 0) { // if a1 min > a2 min
 
             if (offsetB >= 0) {
                 for (var i=0; i < a1.max - a1.min; i++) {
                     output.push({x: a1.min+i, y: arr1[i].y*arr2[Math.abs(offsetA)+i].y});
                 }
             }
-            else if (offsetB < 0) {
+            else if (offsetB < 0) { // if a1 max > a2 max
                 for (var i=0; i < a2.max - a1.min; i++) {
                     output.push({x: a1.min+i, y: arr1[i].y*arr2[Math.abs(offsetA)+i].y});
                 }

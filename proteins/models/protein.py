@@ -6,6 +6,7 @@ from django.db.models import Q, Count
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django.conf import settings
 from model_utils.models import StatusModel, TimeStampedModel
 from model_utils.managers import QueryManager
 from model_utils import Choices
@@ -21,7 +22,7 @@ from .. import util
 from reversion.models import Version
 
 from Bio import Entrez
-Entrez.email = "talley_lambert@hms.harvard.edu"
+Entrez.email = settings.ADMINS[0][1]
 
 User = get_user_model()
 
@@ -52,8 +53,7 @@ class ProteinManager(models.Manager):
     #     return self.get_queryset().filter(id__in=pids)
 
     def with_spectra(self):
-        return self.get_queryset().filter(states__ex_spectra__isnull=False,
-                    states__em_spectra__isnull=False).distinct()
+        return self.get_queryset().filter(states__spectra__isnull=False).distinct()
 
 
 class Protein(Authorable, StatusModel, TimeStampedModel):
@@ -189,12 +189,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def has_bleach_measurements(self):
         return self.states.filter(bleach_measurements__isnull=False).exists()
 
-    def spectra_json(self):
+    def d3_spectra(self):
         spectra = []
         for state in self.states.all():
-            spectra.append(state.nvd3ex) if state.ex_spectra else None
-            spectra.append(state.nvd3em) if state.em_spectra else None
-            spectra.append(state.nvd32p) if state.twop_spectra else None
+            spectra.extend(state.d3_dicts())
         return json.dumps(spectra)
 
     def set_state_and_type(self):
