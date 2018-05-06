@@ -29,11 +29,9 @@
     {% block vendorcss %}{% endblock vendorcss %}
 
     {% compress css %}
-    <link type="text/x-scss" rel="stylesheet" href="{% static 'sass/style.scss' %}"  >
-{#     <link href="{% static 'css/style.min.css' %}" rel="stylesheet"> #}
+
+    <link href="{% static 'css/style.min.css' %}" rel="stylesheet">
     {% endcompress %}
-
-
     {% endblock %}
 
     {% block extrahead %}
