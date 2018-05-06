@@ -6,14 +6,12 @@ from django.utils.text import slugify
 from model_utils.models import TimeStampedModel
 from model_utils.managers import QueryManager
 
-from .mixins import Authorable
+from .mixins import Authorable, Product
 from ..util.helpers import wave_to_hex
 from scipy import interpolate
 from scipy.signal import argrelextrema, savgol_filter
 import numpy as np
 import ast
-
-# WORK IN PROGRESS
 
 
 def is_monotonic(array):
@@ -127,14 +125,7 @@ class SpectrumOwner(models.Model):
         return [spect.d3dict() for spect in self.spectra.all()]
 
 
-class Manufacturable(models.Model):
-    manufacturer = models.CharField(max_length=128, blank=True)
-
-    class Meta:
-        abstract = True
-
-
-class Filter(SpectrumOwner, Manufacturable):
+class Filter(SpectrumOwner, Product):
     bandcenter = models.PositiveSmallIntegerField(blank=True, null=True,
                     validators=[MinValueValidator(200), MaxValueValidator(1600)])
     bandwidth  = models.PositiveSmallIntegerField(blank=True, null=True,
@@ -167,11 +158,11 @@ class Filter(SpectrumOwner, Manufacturable):
         super().save(*args, **kwargs)
 
 
-class Camera(SpectrumOwner, Manufacturable):
+class Camera(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
 
 
-class Light(SpectrumOwner, Manufacturable):
+class Light(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
 
 
@@ -185,7 +176,7 @@ class SpectrumManager(models.Manager):
         return self.get_queryset().filter(category=self.DYE).values_list(
             'owner_dye__slug', 'owner_dye__name').distinct()
 
-    def list(self):
+    def sluglist(self):
         ''' probably using this one going forward for spectra page'''
         Q = self.get_queryset().values(
             'category', 'subtype', 'owner_state__protein__name',
@@ -215,7 +206,7 @@ class SpectrumManager(models.Manager):
 
     def owner_slugs(self):
         ''' unused? '''
-        L = self.get_queryset().exclude(owner_state=None).values_list(
+        L = self.get_queryset().exclude(owner_state=None).values_sluglist(
             'owner_state__slug', 'owner_state__protein__name',
             'owner_state__name', 'category', 'subtype').distinct()
         out = [(slug, prot, cat if state == 'default' else '{} ({})'.format(prot, state))
@@ -256,6 +247,7 @@ class Spectrum(Authorable, TimeStampedModel):
     ABS = 'ab'
     EM = 'em'
     TWOP = '2p'
+    BP = 'bp'
     BPX = 'bx'  # bandpass excitation filter
     BPM = 'bm'
     SP = 'sp'
@@ -264,15 +256,16 @@ class Spectrum(Authorable, TimeStampedModel):
     QE = 'qe'
     PD = 'pd'
     SUBTYPE_CHOICES = (
-        (EX, 'excitation'),                 # for fluorophores
-        (ABS, 'absorption'),                # for fluorophores
-        (EM, 'emission'),                   # for fluorophores
-        (TWOP, 'two photon absorption'),    # for fluorophores
-        (BPX, 'bandpass (excitation)'),     # only for filters
-        (BPM, 'bandpass (emission)'),       # only for filters
-        (SP, 'shortpass'),                  # only for filters
-        (LP, 'longpass'),                   # only for filters
-        (BS, 'beamsplitter'),               # only for filters
+        (EX, 'Excitation'),                 # for fluorophores
+        (ABS, 'Absorption'),                # for fluorophores
+        (EM, 'Emission'),                   # for fluorophores
+        (TWOP, 'Two Photon Absorption'),    # for fluorophores
+        (BP,  'Bandpass'),                  # only for filters
+        (BPX, 'Bandpass (Excitation)'),     # only for filters
+        (BPM, 'Bandpass (Emission)'),       # only for filters
+        (SP, 'Shortpass'),                  # only for filters
+        (LP, 'Longpass'),                   # only for filters
+        (BS, 'Beamsplitter'),               # only for filters
         (QE, 'Quantum Efficiency'),         # only for cameras
         (PD, 'Power Distribution'),         # only for light sources
     )
@@ -281,7 +274,7 @@ class Spectrum(Authorable, TimeStampedModel):
     category_subtypes = {
         DYE: [EX, ABS, EM, TWOP],
         PROTEIN: [EX, ABS, EM, TWOP],
-        FILTER: [BPX, BPM, SP, LP, BS],
+        FILTER: [BP, BPX, BPM, SP, LP, BS],
         CAMERA: [QE],
         LIGHT: [PD],
     }
@@ -448,18 +441,43 @@ class Spectrum(Authorable, TimeStampedModel):
             return False
 
     def d3dict(self, area=True):
-        return {
+        D = {
             "slug": self.owner.slug,
             "key": self.name,
             "values": self.d3data(),
             "peak": self.peak_wave,
             "minwave": self.min_wave,
             "maxwave": self.max_wave,
+            "category": self.category,
             "type": self.subtype,
             "color": self.color(),
             "area": area,
-            "gradient": True if self.category in (self.LIGHT, self.CAMERA) else False,
+            "url": self.owner.get_absolute_url(),
         }
+
+        if self.category == self.CAMERA:
+            D["color"] = 'url(#crosshatch)'
+        elif self.category == self.LIGHT:
+            D["color"] = 'url(#wavecolor_gradient)'
+
+        if self.owner_state:
+            if self.category in (self.PROTEIN, self.DYE):
+                if self.subtype == self.EX:
+                    D.update({
+                        'scalar': self.owner.ext_coeff,
+                        'ex_max': self.owner.ex_max,
+                    })
+                elif self.subtype == self.EM:
+                    D.update({
+                        'scalar': self.owner.qy,
+                        'em_max': self.owner.em_max,
+                    })
+                elif self.subtype == self.TWOP:
+                    D.update({
+                        'scalar': self.owner.twop_peakGM,
+                        'twop_qy': self.owner.twop_qy
+                    })
+        return D
 
     def d3data(self):
         return [{'x': elem[0], 'y': elem[1]} for elem in self.data]

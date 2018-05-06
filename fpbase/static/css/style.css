@@ -6734,6 +6734,10 @@ table.spectra-form tr.fluor-row td:nth-child(1) {
   margin-right: 0;
   padding-right: 0; }
 
+table.spectra-form tr.fluor-row td:nth-child(2) {
+  padding-right: 32px;
+  padding-right: 2rem; }
+
 table.spectra-form tr.fluor-row td:nth-child(3) {
   width: 7%;
   padding-top: 18px; }
@@ -6752,7 +6756,11 @@ table.spectra-form tr.light-row td:nth-child(1) {
   padding-right: 0; }
 
 table.spectra-form tr.light-row td:nth-child(3) {
-  width: 35%;
+  width: 20%;
+  padding-top: 18px; }
+
+table.spectra-form tr.light-row td:nth-child(3) {
+  width: 20%;
   padding-top: 18px; }
 
 table.spectra-form tr.filter-row label {
@@ -6824,6 +6832,13 @@ table.spectra-form tr.emission-row td:nth-child(5) {
 .efficiency-vbad {
   font-weight: 200;
   color: #868e96; }
+
+.inline-td-link {
+  margin-left: 12.8px;
+  margin-left: 0.8rem;
+  color: #17a2b8;
+  font-size: 12.8px;
+  font-size: 0.8rem; }
 
 @media (min-width: 1200px) {
   .tablecontainer {
@@ -8033,6 +8048,10 @@ table.spectra-form tr.fluor-row td:nth-child(1) {
   margin-right: 0;
   padding-right: 0; }
 
+table.spectra-form tr.fluor-row td:nth-child(2) {
+  padding-right: 32px;
+  padding-right: 2rem; }
+
 table.spectra-form tr.fluor-row td:nth-child(3) {
   width: 7%;
   padding-top: 18px; }
@@ -8051,7 +8070,11 @@ table.spectra-form tr.light-row td:nth-child(1) {
   padding-right: 0; }
 
 table.spectra-form tr.light-row td:nth-child(3) {
-  width: 35%;
+  width: 20%;
+  padding-top: 18px; }
+
+table.spectra-form tr.light-row td:nth-child(3) {
+  width: 20%;
   padding-top: 18px; }
 
 table.spectra-form tr.filter-row label {
@@ -8123,6 +8146,13 @@ table.spectra-form tr.emission-row td:nth-child(5) {
 .efficiency-vbad {
   font-weight: 200;
   color: #868e96; }
+
+.inline-td-link {
+  margin-left: 12.8px;
+  margin-left: 0.8rem;
+  color: #17a2b8;
+  font-size: 12.8px;
+  font-size: 0.8rem; }
 
 [hidden][style="display: block;"] {
   display: block !important; }

@@ -155,13 +155,15 @@ table.spectra-form {
   }
   tr.fluor-row{
     td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
+    td:nth-child(2){ padding-right: 2rem;}
     td:nth-child(3){ width: 7%; padding-top: 18px;}
     td:nth-child(4){ width: 7%; padding-top: 18px;}
     td:nth-child(5){ width: 7%; padding-top: 18px;}
   }
   tr.light-row{
     td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
-    td:nth-child(3){ width: 35%; padding-top: 18px;}
+    td:nth-child(3){ width: 20%; padding-top: 18px;}
+    td:nth-child(3){ width: 20%; padding-top: 18px;}
   }
   tr.filter-row{
     label{margin-right:0.5rem;}
@@ -201,4 +203,10 @@ table.spectra-form {
 .efficiency-vbad {
   font-weight: 200;
   color: $gray-600;
+}
+
+.inline-td-link {
+  margin-left: 0.8rem;
+  color: $info;
+  font-size: 0.8rem;
 }

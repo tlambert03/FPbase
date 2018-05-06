@@ -246,11 +246,14 @@ class SpectrumForm(forms.ModelForm):
             if obj.spectra.filter(subtype=stype).exists():
                 if cat == Spectrum.PROTEIN:
                     raise forms.ValidationError(
-                        "The default state for protein {} already has a spectrum of type {}."
-                        .format(owner, stype))
-                raise forms.ValidationError(
-                    "A {} with the slug {} already has a spectrum of type {}."
-                    .format(self.lookup[cat][1].lower(), slugify(owner), stype))
+                        "The default state for protein %(owner)s already has a spectrum of type %(stype)s.",
+                        params={'owner': owner, 'stype': stype},
+                        code='owner_exists')
+                else:
+                    raise forms.ValidationError(
+                        "A %(model)s with the slug %(slug)s already has a spectrum of type %(stype)s.",
+                        params={'model': self.lookup[cat][1].lower(), 'slug': slugify(owner), 'stype': stype},
+                        code='owner_exists')
             else:
                 return owner
 

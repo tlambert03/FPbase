@@ -1,31 +1,48 @@
 {% load i18n %}
 
-<div class="modal modal-center fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="referimportTitle" aria-hidden="true">
+<div class="modal modal-center fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="filterImportTitle" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title" id="referenceimportTitle"><strong>Import a Spectrum</strong></h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <h4 class="modal-title" id="filterImportTitle"><strong>Import Commercial Filters</strong></h4>
+        <button type="button" class="close importerClose" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       {% if user.is_authenticated %}
         <div class="modal-body">
 
-          <form id="specImoportModalForm" data-action-url="{% url 'proteins:chroma_import' %}" method='post'>
-            {% csrf_token %}
+          <h5 class='mt-2'><strong>Chroma filter import</strong></h5>
+            <form id="chromaImportForm" data-action-url="{% url 'proteins:filter_import' brand='chroma' %}" data-brand='chroma'>
+              {% csrf_token %}
+              <div class="input-group">
+                <input id="chromaInput" type="text" class="form-control" name="part" placeholder="Chroma Part Number">
+                <span class="input-group-btn">
+                  <button type="submit" class="btn btn-info">Fetch</button>
+                </span>
+              </div>
+              <div id="chromaHelp" class="form-text small text-muted">e.g. ET525/50m</div>
 
-            <div class="form-group">
-              <label for="chromaPart">Chroma Part Number</label>
-              <input type="text" class="form-control" id="chromaPart" name="chromaPart" aria-describedby="chromaHelp" placeholder="Enter Chroma Part Number">
-              <small id="chromaHelp" class="form-text text-muted">e.g. ET25/50m</small>
+            </form>
+
+          <h5 class='mt-4'><strong>Semrock filter import</strong></h5>
+            <form id="semrockImportForm" data-action-url="{% url 'proteins:filter_import' brand='semrock' %}" data-brand='semrock'>
+              {% csrf_token %}
+            <div class="input-group">
+              <input id="semrockInput" type="text" class="form-control" name="part" placeholder="Semrock Part Number">
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-info">Fetch</button>
+              </span>
             </div>
-            <button type="submit" class="btn btn-primary">Fetch Chroma Spectra</button>
-          </form>
+            <div id="semrockHelp" class="form-text small text-muted">e.g. FF03-525/50</div>
+            </form>
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <i id="footerSpinner" class="fas fa-spinner fa-spin hidden" style='font-size: 1.5rem; margin-right:1rem'></i>
+          <i id="footerSuccess" class="fas fa-check hidden text-success" style='font-size: 1.5rem; margin-right:1rem'></i>
+          <i id="footerFail" class="fas fa-exclamation-circle hidden text-danger" style='font-size: 1.5rem; margin-right:1rem'></i>
+          <button type="button" class="btn btn-secondary importerClose" data-dismiss="modal">Close</button>
         </div>
       {% else %}
       <div class="modal-body">
@@ -37,7 +54,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button class="importerClose" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
       {% endif %}
     </div>

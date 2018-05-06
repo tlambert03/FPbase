@@ -43,7 +43,7 @@ urlpatterns = [
 
 
     url(r'^ajax/add_taxonomy/$', views.add_organism, name='add_taxonomy'),
-    url(r'^ajax/chroma_import/$', views.chroma_import, name='chroma_import'),
+    url(r'^ajax/filter_import/(?P<brand>[-\w]+)$', views.filter_import, name='filter_import'),
     url(r'^ajax/add_protein_reference/(?P<slug>[-\w]+)/$', views.add_reference, name='add_protein_reference'),
     url(r'^ajax/admin_approve_protein/(?P<slug>[-\w]+)/$', views.approve_protein, name='admin_approve_protein'),
     url(r'^ajax/admin_revert_version/(?P<ver>\d+)$', views.revert_version, name='admin_revert_version'),
@@ -61,6 +61,7 @@ urlpatterns = [
 
     # /proteins/api
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
+    url(r'^api/proteins/spectraslugs/$', apiviews.spectraslugs, name='spectra-slugs'),
     url(r'^api/proteins/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
     url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
     url(r'^api/proteins/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),

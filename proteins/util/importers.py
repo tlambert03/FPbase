@@ -14,7 +14,6 @@ from django.template.defaultfilters import slugify
 from Bio import Entrez
 from ..extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator
-from . import spectra as sp
 from ..forms import SpectrumForm as SF
 
 from proteins import forms
@@ -31,7 +30,10 @@ Entrez.email = "talley_lambert@hms.harvard.edu"
 #       Importing Tools
 ############################################
 
-SUPERUSER = User.objects.filter(is_superuser=True).first()
+try:
+    SUPERUSER = User.objects.filter(is_superuser=True).first()
+except Exception:
+    SUPERUSER = None
 
 BASEDIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
@@ -380,11 +382,8 @@ def fetch_semrock_part(part):
     https://www.semrock.com/_ProductData/Spectra/FF01-571_72_Spectrum.txt
     '''
 
+    part = re.sub('-(25|35)$', '', part)
     part = part.replace('/', '_').upper()
-    if part[-3] == '-':
-        part = part[:-3]
-    if part[-4] == '-':
-        part = part[:-4]
     semrockURL = 'https://www.semrock.com/_ProductData/Spectra/'
     url = semrockURL + slugify(part) + '_Spectrum.txt'
     try:
@@ -400,10 +399,10 @@ def fetch_semrock_part(part):
             T = T.split('Data format')[1]
             T = "".join(T.split('\n')[1:])
             T = T.split('---')[0]
-            T = T.strip('\r').replace('\r','\n')
+            T = T.strip('\r').replace('\r', '\n')
         return T
     else:
-        raise ValueError('Semrock part ASCII download failed')
+        raise ValueError('Could not retrieve Semrock part: {}'.format(part))
 
 
 def text_to_spectra(text, wavecol=0):
@@ -458,6 +457,7 @@ def import_spectral_data(waves, data, headers=None, categories=[],
         headers = [None] * len(data)
 
     newObjects = []
+    errors = []
     for datum, header, cat, stype in zip(data, headers, categories, stypes):
         if not(any(datum)) or all(np.isnan(datum)):
             print("skipping col {} ... no data".format(header))
@@ -477,14 +477,21 @@ def import_spectral_data(waves, data, headers=None, categories=[],
             newObjects.append(newob)
             print('Successfully imported {}, {}, {}'.format(iowner, cat, stype))
         else:
-            print('error on {}, {}'.format(iowner, header))
-            print(sf.errors.as_text())
+            errors.append((iowner, sf.errors))
 
-    return newObjects
+    return newObjects, errors
 
 
 def import_csv_spectra(file, **kwargs):
     ''' import CSV or text file of spectral data
+
+    kwargs:
+    headers=None
+    categories=[]
+    stypes=[]
+    owner=None
+    minmax=None
+
     '''
     if not os.path.isfile(file):
         raise FileNotFoundError('Cannot find file: {}'.format(file))
@@ -521,18 +528,31 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
     waves, data, headers = text_to_spectra(text)
 
     kwargs['categories'] = 'f'
-    return import_spectral_data(waves, data, headers, **kwargs)
+    newObjects, errors = import_spectral_data(waves, data, headers, **kwargs)
+    for obj in newObjects:
+        obj.owner.manufacturer = 'Chroma'
+        obj.owner.part = part
+        obj.owner.save()
+    return newObjects, errors
 
 
 def import_semrock_spectra(part=None, **kwargs):
     if isinstance(part, str):
-        part = part.replace('/', '_').upper()
-        if part[-3] == '-':
-            part = part[:-3]
-        if part[-4] == '-':
-            part = part[:-4]
+        part = re.sub('-(25|35)$', '', part)
         text = fetch_semrock_part(part)
         kwargs['owner'] = 'Semrock ' + part
+
+        kwargs['stypes'] = 'bp'  # default to bandpass
+        if 'sp' in part.lower():
+            kwargs['stypes'] = 'sp'
+        if 'lp' in part.lower():
+            kwargs['stypes'] = 'lp'
+        if ('di' in part.lower()) or len([i for i in part if i == '/']) > 1:
+            kwargs['stypes'] = 'bs'
+        if re.search(r'(\d+)/(\d+)', part):
+            w1, w2 = re.search(r'(\d+)/(\d+)', part).groups()
+            if w2 > w1:  # likely a dichroic
+                kwargs['stypes'] = 'bs'
         if 'stypes' not in kwargs:
             raise ValueError('Could not guess filter type for part {}'.format(part))
     else:
@@ -540,37 +560,14 @@ def import_semrock_spectra(part=None, **kwargs):
     waves, data, headers = text_to_spectra(text)
 
     kwargs['categories'] = 'f'
-    return import_spectral_data(waves, data, headers, **kwargs)
 
-#def importSpectra(file=None):
-#    if file is None:
-#        basedir = os.path.dirname(os.path.dirname(__file__))
-#        url = os.path.join(basedir, '_data/FLUOR.csv')
-#        df = pd.read_csv(url)
-#    else:
-#        df = pd.read_csv(file)
-#
-#    sp = 0
-#    for i, prot in df.iterrows():
-#        if Protein.objects.filter(name=prot.fluor_name).count() == 1:
-#            p = Protein.objects.get(name=prot.fluor_name)
-#            if not p.states.count() == 1:
-#                print('avoiding protein with multiple states: {}'.format(p))
-#                continue
-#            try:
-#                D = p.default_state
-#                if not D.ex_spectra:
-#                    D.ex_spectra = prot.ex_spectra
-#                    sp += 1
-#                if not D.em_spectra:
-#                    D.em_spectra = prot.em_spectra
-#                    sp += 1
-#                D.save()
-#            except Exception as e:
-#                print("failed to import spectrum for {}".format(prot.fluor_name))
-#                print(e)
-#
-#    print("Imported {} spectra".format(sp))
+    newObjects, errors = import_spectral_data(waves, data, headers, **kwargs)
+    for obj in newObjects:
+        obj.owner.manufacturer = 'Semrock'
+        obj.owner.part = part
+        obj.owner.save()
+
+    return newObjects, errors
 
 
 def import_organisms():
@@ -1028,7 +1025,7 @@ def importMutations():
                             parent = mut.pop(0)
                         else:
                             raise
-            except Exception as e:
+            except Exception:
                 print(i, n)
                 print("Failed:              ", name)
             mutOut.append((name, parent, "/".join(mut), row['seq'], row['reference_doi']))

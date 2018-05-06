@@ -20,7 +20,7 @@ from references.models import Reference  # breaks application modularity # FIXME
 import reversion
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
-from ..util.importers import import_chroma_spectra
+from ..util.importers import import_chroma_spectra, import_semrock_spectra
 from django.core.validators import URLValidator
 
 
@@ -227,7 +227,7 @@ def protein_spectra(request, slug=None):
 
     if request.method == 'GET':
         # spectra = Spectrum.objects.owner_slugs()
-        spectra = Spectrum.objects.list()
+        spectra = Spectrum.objects.sluglist()
 
         return render(request, template, {
             'spectra_options': json.dumps(spectra)}
@@ -284,32 +284,50 @@ def add_reference(request, slug=None):
         pass
 
 
-def chroma_import(request):
-    string = request.POST['chromaPart']
-    newObjects = None
+def filter_import(request, brand):
+    if brand.lower() == 'chroma':
+        importer = import_chroma_spectra
+    elif brand.lower() == 'semrock':
+        importer = import_semrock_spectra
+    else:
+        raise ValueError('unknown brand')
+
+    part = request.POST['part']
+    newObjects = []
+    errors = []
     response = {'status': 0}
     try:
         urlv = URLValidator()
-        urlv(string)
+        urlv(part)
         try:
-            newObjects = import_chroma_spectra(url=string)
+            newObjects, errors = importer(url=part)
         except Exception as e:
             response['message'] = str(e)
     except ValidationError:
         try:
-            newObjects = import_chroma_spectra(part=string)
+            newObjects, errors = importer(part=part)
         except Exception as e:
             response['message'] = str(e)
 
     if newObjects:
+        spectrum = newObjects[0]
         response = {
             'status': 1,
-            'objects': [n.name for n in newObjects],
-            'spectra_options': json.dumps(Spectrum.objects.list())
+            'objects': spectrum.name,
+            'spectra_options': json.dumps({
+                'category': spectrum.category,
+                'subtype': spectrum.subtype,
+                'slug': spectrum.owner.slug,
+                'name': spectrum.owner.name,
+                })
         }
-
+    elif errors:
+        try:
+            if errors[0][1].as_data()['owner'][0].code == 'owner_exists':
+                response['message'] = '%s already appears to be imported' % part
+        except Exception:
+            pass
     return JsonResponse(response)
-
 
 
 @staff_member_required

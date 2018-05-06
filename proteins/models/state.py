@@ -5,7 +5,7 @@ from django.utils.text import slugify
 from django.core.validators import MaxValueValidator, MinValueValidator
 from model_utils.models import TimeStampedModel
 
-from .mixins import Authorable
+from .mixins import Authorable, Product
 from .spectrum import SpectrumOwner
 from ..util.helpers import wave_to_hex
 
@@ -118,7 +118,7 @@ class Fluorophore(SpectrumOwner):
         return [spect.d3dict() for spect in self.spectra.all()]
 
 
-class Dye(TimeStampedModel, Fluorophore):
+class Dye(TimeStampedModel, Fluorophore, Product):
     pass
 
 
@@ -150,6 +150,9 @@ class State(Authorable, TimeStampedModel, Fluorophore):
         if self.name in (self.DEFAULT_NAME, 'default'):
             return str(self.protein.name)
         return "{} ({})".format(self.protein.name, self.name)
+
+    def get_absolute_url(self):
+        return self.protein.get_absolute_url()
 
     def makeslug(self):
         return self.protein.slug + '_' + slugify(self.name)
