@@ -427,6 +427,17 @@ def text_to_spectra(text, wavecol=0):
                 continue
             outdata[column - s] = np.array([x if x else np.nan for x in data.get_col(column)], dtype='f')
 
+
+
+
+
+
+
+
+
+
+
+
     return waves, outdata, headers
 
 
@@ -955,6 +966,7 @@ def create_collection(name='FPvis Collection', desc='Proteins selected by Kurt T
 
 def import2P():
 
+
     d = os.path.join(BASEDIR, '_data/2p_spectra')
 
     for f in os.listdir(d):
@@ -963,6 +975,11 @@ def import2P():
         if qs.exists():
             P = qs.first()
             infile = os.path.join(d, f)
+
+
+
+
+
 
             if not os.path.isfile(infile):
                 raise FileNotFoundError('Cannot find file: {}'.format(infile))
