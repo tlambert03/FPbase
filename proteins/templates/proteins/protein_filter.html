@@ -19,16 +19,17 @@ If you find that you are not getting results, relax your query.</p>
 <form action="" method="get">
     <div id="query_builder">Building query form...</div>
     <div class='clearfix button-row'>
-      <button type="submit" class="btn btn-sm btn-primary form-group"><i class="fas fa-search"></i> Search</button>
-      <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn"><i class="fas fa-filter"></i> Add Filter</button>
-      <div class="btn-group float-right displaybuttons" data-toggle="buttons" >
-        <label class="btn btn-info btn-sm active form-group">
-          <input type="radio" name="display" id="lbutton" autocomplete="off" checked value='l'><i class="fas fa-th"></i> display lozenges
-        </label>
-        <label class="btn btn-info btn-sm form-group">
-          <input type="radio" name="display" id="tbutton" autocomplete="off" value='t'><i class="fas fa-table"></i> display table
-        </label>
-      </div>
+    <button type="submit" class="btn btn-sm btn-primary form-group"><i class="fas fa-search"></i> Search</button>
+    <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn"><i class="fas fa-filter"></i> Add Filter</button>
+
+    <div class="btn-group float-right displaybuttons btn-group-toggle" data-toggle="buttons" >
+      <label class="btn btn-info btn-sm btn-secondary active">
+        <input type="radio" name="display" id="lbutton" autocomplete="off" checked value='l'><i class="fas fa-th"></i> display lozenges
+      </label>
+      <label class="btn btn-info btn-sm btn-secondary">
+        <input type="radio" name="display" id="tbutton" autocomplete="off" value='t'><i class="fas fa-table"></i> display table
+      </label>
+    </div>
     </div>
 </form>
 
