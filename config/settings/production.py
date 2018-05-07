@@ -140,12 +140,12 @@ SERVER_EMAIL = env('DJANGO_SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 # Anymail with Mailgun
 INSTALLED_APPS += ['anymail', ]
 ANYMAIL = {
-#    'MAILGUN_API_KEY': env('MAILGUN_API_KEY'),
-#    'MAILGUN_SENDER_DOMAIN': env('MAILGUN_DOMAIN')
-     "SENDGRID_API_KEY": env('SENDGRID_API_KEY'),
+    'MAILGUN_API_KEY': env('MAILGUN_API_KEY'),
+    'MAILGUN_SENDER_DOMAIN': env('MAILGUN_DOMAIN')
+#   "SENDGRID_API_KEY": env('SENDGRID_API_KEY'),
 }
-# EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
-EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
+EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+#EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
 
 # TEMPLATE CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -162,6 +162,7 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
 # Use the Heroku-style specification
 # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
 DATABASES['default'] = env.db('DATABASE_URL')
+DATABASES['default']['ATOMIC_REQUESTS'] = True  # noqa F405
 DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=60)
 
 # CACHING
