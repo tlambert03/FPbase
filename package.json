@@ -1,29 +1,38 @@
 {
   "name": "fpbase",
+  "description": "The fluorescent protein database",
   "version": "0.1.0",
-  "dependencies": {
-    "jshint": "^2.9.5",
-    "npm": "^5.8.0",
-    "to": "^0.2.9",
-    "update": "^0.7.4"
-  },
+  "dependencies": {},
+
+
+
+
+
   "devDependencies": {
-    "bootstrap": "^4.0.0-beta.2",
+    "bootstrap": "^4.1.1",
     "browser-sync": "^2.14.0",
     "del": "^2.2.2",
     "gulp": "^3.9.1",
-    "gulp-autoprefixer": "^3.1.1",
+    "gulp-autoprefixer": "^5.0.0",
+    "gulp-concat": "^2.6.1",
     "gulp-cssnano": "^2.1.2",
-    "gulp-imagemin": "^3.0.3",
+    "imagemin-svgo": "^6.0.0",
+    "gulp-imagemin": "^4.1.0",
     "gulp-pixrem": "^1.0.0",
     "gulp-plumber": "^1.1.0",
     "gulp-rename": "^1.2.2",
-    "gulp-sass": "^2.3.2",
-    "gulp-uglify": "^2.0.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.7",
-    "run-sequence": "^1.2.2"
+    "jquery": "^3.2.1-slim",
+    "popper.js": "^1.12.3",
+    "run-sequence": "^2.1.1"
   },
   "engines": {
-    "node": ">=0.8.0"
+    "node": "9.3.0"
+  },
+  "scripts": {
+    "dev": "gulp",
+    "heroku-postbuild": "gulp compile"
   }
 }

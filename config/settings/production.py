@@ -228,9 +228,9 @@ RAVEN_CONFIG = {
 }
 
 # Custom Admin URL, use {% url 'admin:index' %}
-ADMIN_URL = env('DJANGO_ADMIN_URL')
+ADMIN_URL = env('DJANGO_ADMIN_URL', default='admin/')
 
 # Your production stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
 
-GA_TRACKING_ID = env('GA_TRACKING_ID')
+GA_TRACKING_ID = env('GA_TRACKING_ID', default='')
