@@ -8,8 +8,8 @@ from references.models import Reference
 from fpbase.users.models import User
 from django.template.defaultfilters import slugify
 from Bio import Entrez
-from .extrest.entrez import fetch_ipg_sequence
-from .validators import protein_sequence_validator
+from ..extrest.entrez import fetch_ipg_sequence
+from ..validators import protein_sequence_validator
 from proteins import forms
 
 from metapub import CrossRef, PubMedFetcher
