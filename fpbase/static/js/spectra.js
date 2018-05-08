@@ -71,14 +71,14 @@ function getData(slug) {
     return dfd.promise();
 }
 
-function padDataLimits(data) {
-    for (var i = data.minwave - 1; i >= options.minwave; i--) {
-        data.values.unshift({ x: i, y: 0 });
+function padDataLimits(d) {
+    for (var i = d.minwave - 1; i >= options.minwave; i--) {
+        d.values.unshift({ x: i, y: 0 });
     }
-    for (i = data.maxwave + 1; i <= options.maxwave; i++) {
-        data.values.push({ x: i, y: 0 });
+    for (var n = d.maxwave + 1; n <= Math.max(options.maxwave, 1000); n++) {
+        d.values.push({ x: n, y: 0 });
     }
-    return data;
+    return d;
 }
 
 function dataHasKey(key) {
@@ -320,7 +320,7 @@ $("body").on('change', '.data-selector', function(event) {
     if (slug == 'custom_bp') {
         updateCustomFilter(row);
     } else if (slug == 'custom_laser') {
-        updateCustomFilter(row);
+        updateCustomLaser(row);
     }
     // Add the new item to the data (unless it's blank)
     // then update the chart
@@ -358,7 +358,7 @@ $("body").on('change', '.data-selector', function(event) {
 $("body").on('click', '.remove-row', function(e) {
     var row = $(this).closest('tr');
     var rowslug = row.find('select').val();
-    if (rowslug == 'custom_bp') {
+    if (rowslug == 'custom_bp' || rowslug == 'custom_laser') {
         rowslug = row.attr('id');
     }
     row.remove();
@@ -376,17 +376,24 @@ $("body").on('change', '.custom_bp_form input', function(e) {
     updateCustomFilter($(this).closest('tr'));
 });
 
+$("body").on('change', '.custom_laser_form input', function(e) {
+    updateCustomLaser($(this).closest('tr'));
+});
+
 /// Form Templates
-function customLaser(wave) {
-    return {
-        key: wave + 'ex',
+function customLaser(row) {
+    var id = row.attr('id');
+    var wave = +row.find('input[name="custom_laser_wave"]').val();
+    return padDataLimits({
+        slug: id,
+        key: wave + ' ex',
         area: true,
+        minwave: wave,
+        maxwave: wave,
         values: [
-            {x: wave-1, y: 0},
             {x: wave, y: 1},
-            {x: wave+1, y: 0},
         ]
-    }
+    })
 }
 
 function customFilter(row) {
@@ -419,6 +426,13 @@ function customFilter(row) {
 
 function updateCustomFilter(row) {
     var F = customFilter(row);
+    removeItem(row.attr('id'));
+    data.push(F);
+    refreshChart();
+}
+
+function updateCustomLaser(row) {
+    var F = customLaser(row);
     removeItem(row.attr('id'));
     data.push(F);
     refreshChart();
@@ -482,7 +496,7 @@ var excRow = function(widget, cls) {
         .append($('<td>')
             .append($('<div>', { 'class': 'form-inline hidden custom_laser_form' })
                 .append($('<div>', { 'class': 'form-group' })
-                    .append($('<label>', { 'class': 'form-control-label' })
+                    .append($('<label>', { 'class': 'form-control-label mr-2' })
                         .text('center')
                     )
                     .append($('<input>', {
@@ -498,12 +512,12 @@ var excRow = function(widget, cls) {
         )
         .append($('<td>')
             .append($('<input>', {
-                'class': 'form-check-input big-checkbox exnormcheck singlecheck',
+                'class': 'big-checkbox exnormcheck singlecheck',
                 'data-checktype': 'exnorm',
                 'type': 'checkbox',
             }))
-            .append($('<label>', { 'class': 'form-check-label' })
-                .text('normalize emission to this')
+            .append($('<label>')
+                .text('norm emission to this')
             )
         );
 };
@@ -825,7 +839,7 @@ function updateGlobalGradient() {
 
 function scale_data_up(filter){
     var maxScalar = Math.max.apply(null, data.map(function(e) { return e.scalar || 0; }));
-
+    console.log(maxScalar)
     for (var n=0; n < data.length; n++){
         // only scale certain data by filter
         var skip = false;
@@ -847,6 +861,7 @@ function scale_data_up(filter){
             data[n].scaled = true;
         }
     }
+    chart.update();
 }
 
 function scale_data_down(filter){
@@ -861,11 +876,15 @@ function scale_data_down(filter){
         }
         if (skip){ continue; }
 
-        var pos = localData[data[n].slug].map(function(e) { return e.key; }).indexOf(data[n].key);
+        if (data[n].slug in localData){
+            var pos = localData[data[n].slug].map(function(e) { return e.key; }).indexOf(data[n].key);
 
-        data[n].values = JSON.parse(JSON.stringify(localData[data[n].slug][pos].values));  // make a copy again?
-        data[n].scaled = false;
+            data[n].values = JSON.parse(JSON.stringify(localData[data[n].slug][pos].values));  // make a copy again?
+            data[n].scaled = false;
+        }
+
     }
+    chart.update();
 }
 
 
