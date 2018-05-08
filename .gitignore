@@ -365,3 +365,4 @@ _data/*
 /fpbase/static/js/project.min.js
 /fpbase/static/js/vendors.js
 /fpbase/static/js/vendors.min.js
+*.dump
