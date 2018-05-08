@@ -22,7 +22,9 @@ var gulp = require('gulp'),
       spawn = require('child_process').spawn,
       runSequence = require('run-sequence'),
       browserSync = require('browser-sync').create(),
-      reload = browserSync.reload;
+      reload = browserSync.reload,
+      favicons = require("favicons").stream,
+      gutil = require("gulp-util");
 
 
 // Relative paths function
@@ -95,6 +97,28 @@ gulp.task('vendor-scripts', function() {
     .pipe(uglify()) // Minifies the js
     .pipe(rename({ suffix: '.min' }))
     .pipe(gulp.dest(paths.js));
+});
+
+gulp.task("favicon", function () {
+    return gulp.src(paths.images + "/logo.png").pipe(favicons({
+        appName: "FPbase",
+        appDescription: "The Fluorescent Protein Database",
+        developerName: "Talley Lambert",
+        developerURL: "http://talleylambert.com/",
+        background: "#17941e",
+        path: "/",
+        url: "http://fpbase.org/",
+        display: "standalone",
+        orientation: "portrait",
+        start_url: "/",
+        version: 1.0,
+        logging: false,
+        html: "index.html",
+        pipeHTML: true,
+        replace: true
+    }))
+    .on("error", gutil.log)
+    .pipe(gulp.dest(paths.images + "/favicons/"));
 });
 
 
