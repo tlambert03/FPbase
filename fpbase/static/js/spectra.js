@@ -436,33 +436,33 @@ var fluorRow = function(widget) {
         )
         .append($('<td>')
             .append($('<input>', {
-                'class': 'form-check-input big-checkbox excheck singlecheck',
+                'class': 'big-checkbox excheck singlecheck',
                 'data-checktype': CONST.stype.ex,
                 'type': 'checkbox',
                 'checked': 'checked',
             }))
-            .append($('<label>', { 'class': 'form-check-label' })
+            .append($('<label>')
                 .text('ex')
             )
         )
         .append($('<td>')
             .append($('<input>', {
-                'class': 'form-check-input big-checkbox emcheck singlecheck',
+                'class': 'big-checkbox emcheck singlecheck',
                 'data-checktype': CONST.stype.em,
                 'type': 'checkbox',
                 'checked': 'checked',
             }))
-            .append($('<label>', { 'class': 'form-check-label' })
+            .append($('<label>')
                 .text('em')
             )
         )
         .append($('<td class="hidden">')
             .append($('<input>', {
-                'class': 'form-check-input big-checkbox 2pcheck singlecheck',
+                'class': 'big-checkbox 2pcheck singlecheck',
                 'data-checktype': CONST.stype.twop,
                 'type': 'checkbox',
             }).prop('checked', !options.hide2p))
-            .append($('<label>', { 'class': 'form-check-label ml-2' })
+            .append($('<label>')
                 .text('2p')
             )
         );
