@@ -1,25 +1,27 @@
 from django.views.generic import DetailView, CreateView, UpdateView
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseNotAllowed
-from django.contrib import messages
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.forms.models import modelformset_factory
-from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
 from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
-from django import forms
 from django.core.mail import mail_managers
+from django.core.exceptions import ValidationError
+import json
 
-from ..models import Protein, State, Organism, BleachMeasurement
-from ..forms import ProteinForm, StateFormSet, StateTransitionFormSet, BleachMeasurementForm
+from ..models import Protein, State, Organism, BleachMeasurement, Spectrum
+from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
+                     BleachMeasurementForm, SpectrumForm)
 from ..filters import ProteinFilter
 
 from references.models import Reference  # breaks application modularity # FIXME
 import reversion
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
+from ..util.importers import import_chroma_spectra, import_semrock_spectra
+from django.core.validators import URLValidator
 
 
 class ProteinDetailView(DetailView):
@@ -78,6 +80,7 @@ class ProteinCreateUpdateMixin:
     def get_form_type(self):
         return self.request.resolver_match.url_name
 
+    # from django.contrib import messages
     # TODO: pull out the good message parts... remove the moderation parts
     # def moderate(self, obj):
     #     from moderation.helpers import automoderate
@@ -208,18 +211,32 @@ def protein_table(request):
 
 def protein_spectra(request, slug=None):
     ''' renders html for protein spectra page  '''
+    template = 'spectra2.html'
+
     if request.is_ajax() and slug is not None:
-        protein = Protein.objects.get(slug=slug)
-        return JsonResponse({'spectra': protein.spectra_json()})
+        ''' slug represents the slug of the OWNER of the spectra...
+        for instance, a protein state.
+        function returns an array containing ALL of the spectra
+        belonging to that owner
+        '''
+        owner = Spectrum.objects.filter_owner(slug)
+        if owner.count():
+            return JsonResponse({'spectra': [s.d3dict() for s in owner]})
+        else:
+            raise Http404
+
     if request.method == 'GET':
-        qs = list(Protein.objects.with_spectra().values_list('slug', 'name'))
-        widget = forms.Select(attrs={'class': 'form-control form-control-sm custom-select custom-select-sm protein-spectra-select'})
-        qs.insert(0, ('', '----'))
-        choicefield = forms.ChoiceField(choices=qs, widget=widget)
-        protein_widget = choicefield.widget.render('ProteinSelect', '')
-    else:
-        protein_widget = None
-    return render(request, 'spectra.html', {'protein_widget': protein_widget})
+        # spectra = Spectrum.objects.owner_slugs()
+        spectra = Spectrum.objects.sluglist()
+
+        return render(request, template, {
+            'spectra_options': json.dumps(spectra)}
+        )
+
+
+class SpectrumCreateView(CreateView):
+    model = Spectrum
+    form_class = SpectrumForm
 
 
 def protein_search(request):
@@ -267,52 +284,50 @@ def add_reference(request, slug=None):
         pass
 
 
-@login_required
-def add_organism(request):
-    if not request.is_ajax():
-        return HttpResponseNotAllowed([])
+def filter_import(request, brand):
+    if brand.lower() == 'chroma':
+        importer = import_chroma_spectra
+    elif brand.lower() == 'semrock':
+        importer = import_semrock_spectra
+    else:
+        raise ValueError('unknown brand')
+
+    part = request.POST['part']
+    newObjects = []
+    errors = []
+    response = {'status': 0}
     try:
-        tax_id = request.POST.get('taxonomy_id', None)
-        if not tax_id:
-            raise Exception()
-        org, created = Organism.objects.get_or_create(id=tax_id)
-        if created:
-            if request.user.is_authenticated:
-                org.created_by = request.user
-                org.save()
-            if not request.user.is_staff:
-                mail_managers('Organism Added',
-                    "User: {}\nOrganism: {}\n{}".format(
-                        request.user.username, org,
-                        request.build_absolute_uri(org.get_absolute_url())),
-                    fail_silently=True)
-        return JsonResponse({'status': 'success', 'created': created,
-                             'org_id': org.id, 'org_name': org.scientific_name})
-    except Exception:
-        return JsonResponse({'status': 'failed'})
-
-
-@staff_member_required
-def approve_protein(request, slug=None):
-    try:
-        P = Protein.objects.get(slug=slug)
-        if not P.status == 'pending':
-            return JsonResponse({})
-
-        # get rid of previous unapproved version
+        urlv = URLValidator()
+        urlv(part)
         try:
-            if P.versions.first().field_dict['status'] == 'pending':
-                P.versions.first().delete()
+            newObjects, errors = importer(url=part)
+        except Exception as e:
+            response['message'] = str(e)
+    except ValidationError:
+        try:
+            newObjects, errors = importer(part=part)
+        except Exception as e:
+            response['message'] = str(e)
+
+    if newObjects:
+        spectrum = newObjects[0]
+        response = {
+            'status': 1,
+            'objects': spectrum.name,
+            'spectra_options': json.dumps({
+                'category': spectrum.category,
+                'subtype': spectrum.subtype,
+                'slug': spectrum.owner.slug,
+                'name': spectrum.owner.name,
+                })
+        }
+    elif errors:
+        try:
+            if errors[0][1].as_data()['owner'][0].code == 'owner_exists':
+                response['message'] = '%s already appears to be imported' % part
         except Exception:
             pass
-
-        with reversion.create_revision():
-            P.status = 'approved'
-            P.save()
-
-        return JsonResponse({})
-    except Exception:
-        pass
+    return JsonResponse(response)
 
 
 @staff_member_required
@@ -354,32 +369,6 @@ def update_transitions(request, slug=None):
         formset.form.base_fields['from_state'].queryset = State.objects.filter(protein=obj)
         formset.form.base_fields['to_state'].queryset = State.objects.filter(protein=obj)
         return render(request, template_name, {'transition_form': formset})
-
-
-def validate_proteinname(request):
-    if not request.is_ajax():
-        return HttpResponseNotAllowed([])
-
-    name = request.POST.get('name', None)
-    slug = request.POST.get('slug', None)
-    try:
-        prot = Protein.objects.get(slug=slugify(name.replace(' ', '').replace('monomeric', 'm')))
-        if slug and prot.slug == slug:
-            data = {
-                'is_taken': False,
-            }
-        else:
-            data = {
-                'is_taken': True,
-                'id': prot.id,
-                'url': prot.get_absolute_url(),
-                'name': prot.name,
-            }
-    except Protein.DoesNotExist:
-        data = {
-            'is_taken': False,
-        }
-    return JsonResponse(data)
 
 
 @login_required

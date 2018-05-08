@@ -10,6 +10,9 @@
   "dependencies": {
     "npm": "^6.0.0"
   },
+
+
+
   "devDependencies": {
     "bootstrap": "^4.1.1",
     "browser-sync": "^2.24.0",
@@ -18,6 +21,7 @@
     "gulp-autoprefixer": "^5.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-cssnano": "^2.1.2",
+
     "gulp-imagemin": "^4.1.0",
     "gulp-pixrem": "^1.0.0",
     "gulp-plumber": "^1.1.0",

@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 from django.db import models
 from django.forms import Textarea
 from proteins.models import (Protein, State, StateTransition, Organism,
-    FRETpair, BleachMeasurement, SpectrumField)
+    FRETpair, BleachMeasurement)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.models import Version
 from reversion.admin import VersionAdmin
@@ -49,14 +49,6 @@ class StateInline(admin.StackedInline):
         })
     ]
     readonly_fields = ('slug', 'bleach_links', 'created', 'created_by', 'modified', 'updated_by')
-    formfield_overrides = {
-        SpectrumField: {'widget': Textarea(
-                           attrs={'rows': 5,
-                                  'cols': 35,})},
-        models.PositiveSmallIntegerField: {
-
-        }
-    }
 
     def bleach_links(self, obj):
         links = []

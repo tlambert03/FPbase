@@ -11,8 +11,6 @@ Local settings for FPbase project.
 
 from .base import *  # noqa
 
-env.read_env(ROOT_DIR('.env'))
-
 
 # DEBUG
 # ------------------------------------------------------------------------------

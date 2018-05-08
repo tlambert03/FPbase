@@ -26,6 +26,6 @@ TODO
 * bleach comparisons within studies
 * scale spectra to EC/QY/brightness/excitation line
 * allow spectra/attributes to be embedded elsewhere
-* "add to comparison" option, with comparison page
+* "add to comparison" option, with comparison page, sequence alignment
 * molecular weight
 

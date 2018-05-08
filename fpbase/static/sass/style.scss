@@ -1,9 +1,46 @@
 
+
+
 @import "options";  // custom bootstrap overrides
+
+
 @import "variables"; // my overrides
 @import "bootstrap";
 
 // project specific CSS goes here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @import "main";
 @import "home";
@@ -44,7 +81,7 @@
 .btn-group-xs > .btn { @extend .btn-xs; }
 
 
-
+i {border: none}
 
 
 ////////////////////////////////
