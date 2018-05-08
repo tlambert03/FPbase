@@ -256,13 +256,13 @@ function setYscale(type) {
     chart.lines.duration(300);
     if (type == 'log') {
         options.scale = 'log';
-        //chart.yDomain([0.001, 1]);
+        chart.yDomain([0.001, 1]);
         chart.yScale(d3.scale.log());
         chart.yAxis.tickValues([0.01, 0.033, 0.1, 0.33, 1]);
         chart.update();
     } else {
         options.scale = 'linear';
-        //chart.yDomain([0, 1]);
+        chart.yDomain([0, 1]);
         chart.yScale(d3.scale.linear());
         chart.yAxis.tickValues(d3.range(0, 1, 0.2));
         chart.update();
