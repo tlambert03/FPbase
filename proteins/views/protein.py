@@ -211,7 +211,7 @@ def protein_table(request):
 
 def protein_spectra(request, slug=None):
     ''' renders html for protein spectra page  '''
-    template = 'spectra2.html'
+    template = 'spectra.html'
 
     if request.is_ajax() and slug is not None:
         ''' slug represents the slug of the OWNER of the spectra...
@@ -259,7 +259,7 @@ def protein_search(request):
             return redirect(f.qs.first())
     else:
         f = ProteinFilter(request.GET, queryset=Protein.objects.none())
-    return render(request, 'proteins/protein_filter.html', {'filter': f})
+    return render(request, 'proteins/protein_search.html', {'filter': f})
 
 
 def add_reference(request, slug=None):
