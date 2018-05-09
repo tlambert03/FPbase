@@ -20,6 +20,7 @@ urlpatterns = [
                        message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
+    url(r'^spectra/submit', views.SpectrumCreateView.as_view(), name='submit-spectra'),
     url(r'^spectra/(?P<slug>[-\w]+)', views.protein_spectra, name='spectra'),
     url(r'^spectra/', views.protein_spectra, name='spectra'),
 
@@ -42,6 +43,7 @@ urlpatterns = [
 
 
     url(r'^ajax/add_taxonomy/$', views.add_organism, name='add_taxonomy'),
+    url(r'^ajax/filter_import/(?P<brand>[-\w]+)$', views.filter_import, name='filter_import'),
     url(r'^ajax/add_protein_reference/(?P<slug>[-\w]+)/$', views.add_reference, name='add_protein_reference'),
     url(r'^ajax/admin_approve_protein/(?P<slug>[-\w]+)/$', views.approve_protein, name='admin_approve_protein'),
     url(r'^ajax/admin_revert_version/(?P<ver>\d+)$', views.revert_version, name='admin_revert_version'),
@@ -59,6 +61,7 @@ urlpatterns = [
 
     # /proteins/api
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
+    url(r'^api/proteins/spectraslugs/$', apiviews.spectraslugs, name='spectra-slugs'),
     url(r'^api/proteins/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
     url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
     url(r'^api/proteins/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),

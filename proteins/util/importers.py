@@ -2,14 +2,20 @@ import pandas as pd
 import traceback
 import os
 import tablib
+import re
 import json
+import numpy as np
+import requests
+from django.core.validators import URLValidator
 from proteins.models import Protein, State, StateTransition, BleachMeasurement, Organism, ProteinCollection
 from references.models import Reference
 from fpbase.users.models import User
 from django.template.defaultfilters import slugify
 from Bio import Entrez
-from .extrest.entrez import fetch_ipg_sequence
-from .validators import protein_sequence_validator
+from ..extrest.entrez import fetch_ipg_sequence
+from ..validators import protein_sequence_validator
+from ..forms import SpectrumForm as SF
+
 from proteins import forms
 
 from metapub import CrossRef, PubMedFetcher
@@ -24,9 +30,12 @@ Entrez.email = "talley_lambert@hms.harvard.edu"
 #       Importing Tools
 ############################################
 
-SUPERUSER = User.objects.filter(is_superuser=True).first()
+try:
+    SUPERUSER = User.objects.filter(is_superuser=True).first()
+except Exception:
+    SUPERUSER = None
 
-BASEDIR = os.path.dirname(os.path.dirname(__file__))
+BASEDIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
 
 def require_superuser(func):
@@ -285,35 +294,291 @@ def importSeqs(file=None):
     print("{} Sequences added; {} References imported".format(sq, rf))
 
 
-def importSpectra(file=None):
-    if file is None:
-        basedir = os.path.dirname(os.path.dirname(__file__))
-        url = os.path.join(basedir, '_data/FLUOR.csv')
-        df = pd.read_csv(url)
+def get_stype(header):
+    if '(2p)' in header.lower():
+        return '2p'
+    if any(x in header.lower() for x in ('(ab', 'absorption')):
+        return 'ab'
+    if any(x in header.lower() for x in ('(em', 'emission')):
+        return 'em'
+    if any(x in header.lower() for x in ('(ex', 'excitation')):
+        return 'ex'
+
+
+def zip_wave_data(waves, data, minmax=None):
+    minmax = minmax or (300, 1600)
+    return [list(i) for i in zip(waves, data) if (i[1] > 0 and minmax[0] <= i[0] <= minmax[1])]
+
+
+def fetch_chroma_url(url):
+    '''
+    url is either a Chroma ASCII text url:
+    https://www.chroma.com/file/69074/download?token=nMjkwb45
+    or a chroma token:
+    'nMjkwb45'
+    '''
+
+    urlv = URLValidator()
+
+    try:
+        urlv(url)
+    except Exception:
+        raise ValueError('invalid url for Chroma download')
+
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text
     else:
-        df = pd.read_csv(file)
+        raise ValueError('ASCII download failed')
 
-    sp = 0
-    for i, prot in df.iterrows():
-        if Protein.objects.filter(name=prot.fluor_name).count() == 1:
-            p = Protein.objects.get(name=prot.fluor_name)
-            if not p.states.count() == 1:
-                print('avoiding protein with multiple states: {}'.format(p))
+
+def fetch_chroma_part(part):
+    ''' Retrieve ASCII spectra for a chroma part number
+
+    part is a string:
+    'ET525/50m' or 'et525-50m'
+    must resolve to a url such as:
+    https://www.chroma.com/products/parts/et525-50m
+    '''
+    from html.parser import HTMLParser
+
+    class ChromaParser(HTMLParser):
+        ready = 0
+        url = False
+
+        def handle_starttag(self, tag, attrs):
+            if self.ready == 0:
+                if tag == 'span' and len(attrs):
+                    for k, v in attrs:
+                        if k == 'class' and v == 'file':
+                            self.ready = 1
+            elif self.ready == 1:
+                if tag == 'a' and len(attrs):
+                    for k, v in attrs:
+                        if k == 'href' and 'download?token' in v:
+                            self.url = v
+                            self.ready = 2
+
+    part = part.replace('/', '-')
+    chromaURL = 'https://www.chroma.com/products/parts/'
+    response = requests.get(chromaURL + slugify(part))
+    if response.status_code == 200:
+        parser = ChromaParser()
+        parser.feed(response.text)
+        if parser.url:
+            return fetch_chroma_url(parser.url)
+        else:
+            raise ValueError('Found Chroma part {}, but could not find file to download'.format(slugify(part)))
+    else:
+        raise ValueError('Could not retrieve Chroma part: {}'.format(slugify(part)))
+
+
+def fetch_semrock_part(part):
+    ''' Retrieve ASCII spectra for a semrock part number
+
+    part is a string:
+   'FF01-571/72' or  'FF01-571/72-25' (-25) will be clipped
+    must resolve to a url such as:
+    https://www.semrock.com/_ProductData/Spectra/FF01-571_72_Spectrum.txt
+    '''
+
+    part = re.sub('-(25|35)$', '', part)
+    part = part.replace('/', '_').upper()
+    semrockURL = 'https://www.semrock.com/_ProductData/Spectra/'
+    url = semrockURL + slugify(part) + '_Spectrum.txt'
+    try:
+        urlv = URLValidator()
+        urlv(url)
+    except Exception:
+        raise ValueError('invalid url for Semrock download: {}'.format(url))
+
+    response = requests.get(url)
+    if response.status_code == 200:
+        T = response.text
+        if T.startswith('Typical') and 'Data format' in T:
+            T = T.split('Data format')[1]
+            T = "".join(T.split('\n')[1:])
+            T = T.split('---')[0]
+            T = T.strip('\r').replace('\r', '\n')
+        return T
+    else:
+        raise ValueError('Could not retrieve Semrock part: {}'.format(part))
+
+
+def text_to_spectra(text, wavecol=0):
+    try:
+        # find the first string, split on multiple tokens
+        float(re.split(';|,|\n|\t', text)[0])
+        data = tablib.Dataset().load(text, headers=[])
+    except ValueError:
+        # first number is not a float... probably a header
+        data = tablib.Dataset().load(text)
+    waves = np.array([x if x else 0 for x in data.get_col(wavecol)], dtype='f')
+    headers = data.headers
+    if headers:
+        headers.pop(wavecol)
+
+    outdata = np.zeros((data.width-1, data.height), dtype='f')
+    if data.height:
+        s = 0
+        for column in range(data.width):
+            if column == wavecol:
+                s = 1
                 continue
-            try:
-                D = p.default_state
-                if not D.ex_spectra:
-                    D.ex_spectra = prot.ex_spectra
-                    sp += 1
-                if not D.em_spectra:
-                    D.em_spectra = prot.em_spectra
-                    sp += 1
-                D.save()
-            except Exception as e:
-                print("failed to import spectrum for {}".format(prot.fluor_name))
-                print(e)
+            outdata[column - s] = np.array([x if x else np.nan for x in data.get_col(column)], dtype='f')
 
-    print("Imported {} spectra".format(sp))
+
+
+
+
+
+
+
+
+
+
+
+    return waves, outdata, headers
+
+
+def import_spectral_data(waves, data, headers=None, categories=[],
+                         stypes=[], owner=None, minmax=None):
+    '''
+    Take a vector of waves and a matrix of data, and import into database
+
+    if cat or stype are strings, they will be assigned to all spectra
+    they can also be a list of strings with the same length as the number of
+    data columns (not including waves) in the file
+    '''
+    if isinstance(categories, (list, tuple)) and len(categories):
+        assert len(categories) == len(data), 'provided category list not the same length as data'
+    elif isinstance(categories, str):
+        categories = [categories] * len(data)
+    else:
+        raise ValueError('Must provide category, or list of categories with same length as data')
+
+    if isinstance(stypes, (list, tuple)) and len(stypes):
+        assert len(stypes) == len(data), 'provided subtypes list not the same length as data'
+    elif isinstance(stypes, str):
+        stypes = [stypes] * len(data)
+    else:
+        stypes = [None] * len(data)
+
+    if not headers:
+        headers = [None] * len(data)
+
+    newObjects = []
+    errors = []
+    for datum, header, cat, stype in zip(data, headers, categories, stypes):
+        if not(any(datum)) or all(np.isnan(datum)):
+            print("skipping col {} ... no data".format(header))
+            continue
+
+        if not stype:
+            stype = get_stype(header)
+
+        iowner = owner
+        if not iowner:
+            iowner = header.split(' (')[0]
+
+        D = zip_wave_data(waves, datum, minmax)
+        sf = SF({'data': D, 'category': cat, 'subtype': stype, 'owner': iowner})
+        if sf.is_valid():
+            newob = sf.save()
+            newObjects.append(newob)
+            print('Successfully imported {}, {}, {}'.format(iowner, cat, stype))
+        else:
+            errors.append((iowner, sf.errors))
+
+    return newObjects, errors
+
+
+def import_csv_spectra(file, **kwargs):
+    ''' import CSV or text file of spectral data
+
+    kwargs:
+    headers=None
+    categories=[]
+    stypes=[]
+    owner=None
+    minmax=None
+
+    '''
+    if not os.path.isfile(file):
+        raise FileNotFoundError('Cannot find file: {}'.format(file))
+    with open(file, 'r') as f:
+        text = f.read()
+    waves, data, headers = text_to_spectra(text)
+    import_spectral_data(waves, data, headers, **kwargs)
+
+
+def import_chroma_spectra(part=None, url=None, **kwargs):
+    if isinstance(part, str):
+        text = fetch_chroma_part(part)
+        kwargs['owner'] = 'Chroma ' + part
+        if part.lower().endswith(('m', 'em')):
+            kwargs['stypes'] = 'bm'
+        elif part.lower().endswith(('ex', 'x', 'bp')):
+            kwargs['stypes'] = 'bx'
+        elif 'rpc' in part:
+            kwargs['stypes'] = 'bs'
+        elif 'lp' in part:
+            kwargs['stypes'] = 'lp'
+        elif 'sp' in part:
+            kwargs['stypes'] = 'sp'
+        if 'stypes' not in kwargs:
+            raise ValueError('Could not guess filter type for part {}'.format(part))
+    elif url:
+        if 'owner' not in kwargs:
+            raise ValueError('must provide argument "owner" when importing from url')
+        if 'stypes' not in kwargs:
+            raise ValueError('must provide argument "stypes" when importing from url')
+        text = fetch_chroma_url(url)
+    else:
+        ValueError('did not receive appropriate input to import_chroma_spectra')
+    waves, data, headers = text_to_spectra(text)
+
+    kwargs['categories'] = 'f'
+    newObjects, errors = import_spectral_data(waves, data, headers, **kwargs)
+    for obj in newObjects:
+        obj.owner.manufacturer = 'Chroma'
+        obj.owner.part = part
+        obj.owner.save()
+    return newObjects, errors
+
+
+def import_semrock_spectra(part=None, **kwargs):
+    if isinstance(part, str):
+        part = re.sub('-(25|35)$', '', part)
+        text = fetch_semrock_part(part)
+        kwargs['owner'] = 'Semrock ' + part
+
+        kwargs['stypes'] = 'bp'  # default to bandpass
+        if 'sp' in part.lower():
+            kwargs['stypes'] = 'sp'
+        if 'lp' in part.lower():
+            kwargs['stypes'] = 'lp'
+        if ('di' in part.lower()) or len([i for i in part if i == '/']) > 1:
+            kwargs['stypes'] = 'bs'
+        if re.search(r'(\d+)/(\d+)', part):
+            w1, w2 = re.search(r'(\d+)/(\d+)', part).groups()
+            if w2 > w1:  # likely a dichroic
+                kwargs['stypes'] = 'bs'
+        if 'stypes' not in kwargs:
+            raise ValueError('Could not guess filter type for part {}'.format(part))
+    else:
+        ValueError('did not receive appropriate input to import_semrock_spectra')
+    waves, data, headers = text_to_spectra(text)
+
+    kwargs['categories'] = 'f'
+
+    newObjects, errors = import_spectral_data(waves, data, headers, **kwargs)
+    for obj in newObjects:
+        obj.owner.manufacturer = 'Semrock'
+        obj.owner.part = part
+        obj.owner.save()
+
+    return newObjects, errors
 
 
 def import_organisms():
@@ -694,38 +959,54 @@ def create_collection(name='FPvis Collection', desc='Proteins selected by Kurt T
         try:
             p = Protein.objects.get(name=n)
             col.proteins.add(p)
-        except:
+        except Exception:
             print('{} failed'.format(n))
             pass
 
 
 def import2P():
-    from . import spectra as sp
 
-    d = '/Users/talley/Dropbox (HMS)/Python/fpbase/_data/2p_spectra'
+
+    d = os.path.join(BASEDIR, '_data/2p_spectra')
+
     for f in os.listdir(d):
         name = f.replace('_w.txt', '')
         qs = Protein.objects.filter(name__iexact=name)
-        if qs.count() == 1:
+        if qs.exists():
             P = qs.first()
             infile = os.path.join(d, f)
-            x, y = sp.get_file_data(infile)
-            x, y = sp.interp_linear(x, y)
-            y, ymax, maxind = sp.norm2P(y)
-            maxwave = x[maxind]
-            spectra = [list(a) for a in zip(x, y)]
 
-            P.default_state.twop_ex_spectra = spectra
-            P.default_state.twop_ex_max = maxwave
-            P.default_state.twop_peakGM = ymax
-            P.default_state.save()
+
+
+
+
+
+            if not os.path.isfile(infile):
+                raise FileNotFoundError('Cannot find file: {}'.format(infile))
+            with open(infile, 'r') as f:
+                text = f.read()
+
+            x, y, headers = text_to_spectra(text)
+            D = zip_wave_data(x, y[0])
+
+            sf = SF({'data': D, 'category': 'p', 'subtype': '2p', 'owner': P.name})
+            if sf.is_valid():
+                obj = sf.save()
+                P.default_state.twop_ex_max = obj._peakwave2p
+                P.default_state.twop_peakGM = obj._peakval2p
+                P.default_state.save()
+                print('Successfuly import 2P spectrum for {}'.format(P.name))
+            else:
+                print('error on {}'.format(P.name))
+                print(sf.errors.as_text())
+
 
 @require_superuser
 def reload_all(seqs=False):
     importCSV()
     importPSFPs()
     importSeqs()
-    importSpectra()
+    # importSpectra()
     import_organisms()
     if seqs:
         for P in Protein.objects.all():
@@ -735,6 +1016,36 @@ def reload_all(seqs=False):
                 P.ipg_id = Q[0]
                 P.save()
 
+
+###
+
+def importMutations():
+    from proteins.validators import validate_mutation
+
+    file = os.path.join(BASEDIR, '_data/merged.csv')
+
+    data = tablib.Dataset().load(open(file).read())
+    mutOut = tablib.Dataset()
+    mutOut.headers = ['name', 'parent', 'mutations', 'seq', 'doi']
+
+    for n, row in enumerate(data.dict):
+        if row['mutation']:
+            mut = [m.strip() for m in row['mutation'].split('/') if m]
+            name = row['name']
+            parent = ''
+            try:
+                for i, m in enumerate(mut):
+                    try:
+                        validate_mutation(m)
+                    except Exception:
+                        if i == 0:
+                            parent = mut.pop(0)
+                        else:
+                            raise
+            except Exception:
+                print(i, n)
+                print("Failed:              ", name)
+            mutOut.append((name, parent, "/".join(mut), row['seq'], row['reference_doi']))
 
 #########################
 #  Conversion

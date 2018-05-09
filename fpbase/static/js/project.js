@@ -346,17 +346,18 @@ $(window).resize(function() {
 });
 
 
-  $("#refModalForm").submit(function(e) {
-      var form = $(this).closest("form");
-      $.ajax({
-             type: "POST",
-             url: form.attr("data-action-url"),
-             data: form.serialize(),
-             dataType: 'json',
-             success: function(data) {location.reload();}
-           });
-      e.preventDefault(); // avoid to execute the actual submit of the form.
-  });
+$("#refModalForm").submit(function(e) {
+    var form = $(this).closest("form");
+    $.ajax({
+           type: "POST",
+           url: form.attr("data-action-url"),
+           data: form.serialize(),
+           dataType: 'json',
+           success: function(data) {location.reload();}
+         });
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+});
+
 
   function register_transition_form(){
     $('.trans_formset_div').formset({

@@ -1,19 +1,24 @@
 //Spectra page
 //-----------------
 
+.spectrumpage{
+  .spectra-tabs{
+    font-size: small;
+    margin-top: 0rem;
+    padding-top: 0px;
+    @include media-breakpoint-down(sm){ font-size: 0.70rem; bottom: 15px; }
+  }
+}
+
 
 /* hides NVD3 gridlines */
-#spectra {
-  height: 150px;
-  @include media-breakpoint-up(xs){ height: 140px; }
-  @include media-breakpoint-up(sm){ height: 190px; }
-  @include media-breakpoint-up(md){ height: 240px; }
-
+#spectra, #spectrasvg {
   // spectra area fill and outline
+
   path {
     &.nv-line {
       stroke-width: .06rem;
-      opacity: .6;
+      opacity: .5;
       fill:none;
     }
     &.nv-area {
@@ -30,6 +35,10 @@
     }
   }
 
+  #spectrasvg .tick line{
+    opacity: 0.3;
+  }
+
   /* change opacity of spectrum paths */
   .nv-group {
     fill-opacity: .6 !important;
@@ -40,6 +49,10 @@
   }
 
   .nv-axis text {
+      line{
+        stroke: none;
+        fill: none;
+      }
       //font-family: sans-serif;
       font-size: 0.8rem;
       font-weight: 100;
@@ -51,6 +64,11 @@
       shape-rendering: geometricPrecision;
   }
 
+  .scale-btns {
+    float: right;
+    margin-right: 1.25rem;
+    //margin-top: -45px;
+  }
 
 }
 
@@ -59,13 +77,41 @@
   box-shadow: 0px 1px 2px 0px $gray-400;
 }
 
-svg.nvd3-svg {
+.protein svg.nvd3-svg {
   width:100%;
   @include media-breakpoint-up(xs){ height: 170px; }
-  @include media-breakpoint-up(sm){ height: 230px; }
-  @include media-breakpoint-up(md){ height: 270px; }
+  @include media-breakpoint-up(sm){ height: 190px; }
+  @include media-breakpoint-up(md){ height: 200px; }
+  @include media-breakpoint-up(lg){ height: 230px; }
+  @include media-breakpoint-up(xl){ height: 290px; }
 }
 
+
+.spectrumpage svg.nvd3-svg {
+  width:100%;
+  @include media-breakpoint-up(xs){ height: 210px; }
+  @include media-breakpoint-up(sm){ height: 230px; }
+  @include media-breakpoint-up(md){ height: 290px; }
+  @include media-breakpoint-up(lg){ height: 360px; }
+  @include media-breakpoint-up(xl){ height: 390px; }
+  margin-bottom: -30px;
+}
+
+.focusnote {
+  position: relative;
+  bottom: 1rem;
+  right: 42px;
+  text-align: right;
+  font-size: 0.93rem;
+  font-weight: bold;
+  color: #CDD;
+  z-index: -1;
+  @include media-breakpoint-down(sm){ font-size: 0.85rem; bottom: 15px; }
+}
+
+.nv-focusWrap.nvd3-svg{
+  opacity: 0.55;
+}
 
 ul.spectra-tabs{
   a.nav-link{
@@ -94,7 +140,7 @@ ul.spectra-tabs{
   margin-left: 0px;
 }
 
-.protein-spectra-select {
+.fluor-selector {
   max-width: 95%;
 }
 
@@ -107,11 +153,25 @@ table.spectra-form {
   td {
     border-top: none;
   }
-  tr.protein-row{
+  tr.fluor-row{
     td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
+    td:nth-child(2){ padding-right: 2rem;}
     td:nth-child(3){ width: 7%; padding-top: 18px;}
     td:nth-child(4){ width: 7%; padding-top: 18px;}
     td:nth-child(5){ width: 7%; padding-top: 18px;}
+  }
+  tr.light-row{
+    td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
+    td:nth-child(3){ width: 20%; padding-top: 12px;}
+    td:nth-child(4){ width: 20%; padding-top: 18px;}
+  }
+  tr.filter-row{
+    label{margin-right:0.5rem;}
+    td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
+    td:nth-child(2){ width: 40%}
+    td:nth-child(3){ padding: 0; padding-top: 12px;}
+    td:nth-child(4){ padding: 0; padding-top: 12px;}
+    td:nth-child(5){ padding: 0; padding-top: 12px;}
   }
   tr.emission-row{
     input[type=number]::-webkit-inner-spin-button,
@@ -143,4 +203,42 @@ table.spectra-form {
 .efficiency-vbad {
   font-weight: 200;
   color: $gray-600;
+}
+
+.inline-td-link {
+  margin-left: 0.8rem;
+  color: $info;
+  font-size: 0.8rem;
+}
+
+.svg-container{
+  position: relative;
+}
+#y-zoom-slider{
+  position: absolute;
+  right: 1.1%;
+  top: 12%;
+  height: 60%;
+  width:10px;
+}
+.noUi-vertical .noUi-handle {
+  width: 20px;
+  height: 30px;
+  left: -6px;
+}
+
+.noUi-handle:after, .noUi-handle:before {
+  display: none;
+}
+
+#optionstab {
+  #options-form {
+    font-size: 0.95rem;
+    .form-row {
+      margin-bottom: 0.4rem;
+    }
+  }
+  button {
+    margin-top: 0.5rem;
+  }
 }

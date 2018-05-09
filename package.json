@@ -1,28 +1,42 @@
 {
   "name": "fpbase",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://https://github.com/tlambert03/FPbase.git"
+  },
+  "description": "The fluorescent protein database",
   "version": "0.1.0",
   "dependencies": {
-    "npm": "^5.8.0",
-    "to": "^0.2.9",
-    "update": "^0.7.4"
+    "npm": "^6.0.0"
   },
   "devDependencies": {
-    "bootstrap": "^4.0.0-beta.2",
-    "browser-sync": "^2.14.0",
+    "bootstrap": "^4.1.1",
+    "browser-sync": "^2.24.0",
     "del": "^2.2.2",
+    "favicons": "^5.1.1",
     "gulp": "^3.9.1",
-    "gulp-autoprefixer": "^3.1.1",
+    "gulp-autoprefixer": "^5.0.0",
+    "gulp-concat": "^2.6.1",
     "gulp-cssnano": "^2.1.2",
-    "gulp-imagemin": "^3.0.3",
+    "gulp-imagemin": "^4.1.0",
     "gulp-pixrem": "^1.0.0",
     "gulp-plumber": "^1.1.0",
     "gulp-rename": "^1.2.2",
-    "gulp-sass": "^2.3.2",
-    "gulp-uglify": "^2.0.0",
+    "gulp-sass": "^4.0.1",
+    "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.7",
-    "run-sequence": "^1.2.2"
+    "imagemin-svgo": "^6.0.0",
+    "jquery": "^3.2.1-slim",
+    "node-sass": "^4.9.0",
+    "popper.js": "^1.12.3",
+    "run-sequence": "^2.2.1"
   },
   "engines": {
-    "node": ">=0.8.0"
+    "node": "10.0.0"
+  },
+  "scripts": {
+    "dev": "gulp",
+    "heroku-postbuild": "gulp compile"
   }
 }

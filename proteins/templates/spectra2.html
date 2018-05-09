@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load static i18n compress favit_tags %}
+
+{% block title %}FPbase Fluorescence Spectra Viewer{% endblock %}
+{% block meta-description %}An interactive fluorescence spectra viewer to evaluate the spectral properties of fluorescent proteins, organic dyes, filters, and detectors. Calculate collection efficiency or bleedthrough probabilities in your microscope and explore combinations of filters and dyes.{% endblock %}
+
+{% block vendorcss %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
+{% endblock vendorcss %}
+
+{% block extrahead %}
+<style type="text/css">
+    #spectra .tick line{
+        opacity: .5;
+    }
+</style>
+{% endblock extrahead %}
+
+{% block container-class %}container spectrumpage{% endblock %}
+
+{% block content %}
+
+<h2 class='text-center'>FPbase Spectra Viewer</h2>
+<div class="spectra clearfix">
+  <div id="spectra">
+    <div class="svg-container"><svg id="spectrasvg"></svg><div id="y-zoom-slider" class="hidden"></div></div>
+
+    <div class="focusnote">click and drag to zoom</div>
+    <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
+      <label class="btn btn-info active">
+        <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
+      </label>
+      <label class="btn btn-info">
+        <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="container spectra-tabs clearfix">
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link active" href="#proteintab" data-toggle="tab">Fluors</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#extab" data-toggle="tab">Ex<span class="d-none d-md-inline">citation</span></a>
+    </li>
+<!--     <li class="nav-item">
+      <a class="nav-link" href="#dichroictab" data-toggle="tab">Dichroic</a>
+    </li> -->
+    <li class="nav-item">
+      <a class="nav-link" href="#emtab" data-toggle="tab">Em<span class="d-none d-md-inline">ission</span></a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#efftab" data-toggle="tab"><span class="d-none d-md-inline">Collection </span>Eff<span class="d-none d-md-inline">iciency</span></a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#optionstab" data-toggle="tab">Opt<span class="d-none d-md-inline">ions</span></a>
+    </li>
+  </ul>
+  <div class="tab-content ">
+    <div class="tab-pane active" id="proteintab">
+      <h6 class='pt-3 text-info'>Proteins <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='p'><i class="fas fa-plus mr-2"></i>Add protein</button></h6>
+      <table class='table spectra-form' id='protein-table'>
+        <tbody>
+        </tbody>
+      </table>
+      <h6 class='text-info'>Organic Dyes <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='d'><i class="fas fa-plus mr-2"></i>Add dye</button></h6>
+      <table class='table spectra-form' id='dye-table'>
+        <tbody>
+        </tbody>
+      </table>
+      <div class="float-right hidden" id='toggle_alls'>
+        <input type="checkbox" id="toggle_all_ex" class="big-checkbox toggleall" data-checktype='ex' checked>
+        <label for="toggle_all_em" class='mr-2 pr-1'>all ex</label>
+        <input type="checkbox" id="toggle_all_em" class="big-checkbox toggleall" data-checktype='em' checked>
+        <label for="toggle_all_em" class='mr-2 pr-1'>all em</label>
+        <input type="checkbox" id="toggle_all_2p" class="big-checkbox toggleall" data-checktype='2p'>
+        <label for="toggle_all_em" class='mr-2 pr-1'>all 2p</label>
+      </div>
+    </div>
+    <div class="tab-pane" id="extab">
+      <h6 class='pt-3 text-info'>Light Sources <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='l' data-stype='pd'><i class="fas fa-plus mr-2"></i>Add Light Source</button></h6>
+      <table class='table spectra-form' id='light-table'>
+        <tbody>
+        </tbody>
+      </table>
+      <h6 class='text-info'>Excitation Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bx'><i class="fas fa-plus mr-2"></i>Add Excitation Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'><i class="fas fa-download mr-2"></i>Import Commercial Filter</button></a></h6>
+      <table class='table spectra-form' id='exfilter-table'>
+        <tbody>
+        </tbody>
+      </table>
+
+    </div>
+<!--     <div class="tab-pane" id="dichroictab">
+      <table class='table spectra-form' id='dichroic-table'>
+        <tbody>
+        </tbody>
+      </table>
+      <p>not yet implemented...</p>
+      <button type="button" class="btn btn-info btn-xs" id="addexcitationbutton"><i class="far fa-square mr-2"></i>Add dichroic</button>
+    </div> -->
+    <div class="tab-pane" id="emtab">
+      <h6 class='text-info pt-3'>Emission Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bm'><i class="fas fa-plus mr-2"></i>Add Emission Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'><i class="fas fa-download mr-2"></i>Import Commercial Filter</button></a></h6>
+      <table class='table spectra-form' id='emfilter-table'>
+        <tbody>
+        </tbody>
+      </table>
+      <h6 class='text-info pt-3'>Camera QE <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='c' data-stype='qe'><i class="fas fa-camera mr-2"></i>Add Camera QE</button></h6>
+      <table class='table spectra-form' id='camqe-table'>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+    <div class="tab-pane" id="efftab">
+      <p id='efftab_blurb' class='mt-2 ml-3'>Use this tab to evaluate the collection efficiency across multiple protein spectra and emission filters. First, select one or more proteins on the protein tab, then create one or more emission filters on the emission tab. This tab will then be populated with a table showing the collection efficiency for each fluorophore/filter pairing.</p>
+      <table class='table' id='efficiency-table'>
+        <thead>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <p id='efftab_help' class='mt-2 ml-3 text-muted hidden'><em>Tip: click and hold on the <i class="fas fa-eye"></i> buttons to reveal the collection efficiency on the graph</em></p>
+    </div>
+
+    <div class="tab-pane" id="optionstab">
+      <div class="container ml-2 mt-3">
+        <form id='options-form'>
+        </form>
+        <button class='btn btn-danger btn-sm' id='undo-scaling'>Undo all scaling</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="container">
+ <p class='small text-muted text-center mt-4 font-italic'>Want to see an FP spectra that isn't in here, but don't have time to add it yourself? <a href="{% url 'contact' %}"> Request a new FP</a></p>
+</div>
+
+
+<input class="form-check-input hidden" type="radio" name="exnormRadio" id="exnormRadioOFF" value="0" checked>
+
+<div class="hidden" id='eyeSVG'><i class="fas fa-eye"></i></div>
+<div class="hidden" id='linkSVG'><i class="fas fa-external-link-alt"></i></div>
+<svg height="8" width="8" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="crosshatch" patternUnits="userSpaceOnUse" width="8" height="8"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc4JyBoZWlnaHQ9JzgnPgogIDxyZWN0IHdpZHRoPSc4JyBoZWlnaHQ9JzgnIGZpbGw9JyNmZmYnLz4KICA8cGF0aCBkPSdNMCAwTDggOFpNOCAwTDAgOFonIHN0cm9rZS13aWR0aD0nMC41JyBzdHJva2U9JyNhYWEnLz4KPC9zdmc+Cg==" x="0" y="0" width="8" height="8"> </image> </pattern> </defs> </svg>
+<svg height="5" width="5" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="lightstripe" patternUnits="userSpaceOnUse" width="5" height="5"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1JyBoZWlnaHQ9JzUnPgogIDxyZWN0IHdpZHRoPSc1JyBoZWlnaHQ9JzUnIGZpbGw9J3doaXRlJy8+CiAgPHBhdGggZD0nTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVonIHN0cm9rZT0nIzg4OCcgc3Ryb2tlLXdpZHRoPScxJy8+Cjwvc3ZnPg==" x="0" y="0" width="5" height="5"> </image> </pattern> </defs> </svg>
+
+<!-- Modals -->
+{% include 'proteins/modals/_import_spectrum_modal.html' with user=user %}
+
+{% endblock content %}
+
+{% block javascript %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js" integrity="sha256-R9uiXmQekNb8r352uyt9EW3yRd3VZL3NyU8N0Z5fMo0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js" integrity="sha256-FPJJt8nA+xL4RU6/gsriA8p8xAeLGatoyTjldvQKGdE=" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+  var spectra_options = {{ spectra_options|safe }};
+</script>
+
+<script type="text/javascript" src="{% static 'js/spectra.js' %}"></script>
+
+{% endblock javascript %}

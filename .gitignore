@@ -359,3 +359,10 @@ pip-selfcheck.json
 
 fpbase/media/
 _data/*
+
+/fpbase/static/css/style.css
+/fpbase/static/css/style.min.css
+/fpbase/static/js/project.min.js
+/fpbase/static/js/vendors.js
+/fpbase/static/js/vendors.min.js
+*.dump
