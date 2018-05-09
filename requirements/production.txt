@@ -1,30 +1,15 @@
-# Pro-tip: Try not to put anything here. Avoid dependencies in
-#	production that aren't in development.
--r base.txt
+# PRECAUTION: avoid production dependencies that aren't in development
 
+-r ./base.txt
 
-# WSGI Handler
-# ------------------------------------------------
-gevent==1.2.2
-gunicorn==19.8.1
+gunicorn==19.8.1  # https://github.com/benoitc/gunicorn
+psycopg2==2.7.4 --no-binary psycopg2  # https://github.com/psycopg/psycopg2
+raven==6.7.0  # https://github.com/getsentry/raven-python
 
-# Static and Media Storage
-# ------------------------------------------------
-boto3==1.7.16
-django-storages==1.6.6
-
-
-# Email backends for Mailgun, Postmark, SendGrid and more
-# -------------------------------------------------------
-django-anymail==2.2
-
-# Raven is the Sentry client
-# --------------------------
-raven==6.7.0
-
-# Opbeat agent for performance monitoring
-# -----------------------------------------
-# opbeat==3.6.1
+# Django
+# ------------------------------------------------------------------------------
+django-storages[boto3]==1.6.6  # https://github.com/jschneier/django-storages
+django-anymail==2.2  # https://github.com/anymail/django-anymail
 
 # New relic monitoring
 # -----------------------------------------
