@@ -54,7 +54,7 @@ metapub==0.4.3.6
 # for pub search and protein processing
 biopython==1.71
 # for csv reading ... might not need for production
-pandas==0.21.0
+pandas==0.22.0
 
 # DRF
 djangorestframework==3.7.7
