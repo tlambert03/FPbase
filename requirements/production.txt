@@ -10,7 +10,7 @@ gunicorn==19.7.1
 
 # Static and Media Storage
 # ------------------------------------------------
-boto3==1.5.6
+boto3==1.7.16
 django-storages==1.6.5
 
 
