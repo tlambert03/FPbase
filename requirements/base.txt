@@ -63,7 +63,7 @@ markdown==2.6.11
 drf-tweaks==0.7.1
 djangorestframework-csv==2.1.0
 
-crossrefapi==1.2.0
+crossrefapi==1.3.0
 django-filter==1.1.0
 django-reversion==2.0.12
 django-reversion-compare==0.8.3
