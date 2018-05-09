@@ -3,7 +3,7 @@
 
 
 
-coverage==4.4.2
+coverage==4.5.1
 flake8==3.5.0 # pyup: != 2.6.0
 django-test-plus==1.0.20
 factory-boy==2.9.2
