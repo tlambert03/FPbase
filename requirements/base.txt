@@ -6,7 +6,7 @@ wheel==0.31.0
 
 
 # Bleeding edge Django
-django==1.11.13  # pyup: <2.0
+django==2.0.5
 
 
 # Configuration
@@ -32,7 +32,7 @@ django-allauth==0.36.0
 
 
 # Python-PostgreSQL Database Adapter
-psycopg2==2.7.4
+psycopg2-binary==2.7.4
 
 # Unicode slugification
 awesome-slugify==1.6.5
@@ -42,7 +42,7 @@ pytz==2018.4
 
 # Redis support
 django-redis==4.9.0
-redis>=2.10.5
+redis==2.10.6
 
 rcssmin==1.0.6
 django-compressor==2.2

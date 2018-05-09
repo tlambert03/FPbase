@@ -12,4 +12,4 @@ django-coverage-plugin==1.5.0
 # pytest
 pytest-django==3.2.1
 pytest-sugar==0.9.1
-selenium==3.11.0
+selenium==3.12.0

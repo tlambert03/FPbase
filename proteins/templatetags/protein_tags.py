@@ -10,7 +10,7 @@ def collection_remove_button(context, target):
     collection = context['proteincollection']
 
     # do nothing when user isn't authenticated
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         return ''
 
     if not collection.owner == user:

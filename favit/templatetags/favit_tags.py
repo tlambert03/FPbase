@@ -14,7 +14,7 @@ def favorite_button(context, target):
     user = context['request'].user
 
     # moved to the template
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         return render_to_string(
             'favit/button.html', {
                 'authenticated': False,
@@ -47,7 +47,7 @@ def unfave_button(context, target):
     user = context['request'].user
 
     # do nothing when user isn't authenticated
-    if not user.is_authenticated():
+    if not user.is_authenticated:
         return ''
 
     if Favorite.objects.get_favorite(user, target) is None:
@@ -97,7 +97,7 @@ def get_object(fav):
     return model.objects.get(id=fav.target_object_id)
 
 
-@register.assignment_tag
+@register.simple_tag
 def user_favorites(user, app_model='proteins.Protein'):
     """
     Usage:
@@ -122,7 +122,7 @@ def user_favorites(user, app_model='proteins.Protein'):
     return Favorite.objects.for_user(user, app_model)
 
 
-@register.assignment_tag
+@register.simple_tag
 def model_favorites(app_model):
     """
     Gets all favorited objects that are instances of a model

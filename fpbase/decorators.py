@@ -32,7 +32,7 @@ def login_required_message(function=None, message=default_message):
     to the log-in page if necessary.
     """
     actual_decorator = user_passes_test(
-        lambda u: u.is_authenticated(),
+        lambda u: u.is_authenticated,
         message=message,
     )
     if function:
