@@ -60,7 +60,7 @@ pandas==0.21.0
 djangorestframework==3.7.7
 coreapi==2.3.3
 markdown==2.6.9
-drf-tweaks==0.6.3
+drf-tweaks==0.7.1
 djangorestframework-csv==2.0.0
 
 crossrefapi==1.2.0
