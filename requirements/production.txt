@@ -28,4 +28,4 @@ opbeat==3.6.0
 
 # New relic monitoring
 # -----------------------------------------
-newrelic
+newrelic==3.2.0.91
