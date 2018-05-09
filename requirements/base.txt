@@ -31,7 +31,7 @@ django-allauth==0.36.0
 
 
 # Python-PostgreSQL Database Adapter
-psycopg2==2.7.3.2
+psycopg2==2.7.4
 
 # Unicode slugification
 awesome-slugify==1.6.5
