@@ -6,26 +6,26 @@
 # WSGI Handler
 # ------------------------------------------------
 gevent==1.2.2
-gunicorn==19.7.1
+gunicorn==19.8.1
 
 # Static and Media Storage
 # ------------------------------------------------
-boto3==1.5.6
-django-storages==1.6.5
+boto3==1.7.16
+django-storages==1.6.6
 
 
 # Email backends for Mailgun, Postmark, SendGrid and more
 # -------------------------------------------------------
-django-anymail==1.2
+django-anymail==2.2
 
 # Raven is the Sentry client
 # --------------------------
-raven==6.4.0
+raven==6.7.0
 
 # Opbeat agent for performance monitoring
 # -----------------------------------------
-opbeat==3.6.0
+opbeat==3.6.1
 
 # New relic monitoring
 # -----------------------------------------
-newrelic
+newrelic==3.2.0.91

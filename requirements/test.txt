@@ -3,13 +3,13 @@
 
 
 
-coverage==4.4.2
+coverage==4.5.1
 flake8==3.5.0 # pyup: != 2.6.0
-django-test-plus==1.0.20
-factory-boy==2.9.2
+django-test-plus==1.0.22
+factory-boy==2.11.1
 django-coverage-plugin==1.5.0
 
 # pytest
-pytest-django==3.1.2
-pytest-sugar==0.9.0
+pytest-django==3.2.1
+pytest-sugar==0.9.1
 selenium==3.11.0
