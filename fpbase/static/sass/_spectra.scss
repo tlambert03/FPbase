@@ -210,3 +210,35 @@ table.spectra-form {
   color: $info;
   font-size: 0.8rem;
 }
+
+.svg-container{
+  position: relative;
+}
+#y-zoom-slider{
+  position: absolute;
+  right: 1.1%;
+  top: 12%;
+  height: 60%;
+  width:10px;
+}
+.noUi-vertical .noUi-handle {
+  width: 20px;
+  height: 30px;
+  left: -6px;
+}
+
+.noUi-handle:after, .noUi-handle:before {
+  display: none;
+}
+
+#optionstab {
+  #options-form {
+    font-size: 0.95rem;
+    .form-row {
+      margin-bottom: 0.4rem;
+    }
+  }
+  button {
+    margin-top: 0.5rem;
+  }
+}

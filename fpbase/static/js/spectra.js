@@ -29,17 +29,20 @@ var options = {
     maxwave: 1000,
     startingBrush: [350, 750],
     autoscaleBrush: true,
+    exNormWave: undefined,
     scale: 'linear',
     hide2p: true,
+    scaleToEC: false,
+    scaleToQY: false,
 };
+var userOptions = {
+    autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
+    hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
+    scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
+    scaleToQY: {type: 'checkbox', msg: 'Scale emission spectra to quantum yield'},
+}
 var svg = d3.select('#spectra svg');
 
-
-$('#options_form input').change(function(e){
-    if (this.type == 'checkbox'){
-        options[$(this).data('opt')] = this.checked;
-    }
-});
 
 function getData(slug) {
     var dfd = $.Deferred();
@@ -50,6 +53,7 @@ function getData(slug) {
 
                 for (var n=0; n < d.spectra.length; n++) {
                     d.spectra[n] = padDataLimits(d.spectra[n]);
+                    d.spectra[n].exNormed = 1;
                     if (d.spectra[n].type == CONST.stype.twop & options.hide2p) {
                         d.spectra[n].disabled = true;
                     } else if (d.spectra[n].type == CONST.stype.twop & !options.hide2p) {
@@ -89,8 +93,9 @@ function dataHasSlug(slug) {
     return $.grep(data, function(obj) { return obj.slug == slug; }).length > 0;
 }
 
-function dataItemMatching(filter) {
-    return data.filter(function(item) {
+function dataItemMatching(filter, d) {
+    d = d || data;
+    return d.filter(function(item) {
         for (var key in filter) {
             if (item[key] === undefined || item[key] != filter[key])
                 return false;
@@ -140,6 +145,8 @@ function uniqueID() {
 
 
 function refreshChart() {
+    console.log('chart refresh')
+    chart.lines.duration(300);
     if (options.autoscaleBrush) {
         var smin = 10000;
         var smax = 0;
@@ -151,15 +158,142 @@ function refreshChart() {
         }
         chart.brushExtent([smin, smax]);
     }
+
+    scaleDataToOptions();
+    excitationNormalization();
     calculateEfficiency();
     chart.update();
     updateGlobalGradient();
+    chart.lines.duration(0);
+    if (options.scaleToQY || options. scaleToEC || options.exNormWave) {
+        $("#y-zoom-slider").show();
+    } else {
+        $("#y-zoom-slider").hide();
+    }
+}
 
+
+//// Scaling functions
+
+function unscale_all(){
+    options.exNormWave = undefined;
+    options.scaleToQY = false;
+    options.scaleToEC = false;
+    $("#exnormRadioOFF").prop('checked', true);
+    $('#scaleToQY-input').prop('checked',false)
+    $('#scaleToEC-input').prop('checked',false)
+    refreshChart();
+}
+
+function scale_data_up(filter){
+    // scale data "up" according to the data.scalar value
+    // filter can be .e.g. {type: 'ex'} to scale by ExtCoeff
+    var maxScalar = Math.max.apply(null, data.map(function(e) { return e.scalar || 0; }));
+    for (var n=0; n < data.length; n++){
+        // only scale certain data by filter
+        var skip = false;
+        if(data[n].scaled || data[n].scalar === undefined){ skip = true; }
+        for (var key in filter) {
+            if (data[n][key] === undefined || data[n][key] != filter[key]){
+                skip=true;
+                break;
+            }
+        }
+
+        if (!skip){
+            var SCALE = data[n].scalar || 1;
+            if (data[n].type == 'ex'){ SCALE /= maxScalar; }
+            // do the scaling
+            for (var i=0; i < data[n].values.length; i++){
+                data[n].values[i].y = data[n].values[i].y * SCALE;
+            }
+            data[n].scaled = SCALE;
+        }
+    }
+}
+
+function scale_data_down(filter){
+    for (var n=0; n < data.length; n++){
+        // only scale certain data by filter
+        var skip = false;
+        for (var key in filter) {
+            if (data[n][key] === undefined || data[n][key] != filter[key] || !Boolean(data[n].scaled)){
+                skip=true;
+                break;
+            }
+        }
+        if (!skip){
+            for (var i=0; i < data[n].values.length; i++){
+                data[n].values[i].y = data[n].values[i].y / data[n].scaled;
+            }
+            data[n].scaled = false;
+        }
+    }
+}
+
+
+function excitationNormalization() {
+    if (Boolean(options.exNormWave)){
+        for (var n = 0; n < data.length; n++) {
+            if (data[n].type =='em'){
+                var exvals = dataItemMatching({slug: data[n].slug, type: 'ex'})[0].values;
+                var targetScalar = dataItemMatching({x: options.exNormWave}, exvals)[0].y;
+                targetScalar = Math.max(targetScalar, 0.0001); // so we don't clobber the values with zero
+                var currentScalar = data[n].exNormed;
+                if (currentScalar != targetScalar) {
+                    var S = targetScalar / currentScalar;
+                    data[n].values = data[n].values.map(function(item){ return {x: item.x, y: item.y * S}; });
+                    data[n].exNormed = targetScalar;
+                } else {
+                    console.log('equal')
+                }
+            }
+        }
+    } else {
+        for (var n = 0; n < data.length; n++) {
+            if (data[n].type =='em' && data[n].exNormed != 1) {
+                data[n].values = data[n].values.map(function(item){ return {x: item.x, y: item.y / data[n].exNormed}; });
+                data[n].exNormed = 1;
+            }
+        }
+    }
+}
+
+
+function scaleDataToOptions(){
+    if (options.scaleToEC){
+        scale_data_up({type: 'ex'});
+    } else {
+        scale_data_down({type: 'ex'});
+    }
+
+    if (options.scaleToQY){
+        scale_data_up({type: 'em'});
+    }else{
+        scale_data_down({type: 'em'});
+    }
 }
 
 //// ON WINDOW LOAD
 
 $(function() {
+
+    $.each( userOptions, function( key, value ) {
+        $('#options-form')
+            .append($('<div>', {class: 'form-row form-check'})
+            .append($('<input>', {type: value.type, id: key + '-input', class:'form-check-input'})
+                .change(function(){
+                    if (value.type == 'checkbox') {
+                        options[key] = this.checked;
+                    } else {
+                        options[key] = this.value;
+                    }
+                    refreshChart();
+                })
+            )
+            .append($('<label>', {for: key + '-input', class: 'form-check-label'}).text(value.msg))
+        )
+    });
 
     addFormItem('p');
     addFormItem('d');
@@ -205,29 +339,6 @@ $(function() {
 
         nv.utils.windowResize(chart.update);
 
-        $(".scale-btns input").change(function() { setYscale(this.value); });
-
-
-        $("body").on('change', '.emcheck, .excheck, .2pcheck', function(e) {
-            var slug = $(this).closest('tr').find('select').val();
-            var type = $(this).data('checktype');
-            for (var i = 0; i < data.length; i++) {
-                if (data[i].slug == slug && data[i].type == type) {
-                    data[i].disabled = !this.checked;
-                }
-                if (type == '2p') {
-                    pos = localData[slug].map(function(e) { return e.type; }).indexOf('2p');
-                    localData[slug].disabled = !this.checked;
-                }
-            }
-            refreshChart();
-        });
-
-        $('.toggleall').change(function() {
-            $('.' + $(this).data('checktype') + 'check').prop('checked', $(this).is(':checked')).change();
-            refreshChart();
-        });
-
         chart.focus.dispatch.on('brush', function() {
             updateGlobalGradient();
         });
@@ -236,15 +347,67 @@ $(function() {
             chart.update();
         });
 
-        $('body').on('click', '.nv-focusWrap', function() {
-            // if the user moves the focus, don't autoscale on them
-            options.autoscaleBrush = false;
-            $('#options_form input[data-opt="autoscaleBrush"]').prop('checked', false);
+        var slider = document.getElementById('y-zoom-slider');
+        noUiSlider.create(slider, {
+            start: [1], // 4 handles, starting at...
+            behaviour: 'tap-drag', // Move handle on tap, bar is draggable
+            orientation: 'vertical',
+            direction: 'rtl',
+            range: {min: 0.1, max: 1},
+            format: {
+                  to: function ( value ) {
+                    return Math.round(value*100)/100;
+                  },
+                  from: function ( value ) {
+                    return value;
+                  }
+                }
         });
 
-        eyeSVG = $("#eyeSVG").html();
-        linkSVG = $("#linkSVG").html();
+        // update filter settings when user changes slider
+        slider.noUiSlider.on("update", function(){
+            [m, n] = chart.yDomain();
+            chart.yDomain([m, slider.noUiSlider.get()]);
+            chart.update();
+        });
 
+    });
+
+
+    $(".scale-btns input").change(function() { setYscale(this.value); });
+
+
+    $("body").on('change', '.emcheck, .excheck, .2pcheck', function(e) {
+        var slug = $(this).closest('tr').find('select').val();
+        var type = $(this).data('checktype');
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].slug == slug && data[i].type == type) {
+                data[i].disabled = !this.checked;
+            }
+            if (type == '2p') {
+                pos = localData[slug].map(function(e) { return e.type; }).indexOf('2p');
+                localData[slug].disabled = !this.checked;
+            }
+        }
+        refreshChart();
+    });
+
+    $('.toggleall').change(function() {
+        $('.' + $(this).data('checktype') + 'check').prop('checked', $(this).is(':checked')).change();
+        refreshChart();
+    });
+
+    $('body').on('click', '.nv-focusWrap', function() {
+        // if the user moves the focus, don't autoscale on them
+        options.autoscaleBrush = false;
+        $('#options_form input[data-opt="autoscaleBrush"]').prop('checked', false);
+    });
+
+    eyeSVG = $("#eyeSVG").html();
+    linkSVG = $("#linkSVG").html();
+
+    $('#undo-scaling').click(function() {
+        unscale_all();
     });
 
 });
@@ -254,18 +417,19 @@ $(function() {
 function setYscale(type) {
     //type can be log or linear
     chart.lines.duration(300);
+    [m, n] = chart.yDomain()
     if (type == 'log') {
         options.scale = 'log';
-        chart.yDomain([0.001, 1]);
+        chart.yDomain([0.001, n]);
         chart.yScale(d3.scale.log());
         chart.yAxis.tickValues([0.01, 0.033, 0.1, 0.33, 1]);
-        chart.update();
+        refreshChart();
     } else {
         options.scale = 'linear';
-        chart.yDomain([0, 1]);
+        chart.yDomain([0, n]);
         chart.yScale(d3.scale.linear());
         chart.yAxis.tickValues(d3.range(0, 1, 0.2));
-        chart.update();
+        refreshChart();
     }
     chart.lines.duration(0);
 }
@@ -484,14 +648,29 @@ var fluorRow = function(widget) {
 
 
 var excRow = function(widget, cls) {
-    return $('<tr>', { 'class': cls, 'id': 'l' + uniqueID()})
+    var rowID = 'l' + uniqueID();
+    return $('<tr>', { 'class': cls, 'id': rowID})
         .append($('<td>')
             .append($('<button>', { 'class': 'btn btn-danger btn-sm remove-row' })
-                .html('<strong>&times;</strong>')
+                .html('<strong>&times;</strong>').click(function(){
+                    options.exNormWave = undefined;
+                })
             )
         )
         .append($('<td>', { 'style': 'white-space: nowrap' })
-            .append(widget)
+            .append(widget.change(function(){
+                    var normchecked = $(this).closest('.'+cls).find('.exnormcheck').prop('checked');
+                    var islaser = $(this).val() == 'custom_laser';
+                    if (islaser){
+                        if(normchecked){
+                            options.exNormWave = +$(this).parent().next().find('.custom_laser_wave').val()
+                            refreshChart();
+                        }
+                    } else {
+                        options.exNormWave = undefined;
+                        refreshChart();
+                    }
+                }))
         )
         .append($('<td>')
             .append($('<div>', { 'class': 'form-inline hidden custom_laser_form' })
@@ -506,18 +685,42 @@ var excRow = function(widget, cls) {
                         'min': "300",
                         'max': "1500",
                         'value': "488",
+                    }).change(function(){
+                        if($(this).closest('.'+cls).find('.exnormcheck').prop('checked')){
+                            options.exNormWave = +this.value;
+                            refreshChart();
+                        }
                     }))
                 )
             )
         )
         .append($('<td>')
             .append($('<input>', {
-                'class': 'big-checkbox exnormcheck singlecheck',
+                'class': 'exnormcheck singlecheck form-check-input',
                 'data-checktype': 'exnorm',
-                'type': 'checkbox',
-            }))
+                'data-lastval': '',
+                'type': 'radio',
+                'name': 'exnormRadio',
+                'value':  rowID,
+            }).click(function(e){
+                lastval = $(this).data('lastval');
+                $('.exnormcheck').data('lastval', '');
+                if (this.value == lastval){ //already clicked, unlick
+                    $("#exnormRadioOFF").prop('checked', true);
+                    options.exNormWave = undefined;
+                } else {
+                    options.exNormWave = undefined;
+                    var v = $(this).closest('.'+cls).find('.data-selector').val();
+                    if (v=='custom_laser'){
+                        options.exNormWave = +$(this).parent().prev().find('.custom_laser_wave').val()
+                    }
+                    $(this).data('lastval', this.value);
+                }
+                refreshChart();
+            }
+            ))
             .append($('<label>')
-                .text('norm emission to this')
+                .text(' norm emission to this')
             )
         );
 };
@@ -835,60 +1038,6 @@ function updateGlobalGradient() {
 }
 
 
-//// Scaling functions
-
-function scale_data_up(filter){
-    var maxScalar = Math.max.apply(null, data.map(function(e) { return e.scalar || 0; }));
-    console.log(maxScalar)
-    for (var n=0; n < data.length; n++){
-        // only scale certain data by filter
-        var skip = false;
-        if(data[n].scaled || data[n].scalar === undefined){ skip = true; }
-        for (var key in filter) {
-            if (data[n][key] === undefined || data[n][key] != filter[key]){
-                skip=true;
-                break;
-            }
-        }
-
-        if (!skip){
-            var SCALE = data[n].scalar || 1;
-            // do the scaling
-            for (var i=0; i < data[n].values.length; i++){
-                data[n].values[i].y = data[n].values[i].y * SCALE;
-                if (data[n].type == 'ex'){ data[n].values[i].y /= maxScalar; }
-            }
-            data[n].scaled = true;
-        }
-    }
-    chart.update();
-}
-
-function scale_data_down(filter){
-    for (var n=0; n < data.length; n++){
-        // only scale certain data by filter
-        var skip = false;
-        for (var key in filter) {
-            if (data[n][key] === undefined || data[n][key] != filter[key] || !data[n].scaled){
-                skip=true;
-                break;
-            }
-        }
-        if (skip){ continue; }
-
-        if (data[n].slug in localData){
-            var pos = localData[data[n].slug].map(function(e) { return e.key; }).indexOf(data[n].key);
-
-            data[n].values = JSON.parse(JSON.stringify(localData[data[n].slug][pos].values));  // make a copy again?
-            data[n].scaled = false;
-        }
-
-    }
-    chart.update();
-}
-
-
-
 //// EFFICIENCY CALCULATIONS
 
 function spectral_product(ar1, ar2) {
@@ -961,7 +1110,7 @@ $("body").on('mouseup', '.effbutton', function(e) {
     }
 
     //    chart.xDomain(getDomainLimits(data));
-    chart.update();
+    refreshChart();
 });
 
 
