@@ -281,7 +281,7 @@ $(function() {
     $.each( userOptions, function( key, value ) {
         $('#options-form')
             .append($('<div>', {class: 'form-row form-check'})
-            .append($('<input>', {type: value.type, id: key + '-input', class:'form-check-input'})
+            .append($('<input>', {type: value.type, id: key + '-input', class:'form-check-input', checked: options[key]})
                 .change(function(){
                     if (value.type == 'checkbox') {
                         options[key] = this.checked;
