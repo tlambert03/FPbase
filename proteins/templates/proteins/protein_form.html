@@ -8,11 +8,15 @@
 
 
 {% block content %}
-	{% if object %} {% comment %} object means this is an update form {% endcomment %}
-	    <h1>Update {{ object.name }}</h1>
-	{% else %}
-	    <h1>Submit a new protein</h1>
-	{% endif %}
+
+  <div>
+    {% if object %} {% comment %} object means this is an update form {% endcomment %}
+        <h1>Update {{ object.name }}</h1>
+    {% else %}
+        <h1>Submit a new protein</h1>
+    {% endif %}
+
+    <p class='text-muted mb-4 mt-3 font-italic'>Thank you for contributing to FPbase!  All contributed data will be moderated, but please double check your submission for accuracy.  The only strictly required fields are name and DOI.</p></div>
 
 	{% if states.non_form_errors %}
 		<h5>There were errors in the form...</h5>
@@ -21,7 +25,7 @@
 		</div>
 	{% endif %}
 
-	<div class="container">
+	<div>
 	    <form id="proteinform" action="" method="post" data-validate-proteinname-url="{% url 'proteins:validate_proteinname' %}">
 	    	{% csrf_token %}
 	    	<input type="hidden" name="slug" id="id_slug" value='{{ protein.slug }}'>
