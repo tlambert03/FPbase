@@ -8,4 +8,26 @@ before_install:
   - sudo apt-get install -qq libsqlite3-dev libxml2 libxml2-dev libssl-dev libbz2-dev wget curl llvm
 language: python
 python:
-  - "3.5"
+  - "3.6"
+services: postgresql
+addons:
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
+env:
+  global:
+  - PGPORT=5433
+
+install:
+  - pip install -r requirements/local.txt
+  - npm install
+
+before_script:
+  - psql -c "CREATE DATABASE fpbase;" -U postgres
+  - python manage.py migrate --noinput
+  - python manage.py collectstatic
+
+script:
+  - pytest
