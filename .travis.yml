@@ -19,13 +19,14 @@ addons:
 env:
   global:
   - PGPORT=5433
+  - DJANGO_SETTINGS_MODULE=config.settings.test
 
 install:
   - pip install -r requirements/local.txt
-  - npm install
+#  - npm install
 
 before_script:
-  - psql -c "CREATE DATABASE fpbase;" -U postgres
+#  - psql -c "CREATE DATABASE fpbase;" -U postgres
   - python manage.py migrate --noinput
   - python manage.py collectstatic
 
