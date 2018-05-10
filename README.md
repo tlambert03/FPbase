@@ -40,7 +40,12 @@ https://www.fpbase.org
     $ gulp
 ```
 
-##### TODO
+
+### Contributing
+
+Please branch off of develop for any pull requests.
+
+#### TODO
 
 * mutations / lineages
 * FRET views and FRET partners
