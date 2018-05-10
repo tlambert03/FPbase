@@ -2,7 +2,7 @@
 
 # FPbase: The Fluorescent Protein Database
 
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-brightgreen.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![cookie](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-brightgreen.svg)](https://github.com/pydanny/cookiecutter-django/)
 
 https://www.fpbase.org
