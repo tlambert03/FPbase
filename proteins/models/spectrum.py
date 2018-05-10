@@ -5,6 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.text import slugify
 from model_utils.models import TimeStampedModel
 from model_utils.managers import QueryManager
+import json
 
 from .mixins import Authorable, Product
 from ..util.helpers import wave_to_hex
@@ -85,12 +86,11 @@ class SpectrumData(ArrayField):
                 raise ValidationError('Invalid input for spectrum data')
 
     # def get_db_prep_value(self, value, connection, prepared=False):
-    #    print('prep value')
+    #    print('prep value: ', value)
     #    return super().get_db_prep_value(np.array(value).tolist(), connection, prepared)
 
-    # def value_to_string(self, obj):
-    #    print('to str')
-    #    return super().value_to_string(obj.tolist())
+    def value_to_string(self, obj):
+        return json.dumps(self.value_from_object(obj))
 
     def validate(self, value, model_instance):
         super().validate(value, model_instance)
