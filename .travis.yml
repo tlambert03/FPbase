@@ -4,14 +4,14 @@ python:
   - "3.6"
 services: postgresql
 addons:
-  postgresql: "10.3"
-#  apt:
-#    packages:
-#    - postgresql-10
-#    - postgresql-client-10
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
 env:
   global:
-#  - PGPORT=5433
+  - PGPORT=5433
   - DJANGO_SETTINGS_MODULE=config.settings.test
 
 before_install:
@@ -27,7 +27,7 @@ install:
   - npm install
 
 before_script:
-  - psql -c 'create database fpbase;' -U postgres
+  - sudo psql -u postgres -c 'create database fpbase;'
   - python manage.py migrate --noinput
   - python manage.py collectstatic
 
