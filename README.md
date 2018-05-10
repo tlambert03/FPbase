@@ -4,6 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![cookie](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-brightgreen.svg)](https://github.com/pydanny/cookiecutter-django/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1244328.svg)](https://doi.org/10.5281/zenodo.1244328)
 
 https://www.fpbase.org
 
@@ -44,6 +45,10 @@ https://www.fpbase.org
 ### Contributing
 
 Please branch off of develop for any pull requests.
+
+### Cite as 
+
+Talley Lambert. tlambert03/FPbase (2018). doi:10.5281/zenodo.1244328
 
 #### TODO
 
