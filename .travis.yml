@@ -33,4 +33,6 @@ before_script:
   - python manage.py collectstatic
 
 script:
-  - pytest
+  - pytest --cov=fpbase, --cov=proteins
+  - coverage xml
+  - python-codacy-coverage -r coverage.xml
