@@ -3,6 +3,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.text import slugify
+from django.forms import Textarea, CharField
 from model_utils.models import TimeStampedModel
 from model_utils.managers import QueryManager
 import json
@@ -71,10 +72,14 @@ class SpectrumData(ArrayField):
             base_field = ArrayField(models.FloatField(max_length=10), size=2)
         super().__init__(base_field, size, **kwargs)
 
-    # def from_db_value(self, value, expression, connection, *args, **kwargs):
-    #    if value is None:
-    #        return value
-    #    return value
+    def formfield(self, **kwargs):
+        defaults = {
+            'max_length': self.size,
+            'widget': Textarea(attrs={'cols': '102', 'rows': '15'}),
+            'form_class': CharField,
+        }
+        defaults.update(kwargs)
+        return models.Field().formfield(**defaults)
 
     def to_python(self, value):
         if not value:
@@ -84,10 +89,6 @@ class SpectrumData(ArrayField):
                 return ast.literal_eval(value)
             except Exception:
                 raise ValidationError('Invalid input for spectrum data')
-
-    # def get_db_prep_value(self, value, connection, prepared=False):
-    #    print('prep value: ', value)
-    #    return super().get_db_prep_value(np.array(value).tolist(), connection, prepared)
 
     def value_to_string(self, obj):
         return json.dumps(self.value_from_object(obj))
@@ -298,6 +299,9 @@ class Spectrum(Authorable, TimeStampedModel):
     filters  = QueryManager(category=FILTER)
     cameras  = QueryManager(category=CAMERA)
 
+    class Meta:
+        verbose_name_plural = "spectra"
+
     def __str__(self):
         if self.owner_state:
             return "{} {}".format(self.owner_state if self.owner_state else 'unowned', self.subtype)
@@ -312,7 +316,7 @@ class Spectrum(Authorable, TimeStampedModel):
             raise ValidationError("Spectrum must have an owner!")
         if sum(bool(x) for x in self.owner_set) > 1:
             raise ValidationError("Spectrum must have only one owner!")
-        self.category = self.owner.__class__.__name__.lower()[0]
+        #self.category = self.owner.__class__.__name__.lower()[0]
         super().save(*args, **kwargs)
 
     def clean(self):
@@ -349,7 +353,6 @@ class Spectrum(Authorable, TimeStampedModel):
                     except ValueError as e:
                         errors.update({'data': 'could not properly interpolate data: {}'.format(e)})
                         raise ValidationError(errors)
-
                 # attempt at data normalization
                 if (max(self.y) > 1.5) or (max(self.y) < 0.1):
                     if self.category == self.FILTER and (60 < max(self.y) < 101):
@@ -491,6 +494,8 @@ class Spectrum(Authorable, TimeStampedModel):
 
     @property
     def x(self):
+        if hasattr(self, '_x'):
+            return self._x
         self._x = []
         for i in self.data:
             self._x.append(i[0])
@@ -498,6 +503,8 @@ class Spectrum(Authorable, TimeStampedModel):
 
     @property
     def y(self):
+        if hasattr(self, '_y'):
+            return self._y
         self._y = []
         for i in self.data:
             self._y.append(i[1])
