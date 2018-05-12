@@ -60,10 +60,12 @@ class PrimaryProteinInline(admin.TabularInline):
     can_delete = True
     show_change_link = True
 
+
 @admin.register(Reference)
 class ReferenceAdmin(CompareVersionAdmin):
     form = ReferenceForm
-    moder = Reference
+    model = Reference
+    search_fields = ('citation', 'firstauthor')
     ordering = ('-year', 'citation', 'created',)
     list_display = ('id', 'citation',  'protein_links', 'title', 'year', 'doi', 'created')
     list_filter = ('created', 'modified')

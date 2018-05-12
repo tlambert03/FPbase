@@ -61,6 +61,7 @@ class Reference(TimeStampedModel):
     pages = models.CharField(max_length=20, blank=True)
     volume = models.CharField(max_length=10, blank=True, default='')
     issue = models.CharField(max_length=10, blank=True, default='')
+    firstauthor = models.CharField(max_length=100, blank=True, default='')
     citation = models.CharField(max_length=256, blank=True, default='')
     year = models.PositiveIntegerField(
             validators=[MinLengthValidator(4), MaxLengthValidator(4),
@@ -100,8 +101,8 @@ class Reference(TimeStampedModel):
                 middle = ' & {} '.format(secondauthor)
             else:
                 middle = ' '
-
-            return "{}{}({})".format(authorlist[0].family, middle, self.year)
+            self.firstauthor = authorlist[0].family
+            return "{}{}({})".format(self.firstauthor, middle, self.year)
         except ObjectDoesNotExist:
                 return "doi: {}".format(self.doi)
 
@@ -121,29 +122,31 @@ class Reference(TimeStampedModel):
         if self.doi:
             self.doi = self.doi.strip()
 
-    def save(self, *args, **kwargs):
-        info = doi_lookup(self.doi)
-        authors = info.pop('authors')
-        authorlist = []
-        for author in authors:
-            auth, _ = Author.objects.get_or_create(
-                initials=name_to_initials(author['given']),
-                family=author['family'],
-                defaults={'given': author['given'].replace('.', '')}
-            )
-            authorlist.append(auth)
-        for k, v in info.items():
-            setattr(self, k, v)
-        self.citation = self.get_citation(authorlist)
+    def save(self, skipdoi=False, *args, **kwargs):
+        if not skipdoi:
+            info = doi_lookup(self.doi)
+            authors = info.pop('authors')
+            authorlist = []
+            for author in authors:
+                auth, _ = Author.objects.get_or_create(
+                    initials=name_to_initials(author['given']),
+                    family=author['family'],
+                    defaults={'given': author['given'].replace('.', '')}
+                )
+                authorlist.append(auth)
+            for k, v in info.items():
+                setattr(self, k, v)
+            self.citation = self.get_citation(authorlist)
         super().save(*args, **kwargs)
-        ReferenceAuthor.objects.filter(reference_id=self.id).delete()
-        for idx, author in enumerate(authorlist):
-            authmemb = ReferenceAuthor(
-                reference=self,
-                author=author,
-                author_idx=idx,
-            )
-            authmemb.save()
+        if not skipdoi:
+            ReferenceAuthor.objects.filter(reference_id=self.id).delete()
+            for idx, author in enumerate(authorlist):
+                authmemb = ReferenceAuthor(
+                    reference=self,
+                    author=author,
+                    author_idx=idx,
+                )
+                authmemb.save()
 
 
 class ReferenceAuthor(models.Model):
