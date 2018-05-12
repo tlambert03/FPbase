@@ -41,7 +41,7 @@ def wave_to_hex(wavelength, gamma=1):
         R = 1.0
         G = (-(wavelength - 645) / (645 - 580)) ** gamma
         B = 0.0
-    elif wavelength >= 645 and wavelength <= 850:
+    elif wavelength >= 645 and wavelength <= 750:
         attenuation = 0.3 + 0.7 * (770 - wavelength) / (770 - 645)
         R = (1.0 * attenuation) ** gamma
         G = 0.0

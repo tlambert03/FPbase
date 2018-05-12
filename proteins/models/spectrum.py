@@ -494,8 +494,6 @@ class Spectrum(Authorable, TimeStampedModel):
 
     @property
     def x(self):
-        if hasattr(self, '_x'):
-            return self._x
         self._x = []
         for i in self.data:
             self._x.append(i[0])
@@ -503,8 +501,6 @@ class Spectrum(Authorable, TimeStampedModel):
 
     @property
     def y(self):
-        if hasattr(self, '_y'):
-            return self._y
         self._y = []
         for i in self.data:
             self._y.append(i[1])

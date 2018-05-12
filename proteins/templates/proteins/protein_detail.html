@@ -280,16 +280,17 @@
 
     <script type="text/javascript">
 	    $(function () {
-	      $('[data-toggle="popover"]').popover()
+	      $('[data-toggle="popover"]').popover();
 	    })
-	    $('.popover-dismiss').popover({
+
+      $('.popover-dismiss').popover({
 	      trigger: 'focus'
 	    })
 
       {% if protein.has_spectra %}
       var myData = {{ protein.d3_spectra|safe }};
       for (n = 0; n < myData.length; n++){
-      	if (myData[n].key.includes('2p')) {
+      	if (myData[n].key.includes('2p') && myData.length > 1) {
       		myData[n].disabled = true;
       	}
       };
