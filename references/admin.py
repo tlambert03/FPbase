@@ -65,11 +65,10 @@ class PrimaryProteinInline(admin.TabularInline):
 class ReferenceAdmin(CompareVersionAdmin):
     form = ReferenceForm
     model = Reference
-    search_fields = ('citation', 'firstauthor')
     ordering = ('-year', 'citation', 'created',)
     list_display = ('id', 'citation',  'protein_links', 'title', 'year', 'doi', 'created')
     list_filter = ('created', 'modified')
-    search_fields = ('id', 'pmid', 'doi', 'created_by__username', 'created_by__first_name', 'created_by__last_name', 'title')
+    search_fields = ('pmid', 'doi', 'title', 'citation', 'firstauthor')
     inlines = (PrimaryProteinInline,)
     fieldsets = [
         ('Reference', {

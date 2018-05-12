@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 from django.db import models
 from django.forms import Textarea
 from proteins.models import (Protein, State, StateTransition, Organism,
-    FRETpair, BleachMeasurement)
+    FRETpair, BleachMeasurement, Spectrum, Dye)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.models import Version
 from reversion.admin import VersionAdmin
@@ -20,7 +20,7 @@ from reversion.admin import VersionAdmin
 
 class BleachInline(admin.TabularInline):
     model = BleachMeasurement
-    raw_id_fields = ("reference",)
+    autocomplete_fields = ("reference",)
     extra = 1
 
 
@@ -37,11 +37,6 @@ class StateInline(admin.StackedInline):
         }),
         (None, {
             'fields': (('ex_max', 'em_max'), ('ext_coeff', 'qy'), ('pka', 'maturation'), 'lifetime', 'bleach_links')
-        }),
-
-        ('Spectra', {
-            'classes': ('collapse', ),
-            'fields': (('ex_spectra', 'em_spectra',),)
         }),
         ('Change History', {
             'classes': ('collapse',),
@@ -62,7 +57,7 @@ class StateInline(admin.StackedInline):
 
 class FRETpairInline(admin.TabularInline):
     model = FRETpair
-    raw_id_fields = ("pair_references",)
+    autocomplete_fields = ("pair_references", 'acceptor')
     extra = 1
     can_delete = True
     show_change_link = True
@@ -78,10 +73,26 @@ class myVersionAdmin(admin.ModelAdmin):
     model = Version
 
 
+@admin.register(Spectrum)
+class SpectrumAdmin(admin.ModelAdmin):
+    model = Spectrum
+    list_select_related = ('owner_state__protein', 'owner_dye')
+    list_display = ('__str__', 'category', 'subtype')
+    fields = ('created_by', 'updated_by', 'data', 'category', 'subtype', 'ph', 'solvent', 'owner')
+    readonly_fields = ('owner',)
+
+    def owner(self, obj):
+        url = reverse("admin:proteins_{}_change".format(obj.owner._meta.model.__name__.lower()), args=(obj.owner.pk,))
+        link = '<a href="{}">{}</a>'.format(url, obj.owner)
+        return mark_safe(link)
+    owner.short_description = 'Owner'
+
+
 @admin.register(BleachMeasurement)
 class BleachMeasurementAdmin(VersionAdmin):
     model = BleachMeasurement
-    raw_id_fields = ('state',)
+    autocomplete_fields = ('state', 'reference')
+    list_select_related = ('state', 'state__protein',)
 
 
 @admin.register(State)
@@ -99,17 +110,17 @@ class StateAdmin(CompareVersionAdmin):
         (None, {
             'fields': (('ex_max', 'em_max'), ('ext_coeff', 'qy'), ('pka', 'maturation'), 'lifetime')
         }),
-
-        ('Spectra', {
-            'classes': ('collapse', ),
-            'fields': (('ex_spectra', 'em_spectra',),)
-        }),
     ]
 
     def protein_link(self, obj):
         url = reverse("admin:proteins_protein_change", args=([obj.protein.pk]))
         return mark_safe('<a href="{}">{}</a>'.format(url, obj.protein))
     protein_link.short_description = 'Protein'
+
+
+@admin.register(Dye)
+class DyeAdmin(VersionAdmin):
+    model = Dye
 
 
 @admin.register(StateTransition)
@@ -188,11 +199,11 @@ class OrganismAdmin(CompareVersionAdmin):
 
 @admin.register(Protein)
 class ProteinAdmin(CompareVersionAdmin):
+    autocomplete_fields = ('parent_organism', 'references', 'primary_reference')
     list_display = ('__str__', 'ipg_id', 'switch_type', 'created', 'modified', 'states_all_count')
     list_filter = ('created', 'modified', 'switch_type', 'created_by__username', 'status')
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
-    raw_id_fields = ("primary_reference", "references", 'parent_organism')
     inlines = [
         StateInline, StateTransitionInline, FRETpairInline
     ]
@@ -215,6 +226,10 @@ class ProteinAdmin(CompareVersionAdmin):
             return obj.states.all().count()
         else:
             return 0
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('states')
 
     def get_form(self, request, obj=None, **kwargs):
         request.object = obj
