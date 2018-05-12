@@ -11,6 +11,15 @@
     <meta http-equiv="Content-Language" content="en">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>{% block title %}FPbase :: The Fluorescent Protein Database{% endblock title %}</title>
+    <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@type": "Organization",
+      "url": "https://www.fpbase.org",
+      "logo": "https://fpstage.herokuapp.com/static/images/logo_green_wide.png"
+    };
+    </script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{% block meta-description %}{% endblock %}">
     <link rel="canonical" href="{% block canonical_url %}{{ CANONICAL_URL }}{{ request.get_full_path }}{% endblock %}">
