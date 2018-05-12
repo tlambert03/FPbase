@@ -99,6 +99,7 @@ class BleachMeasurementAdmin(VersionAdmin):
 class StateAdmin(CompareVersionAdmin):
     # form = StateForm
     model = State
+    list_select_related = ('protein',)
     search_fields = ('protein__name',)
     list_display = ('__str__', 'protein_link', 'ex_max', 'em_max', 'ext_coeff', 'qy', )
     list_filter = ('created', 'modified', 'created_by__username')
@@ -126,6 +127,7 @@ class DyeAdmin(VersionAdmin):
 @admin.register(StateTransition)
 class StateTransitionAdmin(VersionAdmin):
     model = StateTransition
+    list_select_related = ('protein', 'from_state', 'to_state')
 
 
 class StateTransitionInline(admin.TabularInline):
