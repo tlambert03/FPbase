@@ -17,6 +17,7 @@ class Product(models.Model):
         'chroma': 'https://www.chroma.com/products/parts/*',
         'semrock': 'https://www.semrock.com/FilterDetails.aspx?id=*',
         'lumencor': 'http://lumencor.com/products/filters-for-spectra-x-light-engines/',
+        'thermofisher': 'https://www.thermofisher.com/us/en/home/life-science/cell-analysis/fluorophores/*.html'
     }
 
     manufacturer = models.CharField(max_length=128, blank=True)
@@ -27,11 +28,18 @@ class Product(models.Model):
 
     def get_absolute_url(self):
         part = self.part
+        if not part:
+            return None
+
         if self.manufacturer.lower() == 'chroma':
             part = part.replace('/', '-')
 
         try:
-            url = self.PRODUCT_LINKS[self.manufacturer.lower()].replace('*', part)
+            if 'thermo' in self.manufacturer.lower():
+                url = self.PRODUCT_LINKS['thermofisher'].replace('*', part)
+                # assert requests.get(url).status_code == 200, 'Thermo URL does not exist'
+            else:
+                url = self.PRODUCT_LINKS[self.manufacturer.lower()].replace('*', part)
             urlv = URLValidator()
             urlv(url)
             return url
