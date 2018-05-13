@@ -12,8 +12,7 @@ class ContactForm(forms.Form):
         # send email using the self.cleaned_data dictionary
         mail_admins(
             'FPbase ContactForm Submission',
-            'From: {}\n\n'.format(self.cleaned_data['name']) +
-            'Email: {}\n\n'.format(self.cleaned_data['email']) +
-            self.cleaned_data['message'],
+            'From: {}\n\n'.format(self.cleaned_data['name'])
+            + 'Email: {}\n\n'.format(self.cleaned_data['email'])
+            + self.cleaned_data['message'],
         )
-
