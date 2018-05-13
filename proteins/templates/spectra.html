@@ -7,6 +7,7 @@
 {% block vendorcss %}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 {% endblock vendorcss %}
 
 {% block extrahead %}
@@ -61,60 +62,57 @@
   </ul>
   <div class="tab-content ">
     <div class="tab-pane active" id="proteintab">
-      <h6 class='pt-3 text-info'>Proteins <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='p'><i class="fas fa-plus mr-2"></i>Add protein</button></h6>
-      <table class='table spectra-form' id='protein-table'>
-        <tbody>
-        </tbody>
-      </table>
-      <h6 class='text-info'>Organic Dyes <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='d'><i class="fas fa-plus mr-2"></i>Add dye</button></h6>
-      <table class='table spectra-form' id='dye-table'>
-        <tbody>
-        </tbody>
-      </table>
-      <div class="float-right hidden" id='toggle_alls'>
-        <input type="checkbox" id="toggle_all_ex" class="big-checkbox toggleall" data-checktype='ex' checked>
-        <label for="toggle_all_em" class='mr-2 pr-1'>all ex</label>
-        <input type="checkbox" id="toggle_all_em" class="big-checkbox toggleall" data-checktype='em' checked>
-        <label for="toggle_all_em" class='mr-2 pr-1'>all em</label>
-        <input type="checkbox" id="toggle_all_2p" class="big-checkbox toggleall" data-checktype='2p'>
-        <label for="toggle_all_em" class='mr-2 pr-1'>all 2p</label>
+      <h6 class='pt-3 text-info'>Proteins<button type="button" class="btn btn-info btn-xs addFormItem ml-3" value='p'><i class="fas fa-plus mr-2"></i>Add protein</button></h6>
+      <div class='spectra-form' id='protein-table'></div>
+
+      <h6 class='text-info mt-4'>Other Probes<button type="button" class="btn btn-info btn-xs addFormItem ml-3" value='d'><i class="fas fa-plus mr-2"></i>Add probe</button></h6>
+      <div class='spectra-form' id='dye-table'></div>
+
+      <div class="form-inline row" id='toggle_alls'>
+        <p class="offset-5 offset-sm-6 form-group col-3 d-inline text-right">toggle all:</p>
+        <div class="col-1 custom-control custom-checkbox">
+          <input class="toggleall custom-control-input" id="toggle_all_ex" type="checkbox" id="inlineCheckbox1" value="ex" checked>
+          <label class="custom-control-label" for="toggle_all_ex"><span class="d-none d-sm-inline">e</span>x</label>
+        </div>
+        <div class="col-1 custom-control custom-checkbox">
+          <input class="toggleall custom-control-input" id="toggle_all_em" type="checkbox" id="inlineCheckbox2" value="em" checked>
+          <label class="custom-control-label" for="toggle_all_em"><span class="d-none d-sm-inline">e</span>m</label>
+        </div>
+        <div class="col-1 custom-control custom-checkbox">
+          <input class="toggleall custom-control-input" id="toggle_all_2p" type="checkbox" id="inlineCheckbox3" value="2p">
+          <label class="custom-control-label" for="toggle_all_2p">2<span class="d-none d-sm-inline">p</span></label>
+        </div>
       </div>
+
     </div>
     <div class="tab-pane" id="extab">
       <h6 class='pt-3 text-info'>Light Sources <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='l' data-stype='pd'><i class="fas fa-plus mr-2"></i>Add Light Source</button></h6>
-      <table class='table spectra-form' id='light-table'>
-        <tbody>
-        </tbody>
-      </table>
-      <h6 class='text-info'>Excitation Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bx'><i class="fas fa-plus mr-2"></i>Add Excitation Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'><i class="fas fa-download mr-2"></i>Import Commercial Filter</button></a></h6>
-      <table class='table spectra-form' id='exfilter-table'>
-        <tbody>
-        </tbody>
-      </table>
+      <div class='spectra-form' id='light-table'></div>
+
+      <h6 class='text-info mt-4'>Excitation Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bx'><i class="fas fa-plus mr-2"></i>Add Excitation Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'><i class="fas fa-download mr-2"></i>Import Commercial Filter</button></a></h6>
+      <div class='spectra-form' id='exfilter-table'></div>
+
 
     </div>
 <!--     <div class="tab-pane" id="dichroictab">
-      <table class='table spectra-form' id='dichroic-table'>
-        <tbody>
-        </tbody>
-      </table>
+      <div class='spectra-form' id='dichroic-table'></div>
       <p>not yet implemented...</p>
       <button type="button" class="btn btn-info btn-xs" id="addexcitationbutton"><i class="far fa-square mr-2"></i>Add dichroic</button>
     </div> -->
     <div class="tab-pane" id="emtab">
       <h6 class='text-info pt-3'>Emission Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bm'><i class="fas fa-plus mr-2"></i>Add Emission Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'><i class="fas fa-download mr-2"></i>Import Commercial Filter</button></a></h6>
-      <table class='table spectra-form' id='emfilter-table'>
-        <tbody>
-        </tbody>
-      </table>
-      <h6 class='text-info pt-3'>Camera QE <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='c' data-stype='qe'><i class="fas fa-camera mr-2"></i>Add Camera QE</button></h6>
-      <table class='table spectra-form' id='camqe-table'>
-        <tbody>
-        </tbody>
-      </table>
+      <div class='spectra-form' id='emfilter-table'></div>
+      <h6 class='text-info mt-4'>Camera QE <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='c' data-stype='qe'><i class="fas fa-camera mr-2"></i>Add Camera QE</button></h6>
+      <div class='spectra-form' id='camqe-table'></div>
     </div>
     <div class="tab-pane" id="efftab">
-      <p id='efftab_blurb' class='mt-2 ml-3'>Use this tab to evaluate the collection efficiency across multiple protein spectra and emission filters. First, select one or more proteins on the protein tab, then create one or more emission filters on the emission tab. This tab will then be populated with a table showing the collection efficiency for each fluorophore/filter pairing.</p>
+      <p id='efftab_blurb' class='mt-2 ml-3'><em>Use this tab to evaluate the collection efficiency across multiple protein spectra and emission filters.</em>
+        <ol>
+          <li>Select one or more proteins on the protein tab.</li>
+          <li>Add one or more emission filters on the emission tab.</li>
+          <li>This tab will then be populated with a table showing the collection efficiency for each fluorophore/filter pairing.</li>
+        </ol>
+      </p>
       <table class='table' id='efficiency-table'>
         <thead>
         </thead>
@@ -126,8 +124,8 @@
 
     <div class="tab-pane" id="optionstab">
       <div class="container ml-2 mt-3">
-        <form id='options-form'>
-        </form>
+        <div id='options-form'>
+        </div>
         <button class='btn btn-danger btn-sm' id='undo-scaling'>Undo all scaling</button>
       </div>
     </div>
@@ -157,6 +155,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js" integrity="sha256-FPJJt8nA+xL4RU6/gsriA8p8xAeLGatoyTjldvQKGdE=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 
 <script type="text/javascript">
   var spectra_options = {{ spectra_options|safe }};

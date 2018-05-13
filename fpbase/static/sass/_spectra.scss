@@ -1,12 +1,23 @@
 //Spectra page
 //-----------------
 
+h6 {
+  margin-bottom: .6rem;
+}
+
 .spectrumpage{
   .spectra-tabs{
     font-size: small;
     margin-top: 0rem;
     padding-top: 0px;
-    @include media-breakpoint-down(sm){ font-size: 0.70rem; bottom: 15px; }
+    label.custom-control-label{ padding-top: 2px;}
+    @include media-breakpoint-down(sm){
+      label.custom-control-label{ padding-top: 4px;}
+      font-size: 0.70rem; bottom: 15px;
+    }
+    @include media-breakpoint-down(xs){
+      #toggle_alls p { padding-top: 1rem;}
+    }
   }
 }
 
@@ -154,11 +165,7 @@ table.spectra-form {
     border-top: none;
   }
   tr.fluor-row{
-    td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
-    td:nth-child(2){ padding-right: 2rem;}
-    td:nth-child(3){ width: 7%; padding-top: 18px;}
-    td:nth-child(4){ width: 7%; padding-top: 18px;}
-    td:nth-child(5){ width: 7%; padding-top: 18px;}
+
   }
   tr.light-row{
     td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
@@ -242,3 +249,38 @@ table.spectra-form {
     margin-top: 0.5rem;
   }
 }
+
+.select2-selection {
+  width:100% !important;
+  font-size: 0.8rem;
+}
+
+.select2-container--bootstrap.select2-container--focus .select2-selection, {
+  box-shadow:none;
+}
+
+.select2-container--bootstrap .select2-selection--single .select2-selection__rendered{
+  padding-left: 0.5rem;
+}
+
+.select2-dropdown {
+  font-size: 0.8rem;
+}
+
+.btn-sm.remove-row {
+  padding: 0 0.6rem 0 !important;
+}
+
+.item-link .btn-sm {
+  font-size: 0.5rem !important;
+  line-height: 1.33rem;
+  &:focus{
+    box-shadow: none;
+  }
+}
+
+.nvd3 text.nv-legend-text {
+  font-size: 0.7rem;
+}
+
+

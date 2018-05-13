@@ -27,8 +27,8 @@ var localData = {};
 var options = {
     minwave: 300,
     maxwave: 1000,
-    startingBrush: [350, 750],
-    autoscaleBrush: true,
+    startingBrush: [350, 800],
+    autoscaleBrush: false,
     exNormWave: undefined,
     scale: 'linear',
     hide2p: true,
@@ -42,6 +42,9 @@ var userOptions = {
     scaleToQY: {type: 'checkbox', msg: 'Scale emission spectra to quantum yield'},
 }
 var svg = d3.select('#spectra svg');
+
+$.getScript("/static/js/spectra_form.js");
+
 
 
 function getData(slug) {
@@ -278,6 +281,8 @@ function scaleDataToOptions(){
 
 $(function() {
 
+    $('[data-toggle="popover"]').popover()
+
     $.each( userOptions, function( key, value ) {
         $('#options-form')
             .append($('<div>', {class: 'form-row form-check'})
@@ -378,13 +383,13 @@ $(function() {
 
 
     $("body").on('change', '.emcheck, .excheck, .2pcheck', function(e) {
-        var slug = $(this).closest('tr').find('select').val();
-        var type = $(this).data('checktype');
+        var slug = $(this).closest('.row').find('select').val();
+        var type = $(this).val();
         for (var i = 0; i < data.length; i++) {
             if (data[i].slug == slug && data[i].type == type) {
                 data[i].disabled = !this.checked;
             }
-            if (type == '2p') {
+            if (type == CONST.stype.twop) {
                 pos = localData[slug].map(function(e) { return e.type; }).indexOf('2p');
                 localData[slug].disabled = !this.checked;
             }
@@ -392,10 +397,23 @@ $(function() {
         refreshChart();
     });
 
-    $('.toggleall').change(function() {
-        $('.' + $(this).data('checktype') + 'check').prop('checked', $(this).is(':checked')).change();
-        refreshChart();
+    $('.toggleall').change(function(e) {
+        $('.' + $(this).val() + 'check').prop('checked', $(this).is(':checked')).change();
     });
+
+    $('.singlecheck').change(function() {
+        var c = $('.singlecheck.' + $(this).val() + 'check').map(function(){ return $(this).is(':checked') })
+        if (c.toArray().every(function(a){ return a })){
+            $("#toggle_all_" + $(this).val()).prop('indeterminate', false)
+            $("#toggle_all_" + $(this).val()).prop('checked', true);
+        } else if (c.toArray().every(function(a){ return !a })) {
+            $("#toggle_all_" + $(this).val()).prop('indeterminate', false)
+            $("#toggle_all_" + $(this).val()).prop('checked', false);
+        } else {
+            $("#toggle_all_" + $(this).val()).prop('indeterminate', true)
+        }
+    });
+
 
     $('body').on('click', '.nv-focusWrap', function() {
         // if the user moves the focus, don't autoscale on them
@@ -403,8 +421,8 @@ $(function() {
         $('#options_form input[data-opt="autoscaleBrush"]').prop('checked', false);
     });
 
-    eyeSVG = $("#eyeSVG").html();
-    linkSVG = $("#linkSVG").html();
+    //eyeSVG = $("#eyeSVG").html();
+    //linkSVG = $("#linkSVG").html();
 
     $('#undo-scaling').click(function() {
         unscale_all();
@@ -443,16 +461,16 @@ $(".addFormItem").click(function(e) {
 
 
 var focusedItem;
-$("body").on('focus', '.data-selector', function(event) {
+$("body").on('focus', '.data-selector, .select2', function(event) {
     // Store the current value on focus and on change
-    focusedItem = $(this).val();
+    focusedItem = $(this).closest('.row').find('.data-selector').val();
 });
 
 // main function when data-selector has been changed
 $("body").on('change', '.data-selector', function(event) {
     var selector = this;
     var slug = $(this).val();
-    var row = $(this).closest('tr');
+    var row = $(this).closest('.row');
     // if the item is already selected, cancel operation
     if (dataHasSlug(slug)) {
         alert(slug + ' is already selected.');
@@ -462,20 +480,24 @@ $("body").on('change', '.data-selector', function(event) {
 
     // special behavior for custom bandpass
     if (this.value == 'custom_bp') {
-        $(this).closest('tr').find('.custom_bp_form').show();
+        row.children(":first").removeClass('col')
+        row.children(":first").addClass('col-4')
+        row.find('.custom_bp_form').show();
     } else {
-        $(this).closest('tr').find('.custom_bp_form').hide();
+        row.children(":first").removeClass('col-4')
+        row.children(":first").addClass('col')
+        row.find('.custom_bp_form').hide();
     }
     // special behavior for custom bandpass
     if (this.value == 'custom_laser') {
-        $(this).closest('tr').find('.custom_laser_form').show();
+        row.find('.custom_laser_form').show();
     } else {
-        $(this).closest('tr').find('.custom_laser_form').hide();
+        row.find('.custom_laser_form').hide();
     }
 
     // Remove the previous item fom the list
     removeItem(focusedItem);
-    $(selector).siblings('.inline-td-link').remove();
+    $(selector).siblings('.item-link').remove();
     // different process if it was a custom filter
     if (focusedItem == 'custom_bp') {
         removeItem(row.attr('id'));
@@ -491,13 +513,27 @@ $("body").on('change', '.data-selector', function(event) {
     else if (slug) {
         addItem(slug).then(function() {
             if (localData[slug][0].url) {
-                $(selector).parent().append($('<a>', { class: 'inline-td-link', href: localData[slug][0].url }).html(linkSVG));
+                $(selector)
+                    .parent()
+                    .append(
+                        $('<div>', {class: 'input-group-append item-link', title: 'visit item page'})
+                        .append(
+                            $('<a>', {
+                                'class': 'item-link',
+                                'href': localData[slug][0].url,
+                                'target': "_blank",
+                            })
+                            .append(
+                                $('<button>', { 'class': 'btn btn-sm btn-info', type: 'button'} ).html($("#linkSVG").html())
+                            )
+                        )
+                    );
             }
 
             // if the slug has a two-2 item...
             if (localData[slug].map(function(e) { return e.type; }).indexOf(CONST.stype.twop) > -1) {
                 // show the checkbox
-                row.find('input.2pcheck').closest('td').show();
+                row.find('input.2pcheck').prop('disabled', false);
                 // get the two photon item in the data
                 item2p = dataItemMatching({ slug: slug, type: CONST.stype.twop })[0]; // assume only 1
                 // if the 2p button was already checked... keep 2p enabled
@@ -506,7 +542,7 @@ $("body").on('change', '.data-selector', function(event) {
                 }
             } else {
                 // if it doesn't have 2P data, hide the box...
-                row.find('input.2pcheck').closest('td').hide();
+                row.find('input.2pcheck').prop('disabled', true);
             }
             refreshChart();
         });
@@ -520,7 +556,7 @@ $("body").on('change', '.data-selector', function(event) {
 
 
 $("body").on('click', '.remove-row', function(e) {
-    var row = $(this).closest('tr');
+    var row = $(this).closest('.row');
     var rowslug = row.find('select').val();
     if (rowslug == 'custom_bp' || rowslug == 'custom_laser') {
         rowslug = row.attr('id');
@@ -532,16 +568,17 @@ $("body").on('click', '.remove-row', function(e) {
     if ($('.fluor-row').length <= 1) {
         $("#toggle_alls").hide();
     }
+
 });
 
 $("body").on('change', '.custom_bp_form input', function(e) {
     this.value = Math.min(this.value, this.max);
     this.value = Math.max(this.value, this.min);
-    updateCustomFilter($(this).closest('tr'));
+    updateCustomFilter($(this).closest('.row'));
 });
 
 $("body").on('change', '.custom_laser_form input', function(e) {
-    updateCustomLaser($(this).closest('tr'));
+    updateCustomLaser($(this).closest('.row'));
 });
 
 /// Form Templates
@@ -602,236 +639,6 @@ function updateCustomLaser(row) {
     refreshChart();
 }
 
-var fluorRow = function(widget) {
-    return $('<tr>', { 'class': 'fluor-row' })
-        .append($('<td>')
-            .append($('<button>', { 'class': 'btn btn-danger btn-sm remove-row' })
-                .html('<strong>&times;</strong>')
-            )
-        )
-        .append($('<td>', { 'style': 'white-space: nowrap' })
-            .append(widget)
-        )
-        .append($('<td>')
-            .append($('<input>', {
-                'class': 'big-checkbox excheck singlecheck',
-                'data-checktype': CONST.stype.ex,
-                'type': 'checkbox',
-                'checked': 'checked',
-            }))
-            .append($('<label>')
-                .text('ex')
-            )
-        )
-        .append($('<td>')
-            .append($('<input>', {
-                'class': 'big-checkbox emcheck singlecheck',
-                'data-checktype': CONST.stype.em,
-                'type': 'checkbox',
-                'checked': 'checked',
-            }))
-            .append($('<label>')
-                .text('em')
-            )
-        )
-        .append($('<td class="hidden">')
-            .append($('<input>', {
-                'class': 'big-checkbox 2pcheck singlecheck',
-                'data-checktype': CONST.stype.twop,
-                'type': 'checkbox',
-            }).prop('checked', !options.hide2p))
-            .append($('<label>')
-                .text('2p')
-            )
-        );
-};
-
-
-var excRow = function(widget, cls) {
-    var rowID = 'l' + uniqueID();
-    return $('<tr>', { 'class': cls, 'id': rowID})
-        .append($('<td>')
-            .append($('<button>', { 'class': 'btn btn-danger btn-sm remove-row' })
-                .html('<strong>&times;</strong>').click(function(){
-                    options.exNormWave = undefined;
-                })
-            )
-        )
-        .append($('<td>', { 'style': 'white-space: nowrap' })
-            .append(widget.change(function(){
-                    var normchecked = $(this).closest('.'+cls).find('.exnormcheck').prop('checked');
-                    var islaser = $(this).val() == 'custom_laser';
-                    if (islaser){
-                        if(normchecked){
-                            options.exNormWave = +$(this).parent().next().find('.custom_laser_wave').val()
-                            refreshChart();
-                        }
-                    } else {
-                        options.exNormWave = undefined;
-                        refreshChart();
-                    }
-                }))
-        )
-        .append($('<td>')
-            .append($('<div>', { 'class': 'form-inline hidden custom_laser_form' })
-                .append($('<div>', { 'class': 'form-group' })
-                    .append($('<label>', { 'class': 'form-control-label mr-2' })
-                        .text('center')
-                    )
-                    .append($('<input>', {
-                        'class': 'form-control form-control-sm custom_laser_wave',
-                        'type': "number",
-                        'name': "custom_laser_wave",
-                        'min': "300",
-                        'max': "1500",
-                        'value': "488",
-                    }).change(function(){
-                        if($(this).closest('.'+cls).find('.exnormcheck').prop('checked')){
-                            options.exNormWave = +this.value;
-                            refreshChart();
-                        }
-                    }))
-                )
-            )
-        )
-        .append($('<td>')
-            .append($('<input>', {
-                'class': 'exnormcheck singlecheck form-check-input',
-                'data-checktype': 'exnorm',
-                'data-lastval': '',
-                'type': 'radio',
-                'name': 'exnormRadio',
-                'value':  rowID,
-            }).click(function(e){
-                lastval = $(this).data('lastval');
-                $('.exnormcheck').data('lastval', '');
-                if (this.value == lastval){ //already clicked, unlick
-                    $("#exnormRadioOFF").prop('checked', true);
-                    options.exNormWave = undefined;
-                } else {
-                    options.exNormWave = undefined;
-                    var v = $(this).closest('.'+cls).find('.data-selector').val();
-                    if (v=='custom_laser'){
-                        options.exNormWave = +$(this).parent().prev().find('.custom_laser_wave').val()
-                    }
-                    $(this).data('lastval', this.value);
-                }
-                refreshChart();
-            }
-            ))
-            .append($('<label>')
-                .text(' norm emission to this')
-            )
-        );
-};
-
-var filterRow = function(widget, stype) {
-    return $('<tr>', { 'class': 'filter-row', 'id': stype + uniqueID(), 'data-ftype': stype })
-        .append($('<td>')
-            .append($('<button>', { 'class': 'btn btn-danger btn-sm remove-row' })
-                .html('<strong>&times;</strong>')
-            )
-        )
-        .append($('<td>', { 'style': 'white-space: nowrap' })
-            .append(widget)
-        )
-        .append($('<td>')
-            .append($('<div>', { 'class': 'form-inline hidden custom_bp_form' })
-                .append($('<div>', { 'class': 'form-group' })
-                    .append($('<label>', { 'class': 'form-control-label' })
-                        .text('center')
-                    )
-                    .append($('<input>', {
-                        'class': 'form-control form-control-sm custom_em_value',
-                        'type': "number",
-                        'name': "custom_em_center",
-                        'min': "300",
-                        'max': "1500",
-                        'value': "525",
-                    }))
-                )
-            )
-        )
-        .append($('<td>')
-            .append($('<div>', { 'class': 'form-inline hidden custom_bp_form' })
-                .append($('<div>', { 'class': 'form-group' })
-                    .append($('<label>', { 'class': 'form-control-label' })
-                        .text('width')
-                    )
-                    .append($('<input>', {
-                        'class': 'form-control form-control-sm custom_em_value',
-                        'type': "number",
-                        'name': "custom_em_bandwidth",
-                        'min': "1",
-                        'max': "800",
-                        'value': "50",
-                    }))
-                )
-            )
-        )
-        .append($('<td>')
-            .append($('<div>', { 'class': 'form-inline hidden custom_bp_form' })
-                .append($('<div>', { 'class': 'form-group' })
-                    .append($('<label>', { 'class': 'form-control-label' })
-                        .text('%T')
-                    )
-                    .append($('<input>', {
-                        'class': 'form-control form-control-sm custom_em_value',
-                        'type': "number",
-                        'name': "custom_em_trans",
-                        'min': "0",
-                        'max': "1",
-                        'value': "0.95",
-                        'step': "0.01",
-                    }))
-                )
-            )
-        );
-};
-
-
-var formSelection = function(filter) {
-
-    var selWidget = $('<select>', {
-        'class': 'form-control form-control-sm custom-select custom-select-sm data-selector',
-        'data-category': filter.category,
-        'data-subtype': filter.subtype,
-    });
-    selWidget.append($('<option>', { value: '' }).text('-----'));
-    if (filter.category == 'f') {
-        selWidget.append($('<option>', { value: 'custom_bp' }).text('CUSTOM BANDPASS FILTER'));
-        selWidget.append($('<option>', { value: '' }).text('-----'));
-    }
-    if (filter.category == 'l') {
-        selWidget.append($('<option>', { value: 'custom_laser' }).text('LASER LINE'));
-        selWidget.append($('<option>', { value: '' }).text('-----'));
-    }
-
-    matches = spectra_options.filter(function(item) {
-        for (var key in filter) {
-            if (item[key] === undefined || item[key] != filter[key]) {
-                // FIXME
-                // terrible hack to add bp filters to both excitation and emission dropdowns
-                if ((filter[key] == 'bx' || filter[key] == 'bm') && item['subtype'] == 'bp') {
-                    return true;
-                }
-                return false;
-            }
-        }
-        return true;
-    });
-
-    var usedSlugs = [];
-    for (var i = 0; i < matches.length; i++) {
-        if (usedSlugs.indexOf(matches[i].slug) == -1) {
-            selWidget.append($('<option>', { value: matches[i].slug }).text(matches[i].name));
-            usedSlugs.push(matches[i].slug);
-        }
-    }
-
-    return selWidget;
-}
-
 
 var addFormItem = function(category, stype) {
     var filter = { 'category': category };
@@ -839,24 +646,26 @@ var addFormItem = function(category, stype) {
     var selWidget = formSelection(filter)
 
     if (category == CONST.category.protein) {
-        $(fluorRow(selWidget)).appendTo($('#protein-table').find('tbody'));
+        $(fluorRow(selWidget)).appendTo($('#protein-table'));
     }
     if (category == CONST.category.dye) {
-        $(fluorRow(selWidget)).appendTo($('#dye-table').find('tbody'));
+        $(fluorRow(selWidget)).appendTo($('#dye-table'));
     }
     if (category == CONST.category.dye || category == CONST.category.protein) {
         if ($('.fluor-row').length > 1) {
             $("#toggle_alls").show();
         }
     } else if (category == CONST.category.light) {
-        $(excRow(selWidget, 'light-row')).appendTo($('#light-table').find('tbody'));
+        $(excRow(selWidget, 'light-row')).appendTo($('#light-table'));
     } else if (category == CONST.category.filter && stype == CONST.stype.bpx) {
-        $(filterRow(selWidget, stype)).appendTo($('#exfilter-table').find('tbody'));
+        $(filterRow(selWidget, stype)).appendTo($('#exfilter-table'));
     } else if (category == CONST.category.filter && stype == CONST.stype.bpm) {
-        $(filterRow(selWidget, stype)).appendTo($('#emfilter-table').find('tbody'));
+        $(filterRow(selWidget, stype)).appendTo($('#emfilter-table'));
     } else if (category == CONST.category.camera) {
-        $(filterRow(selWidget, stype)).appendTo($('#camqe-table').find('tbody'));
+        $(filterRow(selWidget, stype)).appendTo($('#camqe-table'));
     }
+
+    selWidget.select2({ theme: "bootstrap", width: '80%'});
 
 
 };
@@ -1121,7 +930,7 @@ function eyebutton(emspect, emfilt, overlap) {
             "data-ifilt": emfilt,
             "data-ioverlap": overlap,
         })
-        .append(eyeSVG);
+        .append($("#eyeSVG").html());
 }
 
 function calculateEfficiency() {
