@@ -36,8 +36,15 @@ class Product(models.Model):
 
         try:
             if 'thermo' in self.manufacturer.lower():
+                goodParts = ['bodipy-fl', 'coumarin', 'cy3-dye', 'cy5-dye', 'fluorescein',
+                             'oregon-green', 'pacific-blue-dye', 'pacific-green-dye',
+                             'pacific-orange-dye', 'tritc-dye', 'texas-red', 'dapi-stain',
+                             'propidium-iodide', 'styo-9', 'sytox-green-stain', 'to-pro-3']
+                alexas = (350, 405, 488, 532, 546, 555, 568, 594, 647, 680, 750)
+                goodParts += ['alexa-fluor-%s' % a for a in alexas]
+                goodParts += ['qdot-%s' % q for q in (525, 565, 605, 655, 705, 800)]
+                assert part in goodParts, 'Thermo URL does not exist'
                 url = self.PRODUCT_LINKS['thermofisher'].replace('*', part)
-                # assert requests.get(url).status_code == 200, 'Thermo URL does not exist'
             else:
                 url = self.PRODUCT_LINKS[self.manufacturer.lower()].replace('*', part)
             urlv = URLValidator()
