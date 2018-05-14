@@ -395,7 +395,9 @@ $(function() {
     $(".scale-btns input").change(function() { setYscale(this.value); });
 
 
-    $("body").on('change', '.emcheck, .excheck, .2pcheck', function(e) {
+    $("body").on('change', '.singlecheck', function(e) {
+        // when the ex/em/2p checkbox is checked,
+        // enable/disable the corresponding item in the data
         var slug = $(this).closest('.row').find('select').val();
         var type = $(this).val();
         for (var i = 0; i < data.length; i++) {
@@ -403,8 +405,8 @@ $(function() {
                 data[i].disabled = !this.checked;
             }
             if (type == CONST.stype.twop) {
-                pos = localData[slug].map(function(e) { return e.type; }).indexOf('2p');
-                localData[slug].disabled = !this.checked;
+                var pos = localData[slug].map(function(e) { return e.type; }).indexOf('2p');
+                localData[slug][pos].disabled = !this.checked;
             }
         }
         refreshChart();
@@ -489,7 +491,8 @@ $("body").on('change', '.data-selector', function(event) {
     var row = $(this).closest('.row');
     // if the item is already selected, cancel operation
     if (dataHasSlug(slug) && slug != focusedItem) {
-        alert(localData[slug][0].key.replace(' em','') + ' is already selected.');
+        alert(localData[slug][0].key.replace(' em','').replace(' 2p','')
+            .replace(' ex','')+ ' is already selected.');
         row.find('.data-selector').val(focusedItem).change();
         return;
     }
