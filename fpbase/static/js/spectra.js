@@ -170,6 +170,7 @@ function refreshChart() {
     chart.lines.duration(0);
     if (options.scaleToQY || options. scaleToEC || options.exNormWave) {
         $("#y-zoom-slider").show();
+        resizeYSlider();
     } else {
         $("#y-zoom-slider").hide();
     }
@@ -262,6 +263,17 @@ function excitationNormalization() {
     }
 }
 
+function resizeYSlider(){
+    try {
+        var rect = $('#spectrasvg').find('.nv-focus').first().find('.nv-background>rect')
+        var h = +rect.attr('height');
+        //var t = Math.abs(rect.offset().top - $('#spectrasvg').offset().top);
+        $('#y-zoom-slider').height( h * 0.88 );
+    } catch(e) {
+
+    }
+
+}
 
 function scaleDataToOptions(){
     if (options.scaleToEC){
@@ -280,7 +292,7 @@ function scaleDataToOptions(){
 //// ON WINDOW LOAD
 
 $(function() {
-
+    $('#y-zoom-slider').hide();
     $('[data-toggle="popover"]').popover()
 
     $.each( userOptions, function( key, value ) {
@@ -342,8 +354,6 @@ $(function() {
 
         svg.datum(data).call(chart);
 
-        nv.utils.windowResize(chart.update);
-
         chart.focus.dispatch.on('brush', function() {
             updateGlobalGradient();
         });
@@ -378,6 +388,11 @@ $(function() {
 
     });
 
+    resizeYSlider();
+    $( window ).resize(function() {
+        chart.update();
+        resizeYSlider();
+    });
 
     $(".scale-btns input").change(function() { setYscale(this.value); });
 
@@ -430,6 +445,9 @@ $(function() {
 
 });
 
+$(window).on('load', function() {
+
+});
 
 
 function setYscale(type) {
@@ -473,8 +491,9 @@ $("body").on('change', '.data-selector', function(event) {
     var row = $(this).closest('.row');
     // if the item is already selected, cancel operation
     if (dataHasSlug(slug)) {
-        alert(slug + ' is already selected.');
-        $(this).val(focusedItem);
+        alert(localData[slug][0].key.replace(' em','') + ' is already selected.');
+
+        event.preventDefault()
         return;
     }
 
@@ -665,7 +684,7 @@ var addFormItem = function(category, stype) {
         $(filterRow(selWidget, stype)).appendTo($('#camqe-table'));
     }
 
-    selWidget.select2({ theme: "bootstrap", width: '80%'});
+    selWidget.select2({ theme: "bootstrap", width: '70%'});
 
 
 };

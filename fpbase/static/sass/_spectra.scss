@@ -19,6 +19,9 @@ h6 {
       #toggle_alls p { padding-top: 1rem;}
     }
   }
+  .form-inline label{
+    display: inline;
+  }
 }
 
 
@@ -221,17 +224,23 @@ table.spectra-form {
 .svg-container{
   position: relative;
 }
+
 #y-zoom-slider{
   position: absolute;
   right: 1.1%;
-  top: 12%;
-  height: 60%;
-  width:10px;
+  width: 8px;
+  height: 90%;
+  top: 50px;
+  @include media-breakpoint-down(md){ width: 6px; top: 42px; }
+  @include media-breakpoint-down(sm){ width: 5px; top: 38px; }
+
 }
 .noUi-vertical .noUi-handle {
   width: 20px;
-  height: 30px;
-  left: -6px;
+  height: 28px;
+  left: -7px;
+  @include media-breakpoint-down(md){ height: 25px; left: -8px; }
+  @include media-breakpoint-down(sm){ height: 20px;  left: -9px;}
 }
 
 .noUi-handle:after, .noUi-handle:before {

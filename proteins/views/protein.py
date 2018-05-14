@@ -1,4 +1,5 @@
 from django.views.generic import DetailView, CreateView, UpdateView
+from django.views.decorators.cache import cache_page
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.forms.models import modelformset_factory
@@ -8,20 +9,22 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.mail import mail_managers
-from django.core.exceptions import ValidationError
+from django.utils.text import slugify
+
 import json
 
-from ..models import Protein, State, Organism, BleachMeasurement, Spectrum
+from ..models import (Protein, State, Organism, BleachMeasurement,
+                      Spectrum, Filter)
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
                      BleachMeasurementForm, SpectrumForm)
 from ..filters import ProteinFilter
 
-from references.models import Reference  # breaks application modularity # FIXME
+from references.models import Reference  # breaks application modularity
 import reversion
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
-from ..util.importers import import_chroma_spectra, import_semrock_spectra
-from django.core.validators import URLValidator
+from ..util.importers import (import_chroma_spectra,
+                              import_semrock_spectra, normalize_semrock_part)
 
 
 class ProteinDetailView(DetailView):
@@ -135,18 +138,21 @@ class ProteinCreateUpdateMixin:
 
                     if not self.request.user.is_staff:
                         self.object.status = 'pending'
-                        mail_managers('Protein {} {}'.format(self.object, self.get_form_type() + 'ed'),
-                            "User: {}\nProtein: {}\n{}".format(
-                                self.request.user.username,
-                                self.object,
-                                self.request.build_absolute_uri(self.object.get_absolute_url())),
-                            fail_silently=True)
+                        sbj = 'Protein {} {}'.format(
+                            self.object, self.get_form_type() + 'ed')
+                        msg = "User: {}\nProtein: {}\n{}".format(
+                            self.request.user.username,
+                            self.object,
+                            self.request.build_absolute_uri(
+                                self.object.get_absolute_url()))
+                        mail_managers(sbj, msg, fail_silently=True)
                     else:
                         self.object.status = 'approved'
 
                     self.object.save()
                     reversion.set_user(self.request.user)
-                    reversion.set_comment('{} {} form'.format(self.object, self.get_form_type()))
+                    reversion.set_comment('{} {} form'.format(
+                        self.object, self.get_form_type()))
             else:
                 context.update({
                     'states': states,
@@ -156,12 +162,11 @@ class ProteinCreateUpdateMixin:
         return HttpResponseRedirect(self.get_success_url())
 
 
-# help from https://medium.com/@adandan01/django-inline-formsets-example-mybook-420cc4b6225d
+# https://medium.com/@adandan01/django-inline-formsets-example-mybook-420cc4b6225d
 class ProteinCreateView(ProteinCreateUpdateMixin, CreateView):
     ''' renders html for protein submission page '''
     model = Protein
     form_class = ProteinForm
-    # success_url --> used for redirect on success... by default shows new protein
 
     def get_form(self, *args, **kwargs):
         form = super().get_form(*args, **kwargs)
@@ -178,7 +183,7 @@ class ProteinCreateView(ProteinCreateUpdateMixin, CreateView):
         return data
 
     def form_valid(self, form):
-        form.instance.created_by = self.request.user  # login_required in url.py
+        form.instance.created_by = self.request.user
         return super().form_valid(form)
 
 
@@ -186,12 +191,12 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
     ''' renders html for protein submission page '''
     model = Protein
     form_class = ProteinForm
-    # success_url --> used for redirect on success... by default shows new protein
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         if self.request.POST:
-            data['states'] = StateFormSet(self.request.POST, instance=self.object)
+            data['states'] = StateFormSet(
+                self.request.POST, instance=self.object)
             data['states'].full_clean()  # why is this here?
         else:
             data['states'] = StateFormSet(instance=self.object)
@@ -200,13 +205,20 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         return data
 
     def form_valid(self, form):
-        form.instance.updated_by = self.request.user  # login_required in url.py
+        form.instance.updated_by = self.request.user
         return super().form_valid(form)
 
 
+@cache_page(60 * 10)
 def protein_table(request):
     ''' renders html for protein table page  '''
-    return render(request, 'table.html', {"proteins": Protein.objects.all().prefetch_related('states', 'states__bleach_measurements')})
+    return render(
+        request,
+        'table.html',
+        {
+            "proteins": Protein.objects.all().prefetch_related(
+                'states', 'states__bleach_measurements')
+        })
 
 
 def protein_spectra(request, slug=None):
@@ -243,8 +255,9 @@ def protein_search(request):
     ''' renders html for protein search page  '''
 
     if request.GET:
-        f = ProteinFilter(request.GET, queryset=Protein.objects.select_related('default_state')
-                        .prefetch_related('states').order_by('default_state__em_max'))
+        f = ProteinFilter(request.GET,
+                queryset=Protein.objects.select_related('default_state')
+                .prefetch_related('states').order_by('default_state__em_max'))
 
         # if no hits, but name was provided... try trigram search
         if len(f.qs) == 0:
@@ -254,7 +267,9 @@ def protein_search(request):
             elif 'name__iexact' in f.form.data:
                 name = f.form.data['name__iexact']
             if name:
-                f.recs = Protein.objects.annotate(similarity=TrigramSimilarity('name', name)).filter(similarity__gt=0.2).order_by('-similarity')
+                f.recs = Protein.objects.annotate(
+                    similarity=TrigramSimilarity('name', name)).filter(
+                    similarity__gt=0.2).order_by('-similarity')
         if len(f.qs) == 1:
             return redirect(f.qs.first())
     else:
@@ -271,11 +286,10 @@ def add_reference(request, slug=None):
             P.references.add(ref)
             if not request.user.is_staff:
                 P.status = 'pending'
-                mail_managers('Reference Added',
-                    "User: {}\nProtein: {}\nReference: {}, {}\n{}".format(
-                        request.user.username, P, ref, ref.title,
-                        request.build_absolute_uri(P.get_absolute_url())),
-                    fail_silently=True)
+                msg = "User: {}\nProtein: {}\nReference: {}, {}\n{}".format(
+                    request.user.username, P, ref, ref.title,
+                    request.build_absolute_uri(P.get_absolute_url()))
+                mail_managers('Reference Added', msg, fail_silently=True)
             P.save()
             reversion.set_user(request.user)
             reversion.set_comment('Ref: {} added to {}'.format(ref, P))
@@ -285,29 +299,31 @@ def add_reference(request, slug=None):
 
 
 def filter_import(request, brand):
+    part = request.POST['part']
     if brand.lower() == 'chroma':
         importer = import_chroma_spectra
     elif brand.lower() == 'semrock':
+        part = normalize_semrock_part(part)
         importer = import_semrock_spectra
     else:
         raise ValueError('unknown brand')
 
-    part = request.POST['part']
     newObjects = []
     errors = []
     response = {'status': 0}
+
     try:
-        urlv = URLValidator()
-        urlv(part)
-        try:
-            newObjects, errors = importer(url=part)
-        except Exception as e:
-            response['message'] = str(e)
-    except ValidationError:
-        try:
-            newObjects, errors = importer(part=part)
-        except Exception as e:
-            response['message'] = str(e)
+        Filter.objects.get(slug=slugify(brand + ' ' + part))
+        response['message'] = '{} {} already in database'.format(
+            brand.title(), part)
+        return JsonResponse(response)
+    except Filter.DoesNotExist:
+        pass
+
+    try:
+        newObjects, errors = importer(part=part)
+    except Exception as e:
+        response['message'] = str(e)
 
     if newObjects:
         spectrum = newObjects[0]
@@ -319,8 +335,10 @@ def filter_import(request, brand):
                 'subtype': spectrum.subtype,
                 'slug': spectrum.owner.slug,
                 'name': spectrum.owner.name,
-                })
+            })
         }
+        spectrum.owner.created_by = request.user
+        spectrum.owner.save()
     elif errors:
         try:
             if errors[0][1].as_data()['owner'][0].code == 'owner_exists':
