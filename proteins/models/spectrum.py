@@ -102,7 +102,7 @@ class SpectrumData(ArrayField):
                 raise ValidationError("All items in Septrum list elements must be numbers")
 
 
-class SpectrumOwner(models.Model):
+class SpectrumOwner(Authorable):
     name        = models.CharField(max_length=100)  # required
     slug        = models.SlugField(max_length=128, unique=True, help_text="Unique slug for the %(class)")  # calculated at save
 

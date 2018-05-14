@@ -127,7 +127,7 @@ class StatesManager(models.Manager):
         return self.filter(is_dark=False)
 
 
-class State(Authorable, TimeStampedModel, Fluorophore):
+class State(TimeStampedModel, Fluorophore):
     DEFAULT_NAME = 'default'
 
     """ A class for the states that a given protein can be in (including spectra and other state-dependent properties)  """
