@@ -1,6 +1,6 @@
 {
   "name": "fpbase",
-  "license": "MIT",
+  "license": "gpl-3.0",
   "repository": {
     "type": "git",
     "url": "git://https://github.com/tlambert03/FPbase.git"
