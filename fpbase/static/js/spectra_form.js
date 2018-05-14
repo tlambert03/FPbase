@@ -40,7 +40,7 @@ var formSelection = function(filter) {
 
 var fluorRow = function(widget) {
     var rowID = 'f' + uniqueID();
-    return $('<div>', { 'class': 'form-inline fluor-row row mb-2' }).attr('id', rowID)
+    return $('<div>', { 'class': 'form-inline fluor-row row' }).attr('id', rowID)
         .append($('<div>', {class: 'col input-group input-group-sm'})
             .append($('<div>', {class: 'input-group-prepend select2-bootstrap-prepend'})
                 .append($('<button>', { 'class': 'btn btn-danger btn-sm remove-row', 'type': 'button'})
@@ -107,7 +107,7 @@ var fluorRow = function(widget) {
 
 var excRow = function(widget, cls) {
     var rowID = 'l' + uniqueID();
-    return $('<div>', { 'class': 'form-inline row mb-2 ' + cls}).attr('id', rowID)
+    return $('<div>', { 'class': 'form-inline row ' + cls}).attr('id', rowID)
         .append($('<div>', { class: 'col input-group input-group-sm' })
             .append($('<div>', {class: 'input-group-prepend select2-bootstrap-prepend'})
                 .append($('<button>', { 'class': 'btn btn-danger btn-sm remove-row', 'type': 'button'})
@@ -156,7 +156,7 @@ var excRow = function(widget, cls) {
                 })
             )
         )
-        .append($('<div>', { 'class': 'col-2 custom-control custom-radio ml-2' })
+        .append($('<div>', { 'class': 'col-2 custom-control custom-radio ml-2 custom_laser_form' }).hide()
             .append($('<input>', {
                     'class': 'exnormcheck custom-control-input',
                     'data-checktype': 'exnorm',
@@ -164,7 +164,7 @@ var excRow = function(widget, cls) {
                     'type': 'radio',
                     'name': 'exnormRadio',
                     'value':  rowID,
-                    'id': rowID + '_norm'
+                    'id': rowID + '_norm',
                     }
                 ).click(function(e){
                     lastval = $(this).data('lastval');
@@ -185,7 +185,7 @@ var excRow = function(widget, cls) {
             )
             .append($('<label>', {
                     'class': 'custom-control-label',
-                    'for': rowID + '_norm'
+                    'for': rowID + '_norm',
                 }).text('norm em')
             )
         );
@@ -193,9 +193,9 @@ var excRow = function(widget, cls) {
 
 var filterRow = function(widget, stype) {
     var rowID = stype + uniqueID();
-    return $('<div>', { 'class': 'form-inline filter-row row mb-2', 'data-ftype': stype })
+    return $('<div>', { 'class': 'form-inline filter-row row', 'data-ftype': stype })
         .attr('id', rowID)
-        .append($('<div>', {class: 'col input-group input-group-sm'})
+        .append($('<div>', {class: 'col-6 col-md input-group input-group-sm'})
             .append($('<div>', {class: 'input-group-prepend select2-bootstrap-prepend'})
                 .append($('<button>', { 'class': 'btn btn-danger btn-sm remove-row', 'type': 'button'})
                     .html('<strong>&times;</strong>')
@@ -203,7 +203,7 @@ var filterRow = function(widget, stype) {
             )
             .append(widget.attr('id', rowID + '_selector'))
         )
-        .append($('<div>', { 'class': 'col-3 input-group input-group-sm custom_bp_form'}).hide()
+        .append($('<div>', { 'class': 'col-6 col-md-3 input-group input-group-sm custom_bp_form'}).hide()
             .append($('<div>', { 'class': 'input-group-prepend' })
                 .append($('<span>', {
                         'class': 'input-group-text',
@@ -223,7 +223,7 @@ var filterRow = function(widget, stype) {
                 })
             )
         )
-        .append($('<div>', { 'class': 'col-3 input-group input-group-sm custom_bp_form'}).hide()
+        .append($('<div>', { 'class': 'col-6 col-md-3 input-group input-group-sm custom_bp_form'}).hide()
             .append($('<div>', { 'class': 'input-group-prepend' })
                 .append($('<span>', {
                         'class': 'input-group-text',
@@ -243,7 +243,7 @@ var filterRow = function(widget, stype) {
                 })
             )
         )
-        .append($('<div>', { 'class': 'col-2 input-group input-group-sm custom_bp_form'}).hide()
+        .append($('<div>', { 'class': 'col-6 col-md-2 input-group input-group-sm custom_bp_form'}).hide()
             .append($('<div>', { 'class': 'input-group-prepend' })
                 .append($('<span>', {
                         'class': 'input-group-text',

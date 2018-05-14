@@ -292,4 +292,11 @@ table.spectra-form {
   font-size: 0.7rem;
 }
 
+.spectra-form .row {
+  padding-bottom: 5px;
+  padding-top: 5px;
+}
+.spectra-form .row:nth-child(n+2) {
+  @include media-breakpoint-down(xs){ border-top: 1px solid #ddd };
+}
 

@@ -71,7 +71,7 @@
       <h6 class='text-info mt-4'>Other Probes<button type="button" class="btn btn-info btn-xs addFormItem ml-3" value='d'><i class="fas fa-plus mr-2"></i>Add probe</button></h6>
       <div class='spectra-form' id='dye-table'></div>
 
-      <div class="form-inline row" id='toggle_alls'>
+      <div class="form-inline row mt-2" id='toggle_alls'>
         <p class="offset-5 offset-sm-6 form-group col-3 d-inline text-right">toggle all:</p>
         <div class="col-1 custom-control custom-checkbox">
           <input class="toggleall custom-control-input" id="toggle_all_ex" type="checkbox" id="inlineCheckbox1" value="ex" checked>
@@ -165,6 +165,7 @@
 </script>
 
 {% compress js %}
+<script src="{% static 'js/spectra_form.js' %}"></script>
 <script src="{% static 'js/spectra.js' %}"></script>
 {% endcompress %}
 
