@@ -43,8 +43,6 @@ var userOptions = {
 }
 var svg = d3.select('#spectra svg');
 
-$.getScript("/static/js/spectra_form.js");
-
 
 
 function getData(slug) {
@@ -490,10 +488,9 @@ $("body").on('change', '.data-selector', function(event) {
     var slug = $(this).val();
     var row = $(this).closest('.row');
     // if the item is already selected, cancel operation
-    if (dataHasSlug(slug)) {
+    if (dataHasSlug(slug) && slug != focusedItem) {
         alert(localData[slug][0].key.replace(' em','') + ' is already selected.');
-
-        event.preventDefault()
+        row.find('.data-selector').val(focusedItem).change();
         return;
     }
 
