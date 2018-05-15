@@ -463,23 +463,22 @@ class Spectrum(Authorable, TimeStampedModel):
         elif self.category == self.LIGHT:
             D["color"] = 'url(#wavecolor_gradient)'
 
-        if self.owner_state:
-            if self.category in (self.PROTEIN, self.DYE):
-                if self.subtype == self.EX:
-                    D.update({
-                        'scalar': self.owner.ext_coeff,
-                        'ex_max': self.owner.ex_max,
-                    })
-                elif self.subtype == self.EM:
-                    D.update({
-                        'scalar': self.owner.qy,
-                        'em_max': self.owner.em_max,
-                    })
-                elif self.subtype == self.TWOP:
-                    D.update({
-                        'scalar': self.owner.twop_peakGM,
-                        'twop_qy': self.owner.twop_qy
-                    })
+        if self.category in (self.PROTEIN, self.DYE):
+            if self.subtype == self.EX:
+                D.update({
+                    'scalar': self.owner.ext_coeff,
+                    'ex_max': self.owner.ex_max,
+                })
+            elif self.subtype == self.EM:
+                D.update({
+                    'scalar': self.owner.qy,
+                    'em_max': self.owner.em_max,
+                })
+            elif self.subtype == self.TWOP:
+                D.update({
+                    'scalar': self.owner.twop_peakGM,
+                    'twop_qy': self.owner.twop_qy
+                })
         return D
 
     def d3data(self):
