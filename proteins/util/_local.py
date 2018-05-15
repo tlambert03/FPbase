@@ -2,15 +2,16 @@ import os
 import json
 import tablib
 import traceback
-import requests
 import pandas as pd
 from fpbase.users.models import User
 from django.utils.text import slugify
 from references.models import Reference
 from .. import forms
-from ..models import Protein, State, StateTransition, BleachMeasurement, Organism, ProteinCollection
+from ..models import (Protein, State, StateTransition, BleachMeasurement,
+                      Organism, ProteinCollection, Dye, Spectrum)
 from ..forms import SpectrumForm
-from ..util.importers import text_to_spectra, zip_wave_data, import_spectral_data
+from ..util.importers import (text_to_spectra, zip_wave_data,
+                              import_spectral_data, import_chroma_spectra)
 from ..validators import protein_sequence_validator
 
 
@@ -283,24 +284,68 @@ def import_csv_spectra(file, **kwargs):
     return import_spectral_data(waves, data, headers, **kwargs)
 
 
-def import_Alexa():
-    d = os.path.join(BASEDIR, '_data/Alexa')
+def import_thermo():
+    d = os.path.join(BASEDIR, '_data/Thermo')
     for f in os.listdir(d):
         if not f.endswith('.csv'):
             continue
         name = f.strip('.csv')
         objs, errs = import_csv_spectra(os.path.join(d, f), categories='d', owner=name)
-        print(objs[0].owner)
-        objs[0].owner.manufacturer = 'ThermoFisher'
-        part = name.lower().replace(' ', '-')
-        thermourl = 'https://www.thermofisher.com/us/en/home/life-science/cell-analysis/fluorophores/*.html'
-        url = thermourl.replace('*', part)
-        if requests.get(url).status_code == 200:
-            objs[0].owner.part = part
-        else:
-            print('skipping part number: ', part)
-        objs[0].owner.save()
-        objs[0].owner.created_by = User.objects.first()
+        if len(objs):
+            owner = objs[0].owner
+            for spect in objs:
+                if spect.subtype == Spectrum.EX:
+                    owner.ex_max = spect.peak_wave
+                elif spect.subtype == Spectrum.EM:
+                    owner.em_max = spect.peak_wave
+                elif spect.subtype == Spectrum.TWOP:
+                    owner.twop_ex_max = spect.peak_wave
+            owner.manufacturer = 'ThermoFisher'
+            part = name.lower().replace(' ', '-')
+            owner.part = part
+            owner.created_by_id = 1
+            owner.save()
+            owner.created_by = User.objects.first()
+        elif len(errs):
+            print('Error importing: ', f)
+            print(errs[0][1].as_text())
+
+    update_dyes()
+
+
+def update_dyes(file=None):
+    if not file:
+        file = os.path.join(BASEDIR, '_data/dyes.csv')
+    if os.path.isfile(file):
+        import tablib
+        with open(os.path.join(BASEDIR, '_data/dyes.csv')) as csvf:
+            D = tablib.Dataset().load(csvf.read())
+            for row in D.dict:
+                try:
+                    owner = Dye.objects.get(slug=row['slug'])
+                    for field in ('ext_coeff', 'qy', 'lifetime', 'pka', 'part', 'url'):
+                        if row[field]:
+                            try:
+                                setattr(owner, field, float(row[field]))
+                            except ValueError:
+                                setattr(owner, field, row[field])
+                    owner.save()
+                except Exception as e:
+                    print('Skipping {}: {}'.format(row['slug'], e))
+
+
+def dyes_csv(file='/Users/talley/Desktop/dyes.csv'):
+    import csv
+    with open(file, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        # write your header first
+        headers = ('id', 'slug', 'name', 'part', 'manufacturer', 'qy', 'ext_coeff', 'pka', 'lifetime')
+        writer.writerow(headers)
+        for obj in Dye.objects.all():
+            row = []
+            for field in headers:
+                row.append(getattr(obj, field))
+            writer.writerow(row)
 
 
 def import2P():
@@ -733,3 +778,24 @@ ORGLOOKUP = {'Acanthastrea sp. ': None,
  'Anthomedusae sp.': 406427,
  'Acanthastrea sp.': 406427,
  }
+
+
+def import_chroma():
+    parts = ('ZET488/594m', 'ZET488/561m', 'ZET405/488/561/647x', 'ZET405/488/561/647m',
+             'ZET405/488/561/640m', 'T660lpxr', 'T570lp', 'T515lp', 'T455lp', 'T425lpxr',
+             'T400lp', 'S630/60m', 'S535/40m', 'S470/30m', 'Q660lp', 'Q585lp', 'Q565lp',
+             'Q505lp', 'HQ630/40m', 'HQ535/50m', 'HQ480/40x', 'ET705/72m', 'ET700/75m',
+             'ET645/30x', 'ET632/60m', 'ET620/60x', 'ET620/60m', 'ET610lp',
+             'ET605/70m', 'ET605/52m', 'ET600/50m', 'ET572/35x', 'ET560/40x', 'ET555/25x',
+             'ET545/30x', 'ET535/50m', 'ET535/30m', 'ET525/50m', 'ET525/36m',
+             'ET510/80m', 'ET500lp', 'ET500/20x', 'ET490/20x', 'ET480/40x',
+             'ET480/40m', 'ET480/30x', 'ET470/24m', 'ET460/50m',
+             'ET455/50m', 'ET436/20x', 'ET430/24x', 'ET402/15x', 'ET395/25x', 'ET380x',
+             'ET340x', 'D620/60m', 'D540/25x', 'D/F/Cy3/Cy5', 'CFP/YFP/mCherry XT',
+             'AT350/50x', '89100bs', '86002v1bs', '69008bs', '69002bs', '59022bs')
+
+    for p in parts:
+        try:
+            import_chroma_spectra(p)
+        except Exception as e:
+            print('Could not import chroma part {} ({})'.format(p, e))

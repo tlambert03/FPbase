@@ -143,7 +143,7 @@ def text_to_spectra(text, wavecol=0):
     if headers:
         headers.pop(wavecol)
 
-    outdata = np.zeros((data.width-1, data.height), dtype='f')
+    outdata = np.zeros((data.width - 1, data.height), dtype='f')
     if data.height:
         s = 0
         for column in range(data.width):
@@ -215,7 +215,7 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
             kwargs['stypes'] = 'bm'
         elif part.lower().endswith(('ex', 'x', 'bp')):
             kwargs['stypes'] = 'bx'
-        elif 'rpc' in part:
+        elif ('rpc' in part) or ('bs' in part):
             kwargs['stypes'] = 'bs'
         elif 'lp' in part:
             kwargs['stypes'] = 'lp'
