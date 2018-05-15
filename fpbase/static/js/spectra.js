@@ -295,8 +295,9 @@ $(function() {
 
     $.each( userOptions, function( key, value ) {
         $('#options-form')
-            .append($('<div>', {class: 'form-row form-check'})
-            .append($('<input>', {type: value.type, id: key + '-input', class:'form-check-input', checked: options[key]})
+            .append($('<div>', {class: 'custom-control custom-checkbox mb-1 pb-1'})
+            .append($('<input>', {type: value.type, class:'custom-control-input', checked: options[key]})
+                .attr('id', key + '_input')
                 .change(function(){
                     if (value.type == 'checkbox') {
                         options[key] = this.checked;
@@ -306,11 +307,11 @@ $(function() {
                     refreshChart();
                 })
             )
-            .append($('<label>', {for: key + '-input', class: 'form-check-label'}).text(value.msg))
+            .append($('<label>', {for: key + '_input', class: 'custom-control-label'}).text(value.msg))
         )
     });
 
-    addFormItem('p');
+    addFormItem('p', );
     addFormItem('d');
     addFormItem('l');
     addFormItem('f', 'bx');
@@ -474,7 +475,7 @@ function setYscale(type) {
 /// Form Events
 
 $(".addFormItem").click(function(e) {
-    addFormItem(this.value, $(this).data('stype'));
+    addFormItem(this.value, $(this).data('stype'), true);
 });
 
 
@@ -659,7 +660,8 @@ function updateCustomLaser(row) {
 }
 
 
-var addFormItem = function(category, stype) {
+var addFormItem = function(category, stype, open) {
+    open = open || false;
     var filter = { 'category': category };
     if (stype) { filter.subtype = stype; }
     var selWidget = formSelection(filter)
@@ -684,9 +686,12 @@ var addFormItem = function(category, stype) {
         $(filterRow(selWidget, stype)).appendTo($('#camqe-table'));
     }
 
-    selWidget.select2({ theme: "bootstrap", width: '70%'});
-
-
+    var a = selWidget.select2({ theme: "bootstrap", width: '70%'});
+    if (open){
+        focusedItem = $(this).closest('.row').find('.data-selector').val();
+        console.log(focusedItem);
+        a.select2('open');
+    }
 };
 
 
@@ -987,7 +992,8 @@ function calculateEfficiency() {
         for (n = 0; n < iEmFilt.length; n++) {
             var EMtrans = spectral_product(data[iEmFilt[n]].values, emspectrum.values);
             overlaps.push(EMtrans);
-            var EMpower = trapz(EMtrans) / trapz(emspectrum.values);
+            var absEM = trapz(EMtrans)
+            var EMpower = absEM / trapz(emspectrum.values);
             var formatted = Math.round(EMpower * 10000) / 100;
             var effclass = 'efficiency-vbad';
             if (formatted > 75) {
@@ -1002,7 +1008,7 @@ function calculateEfficiency() {
                 .find('tr:last')
                 .append($('<td>', { 'class': effclass })
                     .append(eyebutton(iSpectra[s], iEmFilt[n], overlaps.length - 1))
-                    .append(formatted + '%')
+                    .append(formatted + '% / (' + Math.round(absEM * 100) / 100 + ')')
                 );
         }
     }
