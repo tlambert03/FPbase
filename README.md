@@ -4,7 +4,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![cookie](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-brightgreen.svg)](https://github.com/pydanny/cookiecutter-django/)
+[![Build Status](https://travis-ci.org/tlambert03/FPbase.svg?branch=develop)](https://travis-ci.org/tlambert03/FPbase)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1244328.svg)](https://doi.org/10.5281/zenodo.1244328)
+
 
 https://www.fpbase.org
 
