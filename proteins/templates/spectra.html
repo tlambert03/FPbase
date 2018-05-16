@@ -62,6 +62,9 @@
     <li class="nav-item">
       <a class="nav-link" href="#optionstab" data-toggle="tab">Opt<span class="d-none d-md-inline">ions</span></a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#helptab" data-toggle="tab">Help</a>
+    </li>
   </ul>
   <div class="tab-content ">
     <div class="tab-pane active" id="proteintab">
@@ -94,8 +97,6 @@
 
       <h6 class='text-info mt-4'>Excitation Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bx'><i class="fas fa-plus mr-2"></i>Add Excitation Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'><i class="fas fa-download mr-2"></i>Import Commercial Filter</button></a></h6>
       <div class='spectra-form' id='exfilter-table'></div>
-
-
     </div>
 <!--     <div class="tab-pane" id="dichroictab">
       <div class='spectra-form' id='dichroic-table'></div>
@@ -132,6 +133,44 @@
         </div>
         <p class="text-muted"><em>Note: When scaling to EC or QY, dyes/probes lacking EC/QY values in the database will disappear on the graph!</em></p>
         <button class='btn btn-danger btn-sm' id='undo-scaling'>Undo all scaling</button>
+      </div>
+    </div>
+
+    <div class="tab-pane" id="helptab">
+      <div class="container mt-3">
+        <p class='text-justify'>Add items to the spectra viewer by clicking the corresponding <strong class='text-info'>add...</strong> button for the type of item you would like to add (e.g. fluorescent protein, filter, etc...).  Remove items by clicking the red <span class='text-danger'><strong>&times;</strong></span> button next to the item you wish to remove.  Add chroma/semrock filters to the viewer by using the "import commercial filter" buttons. Scale excitation spectra to EC or emission spectra to QY using the corresponding options in the options tab (note, not all dyes have EC/QY information and some will disappear from the graph).  If you add a custom laser in the excitation/light tab, you can scale all emission spectra to their relative excitation at that particular laser line.  If you add at least one fluorophore and one emission filter, you can use the collection efficiency tab to evaluate how well each emission filter collects emission from each probe (and evaluate potential bleedthrough).  If you would like to see a spectrum added to the database, for now, please request using the <a href="{% url 'contact' %}">contact form</a>... spectra addition form coming soon.</p>
+        <h5 class=' pb-2'><i class="far fa-keyboard mr-2"></i><strong>Keyboard Shortcuts</strong></h5>
+        <div class="container">
+          <dl class="row">
+            <dt class="col-sm-2 key-shortcut">Shift + P</dt>
+            <dd class="col-sm-10">Add a new protein</dd>
+            <dt class="col-sm-2 key-shortcut">Shift + D</dt>
+            <dd class="col-sm-10">Add a new dye (other probe)</dd>
+            <dt class="col-sm-2 key-shortcut">Shift + L</dt>
+            <dd class="col-sm-10">Add a new light source</dd>
+            <dt class="col-sm-2 key-shortcut">Shift + X</dt>
+            <dd class="col-sm-10">Add a new excitation filter</dd>
+            <dt class="col-sm-2 key-shortcut">Shift + M</dt>
+            <dd class="col-sm-10">Add a new emission filter</dd>
+            <dt class="col-sm-2 key-shortcut">Shift + O</dt>
+            <dd class="col-sm-10">Go to options tab</dd>
+            <dt class="col-sm-2 key-shortcut">Shift + F</dt>
+            <dd class="col-sm-10">Go to efficiency tab</dd>
+            <br><br>
+            <dt class="col-sm-2 key-shortcut">Left Arrow</dt>
+            <dd class="col-sm-10">Activate previous tab.</dd>
+            <dt class="col-sm-2 key-shortcut">Left Arrow</dt>
+            <dd class="col-sm-10">Activate next tab.</dd>
+            <dt class="col-sm-2 key-shortcut">Up arrow</dt>
+            <dd class="col-sm-10">Go to previous item in form (within same group)</dd>
+            <dt class="col-sm-2 key-shortcut">Down arrow</dt>
+            <dd class="col-sm-10">Go to next item in form (within same group)</dd>
+            <dt class="col-sm-2 key-shortcut">Delete</dt>
+            <dd class="col-sm-10">Delete currently focused item (green outline = focus)</dd>
+            <dt class="col-sm-2 key-shortcut">Delete</dt>
+            <dd class="col-sm-10">Delete currently focused item (green outline = focus)</dd>
+          </dl>
+        </div>
       </div>
     </div>
 

@@ -40,7 +40,7 @@ var userOptions = {
     hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
     scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
     scaleToQY: {type: 'checkbox', msg: 'Scale emission spectra to quantum yield'},
-}
+};
 var svg = d3.select('#spectra svg');
 
 
@@ -94,6 +94,15 @@ function dataHasSlug(slug) {
     return $.grep(data, function(obj) { return obj.slug == slug; }).length > 0;
 }
 
+function slugOptions(slug) {
+    for (var i = 0; i < spectra_options.length; i++ ){
+        if (spectra_options[i].slug == slug) {
+            return spectra_options[i]
+        }
+    }
+    return false;
+}
+
 function dataItemMatching(filter, d) {
     d = d || data;
     return d.filter(function(item) {
@@ -106,7 +115,6 @@ function dataItemMatching(filter, d) {
 }
 
 function addItem(slug, subtype) {
-    console.log(slug)
     // add spectral data to array
     subtype = subtype || false;
 
@@ -289,6 +297,19 @@ function scaleDataToOptions(){
 }
 
 //// ON WINDOW LOAD
+function getUrlParams( prop ) {
+    var params = {};
+    var search = decodeURIComponent( window.location.href.slice( window.location.href.indexOf( '?' ) + 1 ) );
+    var definitions = search.split( '&' );
+
+    definitions.forEach( function( val, key ) {
+        var parts = val.split( '=', 2 );
+        params[ parts[ 0 ] ] = parts[ 1 ];
+    } );
+
+    return ( prop && prop in params ) ? params[ prop ] : params;
+}
+
 
 $(function() {
     $('#y-zoom-slider').hide();
@@ -311,13 +332,6 @@ $(function() {
             .append($('<label>', {for: key + '_input', class: 'custom-control-label'}).text(value.msg))
         )
     });
-
-    addFormItem('p', );
-    addFormItem('d');
-    addFormItem('l');
-    addFormItem('f', 'bx');
-    addFormItem('f', 'bm');
-    addFormItem('c');
 
     //initialize chart
     nv.addGraph(function() {
@@ -402,6 +416,31 @@ $(function() {
         resizeYSlider();
     });
 
+
+    urlParams = getUrlParams();
+    if ('s' in urlParams){
+        var arr = urlParams.s.toLowerCase().split(',');
+        for (var i = 0; i < arr.length; i++){
+            var opts = slugOptions(arr[i]);
+            console.log(opts);
+            if (Boolean(opts)){
+                try{
+                    // STILL BUGGY
+                    addFormItem(opts.category, opts.subtype, false, opts.slug);
+                } catch(e) { console.log(e); }
+
+            }
+        }
+    } else {
+        addFormItem('p', null, false, 'egfp_default');
+        addFormItem('d');
+    }
+    addFormItem('l');
+    addFormItem('f', 'bx');
+    addFormItem('f', 'bm');
+    addFormItem('c');
+
+
     $(".scale-btns input").change(function() { setYscale(this.value); });
 
 
@@ -452,10 +491,6 @@ $(function() {
     $('#undo-scaling').click(function() {
         unscale_all();
     });
-
-});
-
-$(window).on('load', function() {
 
 });
 
@@ -674,8 +709,9 @@ function updateCustomLaser(row) {
 }
 
 
-var addFormItem = function(category, stype, open) {
+var addFormItem = function(category, stype, open, value) {
     open = open || false;
+    value = value || undefined;
     var filter = { 'category': category };
     if (stype) { filter.subtype = stype; }
     var selWidget = formSelection(filter)
@@ -701,7 +737,9 @@ var addFormItem = function(category, stype, open) {
     }
 
     var a = selWidget.select2({ theme: "bootstrap", width: '70%'});
-    if (open){
+    if (value){
+        a.val(value).change();
+    } else if (open){
         focusedItem = $(this).closest('.row').find('.data-selector').val();
         a.select2('open');
     }
@@ -1079,6 +1117,7 @@ function activateTab(tab){
 };
 
 function findEmptyOrAdd(table, formtype, subtype){
+    focusedItem = 0;
     var el = $("#" + table + "-table").find('select option[value="0"]:selected');
     if(el.length){
         el.last().closest('select').select2('open');
@@ -1117,10 +1156,10 @@ $( "body" ).keypress(function( event ) {
     } else if ( event.which == 70 ) {  // f key
         activateTab("efftab")
     }
+
 });
 
 $( "body" ).keydown(function( event ) {
-    console.log(event.which)
     if ( event.which == 8 ) { // delete key
         var nextobject = $(':focus').closest('.row').prev('.row').find('.select2-selection--single');
         $(':focus').closest('.input-group').find('button.remove-row').click();
