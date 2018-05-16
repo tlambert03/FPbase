@@ -1,10 +1,9 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.db import models
-from django.forms import Textarea
 from proteins.models import (Protein, State, StateTransition, Organism,
-    FRETpair, BleachMeasurement, Spectrum, Dye)
+                             FRETpair, BleachMeasurement, Spectrum, Dye,
+                             Light, Filter, Camera)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.models import Version
 from reversion.admin import VersionAdmin
@@ -73,6 +72,26 @@ class myVersionAdmin(admin.ModelAdmin):
     model = Version
 
 
+@admin.register(Light)
+class LightAdmin(admin.ModelAdmin):
+    model = Light
+
+
+@admin.register(Dye)
+class DyeAdmin(VersionAdmin):
+    model = Dye
+
+
+@admin.register(Filter)
+class FilterAdmin(VersionAdmin):
+    model = Filter
+
+
+@admin.register(Camera)
+class CameraAdmin(VersionAdmin):
+    model = Camera
+
+
 @admin.register(Spectrum)
 class SpectrumAdmin(admin.ModelAdmin):
     model = Spectrum
@@ -117,11 +136,6 @@ class StateAdmin(CompareVersionAdmin):
         url = reverse("admin:proteins_protein_change", args=([obj.protein.pk]))
         return mark_safe('<a href="{}">{}</a>'.format(url, obj.protein))
     protein_link.short_description = 'Protein'
-
-
-@admin.register(Dye)
-class DyeAdmin(VersionAdmin):
-    model = Dye
 
 
 @admin.register(StateTransition)

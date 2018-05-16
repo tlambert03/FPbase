@@ -36,7 +36,7 @@ var formSelection = function(filter) {
     }
 
     return selWidget;
-}
+};
 
 var fluorRow = function(widget) {
     var rowID = 'f' + uniqueID();

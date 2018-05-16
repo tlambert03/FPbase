@@ -303,9 +303,8 @@ def import_thermo():
             owner.manufacturer = 'ThermoFisher'
             part = name.lower().replace(' ', '-')
             owner.part = part
-            owner.created_by_id = 1
-            owner.save()
             owner.created_by = User.objects.first()
+            owner.save()
         elif len(errs):
             print('Error importing: ', f)
             print(errs[0][1].as_text())
@@ -830,6 +829,7 @@ def import_lumencor():
             owner.part = slugify(f.strip('.txt'))
             if 'spectrax' in f.lower():
                 owner.url = 'http://lumencor.com/products/spectra-x-light-engine/'
+            owner.created_by = User.objects.first()
             owner.save()
 
     D = os.path.join(BASEDIR, '_data/lumencorFilters')
@@ -850,4 +850,5 @@ def import_lumencor():
             owner.manufacturer = 'lumencor'
             owner.part = slugify(name)
             owner.url = 'http://lumencor.com/products/filters-for-spectra-x-light-engines/'
+            owner.created_by = User.objects.first()
             owner.save()

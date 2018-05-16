@@ -1,3 +1,6 @@
+import numpy as np
+import ast
+import json
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
@@ -6,14 +9,10 @@ from django.utils.text import slugify
 from django.forms import Textarea, CharField
 from model_utils.models import TimeStampedModel
 from model_utils.managers import QueryManager
-import json
-
 from .mixins import Authorable, Product
 from ..util.helpers import wave_to_hex
 from scipy import interpolate
 from scipy.signal import argrelextrema, savgol_filter
-import numpy as np
-import ast
 
 
 def is_monotonic(array):
