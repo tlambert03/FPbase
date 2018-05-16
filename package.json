@@ -14,6 +14,7 @@
     "bootstrap": "^4.1.1",
     "browser-sync": "^2.24.0",
     "del": "^2.2.2",
+    "eslint-config-google": "^0.9.1",
     "favicons": "^5.1.1",
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^5.0.0",
