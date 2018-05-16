@@ -106,6 +106,7 @@ function dataItemMatching(filter, d) {
 }
 
 function addItem(slug, subtype) {
+    console.log(slug)
     // add spectral data to array
     subtype = subtype || false;
 
@@ -190,7 +191,7 @@ function unscale_all(){
 function scale_data_up(filter){
     // scale data "up" according to the data.scalar value
     // filter can be .e.g. {type: 'ex'} to scale by ExtCoeff
-    var maxScalar = Math.max.apply(null, data.map(function(e) { return e.scalar || 0; }));
+    var maxScalar = Math.max.apply(null, data.map(function(e) { return e.scalar || 0; })) || 1;
     for (var n=0; n < data.length; n++){
         // only scale certain data by filter
         var skip = false;
@@ -203,7 +204,7 @@ function scale_data_up(filter){
         }
 
         if (!skip){
-            var SCALE = data[n].scalar || 1;
+            var SCALE = data[n].scalar || 0.001;
             if (data[n].type == 'ex'){ SCALE /= maxScalar; }
             // do the scaling
             for (var i=0; i < data[n].values.length; i++){
@@ -316,6 +317,7 @@ $(function() {
     addFormItem('l');
     addFormItem('f', 'bx');
     addFormItem('f', 'bm');
+    addFormItem('c');
 
     //initialize chart
     nv.addGraph(function() {
@@ -340,6 +342,13 @@ $(function() {
             });
         chart.lines.duration(0);
         chart.brushExtent(options.startingBrush);
+        chart.interactiveLayer.tooltip.valueFormatter(function(d, i) {
+            if (d){
+                return Math.round(d*1000)/10 + '%';
+            } else {
+                return '--';
+            }
+        })
 
         // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly
         // return themselves, not the parent chart, so need to chain separately
@@ -483,6 +492,7 @@ var focusedItem;
 $("body").on('focus', '.data-selector, .select2', function(event) {
     // Store the current value on focus and on change
     focusedItem = $(this).closest('.row').find('.data-selector').val();
+    console.log(focusedItem)
 });
 
 // main function when data-selector has been changed
@@ -494,7 +504,12 @@ $("body").on('change', '.data-selector', function(event) {
     if (dataHasSlug(slug) && slug != focusedItem) {
         alert(localData[slug][0].key.replace(' em','').replace(' 2p','')
             .replace(' ex','')+ ' is already selected.');
-        row.find('.data-selector').val(focusedItem).change();
+        if (focusedItem){
+            row.find('.data-selector').val(focusedItem).change();
+        }else {
+            row.find('.data-selector').val(0).change();
+        }
+
         return;
     }
 
@@ -530,7 +545,7 @@ $("body").on('change', '.data-selector', function(event) {
     }
     // Add the new item to the data (unless it's blank)
     // then update the chart
-    else if (slug) {
+    else if (slug != null && slug != 0) {
         addItem(slug).then(function() {
             if (localData[slug][0].url) {
                 $(selector)
@@ -588,7 +603,6 @@ $("body").on('click', '.remove-row', function(e) {
     if ($('.fluor-row').length <= 1) {
         $("#toggle_alls").hide();
     }
-
 });
 
 $("body").on('change', '.custom_bp_form input', function(e) {
@@ -689,7 +703,6 @@ var addFormItem = function(category, stype, open) {
     var a = selWidget.select2({ theme: "bootstrap", width: '70%'});
     if (open){
         focusedItem = $(this).closest('.row').find('.data-selector').val();
-        console.log(focusedItem);
         a.select2('open');
     }
 };
@@ -1058,4 +1071,79 @@ $(".importerClose").click(function(){
     $("#footerFail").hide();
     $("#footerSuccess").hide();
 });
+
+// KEYBINDINGS
+
+function activateTab(tab){
+  $('.nav-tabs a[href="#' + tab + '"]').tab('show');
+};
+
+function findEmptyOrAdd(table, formtype, subtype){
+    var el = $("#" + table + "-table").find('select option[value="0"]:selected');
+    if(el.length){
+        el.last().closest('select').select2('open');
+    } else {
+        addFormItem(formtype, subtype, true);
+    }
+}
+
+
+$( "body" ).keypress(function( event ) {
+
+    // no double-events
+    if ($(':focus').hasClass('select2-search__field')){ return; }
+
+    // ALL KEYS REQUIRE SHIFT
+    if ( event.which == 80 ) { // p key
+        activateTab("proteintab");
+        findEmptyOrAdd("protein", 'p')
+    } else if ( event.which == 68 ) {  // d key
+        activateTab("proteintab")
+        findEmptyOrAdd("dye", 'd')
+    } else if ( event.which == 77 ) {  // m key
+        activateTab("emtab")
+        findEmptyOrAdd("emfilter", 'f', 'bm')
+    } else if ( event.which == 88 ) {  // x key
+        activateTab("extab")
+        findEmptyOrAdd("exfilter", 'f', 'bx')
+    } else if ( event.which == 67 ) {  // c key
+        activateTab("emtab")
+        findEmptyOrAdd("camqe", 'c', 'qe')
+    } else if ( event.which == 76 ) {  // l key
+        activateTab("extab")
+        findEmptyOrAdd("light", 'l')
+    } else if ( event.which == 79 ) {  // o key
+        activateTab("optionstab")
+    } else if ( event.which == 70 ) {  // f key
+        activateTab("efftab")
+    }
+});
+
+$( "body" ).keydown(function( event ) {
+    console.log(event.which)
+    if ( event.which == 8 ) { // delete key
+        var nextobject = $(':focus').closest('.row').prev('.row').find('.select2-selection--single');
+        $(':focus').closest('.input-group').find('button.remove-row').click();
+        nextobject.focus();
+    }
+    if ( event.which == 38 ) { // up key
+        event.preventDefault();
+        $(':focus').closest('.row').prev('.row').find('.select2-selection--single').focus();
+    }
+    if ( event.which == 40 ) { // up key
+        event.preventDefault();
+        $(':focus').closest('.row').next('.row').find('.select2-selection--single').focus();
+    }
+
+    if ( event.which == 39 ) { // right key
+        event.preventDefault();
+        $(".nav-tabs .nav-link.active").closest('li.nav-item').next('.nav-item').find('.nav-link').click();
+    }
+    if ( event.which == 37 ) { // left key
+        event.preventDefault();
+        $(".nav-tabs .nav-link.active").closest('li.nav-item').prev('.nav-item').find('.nav-link').click();
+    }
+
+})
+
 

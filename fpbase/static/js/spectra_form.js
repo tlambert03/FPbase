@@ -5,7 +5,7 @@ var formSelection = function(filter) {
         'data-category': filter.category,
         'data-subtype': filter.subtype,
     });
-    selWidget.append($('<option>', { value: '' }).text('-----'));
+    selWidget.append($('<option>', { value: 0 }).text('-----'));
     if (filter.category == 'f') {
         selWidget.append($('<option>', { value: 'custom_bp' }).text('Custom Bandpass'));
     }

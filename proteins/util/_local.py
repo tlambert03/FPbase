@@ -290,7 +290,7 @@ def import_thermo():
         if not f.endswith('.csv'):
             continue
         name = f.strip('.csv')
-        objs, errs = import_csv_spectra(os.path.join(d, f), categories='d', owner=name)
+        objs, errs = import_csv_spectra(os.path.join(d, f), categories=Spectrum.DYE, owner=name)
         if len(objs):
             owner = objs[0].owner
             for spect in objs:
@@ -366,7 +366,12 @@ def import2P():
             x, y, headers = text_to_spectra(text)
             D = zip_wave_data(x, y[0])
 
-            sf = SpectrumForm({'data': D, 'category': 'p', 'subtype': '2p', 'owner': P.name})
+            sf = SpectrumForm({
+                'data': D,
+                'category': Spectrum.PROTEIN,
+                'subtype': Spectrum.TWOP,
+                'owner': P.name
+            })
             if sf.is_valid():
                 obj = sf.save()
                 P.default_state.twop_ex_max = obj._peakwave2p
@@ -799,3 +804,50 @@ def import_chroma():
             import_chroma_spectra(p)
         except Exception as e:
             print('Could not import chroma part {} ({})'.format(p, e))
+
+
+def import_lights():
+    file = os.path.join(BASEDIR, '_data/broadband_light_spectra.csv', stypes='pd')
+    objs, errs = import_csv_spectra(file,
+                                    categories=Spectrum.LIGHT,
+                                    stypes=Spectrum.PD)
+
+
+def import_lumencor():
+    D = os.path.join(BASEDIR, '_data/lumencor')
+    for f in os.listdir(D):
+        if not f.endswith('.txt'):
+            continue
+        objs, errs = import_csv_spectra(os.path.join(D, f),
+                                        categories=Spectrum.LIGHT,
+                                        stypes=Spectrum.PD,
+                                        owner=f.replace('.txt', ''))
+        if errs:
+            print(errs[0][1].as_text())
+        if objs:
+            owner = objs[0].owner
+            owner.manufacturer = 'lumencor'
+            owner.part = slugify(f.strip('.txt'))
+            if 'spectrax' in f.lower():
+                owner.url = 'http://lumencor.com/products/spectra-x-light-engine/'
+            owner.save()
+
+    D = os.path.join(BASEDIR, '_data/lumencorFilters')
+    for f in os.listdir(D):
+        if not f.endswith('.txt'):
+            continue
+        name = f.strip('.txt')
+        name = name[:3] + '/' + name[-2:] + 'x'
+        ownername = 'Lumencor ' + name
+        objs, errs = import_csv_spectra(os.path.join(D, f),
+                                        categories=Spectrum.FILTER,
+                                        stypes=Spectrum.BPX,
+                                        owner=ownername)
+        if errs:
+            print(errs[0][1].as_text())
+        if objs:
+            owner = objs[0].owner
+            owner.manufacturer = 'lumencor'
+            owner.part = slugify(name)
+            owner.url = 'http://lumencor.com/products/filters-for-spectra-x-light-engines/'
+            owner.save()

@@ -51,7 +51,7 @@ def interp_univar(x, y, s=1):
 
 
 def norm2one(y):
-    return [round(max(yy/max(y), 0), 4) for yy in y]
+    return [round(max(yy / max(y), 0), 4) for yy in y]
 
 
 def norm2P(y):
@@ -62,7 +62,7 @@ def norm2P(y):
     localmax = [i for i in localmax[0] if i > 10]
     maxind = localmax[np.argmax(y[localmax])]
     maxy = y[maxind]
-    return [round(max(yy/maxy, 0), 4) for yy in y], maxy, maxind
+    return [round(max(yy / maxy, 0), 4) for yy in y], maxy, maxind
 
 
 class SpectrumData(ArrayField):
@@ -151,8 +151,8 @@ class Filter(SpectrumOwner, Product):
         if self.bandcenter and self.bandwidth:
             try:
                 if self.spectra.count() == 1:
-                    wrange = ((self.bandcenter - self.bandwidth/2) + 2,
-                              (self.bandcenter + self.bandwidth/2) - 2)
+                    wrange = ((self.bandcenter - self.bandwidth / 2) + 2,
+                              (self.bandcenter + self.bandwidth / 2) - 2)
                     self.tavg = self.spectra.first().avg(wrange)
             except Exception:
                 pass
@@ -211,7 +211,7 @@ class SpectrumManager(models.Manager):
             'owner_state__slug', 'owner_state__protein__name',
             'owner_state__name', 'category', 'subtype').distinct()
         out = [(slug, prot, cat if state == 'default' else '{} ({})'.format(prot, state))
-              for slug, prot, state, cat in L]
+               for slug, prot, state, cat in L]
 
         for n in ('dye', 'light', 'filter', 'camera'):
             out += self.get_queryset().exclude(**{'owner_' + n: None}).values_list(

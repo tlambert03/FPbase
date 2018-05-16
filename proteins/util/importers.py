@@ -155,6 +155,7 @@ def text_to_spectra(text, wavecol=0):
     return waves, outdata, headers
 
 
+# FIXME: I kind of hate this function...
 def import_spectral_data(waves, data, headers=None, categories=[],
                          stypes=[], owner=None, minmax=None):
     '''
