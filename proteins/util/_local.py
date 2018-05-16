@@ -806,10 +806,15 @@ def import_chroma():
 
 
 def import_lights():
-    file = os.path.join(BASEDIR, '_data/broadband_light_spectra.csv', stypes='pd')
+    file = os.path.join(BASEDIR, '_data/broadband_light_spectra.csv')
     objs, errs = import_csv_spectra(file,
                                     categories=Spectrum.LIGHT,
                                     stypes=Spectrum.PD)
+    for obj in objs:
+        obj.owner.created_by = User.objects.first()
+        obj.created_by = User.objects.first()
+        obj.save()
+        obj.owner.save()
 
 
 def import_lumencor():
