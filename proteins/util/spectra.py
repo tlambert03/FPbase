@@ -17,17 +17,13 @@ if __name__ == '__main__':
     import json
     import subprocess
     import sys
-    from proteins.models.spectrum import norm2one
+    from proteins.util.importers import text_to_spectra
 
-    def file2spectra(file, interp=True, norm=True, dtype='', getcol=0):
-        waves, outdata, headers = get_file_data(file)
+    def file2spectra(file, dtype='', getcol=0):
+        waves, outdata, headers = text_to_spectra(file)
         x = waves
         y = outdata[getcol]
-        if interp:
-            x, y = interp2int(x, y)
-        if norm:
-            y = norm2one(y)
-        spectra = [list(x) for x in zip(x, y)]
+        spectra = [list(i) for i in zip(x, y)]
         if dtype.lower() == 'json':
             import json
             spectra = json.dumps(spectra)
@@ -41,10 +37,9 @@ if __name__ == '__main__':
         p.wait()
 
     infile = sys.argv[1]
-    x, y = get_file_data(infile)
-    x, y = interp2int(x, y)
-    y = norm2one(y)
-    out = [list(a) for a in zip(x, y)]
+    with open(infile, 'r') as f:
+        waves, outdata, headers = text_to_spectra(f.read())
+    out = [list([float(n) for n in a]) for a in zip(waves, outdata[0])]
     setClipboardData(out)
     print('data copied to clipboard')
 
