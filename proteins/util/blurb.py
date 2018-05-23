@@ -1,4 +1,4 @@
-def long_blurb(self, withbleach=False):
+def long_blurb(self, withbright=False, withbleach=False):
     blurb = self.name
     switch = self.get_switch_type_display().lower()
     if switch == 'basic':
@@ -12,18 +12,19 @@ def long_blurb(self, withbleach=False):
     else:
         blurb += '.  '
 
-    bright = None
     if self.default_state:
-        if self.default_state.local_brightness > 1.5:
-            bright = 'much brighter than'
-        elif self.default_state.local_brightness > 1.1:
-            bright = 'slightly brighter than'
-        elif self.default_state.local_brightness > 0.9:
-            bright = 'of average brightness compared to'
-        elif self.default_state.local_brightness > 0.5:
-            bright = 'slightly dimmer than'
-        elif self.default_state.local_brightness <= 0.5:
-            bright = 'much dimmer than'
+        bright = None
+        if withbright:
+            if self.default_state.local_brightness > 1.5:
+                bright = 'much brighter than'
+            elif self.default_state.local_brightness > 1.1:
+                bright = 'slightly brighter than'
+            elif self.default_state.local_brightness > 0.9:
+                bright = 'of average brightness compared to'
+            elif self.default_state.local_brightness >= 0.5:
+                bright = 'slightly dimmer than'
+            elif self.default_state.local_brightness < 0.5:
+                bright = 'much dimmer than'
         if bright:
             blurb += "It is {} other proteins in the database with similar emission spectra".format(bright)
 
