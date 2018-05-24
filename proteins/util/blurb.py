@@ -52,7 +52,7 @@ def long_blurb(self, withbright=False, withbleach=False):
             else:
                 join = 'It'
             blurb += "{} has {} photostability.  ".format(join, bleach)
-        else:
+        elif bright or bleach:
             blurb += ".  "
 
         mature = None
@@ -89,6 +89,8 @@ def long_blurb(self, withbright=False, withbleach=False):
             else:
                 blurb += "It has "
             blurb += '{} acid sensitivity.'.format(acid)
+        if not (acid or A):
+            blurb += "."
     else:
         if self.get_agg_display():
             blurb += 'It is reported to be a {}.'.format(self.get_agg_display().lower())
