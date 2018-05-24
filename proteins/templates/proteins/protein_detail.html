@@ -305,7 +305,7 @@
 
                 if (hits.length){
                   var t = 'SnapGene links: '
-                  if (hits.length == 1){t = 'Snapgene link: ' }
+                  if (hits.length == 1){t = 'SnapGene link: ' }
                   var $li = $('<li>').text(t).appendTo($('.external-resources ul'))
                   $.each(hits, function(index, val) {
                     $li.append($('<a>', { 'href': snaptemplate.replace('*', val[1]) }).text(val[0]))
