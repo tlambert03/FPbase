@@ -260,7 +260,7 @@ class Spectrum(Authorable, TimeStampedModel):
         (ABS, 'Absorption'),                # for fluorophores
         (EM, 'Emission'),                   # for fluorophores
         (TWOP, 'Two Photon Absorption'),    # for fluorophores
-        (BP,  'Bandpass'),                  # only for filters
+        (BP, 'Bandpass'),                  # only for filters
         (BPX, 'Bandpass (Excitation)'),     # only for filters
         (BPM, 'Bandpass (Emission)'),       # only for filters
         (SP, 'Shortpass'),                  # only for filters
@@ -281,7 +281,7 @@ class Spectrum(Authorable, TimeStampedModel):
 
     data     = SpectrumData()
     category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name='Item Type', db_index=True)
-    subtype  = models.CharField(max_length=2, choices=SUBTYPE_CHOICES, blank=True, verbose_name='Spectra Subtype', db_index=True)
+    subtype  = models.CharField(max_length=2, choices=SUBTYPE_CHOICES, verbose_name='Spectra Subtype', db_index=True)
     ph       = models.FloatField(null=True, blank=True, verbose_name='pH')  # pH of measurement
     solvent  = models.CharField(max_length=128, blank=True)
 
