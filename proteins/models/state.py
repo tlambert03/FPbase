@@ -3,9 +3,8 @@ from django.db import models
 from django.db.models import Avg
 from django.utils.text import slugify
 from django.core.validators import MaxValueValidator, MinValueValidator
-from model_utils.models import TimeStampedModel
 
-from .mixins import Authorable, Product
+from .mixins import Product
 from .spectrum import SpectrumOwner
 from ..util.helpers import wave_to_hex
 
@@ -118,7 +117,7 @@ class Fluorophore(SpectrumOwner):
         return [spect.d3dict() for spect in self.spectra.all()]
 
 
-class Dye(TimeStampedModel, Fluorophore, Product):
+class Dye(Fluorophore, Product):
     pass
 
 
@@ -127,14 +126,14 @@ class StatesManager(models.Manager):
         return self.filter(is_dark=False)
 
 
-class State(TimeStampedModel, Fluorophore):
+class State(Fluorophore):
     DEFAULT_NAME = 'default'
 
     """ A class for the states that a given protein can be in (including spectra and other state-dependent properties)  """
     name        = models.CharField(max_length=64, default=DEFAULT_NAME)  # required
     is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence",)
     maturation  = models.FloatField(null=True, blank=True, help_text="Maturation time (min)",  # maturation half-life in min
-                    validators=[MinValueValidator(0), MaxValueValidator(1600)])
+                                    validators=[MinValueValidator(0), MaxValueValidator(1600)])
     # Relations
     transitions = models.ManyToManyField('State', related_name='transition_state', verbose_name="State Transitions", blank=True, through='StateTransition')  # any additional papers that reference the protein
     protein     = models.ForeignKey('Protein', related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
