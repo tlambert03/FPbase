@@ -10,7 +10,8 @@ from .. import forms
 from ..models import (Protein, State, StateTransition, BleachMeasurement,
                       Organism, ProteinCollection, Dye, Spectrum)
 from ..forms import SpectrumForm
-from ..util.importers import text_to_spectra, zip_wave_data, import_chroma_spectra
+from ..util.importers import text_to_spectra, import_chroma_spectra
+from ..util.helpers import zip_wave_data
 from ..util.spectra_import import import_spectral_data
 from ..validators import protein_sequence_validator
 

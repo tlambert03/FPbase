@@ -1,24 +1,51 @@
 {% extends "base.html" %}
-
 {% load crispy_forms_tags %}
 
-{% block content %}
+{% block vendorcss %}{{ form.media.css }}{% endblock vendorcss %}
 
-<form method="post">
-{% csrf_token %}
-{{ form | crispy }}
-<input type="submit" class='btn btn-primary mb-4' value="Submit"/>
-</form>
+
+{% block content %}
+  <h2>Add a new spectrum to the database</h2>
+  {% crispy form %}
+  <p class='mt-3 small'>
+    <em>If you are adding different spectra for the same item (e.g. ex/em spectra for a dye) you must choose the same "Item Name" both times. And currently, this must be done sequentially.  If you run into difficulties importing spectra, please <a href="{% url 'contact' %}">let us know!</a></em>
+  </p>
 
 {% endblock content %}
 
+
 {% block javascript %}
 
-<script type="text/javascript">
- $("#id_category").change(function(){
-  var category $(this).val();
+<script>
 
- });
+  var valid_opts = {
+    d: ['ex', 'ab', 'em', '2p'],
+    p: ['ex', 'ab', 'em', '2p'],
+    l: ['pd'],
+    f: ['bp', 'bx', 'bm', 'sp', 'lp', 'bs'],
+    c: ['qe'],
+    '': [],
+  };
+
+  $("#id_category").change(function() {
+      $("#id_subtype option").each(function(i){
+        $(this).hide()
+      })
+      var vopts = valid_opts[$(this).val()];
+      $(vopts).each(function (i, v) {
+        $("#id_subtype option[value='" + v + "']").show();
+      })
+      if (vopts.length == 1){
+        $("#id_subtype").val(vopts[0]).change();
+      } else {
+        $("#id_subtype").val('').change();
+      }
+  });
+
+  $(function(){
+    $("#id_subtype").val('').change();
+  })
+
 </script>
 
 {% endblock javascript %}
