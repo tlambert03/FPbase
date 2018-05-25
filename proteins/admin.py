@@ -17,13 +17,36 @@ from reversion.admin import VersionAdmin
 #     model = Mutation
 
 
+class SpectrumOwner(object):
+    list_display = ('__str__', 'spectra', 'created_by')
+    list_select_related = ('created_by',)
+    list_filter = ('created', 'manufacturer')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.readonly_fields = self.readonly_fields + ('spectra',)
+
+    def spectra(self, obj):
+        links = []
+        for sp in obj.spectra.all():
+            url = reverse("admin:proteins_spectrum_change", args=(sp.pk,))
+            link = '<a href="{}">{}</a>'.format(url, sp.get_subtype_display())
+            links.append(link)
+        return mark_safe(", ".join(links))
+    spectra.short_description = 'spectra'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('spectra')
+
+
 class BleachInline(admin.TabularInline):
     model = BleachMeasurement
     autocomplete_fields = ("reference",)
     extra = 1
 
 
-class StateInline(admin.StackedInline):
+class StateInline(SpectrumOwner, admin.StackedInline):
     # form = StateForm
     # formset = StateFormSet
     model = State
@@ -35,7 +58,7 @@ class StateInline(admin.StackedInline):
             'fields': (('name', 'slug', 'is_dark',),)
         }),
         (None, {
-            'fields': (('ex_max', 'em_max'), ('ext_coeff', 'qy'), ('pka', 'maturation'), 'lifetime', 'bleach_links')
+            'fields': (('ex_max', 'em_max'), ('ext_coeff', 'qy'), ('pka', 'maturation'), 'lifetime', 'bleach_links', 'spectra')
         }),
         ('Change History', {
             'classes': ('collapse',),
@@ -73,38 +96,44 @@ class myVersionAdmin(admin.ModelAdmin):
 
 
 @admin.register(Light)
-class LightAdmin(admin.ModelAdmin):
+class LightAdmin(SpectrumOwner, admin.ModelAdmin):
     model = Light
 
 
 @admin.register(Dye)
-class DyeAdmin(VersionAdmin):
+class DyeAdmin(SpectrumOwner, VersionAdmin):
     model = Dye
 
 
 @admin.register(Filter)
-class FilterAdmin(VersionAdmin):
+class FilterAdmin(SpectrumOwner, VersionAdmin):
     model = Filter
 
 
 @admin.register(Camera)
-class CameraAdmin(VersionAdmin):
+class CameraAdmin(SpectrumOwner, VersionAdmin):
     model = Camera
 
 
 @admin.register(Spectrum)
 class SpectrumAdmin(admin.ModelAdmin):
     model = Spectrum
-    list_select_related = ('owner_state__protein', 'owner_dye')
-    list_display = ('__str__', 'category', 'subtype')
+    list_select_related = ('owner_state__protein', 'owner_filter', 'owner_camera', 'owner_light', 'owner_dye', 'created_by')
+    list_display = ('__str__', 'category', 'subtype', 'owner', 'created_by')
+    list_filter = ('created', 'category', 'subtype')
     fields = ('created_by', 'updated_by', 'data', 'category', 'subtype', 'ph', 'solvent', 'owner')
     readonly_fields = ('owner',)
+    search_fields = ('owner_state__protein__name', 'owner_filter__name', 'owner_camera__name', 'owner_light__name', 'owner_dye__name')
 
     def owner(self, obj):
         url = reverse("admin:proteins_{}_change".format(obj.owner._meta.model.__name__.lower()), args=(obj.owner.pk,))
         link = '<a href="{}">{}</a>'.format(url, obj.owner)
         return mark_safe(link)
     owner.short_description = 'Owner'
+
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
+    #     return qs.prefetch_related('owner_state__protein')
 
 
 @admin.register(BleachMeasurement)
@@ -120,7 +149,7 @@ class StateAdmin(CompareVersionAdmin):
     model = State
     list_select_related = ('protein',)
     search_fields = ('protein__name',)
-    list_display = ('__str__', 'protein_link', 'ex_max', 'em_max', 'ext_coeff', 'qy', )
+    list_display = ('__str__', 'protein_link', 'ex_max', 'em_max', 'created_by')
     list_filter = ('created', 'modified', 'created_by__username')
     inlines = (BleachInline,)
     fieldsets = [
