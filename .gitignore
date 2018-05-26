@@ -366,3 +366,5 @@ _data/*
 /fpbase/static/js/vendors.js
 /fpbase/static/js/vendors.min.js
 *.dump
+
+.pytest_cache

@@ -1,6 +1,11 @@
 import re
 
 
+def zip_wave_data(waves, data, minmax=None):
+    minmax = minmax or (300, 1600)
+    return [list(i) for i in zip(waves, data) if (i[1] > 0 and minmax[0] <= i[0] <= minmax[1])]
+
+
 def wave_to_hex(wavelength, gamma=1):
     '''This converts a given wavelength into an approximate RGB value.
     The given wavelength is in nanometers.

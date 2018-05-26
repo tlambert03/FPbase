@@ -20,6 +20,10 @@ var formSelection = function(filter) {
                 // terrible hack to add bp filters to both excitation and emission dropdowns
                 if ((filter[key] == 'bx' || filter[key] == 'bm') && item['subtype'] == 'bp') {
                     return true;
+                } else if (filter[key] == 'bx' && item['subtype'] == 'sp') {
+                    return true;
+                } else if (filter[key] == 'bm' && item['subtype'] == 'lp') {
+                    return true;
                 }
                 return false;
             }

@@ -114,6 +114,18 @@ def fetch_semrock_part(part):
 
 
 def text_to_spectra(text, wavecol=0):
+    """ Convert text string into spectral data
+
+    Args:
+        text (str): string containing csv (usually) data
+        wavecol (:obj:`int`, optional): column in csv that contains wavelengths
+
+    Returns:
+        tuple: (waves, outdata, headers).  waves is 1D, outdata is MxN, where M
+            is the number of data columns and N is the number of wavelenghts.
+            headers is 1D of length M, containing titles of data colums
+
+    """
     try:
         # find the first string, split on multiple tokens
         float(re.split(';|,|\n|\t', text)[0])
@@ -148,11 +160,11 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
             kwargs['stypes'] = 'bm'
         elif part.lower().endswith(('ex', 'x', 'bp')):
             kwargs['stypes'] = 'bx'
-        elif ('rpc' in part) or ('bs' in part):
+        elif ('pc' in part.lower()) or ('bs' in part.lower()) or ('dc' in part.lower()):
             kwargs['stypes'] = 'bs'
-        elif 'lp' in part:
+        elif 'lp' in part.lower():
             kwargs['stypes'] = 'lp'
-        elif 'sp' in part:
+        elif 'sp' in part.lower():
             kwargs['stypes'] = 'sp'
         if 'stypes' not in kwargs:
             raise ValueError('Could not guess filter type for part {}'.format(part))

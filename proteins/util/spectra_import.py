@@ -1,10 +1,6 @@
 import numpy as np
 from ..forms import SpectrumForm
-
-
-def zip_wave_data(waves, data, minmax=None):
-    minmax = minmax or (300, 1600)
-    return [list(i) for i in zip(waves, data) if (i[1] > 0 and minmax[0] <= i[0] <= minmax[1])]
+from .helpers import zip_wave_data
 
 
 def get_stype(header):

@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.text import slugify
 from django.forms import Textarea, CharField
+from django.contrib.postgres.search import TrigramSimilarity
 from model_utils.models import TimeStampedModel
 from model_utils.managers import QueryManager
 from .mixins import Authorable, Product
@@ -101,7 +102,7 @@ class SpectrumData(ArrayField):
                 raise ValidationError("All items in Septrum list elements must be numbers")
 
 
-class SpectrumOwner(Authorable):
+class SpectrumOwner(Authorable, TimeStampedModel):
     name        = models.CharField(max_length=100)  # required
     slug        = models.SlugField(max_length=128, unique=True, help_text="Unique slug for the %(class)")  # calculated at save
 
@@ -227,6 +228,19 @@ class SpectrumManager(models.Manager):
             qs = qs | self.get_queryset().filter(**{ownerclass + '__slug': slug})
         return qs
 
+    def find_similar_owners(self, query, threshold=0.4):
+        A = ('owner_state__protein__name', 'owner_dye__name', 'owner_filter__name', 'owner_light__name', 'owner_camera__name')
+        qs_list = []
+        for ownerclass in A:
+            for s in Spectrum.objects.annotate(
+                    similarity=TrigramSimilarity(ownerclass, query)).filter(
+                    similarity__gt=threshold).order_by('-similarity', ownerclass).distinct('similarity', ownerclass):
+                qs_list.append((s.similarity, s.owner))
+        if qs_list:
+            max_sim = max([s[0] for s in qs_list])
+            qs_list = [i[1] for i in qs_list if max_sim - i[0] < .05]
+        return qs_list
+
 
 class Spectrum(Authorable, TimeStampedModel):
 
@@ -259,10 +273,10 @@ class Spectrum(Authorable, TimeStampedModel):
         (EX, 'Excitation'),                 # for fluorophores
         (ABS, 'Absorption'),                # for fluorophores
         (EM, 'Emission'),                   # for fluorophores
-        (TWOP, 'Two Photon Absorption'),    # for fluorophores
-        (BP,  'Bandpass'),                  # only for filters
-        (BPX, 'Bandpass (Excitation)'),     # only for filters
-        (BPM, 'Bandpass (Emission)'),       # only for filters
+        (TWOP, 'Two Photon Abs'),           # for fluorophores
+        (BP, 'Bandpass'),                   # only for filters
+        (BPX, 'Bandpass-Ex'),               # only for filters
+        (BPM, 'Bandpass-Em'),               # only for filters
         (SP, 'Shortpass'),                  # only for filters
         (LP, 'Longpass'),                   # only for filters
         (BS, 'Beamsplitter'),               # only for filters
@@ -280,8 +294,8 @@ class Spectrum(Authorable, TimeStampedModel):
     }
 
     data     = SpectrumData()
-    category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name='Item Type', db_index=True)
-    subtype  = models.CharField(max_length=2, choices=SUBTYPE_CHOICES, blank=True, verbose_name='Spectra Subtype', db_index=True)
+    category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name='Owner Type', db_index=True)
+    subtype  = models.CharField(max_length=2, choices=SUBTYPE_CHOICES, verbose_name='Spectrum Subtype', db_index=True)
     ph       = models.FloatField(null=True, blank=True, verbose_name='pH')  # pH of measurement
     solvent  = models.CharField(max_length=128, blank=True)
 

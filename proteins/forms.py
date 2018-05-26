@@ -3,12 +3,15 @@ from django.utils.text import slugify
 from django.utils.safestring import mark_safe
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 from django.apps import apps
+from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from proteins.models import (Protein, State, StateTransition, Spectrum,
                              ProteinCollection, BleachMeasurement)
 from proteins.validators import validate_spectrum, validate_doi, protein_sequence_validator
+from proteins.util.importers import text_to_spectra
+from proteins.util.helpers import zip_wave_data
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, HTML
+from crispy_forms.layout import Layout, Div, HTML, Submit
 
 
 def popover_html(label, content, side='right'):
@@ -188,26 +191,61 @@ class SpectrumFormField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
         if 'help_text' not in kwargs:
-            kwargs['help_text'] = 'List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]'
+            kwargs['help_text'] = 'List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]. File data takes precedence.'
         super().__init__(*args, **kwargs)
 
 
 class SpectrumForm(forms.ModelForm):
     lookup = {
-        Spectrum.DYE:       ('owner_dye', 'Dye'),
-        Spectrum.PROTEIN:   ('owner_state', 'State'),
-        Spectrum.FILTER:    ('owner_filter', 'Filter'),
-        Spectrum.CAMERA:    ('owner_camera', 'Camera'),
-        Spectrum.LIGHT:     ('owner_light', 'Light')
+        Spectrum.DYE: ('owner_dye', 'Dye'),
+        Spectrum.PROTEIN: ('owner_state', 'State'),
+        Spectrum.FILTER: ('owner_filter', 'Filter'),
+        Spectrum.CAMERA: ('owner_camera', 'Camera'),
+        Spectrum.LIGHT: ('owner_light', 'Light')
     }
 
-    owner = forms.CharField(max_length=100, label='Item Name', required=False)
-    data = SpectrumFormField(required=True, label='Data')
+    owner = forms.CharField(max_length=100, label='Owner Name', required=True, help_text='Owner of the spectrum')
+    data = SpectrumFormField(required=False, label='Data')
+    file = forms.FileField(required=False, label='File Upload',
+                           help_text='2 column CSV/TSV file with wavelengths in first column and data in second column')
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.helper = FormHelper()
+        self.helper.attrs = {
+            "id": 'spectrum-submit-form',
+            "data-validate-owner-url": reverse('proteins:validate_spectrumownername')
+        }
+        self.helper.add_input(Submit('submit', 'Submit'))
+        self.helper.layout = Layout(
+            Div('owner'),
+            Div(
+                Div('category', css_class='col-sm-6 col-xs-12'),
+                Div('subtype', css_class='col-sm-6 col-xs-12'),
+                css_class='row',
+            ),
+            Div('file', 'data',),
+            Div(
+                Div('ph', css_class='col-md-6 col-sm-12'),
+                Div('solvent', css_class='col-md-6 col-sm-12'),
+                css_class='row',
+            ),
+        )
+
+        super().__init__(*args, **kwargs)
 
     class Meta:
         model = Spectrum
-        fields = ('category', 'subtype', 'data', 'ph', 'solvent', 'owner')
+        fields = ('category', 'subtype', 'file', 'data', 'ph', 'solvent', 'owner')
         widgets = {'data': forms.Textarea(attrs={'class': 'vLargeTextField', 'rows': 2})}
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not (cleaned_data.get('data') or self.files):
+            self.add_error('data', 'Please either fill in the data field or '
+                           'select a file to upload.')
+            self.add_error('file', 'Please either fill in the data field or '
+                           'select a file to upload.')
 
     def save(self, commit=True):
         owner_name = self.cleaned_data.get("owner")
@@ -216,9 +254,32 @@ class SpectrumForm(forms.ModelForm):
         if cat == Spectrum.PROTEIN:
             owner_obj = owner_model.objects.get(protein__name__iexact=owner_name)
         else:
-            owner_obj, _ = owner_model.objects.get_or_create(name=owner_name)
+            owner_obj, c = owner_model.objects.get_or_create(name=owner_name, defaults={'created_by': self.user})
+            if not c:
+                owner_obj.update_by = self.user
+                owner_obj.save()
         setattr(self.instance, self.lookup[cat][0], owner_obj)
+        self.instance.created_by = self.user
         return super().save(commit=commit)
+
+    def clean_file(self):
+        if self.files:
+            filetext = ''
+            try:
+                for chunk in self.files['file'].chunks():
+                    filetext += chunk.decode("utf-8")
+                x, y, headers = text_to_spectra(filetext)
+                if not len(y):
+                    self.add_error('file', 'Did not find a data column in the provided file')
+                if not len(x):
+                    self.add_error('file', 'Could not parse wavelengths from first column')
+            except Exception:
+                self.add_error('file', 'Sorry, could not parse spectrum from this file. '
+                               'Is it it two column csv with (wavelength, spectrum)?')
+            if not self.errors:
+                self.cleaned_data['data'] = zip_wave_data(x, y[0])
+                self.data = self.data.copy()
+                self.data['data'] = self.cleaned_data['data']
 
     def clean_owner(self):
         # make sure an owner with the same category and name doesn't already exist
@@ -245,15 +306,26 @@ class SpectrumForm(forms.ModelForm):
             # object exists... check if it has this type of spectrum
             if obj.spectra.filter(subtype=stype).exists():
                 if cat == Spectrum.PROTEIN:
-                    raise forms.ValidationError(
-                        "The default state for protein %(owner)s already has a spectrum of type %(stype)s.",
-                        params={'owner': owner, 'stype': stype},
-                        code='owner_exists')
+                    self.add_error('owner', forms.ValidationError(
+                        "Protein %(owner)s already has a spectrum of type %(stype)s.",
+                        params={'owner': obj.name, 'stype': stype},
+                        code='owner_exists'))
+
+                    # raise forms.ValidationError(
+                    #     "The default state for protein %(owner)s already has a spectrum of type %(stype)s.",
+                    #     params={'owner': owner, 'stype': stype},
+                    #     code='owner_exists')
                 else:
-                    raise forms.ValidationError(
-                        "A %(model)s with the slug %(slug)s already has a spectrum of type %(stype)s.",
-                        params={'model': self.lookup[cat][1].lower(), 'slug': slugify(owner), 'stype': stype},
-                        code='owner_exists')
+                    self.add_error('owner', forms.ValidationError(
+                        "A %(model)s with the name %(name)s already has a %(stype)s spectrum",
+                        params={'model': self.lookup[cat][1].lower(),
+                                'name': obj.name,
+                                'stype': obj.spectra.filter(subtype=stype).first().get_subtype_display()},
+                        code='owner_exists'))
+                    # raise forms.ValidationError(
+                    #     "A %(model)s with the slug %(slug)s already has a spectrum of type %(stype)s.",
+                    #     params={'model': self.lookup[cat][1].lower(), 'slug': slugify(owner), 'stype': stype},
+                    #     code='owner_exists')
             else:
                 return owner
 

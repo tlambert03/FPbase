@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.mail import mail_managers
 from django.utils.text import slugify
+from django.urls import reverse
 
 import json
 
@@ -249,6 +250,17 @@ def protein_spectra(request, slug=None):
 class SpectrumCreateView(CreateView):
     model = Spectrum
     form_class = SpectrumForm
+
+    def get_success_url(self, **kwargs):
+        if self.object.category == Spectrum.PROTEIN:
+            return self.object.owner.get_absolute_url()
+        else:
+            return "{}?s={}".format(reverse('proteins:spectra'), self.object.owner.slug)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
 
 def protein_search(request):

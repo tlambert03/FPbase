@@ -26,6 +26,13 @@ window.mobilecheck = function() {
 };
 
 
+$('.custom-file-input').on('change', function() {
+
+   var fileName = $(this).val().split('\\').pop();
+   if (fileName === ''){ fileName='Choose file'}
+   $(this).next('.custom-file-label').addClass("selected").html(fileName);
+});
+
 $(function(){
 
   var $quote = $(".protein .name:first");
@@ -179,40 +186,84 @@ $("#id_ipg_id").change(function(){
 })
 
 
-$("#proteinform #id_name").change(function () {
-    var form = $(this).closest("form");
-    $.ajax({
-      method: 'POST',
-      url: form.data("validate-proteinname-url"),
-      data: form.find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']").serialize(),
-      dataType: 'json',
-      success: function (data) {
-        if (data.is_taken) {
-          var namelink = '<a href="' + data.url + '" style="text-decoration: underline;">' + data.name + '</a>';
-          var message = '<strong>' + namelink + ' already exists in the database.</strong>';
-          $("#id_name").addClass('is-invalid');
-          $("#div_id_name").addClass('has-danger');
+$('#proteinform #id_name').change(function() {
+  var form = $(this).closest('form');
+  $.ajax({
+    method: 'POST',
+    url: form.data('validate-proteinname-url'),
+    data: form
+      .find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']")
+      .serialize(),
+    dataType: 'json',
+    success: function(data) {
+      if (data.is_taken) {
+        var namelink =
+          '<a href="' +
+          data.url +
+          '" style="text-decoration: underline;">' +
+          data.name +
+          '</a>';
+        var message =
+          '<strong>' + namelink + ' already exists in the database.</strong>';
+        $('#id_name').addClass('is-invalid');
+        $('#div_id_name').addClass('has-danger');
 
-          if ($('#error_1_id_name').length) {
-            $("#error_1_id_name").html(message);
-          } else{
-              span = $('<span/>', {
-                  id: 'error_1_id_name',
-                  class: 'invalid-feedback',
-              }).append(message);
-                    $("#hint_id_name").before(span);
-          }
+        if ($('#error_1_id_name').length) {
+          $('#error_1_id_name').html(message);
         } else {
-          if ($('#error_1_id_name').length) {
-            $('#error_1_id_name').remove();
-            $("#id_name").removeClass('is-invalid');
-            $("#div_id_name").removeClass('has-danger');
-          }
+          span = $('<span/>', {
+            id: 'error_1_id_name',
+            class: 'invalid-feedback',
+          }).append(message);
+          $('#hint_id_name').before(span);
+        }
+      } else {
+        if ($('#error_1_id_name').length) {
+          $('#error_1_id_name').remove();
+          $('#id_name').removeClass('is-invalid');
+          $('#div_id_name').removeClass('has-danger');
         }
       }
-    });
+    },
   });
+});
 
+$('#spectrum-submit-form #id_owner').change(function() {
+  var form = $(this).closest('form');
+  $.ajax({
+    method: 'POST',
+    url: form.data('validate-owner-url'),
+    data: form
+      .find("#id_owner, [name='csrfmiddlewaretoken']").serialize(),
+    dataType: 'json',
+    success: function(data) {
+      if (data.similars.length) {
+
+        var str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: ";
+        $.each(data.similars, function(index, val) {
+          str = str + '<span class="text-danger">' + val['name'] + '</span>'
+          if (val['spectra'].length) {
+            str = str + ' (';
+            $.each(val['spectra'], function(i, s) {
+              str = str + s;
+              if (i != val['spectra'].length - 1){
+                str = str + ', ';
+              }
+            })
+            str = str + ')';
+          }
+          if (index != data.similars.length - 1){
+            str = str + ', ';
+          }
+        });
+        $('#hint_id_owner').html(str);
+
+      } else {
+        $('#hint_id_owner').html('Owner of the spectrum');
+      }
+    },
+  });
+});
 
 // auto populate PMID after DOI input
 
