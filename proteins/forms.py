@@ -308,7 +308,7 @@ class SpectrumForm(forms.ModelForm):
                 if cat == Spectrum.PROTEIN:
                     self.add_error('owner', forms.ValidationError(
                         "Protein %(owner)s already has a spectrum of type %(stype)s.",
-                        params={'owner': obj.name, 'stype': stype},
+                        params={'owner': obj.protein.name, 'stype': stype},
                         code='owner_exists'))
 
                     # raise forms.ValidationError(
