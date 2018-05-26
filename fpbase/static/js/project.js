@@ -241,7 +241,7 @@ $('#spectrum-submit-form #id_owner').change(function() {
 
         var str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: ";
         $.each(data.similars, function(index, val) {
-          str = str + val['name']
+          str = str + '<span class="text-danger">' + val['name'] + '</span>'
           if (val['spectra'].length) {
             str = str + ' (';
             $.each(val['spectra'], function(i, s) {

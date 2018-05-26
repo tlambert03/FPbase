@@ -218,10 +218,10 @@ class SpectrumForm(forms.ModelForm):
         }
         self.helper.add_input(Submit('submit', 'Submit'))
         self.helper.layout = Layout(
+            Div('owner'),
             Div(
-                Div('owner', css_class='col-lg-4 col-md-12 col-xs-12'),
-                Div('category', css_class='col-lg-4 col-sm-6 col-xs-12'),
-                Div('subtype', css_class='col-lg-4 col-sm-6 col-xs-12'),
+                Div('category', css_class='col-sm-6 col-xs-12'),
+                Div('subtype', css_class='col-sm-6 col-xs-12'),
                 css_class='row',
             ),
             Div('file', 'data',),
