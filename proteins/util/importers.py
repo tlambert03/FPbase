@@ -160,13 +160,11 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
             kwargs['stypes'] = 'bm'
         elif part.lower().endswith(('ex', 'x', 'bp')):
             kwargs['stypes'] = 'bx'
-        elif part.lower().endswith(('dc', 'dcxr')):
+        elif ('pc' in part.lower()) or ('bs' in part.lower()) or ('dc' in part.lower()):
             kwargs['stypes'] = 'bs'
-        elif ('rpc' in part) or ('bs' in part):
-            kwargs['stypes'] = 'bs'
-        elif 'lp' in part:
+        elif 'lp' in part.lower():
             kwargs['stypes'] = 'lp'
-        elif 'sp' in part:
+        elif 'sp' in part.lower():
             kwargs['stypes'] = 'sp'
         if 'stypes' not in kwargs:
             raise ValueError('Could not guess filter type for part {}'.format(part))
