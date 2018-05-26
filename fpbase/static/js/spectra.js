@@ -255,8 +255,6 @@ function excitationNormalization() {
                     var S = targetScalar / currentScalar;
                     data[n].values = data[n].values.map(function(item){ return {x: item.x, y: item.y * S}; });
                     data[n].exNormed = targetScalar;
-                } else {
-                    console.log('equal')
                 }
             }
         }
@@ -422,7 +420,6 @@ $(function() {
         var arr = urlParams.s.toLowerCase().split(',');
         for (var i = 0; i < arr.length; i++){
             var opts = slugOptions(arr[i]);
-            console.log(opts);
             if (Boolean(opts)){
                 try{
                     // STILL BUGGY
@@ -527,7 +524,6 @@ var focusedItem;
 $("body").on('focus', '.data-selector, .select2', function(event) {
     // Store the current value on focus and on change
     focusedItem = $(this).closest('.row').find('.data-selector').val();
-    console.log(focusedItem)
 });
 
 // main function when data-selector has been changed
@@ -728,9 +724,9 @@ var addFormItem = function(category, stype, open, value) {
         }
     } else if (category == CONST.category.light) {
         $(excRow(selWidget, 'light-row')).appendTo($('#light-table'));
-    } else if (category == CONST.category.filter && stype == CONST.stype.bpx) {
+    } else if (category == CONST.category.filter && (stype == CONST.stype.bpx || stype == CONST.stype.sp)) {
         $(filterRow(selWidget, stype)).appendTo($('#exfilter-table'));
-    } else if (category == CONST.category.filter && stype == CONST.stype.bpm) {
+    } else if (category == CONST.category.filter && (stype == CONST.stype.bpm || stype == CONST.stype.lp)) {
         $(filterRow(selWidget, stype)).appendTo($('#emfilter-table'));
     } else if (category == CONST.category.camera) {
         $(filterRow(selWidget, stype)).appendTo($('#camqe-table'));
@@ -1018,7 +1014,7 @@ function calculateEfficiency() {
         // look through current data for iSpectra and iEmFilt
         if (data[i].type == CONST.stype.em) {
             iSpectra.push(i);
-        } else if ($.inArray(data[i].type, ['em_filter', 'bp', 'bm', 'bs']) >= 0) {
+        } else if ($.inArray(data[i].type, ['em_filter', 'bp', 'bm', 'bs', 'sp', 'lp']) >= 0) {
             iEmFilt.push(i);
             $('<th>').text(data[i].key).appendTo($("#efficiency-table").find('thead tr'));
         }
