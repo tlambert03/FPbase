@@ -5,7 +5,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.core.mail import mail_managers
 
-from ..models import Protein, Organism
+from ..models import Protein, Organism, Spectrum
 import reversion
 
 
@@ -58,6 +58,24 @@ def approve_protein(request, slug=None):
         return JsonResponse({})
     except Exception:
         pass
+
+
+def similar_spectrum_owners(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+
+    name = request.POST.get('owner', None)
+    similars = Spectrum.objects.find_similar_owners(name, 0.3)
+    data = {
+        'similars': [{
+            'slug': s.slug,
+            'name': s.protein.name if hasattr(s, 'protein') else s.name,
+            'url': s.get_absolute_url(),
+            'spectra': [sp.get_subtype_display() for sp in s.spectra.all()]}
+            for s in similars[:4]]
+    }
+
+    return JsonResponse(data)
 
 
 def validate_proteinname(request):

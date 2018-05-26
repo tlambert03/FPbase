@@ -3,6 +3,7 @@ from django.utils.text import slugify
 from django.utils.safestring import mark_safe
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 from django.apps import apps
+from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from proteins.models import (Protein, State, StateTransition, Spectrum,
                              ProteinCollection, BleachMeasurement)
@@ -10,7 +11,7 @@ from proteins.validators import validate_spectrum, validate_doi, protein_sequenc
 from proteins.util.importers import text_to_spectra
 from proteins.util.helpers import zip_wave_data
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, HTML, Submit, Fieldset, ButtonHolder
+from crispy_forms.layout import Layout, Div, HTML, Submit
 
 
 def popover_html(label, content, side='right'):
@@ -190,7 +191,7 @@ class SpectrumFormField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
         if 'help_text' not in kwargs:
-            kwargs['help_text'] = 'List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]'
+            kwargs['help_text'] = 'List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]. File data takes precedence.'
         super().__init__(*args, **kwargs)
 
 
@@ -203,22 +204,26 @@ class SpectrumForm(forms.ModelForm):
         Spectrum.LIGHT: ('owner_light', 'Light')
     }
 
-    owner = forms.CharField(max_length=100, label='Item Name', required=True)
+    owner = forms.CharField(max_length=100, label='Owner Name', required=True, help_text='Owner of the spectrum')
     data = SpectrumFormField(required=False, label='Data')
-    file = forms.FileField(required=False,
+    file = forms.FileField(required=False, label='File Upload',
                            help_text='2 column CSV/TSV file with wavelengths in first column and data in second column')
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         self.helper = FormHelper()
+        self.helper.attrs = {
+            "id": 'spectrum-submit-form',
+            "data-validate-owner-url": reverse('proteins:validate_spectrumownername')
+        }
         self.helper.add_input(Submit('submit', 'Submit'))
         self.helper.layout = Layout(
             Div(
-                Div('category', css_class='col-md-6 col-sm-12'),
-                Div('subtype', css_class='col-md-6 col-sm-12'),
+                Div('owner', css_class='col-lg-4 col-md-12 col-xs-12'),
+                Div('category', css_class='col-lg-4 col-sm-6 col-xs-12'),
+                Div('subtype', css_class='col-lg-4 col-sm-6 col-xs-12'),
                 css_class='row',
             ),
-            Div('owner'),
             Div('file', 'data',),
             Div(
                 Div('ph', css_class='col-md-6 col-sm-12'),

@@ -20,7 +20,10 @@ urlpatterns = [
                        message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
-    url(r'^spectra/submit', views.SpectrumCreateView.as_view(), name='submit-spectra'),
+    url(r'^spectra/submit',
+        login_required(views.SpectrumCreateView.as_view(),
+                       message="You must be logged in to submit a new spectrum"),
+        name='submit-spectra'),
     url(r'^spectra/(?P<slug>[-\w]+)', views.protein_spectra, name='spectra'),
     url(r'^spectra/', views.protein_spectra, name='spectra'),
 
@@ -49,6 +52,7 @@ urlpatterns = [
     url(r'^ajax/admin_revert_version/(?P<ver>\d+)$', views.revert_version, name='admin_revert_version'),
     url(r'^ajax/update_transitions/(?P<slug>[-\w]+)/$', views.update_transitions, name='update_transitions'),
     url(r'^ajax/validate_proteinname/$', views.validate_proteinname, name='validate_proteinname'),
+    url(r'^ajax/validate_spectrumownername/$', views.similar_spectrum_owners, name='validate_spectrumownername'),
     url(r'^ajax/remove_from_collection/$', views.collection_remove, name='collection-remove'),
     url(r'^ajax/add_to_collection/$', views.add_to_collection, name='add_to_collection'),
 
