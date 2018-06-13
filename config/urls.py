@@ -7,6 +7,7 @@ from django.views import defaults as default_views
 from django.contrib.sitemaps.views import sitemap
 from rest_framework.documentation import include_docs_urls
 from fpbase.sitemaps import ProteinSitemap, OrganismsSitemap, StaticSitemap
+from fpbase.decorators import check_recaptcha
 import fpbase.views
 
 sitemaps = {
@@ -28,7 +29,7 @@ urlpatterns = [
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     url(r'^googleaecf5301782589e7\.html$', TemplateView.as_view(template_name="googleaecf5301782589e7.html"), name="verification"),
 
-    url(r'^contact/$', fpbase.views.ContactView.as_view(), name='contact'),
+    url(r'^contact/$', check_recaptcha(fpbase.views.ContactView.as_view()), name='contact'),
     url(r'^thanks/$', TemplateView.as_view(template_name='pages/thanks.html'), name='thanks'),
     url(r'^beta/$', TemplateView.as_view(template_name='pages/beta.html'), name='beta'),
 

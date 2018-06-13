@@ -1,5 +1,6 @@
 from fpbase.forms import ContactForm
 from django.views.generic.edit import FormView
+from django.shortcuts import render
 
 
 class ContactView(FormView):
@@ -10,5 +11,7 @@ class ContactView(FormView):
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        form.send_email()
-        return super().form_valid(form)
+        if self.request.recaptcha_is_valid:
+            form.send_email()
+            return super().form_valid(form)
+        return render(self.request, self.template_name, self.get_context_data())

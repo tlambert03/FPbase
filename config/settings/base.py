@@ -122,7 +122,7 @@ ADMINS = [
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#managers
-MANAGERS = ADMINS + [('Anna Jost',  'anna_jost@hms.harvard.edu')]
+MANAGERS = ADMINS + [('Anna Jost', 'anna_jost@hms.harvard.edu')]
 
 EMAIL_SUBJECT_PREFIX = '[FPbase] '
 SERVER_EMAIL = 'noreply@fpbase.org'
@@ -299,10 +299,12 @@ ADMIN_URL = r'^admin/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
-#CANONICAL_URL = env('CANONICAL_URL', default='https://www.fpbase.org')
+# CANONICAL_URL = env('CANONICAL_URL', default='https://www.fpbase.org')
 CANONICAL_URL = env('CANONICAL_URL', default=None)
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
 
-MODERATION_MODERATORS=('talley.lambert+fpbase@gmail.com',)
+MODERATION_MODERATORS = ('talley.lambert+fpbase@gmail.com',)
+
+GOOGLE_RECAPTCHA_SECRET_KEY = env('GOOGLE_RECAPTCHA_SECRET_KEY', default=None)

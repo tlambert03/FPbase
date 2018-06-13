@@ -6,6 +6,8 @@ from django.utils.decorators import available_attrs
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+import requests
 
 default_message = "Please log in, in order to see the requested page."
 
@@ -49,3 +51,28 @@ def login_required_message_and_redirect(function=None, redirect_field_name=REDIR
         )
 
     return lambda deferred_function: login_required_message_and_redirect(deferred_function, redirect_field_name, login_url, message)
+
+
+def check_recaptcha(function):
+    def wrap(request, *args, **kwargs):
+        request.recaptcha_is_valid = None
+        if request.method == 'POST':
+            recaptcha_response = request.POST.get('g-recaptcha-response')
+            print(settings.GOOGLE_RECAPTCHA_SECRET_KEY)
+            data = {
+                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+                'response': recaptcha_response
+            }
+            r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
+            result = r.json()
+            if result['success']:
+                request.recaptcha_is_valid = True
+            else:
+                print(result)
+                request.recaptcha_is_valid = False
+                messages.error(request, 'Invalid reCAPTCHA. Please try again.')
+        return function(request, *args, **kwargs)
+
+    wrap.__doc__ = function.__doc__
+    wrap.__name__ = function.__name__
+    return wrap
