@@ -11,7 +11,6 @@
 
 {% block content %}
 
-
 			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name | safe }}</h1>
 
 			{% if protein.aliases %}
@@ -173,19 +172,19 @@
 			<div class="row text-right justify-content-end">
 					{% if protein.genbank %}
 					<div class="col-md-3 col-sm-6">
-					<small>GenBank: <a href="https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}'); return false;" target="_blank">{{ protein.genbank | default:''}}</a></small>
+					<small>GenBank: <a href="https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}" target="_blank">{{ protein.genbank | default:''}}</a></small>
 					</div>
 					{% endif %}
 
 					{% if protein.uniprot %}
 					<div class="col-md-3 col-sm-6">
-					<small>UniProtKB: <a href="https://www.uniprot.org/uniprot/{{ protein.uniprot }}" onclick="trackOutboundLink('https://www.uniprot.org/uniprot/{{ protein.uniprot }}'); return false;" target="_blank">{{ protein.uniprot | default:''}}</a></small>
+					<small>UniProtKB: <a href="https://www.uniprot.org/uniprot/{{ protein.uniprot }}" target="_blank">{{ protein.uniprot | default:''}}</a></small>
 					</div>
 					{% endif %}
 
 					{% if protein.ipg_id %}
 					<div class="col-md-3 col-sm-6">
-					<small>IPG ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" onclick="trackOutboundLink('https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]'); return false;" target="_blank">{{ protein.ipg_id | default:''}}</a></small>
+					<small>IPG ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" target="_blank">{{ protein.ipg_id | default:''}}</a></small>
 					</div>
 					{% endif %}
 
@@ -193,7 +192,7 @@
 					<div class="col-md-3 col-sm-6">
 					<small>PDB ID:
 						{% for pdbid in protein.pdb %}
-							<a href="https://www.rcsb.org/structure/{{pdbid}}" onclick="trackOutboundLink('https://www.rcsb.org/structure/{{pdbid}}'); return false;" target="_blank">{{ pdbid | default:''}}{% if not forloop.last %}, {% endif %}</a>
+							<a href="https://www.rcsb.org/structure/{{pdbid}}" target="_blank">{{ pdbid | default:''}}{% if not forloop.last %}, {% endif %}</a>
 						{% endfor %}
 					</small>
 					</div>
@@ -227,8 +226,8 @@
 		<div class="external-resources">
 			<h3>External Resources</h3>
 			<ul>
-				<li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" onclick="trackOutboundLink('http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}'); return false;" target="_blank">BioNumbers</a> for {{ protein.name }}</li>
-				<li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" onclick="trackOutboundLink('https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}'); return false;" target="_blank">Addgene</a> for {{ protein.name }}</li>
+				<li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li>
+				<li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank">Addgene</a> for {{ protein.name }}</li>
 			</ul>
 		</div>
 

@@ -35,7 +35,7 @@
 					<td class='small'>
 						{% if measurement.reference %}
 							<a href="{{measurement.reference.get_absolute_url}}">{{measurement.reference}}</a>
-							<a href="http://dx.doi.org/{{ measurement.reference.doi }}" onclick="trackOutboundLink('http://dx.doi.org/{{ measurement.reference.doi }}'); return false;" target="_blank"><i class="fas fa-external-link-alt text-info"></i></a>
+							<a href="http://dx.doi.org/{{ measurement.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info"></i></a>
 						{% endif %}
 					</td>
 				</tr>
