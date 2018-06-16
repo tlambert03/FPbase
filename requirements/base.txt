@@ -36,3 +36,4 @@ django-reversion-compare==0.8.4
 
 tablib==0.12.1
 scipy==1.1.0
+dnspython3==1.15.0
