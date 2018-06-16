@@ -4,32 +4,32 @@ import numpy as np
 
 def halflife2decay(halflife):
     """convert exponential halflife to decay rate"""
-    return math.log(2)/halflife
+    return math.log(2) / halflife
 
 
 def decay_to_halflife(decay):
     """convert decay rate to exponential halflife"""
-    return math.log(2)/decay
+    return math.log(2) / decay
 
 
 def timeconst_to_decay(timeconst):
     """convert exponential time constant to decay"""
-    return 1/timeconst
+    return 1 / timeconst
 
 
 def decay_to_timeconst(decay):
     """convert exponential decay to time constant """
-    return 1/decay
+    return 1 / decay
 
 
 def observation_to_decay(observation, time, initial=1):
     """from observed fraction at timepoint, calculate exponential decay"""
-    return math.log(observation/initial)/-time
+    return math.log(observation / initial) / -time
 
 
 def observation_to_halflife(observation, time, initial=1):
     """from observed fraction at timepoint, calculate exponential decay"""
-    return math.log(2)/(math.log(observation/initial)/-time)
+    return math.log(2) / (math.log(observation / initial) / -time)
 
 
 def ec_to_cross_section(EC):
