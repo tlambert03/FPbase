@@ -46,7 +46,7 @@ def interp_univar(x, y, s=1):
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
     F = interpolate.InterpolatedUnivariateSpline(x, y)
     ynew = F(xnew)
-    # ynew = savgol_filter(ynew, 15, 2)
+    ynew = savgol_filter(ynew, 15, 2)
     return xnew, ynew
 
 
@@ -359,22 +359,23 @@ class Spectrum(Authorable, TimeStampedModel):
                 if self.step != 1:
                     try:
                         # TODO:  better choice of interpolation
-                        if self.subtype == self.TWOP:
-                            self.data = [list(i) for i in zip(*interp_linear(self.x, self.y))]
-                        else:
-                            self.data = [list(i) for i in zip(*interp_univar(self.x, self.y))]
+                        self.data = [list(i) for i in
+                                     zip(*interp_linear(*zip(*self.data)))]
                     except ValueError as e:
                         errors.update({'data': 'could not properly interpolate data: {}'.format(e)})
                         raise ValidationError(errors)
                 # attempt at data normalization
-                if (max(self.y) > 1.5) or (max(self.y) < 0.1):
-                    if self.category == self.FILTER and (60 < max(self.y) < 101):
-                        # assume 100% scale
-                        self.change_y([round(yy/100, 4) for yy in self.y])
-                    elif (self.category == self.PROTEIN and self.subtype == self.TWOP):
+                if self.category == self.PROTEIN:
+                    if self.subtype == self.TWOP:
                         y, self._peakval2p, maxi = norm2P(self.y)
                         self._peakwave2p = self.x[maxi]
                         self.change_y(y)
+                    else:
+                        self.change_y(norm2one(self.y))
+                elif (max(self.y) > 1.5) or (max(self.y) < 0.1):
+                    if self.category == self.FILTER and (60 < max(self.y) < 101):
+                        # assume 100% scale
+                        self.change_y([round(yy / 100, 4) for yy in self.y])
                     else:
                         self.change_y(norm2one(self.y))
 
