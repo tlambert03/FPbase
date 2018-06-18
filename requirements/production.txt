@@ -13,4 +13,4 @@ django-anymail==3.0  # https://github.com/anymail/django-anymail
 
 # New relic monitoring
 # -----------------------------------------
-newrelic==3.2.1.93
+newrelic==3.2.2.94
