@@ -5,7 +5,7 @@ from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 from django.apps import apps
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
-from re import sub
+import re
 from proteins.models import (Protein, State, StateTransition, Spectrum,
                              ProteinCollection, BleachMeasurement)
 from proteins.validators import validate_spectrum, validate_doi, protein_sequence_validator
@@ -56,7 +56,7 @@ class DOIField(forms.CharField):
 
     def to_python(self, value):
         if value and isinstance(value, str):
-            value = value.sub('^https?://(dx\.)?doi.org/', '')
+            value = re.sub('^https?://(dx\.)?doi.org/', '', value)
         return super().to_python(value)
 
 
