@@ -72,18 +72,21 @@ class TestProteinForm(TestCase):
         self.assertTrue('seq' in form.errors)
 
     def test_clean_refdoi_success(self):
-        form = ProteinForm({
-            'name': 'New Protein',
-            'reference_doi': 'http://10.1038/nmeth.2413'
-        })
-        valid = form.is_valid()
-        self.assertTrue(valid, 'Form is not valid')
-        self.assertEqual('10.1038/nmeth.2413', form.cleaned_data['reference_doi'])
+        for doi in ('http://dx.doi.org/10.1038/nmeth.2413',
+                    'https://doi.org/10.1038/nmeth.2413',
+                    '10.1038/nmeth.2413'):
+            form = ProteinForm({
+                'name': 'New Protein',
+                'reference_doi': doi
+            })
+            valid = form.is_valid()
+            self.assertTrue(valid, 'Form is not valid')
+            self.assertEqual('10.1038/nmeth.2413', form.cleaned_data['reference_doi'])
 
     def test_clean_refdoi_failure(self):
         form = ProteinForm({
             'name': 'New Protein',
-            'reference_doi': 'http://30.1038/nmeth.2413'  # Invalid DOI
+            'reference_doi': '30.1038/nmeth.2413'  # Invalid DOI
         })
         valid = form.is_valid()
         self.assertFalse(valid)
