@@ -6,7 +6,8 @@ import ast
 from Bio import Alphabet, Seq, Data
 from .fields import Spectrum
 
-validate_doi = RegexValidator(r"^10.\d{4,9}/[-._;()/:a-zA-Z0-9]+$", 'Not a valid DOI string')
+valid_doi = r'10.\d{4,9}/[-._;()/:a-zA-Z0-9]+'
+validate_doi = RegexValidator("^{}$".format(valid_doi), 'Not a valid DOI string')
 validate_mutation = RegexValidator(r"^[%(foo)s-][1-9][0-9]{0,2}[%(foo)s]$" % {'foo': Alphabet.IUPAC.protein.letters}, 'not a valid mutation code: eg S65T')
 validate_uniprot = RegexValidator(r'[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}', 'Not a valid UniProt Accession')
 

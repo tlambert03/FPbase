@@ -8,7 +8,8 @@ from django.core.exceptions import ObjectDoesNotExist
 import re
 from proteins.models import (Protein, State, StateTransition, Spectrum,
                              ProteinCollection, BleachMeasurement)
-from proteins.validators import validate_spectrum, validate_doi, protein_sequence_validator
+from proteins.validators import (validate_spectrum, validate_doi, valid_doi,
+                                 protein_sequence_validator)
 from proteins.util.importers import text_to_spectra
 from proteins.util.helpers import zip_wave_data
 from crispy_forms.helper import FormHelper
@@ -55,8 +56,10 @@ class DOIField(forms.CharField):
     default_validators = [validate_doi]
 
     def to_python(self, value):
-        if value and isinstance(value, str):
-            value = re.sub('^https?://(dx\.)?doi.org/', '', value)
+        if value:
+            match = re.search(valid_doi, value)
+            if match:
+                value = match.group()
         return super().to_python(value)
 
 
