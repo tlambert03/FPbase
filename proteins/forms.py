@@ -5,7 +5,7 @@ from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 from django.apps import apps
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
-import re import sub
+from re import sub
 from proteins.models import (Protein, State, StateTransition, Spectrum,
                              ProteinCollection, BleachMeasurement)
 from proteins.validators import validate_spectrum, validate_doi, protein_sequence_validator
