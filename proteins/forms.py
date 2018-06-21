@@ -56,7 +56,7 @@ class DOIField(forms.CharField):
 
     def to_python(self, value):
         if value and isinstance(value, str):
-            value = value.sub('^https?://(dx\.)?doi.org/')
+            value = value.sub('^https?://(dx\.)?doi.org/', '')
         return super().to_python(value)
 
 
