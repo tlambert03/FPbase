@@ -5,6 +5,7 @@ import traceback
 import pandas as pd
 from fpbase.users.models import User
 from django.utils.text import slugify
+from re import sub
 from references.models import Reference
 from .. import forms
 from ..models import (Protein, State, StateTransition, BleachMeasurement,
@@ -243,7 +244,7 @@ def importSeqs(file=None):
                     print("Non-matching sequence found for {}!".format(prot.Name))
             try:
                 if 'dx.doi' in prot.Source:
-                    doi = prot.Source.strip('https://doi.org/')
+                    doi = prot.Source.sub('^https?://(dx\.)?doi.org/', '')
                     rf += add_ref_to_prot(p, doi)
             except Exception as e:
                 # traceback.print_exc()
