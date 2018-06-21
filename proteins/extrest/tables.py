@@ -27,7 +27,7 @@ def fetch_pmc_content(pmcid):
 
 
 def fetch_doi_content(doi):
-    return requests.get('http://dx.doi.org/' + doi)
+    return requests.get('https://doi.org/' + doi)
 
 
 def response2table2(response):

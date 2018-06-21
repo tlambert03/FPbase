@@ -243,7 +243,7 @@ def importSeqs(file=None):
                     print("Non-matching sequence found for {}!".format(prot.Name))
             try:
                 if 'dx.doi' in prot.Source:
-                    doi = prot.Source.strip('http://dx.doi.org/')
+                    doi = prot.Source.strip('https://doi.org/')
                     rf += add_ref_to_prot(p, doi)
             except Exception as e:
                 # traceback.print_exc()

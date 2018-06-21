@@ -55,7 +55,7 @@ class DOIField(forms.CharField):
 
     def to_python(self, value):
         if value and isinstance(value, str):
-            value = value.lstrip('https://dx.doi.org/')
+            value = value.lstrip('https://doi.org/')
         return super().to_python(value)
 
 
