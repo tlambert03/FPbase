@@ -125,8 +125,8 @@ ADMINS = [
 MANAGERS = ADMINS + [('Anna Jost', 'anna_jost@hms.harvard.edu')]
 
 EMAIL_SUBJECT_PREFIX = '[FPbase] '
-SERVER_EMAIL = 'info@mg.fpbase.org'
-DEFAULT_FROM_EMAIL = 'info@mg.fpbase.org'
+SERVER_EMAIL = 'FPbase <info@mg.fpbase.org>'
+DEFAULT_FROM_EMAIL = 'FPbase <info@mg.fpbase.org>'
 
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------

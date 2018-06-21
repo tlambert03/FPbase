@@ -34,6 +34,15 @@ EMAIL_HOST = 'localhost'
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND',
                     default='django.core.mail.backends.console.EmailBackend')
 
+if env('MAILGUN_API_KEY', default=False) and env('MAILGUN_DOMAIN', default=False):
+    INSTALLED_APPS += ['anymail', ]
+    ANYMAIL = {
+        'MAILGUN_API_KEY': env('MAILGUN_API_KEY'),
+        'MAILGUN_SENDER_DOMAIN': env('MAILGUN_DOMAIN')
+    }
+    EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+
+
 
 # CACHING
 # ------------------------------------------------------------------------------
