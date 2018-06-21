@@ -204,7 +204,7 @@ class SpectrumForm(forms.ModelForm):
         Spectrum.LIGHT: ('owner_light', 'Light')
     }
 
-    owner = forms.CharField(max_length=100, label='Owner Name', required=True, help_text='Owner of the spectrum')
+    owner = forms.CharField(max_length=100, label='Owner Name', required=True, help_text='Name of protein, dye, filter, etc...')
     data = SpectrumFormField(required=False, label='Data')
     file = forms.FileField(required=False, label='File Upload',
                            help_text='2 column CSV/TSV file with wavelengths in first column and data in second column')
@@ -293,6 +293,19 @@ class SpectrumForm(forms.ModelForm):
             else:
                 obj = mod.objects.get(slug=slugify(owner))
         except ObjectDoesNotExist:
+            if cat == Spectrum.PROTEIN:
+                recs = Protein.objects.find_similar(owner, 0.5)
+                tmplt = "<a href='{}'>{}</a>"
+                sim_link = ", ".join(
+                    [tmplt.format(p.get_absolute_url(), p.name) for p in recs])
+                sim_link = "(Similar: {}) ".format(sim_link) if recs.count() else ''
+                self.add_error('owner', forms.ValidationError(
+                    mark_safe("Could not find {} in the database. "
+                              .format(owner) + sim_link +
+                              "<a href='{}' style='text-decoration: underline;'>"
+                              .format(reverse('proteins:submit')) +
+                              "Add it</a>?"),
+                    params={'owner': owner}, code='no_protein_exists'))
             # new object will be made in save()
             return owner
         except KeyError:

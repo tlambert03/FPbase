@@ -7,9 +7,11 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.conf import settings
+from django.contrib.postgres.search import TrigramSimilarity
 from model_utils.models import StatusModel, TimeStampedModel
 from model_utils.managers import QueryManager
 from model_utils import Choices
+
 import uuid as uuid_lib
 import json
 
@@ -54,6 +56,11 @@ class ProteinManager(models.Manager):
 
     def with_spectra(self):
         return self.get_queryset().filter(states__spectra__isnull=False).distinct()
+
+    def find_similar(self, name, similarity=0.2):
+        return self.get_queryset() \
+            .annotate(similarity=TrigramSimilarity('name', name)) \
+            .filter(similarity__gt=similarity).order_by('-similarity')
 
 
 class Protein(Authorable, StatusModel, TimeStampedModel):
