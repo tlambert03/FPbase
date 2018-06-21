@@ -10,7 +10,7 @@ from django.forms import Textarea, CharField
 from django.contrib.postgres.search import TrigramSimilarity
 from model_utils.models import TimeStampedModel
 from model_utils.managers import QueryManager
-from .mixins import Authorable, Product
+from .mixins import Authorable, Product, AdminURLMixin
 from ..util.helpers import wave_to_hex
 from scipy import interpolate
 from scipy.signal import argrelextrema, savgol_filter
@@ -242,7 +242,7 @@ class SpectrumManager(models.Manager):
         return qs_list
 
 
-class Spectrum(Authorable, TimeStampedModel):
+class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
 
     DYE = 'd'
     PROTEIN = 'p'

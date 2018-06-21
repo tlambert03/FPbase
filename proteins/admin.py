@@ -121,8 +121,8 @@ class SpectrumAdmin(admin.ModelAdmin):
     list_select_related = ('owner_state__protein', 'owner_filter', 'owner_camera', 'owner_light', 'owner_dye', 'created_by')
     list_display = ('__str__', 'category', 'subtype', 'owner', 'created_by')
     list_filter = ('created', 'category', 'subtype')
-    fields = ('created_by', 'updated_by', 'data', 'category', 'subtype', 'ph', 'solvent', 'owner')
-    readonly_fields = ('owner',)
+    fields = ('owner', 'category', 'subtype', 'data', 'ph', 'solvent', 'created_by', 'updated_by')
+    readonly_fields = ('owner', 'name')
     search_fields = ('owner_state__protein__name', 'owner_filter__name', 'owner_camera__name', 'owner_light__name', 'owner_dye__name')
 
     def owner(self, obj):

@@ -5,6 +5,8 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
+from django.core.mail import EmailMessage
 from django.db import transaction
 from django.http import JsonResponse
 from django.contrib.postgres.search import TrigramSimilarity
@@ -69,12 +71,12 @@ class ProteinDetailView(DetailView):
         if not self.object.status == 'approved':
             data['last_approved'] = self.object.last_approved_version()
 
-        similar = Protein.visible.filter(name__iexact='m'+self.object.name)
-        similar = similar | Protein.visible.filter(name__iexact='monomeric'+self.object.name)
+        similar = Protein.visible.filter(name__iexact='m' + self.object.name)
+        similar = similar | Protein.visible.filter(name__iexact='monomeric' + self.object.name)
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip('m'))
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip('monomeric'))
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip('td'))
-        similar = similar | Protein.visible.filter(name__iexact='td'+self.object.name)
+        similar = similar | Protein.visible.filter(name__iexact='td' + self.object.name)
         data['similar'] = similar.exclude(id=self.object.id)
         return data
 
@@ -262,14 +264,27 @@ class SpectrumCreateView(CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
+    def form_valid(self, form):
+        # This method is called when valid form data has been POSTed.
+        # It should return an HttpResponse.
+        i = super().form_valid(form)
+        EmailMessage(
+            '[FPbase] Spectrum submitted: %s' % form.cleaned_data['owner'],
+            self.request.build_absolute_uri(form.instance.get_admin_url()),
+            to=[a[1] for a in settings.ADMINS],
+            headers={'X-Mailgun-Track': 'no'}
+        ).send()
+        return i
+
 
 def protein_search(request):
     ''' renders html for protein search page  '''
 
     if request.GET:
-        f = ProteinFilter(request.GET,
-                queryset=Protein.objects.select_related('default_state')
-                .prefetch_related('states').order_by('default_state__em_max'))
+        f = ProteinFilter(
+            request.GET,
+            queryset=Protein.objects.select_related('default_state')
+            .prefetch_related('states').order_by('default_state__em_max'))
 
         # if no hits, but name was provided... try trigram search
         if len(f.qs) == 0:
@@ -384,8 +399,10 @@ def update_transitions(request, slug=None):
                         obj.status = 'approved'
                     else:
                         obj.status = 'pending'
-                        mail_managers('Transition updated',
-                            "User: {}\nProtein: {}\nForm: {}".format(request.user.username, obj, formset),
+                        mail_managers(
+                            'Transition updated',
+                            "User: {}\nProtein: {}\nForm: {}"
+                            .format(request.user.username, obj, formset),
                             fail_silently=True)
                     obj.save()
                     reversion.set_user(request.user)
@@ -404,8 +421,8 @@ def update_transitions(request, slug=None):
 @login_required
 def protein_bleach_formsets(request, slug):
     template_name = 'proteins/protein_bleach_form.html'
-    BleachMeasurementFormSet = modelformset_factory(BleachMeasurement,
-                        BleachMeasurementForm, extra=1, can_delete=True)
+    BleachMeasurementFormSet = modelformset_factory(
+        BleachMeasurement, BleachMeasurementForm, extra=1, can_delete=True)
     protein = get_object_or_404(Protein, slug=slug)
     qs = BleachMeasurement.objects.filter(state__protein=protein)
     if request.method == 'POST':
@@ -426,7 +443,8 @@ def protein_bleach_formsets(request, slug):
 
                     if not request.user.is_staff:
                         protein.status = 'pending'
-                        mail_managers('BleachMeasurement Added',
+                        mail_managers(
+                            'BleachMeasurement Added',
                             "User: {}\nProtein: {}\n{}".format(
                                 request.user.username, protein,
                                 request.build_absolute_uri(protein.get_absolute_url())),
