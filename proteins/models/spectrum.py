@@ -294,7 +294,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     }
 
     data     = SpectrumData()
-    category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name='Owner Type', db_index=True)
+    category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name='Spectrum Type', db_index=True)
     subtype  = models.CharField(max_length=2, choices=SUBTYPE_CHOICES, verbose_name='Spectrum Subtype', db_index=True)
     ph       = models.FloatField(null=True, blank=True, verbose_name='pH')  # pH of measurement
     solvent  = models.CharField(max_length=128, blank=True)

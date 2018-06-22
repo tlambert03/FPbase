@@ -268,12 +268,13 @@ class SpectrumCreateView(CreateView):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
         i = super().form_valid(form)
-        EmailMessage(
-            '[FPbase] Spectrum submitted: %s' % form.cleaned_data['owner'],
-            self.request.build_absolute_uri(form.instance.get_admin_url()),
-            to=[a[1] for a in settings.ADMINS],
-            headers={'X-Mailgun-Track': 'no'}
-        ).send()
+        if not self.request.user.is_staff:
+            EmailMessage(
+                '[FPbase] Spectrum submitted: %s' % form.cleaned_data['owner'],
+                self.request.build_absolute_uri(form.instance.get_admin_url()),
+                to=[a[1] for a in settings.ADMINS],
+                headers={'X-Mailgun-Track': 'no'}
+            ).send()
         return i
 
 

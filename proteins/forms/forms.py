@@ -2,18 +2,12 @@ from django import forms
 from django.utils.text import slugify
 from django.utils.safestring import mark_safe
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
-from django.apps import apps
-from django.urls import reverse
-from django.core.exceptions import ObjectDoesNotExist
 import re
-from proteins.models import (Protein, State, StateTransition, Spectrum,
+from proteins.models import (Protein, State, StateTransition,
                              ProteinCollection, BleachMeasurement)
-from proteins.validators import (validate_spectrum, validate_doi,
-                                 protein_sequence_validator)
-from proteins.util.importers import text_to_spectra
-from proteins.util.helpers import zip_wave_data
+from proteins.validators import validate_doi, protein_sequence_validator
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, HTML, Submit
+from crispy_forms.layout import Layout, Div, HTML
 
 
 def popover_html(label, content, side='right'):
@@ -83,9 +77,15 @@ class SelectAddWidget(forms.widgets.Select):
 
 class ProteinForm(forms.ModelForm):
     '''Form class for user-facing protein creation/submission form '''
-    reference_doi = DOIField(required=False, help_text='e.g. 10.1038/nmeth.2413', label='Reference DOI')
-    seq = SequenceField(required=False, help_text='Amino acid sequence (IPG ID is preferred)',
-        label=popover_html('Sequence', "If you enter an IPG ID, the sequence can be automatically fetched from NCBI"),)
+    reference_doi = DOIField(
+        required=False,
+        help_text='e.g. 10.1038/nmeth.2413',
+        label='Reference DOI')
+    seq = SequenceField(
+        required=False,
+        help_text='Amino acid sequence (IPG ID is preferred)',
+        label=popover_html('Sequence', 'If you enter an IPG ID, the sequence '
+                           'can be automatically fetched from NCBI'))
     # reference_pmid = forms.CharField(max_length=24, label='Reference Pubmed ID',
     #     required=False, help_text='e.g. 23524392 (must provide either DOI or PMID)')
 
@@ -184,169 +184,6 @@ class ProteinForm(forms.ModelForm):
         return self.instance
 
 
-class SpectrumFormField(forms.CharField):
-    default_validators = [validate_spectrum]
-    widget = forms.Textarea(attrs={
-        'class': 'vLargeTextField',
-        'rows': 2,
-    })
-
-    def __init__(self, *args, **kwargs):
-        if 'help_text' not in kwargs:
-            kwargs['help_text'] = 'List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]. File data takes precedence.'
-        super().__init__(*args, **kwargs)
-
-
-class SpectrumForm(forms.ModelForm):
-    lookup = {
-        Spectrum.DYE: ('owner_dye', 'Dye'),
-        Spectrum.PROTEIN: ('owner_state', 'State'),
-        Spectrum.FILTER: ('owner_filter', 'Filter'),
-        Spectrum.CAMERA: ('owner_camera', 'Camera'),
-        Spectrum.LIGHT: ('owner_light', 'Light')
-    }
-
-    owner = forms.CharField(max_length=100, label='Owner Name', required=True, help_text='Name of protein, dye, filter, etc...')
-    data = SpectrumFormField(required=False, label='Data')
-    file = forms.FileField(required=False, label='File Upload',
-                           help_text='2 column CSV/TSV file with wavelengths in first column and data in second column')
-
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        self.helper = FormHelper()
-        self.helper.attrs = {
-            "id": 'spectrum-submit-form',
-            "data-validate-owner-url": reverse('proteins:validate_spectrumownername')
-        }
-        self.helper.add_input(Submit('submit', 'Submit'))
-        self.helper.layout = Layout(
-            Div('owner'),
-            Div(
-                Div('category', css_class='col-sm-6 col-xs-12'),
-                Div('subtype', css_class='col-sm-6 col-xs-12'),
-                css_class='row',
-            ),
-            Div('file', 'data',),
-            Div(
-                Div('ph', css_class='col-md-6 col-sm-12'),
-                Div('solvent', css_class='col-md-6 col-sm-12'),
-                css_class='row',
-            ),
-        )
-
-        super().__init__(*args, **kwargs)
-
-    class Meta:
-        model = Spectrum
-        fields = ('category', 'subtype', 'file', 'data', 'ph', 'solvent', 'owner')
-        widgets = {'data': forms.Textarea(attrs={'class': 'vLargeTextField', 'rows': 2})}
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if not (cleaned_data.get('data') or self.files):
-            self.add_error('data', 'Please either fill in the data field or '
-                           'select a file to upload.')
-            self.add_error('file', 'Please either fill in the data field or '
-                           'select a file to upload.')
-
-    def save(self, commit=True):
-        owner_name = self.cleaned_data.get("owner")
-        cat = self.cleaned_data.get('category')
-        owner_model = apps.get_model('proteins', self.lookup[cat][1])
-        if cat == Spectrum.PROTEIN:
-            owner_obj = owner_model.objects.get(protein__name__iexact=owner_name)
-        else:
-            owner_obj, c = owner_model.objects.get_or_create(name=owner_name, defaults={'created_by': self.user})
-            if not c:
-                owner_obj.update_by = self.user
-                owner_obj.save()
-        setattr(self.instance, self.lookup[cat][0], owner_obj)
-        self.instance.created_by = self.user
-        return super().save(commit=commit)
-
-    def clean_file(self):
-        if self.files:
-            filetext = ''
-            try:
-                for chunk in self.files['file'].chunks():
-                    filetext += chunk.decode("utf-8")
-                x, y, headers = text_to_spectra(filetext)
-                if not len(y):
-                    self.add_error('file', 'Did not find a data column in the provided file')
-                if not len(x):
-                    self.add_error('file', 'Could not parse wavelengths from first column')
-            except Exception:
-                self.add_error('file', 'Sorry, could not parse spectrum from this file. '
-                               'Is it it two column csv with (wavelength, spectrum)?')
-            if not self.errors:
-                self.cleaned_data['data'] = zip_wave_data(x, y[0])
-                self.data = self.data.copy()
-                self.data['data'] = self.cleaned_data['data']
-
-    def clean_owner(self):
-        # make sure an owner with the same category and name doesn't already exist
-        owner = self.cleaned_data.get("owner")
-        cat = self.cleaned_data.get('category')
-        stype = self.cleaned_data.get('subtype')
-        try:
-            mod = apps.get_model('proteins', self.lookup[cat][1])
-            if cat == Spectrum.PROTEIN:
-                obj = mod.objects.get(protein__slug=slugify(owner))
-            else:
-                obj = mod.objects.get(slug=slugify(owner))
-        except ObjectDoesNotExist:
-            if cat == Spectrum.PROTEIN:
-                recs = Protein.objects.find_similar(owner, 0.5)
-                tmplt = "<a href='{}'>{}</a>"
-                sim_link = ", ".join(
-                    [tmplt.format(p.get_absolute_url(), p.name) for p in recs])
-                sim_link = "(Similar: {}) ".format(sim_link) if recs.count() else ''
-                self.add_error('owner', forms.ValidationError(
-                    mark_safe("Could not find {} in the database. "
-                              .format(owner) + sim_link +
-                              "<a href='{}' style='text-decoration: underline;'>"
-                              .format(reverse('proteins:submit')) +
-                              "Add it</a>?"),
-                    params={'owner': owner}, code='no_protein_exists'))
-            # new object will be made in save()
-            return owner
-        except KeyError:
-            # this might be repetitive... since a missing category will already
-            # throw an error prior to this point
-            if not cat:
-                raise forms.ValidationError("Category not provided")
-            else:
-                raise forms.ValidationError("Category not recognized")
-        else:
-            # object exists... check if it has this type of spectrum
-            if obj.spectra.filter(subtype=stype).exists():
-                if cat == Spectrum.PROTEIN:
-                    self.add_error('owner', forms.ValidationError(
-                        "Protein %(owner)s already has a %(stype)s spectrum",
-                        params={
-                            'owner': obj.protein.name,
-                            'stype': obj.spectra.filter(subtype=stype).first().get_subtype_display()},
-                        code='owner_exists'))
-
-                    # raise forms.ValidationError(
-                    #     "The default state for protein %(owner)s already has a spectrum of type %(stype)s.",
-                    #     params={'owner': owner, 'stype': stype},
-                    #     code='owner_exists')
-                else:
-                    self.add_error('owner', forms.ValidationError(
-                        "A %(model)s with the name %(name)s already has a %(stype)s spectrum",
-                        params={'model': self.lookup[cat][1].lower(),
-                                'name': obj.name,
-                                'stype': obj.spectra.filter(subtype=stype).first().get_subtype_display()},
-                        code='owner_exists'))
-                    # raise forms.ValidationError(
-                    #     "A %(model)s with the slug %(slug)s already has a spectrum of type %(stype)s.",
-                    #     params={'model': self.lookup[cat][1].lower(), 'slug': slugify(owner), 'stype': stype},
-                    #     code='owner_exists')
-            else:
-                return owner
-
-
 class StateForm(forms.ModelForm):
     # ex_spectra = SpectrumFormField(required=False, label='Excitation Spectrum')
     # em_spectra = SpectrumFormField(required=False, label='Emission Spectrum')
@@ -377,11 +214,11 @@ class StateForm(forms.ModelForm):
                     Div('lifetime', css_class='col-md-4'),
                     css_class='row hide_if_dark',
                 ),
-                #Div(
+                # Div(
                 #    Div('ex_spectra', css_class='col-md-6 spectrum-field'),
                 #    Div('em_spectra', css_class='col-md-6 spectrum-field'),
                 #    css_class='row hide_if_dark',
-                #),
+                # ),
                 css_class='stateform_block'
             )
         )
@@ -520,4 +357,3 @@ class BleachMeasurementForm(forms.ModelForm):
                 ),
             )
         )
-

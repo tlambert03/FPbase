@@ -1,10 +1,25 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags static %}
 
-{% block vendorcss %}{{ form.media.css }}{% endblock vendorcss %}
+{% block vendorcss %}{{ form.media.css }}
+
+<style type="text/css">
+  .select2-container{
+    width: 100% !important;
+  }
+  .select2-container--bootstrap .select2-selection--single {
+    padding-left: 0 !important;
+  }
+</style>
+{% endblock vendorcss %}
 
 
 {% block content %}
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
   <h2>Add a new spectrum to the database</h2>
   <p>The easiest way to format spectra for upload is to create a two-column CSV or TSV file, where the first column contains the wavelength and the second column contains the spectrum values (ex/em/transmission, etc).  Any additional columns will be ignored.  Data may also be entered below as a (python style) list: <code>[[wavelength, value], [wavelength, value], ...]</code></p>
   {% crispy form %}
@@ -29,24 +44,46 @@
     '': [],
   };
 
-  $("#id_category").change(function() {
-      $("#id_subtype option").each(function(i){
-        $(this).hide()
-      })
-      var vopts = valid_opts[$(this).val()];
-      $(vopts).each(function (i, v) {
-        $("#id_subtype option[value='" + v + "']").show();
-      })
-      if (vopts.length == 1){
-        $("#id_subtype").val(vopts[0]).change();
-      } else {
-        $("#id_subtype").val('').change();
-      }
-  });
 
   $(function(){
-    $("#id_category").change();
-  })
+
+    $("#id_category").change(function() {
+        $("#id_subtype option").each(function(i){
+          $(this).hide()
+        })
+        var vopts = valid_opts[$(this).val()];
+        $(vopts).each(function (i, v) {
+          $("#id_subtype option[value='" + v + "']").show();
+        })
+        if (vopts.length == 1){
+          $("#id_subtype").val(vopts[0]).change();
+        } else {
+          $("#id_subtype").val('').change();
+        }
+    }).change();
+
+    $("#spectrum-submit-form #id_category").change(function(){
+      ownname = 'Owner'
+      if (this.value){
+        ownname = $(this).find("option:selected").text()
+      }
+
+      $("#spectrum-submit-form .owner-type").text(ownname)
+      if (this.value === 'p'){
+        $(".protein-owner").show()
+        $(".protein-owner select").prop('required',true);
+        $(".non-protein-owner").hide()
+        $(".non-protein-owner input").prop('required',false);
+      }
+      else {
+        $(".protein-owner").hide()
+        $(".protein-owner select").prop('required',false);
+        $(".non-protein-owner").show()
+        $(".non-protein-owner input").prop('required',true);
+      }
+    }).change();
+
+  });
 
 </script>
 

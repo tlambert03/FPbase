@@ -1,0 +1,14 @@
+.select2-container {
+    min-width: 15em;
+    width: 100%;
+}
+
+ul li.select2-selection__choice,
+ul li.select2-search {
+    /* Cancel out django's style */
+    list-style-type: none;
+}
+
+.select2-container .select2-selection--single {
+  height: 38px;
+}

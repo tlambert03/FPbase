@@ -33,18 +33,37 @@ urlpatterns = [
     url(r'^collection/(?P<pk>\d+)/$', views.CollectionDetail.as_view(), name='collection-detail'),
     url(r'^collection/(?P<pk>\d+)/update/',
         login_required(views.CollectionUpdateView.as_view(),
-        message="You must be logged in to update collections"),
+                       message="You must be logged in to update collections"),
         name='updatecollection'),
     url(r'^collection/(?P<pk>\d+)/delete/',
         login_required(views.CollectionDeleteView.as_view(),
-        message="You must be logged in to delete collections"),
+                       message="You must be logged in to delete collections"),
         name='deletecollection'),
     url(r'^collection/create/',
         login_required(views.CollectionCreateView.as_view(),
-        message="You must be logged in to create a new collection"),
+                       message="You must be logged in to create a new collection"),
         name='newcollection'),
 
+    url(r'^organism/(?P<pk>\d+)/$', views.OrganismDetailView.as_view(), name='organism-detail'),
 
+    url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
+    url(r'^protein/(?P<slug>[-\w]+)/bleach/$', views.protein_bleach_formsets, name='protein-bleach-form'),
+    url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
+    url(r'^protein/(?P<slug>[-\w]+)/ver/(?P<ver>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
+
+    url(r'^protein-autocomplete/$', views.ProteinAutocomplete.as_view(), name='protein-autocomplete',),
+    url(r'^state-autocomplete/$', views.StateAutocomplete.as_view(), name='state-autocomplete',),
+
+    # /proteins/api
+    url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
+    url(r'^api/proteins/spectraslugs/$', apiviews.spectraslugs, name='spectra-slugs'),
+    url(r'^api/proteins/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
+    url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
+    url(r'^api/proteins/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
+    # /proteins/api/:slug/
+    url(r'^api/(?P<slug>[-\w]+)/$', apiviews.ProteinRetrieveUpdateDestroyAPIView.as_view(), name='protein-api'),
+
+    # AJAX
     url(r'^ajax/add_taxonomy/$', views.add_organism, name='add_taxonomy'),
     url(r'^ajax/filter_import/(?P<brand>[-\w]+)$', views.filter_import, name='filter_import'),
     url(r'^ajax/add_protein_reference/(?P<slug>[-\w]+)/$', views.add_reference, name='add_protein_reference'),
@@ -55,21 +74,5 @@ urlpatterns = [
     url(r'^ajax/validate_spectrumownername/$', views.similar_spectrum_owners, name='validate_spectrumownername'),
     url(r'^ajax/remove_from_collection/$', views.collection_remove, name='collection-remove'),
     url(r'^ajax/add_to_collection/$', views.add_to_collection, name='add_to_collection'),
-
-    url(r'^organism/(?P<pk>\d+)/$', views.OrganismDetailView.as_view(), name='organism-detail'),
-
-    url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
-    url(r'^protein/(?P<slug>[-\w]+)/bleach/$', views.protein_bleach_formsets, name='protein-bleach-form'),
-    url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
-    url(r'^protein/(?P<slug>[-\w]+)/ver/(?P<ver>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
-
-    # /proteins/api
-    url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
-    url(r'^api/proteins/spectraslugs/$', apiviews.spectraslugs, name='spectra-slugs'),
-    url(r'^api/proteins/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
-    url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
-    url(r'^api/proteins/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
-    # /proteins/api/:slug/
-    url(r'^api/(?P<slug>[-\w]+)/$', apiviews.ProteinRetrieveUpdateDestroyAPIView.as_view(), name='protein-api')
 
 ]
