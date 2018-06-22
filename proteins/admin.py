@@ -21,6 +21,7 @@ class SpectrumOwner(object):
     list_display = ('__str__', 'spectra', 'created_by')
     list_select_related = ('created_by',)
     list_filter = ('created', 'manufacturer')
+    search_fields = ('name',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -118,12 +119,26 @@ class CameraAdmin(SpectrumOwner, VersionAdmin):
 @admin.register(Spectrum)
 class SpectrumAdmin(admin.ModelAdmin):
     model = Spectrum
+    autocomplete_fields = []
     list_select_related = ('owner_state__protein', 'owner_filter', 'owner_camera', 'owner_light', 'owner_dye', 'created_by')
     list_display = ('__str__', 'category', 'subtype', 'owner', 'created_by')
     list_filter = ('created', 'category', 'subtype')
-    fields = ('owner', 'category', 'subtype', 'data', 'ph', 'solvent', 'created_by', 'updated_by')
-    readonly_fields = ('owner', 'name')
+    readonly_fields = ('owner', 'name', 'created')
     search_fields = ('owner_state__protein__name', 'owner_filter__name', 'owner_camera__name', 'owner_light__name', 'owner_dye__name')
+
+    def get_fields(self, request, obj=None):
+        fields = []
+        if not obj or not obj.category:
+            own = ['owner_state', 'owner_filter', 'owner_camera', 'owner_light', 'owner_dye']
+        elif obj.category == Spectrum.PROTEIN:
+            own = ['owner_state']
+        else:
+            own = ['owner_' + obj.get_category_display().lower()]
+        fields.extend(own)
+        self.autocomplete_fields.extend(own)
+        fields += ['category', 'subtype', 'data', 'ph', 'solvent',
+                   ('created', 'created_by', 'updated_by')]
+        return fields
 
     def owner(self, obj):
         url = reverse("admin:proteins_{}_change".format(obj.owner._meta.model.__name__.lower()), args=(obj.owner.pk,))
