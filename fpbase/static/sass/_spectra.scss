@@ -10,6 +10,11 @@ h6 {
     font-size: small;
     margin-top: 0rem;
     padding-top: 0px;
+
+    .tab-content {
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid #DEE2E6;
+    }
     label.custom-control-label{ padding-top: 2px;}
     @include media-breakpoint-down(sm){
       label.custom-control-label{ padding-top: 4px;}

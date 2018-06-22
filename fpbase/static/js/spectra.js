@@ -1022,14 +1022,14 @@ function calculateEfficiency() {
 
     if (iSpectra.length && iEmFilt.length) {
         $('#efftab_blurb').hide();
-        $('#efftab_help').show();
         $("#efficiency-table thead").append($('<tr>').append($('<th>')));
         for (x = 0; x < iEmFilt.length; x++) {
             $('<th>').text(data[iEmFilt[x]].key).appendTo($("#efficiency-table").find('thead tr'));
         }
+        $('.efftab_help').show();
     } else {
         $('#efftab_blurb').show();
-        $('#efftab_help').hide();
+        $('.efftab_help').hide();
         return true;
     }
 
@@ -1055,7 +1055,7 @@ function calculateEfficiency() {
                 .find('tr:last')
                 .append($('<td>', { 'class': effclass })
                     .append(eyebutton(iSpectra[s], iEmFilt[n], overlaps.length - 1))
-                    .append(formatted + '% / (' + Math.round(absEM * 100) / 100 + ')')
+                    .append('  ' + Math.round(absEM * 100) / 100 + ' / (' + formatted + '%)')
                 );
         }
     }

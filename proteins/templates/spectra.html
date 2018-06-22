@@ -67,7 +67,7 @@
       <a class="nav-link" href="#helptab" data-toggle="tab">Help</a>
     </li>
   </ul>
-  <div class="tab-content ">
+  <div class="tab-content">
     <div class="tab-pane active" id="proteintab">
       <h6 class='pt-3 text-info'>Proteins<button type="button" class="btn btn-info btn-xs addFormItem ml-3" value='p'><i class="fas fa-plus mr-2"></i>Add protein</button></h6>
       <div class='spectra-form' id='protein-table'></div>
@@ -119,13 +119,16 @@
           <li>This tab will then be populated with a table showing the collection efficiency for each fluorophore/filter pairing.</li>
         </ol>
       </div>
-      <table class='table' id='efficiency-table'>
+      <div class='efftab_help mt-3 ml-3'>
+        <p>Collection efficiency is shown as a pair of numbers: <code>abs / (rel %)</code>.  Where <code>abs</code> is the absolute collection efficiency of that fluorophore/filter pair (arbitrary units), taking any scaling into account (e.g. excitation efficiency, extinction coefficient, quantum yield), and <code>rel %</code> is the predicted percent of total emission photons that are collected for that given fluorophore.
+        <p class='efftab_help text-muted hidden'><em>Tip: click and hold on the <i class="fas fa-eye"></i> buttons to reveal the collection efficiency on the graph</em></p>
+      </div>
+      <table class='table table-bordered' id='efficiency-table'>
         <thead>
         </thead>
         <tbody>
         </tbody>
       </table>
-      <p id='efftab_help' class='mt-2 ml-3 text-muted hidden'><em>Tip: click and hold on the <i class="fas fa-eye"></i> buttons to reveal the collection efficiency on the graph</em></p>
     </div>
 
     <div class="tab-pane" id="optionstab">
@@ -139,10 +142,10 @@
 
     <div class="tab-pane" id="helptab">
       <div class="container mt-3">
-        <p class='text-justify'>Add items to the spectra viewer by clicking the corresponding <strong class='text-info'>add...</strong> button for the type of item you would like to add (e.g. fluorescent protein, filter, etc...).  Remove items by clicking the red <span class='text-danger'><strong>&times;</strong></span> button next to the item you wish to remove.  Add chroma/semrock filters to the viewer by using the "import commercial filter" buttons. Scale excitation spectra to EC or emission spectra to QY using the corresponding options in the options tab (note, not all dyes have EC/QY information and some will disappear from the graph).  If you add a custom laser in the excitation/light tab, you can scale all emission spectra to their relative excitation at that particular laser line.  If you add at least one fluorophore and one emission filter, you can use the collection efficiency tab to evaluate how well each emission filter collects emission from each probe (and evaluate potential bleedthrough).  If you would like to see a spectrum added to the database, for now, please request using the <a href="{% url 'contact' %}">contact form</a>... spectra addition form coming soon.</p>
+        <p class='text-justify'>Add items to the spectra viewer by clicking the corresponding <strong class='text-info'>add...</strong> button for the type of item you would like to add (e.g. fluorescent protein, filter, etc...).  Remove items by clicking the red <span class='text-danger'><strong>&times;</strong></span> button next to the item you wish to remove.  Add chroma/semrock filters to the viewer by using the "import commercial filter" buttons. Scale excitation spectra to EC or emission spectra to QY using the corresponding options in the options tab (note, not all dyes have EC/QY information and some will disappear from the graph).  If you add a custom laser in the excitation/light tab, you can scale all emission spectra to their relative excitation at that particular laser line.  If you add at least one fluorophore and one emission filter, you can use the collection efficiency tab to evaluate how well each emission filter collects emission from each probe (and evaluate potential bleedthrough).</p>
         <h5 class=' pb-2'><i class="far fa-keyboard mr-2"></i><strong>Keyboard Shortcuts</strong></h5>
         <div class="container">
-          <dl class="row">
+          <dl class="row no-gutters">
             <dt class="col-sm-2 key-shortcut">Shift + P</dt>
             <dd class="col-sm-10">Add a new protein</dd>
             <dt class="col-sm-2 key-shortcut">Shift + D</dt>
@@ -160,14 +163,12 @@
             <br><br>
             <dt class="col-sm-2 key-shortcut">Left Arrow</dt>
             <dd class="col-sm-10">Activate previous tab.</dd>
-            <dt class="col-sm-2 key-shortcut">Left Arrow</dt>
+            <dt class="col-sm-2 key-shortcut">Right Arrow</dt>
             <dd class="col-sm-10">Activate next tab.</dd>
             <dt class="col-sm-2 key-shortcut">Up arrow</dt>
             <dd class="col-sm-10">Go to previous item in form (within same group)</dd>
             <dt class="col-sm-2 key-shortcut">Down arrow</dt>
             <dd class="col-sm-10">Go to next item in form (within same group)</dd>
-            <dt class="col-sm-2 key-shortcut">Delete</dt>
-            <dd class="col-sm-10">Delete currently focused item (green outline = focus)</dd>
             <dt class="col-sm-2 key-shortcut">Delete</dt>
             <dd class="col-sm-10">Delete currently focused item (green outline = focus)</dd>
           </dl>
@@ -178,13 +179,13 @@
   </div>
 </div>
 
-<div class="container">
- <p class='small text-muted text-center mt-4 font-italic'>Want to see an FP spectra that isn't in here, but don't have time to add it yourself? <a href="{% url 'contact' %}"> Request a new FP</a></p>
-
+<div class="container mt-3">
  <p class='text-center'><a href="{% url 'proteins:submit-spectra' %}"><button type="button" class="btn btn-primary btn-sm"><i class="fas fa-file mr-2"></i>Submit Spectrum</button></a></p>
+ <p class='small text-muted text-center font-italic'>Want to see an FP spectra that isn't in here, but don't have time to add it yourself? <a href="{% url 'contact' %}"> Request a new FP</a></p>
+
 </div>
 
-<iframe src="https://hms.az1.qualtrics.com/jfe/form/SV_eLKVwLJp72uyYcd" height=240 width=540 frameBorder="0" scrolling="no">not compatible</iframe>
+<iframe src="https://hms.az1.qualtrics.com/jfe/form/SV_eLKVwLJp72uyYcd" height=240 width=540 frameBorder="0" scrolling="no" style="width: 75vw; margin-top:20px">not compatible</iframe>
 
 <input class="form-check-input hidden" type="radio" name="exnormRadio" id="exnormRadioOFF" value="0" checked>
 
