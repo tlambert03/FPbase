@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from proteins.models import (Protein, State, StateTransition, Organism,
                              FRETpair, BleachMeasurement, Spectrum, Dye,
-                             Light, Filter, Camera)
+                             Light, Filter, Camera, Mutation)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.models import Version
 from reversion.admin import VersionAdmin
@@ -114,6 +114,11 @@ class FilterAdmin(SpectrumOwner, VersionAdmin):
 @admin.register(Camera)
 class CameraAdmin(SpectrumOwner, VersionAdmin):
     model = Camera
+
+
+@admin.register(Mutation)
+class MutationAdmin(VersionAdmin):
+    model = Mutation
 
 
 @admin.register(Spectrum)
