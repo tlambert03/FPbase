@@ -3,6 +3,7 @@ import json
 import tablib
 import traceback
 import pandas as pd
+import requests
 from fpbase.users.models import User
 from django.utils.text import slugify
 import re
@@ -312,6 +313,55 @@ def import_thermo():
             print(errs[0][1].as_text())
 
     update_dyes()
+
+
+def import_atto():
+    from proteins.forms import SpectrumForm
+    from django.core.files import File
+    d = os.path.join(BASEDIR, '_data/ATTO')
+    props = pd.DataFrame.from_csv(os.path.join(BASEDIR, '_data/ATTO/_attoprops.csv'))
+    props = props.T.to_dict()
+
+    for f in os.listdir(d):
+        if not f.endswith('.txt'):
+            continue
+        try:
+            name = f.split('_')[0].replace('ATTO', 'ATTO ')
+            with open(os.path.join(d, f), 'rb') as _f:
+                djfile = File(_f)
+                sf = SpectrumForm({
+                    'owner': name,
+                    'category': Spectrum.DYE,
+                    'subtype': Spectrum.ABS if 'abs.txt' in f else Spectrum.EM,
+                    'ph': 7.4,
+                    'solven': 'PBS'
+                }, {'file': djfile})
+                if sf.is_valid():
+                    obj = sf.save(commit=False)
+                    obj.created_by = User.objects.first()
+                    obj.save()
+
+                    dye = obj.owner
+                    dye.manufacturer = 'ATTO-TEC GmbH'
+                    dye.part = name
+                    uri = 'http://www.atto-tec.com/fileadmin/user_upload/Katalog_Flyer_Support/{}.pdf'
+                    url = uri.format(name.replace(' ', '_'))
+                    if requests.get(url).status_code == 200:
+                        dye.url = url
+                    if name in props:
+                        for k, v in props[name].items():
+                            if v:
+                                setattr(dye, k, v)
+                    else:
+                        print('could not find props for ', name)
+                    dye.created_by = User.objects.first()
+                    dye.save()
+
+                    print("SUCCESS: ", obj)
+                else:
+                    print(sf.errors)
+        except Exception as e:
+            raise
 
 
 def update_dyes(file=None):
