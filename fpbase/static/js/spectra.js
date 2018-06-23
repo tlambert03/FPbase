@@ -191,8 +191,8 @@ function unscale_all(){
     options.scaleToQY = false;
     options.scaleToEC = false;
     $("#exnormRadioOFF").prop('checked', true);
-    $('#scaleToQY-input').prop('checked',false)
-    $('#scaleToEC-input').prop('checked',false)
+    $('#scaleToQY_input').prop('checked',false)
+    $('#scaleToEC_input').prop('checked',false)
     refreshChart();
 }
 
