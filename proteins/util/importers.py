@@ -113,6 +113,20 @@ def fetch_semrock_part(part):
         raise ValueError('Could not retrieve Semrock part: {}'.format(part))
 
 
+def extract_headers(text, delimiters=';|,|\t'):
+    headers = []
+    split = text.splitlines()
+    for i, txt in enumerate(split):
+        try:
+            _h = re.split(delimiters, txt)
+            float(_h[0])
+            return "\n".join(split[i:]), headers
+        except ValueError:
+            if i == 0:
+                headers = _h
+            continue
+
+
 def text_to_spectra(text, wavecol=0):
     """ Convert text string into spectral data
 
@@ -126,13 +140,8 @@ def text_to_spectra(text, wavecol=0):
             headers is 1D of length M, containing titles of data colums
 
     """
-    try:
-        # find the first string, split on multiple tokens
-        float(re.split(';|,|\n|\t', text)[0])
-        data = tablib.Dataset().load(text, headers=[])
-    except ValueError:
-        # first number is not a float... probably a header
-        data = tablib.Dataset().load(text)
+    text, headers = extract_headers(text)
+    data = tablib.Dataset().load(text, headers=headers)
     waves = np.array([x if x else 0 for x in data.get_col(wavecol)], dtype='f')
     headers = data.headers
     if headers:
