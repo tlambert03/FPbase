@@ -47,6 +47,8 @@ def first_row(table):
 
 
 def table2dataset(table):
+    if isinstance(table, str):
+        table = BeautifulSoup(table, 'lxml').find_all('table')[0]
     data = tablib.Dataset()
     # data.headers = [head.text for head in table.find('thead').find_all('th')]
     headings = first_row(table)
@@ -95,11 +97,14 @@ def doi2tables(doi):
 
 class HTMLTableParser:
 
+    def parse_text(self, text):
+        soup = BeautifulSoup(text, 'lxml')
+        return [self.parse_html_table(table)
+                for table in soup.find_all('table')]
+
     def parse_url(self, url):
         response = requests.get(url)
-        soup = BeautifulSoup(response.text, 'lxml')
-        return [(table['id'], self.parse_html_table(table))
-                for table in soup.find_all('table')]
+        return self.parse_text(response.text)
 
     def parse_html_table(self, table):
         n_columns = 0
