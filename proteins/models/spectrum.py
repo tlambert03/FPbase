@@ -6,6 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.text import slugify
+from django.urls import reverse
 from django.forms import Textarea, CharField
 from django.contrib.postgres.search import TrigramSimilarity
 from model_utils.models import TimeStampedModel
@@ -329,7 +330,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             raise ValidationError("Spectrum must have an owner!")
         if sum(bool(x) for x in self.owner_set) > 1:
             raise ValidationError("Spectrum must have only one owner!")
-        #self.category = self.owner.__class__.__name__.lower()[0]
+        # self.category = self.owner.__class__.__name__.lower()[0]
         super().save(*args, **kwargs)
 
     def clean(self):
@@ -534,3 +535,6 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             raise ValueError("Error: array length must match existing data")
         for i in range(len(value)):
             self.data[i][1] = value[i]
+
+    def get_absolute_url(self):
+        return reverse('proteins:spectra') + '?s={}'.format(self.owner.slug)
