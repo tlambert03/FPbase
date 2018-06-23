@@ -467,7 +467,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             "minwave": self.min_wave,
             "maxwave": self.max_wave,
             "category": self.category,
-            "type": self.subtype,
+            "type": self.subtype if self.subtype != self.ABS else self.EX,
             "color": self.color(),
             "area": area,
             "url": self.owner.get_absolute_url(),
