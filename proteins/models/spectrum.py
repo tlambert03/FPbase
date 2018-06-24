@@ -121,43 +121,10 @@ class SpectrumOwner(Authorable, TimeStampedModel):
         super().save(*args, **kwargs)
 
     def makeslug(self):
-        return slugify(self.name)
+        return slugify(self.name.replace('/', '-'))
 
     def d3_dicts(self):
         return [spect.d3dict() for spect in self.spectra.all()]
-
-
-class Filter(SpectrumOwner, Product):
-    bandcenter = models.PositiveSmallIntegerField(blank=True, null=True,
-                    validators=[MinValueValidator(200), MaxValueValidator(1600)])
-    bandwidth  = models.PositiveSmallIntegerField(blank=True, null=True,
-                    validators=[MinValueValidator(300), MaxValueValidator(900)])
-    edge       = models.FloatField(null=True, blank=True,
-                    validators=[MinValueValidator(0), MaxValueValidator(200)])
-    tavg       = models.FloatField(blank=True, null=True,
-                    validators=[MinValueValidator(0), MaxValueValidator(1)])
-    aoi        = models.PositiveSmallIntegerField(blank=True, null=True,
-                    validators=[MinValueValidator(0), MaxValueValidator(90)])
-
-    def save(self, *args, **kwargs):
-        if '/' in self.name:
-            try:
-                w = self.name.split('/')[0].split(' ')[-1]
-                self.bandcenter = int("".join([i for i in w[:4] if i.isdigit()]))
-                w = self.name.split('/')[1].split(' ')[0]
-                self.bandwidth = int("".join([i for i in w[:4] if i.isdigit()]))
-            except Exception:
-                pass
-
-        if self.bandcenter and self.bandwidth:
-            try:
-                if self.spectra.count() == 1:
-                    wrange = ((self.bandcenter - self.bandwidth / 2) + 2,
-                              (self.bandcenter + self.bandwidth / 2) - 2)
-                    self.tavg = self.spectra.first().avg(wrange)
-            except Exception:
-                pass
-        super().save(*args, **kwargs)
 
 
 class Camera(SpectrumOwner, Product):
@@ -166,6 +133,12 @@ class Camera(SpectrumOwner, Product):
 
 class Light(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
+
+
+def sorted_ex2em(filterset):
+    def _sort(stype):
+        return Spectrum.category_subtypes[Spectrum.FILTER].index(stype)
+    return sorted(filterset, key=lambda x: _sort(x.subtype))
 
 
 class SpectrumManager(models.Manager):
@@ -244,7 +217,6 @@ class SpectrumManager(models.Manager):
 
 
 class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
-
     DYE = 'd'
     PROTEIN = 'p'
     LIGHT = 'l'
@@ -289,7 +261,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     category_subtypes = {
         DYE: [EX, ABS, EM, TWOP],
         PROTEIN: [EX, ABS, EM, TWOP],
-        FILTER: [BP, BPX, BPM, SP, LP, BS],
+        FILTER: [SP, BPX, BS, BP, BPM, LP],
         CAMERA: [QE],
         LIGHT: [PD],
     }
@@ -300,11 +272,13 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     ph       = models.FloatField(null=True, blank=True, verbose_name='pH')  # pH of measurement
     solvent  = models.CharField(max_length=128, blank=True)
 
+    # I was swayed to avoid Generic Foreign Keys by this article
+    # https://lukeplant.me.uk/blog/posts/avoid-django-genericforeignkey/
     owner_state = models.ForeignKey('State', null=True, blank=True, on_delete=models.CASCADE, related_name='spectra')
     owner_dye = models.ForeignKey('Dye', null=True, blank=True, on_delete=models.CASCADE, related_name='spectra')
-    owner_filter = models.ForeignKey('Filter', null=True, blank=True, on_delete=models.CASCADE, related_name='spectra')
-    owner_light = models.ForeignKey('Light', null=True, blank=True, on_delete=models.CASCADE, related_name='spectra')
-    owner_camera = models.ForeignKey('Camera', null=True, blank=True, on_delete=models.CASCADE, related_name='spectra')
+    owner_filter = models.OneToOneField('Filter', null=True, blank=True, on_delete=models.CASCADE, related_name='spectrum')
+    owner_light = models.OneToOneField('Light', null=True, blank=True, on_delete=models.CASCADE, related_name='spectrum')
+    owner_camera = models.OneToOneField('Camera', null=True, blank=True, on_delete=models.CASCADE, related_name='spectrum')
 
     objects  = SpectrumManager()
     proteins = QueryManager(category=PROTEIN)
@@ -430,8 +404,8 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     @property
     def step(self):
         s = set()
-        for i in range(len(self.x)-1):
-            s.add(self.x[i+1] - self.x[i])
+        for i in range(len(self.x) - 1):
+            s.add(self.x[i + 1] - self.x[i])
         if len(s) > 1:  # multiple step sizes
             return False
         return list(s)[0]
@@ -471,6 +445,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             "color": self.color(),
             "area": area,
             "url": self.owner.get_absolute_url(),
+            "classed": 'category-{} subtype-{}'.format(self.category, self.subtype)
         }
 
         if self.category == self.CAMERA:
@@ -538,3 +513,52 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
 
     def get_absolute_url(self):
         return reverse('proteins:spectra') + '?s={}'.format(self.owner.slug)
+
+
+class Filter(SpectrumOwner, Product):
+    # copied for convenience
+    BP = Spectrum.BP
+    BPX = Spectrum.BPX
+    BPM = Spectrum.BPM
+    SP = Spectrum.SP
+    LP = Spectrum.LP
+    BS = Spectrum.BS
+
+    bandcenter = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        validators=[MinValueValidator(200), MaxValueValidator(1600)])
+    bandwidth = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        validators=[MinValueValidator(300), MaxValueValidator(900)])
+    edge = models.FloatField(
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(200)])
+    tavg = models.FloatField(
+        blank=True, null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(1)])
+    aoi = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(90)])
+
+    @property
+    def subtype(self):
+        return self.spectrum.subtype
+
+    def save(self, *args, **kwargs):
+        if '/' in self.name:
+            try:
+                w = self.name.split('/')[0].split(' ')[-1]
+                self.bandcenter = int("".join([i for i in w[:4] if i.isdigit()]))
+                w = self.name.split('/')[1].split(' ')[0]
+                self.bandwidth = int("".join([i for i in w[:4] if i.isdigit()]))
+            except Exception:
+                pass
+
+        if self.bandcenter and self.bandwidth:
+            try:
+                wrange = ((self.bandcenter - self.bandwidth / 2) + 2,
+                          (self.bandcenter + self.bandwidth / 2) - 2)
+                self.tavg = self.spectrum.avg(wrange)
+            except Exception:
+                pass
+        super().save(*args, **kwargs)

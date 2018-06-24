@@ -28,16 +28,25 @@ class SpectrumOwner(object):
         self.readonly_fields = self.readonly_fields + ('spectra',)
 
     def spectra(self, obj):
-        links = []
-        for sp in obj.spectra.all():
+        def _makelink(sp):
             url = reverse("admin:proteins_spectrum_change", args=(sp.pk,))
-            link = '<a href="{}">{}</a>'.format(url, sp.get_subtype_display())
-            links.append(link)
+            return '<a href="{}">{}</a>'.format(url, sp.get_subtype_display())
+        links = []
+        if hasattr(obj, 'spectrum'):
+            links.append(_makelink(obj.spectrum))
+        else:
+            [links.append(_makelink(sp)) for sp in obj.spectra.all()]
         return mark_safe(", ".join(links))
     spectra.short_description = 'spectra'
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
+        return qs.prefetch_related('spectrum')
+
+
+class MultipleSpectraOwner(SpectrumOwner):
+    def get_queryset(self, request):
+        qs = super(SpectrumOwner, self).get_queryset(request)
         return qs.prefetch_related('spectra')
 
 
@@ -47,7 +56,7 @@ class BleachInline(admin.TabularInline):
     extra = 1
 
 
-class StateInline(SpectrumOwner, admin.StackedInline):
+class StateInline(MultipleSpectraOwner, admin.StackedInline):
     # form = StateForm
     # formset = StateFormSet
     model = State
@@ -91,9 +100,14 @@ class FRETpairInline(admin.TabularInline):
 # ############# MODELS ###############
 
 
-@admin.register(Version)
-class myVersionAdmin(admin.ModelAdmin):
-    model = Version
+# @admin.register(Version)
+# class myVersionAdmin(admin.ModelAdmin):
+#     model = Version
+#     # autocomplete_fields = ('revision',)
+#
+#     def get_queryset(self, request):
+#         qs = super().get_queryset(request)
+#         return qs.prefetch_related('revision')
 
 
 @admin.register(Light)
@@ -102,7 +116,7 @@ class LightAdmin(SpectrumOwner, admin.ModelAdmin):
 
 
 @admin.register(Dye)
-class DyeAdmin(SpectrumOwner, VersionAdmin):
+class DyeAdmin(MultipleSpectraOwner, VersionAdmin):
     model = Dye
 
 
@@ -191,6 +205,7 @@ class StateAdmin(CompareVersionAdmin):
 class StateTransitionAdmin(VersionAdmin):
     model = StateTransition
     list_select_related = ('protein', 'from_state', 'to_state')
+    autocomplete_fields = ('protein', 'from_state', 'to_state')
 
 
 class StateTransitionInline(admin.TabularInline):
