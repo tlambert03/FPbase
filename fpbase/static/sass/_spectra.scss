@@ -5,6 +5,11 @@ h6 {
   margin-bottom: .6rem;
 }
 
+#spectra .tick line{
+    opacity: 0;
+}
+
+
 .spectrumpage{
   .spectra-tabs{
     font-size: small;
@@ -45,6 +50,20 @@ h6 {
 /* hides NVD3 gridlines */
 #spectra, #spectrasvg {
   // spectra area fill and outline
+
+  .nv-groups.area-hidden{
+    .nv-area{
+      display: none;
+    }
+    .nv-line{
+      stroke-width: 1.5 !important;
+      stroke: inherit;
+    }
+    .category-f {
+      stroke-dasharray: 5, 5;
+      stroke: rgba(0, 0, 0, 0.3) !important;
+    }
+  }
 
   path {
     &.nv-line {

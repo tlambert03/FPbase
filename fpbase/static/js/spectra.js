@@ -25,6 +25,7 @@ var CONST = {
 var data = [];
 var localData = {};
 var options = {
+    showArea: true,
     minwave: 300,
     maxwave: 1000,
     startingBrush: [350, 800],
@@ -36,6 +37,7 @@ var options = {
     scaleToQY: false,
 };
 var userOptions = {
+    showArea: {type: 'checkbox', msg: 'Fill area under curve'},
     autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
     hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
     scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
@@ -323,6 +325,14 @@ $(function() {
                         options[key] = this.checked;
                     } else {
                         options[key] = this.value;
+                    }
+
+                    if (key === 'showArea'){
+                        if (this.checked) {
+                            $(".nv-groups").removeClass('area-hidden')
+                        } else {
+                            $(".nv-groups").addClass('area-hidden')
+                        }
                     }
                     refreshChart();
                 })
