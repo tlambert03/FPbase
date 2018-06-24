@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.urls import reverse
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.signals import user_logged_in
 
 
 class User(AbstractUser):
@@ -24,3 +25,17 @@ class User(AbstractUser):
 
     def get_absolute_url(self):
         return reverse('users:detail', kwargs={'username': self.username})
+
+
+class UserLogin(models.Model):
+    """Represent users' logins, one per record"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logins')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
+def update_user_login(sender, user, **kwargs):
+    user.logins.create()
+    user.save()
+
+
+user_logged_in.connect(update_user_login)
