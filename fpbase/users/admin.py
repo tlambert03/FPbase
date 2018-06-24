@@ -36,13 +36,19 @@ class MyUserAdmin(AuthUserAdmin):
     fieldsets = (
         ('User Profile', {'fields': ('name', 'email_verified')}),
     ) + AuthUserAdmin.fieldsets
-    list_display = ('username', 'email', 'join_date', 'email_verified', 'social', '_collections')
+    list_display = ('username', 'email', '_date_joined', '_last_login', '_logins', '_collections', 'social', )
     search_fields = ['name']
     readonly_fields = ('email_verified', 'social')
 
-    def join_date(self, obj):
+    def _date_joined(self, obj):
         return obj.date_joined.strftime("%Y/%m/%d")
-    join_date.admin_order_field = 'date_joined'
+    _date_joined.admin_order_field = 'date_joined'
+
+    def _last_login(self, obj):
+        if obj.last_login:
+            return obj.last_login.strftime("%Y/%m/%d")
+        return ''
+    _last_login.admin_order_field = 'last_login'
 
     def email_verified(self, obj):
         return any([e.verified for e in obj.emailaddress_set.all()])
@@ -55,10 +61,15 @@ class MyUserAdmin(AuthUserAdmin):
         return obj._collections or ''
     _collections.admin_order_field = '_collections'
 
+    def _logins(self, obj):
+        return obj._logins or ''
+    _logins.admin_order_field = '_logins'
+
     def get_queryset(self, request):
             return super(MyUserAdmin, self).get_queryset(request) \
                 .prefetch_related('socialaccount_set',
-                                  'collections',
+                                  'proteincollections',
                                   'emailaddress_set') \
-                .annotate(_collections=Count('collections'))
+                .annotate(_collections=Count('proteincollections'),
+                          _logins=Count('logins'))
 
