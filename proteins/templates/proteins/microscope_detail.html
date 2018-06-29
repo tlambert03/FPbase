@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+{% load static i18n compress favit_tags %}
+
+{% block title %}{{ microscope.name }} on FPbase{% endblock %}
+{% block meta-description %}{% endblock %}
+
+{% block vendorcss %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+{% endblock vendorcss %}
+
+
+{% block container-class %}container spectrumpage{% endblock %}
+
+{% block content %}
+
+<h2 class='text-center'>{{microscope}}</h2>
+
+<div class="spectra clearfix mb-3">
+  <div id="spectra">
+    <div class="svg-container">
+      <div id="y-zoom-slider"></div>
+      <svg id="spectrasvg"></svg>
+    </div>
+
+    <div class="focusnote">click and drag to zoom</div>
+    <div class='float-left' style='font-size:1.55rem; margin: -.45rem 0 0 1.2rem'>
+      <a href="#" class='text-info'><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></a>
+    </div>
+
+
+    <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
+      <label class="btn btn-info active">
+        <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
+      </label>
+      <label class="btn btn-info">
+        <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
+      </label>
+    </div>
+  </div>
+</div>
+
+
+<div class="container">
+  <div class="row">
+    <div class="input-group mb-3 col-6">
+      <div class="input-group-prepend d-none d-sm-inline">
+        <label class="input-group-text text-white bg-info" for="inputGroupSelect01">Fluor<span class="d-none d-lg-inline">ophore</span></label>
+      </div>
+      <select class="custom-select data-selector fluor-selector" id="fluor-select" tabindex="-1" aria-hidden="true">
+        <option value="">-----</option>
+        {% for probe in probeslugs %}
+        <option value="{{ probe.slug }}">{{ probe.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class='col-6'>
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text">eff:</span>
+        </div>
+        <input type="text" disabled class="form-control" id="efficiency-text" placeholder="Username" aria-label="Username" aria-describedby="efficiency-text">
+      </div>
+<!--       <div class="input-group-append">
+        <div class="input-group-text">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input excheck" id="excheck" value="ex" checked>
+            <label class="custom-control-label" for="excheck"><span class="d-none d-sm-inline">e</span>x</label>
+          </div>
+        </div>
+      </div>
+      <div class="input-group-append">
+        <div class="input-group-text">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input emcheck" id="emcheck" value="em" checked>
+            <label class="custom-control-label" for="emcheck"><span class="d-none d-sm-inline">e</span>m</label>
+          </div>
+        </div>
+      </div>
+      <div class="input-group-append">
+        <div class="input-group-text">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input 2pcheck" id="2pcheck" value="2p">
+            <label class="custom-control-label" for="2pcheck">2<span class="d-none d-sm-inline">p</span></label>
+          </div>
+        </div>
+      </div> -->
+
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <label class="input-group-text text-white bg-info" for="inputGroupSelect01"><i class="fas fa-list mr-1 mr-sm-2 mr-md-3"></i>Config<span class="d-none d-md-inline">urations</span></label>
+        </div>
+        <select class="custom-select" id="config-select">
+          <option value="">-----</option>
+          {% for config in microscope.configs.all %}
+          <option value='{{config.id}}' data-filters='[{% for fp in config.filterplacement_set.all %}[{{fp.filter.id}}, "{{fp.path}}", {{fp.reflects|lower}}]{% if not forloop.last %},{% endif %}{% endfor %}]' data-laser='{{config.laser|default_if_none:''}}' data-light='{{config.light.id}}' data-camera='{{config.camera.id}}'>{{config}}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+  </div>
+  <div class="row">
+    <div class="col-12 col-sm-6">
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <label class="input-group-text text-white bg-info" for="inputGroupSelect01"><i class="fas fa-lightbulb"></i><span class="d-none d-lg-inline ml-2">Light Source</span></label>
+        </div>
+        <select class="custom-select data-selector" id="light-select">
+          <option value="">-----</option>
+          {% for laser in microscope.lasers %}
+            <option value='laser-{{laser}}' data-type='laser'>{{laser}} laser</option>
+          {% endfor %}
+
+          {% if lights %}
+              {% for light in lights %}
+              <option value='{{light.slug}}' data-type='light' data-id='{{light.id}}'>{{light}}</option>
+              {% endfor %}
+          {% else %}
+              {% for light in microscope.lights.all %}
+              <option value='{{light.slug}}' data-type='light' data-id='{{light.id}}'>{{light}}</option>
+              {% endfor %}
+          {% endif %}
+
+          {% if not microscope.lasers %}
+              <option value='' disabled>No lasers added to this config</option>
+          {% endif %}
+        </select>
+        <div class="input-group-append">
+          <div class="input-group-text" data-toggle="tooltip" data-placement="top" title="Scale emission by excitation efficiency">
+            <div class="custom-checkbox">
+              <input type="checkbox" id="scale-light" checked>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6">
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <label class="input-group-text text-white bg-info" for="inputGroupSelect01"><i class="fas fa-camera"></i><span class="d-none d-lg-inline ml-2">Detector</span></label>
+        </div>
+        <select class="custom-select data-selector" id="camera-select">
+          <option value="">-----</option>
+          {% if cameras %}
+              {% for camera in cameras %}
+              <option value='{{camera.slug}}' data-id='{{camera.id}}'>{{camera}}</option>
+              {% endfor %}
+          {% else %}
+              {% for camera in microscope.cameras.all %}
+              <option value='{{camera.slug}}' data-id='{{camera.id}}'>{{camera}}</option>
+              {% endfor %}
+          {% endif %}
+        </select>
+        <div class="input-group-append">
+          <div class="input-group-text" data-toggle="tooltip" data-placement="top" title="Include detector in efficiency calculation">
+            <div class="custom-checkbox">
+              <input type="checkbox" id="scale-camera" checked>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row filters">
+    <div class="col-12 col-sm-6 col-md-4 order-sm-2 order-md-1 mb-3">
+      <div class="card">
+        <div class="card-header text-white bg-info">
+          Ex<span class="d-inline d-sm-none d-md-inline">citation</span> Filters
+        </div>
+        <div class="list-group list-group-flush">
+          {% for filt in microscope.ex_filters.all %}
+          <li class="list-group-item">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input type="checkbox" class="custom-control-input filter-selector ex-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
+              <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }}</span> {{ filt.part }}</label>
+            </div>
+          </li>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 order-sm-1 order-md-2 mb-3">
+      <div class="card">
+        <div class="card-header text-white bg-info">
+          Dichroic<span class="d-inline d-sm-none d-md-inline"> Mirror</span>s
+        </div>
+        <div class="list-group list-group-flush">
+          {% for filt in microscope.bs_filters.all %}
+          <li class="list-group-item">
+
+            <div class="row dichroic-row">
+              <div class="col-10">
+                <div class="custom-control custom-checkbox mr-sm-3">
+                  <input type="checkbox" class="custom-control-input filter-selector bs-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
+                  <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-none d-sm-inline d-md-none d-xl-inline ">{{ filt.manufacturer }}</span> {{ filt.part }}</label>
+                </div>
+              </div>
+              <div class="col-2">
+                <span class="switch">
+                  <input type="checkbox" class="switch-sm invswitch" id="invswitch-filter-{{filt.id}}" value="{{filt.slug}}">
+                  <label for="invswitch-filter-{{filt.id}}"></label>
+                </span>
+              </div>
+            </div>
+
+          </li>
+
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-4 order-sm-3 order-md-3 mb-2">
+      <div class="card">
+        <div class="card-header text-white bg-info">
+          Em<span class="d-inline d-sm-none d-md-inline">mission</span> Filters
+        </div>
+        <div class="list-group list-group-flush">
+          {% for filt in microscope.em_filters.all %}
+          <li class="list-group-item">
+            <div class="custom-control custom-checkbox mr-sm-2">
+              <input type="checkbox" class="custom-control-input filter-selector em-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
+              <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }}</span> {{ filt.part }}</label>
+            </div>
+          </li>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="hidden" id='eyeSVG'><i class="fas fa-eye"></i></div>
+<div class="hidden" id='linkSVG'><i class="fas fa-external-link-alt"></i></div>
+<svg height="8" width="8" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="crosshatch" patternUnits="userSpaceOnUse" width="8" height="8"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc4JyBoZWlnaHQ9JzgnPgogIDxyZWN0IHdpZHRoPSc4JyBoZWlnaHQ9JzgnIGZpbGw9JyNmZmYnLz4KICA8cGF0aCBkPSdNMCAwTDggOFpNOCAwTDAgOFonIHN0cm9rZS13aWR0aD0nMC41JyBzdHJva2U9JyNhYWEnLz4KPC9zdmc+Cg==" x="0" y="0" width="8" height="8"> </image> </pattern> </defs> </svg>
+<svg height="5" width="5" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="lightstripe" patternUnits="userSpaceOnUse" width="5" height="5"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1JyBoZWlnaHQ9JzUnPgogIDxyZWN0IHdpZHRoPSc1JyBoZWlnaHQ9JzUnIGZpbGw9J3doaXRlJy8+CiAgPHBhdGggZD0nTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVonIHN0cm9rZT0nIzg4OCcgc3Ryb2tlLXdpZHRoPScxJy8+Cjwvc3ZnPg==" x="0" y="0" width="5" height="5"> </image> </pattern> </defs> </svg>
+
+<!-- Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="settingsModalLongTitle"><strong>Settings</strong></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="optionstab">
+        <div id='options-form'>
+        </div>
+        <button class='btn btn-danger btn-sm' id='undo-scaling'>Undo all scaling</button>
+      </div>
+      <div class="modal-footer">
+        <p class="text-muted small"><em>Note: When scaling to EC or QY, dyes/probes lacking EC/QY values in the database will disappear on the graph!</em></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extrafooter %}
+    {% if request.user.is_staff %}
+      {% load admin_urls %}
+      <a href="{% url 'admin:proteins_spectrum_changelist' %}">Spectra on admin</a><br>
+    {% endif %}
+{% endblock extrafooter %}
+
+
+{% block javascript %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js" integrity="sha256-R9uiXmQekNb8r352uyt9EW3yRd3VZL3NyU8N0Z5fMo0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+
+{% compress js %}
+<script src="{% static 'js/microscope.js' %}"></script>
+{% endcompress %}
+
+<script type="text/javascript">var scopespectra = {{ scopespectra|safe }};</script>
+
+<script type="text/javascript">
+  d3.selection.prototype.moveToFront = function() {
+      return this.each(function() {
+          this.parentNode.appendChild(this);
+      });
+  };
+
+  d3.selection.prototype.moveToBack = function() {
+      return this.each(function() {
+          var firstChild = this.parentNode.firstChild;
+          if (firstChild) {
+              this.parentNode.insertBefore(this, firstChild);
+          }
+      });
+  };
+
+  function selectedSlugs(){
+    return $(".filter-selector:checked, .data-selector :selected").map(function(){
+          return $(this).val();
+    }).get();
+  }
+
+  function updateData(){
+    var selected = selectedSlugs();
+    // remove old data that isnt still in the array
+    for (var i = data.length - 1; i >= 0; i--){
+      if ($.inArray(data[i].slug, selected) == -1){
+        data.splice(i, 1);
+      };
+    };
+    // add new items
+    deferreds = [];
+    for (var n = 0; n < selected.length; n++){
+      if (selected[n] && !dataHasSlug(selected[n])){
+        if (selected[n].startsWith("laser")){
+          updateCustomLaser(selected[n].replace("laser-", ""));
+        }
+        else {
+          deferreds.push(addItem(selected[n]));
+        }
+      }
+    }
+    return deferreds
+  }
+
+
+  function invertInverted(){
+    var inverted = $(".invswitch:checked").map(function(){ return $(this).val(); }).get();
+    for (var n = 0; n < data.length; n++){
+      if (data[n].inverted & ($.inArray(data[n].slug, inverted) == -1)){
+        data[n].values = invertData(data[n].values);
+        data[n].inverted = false;
+      } else if ((data[n].inverted === undefined || !data[n].inverted) & $.inArray(data[n].slug, inverted) > -1 ){
+        data[n].values = invertData(data[n].values);
+        data[n].inverted = true;
+      }
+    }
+  }
+
+  function updateChart(){
+    var deferreds = updateData()
+    $.when.apply($, deferreds).then(function(){
+      invertInverted();
+      updateEfficiency();
+      d3.selectAll(".subtype-pd").moveToBack();
+      d3.selectAll(".subtype-qe").moveToBack();
+    });
+  }
+
+  function updateEfficiency(){
+    var a = calcExEmPaths();
+    var b = emissionEfficiency(a.emvalues);
+    data.push.apply(data, b);
+    refreshChart();
+  }
+
+
+  $(function() {
+
+    $("#scale-light").change(function(){
+      removeSubtypes('em-eff')
+      updateEfficiency();
+    });
+
+    $("#scale-camera").change(function(){
+      removeSubtypes('em-eff')
+      updateEfficiency();
+    });
+
+    $(".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select", 'scaleToEC_input', 'scaleToQY_input').change(function(){
+      updateChart();
+    });
+
+    $('#config-select').change(function(){
+
+      $('.filter-selector:checked').each(function(){
+          $(this).prop("checked", false )
+        });
+
+      var selected = $(this).find(":selected")
+      $.each(selected.data('filters'), function(i ,d){
+        $("#invswitch-filter-" + d[0]).prop("checked", d[2] );
+        $("#listfilter-" + d[0]).prop("checked", true );
+
+      })
+      var wave = selected.data('laser');
+      var light = selected.data('light');
+      updateCustomLaser(wave);
+      if (wave) {
+        $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
+      }
+      else if (light) {
+        $("#light-select option[value='" + light + "']").prop('selected', true)
+      }
+      else {
+        $("#light-select option[value='']").prop('selected', true)
+      }
+      updateChart();
+    });
+
+  });
+
+  $("#fluor-select").select2({ theme: "bootstrap"});
+
+  $(function() {
+    for (var i=0; i < scopespectra.length; i++){
+      localData[scopespectra[i].slug] = [scopespectra[i]];
+    }
+  });
+
+  var autoSizeText;
+  autoSizeText = function() {
+    var el, elements, _i, _len, _results;
+    elements = $('.filter-label');
+    if (elements.length < 0) {
+      return;
+    }
+    _results = [];
+    for (_i = 0, _len = elements.length; _i < _len; _i++) {
+      el = elements[_i];
+      _results.push((function(el) {
+        var resizeText, _results1;
+        resizeText = function() {
+          var elNewFontSize;
+          elNewFontSize = (parseInt($(el).css('font-size').slice(0, -2)) - 0.5) + 'px';
+          return $(el).css('font-size', elNewFontSize);
+        };
+        _results1 = [];
+        var _c = 0;
+        while (el.scrollHeight > el.offsetHeight & (_c < 20)) {
+          _results1.push(resizeText());
+          _c += 1;
+        }
+        return _results1;
+      })(el));
+    }
+    return _results;
+  };
+
+  $(window).on('load', function() {
+    autoSizeText();
+  });
+
+</script>
+
+{% endblock javascript %}

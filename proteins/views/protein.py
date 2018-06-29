@@ -17,7 +17,7 @@ from django.urls import reverse
 import json
 
 from ..models import (Protein, State, Organism, BleachMeasurement,
-                      Spectrum, Filter)
+                      Spectrum, Filter, Microscope, Camera, Light)
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
                      BleachMeasurementForm, SpectrumForm)
 from ..filters import ProteinFilter
@@ -28,6 +28,23 @@ from reversion.views import _RollBackRevisionView
 from reversion.models import Version
 from ..util.importers import (import_chroma_spectra,
                               import_semrock_spectra, normalize_semrock_part)
+
+
+class MicroscopeDetailView(DetailView):
+    queryset = Microscope.objects.all().prefetch_related(
+        'configs__filterplacement_set__filter',
+        'configs__filters')
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if not self.object.cameras.count():
+            data['cameras'] = Camera.objects.all()
+        if not self.object.lights.count():
+            data['lights'] = Light.objects.all()
+        data['probeslugs'] = Spectrum.objects.fluorlist()
+        data['scopespectra'] = json.dumps(self.object.spectra_d3())
+        # data['configs'] = json.dumps([oc.to_json() for oc in self.object.configs.all()])
+        return data
 
 
 class ProteinDetailView(DetailView):

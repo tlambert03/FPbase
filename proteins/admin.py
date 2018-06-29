@@ -3,10 +3,11 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from proteins.models import (Protein, State, StateTransition, Organism,
                              FRETpair, BleachMeasurement, Spectrum, Dye,
-                             Light, Filter, Camera, Mutation)
+                             Light, Filter, Camera, Mutation, Microscope,
+                             OpticalConfig, FilterPlacement)
 from reversion_compare.admin import CompareVersionAdmin
-from reversion.models import Version
 from reversion.admin import VersionAdmin
+# from reversion.models import Version
 
 
 # ############ INLINES ###############
@@ -330,3 +331,20 @@ class ProteinAdmin(CompareVersionAdmin):
             instance.updated_by = request.user
             instance.save()
         formset.save()
+
+
+@admin.register(Microscope)
+class MicroscopeAdmin(admin.ModelAdmin):
+    model = Microscope
+
+
+class FilterPlacementAdmin(admin.TabularInline):
+    model = FilterPlacement
+    extra = 1  # how many rows to show
+    autocomplete_fields = ("filter",)
+
+
+@admin.register(OpticalConfig)
+class OpticalConfigAdmin(admin.ModelAdmin):
+    model = OpticalConfig
+    inlines = (FilterPlacementAdmin, )

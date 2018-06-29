@@ -51,6 +51,15 @@ h6 {
 #spectra, #spectrasvg {
   // spectra area fill and outline
 
+  .subtype-bs, .subtype-lp {
+    .nv-area { display:none }
+    .nv-line{
+    stroke-width: 1.6 !important;
+    stroke-dasharray: 5, 5;
+    stroke: rgba(0, 0, 0, 0.5) !important;
+    }
+  }
+
   .nv-groups.area-hidden{
     .nv-area{
       display: none;
@@ -98,6 +107,7 @@ h6 {
     font-weight: normal;
   }
 
+
   .nv-axis text {
       line{
         stroke: none;
@@ -139,11 +149,12 @@ h6 {
 
 .spectrumpage svg.nvd3-svg {
   width:100%;
-  @include media-breakpoint-up(xs){ height: 210px; }
-  @include media-breakpoint-up(sm){ height: 230px; }
-  @include media-breakpoint-up(md){ height: 290px; }
-  @include media-breakpoint-up(lg){ height: 360px; }
-  @include media-breakpoint-up(xl){ height: 390px; }
+  height: 500px;
+  @include media-breakpoint-up(xs){ height: 240px; }
+  @include media-breakpoint-up(sm){ height: 290px; }
+  @include media-breakpoint-up(md){ height: 320px; }
+  @include media-breakpoint-up(lg){ height: 370px; }
+  @include media-breakpoint-up(xl){ height: 400px; }
   margin-bottom: -30px;
 }
 
@@ -334,4 +345,220 @@ table.spectra-form {
 }
 .spectra-form .row:nth-child(n+2) {
   @include media-breakpoint-down(xs){ border-top: 1px solid #ddd };
+}
+
+
+.filter-label {
+  font-size: 1rem;
+  height: 1.4rem;
+  width: 100%;
+  @include media-breakpoint-up(md){
+    font-size: 0.75rem };
+  @include media-breakpoint-up(lg){ font-size: 1rem };
+}
+
+.card {
+  .list-group-item, .card-header{
+    padding: .55rem 1.25rem;
+  }
+}
+
+.filters{
+  .custom-control-label::after, .custom-control-label::before{
+    @include media-breakpoint-up(md){ top: 0; }
+    @include media-breakpoint-up(lg){ top: 0.25rem; }
+  }
+}
+
+
+
+//
+// Switches for Bootstrap 4.
+//
+// - Fully customizable with Sass variables
+// - No JavaScript required
+// - Fully accessible
+//
+
+//
+// IMPORTANT: These Sass variables are defined in Bootstrap's variables.scss. You should import that file first, then remove these.
+//
+$font-size-base: 1rem;
+$font-size-lg: ($font-size-base * 1.25);
+$font-size-sm: ($font-size-base * .875);
+$input-height: 1.3rem;
+$input-height-sm: 1.3rem;
+$input-height-lg: 3rem;
+$input-btn-focus-width: .2rem;
+$custom-control-indicator-bg: #dee2e6;
+$custom-control-indicator-disabled-bg: #e9ecef;
+$custom-control-description-disabled-color: #868e96;
+
+
+//
+// These variables can be used to customize the switch component.
+//
+$switch-height: calc(#{$input-height} * .8) !default;
+$switch-height-sm: calc(#{$input-height-sm} * .8) !default;
+$switch-height-lg: calc(#{$input-height-lg} * .8) !default;
+$switch-border-radius: $switch-height !default;
+$switch-bg: $custom-control-indicator-bg !default;
+$switch-checked-bg: rgba($info, 0.7) !default;
+$switch-disabled-bg: $custom-control-indicator-disabled-bg !default;
+$switch-disabled-color: $custom-control-description-disabled-color !default;
+$switch-thumb-bg: $white !default;
+$switch-thumb-border-radius: 50% !default;
+$switch-thumb-padding: 2px !default;
+$switch-focus-box-shadow: 0 0 0 $input-btn-focus-width rgba(map-get($theme-colors, 'primary'), .25);
+$switch-transition: .2s all !default;
+
+
+
+.form-control:disabled {
+  background-color: white;
+}
+
+
+.switch {
+  font-size: $font-size-base;
+  position: relative;
+  top: 3px;
+  float: right;
+
+  input {
+    position: absolute;
+    height: 1px;
+    width: 1px;
+    background: none;
+    border: 0;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    overflow: hidden;
+    padding: 0;
+
+    & :focus {
+      box-shadow: none;
+    }
+    + label {
+      position: relative;
+      min-width: calc(#{$switch-height} * 2);
+      border-radius: $switch-border-radius;
+      height: $switch-height;
+      line-height: $switch-height;
+      display: inline-block;
+      cursor: pointer;
+      outline: none;
+      user-select: none;
+      text-indent: calc(calc(#{$switch-height} * 2) + .5rem);
+      margin-bottom: 0 !important;
+    }
+
+    + label::before,
+    + label::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(#{$switch-height} * 2);
+      bottom: 0;
+      display: block;
+    }
+
+    + label::before {
+      right: 0;
+      background-color: $switch-bg;
+      border-radius: $switch-border-radius;
+      transition: $switch-transition;
+    }
+
+    + label::after {
+      top: $switch-thumb-padding;
+      left: $switch-thumb-padding;
+      width: calc(#{$switch-height} - calc(#{$switch-thumb-padding} * 2));
+      height: calc(#{$switch-height} - calc(#{$switch-thumb-padding} * 2));
+      border-radius: $switch-thumb-border-radius;
+      background-color: $switch-thumb-bg;
+      transition: $switch-transition;
+    }
+
+    &:checked + label::before {
+      background-color: $switch-checked-bg;
+    }
+
+    &:checked + label::after {
+      margin-left: $switch-height;
+    }
+
+    &:focus + label::before {
+      outline: none;
+      box-shadow: $switch-focus-box-shadow;
+    }
+
+    &:disabled + label {
+      color: $switch-disabled-color;
+      cursor: not-allowed;
+    }
+
+    &:disabled + label::before {
+      background-color: $switch-disabled-bg;
+    }
+  }
+
+  // Small variation
+  &.switch-sm {
+    font-size: $font-size-sm;
+
+    input {
+      + label {
+        min-width: calc(#{$switch-height-sm} * 2);
+        height: $switch-height-sm;
+        line-height: $switch-height-sm;
+        text-indent: calc(calc(#{$switch-height-sm} * 2) + .5rem);
+      }
+
+      + label::before {
+        width: calc(#{$switch-height-sm} * 2);
+      }
+
+      + label::after {
+        width: calc(#{$switch-height-sm} - calc(#{$switch-thumb-padding} * 2));
+        height: calc(#{$switch-height-sm} - calc(#{$switch-thumb-padding} * 2));
+      }
+
+      &:checked + label::after {
+        margin-left: $switch-height-sm;
+      }
+    }
+  }
+
+  // Large variation
+  &.switch-lg {
+    font-size: $font-size-lg;
+
+    input {
+      + label {
+        min-width: calc(#{$switch-height-lg} * 2);
+        height: $switch-height-lg;
+        line-height: $switch-height-lg;
+        text-indent: calc(calc(#{$switch-height-lg} * 2) + .5rem);
+      }
+
+      + label::before {
+        width: calc(#{$switch-height-lg} * 2);
+      }
+
+      + label::after {
+        width: calc(#{$switch-height-lg} - calc(#{$switch-thumb-padding} * 2));
+        height: calc(#{$switch-height-lg} - calc(#{$switch-thumb-padding} * 2));
+      }
+
+      &:checked + label::after {
+        margin-left: $switch-height-lg;
+      }
+    }
+  }
+
+  + .switch {
+    margin-left: 1rem;
+  }
 }

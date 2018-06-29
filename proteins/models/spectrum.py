@@ -179,21 +179,46 @@ class SpectrumManager(models.Manager):
             })
         return sorted(out, key=lambda k: k['name'])
 
-    def owner_slugs(self):
-        ''' unused? '''
-        L = self.get_queryset().exclude(owner_state=None).values_sluglist(
-            'owner_state__slug', 'owner_state__protein__name',
-            'owner_state__name', 'category', 'subtype').distinct()
-        out = [(slug, prot, cat if state == 'default' else '{} ({})'.format(prot, state))
-               for slug, prot, state, cat in L]
+    # FIXME:  Stupid dumb dumb
+    def fluorlist(self):
+        ''' probably using this one going forward for spectra page'''
+        Q = self.get_queryset().filter(
+            models.Q(category=Spectrum.DYE) | models.Q(category=Spectrum.PROTEIN)).values(
+            'category', 'subtype', 'owner_state__protein__name',
+            'owner_state__slug', 'owner_dye__slug', 'owner_state__name',
+            'owner_dye__name').distinct('owner_state__slug', 'owner_dye__slug')
 
-        for n in ('dye', 'light', 'filter', 'camera'):
-            out += self.get_queryset().exclude(**{'owner_' + n: None}).values_list(
-                *['owner_' + n + '__slug', 'owner_' + n + '__name', 'category', 'subtype']).distinct()
+        out = []
+        for v in Q:
+            slug = v['owner_state__slug'] or v['owner_dye__slug']
+            name = v['owner_dye__name'] or None
+            if not name:
+                prot = v['owner_state__protein__name']
+                state = v['owner_state__name']
+                name = prot if state == 'default' else '{} ({})'.format(prot, state)
+            out.append({
+                'category': v['category'],
+                'subtype': v['subtype'],
+                'slug': slug,
+                'name': name,
+            })
+        return sorted(out, key=lambda k: k['name'])
 
-        out.sort(key=lambda x: x[1], reverse=False)
+    # def owner_slugs(self):
+    #     ''' unused? '''
+    #     L = self.get_queryset().exclude(owner_state=None).values_list(
+    #         'owner_state__slug', 'owner_state__protein__name',
+    #         'owner_state__name', 'category', 'subtype').distinct()
+    #     out = [(slug, prot, cat if state == 'default' else '{} ({})'.format(prot, state))
+    #            for slug, prot, state, cat in L]
 
-        return out
+    #     for n in ('dye', 'light', 'filter', 'camera'):
+    #         out += self.get_queryset().exclude(**{'owner_' + n: None}).values_list(
+    #             *['owner_' + n + '__slug', 'owner_' + n + '__name', 'category', 'subtype']).distinct()
+
+    #     out.sort(key=lambda x: x[1], reverse=False)
+
+    #     return out
 
     def filter_owner(self, slug):
         qs = self.none()
@@ -375,8 +400,12 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
                 return "{} {}".format(self.owner_state.protein, self.subtype)
             else:
                 return "{} {}".format(self.owner_state, self.subtype)
-        else:
+        elif self.owner_dye:
             return "{} {}".format(self.owner, self.subtype)
+        elif self.owner_filter:
+            return "{}".format(self.owner.part)
+        else:
+            return str(self.owner)
 
     @property
     def peak_wave(self):
@@ -432,7 +461,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         except Exception:
             return False
 
-    def d3dict(self, area=True):
+    def d3dict(self):
         D = {
             "slug": self.owner.slug,
             "key": self.name,
@@ -443,7 +472,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             "category": self.category,
             "type": self.subtype if self.subtype != self.ABS else self.EX,
             "color": self.color(),
-            "area": area,
+            "area": False if self.subtype in (self.LP, self.BS) else True,
             "url": self.owner.get_absolute_url(),
             "classed": 'category-{} subtype-{}'.format(self.category, self.subtype)
         }
@@ -543,6 +572,11 @@ class Filter(SpectrumOwner, Product):
     @property
     def subtype(self):
         return self.spectrum.subtype
+
+    @subtype.setter
+    def subtype(self, x):
+        self.spectrum.subtype = x
+        self.spectrum.save()
 
     def save(self, *args, **kwargs):
         if '/' in self.name:

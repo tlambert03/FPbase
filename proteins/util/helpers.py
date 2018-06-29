@@ -1,4 +1,19 @@
 import re
+from uuid import uuid4
+
+
+def shortuuid(padding=None):
+    number = uuid4().int
+    output = ""
+    alph = list("23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+    alpha_len = len(alph)
+    while number:
+        number, digit = divmod(number, alpha_len)
+        output += alph[digit]
+    if padding:
+        remainder = max(padding - len(output), 0)
+        output = output + alph[0] * remainder
+    return output
 
 
 def zip_wave_data(waves, data, minmax=None):

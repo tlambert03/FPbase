@@ -54,6 +54,8 @@ urlpatterns = [
     url(r'^protein-autocomplete/$', views.ProteinAutocomplete.as_view(), name='protein-autocomplete',),
     url(r'^state-autocomplete/$', views.StateAutocomplete.as_view(), name='state-autocomplete',),
 
+    url(r'^microscope/(?P<pk>[-\w]+)/$', views.MicroscopeDetailView.as_view(), name='microscope-detail'),
+
     # /proteins/api
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
     url(r'^api/proteins/spectraslugs/$', apiviews.spectraslugs, name='spectra-slugs'),
