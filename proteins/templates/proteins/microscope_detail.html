@@ -44,8 +44,8 @@
 
 <div class="container">
   <div class="row">
-    <div class="input-group mb-3 col-6">
-      <div class="input-group-prepend d-none d-sm-inline">
+    <div class="input-group mb-3 col-12 col-md-6">
+      <div class="input-group-prepend">
         <label class="input-group-text text-white bg-info" for="inputGroupSelect01">Fluor<span class="d-none d-lg-inline">ophore</span></label>
       </div>
       <select class="custom-select data-selector fluor-selector" id="fluor-select" tabindex="-1" aria-hidden="true">
@@ -54,13 +54,25 @@
         <option value="{{ probe.slug }}">{{ probe.name }}</option>
         {% endfor %}
       </select>
+      <div class="input-group-append">
+        <div class="input-group-text">
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input 2pcheck" id="2pcheck" value="2p">
+            <label class="custom-control-label" for="2pcheck">2<span class="d-none d-sm-inline">p</span></label>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class='col-6'>
+    <div class='col-12 col-md-6'>
       <div class="input-group mb-3">
         <div class="input-group-prepend">
-          <span class="input-group-text">eff:</span>
+          <span class="input-group-text">Efficiency:</span>
         </div>
-        <input type="text" disabled class="form-control" id="efficiency-text" placeholder="Username" aria-label="Username" aria-describedby="efficiency-text">
+        <input type="text" disabled class="form-control" id="efficiency-text" placeholder="Select a fluor and config..." aria-label="Efficiency Info" aria-describedby="efficiency-text">
+        <div class="input-group-append">
+          <a href="#" data-toggle="modal" data-target="#infoModal"><button class="btn btn-outline-info" type="button"><i class="fas fa-info"></i></button></a>
+        </div>
+
       </div>
 <!--       <div class="input-group-append">
         <div class="input-group-text">
@@ -182,7 +194,7 @@
           <li class="list-group-item">
             <div class="custom-control custom-checkbox mr-sm-2">
               <input type="checkbox" class="custom-control-input filter-selector ex-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
-              <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }}</span> {{ filt.part }}</label>
+              <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
             </div>
           </li>
           {% endfor %}
@@ -192,7 +204,8 @@
     <div class="col-12 col-md-4 order-sm-1 order-md-2 mb-3">
       <div class="card">
         <div class="card-header text-white bg-info">
-          Dichroic<span class="d-inline d-sm-none d-md-inline"> Mirror</span>s
+          Dichroic<span class="d-inline d-md-none d-lg-inline"> Mirror</span>s
+          <span class='float-right'><small>invert</small></span>
         </div>
         <div class="list-group list-group-flush">
           {% for filt in microscope.bs_filters.all %}
@@ -202,7 +215,7 @@
               <div class="col-10">
                 <div class="custom-control custom-checkbox mr-sm-3">
                   <input type="checkbox" class="custom-control-input filter-selector bs-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
-                  <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-none d-sm-inline d-md-none d-xl-inline ">{{ filt.manufacturer }}</span> {{ filt.part }}</label>
+                  <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-none d-sm-inline d-md-none d-xl-inline ">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
                 </div>
               </div>
               <div class="col-2">
@@ -229,7 +242,7 @@
           <li class="list-group-item">
             <div class="custom-control custom-checkbox mr-sm-2">
               <input type="checkbox" class="custom-control-input filter-selector em-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
-              <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }}</span> {{ filt.part }}</label>
+              <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
             </div>
           </li>
           {% endfor %}
@@ -266,6 +279,26 @@
     </div>
   </div>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="infoModalLongTitle"><strong>Efficiency Calculations</strong></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="optionstab">
+        <p>information about efficiency calculation</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 {% endblock content %}
 
 {% block extrafooter %}
@@ -352,32 +385,63 @@
     $.when.apply($, deferreds).then(function(){
       invertInverted();
       updateEfficiency();
+      refreshChart();
       d3.selectAll(".subtype-pd").moveToBack();
       d3.selectAll(".subtype-qe").moveToBack();
+      d3.selectAll(".subtype-eff").moveToFront();
     });
   }
 
   function updateEfficiency(){
     var a = calcExEmPaths();
-    var b = emissionEfficiency(a.emvalues);
-    data.push.apply(data, b);
-    refreshChart();
+    if (!a.emvalues){
+      return
+    }
+    removeSubtypes('eff')
+    var fluorslug = $("#fluor-select :selected").val();
+    var emeff = efficiency(a.emvalues, {slug: fluorslug, type: 'em'});
+    var exeff = efficiency(a.exvalues, {slug: fluorslug, type: 'ex'});
+
+    var info = '';
+    if (exeff){
+      data.push(exeff);
+      if (exeff.efficiency)
+        info += 'Ex: ' + String(Math.round(exeff.efficiency * 1000) / 10) + '%'
+    }
+    if (emeff){
+      data.push(emeff);
+      if (emeff.efficiency){
+        if (info)
+          info +=', '
+        info += 'Em: ' + String(Math.round(emeff.efficiency * 1000) / 10) + '%'
+      }
+    }
+
+    if (emeff != undefined & exeff !=undefined){
+      var b = exeff.efficiency * exeff.scalar * emeff.efficiency * emeff.scalar;
+      info += ', B: ' + String(Math.round(b/10) / 100)
+    }
+
+    if (info != '')
+      $("#efficiency-text").attr('placeholder', info)
+
   }
 
 
   $(function() {
 
     $("#scale-light").change(function(){
-      removeSubtypes('em-eff')
+      console.log('hip')
       updateEfficiency();
+      refreshChart();
     });
 
     $("#scale-camera").change(function(){
-      removeSubtypes('em-eff')
       updateEfficiency();
+      refreshChart();
     });
 
-    $(".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select", 'scaleToEC_input', 'scaleToQY_input').change(function(){
+    $(".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select, scaleToEC_input, scaleToQY_input").change(function(){
       updateChart();
     });
 
@@ -395,7 +459,6 @@
       })
       var wave = selected.data('laser');
       var light = selected.data('light');
-      updateCustomLaser(wave);
       if (wave) {
         $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
       }
@@ -410,7 +473,7 @@
 
   });
 
-  $("#fluor-select").select2({ theme: "bootstrap"});
+  $("#fluor-select").select2({ theme: "bootstrap", width: 100});
 
   $(function() {
     for (var i=0; i < scopespectra.length; i++){

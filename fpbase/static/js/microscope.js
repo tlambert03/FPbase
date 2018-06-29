@@ -161,7 +161,6 @@ function removeItem(slug, subtype) {
 
 
 function refreshChart() {
-    console.log('chart refresh')
     chart.lines.duration(300);
     if (options.autoscaleBrush) {
         var smin = 10000;
@@ -230,6 +229,7 @@ function scale_data_up(filter){
 }
 
 function scale_data_down(filter){
+    console.log(filter)
     for (var n=0; n < data.length; n++){
         // only scale certain data by filter
         var skip = false;
@@ -601,7 +601,7 @@ function customLaser(wave) {
 
 
 function updateCustomLaser(wave) {
-    var F = customLaser(wave);
+    var F = customLaser(+wave);
     localData['laser-'+wave] = [F];
     removeItem('custom_laser');
     data.push(F);
@@ -787,89 +787,32 @@ function calcExEmPaths(){
     return {exvalues: combineSpectra(expath), emvalues: combineSpectra(empath)}
 }
 
-function emissionEfficiency(emfilterspectra) {
-    var overlaps = [];
-    var iSpectra = [];
-    var overlaps = [];
-    for (var i = 0; i < data.length; i++) {
-        // look through current data for iSpectra and iEmFilt
-        if (data[i].type == CONST.stype.em) {
-            iSpectra.push(i);
-        }
+function efficiency(filtervalues, fluor) {
+    var dataitem = dataItemMatching(fluor)[0];
+    if (!dataitem)
+        return
+    var fluorspectrum = dataitem.values;
+    var filter_dye_spectrum = spectral_product(filtervalues, fluorspectrum);
+    var filter_dye_area = trapz(filter_dye_spectrum);
+    if (fluor.type == 'em'){
+        var efficiency = filter_dye_area / trapz(fluorspectrum);
+    } else if (fluor.type == 'ex'){
+        var efficiency = filter_dye_area / trapz(filtervalues);
     }
-    for (var s = 0; s < iSpectra.length; s++) {
-        dyespectrum = data[iSpectra[s]];
-        var EMtrans = spectral_product(emfilterspectra, dyespectrum.values);
-        var absEM = trapz(EMtrans)
-        var EMpower = absEM / trapz(dyespectrum.values);
-        var formatted = Math.round(EMpower * 10000) / 100;
-        overlaps.push({
-            key: data[iSpectra[s]].key + ' collection',
-            values: EMtrans,
-            efficiency: formatted,
-            area: true,
-            color: "#333",
-            classed: 'em-efficiency',
-            type: 'em-eff',
-        });
+
+    return {
+        key: dataitem.key + ' eff',
+        values: filter_dye_spectrum,
+        efficiency: efficiency,
+        area: true,
+        color: "#333",
+        classed: fluor.type + "-efficiency subtype-eff",
+        type: 'eff',
+        scalar: dataitem.scalar
     }
-    return overlaps
 }
 
-function calculateEfficiency() {
-    iSpectra = [];
-    iEmFilt = [];
-    overlaps = [];
-    for (var i = 0; i < data.length; i++) {
-        // look through current data for iSpectra and iEmFilt
-        if (data[i].type == CONST.stype.em) {
-            iSpectra.push(i);
-        } else if ($.inArray(data[i].type, ['em_filter', 'bp', 'bm', 'bs', 'sp', 'lp']) >= 0) {
-            iEmFilt.push(i);
-            $('<th>').text(data[i].key).appendTo($("#efficiency-table").find('thead tr'));
-        }
-    }
 
-    if (iSpectra.length && iEmFilt.length) {
-        $('#efftab_blurb').hide();
-        $("#efficiency-table thead").append($('<tr>').append($('<th>')));
-        for (x = 0; x < iEmFilt.length; x++) {
-            $('<th>').text(data[iEmFilt[x]].key).appendTo($("#efficiency-table").find('thead tr'));
-        }
-        $('.efftab_help').show();
-    } else {
-        $('#efftab_blurb').show();
-        $('.efftab_help').hide();
-        return true;
-    }
-
-    for (var s = 0; s < iSpectra.length; s++) {
-        emspectrum = data[iSpectra[s]];
-        $('<tr><td>' + emspectrum.key + '</td></tr>').appendTo($("#efficiency-table tbody"))
-        for (n = 0; n < iEmFilt.length; n++) {
-            var EMtrans = spectral_product(data[iEmFilt[n]].values, emspectrum.values);
-            overlaps.push(EMtrans);
-            var absEM = trapz(EMtrans)
-            var EMpower = absEM / trapz(emspectrum.values);
-            var formatted = Math.round(EMpower * 10000) / 100;
-            var effclass = 'efficiency-vbad';
-            if (formatted > 75) {
-                effclass = 'efficiency-vgood';
-            } else if (formatted > 50) {
-                effclass = 'efficiency-good';
-            } else if (formatted > 25) {
-                effclass = 'efficiency-bad';
-            }
-
-            $("#efficiency-table tbody")
-                .find('tr:last')
-                .append($('<td>', { 'class': effclass })
-                    .append(eyebutton(iSpectra[s], iEmFilt[n], overlaps.length - 1))
-                    .append('  ' + Math.round(absEM * 100) / 100 + ' / (' + formatted + '%)')
-                );
-        }
-    }
-}
 
 // KEYBINDINGS
 

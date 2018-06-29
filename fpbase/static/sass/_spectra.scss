@@ -59,6 +59,17 @@ h6 {
     stroke: rgba(0, 0, 0, 0.5) !important;
     }
   }
+  .subtype-eff {
+    .nv-area{
+      stroke-width: 0 !important;
+      fill-opacity: 0.4;
+    }
+    .nv-line{
+      stroke-opacity: 1 !important;
+      stroke-width: 2 !important;
+      stroke: rgba(0, 0, 0, 1) !important;
+    }
+  }
 
   .nv-groups.area-hidden{
     .nv-area{
@@ -367,6 +378,17 @@ table.spectra-form {
   .custom-control-label::after, .custom-control-label::before{
     @include media-breakpoint-up(md){ top: 0; }
     @include media-breakpoint-up(lg){ top: 0.25rem; }
+  }
+  .external-link {
+    color: #CCC;
+    margin-left: .65rem;
+    font-size: 0.75rem;
+    top: -1px;
+    position:relative;
+
+    :hover {
+      color: rgba($primary, 0.8)
+    }
   }
 }
 
