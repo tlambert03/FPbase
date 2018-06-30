@@ -304,7 +304,7 @@
 {% block extrafooter %}
     {% if request.user.is_staff %}
       {% load admin_urls %}
-      <a href="{% url 'admin:proteins_spectrum_changelist' %}">Spectra on admin</a><br>
+      <a href="{% url 'admin:proteins_microscope_change' microscope.id %}">{{ microscope.name }} on admin</a><br>
     {% endif %}
 {% endblock extrafooter %}
 
@@ -475,7 +475,7 @@
         $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
       }
       else if (light) {
-        $("#light-select option[value='" + light + "']").prop('selected', true)
+        ('#light-select option[data-id="' + light + '"]').prop('selected', true)
       }
       else {
         //$("#light-select option[value='']").prop('selected', true)
