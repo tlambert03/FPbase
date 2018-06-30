@@ -11,6 +11,7 @@ h6 {
 
 
 .spectrumpage{
+
   .spectra-tabs{
     font-size: small;
     margin-top: 0rem;
@@ -392,6 +393,10 @@ table.spectra-form {
   }
 }
 
+.form-control{
+  &:disabled { background-color: white; }
+  &::placeholder{ color: #333; font-size: 0.85rem; }
+}
 
 
 //
@@ -433,13 +438,6 @@ $switch-thumb-border-radius: 50% !default;
 $switch-thumb-padding: 2px !default;
 $switch-focus-box-shadow: 0 0 0 $input-btn-focus-width rgba(map-get($theme-colors, 'primary'), .25);
 $switch-transition: .2s all !default;
-
-
-
-.form-control:disabled {
-  background-color: white;
-}
-
 
 .switch {
   font-size: $font-size-base;

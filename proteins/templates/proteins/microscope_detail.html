@@ -66,7 +66,7 @@
     <div class='col-12 col-md-6'>
       <div class="input-group mb-3">
         <div class="input-group-prepend">
-          <span class="input-group-text">Efficiency:</span>
+          <span class="input-group-text">Brightness:</span>
         </div>
         <input type="text" disabled class="form-control" id="efficiency-text" placeholder="Select a fluor and config..." aria-label="Efficiency Info" aria-describedby="efficiency-text">
         <div class="input-group-append">
@@ -145,9 +145,9 @@
           {% endif %}
         </select>
         <div class="input-group-append">
-          <div class="input-group-text" data-toggle="tooltip" data-placement="top" title="Scale emission by excitation efficiency">
+          <div class="input-group-text" data-toggle="tooltip" data-placement="top" title="Merge light source and excitation filter spectra">
             <div class="custom-checkbox">
-              <input type="checkbox" id="scale-light" checked>
+              <input type="checkbox" id="merge-light-exfilter" checked>
             </div>
           </div>
         </div>
@@ -281,7 +281,7 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalTitle" aria-hidden="true">
+<div class="modal" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -291,7 +291,7 @@
         </button>
       </div>
       <div class="modal-body" id="optionstab">
-        <p>information about efficiency calculation</p>
+        <p>notes: excitation efficiency doesn't take illumination power into account (so an excitation filter doesn't reduce the efficiency of a laser).  brightness doesn't care about expression, bleaching, environment...</p>
       </div>
 
     </div>
@@ -338,9 +338,15 @@
   };
 
   function selectedSlugs(){
-    return $(".filter-selector:checked, .data-selector :selected").map(function(){
-          return $(this).val();
-    }).get();
+    var selected = $(".filter-selector:checked, .data-selector :selected");
+    var list;
+    if ($("#merge-light-exfilter").prop('checked') && $('#light-select :selected').val() !== '') {
+      list = selected.not('#light-select :selected, .ex-filter:checked').map(function(){ return $(this).val(); });
+      list.push("merged/" + $('#light-select :selected, .ex-filter:checked').map(function(i, o){ return o.value}).get().reduce(function(a,b){ return a + "/" + b }))
+    } else {
+      list = selected.map(function(){ return $(this).val(); });
+    }
+    return list.get();
   }
 
   function updateData(){
@@ -357,6 +363,8 @@
       if (selected[n] && !dataHasSlug(selected[n])){
         if (selected[n].startsWith("laser")){
           updateCustomLaser(selected[n].replace("laser-", ""));
+        } else if (selected[n].startsWith("merged")) {
+          deferreds.push(addMerged(selected[n]));
         }
         else {
           deferreds.push(addItem(selected[n]));
@@ -382,25 +390,29 @@
 
   function updateChart(){
     var deferreds = updateData()
-    $.when.apply($, deferreds).then(function(){
-      invertInverted();
+    if (deferreds){
+      $.when.apply($, deferreds).then(function(){
+        invertInverted();
+        updateEfficiency();
+        refreshChart();
+        d3.selectAll(".subtype-pd").moveToBack();
+        d3.selectAll(".subtype-qe").moveToBack();
+        d3.selectAll(".subtype-eff").moveToFront();
+      });
+    } else {
       updateEfficiency();
-      refreshChart();
-      d3.selectAll(".subtype-pd").moveToBack();
-      d3.selectAll(".subtype-qe").moveToBack();
-      d3.selectAll(".subtype-eff").moveToFront();
-    });
+    }
+
   }
 
   function updateEfficiency(){
     var a = calcExEmPaths();
-    if (!a.emvalues){
-      return
-    }
     removeSubtypes('eff')
     var fluorslug = $("#fluor-select :selected").val();
-    var emeff = efficiency(a.emvalues, {slug: fluorslug, type: 'em'});
-    var exeff = efficiency(a.exvalues, {slug: fluorslug, type: 'ex'});
+    if (a.emvalues)
+      var emeff = efficiency(a.emvalues, {slug: fluorslug, type: 'em'});
+    if (a.exvalues)
+      var exeff = efficiency(a.exvalues, {slug: fluorslug, type: 'ex'});
 
     var info = '';
     if (exeff){
@@ -419,29 +431,29 @@
 
     if (emeff != undefined & exeff !=undefined){
       var b = exeff.efficiency * exeff.scalar * emeff.efficiency * emeff.scalar;
-      info += ', B: ' + String(Math.round(b/10) / 100)
+      if (b)
+        info = String(Math.round(b/10) / 100) + ' (' + info + ')'
     }
 
-    if (info != '')
+    if (info != ''){
       $("#efficiency-text").attr('placeholder', info)
+    }
+    else{
+      $("#efficiency-text").attr('placeholder', 'Select a fluor and config...')
+    }
 
   }
 
 
   $(function() {
 
-    $("#scale-light").change(function(){
-      console.log('hip')
-      updateEfficiency();
-      refreshChart();
-    });
 
     $("#scale-camera").change(function(){
       updateEfficiency();
       refreshChart();
     });
 
-    $(".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select, scaleToEC_input, scaleToQY_input").change(function(){
+    $(".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select, scaleToEC_input, scaleToQY_input, #merge-light-exfilter").change(function(){
       updateChart();
     });
 
@@ -466,7 +478,7 @@
         $("#light-select option[value='" + light + "']").prop('selected', true)
       }
       else {
-        $("#light-select option[value='']").prop('selected', true)
+        //$("#light-select option[value='']").prop('selected', true)
       }
       updateChart();
     });
@@ -474,6 +486,10 @@
   });
 
   $("#fluor-select").select2({ theme: "bootstrap", width: 100});
+  $(".card input").not('.invswitch').click(function(){
+    if (options.oneAtaTime)
+      $(this).closest('.card').find('input').not(this).prop('checked', false)
+  });
 
   $(function() {
     for (var i=0; i < scopespectra.length; i++){

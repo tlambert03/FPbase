@@ -40,8 +40,10 @@ var options = {
     hide2p: true,
     scaleToEC: false,
     scaleToQY: false,
+    oneAtaTime: true,
 };
 var userOptions = {
+    oneAtaTime: {type: 'checkbox', msg: 'Uncheck other similar filters when selecting a filter'},
     showArea: {type: 'checkbox', msg: 'Fill area under curve'},
     autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
     hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
@@ -109,6 +111,72 @@ function dataItemMatching(filter, d) {
         }
         return true;
     });
+}
+
+function asyncFunction(item) {
+  itemsProcessed++;
+  if(itemsProcessed === array.length) {
+    callback();
+  }
+};
+
+function mergeSpectra(concatslug) {
+    var dfd = $.Deferred();
+    // download if not already downloaded
+    if (!(concatslug in localData)) {
+        var sp = [];
+        var slugs = concatslug.split('/')
+        slugs.shift()
+
+        var asyncFunction = function(s, onfinished) {
+            if (s.startsWith('laser')) {
+                if (localData.hasOwnProperty(s)) {
+                    sp.push.apply(sp, localData[s])
+                } else {
+                    var F = customLaser(+s.replace('laser-', ''));
+                    localData[s] = [F];
+                    sp.push.apply(sp, localData[s])
+                }
+                onfinished()
+            } else if (!s.startsWith('merged')){
+                if (localData.hasOwnProperty(s)) {
+                    sp.push.apply(sp, localData[s]);
+                    onfinished();
+                } else {
+                    getData(s).then(function(){
+                        sp.push.apply(sp, localData[s]);
+                        onfinished();
+                    });
+                }
+            }
+        }
+        var itemsProcessed = 0;
+        slugs.forEach(function(s, ind, array) {
+            asyncFunction(s, function(){
+                itemsProcessed += 1;
+                if(itemsProcessed === array.length) {
+                    names = slugs.map(function(o) { return localData[o][0].key }).reduce(function(a, b){ return a + "+" + b })
+                    localData[concatslug] = [{
+                        key: names,
+                        values: combineSpectra(sp),
+                        area: true,
+                        color: 'url(#wavecolor_gradient)',
+                        classed: 'combined-light-ex'
+                    }]
+                    dfd.resolve(localData[concatslug])
+                }
+            })
+        });
+    } else { // otherwise pull from local dict
+        dfd.resolve(localData[concatslug]);
+    }
+    return dfd.promise();
+}
+
+function addMerged(comboslug){
+    return mergeSpectra(comboslug).then(function(d){
+        data.push(d[0])
+    })
 }
 
 function addItem(slug, subtype) {
@@ -229,7 +297,6 @@ function scale_data_up(filter){
 }
 
 function scale_data_down(filter){
-    console.log(filter)
     for (var n=0; n < data.length; n++){
         // only scale certain data by filter
         var skip = false;
@@ -441,13 +508,11 @@ $(function() {
         var arr = urlParams.s.toLowerCase().split(',');
         for (var i = 0; i < arr.length; i++){
             //var opts = slugOptions(arr[i]);
-            console.log(arr[i]);
             var opts = false;
             if (Boolean(opts)){
                 try{
                     // STILL BUGGY
                     if (i==0) {
-                        console.log(i, opts.category, opts.subtype, false, opts.slug);
                         $("#fluor-select").val(opts.slug).change();
                     }
 
@@ -588,7 +653,7 @@ $("body").on('click', '.remove-row', function(e) {
 function customLaser(wave) {
     return padDataLimits({
         slug: 'custom_laser',
-        key: wave + ' nm',
+        key: wave + ' laser',
         area: true,
         color: wave_to_color(wave),
         minwave: wave,
@@ -742,7 +807,7 @@ function invertData(values){
 }
 
 
-function combineSpectra(pathlist, ){
+function combineSpectra(pathlist){
     return pathlist.reduce(function(acc, cur) {
             if (acc){
                 return spectral_product(acc, cur.values);
@@ -771,10 +836,8 @@ function calcExEmPaths(){
         }
     }
 
-    if ($("#scale-light").prop('checked')) {
-        if ($("#light-select :selected").val()){
-            expath.push(localData[$("#light-select :selected").val()][0]);
-        }
+    if ($("#light-select :selected").val()){
+        expath.push(localData[$("#light-select :selected").val()][0]);
     }
 
     if ($("#scale-camera").prop('checked')) {
