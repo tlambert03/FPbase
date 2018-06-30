@@ -471,11 +471,12 @@
       })
       var wave = selected.data('laser');
       var light = selected.data('light');
+      console.log(light)
       if (wave) {
         $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
       }
       else if (light) {
-        ('#light-select option[data-id="' + light + '"]').prop('selected', true)
+        $("#light-select option[data-id='" + light + "']").prop('selected', true)
       }
       else {
         //$("#light-select option[value='']").prop('selected', true)
