@@ -14,10 +14,11 @@
         <a href="{% url 'proteins:deletecollection' object.id %}"><button class='btn btn-primary btn-sm'>Delete Collection</button></a>
     {% endif %}
 
-    <p>{{ object.proteins.count }} proteins <br><em>Created by: </em>{% if object.owner.id == request.user.id %}You{% else %}{{ object.owner }}{% endif %}<br><em>Last Modified: </em>{{ object.modified|date:"M j, Y" }}<br>
+    <p class='mb-1'>{{ object.proteins.count }} proteins <br><em>Created by: </em>{% if object.owner.id == request.user.id %}You{% else %}{{ object.owner }}{% endif %}<br><em>Last Modified: </em>{{ object.modified|date:"M j, Y" }}<br>
     {% if object.private %}Private{% else %}Public{% endif %} Collection<br><br>
-    <a href="?format=json"><button class='btn btn-info btn-sm'>Download as JSON</button></a>
-    <a href="?format=csv"><button class='btn btn-info btn-sm'>Download as CSV</button></a>
+    <a href="?format=json"><button class='btn btn-info btn-sm mb-2'>Download as JSON</button></a>
+    <a href="?format=csv"><button class='btn btn-info btn-sm mb-2'>Download as CSV</button></a>
+    <a href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}"><button class='btn btn-info btn-sm mb-2'>Download available spectra as CSV</button></a>
 
     </p>
 
@@ -34,7 +35,7 @@
             {% csrf_token %}
             <input type="hidden" name="dupcollection" value="{{ object.id }}">
             <input type="hidden" name="colname" value="{{ object.name }}">
-            <button class='btn btn-info btn-sm' type='submit'>Duplicate collection</button>
+            <button class='btn btn-warning btn-sm' type='submit'>Duplicate collection</button>
         </form>
 
         <div class='col mb-3'>
