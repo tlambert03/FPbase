@@ -462,6 +462,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         D = {
             "slug": self.owner.slug,
             "key": self.name,
+            "id": self.id,
             "values": self.d3data(),
             "peak": self.peak_wave,
             "minwave": self.min_wave,

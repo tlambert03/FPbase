@@ -1,5 +1,26 @@
 from scipy import interpolate
 from scipy.signal import savgol_filter
+from django.http import HttpResponse
+import csv
+
+
+def spectra2csv(spectralist, filename='fpbase_spectra.csv'):
+    globalmin = int(min([sp.min_wave for sp in spectralist]))
+    globalmax = int(max([sp.max_wave for sp in spectralist]))
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    writer = csv.writer(response)
+    sp_headers = []
+    wave_dicts = dict()
+    for sp in spectralist:
+        sp_headers += [str(sp)]
+        wave_dicts[str(sp)] = dict(sp.data)
+    writer.writerow(['wavelength'] + sp_headers)
+    for wave in range(globalmin, globalmax + 1):
+        row = [wave]
+        row += [wave_dicts[sp].get(wave, '') for sp in sp_headers]
+        writer.writerow(row)
+    return response
 
 
 def interp2int(x, y, s=1):
