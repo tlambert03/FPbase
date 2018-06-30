@@ -172,7 +172,7 @@
 </div>
 
 <div class="container mt-3">
- <p class='text-center'><a href="{% url 'proteins:submit-spectra' %}"><button type="button" class="btn btn-primary btn-sm"><i class="fas fa-file mr-2"></i>Submit Spectrum</button></a></p>
+ <p class='text-center'><a id="downloadSpectra" download><button type="button" class="btn btn-primary btn-sm"><i class="fas fa-download mr-2"></i>Download Current Spectra as CSV</button></a> <a href="{% url 'proteins:submit-spectra' %}"><button type="button" class="btn btn-primary btn-sm"><i class="fas fa-upload mr-2"></i>Submit Spectrum</button></a></p>
  <p class='small text-muted text-center font-italic'>Want to see an FP spectra that isn't in here, but don't have time to add it yourself? <a href="{% url 'contact' %}"> Request a new FP</a></p>
 
 </div>
@@ -209,6 +209,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 
 <script type="text/javascript">
+  $("#downloadSpectra").click(function(e){
+    e.preventDefault();
+    var ids = data
+      .filter(function(obj){ if (obj.disabled){ return false }; return true })
+      .map(function(obj){return obj.id});
+    if (ids.length){
+      url = {% url 'proteins:spectra_csv' %} + '?q=' + ids.join(',');
+      window.location = url;
+    }
+
+  })
+
   var spectra_options = {{ spectra_options|safe }};
 </script>
 

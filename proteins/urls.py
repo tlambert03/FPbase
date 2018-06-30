@@ -26,6 +26,7 @@ urlpatterns = [
         name='submit-spectra'),
     url(r'^spectra/(?P<slug>[-\w]+)', views.protein_spectra, name='spectra'),
     url(r'^spectra/', views.protein_spectra, name='spectra'),
+    url(r'^spectra_csv/', views.spectra_csv, name='spectra_csv'),
 
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
     url(r'^collections/(?P<owner>[-\w.]+)/?$', views.CollectionList.as_view(), name='collections'),

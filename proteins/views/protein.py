@@ -21,7 +21,7 @@ from ..models import (Protein, State, Organism, BleachMeasurement,
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
                      BleachMeasurementForm, SpectrumForm)
 from ..filters import ProteinFilter
-
+from proteins.util.spectra import spectra2csv
 from references.models import Reference  # breaks application modularity
 import reversion
 from reversion.views import _RollBackRevisionView
@@ -485,3 +485,17 @@ def protein_bleach_formsets(request, slug):
 class OrganismDetailView(DetailView):
     ''' renders html for single reference page  '''
     queryset = Organism.objects.all().prefetch_related('proteins')
+
+
+def spectra_csv(request):
+    try:
+        idlist = [int(x) for x in request.GET.get('q', '').split(',') if x]
+        spectralist = Spectrum.objects.filter(id__in=idlist)
+        if spectralist:
+            return spectra2csv(spectralist)
+    except Exception:
+        return HttpResponse('malformed spectra csv request')
+    else:
+        return HttpResponse('malformed spectra csv request')
+
+
