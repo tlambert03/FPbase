@@ -26,7 +26,7 @@ class Microscope(OwnedCollection):
                  (all spectra will be added to spectra)
     """
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
-    configs = models.ManyToManyField('OpticalConfig', blank=True, related_name='collection_memberships')
+    configs = models.ManyToManyField('OpticalConfig', blank=True, related_name='microscope_memberships')
     ex_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ex_filter')
     bs_filters = models.ManyToManyField('Filter', blank=True, related_name='as_bs_filter')
     em_filters = models.ManyToManyField('Filter', blank=True, related_name='as_em_filter')
@@ -94,9 +94,9 @@ class OpticalConfig(OwnedCollection):
     """ A a single optical configuration comprising a set of filters """
 
     filters = models.ManyToManyField(
-        'Filter', related_name='optical_configs', through='FilterPlacement')
-    light = models.ForeignKey('Light', null=True, related_name='optical_configs', on_delete=models.CASCADE)
-    camera = models.ForeignKey('Camera', null=True, related_name='optical_configs', on_delete=models.CASCADE)
+        'Filter', related_name='optical_configs', blank=True, through='FilterPlacement')
+    light = models.ForeignKey('Light', null=True, blank=True, related_name='optical_configs', on_delete=models.CASCADE)
+    camera = models.ForeignKey('Camera', null=True, blank=True, related_name='optical_configs', on_delete=models.CASCADE)
     laser = models.PositiveSmallIntegerField(
         blank=True, null=True,
         validators=[MinValueValidator(300), MaxValueValidator(1600)])
