@@ -5,7 +5,7 @@ import numpy as np
 import requests
 from django.core.validators import URLValidator
 from django.template.defaultfilters import slugify
-
+from ..models import Filter
 
 ############################################
 #       Importing Tools
@@ -13,6 +13,29 @@ from django.template.defaultfilters import slugify
 
 
 BASEDIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
+
+def add_filter_to_database(brand, part, user=None):
+    if brand.lower() == 'chroma':
+        importer = import_chroma_spectra
+    elif brand.lower() == 'semrock':
+        part = normalize_semrock_part(part)
+        importer = import_semrock_spectra
+    else:
+        raise ValueError('unknown brand')
+
+    try:
+        f = Filter.objects.get(slug=slugify(brand + ' ' + part))
+        return [f.spectrum], []
+    except Filter.DoesNotExist:
+        pass
+
+    newObjects, errors = importer(part=part)
+    if newObjects and user:
+        for spectrum in newObjects:
+            spectrum.owner.created_by = user
+            spectrum.owner.save()
+    return newObjects, errors
 
 
 def fetch_chroma_url(url):
@@ -35,6 +58,19 @@ def fetch_chroma_url(url):
         return response.text
     else:
         raise ValueError('ASCII download failed')
+
+
+def check_chroma_for_part(part):
+    part = part.replace('/', '-')
+    chromaURL = 'https://www.chroma.com/products/parts/'
+    return requests.head(chromaURL + slugify(part))
+
+
+def check_semrock_for_part(part):
+    part = normalize_semrock_part(part)
+    part = part.replace('/', '_').upper()
+    semrockURL = 'https://www.semrock.com/_ProductData/Spectra/'
+    return requests.head(semrockURL + slugify(part) + '_Spectrum.txt')
 
 
 def fetch_chroma_part(part):
@@ -80,6 +116,7 @@ def fetch_chroma_part(part):
 
 def normalize_semrock_part(part):
     return re.sub('-(25|35)$', '', part)
+
 
 def fetch_semrock_part(part):
     ''' Retrieve ASCII spectra for a semrock part number

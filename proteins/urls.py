@@ -55,6 +55,10 @@ urlpatterns = [
     url(r'^protein-autocomplete/$', views.ProteinAutocomplete.as_view(), name='protein-autocomplete',),
     url(r'^state-autocomplete/$', views.StateAutocomplete.as_view(), name='state-autocomplete',),
 
+    url(r'^microscope/create/',
+        login_required(views.MicroscopeCreateView.as_view(),
+                       message="You must be logged in to create a microscope configuration"),
+        name='newmicroscope'),
     url(r'^microscope/(?P<pk>[-\w]+)/$', views.MicroscopeDetailView.as_view(), name='microscope-detail'),
 
     # /proteins/api

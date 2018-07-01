@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>Create a New Microscope</h2>
+
+<form method="post">
+{% csrf_token %}
+{% crispy form %}
+</form>
+
+{% endblock content %}
+
+{% block javascript %}
+  <script type="text/javascript">
+  $("form").submit(function(){
+    $("#spinner").css('display', 'inline');
+  });
+  </script>
+{% endblock javascript %}
