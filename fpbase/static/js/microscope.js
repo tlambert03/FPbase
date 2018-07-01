@@ -38,7 +38,7 @@ var options = {
     exNormWave: undefined,
     scale: 'linear',
     hide2p: true,
-    scaleToEC: false,
+//    scaleToEC: false,
     scaleToQY: false,
     oneAtaTime: true,
 };
@@ -47,7 +47,7 @@ var userOptions = {
     showArea: {type: 'checkbox', msg: 'Fill area under curve'},
     autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
     hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
-    scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
+//    scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
     scaleToQY: {type: 'checkbox', msg: 'Scale emission spectra to quantum yield'},
 };
 var svg = d3.select('#spectra svg');
