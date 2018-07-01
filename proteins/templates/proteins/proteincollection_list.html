@@ -12,7 +12,7 @@
 
 	{% if not owner %}
 	<h1 class='mb-4'>Protein Collections</h1>
-	<p>Protein collections are user-selected sets of proteins that fit criteria that are important to that user.  For instance, you might create a collection to store the fluorescent proteins you have available as plasmids in your lab freezer, or a set of proteins that you think represent the best currently available proteins for your application.  Collections can be shared publicly (or kept private).  Collections can be created based on complicated <a href="{% url "proteins:search" %}">search queries</a>, manually by adding proteins from the respective protein pages, or they can be duplicated from existing collections and modified to suit your needs.  Lastly, collections can be easily downloaded in CSV or JSON format.</p>
+	<p>Protein collections are user-selected sets of proteins that fit criteria that are important to that user.  For instance, you might create a collection to store the fluorescent proteins you have available as plasmids in your lab freezer, or a set of proteins that you think represent the best currently available proteins for your application.  Collections can be shared publicly (or kept private).  Collections can be created based on complicated <a href="{% url "proteins:search" %}">search queries</a>, manually by adding proteins from the respective protein pages, or they can be duplicated from existing collections and modified to suit your needs.  Lastly, collections can be easily downloaded in CSV or JSON format. <br><a href="{% url 'proteins:newcollection' %}"><button class='btn btn-primary btn-sm mt-3'>Create a collection</button></a></p>
 	{% endif %}
 
 	{% if request.user.username == owner %}
