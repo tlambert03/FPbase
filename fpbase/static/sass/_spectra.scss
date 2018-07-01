@@ -12,6 +12,16 @@ h6 {
 
 .spectrumpage{
 
+  @include media-breakpoint-down(md){
+    &.container, {
+       width: 100%;
+       max-width: 98%;
+    }
+    .container{
+      max-width: 100%;
+    }
+  }
+
   .spectra-tabs{
     font-size: small;
     margin-top: 0rem;
