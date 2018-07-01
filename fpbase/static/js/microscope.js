@@ -756,48 +756,6 @@ function trapz(arr, min, max) {
 }
 
 
-$("body").on('mousedown', '.effbutton', function(e, i) {
-    var iSpec = $(this).data('ispec');
-    var iFilt = $(this).data('ifilt');
-    var overl = $(this).data('ioverlap');
-
-    disabledData = [];
-    for (var d = 0; d < data.length; d++) {
-        disabledData.push(data[d].disabled);
-        if (!(d == iFilt | d == iSpec)) {
-            data[d].disabled = true;
-        }
-    }
-    data.push({
-        key: 'Collection',
-        values: overlaps[overl],
-        color: 'black',
-        area: true
-    });
-    chart.update();
-});
-
-
-
-$("body").on('mouseup', '.effbutton', function(e) {
-
-    var iSpec = $(this).data('ispec');
-    var iFilt = $(this).data('ifilt');
-    var overl = $(this).data('ioverlap');
-
-    data.splice(-1, 1);
-    for (var d = 0; d < data.length; d++) {
-        if (!(d == iFilt | d == iSpec)) {
-            data[d].disabled = false;
-        }
-        data[d].disabled = disabledData[d];
-    }
-
-    //    chart.xDomain(getDomainLimits(data));
-    refreshChart();
-});
-
-
 function invertData(values){
     var out = [];
     for (var i = 0; i < values.length; i++){
@@ -868,88 +826,9 @@ function efficiency(filtervalues, fluor) {
         values: filter_dye_spectrum,
         efficiency: efficiency,
         area: true,
-        color: "#333",
+        color: fluor.type == 'em' ?  'url(#diagonal-stripe-r)' :'url(#diagonal-stripe-l)' ,
         classed: fluor.type + "-efficiency subtype-eff",
         type: 'eff',
         scalar: dataitem.scalar
     }
 }
-
-
-
-// KEYBINDINGS
-
-function activateTab(tab){
-  $('.nav-tabs a[href="#' + tab + '"]').tab('show');
-};
-
-function findEmptyOrAdd(table, formtype, subtype){
-    focusedItem = 0;
-    var el = $("#" + table + "-table").find('select option[value="0"]:selected');
-    if(el.length){
-        el.last().closest('select').select2('open');
-    } else {
-        addFormItem(formtype, subtype, true);
-    }
-}
-
-
-$( "body" ).keypress(function( event ) {
-
-    // no double-events
-    if ($(':focus').hasClass('select2-search__field')){ return; }
-
-    // ALL KEYS REQUIRE SHIFT
-    if ( event.which == 80 ) { // p key
-        activateTab("proteintab");
-        findEmptyOrAdd("protein", 'p')
-    } else if ( event.which == 68 ) {  // d key
-        activateTab("proteintab")
-        findEmptyOrAdd("dye", 'd')
-    } else if ( event.which == 77 ) {  // m key
-        activateTab("emtab")
-        findEmptyOrAdd("emfilter", 'f', 'bm')
-    } else if ( event.which == 88 ) {  // x key
-        activateTab("extab")
-        findEmptyOrAdd("exfilter", 'f', 'bx')
-    } else if ( event.which == 67 ) {  // c key
-        activateTab("emtab")
-        findEmptyOrAdd("camqe", 'c', 'qe')
-    } else if ( event.which == 76 ) {  // l key
-        activateTab("extab")
-        findEmptyOrAdd("light", 'l')
-    } else if ( event.which == 79 ) {  // o key
-        activateTab("optionstab")
-    } else if ( event.which == 70 ) {  // f key
-        activateTab("efftab")
-    }
-
-});
-
-$( "body" ).keydown(function( event ) {
-    if ( event.which == 8 ) { // delete key
-        var nextobject = $(':focus').closest('.row').prev('.row').find('.select2-selection--single');
-        $(':focus').closest('.input-group').find('button.remove-row').click();
-        nextobject.focus();
-    }
-    if ( event.which == 38 ) { // up key
-        event.preventDefault();
-        $(':focus').closest('.row').prev('.row').find('.select2-selection--single').focus();
-    }
-    if ( event.which == 40 ) { // up key
-        event.preventDefault();
-        $(':focus').closest('.row').next('.row').find('.select2-selection--single').focus();
-    }
-
-    if ( event.which == 39 ) { // right key
-        event.preventDefault();
-        $(".nav-tabs .nav-link.active").closest('li.nav-item').next('.nav-item').find('.nav-link').click();
-    }
-    if ( event.which == 37 ) { // left key
-        event.preventDefault();
-        $(".nav-tabs .nav-link.active").closest('li.nav-item').prev('.nav-item').find('.nav-link').click();
-    }
-
-})
-
-
