@@ -17,6 +17,12 @@
 
 <h2 class='text-center'>{{microscope}}</h2>
 
+{% if object.description %}
+    <div class="container font-italic text-muted text-center">
+        {{object.description}}
+    </div>
+{% endif %}
+
 <div class="spectra clearfix mb-3">
   <div id="spectra">
     <div class="svg-container">
@@ -471,6 +477,7 @@
       })
       var wave = selected.data('laser');
       var light = selected.data('light');
+      var camera = selected.data('camera');
       console.log(light)
       if (wave) {
         $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
@@ -480,6 +487,9 @@
       }
       else {
         //$("#light-select option[value='']").prop('selected', true)
+      }
+      if (camera) {
+        $("#camera-select option[data-id='" + camera + "']").prop('selected', true)
       }
       updateChart();
     });
