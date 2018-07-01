@@ -1,50 +1,20 @@
+import reversion
 from django.views.generic import DetailView, CreateView, UpdateView
 from django.views.decorators.cache import cache_page
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.conf import settings
-from django.core.mail import EmailMessage
 from django.db import transaction
-from django.http import JsonResponse
-from django.contrib.postgres.search import TrigramSimilarity
 from django.core.mail import mail_managers
-from django.utils.text import slugify
-from django.urls import reverse
 
-import json
-
-from ..models import (Protein, State, Organism, BleachMeasurement,
-                      Spectrum, Filter, Microscope, Camera, Light)
+from ..models import Protein, State, Organism, BleachMeasurement
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
-                     BleachMeasurementForm, SpectrumForm)
-from ..filters import ProteinFilter
-from proteins.util.spectra import spectra2csv
+                     BleachMeasurementForm)
 from references.models import Reference  # breaks application modularity
-import reversion
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
-from ..util.importers import (import_chroma_spectra,
-                              import_semrock_spectra, normalize_semrock_part)
-
-
-class MicroscopeDetailView(DetailView):
-    queryset = Microscope.objects.all().prefetch_related(
-        'configs__filterplacement_set__filter',
-        'configs__filters')
-
-    def get_context_data(self, **kwargs):
-        data = super().get_context_data(**kwargs)
-        if not self.object.cameras.count():
-            data['cameras'] = Camera.objects.all()
-        if not self.object.lights.count():
-            data['lights'] = Light.objects.all()
-        data['probeslugs'] = Spectrum.objects.fluorlist()
-        data['scopespectra'] = json.dumps(self.object.spectra_d3())
-        # data['configs'] = json.dumps([oc.to_json() for oc in self.object.configs.all()])
-        return data
 
 
 class ProteinDetailView(DetailView):
@@ -241,87 +211,6 @@ def protein_table(request):
         })
 
 
-def protein_spectra(request, slug=None):
-    ''' renders html for protein spectra page  '''
-    template = 'spectra.html'
-
-    if request.is_ajax() and slug is not None:
-        ''' slug represents the slug of the OWNER of the spectra...
-        for instance, a protein state.
-        function returns an array containing ALL of the spectra
-        belonging to that owner
-        '''
-        owner = Spectrum.objects.filter_owner(slug)
-        if owner.count():
-            return JsonResponse({'spectra': [s.d3dict() for s in owner]})
-        else:
-            raise Http404
-
-    if request.method == 'GET':
-        # spectra = Spectrum.objects.owner_slugs()
-        spectra = Spectrum.objects.sluglist()
-
-        return render(request, template, {
-            'spectra_options': json.dumps(spectra)}
-        )
-
-
-class SpectrumCreateView(CreateView):
-    model = Spectrum
-    form_class = SpectrumForm
-
-    def get_success_url(self, **kwargs):
-        if self.object.category == Spectrum.PROTEIN:
-            return self.object.owner.get_absolute_url()
-        else:
-            return "{}?s={}".format(reverse('proteins:spectra'), self.object.owner.slug)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
-
-    def form_valid(self, form):
-        # This method is called when valid form data has been POSTed.
-        # It should return an HttpResponse.
-        i = super().form_valid(form)
-        if not self.request.user.is_staff:
-            EmailMessage(
-                '[FPbase] Spectrum submitted: %s' % form.cleaned_data['owner'],
-                self.request.build_absolute_uri(form.instance.get_admin_url()),
-                to=[a[1] for a in settings.ADMINS],
-                headers={'X-Mailgun-Track': 'no'}
-            ).send()
-        return i
-
-
-def protein_search(request):
-    ''' renders html for protein search page  '''
-
-    if request.GET:
-        f = ProteinFilter(
-            request.GET,
-            queryset=Protein.objects.select_related('default_state')
-            .prefetch_related('states').order_by('default_state__em_max'))
-
-        # if no hits, but name was provided... try trigram search
-        if len(f.qs) == 0:
-            name = None
-            if 'name__icontains' in f.form.data:
-                name = f.form.data['name__icontains']
-            elif 'name__iexact' in f.form.data:
-                name = f.form.data['name__iexact']
-            if name:
-                f.recs = Protein.objects.annotate(
-                    similarity=TrigramSimilarity('name', name)).filter(
-                    similarity__gt=0.2).order_by('-similarity')
-        if len(f.qs) == 1:
-            return redirect(f.qs.first())
-    else:
-        f = ProteinFilter(request.GET, queryset=Protein.objects.none())
-    return render(request, 'proteins/protein_search.html', {'filter': f})
-
-
 def add_reference(request, slug=None):
     try:
         with reversion.create_revision():
@@ -341,56 +230,6 @@ def add_reference(request, slug=None):
         return JsonResponse({})
     except Exception:
         pass
-
-
-def filter_import(request, brand):
-    part = request.POST['part']
-    if brand.lower() == 'chroma':
-        importer = import_chroma_spectra
-    elif brand.lower() == 'semrock':
-        part = normalize_semrock_part(part)
-        importer = import_semrock_spectra
-    else:
-        raise ValueError('unknown brand')
-
-    newObjects = []
-    errors = []
-    response = {'status': 0}
-
-    try:
-        Filter.objects.get(slug=slugify(brand + ' ' + part))
-        response['message'] = '{} {} already in database'.format(
-            brand.title(), part)
-        return JsonResponse(response)
-    except Filter.DoesNotExist:
-        pass
-
-    try:
-        newObjects, errors = importer(part=part)
-    except Exception as e:
-        response['message'] = str(e)
-
-    if newObjects:
-        spectrum = newObjects[0]
-        response = {
-            'status': 1,
-            'objects': spectrum.name,
-            'spectra_options': json.dumps({
-                'category': spectrum.category,
-                'subtype': spectrum.subtype,
-                'slug': spectrum.owner.slug,
-                'name': spectrum.owner.name,
-            })
-        }
-        spectrum.owner.created_by = request.user
-        spectrum.owner.save()
-    elif errors:
-        try:
-            if errors[0][1].as_data()['owner'][0].code == 'owner_exists':
-                response['message'] = '%s already appears to be imported' % part
-        except Exception:
-            pass
-    return JsonResponse(response)
 
 
 @staff_member_required
@@ -485,17 +324,3 @@ def protein_bleach_formsets(request, slug):
 class OrganismDetailView(DetailView):
     ''' renders html for single reference page  '''
     queryset = Organism.objects.all().prefetch_related('proteins')
-
-
-def spectra_csv(request):
-    try:
-        idlist = [int(x) for x in request.GET.get('q', '').split(',') if x]
-        spectralist = Spectrum.objects.filter(id__in=idlist)
-        if spectralist:
-            return spectra2csv(spectralist)
-    except Exception:
-        return HttpResponse('malformed spectra csv request')
-    else:
-        return HttpResponse('malformed spectra csv request')
-
-

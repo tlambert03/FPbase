@@ -11,6 +11,7 @@ from django.core.mail import mail_admins
 import json
 from ..models import ProteinCollection
 from ..forms import CollectionForm
+from .mixins import OwnableObject
 
 
 def serialized_proteins_response(queryset, format='json', filename='FPbase_proteins'):
@@ -44,6 +45,7 @@ class CollectionList(ListView):
             context['owner'] = self.kwargs['owner']
         return context
 
+
 class CollectionDetail(DetailView):
     queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__default_state')
 
@@ -52,7 +54,7 @@ class CollectionDetail(DetailView):
         if format in ('json', 'csv'):
             col = self.get_object()
             return serialized_proteins_response(col.proteins.all(), format,
-                    filename=slugify(col.name))
+                                                filename=slugify(col.name))
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -127,24 +129,26 @@ def add_to_collection(request):
     return HttpResponseNotAllowed([])
 
 
-class CollectionCreateView(CreateView):
+class CollectionCreateView(OwnableObject, CreateView):
     model = ProteinCollection
     form_class = CollectionForm
 
     def get_form_kwargs(self):
+        # add current user to the kwargs for the CollectionForm
         kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
+        # the protein_search.html template has a form that can send a list of
+        # proteins to create a new collection
         if len(self.request.POST.getlist('protein')):
             kwargs['proteins'] = self.request.POST.getlist('protein')
+        # alternatively, a list of proteins from an existing collection can
+        # be used to make a new collection
         elif self.request.POST.get('dupcollection', False):
             id = self.request.POST.get('dupcollection')
             kwargs['proteins'] = [p.id for p in ProteinCollection.objects.get(id=id).proteins.all()]
         return kwargs
 
     def form_valid(self, form):
-        self.object = form.save(commit=False)
-        self.object.owner = self.request.user
-        self.object.save()
+        self.attach_owner(form)
         if getattr(form, 'proteins', None):
             self.object.proteins.add(*form.proteins)
         if not self.request.user.is_staff:
@@ -172,14 +176,9 @@ class CollectionCreateView(CreateView):
         return data
 
 
-class CollectionUpdateView(UpdateView):
+class CollectionUpdateView(OwnableObject, UpdateView):
     model = ProteinCollection
     form_class = CollectionForm
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
 
 
 class CollectionDeleteView(DeleteView):
