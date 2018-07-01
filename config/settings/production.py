@@ -184,6 +184,7 @@ CACHES = {
 
 
 # Sentry Configuration
+SENTRY_JS_DSN = env('SENTRY_JS_DSN')
 SENTRY_DSN = env('DJANGO_SENTRY_DSN')
 SENTRY_CLIENT = env('DJANGO_SENTRY_CLIENT', default='raven.contrib.django.raven_compat.DjangoClient')
 LOGGING = {

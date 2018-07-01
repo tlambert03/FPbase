@@ -193,7 +193,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 # Your stuff: custom template context processors go here
-                'fpbase.context_processors.ga_tracking_id',
+                'fpbase.context_processors.tracking_ids',
                 'fpbase.context_processors.canonical',
             ],
         },
