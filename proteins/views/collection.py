@@ -47,7 +47,7 @@ class CollectionList(ListView):
 
 
 class CollectionDetail(DetailView):
-    queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__default_state')
+    queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__states__spectra', 'proteins__default_state')
 
     def get(self, request, *args, **kwargs):
         format = request.GET.get('format', '').lower()
@@ -61,6 +61,14 @@ class CollectionDetail(DetailView):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
         context['isowner'] = self.request.user == self.object.owner
+
+        _ids = []
+        for prot in self.object.proteins.all():
+            for state in prot.states.all():
+                for sp in state.spectra.all():
+                    _ids.append(sp.id)
+        print(_ids)
+        context['spectra_ids'] = ",".join([str(i) for i in _ids])
         return context
 
     def render_to_response(self, *args, **kwargs):
