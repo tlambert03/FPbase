@@ -33,18 +33,14 @@ class FilterPromise(object):
 
 class MicroscopeForm(forms.ModelForm):
 
-    light_source = forms.ChoiceField(
-        choices=[('', '------')] + list(Light.objects.values_list('id', 'name')),
-        widget=forms.Select(),
-        required=False,
+    light_source = forms.ModelChoiceField(
+        queryset=Light.objects.all(), required=False,
         help_text=('Specify laser lines individual in the optical configurations. '
                    'If a light source is selected here, it will be applied to '
-                   'all configurations below')
-    )
-    detector = forms.ChoiceField(
-        choices=[('', '------')] + list(Camera.objects.values_list('id', 'name')),
-        widget=forms.Select(),
-        required=False,
+                   'all configurations below'))
+
+    detector = forms.ModelChoiceField(
+        queryset=Camera.objects.all(), required=False,
         help_text=('Detector chosen here will be applied to all configurations. '
                    'QE curves for new cameras can be added in the spectra viewer')
     )
