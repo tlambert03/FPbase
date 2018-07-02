@@ -2,20 +2,70 @@
 
 {% load crispy_forms_tags %}
 
+{% block vendorcss %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+{% endblock vendorcss %}
+
 {% block content %}
 <h2>Create a New Microscope</h2>
 
-<form method="post">
-{% csrf_token %}
 {% crispy form %}
-</form>
+
+<div class="alert alert-info" role="alert">
+  <div class="alert-icon" style="font-size: 1.6rem"><span class="fas fa-question-circle float-right"></span></div>
+  <h4 class="alert-heading"><strong>Optical Configurations</strong></h4>
+  <p style="font-size: 0.9rem;">Optical configurations represent a set of filters in your microscope, (usually for a specific channel or wavelength). Add all of your configurations in the box above, with each one on a seperate line, using the following 4 or 5 field comma-separated format:
+    <br>
+    <br>
+    <code><strong>Config Name, Laser OR Excitation Filter(s), Dichroic(s), Emission Filter(s)</strong> [, Dichroic reflects excitation?]</code>
+  </p>
+  <div class="container mt-4 mb-2">
+    <dl class="row">
+      <dt class="col-sm-3">Config Name</dt>
+      <dd class="col-sm-9">Any string to describe the configuration.</dd>
+    </dl>
+    <dl class="row">
+      <dt class="col-sm-3">Lasers</dt>
+      <dd class="col-sm-9">Specify laser wavelenghts as integer values.</dd>
+    </dl>
+    <dl class="row">
+      <dt class="col-sm-3">Filters</dt>
+      <dd class="col-sm-9">Filters can be specified as any Chroma or Semrock part number, or a name of any filter in the FPbase spectra database.</dd>
+    </dl>
+    <dl class="row">
+      <dt class="col-sm-3">Multiple Filters</dt>
+      <dd class="col-sm-9">You may specify multiple filters for a given path by enclosing them in parentheses.</dd>
+    </dl>
+    <dl class="row">
+      <dt class="col-sm-3">Dichroic Orientation</dt>
+      <dd class="col-sm-9">An optional fifth item (true or false) specifies whether the dichroic reflects the excitation light. It is true by default. For inverted systems (such as a Yokogawa spinning disk), set this to false.</dd>
+    </dl>
+  </div>
+  <p style="font-size: 0.9rem;">
+    The following are examples of valid configurations:
+    <br><strong>
+<code>Widefield Green, FF01-466/40, FF495-Di03, FF03-525/50</code><br>
+<code>Dual-FRET, ET430/24x, 69008bs, ET535/30m</code><br>
+<code>Yokogawa 488nm, 488, Di01-T405/488/568/647, ET525/50m, false</code><br>
+<code>TIRF 647nm, 647, ZT405/488/561/647rpc, (ZET405/488/561/647m, ET700/75m)</code></strong>
+  </p>
+</div>
+
 
 {% endblock content %}
 
 {% block javascript %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+
   <script type="text/javascript">
   $("form").submit(function(){
     $("#spinner").css('display', 'inline');
   });
+  $("#id_detector, #id_light_source").select2({
+    theme: "bootstrap",
+    placeholder: "---------",
+    allowClear: true,
+  });
+
   </script>
 {% endblock javascript %}

@@ -33,16 +33,22 @@ class FilterPromise(object):
 
 class MicroscopeForm(forms.ModelForm):
 
-    light_source = forms.ModelChoiceField(
+    light_source = forms.ModelMultipleChoiceField(
+        label='Light Source(s)',
         queryset=Light.objects.all(), required=False,
-        help_text=('Specify laser lines individual in the optical configurations. '
-                   'If a light source is selected here, it will be applied to '
-                   'all configurations below'))
+        help_text=('Specify laser lines individually in the optical configurations below. '
+                   'If a single light source is selected here, it will be applied to '
+                   'all configurations without lasers. If your light source is missing, '
+                   'you can <a href="/spectra/submit"> submit a power density curve</a>'))
 
-    detector = forms.ModelChoiceField(
+    detector = forms.ModelMultipleChoiceField(
+        label='Detector(s)',
         queryset=Camera.objects.all(), required=False,
-        help_text=('Detector chosen here will be applied to all configurations. '
-                   'QE curves for new cameras can be added in the spectra viewer')
+        help_text=(
+            'If a single detector is chosen, it will be applied to all configurations. '
+            'If your camera is missing, you can <a href="/spectra/submit">'
+            'submit a QE curve</a>'
+        )
     )
 
     optical_configurations = forms.CharField(
@@ -63,45 +69,11 @@ class MicroscopeForm(forms.ModelForm):
                 css_class='row',
             ),
             Div('optical_configurations'),
-            HTML('<input type="submit" class="btn btn-primary mb-4" value="Submit"/>'
-                 '<div class="text-primary ml-4 hidden" id="spinner" style="top: '
-                 '-12px; position: relative;"><i class="fas fa-cog fa-spin mr-1" '
-                 'style="font-size: 1.7rem; top: 5px; position: relative;" ></i> '
-                 'Building your configuration...</div>'),
-            HTML('<div class="alert alert-info" role="alert">'
-                 '<div class="alert-icon" style="font-size: 1.6rem"><span class="fas fa-question-circle float-right"></span></div>'
-                 '<h4 class="alert-heading"><strong>Optical Configurations</strong></h4>'
-                 '<p style="font-size: 0.9rem;">Optical configurations represent a set of filters in your '
-                 'microscope, (usually for a specific channel or wavelength).  Add all of your '
-                 'configurations in the box below, with each one on a seperate '
-                 'line, using the following 4 or 5 field comma-separated format:<br><br>'
-                 '<code><strong>Config Name, Laser or Excitation Filter(s), Dichroic(s), Emission Filter(s)</strong> [, Dichroic reflects excitation?]</code>'
-                 '</p><div class="container mt-4 mb-2">'
-                 '<dl class="row"><dt class="col-sm-3">Config Name</dt><dd '
-                 'class="col-sm-9">Any string to describe the configuration.</dd></dl>'
-                 '<dl class="row"><dt class="col-sm-3">Lasers</dt><dd '
-                 'class="col-sm-9">Specify laser wavelenghts as integer values.</dd></dl>'
-                 '<dl class="row"><dt class="col-sm-3">Filters</dt><dd '
-                 'class="col-sm-9">Filters can be specified as any Chroma or '
-                 'Semrock part number, or a name of any filter in the FPbase '
-                 'spectra database.</dd></dl>'
-                 '<dl class="row"><dt class="col-sm-3">Multiple Filters</dt><dd '
-                 'class="col-sm-9">You may specify multiple filters for a given '
-                 'path by enclosing them in parentheses.</dd></dl>'
-                 '<dl class="row"><dt class="col-sm-3">Dichroic Orientation</dt><dd '
-                 'class="col-sm-9">An optional fifth item (true or false) specifies '
-                 'whether the dichroic reflects the excitation light. It is true by default. '
-                 'For inverted systems (such as a Yokogawa spinning disk), '
-                 'set this to false.</dd></dl>'
-                 '</div>'
-                 '<p style="font-size: 0.9rem;">'
-                 'The following are examples of valid configurations:<br><strong>'
-                 '<code>Widefield Green, FF01-466/40, FF495-Di03, FF03-525/50</code><br>'
-                 '<code>Dual-FRET, ET430/24x, 69008bs, ET535/30m</code><br>'
-                 '<code>Yokogawa 488nm, 488, Di01-T405/488/568/647, ET525/50m, false</code><br>'
-                 '<code>TIRF 647nm, 647, ZT405/488/561/647rpc, (ZET405/488/561/647m, ET700/75m)</code></strong>'
-                 '</p>'
-                 '</div>'),
+            HTML('<input type="submit" class="btn btn-primary mb-4" value="Submit" />'
+                 '<div class="text-primary ml-4 hidden" id="spinner" style="top: -12px;'
+                 ' position: relative;"><i class="fas fa-cog fa-spin mr-1" '
+                 'style="font-size: 1.7rem; top: 5px; position: relative;"></i> '
+                 'Building your configuration...</div>')
         )
         super().__init__(*args, **kwargs)
 
@@ -109,6 +81,7 @@ class MicroscopeForm(forms.ModelForm):
         model = Microscope
         fields = ('name', 'description',)
         help_texts = {
+            'name': 'Name of this microscope or set of filter configurations',
             'description': 'This text will appear below the name on your microscope page'
         }
 
@@ -117,7 +90,6 @@ class MicroscopeForm(forms.ModelForm):
             bs_ex_reflect = bool(filters.pop())
         else:
             bs_ex_reflect = True
-        print(bs_ex_reflect)
         oc = OpticalConfig.objects.create(name=name, owner=self.user)
 
         def _assign_filt(filt, i):
@@ -156,11 +128,19 @@ class MicroscopeForm(forms.ModelForm):
         for row in self.cleaned_data['optical_configurations']:
             newoc = self.create_oc(row[0], row[1:])
             if newoc:
-                if not newoc.laser:
-                    newoc.light = self.cleaned_data['light_source']
-                newoc.camera = self.cleaned_data['detector']
+                if self.cleaned_data['light_source'].count() == 1:
+                    if not newoc.laser:
+                        newoc.light = self.cleaned_data['light_source'].first()
+                if self.cleaned_data['detector'].count() == 1:
+                    newoc.camera = self.cleaned_data['detector'].first()
                 newoc.save()
                 self.instance.configs.add(newoc)
+        if self.cleaned_data['light_source'].count() > 1:
+            [self.instance.lights.add(i) for i in
+             self.cleaned_data['light_source'].all()]
+        if self.cleaned_data['detector'].count() > 1:
+            [self.instance.lights.add(i) for i in
+             self.cleaned_data['detector'].all()]
         self.instance.owner = self.user
         self.instance.save()
         return self.instance
@@ -233,5 +213,4 @@ class MicroscopeForm(forms.ModelForm):
                     else:
                         _out.append(lookup(f))
             cleaned.append(_out)
-        print(cleaned)
         return cleaned
