@@ -165,20 +165,6 @@ class MicroscopeForm(forms.ModelForm):
         self.instance.save()
         return self.instance
 
-    def clean_light_source(self):
-        light = self.cleaned_data['light_source']
-        if light:
-            return Light.objects.get(id=light)
-        else:
-            return None
-
-    def clean_detector(self):
-        det = self.cleaned_data['detector']
-        if det:
-            return Camera.objects.get(id=det)
-        else:
-            return None
-
     def clean_optical_configurations(self):
         ocs = self.cleaned_data['optical_configurations']
         cleaned = []
