@@ -28,8 +28,9 @@
                     <a class="dropdown-item" href="{% url 'proteins:search' %}">advanced search</a>
                     <a class="dropdown-item" href="{% url 'proteins:ichart' %}">interactive chart</a>
                     <a class="dropdown-item" href="{% url 'proteins:table' %}">protein table</a>
+                    <a class="dropdown-item" href="{% url 'proteins:collections' %}">protein collections</a>
                     <a class="dropdown-item" href="{% url 'proteins:spectra' %}">spectra</a>
-                    <a class="dropdown-item" href="{% url 'proteins:collections' %}">user collections</a>
+                    <a class="dropdown-item" href="{% url 'proteins:microscopes' %}">microscopes</a>
                 </div>
             </li>
             {% if request.user.is_authenticated %}

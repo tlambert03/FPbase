@@ -4,6 +4,9 @@ from django.http import HttpResponseRedirect, Http404
 from django.core.mail import mail_admins
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
+from django.views.decorators.clickjacking import xframe_options_exempt
+
 from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from .mixins import OwnableObject
@@ -97,6 +100,14 @@ class MicroscopeDetailView(DetailView):
         data['scopespectra'] = json.dumps(self.object.spectra_d3())
         # data['optical_configs'] = json.dumps([oc.to_json() for oc in self.object.optical_configs.all()])
         return data
+
+
+class MicroscopeEmbedView(MicroscopeDetailView):
+    template_name = "proteins/microscope_embed.html"
+
+    @method_decorator(xframe_options_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 class MicroscopeList(ListView):

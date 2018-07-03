@@ -1,24 +1,47 @@
-{% extends "base.html" %}
-{% load static i18n compress favit_tags %}
+{% load static i18n compress%}<!DOCTYPE html>
+<html lang="en">
+  <head>
 
-{% block title %}{{ microscope.name }} on FPbase{% endblock %}
-{% block meta-description %}A collection of spectra representing the microscope {{microscope.name}} on FPbase. {% endblock %}
+    <title>{{ microscope.name }} on FPbase</title>
 
-{% block vendorcss %}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-{% endblock vendorcss %}
+<meta charset="utf-8">
+<meta http-equiv="Content-Language" content="en">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<title>FPbase :: The Fluorescent Protein Database</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A collection of spectra representing the microscope {{microscope.name}} on FPbase. ">
+<meta name="author" content="Talley Lambert">
+<meta name="copyright" content="Talley Lambert" />
 
+<link href="{% static 'css/style.min.css' %}" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 
-{% block container-class %}container spectrumpage microscopepage{% endblock %}
+<style>
+  #logolink {
+    position: relative;
+    margin-top: -34px;
+    opacity: 0.6;
+    width: 160px;
+  }
+  #logolink:hover {
+    opacity: 1;
+  }
+  #logolink a:hover {
+    text-decoration: none;
+  }
 
-{% block content %}
+</style>
+</head>
 
-<h2 class='text-center'>{{microscope}}</h2>
+<div class="container spectrumpage microscopepage">
+
+<h4 class='text-sm-center text-right font-weight-bold pt-2'>{{microscope}}</h4>
+<div id="logolink" style="display:inline !important!"><a href="{{ request.scheme }}://{{ request.get_host }}" target="_blank">{% include "_logo_prestyled.html" %}</a></div>
 
 {% if object.description %}
-    <div class="container font-italic text-muted text-center">
+    <div class="container font-italic text-muted text-sm-center text-right">
         {{object.description}}
     </div>
 {% endif %}
@@ -259,10 +282,6 @@
   </div>
 </div>
 
-<div class="text-center">
-  <a href="#" class='text-muted small'><span data-toggle="modal" data-target="#embedModal">Embed this microscope in your website</span></a>
-</div>
-
 
 <div class="hidden" id='eyeSVG'><i class="fas fa-eye"></i></div>
 <div class="hidden" id='linkSVG'><i class="fas fa-external-link-alt"></i></div>
@@ -287,7 +306,6 @@
         <div id='options-form'>
         </div>
         <p class="text-muted small"><em>Note: When scaling to EC or QY, dyes/probes lacking EC/QY values in the database will disappear on the graph!</em></p>
-        <a href="" class='text-muted small switchmodal'>Embed this page in your website</a>
       </div>
       <div class="modal-footer">
         {% if object.owner.id == request.user.id %}
@@ -312,47 +330,23 @@
       <div class="modal-body" id="optionstab">
         <p>notes: excitation efficiency doesn't take illumination power into account (so an excitation filter doesn't reduce the efficiency of a laser).  brightness doesn't care about expression, bleaching, environment...</p>
       </div>
-    </div>
-  </div>>
-</div>
 
-<!-- Modal -->
-<div class="modal" id="embedModal" tabindex="-1" role="dialog" aria-labelledby="embedModalTitle" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="embedModalLongTitle"><strong>Embed this microscope</strong></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body text-center" id="optionstab">
-        <p>Include this microscope in your website by pasting the following code wherever you'd like the page to appear:
-          <div class="card">
-          <code style="font-size: large"><xmp style="white-space: pre-wrap"><iframe src="{{ request.scheme }}://{{ request.get_host }}{% url 'proteins:microscope-embed' object.id %}" frameborder="0" style="position: relative; height: 100%; width: 100%;"></iframe></xmp></code>
-          </div>
-        <p><small><em>Note: pay attention to the height/width of the parent element.  In some cases, the iframe may appear truncated if inserted into a div with smaller height.  You may need to adjust the height parameter of the iframe</em></small></p>
-        <p class='mt-3'>Thanks!</p>
-        </p>
-      </div>
     </div>
   </div>
 </div>
 
 
+</div>
 
 
-{% endblock content %}
-
-{% block extrafooter %}
-    {% if request.user.is_staff %}
-      {% load admin_urls %}
-      <a href="{% url 'admin:proteins_microscope_change' microscope.id %}">{{ microscope.name }} on admin</a><br>
-    {% endif %}
-{% endblock extrafooter %}
-
-
-{% block javascript %}
+<!-- Required by Bootstrap v4 beta -->
+<script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js" integrity="sha384-3LK/3kTpDE/Pkp8gTNp2gR/2gOiwQ6QaO7Td0zV76UFJVhqLl4Vl3KL1We6q6wR9" crossorigin="anonymous"></script>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js" integrity="sha256-R9uiXmQekNb8r352uyt9EW3yRd3VZL3NyU8N0Z5fMo0=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
@@ -389,7 +383,8 @@
     return this;
   };
 
-  function autoSizeText() {
+  var autoSizeText;
+  autoSizeText = function() {
     var el, elements, _i, _len, _results;
     elements = $('.filter-label');
     if (elements.length < 0) {
@@ -536,6 +531,7 @@
 
   $(function() {
 
+
     $("#scale-camera").change(function(){
       updateEfficiency();
       refreshChart();
@@ -575,19 +571,6 @@
       updateChart();
     });
 
-    $(".switchmodal").click(function(e) {
-      e.preventDefault();
-      $("#settingsModal").modal('hide');
-      $("#embedModal").modal('show');
-    });
-
-  });
-
-  $(window).on('load', function() {
-    setTimeout(function(){
-        autoSizeText();
-        chart.update();
-    }, 50);
   });
 
   $("#fluor-select").select2({ theme: "bootstrap", width: 100});
@@ -602,7 +585,12 @@
     }
   });
 
+  $(window).on('load', function() {
+    setTimeout(function(){
+        autoSizeText();
+        chart.update();
+    }, 50);
+  });
 
 </script>
 
-{% endblock javascript %}

@@ -11,7 +11,7 @@
 
     {% if not owner %}
     <h1 class='mb-4'>FPbase Microscopes 🔬</h1>
-    <p>Microscopes are collections of optical configurations, including filters, light sources, lasers, and detectors, meant to represent the hardware of a specific microscope or other imaging device.  Once you save your microscope configuration, you can use it to visualize the efficiency of excitation, collection, and predicted brightness of any of the fluorophores in FPbase.  You can share your microscope configurations with anyone else who might use that instrument (they will not need an FPbase account).<br>
+    <p>Microscopes are collections of optical configurations, including filters, light sources, lasers, and detectors, meant to represent the hardware of a specific microscope or other imaging device.  Once you save your microscope configuration, you can use it to visualize the efficiency of excitation, collection, and predicted brightness of any of the fluorophores in FPbase.  You can create as many different configurations as you'd like and you can share your microscope configurations with anyone.<br>
     <a href="{% url 'proteins:newmicroscope' %}"><button class='btn btn-primary btn-sm mt-3'>Create a new microscope</button></a></p>
     {% endif %}
 
@@ -21,13 +21,14 @@
         {% if owner %}
             <h1 class='mb-4'>Microscopes created by {{owner}}</h1>
         {% else %}
-            <h3>Existing microscopes on FPbase:</h3>
+            <h3>Most recent microscopes:</h3>
         {% endif %}
     {% endif %}
 
     <ul class='mb-5'>
         {% for object in object_list %}
-            <li><a href="{{ object.get_absolute_url }}">{{object}} - </a>{{object.description}} Created by {% if request.user.id == object.owner.id %}you{%else%} {{ object.owner }}{%endif%}. <small>{{ object.created|date:"M j, Y" }} </small></li>
+            <li><a href="{{ object.get_absolute_url }}">{{object}}</a> <span class='
+              text-muted ml-2'>{{object.description}}</span></li>
         {% empty %}
             {% if owner %}
                 <p>{% if request.user.username == owner %}You have not created any microscopes.{% else %}User {{owner}} has not created any microscopes.{%endif%}</p>

@@ -190,7 +190,8 @@ ul li.select2-search {
   height: 38px !important;
 }
 .custom-select-sm .select2-selection--single {
-  height: 28px;
+  //height: 28px;
+  //height: calc(2.25rem + 2px) !important;
   width: 80%;
 }
 

@@ -12,6 +12,13 @@ h6 {
 
 .spectrumpage{
 
+  &.microscopepage {
+    .select2-container--bootstrap .select2-selection--single {
+      padding-left: 0 !important;
+      height: calc(2.25rem + 2px) !important;
+    }
+  }
+
   @include media-breakpoint-down(md){
     &.container, {
        width: 100%;

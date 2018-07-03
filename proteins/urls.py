@@ -64,6 +64,7 @@ urlpatterns = [
         login_required(views.MicroscopeDeleteView.as_view(),
                        message="You must be logged in to delete microscopes"),
         name='deletemicroscope'),
+    url(r'^embedscope/(?P<pk>[-\w]+)$', views.MicroscopeEmbedView.as_view(), name='microscope-embed'),
     url(r'^microscope/(?P<pk>[-\w]+)/$', views.MicroscopeDetailView.as_view(), name='microscope-detail'),
     url(r'^microscope/(?P<pk>[-\w]+)/update/',
         login_required(views.MicroscopeUpdateView.as_view(),
