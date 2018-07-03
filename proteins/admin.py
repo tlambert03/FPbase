@@ -333,16 +333,9 @@ class ProteinAdmin(CompareVersionAdmin):
         formset.save()
 
 
-class OpticalConfigInline(admin.TabularInline):
-    model = Microscope.configs.through
-    extra = 1  # how many rows to show
-    # autocomplete_fields = ("filters",)
-
-
 @admin.register(Microscope)
 class MicroscopeAdmin(admin.ModelAdmin):
     model = Microscope
-    inlines = (OpticalConfigInline, )
 
 
 class FilterPlacementInline(admin.TabularInline):

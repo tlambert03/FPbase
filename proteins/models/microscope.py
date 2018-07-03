@@ -26,7 +26,6 @@ class Microscope(OwnedCollection):
                  (all spectra will be added to spectra)
     """
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
-    configs = models.ManyToManyField('OpticalConfig', blank=True, related_name='microscope_memberships')
     ex_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ex_filter')
     bs_filters = models.ManyToManyField('Filter', blank=True, related_name='as_bs_filter')
     em_filters = models.ManyToManyField('Filter', blank=True, related_name='as_em_filter')
@@ -43,27 +42,27 @@ class Microscope(OwnedCollection):
         microscope = cls(name=name)
         microscope.save()
         for ocname, *oc in oclist:
-            newoc = quick_OC(ocname, oc)
+            newoc = quick_OC(ocname, oc, microscope)
             if newoc:
-                microscope.configs.add(newoc)
+                microscope.optical_configs.add(newoc)
         microscope.save()
         return microscope
 
     def has_inverted_bs(self):
-        for oc in self.configs.all():
+        for oc in self.optical_configs.all():
             if oc.inverted_bs.exists():
                 return True
         return False
 
     def inverted_bs_set(self):
-        return {i.filter.slug for oc in self.configs.all() for i in oc.inverted_bs.all()}
+        return {i.filter.slug for oc in self.optical_configs.all() for i in oc.inverted_bs.all()}
 
     def save(self, *args):
         # add any filterset members to the spectra set
-        if self.pk and self.configs:
-            for oc in self.configs.all():
+        if self.pk and self.optical_configs:
+            for oc in self.optical_configs.all():
                 for _fl in ('ex_filters', 'bs_filters', 'em_filters'):
-                    [getattr(self, _fl).add(x) for x in getattr(oc, _fl)]
+                    [getattr(self, _fl).add(x) for x in getattr(oc, _fl).all()]
                 if oc.light:
                     self.lights.add(oc.light)
                 if oc.camera:
@@ -92,7 +91,7 @@ class Microscope(OwnedCollection):
 
 class OpticalConfig(OwnedCollection):
     """ A a single optical configuration comprising a set of filters """
-
+    microscope = models.ForeignKey('Microscope', related_name='optical_configs', on_delete=models.CASCADE)
     filters = models.ManyToManyField(
         'Filter', related_name='optical_configs', blank=True, through='FilterPlacement')
     light = models.ForeignKey('Light', null=True, blank=True, related_name='optical_configs', on_delete=models.CASCADE)
@@ -100,26 +99,32 @@ class OpticalConfig(OwnedCollection):
     laser = models.PositiveSmallIntegerField(
         blank=True, null=True,
         validators=[MinValueValidator(300), MaxValueValidator(1600)])
+    ex_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ocex')
+    bs_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ocbs')
+    em_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ocem')
+
+    def save(self, **kwargs):
+        super().save(**kwargs)
+        [self.ex_filters.add(f) for f in self.get_ex_filters()]
+        [self.em_filters.add(f) for f in self.get_em_filters()]
+        [self.bs_filters.add(f) for f in self.get_bs_filters()]
 
     @property
     def filter_set(self):
         """ returns unique set of all filters in this optical config """
         return set(self.filters.all())
 
-    @property
-    def ex_filters(self):
+    def get_ex_filters(self):
         """ all filters that have an excitation role """
         x = self.filters.filter(filterplacement__path=FilterPlacement.EX)
-        return set(x) - self.bs_filters
+        return set(x) - self.get_bs_filters()
 
-    @property
-    def em_filters(self):
+    def get_em_filters(self):
         """ all filters that have an emission role """
         m = self.filters.filter(filterplacement__path=FilterPlacement.EM)
-        return set(m) - self.bs_filters
+        return set(m) - self.get_bs_filters()
 
-    @property
-    def bs_filters(self):
+    def get_bs_filters(self):
         """ all filters that are in both ex and em paths have a beamsplitting role """
         inx = Count('filterplacement__path', distinct=True,
                     filter=Q(filterplacement__path=FilterPlacement.EX))
@@ -175,13 +180,13 @@ class OpticalConfig(OwnedCollection):
             D[n] = [{'slug': i.slug if hasattr(i, 'slug') else i, 'inv': inv} for i, inv in getattr(self, n)]
         return D
 
-    def __repr__(self):
-        fltrs = sorted_ex2em(self.filters.all())
-        return "<{}: {}>".format(
-            self.__class__.__name__, ", ".join([f.name for f in fltrs]))
+    # def __repr__(self):
+    #     fltrs = sorted_ex2em(self.filters.all())
+    #     return "<{}: {}>".format(
+    #         self.__class__.__name__, ", ".join([f.name for f in fltrs]))
 
-    def __str__(self):
-        return super().__str__() or self.__repr__().lstrip('<').rstrip('>')
+    # def __str__(self):
+    #     return super().__str__() or self.__repr__().lstrip('<').rstrip('>')
 
     def get_absolute_url(self):
         return reverse("proteins:filterset-detail", args=[self.id])
@@ -209,7 +214,7 @@ class FilterPlacement(models.Model):
                                           " (reflecting)" if self.reflects else '')
 
 
-def quick_OC(name, filternames, bs_ex_reflect=True):
+def quick_OC(name, filternames, scope, bs_ex_reflect=True):
     """ generate an optical config from a tuple of strings (or tuples)
 
     valid examples:
@@ -229,7 +234,7 @@ def quick_OC(name, filternames, bs_ex_reflect=True):
     if not len(filternames) == 3:
         raise ValueError('filternames argument must be iterable with length 3 or 4')
 
-    oc = OpticalConfig.objects.create(name=name)
+    oc = OpticalConfig.objects.create(name=name, microscope=scope)
 
     def _assign_filt(_f, i, iexact=False):
         try:
