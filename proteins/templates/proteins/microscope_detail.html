@@ -327,8 +327,8 @@
         </button>
       </div>
       <div class="modal-body text-center" id="optionstab">
-        <p>Include this microscope in your website by pasting the following code wherever you'd like the page to appear:
-          <div class="card">
+        <p>Include this page in your website by pasting the following code wherever you'd like the page to appear:
+          <div class="card mb-2">
           <code style="font-size: large"><xmp style="white-space: pre-wrap"><iframe src="{{ request.scheme }}://{{ request.get_host }}{% url 'proteins:microscope-embed' object.id %}" frameborder="0" style="position: relative; height: 100%; width: 100%;"></iframe></xmp></code>
           </div>
         <p><small><em>Note: pay attention to the height/width of the parent element.  In some cases, the iframe may appear truncated if inserted into a div with smaller height.  You may need to adjust the height parameter of the iframe</em></small></p>
