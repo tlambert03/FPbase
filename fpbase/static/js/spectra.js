@@ -499,6 +499,11 @@ $(function() {
         unscale_all();
     });
 
+    $(".resetXdomain").click(function(){
+        chart.brushExtent(options.startingBrush);
+        refreshChart();
+    })
+
 });
 
 
@@ -742,7 +747,7 @@ var addFormItem = function(category, stype, open, value) {
         $(filterRow(selWidget, stype)).appendTo($('#camqe-table'));
     }
 
-    var a = selWidget.select2({ theme: "bootstrap", width: '70%'});
+    var a = selWidget.select2({ theme: "bootstrap" });
     if (value){
         a.val(value).change();
     } else if (open){
