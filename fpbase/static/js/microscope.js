@@ -34,18 +34,21 @@ var options = {
     minwave: 300,
     maxwave: 1000,
     startingBrush: [350, 800],
-    autoscaleBrush: false,
+    //autoscaleBrush: false,
     exNormWave: undefined,
     scale: 'linear',
     hide2p: true,
+    normMergedEx: true,
+    normMergedScalar: 1,
 //    scaleToEC: false,
     scaleToQY: false,
     oneAtaTime: true,
 };
 var userOptions = {
     oneAtaTime: {type: 'checkbox', msg: 'Uncheck other similar filters when selecting a filter'},
+    normMergedEx: {type: 'checkbox', msg: 'Normalize merged excitation and light source spectra'},
     showArea: {type: 'checkbox', msg: 'Fill area under curve'},
-    autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
+    //autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
     hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
 //    scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
     scaleToQY: {type: 'checkbox', msg: 'Scale emission spectra to quantum yield'},
@@ -126,9 +129,11 @@ function mergeSpectra(concatslug) {
     if (!(concatslug in localData)) {
         var sp = [];
         var slugs = concatslug.split('/')
-        slugs.shift()
-
+        slugs.shift() // get rid of "merged"
+        if (concatslug.endsWith('normed'))
+            slugs.pop()
         var asyncFunction = function(s, onfinished) {
+            console.log(s)
             if (s.startsWith('laser')) {
                 if (localData.hasOwnProperty(s)) {
                     sp.push.apply(sp, localData[s])
@@ -156,10 +161,22 @@ function mergeSpectra(concatslug) {
                 itemsProcessed += 1;
                 if(itemsProcessed === array.length) {
                     names = slugs.map(function(o) { return localData[o][0].key }).reduce(function(a, b){ return a + "+" + b })
+                    var combined = combineSpectra(sp);
+                    var _slug = concatslug;
+                    var normmax = 1;
+                    if (options.normMergedEx){
+                        var temp = normalizeSpectrum(combined);
+                        combined = temp[0];
+                        normmax = temp[1];
+                        options.normMergedScalar = normmax;
+                        _slug += '/normed';
+                    }
                     localData[concatslug] = [{
+                        slug: _slug,
                         key: names,
-                        values: combineSpectra(sp),
+                        values: combined,
                         area: true,
+                        scalar: normmax,
                         color: 'url(#wavecolor_gradient)',
                         classed: 'combined-light-ex'
                     }]
@@ -168,6 +185,7 @@ function mergeSpectra(concatslug) {
             })
         });
     } else { // otherwise pull from local dict
+        options.normMergedScalar = localData[concatslug][0].scalar;
         dfd.resolve(localData[concatslug]);
     }
     return dfd.promise();
@@ -405,7 +423,12 @@ $(function() {
                             $(".nv-groups").addClass('area-hidden')
                         }
                     }
-                    refreshChart();
+                    if (key === 'normMergedEx'){
+                        updateChart();
+                    } else{
+                        refreshChart();
+                    }
+
                 })
             )
             .append($('<label>', {for: key + '_input', class: 'custom-control-label'}).text(value.msg))
@@ -524,6 +547,10 @@ $(function() {
 
     }
 
+    $(".resetXdomain").click(function(){
+        chart.brushExtent(options.startingBrush);
+        refreshChart();
+    })
     $(".scale-btns input").change(function() { setYscale(this.value); });
 
     $('#undo-scaling').click(function() {
@@ -764,6 +791,13 @@ function invertData(values){
     return out
 }
 
+function normalizeSpectrum(specvals, maxY){
+    maxY = maxY ||  Math.max.apply(Math, specvals.map(function(a){ return a.y}));
+    for (var i = 0; i < specvals.length; i++){
+        specvals[i].y /= maxY;
+    }
+    return [specvals, maxY]
+}
 
 function combineSpectra(pathlist){
     return pathlist.reduce(function(acc, cur) {
