@@ -170,3 +170,42 @@ i {
 // 		}
 // 	}
 // }
+
+
+
+// select2 widgets
+.select2-container {
+  min-width: 1em !important;
+  max-width: 100%;
+  width: 100%;
+}
+
+ul li.select2-selection__choice,
+ul li.select2-search {
+    /* Cancel out django's style */
+    list-style-type: none;
+}
+
+.form-group .select2-container .select2-selection--single {
+  height: 38px !important;
+}
+.custom-select-sm .select2-selection--single {
+  height: 28px;
+  width: 80%;
+}
+
+.select2-selection--multiple .select2-search--inline {
+  width: 10px !important;
+}
+
+.select2-container--bootstrap .select2-selection--single {
+  padding-left: 0 !important;
+}
+
+
+.select2-container--bootstrap .select2-selection--multiple  {
+  line-height: 1rem;
+  .select2-selection__choice {
+    margin: 0.5rem 0 0 0.5rem !important;
+  }
+}

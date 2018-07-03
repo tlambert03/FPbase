@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}FPbase Microscopes{% endblock %}
+{% block meta-description %}Microscope configurations created by users at FPbase, the fluorescent protein database.{% endblock %}
+
+{% comment %}
+    if the "owner" variable is set, we are viewing the collections a specific user, otherwise it is all user protein collections
+{% endcomment %}
+
+{% block content %}
+
+    {% if not owner %}
+    <h1 class='mb-4'>FPbase Microscopes 🔬</h1>
+    <p>Microscopes are collections of optical configurations, including filters, light sources, lasers, and detectors, meant to represent the hardware of a specific microscope or other imaging device.  Once you save your microscope configuration, you can use it to visualize the efficiency of excitation, collection, and predicted brightness of any of the fluorophores in FPbase.  You can share your microscope configurations with anyone else who might use that instrument (they will not need an FPbase account).<br>
+    <a href="{% url 'proteins:newmicroscope' %}"><button class='btn btn-primary btn-sm mt-3'>Create a new microscope</button></a></p>
+    {% endif %}
+
+    {% if request.user.username == owner %}
+        <h1 class='mb-4'>Your Microscopes</h1>
+    {% else %}
+        {% if owner %}
+            <h1 class='mb-4'>Microscopes created by {{owner}}</h1>
+        {% else %}
+            <h3>Existing microscopes on FPbase:</h3>
+        {% endif %}
+    {% endif %}
+
+    <ul class='mb-5'>
+        {% for object in object_list %}
+            <li><a href="{{ object.get_absolute_url }}">{{object}} - </a>{{object.description}} Created by {% if request.user.id == object.owner.id %}you{%else%} {{ object.owner }}{%endif%}. <small>{{ object.created|date:"M j, Y" }} </small></li>
+        {% empty %}
+            {% if owner %}
+                <p>{% if request.user.username == owner %}You have not created any microscopes.{% else %}User {{owner}} has not created any microscopes.{%endif%}</p>
+            {% else%}
+                <p>There are currently no microscopes to show.</p>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+
+    {% if request.user.username == owner %}
+    <a href="{% url 'proteins:newmicroscope' %}"><button class='btn btn-primary btn-sm'>Create a new microscope</button></a>
+    {% endif %}
+{% endblock content %}

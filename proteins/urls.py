@@ -52,14 +52,25 @@ urlpatterns = [
     url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/ver/(?P<ver>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
 
-    url(r'^protein-autocomplete/$', views.ProteinAutocomplete.as_view(), name='protein-autocomplete',),
-    url(r'^state-autocomplete/$', views.StateAutocomplete.as_view(), name='state-autocomplete',),
+    url(r'^autocomplete-protein/$', views.ProteinAutocomplete.as_view(), name='protein-autocomplete',),
+    url(r'^autocomplete-state/$', views.StateAutocomplete.as_view(), name='state-autocomplete',),
+    url(r'^autocomplete-filter/$', views.FilterAutocomplete.as_view(), name='filter-autocomplete',),
 
     url(r'^microscope/create/',
         login_required(views.MicroscopeCreateView.as_view(),
                        message="You must be logged in to create a microscope configuration"),
         name='newmicroscope'),
+    url(r'^microscope/(?P<pk>[-\w]+)/delete/',
+        login_required(views.MicroscopeDeleteView.as_view(),
+                       message="You must be logged in to delete microscopes"),
+        name='deletemicroscope'),
     url(r'^microscope/(?P<pk>[-\w]+)/$', views.MicroscopeDetailView.as_view(), name='microscope-detail'),
+    url(r'^microscope/(?P<pk>[-\w]+)/update/',
+        login_required(views.MicroscopeUpdateView.as_view(),
+                       message="You must be logged in to update microscopes"),
+        name='updatemicroscope'),
+    url(r'^microscopes/(?P<owner>[-\w.]+)/?$', views.MicroscopeList.as_view(), name='microscopes'),
+    url(r'^microscopes/', views.MicroscopeList.as_view(), name='microscopes'),
 
     # /proteins/api
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),

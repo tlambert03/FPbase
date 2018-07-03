@@ -38,6 +38,7 @@
                     {# URL provided by django-allauth/account/urls.py #}
                     <a class="dropdown-item" href="{% url 'users:detail' request.user.username  %}">profile</a>
                     <a class="dropdown-item" href="{% url 'proteins:collections' owner=request.user %}">{% trans "your collections" %}</a>
+                    <a class="dropdown-item" href="{% url 'proteins:microscopes' owner=request.user %}">{% trans "your microscopes" %}</a>
                     {% if request.user.is_staff %}<a  class="dropdown-item" href="{% url 'admin:index' %}">admin</a>{% endif %}
                     <a class="dropdown-item" href="{% url 'account_logout' %}?next={% firstof request.path '/' %}">{% trans "sign out" %}</a>
                 </div>

@@ -31,10 +31,10 @@
     </div>
 
     <div class="focusnote">click and drag to zoom</div>
-    <div class='float-left' style='font-size:1.55rem; margin: -.45rem 0 0 1.2rem'>
-      <a href="#" class='text-info'><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></a>
-    </div>
 
+    <div class='float-left' style='font-size:1.55rem; margin: -.45rem 0 0 1.2rem'>
+      <a href="#" class='text-info' data-toggle="tooltip" data-placement="right" title="Settings"><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></a>
+    </div>
 
     <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
       <label class="btn btn-info active">
@@ -44,6 +44,7 @@
         <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
       </label>
     </div>
+    <div class="float-right mr-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div>
   </div>
 </div>
 
@@ -116,7 +117,7 @@
         </div>
         <select class="custom-select" id="config-select">
           <option value="">-----</option>
-          {% for config in microscope.configs.all %}
+          {% for config in microscope.optical_configs.all %}
           <option value='{{config.id}}' data-filters='[{% for fp in config.filterplacement_set.all %}[{{fp.filter.id}}, "{{fp.path}}", {{fp.reflects|lower}}]{% if not forloop.last %},{% endif %}{% endfor %}]' data-laser='{{config.laser|default_if_none:''}}' data-light='{{config.light.id}}' data-camera='{{config.camera.id}}'>{{config}}</option>
           {% endfor %}
         </select>
@@ -281,10 +282,13 @@
       <div class="modal-body" id="optionstab">
         <div id='options-form'>
         </div>
-        <button class='btn btn-danger btn-sm' id='undo-scaling'>Undo all scaling</button>
+        <p class="text-muted small"><em>Note: When scaling to EC or QY, dyes/probes lacking EC/QY values in the database will disappear on the graph!</em></p>
       </div>
       <div class="modal-footer">
-        <p class="text-muted small"><em>Note: When scaling to EC or QY, dyes/probes lacking EC/QY values in the database will disappear on the graph!</em></p>
+        {% if object.owner.id == request.user.id %}
+            <a href="{% url 'proteins:updatemicroscope' object.id %}"><button class='btn btn-info btn-sm'>Edit Configurations</button></a>
+            <a href="{% url 'proteins:deletemicroscope' object.id %}"><button class='btn btn-danger btn-sm'>DELETE MICROSCOPE</button></a>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -346,17 +350,35 @@
           }
       });
   };
+  Array.prototype.clean = function(deleteValue) {
+    for (var i = 0; i < this.length; i++) {
+      if (this[i] == deleteValue) {
+        this.splice(i, 1);
+        i--;
+      }
+    }
+    return this;
+  };
+
 
   function selectedSlugs(){
     var selected = $(".filter-selector:checked, .data-selector :selected");
     var list;
     if ($("#merge-light-exfilter").prop('checked') && $('#light-select :selected').val() !== '') {
       list = selected.not('#light-select :selected, .ex-filter:checked').map(function(){ return $(this).val(); });
-      list.push("merged/" + $('#light-select :selected, .ex-filter:checked').map(function(i, o){ return o.value}).get().reduce(function(a,b){ return a + "/" + b }))
+      var _concat = "merged/"
+      _concat += $('#light-select :selected, .ex-filter:checked')
+                    .map(function(i, o){ return o.value})
+                    .get()
+                    .reduce(function(a,b){ return a + "/" + b })
+      if (options.normMergedEx){
+        _concat += '/normed';
+      }
+      list.push(_concat)
     } else {
       list = selected.map(function(){ return $(this).val(); });
     }
-    return list.get();
+    return list.get().clean("");
   }
 
   function updateData(){
@@ -423,9 +445,10 @@
       var emeff = efficiency(a.emvalues, {slug: fluorslug, type: 'em'});
     if (a.exvalues)
       var exeff = efficiency(a.exvalues, {slug: fluorslug, type: 'ex'});
-
     var info = '';
     if (exeff){
+      if (options.normMergedEx)
+        exeff.values = normalizeSpectrum(exeff.values, options.normMergedScalar)[0]
       data.push(exeff);
       if (exeff.efficiency)
         info += 'Ex: ' + String(Math.round(exeff.efficiency * 1000) / 10) + '%'
@@ -482,7 +505,6 @@
       var wave = selected.data('laser');
       var light = selected.data('light');
       var camera = selected.data('camera');
-      console.log(light)
       if (wave) {
         $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
       }

@@ -3,8 +3,8 @@ from django import forms
 from ..util.importers import check_chroma_for_part, check_semrock_for_part, add_filter_to_database
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from ..models import (Light, Camera, Microscope, Filter, OpticalConfig, FilterPlacement)
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, HTML
+from dal import autocomplete
+from django.forms.models import inlineformset_factory
 
 
 class FilterPromise(object):
@@ -52,29 +52,14 @@ class MicroscopeForm(forms.ModelForm):
     )
 
     optical_configurations = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 6, 'cols': 40}),
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 6, 'cols': 40, 'class': 'textarea form-control'}),
         help_text=('Optical configurations represent a set of filters in your '
                    'microscope, (usually for a specific channel).  See help below')
     )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            Div('name'),
-            Div('description'),
-            Div(
-                Div('light_source', css_class='col-sm-6 col-xs-12'),
-                Div('detector', css_class='col-sm-6 col-xs-12'),
-                css_class='row',
-            ),
-            Div('optical_configurations'),
-            HTML('<input type="submit" class="btn btn-primary mb-4" value="Submit" />'
-                 '<div class="text-primary ml-4 hidden" id="spinner" style="top: -12px;'
-                 ' position: relative;"><i class="fas fa-cog fa-spin mr-1" '
-                 'style="font-size: 1.7rem; top: 5px; position: relative;"></i> '
-                 'Building your configuration...</div>')
-        )
         super().__init__(*args, **kwargs)
 
     class Meta:
@@ -84,13 +69,22 @@ class MicroscopeForm(forms.ModelForm):
             'name': 'Name of this microscope or set of filter configurations',
             'description': 'This text will appear below the name on your microscope page'
         }
+        widgets = {
+            'name': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
+            'description': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
+            'detector': forms.widgets.Select(attrs={'class': 'selectmultiple form-control'}),
+            'light_source': forms.widgets.Select(attrs={'class': 'selectmultiple form-control'}),
+        }
 
     def create_oc(self, name, filters):
         if len(filters) == 4:
             bs_ex_reflect = bool(filters.pop())
         else:
             bs_ex_reflect = True
-        oc = OpticalConfig.objects.create(name=name, owner=self.user)
+        oc = OpticalConfig.objects.create(
+            name=name,
+            owner=self.user,
+            microscope=self.instance)
 
         def _assign_filt(filt, i):
             if isinstance(filt, int) and i == 0:
@@ -134,7 +128,7 @@ class MicroscopeForm(forms.ModelForm):
                 if self.cleaned_data['detector'].count() == 1:
                     newoc.camera = self.cleaned_data['detector'].first()
                 newoc.save()
-                self.instance.configs.add(newoc)
+                self.instance.optical_configs.add(newoc)
         if self.cleaned_data['light_source'].count() > 1:
             [self.instance.lights.add(i) for i in
              self.cleaned_data['light_source'].all()]
@@ -214,3 +208,71 @@ class MicroscopeForm(forms.ModelForm):
                         _out.append(lookup(f))
             cleaned.append(_out)
         return cleaned
+
+
+class OpticalConfigForm(forms.ModelForm):
+
+    ex_filters = forms.ModelMultipleChoiceField(
+        label="Excitation Filter(s)",
+        queryset=Filter.objects.all(), required=False,
+        widget=autocomplete.ModelSelect2Multiple(
+            url='proteins:filter-autocomplete',
+            attrs={
+                'class': 'custom-select',
+                'data-theme': 'bootstrap',
+                'data-width': "100%",
+                'data-placeholder': '----------',
+            }
+        ),
+    )
+    em_filters = forms.ModelMultipleChoiceField(
+        label="Emission Filter(s)",
+        queryset=Filter.objects.all(), required=False,
+        widget=autocomplete.ModelSelect2Multiple(
+            url='proteins:filter-autocomplete',
+            attrs={
+                'data-theme': 'bootstrap',
+                'data-width': "100%",
+                'data-placeholder': '----------',
+            }
+        ),
+    )
+    bs_filters = forms.ModelMultipleChoiceField(
+        label="Dichroic Filter(s)",
+        queryset=Filter.objects.all(), required=False,
+        widget=autocomplete.ModelSelect2Multiple(
+            url='proteins:filter-autocomplete',
+            attrs={
+                'data-theme': 'bootstrap',
+                'data-width': "100%",
+                'data-placeholder': '----------',
+            }
+        ),
+    )
+    invert_bs = forms.BooleanField(
+        required=False,
+        widget=forms.widgets.CheckboxInput(attrs={'class': 'custom-control-input'})
+    )
+
+    class Meta:
+        model = OpticalConfig
+        fields = ('name', 'laser', 'light', 'camera',)
+        help_texts = {'laser': 'overrides light source'}
+        widgets = {
+            'name': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
+            'camera': forms.widgets.Select(attrs={'class': 'form-control custom-select'}),
+            'light': forms.widgets.Select(attrs={'class': 'form-control custom-select'}),
+            'laser': forms.widgets.NumberInput(attrs={'class': 'numberinput form-control'})
+        }
+
+
+class BaseOpticalConfigFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        # perform any cross-formset validation here
+        super().clean()
+
+
+OpticalConfigFormSet = inlineformset_factory(
+    Microscope, OpticalConfig, form=OpticalConfigForm,
+    formset=BaseOpticalConfigFormSet, extra=1, can_delete=True)
+

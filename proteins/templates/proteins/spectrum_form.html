@@ -1,18 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags static %}
 
-{% block vendorcss %}{{ form.media.css }}
-
-<style type="text/css">
-  .select2-container{
-    width: 100% !important;
-  }
-  .select2-container--bootstrap .select2-selection--single {
-    padding-left: 0 !important;
-  }
-</style>
-{% endblock vendorcss %}
-
 
 {% block content %}
 <script

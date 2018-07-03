@@ -1,5 +1,6 @@
 from dal import autocomplete
-from ..models import Protein, State
+from ..models import Protein, State, Filter
+from django.contrib.postgres.search import TrigramSimilarity
 
 
 class ProteinAutocomplete(autocomplete.Select2QuerySetView):
@@ -23,3 +24,17 @@ class StateAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(protein__name__icontains=self.q)
         return qs
 
+
+class FilterAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        # Don't forget to filter out results depending on the visitor !
+        # if not self.request.user.is_authenticated:
+        #     return Filter.objects.none()
+        qs = Filter.objects.all()
+        if self.q:
+            qs = Filter.objects.annotate(
+                similarity=TrigramSimilarity('name', self.q)) \
+                .filter(similarity__gt=0.2) \
+                .order_by('-similarity')
+            # qs = qs.filter(name__icontains=self.q)
+        return qs

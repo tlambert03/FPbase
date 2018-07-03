@@ -149,6 +149,7 @@ h6 {
   .scale-btns {
     float: right;
     margin-right: 1.25rem;
+    padding-top: 1px;
     //margin-top: -45px;
   }
 
@@ -379,7 +380,7 @@ table.spectra-form {
   @include media-breakpoint-up(lg){ font-size: 1rem };
 }
 
-.card {
+.filters .card {
   .list-group-item, .card-header{
     padding: .55rem 1.25rem;
   }

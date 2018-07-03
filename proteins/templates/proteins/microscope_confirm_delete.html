@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<form action="" method="post">{% csrf_token %}
+  <h1>🔬 😢</h1>
+  <p>Are you sure you want to delete the microscope "{{ object }}"?  This cannot be undone.</p>
+  <input class='btn btn-danger' type="submit" value="Delete {{ object }}" />
+</form>
+<a href="{% url 'proteins:updatemicroscope' object.id %}"><button class='btn btn-info mt-2'>Edit Configurations Instead</button></a>
+</form>
+<a href="{% url 'proteins:microscope-detail' object.id %}"><button class='btn btn-info mt-2'>Back to microscope page</button></a>
+
+{% endblock content %}

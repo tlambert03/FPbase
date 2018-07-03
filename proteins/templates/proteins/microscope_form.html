@@ -1,70 +1,254 @@
 {% extends "base.html" %}
 
-{% load crispy_forms_tags %}
+{% load crispy_forms_tags compress static %}
 
-{% block vendorcss %}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-{% endblock vendorcss %}
+{% block extrahead %}
+  <link href="/static/autocomplete_light/vendor/select2/dist/css/select2.css" type="text/css" media="all" rel="stylesheet">
+  <style type="text/css">
+  .oc-delete-button{
+    font-size: 2rem;
+    color: #999;
+    position: relative;
+    top: -20px;
+    right: -11px;
+  }
+  .oc-delete-button:hover{
+    text-decoration: none;
+  }
+  .dynamic-oc-forms .dynamic-form:first-of-type .oc-delete-button{
+    display:none;
+  }
+
+  .dynamic-oc-forms .oc-filter-group span.select2-container:nth-of-type(2){
+    display:none;
+  }
+
+  .select2-selection__choice{
+    font-size: small;
+  }
+
+  .oc-filter-group .select2-selection--multiple .select2-selection__clear{
+    display: none;
+  }
+  </style>
+{% endblock extrahead %}
 
 {% block content %}
-<h2>Create a New Microscope</h2>
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+{% if object %}
+  <h2>Update microscope: {{object}}</h2>
+{% else %}
+  <h2>Create a New Microscope</h2>
+{% endif %}
 
-{% crispy form %}
 
-<div class="alert alert-info" role="alert">
-  <div class="alert-icon" style="font-size: 1.6rem"><span class="fas fa-question-circle float-right"></span></div>
-  <h4 class="alert-heading"><strong>Optical Configurations</strong></h4>
-  <p style="font-size: 0.9rem;">Optical configurations represent a set of filters in your microscope, (usually for a specific channel or wavelength). Add all of your configurations in the box above, with each one on a seperate line, using the following 4 or 5 field comma-separated format:
-    <br>
-    <br>
-    <code><strong>Config Name, Laser OR Excitation Filter(s), Dichroic(s), Emission Filter(s)</strong> [, Dichroic reflects excitation?]</code>
-  </p>
-  <div class="container mt-4 mb-2">
-    <dl class="row">
-      <dt class="col-sm-3">Config Name</dt>
-      <dd class="col-sm-9">Any string to describe the configuration.</dd>
-    </dl>
-    <dl class="row">
-      <dt class="col-sm-3">Lasers</dt>
-      <dd class="col-sm-9">Specify laser wavelenghts as integer values.</dd>
-    </dl>
-    <dl class="row">
-      <dt class="col-sm-3">Filters</dt>
-      <dd class="col-sm-9">Filters can be specified as any Chroma or Semrock part number, or a name of any filter in the FPbase spectra database.</dd>
-    </dl>
-    <dl class="row">
-      <dt class="col-sm-3">Multiple Filters</dt>
-      <dd class="col-sm-9">You may specify multiple filters for a given path by enclosing them in parentheses.</dd>
-    </dl>
-    <dl class="row">
-      <dt class="col-sm-3">Dichroic Orientation</dt>
-      <dd class="col-sm-9">An optional fifth item (true or false) specifies whether the dichroic reflects the excitation light. It is true by default. For inverted systems (such as a Yokogawa spinning disk), set this to false.</dd>
-    </dl>
+<script type="text/javascript" src="/static/autocomplete_light/jquery.init.js"></script>
+<script type="text/javascript" src="/static/autocomplete_light/autocomplete.init.js"></script>
+<script type="text/javascript" src="/static/autocomplete_light/vendor/select2/dist/js/select2.full.js"></script>
+<script type="text/javascript" src="/static/autocomplete_light/select2.js"></script>
+
+
+<form id="microscopeform" action="" method="post">
+  {% csrf_token %}
+  <input type="hidden" name="slug" id="id_slug" value='{{ microscope.slug }}'>
+  <div class='row'>
+    <div class='col'>
+      <div class="row">
+        <div class="col">
+          <div>
+            <div id="div_id_name" class="form-group">
+              <label for="id_name" class="col-form-label requiredField">
+                {{ form.name.label }}<span class="asteriskField">*</span>
+              </label>
+              {{ form.name }}
+            </div>
+            <div id="div_id_description" class="form-group">
+              <label for="id_description" class="col-form-label ">
+                {{ form.description.label }}
+              </label>
+              <div class="">
+                {{ form.description }}
+                <small id="hint_id_description" class="form-text text-muted">
+                  {{ form.description.help_text }}
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  <p style="font-size: 0.9rem;">
-    The following are examples of valid configurations:
-    <br><strong>
-<code>Widefield Green, FF01-466/40, FF495-Di03, FF03-525/50</code><br>
-<code>Dual-FRET, ET430/24x, 69008bs, ET535/30m</code><br>
-<code>Yokogawa 488nm, 488, Di01-T405/488/568/647, ET525/50m, false</code><br>
-<code>TIRF 647nm, 647, ZT405/488/561/647rpc, (ZET405/488/561/647m, ET700/75m)</code></strong>
-  </p>
-</div>
+
+  <div class="card">
+    <div class="card-header">
+      <ul class="nav nav-tabs card-header-tabs" id="formTabs">
+        <li class="nav-item">
+          <a class="nav-link {% if not object %}active{%endif%}" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add Configs in Bulk</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if object %}active{%endif%}" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc" aria-selected="false">Itemized Optical Configs</a>
+        </li>
+      </ul>
+    </div>
+    <div class="card-body">
+      <div class="tab-content" id="formTabsContent">
+        <div class="tab-pane fade {% if not object %}show active{%endif%}" id="bulk" role="tabpanel" aria-labelledby="bulk-tab">
+
+          <div class="row">
+            <div class="col-sm-6 col-xs-12">
+              <div id="div_id_light_source" class="form-group">
+                <label for="id_light_source" class="col-form-label ">
+                  {{ form.light_source.label }}
+                </label>
+                {{ form.light_source }}
+                <small id="hint_id_light_source" class="form-text text-muted">
+                  {{ form.light_source.help_text | safe }}
+                </small>
+              </div>
+            </div>
+            <div class="col-sm-6 col-xs-12">
+              <div id="div_id_detector" class="form-group">
+                <label for="id_detector" class="col-form-label ">
+                  {{ form.detector.label }}
+                </label>
+                <div>
+                  {{ form.detector }}
+                  <small id="hint_id_detector" class="form-text text-muted">
+                    {{ form.detector.help_text | safe }}
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="div_id_optical_configurations" class="form-group">
+            <label for="id_optical_configurations" class="col-form-label  requiredField">
+              {{ form.optical_configurations.label }}<span class="asteriskField">*</span>
+            </label>
+            {{ form.optical_configurations }}
+            <small id="hint_id_optical_configurations" class="form-text text-muted">
+              {{ form.optical_configurations.help_text }}
+            </small>
+          </div>
+          <div class="alert alert-info alert-dismissible mb-0" role="alert">
+            <div class="alert-icon" style="font-size: 1.6rem"><span class="fas fa-question-circle float-left mr-3 mt-2"></span></div>
+            <h4 class="alert-heading mb-3 mt-2"><strong>Adding Optical Configurations in Bulk</strong></h4>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <p style="font-size: 0.9rem;">
+              The following are examples of valid configurations:
+              <br><strong>
+            <code>Widefield Green, FF01-466/40, FF495-Di03, FF03-525/50</code><br>
+            <code>Dual-FRET, ET430/24x, 69008bs, ET535/30m</code><br>
+            <code>Yokogawa 488nm, 488, Di01-T405/488/568/647, ET525/50m, false</code><br>
+            <code>TIRF 647nm, 647, ZT405/488/561/647rpc, (ZET405/488/561/647m, ET700/75m)</code></strong>
+            </p>
+            <p style="font-size: 0.9rem;">Optical configurations represent a set of filters in your microscope, (usually for a specific channel or wavelength). Add all of your configurations in the box above, with each one on a seperate line, using the following 4 or 5 field comma-separated format:
+              <br>
+              <br>
+              <code><strong>Config Name, Laser OR Excitation Filter(s), Dichroic(s), Emission Filter(s)</strong> [, Dichroic reflects excitation?]</code>
+            </p>
+            <div class="container mt-4 mb-2">
+              <dl class="row">
+                <dt class="col-sm-3">Config Name</dt>
+                <dd class="col-sm-9">Any string to describe the configuration.</dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-3">Lasers</dt>
+                <dd class="col-sm-9">Specify laser wavelenghts as integer values.</dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-3">Filters</dt>
+                <dd class="col-sm-9">Filters can be specified as any Chroma or Semrock part number, or a name of any filter in the FPbase spectra database.</dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-3">Multiple Filters</dt>
+                <dd class="col-sm-9">You may specify multiple filters for a given path by enclosing them in parentheses.</dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-3">Dichroic Orientation</dt>
+                <dd class="col-sm-9">An optional fifth item (true or false) specifies whether the dichroic reflects the excitation light. It is true by default. For inverted systems (such as a Yokogawa spinning disk), set this to false.</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade {% if object %}show active{%endif%}" id="itemizedoc" role="tabpanel" aria-labelledby="itemizedoc-tab">
+          <p class="small"><em>Dichroic filters are assumed to be in both the excitation and emission paths, and reflect excitation light (transmit emission) by default.</em></p>
+          <div class="dynamic-oc-forms">
+            {{ optical_configs.management_form }} {% for ocform in optical_configs.forms %} {% for hidden in ocform.hidden_fields %} {{ hidden }} {% endfor %}
+            <div class="row formset_div">
+              <div class='col config-col'>
+                {% if ocform.instance.pk %}{{ ocform.DELETE }}{% endif %} {% include 'proteins/forms/_oc_inline.html' with formnum=forloop.counter0 ocform=ocform %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="submit" class="btn btn-primary mb-4 mt-3" value="Submit" />
+  <div class="text-primary ml-4 hidden" id="spinner" style="top: -12px; position: relative;">
+    <i class="fas fa-cog fa-spin mr-1" style="font-size: 1.7rem; top: 5px; position: relative;"></i> Building your configuration...
+  </div>
+</form>
+
 
 
 {% endblock content %}
 
 {% block javascript %}
+  {% compress js %}
+  <script src="{% static 'js/jquery.formset.js' %}"></script>
+  {% endcompress %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 
   <script type="text/javascript">
-  $("form").submit(function(){
+
+  $("form").submit(function(e){
     $("#spinner").css('display', 'inline');
+
   });
+
   $("#id_detector, #id_light_source").select2({
     theme: "bootstrap",
     placeholder: "---------",
     allowClear: true,
+    width: "100%",
+  });
+
+  $(function () {
+
+    var deleteclass = 'oc-delete-button'
+
+    $('.formset_div').formset({
+      addText: 'Add Optical Configuration',
+      addCssClass: 'btn btn-info add-oc-button',
+      deleteCssClass: deleteclass,
+      deleteText: '&times;',
+      processHidden: true,
+      prefix: 'optical_configs'   // it's important that this match the string used for the
+                         // related_name attribute in the "Microscope" foreign key field
+                         // in the OpticalConfig model
+
+    });
+
+    $(".add-oc-button").click(function(){
+      $(".dynamic-oc-forms .dynamic-form:first-of-type .oc-delete-button").hide()
+    })
+
+    // if this is an update view without post data, remove the last (empty) state
+    {% if object %}
+      {% if not request.POST %}
+      $('.dynamic-form').last().find('.' + deleteclass).click()
+      {% endif %}
+    {% endif %}
+
   });
 
   </script>

@@ -1,0 +1,79 @@
+
+<div class="row">
+  <div class="col-lg-3 col-md-6">
+    <div id="div_id_form-{{ formnum }}-name" class="input-group input-group-sm mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text bg-muted font-weight-bold" id="inputGroup-sizing-sm">{{ ocform.name.label }}</span>
+      </div>
+      {{ocform.name}}
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-6">
+    <div id="div_id_form-{{ formnum }}-light" class="input-group input-group-sm mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text bg-muted font-weight-bold" id="inputGroup-sizing-sm">{{ ocform.light.label }}</span>
+      </div>
+      {{ocform.light}}
+    </div>
+  </div>
+
+  <div class="col-lg-2 col-md-6">
+    <div id="div_id_form-{{ formnum }}-laser" class="input-group input-group-sm mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text bg-muted font-weight-bold" id="inputGroup-sizing-sm">{{ ocform.laser.label }}</span>
+      </div>
+      {{ocform.laser}}
+    </div>
+  </div>
+
+  <div class="col-lg-4 col-md-6">
+    <div id="div_id_form-{{ formnum }}-camera" class="input-group input-group-sm mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text bg-muted font-weight-bold" id="inputGroup-sizing-sm">{{ ocform.camera.label }}</span>
+      </div>
+      {{ocform.camera}}
+    </div>
+  </div>
+
+</div>
+
+<div class="row">
+  <div class="col-lg-4 col-md-6 oc-filter-group">
+    <div id="div_id_form-{{ formnum }}-ex_filters" class="form-group">
+      <label for="id_form-{{ formnum }}-ex_filters" class="col-form-label">
+        <small><strong>{{ ocform.ex_filters.label }}</strong></small>
+      </label>
+      <div class="">
+        {{ocform.ex_filters}}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 col-md-6 oc-filter-group">
+    <div id="div_id_form-{{ formnum }}-bs_filters" class="form-group">
+      <label for="id_form-{{ formnum }}-bs_filters" class="col-form-label">
+        <small><strong>{{ ocform.bs_filters.label }}</strong></small>
+      </label>
+      <div class="custom-control custom-checkbox mr-sm-1 d-inline ml-3">
+        {{ ocform.invert_bs }}
+        <label class="custom-control-label small" for="id_form-{{formnum}}-invert_bs" style='padding-top:2px;'>reflects emission</label>
+      </div>
+      <div class="">
+        {{ocform.bs_filters}}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 col-md-6 oc-filter-group">
+    <div id="div_id_form-{{ formnum }}-em_filters" class="form-group">
+      <label for="id_form-{{ formnum }}-em_filters" class="col-form-label">
+        <small><strong>{{ ocform.em_filters.label }}</strong></small>
+      </label>
+      <div class="">
+        {{ocform.em_filters}}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
