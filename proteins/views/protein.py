@@ -6,29 +6,15 @@ from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-
-
 from django.db import transaction
-
-
 from django.core.mail import mail_managers
-
-
-
-
-
 from ..models import Protein, State, Organism, BleachMeasurement
-
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
-                     BleachMeasurementForm, SpectrumForm)
-from ..filters import ProteinFilter
+                     BleachMeasurementForm)
 from proteins.util.spectra import spectra2csv
 from references.models import Reference  # breaks application modularity
-
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
-
-
 
 
 class ProteinDetailView(DetailView):
@@ -225,87 +211,6 @@ def protein_table(request):
         })
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def add_reference(request, slug=None):
     try:
         with reversion.create_revision():
@@ -325,56 +230,6 @@ def add_reference(request, slug=None):
         return JsonResponse({})
     except Exception:
         pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @staff_member_required
