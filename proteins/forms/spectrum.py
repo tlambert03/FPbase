@@ -39,7 +39,13 @@ class SpectrumForm(forms.ModelForm):
         required=False,
         label=mark_safe('Protein<span class="asteriskField">*</span>'),
         queryset=State.objects.select_related('protein'),
-        widget=autocomplete.ModelSelect2(url='proteins:state-autocomplete'),
+        widget=autocomplete.ModelSelect2(
+            url='proteins:state-autocomplete',
+            attrs={
+                'data-theme': "bootstrap",
+                'data-width': "100%",
+            }
+        ),
     )
     owner = forms.CharField(max_length=100, label=mark_safe('<span class="owner-type">Owner</span> Name<span class="asteriskField">*</span>'), required=False, help_text='Name of protein, dye, filter, etc...')
     data = SpectrumFormField(required=False, label='Data')
