@@ -15,9 +15,9 @@
   .oc-delete-button:hover{
     text-decoration: none;
   }
-  .dynamic-oc-forms .dynamic-form:first-of-type .oc-delete-button{
+/*  .dynamic-oc-forms .dynamic-form:last-of-type .oc-delete-button{
     display:none;
-  }
+  }*/
 
   .dynamic-oc-forms .oc-filter-group span.select2-container:nth-of-type(2){
     display:none;
@@ -30,6 +30,14 @@
   .oc-filter-group .select2-selection--multiple .select2-selection__clear{
     display: none;
   }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+      display: none;
+      -webkit-appearance: none;
+      margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+  }
+
   </style>
 {% endblock extrahead %}
 
@@ -38,18 +46,20 @@
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
+
+  <script type="text/javascript" src="/static/autocomplete_light/jquery.init.js"></script>
+  <script type="text/javascript" src="/static/autocomplete_light/autocomplete.init.js"></script>
+  <script type="text/javascript" src="/static/autocomplete_light/vendor/select2/dist/js/select2.full.js"></script>
+  <script type="text/javascript" src="/static/autocomplete_light/select2.js"></script>
+
+
 {% if object %}
   <h2>Update microscope: {{object}}</h2>
 {% else %}
   <h2>Create a New Microscope</h2>
 {% endif %}
 
-
-<script type="text/javascript" src="/static/autocomplete_light/jquery.init.js"></script>
-<script type="text/javascript" src="/static/autocomplete_light/autocomplete.init.js"></script>
-<script type="text/javascript" src="/static/autocomplete_light/vendor/select2/dist/js/select2.full.js"></script>
-<script type="text/javascript" src="/static/autocomplete_light/select2.js"></script>
-
+{% if not object %}<p>With this form, you can specify all of the optical configurations (laser, light, filter, &amp; camera arrangements) in your microscope or imaging system.  You will then have a spectra viewer tailored to your microscope that you can use and share as desired.</p>{%endif%}
 
 <form id="microscopeform" action="" method="post">
   {% csrf_token %}
@@ -82,14 +92,20 @@
     </div>
   </div>
 
+  <div class='row'>
+    <div class="col">
+      <p class='text-muted small'>Remember that you can always submit spectra for any filter, light source, camera, protein or dye that are not already in the database with the <a href="{% url 'proteins:submit-spectra' %}">spectrum submission form</a>. (Though Chroma and Semrock filter part numbers entered in the bulk config tab below will be automatically imported if possible)</p>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-header">
-      <ul class="nav nav-tabs card-header-tabs" id="formTabs">
+      <ul class="nav nav-tabs card-header-tabs" id="microscopeFormTabs">
         <li class="nav-item">
-          <a class="nav-link {% if not object %}active{%endif%}" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add Configs in Bulk</a>
+          <a class="nav-link {% if not object %}active{%endif%}" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add Bulk Configs</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if object %}active{%endif%}" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc" aria-selected="false">Itemized Optical Configs</a>
+          <a class="nav-link {% if object %}active{%endif%}" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc" aria-selected="false">{% if object %}Update {% else %}Add {%endif%}Individual Configs</a>
         </li>
       </ul>
     </div>
@@ -177,7 +193,7 @@
           </div>
         </div>
         <div class="tab-pane fade {% if object %}show active{%endif%}" id="itemizedoc" role="tabpanel" aria-labelledby="itemizedoc-tab">
-          <p class="small"><em>Dichroic filters are assumed to be in both the excitation and emission paths, and reflect excitation light (transmit emission) by default.</em></p>
+          <p class="small text-muted"><em>Filter fields are searchable, just start typing.  Dichroic filters are assumed to be in both the excitation and emission paths, and reflect excitation light (transmit emission) by default unless the "reflects em" button is checked. If you have a more complicated light path than this form will allow (e.g multiple beam splitters in the emission path with some reflecting and some transmitting), feel free to <a href="{% url 'contact' %}">contact us</a> with your light path for help. </em></p>
           <div class="dynamic-oc-forms">
             {{ optical_configs.management_form }} {% for ocform in optical_configs.forms %} {% for hidden in ocform.hidden_fields %} {{ hidden }} {% endfor %}
             <div class="row formset_div">

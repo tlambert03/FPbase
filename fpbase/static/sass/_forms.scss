@@ -172,6 +172,13 @@ i {
 // }
 
 
+#microscopeFormTabs {
+  font-size: 0.80rem;
+  @include media-breakpoint-up(sm) {
+      font-size: 1rem;
+  }
+}
+
 
 // select2 widgets
 .select2-container {

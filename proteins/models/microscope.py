@@ -6,7 +6,6 @@ from django.urls import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from .spectrum import Filter
-from model_utils.models import TimeStampedModel
 from .spectrum import sorted_ex2em
 from collections import namedtuple
 from ..util.helpers import shortuuid
@@ -41,8 +40,8 @@ class Microscope(OwnedCollection):
             raise ValueError('oclist argument must be list or tuple')
         microscope = cls(name=name)
         microscope.save()
-        for ocname, *oc in oclist:
-            newoc = quick_OC(ocname, oc, microscope)
+        for row in oclist:
+            newoc = quick_OC(row[0], row[1:], microscope)
             if newoc:
                 microscope.optical_configs.add(newoc)
         microscope.save()
@@ -60,6 +59,14 @@ class Microscope(OwnedCollection):
     def save(self, *args):
         # add any filterset members to the spectra set
         if self.pk and self.optical_configs:
+            # For now... this makes it so that a microscope can only have filters
+            # that are used in at least one optical config
+            self.ex_filters.clear()
+            self.em_filters.clear()
+            self.bs_filters.clear()
+            # self.lights.clear()
+            # self.cameras.clear()
+            # self.lasers = []
             for oc in self.optical_configs.all():
                 for _fl in ('ex_filters', 'bs_filters', 'em_filters'):
                     [getattr(self, _fl).add(x) for x in getattr(oc, _fl).all()]
@@ -99,38 +106,35 @@ class OpticalConfig(OwnedCollection):
     laser = models.PositiveSmallIntegerField(
         blank=True, null=True,
         validators=[MinValueValidator(300), MaxValueValidator(1600)])
-    ex_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ocex')
-    bs_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ocbs')
-    em_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ocem')
 
     def save(self, **kwargs):
         super().save(**kwargs)
-        [self.ex_filters.add(f) for f in self.get_ex_filters()]
-        [self.em_filters.add(f) for f in self.get_em_filters()]
-        [self.bs_filters.add(f) for f in self.get_bs_filters()]
 
     @property
     def filter_set(self):
         """ returns unique set of all filters in this optical config """
         return set(self.filters.all())
 
-    def get_ex_filters(self):
+    @property
+    def ex_filters(self):
         """ all filters that have an excitation role """
         x = self.filters.filter(filterplacement__path=FilterPlacement.EX)
-        return set(x) - self.get_bs_filters()
+        return x.exclude(id__in=self.bs_filters)
 
-    def get_em_filters(self):
+    @property
+    def em_filters(self):
         """ all filters that have an emission role """
         m = self.filters.filter(filterplacement__path=FilterPlacement.EM)
-        return set(m) - self.get_bs_filters()
+        return m.exclude(id__in=self.bs_filters)
 
-    def get_bs_filters(self):
+    @property
+    def bs_filters(self):
         """ all filters that are in both ex and em paths have a beamsplitting role """
         inx = Count('filterplacement__path', distinct=True,
                     filter=Q(filterplacement__path=FilterPlacement.EX))
         inm = Count('filterplacement__path',
                     filter=Q(filterplacement__path=FilterPlacement.EM))
-        return set(self.filters.annotate(nx=inx, nm=inm).filter(nx__gt=0, nm__gt=0))
+        return self.filters.annotate(nx=inx, nm=inm).filter(nx__gt=0, nm__gt=0)
 
     @property
     def ex_path(self):
@@ -162,6 +166,26 @@ class OpticalConfig(OwnedCollection):
     def spectra_set(self):
         return self.filter_set.union({s for s in (self.camera, self.light) if s})
 
+    def add_em_filter(self, filter, reflects=False):
+        fp = FilterPlacement(filter=filter, config=self, reflects=reflects,
+                             path=FilterPlacement.EM)
+        fp.save()
+
+    def add_ex_filter(self, filter, reflects=False):
+        fp = FilterPlacement(filter=filter, config=self, reflects=reflects,
+                             path=FilterPlacement.EX)
+        fp.save()
+
+    def add_bs_filter(self, filter, em_reflects=False):
+        fpx = FilterPlacement(filter=filter, config=self,
+                              reflects=not em_reflects,
+                              path=FilterPlacement.EX)
+        fpm = FilterPlacement(filter=filter, config=self,
+                              reflects=em_reflects,
+                              path=FilterPlacement.EM)
+        fpx.save()
+        fpm.save()
+
     def to_json(self):
         D = {
             'id': self.id,
@@ -180,13 +204,13 @@ class OpticalConfig(OwnedCollection):
             D[n] = [{'slug': i.slug if hasattr(i, 'slug') else i, 'inv': inv} for i, inv in getattr(self, n)]
         return D
 
-    # def __repr__(self):
-    #     fltrs = sorted_ex2em(self.filters.all())
-    #     return "<{}: {}>".format(
-    #         self.__class__.__name__, ", ".join([f.name for f in fltrs]))
+    def __repr__(self):
+        fltrs = sorted_ex2em(self.filters.all())
+        return "<{}: {}>".format(
+            self.__class__.__name__, ", ".join([f.name for f in fltrs]))
 
-    # def __str__(self):
-    #     return super().__str__() or self.__repr__().lstrip('<').rstrip('>')
+    def __str__(self):
+        return super().__str__() or self.__repr__().lstrip('<').rstrip('>')
 
     def get_absolute_url(self):
         return reverse("proteins:filterset-detail", args=[self.id])

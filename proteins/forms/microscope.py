@@ -254,19 +254,45 @@ class OpticalConfigForm(forms.ModelForm):
         widget=forms.widgets.CheckboxInput(attrs={'class': 'custom-control-input'})
     )
 
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        if instance:
+            kwargs.update(
+                initial={
+                    'invert_bs': bool(instance.inverted_bs),
+                    'bs_filters': instance.bs_filters,
+                    'em_filters': instance.em_filters,
+                    'ex_filters': instance.ex_filters,
+                }
+            )
+        super().__init__(*args, **kwargs)
+
     class Meta:
         model = OpticalConfig
-        fields = ('name', 'laser', 'light', 'camera',)
+        fields = ('name', 'laser', 'light', 'camera')
         help_texts = {'laser': 'overrides light source'}
         widgets = {
             'name': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
             'camera': forms.widgets.Select(attrs={'class': 'form-control custom-select'}),
             'light': forms.widgets.Select(attrs={'class': 'form-control custom-select'}),
-            'laser': forms.widgets.NumberInput(attrs={'class': 'numberinput form-control'})
+            'laser': forms.widgets.NumberInput(attrs={'class': 'numberinput form-control'}),
         }
+
+    def save(self, commit=True):
+        m = super().save()
+        for filt in self.cleaned_data['em_filters']:
+            m.add_em_filter(filt)
+        for filt in self.cleaned_data['ex_filters']:
+            m.add_ex_filter(filt)
+        for filt in self.cleaned_data['bs_filters']:
+            m.add_bs_filter(filt, self.cleaned_data['invert_bs'])
+        if commit:
+            m.save()
+        return m
 
 
 class BaseOpticalConfigFormSet(forms.BaseInlineFormSet):
+
     def clean(self):
         # perform any cross-formset validation here
         super().clean()
@@ -274,5 +300,5 @@ class BaseOpticalConfigFormSet(forms.BaseInlineFormSet):
 
 OpticalConfigFormSet = inlineformset_factory(
     Microscope, OpticalConfig, form=OpticalConfigForm,
-    formset=BaseOpticalConfigFormSet, extra=1, can_delete=True)
+    formset=BaseOpticalConfigFormSet, extra=2, can_delete=True)
 
