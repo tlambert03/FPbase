@@ -28,7 +28,7 @@
 
 {% if not object %}<p>With this form, you can specify all of the optical configurations (laser, light, filter, &amp; camera arrangements) in your microscope or imaging system.  You will then have a spectra viewer tailored to your microscope that you can use and share as desired.</p>{%endif%}
 
-{{form.errors}}
+
 <form id="microscopeform" action="" method="post">
   {% csrf_token %}
   <input type="hidden" name="slug" id="id_slug" value='{{ microscope.slug }}'>
