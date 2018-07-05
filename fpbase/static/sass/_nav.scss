@@ -11,7 +11,8 @@ $logo-color: #efe;
 // }
 
 .navbar {
-  //height: $navbar-height;  // this screws up dropdown menus in the nav
+  @include media-breakpoint-up(md) { height: $navbar-height; }
+
   transition-duration: 0.3s;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
@@ -19,6 +20,7 @@ $logo-color: #efe;
   @include box-shadow(0 0.1rem 0.2rem rgba(black,0.2));
   .navbar-brand{
     padding:0;
+    margin-top: -4px;
     span{
       font-size: 2.2rem;
       line-height: 2.6rem;
