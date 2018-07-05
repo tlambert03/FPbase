@@ -4,45 +4,12 @@
 
 {% block extrahead %}
   <link href="/static/autocomplete_light/vendor/select2/dist/css/select2.css" type="text/css" media="all" rel="stylesheet">
-  <style type="text/css">
-  .oc-delete-button{
-    font-size: 2rem;
-    color: #999;
-    position: relative;
-    top: -20px;
-    right: -11px;
-  }
-  .oc-delete-button:hover{
-    text-decoration: none;
-  }
-/*  .dynamic-oc-forms .dynamic-form:last-of-type .oc-delete-button{
-    display:none;
-  }*/
-
-  .dynamic-oc-forms .oc-filter-group span.select2-container:nth-of-type(2){
-    display:none;
-  }
-
-  .select2-selection__choice{
-    font-size: small;
-  }
-
-  .oc-filter-group .select2-selection--multiple .select2-selection__clear{
-    display: none;
-  }
-
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-      display: none;
-      -webkit-appearance: none;
-      margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
-  }
-
-  </style>
 {% endblock extrahead %}
 
+{% block container-class %}container microscope-form{% endblock container-class %}
+
 {% block content %}
-<script
+  <script
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
@@ -61,6 +28,7 @@
 
 {% if not object %}<p>With this form, you can specify all of the optical configurations (laser, light, filter, &amp; camera arrangements) in your microscope or imaging system.  You will then have a spectra viewer tailored to your microscope that you can use and share as desired.</p>{%endif%}
 
+{{form.errors}}
 <form id="microscopeform" action="" method="post">
   {% csrf_token %}
   <input type="hidden" name="slug" id="id_slug" value='{{ microscope.slug }}'>
@@ -69,23 +37,8 @@
       <div class="row">
         <div class="col">
           <div>
-            <div id="div_id_name" class="form-group">
-              <label for="id_name" class="col-form-label requiredField">
-                {{ form.name.label }}<span class="asteriskField">*</span>
-              </label>
-              {{ form.name }}
-            </div>
-            <div id="div_id_description" class="form-group">
-              <label for="id_description" class="col-form-label ">
-                {{ form.description.label }}
-              </label>
-              <div class="">
-                {{ form.description }}
-                <small id="hint_id_description" class="form-text text-muted">
-                  {{ form.description.help_text }}
-                </small>
-              </div>
-            </div>
+            {{ form.name|as_crispy_field }}
+            {{ form.description|as_crispy_field }}
           </div>
         </div>
       </div>
@@ -102,10 +55,10 @@
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs" id="microscopeFormTabs">
         <li class="nav-item">
-          <a class="nav-link {% if not object %}active{%endif%}" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add Bulk Configs</a>
+          <a class="nav-link {% if not object %}active{%endif%}" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add Configs in Bulk</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if object %}active{%endif%}" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc" aria-selected="false">{% if object %}Update {% else %}Add {%endif%}Individual Configs</a>
+          <a class="nav-link {% if object %}active{%endif%}" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc" aria-selected="false">{% if object %}Update {% else %}Add {%endif%} Configs Individually</a>
         </li>
       </ul>
     </div>
@@ -115,40 +68,15 @@
 
           <div class="row">
             <div class="col-sm-6 col-xs-12">
-              <div id="div_id_light_source" class="form-group">
-                <label for="id_light_source" class="col-form-label ">
-                  {{ form.light_source.label }}
-                </label>
-                {{ form.light_source }}
-                <small id="hint_id_light_source" class="form-text text-muted">
-                  {{ form.light_source.help_text | safe }}
-                </small>
-              </div>
+              {{ form.light_source|as_crispy_field }}
             </div>
             <div class="col-sm-6 col-xs-12">
-              <div id="div_id_detector" class="form-group">
-                <label for="id_detector" class="col-form-label ">
-                  {{ form.detector.label }}
-                </label>
-                <div>
-                  {{ form.detector }}
-                  <small id="hint_id_detector" class="form-text text-muted">
-                    {{ form.detector.help_text | safe }}
-                  </small>
-                </div>
-              </div>
+              {{ form.detector|as_crispy_field }}
             </div>
           </div>
 
-          <div id="div_id_optical_configurations" class="form-group">
-            <label for="id_optical_configurations" class="col-form-label  requiredField">
-              {{ form.optical_configurations.label }}<span class="asteriskField">*</span>
-            </label>
-            {{ form.optical_configurations }}
-            <small id="hint_id_optical_configurations" class="form-text text-muted">
-              {{ form.optical_configurations.help_text }}
-            </small>
-          </div>
+          {{ form.optical_configs|as_crispy_field }}
+
           <div class="alert alert-info alert-dismissible mb-0" role="alert">
             <div class="alert-icon" style="font-size: 1.6rem"><span class="fas fa-question-circle float-left mr-3 mt-2"></span></div>
             <h4 class="alert-heading mb-3 mt-2"><strong>Adding Optical Configurations in Bulk</strong></h4>
@@ -193,14 +121,21 @@
           </div>
         </div>
         <div class="tab-pane fade {% if object %}show active{%endif%}" id="itemizedoc" role="tabpanel" aria-labelledby="itemizedoc-tab">
+
           <p class="small text-muted"><em>Filter fields are searchable, just start typing.  Dichroic filters are assumed to be in both the excitation and emission paths, and reflect excitation light (transmit emission) by default unless the "reflects em" button is checked. If you have a more complicated light path than this form will allow (e.g multiple beam splitters in the emission path with some reflecting and some transmitting), feel free to <a href="{% url 'contact' %}">contact us</a> with your light path for help. </em></p>
           <div class="dynamic-oc-forms">
-            {{ optical_configs.management_form }} {% for ocform in optical_configs.forms %} {% for hidden in ocform.hidden_fields %} {{ hidden }} {% endfor %}
-            <div class="row formset_div">
-              <div class='col config-col'>
-                {% if ocform.instance.pk %}{{ ocform.DELETE }}{% endif %} {% include 'proteins/forms/_oc_inline.html' with formnum=forloop.counter0 ocform=ocform %}
+            {{ optical_configs.management_form }}
+            {% for ocform in optical_configs.forms %}
+              {% for hidden in ocform.hidden_fields %} {{ hidden }} {% endfor %}
+              <div class="row formset_div {% if ocform.errors %}border border-danger{% endif %}">
+                <div class='col config-col'>
+                  {% if ocform.instance.pk %}{{ ocform.DELETE }}{% endif %}
+                  {% with formnum=forloop.counter0 %}
+                      {% include 'proteins/forms/_oc_inline.html' %}
+                  {% endwith %}
+
+                </div>
               </div>
-            </div>
             {% endfor %}
           </div>
         </div>
@@ -208,12 +143,16 @@
     </div>
   </div>
 
-  <input type="submit" class="btn btn-primary mb-4 mt-3" value="Submit" />
-  <div class="text-primary ml-4 hidden" id="spinner" style="top: -3px; position: relative;">
-    <i class="fas fa-cog fa-spin mr-1" style="font-size: 1.7rem; top: 5px; position: relative;"></i> Building your configuration...
+  {% if object %}
+    <a href="{{ object.get_absolute_url }}"><button type="button" class="btn btn-danger mt-2" aria-label="back to microscope">
+        Cancel Edits
+        </button></a>
+  {% endif %}
+  <input type="submit" class="btn btn-primary mb-2 mt-3" value="Submit" />
+  <div class="text-primary ml-3 hidden" id="spinner" style="top: 5px; position: relative;">
+    <i class="fas fa-cog fa-spin mr-2" style="font-size: 1.7rem; top: 6px; position: relative;"></i>{% if object %}Updating{% else %}Building{% endif %} your configuration...
   </div>
 </form>
-
 
 
 {% endblock content %}
@@ -251,20 +190,12 @@
       prefix: 'optical_configs'   // it's important that this match the string used for the
                          // related_name attribute in the "Microscope" foreign key field
                          // in the OpticalConfig model
-
     });
 
-    $(".add-oc-button").click(function(){
-      $(".dynamic-oc-forms .dynamic-form:first-of-type .oc-delete-button").hide()
-    })
+    if ('{{ form.errors|safe }}'){
+      $('#microscopeFormTabs a[href="#bulk"]').tab('show')
 
-    // if this is an update view without post data, remove the last (empty) state
-    {% if object %}
-      {% if not request.POST %}
-      $('.dynamic-form').last().find('.' + deleteclass).click()
-      {% endif %}
-    {% endif %}
-
+    }
   });
 
   </script>

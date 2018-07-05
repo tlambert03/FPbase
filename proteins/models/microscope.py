@@ -107,13 +107,11 @@ class OpticalConfig(OwnedCollection):
         blank=True, null=True,
         validators=[MinValueValidator(300), MaxValueValidator(1600)])
 
+    class Meta:
+        unique_together = (("name", "microscope"),)
+
     def save(self, **kwargs):
         super().save(**kwargs)
-
-    @property
-    def filter_set(self):
-        """ returns unique set of all filters in this optical config """
-        return set(self.filters.all())
 
     @property
     def ex_filters(self):
@@ -161,10 +159,6 @@ class OpticalConfig(OwnedCollection):
     @property
     def inverted_bs(self):
         return self.filterplacement_set.filter(path=FilterPlacement.EM, reflects=True)
-
-    @property
-    def spectra_set(self):
-        return self.filter_set.union({s for s in (self.camera, self.light) if s})
 
     def add_em_filter(self, filter, reflects=False):
         fp = FilterPlacement(filter=filter, config=self, reflects=reflects,

@@ -51,11 +51,11 @@ class MicroscopeForm(forms.ModelForm):
         )
     )
 
-    optical_configurations = forms.CharField(
+    optical_configs = forms.CharField(
+        label="Optical Configurations",
         required=False,
         widget=forms.Textarea(attrs={'rows': 6, 'cols': 40, 'class': 'textarea form-control'}),
-        help_text=('Optical configurations represent a set of filters in your '
-                   'microscope, (usually for a specific channel).  See help below')
+        help_text=('See extended help below')
     )
 
     def __init__(self, *args, **kwargs):
@@ -118,8 +118,8 @@ class MicroscopeForm(forms.ModelForm):
         return oc
 
     def save(self, commit=True):
-        self.instance = super().save()
-        for row in self.cleaned_data['optical_configurations']:
+        self.instance = super().save(commit=False)
+        for row in self.cleaned_data['optical_configs']:
             newoc = self.create_oc(row[0], row[1:])
             if newoc:
                 if self.cleaned_data['light_source'].count() == 1:
@@ -133,15 +133,19 @@ class MicroscopeForm(forms.ModelForm):
             [self.instance.lights.add(i) for i in
              self.cleaned_data['light_source'].all()]
         if self.cleaned_data['detector'].count() > 1:
-            [self.instance.lights.add(i) for i in
+            [self.instance.cameras.add(i) for i in
              self.cleaned_data['detector'].all()]
         self.instance.owner = self.user
-        self.instance.save()
+        if commit:
+            self.instance.save()
         return self.instance
 
-    def clean_optical_configurations(self):
-        ocs = self.cleaned_data['optical_configurations']
+    def clean_optical_configs(self):
+        ocs = self.cleaned_data['optical_configs']
         cleaned = []
+        namestore = []
+        if self.instance:
+            namestore.extend([oc.name for oc in self.instance.optical_configs.all()])
         # on update form allow for the same name (case insensitive)
         brackets = re.compile(r'[\[\]\(\)]')
 
@@ -151,7 +155,7 @@ class MicroscopeForm(forms.ModelForm):
                 return fp
             else:
                 self.add_error(
-                    'optical_configurations',
+                    'optical_configs',
                     'Filter not found in database or at Chroma/Semrock: '
                     '{}'.format(fname))
                 return None
@@ -190,12 +194,18 @@ class MicroscopeForm(forms.ModelForm):
                 splt = [i.strip() for i in line.split(',')]
             if not len(splt) in (4, 5):
                 self.add_error(
-                    'optical_configurations',
+                    'optical_configs',
                     "Lines must have 4 or 5 comma-separated fields but this one "
                     "has {}: {}".format(len(splt), line))
             for n, f in enumerate(splt):
                 if n == 0:
-                    _out.append(f)
+                    if f in namestore:
+                        self.add_error(
+                            'optical_configs',
+                            'Optical config with the name %s already exists.' % f)
+                    else:
+                        namestore.append(f)
+                        _out.append(f)
                 elif n == 4:
                     if f.lower() in ('0', 'false', 'none'):
                         _out.append(False)
@@ -267,10 +277,42 @@ class OpticalConfigForm(forms.ModelForm):
             )
         super().__init__(*args, **kwargs)
 
+    def save(self, commit=True):
+        m = super().save(commit=False)
+        for _p in ('em_filters', 'ex_filters', 'bs_filters'):
+            for filt in self.initial.get(_p, []):
+                if filt not in self.cleaned_data[_p]:
+                    m.filterplacement_set.filter(filter=filt).delete()
+        for filt in self.cleaned_data['em_filters']:
+            if filt not in self.initial.get('em_filters', []):
+                m.add_em_filter(filt)
+        for filt in self.cleaned_data['ex_filters']:
+            if filt not in self.initial.get('ex_filters', []):
+                m.add_ex_filter(filt)
+        for filt in self.cleaned_data['bs_filters']:
+            if filt not in self.initial.get('bs_filters', []):
+                m.add_bs_filter(filt, self.cleaned_data['invert_bs'])
+        if self.cleaned_data['invert_bs'] != self.initial.get('invert_bs'):
+            for filt in self.cleaned_data['bs_filters']:
+                fpx = m.filterplacement_set.get(filter=filt,
+                                                path=FilterPlacement.EX)
+                fpx.reflects = not self.cleaned_data['invert_bs']
+                fpx.save()
+                fpm = m.filterplacement_set.get(filter=filt,
+                                                path=FilterPlacement.EM)
+                fpm.reflects = self.cleaned_data['invert_bs']
+                fpm.save()
+        if commit:
+            m.save()
+        return m
+
     class Meta:
         model = OpticalConfig
         fields = ('name', 'laser', 'light', 'camera')
-        help_texts = {'laser': 'overrides light source'}
+        help_texts = {
+            'light': 'laser overrides light source',
+            'name': 'name of this optical config'
+        }
         widgets = {
             'name': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
             'camera': forms.widgets.Select(attrs={'class': 'form-control custom-select'}),
@@ -278,27 +320,23 @@ class OpticalConfigForm(forms.ModelForm):
             'laser': forms.widgets.NumberInput(attrs={'class': 'numberinput form-control'}),
         }
 
-    def save(self, commit=True):
-        m = super().save()
-        for filt in self.cleaned_data['em_filters']:
-            m.add_em_filter(filt)
-        for filt in self.cleaned_data['ex_filters']:
-            m.add_ex_filter(filt)
-        for filt in self.cleaned_data['bs_filters']:
-            m.add_bs_filter(filt, self.cleaned_data['invert_bs'])
-        if commit:
-            m.save()
-        return m
+    def is_valid(self):
+        if hasattr(self, '_isvalid'):
+            return self._isvalid
+        else:
+            self._isvalid = super().is_valid()
+            if not self._isvalid:
+                for field, error in self.errors.items():
+                    if field in self.fields:
+                        self.fields[field].widget.attrs['class'] += " is-invalid"
+        return self._isvalid
 
 
 class BaseOpticalConfigFormSet(forms.BaseInlineFormSet):
-
-    def clean(self):
-        # perform any cross-formset validation here
-        super().clean()
+    pass
 
 
 OpticalConfigFormSet = inlineformset_factory(
     Microscope, OpticalConfig, form=OpticalConfigForm,
-    formset=BaseOpticalConfigFormSet, extra=2, can_delete=True)
+    formset=BaseOpticalConfigFormSet, extra=1, can_delete=True)
 

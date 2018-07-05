@@ -22,27 +22,37 @@ class MicroscopeCreateUpdateMixin:
     def form_valid(self, form):
         context = self.get_context_data()
         ocformset = context['optical_configs']
+        self.object = form.save(commit=False)
 
+        if not ocformset.is_valid():
+            self.success_message = 'Please correct errors in the individual configs tab'
+            context.update({'optical_configs': ocformset, 'formsets_invalid': 'true'})
+            return self.render_to_response(context)
+
+        # enforce at least one valid optical config
+        ocform_has_forms = any([f.cleaned_data.get('name')
+                                for f in ocformset.forms
+                                if not f.cleaned_data.get("DELETE")])
+        if not (ocform_has_forms or form.cleaned_data.get('optical_configs')):
+            self.success_message = ('What good is a microscope without any optical '
+                                    'configurations? Please add at least one config '
+                                    'on either tab below')
+            context.update({'optical_configs': ocformset})
+            return self.render_to_response(context)
+
+        # otherwise save...
         with transaction.atomic():
-            if ocformset.is_valid():
-
-                self.attach_owner(form)  # also saves the form and sets self.object
-                ocformset.instance = self.object
-                ocformset.save()
-
-                if not self.request.user.is_staff:
-                    mail_admins('Microscope Created',
-                                "User: {}\nCollection: {}\n{}".format(
-                                    self.request.user.username,
-                                    self.object,
-                                    self.request.build_absolute_uri(
-                                        self.object.get_absolute_url())),
-                                fail_silently=True)
-                self.object.save()
-            else:
-                context.update({'optical_configs': ocformset})
-                return self.render_to_response(context)
-
+            ocformset.instance = self.object
+            ocformset.save()
+            if not self.request.user.is_staff:
+                mail_admins('Microscope Created',
+                            "User: {}\nCollection: {}\n{}".format(
+                                self.request.user.username,
+                                self.object,
+                                self.request.build_absolute_uri(
+                                    self.object.get_absolute_url())),
+                            fail_silently=True)
+            self.object.save()
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -73,7 +83,7 @@ class MicroscopeUpdateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin,
                            OwnableObject, UpdateView):
     model = Microscope
     form_class = MicroscopeForm
-    success_message = ("Update successful!")
+    success_message = "Update successful!"
 
     def form_valid(self, form):
         form.instance.updated_by = self.request.user
@@ -85,33 +95,6 @@ class MicroscopeUpdateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin,
             data['optical_configs'] = OpticalConfigFormSet(self.request.POST,
                                                            instance=self.object)
         else:
-            # inst = self.object
-            # qs = inst.optical_configs.prefetch_related(
-            #     'ex_filters', 'em_filters', 'bs_filters', 'filters')
-            # formdata = {
-            #     'optical_configs-TOTAL_FORMS': qs.count() + 1,
-            #     'optical_configs-INITIAL_FORMS': 0,
-            # }
-            # for i, oc in enumerate(qs):
-            #     formdata['optical_configs-{}-ex_filters'
-            #              .format(i)] = oc.ex_filters.all()
-            #     formdata['optical_configs-{}-em_filters'
-            #              .format(i)] = oc.em_filters.all()
-            #     formdata['optical_configs-{}-bs_filters'
-            #              .format(i)] = oc.bs_filters.all()
-            #     formdata['optical_configs-{}-name'
-            #              .format(i)] = getattr(oc, 'name', None)
-            #     formdata['optical_configs-{}-laser'
-            #              .format(i)] = oc.laser
-            #     formdata['optical_configs-{}-light'
-            #              .format(i)] = getattr(oc.light, 'id', None)
-            #     formdata['optical_configs-{}-camera'
-            #              .format(i)] = getattr(oc.camera, 'id', None)
-            #     formdata['optical_configs-{}-invert_bs'
-            #              .format(i)] = getattr(oc, 'inverted_bs', False)
-            # form = OpticalConfigFormSet(formdata, instance=inst,
-            #                             queryset=OpticalConfig.objects.all())
-            # data['optical_configs'] = form
             data['optical_configs'] = OpticalConfigFormSet(
                 instance=self.object,
                 queryset=OpticalConfig.objects.prefetch_related('filters',))
