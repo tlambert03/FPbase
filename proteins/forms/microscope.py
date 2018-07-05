@@ -5,7 +5,7 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from ..models import (Light, Camera, Microscope, Filter, OpticalConfig, FilterPlacement)
 from dal import autocomplete
 from django.forms.models import inlineformset_factory
-
+from collections import defaultdict
 
 class FilterPromise(object):
     def __init__(self, part):
@@ -177,6 +177,8 @@ class MicroscopeForm(forms.ModelForm):
             return None
 
         for line in ocs.splitlines():
+            if not line:
+                continue
             _out = []
             if brackets.search(line):
                 _splt = [i.strip() for i in re.split(r'(\([^)]*\))', line) if i.strip()]
@@ -267,12 +269,29 @@ class OpticalConfigForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
         if instance:
+            ld = defaultdict(list)
+            inverted_bs = False
+            for f, p, r in instance.filterplacement_set.values_list(
+                    'filter__id', 'path', 'reflects'):
+                ld[f].append(p)
+                if r and p == FilterPlacement.EM:
+                    inverted_bs = True
+            bs_filters, em_filters, ex_filters = ([], [], [])
+            for k, v in ld.items():
+                if len(v) > 1:
+                    bs_filters.append(k)
+                elif v[0] == 'ex':
+                    ex_filters.append(k)
+                else:
+                    em_filters.append(k)
+
+            instance.filterplacement_set.values_list('filter__id', 'path')
             kwargs.update(
                 initial={
-                    'invert_bs': bool(instance.inverted_bs),
-                    'bs_filters': instance.bs_filters,
-                    'em_filters': instance.em_filters,
-                    'ex_filters': instance.ex_filters,
+                    'invert_bs': inverted_bs,
+                    'bs_filters': bs_filters,
+                    'em_filters': em_filters,
+                    'ex_filters': ex_filters,
                 }
             )
         super().__init__(*args, **kwargs)
@@ -281,16 +300,16 @@ class OpticalConfigForm(forms.ModelForm):
         m = super().save(commit=False)
         for _p in ('em_filters', 'ex_filters', 'bs_filters'):
             for filt in self.initial.get(_p, []):
-                if filt not in self.cleaned_data[_p]:
+                if filt not in self.cleaned_data[_p].values_list('id', flat=True):
                     m.filterplacement_set.filter(filter=filt).delete()
         for filt in self.cleaned_data['em_filters']:
-            if filt not in self.initial.get('em_filters', []):
+            if filt.id not in self.initial.get('em_filters', []):
                 m.add_em_filter(filt)
         for filt in self.cleaned_data['ex_filters']:
-            if filt not in self.initial.get('ex_filters', []):
+            if filt.id not in self.initial.get('ex_filters', []):
                 m.add_ex_filter(filt)
         for filt in self.cleaned_data['bs_filters']:
-            if filt not in self.initial.get('bs_filters', []):
+            if filt.id not in self.initial.get('bs_filters', []):
                 m.add_bs_filter(filt, self.cleaned_data['invert_bs'])
         if self.cleaned_data['invert_bs'] != self.initial.get('invert_bs'):
             for filt in self.cleaned_data['bs_filters']:

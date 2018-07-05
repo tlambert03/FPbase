@@ -97,7 +97,7 @@ class MicroscopeUpdateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin,
         else:
             data['optical_configs'] = OpticalConfigFormSet(
                 instance=self.object,
-                queryset=OpticalConfig.objects.prefetch_related('filters',))
+                queryset=OpticalConfig.objects.all())
         return data
 
 
