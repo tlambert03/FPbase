@@ -11,7 +11,7 @@
 {% endblock vendorcss %}
 
 
-{% block container-class %}container spectrumpage microscopepage{% endblock %}
+{% block container-class %}container-fluid spectrumpage microscopepage{% endblock %}
 
 {% block content %}
 
@@ -23,31 +23,32 @@
     </div>
 {% endif %}
 
-<div class="spectra clearfix mb-3">
-  <div id="spectra">
-    <div class="svg-container">
-      <div id="y-zoom-slider"></div>
-      <svg id="spectrasvg"></svg>
-    </div>
+<div class="spectra-wrapper">
+  <div class="spectra container clearfix mb-3">
+    <div id="spectra">
+      <div class="svg-container">
+        <div id="y-zoom-slider"></div>
+        <svg id="spectrasvg"></svg>
+      </div>
 
-    <div class="focusnote">click and drag to zoom</div>
+      <div class="focusnote">click and drag to zoom</div>
 
-    <div class='float-left' style='font-size:1.55rem'>
-      <a href="#" class='text-info' data-toggle="tooltip" data-placement="right" title="Settings" style="margin-left: 1.2rem; position:relative; top: -4px"><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></a>
-    </div>
+      <div class='float-left' style='font-size:1.55rem'>
+        <a href="#" class='text-info' data-toggle="tooltip" data-placement="right" title="Settings" style="margin-left: 1.2rem; position:relative; top: -4px"><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></a>
+      </div>
 
-    <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
-      <label class="btn btn-info active">
-        <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
-      </label>
-      <label class="btn btn-info">
-        <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
-      </label>
+      <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
+        <label class="btn btn-info active">
+          <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
+        </label>
+        <label class="btn btn-info">
+          <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
+        </label>
+      </div>
+      <div class="float-right mr-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div>
     </div>
-    <div class="float-right mr-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div>
   </div>
 </div>
-
 
 <div class="container">
   <div class="row">
@@ -561,8 +562,23 @@
     setTimeout(function(){
         autoSizeText();
         chart.update();
+        if ($(document).width() < 576){
+            chart.legend.maxKeyLength(15);
+        }
     }, 50);
   });
+
+
+  var topofDiv = $(".spectra-wrapper").offset().top;
+  $(window).scroll(function(){
+      if($(window).scrollTop() > (topofDiv)){
+        $(".spectra-wrapper").css('box-shadow', '0 12px 8px -8px rgba(0,0,0,.2)');
+      }
+      else{
+        $(".spectra-wrapper").css('box-shadow', 'none');
+      }
+  });
+
 
   $("#fluor-select").select2({ theme: "bootstrap", width: 100});
   $(".card input").not('.invswitch').click(function(){

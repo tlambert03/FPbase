@@ -37,7 +37,7 @@ var options = {
     //autoscaleBrush: false,
     exNormWave: undefined,
     scale: 'linear',
-//    hide2p: true,
+    hide2p: true,
     normMergedEx: true,
     normMergedScalar: 1,
 //    scaleToEC: false,
@@ -271,6 +271,10 @@ function refreshChart() {
         resizeYSlider();
     } else {
         $("#y-zoom-slider").hide();
+    }
+    if ($(document).width() < 576){
+        $('svg.nvd3-svg').height(chart.legend.height() + 210);
+        chart.update();
     }
 }
 
@@ -544,6 +548,9 @@ $(function() {
 
     resizeYSlider();
     $( window ).resize(function() {
+        if ($(document).width() < 576){
+            chart.legend.maxKeyLength(15);
+        }
         chart.update();
         resizeYSlider();
     });

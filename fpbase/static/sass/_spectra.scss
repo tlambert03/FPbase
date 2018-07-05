@@ -9,8 +9,28 @@ h6 {
     opacity: 0;
 }
 
+.nvd3 .nv-brushBackground rect {
+  shape-rendering: crispEdges;
+  stroke-width: 0.3;
 
+}
 .spectrumpage{
+  .spectra-wrapper {
+    position: sticky;
+    top: 0px;
+    z-index:100;
+    background:white;
+    margin: auto;
+    width: 100%;
+    @include media-breakpoint-down(lg) { width: 100% }
+    @include media-breakpoint-up(lg) { width: 962px }
+    @include media-breakpoint-up(xl) { width: 1170px }
+
+    transition: box-shadow .3s;
+    .spectra {
+
+    }
+  }
 
   &.microscopepage {
     .select2-container--bootstrap .select2-selection--single {

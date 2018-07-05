@@ -55,16 +55,16 @@
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs" id="microscopeFormTabs">
         <li class="nav-item">
-          <a class="nav-link {% if not object %}active{%endif%}" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add Configs in Bulk</a>
+          <a class="nav-link active" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc" aria-selected="false">{% if object %}Update {% else %}Add {%endif%} Optical Configs</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if object %}active{%endif%}" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc" aria-selected="false">{% if object %}Update {% else %}Add {%endif%} Configs Individually</a>
+          <a class="nav-link" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add Configs in Bulk</a>
         </li>
       </ul>
     </div>
     <div class="card-body">
       <div class="tab-content" id="formTabsContent">
-        <div class="tab-pane fade {% if not object %}show active{%endif%}" id="bulk" role="tabpanel" aria-labelledby="bulk-tab">
+        <div class="tab-pane fade " id="bulk" role="tabpanel" aria-labelledby="bulk-tab">
 
           <div class="row">
             <div class="col-sm-6 col-xs-12">
@@ -120,7 +120,7 @@
             </div>
           </div>
         </div>
-        <div class="tab-pane fade {% if object %}show active{%endif%}" id="itemizedoc" role="tabpanel" aria-labelledby="itemizedoc-tab">
+        <div class="tab-pane fade show active" id="itemizedoc" role="tabpanel" aria-labelledby="itemizedoc-tab">
 
           <p class="small text-muted"><em>Filter fields are searchable, just start typing.  Dichroic filters are assumed to be in both the excitation and emission paths, and reflect excitation light (transmit emission) by default unless the "reflects em" button is checked. If you have a more complicated light path than this form will allow (e.g multiple beam splitters in the emission path with some reflecting and some transmitting), feel free to <a href="{% url 'contact' %}">contact us</a> with your light path for help. </em></p>
           <div class="dynamic-oc-forms">

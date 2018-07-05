@@ -13,6 +13,9 @@ $logo-color: #efe;
 .navbar {
   @include media-breakpoint-up(md) { height: $navbar-height; }
 
+  .dropdown-menu {
+      z-index: 1001;
+  }
   transition-duration: 0.3s;
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
