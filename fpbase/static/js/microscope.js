@@ -37,7 +37,7 @@ var options = {
     //autoscaleBrush: false,
     exNormWave: undefined,
     scale: 'linear',
-    hide2p: true,
+//    hide2p: true,
     normMergedEx: true,
     normMergedScalar: 1,
 //    scaleToEC: false,
@@ -49,7 +49,7 @@ var userOptions = {
     normMergedEx: {type: 'checkbox', msg: 'Normalize merged excitation and light source spectra'},
     showArea: {type: 'checkbox', msg: 'Fill area under curve'},
     //autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
-    hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
+//    hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
 //    scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
     scaleToQY: {type: 'checkbox', msg: 'Scale emission spectra to quantum yield'},
 };
@@ -399,6 +399,23 @@ function getUrlParams( prop ) {
     return ( prop && prop in params ) ? params[ prop ] : params;
 }
 
+
+$(".2pcheck").change(function(e) {
+    // when the ex/em/2p checkbox is checked,
+    // enable/disable the corresponding item in the data
+    var slug = $(this).closest('.row').find('select').val();
+    var type = $(this).val();
+    for (var i = 0; i < data.length; i++) {
+        if (data[i].slug == slug && data[i].type == type) {
+            data[i].disabled = !this.checked;
+        }
+        if (type == CONST.stype.twop) {
+            var pos = localData[slug].map(function(e) { return e.type; }).indexOf('2p');
+            localData[slug][pos].disabled = !this.checked;
+        }
+    }
+    refreshChart();
+});
 
 $(function() {
     $('#y-zoom-slider').hide();
