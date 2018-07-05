@@ -571,6 +571,9 @@ class Filter(SpectrumOwner, Product):
         blank=True, null=True,
         validators=[MinValueValidator(0), MaxValueValidator(90)])
 
+    class Meta:
+        ordering = ['bandcenter']
+
     @property
     def subtype(self):
         return self.spectrum.subtype
@@ -583,10 +586,11 @@ class Filter(SpectrumOwner, Product):
     def save(self, *args, **kwargs):
         if '/' in self.name:
             try:
-                w = self.name.split('/')[0].split(' ')[-1]
-                self.bandcenter = int("".join([i for i in w[:4] if i.isdigit()]))
-                w = self.name.split('/')[1].split(' ')[0]
-                self.bandwidth = int("".join([i for i in w[:4] if i.isdigit()]))
+                if self.name.count('/') == 1:
+                    w = self.name.split('/')[0]
+                    self.bandcenter = int("".join([i for i in w[-4:] if i.isdigit()]))
+                    w = self.name.split('/')[1].split(' ')[0]
+                    self.bandwidth = int("".join([i for i in w[:4] if i.isdigit()]))
             except Exception:
                 pass
 

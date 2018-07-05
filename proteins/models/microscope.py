@@ -109,6 +109,7 @@ class OpticalConfig(OwnedCollection):
 
     class Meta:
         unique_together = (("name", "microscope"),)
+        ordering = ['name']
 
     def save(self, **kwargs):
         super().save(**kwargs)
