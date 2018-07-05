@@ -217,3 +217,39 @@ ul li.select2-search {
     margin: 0.5rem 0 0 0.5rem !important;
   }
 }
+
+.microscope-form {
+    .oc-delete-button{
+      font-size: 2rem;
+      color: #999;
+      position: relative;
+      top: -20px;
+      right: 3px;
+      width: 1px;
+    }
+    .oc-delete-button:hover{
+      text-decoration: none;
+    }
+  /*  .dynamic-oc-forms .dynamic-form:last-of-type .oc-delete-button{
+      display:none;
+    }*/
+
+    .dynamic-oc-forms .oc-filter-group span.select2-container:nth-of-type(2){
+      display:none;
+    }
+
+    .select2-selection__choice{
+      font-size: small;
+    }
+
+    .oc-filter-group .select2-selection--multiple .select2-selection__clear{
+      display: none;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        display: none;
+        -webkit-appearance: none;
+        margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+    }
+}
