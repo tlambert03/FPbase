@@ -158,7 +158,7 @@
 		<div class="sequence">
 			<div class="row">
 			  	<div class="col">
-				  <h3>Amino Acid Sequence{% if protein.seq %}<a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider updating this page if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>{% endif %}</h3>
+				  <h3>Amino Acid Sequence{% if protein.seq %}<a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>{% endif %}</h3>
 				</div>
 			</div>
 
@@ -279,7 +279,7 @@
 
     <script type="text/javascript">
 	    $(function () {
-	      $('[data-toggle="popover"]').popover();
+	      $('[data-toggle="popover"]').popover({html: true});
 
         var snaptemplate = 'http://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/'
         $.ajax({
