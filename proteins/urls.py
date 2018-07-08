@@ -72,6 +72,7 @@ urlpatterns = [
         name='updatemicroscope'),
     url(r'^microscopes/(?P<owner>[-\w.]+)/?$', views.MicroscopeList.as_view(), name='microscopes'),
     url(r'^microscopes/', views.MicroscopeList.as_view(), name='microscopes'),
+    url(r'^scope_report/', views.ScopeReportView.as_view(), name='scope-report'),
 
     # /proteins/api
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),

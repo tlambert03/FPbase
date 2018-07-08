@@ -1,5 +1,5 @@
 import json
-from django.views.generic import DetailView, CreateView, DeleteView, ListView, UpdateView
+from django.views.generic import TemplateView, DetailView, CreateView, DeleteView, ListView, UpdateView
 from django.http import HttpResponseRedirect, Http404
 from django.core.mail import mail_admins
 from django.urls import reverse_lazy, resolve
@@ -9,9 +9,49 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
 
-from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig
+from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig, State, Dye
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from .mixins import OwnableObject
+from ..util.efficiency import oclist_efficiency_report
+
+
+class ScopeReportView(TemplateView):
+    template_name = 'proteins/scope_report.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ScopeReportView, self).get_context_data(**kwargs)
+        m = Microscope.objects.last()
+        from django.core.cache import cache
+        print('before')
+        if not cache.get('my_key'):
+            oc = list(m.optical_configs.all()[:1])
+            fluors = list(State.objects.with_spectra())
+            # fluors.extend(list(Dye.objects.all()))
+            report = oclist_efficiency_report(oc, fluors[:30])
+            cache.set('my_key', report, 1800)
+        _rep = cache.get('my_key')
+        report = {}
+        data = []
+        for oc, dct in _rep.items():
+            data.append({
+                'key': oc.name,
+                'values': []
+            })
+            for probe, effdata in dct.items():
+                if effdata['ex'] and effdata['em']:
+                    data[-1]['values'].append({
+                        'fluor': probe.fluor_name,
+                        'x': effdata['ex'],
+                        'y': effdata['em'],
+                        'bright': effdata['bright'],
+                        'size': effdata['bright'] if effdata['bright'] else 0.01,
+                        'color': probe.emhex,
+                        'shape': 'circle' if hasattr(probe, 'protein') else 'square',
+                        'url': probe.get_absolute_url(),
+                    })
+
+        context['report'] = data
+        return context
 
 
 class MicroscopeCreateUpdateMixin:
@@ -115,7 +155,6 @@ class MicroscopeDetailView(DetailView):
             data['lights'] = Light.objects.all()
         data['probeslugs'] = Spectrum.objects.fluorlist()
         data['scopespectra'] = json.dumps(self.object.spectra_d3())
-        # data['optical_configs'] = json.dumps([oc.to_json() for oc in self.object.optical_configs.all()])
         return data
 
 

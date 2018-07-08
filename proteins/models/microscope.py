@@ -1,18 +1,13 @@
 from django.db import models
 from django.db.models import Count, Q
-from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.urls import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from .spectrum import Filter
 from .spectrum import sorted_ex2em
-from collections import namedtuple
 from ..util.helpers import shortuuid
 from .collection import OwnedCollection
-
-
-oriented_filter = namedtuple('OrientedFilter', ['filter', 'reflects'])
 
 
 class Microscope(OwnedCollection):
@@ -96,6 +91,10 @@ class Microscope(OwnedCollection):
         return [spec.d3dict() for spec in self.spectra]
 
 
+def invert(sp):
+    return [[a[0], 1 - a[1]] for a in sp]
+
+
 class OpticalConfig(OwnedCollection):
     """ A a single optical configuration comprising a set of filters """
     microscope = models.ForeignKey('Microscope', related_name='optical_configs', on_delete=models.CASCADE)
@@ -136,25 +135,27 @@ class OpticalConfig(OwnedCollection):
         return self.filters.annotate(nx=inx, nm=inm).filter(nx__gt=0, nm__gt=0)
 
     @property
-    def ex_path(self):
+    def ex_spectra(self):
         """ returns components in the excitation path """
         p = []
-        if self.light:
-            p.append((self.light, False))
         if self.laser:
-            p.append((self.laser, False))
+            p.append([[self.laser - 1, 0], [self.laser, 1], [self.laser + 1, 0]])
+        elif self.light:
+            p.append(self.light.spectrum.data)
         for x in self.filterplacement_set.filter(path=FilterPlacement.EX):
-            p.append(oriented_filter(x.filter, x.reflects))
+            p.append(invert(x.filter.spectrum.data) if x.reflects
+                     else x.filter.spectrum.data)
         return p
 
     @property
-    def em_path(self):
+    def em_spectra(self):
         """ returns components in the emissino path """
         p = []
-        for x in self.filterplacement_set.filter(path=FilterPlacement.EM):
-            p.append(oriented_filter(x.filter, x.reflects))
         if self.camera:
-            p.append((self.camera, False))
+            p.append(self.camera.spectrum.data)
+        for x in self.filterplacement_set.filter(path=FilterPlacement.EM):
+            p.append(invert(x.filter.spectrum.data) if x.reflects
+                     else x.filter.spectrum.data)
         return p
 
     @property
@@ -180,24 +181,6 @@ class OpticalConfig(OwnedCollection):
                               path=FilterPlacement.EM)
         fpx.save()
         fpm.save()
-
-    def to_json(self):
-        D = {
-            'id': self.id,
-            'name': self.name,
-            'laser': self.laser,
-            'light:': None,
-            'camera': None,
-        }
-        if self.light:
-            D['light'] = self.light.slug
-        if self.camera:
-            D['camera'] = self.camera.slug
-        for n in ('ex_filters', 'bs_filters', 'em_filters'):
-            D[n] = [f.slug for f in getattr(self, n)]
-        for n in ('ex_path', 'em_path'):
-            D[n] = [{'slug': i.slug if hasattr(i, 'slug') else i, 'inv': inv} for i, inv in getattr(self, n)]
-        return D
 
     def __repr__(self):
         fltrs = sorted_ex2em(self.filters.all())

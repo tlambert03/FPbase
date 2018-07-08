@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static compress %}
+
+{% block extrahead %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+
+    <style>
+        #test1 {
+            margin: 0px;
+            padding: 0px;
+            height: 800px;
+            width: 100%;
+        }
+        .nv-point:hover {
+          display: none;
+        }
+    </style>
+{% endblock extrahead %}
+
+{% block content %}
+  <div id="test1" class='with-3d-shadow with-transitions'>
+      <svg></svg>
+  </div>
+
+{% endblock content %}
+
+{% block javascript %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+
+<script type="text/javascript">
+  var myData = {{report|safe}};
+  console.log(myData);
+</script>
+
+<script>
+
+    // create the chart
+    var chart;
+    nv.models.scatter.getColor = function(d){ console.log(d)};
+    nv.addGraph(function() {
+        chart = nv.models.scatterChart()
+            .showDistX(true)
+            .showDistY(true)
+            //.yDomain([0, 1])
+            .xDomain([0, 1])
+            .useVoronoi(true)
+            .duration(300)
+        ;
+        chart.dispatch.on('renderEnd', function(){
+            console.log('render complete');
+        });
+        chart.xAxis
+            .tickFormat(d3.format('.02f'))
+            .axisLabel('Excitation Efficiency')
+        chart.yAxis
+            .tickFormat(d3.format('.02f'))
+            .axisLabel('Collection Efficiency')
+
+
+        D = randomData(4,40);
+        d3.select('#test1 svg')
+            .datum(myData)
+            .call(chart);
+        nv.utils.windowResize(chart.update);
+        chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
+        chart.tooltip.contentGenerator(function (key, x, y, e, graph) {
+            return ('<div style="text-align: left"><p><strong>' + key.point.fluor + '</strong></p>' +
+                    '<p>Ex eff: ' + key.point.x + ' %</p>' +
+                    '<p>Em eff: ' + key.point.y + ' %</p>' +
+                    '<p>Brightness: ' + key.point.bright + '</p></div>')  ;
+            });
+        chart.scatter.dispatch.on('elementClick', function(event) {
+            location.href = event.point.url;
+        });
+        chart.scatter.dispatch.on('elementMouseover', function(event) {
+            console.log(event)
+        });
+
+        return chart;
+    }, function(){
+          d3.selectAll(".nv-point").on('click',
+               function(){
+                     console.log("test");
+           });
+      });
+
+    function randomData(groups, points) { //# groups,# points per group
+        // smiley and thin-x are our custom symbols!
+        var data = [],
+            shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'],
+            random = d3.random.normal();
+        for (i = 0; i < groups; i++) {
+            data.push({
+                key: 'Group ' + i,
+                values: [],
+                'classed': 'group',
+            });
+            for (j = 0; j < points; j++) {
+                data[i].values.push({
+                    x: random(),
+                    y: random(),
+                    'classed': 'item',
+                    size: Math.round(Math.random() * 100) / 100,
+                    shape: shapes[j % shapes.length]
+                });
+            }
+        }
+        return data;
+    }
+</script>
+{% endblock javascript %}
