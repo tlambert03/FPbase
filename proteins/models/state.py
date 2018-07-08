@@ -40,28 +40,34 @@ class Fluorophore(SpectrumOwner):
         super().save(*args, **kwargs)
 
     @property
-    def abs_spectra(self):
+    def fluor_name(self):
+        if hasattr(self, 'protein'):
+            return self.protein.name
+        return self.name
+
+    @property
+    def abs_spectrum(self):
         spect = self.spectra.filter(subtype='ab')
         if spect.count() > 1:
             raise AssertionError('multiple abs spectra found')
         return spect.first() or None
 
     @property
-    def ex_spectra(self):
+    def ex_spectrum(self):
         spect = self.spectra.filter(subtype='ex')
         if spect.count() > 1:
             raise AssertionError('multiple ex spectra found')
-        return spect.first() or None
+        return spect.first() or self.abs_spectrum
 
     @property
-    def em_spectra(self):
+    def em_spectrum(self):
         spect = self.spectra.filter(subtype='em')
         if spect.count() > 1:
             raise AssertionError('multiple em spectra found')
         return spect.first() or None
 
     @property
-    def twop_spectra(self):
+    def twop_spectrum(self):
         spect = self.spectra.filter(subtype='2p')
         if spect.count() > 1:
             raise AssertionError('multiple 2p spectra found')
@@ -89,15 +95,15 @@ class Fluorophore(SpectrumOwner):
         return wave_to_hex(self.ex_max)
 
     def has_spectra(self):
-        if any([self.ex_spectra, self.em_spectra, self.twop_spectra]):
+        if any([self.ex_spectrum, self.em_spectrum, self.twop_spectrum]):
             return True
         return False
 
     def ex_band(self, height=0.7):
-        return self.ex_spectra.width(height)
+        return self.ex_spectrum.width(height)
 
     def em_band(self, height=0.7):
-        return self.em_spectra.width(height)
+        return self.em_spectrum.width(height)
 
     def within_ex_band(self, value, height=0.7):
         if self.has_spectra():
@@ -124,6 +130,9 @@ class Dye(Fluorophore, Product):
 class StatesManager(models.Manager):
     def notdark(self):
         return self.filter(is_dark=False)
+
+    def with_spectra(self):
+        return self.get_queryset().filter(spectra__isnull=False).distinct()
 
 
 class State(Fluorophore):

@@ -23,9 +23,9 @@ class FRETpair(Authorable, TimeStampedModel):
 
     @property
     def spectral_overlap(self):
-        accEx  = self.acceptor.default_state.ex_spectra
+        accEx  = self.acceptor.default_state.ex_spectrum
         accEC  = self.acceptor.default_state.ext_coeff
-        donEm  = self.donor.default_state.em_spectra
+        donEm  = self.donor.default_state.em_spectrum
         # donQY  = self.donor.default_state.qy
         donCum = sum(donEm.y)
         minAcc = accEx.min_wave

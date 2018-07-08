@@ -161,9 +161,9 @@ def get_base_name(name):
 # ###########################################
 
 def calculate_spectral_overlap(donor, acceptor):
-    accEx  = acceptor.default_state.ex_spectra
+    accEx  = acceptor.default_state.ex_spectrum
     accEC  = acceptor.default_state.ext_coeff
-    donEm  = donor.default_state.em_spectra
+    donEm  = donor.default_state.em_spectrum
     # donQY  = donor.default_state.qy
     donCum = sum(donEm.y)
 
@@ -199,7 +199,7 @@ def find_best_forster():
     withSpectra = []
     for p in qs:
         try:
-            p.default_state.em_spectra.data
+            p.default_state.em_spectrum.data
         except Exception:
             continue
         withSpectra.append(p)

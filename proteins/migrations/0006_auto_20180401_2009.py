@@ -18,23 +18,23 @@ def move_spectra(apps, schema_editor):
     it = 'p'
     for state in States.objects.all():
         prot_name = state.protein.name
-        if state.ex_spectra:
+        if state.ex_spectrum:
             Spectrum.objects.create(
-                data=state.ex_spectra.data,
+                data=state.ex_spectrum.data,
                 owner_state=state,
                 subtype='ex',
                 category=it,
             )
-        if state.em_spectra:
+        if state.em_spectrum:
             Spectrum.objects.create(
-                data=state.em_spectra.data,
+                data=state.em_spectrum.data,
                 owner_state=state,
                 subtype='em',
                 category=it,
             )
-        if state.twop_ex_spectra:
+        if state.twop_ex_spectrum:
             spectrum = Spectrum(
-                data=state.twop_ex_spectra.data,
+                data=state.twop_ex_spectrum.data,
                 owner_state=state,
                 subtype='2p',
                 category=it,

@@ -8,7 +8,7 @@ function createDropdown(data){
 				myData =[]
 				myData.push({
 					key 	: data[selection].name + ' ex',
-					values 	: formatForNVD3(data[selection].ex_spectra),
+					values 	: formatForNVD3(data[selection].ex_spectrum),
 					peak	: data[selection].ex_max,
 					type 	: 'ex',
 					color 	: realColor(data[selection].ex_max),
@@ -16,7 +16,7 @@ function createDropdown(data){
 				});
 				myData.push({
 					key 	: data[selection].name + ' em',
-					values 	: formatForNVD3(data[selection].em_spectra),
+					values 	: formatForNVD3(data[selection].em_spectrum),
 					peak	: data[selection].em_max,
 					type 	: 'em',
 					color 	: realColor(data[selection].em_max),
@@ -60,7 +60,7 @@ function createRadioBoxes(data){
 				for (var i = 0; i < arrayLength; i++) {
 				    myData.push({
 						key 	: data[i].name + ' ex',
-						values 	: formatForNVD3(data[i].ex_spectra),
+						values 	: formatForNVD3(data[i].ex_spectrum),
 						peak	: data[i].ex_max,
 						type 	: 'ex',
 						color 	: realColor(data[i].ex_max),
@@ -68,7 +68,7 @@ function createRadioBoxes(data){
 					});
 					myData.push({
 						key 	: data[i].name + ' em',
-						values 	: formatForNVD3(data[i].em_spectra),
+						values 	: formatForNVD3(data[i].em_spectrum),
 						peak	: data[i].em_max,
 						type 	: 'em',
 						color 	: realColor(data[i].em_max),
@@ -132,8 +132,8 @@ function sortBy(prop,withm) {
 function SpectraFileTypes(d){
   return {
 	name: d.fluor_name,
-	ex_spectra: JSON.parse(d.ex_spectra),
-	em_spectra: JSON.parse(d.em_spectra),
+	ex_spectra: JSON.parse(d.ex_spectrum),
+	em_spectra: JSON.parse(d.em_spectrum),
 	ex_max: +d.ex_max,
 	em_max: +d.em_max,
   }

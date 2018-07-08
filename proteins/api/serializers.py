@@ -18,12 +18,12 @@ class SpectrumField(serializers.Field):
 
 
 class StateSpectraSerializer(serializers.ModelSerializer):
-    ex_spectra = SpectrumField()  # adds significant time overhead
-    em_spectra = SpectrumField()  # adds significant time overhead
+    ex_spectrum = SpectrumField()  # adds significant time overhead
+    em_spectrum = SpectrumField()  # adds significant time overhead
 
     class Meta:
         model = State
-        fields = ('name', 'ex_max', 'ex_spectra', 'em_max', 'em_spectra', 'ext_coeff', 'qy')
+        fields = ('name', 'ex_max', 'ex_spectrum', 'em_max', 'em_spectrum', 'ext_coeff', 'qy')
 
 
 class ProteinSpectraSerializer(ModelSerializer):
@@ -39,19 +39,19 @@ class ProteinSpectraSerializer(ModelSerializer):
         spectra_repr = representation.pop('states')
         representation['spectra'] = []
         for spectrum in spectra_repr:
-            if spectrum['ex_spectra']:
+            if spectrum['ex_spectrum']:
                 representation['spectra'].append({
                     'state': spectrum['name'] + str('_ex'),
                     'ec': spectrum['ext_coeff'],
                     'max': spectrum['ex_max'],
-                    'data': spectrum['ex_spectra'],
+                    'data': spectrum['ex_spectrum'],
                 })
-            if spectrum['em_spectra']:
+            if spectrum['em_spectrum']:
                 representation['spectra'].append({
                     'state': spectrum['name'] + str('_em'),
                     'qy': spectrum['qy'],
                     'max': spectrum['em_max'],
-                    'data': spectrum['em_spectra']
+                    'data': spectrum['em_spectrum']
                 })
         return representation
 
@@ -61,10 +61,10 @@ class StateSerializer(ModelSerializer):
 
     class Meta:
         model = State
-        fields = ('slug', 'protein', 'name', 'ex_max', 'em_max', 'ex_spectra', 'em_spectra',
+        fields = ('slug', 'protein', 'name', 'ex_max', 'em_max', 'ex_spectrum', 'em_spectrum',
                   'ext_coeff', 'qy', 'pka', 'maturation', 'lifetime', 'brightness',
                   )
-        on_demand_fields = ('protein', 'ex_spectra', 'em_spectra')
+        on_demand_fields = ('protein', 'ex_spectrum', 'em_spectrum')
 
 
 class ProteinSerializer(ModelSerializer):
@@ -113,8 +113,8 @@ class BasicProteinSerializer(ModelSerializer, serializers.HyperlinkedModelSerial
     uuid = serializers.UUIDField(format='hex')
     ex_max = serializers.IntegerField(source='default_state.ex_max', read_only=True)
     em_max = serializers.IntegerField(source='default_state.em_max', read_only=True)
-    ex_spectra = serializers.CharField(source='default_state.ex_spectra', read_only=True)
-    em_spectra = serializers.CharField(source='default_state.em_spectra', read_only=True)
+    ex_spectrum = serializers.CharField(source='default_state.ex_spectrum', read_only=True)
+    em_spectrum = serializers.CharField(source='default_state.em_spectrum', read_only=True)
     ext_coeff = serializers.FloatField(source='default_state.ext_coeff', read_only=True)
     qy = serializers.FloatField(source='default_state.qy', read_only=True)
     brightness = serializers.FloatField(source='default_state.brightness', read_only=True)
@@ -135,9 +135,9 @@ class BasicProteinSerializer(ModelSerializer, serializers.HyperlinkedModelSerial
             'ipg_id',
             'agg',
             'ex_max',
-            'ex_spectra',
+            'ex_spectrum',
             'em_max',
-            'em_spectra',
+            'em_spectrum',
             'ext_coeff',
             'qy',
             'pka',
@@ -146,4 +146,4 @@ class BasicProteinSerializer(ModelSerializer, serializers.HyperlinkedModelSerial
             'maturation',
             'lifetime',
         )
-        on_demand_fields = ('uuid', 'ex_spectra', 'em_spectra')
+        on_demand_fields = ('uuid', 'ex_spectrum', 'em_spectrum')
