@@ -66,43 +66,6 @@ def norm2P(y):
     return [round(max(yy / maxy, 0), 4) for yy in y], maxy, maxind
 
 
-class SpectrumData(ArrayField):
-
-    def __init__(self, base_field=None, size=None, **kwargs):
-        if not base_field:
-            base_field = ArrayField(models.FloatField(max_length=10), size=2)
-        super().__init__(base_field, size, **kwargs)
-
-    def formfield(self, **kwargs):
-        defaults = {
-            'max_length': self.size,
-            'widget': Textarea(attrs={'cols': '102', 'rows': '15'}),
-            'form_class': CharField,
-        }
-        defaults.update(kwargs)
-        return models.Field().formfield(**defaults)
-
-    def to_python(self, value):
-        if not value:
-            return None
-        if isinstance(value, str):
-            try:
-                return ast.literal_eval(value)
-            except Exception:
-                raise ValidationError('Invalid input for spectrum data')
-
-    def value_to_string(self, obj):
-        return json.dumps(self.value_from_object(obj))
-
-    def validate(self, value, model_instance):
-        super().validate(value, model_instance)
-        for elem in value:
-            if not len(elem) == 2:
-                raise ValidationError("All elements in Spectrum list must have two items")
-            if not all(isinstance(n, (int, float)) for n in elem):
-                raise ValidationError("All items in Septrum list elements must be numbers")
-
-
 class SpectrumOwner(Authorable, TimeStampedModel):
     name        = models.CharField(max_length=100)  # required
     slug        = models.SlugField(max_length=128, unique=True, help_text="Unique slug for the %(class)")  # calculated at save
@@ -243,6 +206,70 @@ class SpectrumManager(models.Manager):
         return qs_list
 
 
+def step_size(lol):
+    x, y = zip(*lol)
+    s = set(np.subtract(x[1:], x[:-1]))
+    if len(s) > 1:  # multiple step sizes
+        return False
+    return s.pop()
+
+
+class SpectrumData(ArrayField):
+
+    def __init__(self, base_field=None, size=None, **kwargs):
+        if not base_field:
+            base_field = ArrayField(models.FloatField(max_length=10), size=2)
+        super().__init__(base_field, size, **kwargs)
+
+    def formfield(self, **kwargs):
+        defaults = {
+            'max_length': self.size,
+            'widget': Textarea(attrs={'cols': '102', 'rows': '15'}),
+            'form_class': CharField,
+        }
+        defaults.update(kwargs)
+        return models.Field().formfield(**defaults)
+
+    def to_python(self, value):
+        if not value:
+            return None
+        if isinstance(value, list):
+            return value
+        if isinstance(value, str):
+            try:
+                return ast.literal_eval(value)
+            except Exception:
+                raise ValidationError('Invalid input for spectrum data')
+
+    def value_to_string(self, obj):
+        return json.dumps(self.value_from_object(obj))
+
+    def clean(self, raw_value, model_instance):
+        if not raw_value:
+            return None
+        raw_value = super().clean(raw_value, model_instance)
+        step = step_size(raw_value)
+        if step > 10 and len(raw_value) < 10:
+            raise ValidationError("insufficient data")
+        else:
+            if step != 1:
+                try:
+                    # TODO:  better choice of interpolation
+                    raw_value = [list(i) for i in
+                                 zip(*interp_linear(*zip(*raw_value)))]
+                except ValueError as e:
+                    raise ValidationError('could not properly interpolate data: {}'.format(e))
+        return raw_value
+
+    def validate(self, value, model_instance):
+        super().validate(value, model_instance)
+        for elem in value:
+            if not len(elem) == 2:
+                raise ValidationError("All elements in Spectrum list must have two items")
+            if not all(isinstance(n, (int, float)) for n in elem):
+                raise ValidationError("All items in Septrum list elements must be numbers")
+
+
 class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
 
     DYE = 'd'
@@ -325,7 +352,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     def save(self, *args, **kwargs):
         # FIXME: figure out why self.full_clean() throws validation error with
         # 'data cannot be null' ... even if data is provided...
-        # self.full_clean()
+        self.full_clean()
         if not any(self.owner_set):
             raise ValidationError("Spectrum must have an owner!")
         if sum(bool(x) for x in self.owner_set) > 1:
@@ -354,31 +381,19 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             raise ValidationError(errors)
 
         if self.data:
-            if self.step > 10 and len(self.data) < 10:
-                errors.update({'data': 'insufficient data'})
-            else:
-                if self.step != 1:
-                    try:
-                        # TODO:  better choice of interpolation
-                        self.data = [list(i) for i in
-                                     zip(*interp_linear(*zip(*self.data)))]
-                    except ValueError as e:
-                        errors.update({'data': 'could not properly interpolate data: {}'.format(e)})
-                        raise ValidationError(errors)
-                # attempt at data normalization
-                if self.category == self.PROTEIN:
-                    if self.subtype == self.TWOP:
-                        y, self._peakval2p, maxi = norm2P(self.y)
-                        self._peakwave2p = self.x[maxi]
-                        self.change_y(y)
-                    else:
-                        self.change_y(norm2one(self.y))
-                elif (max(self.y) > 1.5) or (max(self.y) < 0.1):
-                    if self.category == self.FILTER and (60 < max(self.y) < 101):
-                        # assume 100% scale
-                        self.change_y([round(yy / 100, 4) for yy in self.y])
-                    else:
-                        self.change_y(norm2one(self.y))
+            if self.category == self.PROTEIN:
+                if self.subtype == self.TWOP:
+                    y, self._peakval2p, maxi = norm2P(self.y)
+                    self._peakwave2p = self.x[maxi]
+                    self.change_y(y)
+                else:
+                    self.change_y(norm2one(self.y))
+            elif (max(self.y) > 1.5) or (max(self.y) < 0.1):
+                if self.category == self.FILTER and (60 < max(self.y) < 101):
+                    # assume 100% scale
+                    self.change_y([round(yy / 100, 4) for yy in self.y])
+                else:
+                    self.change_y(norm2one(self.y))
 
         if errors:
             raise ValidationError(errors)
