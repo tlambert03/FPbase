@@ -63,6 +63,7 @@
 
     <div class="{% block container-class %}container{% endblock %}">
 
+      <div class="container">
       {% block messages %}
         {% if messages %}
             {% for message in messages %}
@@ -70,6 +71,7 @@
             {% endfor %}
         {% endif %}
       {% endblock messages %}
+      </div>
 
       {% block content %}
       {% endblock content %}
