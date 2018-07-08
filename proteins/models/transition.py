@@ -3,9 +3,10 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from model_utils.models import TimeStampedModel
+from .mixins import Authorable
 
 
-class StateTransition(TimeStampedModel):
+class StateTransition(Authorable, TimeStampedModel):
     trans_wave = models.PositiveSmallIntegerField(
             blank=True,
             null=True,
