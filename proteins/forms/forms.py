@@ -5,6 +5,8 @@ from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 import re
 from proteins.models import (Protein, State, StateTransition,
                              ProteinCollection, BleachMeasurement)
+from references.models import Reference  # breaks application modularity
+
 from proteins.validators import validate_doi, protein_sequence_validator
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML
@@ -357,3 +359,13 @@ class BleachMeasurementForm(forms.ModelForm):
                 ),
             )
         )
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        doi = self.cleaned_data.get('reference_doi')
+        if doi:
+            ref, created = Reference.objects.get_or_create(doi=doi)
+            obj.reference = ref
+        if commit:
+            obj.save()
+        return obj
