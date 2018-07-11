@@ -5,7 +5,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.core.mail import mail_managers
 
-from ..models import Protein, Organism, Spectrum
+from ..models import Protein, Organism, Spectrum, Fluorophore
 import reversion
 
 
@@ -71,7 +71,10 @@ def similar_spectrum_owners(request):
             'slug': s.slug,
             'name': s.protein.name if hasattr(s, 'protein') else s.name,
             'url': s.get_absolute_url(),
-            'spectra': [sp.get_subtype_display() for sp in s.spectra.all()]}
+            'spectra': ([sp.get_subtype_display() for sp in s.spectra.all()]
+                         if isinstance(s, Fluorophore)
+                         else [s.spectrum.get_subtype_display()])
+            }
             for s in similars[:4]]
     }
 
