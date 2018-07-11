@@ -14,7 +14,7 @@ from model_utils.managers import QueryManager
 from .mixins import Authorable, Product, AdminURLMixin
 from ..util.helpers import wave_to_hex
 from scipy import interpolate
-from scipy.signal import argrelextrema, savgol_filter
+from scipy.signal import argrelextrema  # savgol_filter
 
 
 def is_monotonic(array):
@@ -36,7 +36,7 @@ def interp_linear(x, y, s=1):
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
     F = interpolate.interp1d(x, y)
     ynew = F(xnew)
-    ynew = savgol_filter(ynew, 9, 2)
+    # ynew = savgol_filter(ynew, 9, 2)
     return xnew, ynew
 
 
@@ -47,7 +47,7 @@ def interp_univar(x, y, s=1):
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
     F = interpolate.InterpolatedUnivariateSpline(x, y)
     ynew = F(xnew)
-    ynew = savgol_filter(ynew, 15, 2)
+    # ynew = savgol_filter(ynew, 15, 2)
     return xnew, ynew
 
 
@@ -255,7 +255,7 @@ class SpectrumData(ArrayField):
                 try:
                     # TODO:  better choice of interpolation
                     raw_value = [list(i) for i in
-                                 zip(*interp_linear(*zip(*raw_value)))]
+                                 zip(*interp_univar(*zip(*raw_value)))]
                 except ValueError as e:
                     raise ValidationError('could not properly interpolate data: {}'.format(e))
         return raw_value

@@ -248,10 +248,10 @@ def import_semrock_spectra(part=None, **kwargs):
             kwargs['stypes'] = 'lp'
         if ('di' in part.lower()) or len([i for i in part if i == '/']) > 1:
             kwargs['stypes'] = 'bs'
-        if re.search(r'(\d+)/(\d+)', part):
-            w1, w2 = re.search(r'(\d+)/(\d+)', part).groups()
-            if w2 > w1:  # likely a dichroic
-                kwargs['stypes'] = 'bs'
+        # if re.search(r'(\d+)/(\d+)', part):
+        #     w1, w2 = re.search(r'(\d+)/(\d+)', part).groups()
+        #     if int(w2) > int(w1):  # likely a dichroic
+        #         kwargs['stypes'] = 'bs'
         if 'stypes' not in kwargs:
             raise ValueError('Could not guess filter type for part {}'.format(part))
     else:
