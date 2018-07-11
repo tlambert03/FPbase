@@ -75,6 +75,7 @@ urlpatterns = [
     url(r'^scope_report/', views.ScopeReportView.as_view(), name='scope-report'),
 
     # /proteins/api
+    url(r'^api/spectrum/$', apiviews.SpectrumList.as_view(), name='spectrum-api'),
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
     url(r'^api/proteins/spectraslugs/$', apiviews.spectraslugs, name='spectra-slugs'),
     url(r'^api/proteins/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
@@ -82,6 +83,7 @@ urlpatterns = [
     url(r'^api/proteins/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
     # /proteins/api/:slug/
     url(r'^api/(?P<slug>[-\w]+)/$', apiviews.ProteinRetrieveUpdateDestroyAPIView.as_view(), name='protein-api'),
+
 
     # AJAX
     url(r'^ajax/add_taxonomy/$', views.add_organism, name='add_taxonomy'),

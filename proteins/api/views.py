@@ -2,14 +2,21 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 
 from ..models import Protein, State, Spectrum
-from .serializers import ProteinSerializer, BasicProteinSerializer, StateSerializer, ProteinSpectraSerializer
+from .serializers import ProteinSerializer, SpectrumSerializer, BasicProteinSerializer, StateSerializer, ProteinSpectraSerializer
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_filters import rest_framework as filters
-from ..filters import ProteinFilter, StateFilter
+from ..filters import ProteinFilter, StateFilter, SpectrumFilter
 from rest_framework.settings import api_settings
 from rest_framework_csv import renderers as r
+
+
+class SpectrumList(ListAPIView):
+    queryset = Spectrum.objects.all()
+    serializer_class = SpectrumSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = SpectrumFilter
 
 
 class ProteinListAPIView(ListAPIView):

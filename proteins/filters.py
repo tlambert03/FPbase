@@ -1,9 +1,15 @@
 import django_filters
 from django_filters import rest_framework as filters
 from django import forms
-from .models import Protein, State
+from .models import Protein, State, Spectrum
 from Bio import Seq, Alphabet
 from .validators import cdna_sequence_validator
+
+
+class SpectrumFilter(filters.FilterSet):
+    class Meta:
+        model = Spectrum
+        fields = ('category', 'subtype', 'id', 'owner_state')
 
 
 class StateFilter(filters.FilterSet):

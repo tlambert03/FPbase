@@ -1,6 +1,27 @@
-from ..models import Protein, State, StateTransition
+from ..models import Protein, State, StateTransition, Spectrum
 from rest_framework import serializers
 from drf_tweaks.serializers import ModelSerializer
+
+
+class SpectrumSerializer(serializers.ModelSerializer):
+    owner_id = serializers.IntegerField(source='owner.id')
+    owner_slug = serializers.CharField(source='owner.slug')
+    protein_name = serializers.SerializerMethodField()
+    protein_slug = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Spectrum
+        fields = ('data', 'category', 'subtype', 'id', 'name', 'owner_id', 'owner_slug',
+                  'protein_name', 'protein_slug', 'color', 'min_wave',
+                  'max_wave', 'peak_wave')
+
+    def get_protein_name(self, obj):
+        if obj.owner_state:
+            return obj.owner_state.protein.name
+
+    def get_protein_slug(self, obj):
+        if obj.owner_state:
+            return obj.owner_state.protein.slug
 
 
 class StateTransitionSerializer(serializers.ModelSerializer):
