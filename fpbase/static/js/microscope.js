@@ -786,9 +786,16 @@ function spectral_product(ar1, ar2) {
     var output = [];
     var left = Math.max(ar1[0].x, ar2[0].x);
     var right = Math.min(ar1[ar1.length - 1].x, ar2[ar2.length - 1].x);
+
+    //var a1 = ar1.slice(ar1.findIndex(i => i.x === left), ar1.findIndex(i => i.x === left) + (right-left)/2 + 1);
+    //var a2 = ar2.slice(ar2.findIndex(i => i.x === left), ar2.findIndex(i => i.x === left) + (right-left)/2 + 1);
+//
+    //for (var i = 0; i < a1.length; i++) {
+    //    output.push({ x: a1[i].x, y: a1[i].x * a2[i].x });
+    //}
+
     var offsetA1 = left - ar1[0].x; // these assume monotonic increase w/ step = 1
     var offsetA2 = left - ar2[0].x; // these assume monotonic increase w/ step = 1
-
     for (var i = 0; i < right - left; i++) {
         output.push({ x: left + i, y: ar1[offsetA1 + i].y * ar2[offsetA2 + i].y });
     }

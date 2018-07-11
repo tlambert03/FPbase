@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('proteins', '0011_auto_20180525_2349'),
+        ('proteins', '0012_auto_20180708_1811'),
     ]
 
     operations = [

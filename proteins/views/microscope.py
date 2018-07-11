@@ -22,12 +22,11 @@ class ScopeReportView(TemplateView):
         context = super(ScopeReportView, self).get_context_data(**kwargs)
         m = Microscope.objects.last()
         from django.core.cache import cache
-        print('before')
         if not cache.get('my_key'):
-            oc = list(m.optical_configs.all()[:1])
+            oc = list(m.optical_configs.all())
             fluors = list(State.objects.with_spectra())
             # fluors.extend(list(Dye.objects.all()))
-            report = oclist_efficiency_report(oc, fluors[:30])
+            report = oclist_efficiency_report(oc, fluors)
             cache.set('my_key', report, 1800)
         _rep = cache.get('my_key')
         report = {}

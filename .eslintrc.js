@@ -1,9 +1,17 @@
 module.exports = {
-    "extends": "google",
+    "env": {
+        "es6": true,
+        "browser": true,
+        "jquery": true,
+        "node": true
+    },
+    "extends": "airbnb",
     "parserOptions": {
        "ecmaVersion": 6
      },
      "rules": {
+        "indent": [2, 4],
+        "no-unused-vars": 1,
         "object-curly-spacing": "off",
         "require-jsdoc": ["error", {
             "require": {
