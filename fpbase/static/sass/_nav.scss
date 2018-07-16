@@ -36,7 +36,7 @@ $logo-color: #efe;
       }
       &.brand-FP{
         font-weight: 600;
-        margin-left: -0.8rem;
+        margin-left: -0.65rem;
         @include media-breakpoint-down(sm) { font-size: 2rem }
       }
       &.brand-version{
