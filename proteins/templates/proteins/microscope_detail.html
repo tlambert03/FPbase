@@ -34,7 +34,7 @@
       <div class="focusnote">click and drag to zoom</div>
 
       <div class='float-left' style='font-size:1.55rem'>
-        <a href="#" class='text-info' data-toggle="tooltip" data-placement="right" title="Settings" style="margin-left: 1.2rem; position:relative; top: -4px"><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></a>
+        <span class='text-info' id="settings-button" data-toggle="tooltip" data-placement="right" title="Settings"><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></span>
       </div>
 
       <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
@@ -236,7 +236,8 @@
 </div>
 
 <div class="text-center">
-  <a href="#" class='text-muted small'><span data-toggle="modal" data-target="#embedModal">Embed this page on your website</span></a>
+  <a href="#" class='text-muted small'><span data-toggle="modal" data-target="#embedModal">Embed this microscope page on your website</span></a><br>
+  <a href="{% url 'contact' %}" class='text-info small'>Feedback welcome!</a>
 </div>
 
 
@@ -260,33 +261,54 @@
         </button>
       </div>
       <div class="modal-body" id="optionstab">
-        <div id='options-form'>
-        </div>
+        <form id='options-form'>
+        </form>
         <p class="text-muted small"><em>Note: When scaling to EC or QY, dyes/probes lacking EC/QY values in the database will disappear on the graph!</em></p>
         <a href="" class='text-secondary font-weight-bold small switchmodal'>Embed this page in your website!</a>
       </div>
+      {% if object.owner.id == request.user.id %}
       <div class="modal-footer">
-        {% if object.owner.id == request.user.id %}
             <a href="{% url 'proteins:updatemicroscope' object.id %}"><button class='btn btn-info btn-sm'>Edit Configurations</button></a>
             <a href="{% url 'proteins:deletemicroscope' object.id %}"><button class='btn btn-danger btn-sm'>DELETE MICROSCOPE</button></a>
-        {% endif %}
       </div>
+      {% endif %}
     </div>
   </div>
 </div>
 
 <!-- Modal -->
-<div class="modal" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalTitle" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal " id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="infoModalLongTitle"><strong>Efficiency Calculations</strong></h5>
+        <h5 class="modal-title" id="infoModalLongTitle"><strong>Brightness &amp; Efficiency Calculations</strong></h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body" id="optionstab">
-        <p>notes: excitation efficiency doesn't take illumination power into account (so an excitation filter doesn't reduce the efficiency of a laser).  brightness doesn't care about expression, bleaching, environment...</p>
+        <p><strong>Caution!</strong><br>These calculations cannot take many critical parameters into account (such as expression level, photobleaching, filter delamination, etc... )!  As such, they are merely intended as theoretical predictions, and may not reflect the actual comparative brightness of two fluorophores on your system.</p>
+        <p>The first number in this field (11.71 below) provides a rough estimate of the overall brightness of a given fluorophore/filter-set combination (when extinction coefficient and quantum yield are availble for the fluorophore).  The numbers in parentheses give the excitation efficiency and collection efficiency with the current filter combination.</p>
+        <div class="">
+          <div class="input-group mb-3" style="width: 350px; margin: auto">
+            <div class="input-group-prepend">
+              <span class="input-group-text">Brightness:</span>
+            </div>
+            <input type="text" disabled class="form-control" id="dummy-text" placeholder="11.71 (Ex: 70.2%, Em: 49.7%)" aria-label="Dummy Efficiency Info" aria-describedby="dummy-text">
+          </div>
+        </div>
+        <h5 class="font-weight-bold">Brightness</h5>
+        <p>Brightness is calculated as the product of the excitation and collection efficiencies (described below) and the exctinction coefficient and quantum yield of the selected fluorophore, all divided by 1000.  If the EC and QY are not available for a given probe, then only excitation and collection efficiencies will be shown.  The absolute value of this number is not particularly meaningful, but it can be used to compare the relative brightness of different fluorophore/filter arrangements.</p>
+
+        <h5 class="font-weight-bold">Excitation Efficiency</h5>
+        <p>Excitation efficiency is the percentage of light incident upon the sample that can be absorbed by the fluorophore.  It is calculated as the area under the curve for the combined light + excitation-filters (and dichroics) + fluorophore excitation spectra, divided by the area under the curve of the light + excitation filters alone.  For example, a (narrow band) laser at the peak absorption wavelength of a fluoropohre would have near 100% efficiency;  but a very broadband excitation spectrum, even if it overlaps the peak absorption wavelenght, can have relatively poor excitation efficiency if it contains excess off-peak energy.  In the image below, the combined light source and 430/24x filter miss the peak excitation of EGFP and have relatively poor efficiency of 27.4%, represented by the area with diagonal lines:</p>
+        <img src="{% static 'images/bad_ex_efficiency.png' %}" class="img-fluid mx-auto d-block mb-2" alt='poor excitation efficiency'>
+        <p><strong>Caution!</strong><br>One potentially confusing thing is that we cannot make any assumptions about the power of the light source (it is assumed to be "as high as you need it").  So, for example, a laser at peak abosorption wavelength will <em>still</em> have excellent excitation efficiency even if a poorly matched excitation filter is added to the light path (since one could theoretically just turn up the laser infinitely).</p>
+
+        <h5 class="font-weight-bold">Emission (Collection) Efficiency</h5>
+        <p>Excitation efficiency is the percentage of all possible fluorophore emission photons can be collected given the emission path.  It is calculated as the area under the curve for the combined emission filters (and dichroics) + camera QE + fluorophore emission spectra, divided by the area under full fluorophore emission spectrum.  In the image below, the EGFP emission spectrum is relatively well matched to the 525/50m filter, and the collection efficiency, represented by the area with diagonal lines, is about 58% the area of the full fluorophore emission spectrum (once camera QE is also taken into consideration).</p>
+        <img src="{% static 'images/good_em_efficiency.png' %}" class="img-fluid mx-auto d-block mb-3" alt='decent emission collection efficiency'>
+
       </div>
     </div>
   </div>>
@@ -469,23 +491,32 @@
   }
 
   function updateEfficiency(){
+    if (!options.calcEff){
+      $("#efficiency-text").attr('placeholder', 'disabled')
+      return
+    }
+    if (!($("#fluor-select :selected").val())){
+      return
+    }
     var a = calcExEmPaths();
     removeSubtypes('eff')
     var fluorslug = $("#fluor-select :selected").val();
-    if (a.emvalues)
+    if (a.emvalues && a.emvalues.length){
       var emeff = efficiency(a.emvalues, {slug: fluorslug, type: 'em'});
-    if (a.exvalues)
+    }
+    if (a.exvalues && a.exvalues.length){
       var exeff = efficiency(a.exvalues, {slug: fluorslug, type: 'ex'});
+    }
     var info = '';
     if (exeff){
-      if (options.normMergedEx)
-        exeff.values = normalizeSpectrum(exeff.values, options.normMergedScalar)[0]
-      data.push(exeff);
+      //if (options.normMergedEx)
+        //exeff.values = normalizeSpectrum(exeff.values, options.normMergedScalar)[0]
+      pushData(exeff);
       if (exeff.efficiency)
         info += 'Ex: ' + String(Math.round(exeff.efficiency * 1000) / 10) + '%'
     }
     if (emeff){
-      data.push(emeff);
+      pushData(emeff);
       if (emeff.efficiency){
         if (info)
           info +=', '
@@ -516,7 +547,11 @@
       refreshChart();
     });
 
+
     $(".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select, scaleToEC_input, scaleToQY_input, #merge-light-exfilter").change(function(){
+      if (options.oneAtaTime && (!$(this).hasClass('invswitch'))){
+        $(this).closest('.card').find('input').not(this).prop('checked', false)
+      }
       updateChart();
     });
 
@@ -565,7 +600,7 @@
         if ($(document).width() < 576){
             chart.legend.maxKeyLength(15);
         }
-    }, 50);
+    }, 100);
   });
 
 
@@ -581,10 +616,7 @@
 
 
   $("#fluor-select").select2({ theme: "bootstrap", width: 100});
-  $(".card input").not('.invswitch').click(function(){
-    if (options.oneAtaTime)
-      $(this).closest('.card').find('input').not(this).prop('checked', false)
-  });
+
 
   $(function() {
     for (var i=0; i < scopespectra.length; i++){

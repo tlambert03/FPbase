@@ -8,8 +8,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.contrib import messages
 
-from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig, State, Dye
+from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig, State
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from .mixins import OwnableObject
 from ..util.efficiency import oclist_efficiency_report
@@ -152,8 +153,21 @@ class MicroscopeDetailView(DetailView):
             data['cameras'] = Camera.objects.all()
         if not self.object.lights.count():
             data['lights'] = Light.objects.all()
-        data['probeslugs'] = Spectrum.objects.fluorlist()
+        if self.object.collection:
+            data['probeslugs'] = [{'slug': x['states__slug'], 'name': x['name']}
+                                  for x in self.object.collection.proteins
+                                  .exclude(states__spectra=None)
+                                  .values('name', 'states__slug')]
+        else:
+            data['probeslugs'] = Spectrum.objects.fluorlist()
         data['scopespectra'] = json.dumps(self.object.spectra_d3())
+        safari = ('Safari' in self.request.META['HTTP_USER_AGENT']
+                  and 'Chrome' not in self.request.META['HTTP_USER_AGENT'])
+        if safari:
+            messages.add_message(
+                self.request, messages.INFO, 'Due to slow performance on Safari, '
+                'wavelength precision has been reduced. '
+                'Click gear tab for settings, or zoom in for increased performance')
         return data
 
 

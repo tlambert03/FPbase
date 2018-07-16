@@ -270,57 +270,6 @@ class SpectrumData(ArrayField):
 
 
 class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
-
-    def formfield(self, **kwargs):
-        defaults = {
-            'max_length': self.size,
-            'widget': Textarea(attrs={'cols': '102', 'rows': '15'}),
-            'form_class': CharField,
-        }
-        defaults.update(kwargs)
-        return models.Field().formfield(**defaults)
-
-    def to_python(self, value):
-        if not value:
-            return None
-        if isinstance(value, list):
-            return value
-        if isinstance(value, str):
-            try:
-                return ast.literal_eval(value)
-            except Exception:
-                raise ValidationError('Invalid input for spectrum data')
-
-    def value_to_string(self, obj):
-        return json.dumps(self.value_from_object(obj))
-
-    def clean(self, raw_value, model_instance):
-        if not raw_value:
-            return None
-        raw_value = super().clean(raw_value, model_instance)
-        step = step_size(raw_value)
-        if step > 10 and len(raw_value) < 10:
-            raise ValidationError("insufficient data")
-        else:
-            if step != 1:
-                try:
-                    # TODO:  better choice of interpolation
-                    raw_value = [list(i) for i in
-                                 zip(*interp_univar(*zip(*raw_value)))]
-                except ValueError as e:
-                    raise ValidationError('could not properly interpolate data: {}'.format(e))
-        return raw_value
-
-    def validate(self, value, model_instance):
-        super().validate(value, model_instance)
-        for elem in value:
-            if not len(elem) == 2:
-                raise ValidationError("All elements in Spectrum list must have two items")
-            if not all(isinstance(n, (int, float)) for n in elem):
-                raise ValidationError("All items in Septrum list elements must be numbers")
-
-
-class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     DYE = 'd'
     PROTEIN = 'p'
     LIGHT = 'l'

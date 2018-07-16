@@ -9,6 +9,19 @@ h6 {
     opacity: 0;
 }
 
+#settings-button {
+  cursor: pointer;
+
+  margin-left: .5rem;
+  position: relative;
+  top: -5px
+
+  :hover {
+    color: darken($info, 10)
+  }
+}
+
+
 .nvd3 .nv-brushBackground rect {
   shape-rendering: crispEdges;
   stroke-width: 0.3;
@@ -31,6 +44,7 @@ h6 {
 
     }
   }
+
 
   &.microscopepage {
     .select2-container--bootstrap .select2-selection--single {

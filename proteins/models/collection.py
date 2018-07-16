@@ -32,3 +32,10 @@ class ProteinCollection(OwnedCollection):
 
     class Meta:
         unique_together = (('owner', 'name'),)
+
+
+class FluorophoreCollection(ProteinCollection):
+    dyes = models.ManyToManyField('Dye', blank=True, related_name='collection_memberships')
+
+    def get_absolute_url(self):
+        return reverse("proteins:fluor-collection-detail", args=[self.id])

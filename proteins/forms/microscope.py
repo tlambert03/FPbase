@@ -2,10 +2,11 @@ import re
 from django import forms
 from ..util.importers import check_chroma_for_part, check_semrock_for_part, add_filter_to_database
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from ..models import (Light, Camera, Microscope, Filter, OpticalConfig, FilterPlacement)
+from ..models import (Light, Camera, Microscope, Filter, OpticalConfig, FilterPlacement, ProteinCollection)
 from dal import autocomplete
 from django.forms.models import inlineformset_factory
 from collections import defaultdict
+
 
 class FilterPromise(object):
     def __init__(self, part):
@@ -58,13 +59,19 @@ class MicroscopeForm(forms.ModelForm):
         help_text=('See extended help below')
     )
 
+    collection = forms.ModelChoiceField(
+        required=False, queryset=ProteinCollection.objects.exclude(private=True),
+        label='Protein Collection',
+        help_text='Subset of probes to show on microscope page. '
+                  'Leave blank to enable all fluorophores in the database.')
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
     class Meta:
         model = Microscope
-        fields = ('name', 'description',)
+        fields = ('name', 'description', 'collection')
         help_texts = {
             'name': 'Name of this microscope or set of filter configurations',
             'description': 'This text will appear below the name on your microscope page'

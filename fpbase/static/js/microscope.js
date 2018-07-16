@@ -3,6 +3,9 @@
 // where a bad foundation just kept going.  the program works relatively well,
 // but it sure isn't pretty.
 
+// Safari 3.0+ "[object HTMLElementConstructor]"
+var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+
 var chart;
 var CONST = {
     category: {
@@ -31,8 +34,8 @@ var data = [];
 var localData = {};
 var options = {
     showArea: true,
-    minwave: 300,
-    maxwave: 1000,
+    minwave: 350,
+    maxwave: 800,
     startingBrush: [350, 800],
     //autoscaleBrush: false,
     exNormWave: undefined,
@@ -40,19 +43,51 @@ var options = {
     hide2p: true,
     normMergedEx: true,
     normMergedScalar: 1,
+    focusEnable: true,
 //    scaleToEC: false,
     scaleToQY: false,
     oneAtaTime: true,
+    precision: isSafari ? 2 : 1,
+    interpolate: isSafari ? true : false,
+    calcEff: true,
 };
 var userOptions = {
+    calcEff: {type: 'checkbox', msg: 'Calculate efficiency on update.'},
     oneAtaTime: {type: 'checkbox', msg: 'Uncheck other similar filters when selecting a filter'},
     normMergedEx: {type: 'checkbox', msg: 'Normalize merged excitation and light source spectra'},
     showArea: {type: 'checkbox', msg: 'Fill area under curve'},
     //autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
 //    hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
 //    scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
+    focusEnable: {type: 'checkbox', msg: 'Enable zoom/pan bar'},
+    interpolate: {type: 'checkbox', msg: 'Spline interpolation on chart'},
+    precision: {type: 'number', msg: 'Precision of chart in nm (higher = faster)', max: 8, min: 1},
     scaleToQY: {type: 'checkbox', msg: 'Scale emission spectra to quantum yield'},
 };
+
+var chartOptions = function() {
+    return {
+                focusEnable: options.focusEnable,
+                focusShowAxisX: false,
+                interpolate: options.interpolate ? 'cardinal' : 'linear',
+                noData: "Add spectra below ...",
+                showLegend: true,
+                showXAxis: true,
+                showYAxis: true,
+                duration: 200,
+                useInteractiveGuideline: !mobilecheck(),
+                clipEdge: true,
+                margin: {
+                    left: 40,
+                    bottom: options.focusEnable ?  15 : 58,
+                },
+                yDomain: [0, 1],
+                //xDomain: [350, 800],
+                //forceY: [0,1.04],
+                //forceX: [350, 800],
+            }
+}
+
 var svg = d3.select('#spectra svg');
 
 
@@ -88,10 +123,10 @@ function getData(slug) {
 }
 
 function padDataLimits(d) {
-    for (var i = d.minwave - 1; i >= options.minwave; i--) {
+    for (var i = d.minwave - 1; i >= Math.max(options.minwave, 350); i--) {
         d.values.unshift({ x: i, y: 0 });
     }
-    for (var n = d.maxwave + 1; n <= Math.max(options.maxwave, 1000); n++) {
+    for (var n = d.maxwave + 1; n <= Math.min(options.maxwave, 800); n++) {
         d.values.push({ x: n, y: 0 });
     }
     return d;
@@ -133,7 +168,6 @@ function mergeSpectra(concatslug) {
         if (concatslug.endsWith('normed'))
             slugs.pop()
         var asyncFunction = function(s, onfinished) {
-            console.log(s)
             if (s.startsWith('laser')) {
                 if (localData.hasOwnProperty(s)) {
                     sp.push.apply(sp, localData[s])
@@ -191,9 +225,20 @@ function mergeSpectra(concatslug) {
     return dfd.promise();
 }
 
+function pushData(item){
+    if (options.precision > 1){
+        var newitem = Object.assign({}, item);
+        newitem.values = newitem.values.filter(function(d) { return d.x % options.precision === 0 })
+        data.push(newitem);
+    } else {
+        data.push(item);
+    }
+
+}
+
 function addMerged(comboslug){
     return mergeSpectra(comboslug).then(function(d){
-        data.push(d[0])
+        pushData(d[0])
     })
 }
 
@@ -205,7 +250,7 @@ function addItem(slug, subtype) {
         .then(function(d) {
             for (var i = 0; i < d.length; i++) {
                 if ((!subtype | (d[i].type == subtype)) & !dataHasKey(d[i].key)) {
-                    data.push(JSON.parse(JSON.stringify(d[i]))); // make a copy of the object
+                    pushData(JSON.parse(JSON.stringify(d[i]))); // make a copy of the object
                 }
             }
         })
@@ -247,22 +292,21 @@ function removeItem(slug, subtype) {
 
 
 function refreshChart() {
-    chart.lines.duration(300);
-    if (options.autoscaleBrush) {
-        var smin = 10000;
-        var smax = 0;
-        for (var i = 0; i < data.length; i++) {
-            if (!data[i].disabled) {
-                smin = Math.min(data[i].minwave, smin);
-                smax = Math.max(data[i].maxwave, smax);
-            }
-        }
-        chart.brushExtent([smin, smax]);
-    }
+    chart.lines.duration(200);
+    // if (options.autoscaleBrush) {
+    //     var smin = 10000;
+    //     var smax = 0;
+    //     for (var i = 0; i < data.length; i++) {
+    //         if (!data[i].disabled) {
+    //             smin = Math.min(data[i].minwave, smin);
+    //             smax = Math.max(data[i].maxwave, smax);
+    //         }
+    //     }
+    //     chart.brushExtent([smin, smax]);
+    // }
 
     scaleDataToOptions();
     excitationNormalization();
-    //calculateEfficiency();
     chart.update();
     updateGlobalGradient();
     chart.lines.duration(0);
@@ -425,16 +469,33 @@ $(function() {
     $('#y-zoom-slider').hide();
     //$('[data-toggle="popover"]').popover()
 
+    urlParams = getUrlParams();
+    options.precision = urlParams.precision || options.precision;
+    if (urlParams.eff !== 'undefined'){
+        options.calcEff = !(urlParams.eff == 'false')
+    }
+
     $.each( userOptions, function( key, value ) {
+        var divClasses = value.type === 'checkbox' ? 'custom-control custom-checkbox' : '';
+        divClasses += ' mb-1 pb-1';
+        var inputClasses = value.type === 'checkbox' ? 'custom-control-input' : 'pl-1';
         $('#options-form')
-            .append($('<div>', {class: 'custom-control custom-checkbox mb-1 pb-1'})
-            .append($('<input>', {type: value.type, class:'custom-control-input', checked: options[key]})
+            .append($('<div>', {class: divClasses})
+            .append($('<input>', {
+                    type: value.type,
+                    class: inputClasses,
+                    checked: options[key],
+                    value: value.type==='number' ? options[key] : '',
+                    max: value.type==='number' ? value.max : '',
+                    min: value.type==='number' ? value.min : '',
+                    width: value.type==='number' ? '50px' : '',
+                })
                 .attr('id', key + '_input')
                 .change(function(){
                     if (value.type == 'checkbox') {
                         options[key] = this.checked;
                     } else {
-                        options[key] = this.value;
+                        options[key] = Math.min(Math.max(this.value, value.min), value.max);
                     }
 
                     if (key === 'showArea'){
@@ -444,17 +505,31 @@ $(function() {
                             $(".nv-groups").addClass('area-hidden')
                         }
                     }
-                    if (key === 'normMergedEx'){
+                    else if (key === 'focusEnable'){
+                        chart.options(chartOptions());
+                        $(".focusnote").toggle()
+                        $(".resetXdomain").toggle();
+                    }
+                    else if (key === 'interpolate'){
+                        chart.options(chartOptions());
+                    }
+
+                    if (key === 'normMergedEx' || key === 'calcEff'){
                         updateChart();
-                    } else{
+                    } else if (key === 'precision') {
+                        data = [];
+                        svg.datum(data).call(chart)
+                        updateChart();
+                    } else {
                         refreshChart();
                     }
 
                 })
             )
-            .append($('<label>', {for: key + '_input', class: 'custom-control-label'}).text(value.msg))
+            .append($('<label>', {for: key + '_input', class: value.type === 'checkbox' ? 'custom-control-label' : 'ml-2'}).text(value.msg))
         )
     });
+
 
     var mobilecheck = function() {
       var check = false;
@@ -464,25 +539,7 @@ $(function() {
 
     //initialize chart
     nv.addGraph(function() {
-        chart = nv.models.lineChart()
-            .options({
-                focusEnable: true,
-                focusShowAxisX: false,
-                noData: "Add spectra below ...",
-                showLegend: true,
-                showXAxis: true,
-                showYAxis: true,
-                duration: 300,
-                useInteractiveGuideline: !mobilecheck(),
-                clipEdge: true,
-                margin: {
-                    left: 40,
-                    bottom: 15,
-                },
-                yDomain: [0, 1],
-                //forceY: [0,1.04],
-                //forceX: [350, 750],
-            });
+        chart = nv.models.lineChart().options(chartOptions());
         chart.lines.duration(0);
         chart.brushExtent(options.startingBrush);
         chart.interactiveLayer.tooltip.valueFormatter(function(d, i) {
@@ -556,7 +613,6 @@ $(function() {
     });
 
 
-    urlParams = getUrlParams();
     if ('s' in urlParams){
         var arr = urlParams.s.toLowerCase().split(',');
         for (var i = 0; i < arr.length; i++){
@@ -573,8 +629,6 @@ $(function() {
 
             }
         }
-    } else {
-
     }
 
     $(".resetXdomain").click(function(){
@@ -592,7 +646,7 @@ $(function() {
 
 function setYscale(type) {
     //type can be log or linear
-    chart.lines.duration(300);
+    chart.lines.duration(200);
     [m, n] = chart.yDomain()
     if (type == 'log') {
         options.scale = 'log';
@@ -716,7 +770,7 @@ function customLaser(wave) {
         minwave: wave,
         maxwave: wave,
         values: [
-            {x: wave, y: 1},
+            {x: options.precision * Math.round(wave / options.precision), y: 1},
         ]
     })
 }
@@ -726,7 +780,7 @@ function updateCustomLaser(wave) {
     var F = customLaser(+wave);
     localData['laser-'+wave] = [F];
     removeItem('custom_laser');
-    data.push(F);
+    pushData(F);
 }
 
 
@@ -782,23 +836,27 @@ function updateGlobalGradient() {
 //// EFFICIENCY CALCULATIONS
 
 function spectral_product(ar1, ar2) {
+    console.log("spectral_product")
     // calculate product of two spectra.values
     var output = [];
+    var step = ar1[1].x - ar1[0].x;
     var left = Math.max(ar1[0].x, ar2[0].x);
     var right = Math.min(ar1[ar1.length - 1].x, ar2[ar2.length - 1].x);
 
-    //var a1 = ar1.slice(ar1.findIndex(i => i.x === left), ar1.findIndex(i => i.x === left) + (right-left)/2 + 1);
-    //var a2 = ar2.slice(ar2.findIndex(i => i.x === left), ar2.findIndex(i => i.x === left) + (right-left)/2 + 1);
-//
-    //for (var i = 0; i < a1.length; i++) {
-    //    output.push({ x: a1[i].x, y: a1[i].x * a2[i].x });
-    //}
-
-    var offsetA1 = left - ar1[0].x; // these assume monotonic increase w/ step = 1
-    var offsetA2 = left - ar2[0].x; // these assume monotonic increase w/ step = 1
-    for (var i = 0; i < right - left; i++) {
-        output.push({ x: left + i, y: ar1[offsetA1 + i].y * ar2[offsetA2 + i].y });
+    var a1 = ar1.slice(ar1.findIndex(i => i.x === left), ar1.findIndex(i => i.x === right));
+    var a2 = ar2.slice(ar2.findIndex(i => i.x === left), ar2.findIndex(i => i.x === right));
+    for (var i = 0; i < a1.length; i++) {
+        output.push({ x: a1[i].x, y: a1[i].y * a2[i].y });
     }
+
+    // var offsetA1 = (left - ar1[0].x) / step; // these assume monotonic increase w/ step = 1
+    // var offsetA2 = (left - ar2[0].x) / step; // these assume monotonic increase w/ step = 1
+    // for (var i = 0; i < right - left; i++) {
+    //     console.log(ar1[offsetA1 + i].x, ar2[offsetA2 + i])
+    //     if (ar1[offsetA1 + i] && ar2[offsetA2 + i]){
+    //         output.push({ x: ar1[offsetA1 + i].x, y: ar1[offsetA1 + i].y * ar2[offsetA2 + i].y });
+    //     }
+    // }
     return output;
 }
 
@@ -807,9 +865,10 @@ function trapz(arr, min, max) {
     min = min || 300;
     max = max || 1000;
     var sum = 0;
+    var step = arr[1].x - arr[0].x;
     for (i = 0; i < arr.length - 1; i++) {
         if (arr[i].x > min) {
-            var d = (arr[i].y + arr[i + 1].y) / 2;
+            var d = step * (arr[i].y + arr[i + 1].y) / 2;
             sum += d;
         }
         if (arr[i].x > max) {
@@ -848,34 +907,35 @@ function combineSpectra(pathlist){
 
 // disgusting awful code design
 function calcExEmPaths(){
-    var expath = $(".ex-filter:checked").map(function(){ return localData[this.value][0] }).get();
-    var bspath = $(".bs-filter:checked").map(function(){ return localData[this.value][0] }).get();
-    var empath = $(".em-filter:checked").map(function(){ return localData[this.value][0] }).get();
-    var inverted = $(".invswitch:checked").map(function(){ return this.value }).get();
+    var empath = [];
+    var expath = [];
+    var bspath = $(".bs-filter:checked").map(function(){ return data.find(d => d.slug === this.value) }).get();
 
     for (var n=0; n < bspath.length; n++){
         var invVals = Object.assign({}, bspath[n]);
         invVals.values = invertData(bspath[n].values);
-        if ($.inArray(bspath[n].slug , inverted) > -1 ){
-            expath.push(bspath[n]);
-            empath.push(invVals);
-        } else {
-            empath.push(bspath[n]);
-            expath.push(invVals);
-        }
+        empath.push(bspath[n]);
+        expath.push(invVals);
     }
 
-    if ($("#light-select :selected").val()){
-        expath.push(localData[$("#light-select :selected").val()][0]);
-    }
-
+    empath.push.apply(empath, $(".em-filter:checked").map(function(){ return data.find(d => d.slug === this.value) }).get());
     if ($("#scale-camera").prop('checked')) {
         if ($("#camera-select :selected").val()){
-            empath.push(localData[$("#camera-select :selected").val()][0]);
+            empath.push(data.find(d => d.slug === $("#camera-select :selected").val()));
         }
     }
 
-
+    if ($("#merge-light-exfilter").prop('checked') && $('#light-select :selected').val() !== ''){
+        var d = data.find(d => d.slug.includes('merged'));
+        if (d) {
+            expath.push(d);
+        }
+    } else {
+        expath.push.apply(expath, $(".ex-filter:checked").map(function(){ return data.find(d => d.slug === this.value) }).get());
+        if ($("#light-select :selected").val()){
+            expath.push(data.find(d => d.slug === $("#light-select :selected").val()));
+        }
+    }
     return {exvalues: combineSpectra(expath), emvalues: combineSpectra(empath)}
 }
 
