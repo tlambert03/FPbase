@@ -154,10 +154,11 @@ class MicroscopeDetailView(DetailView):
         if not self.object.lights.count():
             data['lights'] = Light.objects.all()
         if self.object.collection:
-            data['probeslugs'] = [{'slug': x['states__slug'], 'name': x['name']}
-                                  for x in self.object.collection.proteins
-                                  .exclude(states__spectra=None)
-                                  .values('name', 'states__slug')]
+            proteins = self.object.collection.proteins.with_spectra() \
+                .prefetch_related('proteins', 'proteins__states')
+            data['probeslugs'] = [{'slug': s.slug, 'name': str(s)}
+                                  for p in proteins for s in p.states.all()
+                                  if s.spectra]
         else:
             data['probeslugs'] = Spectrum.objects.fluorlist()
         data['scopespectra'] = json.dumps(self.object.spectra_d3())
