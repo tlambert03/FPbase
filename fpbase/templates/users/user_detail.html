@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static avatar_tags %}
 
 {% block title %}User: {{ object.username }}{% endblock %}
 
@@ -10,6 +10,7 @@
     <div class="col-sm-12">
 
       <h2>{{ object.username }}</h2>
+      <div class='mb-2'>{% avatar user %}</div>
       {% if object.name %}
         <p>{{ object.name }}</p>
       {% endif %}
@@ -24,6 +25,7 @@
     <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Info</a>
     <a class="btn btn-primary" href="{% url 'account_email' %}" role="button">E-Mail</a>
     <a class="btn btn-primary" href="{% url 'socialaccount_connections' %}" role="button">Social Login</a>
+    <a class="btn btn-primary" href="{% url 'avatar_change' %}" role="button">Change your avatar</a>
     <!-- Your Stuff: Custom user template urls -->
   </div>
 

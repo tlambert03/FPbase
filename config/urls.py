@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^reference/', include('references.urls')),  # NOTE: without $
 
     url(r'^fav/', include('favit.urls')),
+    url(r'^avatar/', include('avatar.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

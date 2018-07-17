@@ -1,0 +1,23 @@
+{% extends "avatar/base.html" %}
+{% load i18n avatar_tags crispy_forms_tags %}
+
+{% block content %}
+    <p>{% trans "Your current avatar: " %}</p>
+    {% avatar user %}
+    {% if not avatars %}
+        <p>{% trans "You haven't uploaded an avatar yet. Please upload one now." %}</p>
+    {% else %}
+        <form method="POST" action="{% url 'avatar_change' %}">
+            <ul class='-2'>
+                {{ primary_avatar_form | crispy }}
+            </ul>
+            <p>{% csrf_token %}<input class='btn btn-primary' type="submit" value="{% trans "Choose new Default" %}" />
+            <a class="btn btn-danger" href="{% url 'avatar_delete' %}" role="button">Delete avatars</a>
+            </p>
+        </form>
+    {% endif %}
+    <form enctype="multipart/form-data" method="POST" action="{% url 'avatar_add' %}">
+        {{ upload_avatar_form | crispy }}
+        <p>{% csrf_token %}<input class='btn btn-primary' type="submit" value="{% trans "Upload New Image" %}" /></p>
+    </form>
+{% endblock %}

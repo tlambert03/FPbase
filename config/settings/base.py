@@ -65,7 +65,7 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'reversion',
     'reversion_compare',
-
+    'avatar',
 ]
 
 # Apps specific for this project go here.
@@ -304,6 +304,16 @@ ADMIN_URL = r'^admin/'
 SITE_ID = 1
 # CANONICAL_URL = env('CANONICAL_URL', default='https://www.fpbase.org')
 CANONICAL_URL = env('CANONICAL_URL', default=None)
+
+
+# AVATAR CONFIGURATION
+# ------------------------------------------------------------------------------
+
+AVATAR_AUTO_GENERATE_SIZES = (80, 36)
+AVATAR_CACHE_ENABLED = False
+AVATAR_GRAVATAR_DEFAULT = 'identicon'
+AVATAR_CLEANUP_DELETED = True
+
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
