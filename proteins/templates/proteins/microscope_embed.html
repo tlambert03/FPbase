@@ -1,52 +1,31 @@
 {% load static i18n compress%}<!DOCTYPE html>
 <html lang="en">
   <head>
-
-    <title>{{ microscope.name }} on FPbase</title>
-
-<meta charset="utf-8">
-<meta http-equiv="Content-Language" content="en">
-<meta http-equiv="x-ua-compatible" content="ie=edge">
-<title>FPbase :: The Fluorescent Protein Database</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="A collection of spectra representing the microscope {{microscope.name}} on FPbase. ">
-<meta name="author" content="Talley Lambert">
-<meta name="copyright" content="Talley Lambert" />
-
-<link href="{% static 'css/style.min.css' %}" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-
-<style>
-  #logolink {
-    position: relative;
-    margin-top: -34px;
-    opacity: 0.6;
-    width: 160px;
-  }
-  #logolink:hover {
-    opacity: 1;
-  }
-  #logolink a:hover {
-    text-decoration: none;
-  }
-
-</style>
+    {% block ga %}
+      {% if not debug %}
+        {% include "_ga.html" with ga_tracking_id=ga_tracking_id %}
+      {% endif %}
+    {% endblock ga %}
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Language" content="en">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>{{ microscope.name }} - An FPbase Microscope</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A collection of spectra representing the microscope {{microscope.name}} on FPbase. ">
+  <meta name="author" content="Talley Lambert">
+  <meta name="copyright" content="Talley Lambert" />
+  <link href="{% static 'css/style.min.css' %}" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  <style>#logolink {position: relative;margin-top: -34px;opacity: 0.6;width: 160px;}#logolink:hover {opacity: 1;}#logolink a:hover {text-decoration: none;}</style>
 </head>
-
 <body>
-
   <div class="container spectrumpage microscopepage">
-
     <h4 class='text-sm-center text-right font-weight-bold pt-2'>{{microscope}}</h4>
     <div id="logolink" style="display:inline !important!"><a href="{{ request.scheme }}://{{ request.get_host }}" target="_blank">{% include "_logo_prestyled.html" %}</a></div>
-
     {% include 'proteins/_microscope_include.html' with embeddable=False %}
-
   </div>
-
-
   <!-- Required by Bootstrap v4 beta -->
   <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js" integrity="sha384-3LK/3kTpDE/Pkp8gTNp2gR/2gOiwQ6QaO7Td0zV76UFJVhqLl4Vl3KL1We6q6wR9" crossorigin="anonymous"></script>
   <script
@@ -59,12 +38,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
-
   <script type="text/javascript">var scopespectra = {{ scopespectra|safe }};</script>
-
   {% compress js %}
   <script src="{% static 'js/microscope.js' %}"></script>
   {% endcompress %}
-
 </body>
 </html>

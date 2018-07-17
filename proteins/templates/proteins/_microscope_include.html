@@ -1,12 +1,9 @@
 {% load static %}
-
-
 {% if object.description %}
     <div class="container font-italic text-muted text-center">
         {{object.description}}
     </div>
 {% endif %}
-
 <div class="spectra-wrapper">
   <div class="spectra container clearfix mb-3">
     <div id="spectra">
@@ -14,13 +11,10 @@
         <div id="y-zoom-slider"></div>
         <svg id="spectrasvg"></svg>
       </div>
-
       <div class="focusnote">click and drag to zoom</div>
-
       <div class='float-left' style='font-size:1.55rem'>
         <span class='text-info' id="settings-button" data-toggle="tooltip" data-placement="right" title="Settings"><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></span>
       </div>
-
       <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
         <label class="btn btn-info active">
           <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
@@ -33,7 +27,6 @@
     </div>
   </div>
 </div>
-
 <div class="container">
   <div class="row">
     <div class="input-group mb-3 col-12 col-md-6">
@@ -64,11 +57,9 @@
         <div class="input-group-append">
           <a href="#" data-toggle="modal" data-target="#infoModal"><button class="btn btn-outline-info" type="button"><i class="fas fa-info"></i></button></a>
         </div>
-
       </div>
     </div>
   </div>
-
   <div class="row">
     <div class="col-12">
       <div class="input-group mb-3">
@@ -83,7 +74,6 @@
         </select>
       </div>
     </div>
-
   </div>
   <div class="row">
     <div class="col-12 col-sm-6">
@@ -120,7 +110,6 @@
         </div>
       </div>
     </div>
-
     <div class="col-12 col-sm-6">
       <div class="input-group mb-3">
         <div class="input-group-prepend">
@@ -147,9 +136,7 @@
         </div>
       </div>
     </div>
-
   </div>
-
   <div class="row filters">
     <div class="col-12 col-sm-6 col-md-4 order-sm-2 order-md-1 mb-3">
       <div class="card">
