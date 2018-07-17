@@ -14,11 +14,10 @@ def resavestuff(apps, schema_editor):
     Filter = apps.get_model("proteins", "Filter")
     Light = apps.get_model("proteins", "Light")
 
-    for f in Filter.objects.filter(name__icontains='ff01'):
-        f.subtype = 'bp'
-    for f in Filter.objects.filter(name__icontains='ff02'):
-        f.subtype = 'bp'
-    for f in Filter.objects.filter(name__icontains='ff03'):
+    for f in Filter.objects.filter(
+            name__icontains='ff0',
+            spectrum__subtype='bs',
+            manufacturer__icontains='semrock'):
         f.subtype = 'bp'
     for l in Light.objects.filter(manufacturer='lumencor'):
         l.manufacturer = 'Lumencor'
