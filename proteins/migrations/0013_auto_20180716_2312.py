@@ -8,10 +8,13 @@ import django.db.models.deletion
 import django.utils.timezone
 import model_utils.fields
 import proteins.util.helpers
-from proteins.models import Filter, Spectrum, Light
 
 
-def resavestuff():
+def resavestuff(apps, schema_editor):
+    Filter = apps.get_model("proteins", "Filter")
+    Spectrum = apps.get_model("proteins", "Spectrum")
+    Light = apps.get_model("proteins", "Light")
+
     for f in Filter.objects.filter(name__icontains='ff01'):
         f.subtype = Spectrum.BP
     for f in Filter.objects.filter(name__icontains='ff02'):
@@ -28,7 +31,7 @@ def resavestuff():
         f.save()
 
 
-def resavestuff_back():
+def resavestuff_back(apps, schema_editor):
     pass
 
 
