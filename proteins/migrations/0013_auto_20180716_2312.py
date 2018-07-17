@@ -8,6 +8,28 @@ import django.db.models.deletion
 import django.utils.timezone
 import model_utils.fields
 import proteins.util.helpers
+from proteins.models import Filter, Spectrum, Light
+
+
+def resavestuff():
+    for f in Filter.objects.filter(name__icontains='ff01'):
+        f.subtype = Spectrum.BP
+    for f in Filter.objects.filter(name__icontains='ff02'):
+        f.subtype = Spectrum.BP
+    for f in Filter.objects.filter(name__icontains='ff03'):
+        f.subtype = Spectrum.BP
+    for l in Light.objects.filter(manufacturer='lumencor'):
+        l.manufacturer = 'Lumencor'
+        l.save()
+    for f in Filter.objects.filter(manufacturer='lumencor'):
+        f.manufacturer = 'Lumencor'
+        if f.part[:5].isdigit():
+            f.part = f.part[:3] + '/' + f.part[3:]
+        f.save()
+
+
+def resavestuff_back():
+    pass
 
 
 class Migration(migrations.Migration):
@@ -181,4 +203,5 @@ class Migration(migrations.Migration):
             name='opticalconfig',
             unique_together={('name', 'microscope')},
         ),
+        migrations.RunPython(resavestuff, resavestuff_back),
     ]
