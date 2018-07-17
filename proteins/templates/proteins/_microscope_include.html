@@ -147,8 +147,8 @@
           {% for filt in microscope.ex_filters.all %}
           <li class="list-group-item">
             <div class="custom-control custom-checkbox mr-sm-2">
-              <input type="checkbox" class="custom-control-input filter-selector ex-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
-              <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
+              <input type="checkbox" class="custom-control-input filter-selector ex-filter" id="listfilter-ex-{{filt.id}}" value="{{filt.slug}}">
+              <label class="custom-control-label filter-label" for="listfilter-ex-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
             </div>
           </li>
           {% endfor %}
@@ -168,8 +168,8 @@
             <div class="row dichroic-row">
               <div class="col-10">
                 <div class="custom-control custom-checkbox mr-sm-3">
-                  <input type="checkbox" class="custom-control-input filter-selector bs-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
-                  <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-none d-sm-inline d-md-none d-xl-inline ">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
+                  <input type="checkbox" class="custom-control-input filter-selector bs-filter" id="listfilter-bs-{{filt.id}}" value="{{filt.slug}}">
+                  <label class="custom-control-label filter-label" for="listfilter-bs-{{filt.id}}"><span class="d-none d-sm-inline d-md-none d-xl-inline ">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
                 </div>
               </div>
               <div class="col-2">
@@ -195,8 +195,8 @@
           {% for filt in microscope.em_filters.all %}
           <li class="list-group-item">
             <div class="custom-control custom-checkbox mr-sm-2">
-              <input type="checkbox" class="custom-control-input filter-selector em-filter" id="listfilter-{{filt.id}}" value="{{filt.slug}}">
-              <label class="custom-control-label filter-label" for="listfilter-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
+              <input type="checkbox" class="custom-control-input filter-selector em-filter" id="listfilter-em-{{filt.id}}" value="{{filt.slug}}">
+              <label class="custom-control-label filter-label" for="listfilter-em-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
             </div>
           </li>
           {% endfor %}

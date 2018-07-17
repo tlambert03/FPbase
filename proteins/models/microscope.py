@@ -118,23 +118,17 @@ class OpticalConfig(OwnedCollection):
     @property
     def ex_filters(self):
         """ all filters that have an excitation role """
-        x = self.filters.filter(filterplacement__path=FilterPlacement.EX)
-        return x.exclude(id__in=self.bs_filters)
+        return self.filters.filter(filterplacement__path=FilterPlacement.EX)
 
     @property
     def em_filters(self):
         """ all filters that have an emission role """
-        m = self.filters.filter(filterplacement__path=FilterPlacement.EM)
-        return m.exclude(id__in=self.bs_filters)
+        return self.filters.filter(filterplacement__path=FilterPlacement.EM)
 
     @property
     def bs_filters(self):
         """ all filters that are in both ex and em paths have a beamsplitting role """
-        inx = Count('filterplacement__path', distinct=True,
-                    filter=Q(filterplacement__path=FilterPlacement.EX))
-        inm = Count('filterplacement__path',
-                    filter=Q(filterplacement__path=FilterPlacement.EM))
-        return self.filters.annotate(nx=inx, nm=inm).filter(nx__gt=0, nm__gt=0)
+        return self.filters.filter(filterplacement__path=FilterPlacement.BS)
 
     @property
     def ex_spectra(self):
@@ -144,6 +138,9 @@ class OpticalConfig(OwnedCollection):
             p.append([[self.laser - 1, 0], [self.laser, 1], [self.laser + 1, 0]])
         elif self.light:
             p.append(self.light.spectrum.data)
+        for x in self.filterplacement_set.filter(path=FilterPlacement.BS):
+            p.append(invert(x.filter.spectrum.data) if not x.reflects
+                     else x.filter.spectrum.data)
         for x in self.filterplacement_set.filter(path=FilterPlacement.EX):
             p.append(invert(x.filter.spectrum.data) if x.reflects
                      else x.filter.spectrum.data)
@@ -155,6 +152,9 @@ class OpticalConfig(OwnedCollection):
         p = []
         if self.camera:
             p.append(self.camera.spectrum.data)
+        for x in self.filterplacement_set.filter(path=FilterPlacement.BS):
+            p.append(invert(x.filter.spectrum.data) if x.reflects
+                     else x.filter.spectrum.data)
         for x in self.filterplacement_set.filter(path=FilterPlacement.EM):
             p.append(invert(x.filter.spectrum.data) if x.reflects
                      else x.filter.spectrum.data)
@@ -162,27 +162,30 @@ class OpticalConfig(OwnedCollection):
 
     @property
     def inverted_bs(self):
-        return self.filterplacement_set.filter(path=FilterPlacement.EM, reflects=True)
+        return self.filterplacement_set.filter(path=FilterPlacement.BS, reflects=True)
+
+    def add_filter(self, filter, path, reflects=False):
+        fp = FilterPlacement(filter=filter, config=self, reflects=reflects, path=path)
+        fp.save()
+        return fp
 
     def add_em_filter(self, filter, reflects=False):
         fp = FilterPlacement(filter=filter, config=self, reflects=reflects,
                              path=FilterPlacement.EM)
         fp.save()
+        return fp
 
     def add_ex_filter(self, filter, reflects=False):
         fp = FilterPlacement(filter=filter, config=self, reflects=reflects,
                              path=FilterPlacement.EX)
         fp.save()
+        return fp
 
-    def add_bs_filter(self, filter, em_reflects=False):
-        fpx = FilterPlacement(filter=filter, config=self,
-                              reflects=not em_reflects,
-                              path=FilterPlacement.EX)
-        fpm = FilterPlacement(filter=filter, config=self,
-                              reflects=em_reflects,
-                              path=FilterPlacement.EM)
-        fpx.save()
-        fpm.save()
+    def add_bs_filter(self, filter, reflects=False):
+        fp = FilterPlacement(filter=filter, config=self, reflects=reflects,
+                             path=FilterPlacement.BS)
+        fp.save()
+        return fp
 
     def __repr__(self):
         fltrs = sorted_ex2em(self.filters.all())
@@ -201,14 +204,17 @@ class FilterPlacement(models.Model):
 
     EX = 'ex'
     EM = 'em'
+    BS = 'bs'
     PATH_CHOICES = (
         (EX, 'Excitation Path'),
         (EM, 'Emission Path'),
+        (BS, 'Both Paths'),
     )
 
     filter = models.ForeignKey('Filter', on_delete=models.CASCADE)
     config = models.ForeignKey('OpticalConfig', on_delete=models.CASCADE)
     path = models.CharField(max_length=2, choices=PATH_CHOICES, verbose_name='Ex/Em Path')
+    # when path == BS, reflects refers to the emission path
     reflects = models.BooleanField(
         default=False,
         help_text='Filter reflects light at this position in the light path')
@@ -234,13 +240,17 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
             quick_OC('double em', ['ET395/25x', 'T425lpxr', ('ET460/50m', 'ET605/70m')])
     """
     if len(filternames) == 4:
-        bs_ex_reflect = bool(filternames.pop())
+        bs_em_reflect = not bool(filternames.pop())
     if not len(filternames) == 3:
         raise ValueError('filternames argument must be iterable with length 3 or 4')
 
     oc = OpticalConfig.objects.create(name=name, microscope=scope)
 
     def _assign_filt(_f, i, iexact=False):
+        # i = 0 is excitation
+        # i = 1 is dichroic
+        # i = 2 is emission
+        _paths = [FilterPlacement.EX, FilterPlacement.BS, FilterPlacement.EM]
         try:
             if i != 0:
                 raise ValueError()
@@ -251,19 +261,9 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
                 filt = Filter.objects.get(part__iexact=_f)
             else:
                 filt = Filter.objects.get(name__icontains=_f)
-            if i == 1:
-                fpx = FilterPlacement(filter=filt, config=oc,
-                                      reflects=bs_ex_reflect,
-                                      path=FilterPlacement.EX)
-                fpm = FilterPlacement(filter=filt, config=oc,
-                                      reflects=not bs_ex_reflect,
-                                      path=FilterPlacement.EM)
-                fpx.save()
-                fpm.save()
-            else:
-                _path = FilterPlacement.EX if i < 1 else FilterPlacement.EM
-                fp = FilterPlacement(filter=filt, config=oc, path=_path)
-                fp.save()
+            fp = FilterPlacement(filter=filt, config=oc, path=_paths[i],
+                                 reflects=bs_em_reflect if i == 1 else False)
+            fp.save()
 
     for i, fnames in enumerate(filternames):
         if not fnames:

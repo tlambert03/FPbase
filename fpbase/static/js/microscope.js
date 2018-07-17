@@ -1165,7 +1165,7 @@ $(function() {
     var selected = $(this).find(":selected")
     $.each(selected.data('filters'), function(i ,d){
       $("#invswitch-filter-" + d[0]).prop("checked", d[2] );
-      $("#listfilter-" + d[0]).prop("checked", true );
+      $("#listfilter-" + d[1] + "-" + d[0]).prop("checked", true );
 
     })
     var wave = selected.data('laser');

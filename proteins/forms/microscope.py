@@ -85,13 +85,15 @@ class MicroscopeForm(forms.ModelForm):
 
     def create_oc(self, name, filters):
         if len(filters) == 4:
-            bs_ex_reflect = bool(filters.pop())
+            bs_em_reflect = not bool(filters.pop())
         else:
-            bs_ex_reflect = True
+            bs_em_reflect = False
         oc = OpticalConfig.objects.create(
             name=name,
             owner=self.user,
             microscope=self.instance)
+
+        _paths = [FilterPlacement.EX, FilterPlacement.BS, FilterPlacement.EM]
 
         def _assign_filt(filt, i):
             if isinstance(filt, int) and i == 0:
@@ -100,19 +102,10 @@ class MicroscopeForm(forms.ModelForm):
                 return
             if isinstance(filt, FilterPromise):
                 filt = filt.fetch(self.user)
-            if i == 1:
-                fpx = FilterPlacement(filter=filt, config=oc,
-                                      reflects=bs_ex_reflect,
-                                      path=FilterPlacement.EX)
-                fpm = FilterPlacement(filter=filt, config=oc,
-                                      reflects=not bs_ex_reflect,
-                                      path=FilterPlacement.EM)
-                fpx.save()
-                fpm.save()
-            else:
-                _path = FilterPlacement.EX if i < 1 else FilterPlacement.EM
-                fp = FilterPlacement(filter=filt, config=oc, path=_path)
-                fp.save()
+
+            fp = FilterPlacement(filter=filt, config=oc, path=_paths[i],
+                                 reflects=bs_em_reflect if i == 1 else False)
+            fp.save()
 
         for i, fnames in enumerate(filters):
             if not fnames:
@@ -276,61 +269,50 @@ class OpticalConfigForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance', None)
         if instance:
-            ld = defaultdict(list)
-            inverted_bs = False
-            for f, p, r in instance.filterplacement_set.values_list(
-                    'filter__id', 'path', 'reflects'):
-                ld[f].append(p)
-                if r and p == FilterPlacement.EM:
-                    inverted_bs = True
-            bs_filters, em_filters, ex_filters = ([], [], [])
-            for k, v in ld.items():
-                if len(v) > 1:
-                    bs_filters.append(k)
-                elif v[0] == 'ex':
-                    ex_filters.append(k)
-                else:
-                    em_filters.append(k)
-
-            instance.filterplacement_set.values_list('filter__id', 'path')
             kwargs.update(
                 initial={
-                    'invert_bs': inverted_bs,
-                    'bs_filters': bs_filters,
-                    'em_filters': em_filters,
-                    'ex_filters': ex_filters,
+                    'invert_bs': instance.inverted_bs.exists(),
+                    'bs_filters': instance.bs_filters,
+                    'em_filters': instance.em_filters,
+                    'ex_filters': instance.ex_filters,
                 }
             )
         super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
-        m = super().save()
+        oc = super().save()
+
         for _p in ('em_filters', 'ex_filters', 'bs_filters'):
             for filt in self.initial.get(_p, []):
                 if filt not in self.cleaned_data[_p].values_list('id', flat=True):
-                    m.filterplacement_set.filter(filter=filt).delete()
-        for filt in self.cleaned_data['em_filters']:
-            if filt.id not in self.initial.get('em_filters', []):
-                m.add_em_filter(filt)
-        for filt in self.cleaned_data['ex_filters']:
-            if filt.id not in self.initial.get('ex_filters', []):
-                m.add_ex_filter(filt)
-        for filt in self.cleaned_data['bs_filters']:
-            if filt.id not in self.initial.get('bs_filters', []):
-                m.add_bs_filter(filt, self.cleaned_data['invert_bs'])
-        if self.cleaned_data['invert_bs'] != self.initial.get('invert_bs'):
-            for filt in self.cleaned_data['bs_filters']:
-                fpx = m.filterplacement_set.get(filter=filt,
-                                                path=FilterPlacement.EX)
-                fpx.reflects = not self.cleaned_data['invert_bs']
-                fpx.save()
-                fpm = m.filterplacement_set.get(filter=filt,
-                                                path=FilterPlacement.EM)
-                fpm.reflects = self.cleaned_data['invert_bs']
-                fpm.save()
+                    oc.filterplacement_set.filter(filter=filt).delete()
+
+        for _p in ('em_filters', 'ex_filters', 'bs_filters'):
+            for filt in self.cleaned_data.get(_p, []):
+                if filt.id not in self.initial.get(_p, []):
+                    path = _p.split('_')[0]
+                    reflects = self.cleaned_data['invert_bs'] if path == 'bs' else False
+                    oc.add_filter(filt, path, reflects)
+
+        # for filt in self.cleaned_data['em_filters']:
+        #     if filt.id not in self.initial.get('em_filters', []):
+        #         oc.add_em_filter(filt)
+        # for filt in self.cleaned_data['ex_filters']:
+        #     if filt.id not in self.initial.get('ex_filters', []):
+        #         oc.add_ex_filter(filt)
+        # for filt in self.cleaned_data['bs_filters']:
+        #     if filt.id not in self.initial.get('bs_filters', []):
+        #         oc.add_bs_filter(filt, self.cleaned_data['invert_bs'])
+        if self.initial:
+            if self.cleaned_data['invert_bs'] != self.initial.get('invert_bs'):
+                for filt in self.cleaned_data['bs_filters']:
+                    for fp in oc.filterplacement_set.filter(
+                            filter=filt, path=FilterPlacement.BS):
+                        fp.reflects = self.cleaned_data['invert_bs']
+                        fp.save()
         if commit:
-            m.save()
-        return m
+            oc.save()
+        return oc
 
     class Meta:
         model = OpticalConfig
