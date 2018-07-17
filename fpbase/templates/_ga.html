@@ -4,7 +4,6 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', '{{ ga_tracking_id }}');
   {% if request.user.is_authenticated %}gtag('set', {'user_id': '{{ request.user.id }}'}){% endif %};
   var trackOutboundLink = function(url) {
@@ -14,5 +13,5 @@
       'transport_type': 'beacon',
       'event_callback': function(){document.location = url;}
     });
-  }
+  };
 </script>
