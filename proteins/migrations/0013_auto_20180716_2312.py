@@ -12,15 +12,14 @@ import proteins.util.helpers
 
 def resavestuff(apps, schema_editor):
     Filter = apps.get_model("proteins", "Filter")
-    Spectrum = apps.get_model("proteins", "Spectrum")
     Light = apps.get_model("proteins", "Light")
 
     for f in Filter.objects.filter(name__icontains='ff01'):
-        f.subtype = Spectrum.BP
+        f.subtype = 'bp'
     for f in Filter.objects.filter(name__icontains='ff02'):
-        f.subtype = Spectrum.BP
+        f.subtype = 'bp'
     for f in Filter.objects.filter(name__icontains='ff03'):
-        f.subtype = Spectrum.BP
+        f.subtype = 'bp'
     for l in Light.objects.filter(manufacturer='lumencor'):
         l.manufacturer = 'Lumencor'
         l.save()
