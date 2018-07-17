@@ -304,7 +304,7 @@ class OpticalConfigForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
-        m = super().save(commit=False)
+        m = super().save()
         for _p in ('em_filters', 'ex_filters', 'bs_filters'):
             for filt in self.initial.get(_p, []):
                 if filt not in self.cleaned_data[_p].values_list('id', flat=True):
