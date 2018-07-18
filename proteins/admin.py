@@ -5,6 +5,7 @@ from proteins.models import (Protein, State, StateTransition, Organism,
                              FRETpair, BleachMeasurement, Spectrum, Dye,
                              Light, Filter, Camera, Mutation, Microscope,
                              OpticalConfig, FilterPlacement)
+from proteins.forms import AdminOpticalConfigForm
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.admin import VersionAdmin
 # from reversion.models import Version
@@ -333,11 +334,6 @@ class ProteinAdmin(CompareVersionAdmin):
         formset.save()
 
 
-@admin.register(Microscope)
-class MicroscopeAdmin(admin.ModelAdmin):
-    model = Microscope
-
-
 class FilterPlacementInline(admin.TabularInline):
     model = FilterPlacement
     extra = 1  # how many rows to show
@@ -348,3 +344,27 @@ class FilterPlacementInline(admin.TabularInline):
 class OpticalConfigAdmin(admin.ModelAdmin):
     model = OpticalConfig
     inlines = (FilterPlacementInline, )
+    fields = (('name', 'microscope'), ('laser', 'light'), ('camera', 'owner'))
+
+
+class OpticalConfigInline(admin.TabularInline):
+    model = OpticalConfig
+    fields = ('name', 'light', 'laser', 'camera')
+    extra = 1  # how many rows to show
+
+
+@admin.register(Microscope)
+class MicroscopeAdmin(admin.ModelAdmin):
+    model = Microscope
+    autocomplete_fields = ("bs_filters", 'ex_filters', 'em_filters', 'lights', 'cameras')
+    readonly_fields = ('configs', )
+
+    def configs(self, obj):
+        def _makelink(oc):
+            url = reverse("admin:proteins_opticalconfig_change", args=(oc.pk,))
+            return '<a href="{}">{}</a>'.format(url, oc)
+        links = []
+        [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
+        return mark_safe(", ".join(links))
+    configs.short_description = 'Optical Configs'
+

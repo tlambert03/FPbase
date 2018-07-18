@@ -1,3 +1,4 @@
+import urllib.parse
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.urls import reverse
@@ -176,7 +177,10 @@ class OpticalConfig(OwnedCollection):
         return super().__str__() or self.__repr__().lstrip('<').rstrip('>')
 
     def get_absolute_url(self):
-        return reverse("proteins:filterset-detail", args=[self.id])
+        url = '{}?c={}'.format(
+            reverse("proteins:microscope-detail", args=[self.microscope.id]),
+            urllib.parse.quote(self.name))
+        return url
 
 
 class FilterPlacement(models.Model):
