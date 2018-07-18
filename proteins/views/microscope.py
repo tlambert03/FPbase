@@ -181,14 +181,19 @@ class MicroscopeEmbedView(MicroscopeDetailView):
 
 
 class MicroscopeList(ListView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.example_ids = ['i6WL2WdgcDMgJYtPrpZcaJ', 'wKqWbgApvguSNDSRZNSfpN',
+                            '4yL4ggAozzcMwTU4Ae7zxF']
+
     def get_queryset(self):
         # get all collections for current user and all other non-private collections
-        qs = Microscope.objects.all()
+        qs = Microscope.objects.exclude(id__in=self.example_ids)
         if self.request.user.is_authenticated:
             qs = qs | Microscope.objects.filter(owner=self.request.user)
         if 'owner' in self.kwargs:
             qs = qs.filter(owner__username=self.kwargs['owner'])
-        return qs.order_by('-created')
+        return qs.order_by('-created')[:20]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -196,6 +201,7 @@ class MicroscopeList(ListView):
             if not get_user_model().objects.filter(username=self.kwargs['owner']).exists():
                 raise Http404()
             context['owner'] = self.kwargs['owner']
+        context['example_list'] = Microscope.objects.filter(id__in=self.example_ids)
         return context
 
 

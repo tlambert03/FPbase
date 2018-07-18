@@ -21,11 +21,20 @@
         {% if owner %}
             <h1 class='mb-4'>Microscopes created by {{owner}}</h1>
         {% else %}
+            {% if example_list %}
+                <h3>Example microscopes:</h3>
+                <ul class='mb-3'>
+                    {% for object in example_list %}
+                        <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
+                          text-muted ml-2' ><small>{{object.description}}</small></span></li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
             <h3>Recently created microscopes:</h3>
         {% endif %}
     {% endif %}
 
-    <ol class='mb-5'>
+    <ul class='mb-5'>
         {% for object in object_list %}
             <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
               text-muted ml-2' ><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>{% if request.user.username == owner %}<a href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'><i class="fa fa-wrench small mr-2 ml-2" style="margin-bottom: 2px"></i></a><a href="{% url 'proteins:deletemicroscope' object.id %}" class="mr-2 text-danger" title='delete microscope'><i class="fa fa-trash-alt small" style="margin-bottom: 2px"></i></a>{% endif%}</li>
@@ -36,7 +45,7 @@
                 <p>There are currently no microscopes to show.</p>
             {% endif %}
         {% endfor %}
-    </ol>
+    </ul>
 
 
     {% if request.user.username == owner %}
