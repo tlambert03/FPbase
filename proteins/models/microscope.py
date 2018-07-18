@@ -102,8 +102,8 @@ class OpticalConfig(OwnedCollection):
     microscope = models.ForeignKey('Microscope', related_name='optical_configs', on_delete=models.CASCADE)
     filters = models.ManyToManyField(
         'Filter', related_name='optical_configs', blank=True, through='FilterPlacement')
-    light = models.ForeignKey('Light', null=True, blank=True, related_name='optical_configs', on_delete=models.CASCADE)
-    camera = models.ForeignKey('Camera', null=True, blank=True, related_name='optical_configs', on_delete=models.CASCADE)
+    light = models.ForeignKey('Light', null=True, blank=True, related_name='optical_configs', on_delete=models.SET_NULL)
+    camera = models.ForeignKey('Camera', null=True, blank=True, related_name='optical_configs', on_delete=models.SET_NULL)
     laser = models.PositiveSmallIntegerField(
         blank=True, null=True,
         validators=[MinValueValidator(300), MaxValueValidator(1600)])
