@@ -389,7 +389,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
                 else:
                     self.change_y(norm2one(self.y))
             elif (max(self.y) > 1.5) or (max(self.y) < 0.1):
-                if self.category == self.FILTER and (60 < max(self.y) < 101):
+                if self.category in (self.FILTER, self.CAMERA) and (10 < max(self.y) < 101):
                     # assume 100% scale
                     self.change_y([round(yy / 100, 4) for yy in self.y])
                 else:
