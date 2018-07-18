@@ -1,5 +1,4 @@
 from django.db import models
-from django.db.models import Count, Q
 from django.contrib.postgres.fields import ArrayField
 from django.urls import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -165,27 +164,8 @@ class OpticalConfig(OwnedCollection):
         return self.filterplacement_set.filter(path=FilterPlacement.BS, reflects=True)
 
     def add_filter(self, filter, path, reflects=False):
-        fp = FilterPlacement(filter=filter, config=self, reflects=reflects, path=path)
-        fp.save()
-        return fp
-
-    def add_em_filter(self, filter, reflects=False):
-        fp = FilterPlacement(filter=filter, config=self, reflects=reflects,
-                             path=FilterPlacement.EM)
-        fp.save()
-        return fp
-
-    def add_ex_filter(self, filter, reflects=False):
-        fp = FilterPlacement(filter=filter, config=self, reflects=reflects,
-                             path=FilterPlacement.EX)
-        fp.save()
-        return fp
-
-    def add_bs_filter(self, filter, reflects=False):
-        fp = FilterPlacement(filter=filter, config=self, reflects=reflects,
-                             path=FilterPlacement.BS)
-        fp.save()
-        return fp
+        return FilterPlacement.objects.create(filter=filter, config=self,
+                                              reflects=reflects, path=path)
 
     def __repr__(self):
         fltrs = sorted_ex2em(self.filters.all())
