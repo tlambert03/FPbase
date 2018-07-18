@@ -611,24 +611,6 @@ $(function() {
     });
 
 
-    if ('s' in urlParams){
-        var arr = urlParams.s.toLowerCase().split(',');
-        for (var i = 0; i < arr.length; i++){
-            //var opts = slugOptions(arr[i]);
-            var opts = false;
-            if (Boolean(opts)){
-                try{
-                    // STILL BUGGY
-                    if (i==0) {
-                        $("#fluor-select").val(opts.slug).change();
-                    }
-
-                } catch(e) { console.log(e); }
-
-            }
-        }
-    }
-
     $(".resetXdomain").click(function(){
         chart.brushExtent(options.startingBrush);
         refreshChart();
@@ -638,6 +620,76 @@ $(function() {
     $('#undo-scaling').click(function() {
         unscale_all();
     });
+
+
+    $("#fluor-select").select2({ theme: "bootstrap", width: 100});
+
+    for (var i=0; i < scopespectra.length; i++){
+      localData[scopespectra[i].slug] = [scopespectra[i]];
+    }
+
+    $("#scale-camera").change(function(){
+      updateEfficiency();
+      refreshChart();
+    });
+
+
+    $(".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select, scaleToEC_input, scaleToQY_input, #merge-light-exfilter").change(function(){
+      if (options.oneAtaTime && (!$(this).hasClass('invswitch'))){
+        $(this).closest('.card').find('input').not(this).prop('checked', false)
+      }
+      updateChart();
+    });
+
+    $('#config-select').change(function(){
+
+      $('.filter-selector:checked').each(function(){
+          $(this).prop("checked", false )
+        });
+
+      var selected = $(this).find(":selected")
+      $.each(selected.data('filters'), function(i ,d){
+        $("#invswitch-filter-" + d[0]).prop("checked", d[2] );
+        $("#listfilter-" + d[1] + "-" + d[0]).prop("checked", true );
+
+      })
+      var wave = selected.data('laser');
+      var light = selected.data('light');
+      var camera = selected.data('camera');
+      if (wave) {
+        $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
+      }
+      else if (light) {
+        $("#light-select option[data-id='" + light + "']").prop('selected', true)
+      }
+      else {
+        //$("#light-select option[value='']").prop('selected', true)
+      }
+      if (camera) {
+        $("#camera-select option[data-id='" + camera + "']").prop('selected', true)
+      }
+      updateChart();
+    });
+
+    $(".switchmodal").click(function(e) {
+      e.preventDefault();
+      $("#settingsModal").modal('hide');
+      $("#embedModal").modal('show');
+    });
+
+    if ('f' in urlParams){
+        $("#fluor-select").val(urlParams.f).change();
+    }
+
+    if ('c' in urlParams){
+        $('#config-select option').each(function(){
+            if (this.value == urlParams.c) {
+                $(this).val(urlParams.c).prop('selected', true).change();
+            }
+        });
+    } else {
+        $('#config-select option').eq(1).prop('selected', true).change();
+    }
 
 });
 
@@ -1140,60 +1192,6 @@ function updateEfficiency(){
 
 }
 
-
-$(function() {
-
-  $("#scale-camera").change(function(){
-    updateEfficiency();
-    refreshChart();
-  });
-
-
-  $(".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select, scaleToEC_input, scaleToQY_input, #merge-light-exfilter").change(function(){
-    if (options.oneAtaTime && (!$(this).hasClass('invswitch'))){
-      $(this).closest('.card').find('input').not(this).prop('checked', false)
-    }
-    updateChart();
-  });
-
-  $('#config-select').change(function(){
-
-    $('.filter-selector:checked').each(function(){
-        $(this).prop("checked", false )
-      });
-
-    var selected = $(this).find(":selected")
-    $.each(selected.data('filters'), function(i ,d){
-      $("#invswitch-filter-" + d[0]).prop("checked", d[2] );
-      $("#listfilter-" + d[1] + "-" + d[0]).prop("checked", true );
-
-    })
-    var wave = selected.data('laser');
-    var light = selected.data('light');
-    var camera = selected.data('camera');
-    if (wave) {
-      $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
-    }
-    else if (light) {
-      $("#light-select option[data-id='" + light + "']").prop('selected', true)
-    }
-    else {
-      //$("#light-select option[value='']").prop('selected', true)
-    }
-    if (camera) {
-      $("#camera-select option[data-id='" + camera + "']").prop('selected', true)
-    }
-    updateChart();
-  });
-
-  $(".switchmodal").click(function(e) {
-    e.preventDefault();
-    $("#settingsModal").modal('hide');
-    $("#embedModal").modal('show');
-  });
-
-});
-
 $(window).on('load', function() {
   setTimeout(function(){
       autoSizeText();
@@ -1213,16 +1211,6 @@ $(window).scroll(function(){
     else{
       $(".spectra-wrapper").css('box-shadow', 'none');
     }
-});
-
-
-$("#fluor-select").select2({ theme: "bootstrap", width: 100});
-
-
-$(function() {
-  for (var i=0; i < scopespectra.length; i++){
-    localData[scopespectra[i].slug] = [scopespectra[i]];
-  }
 });
 
 
