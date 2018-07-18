@@ -52,7 +52,7 @@ var options = {
     calcEff: true,
 };
 var userOptions = {
-    calcEff: {type: 'checkbox', msg: 'Calculate efficiency on update.'},
+    calcEff: {type: 'checkbox', msg: 'Calculate efficiency on update. (may be slower)'},
     oneAtaTime: {type: 'checkbox', msg: 'Uncheck other similar filters when selecting a filter'},
     normMergedEx: {type: 'checkbox', msg: 'Normalize merged excitation and light source spectra'},
     showArea: {type: 'checkbox', msg: 'Fill area under curve'},
