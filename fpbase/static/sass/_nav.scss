@@ -61,6 +61,9 @@ $logo-color: #efe;
     }
   }
   .nav-search{
+    .input-group-append {
+      margin-left: 0px;
+    }
     input{
       background: rgba(white, 0.25);
       border: none;
