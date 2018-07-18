@@ -4,8 +4,7 @@ from django.utils.safestring import mark_safe
 from proteins.models import (Protein, State, StateTransition, Organism,
                              FRETpair, BleachMeasurement, Spectrum, Dye,
                              Light, Filter, Camera, Mutation, Microscope,
-                             OpticalConfig, FilterPlacement)
-from proteins.forms import AdminOpticalConfigForm
+                             OpticalConfig, FilterPlacement, Fluorophore)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.admin import VersionAdmin
 # from reversion.models import Version
@@ -34,10 +33,10 @@ class SpectrumOwner(object):
             url = reverse("admin:proteins_spectrum_change", args=(sp.pk,))
             return '<a href="{}">{}</a>'.format(url, sp.get_subtype_display())
         links = []
-        if hasattr(obj, 'spectrum'):
-            links.append(_makelink(obj.spectrum))
-        else:
+        if isinstance(obj, Fluorophore):
             [links.append(_makelink(sp)) for sp in obj.spectra.all()]
+        else:
+            links.append(_makelink(obj.spectrum))
         return mark_safe(", ".join(links))
     spectra.short_description = 'spectra'
 

@@ -335,27 +335,3 @@ class BaseOpticalConfigFormSet(forms.BaseInlineFormSet):
 OpticalConfigFormSet = inlineformset_factory(
     Microscope, OpticalConfig, form=OpticalConfigForm,
     formset=BaseOpticalConfigFormSet, extra=1, can_delete=True)
-
-
-class AdminOpticalConfigForm(OpticalConfigForm):
-    ex_filters = forms.ModelMultipleChoiceField(
-        label="Excitation Filter(s)",
-        queryset=Filter.objects.all(), required=False,
-        widget=autocomplete.ModelSelect2Multiple(
-            url='proteins:filter-autocomplete',
-        ),
-    )
-    em_filters = forms.ModelMultipleChoiceField(
-        label="Emission Filter(s)",
-        queryset=Filter.objects.all(), required=False,
-        widget=autocomplete.ModelSelect2Multiple(
-            url='proteins:filter-autocomplete',
-        ),
-    )
-    bs_filters = forms.ModelMultipleChoiceField(
-        label="Dichroic Filter(s)",
-        queryset=Filter.objects.all(), required=False,
-        widget=autocomplete.ModelSelect2Multiple(
-            url='proteins:filter-autocomplete',
-        ),
-    )
