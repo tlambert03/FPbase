@@ -5,7 +5,6 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from ..models import (Light, Camera, Microscope, Filter, OpticalConfig, FilterPlacement, ProteinCollection)
 from dal import autocomplete
 from django.forms.models import inlineformset_factory
-from collections import defaultdict
 
 
 class FilterPromise(object):
@@ -68,6 +67,8 @@ class MicroscopeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        self.fields['collection'].queryset = (ProteinCollection.objects.exclude(private=True)
+                                              | ProteinCollection.objects.filter(owner=self.user))
 
     class Meta:
         model = Microscope
@@ -279,30 +280,18 @@ class OpticalConfigForm(forms.ModelForm):
             )
         super().__init__(*args, **kwargs)
 
-    def save(self, commit=True):
+    def save(self):
         oc = super().save()
-
         for _p in ('em_filters', 'ex_filters', 'bs_filters'):
             for filt in self.initial.get(_p, []):
                 if filt not in self.cleaned_data[_p].values_list('id', flat=True):
                     oc.filterplacement_set.filter(filter=filt).delete()
-
         for _p in ('em_filters', 'ex_filters', 'bs_filters'):
             for filt in self.cleaned_data.get(_p, []):
                 if filt.id not in self.initial.get(_p, []):
                     path = _p.split('_')[0]
                     reflects = self.cleaned_data['invert_bs'] if path == 'bs' else False
                     oc.add_filter(filt, path, reflects)
-
-        # for filt in self.cleaned_data['em_filters']:
-        #     if filt.id not in self.initial.get('em_filters', []):
-        #         oc.add_em_filter(filt)
-        # for filt in self.cleaned_data['ex_filters']:
-        #     if filt.id not in self.initial.get('ex_filters', []):
-        #         oc.add_ex_filter(filt)
-        # for filt in self.cleaned_data['bs_filters']:
-        #     if filt.id not in self.initial.get('bs_filters', []):
-        #         oc.add_bs_filter(filt, self.cleaned_data['invert_bs'])
         if self.initial:
             if self.cleaned_data['invert_bs'] != self.initial.get('invert_bs'):
                 for filt in self.cleaned_data['bs_filters']:
@@ -310,8 +299,7 @@ class OpticalConfigForm(forms.ModelForm):
                             filter=filt, path=FilterPlacement.BS):
                         fp.reflects = self.cleaned_data['invert_bs']
                         fp.save()
-        if commit:
-            oc.save()
+        oc.save()
         return oc
 
     class Meta:
@@ -347,4 +335,3 @@ class BaseOpticalConfigFormSet(forms.BaseInlineFormSet):
 OpticalConfigFormSet = inlineformset_factory(
     Microscope, OpticalConfig, form=OpticalConfigForm,
     formset=BaseOpticalConfigFormSet, extra=1, can_delete=True)
-
