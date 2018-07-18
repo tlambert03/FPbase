@@ -589,7 +589,7 @@ $(function() {
 
           // update filter settings when user changes slider
           slider.noUiSlider.on("update", function(){
-              [m, n] = chart.yDomain();
+              m = chart.yDomain()[0];
               chart.yDomain([m, slider.noUiSlider.get()]);
               chart.update();
           });
