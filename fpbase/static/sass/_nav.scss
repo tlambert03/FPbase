@@ -5,10 +5,20 @@ $logo-color: #efe;
   transition-duration: 0.6s;
 }
 
-// AUTO DROPDOWN MENU ON HOVER
-// ul.nav li.dropdown:hover > .dropdown-menu {
-//     display: block;
-// }
+@include media-breakpoint-up(sm){
+  #user_avatar{
+    opacity: 0.85;
+  }
+  ul.nav li.dropdown:hover{
+    &> .dropdown-menu {
+        display: block;
+    }
+    #user_avatar {
+      opacity: 1;
+    }
+  }
+}
+
 
 .navbar {
   @include media-breakpoint-up(md) { height: $navbar-height; }
