@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^spectra_csv/', views.spectra_csv, name='spectra_csv'),
 
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
-    url(r'^collections/(?P<owner>[-\w.]+)/?$', views.CollectionList.as_view(), name='collections'),
+    url(r'^collections/(?P<owner>[\w.@+-]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),
     url(r'^collection/(?P<pk>\d+)/$', views.CollectionDetail.as_view(), name='collection-detail'),
     url(r'^collection/(?P<pk>\d+)/update/',
@@ -70,7 +70,7 @@ urlpatterns = [
         login_required(views.MicroscopeUpdateView.as_view(),
                        message="You must be logged in to update microscopes"),
         name='updatemicroscope'),
-    url(r'^microscopes/(?P<owner>[-\w.]+)/?$', views.MicroscopeList.as_view(), name='microscopes'),
+    url(r'^microscopes/(?P<owner>[\w.@+-]+)/?$', views.MicroscopeList.as_view(), name='microscopes'),
     url(r'^microscopes/', views.MicroscopeList.as_view(), name='microscopes'),
     url(r'^scope_report/', views.ScopeReportView.as_view(), name='scope-report'),
 
