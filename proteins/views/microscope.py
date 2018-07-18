@@ -188,11 +188,13 @@ class MicroscopeList(ListView):
 
     def get_queryset(self):
         # get all collections for current user and all other non-private collections
-        qs = Microscope.objects.exclude(id__in=self.example_ids)
+        qs = Microscope.objects.all()
         if self.request.user.is_authenticated:
             qs = qs | Microscope.objects.filter(owner=self.request.user)
         if 'owner' in self.kwargs:
             qs = qs.filter(owner__username=self.kwargs['owner'])
+        else:
+            qs = qs.exclude(id__in=self.example_ids)
         return qs.order_by('-created')[:20]
 
     def get_context_data(self, **kwargs):
