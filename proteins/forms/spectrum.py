@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 from django.apps import apps
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
-from proteins.models import Spectrum, State
+from proteins.models import Spectrum, State, Fluorophore
 from proteins.util.importers import text_to_spectra
 from proteins.util.helpers import zip_wave_data
 from crispy_forms.helper import FormHelper
@@ -165,12 +165,19 @@ class SpectrumForm(forms.ModelForm):
                 raise forms.ValidationError("Category not recognized")
         else:
             # object exists... check if it has this type of spectrum
-            if obj.spectra.filter(subtype=stype).exists():
+            exists = False
+            if isinstance(obj, Fluorophore) and obj.spectra.filter(subtype=stype).exists():
+                exists = True
+                stype = obj.spectra.filter(subtype=stype).first().get_subtype_display()
+            elif obj.spectrum:
+                exists = True
+                stype = obj.spectrum.get_subtype_display()
+            if exists:
                 self.add_error('owner', forms.ValidationError(
                     "A %(model)s with the name %(name)s already has a %(stype)s spectrum",
                     params={'model': self.lookup[cat][1].lower(),
                             'name': obj.name,
-                            'stype': obj.spectra.filter(subtype=stype).first().get_subtype_display()},
+                            'stype': stype},
                     code='owner_exists'))
                 # raise forms.ValidationError(
                 #     "A %(model)s with the slug %(slug)s already has a spectrum of type %(stype)s.",
