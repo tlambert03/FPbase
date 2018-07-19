@@ -1,6 +1,8 @@
 from fpbase.forms import ContactForm
 from django.views.generic.edit import FormView
 from django.shortcuts import render
+from django.http import HttpResponseServerError
+from django.template import loader
 
 
 class ContactView(FormView):
@@ -15,3 +17,8 @@ class ContactView(FormView):
             form.send_email()
             return super().form_valid(form)
         return render(self.request, self.template_name, self.get_context_data())
+
+
+def server_error(request, template_name='500.html'):
+    template = loader.get_template(template_name)
+    return HttpResponseServerError(template.render({'request': request}))
