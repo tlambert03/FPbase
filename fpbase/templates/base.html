@@ -59,7 +59,7 @@
         </nav>
     </div>
     <noscript>
-        <div class="container-fluid text-center mt-0 bg-danger text-white pt-3 pb-3"><strong>Javascript is disabled!&nbsp;  Some pages and features of FPbase will not work properly</strong>
+        <div class="container-fluid text-center mt-0 bg-danger text-white pt-3 pb-3"><strong>Javascript is disabled!&nbsp;  Many pages and features of FPbase will not work properly</strong>
         </div>
     </noscript>
 
@@ -101,6 +101,7 @@
           </div>
         </div>
       </div>
+      <script type="text/javascript">document.getElementById("curyear").innerHTML = (new Date()).getFullYear();</script>
     </footer>
 
     {% block modal %}{% endblock modal %}
@@ -137,7 +138,6 @@
 
       <script type="text/javascript">
       $(function () {
-        document.getElementById("curyear").innerHTML = (new Date()).getFullYear();
         $('[data-toggle="tooltip"]').tooltip({
           trigger : 'hover',
           delay: { "show": 200 },
