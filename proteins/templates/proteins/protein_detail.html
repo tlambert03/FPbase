@@ -274,6 +274,9 @@
   {% endcompress %}
 
 
+    {% if protein.has_spectra %}
+    <script>var myData = {{ protein.d3_spectra|safe }};</script>
+    {% endif %}
 
     <script type="text/javascript">
 	    $(function () {
@@ -325,12 +328,13 @@
 	    })
 
       {% if protein.has_spectra %}
-      var myData = {{ protein.d3_spectra|safe }};
+      // disable 2p by default
       for (n = 0; n < myData.length; n++){
-      	if (myData[n].key.includes('2p') && myData.length > 1) {
+      	if (myData[n].key.indexOf("2p") >= 0 && myData.length > 1) {
       		myData[n].disabled = true;
       	}
       };
+
       var chart = nv.models.lineChart();
       chart.yDomain([0,1.04])
       svg = d3.select('#spectra').append('svg');

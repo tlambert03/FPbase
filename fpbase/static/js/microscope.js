@@ -975,7 +975,7 @@ function calcExEmPaths(){
     }
 
     if ($("#merge-light-exfilter").prop('checked') && $('#light-select :selected').val() !== ''){
-        var d = data.find(d => d.slug.includes('merged'));
+        var d = data.find(d => d.slug.indexOf('merged') >= 0);
         if (d) {
             expath.push(d);
         }
