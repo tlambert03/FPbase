@@ -19,6 +19,11 @@ class ContactView(FormView):
         return render(self.request, self.template_name, self.get_context_data())
 
 
+def test500(request):
+        # Return an "Internal Server Error" 500 response code.
+        raise Exception('Make response code 500!')
+
+
 def server_error(request, template_name='500.html'):
     template = loader.get_template(template_name)
     return HttpResponseServerError(template.render({'request': request}))
