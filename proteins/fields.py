@@ -48,7 +48,7 @@ class Spectrum(object):
                 if not len(elem) == 2:
                     raise TypeError("All elements in Spectrum list must have two items")
                 if not all(isinstance(n, (int, float)) for n in elem):
-                    raise TypeError("All items in Septrum list elements must be numbers")
+                    raise TypeError("All items in Spectrum list elements must be numbers")
         self.data = data
 
     @property

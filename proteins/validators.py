@@ -52,4 +52,4 @@ def validate_spectrum(value):
         if not len(elem) == 2:
             raise ValidationError("All elements in Spectrum list must have two items")
         if not all(isinstance(n, (int, float)) for n in elem):
-            raise ValidationError("All items in Septrum list elements must be numbers")
+            raise ValidationError("All items in Spectrum list elements must be numbers")
