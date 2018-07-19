@@ -15,6 +15,7 @@ Production settings for FPbase project.
 
 
 import logging
+import raven
 
 
 from .base import *  # noqa
@@ -237,7 +238,8 @@ LOGGING = {
 SENTRY_CELERY_LOGLEVEL = env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO)
 RAVEN_CONFIG = {
     'CELERY_LOGLEVEL': env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO),
-    'DSN': SENTRY_DSN
+    'DSN': SENTRY_DSN,
+    'release': raven.fetch_git_sha(str(ROOT_DIR)),
 }
 
 # Custom Admin URL, use {% url 'admin:index' %}
