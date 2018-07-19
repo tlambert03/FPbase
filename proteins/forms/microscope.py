@@ -162,6 +162,7 @@ class MicroscopeForm(forms.ModelForm):
                 return None
 
         def lookup(fname):
+            # lookup filter name in database, then check on chroma/semrock
             if not fname:
                 return None
             if fname.isdigit():
@@ -209,6 +210,13 @@ class MicroscopeForm(forms.ModelForm):
                     else:
                         namestore.append(f)
                         _out.append(f)
+                elif n == 1 and f.isdigit():
+                    if int(f) < 300 or int(f) > 1600:
+                        self.add_error(
+                            'optical_configs',
+                            'Laser wavelengths must be between 300-1600.  Got: %s' % f)
+                    else:
+                        _out.append(int(f))
                 elif n == 4:
                     if f.lower() in ('0', 'false', 'none'):
                         _out.append(False)
