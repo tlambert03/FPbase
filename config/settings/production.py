@@ -239,7 +239,7 @@ SENTRY_CELERY_LOGLEVEL = env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO)
 RAVEN_CONFIG = {
     'CELERY_LOGLEVEL': env.int('DJANGO_SENTRY_LOG_LEVEL', logging.INFO),
     'DSN': SENTRY_DSN,
-    'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
+    'release': raven.fetch_git_sha(os.path.dirname(os.path.dirname(os.pardir))),
 }
 
 # Custom Admin URL, use {% url 'admin:index' %}
