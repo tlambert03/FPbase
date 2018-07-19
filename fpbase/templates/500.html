@@ -6,7 +6,7 @@
 <h1>Ooops!!! 500</h1>
 
 <h3>Looks like something went wrong :(</h3>
-{{request.sentry.id}}
+
 <p>We track these errors automatically, but if the problem persists feel free to <a href="{% url 'contact' %}">contact us</a>. {% if request.sentry.id %}You may reference this error as <strong>{{ request.sentry.id }}</strong>.{% endif %}</p>
 
 <!-- Sentry JS SDK 2.1.+ required -->
@@ -15,7 +15,6 @@
   <script>
   Raven.showReportDialog({
     eventId: '{{ request.sentry.id }}',
-    // use the public DSN (dont include your secret!)
     dsn: '{{ sentry_js_dsn }}'
   });
   </script>
