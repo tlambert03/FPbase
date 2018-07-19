@@ -255,7 +255,7 @@ class SpectrumData(ArrayField):
                 try:
                     # TODO:  better choice of interpolation
                     raw_value = [list(i) for i in
-                                 zip(*interp_univar(*zip(*raw_value)))]
+                                 zip(*interp_linear(*zip(*raw_value)))]
                 except ValueError as e:
                     raise ValidationError('could not properly interpolate data: {}'.format(e))
         return raw_value
