@@ -419,7 +419,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         elif self.owner_dye:
             return "{} {}".format(self.owner, self.subtype)
         elif self.owner_filter:
-            return "{}".format(self.owner.part)
+            return str(self.owner.part or self.owner)
         else:
             return str(self.owner)
 
