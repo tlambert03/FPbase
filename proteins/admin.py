@@ -153,7 +153,7 @@ class SpectrumAdmin(admin.ModelAdmin):
         elif obj.category == Spectrum.PROTEIN:
             own = ['owner_state']
         else:
-            own = ['owner_' + obj.get_category_display().lower()]
+            own = ['owner_' + obj.get_category_display().split(' ')[0].lower()]
         fields.extend(own)
         self.autocomplete_fields.extend(own)
         fields += ['category', 'subtype', 'data', 'ph', 'solvent',
