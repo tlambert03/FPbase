@@ -46,7 +46,6 @@ urlpatterns = [
         name='newcollection'),
 
     url(r'^organism/(?P<pk>\d+)/$', views.OrganismDetailView.as_view(), name='organism-detail'),
-
     url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/bleach/$', views.protein_bleach_formsets, name='protein-bleach-form'),
     url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),

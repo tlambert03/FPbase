@@ -28,7 +28,8 @@ class Author(TimeStampedModel):
 
     @property
     def last_authorships(self):
-        return [p.reference for p in self.referenceauthor_set.all() if p.author_idx == p.author_count-1]
+        return [p.reference for p in self.referenceauthor_set.all()
+                if p.author_idx == p.author_count - 1]
 
     def save(self, *args, **kwargs):
         self.initials = name_to_initials(self.initials)
@@ -39,9 +40,9 @@ class Author(TimeStampedModel):
 
     def full_name(self):
         if self.given:
-            return "{} {}".format(self.given, self.family)
+            return "{} {}".format(self.given, self.family).title()
         else:
-            return "{} {}".format(self.initials, self.family)
+            return "{} {}".format(self.initials, self.family).title()
 
     def __repr__(self):
         return "Author(family='{}', given='{}'')".format(self.family, self.given)

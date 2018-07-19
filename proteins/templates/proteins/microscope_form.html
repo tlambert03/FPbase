@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 
+{% block title %}{% if object %}{{object}} Microscope{% else %}Create a Microscope{% endif %} on FPbase{% endblock %}
+{% block meta-description %}Create and save your own microscope configuration (filters, light sources, detectors) and get a custom spectra viewer that you can use to explore the fluorophore spectra in the FPbase database.{% endblock %}
+
 {% load crispy_forms_tags compress static %}
 
 {% block extrahead %}

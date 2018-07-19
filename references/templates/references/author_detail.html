@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
 
-{% block title %}{{ author.full_name  }} :: Fluorescent Protein Database {% endblock %}
+{% block title %}{{ author.full_name }} :: Fluorescent Protein Database {% endblock %}
+{% block meta-description %}References and fluorescent proteins attributed to {{ author.full_name }} at FPbase: the Fluorescent Protein Database.  Including: {% for ref in author.publications.all %}{% for protein in ref.primary_proteins.all %}{{ protein.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if not forloop.last %}, {% endif %}{% endfor %}.{% endblock %}
+
 
 {% block content %}
 	<div class="author-detail">

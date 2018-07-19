@@ -1,7 +1,18 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
-from proteins.models import Protein, Organism
+from proteins.models import Protein, Organism, Microscope, ProteinCollection, Reference
 from references.models import Author
+
+
+class ProteinCollectionSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.7
+
+    def items(self):
+        return ProteinCollection.objects.exclude(private=True)
+
+    def lastmod(self, item):
+        return item.modified
 
 
 class ProteinSitemap(Sitemap):
@@ -10,6 +21,17 @@ class ProteinSitemap(Sitemap):
 
     def items(self):
         return Protein.visible.all()
+
+    def lastmod(self, item):
+        return item.modified
+
+
+class MicroscopeSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.7
+
+    def items(self):
+        return Microscope.objects.all()
 
     def lastmod(self, item):
         return item.modified
@@ -37,6 +59,17 @@ class AuthorsSitemap(Sitemap):
         return item.modified
 
 
+class ReferencesSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.6
+
+    def items(self):
+        return Reference.objects.all()
+
+    def lastmod(self, item):
+        return item.modified
+
+
 class StaticSitemap(Sitemap):
     priority = 0.8
     changefreq = 'weekly'
@@ -44,7 +77,16 @@ class StaticSitemap(Sitemap):
     # The below method returns all urls defined in urls.py file
     def items(self):
         from config.urls import urlpatterns as homeUrls
-        return [url.name for url in homeUrls if hasattr(url, 'name') and url.name]
+        u = [url.name for url in homeUrls if hasattr(url, 'name') and url.name]
+        protUrls = ['search', 'submit', 'table', 'submit-spectra', 'spectra',
+                    'ichart', 'collections', 'microscopes']
+        for url in protUrls:
+            try:
+                reverse('proteins:' + url)
+                u.append('proteins:' + url)
+            except Exception:
+                pass
+        return u
 
     def location(self, item):
         return reverse(item)
