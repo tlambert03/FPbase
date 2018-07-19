@@ -335,6 +335,10 @@
       	}
       };
 
+      var interactive = True;
+      if (typeof window.mobilecheck === 'function') {
+          interactive = !window.mobilecheck();
+      }
       var chart = nv.models.lineChart();
       chart.yDomain([0,1.04])
       svg = d3.select('#spectra').append('svg');
@@ -345,7 +349,7 @@
           showLegend: myData.length > 2 || myData.some(function(a){return a.type=='2p'}),
           showXAxis: true,
           showYAxis: false,
-          useInteractiveGuideline: !window.mobilecheck(),
+          useInteractiveGuideline: interactive,
           forceY: [0,1.04],
           forceX: [350, 750],
       });
