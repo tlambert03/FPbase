@@ -411,7 +411,7 @@ $(function() {
 
         // update filter settings when user changes slider
         slider.noUiSlider.on("update", function(){
-            [m, n] = chart.yDomain();
+            var m = chart.yDomain()[0];
             chart.yDomain([m, slider.noUiSlider.get()]);
             chart.update();
         });
@@ -510,7 +510,7 @@ $(function() {
 function setYscale(type) {
     //type can be log or linear
     chart.lines.duration(300);
-    [m, n] = chart.yDomain()
+    var m = chart.yDomain()[0];
     if (type == 'log') {
         options.scale = 'log';
         chart.yDomain([0.001, n]);
