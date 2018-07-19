@@ -51,19 +51,22 @@
 
   <body class="{% block body-class %}{% endblock %}">
     {% block body %}
-
-    <div class="mb-4">
+    <div>
         <nav class="navbar navbar-expand-md navbar-dark bg-primary">
           {% block navcontainer %}
               {% include "_nav.html" %}
           {% endblock navcontainer %}
         </nav>
     </div>
+    <noscript>
+        <div class="container-fluid text-center mt-0 bg-danger text-white pt-3 pb-3"><strong>Javascript is disabled!&nbsp;  Some pages and features of FPbase will not work properly</strong>
+        </div>
+    </noscript>
 
-
-    <div class="{% block container-class %}container{% endblock %}">
+    <div class="{% block container-class %}container{% endblock %} mt-4">
 
       <div class="container">
+
       {% block messages %}
         {% if messages %}
             {% for message in messages %}
@@ -133,8 +136,8 @@
       {% endcompress %}
 
       <script type="text/javascript">
-      $("#curyear").html((new Date()).getFullYear());
       $(function () {
+        document.getElementById("curyear").innerHTML = (new Date()).getFullYear();
         $('[data-toggle="tooltip"]').tooltip({
           trigger : 'hover',
           delay: { "show": 200 },
