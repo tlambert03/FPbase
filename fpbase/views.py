@@ -3,6 +3,7 @@ from django.views.generic.edit import FormView
 from django.shortcuts import render
 from django.http import HttpResponseServerError
 from django.template import loader
+from django.conf import settings
 
 
 class ContactView(FormView):
@@ -26,4 +27,7 @@ def test500(request):
 
 def server_error(request, template_name='500.html'):
     template = loader.get_template(template_name)
-    return HttpResponseServerError(template.render({'request': request}))
+    return HttpResponseServerError(template.render({
+        'request': request,
+        'sentry_js_dsn': getattr(settings, 'SENTRY_JS_DSN', '')
+    }))
