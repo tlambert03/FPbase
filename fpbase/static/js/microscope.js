@@ -663,7 +663,7 @@ $(function() {
         $("#light-select option[data-id='" + light + "']").prop('selected', true)
       }
       else {
-        //$("#light-select option[value='']").prop('selected', true)
+        $("#light-select option[value='']").prop('selected', true)
       }
       if (camera) {
         $("#camera-select option[data-id='" + camera + "']").prop('selected', true)
