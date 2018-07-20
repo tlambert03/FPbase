@@ -84,14 +84,6 @@ class MicroscopeCreateUpdateMixin:
         with transaction.atomic():
             ocformset.instance = self.object
             ocformset.save()
-            if not self.request.user.is_staff:
-                mail_admins('Microscope Created',
-                            "User: {}\nCollection: {}\n{}".format(
-                                self.request.user.username,
-                                self.object,
-                                self.request.build_absolute_uri(
-                                    self.object.get_absolute_url())),
-                            fail_silently=True)
             self.object.save()
         return HttpResponseRedirect(self.get_success_url())
 
@@ -108,7 +100,16 @@ class MicroscopeCreateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin,
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        if not self.request.user.is_staff:
+            mail_admins('Microscope Created',
+                        "User: {}\nMicroscope: {}\n{}".format(
+                            self.request.user.username,
+                            self.object,
+                            self.request.build_absolute_uri(
+                                self.object.get_absolute_url())),
+                        fail_silently=True)
+        return response
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
