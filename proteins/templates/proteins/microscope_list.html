@@ -47,6 +47,18 @@
         {% endfor %}
     </ul>
 
+    {% if request.user.username == owner %}
+      {% if managing %}
+        <h1 class='mb-4'>Microscopes you manage</h1>
+        <ul class='mb-5'>
+          {% for object in managing %}
+              <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
+                text-muted ml-2' ><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>{% if request.user.username == owner %}<a href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'><i class="fa fa-wrench small mr-2 ml-2" style="margin-bottom: 2px"></i></a>{% endif%}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+    {% endif %}
 
     {% if request.user.username == owner %}
     <a href="{% url 'proteins:newmicroscope' %}"><button class='btn btn-primary btn-sm'>Create a new microscope</button></a>

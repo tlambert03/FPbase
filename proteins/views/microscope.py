@@ -2,6 +2,7 @@ import json
 from django.views.generic import TemplateView, DetailView, CreateView, DeleteView, ListView, UpdateView
 from django.http import HttpResponseRedirect, Http404
 from django.core.mail import mail_admins
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse_lazy, resolve
 from django.db import transaction
 from django.contrib.auth import get_user_model
@@ -10,10 +11,11 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib import messages
 
-from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig, State
+
+from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from .mixins import OwnableObject
-from ..util.efficiency import oclist_efficiency_report
+from ..util.efficiency import microscope_efficiency_report
 
 
 class ScopeReportView(TemplateView):
@@ -21,13 +23,14 @@ class ScopeReportView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ScopeReportView, self).get_context_data(**kwargs)
-        m = Microscope.objects.last()
+        m = Microscope.objects.first()
         from django.core.cache import cache
         if not cache.get('my_key'):
-            oc = list(m.optical_configs.all())
-            fluors = list(State.objects.with_spectra())
+            # oc = list(m.optical_configs.all())
+            # fluors = list(State.objects.with_spectra())
             # fluors.extend(list(Dye.objects.all()))
-            report = oclist_efficiency_report(oc, fluors)
+            # report = oclist_efficiency_report(oc, fluors)
+            report = microscope_efficiency_report(m)
             cache.set('my_key', report, 1800)
         _rep = cache.get('my_key')
         report = {}
@@ -47,7 +50,7 @@ class ScopeReportView(TemplateView):
                         'size': effdata['bright'] if effdata['bright'] else 0.01,
                         'color': probe.emhex,
                         'shape': 'circle' if hasattr(probe, 'protein') else 'square',
-                        'url': probe.get_absolute_url(),
+                        'url': probe.get_absolute_url() or '',
                     })
 
         context['report'] = data
@@ -126,6 +129,11 @@ class MicroscopeUpdateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin,
     form_class = MicroscopeForm
     success_message = "Update successful!"
 
+    def dispatch(self, request, *args, **kwargs):
+        if not self.get_object().has_change_permission(self.request):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         form.instance.updated_by = self.request.user
         return super().form_valid(form)
@@ -201,16 +209,24 @@ class MicroscopeList(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if 'owner' in self.kwargs:
-            if not get_user_model().objects.filter(username=self.kwargs['owner']).exists():
+            owner = self.kwargs['owner']
+            if not get_user_model().objects.filter(username=owner).exists():
                 raise Http404()
-            context['owner'] = self.kwargs['owner']
+            context['owner'] = owner
         context['example_list'] = Microscope.objects.filter(id__in=self.example_ids)
+        if self.request.user.is_authenticated:
+            context['managing'] = Microscope.objects.filter(managers__contains=[self.request.user.email])
         return context
 
 
 class MicroscopeDeleteView(DeleteView):
     model = Microscope
     success_url = reverse_lazy('proteins:newmicroscope')
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.get_object().owner == self.request.user:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
         redirect_url = reverse_lazy('proteins:microscopes', kwargs={'owner': self.request.user})

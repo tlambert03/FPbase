@@ -5,6 +5,8 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from ..models import (Light, Camera, Microscope, Filter, OpticalConfig, FilterPlacement, ProteinCollection)
 from dal import autocomplete
 from django.forms.models import inlineformset_factory
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 class FilterPromise(object):
@@ -75,10 +77,11 @@ class MicroscopeForm(forms.ModelForm):
 
     class Meta:
         model = Microscope
-        fields = ('name', 'description', 'collection')
+        fields = ('name', 'description', 'collection', 'managers')
         help_texts = {
             'name': 'Name of this microscope or set of filter configurations',
-            'description': 'This text will appear below the name on your microscope page'
+            'description': 'This text will appear below the name on your microscope page',
+            'managers': 'Grant others permission to edit this page (comma seperated list of email addresses)'
         }
         widgets = {
             'name': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
@@ -139,10 +142,22 @@ class MicroscopeForm(forms.ModelForm):
         if self.cleaned_data['detector'].count() > 1:
             [self.instance.cameras.add(i) for i in
              self.cleaned_data['detector'].all()]
-        self.instance.owner = self.user
+        if not self.instance.owner:
+            self.instance.owner = self.user
         if commit:
             self.instance.save()
         return self.instance
+
+    def clean_managers(self):
+        emails = self.cleaned_data['managers']
+        for email in emails:
+            try:
+                User.objects.get(email=email)
+            except User.DoesNotExist:
+                self.add_error(
+                    'managers',
+                    'There is no FPbase user with the email "{}"'.format(email))
+        return emails
 
     def clean_optical_configs(self):
         ocs = self.cleaned_data['optical_configs']

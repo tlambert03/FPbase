@@ -242,10 +242,12 @@
         <a href="" class='text-secondary font-weight-bold small switchmodal'>Embed this page in your website!</a>
         {% endif %}
       </div>
-      {% if object.owner.id == request.user.id %}
+      {% if object.owner.id == request.user.id or request.user.email in object.managers %}
       <div class="modal-footer">
             <a href="{% url 'proteins:updatemicroscope' object.id %}"><button class='btn btn-info btn-sm'>Edit Configurations</button></a>
+            {% if object.owner.id == request.user.id %}
             <a href="{% url 'proteins:deletemicroscope' object.id %}"><button class='btn btn-danger btn-sm'>DELETE MICROSCOPE</button></a>
+            {% endif %}
       </div>
       {% endif %}
     </div>

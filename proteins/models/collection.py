@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
-
+from django.contrib.postgres.fields import ArrayField
 
 User = get_user_model()
 
@@ -13,6 +13,15 @@ class OwnedCollection(TimeStampedModel):
     owner = models.ForeignKey(User, blank=True, null=True,
                               related_name='%(class)s' + 's',
                               on_delete=models.SET_NULL,)
+    managers = ArrayField(models.EmailField(), default=list, blank=True)
+
+    def has_change_permission(self, request, obj=None):
+        allowed = self.managers
+        allowed += [self.owner.email]
+        try:
+            return request.user.email in allowed
+        except Exception:
+            return False
 
     def __str__(self):
         return self.name

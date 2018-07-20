@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django import forms
 from django.urls import resolve, reverse_lazy
 from django.core.mail import mail_admins
+from django.core.exceptions import PermissionDenied
 
 import json
 from ..models import ProteinCollection
@@ -188,10 +189,20 @@ class CollectionUpdateView(OwnableObject, UpdateView):
     model = ProteinCollection
     form_class = CollectionForm
 
+    def dispatch(self, request, *args, **kwargs):
+        if not self.get_object().has_change_permission(self.request):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
 
 class CollectionDeleteView(DeleteView):
     model = ProteinCollection
     success_url = reverse_lazy('proteins:collections')
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.get_object().owner == self.request.user:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
         redirect_url = reverse_lazy('proteins:collections', kwargs={'owner': self.request.user})

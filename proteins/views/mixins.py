@@ -7,5 +7,6 @@ class OwnableObject(object):
 
     def attach_owner(self, form):
         self.object = form.save(commit=False)
-        self.object.owner = self.request.user
+        if not self.object.owner:
+            self.object.owner = self.request.user
         self.object.save()

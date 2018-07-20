@@ -37,21 +37,22 @@
   <input type="hidden" name="slug" id="id_slug" value='{{ microscope.slug }}'>
   <div class='row'>
     <div class='col'>
-      <div class="row">
-        <div class="col">
-          <div>
             {{ form.name|as_crispy_field }}
             {{ form.description|as_crispy_field }}
-            {{ form.collection|as_crispy_field }}
-          </div>
-        </div>
-      </div>
+    </div>
+  </div>
+  <div class='row'>
+    <div class="col-12 col-md-6">
+      {{ form.collection|as_crispy_field }}
+    </div>
+    <div class="col-12 col-md-6">
+      {{ form.managers|as_crispy_field }}
     </div>
   </div>
 
   <div class='row'>
     <div class="col">
-      <p class='text-muted small'>Remember that you can always submit spectra for any filter, light source, camera, protein or dye that are not already in the database with the <a href="{% url 'proteins:submit-spectra' %}">spectrum submission form</a>. (Though Chroma and Semrock filter part numbers entered in the bulk config tab below will be automatically imported if possible)</p>
+      <p class='text-muted small font-italic'>Remember that you can always submit spectra for any filter, light source, camera, protein or dye that are not already in the database with the <a href="{% url 'proteins:submit-spectra' %}">spectrum submission form</a>. (Though Chroma and Semrock filter part numbers entered in the bulk config tab below will be automatically imported if possible)</p>
     </div>
   </div>
 
