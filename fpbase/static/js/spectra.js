@@ -510,7 +510,9 @@ $(function() {
 function setYscale(type) {
     //type can be log or linear
     chart.lines.duration(300);
-    var m = chart.yDomain()[0];
+    var cd = chart.yDomain();
+    var m = cd[0]
+    var n = cd[1];
     if (type == 'log') {
         options.scale = 'log';
         chart.yDomain([0.001, n]);
