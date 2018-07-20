@@ -27,7 +27,10 @@ class FilterPromise(object):
         return self._valid
 
     def fetch(self, user=None):
-        newObjects, _ = add_filter_to_database(self.brand, self.part, user)
+        try:
+            return Filter.objects.get(part__icontains=self.part)
+        except Filter.DoesNotExist:
+            newObjects, _ = add_filter_to_database(self.brand, self.part, user)
         return newObjects[0].owner
 
 
@@ -165,8 +168,13 @@ class MicroscopeForm(forms.ModelForm):
             # lookup filter name in database, then check on chroma/semrock
             if not fname:
                 return None
-            if fname.isdigit():
-                return int(fname)
+            if isinstance(fname, str) and fname.isdigit():
+                    if int(fname) < 300 or int(fname) > 1600:
+                        self.add_error(
+                            'optical_configs',
+                            'Laser wavelengths must be between 300-1600.  Got: %s' % fname)
+                    else:
+                        return int(fname)
             try:
                 return Filter.objects.get(name__icontains=fname)
             except MultipleObjectsReturned:
@@ -178,56 +186,67 @@ class MicroscopeForm(forms.ModelForm):
                 return _getpromise(fname)
             return None
 
-        for line in ocs.splitlines():
-            if not line:
-                continue
-            _out = []
-            if brackets.search(line):
-                _splt = [i.strip() for i in re.split(r'(\([^)]*\))', line) if i.strip()]
-                splt = []
-                for item in _splt:
-                    if brackets.search(item):
-                        splt.append([n.strip() for n in brackets.sub('', item).split(',') if n.strip()])
+        for linenum, line in enumerate(ocs.splitlines()):
+            try:
+                if not line:
+                    continue
+                try:
+                    if (line.index('(') < line.index(',')) or (line.index(')') < line.index(',')):
+                        self.add_error(
+                            'optical_configs',
+                            "No parentheses allowed in name (line #{})".format(linenum))
+                        continue
+                except Exception:
+                    pass
+                _out = []
+                if brackets.search(line):
+                    _splt = [i.strip() for i in re.split(r'(\([^)]*\))', line) if i.strip()]
+                    splt = []
+                    for item in _splt:
+                        if brackets.search(item):
+                            splt.append([n.strip() for n in brackets.sub('', item).split(',') if n.strip()])
+                        else:
+                            if item.endswith(','):
+                                item = item[:-1]
+                            if item.startswith(','):
+                                item = item[1:]
+                            splt.extend([n.strip() for n in item.split(',')])
+                else:
+                    splt = [i.strip() for i in line.split(',')]
+                if not len(splt) in (4, 5):
+                    self.add_error(
+                        'optical_configs',
+                        "Lines must have 4 or 5 comma-separated fields but this one "
+                        "has {}: {}".format(len(splt), line))
+                for n, f in enumerate(splt):
+                    if n == 0:
+                        if f in namestore:
+                            self.add_error(
+                                'optical_configs',
+                                'Optical config with the name %s already exists.' % f)
+                        else:
+                            namestore.append(f)
+                            _out.append(f)
+                    elif n == 4:
+                        try:
+                            if f.lower() in ('0', 'false', 'none'):
+                                _out.append(False)
+                            else:
+                                _out.append(True)
+                        except Exception:
+                            self.add_error(
+                                'optical_configs',
+                                'Unable to parse Boolean in position 5: %s' % f)
                     else:
-                        if item.endswith(','):
-                            item = item[:-1]
-                        if item.startswith(','):
-                            item = item[1:]
-                        splt.extend([n.strip() for n in item.split(',')])
-            else:
-                splt = [i.strip() for i in line.split(',')]
-            if not len(splt) in (4, 5):
+                        if isinstance(f, list):
+                            _out.append([lookup(x) for x in f])
+                        else:
+                            _out.append(lookup(f))
+                cleaned.append(_out)
+            except Exception:
                 self.add_error(
                     'optical_configs',
-                    "Lines must have 4 or 5 comma-separated fields but this one "
-                    "has {}: {}".format(len(splt), line))
-            for n, f in enumerate(splt):
-                if n == 0:
-                    if f in namestore:
-                        self.add_error(
-                            'optical_configs',
-                            'Optical config with the name %s already exists.' % f)
-                    else:
-                        namestore.append(f)
-                        _out.append(f)
-                elif n == 1 and f.isdigit():
-                    if int(f) < 300 or int(f) > 1600:
-                        self.add_error(
-                            'optical_configs',
-                            'Laser wavelengths must be between 300-1600.  Got: %s' % f)
-                    else:
-                        _out.append(int(f))
-                elif n == 4:
-                    if f.lower() in ('0', 'false', 'none'):
-                        _out.append(False)
-                    else:
-                        _out.append(True)
-                else:
-                    if isinstance(f, list):
-                        _out.append([lookup(x) for x in f])
-                    else:
-                        _out.append(lookup(f))
-            cleaned.append(_out)
+                    "Uknown error parsing line #{}: {}".format(linenum, line))
         return cleaned
 
 
