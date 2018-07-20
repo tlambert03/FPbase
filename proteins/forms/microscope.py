@@ -194,7 +194,7 @@ class MicroscopeForm(forms.ModelForm):
                     if (line.index('(') < line.index(',')) or (line.index(')') < line.index(',')):
                         self.add_error(
                             'optical_configs',
-                            "No parentheses allowed in name (line #{})".format(linenum))
+                            "No parentheses allowed in name (line #{})".format(linenum + 1))
                         continue
                 except Exception:
                     pass
@@ -246,7 +246,7 @@ class MicroscopeForm(forms.ModelForm):
             except Exception:
                 self.add_error(
                     'optical_configs',
-                    "Uknown error parsing line #{}: {}".format(linenum, line))
+                    "Uknown error parsing line #{}: {}".format(linenum + 1, line))
         return cleaned
 
 
