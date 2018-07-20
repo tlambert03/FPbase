@@ -334,6 +334,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     owner_camera = models.OneToOneField('Camera', null=True, blank=True, on_delete=models.CASCADE, related_name='spectrum')
 
     objects  = SpectrumManager()
+    fluorophores = QueryManager(models.Q(category=DYE) | models.Q(category=PROTEIN))
     proteins = QueryManager(category=PROTEIN)
     dyes     = QueryManager(category=DYE)
     lights   = QueryManager(category=LIGHT)

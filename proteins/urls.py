@@ -64,6 +64,7 @@ urlpatterns = [
                        message="You must be logged in to delete microscopes"),
         name='deletemicroscope'),
     url(r'^embedscope/(?P<pk>[-\w]+)/$', views.MicroscopeEmbedView.as_view(), name='microscope-embed'),
+    url(r'^microscope/(?P<pk>[-\w]+)/report$', views.ScopeReportView.as_view(), name='scope-report'),
     url(r'^microscope/(?P<pk>[-\w]+)/$', views.MicroscopeDetailView.as_view(), name='microscope-detail'),
     url(r'^microscope/(?P<pk>[-\w]+)/update/',
         login_required(views.MicroscopeUpdateView.as_view(),
@@ -71,7 +72,6 @@ urlpatterns = [
         name='updatemicroscope'),
     url(r'^microscopes/(?P<owner>[\w.@+-]+)/?$', views.MicroscopeList.as_view(), name='microscopes'),
     url(r'^microscopes/', views.MicroscopeList.as_view(), name='microscopes'),
-    url(r'^scope_report/', views.ScopeReportView.as_view(), name='scope-report'),
 
     # /proteins/api
     url(r'^api/spectrum/$', apiviews.SpectrumList.as_view(), name='spectrum-api'),

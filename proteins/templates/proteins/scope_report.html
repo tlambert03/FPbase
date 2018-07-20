@@ -30,14 +30,12 @@
 
 <script type="text/javascript">
   var myData = {{report|safe}};
-  console.log(myData);
 </script>
 
 <script>
 
     // create the chart
     var chart;
-    nv.models.scatter.getColor = function(d){ console.log(d)};
     nv.addGraph(function() {
         chart = nv.models.scatterChart()
             .showDistX(true)
@@ -72,9 +70,6 @@
             });
         chart.scatter.dispatch.on('elementClick', function(event) {
             location.href = event.point.url;
-        });
-        chart.scatter.dispatch.on('elementMouseover', function(event) {
-            console.log(event)
         });
 
         return chart;

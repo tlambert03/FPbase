@@ -1,5 +1,5 @@
 import json
-from django.views.generic import TemplateView, DetailView, CreateView, DeleteView, ListView, UpdateView
+from django.views.generic import DetailView, CreateView, DeleteView, ListView, UpdateView
 from django.http import HttpResponseRedirect, Http404
 from django.core.mail import mail_admins
 from django.core.exceptions import PermissionDenied
@@ -10,47 +10,47 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib import messages
+from django.core.cache import cache
 
-
-from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig
+from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig, State, Dye
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from .mixins import OwnableObject
 from ..util.efficiency import microscope_efficiency_report
 
 
-class ScopeReportView(TemplateView):
+class ScopeReportView(DetailView):
     template_name = 'proteins/scope_report.html'
+    queryset = Microscope.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super(ScopeReportView, self).get_context_data(**kwargs)
-        m = Microscope.objects.first()
-        from django.core.cache import cache
-        if not cache.get('my_key'):
+        cachekey = self.object.id + '_report'
+        if not cache.get(cachekey):
             # oc = list(m.optical_configs.all())
             # fluors = list(State.objects.with_spectra())
             # fluors.extend(list(Dye.objects.all()))
             # report = oclist_efficiency_report(oc, fluors)
-            report = microscope_efficiency_report(m)
-            cache.set('my_key', report, 1800)
-        _rep = cache.get('my_key')
+            report = microscope_efficiency_report(self.object)
+            cache.set(cachekey, report, 43200)
+        _rep = cache.get(cachekey)
         report = {}
         data = []
         for oc, dct in _rep.items():
             data.append({
-                'key': oc.name,
+                'key': oc,
                 'values': []
             })
-            for probe, effdata in dct.items():
+            for slug, effdata in dct.items():
                 if effdata['ex'] and effdata['em']:
                     data[-1]['values'].append({
-                        'fluor': probe.fluor_name,
+                        'fluor': effdata['fluor'],
                         'x': effdata['ex'],
                         'y': effdata['em'],
                         'bright': effdata['bright'],
                         'size': effdata['bright'] if effdata['bright'] else 0.01,
-                        'color': probe.emhex,
-                        'shape': 'circle' if hasattr(probe, 'protein') else 'square',
-                        'url': probe.get_absolute_url() or '',
+                        'color': effdata['color'],
+                        'shape': 'circle' if effdata['ftype'] == 'p' else 'square',
+                        'url': effdata['url'],
                     })
 
         context['report'] = data

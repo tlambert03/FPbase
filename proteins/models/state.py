@@ -123,16 +123,16 @@ class Fluorophore(SpectrumOwner):
         return [spect.d3dict() for spect in self.spectra.all()]
 
 
-class Dye(Fluorophore, Product):
-    pass
-
-
-class StatesManager(models.Manager):
+class FluorophoreManager(models.Manager):
     def notdark(self):
         return self.filter(is_dark=False)
 
     def with_spectra(self):
         return self.get_queryset().filter(spectra__isnull=False).distinct()
+
+
+class Dye(Fluorophore, Product):
+    objects = FluorophoreManager()
 
 
 class State(Fluorophore):
@@ -148,7 +148,7 @@ class State(Fluorophore):
     protein     = models.ForeignKey('Protein', related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
 
     # Managers
-    objects = StatesManager()
+    objects = FluorophoreManager()
 
     class Meta:
         verbose_name = u'State'

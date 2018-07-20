@@ -1,4 +1,5 @@
 import numpy as np
+from ..models import State, Dye
 
 
 def spectral_product(arrlist):
@@ -39,33 +40,39 @@ def microscope_efficiency_report(scope, *args, **kwargs):
     return oclist_efficiency_report(scope.optical_configs.all(), *args, **kwargs)
 
 
-def oclist_efficiency_report(oclist, owner_collection):
+def oclist_efficiency_report(oclist, fluor_collection=None, include_dyes=True):
+    if fluor_collection is None:
+        fluor_collection = list(State.objects.with_spectra())
+        if include_dyes:
+            fluor_collection += list(Dye.objects.with_spectra())
     D = {}
     for oc in oclist:
-        print("OPTICAL CONFIG: ", oc)
-        D[oc] = path_efficiency_report(oc, owner_collection)
+        D[oc.name] = path_efficiency_report(oc, fluor_collection)
     return D
 
 
-def path_efficiency_report(oc, owner_collection):
-    # where oc is an optical config and owner_collection is a list of a SpectrumOwner subclass
+def path_efficiency_report(oc, fluor_collection):
+    # where oc is an optical config and fluor_collection is a list of a SpectrumOwner subclass
     D = {}
     oc_em = spectral_product(oc.em_spectra)
     oc_ex = spectral_product(oc.ex_spectra)
-    for owner in owner_collection:
-        print("\t", owner)
-        D[owner] = {
+    for fluor in fluor_collection:
+        D[fluor.slug] = {
+            'fluor': fluor.fluor_name,
             'ex': None,
             'em': None,
-            'bright': 0
+            'bright': 0,
+            'color': fluor.emhex,
+            'ftype': 'p' if isinstance(fluor, State) else 'd',
+            'url': fluor.get_absolute_url() or ''
         }
-        if owner.em_spectrum:
-            combospectrum = spectral_product([oc_em, owner.em_spectrum.data])
-            D[owner]['em'] = round(area(combospectrum) / area(owner.em_spectrum.data), 3)
-        if owner.ex_spectrum:
-            combospectrum = spectral_product([oc_ex, owner.ex_spectrum.data])
-            D[owner]['ex'] = round(area(combospectrum) / area(oc_ex), 3)
-        if D[owner]['em'] and D[owner]['ex'] and owner.ext_coeff and owner.qy:
-            b = D[owner]['em'] * D[owner]['ex'] * owner.ext_coeff * owner.qy / 1000
-            D[owner]['bright'] = round(b, 3)
+        if fluor.em_spectrum:
+            combospectrum = spectral_product([oc_em, fluor.em_spectrum.data])
+            D[fluor.slug]['em'] = round(area(combospectrum) / area(fluor.em_spectrum.data), 3)
+        if fluor.ex_spectrum:
+            combospectrum = spectral_product([oc_ex, fluor.ex_spectrum.data])
+            D[fluor.slug]['ex'] = round(area(combospectrum) / area(oc_ex), 3)
+        if D[fluor.slug]['em'] and D[fluor.slug]['ex'] and fluor.ext_coeff and fluor.qy:
+            b = D[fluor.slug]['em'] * D[fluor.slug]['ex'] * fluor.ext_coeff * fluor.qy / 1000
+            D[fluor.slug]['bright'] = round(b, 3)
     return D
