@@ -31,6 +31,9 @@ class Microscope(OwnedCollection):
     collection = models.ForeignKey('ProteinCollection', blank=True, null=True, related_name='on_scope', on_delete=models.CASCADE)
     fluors = models.ForeignKey('FluorophoreCollection', blank=True, null=True, related_name='fluor_on_scope', on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ['created']
+
     @classmethod
     def from_oclist(cls, name, oclist):
         if not isinstance(oclist, (list, tuple)):
