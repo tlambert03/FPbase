@@ -141,7 +141,9 @@
                 </div>
               </div>
             {% endfor %}
+            <a href="#" class='text-primary' data-toggle="modal" data-target="#importModal"><button class='btn btn-sm btn-danger mb-1'><i class="fas fa-download mr-2"></i>Import Commercial Filter</button></a>
           </div>
+
         </div>
       </div>
     </div>
@@ -158,6 +160,8 @@
   </div>
 </form>
 
+<!-- Modals -->
+{% include 'proteins/modals/_import_spectrum_modal.html' with user=user %}
 
 {% endblock content %}
 
@@ -169,7 +173,7 @@
 
   <script type="text/javascript">
 
-  $("form").submit(function(e){
+  $("#microscopeform").submit(function(e){
     $("#spinner").css('display', 'inline');
 
   });
@@ -187,7 +191,7 @@
 
     $('.formset_div').formset({
       addText: 'Add Optical Configuration',
-      addCssClass: 'btn btn-info add-oc-button',
+      addCssClass: 'btn btn-sm btn-info add-oc-button mb-1 mr-1',
       deleteCssClass: deleteclass,
       deleteText: '&times;',
       processHidden: true,
@@ -201,6 +205,47 @@
 
     }
   });
+
+    $("#chromaImportForm, #semrockImportForm").submit(function(e) {
+        e.preventDefault(); // avoid to execute the actual submit of the form.
+        $("#footerSpinner").show();
+        $("#footerFail").hide();
+        $("#footerSuccess").hide();
+        var form = $(this).closest("form");
+        var brand = form.data('brand');
+        $.ajax({
+            type: "POST",
+            url: form.attr("data-action-url"),
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(data) {
+                if (data.status) {
+                    newdata = JSON.parse(data.spectra_options);
+                    $('.data-selector[data-category="f"]').append($('<option>', { value: newdata.slug }).text(newdata.name));
+                    $("#" + brand + "Input").removeClass('is-invalid');
+                    $("#" + brand + "Help").removeClass('invalid-feedback').addClass('text-muted').text('Success!');
+                    $("#footerSpinner").hide();
+                    $("#footerFail").hide();
+                    $("#footerSuccess").show();
+                } else {
+                    $("#" + brand + "Input").addClass('is-invalid');
+                    $("#" + brand + "Help").removeClass('text-muted').addClass('invalid-feedback').text('ERROR: ' + data.message).show();
+                    $("#footerSpinner").hide();
+                    $("#footerFail").show();
+                    $("#footerSuccess").hide();
+                }
+            }
+        }).then(function(d){
+            $("#footerSpinner").hide();
+            // $('#importModal').modal('hide');
+        });
+    });
+
+    $(".importerClose").click(function(){
+        $("#footerSpinner").hide();
+        $("#footerFail").hide();
+        $("#footerSuccess").hide();
+    });
 
   </script>
 {% endblock javascript %}

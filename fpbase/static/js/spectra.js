@@ -1145,30 +1145,33 @@ $( "body" ).keypress(function( event ) {
     // no double-events
     if ($(':focus').hasClass('select2-search__field')){ return; }
 
-    // ALL KEYS REQUIRE SHIFT
-    if ( event.which == 80 ) { // p key
-        activateTab("proteintab");
-        findEmptyOrAdd("protein", 'p')
-    } else if ( event.which == 68 ) {  // d key
-        activateTab("proteintab")
-        findEmptyOrAdd("dye", 'd')
-    } else if ( event.which == 77 ) {  // m key
-        activateTab("emtab")
-        findEmptyOrAdd("emfilter", 'f', 'bm')
-    } else if ( event.which == 88 ) {  // x key
-        activateTab("extab")
-        findEmptyOrAdd("exfilter", 'f', 'bx')
-    } else if ( event.which == 67 ) {  // c key
-        activateTab("emtab")
-        findEmptyOrAdd("camqe", 'c', 'qe')
-    } else if ( event.which == 76 ) {  // l key
-        activateTab("extab")
-        findEmptyOrAdd("light", 'l')
-    } else if ( event.which == 79 ) {  // o key
-        activateTab("optionstab")
-    } else if ( event.which == 70 ) {  // f key
-        activateTab("efftab")
+    if (document.activeElement.nodeName !== 'INPUT'){
+        // ALL KEYS REQUIRE SHIFT
+        if ( event.which == 80 ) { // p key
+            activateTab("proteintab");
+            findEmptyOrAdd("protein", 'p')
+        } else if ( event.which == 68 ) {  // d key
+            activateTab("proteintab")
+            findEmptyOrAdd("dye", 'd')
+        } else if ( event.which == 77 ) {  // m key
+            activateTab("emtab")
+            findEmptyOrAdd("emfilter", 'f', 'bm')
+        } else if ( event.which == 88 ) {  // x key
+            activateTab("extab")
+            findEmptyOrAdd("exfilter", 'f', 'bx')
+        } else if ( event.which == 67 ) {  // c key
+            activateTab("emtab")
+            findEmptyOrAdd("camqe", 'c', 'qe')
+        } else if ( event.which == 76 ) {  // l key
+            activateTab("extab")
+            findEmptyOrAdd("light", 'l')
+        } else if ( event.which == 79 ) {  // o key
+            activateTab("optionstab")
+        } else if ( event.which == 70 ) {  // f key
+            activateTab("efftab")
+        }
     }
+
 
 });
 

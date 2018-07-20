@@ -5,7 +5,8 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.views.generic import CreateView
 from django.shortcuts import render
-from ..models import Spectrum
+from django.template.defaultfilters import slugify
+from ..models import Spectrum, Filter
 from ..forms import SpectrumForm
 from ..util.spectra import spectra2csv
 from ..util.importers import add_filter_to_database
@@ -84,6 +85,13 @@ def filter_import(request, brand):
     response = {'status': 0}
 
     try:
+        Filter.objects.get(slug=slugify(brand + ' ' + part))
+        response['message'] = '%s is already in the database' % part
+        return JsonResponse(response)
+    except Filter.DoesNotExist:
+        pass
+
+    try:
         newObjects, errors = add_filter_to_database(brand, part, request.user)
     except Exception as e:
         response['message'] = str(e)
@@ -107,4 +115,3 @@ def filter_import(request, brand):
         except Exception:
             pass
     return JsonResponse(response)
-

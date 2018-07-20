@@ -17,7 +17,7 @@
               {% csrf_token %}
               <div class="input-group">
                 <input id="chromaInput" type="text" class="form-control" name="part" placeholder="Chroma Part Number">
-                <span class="input-group-btn">
+                <span class="input-group-btn input-group-append">
                   <button type="submit" class="btn btn-info">Fetch</button>
                 </span>
               </div>
@@ -30,13 +30,13 @@
               {% csrf_token %}
             <div class="input-group">
               <input id="semrockInput" type="text" class="form-control" name="part" placeholder="Semrock Part Number">
-              <span class="input-group-btn">
+              <span class="input-group-btn input-group-append">
                 <button type="submit" class="btn btn-info">Fetch</button>
               </span>
             </div>
             <div id="semrockHelp" class="form-text small text-muted">e.g. FF03-525/50</div>
             </form>
-
+            <p class='mt-4 small font-italic text-muted'>Any generic spectra can also be submitted <a href="{% url 'proteins:submit-spectra' %}">here</a></p>
         </div>
         <div class="modal-footer">
           <i id="footerSpinner" class="fas fa-spinner fa-spin hidden" style='font-size: 1.5rem; margin-right:1rem'></i>
