@@ -123,3 +123,36 @@
 
 
 
+<div class="row">
+  <div class="col-lg-8 col-md-6">
+    <div class="form-group">
+      <label for="id_optical_configs-{{ formnum }}-comments"><small><strong>{{ ocform.comments.label }}</strong></small></label>
+      {{ocform.comments}}
+      {% if  ocform.comments.errors %}
+        {% for error in ocform.comments.errors %}
+        <p id="error_{{ forloop.counter0 }}_id_optical_configs-{{ formnum }}-comments" class="mb-0 text-danger help-block small font-weight-bold">{{error}}</p>
+        {% endfor %}
+      {% endif %}
+      {% if ocform.comments.help_text %}
+      <small id="hint_id_optical_configs-{{ formnum }}-comments" class="form-text text-muted">{{ ocform.comments.help_text | safe }}</small>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4 col-md-6 oc-filter-group">
+    <div id="div_id_optical_configs-{{ formnum }}-ref_em_filters" class="form-group">
+      <label for="id_form-{{ formnum }}-ref_em_filters" class="col-form-label">
+        <small class='text-muted'><strong>{{ ocform.ref_em_filters.label }}</strong></small>
+      </label>
+      <div class="">
+        {{ocform.ref_em_filters}}
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+
+
+

@@ -62,17 +62,18 @@
   </div>
   <div class="row">
     <div class="col-12">
-      <div class="input-group mb-3">
+      <div class="input-group mb-1">
         <div class="input-group-prepend">
           <label class="input-group-text text-white bg-info" for="inputGroupSelect01"><i class="fas fa-list mr-1 mr-sm-2 mr-md-3"></i>Config<span class="d-none d-md-inline">urations</span></label>
         </div>
         <select class="custom-select" id="config-select">
           <option value="">-----</option>
           {% for config in microscope.optical_configs.all %}
-          <option value='{{config.name}}' data-filters='[{% for fp in config.filterplacement_set.all %}[{{fp.filter.id}}, "{{fp.path}}", {{fp.reflects|lower}}]{% if not forloop.last %},{% endif %}{% endfor %}]' data-laser='{{config.laser|default_if_none:''}}' data-light='{{config.light.id}}' data-camera='{{config.camera.id}}'>{{config}}</option>
+          <option value='{{config.name}}' data-filters='[{% for fp in config.filterplacement_set.all %}[{{fp.filter.id}}, "{{fp.path}}", {{fp.reflects|lower}}]{% if not forloop.last %},{% endif %}{% endfor %}]' data-laser='{{config.laser|default_if_none:''}}' data-light='{{config.light.id}}' data-camera='{{config.camera.id}}' data-comments='{{config.comments}}' >{{config}}</option>
           {% endfor %}
         </select>
       </div>
+      <small id="config_comments" class="form-text text-muted mt-0 pt-0 mb-3 text-right font-italic"></small>
     </div>
   </div>
   <div class="row">
@@ -190,14 +191,36 @@
       <div class="card">
         <div class="card-header text-white bg-info">
           Emission Filters
+          {% if object.has_reflective_emfilters %}
+          <span class='float-right'><small>reflect</small></span>
+          {% endif %}
         </div>
         <div class="list-group list-group-flush">
           {% for filt in microscope.em_filters.all %}
           <li class="list-group-item">
-            <div class="custom-control custom-checkbox mr-sm-2">
-              <input type="checkbox" class="custom-control-input filter-selector em-filter" id="listfilter-em-{{filt.id}}" value="{{filt.slug}}">
-              <label class="custom-control-label filter-label" for="listfilter-em-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
-            </div>
+
+              {% if object.has_reflective_emfilters %}
+              <div class="row">
+                <div class="col-10">
+                  <div class="custom-control custom-checkbox mr-sm-2">
+                    <input type="checkbox" class="custom-control-input filter-selector em-filter" id="listfilter-em-{{filt.id}}" value="{{filt.slug}}">
+                    <label class="custom-control-label filter-label" for="listfilter-em-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
+                  </div>
+                </div>
+                <div class="col-2">
+                  <span class="switch">
+                    <input type="checkbox" class="switch-sm invswitch" id="invswitch-filter-{{filt.id}}" value="{{filt.slug}}">
+                    <label for="invswitch-filter-{{filt.id}}"></label>
+                  </span>
+                </div>
+              </div>
+              {% else %}
+              <div class="custom-control custom-checkbox mr-sm-2">
+                <input type="checkbox" class="custom-control-input filter-selector em-filter" id="listfilter-em-{{filt.id}}" value="{{filt.slug}}">
+                <label class="custom-control-label filter-label" for="listfilter-em-{{filt.id}}"><span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}<a href="{{ filt.get_absolute_url }}" class='external-link' target="_blank"><i class="fas fa-external-link-alt"></i></a></label>
+              </div>
+              {% endif %}
+
           </li>
           {% endfor %}
         </div>

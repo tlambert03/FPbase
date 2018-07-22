@@ -174,7 +174,7 @@ i {
 
 #microscopeFormTabs {
   font-size: 0.80rem;
-  @include media-breakpoint-up(sm) {
+  @include media-breakpoint-up(md) {
       font-size: 1rem;
   }
 }
@@ -234,9 +234,15 @@ ul li.select2-search {
       display:none;
     }*/
 
-    .dynamic-oc-forms .oc-filter-group span.select2-container:nth-of-type(2){
-      display:none;
+    .dynamic-oc-forms{
+      .oc-filter-group span.select2-container:nth-of-type(2){
+        display:none;
+      }
+      .col-form-label {
+        padding-top: 0;
+      }
     }
+
 
     .select2-selection__choice{
       font-size: small;

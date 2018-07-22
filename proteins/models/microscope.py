@@ -4,10 +4,10 @@ from django.contrib.postgres.fields import ArrayField
 from django.urls import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from .spectrum import Filter
 from .spectrum import sorted_ex2em
 from ..util.helpers import shortuuid
 from .collection import OwnedCollection
+from . import Camera, Light, Filter
 
 
 class Microscope(OwnedCollection):
@@ -20,14 +20,11 @@ class Microscope(OwnedCollection):
                  (all spectra will be added to spectra)
     """
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
-    ex_filters = models.ManyToManyField('Filter', blank=True, related_name='as_ex_filter')
-    bs_filters = models.ManyToManyField('Filter', blank=True, related_name='as_bs_filter')
-    em_filters = models.ManyToManyField('Filter', blank=True, related_name='as_em_filter')
-    lights = models.ManyToManyField('Light', blank=True, related_name='microscopes')
-    cameras = models.ManyToManyField('Camera', blank=True, related_name='microscopes')
-    lasers = ArrayField(models.PositiveSmallIntegerField(
-                        validators=[MinValueValidator(300), MaxValueValidator(1600)]),
-                        default=list, blank=True)
+    extra_lights = models.ManyToManyField('Light', blank=True, related_name='microscopes')
+    extra_cameras = models.ManyToManyField('Camera', blank=True, related_name='microscopes')
+    extra_lasers = ArrayField(models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(300), MaxValueValidator(1600)]),
+        default=list, blank=True)
     collection = models.ForeignKey('ProteinCollection', blank=True, null=True, related_name='on_scope', on_delete=models.CASCADE)
     fluors = models.ForeignKey('FluorophoreCollection', blank=True, null=True, related_name='fluor_on_scope', on_delete=models.CASCADE)
 
@@ -47,41 +44,59 @@ class Microscope(OwnedCollection):
         microscope.save()
         return microscope
 
+    @property
     def has_inverted_bs(self):
-        for oc in self.optical_configs.all():
-            if oc.inverted_bs.exists():
-                return True
-        return False
+        return self.optical_configs.filter(
+            filterplacement__path=FilterPlacement.BS,
+            filterplacement__reflects=True).exists()
+
+    @property
+    def has_reflective_emfilters(self):
+        return self.optical_configs.filter(
+            filterplacement__path=FilterPlacement.EM,
+            filterplacement__reflects=True).exists()
 
     def inverted_bs_set(self):
         return {i.filter.slug for oc in self.optical_configs.all() for i in oc.inverted_bs.all()}
 
-    def save(self, *args):
-        # add any filterset members to the spectra set
-        if self.pk and self.optical_configs:
-            # For now... this makes it so that a microscope can only have filters
-            # that are used in at least one optical config
-            self.ex_filters.clear()
-            self.em_filters.clear()
-            self.bs_filters.clear()
-            # self.lights.clear()
-            # self.cameras.clear()
-            # self.lasers = []
-            for oc in self.optical_configs.all():
-                for _fl in ('ex_filters', 'bs_filters', 'em_filters'):
-                    [getattr(self, _fl).add(x) for x in getattr(oc, _fl).all()]
-                if oc.light:
-                    self.lights.add(oc.light)
-                if oc.camera:
-                    self.cameras.add(oc.camera)
-                if oc.laser:
-                    self.lasers.append(oc.laser)
-        self.lasers = list(set(self.lasers))
-        self.full_clean()
-        return super().save(*args)
-
     def get_absolute_url(self):
         return reverse("proteins:microscope-detail", args=[self.id])
+
+    @property
+    def lights(self):
+        oclights = Light.objects.filter(id__in=self.optical_configs.values('light'))
+        return oclights | self.extra_lights.all()
+
+    @property
+    def cameras(self):
+        occams = Camera.objects.filter(id__in=self.optical_configs.values('camera'))
+        return occams | self.extra_cameras.all()
+
+    @property
+    def lasers(self):
+        return list(self.optical_configs
+                    .exclude(laser=None)
+                    .values_list('laser', flat=True)
+                    .order_by('laser')
+                    .distinct('laser')) + self.extra_lasers
+
+    @property
+    def ex_filters(self):
+        return Filter.objects.filter(id__in=FilterPlacement.objects.filter(
+            config__id__in=self.optical_configs.values('id'), path=FilterPlacement.EX)
+            .distinct('filter').values('filter__id'))
+
+    @property
+    def em_filters(self):
+        return Filter.objects.filter(id__in=FilterPlacement.objects.filter(
+            config__id__in=self.optical_configs.values('id'), path=FilterPlacement.EM)
+            .distinct('filter').values('filter__id'))
+
+    @property
+    def bs_filters(self):
+        return Filter.objects.filter(id__in=FilterPlacement.objects.filter(
+            config__id__in=self.optical_configs.values('id'), path=FilterPlacement.BS)
+            .distinct('filter').values('filter__id'))
 
     @property
     def spectra(self):
@@ -103,6 +118,7 @@ def invert(sp):
 class OpticalConfig(OwnedCollection):
     """ A a single optical configuration comprising a set of filters """
     microscope = models.ForeignKey('Microscope', related_name='optical_configs', on_delete=models.CASCADE)
+    comments = models.CharField(max_length=256, blank=True)
     filters = models.ManyToManyField(
         'Filter', related_name='optical_configs', blank=True, through='FilterPlacement')
     light = models.ForeignKey('Light', null=True, blank=True, related_name='optical_configs', on_delete=models.SET_NULL)
@@ -126,12 +142,16 @@ class OpticalConfig(OwnedCollection):
     @property
     def em_filters(self):
         """ all filters that have an emission role """
-        return self.filters.filter(filterplacement__path=FilterPlacement.EM)
+        return self.filters.filter(filterplacement__path=FilterPlacement.EM, filterplacement__reflects=False)
 
     @property
     def bs_filters(self):
         """ all filters that are in both ex and em paths have a beamsplitting role """
         return self.filters.filter(filterplacement__path=FilterPlacement.BS)
+
+    @property
+    def ref_em_filters(self):
+        return self.filters.filter(filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True)
 
     @property
     def ex_spectra(self):

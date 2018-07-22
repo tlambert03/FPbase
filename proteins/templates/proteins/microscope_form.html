@@ -65,6 +65,9 @@
         <li class="nav-item">
           <a class="nav-link" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add Configs in Bulk</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" id="extra-tab" data-toggle="tab" href="#extra" aria-controls="extra" aria-selected="true">Extra Components</a>
+        </li>
       </ul>
     </div>
     <div class="card-body">
@@ -146,6 +149,26 @@
           </div>
 
         </div>
+
+        <div class="tab-pane fade" id="extra" role="tabpanel" aria-labelledby="extra-tab">
+
+          <p class="small text-muted"><em>Components added in this tab will be available in the spectra viewer, but not attached to any specific optical config.</em></p>
+
+          <div class="row">
+            <div class="col-sm-6 col-lg-4 col-xs-12">
+              {{ form.extra_lights|as_crispy_field }}
+            </div>
+            <div class="col-sm-6 col-lg-4 col-xs-12">
+              {{ form.extra_cameras|as_crispy_field }}
+            </div>
+            <div class="col-sm-6 col-lg-4 col-xs-12">
+              {{ form.extra_lasers|as_crispy_field }}
+            </div>
+          </div>
+
+        </div>
+
+
       </div>
     </div>
   </div>
@@ -179,7 +202,7 @@
 
   });
 
-  $("#id_detector, #id_light_source").select2({
+  $("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2({
     theme: "bootstrap",
     placeholder: "---------",
     allowClear: true,

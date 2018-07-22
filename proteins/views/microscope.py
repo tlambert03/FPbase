@@ -154,13 +154,14 @@ class MicroscopeDetailView(DetailView):
     ''' renders html for microscope detail/spectrum page '''
     queryset = Microscope.objects.all().prefetch_related(
         'optical_configs__filterplacement_set__filter',
-        'optical_configs__filters')
+        'optical_configs__camera',
+        'optical_configs__light')
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        if not self.object.cameras.count():
+        if not self.object.cameras.exists():
             data['cameras'] = Camera.objects.all()
-        if not self.object.lights.count():
+        if not self.object.lights.exists():
             data['lights'] = Light.objects.all()
         if self.object.collection:
             proteins = self.object.collection.proteins.with_spectra() \

@@ -345,17 +345,21 @@ class OpticalConfigAdmin(admin.ModelAdmin):
     inlines = (FilterPlacementInline, )
     fields = (('name', 'microscope'), ('laser', 'light'), ('camera', 'owner'))
 
+    def save_model(self, request, obj, form, change):
+        obj.save()
+        obj.microscope.save()
 
-class OpticalConfigInline(admin.TabularInline):
-    model = OpticalConfig
-    fields = ('name', 'light', 'laser', 'camera')
-    extra = 1  # how many rows to show
+
+# class OpticalConfigInline(admin.TabularInline):
+#     model = OpticalConfig
+#     fields = ('name', 'light', 'laser', 'camera')
+#     extra = 1  # how many rows to show
 
 
 @admin.register(Microscope)
 class MicroscopeAdmin(admin.ModelAdmin):
     model = Microscope
-    autocomplete_fields = ("bs_filters", 'ex_filters', 'em_filters', 'lights', 'cameras')
+    autocomplete_fields = ('extra_lights', 'extra_cameras')
     readonly_fields = ('configs', )
 
     def configs(self, obj):

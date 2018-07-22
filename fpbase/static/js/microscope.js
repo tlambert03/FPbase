@@ -656,6 +656,8 @@ $(function() {
       var wave = selected.data('laser');
       var light = selected.data('light');
       var camera = selected.data('camera');
+      var comments = selected.data('comments');
+      console.log(comments)
       if (wave) {
         $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
       }
@@ -667,6 +669,11 @@ $(function() {
       }
       if (camera) {
         $("#camera-select option[data-id='" + camera + "']").prop('selected', true)
+      }
+      if (comments) {
+        $("#config_comments").text(comments);
+      } else {
+        $("#config_comments").text('');
       }
       updateChart();
     });

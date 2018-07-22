@@ -63,12 +63,6 @@ class MicroscopeForm(forms.ModelForm):
         help_text=('See extended help below')
     )
 
-    collection = forms.ModelChoiceField(
-        required=False, queryset=ProteinCollection.objects.exclude(private=True),
-        label='Protein Collection',
-        help_text='Subset of probes to show on microscope page. '
-                  'Leave blank to enable all fluorophores in the database.')
-
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
@@ -77,11 +71,12 @@ class MicroscopeForm(forms.ModelForm):
 
     class Meta:
         model = Microscope
-        fields = ('name', 'description', 'collection', 'managers')
+        fields = ('name', 'description', 'collection', 'managers', 'extra_lights', 'extra_cameras', 'extra_lasers')
         help_texts = {
             'name': 'Name of this microscope or set of filter configurations',
             'description': 'This text will appear below the name on your microscope page',
-            'managers': 'Grant others permission to edit this page (comma seperated list of email addresses)'
+            'managers': 'Grant others permission to edit this page (comma seperated list of email addresses)',
+            'extra_lasers': 'Comma seperated list of integers (300-1600)'
         }
         widgets = {
             'name': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
@@ -126,6 +121,9 @@ class MicroscopeForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance = super().save(commit=False)
+        self.instance.extra_cameras.set(self.cleaned_data['extra_cameras'])
+        self.instance.extra_lights.set(self.cleaned_data['extra_lights'])
+        self.instance.extra_lasers = self.cleaned_data['extra_lasers']
         for row in self.cleaned_data['optical_configs']:
             newoc = self.create_oc(row[0], row[1:])
             if newoc:
@@ -137,10 +135,10 @@ class MicroscopeForm(forms.ModelForm):
                 newoc.save()
                 self.instance.optical_configs.add(newoc)
         if self.cleaned_data['light_source'].count() > 1:
-            [self.instance.lights.add(i) for i in
+            [self.instance.extra_lights.add(i) for i in
              self.cleaned_data['light_source'].all()]
         if self.cleaned_data['detector'].count() > 1:
-            [self.instance.cameras.add(i) for i in
+            [self.instance.extra_cameras.add(i) for i in
              self.cleaned_data['detector'].all()]
         if not self.instance.owner:
             self.instance.owner = self.user
@@ -292,6 +290,19 @@ class OpticalConfigForm(forms.ModelForm):
             }
         ),
     )
+    ref_em_filters = forms.ModelMultipleChoiceField(
+        label="Advanced: Reflective Emission Filter(s)",
+        queryset=Filter.objects.all(), required=False,
+        widget=autocomplete.ModelSelect2Multiple(
+            url='proteins:filter-autocomplete',
+            attrs={
+                'data-theme': 'bootstrap',
+                'data-width': "100%",
+                'data-placeholder': '----------',
+            }
+        ),
+    )
+
     bs_filters = forms.ModelMultipleChoiceField(
         label="Dichroic Filter(s)",
         queryset=Filter.objects.all(), required=False,
@@ -318,21 +329,27 @@ class OpticalConfigForm(forms.ModelForm):
                     'bs_filters': instance.bs_filters,
                     'em_filters': instance.em_filters,
                     'ex_filters': instance.ex_filters,
+                    'ref_em_filters': instance.ref_em_filters,
                 }
             )
         super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
         oc = super().save()
-        for _p in ('em_filters', 'ex_filters', 'bs_filters'):
+        for _p in ('em_filters', 'ex_filters', 'bs_filters', 'ref_em_filters'):
             for filt in self.initial.get(_p, []):
                 if filt not in self.cleaned_data[_p].values_list('id', flat=True):
                     oc.filterplacement_set.filter(filter=filt).delete()
-        for _p in ('em_filters', 'ex_filters', 'bs_filters'):
+        for _p in ('em_filters', 'ex_filters', 'bs_filters', 'ref_em_filters'):
             for filt in self.cleaned_data.get(_p, []):
                 if filt.id not in self.initial.get(_p, []):
                     path = _p.split('_')[0]
-                    reflects = self.cleaned_data['invert_bs'] if path == 'bs' else False
+                    reflects = False
+                    if path == 'ref':
+                        reflects = True
+                        path = 'em'
+                    if path == 'bs':
+                        reflects = self.cleaned_data['invert_bs']
                     oc.add_filter(filt, path, reflects)
         if self.initial:
             if self.cleaned_data['invert_bs'] != self.initial.get('invert_bs'):
@@ -346,16 +363,18 @@ class OpticalConfigForm(forms.ModelForm):
 
     class Meta:
         model = OpticalConfig
-        fields = ('name', 'laser', 'light', 'camera')
+        fields = ('name', 'laser', 'light', 'camera', 'comments')
         help_texts = {
             'light': 'laser overrides light source',
-            'name': 'name of this optical config'
+            'name': 'name of this optical config',
+            'comments': 'When present, comments will appear below the selected optical configuration'
         }
         widgets = {
             'name': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
             'camera': forms.widgets.Select(attrs={'class': 'form-control custom-select'}),
             'light': forms.widgets.Select(attrs={'class': 'form-control custom-select'}),
             'laser': forms.widgets.NumberInput(attrs={'class': 'numberinput form-control'}),
+            'comments': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
         }
 
     def is_valid(self):
