@@ -18,6 +18,7 @@ class OwnedCollection(TimeStampedModel):
     def has_change_permission(self, request, obj=None):
         allowed = self.managers
         allowed += [self.owner.email]
+        allowed += list(User.objects.filter(is_superuser=True).values_list('email', flat=True))
         try:
             return request.user.email in allowed
         except Exception:
