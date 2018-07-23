@@ -532,9 +532,13 @@ $(function() {
                     } else if (key === 'precision') {
                         data = [];
                         svg.datum(data).call(chart)
-                        updateChart();
+                        if (chart) {
+                            updateChart();
+                        }
                     } else {
-                        refreshChart();
+                        if (chart) {
+                            refreshChart();
+                        }
                     }
 
                 })
@@ -606,27 +610,28 @@ $(function() {
         }
 
 
-    });
-
-    resizeYSlider();
-    $( window ).resize(function() {
-        if ($(document).width() < 576){
-            chart.legend.maxKeyLength(15);
-        }
-        chart.update();
+    }, function(){
         resizeYSlider();
+        $( window ).resize(function() {
+            if ($(document).width() < 576){
+                chart.legend.maxKeyLength(15);
+            }
+            chart.update();
+            resizeYSlider();
+        });
+
+
+        $(".resetXdomain").click(function(){
+            chart.brushExtent(options.startingBrush);
+            refreshChart();
+        })
+        $(".scale-btns input").change(function() { setYscale(this.value); });
+
+        $('#undo-scaling').click(function() {
+            unscale_all();
+        });
     });
 
-
-    $(".resetXdomain").click(function(){
-        chart.brushExtent(options.startingBrush);
-        refreshChart();
-    })
-    $(".scale-btns input").change(function() { setYscale(this.value); });
-
-    $('#undo-scaling').click(function() {
-        unscale_all();
-    });
 
 
     $("#fluor-select").select2({ theme: "bootstrap", width: 100});
@@ -664,7 +669,7 @@ $(function() {
       var light = selected.data('light');
       var camera = selected.data('camera');
       var comments = selected.data('comments');
-      console.log(comments)
+
       if (wave) {
         $("#light-select option[value='laser-" + wave + "']").prop('selected', true)
       }
