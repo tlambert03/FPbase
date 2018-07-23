@@ -204,7 +204,6 @@ class StateAdmin(CompareVersionAdmin):
     protein_link.short_description = 'Protein'
 
 
-@admin.register(StateTransition)
 class StateTransitionAdmin(VersionAdmin):
     model = StateTransition
     list_select_related = ('protein', 'from_state', 'to_state')
@@ -229,7 +228,6 @@ class StateTransitionInline(admin.TabularInline):
         return field
 
 
-@admin.register(FRETpair)
 class FRETpairAdmin(CompareVersionAdmin):
     list_display = ('__str__', 'donor', 'acceptor', 'radius', 'created_by', 'created', 'modified')
     list_filter = ('created', 'modified')
@@ -288,7 +286,7 @@ class ProteinAdmin(CompareVersionAdmin):
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [
-        StateInline, StateTransitionInline, FRETpairInline
+        StateInline, StateTransitionInline
     ]
     fieldsets = [
         (None, {
@@ -341,7 +339,6 @@ class FilterPlacementInline(admin.TabularInline):
     autocomplete_fields = ("filter",)
 
 
-@admin.register(OpticalConfig)
 class OpticalConfigAdmin(admin.ModelAdmin):
     model = OpticalConfig
     inlines = (FilterPlacementInline, )
@@ -385,12 +382,18 @@ make_private.short_description = "Mark selected collections as private"
 @admin.register(ProteinCollection)
 class ProteinCollectionAdmin(admin.ModelAdmin):
     model = ProteinCollection
-    list_display = ('__str__', 'owner', 'created', 'private', 'numproteins',)
+    list_display = ('__str__', 'owner_link', 'created', 'private', 'numproteins',)
     list_filter = ('created', 'private')
-    readonly_fields = ('numproteins', )
+    readonly_fields = ('numproteins', 'owner_link')
     list_select_related = ('owner', )
     autocomplete_fields = ('proteins', )
+    search_fields = ('name', 'proteins__name')
     actions = [make_private]
+
+    def owner_link(self, obj):
+        url = reverse("admin:users_user_change", args=([obj.owner.pk]))
+        return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
+    owner_link.short_description = 'Owner'
 
     def numproteins(self, obj):
         return obj.proteins.count()
