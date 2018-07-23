@@ -216,7 +216,16 @@ h6 {
   margin-bottom: -30px;
 }
 
+
 .fretpage {
+  svg.nvd3-svg {
+    @include media-breakpoint-up(xs){ height: 230px; }
+    @include media-breakpoint-up(sm){ height: 280px; }
+    @include media-breakpoint-up(md){ height: 290px; }
+    @include media-breakpoint-up(lg){ height: 310px; }
+    @include media-breakpoint-up(xl){ height: 330px; }
+  }
+
   .table {
   margin-bottom: 0;
   font-weight: 100;

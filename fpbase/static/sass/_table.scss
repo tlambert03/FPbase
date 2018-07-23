@@ -11,6 +11,12 @@
 	}
 }
 
+
+#proteinTable_wrapper {
+  margin-left: 1.2rem;
+  margin-right: 1.2rem;
+}
+
 #proteinTable {
 	table-layout: fixed;
 	margin-top: 1rem;
@@ -24,21 +30,23 @@
 			word-wrap: break-word;
 		}
 	}
-
+  th {
+    font-size:0.9rem;
+  }
 	@include media-breakpoint-down(xl) {
-		.protein{ width: 280px; }
-		font-size: 0.9rem;
+		.protein{ width: 120px; }
+		font-size: 0.8rem;
 		td.protein a{ font-size: 0.9rem; }
 		td {padding-top: 0.6rem; padding-bottom: 0.5rem;}
 	}
 	@include media-breakpoint-down(lg) {
-		.protein{ width: 210px; }
-		font-size: 0.8rem;
+		.protein{ width: 110px; }
+		font-size: 0.75rem;
 		td.protein a{ font-size: 0.8rem; }
 		td {padding-top: 0.5rem; padding-bottom: 0.4rem;}
 	}
 	@include media-breakpoint-down(md) {
-		.protein{ width: 180px; }
+		.protein{ width: 100px; }
 		font-weight: 600;
 		font-size: 0.7rem;
 		td {padding-top: 0.4rem;
@@ -67,14 +75,17 @@
 	@extend #proteinTable_length
 }
 
-#proteinTable_info{
-	font-size:0.8rem;
-}
 
-#proteinTable_paginate{
-	font-size:0.9rem;
+#flip-scroll {
+  td, th {
+    @include media-breakpoint-up(md) { padding-top: 0.35rem; padding-bottom: 0.35rem;}
+  }
+  @include media-breakpoint-down(md) {
+    thead {
+      padding-left: 1rem;
+    }
+  }
 }
-
 
 #fret_report_wrapper {
   label {
@@ -95,6 +106,13 @@
   .dataTables_paginate .paginate_button {
     font-size: 0.2rem;
   }
+
+  .table tbody td {
+    vertical-align: middle;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+
 }
 
 #fret_report{

@@ -108,23 +108,26 @@
       </tr>
     </tbody>
   </table>
-  <p class='text-center mt-2'>
-  <small class='text-muted font-italic'>QY = Quantum Yield, EC = Extinction Coefficient, J(&lambda;) = Overlap Integral, R<sub>0</sub> = Förster Radius</small></p>
+
 </div>
+<p class='text-muted  text-center mt-2'>
+<small class='font-italic'>QY = Quantum Yield, EC = Extinction Coefficient, J(&lambda;) = Overlap Integral, R<sub>0</sub> = Förster Radius, 𝓃 = refractive index, &kappa;<sup>2</sup> = orientation factor<br><a class='text-info' href="https://doi.org/10.1006/abio.1994.1134">Wu &amp; Brand (1994). Resonance Energy Transfer: Methods and Applications. <em>Analytical Biochem. </em><strong>218</strong></a></small>
+<br><img class="mt-2 mb-2 mx-4" src="{% static 'images/equation_r0.png' %}" style="opacity: 0.7">&amp;<img class="mt-2 mb-2 mx-4" src="{% static 'images/equation_Jlambda.png' %}" style="opacity: 0.7">
+</p>
 
 <div class="container">
-  <h5 class='text-center mt-4 mb-4' style='font-weight: 300;'>Förster Radii for all FRET pairs in the database</h5>
-  <table id="fret_report" class="display table table-striped table-small" style="width:100%">
+  <h5 class='text-center mt-4 mb-2' style='font-weight: 300;'>Förster Radii for all FP pairs in the database</h5>
+  <table id="fret_report" class="display table table-striped" style="width:100%">
     <thead>
       <tr>
         <th>Show</th>
         <th>Donor</th>
         <th>Acceptor</th>
-        <th>&lambda;max<sub class='small'>Don</sub></th>
-        <th>&lambda;max<sub class='small'>Acc</sub></th>
-        <th>QY<sub class='small'>Don</sub></th>
-        <th>EC<sub class='small'>Acc</sub></th>
-        <th>QY<sub class='small'>Acc</sub></th>
+        <th>&lambda;max<sub class='small'>D</sub></th>
+        <th>&lambda;max<sub class='small'>A</sub></th>
+        <th>QY<sub class='small'>D</sub></th>
+        <th>EC<sub class='small'>A</sub></th>
+        <th>QY<sub class='small'>A</sub></th>
         <th>J(&lambda;)</th>
         <th>R<sub>0</sub> <span class='small'>(Å)</span></th>
       </tr>
@@ -134,11 +137,11 @@
         <th>Show</th>
         <th>Donor</th>
         <th>Acceptor</th>
-        <th>&lambda;max<sub class='small'>Don</sub></th>
-        <th>&lambda;max<sub class='small'>Acc</sub></th>
-        <th>QY<sub class='small'>Don</sub></th>
-        <th>EC<sub class='small'>Acc</sub></th>
-        <th>QY<sub class='small'>Acc</sub></th>
+        <th>&lambda;max<sub class='small'>D</sub></th>
+        <th>&lambda;max<sub class='small'>A</sub></th>
+        <th>QY<sub class='small'>D</sub></th>
+        <th>EC<sub class='small'>A</sub></th>
+        <th>QY<sub class='small'>A</sub></th>
         <th>J(&lambda;)</th>
         <th>R<sub>0</sub></th>
       </tr>
@@ -156,6 +159,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
 
 <script type="text/javascript">
 var chart;
@@ -432,25 +436,43 @@ $('body').on('click', '.load-button', function(){
 $(document).ready(function() {
     $('#fret_report').DataTable( {
         "ajax": "/fret/",
-        "pageLength": 50,
+        "pageLength": 25,
         "order": [[9, 'desc']],
         "responsive": true,
         "language": {
           "emptyTable": "Calculating FRET efficiencies across database...  Please wait.",
           "loadingRecords": "Please wait - loading..."
         },
+        "update": function ()
+        {
+            this._positions();
+            this._scroll( false );
+        },
         "columns": [
-            { "data": function () { return '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>'}, responsivePriority: 2},
-            { "data": "donor", responsivePriority: 1},
-            { "data": "acceptor", responsivePriority: 1},
-            { "data": "donorPeak",  responsivePriority: 4},
-            { "data": "acceptorPeak", responsivePriority: 4},
-            { "data": "donorQY", responsivePriority: 3},
-            { "data": "acceptorEC", responsivePriority: 3},
-            { "data": "acceptorQY", responsivePriority: 6},
-            { "data": "overlap", responsivePriority: 5},
-            { "data": "forster", responsivePriority: 1}
-        ]
+            { "data": function () { return '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>'},
+              "responsivePriority": 2,
+              "width": '1px'},
+            { "data": "donor",
+              "responsivePriority": 1,
+              "width": '10px'},
+            { "data": "acceptor",
+              "responsivePriority": 1,
+              "width": '10px'},
+            { "data": "donorPeak",
+              "responsivePriority": 4},
+            { "data": "acceptorPeak",
+              "responsivePriority": 4},
+            { "data": "donorQY",
+              "responsivePriority": 3},
+            { "data": "acceptorEC",
+              "responsivePriority": 3},
+            { "data": "acceptorQY",
+              "responsivePriority": 6},
+            { "data": "overlap",
+              "responsivePriority": 3},
+            { "data": "forster",
+              "responsivePriority": 1}
+        ],
     } );
 } );
 
