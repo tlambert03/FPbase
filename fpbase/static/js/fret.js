@@ -269,9 +269,22 @@ $('body').on('click', '.load-button', function(){
 
 })
 
+
 $(document).ready(function() {
-    $('#fret_report').DataTable( {
+
+    function fnFilterColumn ( i ) {
+      $('#fret_report').dataTable().fnFilter(
+        '^((?!(/<sub/>BV/<//sub/>|FL)).)*$',
+        1,
+        true,
+      );
+    }
+
+    var fretTable = $('#fret_report').DataTable( {
         "ajax": "/fret/",
+        'buttons': [
+            'copy', 'excel', 'pdf'
+        ],
         "pageLength": 25,
         "order": [[9, 'desc']],
         "responsive": true,
@@ -313,6 +326,27 @@ $(document).ready(function() {
               "responsivePriority": 1}
         ],
     } );
+
+
+    var sel = $("#fret_report_wrapper .row:first-child div.col-md-6")
+    sel.removeClass('col-md-6').addClass('col-md-4')
+
+    $('<div>', { class: 'col-md-4 col-sm-12'})
+      .append($('<div>', { class: "custom-control custom-checkbox d-flex justify-content-center pb-3"})
+               .append($('<input>', { type: 'checkbox', class: 'custom-control-input', id: 'noCofactorCheck'}))
+               .append($('<label>', { class: 'custom-control-label', for: 'noCofactorCheck'}).html('<small>Exclude FPs with Cofactors</small>'))
+      ).insertAfter('#fret_report_wrapper .row:first-child div.col-md-4:first-child')
+
+
+    $("#noCofactorCheck").on("change", function() {
+      if ($(this).prop('checked')){
+       fretTable.columns([1, 2]).search('^((?!BV).)*$',true).draw();
+      } else {
+       fretTable.columns([1, 2]).search('',true).draw();
+      }
+
+    });
+
 } );
 
 var topofDiv = $(".spectra-wrapper").offset().top;
