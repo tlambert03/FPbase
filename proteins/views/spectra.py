@@ -49,7 +49,7 @@ def fret_chart(request):
             L = cache.get('forster_list')
             if not L:
                 L = forster_list()
-                cache.set('forster_list', L, 60 * 60 * 24)
+                cache.set('forster_list', L, 60 * 60 * 24 * 7)
             return JsonResponse({'data': L})
 
         else:
