@@ -13,32 +13,34 @@
 
 {% endblock extrahead %}
 
-{% block container-class %}container spectrumpage fretpage{% endblock %}
+{% block container-class %}container-fluid spectrumpage fretpage{% endblock %}
 
 {% block content %}
 
 <h2 class='text-center'>FPbase FRET Calculator</h2>
-<div class="spectra clearfix">
-  <div id="spectra">
-    <div class="svg-container">
-      <svg id="spectrasvg"></svg>
-    </div>
-<!--
-    <div class="focusnote">click and drag to zoom</div>
-    <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
-      <label class="btn btn-info active">
-        <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
-      </label>
-      <label class="btn btn-info">
-        <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
-      </label>
-    </div>
-    <div class="float-right mr-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div> -->
+<div class="spectra-wrapper mt-2">
+  <div class="spectra container clearfix">
+    <div id="spectra">
+      <div class="svg-container">
+        <svg id="spectrasvg"></svg>
+      </div>
+  <!--
+      <div class="focusnote">click and drag to zoom</div>
+      <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
+        <label class="btn btn-info active">
+          <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
+        </label>
+        <label class="btn btn-info">
+          <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
+        </label>
+      </div>
+      <div class="float-right mr-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div> -->
 
+    </div>
   </div>
 </div>
 
-<div class="container mt-4">
+<div class="container" style="padding-top:3rem">
   <div class="row">
     <div class="input-group input-group mb-3 col-12 col-md-4 col-sm-6">
       <div class="input-group-prepend">
@@ -65,14 +67,14 @@
 
     <div class="input-group input-group mb-3 col-12 col-md-2 col-sm-6">
       <div class="input-group-prepend">
-        <label class="input-group-text text-white bg-info font-italic" for="acceptor-select">n</label>
+        <label class="input-group-text text-white bg-info font-italic" for="acceptor-select">𝓃</label>
       </div>
       <input type="text" class="form-control" id="ni-input" value=1.33>
     </div>
 
     <div class="input-group input-group mb-3 col-12 col-md-2 col-sm-6">
       <div class="input-group-prepend">
-        <label class="input-group-text text-white bg-info font-italic" for="acceptor-select">&Kappa;<sup>2</sup></label>
+        <label class="input-group-text text-white bg-info font-italic" for="acceptor-select">&kappa;<sup>2</sup></label>
       </div>
       <input type="text" class="form-control" id="k2-input" value=0.6667>
     </div>
@@ -111,6 +113,7 @@
 </div>
 
 <div class="container">
+  <h5 class='text-center mt-4 mb-4' style='font-weight: 300;'>Förster Radii for all FRET pairs in the database</h5>
   <table id="fret_report" class="display table table-striped table-small" style="width:100%">
     <thead>
       <tr>
@@ -189,7 +192,7 @@ nv.addGraph(function() {
             clipEdge: true,
             margin: {
                 left: 40,
-                bottom: 65,
+                bottom: 55,
             },
             yDomain: [0, 1],
             xDomain: [350, 750],
@@ -451,6 +454,15 @@ $(document).ready(function() {
     } );
 } );
 
+var topofDiv = $(".spectra-wrapper").offset().top;
+$(window).scroll(function(){
+    if($(window).scrollTop() > (topofDiv)){
+      $(".spectra-wrapper").css('box-shadow', '0 12px 8px -8px rgba(0,0,0,.2)');
+    }
+    else{
+      $(".spectra-wrapper").css('box-shadow', 'none');
+    }
+});
 
 
 </script>

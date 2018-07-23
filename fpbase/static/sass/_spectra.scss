@@ -38,11 +38,8 @@ h6 {
     @include media-breakpoint-down(lg) { width: 100% }
     @include media-breakpoint-up(lg) { width: 962px }
     @include media-breakpoint-up(xl) { width: 1170px }
-
     transition: box-shadow .3s;
-    .spectra {
 
-    }
   }
 
 
