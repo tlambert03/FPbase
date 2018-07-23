@@ -8,7 +8,9 @@ def long_blurb(self, withbright=False, withbleach=False):
         " " + switch if switch else '',
         " " + self.color.lower() if self.color else '')
     if self.primary_reference:
-        blurb += " published in {}.  ".format(self.primary_reference.year)
+        blurb += " published in {}".format(self.primary_reference.year)
+    if self.parent_organism:
+        blurb += ", derived from {}. ".format(self.parent_organism)
     else:
         blurb += '.  '
 
@@ -89,10 +91,12 @@ def long_blurb(self, withbright=False, withbleach=False):
             else:
                 blurb += "It has "
             blurb += '{} acid sensitivity.'.format(acid)
-        if not (acid or A):
+        if mature and not (acid or A):
             blurb += "."
     else:
         if self.get_agg_display():
             blurb += 'It is reported to be a {}.'.format(self.get_agg_display().lower())
+    if self.cofactor:
+        blurb += " It requires the cofactor {} for fluorescence.".format(self.get_cofactor_display().lower())
 
     return blurb.strip()
