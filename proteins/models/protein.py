@@ -96,6 +96,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         (OTHER, 'Multistate'),
     )
 
+    BILIVERDIN = 'bv'
+    COFACTOR_CHOICES = (
+        (BILIVERDIN, 'Biliverdin'),
+    )
+
     # Attributes
     uuid        = models.UUIDField(default=uuid_lib.uuid4, editable=False, unique=True)  # for API
     name        = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
@@ -117,7 +122,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True,
                     verbose_name='Type', help_text="Photoswitching type (basic if none)")
     blurb       = models.CharField(max_length=512, blank=True, help_text="Brief descriptive blurb",)
-
+    cofactor    = models.CharField(max_length=2, choices=COFACTOR_CHOICES, blank=True, help_text='Required for fluorescence')
     # evo_parent  = models.ForeignKey('self', related_name='evo_children', verbose_name="Parental protein", on_delete=models.SET_NULL, blank=True, null=True, help_text="Protein from which the protein was evolved",)
     # evo_mutations = ArrayField(models.CharField(max_length=5), validators=[validate_mutation], blank=True, null=True)
 

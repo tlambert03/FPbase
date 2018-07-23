@@ -104,8 +104,9 @@ class ProteinForm(forms.ModelForm):
                 css_class='row',
             ),
             Div(
-                Div('agg', css_class='col-sm-6'),
-                Div('parent_organism', css_class='col-sm-6'),
+                Div('agg', css_class='col-md-4 col-sm-8'),
+                Div('cofactor', css_class='col-md-3 col-sm-4'),
+                Div('parent_organism', css_class='col-md-5'),
                 css_class='row',
             ),
             Div(
@@ -124,7 +125,7 @@ class ProteinForm(forms.ModelForm):
     class Meta:
         model = Protein
         fields = ('name', 'ipg_id', 'seq', 'agg', 'parent_organism', 'pdb', 'reference_doi',
-                  'aliases', 'chromophore', 'genbank', 'uniprot', 'blurb')
+                  'aliases', 'chromophore', 'genbank', 'uniprot', 'cofactor')
         labels = {
             "agg": "Oligomerization",
         }
