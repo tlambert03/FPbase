@@ -120,7 +120,7 @@ class MicroscopeForm(forms.ModelForm):
         return oc
 
     def save(self, commit=True):
-        self.instance = super().save(commit=False)
+        self.instance = super().save()
         self.instance.extra_cameras.set(self.cleaned_data['extra_cameras'])
         self.instance.extra_lights.set(self.cleaned_data['extra_lights'])
         self.instance.extra_lasers = self.cleaned_data['extra_lasers']
