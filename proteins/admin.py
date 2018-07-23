@@ -385,7 +385,7 @@ make_private.short_description = "Mark selected collections as private"
 @admin.register(ProteinCollection)
 class ProteinCollectionAdmin(admin.ModelAdmin):
     model = ProteinCollection
-    list_display = ('__str__', 'owner', 'private', 'numproteins')
+    list_display = ('__str__', 'owner', 'created', 'private', 'numproteins',)
     list_filter = ('created', 'private')
     readonly_fields = ('numproteins', )
     list_select_related = ('owner', )
