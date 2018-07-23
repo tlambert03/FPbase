@@ -97,8 +97,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     )
 
     BILIVERDIN = 'bv'
+    FLAVIN = 'fl'
     COFACTOR_CHOICES = (
         (BILIVERDIN, 'Biliverdin'),
+        (FLAVIN, 'Flavin'),
     )
 
     # Attributes
