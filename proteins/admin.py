@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.db.models import Count
 from proteins.models import (Protein, State, StateTransition, Organism,
                              FRETpair, BleachMeasurement, Spectrum, Dye,
                              Light, Filter, Camera, Mutation, Microscope,
-                             OpticalConfig, FilterPlacement, Fluorophore)
+                             OpticalConfig, FilterPlacement, Fluorophore,
+                             ProteinCollection)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.admin import VersionAdmin
 # from reversion.models import Version
@@ -371,3 +373,29 @@ class MicroscopeAdmin(admin.ModelAdmin):
         return mark_safe(", ".join(links))
     configs.short_description = 'Optical Configs'
 
+
+def make_private(modeladmin, request, queryset):
+    # note, this will fail if the list is ordered by numproteins
+    queryset.update(private=True)
+
+
+make_private.short_description = "Mark selected collections as private"
+
+
+@admin.register(ProteinCollection)
+class ProteinCollectionAdmin(admin.ModelAdmin):
+    model = ProteinCollection
+    list_display = ('__str__', 'owner', 'private', 'numproteins')
+    list_filter = ('created', 'private')
+    readonly_fields = ('numproteins', )
+    list_select_related = ('owner', )
+    autocomplete_fields = ('proteins', )
+    actions = [make_private]
+
+    def numproteins(self, obj):
+        return obj.proteins.count()
+    numproteins.admin_order_field = 'proteins_count'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).annotate(proteins_count=Count('proteins'))
+        return qs.prefetch_related('proteins')
