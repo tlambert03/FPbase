@@ -34,6 +34,7 @@ var data = [];
 var localData = {};
 var options = {
     showArea: true,
+    stickySpectra: true,
     minwave: 350,
     maxwave: 800,
     startingBrush: [350, 800],
@@ -56,6 +57,7 @@ var userOptions = {
     oneAtaTime: {type: 'checkbox', msg: 'Uncheck other similar filters when selecting a filter'},
     normMergedEx: {type: 'checkbox', msg: 'Normalize merged excitation and light source spectra'},
     showArea: {type: 'checkbox', msg: 'Fill area under curve'},
+    stickySpectra: {type: 'checkbox', msg: 'Make spectrum graph sticky when scrolling'},
     //autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
 //    hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
 //    scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
@@ -510,14 +512,19 @@ $(function() {
                         } else {
                             $(".nv-groups").addClass('area-hidden')
                         }
-                    }
-                    else if (key === 'focusEnable'){
+                    } else if (key === 'focusEnable'){
                         chart.options(chartOptions());
                         $(".focusnote").toggle()
                         $(".resetXdomain").toggle();
-                    }
-                    else if (key === 'interpolate'){
+                    } else if (key === 'interpolate'){
                         chart.options(chartOptions());
+                    } else if (key === 'stickySpectra'){
+                        if (options[key]){
+                            $('.spectra-wrapper').css('position', 'sticky')
+                        } else {
+                            $('.spectra-wrapper').css('position', 'relative')
+                            $(".spectra-wrapper").css('box-shadow', 'none');
+                        }
                     }
 
                     if (key === 'normMergedEx' || key === 'calcEff'){
@@ -686,6 +693,11 @@ $(function() {
 
     if ('f' in urlParams){
         $("#fluor-select").val(urlParams.f).change();
+    }
+
+    if ('sticky' in urlParams){
+        options.stickySpectra = Boolean(urlParams.sticky === 'true' || +urlParams.sticky > 0);
+        $("#stickySpectra_input").prop('checked', options.stickySpectra).change();
     }
 
     if ('c' in urlParams){
@@ -1214,11 +1226,13 @@ $(window).on('load', function() {
 
 var topofDiv = $(".spectra-wrapper").offset().top;
 $(window).scroll(function(){
-    if($(window).scrollTop() > (topofDiv)){
-      $(".spectra-wrapper").css('box-shadow', '0 12px 8px -8px rgba(0,0,0,.2)');
-    }
-    else{
-      $(".spectra-wrapper").css('box-shadow', 'none');
+    if (options.stickySpectra){
+        if($(window).scrollTop() > (topofDiv)){
+          $(".spectra-wrapper").css('box-shadow', '0 12px 8px -8px rgba(0,0,0,.2)');
+        }
+        else{
+          $(".spectra-wrapper").css('box-shadow', 'none');
+        }
     }
 });
 
