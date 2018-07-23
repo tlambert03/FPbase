@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+{% load static i18n compress favit_tags %}
+
+{% block title %}FPbase FRET Calculator{% endblock %}
+{% block meta-description %}An interactive fluorescence spectra viewer to calculate fluorescence overlap and Forster distance for Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblock %}
+
+{% block vendorcss %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+{% endblock vendorcss %}
+
+{% block extrahead %}
+
+{% endblock extrahead %}
+
+{% block container-class %}container spectrumpage fretpage{% endblock %}
+
+{% block content %}
+
+<h2 class='text-center'>FPbase FRET Calculator</h2>
+<div class="spectra clearfix">
+  <div id="spectra">
+    <div class="svg-container">
+      <svg id="spectrasvg"></svg>
+    </div>
+<!--
+    <div class="focusnote">click and drag to zoom</div>
+    <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
+      <label class="btn btn-info active">
+        <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
+      </label>
+      <label class="btn btn-info">
+        <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
+      </label>
+    </div>
+    <div class="float-right mr-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div> -->
+
+  </div>
+</div>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="input-group input-group mb-3 col-12 col-md-4 col-sm-6">
+      <div class="input-group-prepend">
+        <label class="input-group-text text-white bg-info" for="donor-select">Donor</label>
+      </div>
+      <select class="custom-select data-selector fluor-selector" id="donor-select" tabindex="-1" aria-hidden="true">
+        <option value="">-----</option>
+        {% for probe in probeslugs %}
+        <option value="{{ probe.slug }}">{{ probe.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="input-group input-group mb-3 col-12 col-md-4 col-sm-6">
+      <div class="input-group-prepend">
+        <label class="input-group-text text-white bg-info" for="acceptor-select">Acceptor</label>
+      </div>
+      <select class="custom-select data-selector fluor-selector" id="acceptor-select" tabindex="-1" aria-hidden="true">
+        <option value="">-----</option>
+        {% for probe in probeslugs %}
+        <option value="{{ probe.slug }}">{{ probe.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="input-group input-group mb-3 col-12 col-md-2 col-sm-6">
+      <div class="input-group-prepend">
+        <label class="input-group-text text-white bg-info font-italic" for="acceptor-select">n</label>
+      </div>
+      <input type="text" class="form-control" id="ni-input" value=1.33>
+    </div>
+
+    <div class="input-group input-group mb-3 col-12 col-md-2 col-sm-6">
+      <div class="input-group-prepend">
+        <label class="input-group-text text-white bg-info font-italic" for="acceptor-select">&Kappa;<sup>2</sup></label>
+      </div>
+      <input type="text" class="form-control" id="k2-input" value=0.6667>
+    </div>
+
+
+  </div>
+  <div class="row">
+
+  </div>
+</div>
+
+
+<div class="container table-wrapper" hidden>
+  <table class="table table-bordered" id='flip-scroll'>
+    <thead>
+      <tr class="table-header">
+        <th>QY<sub class='small'>Donor</sub></th>
+        <th>EC<sub class='small'>Acc.</sub> <span class='small'>(M<sup>-1</sup> cm<sup>-1</sup>)</span></th>
+        <th>QY<sub class='small'>Acc.</sub></th>
+        <th>J(&lambda;) <span class='small'>(*1e15 M<sup>-1</sup> cm<sup>-1</sup> nm<sup>4</sup>)</span> </th>
+        <th>R<sub>0</sub><span class='small'>(Å)</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr >
+        <td id='QYD'></td>
+        <td id='ECA'></td>
+        <td id='QYA'></td>
+        <td id='overlapIntgrl'></td>
+        <td id='r0'></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class='text-center mt-2'>
+  <small class='text-muted font-italic'>QY = Quantum Yield, EC = Extinction Coefficient, J(&lambda;) = Overlap Integral, R<sub>0</sub> = Förster Radius</small></p>
+</div>
+
+<div class="container">
+  <table id="fret_report" class="display table table-striped table-small" style="width:100%">
+    <thead>
+      <tr>
+        <th>Show</th>
+        <th>Donor</th>
+        <th>Acceptor</th>
+        <th>&lambda;max<sub class='small'>Don</sub></th>
+        <th>&lambda;max<sub class='small'>Acc</sub></th>
+        <th>QY<sub class='small'>Don</sub></th>
+        <th>EC<sub class='small'>Acc</sub></th>
+        <th>QY<sub class='small'>Acc</sub></th>
+        <th>J(&lambda;)</th>
+        <th>R<sub>0</sub> <span class='small'>(Å)</span></th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr>
+        <th>Show</th>
+        <th>Donor</th>
+        <th>Acceptor</th>
+        <th>&lambda;max<sub class='small'>Don</sub></th>
+        <th>&lambda;max<sub class='small'>Acc</sub></th>
+        <th>QY<sub class='small'>Don</sub></th>
+        <th>EC<sub class='small'>Acc</sub></th>
+        <th>QY<sub class='small'>Acc</sub></th>
+        <th>J(&lambda;)</th>
+        <th>R<sub>0</sub></th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<svg height="10" width="10" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="diagonal-stripe-r" patternUnits="userSpaceOnUse" width="10" height="10"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxMCcgaGVpZ2h0PScxMCc+CiAgPHJlY3Qgd2lkdGg9JzEwJyBoZWlnaHQ9JzEwJyBmaWxsPSdibGFjaycvPgogIDxwYXRoIGQ9J00tMSwxIGwyLC0yCiAgICAgICAgICAgTTAsMTAgbDEwLC0xMAogICAgICAgICAgIE05LDExIGwyLC0yJyBzdHJva2U9J3doaXRlJyBzdHJva2Utd2lkdGg9JzMnLz4KPC9zdmc+" x="0" y="0" width="10" height="10"> </image> </pattern> </defs> </svg>
+
+
+{% endblock content %}
+
+
+{% block javascript %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+
+<script type="text/javascript">
+var chart;
+var data = [];
+var localData = {};
+var svg = d3.select('#spectra svg');
+var donorEM;
+var acceptorEX;
+var options = {
+    showArea: true,
+    minwave: 350,
+    maxwave: 750,
+    startingBrush: [350, 750],
+    autoscaleBrush: false,
+    exNormWave: undefined,
+    scale: 'linear',
+    hide2p: true,
+    scaleToEC: false,
+    scaleToQY: false,
+};
+
+//initialize chart
+nv.addGraph(function() {
+    chart = nv.models.lineChart()
+        .options({
+            focusEnable: false,
+            focusShowAxisX: false,
+            noData: "Choose an acceptor and donor below",
+            showLegend: true,
+            showXAxis: true,
+            showYAxis: true,
+            duration: 300,
+            useInteractiveGuideline: !window.mobilecheck(),
+            clipEdge: true,
+            margin: {
+                left: 40,
+                bottom: 65,
+            },
+            yDomain: [0, 1],
+            xDomain: [350, 750],
+            //forceY: [0,1.04],
+            forceX: [350, 750],
+        });
+    chart.lines.duration(0);
+    chart.brushExtent(options.startingBrush);
+    chart.interactiveLayer.tooltip.valueFormatter(function(d, i) {
+        if (d){
+            return Math.round(d*1000)/10 + '%';
+        } else {
+            return '--';
+        }
+    })
+
+    // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly
+    // return themselves, not the parent chart, so need to chain separately
+
+    chart.xAxis.axisLabel('Wavelength (nm)');
+
+    chart.yAxis
+        .axisLabel('Normalized Ex/Em/Transmission')
+        .tickFormat(d3.format('1%'))
+        .axisLabelDistance(25);
+    svg.datum(data).call(chart);
+    chart.dispatch.on('stateChange', function(e) {
+        chart.update();
+    });
+
+    nv.utils.windowResize(function(){ chart.update(); });
+});
+
+$("#donor-select").select2({ theme: "bootstrap", width: 100});
+$("#acceptor-select").select2({ theme: "bootstrap", width: 100});
+
+d3.selection.prototype.moveToFront = function() {
+    return this.each(function() {
+        this.parentNode.appendChild(this);
+    });
+};
+d3.selection.prototype.moveToBack = function() {
+    return this.each(function() {
+        var firstChild = this.parentNode.firstChild;
+        if (firstChild) {
+            this.parentNode.insertBefore(this, firstChild);
+        }
+    });
+};
+
+
+function getData(slug) {
+    var dfd = $.Deferred();
+    // download if not already downloaded
+    if (!(slug in localData)) {
+        $.getJSON('/spectra/' + slug)
+            .done(function(d) {
+                for (var n = 0; n < d.spectra.length; n++) {
+                    if (d.spectra[n].type !== '2p' ) {
+                      d.spectra[n] = padDataLimits(d.spectra[n]);
+                    }
+                }
+                localData[slug] = d.spectra;
+                dfd.resolve(localData[slug]);
+            })
+            .fail(function(d) {
+                dfd.reject(d.status);
+            });
+    } else { // otherwise pull from local dict
+        dfd.resolve(localData[slug]);
+    }
+    return dfd.promise();
+}
+
+function padDataLimits(d) {
+    for (var i = d.minwave - 1; i >= options.minwave; i--) {
+        d.values.unshift({ x: i, y: 0 });
+    }
+    for (var n = d.maxwave + 1; n <= Math.max(options.maxwave, 1000); n++) {
+        d.values.push({ x: n, y: 0 });
+    }
+    return d;
+}
+
+function dataHasKey(key) {
+    return $.grep(data, function(obj) { return obj.key == key; }).length > 0;
+}
+
+
+
+function dataItemMatching(filter, d) {
+    d = d || data;
+    return d.filter(function(item) {
+        for (var key in filter) {
+            if (item[key] === undefined || item[key] != filter[key])
+                return false;
+        }
+        return true;
+    });
+}
+
+function addItem(slug, subtype) {
+    if (slug === '') {
+      return $.Deferred(function(def) { def.resolve(); }).promise();
+    }
+    // add spectral data to array
+    subtype = subtype || false;
+
+    return getData(slug)
+        .then(function(d) {
+            for (var i = 0; i < d.length; i++) {
+                if (d[i].type !== '2p' & !dataHasKey(d[i].key)) {
+                    data.push(JSON.parse(JSON.stringify(d[i]))); // make a copy of the object
+                }
+            }
+        })
+        .fail(function(d) {
+            console.log('item not found');
+        });
+
+}
+
+function spectral_product(ar1, ar2) {
+    // calculate product of two spectra.values
+    var output = [];
+    var step = ar1[1].x - ar1[0].x;
+    var left = Math.max(ar1[0].x, ar2[0].x);
+    var right = Math.min(ar1[ar1.length - 1].x, ar2[ar2.length - 1].x);
+
+    var a1 = ar1.slice(ar1.findIndex(i => i.x === left), ar1.findIndex(i => i.x === right));
+    var a2 = ar2.slice(ar2.findIndex(i => i.x === left), ar2.findIndex(i => i.x === right));
+    for (var i = 0; i < a1.length; i++) {
+        output.push({ x: a1[i].x, y: a1[i].y * a2[i].y });
+    }
+
+
+    return output;
+}
+
+
+function forster_distance(ar1, ar2, k2, ni){
+  k2 = k2 || 2/3;
+  ni = ni || 1.33;
+
+  var donorQY = ar1.scalar;
+  var accECmax = ar2.scalar;
+  var a1wavemap = ar1.values.reduce(function(acc, cur){ acc[cur.x] = cur.y; return acc}, {});
+  var a2wavemap = ar2.values.reduce(function(acc, cur){ acc[cur.x] = cur.y; return acc}, {})
+  var donorsum = ar1.values.reduce(function(a,b){ return a + b.y},0);
+  var startingwave = Math.max(ar1.minwave, ar2.minwave);
+  var endingwave = Math.min(ar1.maxwave, ar2.maxwave);
+  var step = ar1.values[1].x - ar1.values[0].x;
+  var overlapIntgrl = 0;
+  for (var wave = startingwave; wave <= endingwave; wave += step){
+    overlapIntgrl += Math.pow(wave * 1e-7, 4) * a1wavemap[wave] * accECmax * a2wavemap[wave] / donorsum;
+  }
+  r = Math.pow(8.8 * 1e-25 * k2 * donorQY * Math.pow(ni, -4) * overlapIntgrl, 1/6) * 1e7;
+  return [overlapIntgrl, r];
+}
+
+
+$('#ni-input').on('change', function() {
+    var input=$(this);
+    var val=input.val();
+    input.val(Math.max(Math.min(val, 1.6), 0.5))
+    updateTable();
+});
+
+$('#k2-input').on('change', function() {
+    var input=$(this);
+    var val=input.val();
+    input.val(Math.max(Math.min(val, 4), 0))
+    updateTable();
+});
+
+function updateTable(){
+  try {
+    var r = forster_distance(donorEM, acceptorEX, $('#k2-input').val(), $('#ni-input').val());
+    $("#overlapIntgrl").text(Math.round(r[0] * 1e15) / 100);
+    $("#r0").text(Math.round(r[1] * 1000) / 100);
+  } catch(e) {
+  }
+}
+
+// main function when data-selector has been changed
+$(".data-selector").change(function(event) {
+    data.splice(0, 10);
+    var donorslug = $("#donor-select :selected").val();
+    var acceptorslug = $("#acceptor-select :selected").val()
+    $.when(addItem(donorslug), addItem(acceptorslug)).then(function(){
+      if (donorslug || acceptorslug) {
+        $('.table-wrapper').show()
+      }
+      if (donorslug){
+        donorEM = dataItemMatching({slug: donorslug, type:'em'})[0];
+        donorEM.classed += ' faded-fret';
+        $("#QYD").text(donorEM.scalar);
+      } else {
+        $("#QYD").text('');
+      }
+      if (acceptorslug){
+        acceptorEX = dataItemMatching({slug: acceptorslug, type:'ex'})[0];
+        acceptorEX.classed += ' faded-fret';
+        $("#ECA").text(acceptorEX.scalar.toLocaleString());
+        $("#QYA").text(dataItemMatching({slug: acceptorslug, type:'em'})[0].scalar);
+      } else {
+        $("#ECA, #QYA").text('')
+      }
+      if (donorslug && acceptorslug) {
+        data.push({
+            key: 'Overlap',
+            values: spectral_product(donorEM.values, acceptorEX.values),
+            area: true,
+            color: 'url(#diagonal-stripe-r)',
+            classed: "fret-overlap",
+            type: 'overlap',
+        })
+        updateTable(donorEM, acceptorEX);
+      } else {
+        $("#overlapIntgrl, #r0").text('')
+      }
+      chart.update();
+      d3.selectAll(".faded-fret").moveToBack();
+      d3.selectAll(".fret-overlap").moveToFront();
+    })
+
+});
+
+$('body').on('click', '.load-button', function(){
+  var donorslug = $(this).closest('tr').find('td:nth-child(2) a').attr('href').split('/')[2] + '_default'
+  var accslug = $(this).closest('tr').find('td:nth-child(3) a').attr('href').split('/')[2] + '_default'
+  $("#donor-select").val(donorslug).trigger('change.select2');
+  $("#acceptor-select").val(accslug).change();
+
+})
+
+$(document).ready(function() {
+    $('#fret_report').DataTable( {
+        "ajax": "/fret/",
+        "pageLength": 50,
+        "order": [[9, 'desc']],
+        "responsive": true,
+        "language": {
+          "emptyTable": "Calculating FRET efficiencies across database...  Please wait.",
+          "loadingRecords": "Please wait - loading..."
+        },
+        "columns": [
+            { "data": function () { return '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>'}, responsivePriority: 2},
+            { "data": "donor", responsivePriority: 1},
+            { "data": "acceptor", responsivePriority: 1},
+            { "data": "donorPeak",  responsivePriority: 4},
+            { "data": "acceptorPeak", responsivePriority: 4},
+            { "data": "donorQY", responsivePriority: 3},
+            { "data": "acceptorEC", responsivePriority: 3},
+            { "data": "acceptorQY", responsivePriority: 6},
+            { "data": "overlap", responsivePriority: 5},
+            { "data": "forster", responsivePriority: 1}
+        ]
+    } );
+} );
+
+
+
+</script>
+
+
+{% endblock javascript %}

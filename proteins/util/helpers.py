@@ -178,23 +178,23 @@ def calculate_spectral_overlap(donor, acceptor):
     A = accEx.wave_value_pairs()
     D = donEm.wave_value_pairs()
     overlap = [(pow(wave, 4) * A[wave] * accEC * D[wave] / donCum) for
-               wave in range(startingwave, endingwave+1)]
+               wave in range(startingwave, endingwave + 1)]
 
     return sum(overlap)
 
 
-def forsterDist(donor, acceptor, n=1.4, k=2./3.):
+def forsterDist(donor, acceptor, n=1.33, k=0.6667):
     overlap = calculate_spectral_overlap(donor, acceptor)
-    return .2108*(pow((k)*(pow(n, -4)*overlap), (1./6.)))
+    return overlap * 1e-15, 0.2108 * pow(donor.default_state.qy * k * pow(n, -4) * overlap, (1 / 6))
 
 
 def fretEfficiency(distance, forster):
-    return 1/(1+pow(distance/forster, 6))
+    return 1 / (1 + pow(distance / forster, 6))
 
 
-def find_best_forster():
-    from .models import Protein
-    qs = Protein.objects.with_spectra()
+def forster_list():
+    from ..models import Protein
+    qs = Protein.objects.with_spectra().select_related('default_state').prefetch_related('default_state__spectra')
     out = []
     withSpectra = []
     for p in qs:
@@ -206,7 +206,20 @@ def find_best_forster():
     for donor in withSpectra:
         for acceptor in withSpectra:
             try:
-                out.append([forsterDist(donor, acceptor), donor.name, acceptor.name])
+                if ((acceptor.default_state.ex_max > donor.default_state.ex_max) and
+                        acceptor.default_state.ext_coeff and donor.default_state.qy):
+                    overlap, r0 = forsterDist(donor, acceptor)
+                    out.append({
+                        'donor': "<a href='{}'>{}</a>".format(donor.get_absolute_url(), donor.name),
+                        'acceptor': "<a href='{}'>{}</a>".format(acceptor.get_absolute_url(), acceptor.name),
+                        'donorPeak': donor.default_state.ex_max,
+                        'acceptorPeak': acceptor.default_state.ex_max,
+                        'donorQY': donor.default_state.qy,
+                        'acceptorQY': acceptor.default_state.qy,
+                        'acceptorEC': "{:,}".format(acceptor.default_state.ext_coeff),
+                        'overlap': round(overlap, 2),
+                        'forster': round(r0.real, 2),
+                    })
             except Exception:
                 continue
-    return sorted(out, key=lambda x: x[0].real)
+    return list(reversed(sorted(out, key=lambda x: x['forster'])))

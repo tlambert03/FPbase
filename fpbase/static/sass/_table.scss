@@ -74,3 +74,25 @@
 #proteinTable_paginate{
 	font-size:0.9rem;
 }
+
+
+
+#fret_report{
+  .load-button {
+    opacity: 0.7;
+    &:hover {
+      opacity: 1;
+    }
+  }
+  width: 100% !important;
+  tbody{
+    font-size: 0.8rem;
+  }
+  thead, tfoot{
+    th {
+      text-align: center;
+    }
+    font-size: 0.8rem;
+  }
+}
+

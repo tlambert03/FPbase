@@ -144,18 +144,21 @@ class SpectrumManager(models.Manager):
         return sorted(out, key=lambda k: k['name'])
 
     # FIXME:  Stupid dumb dumb
-    def fluorlist(self):
-        ''' probably using this one going forward for spectra page'''
+    def fluorlist(self, withdyes=True):
+        vallist = ['category', 'subtype', 'owner_state__protein__name',
+                   'owner_state__slug', 'owner_state__name']
+        distinct = ['owner_state__slug']
+        if withdyes:
+            vallist += ['owner_dye__slug', 'owner_dye__name']
+            distinct += ['owner_dye__slug']
         Q = self.get_queryset().filter(
             models.Q(category=Spectrum.DYE) | models.Q(category=Spectrum.PROTEIN)).values(
-            'category', 'subtype', 'owner_state__protein__name',
-            'owner_state__slug', 'owner_dye__slug', 'owner_state__name',
-            'owner_dye__name').distinct('owner_state__slug', 'owner_dye__slug')
+            *vallist).distinct(*distinct)
 
         out = []
         for v in Q:
-            slug = v['owner_state__slug'] or v['owner_dye__slug']
-            name = v['owner_dye__name'] or None
+            slug = v.get('owner_state__slug') or v.get('owner_dye__slug')
+            name = v.get('owner_dye__name', None)
             if not name:
                 prot = v['owner_state__protein__name']
                 state = v['owner_state__name']

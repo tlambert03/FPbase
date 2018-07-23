@@ -91,6 +91,15 @@ h6 {
 #spectra, #spectrasvg {
   // spectra area fill and outline
 
+  .faded-fret {
+    .nv-area { opacity: 0.15; }
+    .nv-line{
+    stroke-width: 1.2 !important;
+    stroke-dasharray: 5, 5;
+    stroke: rgba(0, 0, 0, 0.5) !important;
+    }
+  }
+
   .subtype-bs, .subtype-lp {
     .nv-area { display:none }
     .nv-line{
@@ -210,6 +219,37 @@ h6 {
   margin-bottom: -30px;
 }
 
+.fretpage {
+  .table {
+  margin-bottom: 0;
+  font-weight: 100;
+  }
+
+  @include media-breakpoint-down(sm){
+    #flip-scroll {
+      td {
+        height: 38px;
+        border-top: 0px;
+        padding-top: 3px;
+      }
+      tbody {
+        padding-top: 0.7rem;
+      }
+    }
+  }
+
+  .table-header th{
+  background-color: $secondary;
+  border-color: rgba($white, 0.05);
+  color: white;
+  text-align: center;
+  //  line-height: 2em;
+  }
+  td{
+  //  line-height: 2em;
+  text-align: center;
+  }
+}
 .focusnote {
   position: relative;
   bottom: 1rem;
