@@ -210,8 +210,14 @@ def forster_list():
                         acceptor.default_state.ext_coeff and donor.default_state.qy):
                     overlap, r0 = forsterDist(donor, acceptor)
                     out.append({
-                        'donor': "<a href='{}'>{}</a>".format(donor.get_absolute_url(), donor.name),
-                        'acceptor': "<a href='{}'>{}</a>".format(acceptor.get_absolute_url(), acceptor.name),
+                        'donor': "<a href='{}'>{}{}</a>".format(
+                            donor.get_absolute_url(), donor.name,
+                            '<sub>{}</sub>'.format(donor.cofactor.upper())
+                            if donor.cofactor else ''),
+                        'acceptor': "<a href='{}'>{}{}</a>".format(
+                            acceptor.get_absolute_url(), acceptor.name,
+                            '<sub>{}</sub>'.format(acceptor.cofactor.upper())
+                            if acceptor.cofactor else ''),
                         'donorPeak': donor.default_state.ex_max,
                         'acceptorPeak': acceptor.default_state.ex_max,
                         'donorQY': donor.default_state.qy,
