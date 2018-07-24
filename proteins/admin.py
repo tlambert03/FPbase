@@ -339,6 +339,7 @@ class FilterPlacementInline(admin.TabularInline):
     autocomplete_fields = ("filter",)
 
 
+@admin.register(OpticalConfig)
 class OpticalConfigAdmin(admin.ModelAdmin):
     model = OpticalConfig
     inlines = (FilterPlacementInline, )
