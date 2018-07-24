@@ -1180,7 +1180,15 @@ function updateEfficiency(){
     if (L.data('type') === 'laser'){
       var Lwave = +L.val().replace('laser-', '');
       var emeff = a.emvalues.filter(function(d){ return (d.x === Lwave || d.x === Lwave + 1)})[0].y;
-      var cameff = dataItemMatching({category: 'c'})[0].values.filter(function(d){ return (d.x === Lwave || d.x === Lwave + 1)})[0].y;
+      var cameff = 1;
+      try {
+        if ($("#scale-camera").prop('checked')){
+            var cameff = dataItemMatching({category: 'c'})[0].values.filter(function(d){ return (d.x === Lwave || d.x === Lwave + 1)})[0].y;
+        }
+      } catch(e) {
+
+      }
+
       var blocking = Math.round(-Math.log10(emeff/cameff) * 10) / 10;
       $("#laserBlocking").text('OD ' + blocking)
     } else {
