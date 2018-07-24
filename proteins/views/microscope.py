@@ -12,7 +12,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib import messages
 from django.core.cache import cache
 
-from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig, State, Dye
+from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from .mixins import OwnableObject
 from ..util.efficiency import microscope_efficiency_report
@@ -162,7 +162,7 @@ class MicroscopeDetailView(DetailView):
         data = super().get_context_data(**kwargs)
         if not self.object.cameras.exists():
             data['cameras'] = Camera.objects.all()
-        if not self.object.lights.exists():
+        if not (self.object.lights.exists() or self.object.lasers):
             data['lights'] = Light.objects.all()
         if self.object.collection:
             proteins = self.object.collection.proteins.with_spectra() \
