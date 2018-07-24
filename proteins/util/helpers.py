@@ -223,6 +223,7 @@ def forster_list():
                             if acceptor.cofactor else ''),
                         'donorPeak': donor.default_state.ex_max,
                         'acceptorPeak': acceptor.default_state.ex_max,
+                        'emdist': acceptor.default_state.em_max - donor.default_state.em_max,
                         'donorQY': donor.default_state.qy,
                         'acceptorQY': acceptor.default_state.qy,
                         'acceptorEC': "{:,}".format(acceptor.default_state.ext_coeff),

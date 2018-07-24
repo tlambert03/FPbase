@@ -275,11 +275,14 @@ $('body').on('click', '.load-button', function(){
 $.fn.dataTable.ext.search.push(
     function( settings, data, dataIndex ) {
         var min = parseFloat( $('#minQYAinput').val() );
+        var minlam = parseInt( $('#minLambdaSep').val() );
+        var qya = parseFloat( data[7] ) || 0; // use data for the age column
+        var lambsep = parseFloat( data[4] ) || 0; // use data for the age column
+
         if (min > 1) { min = 1;  $('#minQYAinput').val(1) };
         if (min < 0) { min = 0;  $('#minQYAinput').val(0) };
-        var qya = parseFloat( data[7] ) || 0; // use data for the age column
-        console.log(min)
-        if ( isNaN( min ) || qya >= min )
+
+        if (( isNaN( min ) || qya >= min ) && ( isNaN( minlam ) || lambsep >= minlam ))
         {
             return true;
         }
@@ -321,7 +324,7 @@ $(document).ready(function() {
             { "data": "donorPeak",
               "responsivePriority": 4,
               "width": '10px'},
-            { "data": "acceptorPeak",
+            { "data": "emdist",
               "responsivePriority": 4,
               "width": '10px'},
             { "data": "donorQY",
@@ -342,19 +345,28 @@ $(document).ready(function() {
     var sel = $("#fret_report_wrapper .row:first-child div.col-md-6")
     sel.removeClass('col-md-6').addClass('col-md-4')
 
-    $('<div>', { class: 'col-md-4 col-sm-12', style: 'margin-top: -2px;'})
+    var e = $('#fret_report_wrapper .row:first-child div.col-md-4:first-child');
+    e.removeClass('col-md-4').addClass('col-md-3')
+    var D1 = $('<div>', { class: 'col-md-2 col-sm-6 col-xs-12', style: 'margin-top: -2px;'})
       .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
                .append($('<div>', { class: 'input-group-prepend'})
-                        .append($('<span>', { class: 'input-group-text', id: 'minQYA'}).text('Min Acceptor QY'))
+                        .append($('<span>', { class: 'input-group-text', id: 'minQYA'}).html('min QY<sub>A</sub>'))
                 )
-               .append($('<input>', { type: 'text', min: 0, max: 1, class: 'form-control',
+               .append($('<input>', { type: 'number', step: 0.01, min: 0, max: 1, class: 'form-control',
                                       'aria-describedby': "minQYA", value: 0.4, id: 'minQYAinput'}))
+      ).insertAfter(e)
 
-      ).insertAfter('#fret_report_wrapper .row:first-child div.col-md-4:first-child')
+      var D1 = $('<div>', { class: 'col-md-3 col-sm-6 col-xs-12', style: 'margin-top: -2px;'})
+        .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
+                 .append($('<div>', { class: 'input-group-prepend'})
+                          .append($('<span>', { class: 'input-group-text', id: 'minLambdaSepLab'}).html('min &Delta;&lambda;<sub class="small">EM</sub>'))
+                  )
+                 .append($('<input>', { type: 'number', min: -200, max: 200, class: 'form-control',
+                                        'aria-describedby': "minLambdaSepLab", value: 20, id: 'minLambdaSep'}))
+        ).insertAfter(D1)
 
 
-      $('#minQYAinput').keyup( function() {
-        console.log('ghi')
+      $('#minQYAinput, #minLambdaSep').keyup( function() {
           fretTable.draw();
       } );
 
