@@ -354,6 +354,14 @@ function chunkString(str, len) {
     return _ret;
 }
 
+function tooltipwrap(chunk, index){
+  var out = '';
+  for (var i = 0; i < chunk.length; i++) {
+    out += '<span data-toggle="tooltip" data-placement="top" title="' + chunk[i] + ' ' + (+index+i+1) + '">' + chunk[i] + '</span>'
+  }
+  return out
+}
+
 function formatAAseq(elem, breakpoint) {
     breakpoint = breakpoint || 10;
     //clear any existing counts
@@ -366,11 +374,13 @@ function formatAAseq(elem, breakpoint) {
     // create new divs for the formatted content
     seqcount = $("<div class='sequence_count'></div>").appendTo(elem);
     seqdiv = $("<div class='formatted_aminosquence'></div>").appendTo(elem);
-    seqdiv.text(words[0]);
+    seqdiv.html(tooltipwrap(words[0], 0));
     seqcount.append(1 + '<br>')
     var height = seqdiv.height();
     for (var i = 1; i < words.length; i++) {
-        seqdiv.text(seqdiv.text() + " " + words[i]);
+        var tippywords = tooltipwrap(words[i], i * 10)
+
+        seqdiv.html(seqdiv.html() + " " + tippywords);
         if (seqdiv.height() > height) {
             // line break occured at iteration i
             //console.log(words[i])
@@ -379,6 +389,10 @@ function formatAAseq(elem, breakpoint) {
         }
     }
     elem.show()
+    $('[data-toggle="tooltip"]').tooltip({
+      trigger : 'hover',
+      delay: { "show": 200 },
+    });
 }
 
 
