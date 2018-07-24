@@ -312,7 +312,7 @@ $(document).ready(function() {
         },
         "columns": [
             { "data": function () { return '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>'},
-              "responsivePriority": 2,
+              "responsivePriority": 1,
               "width": '1px',
               "orderable": false},
             { "data": "donor",
@@ -322,23 +322,23 @@ $(document).ready(function() {
               "responsivePriority": 1,
               "width": '20px'},
             { "data": "donorPeak",
-              "responsivePriority": 4,
+              "responsivePriority": 5,
               "width": '10px'},
             { "data": "emdist",
-              "responsivePriority": 4,
+              "responsivePriority": 5,
               "width": '10px'},
             { "data": "donorQY",
-              "responsivePriority": 3},
+              "responsivePriority": 4},
             { "data": "acceptorEC",
-              "responsivePriority": 3},
+              "responsivePriority": 4},
             { "data": "acceptorQY",
               "responsivePriority": 6},
             { "data": "overlap",
-              "responsivePriority": 3},
+              "responsivePriority": 4},
             { "data": "forster",
-              "responsivePriority": 2},
+              "responsivePriority": 3},
             { "data": "forsterQYA",
-              "responsivePriority": 1}
+              "responsivePriority": 2}
         ],
     } );
 
@@ -356,20 +356,20 @@ $(document).ready(function() {
                                       'aria-describedby': "minQYA", value: 0.4, id: 'minQYAinput'}))
       ).insertAfter(e)
 
-      var D1 = $('<div>', { class: 'col-md-3 col-sm-6 col-xs-12', style: 'margin-top: -2px;'})
-        .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
-                 .append($('<div>', { class: 'input-group-prepend'})
-                          .append($('<span>', { class: 'input-group-text', id: 'minLambdaSepLab'}).html('min &Delta;&lambda;<sub class="small">EM</sub>'))
-                  )
-                 .append($('<input>', { type: 'number', min: -200, max: 200, class: 'form-control',
-                                        'aria-describedby': "minLambdaSepLab", value: 20, id: 'minLambdaSep'}))
-        ).insertAfter(D1)
+    $('<div>', { class: 'col-md-3 col-sm-6 col-xs-12', style: 'margin-top: -2px;'})
+      .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
+               .append($('<div>', { class: 'input-group-prepend'})
+                        .append($('<span>', { class: 'input-group-text', id: 'minLambdaSepLab'})
+                        .html('min &Delta;&lambda;<sub class="small">em</sub>'))
+                )
+               .append($('<input>', { type: 'number', min: -200, max: 200, class: 'form-control',
+                                      'aria-describedby': "minLambdaSepLab", value: 20, id: 'minLambdaSep'}))
+      ).insertAfter(D1)
 
 
-      $('#minQYAinput, #minLambdaSep').keyup( function() {
-          fretTable.draw();
-      } );
-
+    $('#minQYAinput, #minLambdaSep').keyup( function() {
+        fretTable.draw();
+    } );
 
 } );
 
