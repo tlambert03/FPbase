@@ -183,7 +183,7 @@ def calculate_spectral_overlap(donor, acceptor):
     return sum(overlap)
 
 
-def forsterDist(donor, acceptor, n=1.33, k=0.6667):
+def forsterDist(donor, acceptor, n=1.329, k=2 / 3):
     overlap = calculate_spectral_overlap(donor, acceptor)
     return overlap * 1e-15, 0.2108 * pow(donor.default_state.qy * k * pow(n, -4) * overlap, (1 / 6))
 
@@ -194,7 +194,10 @@ def fretEfficiency(distance, forster):
 
 def forster_list():
     from ..models import Protein
-    qs = Protein.objects.with_spectra().select_related('default_state').prefetch_related('default_state__spectra')
+    qs = Protein.objects.with_spectra() \
+        .filter(agg=Protein.MONOMER) \
+        .select_related('default_state') \
+        .prefetch_related('default_state__spectra')
     out = []
     withSpectra = []
     for p in qs:
@@ -225,6 +228,7 @@ def forster_list():
                         'acceptorEC': "{:,}".format(acceptor.default_state.ext_coeff),
                         'overlap': round(overlap, 2),
                         'forster': round(r0.real, 2),
+                        'forsterQYA': round(r0.real * acceptor.default_state.qy, 2),
                     })
             except Exception:
                 continue

@@ -213,6 +213,7 @@ function updateTable(){
     var r = forster_distance(donorEM, acceptorEX, $('#k2-input').val(), $('#ni-input').val());
     $("#overlapIntgrl").text(Math.round(r[0] * 1e15) / 100);
     $("#r0").text(Math.round(r[1] * 1000) / 100);
+    $("#r0QYA").text(Math.round(r[1] * $("#QYA").text() * 1000) / 100);
   } catch(e) {
   }
 }
@@ -270,15 +271,24 @@ $('body').on('click', '.load-button', function(){
 })
 
 
+/* Custom filtering function which will search data in column four between two values */
+$.fn.dataTable.ext.search.push(
+    function( settings, data, dataIndex ) {
+        var min = parseFloat( $('#minQYAinput').val() );
+        if (min > 1) { min = 1;  $('#minQYAinput').val(1) };
+        if (min < 0) { min = 0;  $('#minQYAinput').val(0) };
+        var qya = parseFloat( data[7] ) || 0; // use data for the age column
+        console.log(min)
+        if ( isNaN( min ) || qya >= min )
+        {
+            return true;
+        }
+        return false;
+    }
+);
+
 $(document).ready(function() {
 
-    function fnFilterColumn ( i ) {
-      $('#fret_report').dataTable().fnFilter(
-        '^((?!(/<sub/>BV/<//sub/>|FL)).)*$',
-        1,
-        true,
-      );
-    }
 
     var fretTable = $('#fret_report').DataTable( {
         "ajax": "/fret/",
@@ -286,7 +296,7 @@ $(document).ready(function() {
             'copy', 'excel', 'pdf'
         ],
         "pageLength": 25,
-        "order": [[9, 'desc']],
+        "order": [[10, 'desc']],
         "responsive": true,
         "language": {
           "emptyTable": "No Data received from server...",
@@ -323,29 +333,31 @@ $(document).ready(function() {
             { "data": "overlap",
               "responsivePriority": 3},
             { "data": "forster",
+              "responsivePriority": 2},
+            { "data": "forsterQYA",
               "responsivePriority": 1}
         ],
     } );
 
-
     var sel = $("#fret_report_wrapper .row:first-child div.col-md-6")
     sel.removeClass('col-md-6').addClass('col-md-4')
 
-    $('<div>', { class: 'col-md-4 col-sm-12'})
-      .append($('<div>', { class: "custom-control custom-checkbox d-flex justify-content-center pb-3"})
-               .append($('<input>', { type: 'checkbox', class: 'custom-control-input', id: 'noCofactorCheck'}))
-               .append($('<label>', { class: 'custom-control-label', for: 'noCofactorCheck'}).html('<small>Exclude FPs with Cofactors</small>'))
+    $('<div>', { class: 'col-md-4 col-sm-12', style: 'margin-top: -2px;'})
+      .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
+               .append($('<div>', { class: 'input-group-prepend'})
+                        .append($('<span>', { class: 'input-group-text', id: 'minQYA'}).text('Min Acceptor QY'))
+                )
+               .append($('<input>', { type: 'text', min: 0, max: 1, class: 'form-control',
+                                      'aria-describedby': "minQYA", value: 0.4, id: 'minQYAinput'}))
+
       ).insertAfter('#fret_report_wrapper .row:first-child div.col-md-4:first-child')
 
 
-    $("#noCofactorCheck").on("change", function() {
-      if ($(this).prop('checked')){
-       fretTable.columns([1, 2]).search('^((?!BV).)*$',true).draw();
-      } else {
-       fretTable.columns([1, 2]).search('',true).draw();
-      }
+      $('#minQYAinput').keyup( function() {
+        console.log('ghi')
+          fretTable.draw();
+      } );
 
-    });
 
 } );
 

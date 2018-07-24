@@ -111,6 +111,11 @@
     padding-bottom: 0.3rem;
   }
 
+  .paginate_button {
+    font-size: 0.7rem;
+  }
+  thead th { white-space: nowrap; }
+
 }
 
 #fret_report{
@@ -121,9 +126,7 @@
     }
   }
   width: 100% !important;
-  tbody{
-    font-size: 0.8rem;
-  }
+  tbody{ font-size: 0.8rem; }
   thead, tfoot{
     th {
       text-align: center;
