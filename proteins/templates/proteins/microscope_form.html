@@ -187,6 +187,29 @@
 <!-- Modals -->
 {% include 'proteins/modals/_import_spectrum_modal.html' with user=user %}
 
+
+<!-- Modal -->
+<div class="modal fade modal-center" id="sureModal" tabindex="-1" role="dialog" aria-labelledby="sureModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sureModalLabel" style='font-weight: 300'>Are you sure?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        You have at least one configuration with more than one dichroic and/or excitation filter. This is a bit unusual for a single channel optical configuration.  Is that really what you wanted?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="nosave">No, Keep Editing</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" id="save">Yes, Save it!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 {% endblock content %}
 
 {% block javascript %}
@@ -197,8 +220,30 @@
 
   <script type="text/javascript">
 
+
+  {% if object %}
+  var confirmError = false;
+  {% else %}
+  var confirmError = true;
+  {% endif %}
+
   $("#microscopeform").submit(function(e){
-    $("#spinner").css('display', 'inline');
+
+    if (confirmError){
+      var multidichroics = $( "select[id*='bs_filters']" ).filter(function() { return $(this).val().length > 1 });
+      var multiex = $( "select[id*='ex_filters']" ).filter(function() { return $(this).val().length > 1 });
+      if (multidichroics.length > 0 || multiex.length > 0){
+        e.preventDefault();
+        $('#sureModal').one('hidden.bs.modal', function(e) {
+            if ($(document.activeElement).attr('id') === 'save'){
+              confirmError = false;
+              $("#microscopeform").submit()
+            }
+        }).modal();
+      }
+    } else {
+      $("#spinner").css('display', 'inline');
+    }
 
   });
 
