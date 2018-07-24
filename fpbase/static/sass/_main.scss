@@ -178,3 +178,27 @@ html.fa-events-typefaces-orbitron-loading .brand {
 a:focus{
     outline: none;
 }
+
+.btn-circle {
+  width: 1.3rem;
+  height: 1.3rem;
+  text-align: center;
+  padding: 0;
+  padding-left: 0.5px;
+  font-size: 0.65rem;
+  line-height: 1.42;
+  border-radius: 15px;
+}
+
+#fretInfoModal {
+  .modal-body {
+    @include media-breakpoint-up(sm) {
+      padding-right: 10%;
+    }
+  }
+  @include media-breakpoint-up(sm) {
+    dt { text-align:right; }
+  }
+  dd {margin-bottom: 1.2rem;}
+}
+

@@ -195,7 +195,7 @@ def fretEfficiency(distance, forster):
 def forster_list():
     from ..models import Protein
     qs = Protein.objects.with_spectra() \
-        .filter(agg=Protein.MONOMER) \
+        .filter(agg=Protein.MONOMER, switch_type=Protein.BASIC) \
         .select_related('default_state') \
         .prefetch_related('default_state__spectra')
     out = []
