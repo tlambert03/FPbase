@@ -65,12 +65,13 @@ class MicroscopeCreateUpdateMixin:
     def form_valid(self, form):
         context = self.get_context_data()
         ocformset = context['optical_configs']
-        self.object = form.save(commit=False)
 
         if not ocformset.is_valid():
             self.success_message = 'Please correct errors in the individual configs tab'
             context.update({'optical_configs': ocformset, 'formsets_invalid': 'true'})
             return self.render_to_response(context)
+
+        self.object = form.save(commit=False)
 
         # enforce at least one valid optical config
         ocform_has_forms = any([f.cleaned_data.get('name')
