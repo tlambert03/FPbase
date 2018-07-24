@@ -360,6 +360,18 @@ class MicroscopeAdmin(admin.ModelAdmin):
     model = Microscope
     autocomplete_fields = ('extra_lights', 'extra_cameras')
     readonly_fields = ('configs', )
+    list_display = ('__str__', 'owner_link', 'created', 'numocs',)
+    list_select_related = ('owner', )
+    list_filter = ('created', )
+
+    def owner_link(self, obj):
+        url = reverse("admin:users_user_change", args=([obj.owner.pk]))
+        return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
+    owner_link.short_description = 'Owner'
+
+    def numocs(self, obj):
+        return obj.optical_configs.count()
+    numocs.admin_order_field = 'oc_count'
 
     def configs(self, obj):
         def _makelink(oc):
@@ -369,6 +381,10 @@ class MicroscopeAdmin(admin.ModelAdmin):
         [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
         return mark_safe(", ".join(links))
     configs.short_description = 'Optical Configs'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).annotate(oc_count=Count('optical_configs'))
+        return qs.prefetch_related('optical_configs')
 
 
 def make_private(modeladmin, request, queryset):
