@@ -48,6 +48,16 @@ h6 {
       padding-left: 0 !important;
       height: calc(2.25rem + 2px) !important;
     }
+
+    #laserBlocking{
+      position: absolute;
+      right: 4.8rem;
+      text-align: right;
+      top: 0.58rem;
+      color: $gray-500;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
   }
 
   @include media-breakpoint-down(md){

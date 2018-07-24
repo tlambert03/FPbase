@@ -1174,10 +1174,22 @@ function updateEfficiency(){
     $("#efficiency-text").attr('placeholder', 'disabled')
     return
   }
+
+    var a = calcExEmPaths();
+    var L = $('#light-select :selected')
+    if (L.data('type') === 'laser'){
+      var Lwave = +L.val().replace('laser-', '');
+      var emeff = a.emvalues.filter(function(d){ return (d.x === Lwave || d.x === Lwave + 1)})[0].y;
+      var cameff = dataItemMatching({category: 'c'})[0].values.filter(function(d){ return (d.x === Lwave || d.x === Lwave + 1)})[0].y;
+      var blocking = Math.round(-Math.log10(emeff/cameff) * 10) / 10;
+      $("#laserBlocking").text('OD ' + blocking)
+    } else {
+      $("#laserBlocking").text('')
+    }
+
   if (!($("#fluor-select :selected").val())){
     return
   }
-  var a = calcExEmPaths();
   removeSubtypes('eff')
   var fluorslug = $("#fluor-select :selected").val();
   if (a.emvalues && a.emvalues.length){
