@@ -105,14 +105,17 @@ class MicroscopeCreateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin,
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         response = super().form_valid(form)
-        if not self.request.user.is_staff:
-            mail_admins('Microscope Created',
-                        "User: {}\nMicroscope: {}\n{}".format(
-                            self.request.user.username,
-                            self.object,
-                            self.request.build_absolute_uri(
-                                self.object.get_absolute_url())),
-                        fail_silently=True)
+        if self.object and not self.request.user.is_staff:
+            try:
+                mail_admins('Microscope Created',
+                            "User: {}\nMicroscope: {}\n{}".format(
+                                self.request.user.username,
+                                self.object,
+                                self.request.build_absolute_uri(
+                                    self.object.get_absolute_url())),
+                            fail_silently=True)
+            except Exception:
+                pass
         return response
 
     def get_context_data(self, **kwargs):
