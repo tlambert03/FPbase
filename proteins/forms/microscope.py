@@ -72,11 +72,15 @@ class MicroscopeForm(forms.ModelForm):
     class Meta:
         model = Microscope
         fields = ('name', 'description', 'collection', 'managers', 'extra_lights', 'extra_cameras', 'extra_lasers')
+        labels = {
+            'collection': 'Protein Collection'
+        }
         help_texts = {
             'name': 'Name of this microscope or set of filter configurations',
             'description': 'This text will appear below the name on your microscope page',
             'managers': 'Grant others permission to edit this page (comma seperated list of email addresses)',
-            'extra_lasers': 'Comma seperated list of integers (300-1600)'
+            'extra_lasers': 'Comma seperated list of integers (300-1600)',
+            'collection': 'Only show fluorophores from a custom collection (leave blank to allow all proteins)'
         }
         widgets = {
             'name': forms.widgets.TextInput(attrs={'class': 'textinput textInput form-control'}),
