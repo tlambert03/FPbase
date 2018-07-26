@@ -579,10 +579,10 @@ class Filter(SpectrumOwner, Product):
         validators=[MinValueValidator(200), MaxValueValidator(1600)])
     bandwidth = models.PositiveSmallIntegerField(
         blank=True, null=True,
-        validators=[MinValueValidator(300), MaxValueValidator(900)])
+        validators=[MinValueValidator(0), MaxValueValidator(900)])
     edge = models.FloatField(
         null=True, blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(200)])
+        validators=[MinValueValidator(300), MaxValueValidator(1600)])
     tavg = models.FloatField(
         blank=True, null=True,
         validators=[MinValueValidator(0), MaxValueValidator(1)])
