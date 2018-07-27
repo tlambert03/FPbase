@@ -207,7 +207,8 @@ def protein_table(request):
         'table.html',
         {
             "proteins": Protein.objects.all().prefetch_related(
-                'states', 'states__bleach_measurements')
+                'states', 'states__bleach_measurements'),
+            'request': request
         })
 
 
