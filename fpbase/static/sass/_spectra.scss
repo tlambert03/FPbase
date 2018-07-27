@@ -9,15 +9,30 @@ h6 {
     opacity: 0;
 }
 
-#settings-button {
-  cursor: pointer;
 
+#scope-settings-buttons {
+  float: left;
+  font-size: 1.55rem;
   margin-left: .5rem;
   position: relative;
-  top: -5px
-
-  :hover {
-    color: darken($info, 10)
+  top: -5px;
+  span {
+    cursor: pointer;
+    :hover {
+      color: darken($info, 10)
+    }
+    &.pin-wrapper {
+      margin-left: .5rem;
+      transition: transform 200ms;
+      display: inline-block;
+      color: $info;
+      opacity: 1;
+      &.rotate-90 {
+        transform: rotate(-90deg);
+        opacity: 0.4;
+      }
+      z-index: 1000;
+    }
   }
 }
 
@@ -27,9 +42,15 @@ h6 {
   stroke-width: 0.3;
 
 }
+
+.sticky {
+  position: sticky;
+  top: 0px;
+}
+
 .spectrumpage{
   .spectra-wrapper {
-    position: sticky;
+    position: relative;
     top: 0px;
     z-index:100;
     background:white;
@@ -38,8 +59,14 @@ h6 {
     @include media-breakpoint-down(lg) { width: 100% }
     @include media-breakpoint-up(lg) { width: 962px }
     @include media-breakpoint-up(xl) { width: 1170px }
-    transition: box-shadow .3s;
-
+    &.sticky {
+      position: sticky;
+      top: 0px;
+      z-index: 5000;
+    }
+    &.shadowed {
+      box-shadow: 0 12px 8px -8px rgba(0,0,0,.2);
+    }
   }
 
 
@@ -57,7 +84,7 @@ h6 {
       color: $gray-500;
       font-size: 0.9rem;
       font-weight: 600;
-      z-index: 4000;
+      z-index: 3000;
     }
   }
 
@@ -377,8 +404,16 @@ table.spectra-form {
   font-size: 0.8rem;
 }
 
+
 .svg-container{
   position: relative;
+
+  #sticky-button{
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+  }
+
 }
 
 #y-zoom-slider{

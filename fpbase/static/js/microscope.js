@@ -34,7 +34,7 @@ var data = [];
 var localData = {};
 var options = {
     showArea: true,
-    stickySpectra: true,
+    stickySpectra: false,
     minwave: 350,
     maxwave: 800,
     startingBrush: [350, 800],
@@ -49,7 +49,7 @@ var options = {
     scaleToQY: false,
     oneAtaTime: true,
     precision: isSafari ? 2 : 1,
-    interpolate: isSafari ? true : false,
+    interpolate: false,
     calcEff: true,
 };
 var userOptions = {
@@ -57,7 +57,6 @@ var userOptions = {
     oneAtaTime: {type: 'checkbox', msg: 'Uncheck other similar filters when selecting a filter'},
     normMergedEx: {type: 'checkbox', msg: 'Normalize merged excitation and light source spectra'},
     showArea: {type: 'checkbox', msg: 'Fill area under curve'},
-    stickySpectra: {type: 'checkbox', msg: 'Make spectrum graph sticky when scrolling'},
     //autoscaleBrush: {type: 'checkbox', msg: 'Auto-rescale X-axis (using zoom above auto-disables this)'},
 //    hide2p: {type: 'checkbox', msg: 'Hide 2-photon spectra by default'},
 //    scaleToEC: {type: 'checkbox', msg: 'Scale excitation spectra to extinction coefficient (% of highest fluor)'},
@@ -77,7 +76,7 @@ var chartOptions = function() {
     return {
                 focusEnable: options.focusEnable,
                 focusShowAxisX: false,
-                interpolate: options.interpolate ? 'cardinal' : 'linear',
+                interpolate: options.interpolate ? 'basis' : 'linear',
                 noData: "Add spectra below ...",
                 showLegend: true,
                 showXAxis: true,
@@ -518,13 +517,6 @@ $(function() {
                         $(".resetXdomain").toggle();
                     } else if (key === 'interpolate'){
                         chart.options(chartOptions());
-                    } else if (key === 'stickySpectra'){
-                        if (options[key]){
-                            $('.spectra-wrapper').css('position', 'sticky')
-                        } else {
-                            $('.spectra-wrapper').css('position', 'relative')
-                            $(".spectra-wrapper").css('box-shadow', 'none');
-                        }
                     }
 
                     if (key === 'normMergedEx' || key === 'calcEff'){
@@ -702,7 +694,9 @@ $(function() {
 
     if ('sticky' in urlParams){
         options.stickySpectra = Boolean(urlParams.sticky === 'true' || +urlParams.sticky > 0);
-        $("#stickySpectra_input").prop('checked', options.stickySpectra).change();
+        if(options.stickySpectra){
+         $('#stickyPin').click();
+        }
     }
 
     if ('c' in urlParams){
@@ -1251,14 +1245,27 @@ $(window).on('load', function() {
 
 var topofDiv = $(".spectra-wrapper").offset().top;
 $(window).scroll(function(){
+    console.log(topofDiv)
+    console.log($(window).scrollTop())
     if (options.stickySpectra){
         if($(window).scrollTop() > (topofDiv)){
-          $(".spectra-wrapper").css('box-shadow', '0 12px 8px -8px rgba(0,0,0,.2)');
+          $(".spectra-wrapper").addClass('shadowed');
         }
         else{
-          $(".spectra-wrapper").css('box-shadow', 'none');
+          $(".spectra-wrapper").removeClass('shadowed');
         }
     }
 });
 
+$('#stickyPin').click(function() {
+    $('.pin-wrapper').toggleClass('rotate-90')
+    if ($('.pin-wrapper').hasClass('rotate-90')){
+        options.stickySpectra = false;
+        $('.spectra-wrapper').removeClass('sticky')
+        $(".spectra-wrapper").removeClass('shadowed');
+    } else {
+        options.stickySpectra = true;
+        $('.spectra-wrapper').addClass('sticky')
+    }
+});
 

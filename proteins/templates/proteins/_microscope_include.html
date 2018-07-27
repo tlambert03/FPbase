@@ -4,6 +4,7 @@
     {{object.description}}
 </div>
 {% endif %}
+
 <div class="spectra-wrapper mt-2">
   <div class="spectra container clearfix mb-3">
     <div id="spectra">
@@ -12,8 +13,9 @@
         <svg id="spectrasvg"></svg>
       </div>
       <div class="focusnote">click and drag to zoom</div>
-      <div class='float-left' style='font-size:1.55rem'>
-        <span class='text-info' id="settings-button" data-toggle="tooltip" data-placement="right" title="Settings"><i class="fa fa-cog float" data-toggle="modal" data-target="#settingsModal"></i></span>
+      <div id="scope-settings-buttons">
+        <span class='text-info' id="settings-button" data-toggle="tooltip" data-placement="right" title="Settings"><i class="fa fa-cog" data-toggle="modal" data-target="#settingsModal"></i></span>
+        <span class="pin-wrapper rotate-90" id="stickyPin" data-toggle="tooltip" data-placement="right" title="Keep spectra graph on top when scrolling"><span class="fas fa-thumbtack"></span></span>
       </div>
       <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
         <label class="btn btn-info active">
