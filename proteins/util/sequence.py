@@ -8,11 +8,34 @@ from skbio.alignment import local_pairwise_align_ssw, make_identity_substitution
 import skbio
 
 
+def mustring_to_list(mutstring):
+    aa_alph = "[%s]" % "".join(skbseq.Protein.definite_chars)
+    return re.findall(r'(?P<pre>{0}+)(?P<pos>\d+)(?P<post>{0}+)'
+                      .format(aa_alph), mutstring)
+
+
 class Mutations(object):
 
-    def __init__(self, muts=None, joiner='/'):
-        self.muts = muts or list()
-        self.joiner = joiner
+    def __init__(self, muts=None):
+        if isinstance(muts, str):
+            muts = mustring_to_list(muts)
+        assert all([len(i) == 3 for i in muts]), 'All mutations items must have 3 elements'
+        self.muts = set([(a, int(b), c) for a, b, c in muts]) or set()
+
+    def __eq__(self, other):
+        if isinstance(other, Mutations):
+            return self.muts == other.muts
+        elif isinstance(other, str):
+            return self == Mutations.from_str(other)
+        elif isinstance(other, (set, list, tuple)):
+            try:
+                other = Mutations(other)
+                return self.muts == other.muts
+            except Exception:
+                raise ValueError(
+                    'Could not compare Mutations object with other: {}'.format(other))
+        raise ValueError(
+            'operation not valid between type Mutations and {}'.format(type(other)))
 
     def __len__(self):
         return len(self.muts)
@@ -21,10 +44,11 @@ class Mutations(object):
         return '<Mutations({})>'.format(repr(self.muts))
 
     def __str__(self):
+        joiner = '/'
         out = []
         dels = 0
         tmpi = 0
-        for n, (before, idx, after) in enumerate(self.muts):
+        for n, (before, idx, after) in enumerate(sorted(self.muts, key=lambda x: int(x[1]))):
             if after == '-':  # deletion
                 if dels and idx != tmpi:
                     out.append(temp + 'del')
@@ -43,7 +67,11 @@ class Mutations(object):
                     dels = 0
                     tmpi = 0
                 out.append("".join([str(n) for n in [before, idx, after]]))
-        return self.joiner.join(out)
+        return joiner.join(out)
+
+    @classmethod
+    def from_str(cls, mutstring, sep='/'):
+        return cls(mutstring_to_list(mutstring))
 
     @property
     def deletions(self):
@@ -67,10 +95,10 @@ def get_mutations(seq1, seq2, **kwargs):
         seq2 = skbseq.Protein(seq2)
     algn, score, startend = seq1.align_to(seq2, **kwargs)
     offset = startend[0][0] + 1
-    muts = []
+    muts = set()
     for i in range(algn.shape[1]):
         if algn[0][i] != algn[1][i]:
-            muts.append([str(algn[0][i]), i + offset, str(algn[1][i])])
+            muts.add((str(algn[0][i]), i + offset, str(algn[1][i])))
     return Mutations(muts)
 
 
@@ -99,6 +127,11 @@ def show_align(seq1, seq2, match=' ', mismatch='*', gap='-', **kwargs):
 
 
 class FPSeq(skbseq.GrammaredSequence):
+
+    def __init__(self, seq, *args, **kwargs):
+        if isinstance(seq, Protein):
+            seq = seq.seq
+        super().__init__(seq, *args, **kwargs)
 
     @classproperty
     def degenerate_map(cls):
@@ -163,14 +196,6 @@ def getname(name):
         except Exception:
             pass
     return None
-
-
-p1 = Protein.objects.get(name='dsRed')
-for p in ProteinCollection.objects.first().proteins.all():
-    if p.seq:
-        muts = get_mutations(p1, p)
-        print('Same parents: {}'.format(p1.parent_organism == p.parent_organism))
-        print('number of mutations: ', len(muts))
 
 
 def osfp_import():
