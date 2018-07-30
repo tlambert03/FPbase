@@ -20,6 +20,8 @@ urlpatterns = [
                        message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
+    url(r'^sequence_problems/', views.sequence_problems, name='sequence_problems'),
+
     url(r'^spectra/submit',
         login_required(views.SpectrumCreateView.as_view(),
                        message="You must be logged in to submit a new spectrum"),

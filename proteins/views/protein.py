@@ -7,6 +7,7 @@ from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
+from django.db.models.functions import Substr
 from django.core.mail import mail_managers
 from ..models import Protein, State, Organism, BleachMeasurement
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
@@ -208,6 +209,22 @@ def protein_table(request):
         {
             "proteins": Protein.objects.all().prefetch_related(
                 'states', 'states__bleach_measurements'),
+            'request': request
+        })
+
+
+def sequence_problems(request):
+    ''' renders html for protein table page  '''
+    mprobs = Protein.objects.annotate(sub=Substr('seq', 206, 1)).filter(sub='A', name__istartswith='m')
+    mprobs = mprobs | Protein.objects.annotate(sub=Substr('seq', 207, 1)).filter(sub='A', name__istartswith='m')
+
+    return render(
+        request,
+        'seq_problems.html',
+        {
+            "histags": Protein.objects.filter(seq__icontains='HHHHHH'),
+            "mprobs": mprobs,
+            "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith='M'),
             'request': request
         })
 
