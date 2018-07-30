@@ -36,7 +36,7 @@ def check_existence(form, fieldname, value):
         query = query | Protein.objects.filter(name__iexact=value.replace(' ', ''))
         query = query | Protein.objects.filter(name__iexact=value.replace(' ', '').replace('monomeric', 'm'))
     else:
-        query = Protein.objects.filter(**{fieldname: value})
+        query = Protein.objects.filter(**{fieldname: value}).exclude(id=form.instance.id)
 
     if query.exists():
         prot = query.first()
