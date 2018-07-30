@@ -14,6 +14,8 @@ from model_utils import Choices
 
 import uuid as uuid_lib
 import json
+import re
+import io
 
 from references.models import Reference
 from .mixins import Authorable
@@ -21,6 +23,7 @@ from ..util.helpers import get_color_group, mless, get_base_name
 # from .extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator, validate_uniprot
 from .. import util
+from ..util.sequence import FPSeq
 from reversion.models import Version
 
 from Bio import Entrez
@@ -29,7 +32,37 @@ Entrez.email = settings.ADMINS[0][1]
 User = get_user_model()
 
 
+def findname(name):
+    queries = [
+        {'name__iexact': name},
+        {'aliases__icontains': name},
+        # {'name__icontains': name},
+        {'name__iexact': re.sub(r' \((Before|Planar|wild).*', '', name)},
+        {'aliases__icontains': re.sub(r' \((Before|Planar|wild).*', '', name)},
+        # {'name__icontains': re.sub(r' \((Before|Planar).*', '', name)},
+        {'name__iexact': name.strip('1')},
+        # {'name__icontains': name.strip('1')},
+    ]
+    for query in queries:
+        try:
+            return Protein.objects.get(**query)
+        except Exception:
+            pass
+    return None
+
+
+class ProteinQuerySet(models.QuerySet):
+
+    def fasta(self):
+        seqs = self.exclude(seq__isnull=True).values('name', 'seq')
+        return io.StringIO("\n".join(["> {name}\n{seq}".format(**s) for s in seqs]))
+
+
 class ProteinManager(models.Manager):
+
+    def get_queryset(self):
+        return ProteinQuerySet(self.model, using=self._db)
+
     def with_counts(self):
         from django.db import connection
         with connection.cursor() as cursor:
@@ -61,6 +94,35 @@ class ProteinManager(models.Manager):
         return self.get_queryset() \
             .annotate(similarity=TrigramSimilarity('name', name)) \
             .filter(similarity__gt=similarity).order_by('-similarity')
+
+
+class SequenceField(models.CharField):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['max_length'] = 1024
+        kwargs['validators'] = [protein_sequence_validator]
+        super().__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        del kwargs["max_length"]
+        del kwargs["validators"]
+        return name, path, args, kwargs
+
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return value
+        return FPSeq(value)
+
+    def to_python(self, value):
+        if isinstance(value, FPSeq):
+            return value
+        if value is None:
+            return value
+        return FPSeq(value)
+
+    def get_prep_value(self, value):
+        return str(value)
 
 
 class Protein(Authorable, StatusModel, TimeStampedModel):
@@ -110,9 +172,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     base_name   = models.CharField(max_length=128)  # easily searchable "family" name
     aliases     = ArrayField(models.CharField(max_length=200), blank=True, null=True)
     chromophore = models.CharField(max_length=5, null=True, blank=True)
-    seq         = models.CharField(max_length=1024, unique=True, blank=True, null=True, verbose_name='Sequence',
-                    help_text="Amino acid sequence (IPG ID is preferred)",
-                    validators=[protein_sequence_validator])  # consider adding Protein Sequence validator
+    seq_validated = models.BooleanField(default=False, help_text='Sequence has been validated by a moderator')
+    # seq must be nullable because of uniqueness contraints
+    seq         = SequenceField(unique=True, blank=True, null=True, verbose_name='Sequence',
+                                help_text="Amino acid sequence (IPG ID is preferred)")
     pdb         = ArrayField(models.CharField(max_length=4), blank=True, null=True, verbose_name='Protein DataBank ID')
     genbank     = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='Genbank Accession', help_text="NCBI Genbank Accession")
     uniprot     = models.CharField(max_length=10, null=True, blank=True, unique=True, verbose_name='UniProtKB Accession', validators=[validate_uniprot])
@@ -248,9 +311,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        # Don't allow protein sequences to have non valid amino acid letters:
-        if self.seq:
-            self.seq = "".join(self.seq.split()).upper()  # remove whitespace
 
         # if the IPG ID has changed... refetch the sequence
         # if self.ipg_id != self.__original_ipg_id:

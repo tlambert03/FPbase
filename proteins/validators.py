@@ -25,7 +25,7 @@ def cdna_sequence_validator(seq):
 
 
 def protein_sequence_validator(seq):
-    seq = "".join(seq.split()).upper()  # remove whitespace
+    seq = "".join(str(seq).split()).upper()  # remove whitespace
     badletters = []
     for letter in seq:
         if letter not in Alphabet.IUPAC.protein.letters:
