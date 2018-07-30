@@ -271,8 +271,6 @@ $('input[id*="reference_doi"]').change(function(){
 	input = $(this)
   small = input.parent().siblings('small[id*="reference_doi"]');
   doi = input.val()
-  console.log(doi)
-
 	var searchurl = "https://api.crossref.org/v1/works/"
 	searchurl += doi
 
@@ -354,12 +352,29 @@ function chunkString(str, len) {
     return _ret;
 }
 
-function tooltipwrap(chunk, index){
+function tooltipwrap(chunk, index, skipV2){
   var out = '';
   for (var i = 0; i < chunk.length; i++) {
-    out += '<span data-toggle="tooltip" data-placement="top" title="' + chunk[i] + ' ' + (+index+i+1) + '">' + chunk[i] + '</span>'
+    if (skipV2){
+      if (+index+i < 1){
+        ind = (+index+i+1)
+      } else if (+index+i === 1) {
+        ind = '1a'
+      } else if (+index+i > 1) {
+        ind = (+index+i)
+      }
+    } else {
+      ind = (+index+i+1)
+    }
+    out += '<span data-toggle="tooltip" data-placement="top" title="' + chunk[i] + ' ' + ind + '">' + chunk[i] + '</span>'
   }
   return out
+}
+
+if (!String.prototype.startsWith) {
+  String.prototype.startsWith = function(search, pos) {
+    return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+  };
 }
 
 function formatAAseq(elem, breakpoint) {
@@ -367,6 +382,9 @@ function formatAAseq(elem, breakpoint) {
     //clear any existing counts
     elem.find('.sequence_count').empty()
     // extract the string and chop it up into segments by breakpoint
+    if (elem.text().startsWith('MVSKGEEL')){
+      var skipV2 = true;
+    }
     words = chunkString(elem.text().replace(/ /g,''), breakpoint)
     // clear the div
     elem.empty()
@@ -374,12 +392,11 @@ function formatAAseq(elem, breakpoint) {
     // create new divs for the formatted content
     seqcount = $("<div class='sequence_count'></div>").appendTo(elem);
     seqdiv = $("<div class='formatted_aminosquence'></div>").appendTo(elem);
-    seqdiv.html(tooltipwrap(words[0], 0));
+    seqdiv.html(tooltipwrap(words[0], 0, skipV2));
     seqcount.append(1 + '<br>')
     var height = seqdiv.height();
     for (var i = 1; i < words.length; i++) {
-        var tippywords = tooltipwrap(words[i], i * 10)
-
+        var tippywords = tooltipwrap(words[i], i * 10, skipV2)
         seqdiv.html(seqdiv.html() + " " + tippywords);
         if (seqdiv.height() > height) {
             // line break occured at iteration i
