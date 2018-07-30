@@ -81,7 +81,7 @@
 			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
 		</div>
 
-		<dl class="row mt-4 pt-3">
+		<dl class="row mt-4">
 			<div class="col-md-{% if protein.cofactor %}4{% else %}6{%endif%}">
 				<div class="row">
 				  <dt class="col-sm-4 col-md-5  col-lg-4 text-sm-right">Aggregation:</dt>
@@ -164,7 +164,7 @@
 		<div class="sequence">
 			<div class="row">
 			  	<div class="col">
-				  <h3>Amino Acid Sequence{% if protein.seq %}<a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>{% endif %}</h3>
+				  <h3>{{ protein.name | safe }} Sequence{% if protein.seq %}<a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>{% endif %}</h3>
 				</div>
 			</div>
 
@@ -349,9 +349,12 @@
       }
       var chart = nv.models.lineChart();
       chart.yDomain([0,1.04])
-      svg = d3.select('#spectra').append('svg');
+      svg = d3.select('#spectra').append('svg').attr('role', 'img').attr('aria-labelledby', "svgDesc svgTitle");
+      $("#spectra svg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
+      $("#spectra svg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
+
       chart.options({
-          margin: {left:20},
+          margin: {left:20, bottom: 30},
           noData: "Unable to load data...",
           transitionDuration: 200,
           showLegend: myData.length > 2 || myData.some(function(a){return a.type=='2p'}),
