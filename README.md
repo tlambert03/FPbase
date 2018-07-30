@@ -55,14 +55,11 @@ Talley Lambert. tlambert03/FPbase (2018). doi:10.5281/zenodo.1244328
 #### TODO
 
 * mutations / lineages
-* FRET views and FRET partners
 * weighted scoring based on user-selected attributes
 * user scoring/comments
 * user submit unpublished data
-* 2P absorption cross-section
 * photoswitchable chart
 * bleach comparisons within studies
-* scale spectra to EC/QY/brightness/excitation line
 * allow spectra/attributes to be embedded elsewhere
 * "add to comparison" option, with comparison page, sequence alignment
 * molecular weight
