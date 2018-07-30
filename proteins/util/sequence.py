@@ -1,17 +1,161 @@
 import csv
 import re
-from proteins.models import Protein
-from skbio import sequence as skbseq
+from skbio.sequence import GrammaredSequence
+from skbio.sequence import Protein as skProtein
 from skbio.util import classproperty
-from skbio.alignment import local_pairwise_align_ssw, make_identity_substitution_matrix
+from skbio.alignment import StripedSmithWaterman
+try:
+    import parasail as _parasail
+except ImportError:
+    print('ERROR!!! could not import parasail... will not be able to align')
 
-import skbio
+# from skbio.alignment import  make_identity_substitution_matrix
+# EYE_MTX = make_identity_substitution_matrix(1, -1, skProtein.alphabet)
+
+
+def nw_align(query, target, gop=2, gep=1, band_size=0):
+    query = str(query)
+    target = str(target)
+    if band_size:
+        result = _parasail.nw_banded(target, query, gop, gep,
+                                     band_size, _parasail.blosum62)
+    else:
+        result = _parasail.nw_trace_scan_sat(target, query, gop, gep, _parasail.blosum62)
+    return ParasailAlignment(result)
+
+
+def get_mutations(seq1, seq2, **kwargs):
+    if not isinstance(seq1, FPSeq):
+        seq1 = FPSeq(seq1)
+    aligned = seq1.align_to(seq2, **kwargs)
+    off = aligned.query_begin + 1
+    AQS, AQT = aligned.aligned_query_sequence, aligned.aligned_target_sequence
+    muts = set((x, off + i, y) for x, (i, y) in zip(AQS, enumerate(AQT)) if x != y)
+    return Mutations(muts)
+
+
+class ParasailAlignment:
+
+    def __init__(self, result):
+        self.cigar = result.cigar.decode
+        if isinstance(self.cigar, bytes):
+            self.cigar = self.cigar.decode()
+        # confusing nomenclature is for consistency with scikit-bio
+        # where "query" is the initial sequence
+        self.target = result.query
+        self.query = result.ref
+        self.score = result.score
+        self._mutations = None
+
+    def _tuples_from_cigar(self):
+        tuples = []
+        length_stack = []
+        for character in self.cigar:
+            if character.isdigit():
+                length_stack.append(character)
+            else:
+                tuples.append((int("".join(length_stack)), character))
+                length_stack = []
+        return tuples
+
+    @property
+    def cigar_tuple(self):
+        if hasattr(self, '_cigar_tuple'):
+            return self._cigar_tuple
+        self._cigar_tuple = self._tuples_from_cigar()
+        return self._cigar_tuple
+
+    @property
+    def mutations(self):
+        if self._mutations is not None:
+            return self._mutations
+        off = 0
+        AQS, AQT = self.aligned_query_sequence(), self.aligned_target_sequence()
+        muts = set((x, off + i, y) for x, (i, y) in zip(AQS, enumerate(AQT)) if x != y)
+        self._mutations = Mutations(muts)
+        return self._mutations
+
+    def print_alignment(self, max_length=80):
+        print(a.aligned_query_sequence() + '\n' + a.aligned_target_sequence())
+
+    def aligned_query_sequence(self):
+        return self._get_aligned_sequence(self.query, 'I')
+
+    def aligned_target_sequence(self):
+        return self._get_aligned_sequence(self.target, 'D')
+
+    def _get_aligned_sequence(self, seq, gap_type, gap_char='-', eq_char='='):
+        # assume zero based
+        # gap_type is 'D' when returning aligned query sequence
+        # gap_type is 'I' when returning aligned target sequence
+        aligned_sequence = ''
+        index = 0
+        for length, symbol in self.cigar_tuple:
+            if symbol == eq_char:
+                aligned_sequence += seq[index:length + index]
+                index += length
+            elif symbol == gap_type:
+                aligned_sequence += gap_char * length
+            elif symbol in ('D', 'I'):
+                aligned_sequence += seq[index:length + index]
+                index += length
+        return aligned_sequence
+
+    @classmethod
+    def from_seqs(cls, query, target, **kwargs):
+        return nw_align(query, target, **kwargs)
+
+
+def get_mutations(seq1, seq2, tuple_cigar):
+    muts = []
+    index = 0
+    for length, mid in tuple_cigar:
+        if mid == 'X':
+            aligned_sequence += sequence[index:length + index]
+            index += length
+        elif mid == gap_type:
+            aligned_sequence += gap_char * length
+        else:
+            pass
+    return aligned_sequence
 
 
 def mustring_to_list(mutstring):
-    aa_alph = "[%s]" % "".join(skbseq.Protein.definite_chars)
+    aa_alph = "[%s]" % "".join(skProtein.definite_chars)
     return re.findall(r'(?P<pre>{0}+)(?P<pos>\d+)(?P<post>{0}+)'
                       .format(aa_alph), mutstring)
+
+
+class FPSeq(GrammaredSequence):
+
+    @classproperty
+    def degenerate_map(cls):
+        return skProtein.degenerate_map
+
+    @classproperty
+    def definite_chars(cls):
+        return skProtein.definite_chars
+
+    @classproperty
+    def default_gap_char(cls):
+        return '-'
+
+    @classproperty
+    def gap_chars(cls):
+        return set('-.')
+
+    def same_as(self, other):
+        return str(self) == str(other)
+
+    def align_to(self, other, gop=2, gep=1, **kwargs):
+        ssw = StripedSmithWaterman(str(self), gop, gep, **kwargs)
+        return ssw(str(other))
+
+    def mutations_to(self, other, **kwargs):
+        return get_mutations(self, other, **kwargs)
+
+    def mutations_from(self, other, **kwargs):
+        return get_mutations(other, self, **kwargs)
 
 
 class Mutations(object):
@@ -19,29 +163,44 @@ class Mutations(object):
     def __init__(self, muts=None):
         if isinstance(muts, str):
             muts = mustring_to_list(muts)
-        assert all([len(i) == 3 for i in muts]), 'All mutations items must have 3 elements'
+        elif not isinstance(muts, (list, set, tuple)):
+            raise ValueError('Mutations argument must be str, list, set, or tuple')
+        if any([len(i) != 3 for i in muts]):
+            raise ValueError('All mutations items must have 3 elements')
         self.muts = set([(a, int(b), c) for a, b, c in muts]) or set()
 
     def __eq__(self, other):
+        """ should be rather robust way to compare mutations to some string
+        or other Mutations instance, even if there's a little offset between
+        the positions"""
+        otherm = False
         if isinstance(other, Mutations):
-            return self.muts == other.muts
+            otherm = other.muts
         elif isinstance(other, str):
-            return self == Mutations.from_str(other)
+            otherm = Mutations.from_str(other).muts
         elif isinstance(other, (set, list, tuple)):
             try:
-                other = Mutations(other)
-                return self.muts == other.muts
+                otherm = Mutations(other).muts
             except Exception:
                 raise ValueError(
                     'Could not compare Mutations object with other: {}'.format(other))
-        raise ValueError(
-            'operation not valid between type Mutations and {}'.format(type(other)))
+        if not otherm:
+            raise ValueError(
+                'operation not valid between type Mutations and {}'.format(type(other)))
+        else:
+            if self.muts == otherm:
+                return True
+            else:
+                if len(self.muts) == len(otherm):
+                    if len(self.detect_offset(other)) == 1:
+                        return True
+        return False
 
     def __len__(self):
         return len(self.muts)
 
     def __repr__(self):
-        return '<Mutations({})>'.format(repr(self.muts))
+        return '<Mutations: {}>'.format(self)
 
     def __str__(self):
         joiner = '/'
@@ -49,24 +208,8 @@ class Mutations(object):
         dels = 0
         tmpi = 0
         for n, (before, idx, after) in enumerate(sorted(self.muts, key=lambda x: int(x[1]))):
-            if after == '-':  # deletion
-                if dels and idx != tmpi:
-                    out.append(temp + 'del')
-                    tmpi = 0
-                    dels = 0
-                if not dels:
-                    temp = str(before) + str(idx)
-                    tmpi = idx
-                dels += 1
-                tmpi += 1
-            else:
-                if dels:
-                    if dels > 1:
-                        temp += '_' + self.muts[n - 1][0] + str(self.muts[n - 1][1])
-                    out.append(temp + 'del')
-                    dels = 0
-                    tmpi = 0
-                out.append("".join([str(n) for n in [before, idx, after]]))
+            after = 'del' if after == '-' else after
+            out.append("".join([str(n) for n in [before, idx, after]]))
         return joiner.join(out)
 
     @classmethod
@@ -81,25 +224,23 @@ class Mutations(object):
     def insertions(self):
         return [i for i in self.muts if i[0] == '-']
 
+    def detect_offset(self, other):
+        """ looks for a probable equality with frame shift between
+        two mutation sets.
 
-def get_mutations(seq1, seq2, **kwargs):
-    if not isinstance(seq1, FPSeq):
-        if isinstance(seq1, Protein):
-            seq1 = seq1.seq
-        seq1 = FPSeq(seq1)
-    if not isinstance(seq2, skbseq.Protein):
-        if isinstance(seq2, Protein):
-            if not seq2.seq:
-                raise ValueError('{} has no sequence data'.format(seq2))
-            seq2 = seq2.seq
-        seq2 = skbseq.Protein(seq2)
-    algn, score, startend = seq1.align_to(seq2, **kwargs)
-    offset = startend[0][0] + 1
-    muts = set()
-    for i in range(algn.shape[1]):
-        if algn[0][i] != algn[1][i]:
-            muts.add((str(algn[0][i]), i + offset, str(algn[1][i])))
-    return Mutations(muts)
+        returns a dict where the keys are the detected offsets, and the
+        values are the number of times that offset was observed in the mutations
+        keys with higher values are more likely to represent true frame shifts
+        """
+
+        from collections import Counter
+        mymuts = {'%s%s' % (a, c): b for a, b, c in self.muts}
+        theirmuts = {'%s%s' % (a, c): b for a, b, c in other.muts}
+        matches = []
+        for key, pos in mymuts.items():
+            if key in theirmuts:
+                matches.append((pos, theirmuts[key]))
+        return dict(Counter([a - b for a, b in matches]))
 
 
 def show_align(seq1, seq2, match=' ', mismatch='*', gap='-', **kwargs):
@@ -126,76 +267,7 @@ def show_align(seq1, seq2, match=' ', mismatch='*', gap='-', **kwargs):
     return algn
 
 
-class FPSeq(skbseq.GrammaredSequence):
-
-    def __init__(self, seq, *args, **kwargs):
-        if isinstance(seq, Protein):
-            seq = seq.seq
-        super().__init__(seq, *args, **kwargs)
-
-    @classproperty
-    def degenerate_map(cls):
-        return {
-            "B": set("DN"), "Z": set("EQ"),
-            "X": set("ACDEFGHIKLMNPQRSTVWY")
-        }
-
-    @classproperty
-    def definite_chars(cls):
-        return set("ACDEFGHIKLMNPQRSTVWY")
-
-    @classproperty
-    def default_gap_char(cls):
-        return '-'
-
-    @classproperty
-    def gap_chars(cls):
-        return set('-.')
-
-    def same_as(self, other):
-        return str(self) == str(other)
-
-    def align_to(self, other, gop=4, gep=1):
-        mtx = make_identity_substitution_matrix(1, -1, skbio.Protein.alphabet)
-        if isinstance(other, FPSeq):
-            other = skbseq.Protein(other.values)
-        elif isinstance(other, str):
-            other = skbseq.Protein(other)
-        elif not isinstance(other, skbseq.Protein):
-            raise ValueError('other must be either a str or subclass of skbio.Protein')
-        this = skbseq.Protein(self.values)
-        return local_pairwise_align_ssw(this, other, protein=True,
-                                        substitution_matrix=mtx,
-                                        gap_open_penalty=gop,
-                                        gap_extend_penalty=gep)
-
-    def mutations_to(self, other, **kwargs):
-        return get_mutations(self, other, **kwargs)
-
-    def mutations_from(self, other, **kwargs):
-        return get_mutations(other, self, **kwargs)
-
-
 # re.sub(r' \([A-Z][0-9_]+[A-Z]\)', '', name)
-
-
-def getname(name):
-    queries = [
-        {'name__iexact': name},
-        {'aliases__icontains': name},
-        # {'name__icontains': name},
-        {'name__iexact': re.sub(r' \((Before|Planar|wild).*', '', name)},
-        {'aliases__icontains': re.sub(r' \((Before|Planar|wild).*', '', name)},
-        # {'name__icontains': re.sub(r' \((Before|Planar).*', '', name)},
-        {'name__iexact': name.strip('1')},
-        # {'name__icontains': name.strip('1')},
-    ]
-    for query in queries:
-        try:
-            return Protein.objects.get(**query)
-        except Exception:
-            pass
-    return None
 
 
 def osfp_import():
@@ -233,3 +305,20 @@ def osfp_import():
                 if not p.agg == Protein.WEAK_DIMER:
                     print('change {} agg from {} to {}'.format(name, p.get_agg_display(), agg))
         """
+
+def snapgene_import():
+    with open('snapgene.csv') as f:
+        csvrows = csv.reader(f)
+        for row in csvrows:
+            name = row[4]
+            seq = row[6]
+            try:
+                p = Protein.objects.get(name=name)
+            except Protein.DoesNotExist:
+                continue
+            if not p:
+                continue
+            if p.seq:
+                if not ParasailAlignment.from_seqs(seq, p.seq).mutations:
+                    continue
+                print(name, ParasailAlignment.from_seqs(seq, p.seq).mutations)
