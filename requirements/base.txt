@@ -42,3 +42,4 @@ django-autocomplete-light==3.2.10  # https://github.com/yourlabs/django-autocomp
 django-avatar==4.1.0
 
 parasail==1.1.12
+scikit-bio==0.5.2
