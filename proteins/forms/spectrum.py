@@ -166,9 +166,10 @@ class SpectrumForm(forms.ModelForm):
         else:
             # object exists... check if it has this type of spectrum
             exists = False
-            if isinstance(obj, Fluorophore) and obj.spectra.filter(subtype=stype).exists():
-                exists = True
-                stype = obj.spectra.filter(subtype=stype).first().get_subtype_display()
+            if isinstance(obj, Fluorophore):
+                if obj.spectra.filter(subtype=stype).exists():
+                    exists = True
+                    stype = obj.spectra.filter(subtype=stype).first().get_subtype_display()
             elif obj.spectrum:
                 exists = True
                 stype = obj.spectrum.get_subtype_display()
