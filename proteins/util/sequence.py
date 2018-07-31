@@ -14,8 +14,14 @@ except ImportError:
 
 
 def nw_align(query, target, gop=2, gep=1, band_size=0):
-    query = str(query)
-    target = str(target)
+    if isinstance(query, (str, FPSeq)):
+        query = str(query)
+    else:
+        raise ValueError('query sequence must be str or FPseq')
+    if isinstance(target, (str, FPSeq)):
+        target = str(target)
+    else:
+        raise ValueError('query sequence must be str or FPseq')
     if band_size:
         result = _parasail.nw_banded(target, query, gop, gep,
                                      band_size, _parasail.blosum62)
@@ -69,7 +75,7 @@ class ParasailAlignment:
     def mutations(self):
         if self._mutations is not None:
             return self._mutations
-        off = 0
+        off = 1
         AQS, AQT = self.aligned_query_sequence(), self.aligned_target_sequence()
         muts = set((x, off + i, y) for x, (i, y) in zip(AQS, enumerate(AQT)) if x != y)
         self._mutations = Mutations(muts)
@@ -147,15 +153,11 @@ class FPSeq(GrammaredSequence):
     def same_as(self, other):
         return str(self) == str(other)
 
-    def align_to(self, other, gop=2, gep=1, **kwargs):
-        ssw = StripedSmithWaterman(str(self), gop, gep, **kwargs)
-        return ssw(str(other))
+    def align_to(self, other, **kwargs):
+        return nw_align(self, other, **kwargs)
 
     def mutations_to(self, other, **kwargs):
-        return get_mutations(self, other, **kwargs)
-
-    def mutations_from(self, other, **kwargs):
-        return get_mutations(other, self, **kwargs)
+        return self.align_to(other, **kwargs).mutations
 
 
 class Mutations(object):
