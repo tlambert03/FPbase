@@ -161,3 +161,15 @@
 		td:last-child { border-bottom: 0px solid #babcbf; }
 	}
 }
+
+#sequence-wrapper {
+  position: relative;
+
+  #seq-badge {
+    position: absolute;
+    top: -0.6125rem;
+    right: -0.5rem;
+    color: $secondary;
+    font-size: 1.25rem;
+  }
+}

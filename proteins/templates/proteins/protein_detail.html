@@ -164,12 +164,15 @@
 		<div class="sequence">
 			<div class="row">
 			  	<div class="col">
-				  <h3>{{ protein.name | safe }} Sequence{% if protein.seq %}<a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>{% endif %}</h3>
+				  <h3>{{ protein.name | safe }} Sequence{% if protein.seq and not protein.seq_validated %}<a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>{% endif %}</h3>
 				</div>
 			</div>
 
 			{% if protein.seq %}
-				<div class='aminosequence container'>{{ protein.seq }}</div>
+        <div id="sequence-wrapper">
+        {% if protein.seq_validated %}<span id='seq-badge' data-toggle="tooltip" data-placement="top" title="This sequence has been moderated, and matches the original publication"><i class="fas fa-certificate" title='sequence validated'></i></span>{% endif %}
+  				<div class='aminosequence container'>{{ protein.seq }}</div>
+        </div>
 			{% else %}
 			    <p>no sequence available ... <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
 			{% endif %}
