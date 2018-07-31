@@ -62,7 +62,6 @@ h6 {
     &.sticky {
       position: sticky;
       top: 0px;
-      z-index: 5000;
     }
     &.shadowed {
       box-shadow: 0 12px 8px -8px rgba(0,0,0,.2);
@@ -84,7 +83,7 @@ h6 {
       color: $gray-500;
       font-size: 0.9rem;
       font-weight: 600;
-      z-index: 3000;
+      z-index: 99;
     }
   }
 

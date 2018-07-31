@@ -89,7 +89,6 @@
           {% for laser in microscope.lasers %}
             <option value='laser-{{laser}}' data-type='laser'>{{laser}} laser</option>
           {% endfor %}
-
           {% if lights %}
               {% for light in lights %}
               <option value='{{light.slug}}' data-type='light' data-id='{{light.id}}'>{{light}}</option>
@@ -100,9 +99,20 @@
               {% endfor %}
           {% endif %}
 
-          {% if not microscope.lasers %}
-              <option value='' disabled>No lasers added to this config</option>
+          {% if not microscope.lasers and not microscope.extra_lasers%}
+              <option value='disabled' disabled>No lasers added to this config</option>
           {% endif %}
+
+          {% if microscope.extra_lasers or microscope.extra_lights.exists %}
+              <option value='disabled' disabled>Extra (may not be present on scope)</option>
+              {% for laser in microscope.extra_lasers %}
+                <option value='laser-{{laser}}' data-type='laser' class='extra'>{{laser}} laser</option>
+              {% endfor %}
+              {% for light in microscope.extra_lights.all %}
+                <option value='{{light.slug}}' data-type='light' data-id='{{light.id}}'>{{light}}</option>
+              {% endfor %}
+          {% endif %}
+
         </select>
         <span id="laserBlocking"></span>
         <div class="input-group-append">
@@ -130,6 +140,15 @@
               <option value='{{camera.slug}}' data-id='{{camera.id}}'>{{camera}}</option>
               {% endfor %}
           {% endif %}
+
+          {% if microscope.extra_cameras.exists %}
+              <option value='disabled' disabled>Extra (may not be present on scope)</option>
+              {% for camera in microscope.extra_cameras.all %}
+                <option value='{{camera.slug}}' data-id='{{camera.id}}'>{{camera}}</option>
+              {% endfor %}
+          {% endif %}
+
+
         </select>
         <div class="input-group-append">
           <div class="input-group-text" data-toggle="tooltip" data-placement="top" title="Include detector in efficiency calculation">

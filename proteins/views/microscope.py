@@ -163,9 +163,13 @@ class MicroscopeDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        if not self.object.cameras.exists():
+        if not (self.object.cameras.exists()
+                or self.object.extra_cameras.exists()):
             data['cameras'] = Camera.objects.all()
-        if not (self.object.lights.exists() or self.object.lasers):
+        if not (self.object.lights.exists()
+                or self.object.lasers
+                or self.object.extra_lights.exists()
+                or self.object.extra_lasers):
             data['lights'] = Light.objects.all()
         if self.object.collection:
             proteins = self.object.collection.proteins.with_spectra() \

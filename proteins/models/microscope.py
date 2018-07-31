@@ -65,12 +65,12 @@ class Microscope(OwnedCollection):
     @property
     def lights(self):
         oclights = Light.objects.filter(id__in=self.optical_configs.values('light'))
-        return oclights | self.extra_lights.all()
+        return oclights
 
     @property
     def cameras(self):
         occams = Camera.objects.filter(id__in=self.optical_configs.values('camera'))
-        return occams | self.extra_cameras.all()
+        return occams
 
     @property
     def lasers(self):
@@ -78,7 +78,7 @@ class Microscope(OwnedCollection):
                     .exclude(laser=None)
                     .values_list('laser', flat=True)
                     .order_by('laser')
-                    .distinct('laser')) + self.extra_lasers
+                    .distinct('laser'))
 
     @property
     def ex_filters(self):
