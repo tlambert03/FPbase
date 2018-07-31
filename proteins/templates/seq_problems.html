@@ -3,13 +3,13 @@
 
 {% block content %}
 
-<h2 class="text-center">Probable Sequence Issues</h2>
+<h2 class="text-center">Sequences Needing Attention</h2>
 
-<h4 class='font-weight-bold'>Sequences containing His tag</h4>
+<h4 class='font-weight-bold'>Sequences still containing His tag</h4>
 <div>
   <ul class="row">
     {% for p in histags  %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
     {% endfor %}
   </ul>
 </div>
@@ -18,7 +18,7 @@
 <div>
   <ul class="row">
     {% for p in mprobs  %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
     {% endfor %}
   </ul>
 </div>
@@ -26,8 +26,26 @@
 <h4 class='font-weight-bold'>Sequences not starting with methionine</h4>
 <div>
   <ul class="row">
-    {% for p in nomet  %}
-      <li class="col-12 col-lg-6"><a href="{{p.get_absolute_url}}">{{p}}</a>: <span class='text-muted'>{{ p.seq|slice:":15" }}...</span></li>
+    {% for p in nomet %}
+      <li class="col-12 col-lg-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a>: <span class='text-muted'>{{ p.seq|slice:":15" }}...</span></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>Sequences missing</h4>
+<div>
+  <ul class="row">
+    {% for p in noseqs  %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>Parental organism missing</h4>
+<div>
+  <ul class="row">
+    {% for p in noparent %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
     {% endfor %}
   </ul>
 </div>
