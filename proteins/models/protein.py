@@ -54,8 +54,29 @@ def findname(name):
 class ProteinQuerySet(models.QuerySet):
 
     def fasta(self):
-        seqs = self.exclude(seq__isnull=True).values('name', 'seq')
-        return io.StringIO("\n".join(["> {name}\n{seq}".format(**s) for s in seqs]))
+        seqs = self.exclude(seq__isnull=True).values('slug', 'seq')
+        return io.StringIO("\n".join([">{slug}\n{seq}".format(**s) for s in seqs]))
+
+    def to_tree(self):
+        import sys
+        import os
+        from subprocess import run, PIPE
+
+        fasta = self.fasta()
+        if sys.platform == 'darwin':
+            binary = 'bin/muscle_osx'
+        else:
+            binary = 'bin/muscle_nix'
+        cmd = [binary]
+        # faster
+        cmd += ['-maxiters', '2', '-diags', '-quiet', '-clw']
+        # make tree
+        cmd += ['-cluster', 'neighborjoining', '-tree2', 'tree.phy']
+        result = run(cmd, input=fasta.read(), stdout=PIPE, encoding='ascii')
+        with open('tree.phy', 'r') as handle:
+            newick = handle.read().replace('\n', '')
+        os.remove('tree.phy')
+        return result.stdout, newick
 
 
 class ProteinManager(models.Manager):
@@ -256,6 +277,16 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     def has_default(self):
         return bool(self.default_state)
+
+    def mutations_to(self, other, **kwargs):
+        if not (self.seq and other.seq):
+            return None
+        return self.seq.mutations_to(other.seq, **kwargs)
+
+    def mutations_from(self, other, **kwargs):
+        if not (self.seq and other.seq):
+            return None
+        return other.seq.mutations_to(self.seq, **kwargs)
 
     def has_spectra(self):
         for state in self.states.all():

@@ -20,6 +20,8 @@ urlpatterns = [
                        message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
+    url(r'^tree/(?P<organism>\d+)/$', views.protein_tree, name='tree'),
+
     url(r'^sequence_problems/', views.sequence_problems, name='sequence_problems'),
 
     url(r'^spectra/submit',

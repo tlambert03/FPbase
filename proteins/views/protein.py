@@ -213,6 +213,18 @@ def protein_table(request):
         })
 
 
+def protein_tree(request, organism):
+    ''' renders html for protein table page  '''
+    _, tree = Protein.objects.filter(parent_organism=organism).to_tree()
+    return render(
+        request,
+        'tree.html',
+        {
+            "tree": tree.replace('\n', ''),
+            'request': request
+        })
+
+
 def sequence_problems(request):
     ''' renders html for protein table page  '''
     mprobs = Protein.objects.annotate(sub=Substr('seq', 206, 1)).filter(sub='A', name__istartswith='m')
@@ -223,8 +235,10 @@ def sequence_problems(request):
         'seq_problems.html',
         {
             "histags": Protein.objects.filter(seq__icontains='HHHHHH'),
+            "noseqs": Protein.objects.filter(seq__isnull=True),
             "mprobs": mprobs,
             "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith='M'),
+            "noparent": Protein.objects.filter(parent_organism__isnull=True),
             'request': request
         })
 
@@ -341,7 +355,7 @@ def protein_bleach_formsets(request, slug):
 
 class OrganismDetailView(DetailView):
     ''' renders html for single reference page  '''
-    queryset = Organism.objects.all().prefetch_related('proteins')
+    queryset = Organism.objects.all().prefetch_related('proteins__states')
 
 
 def spectra_csv(request):
