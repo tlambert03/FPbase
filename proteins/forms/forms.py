@@ -93,6 +93,7 @@ class ProteinForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['seq'].disabled = self.instance.seq_validated
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.error_text_inline = True
@@ -118,7 +119,7 @@ class ProteinForm(forms.ModelForm):
             ),
             Div(
                 Div('seq', css_class='col'),
-                css_class='row',
+                css_class='hidden' if self.instance.seq_validated else 'row',
             )
         )
 
@@ -339,6 +340,14 @@ class BleachMeasurementForm(forms.ModelForm):
                   'state', 'light', 'temp', 'fusion', 'in_cell')
 
     def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance', None)
+        if instance:
+            print(instance.reference.doi)
+            kwargs.update(
+                initial={
+                    'reference_doi': instance.reference.doi,
+                }
+            )
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
