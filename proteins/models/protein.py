@@ -131,18 +131,20 @@ class SequenceField(models.CharField):
         return name, path, args, kwargs
 
     def from_db_value(self, value, expression, connection):
-        if value is None:
-            return value
+        if not value:
+            return None
         return FPSeq(value)
 
     def to_python(self, value):
         if isinstance(value, FPSeq):
             return value
-        if value is None:
-            return value
+        if not value:
+            return None
         return FPSeq(value)
 
     def get_prep_value(self, value):
+        if not value:
+            return None
         return str(value)
 
 
