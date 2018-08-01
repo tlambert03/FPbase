@@ -21,7 +21,7 @@ from reversion.admin import VersionAdmin
 
 
 class SpectrumOwner(object):
-    list_display = ('__str__', 'spectra', 'created_by')
+    list_display = ('__str__', 'spectra', 'created_by', 'created')
     list_select_related = ('created_by',)
     list_filter = ('created', 'manufacturer')
     search_fields = ('name',)
@@ -345,11 +345,22 @@ class FilterPlacementInline(admin.TabularInline):
 class OpticalConfigAdmin(admin.ModelAdmin):
     model = OpticalConfig
     inlines = (FilterPlacementInline, )
+    list_display = ('__str__', 'microscope', 'owner_link',)
     fields = (('name', 'microscope'), ('laser', 'light'), ('camera', 'owner'))
+
+    def owner_link(self, obj):
+        if obj.microscope and obj.microscope.owner:
+            url = reverse("admin:users_user_change", args=([obj.microscope.owner.pk]))
+            return mark_safe('<a href="{}">{}</a>'.format(url, obj.microscope.owner))
+    owner_link.short_description = 'Owner'
 
     def save_model(self, request, obj, form, change):
         obj.save()
         obj.microscope.save()
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('microscope__owner')
 
 
 # class OpticalConfigInline(admin.TabularInline):
@@ -368,8 +379,9 @@ class MicroscopeAdmin(admin.ModelAdmin):
     list_filter = ('created', )
 
     def owner_link(self, obj):
-        url = reverse("admin:users_user_change", args=([obj.owner.pk]))
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
+        if obj.owner:
+            url = reverse("admin:users_user_change", args=([obj.owner.pk]))
+            return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
     owner_link.short_description = 'Owner'
 
     def numocs(self, obj):
