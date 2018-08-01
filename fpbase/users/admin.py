@@ -40,7 +40,7 @@ class MyUserAdmin(AuthUserAdmin):
         ('User Profile', {'fields': ('avatar', 'name', 'email_verified', 'microscopes', 'collections')}),
     ) + AuthUserAdmin.fieldsets
     list_display = ('username', 'email', '_date_joined', '_last_login', '_logins', '_collections', 'social', )
-    search_fields = ['name']
+    search_fields = ['name', 'username', 'email']
     readonly_fields = ('avatar', 'email_verified', 'social', 'microscopes', 'collections')
 
     def _date_joined(self, obj):
