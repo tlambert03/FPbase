@@ -162,14 +162,9 @@
 	}
 }
 
-#sequence-wrapper {
-  position: relative;
-
-  #seq-badge {
-    position: absolute;
-    top: -0.6125rem;
-    right: -0.5rem;
-    color: $secondary;
-    font-size: 1.25rem;
-  }
+#seq-badge {
+  color: $secondary;
+  font-size: 1.25rem;
+  margin-left: 0.5rem;
 }
+
