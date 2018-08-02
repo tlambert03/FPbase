@@ -667,11 +667,16 @@ function populate_comparison_tab(comparison_set){
                       .append($('<button>', {type: 'submit', class: 'remove-button'}).html('&times;')))
       widget.appendTo($ul)
     });
-    $('#compare-link a').show()
-    $('#compare-link span').text('')
+    if (comparison_set.length === 1) {
+      $('#compare-link a').hide()
+      $('#compare-link span').text('Add at least two proteins...');
+    } else {
+      $('#compare-link a').show()
+      $('#compare-link span').text('')
+    }
   } else{
     $('#compare-link a').hide()
-    $('#compare-link span').text('Nothing added to comparison...')
+    $('#compare-link span').text('Nothing added to comparison...');
   }
 }
 

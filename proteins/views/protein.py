@@ -229,7 +229,7 @@ class ComparisonView(TemplateView):
         else:
             ids = self.request.session.get('comparison', [])
         p = Case(*[When(slug=slug, then=pos) for pos, slug in enumerate(ids)])
-        prots = Protein.objects.filter(slug__in=ids).prefetch_related('states', 'states__spectra').order_by(p)
+        prots = Protein.objects.filter(slug__in=ids).prefetch_related('states__spectra').order_by(p)
         if prots.exclude(seq__isnull=True).count() > 2:
             a, _ = prots.exclude(seq__isnull=True).to_tree('html')
             context['alignment'] = "\n".join(a.splitlines()[3:]).replace("FFEEE0", "FFFFFF")
@@ -256,7 +256,7 @@ class ComparisonView(TemplateView):
         for prot in prots:
             for state in prot.states.all():
                 spectra.extend(state.d3_dicts())
-        context['spectra'] = json.dumps(spectra)
+        context['spectra'] = json.dumps(spectra) if spectra else None
         return context
 
 

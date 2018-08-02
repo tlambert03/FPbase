@@ -45,7 +45,7 @@
             <small class='font-italic small text-muted mb-3'>Note: exact amino acid positions in mutations is still experimental and may be inaccurate/relative</small>
         {% endif %}
       {% else %}
-        <p>Sequence information not available for at least proteins...</p>
+        <p>Sequence information not available for at least two proteins...</p>
     {% endif %}
     </div>
 
@@ -105,7 +105,7 @@
           margin: {left:20, bottom: 30},
           noData: "Unable to load data...",
           transitionDuration: 200,
-          showLegend: myData.length > 2 || myData.some(function(a){return a.type=='2p'}),
+          showLegend: true,
           showXAxis: true,
           showYAxis: false,
           useInteractiveGuideline: interactive,
