@@ -3,6 +3,11 @@
   <div id="comparison-content">
 
     <h3><i class="fas fa-list-ul mr-2"></i> Current Selection</h3>
+
+  <form class='hidden' id='csrfform'>
+    {% csrf_token %}
+  </form>
+
   {% if protein.slug %}
     <form method='post' action="{% url 'proteins:add-comparison' slug=protein.slug %}" class='comparison-form add-protein'>
       {% csrf_token %}

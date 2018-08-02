@@ -19,6 +19,8 @@ TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
+CSRF_COOKIE_HTTPONLY = True
+
 # SECRET CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
