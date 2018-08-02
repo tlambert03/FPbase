@@ -1,5 +1,6 @@
 import reversion
 from django.views.generic import DetailView, CreateView, UpdateView
+from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
@@ -7,6 +8,7 @@ from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
+from django.db.models import Case, When
 from django.db.models.functions import Substr
 from django.core.mail import mail_managers
 from ..models import Protein, State, Organism, BleachMeasurement
@@ -16,6 +18,8 @@ from proteins.util.spectra import spectra2csv
 from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
+import textwrap
+import json
 
 
 class ProteinDetailView(DetailView):
@@ -66,6 +70,8 @@ class ProteinDetailView(DetailView):
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip('td'))
         similar = similar | Protein.visible.filter(name__iexact='td' + self.object.name)
         data['similar'] = similar.exclude(id=self.object.id)
+        print(self.request.session.set_test_cookie())
+        print(self.request.session.test_cookie_worked())
         return data
 
 
@@ -211,6 +217,45 @@ def protein_table(request):
                 'states', 'states__bleach_measurements'),
             'request': request
         })
+
+
+class ComparisonView(TemplateView):
+
+    template_name = "compare.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        ids = self.kwargs.get('proteins', '').split(',')
+        p = Case(*[When(slug=slug, then=pos) for pos, slug in enumerate(ids)])
+        prots = Protein.objects.filter(slug__in=ids).prefetch_related('states', 'states__spectra').order_by(p)
+        if prots.exclude(seq__isnull=True).count() > 2:
+            a, _ = prots.exclude(seq__isnull=True).to_tree('html')
+            context['alignment'] = "\n".join(a.splitlines()[3:]).replace("FFEEE0", "FFFFFF")
+        elif prots.count() == 2:
+            if prots[0].seq and prots[1].seq:
+                a = prots[0].seq.align_to(prots[1].seq)
+                out = []
+                for i, row in enumerate(str(a).splitlines()):
+                    head = ''
+                    if i % 4 == 0:
+                        head = prots[0].name
+                    elif i % 2 == 0:
+                        head = prots[1].name
+                    out.append("{:<16}{}".format(head, row))
+                out.append('\n')
+                context['alignment'] = "\n".join(out)
+                context['mutations'] = a.mutations
+        else:
+            context['alignment'] = None
+        context['proteins'] = prots
+        refs = Reference.objects.filter(proteins__in=prots).distinct('id').order_by('id')
+        context['references'] = sorted([r for r in refs], key=lambda x: x.year)
+        spectra = []
+        for prot in prots:
+            for state in prot.states.all():
+                spectra.extend(state.d3_dicts())
+        context['spectra'] = json.dumps(spectra)
+        return context
 
 
 def protein_tree(request, organism):

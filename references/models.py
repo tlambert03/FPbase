@@ -74,6 +74,9 @@ class Reference(TimeStampedModel):
     created_by = models.ForeignKey(User, related_name='reference_author', blank=True, null=True, on_delete=models.CASCADE)
     updated_by = models.ForeignKey(User, related_name='reference_modifier', blank=True, null=True, on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ('year', )
+
     def get_authors(self):
         return self.authors.order_by('referenceauthor')
 

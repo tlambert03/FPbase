@@ -6,7 +6,7 @@
 		proteins [List, Queryset]: List or queryset of proteins to show in the table
 {% endcomment %}
 
-<table class="table" id="proteinTable">
+<table class="table" id="{{ id|default:'proteinTable' }}">
 	<thead>
 		<tr class="table-header">
 			{% if removebutton %}<th class='remove-button'>Remove</th>{% endif %}

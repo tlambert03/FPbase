@@ -68,7 +68,6 @@ class CollectionDetail(DetailView):
             for state in prot.states.all():
                 for sp in state.spectra.all():
                     _ids.append(sp.id)
-        print(_ids)
         context['spectra_ids'] = ",".join([str(i) for i in _ids])
         return context
 
@@ -116,7 +115,6 @@ def add_to_collection(request):
                 qs = qs.filter(proteins=int(request.GET.get('id')))
                 members = [(item.name, item.get_absolute_url()) for item in qs]
             except Exception as e:
-                print(e)
                 pass
 
         response = {
@@ -132,7 +130,6 @@ def add_to_collection(request):
             status = 'success'
         except Exception as e:
             status = 'error'
-            print(e)
         return JsonResponse({'status': status})
 
     return HttpResponseNotAllowed([])

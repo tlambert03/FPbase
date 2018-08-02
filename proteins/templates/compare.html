@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static compress humanize %}
+{% block vendorcss %}
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+{% endblock vendorcss %}
+
+{% block title %}{% endblock %}
+{% block meta-description %}{% endblock %}
+
+{% block container-class %}container protein{% endblock %}
+
+{% block content %}
+
+  <h3 class='mb-3 d-inline'>Comparing: </h3>
+  {% for protein in proteins  %}
+  <a class="text-muted" href="{{protein.get_absolute_url}}">{{protein.name}}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+
+    {% if spectra %}
+      <div class="spectra mt-3">
+        <div id="spectra"></div>
+      </div>
+    {% endif %}
+
+  <h3 class='mb-3'>Attribute Comparison</h3>
+  <div class='mb-3'>
+    {% include '_proteintable.html' with id='flip-scroll' %}
+  </div>
+
+
+  <h3 class='mb-3'>Sequence Comparison</h3>
+
+    {% if alignment %}
+      <pre>{{alignment | safe}}</pre>
+      {% if mutations %}
+          <p style="word-wrap: break-word; margin-bottom:0; margin-top: 0"><strong>Mutations: </strong>{{mutations}}</p>
+          <small class='font-italic small text-muted mb-3'>Note: exact amino acid positions in mutations is still experimental and may be inaccurate/relative</small>
+      {% endif %}
+    {% else %}
+      <p>Sequence information not availabe for at least proteins...</p>
+  {% endif %}
+
+
+  {% if references %}
+  <div class="additional-ref references">
+    <h3>References</h3>
+    <ol>
+      {% for ref in references %}
+        <li>{% include "_reference_small.html" %}</li>
+      {% endfor %}
+    </ol>
+  </div>
+
+  {% endif %}
+
+
+{% endblock	%}
+
+
+{% block javascript %}
+    {% if spectra %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+      <script>var myData = {{ spectra|safe }};</script>
+
+      <script type="text/javascript">
+
+      // disable 2p by default
+      for (n = 0; n < myData.length; n++){
+        if (myData[n].key.indexOf("2p") >= 0 && myData.length > 1) {
+          myData[n].disabled = true;
+        }
+      };
+
+      var interactive = true;
+      if (typeof window.mobilecheck === 'function') {
+          interactive = !window.mobilecheck();
+      }
+      var chart = nv.models.lineChart();
+      chart.yDomain([0,1.04])
+      svg = d3.select('#spectra').append('svg').attr('role', 'img').attr('aria-labelledby', "svgDesc svgTitle");
+      $("#spectra svg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
+      $("#spectra svg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
+
+      chart.options({
+          margin: {left:20, bottom: 30},
+          noData: "Unable to load data...",
+          transitionDuration: 200,
+          showLegend: myData.length > 2 || myData.some(function(a){return a.type=='2p'}),
+          showXAxis: true,
+          showYAxis: false,
+          useInteractiveGuideline: interactive,
+          forceY: [0,1.04],
+          forceX: [350, 750],
+      });
+
+      /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
+      nv.addGraph(function() {
+          chart.xAxis     //Chart x-axis settings
+          //.axisLabel('Wavelength (nm)')
+          .tickFormat(d3.format(',r'));
+
+          // chart.yAxis     //Chart y-axis settings
+          //   .axisLabel('Normalized Ex/Em')
+          //   .tickFormat(d3.format('1%'));
+
+          svg.datum(myData)         //Populate the <svg> element with chart data...
+          .call(chart);        //Finally, render the chart!
+
+          //Update the chart when window resizes.
+          nv.utils.windowResize(function() { chart.update() });
+          return chart;
+      });
+      </script>
+
+    {% endif %}
+{% endblock javascript %}

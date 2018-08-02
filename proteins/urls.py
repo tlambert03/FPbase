@@ -34,6 +34,8 @@ urlpatterns = [
 
     url(r'^fret/', views.fret_chart, name='fret'),
 
+    url(r'^compare/(?P<proteins>[\w,\-]+)/$', views.ComparisonView.as_view(), name='compare'),
+
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
     url(r'^collections/(?P<owner>[\w.@+-]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),

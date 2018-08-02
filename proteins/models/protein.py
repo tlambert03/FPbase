@@ -16,6 +16,10 @@ import uuid as uuid_lib
 import json
 import re
 import io
+import sys
+import os
+from subprocess import run, PIPE
+
 
 from references.models import Reference
 from .mixins import Authorable
@@ -57,11 +61,7 @@ class ProteinQuerySet(models.QuerySet):
         seqs = self.exclude(seq__isnull=True).values('slug', 'seq')
         return io.StringIO("\n".join([">{slug}\n{seq}".format(**s) for s in seqs]))
 
-    def to_tree(self):
-        import sys
-        import os
-        from subprocess import run, PIPE
-
+    def to_tree(self, output='clw'):
         fasta = self.fasta()
         if sys.platform == 'darwin':
             binary = 'bin/muscle_osx'
@@ -69,7 +69,7 @@ class ProteinQuerySet(models.QuerySet):
             binary = 'bin/muscle_nix'
         cmd = [binary]
         # faster
-        cmd += ['-maxiters', '2', '-diags', '-quiet', '-clw']
+        cmd += ['-maxiters', '2', '-diags', '-quiet', '-' + output]
         # make tree
         cmd += ['-cluster', 'neighborjoining', '-tree2', 'tree.phy']
         result = run(cmd, input=fasta.read(), stdout=PIPE, encoding='ascii')
@@ -281,9 +281,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return bool(self.default_state)
 
     def mutations_to(self, other, **kwargs):
-        if not (self.seq and other.seq):
+        if isinstance(other, Protein):
+            other = other.seq
+        if not (self.seq and other):
             return None
-        return self.seq.mutations_to(other.seq, **kwargs)
+        return self.seq.mutations_to(other, **kwargs)
 
     def mutations_from(self, other, **kwargs):
         if not (self.seq and other.seq):
