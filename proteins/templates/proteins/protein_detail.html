@@ -10,7 +10,6 @@
 {% block container-class %}container protein{% endblock %}
 
 {% block content %}
-
 			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name | safe }}</h1>
 
 			{% if protein.aliases %}
@@ -81,37 +80,34 @@
 			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
 		</div>
 
-		<dl class="row mt-4">
-			<div class="col-md-{% if protein.cofactor %}4{% else %}6{%endif%}">
-				<div class="row">
-				  <dt class="col-sm-4 col-md-5  col-lg-4 text-sm-right">Aggregation:</dt>
-				  <dd class="col-sm-8 col-md-7  col-lg-8">{{protein.get_agg_display}}</dd>
-				  </div>
-			</div>
-      {% if protein.cofactor %}
-      <div class="col-md-3">
-        <div class="row">
-          <dt class="col-sm-4 col-md-5 col-lg-4 text-sm-right">Cofactor:</dt>
-          <dd class="col-sm-8 col-md-7 col-lg-8">{{protein.get_cofactor_display}}</dd>
-        </div>
-      </div>
-      {% endif %}
-			<div class="col-md-{% if protein.cofactor %}5{% else %}6{%endif%}">
-				<div class="row">
-			  <dt class="col-sm-4 col-lg-3 text-sm-right">Organism:</dt>
-			  <dd class="col-sm-8 col-lg-9"><em>
-			  	{% if protein.parent_organism %}
-			  	<a href="{{protein.parent_organism.get_absolute_url}}">{{protein.parent_organism}}</a>
-			  	{% else %}
-			  	<a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>&lt;add one&gt;</a>
-			  	{% endif %}
-			  </em></dd>
-			</div>
-			</div>
+		  <dl class="row mt-4">
+
+				  <dt class="col-sm-4 col-lg-2 text-lg-right">Aggregation:</dt>
+				  <dd class="col-sm-8 col-lg-2">{{protein.get_agg_display}}</dd>
+
+          {% if protein.seq %}
+          <dt class="col-sm-4 col-lg-2 text-lg-right">Molecular Weight:</dt>
+          <dd class="col-sm-8 col-lg-1 pr-0">{{ protein.seq.weight|floatformat:"1" }} kDa</dd>
+          {% endif %}
+
+  			  <dt class="col-sm-4 col-lg-2 text-lg-right">Organism:</dt>
+  			  <dd class="col-sm-8 col-lg-3">
+  			  	{% if protein.parent_organism %}
+          <em>
+  			  	<a href="{{protein.parent_organism.get_absolute_url}}">{{protein.parent_organism}}</a>
+  			  	{% else %}
+  			  	<a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>&lt;add one&gt;</a>
+          </em>
+  			  	{% endif %}
+          </dd>
 		</dl>
 
 		<div class="attributes">
 			<h3>Attributes</h3>
+      {% if protein.cofactor %}
+        {{protein.get_cofactor_display}}
+      {% endif %}
+
 			{% include '_states_table.html' %}
 		</div>
 
@@ -391,8 +387,6 @@
       });
       {% endif %}
     </script>
-
-    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5b587bc93ea3f5cc"></script>
 {% endblock %}
 
 

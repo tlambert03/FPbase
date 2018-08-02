@@ -1,5 +1,6 @@
 import csv
 import re
+import textwrap
 from skbio.sequence import GrammaredSequence
 from skbio.sequence import Protein as skProtein
 from skbio.util import classproperty
@@ -11,6 +12,39 @@ except ImportError:
 
 # from skbio.alignment import  make_identity_substitution_matrix
 # EYE_MTX = make_identity_substitution_matrix(1, -1, skProtein.alphabet)
+
+AA_WEIGHTS = {
+    'A': 89.0932,
+    'C': 121.1582,
+    'D': 133.1027,
+    'E': 147.1293,
+    'F': 165.1891,
+    'G': 75.0666,
+    'H': 155.1546,
+    'I': 131.1729,
+    'K': 146.1876,
+    'L': 131.1729,
+    'M': 149.2113,
+    'N': 132.1179,
+    'O': 255.3134,
+    'P': 115.1305,
+    'Q': 146.1445,
+    'R': 174.201,
+    'S': 105.0926,
+    'T': 119.1192,
+    'U': 168.0532,
+    'V': 117.1463,
+    'W': 204.2252,
+    'Y': 181.1885
+}
+WATER = 18.0153
+
+
+def protein_weight(seq):
+    try:
+        return sum(AA_WEIGHTS[x] for x in seq) - (len(seq) - 1) * WATER
+    except KeyError as e:
+        raise ValueError('%s is not a valid unambiguous amino acid letter' % e)
 
 
 def nw_align(query, target, gop=2, gep=1, band_size=0):
@@ -81,8 +115,18 @@ class ParasailAlignment:
         self._mutations = Mutations(muts)
         return self._mutations
 
+    def __str__(self, width=70):
+        a = textwrap.wrap(self.aligned_target_sequence(), width)
+        b = textwrap.wrap(self.aligned_query_sequence(), width)
+        out = []
+        for t, q in zip(a, b):
+            out.append(q)
+            out.append("".join(['|' if x == y else '*' for x, y in zip(t, q)]))
+            out.append(t + '\n')
+        return "\n".join(out)
+
     def print_alignment(self, max_length=80):
-        print(a.aligned_query_sequence() + '\n' + a.aligned_target_sequence())
+        print(self.aligned_query_sequence() + '\n' + self.aligned_target_sequence())
 
     def aligned_query_sequence(self):
         return self._get_aligned_sequence(self.query, 'I')
@@ -134,6 +178,9 @@ def mustring_to_list(mutstring):
 
 class FPSeq(GrammaredSequence):
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
     @classproperty
     def degenerate_map(cls):
         return skProtein.degenerate_map
@@ -150,6 +197,13 @@ class FPSeq(GrammaredSequence):
     def gap_chars(cls):
         return set('-.')
 
+    @property
+    def weight(self):
+        try:
+            return protein_weight(str(self)) / 1000
+        except ValueError:
+            pass
+
     def same_as(self, other):
         return str(self) == str(other)
 
@@ -158,6 +212,18 @@ class FPSeq(GrammaredSequence):
 
     def mutations_to(self, other, **kwargs):
         return self.align_to(other, **kwargs).mutations
+
+    def mutate(self, mutations, first_index=1):
+        out = list(str(self))
+        if isinstance(mutations, str):
+            mutations = Mutations(mutations)
+        for before, index, after in mutations:
+            if before and out[index - first_index] != before:
+                raise ValueError('Requested mutation {0}{1}{2} inconsistent with current sequence: {3}{1}'
+                                 .format(before, index, after, out[index - first_index]))
+            else:
+                out[index - first_index] = after
+        return "".join(out)
 
 
 class Mutations(object):
@@ -170,6 +236,9 @@ class Mutations(object):
         if any([len(i) != 3 for i in muts]):
             raise ValueError('All mutations items must have 3 elements')
         self.muts = set([(a, int(b), c) for a, b, c in muts]) or set()
+
+    def __iter__(self):
+        return self.muts.__iter__()
 
     def __eq__(self, other):
         """ should be rather robust way to compare mutations to some string
@@ -324,3 +393,22 @@ def snapgene_import():
                 if not ParasailAlignment.from_seqs(seq, p.seq).mutations:
                     continue
                 print(name, ParasailAlignment.from_seqs(seq, p.seq).mutations)
+
+def get_gb_data(file):
+    with open(file, 'r') as handle:
+        text = handle.read()
+    q = ('DEFINITION', 'ACCESSION', 'VERSION', 'KEYWORDS', 'SOURCE')
+    pat = ''
+    for i in range(len(q) - 1):
+        pat += r'(?=.*{} (?P<{}>.+){})?'.format(q[i], q[i].lower().replace(' ', ''), q[i + 1])
+    pat += r'(?=.*COMMENT (?P<comment>.+)FEAT)?'
+    pat += r'(?=.*PUBMED\s+(?P<pub>.+)REF)?'
+    pat += r'(?=.*/translation="(?P<seq>.+)")?'
+    D = re.search(pat, text, re.DOTALL).groupdict()
+    for k, v in D.items():
+        if v:
+            D[k] = v.replace('\n', '').replace('  ', '').strip()
+    D['seq'] = D.get('seq', '').replace(' ', '')
+    D['name'] = os.path.basename(file).strip('.gb')
+    return D
+
