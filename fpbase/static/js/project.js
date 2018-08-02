@@ -618,3 +618,83 @@ $(function(){
 
 
 })
+
+
+/////////////// COMPARISON SLIDER ///////////
+
+// using jQuery
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+function populate_comparison_tab(comparison_set){
+  var $ul = $('#comparison-slider ul.comparison-list');
+  $ul.empty();
+  if (comparison_set.length) {
+    $.each(comparison_set, function(index, val) {
+      if (val.exMax && val.emMax){
+        var exemstring = 'ex/em &lambda;: &nbsp;' + (val.exMax || '') + '/' + val.emMax
+      }
+      if (val.ec && val.qy){
+        ec = val.ec.toLocaleString();
+        var ecqystring = '<br>EC: ' + ec + '&nbsp;&nbsp;&nbsp;QY: ' + (val.qy || '')
+      }
+      var widget = $('<li>', {class: 'comparison-item', value: val.slug})
+                   .append($('<a>', {
+                      href: '/protein/' + val.slug,
+                      style: 'color: ' + val.color,
+                    }).text(val.name))
+                   .append($('<p>').html((exemstring || '') + (ecqystring || '')))
+                   .append($('<form>', {
+                      method: 'post',
+                      action: '/remove_comparison/' + val.slug,
+                      class: 'comparison-form'}
+                    )
+                      .append($('<input>', {type: 'hidden', name:"csrfmiddlewaretoken", value:getCookie('csrftoken')}))
+                      .append($('<button>', {type: 'submit', class: 'remove-button'}).html('&times;')))
+      widget.appendTo($ul)
+    });
+    $('#compare-link a').show()
+    $('#compare-link span').text('')
+  } else{
+    $('#compare-link a').hide()
+    $('#compare-link span').text('Nothing added to comparison...')
+  }
+}
+
+$(function(){
+  if ($("#comparison-slider")){
+    $.getJSON('/get_comparison/').then(function(d){
+      populate_comparison_tab(d.comparison_set);
+    })
+  }
+
+  $('body').on('submit', '.comparison-form', function(e) { // catch the form's submit event
+      e.preventDefault();
+      $.ajax({ // create an AJAX call...
+          data: $(this).serialize(), // get the form data
+          type: $(this).attr('method'), // GET or POST
+          url: $(this).attr('action'), // the file to call
+          dataType: "json",
+          success: function(response) { // on success..
+            populate_comparison_tab(response.comparison_set);
+          }
+      });
+      return false;
+  });
+
+
+})

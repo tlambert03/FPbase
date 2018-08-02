@@ -202,3 +202,135 @@ a:focus{
   dd {margin-bottom: 1.2rem;}
 }
 
+$comparison-width: 275px;
+
+#comparison-slider{
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  color: #EEE;
+  width: $comparison-width;
+  right: -$comparison-width;
+  height: 100%;
+  z-index: 10000;
+  transition: right 0.4s ease-in-out;
+  -o-transition: right 0.4s ease-in-out;
+  -ms-transition: right 0.4s ease-in-out;
+  -moz-transition: right 0.4s ease-in-out;
+  -webkit-transition: right 0.4s ease-in-out;
+
+  #comparison-toggle{
+    background: rgba(0, 0, 0, 0.7);
+    position: absolute;
+    right: $comparison-width - 22.5px;
+    top: 147.5px;
+    padding: 10px 12.5px;
+    transform: rotate(-90deg);
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+  }
+
+  &:hover{
+    right: 0px;
+  }
+
+  #comparison-content {
+     form.add-protein{
+        border-top: 1px solid black;
+        text-align: center;
+        padding: 15px;
+        padding-left: 3px;
+        button {
+          color: white;
+        }
+     }
+
+     h3{
+      line-height: 55px;
+      text-align: center;
+      font-weight: 500;
+      font-size: 1.2rem;
+      margin-bottom: 0;
+      color: #eee;
+      background: rgba(0, 0, 0, 0.4);
+     }
+     ul{
+       list-style:none;
+       margin: 0;
+       padding-left: 0;
+       li {
+        position: relative;
+        border-top: 1px solid gray;
+        padding: 13px 20px 13px 22px;
+        &:last-child{
+          border-bottom: 1px solid gray;
+        }
+        a {
+          font-size: 1.1rem;
+          margin-left: 35px;
+          color: white;
+          opacity: 0.85;
+          &:hover{
+            opacity: 1;
+            text-decoration: none;
+          }
+        }
+        p {
+          margin-left: 35px;
+          margin-bottom: 0px;
+          font-size: 0.8rem;
+        }
+        button.remove-button{
+          font-size: 1.8rem;
+          position: absolute;
+          top: 0.1rem;
+          background:transparent;
+          color: white;
+          cursor: pointer;
+          border: none;
+          opacity: 0.8;
+          padding: 0;
+          &:hover {
+            color: lighten($danger, 20);
+            opacity: 1;
+            font-weight: 600;
+          }
+        }
+       }
+     }
+  }
+
+  #compare-link{
+    font-size: 1.2rem;
+    padding-top: 1rem;
+    margin-left: 10px;
+    text-align: center;
+    position: relative;
+    a {
+      color: white;
+      opacity: 0.8;
+      transition: 0.2s;
+      &:hover{
+        opacity: 1;
+        text-decoration: none;
+        &:after{
+            content: "";
+            position: absolute;
+            width: 40%;
+            height: 2px;
+            top: 2.8rem;
+            left: 28%;
+            border-bottom: 2px solid lighten($secondary, 25);;
+        }
+      }
+    }
+    span {
+      padding: 10px;
+      font-size: 0.9rem;
+    }
+  }
+
+
+}
+
+
+

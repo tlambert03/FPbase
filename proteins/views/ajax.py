@@ -9,6 +9,67 @@ from ..models import Protein, Organism, Spectrum, Fluorophore
 import reversion
 
 
+def serialize_comparison(request):
+    info = []
+    slugs = request.session.get('comparison', [])
+    for prot in Protein.objects.filter(slug__in=slugs).prefetch_related('default_state'):
+        d = {
+            'name': prot.name,
+            'slug': prot.slug,
+        }
+        if prot.default_state:
+            d.update({
+                'color': prot.default_state.emhex or '#FFFFFF',
+                'emMax': prot.default_state.em_max or '',
+                'exMax': prot.default_state.ex_max or '',
+                'ec': prot.default_state.ext_coeff or '',
+                'qy': prot.default_state.qy or '',
+                'spectra': prot.d3_spectra(),
+            })
+        info.append(d)
+    return info
+
+
+def add_to_comparison(request, slug):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+    if 'comparison' in request.session:
+        current = set(request.session['comparison'])
+        current.add(slug)
+        request.session['comparison'] = list(current)
+    else:
+        request.session['comparison'] = [slug]
+    return JsonResponse({
+        'status': 200,
+        'comparison_set': serialize_comparison(request)
+    })
+
+
+def remove_from_comparison(request, slug):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+    if 'comparison' in request.session:
+        current = set(request.session['comparison'])
+        try:
+            current.remove(slug)
+        except KeyError:
+            pass
+        request.session['comparison'] = list(current)
+    return JsonResponse({
+        'status': 200,
+        'comparison_set': serialize_comparison(request)
+    })
+
+
+def get_comparison(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+    return JsonResponse({
+        'status': 200,
+        'comparison_set': serialize_comparison(request),
+    })
+
+
 @login_required
 def add_organism(request):
     if not request.is_ajax():

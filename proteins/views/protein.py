@@ -18,7 +18,6 @@ from proteins.util.spectra import spectra2csv
 from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
-import textwrap
 import json
 
 
@@ -225,7 +224,10 @@ class ComparisonView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        ids = self.kwargs.get('proteins', '').split(',')
+        if 'proteins' in self.kwargs:
+            ids = kwargs.get('proteins', '').split(',')
+        else:
+            ids = self.request.session.get('comparison', [])
         p = Case(*[When(slug=slug, then=pos) for pos, slug in enumerate(ids)])
         prots = Protein.objects.filter(slug__in=ids).prefetch_related('states', 'states__spectra').order_by(p)
         if prots.exclude(seq__isnull=True).count() > 2:

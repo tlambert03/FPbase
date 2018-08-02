@@ -9,6 +9,10 @@
 {% endblock vendorcss %}
 {% block container-class %}container protein{% endblock %}
 
+{% block bodyopen %}
+    {% include '_comparetab.html' %}
+{% endblock bodyopen %}
+
 {% block content %}
 			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name | safe }}</h1>
 
@@ -92,13 +96,13 @@
 
   			  <dt class="col-sm-4 col-lg-2 text-lg-right">Organism:</dt>
   			  <dd class="col-sm-8 col-lg-3">
-  			  	{% if protein.parent_organism %}
           <em>
+            {% if protein.parent_organism %}
   			  	<a href="{{protein.parent_organism.get_absolute_url}}">{{protein.parent_organism}}</a>
   			  	{% else %}
   			  	<a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>&lt;add one&gt;</a>
-          </em>
   			  	{% endif %}
+            </em>
           </dd>
 		</dl>
 
@@ -255,15 +259,19 @@
 {# {% include '_disqus.html' %} #}
 
 
+{% endblock content %}
+
+{% block modal %}
+
 <!-- Modals -->
 {% include 'proteins/modals/_reference_modal.html' with user=user protein=protein %}
 {% include 'proteins/modals/_add_to_collection_modal.html' with user=user protein=protein %}
 
 {% if protein.states.count > 1 %}
-	{% include 'proteins/modals/_state_transition_modal.html' with transition_form=transition_form %}
+  {% include 'proteins/modals/_state_transition_modal.html' with transition_form=transition_form %}
 {% endif %}
 
-{% endblock content %}
+{% endblock modal %}
 
 
 {% block extrafooter %}
@@ -386,6 +394,7 @@
           return chart;
       });
       {% endif %}
+
     </script>
 {% endblock %}
 

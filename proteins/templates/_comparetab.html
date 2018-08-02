@@ -1,0 +1,21 @@
+<div id="comparison-slider">
+  <div id="comparison-toggle">compare</div>
+  <div id="comparison-content">
+
+    <h3><i class="fas fa-list-ul mr-2"></i> Current Selection</h3>
+  {% if protein.slug %}
+    <form method='post' action="{% url 'proteins:add-comparison' slug=protein.slug %}" class='comparison-form add-protein'>
+      {% csrf_token %}
+      <button class="btn btn-secondary" type='submit'>Add {{protein}}</button>
+    </form>
+  {% endif %}
+
+  <ul class="comparison-list">
+  </ul>
+
+  <div id="compare-link">
+    <a href="{% url 'proteins:compare' %}">show comparison</a>
+    <span></span>
+  </div>
+</div>
+</div>

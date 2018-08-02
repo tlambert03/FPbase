@@ -50,6 +50,9 @@
   </head>
 
   <body class="{% block body-class %}{% endblock %}">
+    {% block bodyopen %}
+    {% endblock bodyopen %}
+
     {% block body %}
     <div>
         <nav class="navbar navbar-expand-md navbar-dark bg-primary">
