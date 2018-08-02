@@ -212,11 +212,7 @@ $comparison-width: 275px;
   right: -$comparison-width;
   height: 100%;
   z-index: 10000;
-  transition: right 0.4s ease-in-out;
-  -o-transition: right 0.4s ease-in-out;
-  -ms-transition: right 0.4s ease-in-out;
-  -moz-transition: right 0.4s ease-in-out;
-  -webkit-transition: right 0.4s ease-in-out;
+  transition: right 0.3s ease-in-out;
 
   #comparison-toggle{
     background: rgba(0, 0, 0, 0.7);
@@ -234,6 +230,13 @@ $comparison-width: 275px;
   }
 
   #comparison-content {
+    position: absolute;
+    overflow-y:scroll;
+    overflow-x:hidden;
+    top: 0;
+    bottom: 0;
+    width: $comparison-width;
+
      form.add-protein{
         border-top: 1px solid black;
         text-align: center;
@@ -302,6 +305,7 @@ $comparison-width: 275px;
   #compare-link{
     font-size: 1.2rem;
     padding-top: 1rem;
+    padding-bottom: 2rem;
     margin-left: 10px;
     text-align: center;
     position: relative;
