@@ -223,11 +223,14 @@ class ComparisonView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if 'proteins' in self.kwargs:
+            # the page was requested with slugs in the URL, maintain that order
             ids = kwargs.get('proteins', '').split(',')
+            p = Case(*[When(slug=slug, then=pos) for pos, slug in enumerate(ids)])
+            prots = Protein.objects.filter(slug__in=ids).prefetch_related('states__spectra').order_by(p)
         else:
+            # try to use chronological order
             ids = self.request.session.get('comparison', [])
-        p = Case(*[When(slug=slug, then=pos) for pos, slug in enumerate(ids)])
-        prots = Protein.objects.filter(slug__in=ids).prefetch_related('states__spectra').order_by(p)
+            prots = Protein.objects.filter(slug__in=ids).prefetch_related('states__spectra').order_by('primary_reference__year')
         if prots.exclude(seq__isnull=True).count() > 2:
             a, _ = prots.exclude(seq__isnull=True).to_tree('html')
             context['alignment'] = "\n".join(a.splitlines()[3:]).replace("FFEEE0", "FFFFFF")
