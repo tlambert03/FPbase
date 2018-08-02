@@ -43,4 +43,4 @@ django-avatar==4.1.0
 
 # numpy==1.13.0  # pyup: ignore
 parasail==1.1.12
-# scikit-bio==0.5.2
+scikit-bio==0.5.2
