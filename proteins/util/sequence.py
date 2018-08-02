@@ -8,6 +8,7 @@ try:
     from skbio.alignment import StripedSmithWaterman
     SKB = True
 except ImportError:
+    print('ERROR!! NO scikit-bio, things will break')
     SKB = False
 try:
     import parasail as _parasail
