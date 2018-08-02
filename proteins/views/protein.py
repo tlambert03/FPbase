@@ -69,8 +69,6 @@ class ProteinDetailView(DetailView):
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip('td'))
         similar = similar | Protein.visible.filter(name__iexact='td' + self.object.name)
         data['similar'] = similar.exclude(id=self.object.id)
-        print(self.request.session.set_test_cookie())
-        print(self.request.session.test_cookie_worked())
         return data
 
 
