@@ -1,10 +1,14 @@
 import csv
 import re
 import textwrap
-from skbio.sequence import GrammaredSequence
-from skbio.sequence import Protein as skProtein
-from skbio.util import classproperty
-from skbio.alignment import StripedSmithWaterman
+try:
+    from skbio.sequence import GrammaredSequence
+    from skbio.sequence import Protein as skProtein
+    from skbio.util import classproperty
+    from skbio.alignment import StripedSmithWaterman
+    SKB = True
+except ImportError:
+    SKB = False
 try:
     import parasail as _parasail
 except ImportError:
@@ -176,54 +180,58 @@ def mustring_to_list(mutstring):
                       .format(aa_alph), mutstring)
 
 
-class FPSeq(GrammaredSequence):
+if not SKB:
+    class FPSeq(str):
+        pass
+else:
+    class FPSeq(GrammaredSequence):
 
-    def __eq__(self, other):
-        return str(self) == str(other)
+        def __eq__(self, other):
+            return str(self) == str(other)
 
-    @classproperty
-    def degenerate_map(cls):
-        return skProtein.degenerate_map
+        @classproperty
+        def degenerate_map(cls):
+            return skProtein.degenerate_map
 
-    @classproperty
-    def definite_chars(cls):
-        return skProtein.definite_chars
+        @classproperty
+        def definite_chars(cls):
+            return skProtein.definite_chars
 
-    @classproperty
-    def default_gap_char(cls):
-        return '-'
+        @classproperty
+        def default_gap_char(cls):
+            return '-'
 
-    @classproperty
-    def gap_chars(cls):
-        return set('-.')
+        @classproperty
+        def gap_chars(cls):
+            return set('-.')
 
-    @property
-    def weight(self):
-        try:
-            return protein_weight(str(self)) / 1000
-        except ValueError:
-            pass
+        @property
+        def weight(self):
+            try:
+                return protein_weight(str(self)) / 1000
+            except ValueError:
+                pass
 
-    def same_as(self, other):
-        return str(self) == str(other)
+        def same_as(self, other):
+            return str(self) == str(other)
 
-    def align_to(self, other, **kwargs):
-        return nw_align(self, other, **kwargs)
+        def align_to(self, other, **kwargs):
+            return nw_align(self, other, **kwargs)
 
-    def mutations_to(self, other, **kwargs):
-        return self.align_to(other, **kwargs).mutations
+        def mutations_to(self, other, **kwargs):
+            return self.align_to(other, **kwargs).mutations
 
-    def mutate(self, mutations, first_index=1):
-        out = list(str(self))
-        if isinstance(mutations, str):
-            mutations = Mutations(mutations)
-        for before, index, after in mutations:
-            if before and out[index - first_index] != before:
-                raise ValueError('Requested mutation {0}{1}{2} inconsistent with current sequence: {3}{1}'
-                                 .format(before, index, after, out[index - first_index]))
-            else:
-                out[index - first_index] = after
-        return "".join(out)
+        def mutate(self, mutations, first_index=1):
+            out = list(str(self))
+            if isinstance(mutations, str):
+                mutations = Mutations(mutations)
+            for before, index, after in mutations:
+                if before and out[index - first_index] != before:
+                    raise ValueError('Requested mutation {0}{1}{2} inconsistent with current sequence: {3}{1}'
+                                     .format(before, index, after, out[index - first_index]))
+                else:
+                    out[index - first_index] = after
+            return "".join(out)
 
 
 class Mutations(object):
