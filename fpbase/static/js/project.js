@@ -622,28 +622,12 @@ $(function(){
 
 /////////////// COMPARISON SLIDER ///////////
 
-// using jQuery
-function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
 
 function populate_comparison_tab(comparison_set){
   var $ul = $('#comparison-slider ul.comparison-list');
   $ul.empty();
   if (comparison_set.length) {
+    var token = $("#csrfform input").val();
     $.each(comparison_set, function(index, val) {
       if (val.exMax && val.emMax){
         var exemstring = 'ex/em &lambda;: &nbsp;' + (val.exMax || '') + '/' + val.emMax
@@ -663,7 +647,7 @@ function populate_comparison_tab(comparison_set){
                       action: '/remove_comparison/' + val.slug,
                       class: 'comparison-form'}
                     )
-                      .append($('<input>', {type: 'hidden', name:"csrfmiddlewaretoken", value:getCookie('csrftoken')}))
+                      .append($('<input>', {type: 'hidden', name:"csrfmiddlewaretoken", value: token}))
                       .append($('<button>', {type: 'submit', class: 'remove-button'}).html('&times;')))
       widget.appendTo($ul)
     });
