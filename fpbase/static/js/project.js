@@ -651,6 +651,7 @@ function populate_comparison_tab(comparison_set){
                       .append($('<button>', {type: 'submit', class: 'remove-button'}).html('&times;')))
       widget.appendTo($ul)
     });
+    $("#clearbutton").show()
     if (comparison_set.length === 1) {
       $('#compare-link a').hide()
       $('#compare-link span').text('Add at least two proteins...');
@@ -659,6 +660,7 @@ function populate_comparison_tab(comparison_set){
       $('#compare-link span').text('')
     }
   } else{
+    $("#clearbutton").hide()
     $('#compare-link a').hide()
     $('#compare-link span').text('Nothing added to comparison...');
   }
@@ -685,5 +687,9 @@ $(function(){
       return false;
   });
 
+  $('#comparison-slider').bind('touchstart touchend', function(e) {
+      e.preventDefault();
+      $(this).toggleClass('hover_effect');
+  });
 
 })

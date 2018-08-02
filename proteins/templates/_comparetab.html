@@ -21,6 +21,13 @@
   <div id="compare-link">
     <a href="{% url 'proteins:compare' %}">show comparison</a>
     <span></span>
+
+    <form method='post' action="{% url 'proteins:clear-comparison' %}" class='comparison-form'>
+      {% csrf_token %}
+      <button class="btn btn-outline hidden" type='submit' id="clearbutton">clear selection</button>
+    </form>
   </div>
+
+
 </div>
 </div>

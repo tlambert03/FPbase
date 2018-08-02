@@ -61,6 +61,17 @@ def remove_from_comparison(request, slug):
     })
 
 
+def clear_comparison(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+    if 'comparison' in request.session:
+        request.session['comparison'] = []
+    return JsonResponse({
+        'status': 200,
+        'comparison_set': serialize_comparison(request)
+    })
+
+
 def get_comparison(request):
     if not request.is_ajax():
         return HttpResponseNotAllowed([])
