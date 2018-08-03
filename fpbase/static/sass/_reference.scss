@@ -23,7 +23,19 @@
 			color: $info;
 		}
 	}
+  @include media-breakpoint-down(sm) {
+    h4 a { font-size: 0.9rem; }
+  }
 }
+
+.additional-ref{
+  @include media-breakpoint-down(sm) {
+    ol {
+      padding: 0 0.5rem 0 1.3rem;
+    }
+  }
+}
+
 
 .author-detail{
 	h4, h5{

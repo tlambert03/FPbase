@@ -205,7 +205,7 @@ a:focus{
 $comparison-width: 275px;
 
 #comparison-slider{
-  @include media-breakpoint-down(sm) { display: none;}
+  //@include media-breakpoint-down(sm) { display: none;}
   position: fixed;
   background: rgba(0, 0, 0, 0.8);
   color: #EEE;
@@ -215,7 +215,7 @@ $comparison-width: 275px;
   z-index: 10000;
   transition: right 0.3s ease-in-out;
 
-  &:hover, &.hover_effect{
+  &.hover-effect{
     right: 0px;
   }
 
@@ -236,13 +236,12 @@ $comparison-width: 275px;
     overflow-x:hidden;
     top: 0;
     bottom: 0;
-    width: $comparison-width + 22px;
+    width: 100%;
 
      form.add-protein{
         border-top: 1px solid black;
         text-align: center;
         padding: 15px;
-        padding-left: 3px;
         button {
           color: white;
         }
@@ -307,7 +306,6 @@ $comparison-width: 275px;
     font-size: 1.2rem;
     padding-top: 1rem;
     padding-bottom: 2rem;
-    margin-left: 10px;
     text-align: center;
     position: relative;
     a {
@@ -329,7 +327,6 @@ $comparison-width: 275px;
       }
     }
     span {
-      padding: 10px;
       font-size: 0.9rem;
     }
     button {
@@ -339,8 +336,6 @@ $comparison-width: 275px;
       border: none;
       box-shadow: none !important;
       font-size: 0.85rem;
-      padding-left: 0;
-      margin-left: 0;
       &:hover{
         opacity: 1;
       }

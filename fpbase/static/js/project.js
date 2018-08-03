@@ -25,6 +25,35 @@ window.mobilecheck = function() {
   return check;
 };
 
+window.detectTouch = function() {
+  if (typeof window !== 'undefined') {
+    return Boolean(
+      'ontouchstart' in window ||
+      window.navigator.maxTouchPoints > 0 ||
+      window.navigator.msMaxTouchPoints > 0 ||
+      window.DocumentTouch && document instanceof DocumentTouch
+    );
+  }
+}
+
+if (detectTouch()){
+  $("#comparison-toggle").click(function(){
+    console.log('clicked')
+    $("#comparison-slider").toggleClass('hover-effect');
+  })
+  $(document).on("click", function(e) {
+    if (!document.getElementById('comparison-slider').contains(e.target)){
+      $("#comparison-slider").removeClass('hover-effect');
+    }
+  });
+
+} else {
+  $("#comparison-slider").hover(function(){
+    console.log('hi')
+    $("#comparison-slider").toggleClass('hover-effect');
+  })
+}
+
 
 $('.custom-file-input').on('change', function() {
 
@@ -144,12 +173,6 @@ $(function(){
       populate_comparison_tab(d.comparison_set);
     })
   }
-
-  $('#comparison-slider').bind('touchstart touchend', function(e) {
-      e.preventDefault();
-      $(this).toggleClass('hover_effect');
-  });
-
 })
 
 

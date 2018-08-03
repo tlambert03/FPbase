@@ -21,7 +21,7 @@
     <a class="text-muted" href="{{protein.get_absolute_url}}">{{protein.name}}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
 
 
-    <p>
+    <p style="word-wrap: break-word">
     <small><i class="fas fa-share-square mr-2"></i>You can share this comparison at: <a href="{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}">{{ request.META.HTTP_HOST }}{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}</a></small></p>
 
       {% if spectra %}

@@ -10,7 +10,7 @@ def protein_search(request):
     if request.GET:
         f = ProteinFilter(
             request.GET,
-            queryset=Protein.objects.select_related('default_state')
+            queryset=Protein.visible.select_related('default_state')
             .prefetch_related('states').order_by('default_state__em_max'))
 
         # if no hits, but name was provided... try trigram search

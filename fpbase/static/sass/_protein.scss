@@ -142,7 +142,7 @@
 
 		table { display: block; position: relative; width: 100%; }
 		thead { display: block; float: left;}
-		tbody { display: block; width: auto; position: relative; overflow-x: auto; white-space: nowrap;
+		tbody { display: block; width: auto; max-width: 60vw; position: relative; overflow-x: auto; white-space: nowrap;
 		}
 		thead tr { display: block; }
 		th { display: block; text-align: right; background-color: white; color: black;
