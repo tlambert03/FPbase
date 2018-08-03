@@ -9,11 +9,20 @@
 
 {% block container-class %}tablecontainer{% endblock %}
 
+{% block bodyopen %}
+    {% include '_comparetab.html' %}
+{% endblock bodyopen %}
+
 {% block content %}
 
 <h2 class="text-center">Fluorescent Protein Table</h2>
 <div class="table-responsive">
 
+  <div class="container-fluid">
+    <span class='small mb-3 font-italic'>
+    <strong>tip:</strong> click the <button class="btn btn-outline-info btn-circle pl-0 mr-1 ml-1"><i class="fas fa-plus"></i></button> button to add a protein to the comparison slider on right
+    </span>
+  </div>
 	<form class='form-inline'>
 	<div class="form-group">
 	  <label for="switch_filter" class='pr-2'>Switch Type: </label>
@@ -33,10 +42,9 @@
 	    {% endfor %}
 	  </select>
 	</div>
-	<form class='form-inline'>
+  </form>
 
-
-	{% with showbleach=True %}{% include '_proteintable.html' %}{% endwith %}
+  {% include '_proteintable.html' with comparison=1 showbleach=1 %}
 </div>
 {% endblock %}
 

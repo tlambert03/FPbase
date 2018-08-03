@@ -68,6 +68,91 @@ $('.form-group').removeClass('row');
 // });
 
 
+/////////////// COMPARISON SLIDER ///////////
+
+
+function populate_comparison_tab(comparison_set){
+  var $ul = $('#comparison-slider ul.comparison-list');
+  $ul.empty();
+  if (comparison_set.length) {
+    var token = $("#csrfform input").val();
+    $.each(comparison_set, function(index, val) {
+      if (val.exMax && val.emMax){
+        var exemstring = 'Ex/Em &lambda;: &nbsp;' + (val.exMax || '') + ' / ' + val.emMax
+      }
+      if (val.ec && val.qy){
+        ec = val.ec.toLocaleString();
+        var ecqystring = '<br>EC: ' + ec + '&nbsp;&nbsp;&nbsp;QY: ' + (val.qy || '')
+      }
+      var widget = $('<li>', {class: 'comparison-item', value: val.slug})
+                   .append($('<a>', {
+                      href: '/protein/' + val.slug,
+                      style: 'color: ' + val.color,
+                    }).text(val.name))
+                   .append($('<p>').html((exemstring || '') + (ecqystring || '')))
+                   .append($('<form>', {
+                      method: 'post',
+                      'data-type': 'remove',
+                      action: '/remove_comparison/' + val.slug,
+                      class: 'comparison-form'}
+                    )
+                      .append($('<input>', {type: 'hidden', name:"csrfmiddlewaretoken", value: token}))
+                      .append($('<button>', {type: 'submit', class: 'remove-button'}).html('&times;')))
+      widget.appendTo($ul)
+    });
+    $("#clearbutton").show()
+    if (comparison_set.length === 1) {
+      $('#compare-link a').hide()
+      $('#compare-link span').text('Add at least two proteins...');
+    } else {
+      $('#compare-link a').show()
+      $('#compare-link span').text('')
+    }
+  } else{
+    $("#clearbutton").hide()
+    $('#compare-link a').hide()
+    $('#compare-link span').text('Nothing added to comparison...');
+  }
+}
+
+function handle_comparison_form(e){
+  e.preventDefault();
+  $.ajax({ // create an AJAX call...
+      data: $(this).serialize(), // get the form data
+      type: $(this).attr('method'), // GET or POST
+      url: $(this).attr('action'), // the file to call
+      dataType: "json",
+      success: function(response) { // on success..
+        populate_comparison_tab(response.comparison_set);
+      }
+  });
+  if ($(this).data('type') === 'remove'){
+    $(this).closest('li').remove();
+  }
+  if ($(this).data('flash')){
+    $("#comparison-toggle").fadeTo(30, 0.3, function() { $(this).fadeTo(200, 1.0); });
+  }
+  return false;
+}
+
+$(document).on('submit', '.comparison-form', handle_comparison_form);
+$('.comparison-form').on('submit', handle_comparison_form);
+
+$(function(){
+  if ($("#comparison-slider")){
+    $.getJSON('/get_comparison/').then(function(d){
+      populate_comparison_tab(d.comparison_set);
+    })
+  }
+
+  $('#comparison-slider').bind('touchstart touchend', function(e) {
+      e.preventDefault();
+      $(this).toggleClass('hover_effect');
+  });
+
+})
+
+
 ///////////DATA TABLE
 
 $(function() {
@@ -79,7 +164,7 @@ $(function() {
         'header': false,
         'footer': true
     },
-    "order": [[ 2, 'asc' ], [ 1, 'asc' ]],
+    "order": [[ 6, 'desc' ]],
   });
 
   $('.table-filter').change(function(){
@@ -620,76 +705,4 @@ $(function(){
 })
 
 
-/////////////// COMPARISON SLIDER ///////////
 
-
-function populate_comparison_tab(comparison_set){
-  var $ul = $('#comparison-slider ul.comparison-list');
-  $ul.empty();
-  if (comparison_set.length) {
-    var token = $("#csrfform input").val();
-    $.each(comparison_set, function(index, val) {
-      if (val.exMax && val.emMax){
-        var exemstring = 'ex/em &lambda;: &nbsp;' + (val.exMax || '') + '/' + val.emMax
-      }
-      if (val.ec && val.qy){
-        ec = val.ec.toLocaleString();
-        var ecqystring = '<br>EC: ' + ec + '&nbsp;&nbsp;&nbsp;QY: ' + (val.qy || '')
-      }
-      var widget = $('<li>', {class: 'comparison-item', value: val.slug})
-                   .append($('<a>', {
-                      href: '/protein/' + val.slug,
-                      style: 'color: ' + val.color,
-                    }).text(val.name))
-                   .append($('<p>').html((exemstring || '') + (ecqystring || '')))
-                   .append($('<form>', {
-                      method: 'post',
-                      action: '/remove_comparison/' + val.slug,
-                      class: 'comparison-form'}
-                    )
-                      .append($('<input>', {type: 'hidden', name:"csrfmiddlewaretoken", value: token}))
-                      .append($('<button>', {type: 'submit', class: 'remove-button'}).html('&times;')))
-      widget.appendTo($ul)
-    });
-    $("#clearbutton").show()
-    if (comparison_set.length === 1) {
-      $('#compare-link a').hide()
-      $('#compare-link span').text('Add at least two proteins...');
-    } else {
-      $('#compare-link a').show()
-      $('#compare-link span').text('')
-    }
-  } else{
-    $("#clearbutton").hide()
-    $('#compare-link a').hide()
-    $('#compare-link span').text('Nothing added to comparison...');
-  }
-}
-
-$(function(){
-  if ($("#comparison-slider")){
-    $.getJSON('/get_comparison/').then(function(d){
-      populate_comparison_tab(d.comparison_set);
-    })
-  }
-
-  $('body').on('submit', '.comparison-form', function(e) { // catch the form's submit event
-      e.preventDefault();
-      $.ajax({ // create an AJAX call...
-          data: $(this).serialize(), // get the form data
-          type: $(this).attr('method'), // GET or POST
-          url: $(this).attr('action'), // the file to call
-          dataType: "json",
-          success: function(response) { // on success..
-            populate_comparison_tab(response.comparison_set);
-          }
-      });
-      return false;
-  });
-
-  $('#comparison-slider').bind('touchstart touchend', function(e) {
-      e.preventDefault();
-      $(this).toggleClass('hover_effect');
-  });
-
-})
