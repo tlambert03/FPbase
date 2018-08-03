@@ -38,7 +38,6 @@ window.detectTouch = function() {
 
 if (detectTouch()){
   $("#comparison-toggle").click(function(){
-    console.log('clicked')
     $("#comparison-slider").toggleClass('hover-effect');
   })
   $(document).on("click", function(e) {
@@ -49,7 +48,6 @@ if (detectTouch()){
 
 } else {
   $("#comparison-slider").hover(function(){
-    console.log('hi')
     $("#comparison-slider").toggleClass('hover-effect');
   })
 }
