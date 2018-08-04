@@ -31,6 +31,7 @@ urlpatterns = [
     url(r'^spectra/(?P<slug>[-\w]+)', views.protein_spectra, name='spectra'),
     url(r'^spectra/', views.protein_spectra, name='spectra'),
     url(r'^spectra_csv/', views.spectra_csv, name='spectra_csv'),
+    url(r'^spectra_img/(?P<slug>[-\w]+)(\.(?P<extension>(png)|(svg)|(tif?f)|(pdf)|(jpe?g))?)?$', views.spectra_image, name='spectra-img'),
 
     url(r'^fret/', views.fret_chart, name='fret'),
 

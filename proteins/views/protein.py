@@ -4,7 +4,7 @@ from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -202,6 +202,25 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
     def form_valid(self, form):
         form.instance.updated_by = self.request.user
         return super().form_valid(form)
+
+
+def spectra_image(request, slug, **kwargs):
+    from django.http import FileResponse
+    import io
+    import json
+
+    protein = get_object_or_404(Protein, slug=slug)
+    try:
+        D = {k: json.loads(v) for k, v in request.GET.dict().items()}
+        fmt = kwargs.get('extension', 'png')
+        byt = protein.spectra_img(fmt, output=io.BytesIO(), **D)
+        if fmt == 'svg':
+            fmt += '+xml'
+        byt.seek(0)
+        response = FileResponse(byt, content_type="image/%s" % fmt)
+    except Exception:
+        response = HttpResponseBadRequest()
+    return response
 
 
 @cache_page(60 * 10)

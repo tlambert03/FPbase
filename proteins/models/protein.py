@@ -23,7 +23,7 @@ from subprocess import run, PIPE
 
 from references.models import Reference
 from .mixins import Authorable
-from ..util.helpers import get_color_group, mless, get_base_name
+from ..util.helpers import get_color_group, mless, get_base_name, prot_spectra_fig
 # from .extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator, validate_uniprot
 from .. import util
@@ -306,6 +306,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         for state in self.states.all():
             spectra.extend(state.d3_dicts())
         return json.dumps(spectra)
+
+    def spectra_img(self, fmt='svg', output=None, **kwargs):
+        return prot_spectra_fig(self, fmt, output, **kwargs)
 
     def set_state_and_type(self):
         # FIXME: should allow control of default states in form

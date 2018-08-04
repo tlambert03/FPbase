@@ -234,3 +234,50 @@ def forster_list():
             except Exception:
                 continue
     return list(reversed(sorted(out, key=lambda x: x['forster'])))
+
+
+def prot_spectra_fig(prot, format='svg', output=None,
+                     xlim=(350, 750), fill=True, xlabels=True,
+                     transparent=True):
+    from matplotlib.figure import Figure
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    import matplotlib.ticker as ticker
+    import io
+
+    fig = Figure(figsize=(12, 3), dpi=70)
+    canvas = FigureCanvas(fig)
+    ax = fig.add_subplot(111)
+    if transparent:
+        fig.patch.set_alpha(0)
+        ax.patch.set_alpha(0)
+
+    for state in prot.states.all():
+        for spec in state.spectra.exclude(subtype='2p'):
+            if fill:
+                ax.fill_between(*list(zip(*spec.data)), color=spec.color(), alpha=0.5)
+            else:
+                ax.plot(*list(zip(*spec.data)), color=spec.color(), alpha=0.5)
+    ax.set_ylim((-0.005, 1.01))
+    ax.set_xlim(xlim)
+    # Hide the right and top spines
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    if xlabels:
+        ax.spines['bottom'].set_linewidth(0.4)
+        ax.spines['bottom'].set_color((.5, .5, .5))
+        ax.tick_params(axis='x', colors=(.2, .2, .2), length=0)
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(50))
+#        ax.xaxis.set_ticks_position('bottom')
+        ax.set_position([0.015, 0.08, 0.97, 0.915])
+    else:
+        ax.spines['bottom'].set_visible(False)
+        ax.get_xaxis().set_ticks([])
+        ax.set_position([0.015, 0.01, 0.97, 0.98])
+
+    ax.get_yaxis().set_ticks([])
+
+    if not output:
+        output = io.StringIO()
+    canvas.print_figure(output, format=format, transparent=True)
+    return output

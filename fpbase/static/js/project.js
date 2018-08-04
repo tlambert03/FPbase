@@ -107,18 +107,22 @@ function populate_comparison_tab(comparison_set){
     var token = $("#csrfform input").val();
     $.each(comparison_set, function(index, val) {
       if (val.exMax && val.emMax){
-        var exemstring = 'Ex/Em &lambda;: &nbsp;' + (val.exMax || '') + ' / ' + val.emMax
+        var exemstring = 'Ex/Em &lambda;: &nbsp;<strong>' + (val.exMax || '') + '</strong> / <strong>' + val.emMax + '</strong>';
       }
       if (val.ec && val.qy){
         ec = val.ec.toLocaleString();
-        var ecqystring = '<br>EC: ' + ec + '&nbsp;&nbsp;&nbsp;QY: ' + (val.qy || '')
+        var ecqystring = '<br>EC: <strong>' + ec + '</strong>&nbsp;&nbsp;&nbsp;QY: <strong>' + (val.qy || '') + '</strong>';
       }
       var widget = $('<li>', {class: 'comparison-item', value: val.slug})
                    .append($('<a>', {
                       href: '/protein/' + val.slug,
                       style: 'color: ' + val.color,
-                    }).text(val.name))
+                    }).html(val.name))
                    .append($('<p>').html((exemstring || '') + (ecqystring || '')))
+                   .append($('<img>', {
+                      src: '/spectra_img/' + val.slug + '.svg?xlim=[400,700]&fill=1&xlabels=0',
+                      class:"img-fluid spectrum-svg",
+                      alt: val.name + ' spectrum' }))
                    .append($('<button>', {
                         class: 'comparison-btn remove-protein',
                         'data-op': 'remove',
@@ -158,7 +162,11 @@ function handle_comparison_button(e){
         populate_comparison_tab(response.comparison_set);
       }
   });
-
+  if ($(this).data('op') == 'remove'){
+    $(this).closest('li').remove();
+  } else if ($(this).data('op') == 'clear'){
+    $(".comparison-list").empty();
+  }
   if ($(this).data('flash')){
     $("#comparison-toggle").fadeTo(30, 0.3, function() { $(this).fadeTo(200, 1.0); });
   }
