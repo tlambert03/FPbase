@@ -237,8 +237,8 @@ def forster_list():
 
 
 def prot_spectra_fig(prot, format='svg', output=None,
-                     xlim=(350, 750), fill=True, xlabels=True,
-                     transparent=True):
+                     xlim=(350, 750), fill=True, xlabels=True, ylabels=False,
+                     transparent=True, **kwargs):
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     import matplotlib.ticker as ticker
@@ -251,31 +251,47 @@ def prot_spectra_fig(prot, format='svg', output=None,
         fig.patch.set_alpha(0)
         ax.patch.set_alpha(0)
 
+    alph = kwargs.pop('alpha', None)
+    colr = kwargs.pop('color', None)
     for state in prot.states.all():
         for spec in state.spectra.exclude(subtype='2p'):
+            color = spec.color() if not colr else colr
             if fill:
-                ax.fill_between(*list(zip(*spec.data)), color=spec.color(), alpha=0.5)
+                alpha = 0.5 if not alph else alph
+                ax.fill_between(*list(zip(*spec.data)), color=color,
+                                alpha=alpha, **kwargs)
             else:
-                ax.plot(*list(zip(*spec.data)), color=spec.color(), alpha=0.5)
+                alpha = 1 if not alph else alph
+                ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)
     ax.set_ylim((-0.005, 1.01))
     ax.set_xlim(xlim)
     # Hide the right and top spines
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.spines['left'].set_visible(False)
+    pos = [0.02, 0.017, 0.97, 0.98]
     if xlabels:
         ax.spines['bottom'].set_linewidth(0.4)
         ax.spines['bottom'].set_color((.5, .5, .5))
         ax.tick_params(axis='x', colors=(.2, .2, .2), length=0)
         ax.xaxis.set_major_locator(ticker.MultipleLocator(50))
-#        ax.xaxis.set_ticks_position('bottom')
-        ax.set_position([0.015, 0.08, 0.97, 0.915])
+        pos[1] = 0.08
+        pos[3] = 0.915
     else:
         ax.spines['bottom'].set_visible(False)
         ax.get_xaxis().set_ticks([])
-        ax.set_position([0.015, 0.01, 0.97, 0.98])
+    if ylabels:
+        ax.tick_params(axis='y', colors=(.2, .2, .2), length=0)
+        ax.spines['left'].set_linewidth(0.4)
+        ax.spines['left'].set_color((.5, .5, .5))
+        pos[0] = 0.025
+        pos[2] = 0.96
+        pos[3] -= 0.01
+    else:
+        ax.spines['left'].set_visible(False)
+        ax.get_yaxis().set_ticks([])
+        pos[0] = 0.015
 
-    ax.get_yaxis().set_ticks([])
+    ax.set_position(pos)
 
     if not output:
         output = io.StringIO()

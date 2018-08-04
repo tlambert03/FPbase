@@ -102,10 +102,14 @@ $('.form-group').removeClass('row');
 
 function populate_comparison_tab(comparison_set){
   var $ul = $('#comparison-slider ul.comparison-list');
-  $ul.empty();
+  //$ul.empty();
   if (comparison_set.length) {
     var token = $("#csrfform input").val();
+    var currents = $('.comparison-list li').map(function(i,v){ return $(v).attr('value') }).toArray();
     $.each(comparison_set, function(index, val) {
+      if(currents.indexOf(val.slug) >= 0) {
+        return true;
+      }
       if (val.exMax && val.emMax){
         var exemstring = 'Ex/Em &lambda;: &nbsp;<strong>' + (val.exMax || '') + '</strong> / <strong>' + val.emMax + '</strong>';
       }

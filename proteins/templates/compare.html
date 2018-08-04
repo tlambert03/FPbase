@@ -47,6 +47,13 @@
       {% else %}
         <p>Sequence information not available for at least two proteins...</p>
     {% endif %}
+    {% for protein in proteins %}
+      {% if not protein.seq %}
+      <div>
+          <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary small'>Add sequence for {{protein.name|safe}}</a><br>
+      </div>
+      {% endif %}
+    {% endfor %}
     </div>
 
 

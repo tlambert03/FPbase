@@ -212,14 +212,18 @@ def spectra_image(request, slug, **kwargs):
     protein = get_object_or_404(Protein, slug=slug)
     try:
         D = {k: json.loads(v) for k, v in request.GET.dict().items()}
+    except Exception as e:
+        return HttpResponseBadRequest('failed to parse url parameters as JSON')
+    try:
         fmt = kwargs.get('extension', 'png')
         byt = protein.spectra_img(fmt, output=io.BytesIO(), **D)
         if fmt == 'svg':
             fmt += '+xml'
         byt.seek(0)
         response = FileResponse(byt, content_type="image/%s" % fmt)
-    except Exception:
-        response = HttpResponseBadRequest()
+    except Exception as e:
+        response = HttpResponseBadRequest(
+            'failed to parse url parameters as JSON: {}'.format(e))
     return response
 
 
@@ -252,12 +256,15 @@ class ComparisonView(TemplateView):
             # try to use chronological order
             ids = self.request.session.get('comparison', [])
             prots = Protein.objects.filter(slug__in=ids).prefetch_related('states__spectra').order_by('primary_reference__year')
-        if prots.exclude(seq__isnull=True).count() > 2:
-            a, _ = prots.exclude(seq__isnull=True).to_tree('html')
+        prots_with_seqs = prots.exclude(seq__isnull=True)
+        if prots_with_seqs.count() > 2:
+            a, _ = prots_with_seqs.to_tree('html')
             context['alignment'] = "\n".join(a.splitlines()[3:]).replace("FFEEE0", "FFFFFF")
-        elif prots.count() == 2:
-            if prots[0].seq and prots[1].seq:
-                a = prots[0].seq.align_to(prots[1].seq)
+        elif prots_with_seqs.count() == 2:
+            seqA = prots_with_seqs[0]
+            seqB = prots_with_seqs[1]
+            if seqA.seq and seqB.seq:
+                a = seqA.seq.align_to(seqB.seq)
                 out = []
                 for i, row in enumerate(str(a).splitlines()):
                     head = ''
