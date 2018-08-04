@@ -246,6 +246,14 @@ class Mutations(object):
             raise ValueError('All mutations items must have 3 elements')
         self.muts = set([(a, int(b), c) for a, b, c in muts]) or set()
 
+    def __add__(self, offset):
+        assert isinstance(offset, int), 'offset must be an integer'
+        return {(a, b + offset, d) for a, b, d in self.muts}
+
+    def __sub__(self, offset):
+        assert isinstance(offset, int), 'offset must be an integer'
+        return {(a, b - offset, d) for a, b, d in self.muts}
+
     def __iter__(self):
         return self.muts.__iter__()
 
