@@ -2,6 +2,7 @@ import reversion
 from django.views.generic import DetailView, CreateView, UpdateView
 from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.forms.models import modelformset_factory
@@ -204,6 +205,7 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
 
 
 @cache_page(60 * 10)
+@csrf_protect
 def protein_table(request):
     ''' renders html for protein table page  '''
     return render(
