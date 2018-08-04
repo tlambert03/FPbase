@@ -222,7 +222,7 @@ $comparison-width: 275px;
   #comparison-toggle{
     background: rgba(0, 0, 0, 0.7);
     position: absolute;
-    right: $comparison-width - 22.5px;
+    right: $comparison-width - 23.5px;
     top: 147.5px;
     padding: 10px 13px;
     transform: rotate(-90deg);
@@ -236,11 +236,11 @@ $comparison-width: 275px;
     overflow-x:hidden;
     top: 0;
     bottom: 0;
-    width: 100%;
+    width: 290px;
 
-     form.add-protein{
-        border-top: 1px solid black;
+     .add-protein{
         text-align: center;
+        border-top: 1px solid black;
         padding: 15px;
         button {
           color: white;
@@ -282,7 +282,7 @@ $comparison-width: 275px;
           margin-bottom: 0px;
           font-size: 0.8rem;
         }
-        button.remove-button{
+        button.remove-protein{
           font-size: 1.8rem;
           position: absolute;
           top: 0.1rem;
@@ -326,7 +326,7 @@ $comparison-width: 275px;
         // }
       }
     }
-    span {
+    .msg {
       font-size: 0.9rem;
     }
     button {

@@ -44,10 +44,7 @@
 								{% if not 'default' in state.name %} <small>({{ state.name }})</small>{% endif %}
 							</a>
               {% if comparison %}
-              <form method='post' action="{% url 'proteins:add-comparison' slug=protein.slug %}" class='comparison-form d-inline float-left align-text-top' data-flash='1'>
-                {% csrf_token %}
-                <button class="btn btn-outline-info mr-2 btn-circle" type='submit'><i class="fas fa-plus"></i></button>
-              </form>
+              <button class="float-left btn btn-outline-info mr-2 btn-circle comparison-btn" data-flash='1' data-action-url="{% url 'proteins:update-comparison' %}" data-object='{{protein.slug}}' data-op='add'><i class="fas fa-plus"></i></button>
               {% endif %}
 						</td>
 						<td class="numeric exmax">{{ state.ex_max | default_if_none:"-" }}</td>

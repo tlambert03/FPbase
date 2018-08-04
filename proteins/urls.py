@@ -37,11 +37,6 @@ urlpatterns = [
     url(r'^compare/$', views.ComparisonView.as_view(), name='compare'),
     url(r'^compare/(?P<proteins>[\w,\-]+)/$', views.ComparisonView.as_view(), name='compare'),
 
-    url(r'^add_comparison/(?P<slug>[-\w]+)$', views.add_to_comparison, name='add-comparison'),
-    url(r'^get_comparison/$', views.get_comparison, name='get-comparison'),
-    url(r'^remove_comparison/(?P<slug>[-\w]+)$', views.remove_from_comparison, name='remove-comparison'),
-    url(r'^clear_comparison/$', views.clear_comparison, name='clear-comparison'),
-
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
     url(r'^collections/(?P<owner>[\w.@+-]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),
@@ -109,5 +104,7 @@ urlpatterns = [
     url(r'^ajax/validate_spectrumownername/$', views.similar_spectrum_owners, name='validate_spectrumownername'),
     url(r'^ajax/remove_from_collection/$', views.collection_remove, name='collection-remove'),
     url(r'^ajax/add_to_collection/$', views.add_to_collection, name='add_to_collection'),
+    url(r'^ajax/comparison/$', views.update_comparison, name='update-comparison'),
+
 
 ]

@@ -36,22 +36,24 @@ window.detectTouch = function() {
   }
 }
 
-if (detectTouch()){
-  $("#comparison-toggle").click(function(){
-    $("#comparison-slider").toggleClass('hover-effect');
-  })
-  $(document).on("click", function(e) {
-    if (!document.getElementById('comparison-slider').contains(e.target)){
+if (document.getElementById('comparison-slider')){
+  if (detectTouch()){
+      $("#comparison-toggle").click(function(){
+        $("#comparison-slider").toggleClass('hover-effect');
+      })
+      $(document).on("click", function(e) {
+        if (!document.getElementById('comparison-slider').contains(e.target)){
+          $("#comparison-slider").removeClass('hover-effect');
+        }
+      });
+  } else {
+    $("#comparison-slider").hover(function(){
+      $("#comparison-slider").addClass('hover-effect');
+    }, function(){
       $("#comparison-slider").removeClass('hover-effect');
-    }
-  });
-
-} else {
-  $("#comparison-slider").hover(function(){
-    $("#comparison-slider").toggleClass('hover-effect');
-  })
+    })
+  }
 }
-
 
 $('.custom-file-input').on('change', function() {
 
@@ -117,57 +119,58 @@ function populate_comparison_tab(comparison_set){
                       style: 'color: ' + val.color,
                     }).text(val.name))
                    .append($('<p>').html((exemstring || '') + (ecqystring || '')))
-                   .append($('<form>', {
-                      method: 'post',
-                      'data-type': 'remove',
-                      action: '/remove_comparison/' + val.slug,
-                      class: 'comparison-form'}
-                    )
-                      .append($('<input>', {type: 'hidden', name:"csrfmiddlewaretoken", value: token}))
-                      .append($('<button>', {type: 'submit', class: 'remove-button'}).html('&times;')))
+                   .append($('<button>', {
+                        class: 'comparison-btn remove-protein',
+                        'data-op': 'remove',
+                        'data-object': val.slug,
+                        'data-action-url': '/ajax/comparison/',
+                      }).html('&times;'))
       widget.appendTo($ul)
     });
     $("#clearbutton").show()
     if (comparison_set.length === 1) {
       $('#compare-link a').hide()
-      $('#compare-link span').text('Add at least two proteins...');
+      $('#compare-link div.msg').text('Add at least two proteins...');
     } else {
       $('#compare-link a').show()
-      $('#compare-link span').text('')
+      $('#compare-link div.msg').text('')
     }
   } else{
     $("#clearbutton").hide()
     $('#compare-link a').hide()
-    $('#compare-link span').text('Nothing added to comparison...');
+    $('#compare-link div.msg').text('Nothing added to comparison...');
   }
 }
 
-function handle_comparison_form(e){
+function handle_comparison_button(e){
+  var button = $(this);
   e.preventDefault();
   $.ajax({ // create an AJAX call...
-      data: $(this).serialize(), // get the form data
-      type: $(this).attr('method'), // GET or POST
-      url: $(this).attr('action'), // the file to call
+      data: {
+        object: button.data('object'),
+        csrfmiddlewaretoken:  window.CSRF_TOKEN,
+        operation: button.data('op')
+      },
+      type: 'POST',
+      url: button.attr('data-action-url'),
       dataType: "json",
       success: function(response) { // on success..
         populate_comparison_tab(response.comparison_set);
       }
   });
-  if ($(this).data('type') === 'remove'){
-    $(this).closest('li').remove();
-  }
+
   if ($(this).data('flash')){
     $("#comparison-toggle").fadeTo(30, 0.3, function() { $(this).fadeTo(200, 1.0); });
   }
   return false;
 }
 
-$(document).on('submit', '.comparison-form', handle_comparison_form);
-$('.comparison-form').on('submit', handle_comparison_form);
+$(document).on('click', '.comparison-btn', handle_comparison_button);
+$('.comparison-btn').on('click', handle_comparison_button);
 
 $(function(){
   if ($("#comparison-slider")){
-    $.getJSON('/get_comparison/').then(function(d){
+    $.getJSON('/ajax/comparison/').then(function(d){
       populate_comparison_tab(d.comparison_set);
     })
   }

@@ -30,54 +30,23 @@ def serialize_comparison(request):
     return info
 
 
-def add_to_comparison(request, slug):
+def update_comparison(request):
     if not request.is_ajax():
         return HttpResponseNotAllowed([])
-    if 'comparison' in request.session:
-        current = set(request.session['comparison'])
-        current.add(slug)
-        request.session['comparison'] = list(current)
-    else:
-        request.session['comparison'] = [slug]
-    return JsonResponse({
-        'status': 200,
-        'comparison_set': serialize_comparison(request)
-    })
-
-
-def remove_from_comparison(request, slug):
-    if not request.is_ajax():
-        return HttpResponseNotAllowed([])
-    if 'comparison' in request.session:
-        current = set(request.session['comparison'])
+    current = set(request.session.get('comparison', []))
+    if request.POST.get('operation') == 'add':
+        current.add(request.POST.get('object'))
+    elif request.POST.get('operation') == 'remove':
         try:
-            current.remove(slug)
+            current.remove(request.POST.get('object'))
         except KeyError:
             pass
-        request.session['comparison'] = list(current)
+    elif request.POST.get('operation') == 'clear':
+        current.clear()
+    request.session['comparison'] = list(current)
     return JsonResponse({
         'status': 200,
         'comparison_set': serialize_comparison(request)
-    })
-
-
-def clear_comparison(request):
-    if not request.is_ajax():
-        return HttpResponseNotAllowed([])
-    if 'comparison' in request.session:
-        request.session['comparison'] = []
-    return JsonResponse({
-        'status': 200,
-        'comparison_set': serialize_comparison(request)
-    })
-
-
-def get_comparison(request):
-    if not request.is_ajax():
-        return HttpResponseNotAllowed([])
-    return JsonResponse({
-        'status': 200,
-        'comparison_set': serialize_comparison(request),
     })
 
 
