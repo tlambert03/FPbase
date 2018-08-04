@@ -145,6 +145,8 @@ class ProteinForm(forms.ModelForm):
         return check_existence(self, 'name', self.cleaned_data['name'])
 
     def clean_seq(self):
+        seq = self.cleaned_data['seq']
+        self.cleaned_data['seq'] = "".join(seq.split()).upper()
         return check_existence(self, 'seq', self.cleaned_data['seq'])
 
     def clean_ipg_id(self):
