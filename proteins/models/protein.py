@@ -218,7 +218,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     parent_organism = models.ForeignKey('Organism', related_name='proteins', verbose_name="Parental organism", on_delete=models.SET_NULL, blank=True, null=True, help_text="Organism from which the protein was engineered",)
     primary_reference = models.ForeignKey(Reference, related_name='primary_proteins', verbose_name="Primary Reference", blank=True, null=True, on_delete=models.SET_NULL, help_text="Preferably the publication that introduced the protein",)  # usually, the original paper that published the protein
     references = models.ManyToManyField(Reference, related_name='proteins', blank=True)  # all papers that reference the protein
-    FRET_partner = models.ManyToManyField('self', symmetrical=False, through='FRETpair', blank=True)
+    # FRET_partner = models.ManyToManyField('self', symmetrical=False, through='FRETpair', blank=True)
     default_state = models.ForeignKey('State', related_name='default_for', blank=True, null=True, on_delete=models.SET_NULL)
 
     __original_ipg_id = None

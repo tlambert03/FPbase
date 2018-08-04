@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.db.models import Count
 from proteins.models import (Protein, State, StateTransition, Organism,
-                             FRETpair, BleachMeasurement, Spectrum, Dye,
+                             BleachMeasurement, Spectrum, Dye,
                              Light, Filter, Camera, Mutation, Microscope,
                              OpticalConfig, FilterPlacement, Fluorophore,
                              ProteinCollection)
@@ -90,14 +90,14 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
     bleach_links.short_description = 'BleachMeasurements'
 
 
-class FRETpairInline(admin.TabularInline):
-    model = FRETpair
-    autocomplete_fields = ("pair_references", 'acceptor')
-    extra = 1
-    can_delete = True
-    show_change_link = True
-    fk_name = 'donor'  # or 'acceptor'
-    fields = ('acceptor', 'radius', 'pair_references')
+# class FRETpairInline(admin.TabularInline):
+#     model = FRETpair
+#     autocomplete_fields = ("pair_references", 'acceptor')
+#     extra = 1
+#     can_delete = True
+#     show_change_link = True
+#     fk_name = 'donor'  # or 'acceptor'
+#     fields = ('acceptor', 'radius', 'pair_references')
 
 
 # ############# MODELS ###############
@@ -228,30 +228,30 @@ class StateTransitionInline(admin.TabularInline):
         return field
 
 
-class FRETpairAdmin(CompareVersionAdmin):
-    list_display = ('__str__', 'donor', 'acceptor', 'radius', 'created_by', 'created', 'modified')
-    list_filter = ('created', 'modified')
-    search_fields = ('name', 'donor', 'acceptor', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
-    fieldsets = [
-        ('FRET Pair', {
-            'fields': ('name', 'donor', 'acceptor', 'radius')
-        }),
-        ('References', {
-            'classes': ('collapse',),
-            'fields': ('pair_references',)
-        }),
-        ('Change History', {
-            'classes': ('collapse',),
-            'fields': ('created', 'created_by', 'modified', 'updated_by')
-        })
-    ]
-    readonly_fields = ('name', 'created', 'created_by', 'modified', 'updated_by')
-
-    def save_model(self, request, obj, form, change):
-        if not obj.created_by:
-            obj.created_by = request.user
-        obj.updated_by = request.user
-        obj.save()
+# class FRETpairAdmin(CompareVersionAdmin):
+#     list_display = ('__str__', 'donor', 'acceptor', 'radius', 'created_by', 'created', 'modified')
+#     list_filter = ('created', 'modified')
+#     search_fields = ('name', 'donor', 'acceptor', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
+#     fieldsets = [
+#         ('FRET Pair', {
+#             'fields': ('name', 'donor', 'acceptor', 'radius')
+#         }),
+#         ('References', {
+#             'classes': ('collapse',),
+#             'fields': ('pair_references',)
+#         }),
+#         ('Change History', {
+#             'classes': ('collapse',),
+#             'fields': ('created', 'created_by', 'modified', 'updated_by')
+#         })
+#     ]
+#     readonly_fields = ('name', 'created', 'created_by', 'modified', 'updated_by')
+#
+#     def save_model(self, request, obj, form, change):
+#         if not obj.created_by:
+#             obj.created_by = request.user
+#         obj.updated_by = request.user
+#         obj.save()
 
 
 @admin.register(Organism)
