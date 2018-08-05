@@ -6,6 +6,15 @@
 // Safari 3.0+ "[object HTMLElementConstructor]"
 var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
 
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function(search, this_len) {
+        if (this_len === undefined || this_len > this.length) {
+            this_len = this.length;
+        }
+        return this.substring(this_len - search.length, this_len) === search;
+    };
+}
+
 var chart;
 var CONST = {
     category: {
@@ -472,11 +481,52 @@ $(".2pcheck").change(function(e) {
     refreshChart();
 });
 
+
+function setup_from_url(urlParams){
+    if ('p' in urlParams){
+        $("#fluor-select").val(urlParams.p).trigger('change.select2');
+    }
+    if ('l' in urlParams){
+        $("#light-select").val(urlParams.l);
+    }
+    if ('d' in urlParams){
+        $("#camera-select").val(urlParams.d);
+    }
+
+    if ('c' in urlParams){
+        $('#config-select option').each(function(){
+            if (this.value == urlParams.c) {
+                $(this).val(urlParams.c).prop('selected', true).change();
+            }
+        });
+    } else if ('f' in urlParams) {
+        $.each(urlParams.f.split(','), function(index, val){
+            if (val.endsWith('!')){
+                val = val.slice(0, -1);
+                $("#" + val).closest('li').find('.invswitch').prop('checked', true)
+            }
+            $("#" + val).prop('checked', true);
+        });
+    } else {
+        $('#config-select option').eq(1).prop('selected', true).change();
+    }
+
+    if ('sticky' in urlParams){
+        options.stickySpectra = Boolean(urlParams.sticky === 'true' || +urlParams.sticky > 0);
+        if(options.stickySpectra){
+         $('#stickyPin').click();
+        }
+    }
+
+    updateChart();
+}
+
+
 $(function() {
     $('#y-zoom-slider').hide();
     //$('[data-toggle="popover"]').popover()
 
-    urlParams = getUrlParams();
+    var urlParams = getUrlParams();
     options.precision = urlParams.precision || options.precision;
     if (urlParams.eff !== 'undefined'){
         options.calcEff = !(urlParams.eff == 'false')
@@ -606,7 +656,7 @@ $(function() {
         resizeYSlider();
         $( window ).resize(function() {
             if ($(document).width() < 576){
-                chart.legend.maxKeyLength(15);
+                chart.legend.maxKeyLength(14);
             }
             chart.update();
             resizeYSlider();
@@ -645,6 +695,10 @@ $(function() {
       updateChart();
     });
 
+    $('.filter-selector, .invswitch').change(function(){
+      $('#config-select').val('')
+    })
+
     $('#config-select').change(function(){
 
       $('.filter-selector:checked').each(function(){
@@ -654,7 +708,7 @@ $(function() {
       var selected = $(this).find(":selected")
       $.each(selected.data('filters'), function(i ,d){
         $("#invswitch-filter-" + d[0]).prop("checked", d[2] );
-        $("#listfilter-" + d[1] + "-" + d[0]).prop("checked", true );
+        $("#filter-" + d[1] + "-" + d[0]).prop("checked", true );
 
       })
       var wave = selected.data('laser');
@@ -688,27 +742,7 @@ $(function() {
       $("#embedModal").modal('show');
     });
 
-    if ('f' in urlParams){
-        $("#fluor-select").val(urlParams.f).change();
-    }
-
-    if ('sticky' in urlParams){
-        options.stickySpectra = Boolean(urlParams.sticky === 'true' || +urlParams.sticky > 0);
-        if(options.stickySpectra){
-         $('#stickyPin').click();
-        }
-    }
-
-    if ('c' in urlParams){
-        $('#config-select option').each(function(){
-            if (this.value == urlParams.c) {
-                $(this).val(urlParams.c).prop('selected', true).change();
-            }
-        });
-    } else {
-        $('#config-select option').eq(1).prop('selected', true).change();
-    }
-
+    setup_from_url(urlParams);
 });
 
 
@@ -1147,7 +1181,7 @@ function invertInverted(){
 }
 
 function updateChart(){
-  var deferreds = updateData()
+  var deferreds = updateData();
   if (deferreds){
     $.when.apply($, deferreds).then(function(){
       invertInverted();
@@ -1245,8 +1279,6 @@ $(window).on('load', function() {
 
 var topofDiv = $(".spectra-wrapper").offset().top;
 $(window).scroll(function(){
-    console.log(topofDiv)
-    console.log($(window).scrollTop())
     if (options.stickySpectra){
         if($(window).scrollTop() > (topofDiv)){
           $(".spectra-wrapper").addClass('shadowed');
@@ -1269,3 +1301,99 @@ $('#stickyPin').click(function() {
     }
 });
 
+function build_current_uri(){
+    var params = [];
+    if ($('#config-select').val()){
+        params.push('c=' + encodeURIComponent($('#config-select').val()));
+    } else {
+        var filters = $(".filter-selector:checked")
+            .map(function(i, d){
+                var v = $(d).prop('id');
+                if ($(this).closest('li').find('.invswitch').prop('checked')){
+                    v += '!'
+                }
+                return encodeURIComponent(v)
+            })
+            .toArray()
+        if (filters.length){
+            params.push('f=' + filters.join(','));
+        }
+    }
+    if ($('.fluor-selector').val()){
+        params.push('p=' + encodeURIComponent($('.fluor-selector').val()));
+    }
+    if ($('#light-select').val()){
+        params.push('l=' + encodeURIComponent($('#light-select').val()));
+    }
+    if ($('#camera-select').val()){
+        params.push('d=' + encodeURIComponent($('#camera-select').val()));
+    }
+    var outurl = window.location.protocol + "//" + window.location.host + window.location.pathname
+    if (params.length) {
+        outurl += "?" + params.join('&');
+    }
+    return outurl
+}
+
+function copyToClipboard(elem) {
+      // create hidden text element, if it doesn't already exist
+    var targetId = "_hiddenCopyText_";
+    var isInput = elem.tagName === "INPUT" || elem.tagName === "TEXTAREA";
+    var origSelectionStart, origSelectionEnd;
+    if (isInput) {
+        // can just use the original source element for the selection and copy
+        target = elem;
+        origSelectionStart = elem.selectionStart;
+        origSelectionEnd = elem.selectionEnd;
+    } else {
+        // must use a temporary form element for the selection and copy
+        target = document.getElementById(targetId);
+        if (!target) {
+            var target = document.createElement("textarea");
+            target.style.position = "absolute";
+            target.style.left = "-9999px";
+            target.style.top = "0";
+            target.id = targetId;
+            document.body.appendChild(target);
+        }
+        target.textContent = elem.textContent;
+    }
+    // select the content
+    var currentFocus = document.activeElement;
+    target.focus();
+    target.setSelectionRange(0, target.value.length);
+
+    // copy the selection
+    var succeed;
+    try {
+          succeed = document.execCommand("copy");
+    } catch(e) {
+        succeed = false;
+    }
+    // restore original focus
+    if (currentFocus && typeof currentFocus.focus === "function") {
+        currentFocus.focus();
+    }
+
+    if (isInput) {
+        // restore prior selection
+        elem.setSelectionRange(origSelectionStart, origSelectionEnd);
+    } else {
+        // clear temporary content
+        target.textContent = "";
+    }
+    return succeed;
+}
+
+$("#copyButton").click(function(){
+    $("#shareLink").prop('disabled', false);
+    copyToClipboard(document.getElementById("shareLink"));
+    $("#shareLink").prop('disabled', true);
+})
+
+$("#share-button").click(function(){
+    var link = build_current_uri();
+    $("#shareLink").val(link);
+    $("#mailLink").attr('href', $("#mailLink").data('mailinfo') + encodeURIComponent(link));
+    $("#shareModal").modal('show');
+})

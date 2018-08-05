@@ -12,17 +12,17 @@ h6 {
 
 #scope-settings-buttons {
   float: left;
-  font-size: 1.55rem;
+  font-size: 1.4rem;
   margin-left: .5rem;
   position: relative;
   top: -5px;
   span {
+    margin-right: .6rem;
     cursor: pointer;
     :hover {
       color: darken($info, 10)
     }
     &.pin-wrapper {
-      margin-left: .5rem;
       transition: transform 200ms;
       display: inline-block;
       color: $info;
@@ -221,7 +221,8 @@ h6 {
 
   .scale-btns {
     float: right;
-    margin-right: 1.25rem;
+    margin-right: 1.2rem;
+    @include media-breakpoint-down(sm){ margin-right: 0rem; }
     padding-top: 1px;
     //margin-top: -45px;
   }

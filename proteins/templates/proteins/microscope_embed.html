@@ -18,12 +18,12 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.1/css/select2.min.css" rel="stylesheet" />
-  <style>#logolink {position: relative;margin-top: -34px;opacity: 0.6;width: 160px;}#logolink:hover {opacity: 1;}#logolink a:hover {text-decoration: none;}</style>
+  <style>#logolink {opacity: 0.6;width: 160px;}#logolink:hover {opacity: 1;}#logolink a:hover {text-decoration: none;}</style>
 </head>
 <body>
   <div class="container spectrumpage microscopepage">
-    <h4 class='text-sm-center text-right font-weight-bold pt-2'>{{microscope}}</h4>
-    <div id="logolink" style="display:inline !important!"><a href="{{ request.scheme }}://{{ request.get_host }}" target="_blank">{% include "_logo_prestyled.html" %}</a></div>
+    <div id="logolink" class='mx-auto mt-2'><a href="{{ request.scheme }}://{{ request.get_host }}" target="_blank">{% include "_logo_prestyled.html" %}</a><br></div>
+    <h4 class='text-center' style="font-weight: 500;">{{microscope}}</h4>
     {% include 'proteins/_microscope_include.html' with embeddable=False %}
   </div>
   <!-- Required by Bootstrap v4 beta -->
