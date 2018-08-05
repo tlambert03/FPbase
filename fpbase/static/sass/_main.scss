@@ -267,16 +267,21 @@ $comparison-width: 275px;
         &:last-child{
           border-bottom: 1px solid gray;
         }
+
         a {
+          display: inline-block;
+          z-index: 10000;
           font-size: 1.1rem;
           margin-left: 35px;
           color: white;
-          opacity: 0.85;
-          &:hover{
+          opacity: .85;
+          font-weight: 500;
+          &:hover {
             opacity: 1;
             text-decoration: none;
           }
         }
+
         p {
           margin-left: 35px;
           margin-bottom: 0px;
@@ -304,6 +309,7 @@ $comparison-width: 275px;
           left: 0;
           opacity: 0.35;
           width: 100%;
+          z-index: -1;
         }
        }
      }

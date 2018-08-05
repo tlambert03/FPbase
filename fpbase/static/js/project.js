@@ -124,7 +124,7 @@ function populate_comparison_tab(comparison_set){
                     }).html(val.name))
                    .append($('<p>').html((exemstring || '') + (ecqystring || '')))
                    .append($('<img>', {
-                      src: '/spectra_img/' + val.slug + '.svg?xlim=[400,700]&fill=1&xlabels=0',
+                      src: '/spectra_img/' + val.slug + '.svg?xlim=400,700&fill=1&xlabels=0',
                       class:"img-fluid spectrum-svg",
                       alt: val.name + ' spectrum' }))
                    .append($('<button>', {
