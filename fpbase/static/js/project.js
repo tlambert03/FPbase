@@ -189,6 +189,77 @@ $(function(){
 })
 
 
+/////////////////. Spectra Image URL Builder
+
+$('#proteinSlug').select2({ theme: "bootstrap", width: '80%',
+  ajax: {
+    theme: 'bootstrap',
+    url: '/autocomplete-protein',
+    dataType: 'json',
+    cache: true,
+    data: function (params) {
+      var query = {
+        q: params.term,
+        type: 'spectra',
+        page: params.page,
+        '_type': params._type,
+      }
+      return query;
+    },
+  }
+});
+
+function buildURL(){
+  var ext = '.' + $("#fileTypeSelect").val();
+  var slug = $("#proteinSlug").val();
+  var title = $("#showName").prop('checked') ? "title=1" : '';
+  var fill = $("#areaFill").prop('checked') ? '' : "fill=0";
+  var transparent = $("#transCheck").prop('checked') ? '' : "transparent=0";
+  var alpha = $("#opacitySlider").val() === '0.5' ? '' : "alpha=" + $("#opacitySlider").val();
+  var linewidth = $("#lineWidthSlider").val() === '1' ? '' : "linewidth=" + $("#lineWidthSlider").val();
+  var xlabels = $("#xAxis").prop('checked') ? '' : "xlabels=0";
+  var ylabels = $("#yAxis").prop('checked') ? "ylabels=1" : '';
+  var grid = $("#grid").prop('checked') ? "grid=1" : '';
+  var xlim = '';
+  if ($("#minXRange").val() !== '350' || $("#maxXRange").val() !== '750'){
+    xlim = 'xlim=' + $("#minXRange").val()  + ',' + $("#maxXRange").val() + '';
+  }
+
+  var newstring = "/spectra_img/" + slug + ext;
+  var argarray = [title,grid,xlabels,ylabels,fill,transparent,xlim,alpha,linewidth]
+                 .filter(function(d) { return Boolean(d !== '') })
+  if (argarray.length){
+    newstring += "?" + argarray.join('&');
+  }
+  var fullurl = window.location.protocol + "//" + window.location.host + newstring;
+  $("#activeImg").attr('src', newstring);
+  $("#linktext").text(fullurl).attr('href', fullurl);
+}
+
+$('#spectra_url_form').submit(function(e){ e.preventDefault(); });
+
+$('#spectra_url_form input, #spectra_url_form select').change(function(e){
+  if ($(this).hasClass('wave-range')){
+    if (!$(this).val()){
+      $(this).val( $(this).hasClass('min-range') ? 350 : 750);
+    }
+    $(this).val( Math.min(Math.max($(this).val(), 200), 1600) );
+  }
+  buildURL();
+  if ($("#fileTypeSelect").val() === 'pdf'){
+    $("#activeImg").hide();
+    $("#linktext").attr('download', true);
+  } else {
+    $("#activeImg").show();
+    $("#linktext").removeAttr('download');
+  }
+})
+if (document.getElementById("activeImg")){
+  buildURL();
+}
+
+
+
 ///////////DATA TABLE
 
 $(function() {

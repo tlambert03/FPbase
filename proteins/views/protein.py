@@ -207,11 +207,23 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
 def spectra_image(request, slug, **kwargs):
     from django.http import FileResponse
     import io
-    import json
 
     protein = get_object_or_404(Protein, slug=slug)
     try:
-        D = {k: json.loads(v) for k, v in request.GET.dict().items()}
+        D = {}
+        for k, v in request.GET.dict().items():
+            if k == 'xlim':
+                tmp = [int(x) for x in v.split(',')][:2]
+                if len(tmp) == 1:
+                    tmp.append(750)
+                D[k] = tmp
+            else:
+                if v.lower() in ('false', 'no'):
+                    D[k] = False
+                elif v.lower() in ('true', 'yes'):
+                    D[k] = True
+                else:
+                    D[k] = int(v) if v.isdigit() else v
     except Exception as e:
         return HttpResponseBadRequest('failed to parse url parameters as JSON')
     try:

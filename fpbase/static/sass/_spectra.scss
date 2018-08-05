@@ -124,6 +124,7 @@ h6 {
 /* hides NVD3 gridlines */
 #spectra, #spectrasvg {
   // spectra area fill and outline
+  position: relative;
 
   .faded-fret {
     .nv-area { opacity: 0.15; }
@@ -225,6 +226,15 @@ h6 {
     //margin-top: -45px;
   }
 
+}
+.spectra-overlay-link {
+  position: absolute;
+  top: 2.2rem;
+  left: 1.5rem;
+  opacity: 0.6;
+  &:hover{
+    opacity: 0.9;
+  }
 }
 
 .nvtooltip {

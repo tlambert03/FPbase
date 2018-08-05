@@ -238,7 +238,7 @@ def forster_list():
 
 def prot_spectra_fig(prot, format='svg', output=None,
                      xlim=(350, 750), fill=True, xlabels=True, ylabels=False,
-                     transparent=True, **kwargs):
+                     transparent=True, grid=False, title=False, **kwargs):
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     import matplotlib.ticker as ticker
@@ -257,17 +257,25 @@ def prot_spectra_fig(prot, format='svg', output=None,
         for spec in state.spectra.exclude(subtype='2p'):
             color = spec.color() if not colr else colr
             if fill:
-                alpha = 0.5 if not alph else alph
+                alpha = 0.5 if not alph else float(alph)
                 ax.fill_between(*list(zip(*spec.data)), color=color,
-                                alpha=alpha, **kwargs)
+                                alpha=alpha, url='http://google.com=', **kwargs)
             else:
-                alpha = 1 if not alph else alph
+                alpha = 1 if not alph else float(alph)
                 ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)
-    ax.set_ylim((-0.005, 1.01))
+    ax.set_ylim((-0.005, 1.025))
     ax.set_xlim(xlim)
     # Hide the right and top spines
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
+
+    if grid:
+        ax.grid(color='gray', axis='both', alpha=0.15, which='both')
+        ax.xaxis.grid(True, which='minor')
+        ax.xaxis.set_minor_locator(ticker.MultipleLocator(10))
+        ax.yaxis.set_minor_locator(ticker.MultipleLocator(.1))
+        ax.set_axisbelow(True)
+
     pos = [0.02, 0.017, 0.97, 0.98]
     if xlabels:
         ax.spines['bottom'].set_linewidth(0.4)
@@ -275,7 +283,7 @@ def prot_spectra_fig(prot, format='svg', output=None,
         ax.tick_params(axis='x', colors=(.2, .2, .2), length=0)
         ax.xaxis.set_major_locator(ticker.MultipleLocator(50))
         pos[1] = 0.08
-        pos[3] = 0.915
+        pos[3] -= .065
     else:
         ax.spines['bottom'].set_visible(False)
         ax.get_xaxis().set_ticks([])
@@ -292,6 +300,15 @@ def prot_spectra_fig(prot, format='svg', output=None,
         pos[0] = 0.015
 
     ax.set_position(pos)
+    if title and not isinstance(title, str):
+        title = prot.name
+    if title:
+        font = {'family': 'sans-serif',
+                'color': 'black',
+                'weight': 'normal',
+                'size': 18,
+                }
+        ax.text(xlim[0] + 2, 0.92, title, fontdict=font, alpha=0.5)
 
     if not output:
         output = io.StringIO()

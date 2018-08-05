@@ -108,8 +108,12 @@ class ProteinManager(models.Manager):
     #         State.objects.exclude(ex_spectra=None, em_spectra=None).distinct('protein')]
     #     return self.get_queryset().filter(id__in=pids)
 
-    def with_spectra(self):
-        return self.get_queryset().filter(states__spectra__isnull=False).distinct()
+    def with_spectra(self, twoponly=False):
+        qs = self.get_queryset().filter(states__spectra__isnull=False).distinct()
+        if not twoponly:
+            # hacky way to remove 2p only spectra
+            qs = qs.annotate(stypes=Count('states__spectra__subtype')).filter(stypes__gt=1)
+        return qs
 
     def find_similar(self, name, similarity=0.2):
         return self.get_queryset() \

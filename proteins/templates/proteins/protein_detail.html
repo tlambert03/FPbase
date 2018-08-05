@@ -81,7 +81,9 @@
 		</div>
 
 		<div class="spectra">
-			{% if protein.has_spectra %}<div id="spectra"></div>{% endif %}
+			{% if protein.has_spectra %}<div id="spectra">
+     <a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link mr-2"></i></a>
+      </div>{% endif %}
 		</div>
 
 		  <dl class="row mt-4">
@@ -266,6 +268,7 @@
 <!-- Modals -->
 {% include 'proteins/modals/_reference_modal.html' with user=user protein=protein %}
 {% include 'proteins/modals/_add_to_collection_modal.html' with user=user protein=protein %}
+{% include 'proteins/modals/_spectra_url_modal.html' with protein=protein %}
 
 {% if protein.states.count > 1 %}
   {% include 'proteins/modals/_state_transition_modal.html' with transition_form=transition_form %}
