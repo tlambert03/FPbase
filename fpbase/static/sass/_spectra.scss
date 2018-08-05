@@ -48,6 +48,10 @@ h6 {
   top: 0px;
 }
 
+#shareModal, #settingsModal, #embedModal, #infoModal {
+  z-index: 1080;
+}
+
 .spectrumpage{
   .spectra-wrapper {
     position: relative;
