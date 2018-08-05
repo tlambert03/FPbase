@@ -181,7 +181,7 @@ $(document).on('click', '.comparison-btn', handle_comparison_button);
 $('.comparison-btn').on('click', handle_comparison_button);
 
 $(function(){
-  if ($("#comparison-slider")){
+  if (document.getElementById('comparison-slider')){
     $.getJSON('/ajax/comparison/').then(function(d){
       populate_comparison_tab(d.comparison_set);
     })
