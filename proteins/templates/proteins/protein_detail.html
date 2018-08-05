@@ -227,8 +227,8 @@
 		<div class="additional-ref references">
 			<h3>Additional References</h3>
 			<ol>
-				{% if protein.additional_references %}
-				{% for ref in protein.additional_references %}
+				{% if additional_references %}
+				{% for ref in additional_references %}
 					<li>{% include "_reference.html" %}</li>
 				{% endfor %}
 				{% else %}

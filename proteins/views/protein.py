@@ -9,7 +9,7 @@ from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
-from django.db.models import Case, When
+from django.db.models import Case, When, Count
 from django.db.models.functions import Substr
 from django.core.mail import mail_managers
 from ..models import Protein, State, Organism, BleachMeasurement
@@ -24,7 +24,8 @@ import json
 
 class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
-    queryset = Protein.visible.all().prefetch_related('states')
+    queryset = Protein.visible.annotate(has_spectra=Count('states__spectra')) \
+        .prefetch_related('states')
 
     def version_view(self, request, version, *args, **kwargs):
         try:
@@ -70,6 +71,7 @@ class ProteinDetailView(DetailView):
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip('td'))
         similar = similar | Protein.visible.filter(name__iexact='td' + self.object.name)
         data['similar'] = similar.exclude(id=self.object.id)
+        data['additional_references'] = Reference.objects.filter(proteins=self.object).exclude(id=self.object.primary_reference.id).order_by('-year')
         return data
 
 
@@ -204,6 +206,7 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         return super().form_valid(form)
 
 
+@cache_page(60 * 60)
 def spectra_image(request, slug, **kwargs):
     from django.http import FileResponse
     import io
