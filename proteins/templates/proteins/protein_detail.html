@@ -13,6 +13,10 @@
     {% include '_comparetab.html' %}
 {% endblock bodyopen %}
 
+{% block extrahead %}
+{% include 'proteins/_structured_data.html' with protein=protein %}
+{% endblock extrahead %}
+
 {% block content %}
 			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name | safe }}</h1>
 
