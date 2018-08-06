@@ -4,9 +4,10 @@
   "@type":"Dataset",
   "name":"{{ protein.name | safe }}",
   "description":"{{ protein.description | safe }}",
-  "url":"https://www.fpbase.org/{{protein.get_absolute_url}}",
+  "url":"https://www.fpbase.org{{protein.get_absolute_url}}",
   {% if protein.has_spectra %}"image":"https://www.fpbase.org/spectra_img/{{protein.slug}}.svg",{% endif %}
   "keywords":[
+     "FLUORESCENT PROTEIN",
      "FLUORESCENT PROTEINS > SPECTRA",
      "FLUORESCENT PROTEINS > PROPERTIES",
      "FLUORESCENT PROTEINS > SEQUENCE",
@@ -80,12 +81,12 @@
      {
         "@type":"DataDownload",
         "encodingFormat":"JSON",
-        "contentUrl":"https://www.fpbase.org/api/proteins/?name__iexact=mneongreen&format=json"
+        "contentUrl":"https://www.fpbase.org/api/proteins/?name__iexact={{protein.slug}}&format=json"
      },
      {
         "@type":"DataDownload",
         "encodingFormat":"CSV",
-        "contentUrl":"https://www.fpbase.org/api/proteins/?name__iexact=mneongreen&format=csv"
+        "contentUrl":"https://www.fpbase.org/api/proteins/?name__iexact={{protein.slug}}&format=csv"
      }
   ]
 };
