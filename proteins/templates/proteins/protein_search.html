@@ -158,7 +158,6 @@ If you find that you are not getting results, relax your query.</p>
     }
 
     function operator_options(ops){
-        console.log('generating operator options with: ' + Array.from(ops).join(' '))
         var out = ''
         for (let o of ops){
             if (o in operatorLookup){
@@ -228,7 +227,6 @@ If you find that you are not getting results, relax your query.</p>
     }
 
     function addRow(target, filter, operator){
-        console.log('>>>Row added')
         newrow = $(queryRow(i)).appendTo(target);
 
         if (filter) {
@@ -259,24 +257,20 @@ If you find that you are not getting results, relax your query.</p>
 
     function disableOperator(name, op){
         fields[name].delete(op);
-        console.log('Disabling: ' + name + " " + op)
         if (fields[name].size == 0){
             available_fields.delete(name);
-            console.log('Field now unavailable: ' + name);
         }
     }
 
     function enableOperator(name, op){
         fields[name].add(op);
         available_fields.add(name);
-        console.log('Enabled: ' + name + " " + op)
     }
 
     function updateOperators(filterName, sender){
         // where sender is the operatorSelect that sent the update command
         selector = $('.' + filterName + '_operator').not(sender)
         if(selector.length > 0){
-            console.log('updating operators for filter: ' + filterName);
             selector.find('option').not(':selected').remove();
             selector.append(operator_options(fields[filterName]));
         }
@@ -286,7 +280,6 @@ If you find that you are not getting results, relax your query.</p>
         // Store the current value on focus and on change
         prevName = this.value;
         prevOperator = $(this).closest('.query-row').find('.operator-select').val();
-        console.log('Focused on: ' + prevName + " " + prevOperator)
 
     })
     $("body").on('focus', '.operator-select', function (event) {
@@ -299,7 +292,6 @@ If you find that you are not getting results, relax your query.</p>
     })
 
     $("body").on("click", ".remove-row-btn", function(){
-        console.log(">>>Row removed")
         thisrow = $(this).closest('.query-row')
         filterName = thisrow.find('.filter-select').val()
         operatorSelect = thisrow.find('.operator-select')
@@ -315,7 +307,6 @@ If you find that you are not getting results, relax your query.</p>
 
 
     $("body").on("change", ".filter-select", function(){
-        console.log(">>>Filter selector changed")
         //when the filter name selector gets changed (or added)
         dropdownSelect = $(this)
         filterName = dropdownSelect.val()
@@ -342,7 +333,6 @@ If you find that you are not getting results, relax your query.</p>
     })
 
     $("body").on("change", ".operator-select", function(){
-        console.log(">>>Operator selector changed")
         thisrow = $(this).closest('.query-row')
         filterName = thisrow.find('.filter-select').val()
         enableOperator(filterName, prevOperator);
