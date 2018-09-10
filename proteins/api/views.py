@@ -16,7 +16,7 @@ class SpectrumList(ListAPIView):
     queryset = Spectrum.objects.all()
     serializer_class = SpectrumSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = SpectrumFilter
+    filterset_class = SpectrumFilter
 
 
 class ProteinListAPIView(ListAPIView):
@@ -25,7 +25,7 @@ class ProteinListAPIView(ListAPIView):
     serializer_class = ProteinSerializer
     lookup_field = 'slug'  # Don't use Protein.id!
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = ProteinFilter
+    filterset_class = ProteinFilter
     renderer_classes = [r.CSVRenderer, ] + api_settings.DEFAULT_RENDERER_CLASSES
 
     @method_decorator(cache_page(60 * 10))
@@ -53,7 +53,7 @@ class StatesListAPIView(ListAPIView):
     lookup_field = 'slug'  # Don't use State.id!
     renderer_classes = [r.CSVRenderer, ] + api_settings.DEFAULT_RENDERER_CLASSES
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = StateFilter
+    filterset_class = StateFilter
 
 
 class ProteinSpectraListAPIView(ListAPIView):
