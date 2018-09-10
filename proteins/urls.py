@@ -107,5 +107,6 @@ urlpatterns = [
     url(r'^ajax/add_to_collection/$', views.add_to_collection, name='add_to_collection'),
     url(r'^ajax/comparison/$', views.update_comparison, name='update-comparison'),
 
+    url(r'^test/(?P<slug>[-\w]+)/$', views.Widget.as_view(), name='widget-detail'),
 
 ]

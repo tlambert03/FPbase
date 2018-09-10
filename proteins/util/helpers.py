@@ -236,9 +236,9 @@ def forster_list():
     return list(reversed(sorted(out, key=lambda x: x['forster'])))
 
 
-def prot_spectra_fig(prot, format='svg', output=None,
-                     xlim=(350, 750), fill=True, xlabels=True, ylabels=False,
-                     transparent=True, grid=False, title=False, **kwargs):
+def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
+                xlim=None, fill=True, transparent=True, grid=False,
+                title=False, info=None, **kwargs):
     from matplotlib.figure import Figure
     from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
     import matplotlib.ticker as ticker
@@ -253,16 +253,17 @@ def prot_spectra_fig(prot, format='svg', output=None,
 
     alph = kwargs.pop('alpha', None)
     colr = kwargs.pop('color', None)
-    for state in prot.states.all():
-        for spec in state.spectra.exclude(subtype='2p'):
-            color = spec.color() if not colr else colr
-            if fill:
-                alpha = 0.5 if not alph else float(alph)
-                ax.fill_between(*list(zip(*spec.data)), color=color,
-                                alpha=alpha, url='http://google.com=', **kwargs)
-            else:
-                alpha = 1 if not alph else float(alph)
-                ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)
+    if not xlim:
+        xlim = (min([s.min_wave for s in spectra]), max([s.max_wave for s in spectra]))
+    for spec in spectra:
+        color = spec.color() if not colr else colr
+        if fill:
+            alpha = 0.5 if not alph else float(alph)
+            ax.fill_between(*list(zip(*spec.data)), color=color,
+                            alpha=alpha, url='http://google.com=', **kwargs)
+        else:
+            alpha = 1 if not alph else float(alph)
+            ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)
     ax.set_ylim((-0.005, 1.025))
     ax.set_xlim(xlim)
     # Hide the right and top spines
@@ -276,12 +277,13 @@ def prot_spectra_fig(prot, format='svg', output=None,
         ax.yaxis.set_minor_locator(ticker.MultipleLocator(.1))
         ax.set_axisbelow(True)
 
-    pos = [0.02, 0.017, 0.97, 0.98]
+    pos = [0, 0.017, 0.97, 0.98]
     if xlabels:
         ax.spines['bottom'].set_linewidth(0.4)
         ax.spines['bottom'].set_color((.5, .5, .5))
         ax.tick_params(axis='x', colors=(.2, .2, .2), length=0)
         ax.xaxis.set_major_locator(ticker.MultipleLocator(50))
+        pos[0] = 0.02
         pos[1] = 0.08
         pos[3] -= .065
     else:
@@ -300,17 +302,18 @@ def prot_spectra_fig(prot, format='svg', output=None,
         pos[0] = 0.015
 
     ax.set_position(pos)
-    if title and not isinstance(title, str):
-        title = prot.name
     if title:
         font = {'family': 'sans-serif',
                 'color': 'black',
                 'weight': 'normal',
                 'size': 18,
                 }
-        ax.text(xlim[0] + 2, 0.92, title, fontdict=font, alpha=0.5)
+        ax.text(xlim[0] + 2, 0.97, title, va='top', fontdict=font, alpha=0.5)
+        if info:
+            font['size'] = 14
+            ax.text(xlim[0] + 2, 0.85, info, va='top', fontdict=font, alpha=0.5)
 
     if not output:
-        output = io.StringIO()
+        output = io.BytesIO()
     canvas.print_figure(output, format=format, transparent=True)
     return output

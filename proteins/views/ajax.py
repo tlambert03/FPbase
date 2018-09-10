@@ -146,3 +146,16 @@ def validate_proteinname(request):
             'is_taken': False,
         }
     return JsonResponse(data)
+
+
+from django.views.generic import DetailView
+
+
+class Widget(DetailView):
+    template_name = "widget.js"
+    queryset = Protein.visible.prefetch_related('states')
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        print(self.request.build_absolute_uri())
+        return data

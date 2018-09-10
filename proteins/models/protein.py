@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+import uuid as uuid_lib
+import json
+import re
+import io
+import sys
+import os
+from subprocess import run, PIPE
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
@@ -12,21 +19,13 @@ from model_utils.models import StatusModel, TimeStampedModel
 from model_utils.managers import QueryManager
 from model_utils import Choices
 
-import uuid as uuid_lib
-import json
-import re
-import io
-import sys
-import os
-from subprocess import run, PIPE
-
-
 from references.models import Reference
 from .mixins import Authorable
-from ..util.helpers import get_color_group, mless, get_base_name, prot_spectra_fig
+from ..util.helpers import get_color_group, mless, get_base_name, spectra_fig
 # from .extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator, validate_uniprot
 from .. import util
+from .spectrum import Spectrum
 from ..util.sequence import FPSeq
 from reversion.models import Version
 
@@ -312,7 +311,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return json.dumps(spectra)
 
     def spectra_img(self, fmt='svg', output=None, **kwargs):
-        return prot_spectra_fig(self, fmt, output, **kwargs)
+        spectra = Spectrum.objects.filter(owner_state__protein=self).exclude(subtype='2p')
+        title = self.name if kwargs.pop('title', False) else None
+        info = 'Ex/Em λ: {}/{}'.format(self.default_state.ex_max, self.default_state.em_max)
+        info += '\nEC: {}   QY: {}'.format(self.default_state.ext_coeff, self.default_state.qy)
+        return spectra_fig(spectra, fmt, output, title=title, info=info, **kwargs)
 
     def set_state_and_type(self):
         # FIXME: should allow control of default states in form

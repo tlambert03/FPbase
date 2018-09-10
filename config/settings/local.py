@@ -45,6 +45,17 @@ if env('MAILGUN_API_KEY', default=False) and env('MAILGUN_DOMAIN', default=False
     EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 
 
+# CORS
+# -------
+
+MIDDLEWARE = ['corsheaders.middleware.CorsMiddleware', ] + MIDDLEWARE
+INSTALLED_APPS += ['corsheaders', ]
+CORS_ORIGIN_WHITELIST = (
+    'localhost:8000',
+    'localhost:3000',
+)
+CORS_URLS_REGEX = r'^/test/.*$'
+
 
 # CACHING
 # ------------------------------------------------------------------------------
