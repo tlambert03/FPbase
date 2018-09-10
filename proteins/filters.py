@@ -13,19 +13,19 @@ class SpectrumFilter(filters.FilterSet):
 
 
 class StateFilter(filters.FilterSet):
-    ex_spectra = django_filters.BooleanFilter(name='ex_spectra', lookup_expr='isnull')
-    em_spectra = django_filters.BooleanFilter(name='em_spectra', lookup_expr='isnull')
+    ex_spectra = django_filters.BooleanFilter(field_name='ex_spectra', lookup_expr='isnull')
+    em_spectra = django_filters.BooleanFilter(field_name='em_spectra', lookup_expr='isnull')
 
     spectral_brightness = django_filters.NumberFilter(
-        name='spectral_brightness',
+        field_name='spectral_brightness',
         method='get_specbright',
         help_text='fold brightness relative to spectral neighbors')
     spectral_brightness__gt = django_filters.NumberFilter(
-        name='spectral_brightness',
+        field_name='spectral_brightness',
         method='get_specbright_gt', lookup_expr='gt',
         help_text='fold brightness relative to spectral neighbors')
     spectral_brightness__lt = django_filters.NumberFilter(
-        name='spectral_brightness',
+        field_name='spectral_brightness',
         method='get_specbright_lt', lookup_expr='lt',
         help_text='fold brightness relative to spectral neighbors')
 
@@ -78,34 +78,34 @@ class CharArrayFilter(filters.BaseCSVFilter, filters.CharFilter):
 
 class ProteinFilter(filters.FilterSet):
     spectral_brightness = django_filters.NumberFilter(
-        name='spectral_brightness',
+        field_name='spectral_brightness',
         method='get_specbright',
         help_text='fold brightness relative to spectral neighbors')
     spectral_brightness__gt = django_filters.NumberFilter(
-        name='spectral_brightness',
+        field_name='spectral_brightness',
         method='get_specbright_gt', lookup_expr='gt',
         help_text='fold brightness relative to spectral neighbors')
     spectral_brightness__lt = django_filters.NumberFilter(
-        name='spectral_brightness',
+        field_name='spectral_brightness',
         method='get_specbright_lt', lookup_expr='lt',
         help_text='fold brightness relative to spectral neighbors')
     seq__cdna_contains = django_filters.CharFilter(
-        name='seq',
+        field_name='seq',
         method='translate_cdna', lookup_expr='cdna_contains',
         help_text='cDNA sequence (in frame)')
-    pdb__contains = CharArrayFilter(name='pdb', lookup_expr='contains')
-    # aliases__contains = CharArrayFilter(name='aliases', lookup_expr='icontains')
+    pdb__contains = CharArrayFilter(field_name='pdb', lookup_expr='contains')
+    # aliases__contains = CharArrayFilter(field_name='aliases', lookup_expr='icontains')
     name__icontains = django_filters.CharFilter(
-        name='name',
+        field_name='name',
         method='name_or_alias_icontains', lookup_expr='icontains')
     # name__iexact = django_filters.CharFilter(
-    #     name='name',
+    #     field_name='name',
     #     method='name_or_alias_iexact', lookup_expr='iexact')
     # name__iendswith = django_filters.CharFilter(
-    #     name='name',
+    #     field_name='name',
     #     method='name_or_alias_iendswith', lookup_expr='iendswith')
     # name__istartswith = django_filters.CharFilter(
-    #     name='name',
+    #     field_name='name',
     #     method='name_or_alias_istartswith', lookup_expr='istartswith')
 
     class Meta:
@@ -183,18 +183,19 @@ class ProteinFilter(filters.FilterSet):
 
     def get_specbright(self, queryset, name, value):
         qsALL = list(queryset.all())
-        return [P for P in qsALL if P.default_state and P.default_state.local_brightness == value]
+        ids = [P.id for P in qsALL if P.default_state and P.default_state.local_brightness == value]
+        return queryset.filter(id__in=ids)
 
     def get_specbright_lt(self, queryset, name, value):
         qsALL = list(queryset.all())
-        return [P for P in qsALL if P.default_state and P.default_state.local_brightness < value]
+        ids = [P.id for P in qsALL if P.default_state and P.default_state.local_brightness < value]
+        return queryset.filter(id__in=ids)
 
     def get_specbright_gt(self, queryset, name, value):
         qsALL = list(queryset.all())
-        print(qsALL)
-        return [P for P in qsALL if P.default_state and P.default_state.local_brightness > value]
+        ids = [P.id for P in qsALL if P.default_state and P.default_state.local_brightness > value]
+        return queryset.filter(id__in=ids)
 
     def translate_cdna(self, queryset, name, value):
         coding_dna = Seq.Seq(value, Alphabet.IUPAC.unambiguous_dna)
         return queryset.filter(seq__icontains=coding_dna.translate())
-
