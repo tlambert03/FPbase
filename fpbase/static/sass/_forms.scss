@@ -179,6 +179,10 @@ i {
   }
 }
 
+/* dal bootstrap css fix */
+#microscopeform .select2-container {
+    width: 100% !important;
+}
 
 // select2 widgets
 .select2-container {
