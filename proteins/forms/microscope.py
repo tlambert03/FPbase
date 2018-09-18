@@ -273,7 +273,6 @@ class OpticalConfigForm(forms.ModelForm):
         label="Excitation Filter(s)",
         queryset=Filter.objects.all(), required=False,
         widget=autocomplete.ModelSelect2Multiple(
-            url='proteins:filter-autocomplete',
             attrs={
                 'class': 'custom-select',
                 'data-theme': 'bootstrap',
@@ -286,7 +285,7 @@ class OpticalConfigForm(forms.ModelForm):
         label="Emission Filter(s)",
         queryset=Filter.objects.all(), required=False,
         widget=autocomplete.ModelSelect2Multiple(
-            url='proteins:filter-autocomplete',
+            # url='proteins:filter-autocomplete',
             attrs={
                 'data-theme': 'bootstrap',
                 'data-width': "100%",
@@ -298,7 +297,6 @@ class OpticalConfigForm(forms.ModelForm):
         label="Advanced: Reflective Emission Filter(s)",
         queryset=Filter.objects.all(), required=False,
         widget=autocomplete.ModelSelect2Multiple(
-            url='proteins:filter-autocomplete',
             attrs={
                 'data-theme': 'bootstrap',
                 'data-width': "100%",
@@ -311,7 +309,6 @@ class OpticalConfigForm(forms.ModelForm):
         label="Dichroic Filter(s)",
         queryset=Filter.objects.all(), required=False,
         widget=autocomplete.ModelSelect2Multiple(
-            url='proteins:filter-autocomplete',
             attrs={
                 'data-theme': 'bootstrap',
                 'data-width': "100%",

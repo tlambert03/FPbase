@@ -67,22 +67,24 @@ class MicroscopeCreateUpdateMixin:
         ocformset = context['optical_configs']
 
         if not ocformset.is_valid():
-            self.success_message = 'Please correct errors in the individual configs tab'
+            messages.add_message(self.request, messages.ERROR,
+                                 'Please correct errors in the individual configs tab')
             context.update({'optical_configs': ocformset, 'formsets_invalid': 'true'})
             return self.render_to_response(context)
-
-        self.object = form.save(commit=False)
 
         # enforce at least one valid optical config
         ocform_has_forms = any([f.cleaned_data.get('name')
                                 for f in ocformset.forms
                                 if not f.cleaned_data.get("DELETE")])
         if not (ocform_has_forms or form.cleaned_data.get('optical_configs')):
-            self.success_message = ('What good is a microscope without any optical '
-                                    'configurations? Please add at least one config '
-                                    'on either tab below')
+            messages.add_message(self.request, messages.ERROR,
+                                 'What good is a microscope without any optical '
+                                 'configurations? Please add at least one config '
+                                 'on either tab below')
             context.update({'optical_configs': ocformset})
             return self.render_to_response(context)
+
+        self.object = form.save(commit=False)
 
         # otherwise save...
         with transaction.atomic():
@@ -92,30 +94,32 @@ class MicroscopeCreateUpdateMixin:
         return HttpResponseRedirect(self.get_success_url())
 
 
-class MicroscopeCreateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin,
+class MicroscopeCreateView(MicroscopeCreateUpdateMixin,
                            OwnableObject, CreateView):
     ''' renders html for microscope creation page '''
     model = Microscope
     form_class = MicroscopeForm
-    success_message = ("Welcome to your new microcope page!  You can find this "
-                       "page any time in your profile, and share this link with "
-                       "others.  Click the gear icon below the graph to edit "
-                       "configurations or delete this microscope.")
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         response = super().form_valid(form)
-        if self.object and not self.request.user.is_staff:
-            try:
-                mail_admins('Microscope Created',
-                            "User: {}\nMicroscope: {}\n{}".format(
-                                self.request.user.username,
-                                self.object,
-                                self.request.build_absolute_uri(
-                                    self.object.get_absolute_url())),
-                            fail_silently=True)
-            except Exception:
-                pass
+        if self.object:
+            messages.add_message(self.request, messages.SUCCESS,
+                                 "Welcome to your new microcope page!  You can find this "
+                                 "page any time in your profile, and share this link with "
+                                 "others.  To <strong>update</strong> or <strong>delete</strong> this microscope, "
+                                 "click the <i class='fas fa-cog mx-1'></i> icon below the graph.")
+            if not self.request.user.is_staff:
+                try:
+                    mail_admins('Microscope Created',
+                                "User: {}\nMicroscope: {}\n{}".format(
+                                    self.request.user.username,
+                                    self.object,
+                                    self.request.build_absolute_uri(
+                                        self.object.get_absolute_url())),
+                                fail_silently=True)
+                except Exception:
+                    pass
         return response
 
     def get_context_data(self, **kwargs):
