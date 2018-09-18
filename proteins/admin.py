@@ -282,7 +282,7 @@ class OrganismAdmin(CompareVersionAdmin):
 class ProteinAdmin(CompareVersionAdmin):
     autocomplete_fields = ('parent_organism', 'references', 'primary_reference')
     list_display = ('__str__', 'ipg_id', 'switch_type', 'created', 'modified', 'states_all_count')
-    list_filter = ('created', 'modified', 'switch_type', 'created_by__username', 'status')
+    list_filter = ('status', 'created', 'modified', 'switch_type',)
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [
