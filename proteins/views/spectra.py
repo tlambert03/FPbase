@@ -1,17 +1,15 @@
 import json
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.core.cache import cache
 from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.views.generic import CreateView
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
-from ..models import Spectrum, Filter, State
+from ..models import Spectrum, Filter
 from ..forms import SpectrumForm
 from ..util.spectra import spectra2csv
 from ..util.importers import add_filter_to_database
-from ..util.helpers import forster_list
 
 
 def protein_spectra(request, slug=None):
@@ -37,27 +35,6 @@ def protein_spectra(request, slug=None):
         return render(request, template, {
             'spectra_options': json.dumps(spectra)}
         )
-
-
-def fret_chart(request):
-    ''' renders html for protein spectra page  '''
-    template = 'fret.html'
-
-    if request.method == 'GET':
-
-        if request.is_ajax():
-            L = cache.get('forster_list')
-            if not L:
-                L = forster_list()
-                cache.set('forster_list', L, 60 * 60 * 24 * 7)
-            return JsonResponse({'data': L})
-
-        else:
-            slugs = State.objects.filter(spectra__subtype='ex').values('slug', 'protein__name', 'spectra__category', 'spectra__subtype')
-            slugs = [{'slug': x['slug'], 'category': x['spectra__category'], 'subtype': x['spectra__subtype'], 'name': x['protein__name']} for x in slugs]
-            return render(request, template, {
-                'probeslugs': slugs}
-            )
 
 
 class SpectrumCreateView(CreateView):

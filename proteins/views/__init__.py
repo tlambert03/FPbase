@@ -5,3 +5,4 @@ from .autocomplete import *
 from .search import *
 from .spectra import *
 from .microscope import *
+from .fret import *
