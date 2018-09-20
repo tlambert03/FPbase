@@ -181,7 +181,7 @@ CACHES = {
     }
 }
 
-REDIS_URL = env('REDIS_URL', 'redis://localhost:6379')
+REDIS_URL = env('REDIS_URL', default='redis://localhost:6379')
 
 # DJANGO CHANNELS
 CHANNEL_LAYERS = {
