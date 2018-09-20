@@ -7,7 +7,7 @@ from .util.helpers import forster_list
 class FRETConsumer(WebsocketConsumer):
     def connect(self):
         self.accept()
-
+        print("FRETConsumer accepted")
         L = cache.get('forster_list')
         self.send(text_data=json.dumps({'message': L}))
         if not L:
