@@ -181,12 +181,14 @@ CACHES = {
     }
 }
 
+REDIS_URL = env('REDIS_URL', 'redis://localhost:6379')
+
 # DJANGO CHANNELS
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [env('REDIS_URL', 'redis://localhost:6379')],
+            "hosts": [("".join(REDIS_URL.split(':')[:-1], REDIS_URL.split(':')[-1]))],
         },
     },
 }
