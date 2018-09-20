@@ -2,11 +2,13 @@ from channels.generic.websocket import WebsocketConsumer
 from django.core.cache import cache
 import json
 from .util.helpers import forster_list
+import logging
+logger = logging.getLogger(__name__)
 
 
 class FRETConsumer(WebsocketConsumer):
     def connect(self):
-        print("FRETConsumer accepted")
+        logger.warning('FRETConsumer')
         self.accept()
         L = cache.get('forster_list')
         self.send(text_data=json.dumps({'message': L}))
