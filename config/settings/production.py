@@ -181,6 +181,16 @@ CACHES = {
     }
 }
 
+# DJANGO CHANNELS
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [env('REDIS_URL', 'redis://localhost:6379')],
+        },
+    },
+}
+
 
 # Sentry Configuration
 SENTRY_JS_DSN = env('SENTRY_JS_DSN')
