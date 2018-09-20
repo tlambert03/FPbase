@@ -292,84 +292,100 @@ $.fn.dataTable.ext.search.push(
 
 $(document).ready(function() {
 
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    var socket = new WebSocket( ws_scheme + '://' + window.location.host + '/ws/fret/');
 
-    var fretTable = $('#fret_report').DataTable( {
-        "ajax": "/fret/",
-        'buttons': [
-            'copy', 'excel', 'pdf'
-        ],
-        "pageLength": 25,
-        "order": [[10, 'desc']],
-        "responsive": true,
-        "language": {
-          "emptyTable": "No Data received from server...",
-          "loadingRecords": "Calculating FRET efficiencies across database...  Please wait."
-        },
-        "update": function ()
-        {
-            this._positions();
-            this._scroll( false );
-        },
-        "columns": [
-            { "data": function () { return '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>'},
-              "responsivePriority": 1,
-              "width": '1px',
-              "orderable": false},
-            { "data": "donor",
-              "responsivePriority": 1,
-              "width": '20px'},
-            { "data": "acceptor",
-              "responsivePriority": 1,
-              "width": '20px'},
-            { "data": "donorPeak",
-              "responsivePriority": 5,
-              "width": '10px'},
-            { "data": "emdist",
-              "responsivePriority": 5,
-              "width": '10px'},
-            { "data": "donorQY",
-              "responsivePriority": 4},
-            { "data": "acceptorEC",
-              "responsivePriority": 4},
-            { "data": "acceptorQY",
-              "responsivePriority": 6},
-            { "data": "overlap",
-              "responsivePriority": 4},
-            { "data": "forster",
-              "responsivePriority": 3},
-            { "data": "forsterQYA",
-              "responsivePriority": 2}
-        ],
-    } );
+    socket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        var message = data['message'];
+        if (message === null) {
+          var fretTable = $('#fret_report').DataTable( {
+              'data': null,
+              "responsive": true,
+              "language": {
+                "emptyTable": "Updating FRET efficiencies across database...  This may take 20-30 seconds"
+              },
+            })
+        } else {
+          var fretTable = $('#fret_report').DataTable( {
+              "destroy": true,
+              'data': message,
+              'buttons': [
+                  'copy', 'excel', 'pdf'
+              ],
+              "pageLength": 25,
+              "order": [[10, 'desc']],
+              "responsive": true,
+              "language": {
+                "emptyTable": "No Data received from server...",
+                "loadingRecords": "Calculating FRET efficiencies across database...  Please wait."
+              },
+              "update": function ()
+              {
+                  this._positions();
+                  this._scroll( false );
+              },
+              "columns": [
+                  { "data": function () { return '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>'},
+                    "responsivePriority": 1,
+                    "width": '1px',
+                    "orderable": false},
+                  { "data": "donor",
+                    "responsivePriority": 1,
+                    "width": '20px'},
+                  { "data": "acceptor",
+                    "responsivePriority": 1,
+                    "width": '20px'},
+                  { "data": "donorPeak",
+                    "responsivePriority": 5,
+                    "width": '10px'},
+                  { "data": "emdist",
+                    "responsivePriority": 5,
+                    "width": '10px'},
+                  { "data": "donorQY",
+                    "responsivePriority": 4},
+                  { "data": "acceptorEC",
+                    "responsivePriority": 4},
+                  { "data": "acceptorQY",
+                    "responsivePriority": 6},
+                  { "data": "overlap",
+                    "responsivePriority": 4},
+                  { "data": "forster",
+                    "responsivePriority": 3},
+                  { "data": "forsterQYA",
+                    "responsivePriority": 2}
+              ],
+          } );
 
-    var sel = $("#fret_report_wrapper .row:first-child div.col-md-6")
-    sel.removeClass('col-md-6').addClass('col-md-4')
+          var sel = $("#fret_report_wrapper .row:first-child div.col-md-6")
+          sel.removeClass('col-md-6').addClass('col-md-4')
 
-    var e = $('#fret_report_wrapper .row:first-child div.col-md-4:first-child');
-    e.removeClass('col-md-4').addClass('col-md-3')
-    var D1 = $('<div>', { class: 'col-md-2 col-sm-6 col-xs-12', style: 'margin-top: -2px;'})
-      .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
-               .append($('<div>', { class: 'input-group-prepend'})
-                        .append($('<span>', { class: 'input-group-text', id: 'minQYA'}).html('min QY<sub>A</sub>'))
-                )
-               .append($('<input>', { type: 'number', step: 0.01, min: 0, max: 1, class: 'form-control',
-                                      'aria-describedby': "minQYA", value: 0.4, id: 'minQYAinput'}))
-      ).insertAfter(e)
+          var e = $('#fret_report_wrapper .row:first-child div.col-md-4:first-child');
+          e.removeClass('col-md-4').addClass('col-md-3')
+          var D1 = $('<div>', { class: 'col-md-2 col-sm-6 col-xs-12', style: 'margin-top: -2px;'})
+            .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
+                     .append($('<div>', { class: 'input-group-prepend'})
+                              .append($('<span>', { class: 'input-group-text', id: 'minQYA'}).html('min QY<sub>A</sub>'))
+                      )
+                     .append($('<input>', { type: 'number', step: 0.01, min: 0, max: 1, class: 'form-control',
+                                            'aria-describedby': "minQYA", value: 0.4, id: 'minQYAinput'}))
+            ).insertAfter(e)
 
-    $('<div>', { class: 'col-md-3 col-sm-6 col-xs-12', style: 'margin-top: -2px;'})
-      .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
-               .append($('<div>', { class: 'input-group-prepend'})
-                        .append($('<span>', { class: 'input-group-text', id: 'minLambdaSepLab'})
-                        .html('min &Delta;&lambda;<sub class="small">em</sub>'))
-                )
-               .append($('<input>', { type: 'number', min: -200, max: 200, class: 'form-control',
-                                      'aria-describedby': "minLambdaSepLab", value: 20, id: 'minLambdaSep'}))
-      ).insertAfter(D1)
+          $('<div>', { class: 'col-md-3 col-sm-6 col-xs-12', style: 'margin-top: -2px;'})
+            .append($('<div>', { class: "input-group input-group-sm d-flex justify-content-center pb-3"})
+                     .append($('<div>', { class: 'input-group-prepend'})
+                              .append($('<span>', { class: 'input-group-text', id: 'minLambdaSepLab'})
+                              .html('min &Delta;&lambda;<sub class="small">em</sub>'))
+                      )
+                     .append($('<input>', { type: 'number', min: -200, max: 200, class: 'form-control',
+                                            'aria-describedby': "minLambdaSepLab", value: 20, id: 'minLambdaSep'}))
+            ).insertAfter(D1)
 
-
-    $('#minQYAinput, #minLambdaSep').keyup( function() {
-        fretTable.draw();
-    } );
+          $('#minQYAinput, #minLambdaSep').keyup( function() {
+              fretTable.draw();
+          } );
+        }
+    };
 
 } );
 

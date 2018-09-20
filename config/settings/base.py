@@ -53,6 +53,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    'channels',
     'crispy_forms',  # Form layouts
     'allauth',  # registration
     'allauth.account',  # registration
@@ -314,6 +315,11 @@ AVATAR_CACHE_ENABLED = False
 AVATAR_GRAVATAR_DEFAULT = 'identicon'
 AVATAR_CLEANUP_DELETED = True
 
+
+# DJANGO CHANNELS
+# ------------------------------------------------------------------------------
+
+ASGI_APPLICATION = "fpbase.routing.application"
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
