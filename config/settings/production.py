@@ -35,9 +35,9 @@ MIDDLEWARE = ['whitenoise.middleware.WhiteNoiseMiddleware'] + MIDDLEWARE
 
 # raven sentry client
 # See https://docs.sentry.io/clients/python/integrations/django/
-# INSTALLED_APPS += ['raven.contrib.django.raven_compat', ]
-# RAVEN_MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware']
-# MIDDLEWARE = RAVEN_MIDDLEWARE + MIDDLEWARE
+INSTALLED_APPS += ['raven.contrib.django.raven_compat', ]
+RAVEN_MIDDLEWARE = ['raven.contrib.django.raven_compat.middleware.SentryResponseErrorIdMiddleware']
+MIDDLEWARE = RAVEN_MIDDLEWARE + MIDDLEWARE
 
 # opbeat integration
 # See https://opbeat.com/languages/django/

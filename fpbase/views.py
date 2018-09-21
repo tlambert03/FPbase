@@ -4,6 +4,9 @@ from django.shortcuts import render
 from django.http import HttpResponseServerError
 from django.template import loader
 from django.conf import settings
+import logging
+from django.http import HttpResponse
+logger = logging.getLogger(__name__)
 
 
 class ContactView(FormView):
@@ -18,6 +21,13 @@ class ContactView(FormView):
             form.send_email()
             return super().form_valid(form)
         return render(self.request, self.template_name, self.get_context_data())
+
+
+def wsfret(request):
+        # Return an "Internal Server Error" 500 response code.
+        logger.warning('FRETConsumer')
+        print('wsfret view')
+        return HttpResponse('hi')
 
 
 def test500(request):
