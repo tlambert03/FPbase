@@ -162,7 +162,7 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
 # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
 DATABASES['default'] = env.db('DATABASE_URL')
 DATABASES['default']['ATOMIC_REQUESTS'] = True  # noqa F405
-DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=60)
+# DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=500)
 
 # CACHING
 # ------------------------------------------------------------------------------
