@@ -30,6 +30,8 @@ if READ_DOT_ENV_FILE:
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+    'channels',
+
     # Default Django apps:
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -53,7 +55,6 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    'channels',
     'crispy_forms',  # Form layouts
     'allauth',  # registration
     'allauth.account',  # registration
