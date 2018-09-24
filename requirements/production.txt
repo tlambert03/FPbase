@@ -12,4 +12,4 @@ django-storages[boto3]==1.7.1  # https://github.com/jschneier/django-storages
 
 # New relic monitoring
 # -----------------------------------------
-newrelic==4.2.0.100
+newrelic==4.4.0.103
