@@ -146,6 +146,8 @@ class ProteinForm(forms.ModelForm):
 
     def clean_seq(self):
         seq = self.cleaned_data['seq']
+        if set(seq) == set('ACTG'):
+            raise forms.ValidationError('Please enter an amino acid sequence... not a DNA sequence.')
         self.cleaned_data['seq'] = "".join(seq.split()).upper()
         return check_existence(self, 'seq', self.cleaned_data['seq'])
 
