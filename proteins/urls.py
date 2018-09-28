@@ -24,12 +24,18 @@ urlpatterns = [
 
     url(r'^sequence_problems/', views.sequence_problems, name='sequence_problems'),
 
-    url(r'^spectra/submit',
+    url(r'^spectra/submit/$',
         login_required(views.SpectrumCreateView.as_view(),
                        message="You must be logged in to submit a new spectrum"),
         name='submit-spectra'),
+
+    url(r'^spectra/submit/(?P<slug>[-\w]+)/$',
+        login_required(views.SpectrumCreateView.as_view(),
+                       message="You must be logged in to submit a new spectrum"),
+        name='submit-spectra'),
+
     url(r'^spectra/(?P<slug>[-\w]+)', views.protein_spectra, name='spectra'),
-    url(r'^spectra/', views.protein_spectra, name='spectra'),
+    url(r'^spectra/$', views.protein_spectra, name='spectra'),
     url(r'^spectra_csv/', views.spectra_csv, name='spectra_csv'),
     url(r'^spectra_img/(?P<slug>[-\w]+)(\.(?P<extension>(png)|(svg)|(tif?f)|(pdf)|(jpe?g))?)?$', views.spectra_image, name='spectra-img'),
 

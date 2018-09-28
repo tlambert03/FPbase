@@ -11,11 +11,13 @@
   crossorigin="anonymous"></script>
 
   <h2>Add a new spectrum to the database</h2>
-  <p>The easiest way to format spectra for upload is to create a two-column CSV or TSV file, where the first column contains the wavelength and the second column contains the spectrum values (ex/em/transmission, etc).  Any additional columns will be ignored.  Data may also be entered below as a (python style) list: <code>[[wavelength, value], [wavelength, value], ...]</code></p>
+  <p>The easiest way to format spectra for upload is to create a two-column CSV or TSV file, where the first column contains the wavelength and the second column contains the spectrum values (ex/em/transmission, etc).  Any additional columns will be ignored.  <a href='https://automeris.io/WebPlotDigitizer/'>WebPlotDigitizer</a> can be used to extract a CSV file of spectral data from an image or PDF that can be imported here.</p>
+
+  <p>Data may also be entered below as a (python style) list: <code>[[wavelength, value], [wavelength, value], ...]</code></p>
   {% crispy form %}
 
   <p class='mt-3 small'>
-    <em>If you are adding different spectra for the same item (e.g. ex/em spectra for a dye) you must choose the same "Item Name" both times. And currently, this must be done sequentially.  If you run into difficulties importing spectra, please <a href="{% url 'contact' %}">let us know!</a></em>
+    <em>If you are adding different spectra for the same item (e.g. ex/em spectra for a dye or protein) you must choose the same "Dye/Protein Name" both times.  Currently, this must be done sequentially (submit the form and come back and submit again for the other spectrum).  If you run into difficulties importing spectra, please <a href="{% url 'contact' %}">let us know!</a></em>
   </p>
 
 {% endblock content %}

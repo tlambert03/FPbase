@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views.generic import CreateView
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
-from ..models import Spectrum, Filter, State
+from ..models import Spectrum, Filter, State, Protein
 from ..forms import SpectrumForm
 from ..util.spectra import spectra2csv
 from ..util.importers import add_filter_to_database
@@ -70,10 +70,35 @@ class SpectrumCreateView(CreateView):
         else:
             return "{}?s={}".format(reverse('proteins:spectra'), self.object.owner.slug)
 
+    def get_initial(self):
+        init = super().get_initial()
+        if self.kwargs.get('slug', False):
+            try:
+                p = Protein.objects.get(slug=self.kwargs.get('slug'))
+                init['owner_state'] = p.default_state
+                init['category'] = Spectrum.PROTEIN
+            except Exception:
+                pass
+        return init
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+
+    def get_form(self, form_class=None):
+        form = super().get_form()
+
+        if self.kwargs.get('slug', False):
+            try:
+                from django import forms
+                p = Protein.objects.get(slug=self.kwargs.get('slug'))
+                form.fields['owner_state'] = forms.ModelChoiceField(
+                    required=True, label='Protein', empty_label=None,
+                    queryset=State.objects.filter(protein=p).select_related('protein'))
+            except Exception:
+                pass
+        return form
 
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
@@ -87,6 +112,11 @@ class SpectrumCreateView(CreateView):
                 headers={'X-Mailgun-Track': 'no'}
             ).send()
         return i
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+        return context
 
 
 def spectra_csv(request):
