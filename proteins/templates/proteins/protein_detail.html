@@ -87,7 +87,8 @@
 		<div class="spectra">
 			{% if protein.has_spectra %}
       <div id="spectra">
-     <a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link mr-2"></i></a>
+       <a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link mr-2"></i></a>
+       <a href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link ml-4'><i class="fas fa-download mr-2 ml-1"></i></a>
       </div>
       {% else %}
       <p class='mt-4'>No spectrum has been submitted ... <a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary'>add a spectrum!</a></p>

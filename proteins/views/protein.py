@@ -71,6 +71,7 @@ class ProteinDetailView(DetailView):
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip('td'))
         similar = similar | Protein.visible.filter(name__iexact='td' + self.object.name)
         data['similar'] = similar.exclude(id=self.object.id)
+        data['spectra_ids'] = ",".join([str(sp.id) for state in self.object.states.all() for sp in state.spectra.all()])
         #data['additional_references'] = Reference.objects.filter(proteins=self.object).exclude(id=self.object.primary_reference.id).order_by('-year')
         return data
 
