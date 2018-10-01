@@ -21,7 +21,7 @@ djangorestframework==3.8.2  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3  # https://github.com/core-api/python-client
 djangorestframework-csv==2.1.0
 drf-tweaks==0.7.1
-markdown==2.6.11
+markdown==3.0.1
 
 # MY STUFF
 
