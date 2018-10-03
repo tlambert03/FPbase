@@ -60,9 +60,34 @@
 						<td class="numeric">{{ state.maturation | default_if_none:"-" }}</td>
 						<td class="numeric">{{ state.lifetime | default_if_none:"-" }}</td>
 						<td class='hidden'>{{ state.protein.switch_type }}</td>
-
 					</tr>
 				{% endif %}
+      {% empty %}
+                <tr class="data">
+                  {% if removebutton %}
+                  {% load protein_tags %}
+                    <td class="remove-button">{% collection_remove_button protein %}</td>
+                  {% endif %}
+                  <td class="protein">
+                    <a href="{{ protein.get_absolute_url }}">{{ protein | safe }}</a>
+                    {% if comparison %}
+                    <button class="float-left btn btn-outline-info mr-2 btn-circle comparison-btn" data-flash='1' data-action-url="{% url 'proteins:update-comparison' %}" data-object='{{protein.slug}}' data-op='add'><i class="fas fa-plus"></i></button>
+                    {% endif %}
+                  </td>
+                  <td class="numeric exmax"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <!-- <td class="numeric">{{ state.bright_rel_egfp | default:"-" }}</td> -->
+                  {% if showbleach %}<td class="numeric"></td>{% endif %}
+                  <td class="numeric"></td>
+                  <td class="numeric">{% if protein.agg %}{{ protein.agg }}{%else%}-{%endif%}</td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class='hidden'>{{ protein.switch_type }}</td>
+                </tr>
 			{% endfor %}
 		{% endfor %}
 	</tbody>

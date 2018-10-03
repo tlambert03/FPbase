@@ -1,5 +1,5 @@
 import reversion
-from django.views.generic import DetailView, CreateView, UpdateView
+from django.views.generic import DetailView, CreateView, UpdateView, ListView
 from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_protect
@@ -12,7 +12,7 @@ from django.db import transaction
 from django.db.models import Case, When, Count
 from django.db.models.functions import Substr
 from django.core.mail import mail_managers
-from ..models import Protein, State, Organism, BleachMeasurement
+from ..models import Protein, State, Organism, BleachMeasurement, Spectrum
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
                      BleachMeasurementForm)
 from proteins.util.spectra import spectra2csv
@@ -443,6 +443,11 @@ def protein_bleach_formsets(request, slug):
         formset = BleachMeasurementFormSet(queryset=qs)
         formset.form.base_fields['state'].queryset = State.objects.filter(protein__slug=slug)
     return render(request, template_name, {'formset': formset, 'protein': protein})
+
+
+class OrganismListView(ListView):
+    ''' renders html for single reference page  '''
+    queryset = Organism.objects.annotate(num_prot=Count('proteins'))
 
 
 class OrganismDetailView(DetailView):

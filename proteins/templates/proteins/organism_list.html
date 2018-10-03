@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static i18n compress favit_tags %}
+
+{% block title %}Parental Organisms in the Fluorescent Protein Database {% endblock %}
+{% block meta-description %}A list of all organisms from which proteins cataloged at FPbase have been derived{% endblock %}
+
+{% block content %}
+
+			<h1 class="name text-center mb-4">FPbase Organisms</h1>
+
+
+      <table class="table" id="org-table">
+        <thead>
+          <tr class="table-header">
+            <th>NCBI ID</th>
+            <th>Name</th>
+            <th>Division</th>
+            <th># Proteins in FPbase</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for object in object_list  %}
+          <tr>
+          <td><a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" class='text-info'>{{object.id}}</a></td>
+          <td><a href="{{ object.get_absolute_url }}">{{ object.scientific_name }}</a></td>
+          <td>{{ object.division }}</td>
+          <td>{{ object.num_prot }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+
+{% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript">
+
+
+///////////DATA TABLE
+
+$(function() {
+  $('#org-table').DataTable({
+    "iDisplayLength": -1,
+    "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100,"All"] ],
+    'fixedHeader': {
+        'header': true,
+        'footer': true,
+    },
+    "order": [[ 3, 'desc' ]],
+  });
+
+});
+</script>
+{% endblock javascript %}
+
+

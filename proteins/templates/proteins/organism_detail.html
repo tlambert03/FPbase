@@ -21,7 +21,7 @@
 				{% endif %}
 			</div>
 
-
+      <a href="{% url 'proteins:organism-list' %}" class='text-info'>See other organisms in the database</a>
 
 			<h5 class='pt-3'><strong>Proteins derived from this organism</strong></h5>
 			{% with proteins=object.proteins.all removebutton=False %}

@@ -61,6 +61,7 @@ urlpatterns = [
                        message="You must be logged in to create a new collection"),
         name='newcollection'),
 
+    url(r'^organisms/$', views.OrganismListView.as_view(), name='organism-list'),
     url(r'^organism/(?P<pk>\d+)/$', views.OrganismDetailView.as_view(), name='organism-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/bleach/$', views.protein_bleach_formsets, name='protein-bleach-form'),
