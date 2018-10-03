@@ -32,6 +32,9 @@ urlpatterns = [
     url(r'^privacy/$', TemplateView.as_view(template_name='pages/terms.html'), name='privacy'),
     url(r'^contributing/$', TemplateView.as_view(template_name='pages/contributing.html'), name='contributing'),
     url(r'^schema/$', TemplateView.as_view(template_name='pages/schema.html'), name='schema'),
+    url(r'^bleaching/$', TemplateView.as_view(template_name='pages/bleaching.html'), name='bleaching'),
+#    url(r'^mutations/$', TemplateView.as_view(template_name='pages/mutations.html'), name='mutations'),
+
     url(r'^robots\.txt$', TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots"),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     url(r'^googleaecf5301782589e7\.html$', TemplateView.as_view(template_name="googleaecf5301782589e7.html"), name="verification"),
