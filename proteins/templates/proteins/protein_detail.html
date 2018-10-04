@@ -95,34 +95,37 @@
       {% endif %}
 		</div>
 
-		  <dl class="row mt-4">
+    <div class="table mt-3">
+      <table class="table mobile" id='flip-scroll'>
+        <thead>
+          <tr class="table-header ">
+            <th>Aggregation</th>
+            <th>Organism</th>
+            <th>Molecular Weight</th>
+            <th>Cofactor</th>
+          </tr>
+        </thead>
+        <tbody>
 
-				  <dt class="col-sm-4 col-lg-2 text-lg-right">Aggregation:</dt>
-				  <dd class="col-sm-8 col-lg-2">{{protein.get_agg_display}}</dd>
+          <tr >
+            <td {% if not protein.agg %}class='text-muted'{% endif %}>{{protein.get_agg_display|default:'?'}}</td>
+            <td>
+              {% if protein.parent_organism %}
+              <a href="{{protein.parent_organism.get_absolute_url}}">{{protein.parent_organism}}</a>
+              {% else %}
+              <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>&lt;add one&gt;</a>
+              {% endif %}</td>
+            <td>{{ protein.seq.weight|floatformat:"1" }} kDa</td>
+            <td>{{protein.get_cofactor_display|default:'-' }}</td>
+          </tr>
 
-          {% if protein.seq %}
-          <dt class="col-sm-4 col-lg-2 text-lg-right">Molecular Weight:</dt>
-          <dd class="col-sm-8 col-lg-1 pr-0">{{ protein.seq.weight|floatformat:"1" }} kDa</dd>
-          {% endif %}
+        </tbody>
+      </table>
+    </div>
 
-  			  <dt class="col-sm-4 col-lg-2 text-lg-right">Organism:</dt>
-  			  <dd class="col-sm-8 col-lg-3">
-          <em>
-            {% if protein.parent_organism %}
-  			  	<a href="{{protein.parent_organism.get_absolute_url}}">{{protein.parent_organism}}</a>
-  			  	{% else %}
-  			  	<a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>&lt;add one&gt;</a>
-  			  	{% endif %}
-            </em>
-          </dd>
-		</dl>
 
 		<div class="attributes">
 			<h3>Attributes</h3>
-      {% if protein.cofactor %}
-        {{protein.get_cofactor_display}}
-      {% endif %}
-
 			{% include '_states_table.html' %}
 		</div>
 
@@ -162,7 +165,7 @@
 
 
 
-	    <div class="attributes mt-2">
+	    <div class="attributes mt-1">
 	    	<h3>Photostability</h3>
 	    	{% if protein.has_bleach_measurements %}
 	    	    {% include '_bleach_table.html' %}
@@ -172,7 +175,7 @@
 	    </div>
 
 
-		<div class="sequence">
+		<div class="sequence mt-3">
 			<div class="row">
 			  	<div class="col">
 				  <h3 class='d-inline'>{{ protein.name | safe }} Sequence</h3>
