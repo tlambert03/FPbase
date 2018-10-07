@@ -12,15 +12,6 @@
 {% block container-class %}container microscope-form{% endblock container-class %}
 
 {% block content %}
-  <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
-
-  <script type="text/javascript" src="/static/autocomplete_light/jquery.init.js"></script>
-  <script type="text/javascript" src="/static/autocomplete_light/autocomplete.init.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.1/js/select2.min.js"></script>
-  <script type="text/javascript" src="/static/autocomplete_light/select2.js"></script>
 
 
 {% if object %}
@@ -134,6 +125,11 @@
           <div class="dynamic-oc-forms">
             {{ optical_configs.management_form }}
             {% for ocform in optical_configs.forms %}
+
+              {% if forloop.first %}
+                  {{ocform.media}}
+              {% endif %}
+
               {% for hidden in ocform.hidden_fields %} {{ hidden }} {% endfor %}
               <div class="row formset_div {% if ocform.errors %}border border-danger{% endif %}">
                 <div class='col config-col'>

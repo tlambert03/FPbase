@@ -8,7 +8,7 @@ redis==2.10.6  # https://github.com/antirez/redis
 
 # Django
 # ------------------------------------------------------------------------------
-django==2.0.8  # pyup: < 2.1  # https://www.djangoproject.com/
+django==2.0.9  # pyup: < 2.1  # https://www.djangoproject.com/
 django-environ==0.4.5  # https://github.com/joke2k/django-environ
 django-model-utils==3.1.2  # https://github.com/jazzband/django-model-utils
 django-allauth==0.37.1  # https://github.com/pennersr/django-allauth
@@ -38,7 +38,7 @@ tablib==0.12.1
 scipy==1.1.0
 dnspython3==1.15.0
 django-anymail==4.2  # https://github.com/anymail/django-anymail
-django-autocomplete-light==3.3.0  # https://github.com/yourlabs/django-autocomplete-light
+django-autocomplete-light==3.3.2  # https://github.com/yourlabs/django-autocomplete-light
 django-avatar==4.1.0
 
 numpy==1.13.0  # pyup: ignore
