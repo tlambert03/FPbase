@@ -61,7 +61,5 @@ Talley Lambert. tlambert03/FPbase (2018). doi:10.5281/zenodo.1244328
 * photoswitchable chart
 * bleach comparisons within studies
 * allow spectra/attributes to be embedded elsewhere
-* "add to comparison" option, with comparison page, sequence alignment
-* molecular weight
 * OSER data
 * Maturation data
