@@ -172,6 +172,39 @@
     {% endif %}
 
 
+    {% if protein.oser_measurements.count %}
+    <div class="attributes mt-1">
+      <h3>OSER Measurements</h3>
+        <table class="table table-striped"  id='flip-scroll'>
+          <thead>
+            <tr class="table-header">
+              <th>&percnt; Normal Cells</th>
+              <th>OSER/NE ratio</th>
+              <th>Cell Type</th>
+              <th>Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for oserm in protein.oser_measurements.all  %}
+              <tr>
+                <td>{{oserm.percent|default:'-'}} {% if oserm.percent_stddev %} ±{{oserm.percent_stddev}}{% endif %}
+                {% if oserm.percent_ncells %} <span class='small text-muted'>({{oserm.percent_ncells}} cells)</span>{% endif %}</td>
+                <td>{{oserm.oserne|default:'-'}} {% if oserm.oserne_stddev %} ±{{oserm.oserne_stddev}}{% endif %}
+                {% if oserm.oserne_ncells %} <span class='small text-muted'>({{oserm.oserne_ncells}} cells)</span>{% endif %}</td>
+                <td>{{oserm.celltype|default:'-'}}</td>
+                <td class='small'>
+                  {% if oserm.reference %}
+                    <a href="{{oserm.reference.get_absolute_url}}">{{oserm.reference}}</a>
+                    <a href="https://doi.org/{{ oserm.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info"></i></a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+
 	    <div class="attributes mt-1">
 	    	<h3>Photostability</h3>
 	    	{% if protein.has_bleach_measurements %}

@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.db.models import Count
 from proteins.models import (Protein, State, StateTransition, Organism,
-                             BleachMeasurement, Spectrum, Dye,
+                             BleachMeasurement, Spectrum, Dye, OSERMeasurement,
                              Light, Filter, Camera, Mutation, Microscope,
                              OpticalConfig, FilterPlacement, Fluorophore,
                              ProteinCollection)
@@ -59,6 +59,27 @@ class BleachInline(admin.TabularInline):
     extra = 1
 
 
+class OSERInline(admin.StackedInline):
+    model = OSERMeasurement
+    autocomplete_fields = ('reference',)
+    extra = 1
+    readonly_fields = ('created', 'created_by', 'modified', 'updated_by')
+    fieldsets = [
+        (None, {
+            'fields': (('reference', 'celltype',),)
+        }),
+        (None, {
+            'fields': (('percent', 'percent_stddev', 'percent_ncells',),)
+        }),
+        (None, {
+            'fields': (('oserne', 'oserne_stddev', 'oserne_ncells',),)
+        }),
+        ('Change History', {
+            'classes': ('collapse',),
+            'fields': (('created', 'created_by'), ('modified', 'updated_by'))
+        })
+    ]
+
 class StateInline(MultipleSpectraOwner, admin.StackedInline):
     # form = StateForm
     # formset = StateFormSet
@@ -71,7 +92,7 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
             'fields': (('name', 'slug', 'is_dark',),)
         }),
         (None, {
-            'fields': (('ex_max', 'em_max'), ('ext_coeff', 'qy'), ('pka', 'maturation'), 'lifetime', 'bleach_links', 'spectra')
+            'fields': (('ex_max', 'em_max'), ('ext_coeff', 'qy'), ('twop_ex_max', 'twop_peakGM', 'twop_qy'), ('pka', 'maturation'), 'lifetime', 'bleach_links', 'spectra')
         }),
         ('Change History', {
             'classes': ('collapse',),
@@ -173,6 +194,32 @@ class SpectrumAdmin(admin.ModelAdmin):
     #     return qs.prefetch_related('owner_state__protein')
 
 
+@admin.register(OSERMeasurement)
+class OSERMeasurementAdmin(VersionAdmin):
+    model = OSERMeasurement
+    autocomplete_fields = ('protein', 'reference')
+    list_select_related = ('protein',)
+    list_display = ('protein', 'reference', 'celltype')
+    list_filter = ('celltype',)
+    search_fields = ('protein__name',)
+    readonly_fields = ('created', 'created_by', 'modified', 'updated_by')
+    fieldsets = [
+        (None, {
+            'fields': (('protein', 'reference', 'celltype',),)
+        }),
+        (None, {
+            'fields': (('percent', 'percent_stddev', 'percent_ncells',),)
+        }),
+        (None, {
+            'fields': (('oserne', 'oserne_stddev', 'oserne_ncells',),)
+        }),
+        ('Change History', {
+            'classes': ('collapse',),
+            'fields': (('created', 'created_by'), ('modified', 'updated_by'))
+        })
+    ]
+
+
 @admin.register(BleachMeasurement)
 class BleachMeasurementAdmin(VersionAdmin):
     model = BleachMeasurement
@@ -194,7 +241,8 @@ class StateAdmin(CompareVersionAdmin):
             'fields': (('name', 'slug', 'is_dark',),)
         }),
         (None, {
-            'fields': (('ex_max', 'em_max'), ('ext_coeff', 'qy'), ('pka', 'maturation'), 'lifetime')
+            'fields': (('ex_max', 'em_max'), ('ext_coeff', 'qy'), ('twop_ex_max', 'twop_peakGM', 'twop_qy'),
+                       ('pka', 'maturation'), 'lifetime')
         }),
     ]
 
@@ -285,9 +333,7 @@ class ProteinAdmin(CompareVersionAdmin):
     list_filter = ('status', 'created', 'modified', 'switch_type',)
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
-    inlines = [
-        StateInline, StateTransitionInline
-    ]
+    inlines = (StateInline, StateTransitionInline, OSERInline)
     fieldsets = [
         (None, {
             'fields': (('name', 'slug',), ('aliases', 'chromophore'),
