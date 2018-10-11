@@ -29,3 +29,6 @@ class OSERMeasurement(Authorable, TimeStampedModel):
 
     def __str__(self):
         return "OSER: {} in {}".format(self.protein, self.reference.citation)
+
+    class Meta:
+        unique_together = (("protein", "reference"),)
