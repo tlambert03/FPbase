@@ -187,9 +187,9 @@
           <tbody>
             {% for oserm in protein.oser_measurements.all  %}
               <tr>
-                <td>{{oserm.percent|default:'-'}} {% if oserm.percent_stddev %} ±{{oserm.percent_stddev}}{% endif %}
+                <td>{{oserm.percent|default:'-'}} {% if oserm.percent_stddev %} ± {{oserm.percent_stddev}}{% endif %}
                 {% if oserm.percent_ncells %} <span class='small text-muted'>({{oserm.percent_ncells}} cells)</span>{% endif %}</td>
-                <td>{{oserm.oserne|default:'-'}} {% if oserm.oserne_stddev %} ±{{oserm.oserne_stddev}}{% endif %}
+                <td>{{oserm.oserne|default:'-'}} {% if oserm.oserne_stddev %} ± {{oserm.oserne_stddev}}{% endif %}
                 {% if oserm.oserne_ncells %} <span class='small text-muted'>({{oserm.oserne_ncells}} cells)</span>{% endif %}</td>
                 <td>{{oserm.celltype|default:'-'}}</td>
                 <td class='small'>
