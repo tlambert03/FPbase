@@ -3,10 +3,11 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from references.models import Reference, Author
-from references.forms import ReferenceForm, AuthorForm
+from references.forms import ReferenceForm
 from reversion_compare.admin import CompareVersionAdmin
 
 from proteins.models import Protein
+
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
@@ -66,20 +67,24 @@ class ReferenceAdmin(CompareVersionAdmin):
     form = ReferenceForm
     model = Reference
     ordering = ('-year', 'citation', 'created',)
-    list_display = ('id', 'citation',  'protein_links', 'title', 'year', 'doi', 'created')
+    list_display = ('id', 'citation', 'protein_links', 'title', 'year', 'doi', 'created')
     list_filter = ('created', 'modified')
     search_fields = ('pmid', 'doi', 'title', 'citation', 'firstauthor')
-    inlines = (PrimaryProteinInline,)
+    inlines = (PrimaryProteinInline, )
     fieldsets = [
         ('Reference', {
             'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'journal', 'volume', 'pages', 'issue', 'year')
+        }),
+        ('Bleach Measurements', {
+            'fields': ('bleach_links',)
         }),
         ('Change History', {
             'classes': ('collapse',),
             'fields': (('created', 'created_by'), ('modified', 'updated_by'))
         })
     ]
-    readonly_fields = ('title', 'author_links', 'protein_links', 'journal', 'pages', 'volume', 'issue', 'year', 'created', 'created_by', 'modified', 'updated_by')
+    readonly_fields = ('title', 'author_links', 'protein_links', 'bleach_links', 'journal',
+                       'pages', 'volume', 'issue', 'year', 'created', 'created_by', 'modified', 'updated_by')
 
     def author_links(self, obj):
         authors = obj.authors.all()
@@ -98,6 +103,15 @@ class ReferenceAdmin(CompareVersionAdmin):
             link = '<a href="{}">{}</a>'.format(url, prot)
             links.append(link)
         return mark_safe(", ".join(links))
+
+    def bleach_links(self, obj):
+        links = []
+        for bm in obj.bleach_measurements.all():
+            url = reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,))
+            link = '<a href="{}">{}</a>'.format(url, bm)
+            links.append(link)
+        return mark_safe(", ".join(links))
+    bleach_links.short_description = 'BleachMeasurements'
 
     author_links.short_description = 'Authors'
     protein_links.short_description = 'Primary Proteins'

@@ -9,21 +9,115 @@
 		{% include "_reference.html" with ref=reference %}
 	</div>
 
+  {% if  reference.primary_proteins.count %}
 	<ol class='protein-list'>
 		<h5>Primary Proteins: </h5>
 		{% for protein in reference.primary_proteins.all %}
 			<li><a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a></li>
 		{% endfor %}
 	</ol>
+  {% endif %}
 
 	{% if reference.protein_secondary_reference.count > 0 %}
 	    <ol class='protein-list'>
-	    	<h5>Additional Proteins:</h5>
+	    	<h5>Secondary Proteins:</h5>
 	    	{% for protein in reference.protein_secondary_reference.all %}
 	    		<li class='mr-1'><a href="{{ protein.get_absolute_url }}">{{ protein.name }}{% if not forloop.last %},{% endif %}</a></li>
 	    	{% endfor %}
 	    </ol>
 	{% endif %}
+
+{% if reference.bleach_measurements.count %}
+
+<h4 class='mt-4'>Bleach Measurements</h4>
+  <table class="table table-striped mt-4"  id='flip-scroll'>
+    <thead>
+      <tr class="table-header">
+        <th>Protein (state)</th>
+        <th>t<sub>1/2</sub> (s)</th>
+        <th>Power</th>
+        <th>Light</th>
+        <th>Mode</th>
+        <th>In Cell</th>
+        <th>Fusion</th>
+        <th>˚C</th>
+
+      </tr>
+    </thead>
+    <tbody>
+        {% for measurement in reference.bleach_measurements.all  %}
+          <tr class="data">
+            <td><a href="{{measurement.state.protein.get_absolute_url}}">{{measurement.state}}</a></td>
+            <td>{{measurement.rate}}</td>
+            <td>
+            {% if measurement.power > 0 %}{{measurement.power}}{% if measurement.units %} <span class='small'>{{measurement.units}}</span>{% endif %}{% elif measurement.power < 0 %}<span class='text-muted'>NR</span>{% endif %}
+            </td>
+            <td>{{measurement.get_light_display}}</td>
+            <td>{{measurement.get_modality_display}}</td>
+            <td class='text-muted small'>{% if measurement.in_cell == 0 %}
+              <i class="fas fa-times">
+            {% elif measurement.in_cell == 1 %}
+              <i class="fas fa-check">
+            {% else %}
+            {% endif %}</td>
+            <td>{{measurement.fusion}}</td>
+            <td>{{measurement.temp | default:''}}</td>
+          </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="align-self-end mt-0 mb-2 clearfix">
+    <a href="{% url 'bleaching' %}" class='float-left small text-muted mt-1 mb-2 ml-2'>A caution on interpretation of photostability measurements</small></a>
+    <a href="{% url 'proteins:bleach-comparison' pk=reference.pk %}" class='text-info'>
+      <div class="">
+          <small class="d-none d-sm-inline float-right mt-1">Add photostability measurements</small>
+          <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none"><i class="fas fa-clock mr-2"></i>Add photostability measurements</button>
+      </div>
+    </a>
+  </div>
+{% else %}
+      <a href="{% url 'proteins:bleach-comparison' pk=reference.pk %}" class='text-info'>
+        <div class="mt-4">
+            <small class="d-none d-sm-inline mt-1">Add photostability measurements</small>
+            <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none"><i class="fas fa-clock mr-2"></i>Add photostability measurements</button>
+        </div>
+      </a>
+{% endif %}
+
+
+
+
+
+{% if reference.oser_measurements.count %}
+<div class="attributes mt-4">
+  <h4>OSER Measurements</h4>
+    <table class="table table-striped"  id='flip-scroll'>
+      <thead>
+        <tr class="table-header">
+          <th>Protein</th>
+          <th>&percnt; Normal Cells</th>
+          <th>OSER/NE ratio</th>
+          <th>Cell Type</th>
+          <th>Temp (˚C)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for oserm in reference.oser_measurements.all  %}
+          <tr>
+            <td><a href="{{oserm.protein.get_absolute_url}}">{{oserm.protein}}</a></td>
+            <td>{{oserm.percent|default:'-'}} {% if oserm.percent_stddev %} ± {{oserm.percent_stddev}}{% endif %}
+            {% if oserm.percent_ncells %} <span class='small text-muted'>({{oserm.percent_ncells}} cells)</span>{% endif %}</td>
+            <td>{{oserm.oserne|default:'-'}} {% if oserm.oserne_stddev %} ± {{oserm.oserne_stddev}}{% endif %}
+            {% if oserm.oserne_ncells %} <span class='small text-muted'>({{oserm.oserne_ncells}} cells)</span>{% endif %}</td>
+            <td>{{oserm.celltype|default:'-'}}</td>
+            <td>{{oserm.temp|default:'-'}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
 
 
 {% endblock content %}
