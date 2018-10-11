@@ -198,11 +198,12 @@ class SpectrumAdmin(admin.ModelAdmin):
 class OSERMeasurementAdmin(VersionAdmin):
     model = OSERMeasurement
     autocomplete_fields = ('protein', 'reference')
-    list_select_related = ('protein',)
-    list_display = ('protein', 'reference', 'celltype')
+    list_select_related = ('protein', 'reference')
+    list_display = ('protein', 'percent', 'reference', 'celltype')
     list_filter = ('celltype',)
     search_fields = ('protein__name',)
     readonly_fields = ('created', 'created_by', 'modified', 'updated_by')
+    orders = ('reference', 'protein')
     fieldsets = [
         (None, {
             'fields': (('protein', 'reference', 'celltype',),)
