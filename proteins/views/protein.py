@@ -11,10 +11,11 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
 from django.db.models import Case, When, Count
 from django.db.models.functions import Substr
+from django.shortcuts import redirect
 from django.core.mail import mail_managers
 from ..models import Protein, State, Organism, BleachMeasurement, Spectrum
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
-                     BleachMeasurementForm)
+                     BleachMeasurementForm, bleach_items_formset, BleachComparisonForm)
 from proteins.util.spectra import spectra2csv
 from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
@@ -443,6 +444,34 @@ def protein_bleach_formsets(request, slug):
         formset = BleachMeasurementFormSet(queryset=qs)
         formset.form.base_fields['state'].queryset = State.objects.filter(protein__slug=slug)
     return render(request, template_name, {'formset': formset, 'protein': protein})
+
+
+@login_required
+def bleach_comparison(request, pk=None):
+    template_name = 'proteins/bleach_comparison_form.html'
+    if request.method == 'POST':
+        formset = bleach_items_formset(request.POST)
+        bcf = BleachComparisonForm(request.POST)
+        if formset.is_valid() and bcf.is_valid():
+            D = bcf.cleaned_data
+            D['reference'], _ = Reference.objects.get_or_create(doi=D.pop('reference_doi'))
+            for form in formset.forms:
+                if form.has_changed():
+                    D['state'] = form.cleaned_data['state']
+                    D['rate'] = form.cleaned_data['rate']
+                    BleachMeasurement.objects.create(**D)
+            return redirect(D['reference'])
+        else:
+            return render(request, template_name, {'formset': formset, 'mainform': bcf})
+    else:
+        formset = bleach_items_formset()
+        if pk:
+            reference = get_object_or_404(Reference, id=pk)
+            bcf = BleachComparisonForm({'reference_doi': reference.doi})
+            bcf.fields['reference_doi'].widget.attrs['readonly'] = True
+        else:
+            bcf = BleachComparisonForm()
+    return render(request, template_name, {'formset': formset, 'mainform': bcf})
 
 
 class OrganismListView(ListView):

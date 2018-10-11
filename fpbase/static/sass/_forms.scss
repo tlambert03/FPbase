@@ -222,6 +222,18 @@ ul li.select2-search {
   }
 }
 
+.bleach-form {
+  .select2-selection__arrow {
+    display: none;
+  }
+
+  .dynamic-form{
+    .form-group span.select2-container:nth-of-type(2){
+      display:none;
+    }
+  }
+}
+
 .microscope-form {
     .oc-delete-button{
       font-size: 2rem;
