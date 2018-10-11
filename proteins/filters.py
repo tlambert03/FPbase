@@ -134,6 +134,7 @@ class ProteinFilter(filters.FilterSet):
             'parent_organism': ['exact'],
             'primary_reference__year': ['gte', 'gt', 'lt', 'lte', 'range', 'exact'],
             'spectral_brightness': ['gt', 'lt'],
+            'primary_reference__author__family': ['icontains'],
         }
         operators = {
             'lt': 'is less than',
@@ -167,6 +168,7 @@ class ProteinFilter(filters.FilterSet):
             'agg': 'Oligomerization',
             'primary_reference__year': 'Year published',
             'default_state__bleach_measurements__rate': 'Photostability (s)',
+            'primary_reference__author__family': 'Author'
         }
 
     def name_or_alias_icontains(self, queryset, name, value):
