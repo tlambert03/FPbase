@@ -35,6 +35,7 @@
                     <a class="dropdown-item" href="{% url 'proteins:fret' %}">FRET</a>
                     <a class="dropdown-item" href="{% url 'proteins:collections' %}">protein collections</a>
                     <a class="dropdown-item" href="{% url 'proteins:microscopes' %}">microscopes</a>
+                    <a class="dropdown-item" href="{% url 'reference-list' %}">references</a>
                 </div>
             </li>
             {% if not request.user.is_authenticated %}

@@ -11,6 +11,7 @@ from fpbase.sitemaps import (ProteinSitemap, OrganismsSitemap, StaticSitemap,
                              ProteinCollectionSitemap, ReferencesSitemap)
 from fpbase.decorators import check_recaptcha
 import fpbase.views
+from references.views import ReferenceListView
 
 sitemaps = {
     'static': StaticSitemap(),
@@ -61,6 +62,7 @@ urlpatterns = [
     # custom apps
     url(r'^', include('proteins.urls')),  # NOTE: without $
     url(r'^reference/', include('references.urls')),  # NOTE: without $
+    url(r'^references/$', ReferenceListView.as_view(), name='reference-list'),
 
     url(r'^fav/', include('favit.urls')),
     url(r'^avatar/', include('avatar.urls')),
@@ -76,6 +78,7 @@ if settings.DEBUG:
         url(r'^403/$', default_views.permission_denied, kwargs={'exception': Exception('Permission Denied')}),
         url(r'^404/$', default_views.page_not_found, kwargs={'exception': Exception('Page not Found')}),
         url(r'^500/$', fpbase.views.server_error),
+        url(r'^test/', TemplateView.as_view(template_name='pages/test.html'))
     ]
     if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar

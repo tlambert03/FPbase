@@ -358,5 +358,33 @@ $comparison-width: 275px;
 
 }
 
+.reftable-wrapper{
+  margin: 10px 0px;
+  @include media-breakpoint-up(sm) {  margin: 10px 10px;}
+  @include media-breakpoint-up(md) {  margin: 10px 30px;}
+  @include media-breakpoint-up(lg) {  margin: 10px 40px;}
+}
 
+#referenceTable{
+  thead{
+    font-weight: bold;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
 
+  tbody{
+    font-size: 0.85rem;
+    .doi {
+      font-size: 0.7rem;
+    }
+    td, tr {
+      padding: 8px 8px;
+    }
+    a {
+      color: darken($primary, 7);
+      &:hover {
+        color: darken($primary, 20);
+      }
+    }
+  }
+}
