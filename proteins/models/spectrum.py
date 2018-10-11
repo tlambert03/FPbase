@@ -11,6 +11,7 @@ from django.forms import Textarea, CharField
 from django.contrib.postgres.search import TrigramSimilarity
 from model_utils.models import TimeStampedModel
 from model_utils.managers import QueryManager
+from references.models import Reference
 from .mixins import Authorable, Product, AdminURLMixin
 from ..util.helpers import wave_to_hex
 from scipy import interpolate
@@ -335,6 +336,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     owner_filter = models.OneToOneField('Filter', null=True, blank=True, on_delete=models.CASCADE, related_name='spectrum')
     owner_light = models.OneToOneField('Light', null=True, blank=True, on_delete=models.CASCADE, related_name='spectrum')
     owner_camera = models.OneToOneField('Camera', null=True, blank=True, on_delete=models.CASCADE, related_name='spectrum')
+    reference = models.ForeignKey(Reference, null=True, blank=True, on_delete=models.SET_NULL, related_name='spectra')
 
     objects  = SpectrumManager()
     fluorophores = QueryManager(models.Q(category=DYE) | models.Q(category=PROTEIN))
