@@ -10,7 +10,7 @@ import re
 from references.models import Reference
 from .. import forms
 from ..models import (Protein, State, StateTransition, BleachMeasurement,
-                      Organism, ProteinCollection, Dye, Spectrum)
+                      Organism, ProteinCollection, Dye, Spectrum, OSERMeasurement)
 from ..forms import SpectrumForm
 from ..util.importers import text_to_spectra, import_chroma_spectra
 from ..util.helpers import zip_wave_data
@@ -362,6 +362,30 @@ def import_atto():
                     print(sf.errors)
         except Exception as e:
             raise
+
+def import_oser(file=None):
+    if not file:
+        file = os.path.join(BASEDIR, '_data/oser.csv')
+    if os.path.isfile(file):
+        import tablib
+        with open(file) as csvf:
+            D = tablib.Dataset().load(csvf.read())
+            for row in D.dict:
+                try:
+                    prot = Protein.objects.get(name=row['name'])
+                    ref = Reference.objects.get(doi=row['doi'])
+                    OSERMeasurement.objects.create(
+                        protein=prot, reference=ref,
+                        percent=float(row.get('percent')) if row.get('percent', False) else None,
+                        percent_stddev=float(row.get('percent_stddev')) if row.get('percent_stddev', False) else None,
+                        percent_ncells=int(row.get('percent_ncells')) if row.get('percent_ncells', False) else None,
+                        oserne=float(row.get('oserne')) if row.get('oserne', False) else None,
+                        oserne_stddev=float(row.get('oserne_stddev')) if row.get('oserne_stddev', False) else None,
+                        oserne_ncells=int(row.get('oserne_ncells')) if row.get('oserne_ncells', False) else None,
+                        celltype=row.get('celltype', None),
+                    )
+                except Exception as e:
+                    print('Skipping {}: {}'.format(row['name'], e))
 
 
 def update_dyes(file=None):
