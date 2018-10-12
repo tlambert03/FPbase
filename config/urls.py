@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
 from django.views import defaults as default_views
+from django.views.decorators.cache import cache_page
 from django.contrib.sitemaps.views import sitemap
 from rest_framework.documentation import include_docs_urls
 from fpbase.sitemaps import (ProteinSitemap, OrganismsSitemap, StaticSitemap,
@@ -62,7 +63,7 @@ urlpatterns = [
     # custom apps
     url(r'^', include('proteins.urls')),  # NOTE: without $
     url(r'^reference/', include('references.urls')),  # NOTE: without $
-    url(r'^references/$', ReferenceListView.as_view(), name='reference-list'),
+    url(r'^references/$', cache_page(60 * 30)(ReferenceListView.as_view()), name='reference-list'),
 
     url(r'^fav/', include('favit.urls')),
     url(r'^avatar/', include('avatar.urls')),
