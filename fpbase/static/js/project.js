@@ -632,6 +632,18 @@ $("#refModalForm").submit(function(e) {
     e.preventDefault(); // avoid to execute the actual submit of the form.
 });
 
+$("#excerptModalForm").submit(function(e) {
+    var form = $(this).closest("form");
+    $.ajax({
+           type: "POST",
+           url: form.attr("data-action-url"),
+           data: form.serialize(),
+           dataType: 'json',
+           success: function(data) {location.reload();}
+         });
+    e.preventDefault(); // avoid to execute the actual submit of the form.
+});
+
 
   function register_transition_form(){
     $('.trans_formset_div').formset({
@@ -697,6 +709,32 @@ $("#refModalForm").submit(function(e) {
 ////////////////// AJAX REMOVE FROM COLLECTION ////////////////////
 
 $(document).ready(function() {
+
+  $('#object-flag').click(function(e) {
+    e.preventDefault();
+    var button = $(this);
+    if (button.data('flagged') == 0){
+      $.ajax({
+        url: button.attr('data-action-url'),
+        type: 'POST',
+        data: {
+          target_model: button.data('model'),
+          target_id: button.data('id'),
+          csrfmiddlewaretoken:  window.CSRF_TOKEN,
+        },
+        success: function(response) {
+          if (response.status == 'flagged') {
+            button.data('flagged', 1);
+            button.find('#flagicon').removeClass("far");
+            button.find('#flagicon').addClass("fas");
+            document.getElementById('object-flag').setAttribute("data-original-title", "This excerpt has been flagged for review");
+            $("#object-flag").css("opacity", 1);
+          }
+        },
+      });
+    }
+
+  });
 
   $('.btn.collection-remove').click(function(e) {
     var button = $(this);

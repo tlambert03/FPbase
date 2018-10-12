@@ -22,3 +22,19 @@ def collection_remove_button(context, target):
             'target_collection': collection.id,
         }
     )
+
+
+@register.simple_tag(takes_context=True)
+def flag_object(context, target):
+    user = context['request'].user
+
+    target_model = '.'.join((target._meta.app_label, target._meta.object_name))
+
+    return render_to_string(
+        'proteins/object_flag_button.html', {
+            'target_id': target.id,
+            'target_model': target_model,
+            'status': target.status,
+            'userauth': user.is_authenticated
+        }
+    )

@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.db.models import Count
+from django.db.models import Count, TextField
+from django.forms import Textarea
 from proteins.models import (Protein, State, StateTransition, Organism,
                              BleachMeasurement, Spectrum, Dye, OSERMeasurement,
                              Light, Filter, Camera, Mutation, Microscope,
                              OpticalConfig, FilterPlacement, Fluorophore,
-                             ProteinCollection)
+                             ProteinCollection, Excerpt)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.admin import VersionAdmin
 # from reversion.models import Version
@@ -57,6 +58,20 @@ class BleachInline(admin.TabularInline):
     model = BleachMeasurement
     autocomplete_fields = ("reference",)
     extra = 1
+
+
+class ExcerptInline(admin.TabularInline):
+    model = Excerpt
+    autocomplete_fields = ("reference",)
+    fieldsets = [
+        (None, {
+            'fields': (('reference', 'content', 'status'),)
+        }),
+    ]
+    extra = 1
+    formfield_overrides = {
+        TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 60})},
+    }
 
 
 class OSERInline(admin.StackedInline):
@@ -192,6 +207,13 @@ class SpectrumAdmin(admin.ModelAdmin):
     # def get_queryset(self, request):
     #     qs = super().get_queryset(request)
     #     return qs.prefetch_related('owner_state__protein')
+
+
+@admin.register(Excerpt)
+class ExcerptAdmin(VersionAdmin):
+    model = Excerpt
+    list_display = ('protein',  'content', 'reference', 'created_by', 'created')
+    list_filter = ('status',)
 
 
 @admin.register(OSERMeasurement)
@@ -334,12 +356,12 @@ class ProteinAdmin(CompareVersionAdmin):
     list_filter = ('status', 'created', 'modified', 'switch_type',)
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
-    inlines = (StateInline, StateTransitionInline, OSERInline)
+    inlines = (StateInline, StateTransitionInline, OSERInline, ExcerptInline)
     fieldsets = [
         (None, {
             'fields': (('name', 'slug',), ('aliases', 'chromophore'),
                        ('seq', 'seq_validated'), ('ipg_id', 'genbank', 'uniprot', 'pdb'),
-                       ('parent_organism', 'switch_type'), ('agg', 'mw'))
+                       ('parent_organism', 'switch_type'), ('agg', 'mw'), 'blurb')
         }),
         (None, {
             'fields': (('primary_reference', 'references'),)

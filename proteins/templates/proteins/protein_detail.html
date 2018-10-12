@@ -80,7 +80,13 @@
 				{% favorite_button protein %}
 			</div>
 
-			<div class='protein-blurb'>{{ protein.description | safe }}</div>
+			<div class='protein-blurb'>
+        {% if  protein.blurb %}
+          {{ protein.blurb | safe }}
+        {% else %}
+          {{ protein.description | safe }}
+        {% endif %}
+      </div>
 
 		</div>
 
@@ -266,10 +272,28 @@
 					{% endif %}
 			</div>
 			{% endif %}
-
 		</div>
 
-		<div class="primary-ref references">
+    <div class="excerpts">
+      <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1.1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
+      {% if protein.excerpts.count %}
+        {% for excerpt in protein.excerpts.all  %}
+        {% if excerpt.status != 'rejected' %}
+        <blockquote class="gray">
+          <div class='flag'>
+            {% load protein_tags %}
+            {% flag_object excerpt %}
+          </div>
+          <p>{{excerpt.content}}</p>
+          <a href="{{excerpt.reference.get_absolute_url}}"><h4>{{excerpt.reference.citation}}<a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info small ml-2"></i></a></h4></a>
+        </blockquote>
+        {% endif %}
+        {% endfor %}
+      {% endif %}
+      <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i></i>Add an excerpt</button></a>
+    </div>
+
+		<div class="primary-ref references mt-2">
 			<h3>Primary Reference</h3>
 			{% if protein.primary_reference %}
 				{% include "_reference.html" with ref=protein.primary_reference %}
@@ -286,7 +310,7 @@
 				{% else %}
 				    <p style='color: #888;'>No additional references yet...<p>
 				{% endif %}
-				<a href="#" class='text-info' data-toggle="modal" data-target="#referenceModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-book mr-2"></i>Add a reference</button></a>
+				<a class='text-info' data-toggle="modal" data-target="#referenceModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-book mr-2"></i>Add a reference</button></a>
 			</ol>
 		</div>
 
@@ -318,6 +342,7 @@
 {% block modal %}
 
 <!-- Modals -->
+{% include 'proteins/modals/_excerpt_modal.html' with user=user protein=protein %}
 {% include 'proteins/modals/_reference_modal.html' with user=user protein=protein %}
 {% include 'proteins/modals/_add_to_collection_modal.html' with user=user protein=protein %}
 {% include 'proteins/modals/_spectra_url_modal.html' with protein=protein %}
@@ -347,6 +372,19 @@
   <script src="{% static "js/nvd3spectra.js" %}"> </script>
   {% endcompress %}
 
+<script type="text/javascript">
+  $(document).ready(function () {
+      $('#excerptModal').on('show.bs.modal', function () {
+        console.log('hi')
+          $('#excerptModal').css('z-index', 1200);
+      });
+
+      $('#excerptModal').on('hidden.bs.modal', function () {
+          $('#excerptModal').css('z-index', 1039);
+      });
+  });
+
+</script>
 
     {% if protein.has_spectra %}
     <script>var myData = {{ protein.d3_spectra|safe }};</script>

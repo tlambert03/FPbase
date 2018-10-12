@@ -1,0 +1,11 @@
+{% if status == 'flagged' %}
+
+<i id="flagicon" class="fas fa-flag mt-1" data-toggle="tooltip" data-placement="top" title="This excerpt has been flagged for review"></i>
+
+{% elif userauth %}
+<a class="btn btn-sm" id="object-flag" style="padding: 0; margin: 0" href='#' data-action-url="{% url 'proteins:flag_object' %}" data-id="{{ target_id }}" data-model="{{ target_model }}" data-toggle="tooltip" data-placement="top" data-flagged="0" title="Flag this excerpt for review">
+  <i id="flagicon" class="far fa-flag"></i>
+</a>
+
+
+{% endif %}
