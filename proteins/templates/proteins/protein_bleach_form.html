@@ -5,7 +5,7 @@
 {% block content %}
 <h2>Update {{protein.name}} Bleach Measurements</h2>
 
-
+<p>Note: If you are entering a bleach measurement from a reference that compared multiple proteins in a single experiment, it is easier to use the form from that specific reference page instead.  Click on the title of a reference towards the bottom of any protein page, or search for the reference in the <a href="{% url 'reference-list' %}">references table</a></p>
 <form id="bleachform" action="" method="post">
 	{% csrf_token %}
 	<input type="hidden" name="slug" id="id_slug" value='{{ protein.slug }}'>
