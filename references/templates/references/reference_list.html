@@ -13,18 +13,20 @@
   <table class="table table-striped mt-4" id="referenceTable">
     <thead>
       <tr class="table-header">
+        <td>Link</td>
         <td>Year</td>
         <td>Journal</td>
         <td>Title</td>
         <td>Authors</td>
-        <td>DOI</td>
         <td>1˚ Proteins</td>
+        <td>2˚ Proteins</td>
       </tr>
     </thead>
     <tbody>
       {% for ref in reference_list  %}
         <tr>
-          <td>{{ref.year}}</td>
+          <td class='text-center'><a href="https://doi.org/{{ ref.doi }}" target="_blank"><i class="fas fa-external-link-alt text-secondary font-weight-bold"></i></a></td>
+          <td class='text-center'>{{ref.year}}</td>
           <td>{{ ref.journal }}</td>
           <td><a href="{{ ref.get_absolute_url }}">{{ ref.title }}</a></td>
           <td class='authorlist'>
@@ -32,10 +34,18 @@
               <a href="{{ author.get_absolute_url }}">{{ author|title }}</a>{% if not forloop.last %},{% endif %}
             {% endfor %}
           </td>
-          <td class='doi'><a href="https://doi.org/{{ ref.doi }}" target="_blank">{{ ref.doi }}</a></td>
-          <td>{% for protein in ref.primary_proteins.all %}
-      <a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a>{% if not forloop.last %},{% endif %}
-    {% endfor %}</td>
+          <td>
+            {% for protein in ref.primary_proteins.all %}
+              <a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a>{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {% for protein in ref.proteins.all %}
+              {% if protein not in ref.primary_proteins.all %}
+                <a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a>{% if not forloop.last %},{% endif %}
+              {% endif %}
+            {% endfor %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>
@@ -57,7 +67,11 @@
           'header': false,
           'footer': true
       },
-      "order": [[ 0, 'desc' ]],
+      "order": [[ 1, 'desc' ]],
+      "columnDefs": [ {
+        "targets": [0, -1],
+        "orderable": false
+      } ]
     });
 
     // $('.exmax').each(function(){

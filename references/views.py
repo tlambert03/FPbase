@@ -12,7 +12,7 @@ class AuthorDetailView(DetailView):
 
 class ReferenceListView(ListView):
     ''' renders html for single reference page  '''
-    queryset = Reference.objects.all().prefetch_related('authors', 'primary_proteins')
+    queryset = Reference.objects.all().prefetch_related('authors', 'proteins', 'primary_proteins')
 
 
 class ReferenceDetailView(DetailView):
