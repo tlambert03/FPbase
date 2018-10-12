@@ -4,7 +4,7 @@ from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -12,8 +12,10 @@ from django.db import transaction
 from django.db.models import Case, When, Count
 from django.db.models.functions import Substr
 from django.shortcuts import redirect
-from django.core.mail import mail_managers
-from ..models import Protein, State, Organism, BleachMeasurement, Spectrum
+from django.apps import apps
+from django.utils.html import strip_tags
+from django.core.mail import mail_managers, mail_admins
+from ..models import Protein, State, Organism, BleachMeasurement, Spectrum, Excerpt
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
                      BleachMeasurementForm, bleach_items_formset, BleachComparisonForm)
 from proteins.util.spectra import spectra2csv
@@ -357,6 +359,29 @@ def add_reference(request, slug=None):
         pass
 
 
+def add_excerpt(request, slug=None):
+    try:
+        with reversion.create_revision():
+            doi = request.POST.get('excerpt_doi')
+            P = Protein.objects.get(slug=slug)
+            content = request.POST.get('excerpt_content')
+            if content:
+                ref, created = Reference.objects.get_or_create(doi=doi)
+                P.references.add(ref)
+                Excerpt.objects.create(protein=P, reference=ref, content=strip_tags(content), created_by=request.user)
+                if not request.user.is_staff:
+                    msg = "User: {}\nProtein: {}\nReference: {}, {}\nExcerpt: {}\n{}".format(
+                        request.user.username, P, ref, ref.title, strip_tags(content),
+                        request.build_absolute_uri(P.get_absolute_url()))
+                    mail_managers('Excerpt Added', msg, fail_silently=True)
+                P.save()
+                reversion.set_user(request.user)
+                reversion.set_comment('Ref: {} added to {}'.format(ref, P))
+        return JsonResponse({})
+    except Exception:
+        pass
+
+
 @staff_member_required
 def revert_version(request, ver=None):
     try:
@@ -496,3 +521,26 @@ def spectra_csv(request):
         return HttpResponse('malformed spectra csv request')
 
 
+@login_required
+def flag_object(request):
+
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+    try:
+        model_type = request.POST["target_model"]
+        id = request.POST["target_id"]
+        model = apps.get_model(model_type)
+        obj = get_object_or_404(model, id=id)
+        obj.status = model.STATUS.flagged
+        obj.save()
+
+        mail_admins('%s flagged' % model_type,
+                    "User: {}\nObject: {}\nID: {}\n{}".format(
+                        request.user.username, obj, obj.pk, request.build_absolute_uri(obj.get_absolute_url())),
+                    fail_silently=True)
+
+        return JsonResponse({
+            'status': 'flagged',
+        })
+    except (KeyError, ValueError):
+        return HttpResponseBadRequest()
