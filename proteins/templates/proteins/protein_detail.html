@@ -293,6 +293,7 @@
       <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i></i>Add an excerpt</button></a>
     </div>
 
+
 		<div class="primary-ref references mt-2">
 			<h3>Primary Reference</h3>
 			{% if protein.primary_reference %}
@@ -314,13 +315,30 @@
 			</ol>
 		</div>
 
-		<div class="external-resources">
-			<h3>External Resources</h3>
-			<ul>
-				<li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li>
-				<li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank">Addgene</a> for {{ protein.name }}</li>
-			</ul>
-		</div>
+
+    <div class="row">
+      <div class='col-12 col-md-6'>
+        <div class="external-resources">
+          <h3>External Resources</h3>
+          <ul>
+            <li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li>
+            <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank">Addgene</a> for {{ protein.name }}</li>
+          </ul>
+        </div>
+      </div>
+      <div class='col-12 col-md-6'>
+        {% if protein.pdb %}
+          <div class='chromophore'>
+            <h3>Chromophore{% if protein.chromophore %} ({{ protein.chromophore }}){% endif %}</h3>
+              <div class='row'>
+                  <div class='col-12'><div class="card smilesDrawing mb-2" data-pdb='{{protein.pdb.0}}'></div></div>
+              </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+
 
 		<div class="container" style='text-align:right; margin-top: 2rem;'>
 			<p>Something missing or incorrect? <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>Submit a change</a></p>
@@ -361,6 +379,7 @@
     {% endif %}
 {% endblock extrafooter %}
 
+
 {% block javascript %}
 
   <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
@@ -370,6 +389,7 @@
   <script src="{% static 'favit/js/favorite.js' %}"></script>
   <script src="{% static 'js/jquery.formset.js' %}"></script>
   <script src="{% static "js/nvd3spectra.js" %}"> </script>
+  <script src="{% static 'js/smiles-drawer.min.js' %}"></script>
   {% endcompress %}
 
 <script type="text/javascript">
@@ -392,6 +412,7 @@
 
     <script type="text/javascript">
 	    $(function () {
+
 	      $('[data-toggle="popover"]').popover({html: true});
 
         var snaptemplate = 'http://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/'
@@ -432,6 +453,43 @@
                 /* handle error here */
             }
         });
+
+
+        ////////// SMILES CARD ///////////
+
+          var smilesDrawer = new SmilesDrawer.Drawer({
+              compactDrawing: false,
+              width: 600,
+              height: 350
+          });
+          $('.smilesDrawing').each(function(i){
+            var elem = $(this);
+            var pdb = elem.data('pdb');
+            $.getJSON('https://www.rcsb.org/pdb/json/ligandInfo', {'structureId': pdb}, function(data){
+                // get the biggest ligand... probably the chromophore
+                var v = data.ligandInfo.reduce(function (a, b) {
+                  return a.smiles.length > b.smiles.length ? a : b;
+                });
+                console.log(v)
+                SmilesDrawer.parse(v.smiles.replace(/\\\\/g, '\\'), function(tree) {
+                    // Draw to the canvas
+                    var canvID = 'canvas' + pdb + i;
+                    var canv = $('<canvas>', {id: canvID});
+                    elem.append($('<div>', {class: 'card-img-top'}).css('maxHeight',300).append(canv));
+                    elem.append($('<div>', {class: 'card-body pt-0'})
+                            .append($('<h3>', {class: 'card-body pl-0 pb-0 pt-0'}).html('PDB ID: <a class="text-secondary" href="https://www.rcsb.org/structure/' + pdb + '">' + pdb + '</a>'))
+                            .append($('<p>', {class: 'card-text'}).html(
+                              'Chemical ID: <a class="text-secondary" href="https://www.rcsb.org/ligand/'
+                               + v.chemicalID + '">' + v.chemicalID + '</a><br>' +
+                               'Formula: ' + v.formula
+                              ))
+                        );
+                    smilesDrawer.draw(tree, canvID, 'light', false);
+                    canv.width('100%');
+                });
+              })
+          })
+
 
 	    })
 
