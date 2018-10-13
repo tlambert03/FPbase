@@ -20,6 +20,9 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
     objects = models.Manager()
     visible = QueryManager(~Q(status='rejected'))
 
+    class Meta:
+        ordering = ['reference__year', 'created']
+
     def __str__(self):
         return "{}: {}...".format(self.reference.citation, self.content[:30])
 
