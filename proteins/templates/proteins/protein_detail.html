@@ -265,7 +265,7 @@
 					<div class="col-md-3 col-sm-6">
 					<small>PDB ID:
 						{% for pdbid in protein.pdb %}
-							<a href="https://www.rcsb.org/structure/{{pdbid}}" target="_blank">{{ pdbid | default:''}}{% if not forloop.last %}, {% endif %}</a>
+							<a href="https://www.rcsb.org/structure/{{pdbid}}" target="_blank" class="pdblink">{{ pdbid | default:''}}</a>{% if not forloop.last %}<br>{% endif %}
 						{% endfor %}
 					</small>
 					</div>
@@ -278,17 +278,21 @@
       <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1.1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
       {% if protein.excerpts.count %}
         {% for excerpt in protein.excerpts.all  %}
-        {% if excerpt.status != 'rejected' %}
-        <blockquote class="gray">
-          <div class='flag'>
-            {% load protein_tags %}
-            {% flag_object excerpt %}
-          </div>
-          <p>{{excerpt.content}}</p>
-          <a href="{{excerpt.reference.get_absolute_url}}"><h4>{{excerpt.reference.citation}}<a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info small ml-2"></i></a></h4></a>
-        </blockquote>
-        {% endif %}
+          {% if excerpt.status != 'rejected' %}
+          <blockquote class="gray">
+            <div class='flag'>
+              {% load protein_tags %}
+              {% flag_object excerpt %}
+            </div>
+            <p>{{excerpt.content}}</p>
+            <a href="{{excerpt.reference.get_absolute_url}}"><h4>{{excerpt.reference.citation}}<a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info small ml-2"></i></a></h4></a>
+          </blockquote>
+          {% endif %}
         {% endfor %}
+      {% else %}
+
+        <p class='text-muted'>No excerpts have been added for {{protein.name | safe }}<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
+
       {% endif %}
       <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i></i>Add an excerpt</button></a>
     </div>
@@ -321,7 +325,7 @@
         <div class="external-resources">
           <h3>External Resources</h3>
           <ul>
-            <li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li>
+{#             <li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li> #}
             <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank">Addgene</a> for {{ protein.name }}</li>
           </ul>
         </div>
@@ -363,7 +367,9 @@
 {% include 'proteins/modals/_excerpt_modal.html' with user=user protein=protein %}
 {% include 'proteins/modals/_reference_modal.html' with user=user protein=protein %}
 {% include 'proteins/modals/_add_to_collection_modal.html' with user=user protein=protein %}
-{% include 'proteins/modals/_spectra_url_modal.html' with protein=protein %}
+{% if protein.has_spectra %}
+  {% include 'proteins/modals/_spectra_url_modal.html' with protein=protein %}
+{% endif %}
 
 {% if protein.states.count > 1 %}
   {% include 'proteins/modals/_state_transition_modal.html' with transition_form=transition_form %}
@@ -395,7 +401,6 @@
 <script type="text/javascript">
   $(document).ready(function () {
       $('#excerptModal').on('show.bs.modal', function () {
-        console.log('hi')
           $('#excerptModal').css('z-index', 1200);
       });
 
@@ -470,7 +475,6 @@
                 var v = data.ligandInfo.reduce(function (a, b) {
                   return a.smiles.length > b.smiles.length ? a : b;
                 });
-                console.log(v)
                 SmilesDrawer.parse(v.smiles.replace(/\\\\/g, '\\'), function(tree) {
                     // Draw to the canvas
                     var canvID = 'canvas' + pdb + i;
@@ -491,7 +495,18 @@
               })
           })
 
-
+          $('.pdblink').each(function(i){
+            var elem = $(this);
+            var pdbid = elem.text();
+            $.ajax({
+              url: 'http://www.rcsb.org/pdb/rest/customReport.xml?customReportColumns=resolution&pdbids=' + pdbid,
+              method: 'get',
+              success: function(doc){
+                var res = parseFloat(doc.getElementsByTagName('dimStructure.resolution')[0].textContent);
+                elem.text(elem.text() + ' (' + res + 'Å)');
+              }
+            })
+          })
 	    })
 
       $('.popover-dismiss').popover({
