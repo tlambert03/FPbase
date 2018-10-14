@@ -202,6 +202,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     # seq must be nullable because of uniqueness contraints
     seq         = SequenceField(unique=True, blank=True, null=True, verbose_name='Sequence',
                                 help_text="Amino acid sequence (IPG ID is preferred)")
+    seq_comment = models.CharField(max_length=512, blank=True, help_text="if necessary, comment on source of sequence")
+
     pdb         = ArrayField(models.CharField(max_length=4), blank=True, null=True, verbose_name='Protein DataBank ID')
     genbank     = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='Genbank Accession', help_text="NCBI Genbank Accession")
     uniprot     = models.CharField(max_length=10, null=True, blank=True, unique=True, verbose_name='UniProtKB Accession', validators=[validate_uniprot])
