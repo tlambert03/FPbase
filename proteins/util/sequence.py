@@ -176,6 +176,7 @@ def get_mutations(seq1, seq2, tuple_cigar):
 
 
 def mustring_to_list(mutstring):
+    # FIX ME: doesn't deal with deletions and insertions
     aa_alph = "[%s]" % "".join(skProtein.definite_chars)
     return re.findall(r'(?P<pre>{0}+)(?P<pos>\d+)(?P<post>{0}+)'
                       .format(aa_alph), mutstring)

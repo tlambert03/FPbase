@@ -257,13 +257,13 @@
 
 					{% if protein.ipg_id %}
 					<div class="col-md-3 col-sm-6">
-					<small>IPG ID: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" target="_blank">{{ protein.ipg_id | default:''}}</a></small>
+					<small>IPG: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" target="_blank">{{ protein.ipg_id | default:''}}</a></small>
 					</div>
 					{% endif %}
 
 					{% if protein.pdb %}
 					<div class="col-md-3 col-sm-6">
-					<small>PDB ID:
+					<small>PDB:
 						{% for pdbid in protein.pdb %}
 							<a href="https://www.rcsb.org/structure/{{pdbid}}" target="_blank" class="pdblink">{{ pdbid | default:''}}</a>{% if not forloop.last %}<br>{% endif %}
 						{% endfor %}
@@ -275,7 +275,7 @@
 		</div>
 
     <div class="excerpts">
-      <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1.1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
+      <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
       {% if protein.excerpts.count %}
         {% for excerpt in protein.excerpts.all  %}
           {% if excerpt.status != 'rejected' %}
@@ -475,7 +475,8 @@
                 var v = data.ligandInfo.reduce(function (a, b) {
                   return a.smiles.length > b.smiles.length ? a : b;
                 });
-                SmilesDrawer.parse(v.smiles.replace(/\\\\/g, '\\'), function(tree) {
+                smileCode = v.smiles.replace(/\\\\/g, '\\').replace('CC(=O)O', '*');
+                SmilesDrawer.parse(smileCode, function(tree) {
                     // Draw to the canvas
                     var canvID = 'canvas' + pdb + i;
                     var canv = $('<canvas>', {id: canvID});
