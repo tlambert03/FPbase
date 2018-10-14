@@ -222,12 +222,13 @@ $comparison-width: 275px;
   #comparison-toggle{
     background: rgba(0, 0, 0, 0.7);
     position: absolute;
-    right: $comparison-width - 23.5px;
-    top: 147.5px;
-    padding: 10px 13px;
+    right: $comparison-width - 26px;
+    top: 127.5px;
+    padding: 6px 13px;
     transform: rotate(-90deg);
     border-top-right-radius: 4px;
     border-top-left-radius: 4px;
+    font-size: 0.9rem;
   }
 
   #comparison-content {
