@@ -1,8 +1,9 @@
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 
 from ..models import Protein, State, Spectrum
-from .serializers import ProteinSerializer, SpectrumSerializer, BasicProteinSerializer, StateSerializer, ProteinSpectraSerializer
+from .serializers import (ProteinSerializer, ProteinSerializer2, SpectrumSerializer,
+                          BasicProteinSerializer, StateSerializer, ProteinSpectraSerializer)
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -17,6 +18,20 @@ class SpectrumList(ListAPIView):
     serializer_class = SpectrumSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SpectrumFilter
+
+
+class ProteinListAPIView2(ListAPIView):
+    queryset = Protein.objects.all().prefetch_related('states', 'transitions')
+    permission_classes = (AllowAny, )
+    serializer_class = ProteinSerializer2
+    lookup_field = 'slug'  # Don't use Protein.id!
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ProteinFilter
+    renderer_classes = [r.CSVRenderer, ] + api_settings.DEFAULT_RENDERER_CLASSES
+
+    @method_decorator(cache_page(60 * 10))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 class ProteinListAPIView(ListAPIView):
@@ -42,6 +57,13 @@ class BasicProteinListAPIView(ProteinListAPIView):
 class ProteinRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Protein.objects.all()
     permission_classes = (IsAdminUser, )
+    serializer_class = ProteinSerializer
+    lookup_field = 'slug'  # Don't use Protein.id
+
+
+class ProteinRetrieveAPIView(RetrieveAPIView):
+    queryset = Protein.objects.all()
+    permission_classes = (AllowAny, )
     serializer_class = ProteinSerializer
     lookup_field = 'slug'  # Don't use Protein.id
 

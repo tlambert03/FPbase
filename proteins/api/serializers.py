@@ -116,6 +116,31 @@ class ProteinSerializer(ModelSerializer):
         on_demand_fields = ()
 
 
+class ProteinSerializer2(ModelSerializer):
+    states = serializers.SlugRelatedField(many=True, read_only=True, slug_field='slug')
+    transitions = serializers.IntegerField(source='transitions.count', read_only=True)
+    doi = serializers.SlugRelatedField(source='primary_reference', slug_field='doi', read_only=True)
+
+    class Meta:
+        model = Protein
+        fields = (
+            'name',
+            'slug',
+            'seq',
+            'agg',
+            'doi',
+            'states',
+            'pdb',
+            'switch_type',
+            'genbank',
+            'uniprot',
+            'ipg_id',
+            'transitions'
+        )
+        on_demand_fields = ('pdb', 'switch_type', 'genbank', 'uniprot',
+                            'ipg_id', 'seq', 'transitions')
+
+
 class BleachField(serializers.Field):
 
     def to_representation(self, obj):
