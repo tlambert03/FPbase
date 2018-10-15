@@ -332,7 +332,7 @@
         <div class="external-resources">
           <h3>External Resources</h3>
           <ul>
-{#             <li>Search <a href="http://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li> #}
+{#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li> #}
             <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank">Addgene</a> for {{ protein.name }}</li>
           </ul>
         </div>
@@ -427,7 +427,7 @@
 
 	      $('[data-toggle="popover"]').popover({html: true});
 
-        var snaptemplate = 'http://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/'
+        var snaptemplate = 'https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/'
         $.ajax({
             type: "get",
             url: "https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/plasmids.xml",
@@ -453,7 +453,7 @@
                   if (hits.length == 1){t = 'SnapGene link: ' }
                   var $li = $('<li>').text(t).appendTo($('.external-resources ul'))
                   $.each(hits, function(index, val) {
-                    $li.append($('<a>', { 'href': snaptemplate.replace('*', val[1]) }).text(val[0]))
+                    $li.append($('<a>', { 'href': ht.replace('*', val[1]) }).text(val[0]))
                     if (index != hits.length-1){
                       $li.append(', ')
                     }
@@ -507,7 +507,7 @@
             var elem = $(this);
             var pdbid = elem.text();
             $.ajax({
-              url: 'http://www.rcsb.org/pdb/rest/customReport.xml?customReportColumns=resolution&pdbids=' + pdbid,
+              url: 'https://www.rcsb.org/pdb/rest/customReport.xml?customReportColumns=resolution&pdbids=' + pdbid,
               method: 'get',
               success: function(doc){
                 var res = parseFloat(doc.getElementsByTagName('dimStructure.resolution')[0].textContent);
