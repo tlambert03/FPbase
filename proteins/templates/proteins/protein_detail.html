@@ -453,7 +453,7 @@
                   if (hits.length == 1){t = 'SnapGene link: ' }
                   var $li = $('<li>').text(t).appendTo($('.external-resources ul'))
                   $.each(hits, function(index, val) {
-                    $li.append($('<a>', { 'href': ht.replace('*', val[1]) }).text(val[0]))
+                    $li.append($('<a>', { 'href': snaptemplate.replace('*', val[1]) }).text(val[0]))
                     if (index != hits.length-1){
                       $li.append(', ')
                     }
@@ -479,27 +479,33 @@
             var pdb = elem.data('pdb');
             $.getJSON('https://www.rcsb.org/pdb/json/ligandInfo', {'structureId': pdb}, function(data){
                 // get the biggest ligand... probably the chromophore
-                var v = data.ligandInfo.reduce(function (a, b) {
-                  return a.smiles.length > b.smiles.length ? a : b;
-                });
-                smileCode = v.smiles.replace(/\\\\/g, '\\').replace('CC(=O)O', '*');
-                SmilesDrawer.parse(smileCode, function(tree) {
-                    // Draw to the canvas
-                    var canvID = 'canvas' + pdb + i;
-                    var canv = $('<canvas>', {id: canvID});
-                    elem.append($('<div>', {class: 'card-img-top'}).css('maxHeight',300).append(canv));
-                    elem.append($('<div>', {class: 'card-body pt-0'})
-                            .append($('<h3>', {class: 'card-body pl-0 pb-0 pt-0'}).html('PDB ID: <a class="text-secondary" href="https://www.rcsb.org/structure/' + pdb + '">' + pdb + '</a>'))
-                            .append($('<p>', {class: 'card-text'}).html(
-                              'Chemical ID: <a class="text-secondary" href="https://www.rcsb.org/ligand/'
-                               + v.chemicalID + '">' + v.chemicalID + '</a><br>' +
-                               'Formula: ' + v.formula
-                              ))
-                        );
-                    smilesDrawer.draw(tree, canvID, 'light', false);
-                    canv.width('100%');
-                    canv.height('auto');
-                });
+                if (data.ligandInfo.length) {
+                  var v = data.ligandInfo.reduce(function (a, b) {
+                    return a.smiles.length > b.smiles.length ? a : b;
+                  });
+                  smileCode = v.smiles.replace(/\\\\/g, '\\').replace('CC(=O)O', '*');
+                  SmilesDrawer.parse(smileCode, function(tree) {
+                      // Draw to the canvas
+                      var canvID = 'canvas' + pdb + i;
+                      var canv = $('<canvas>', {id: canvID});
+                      elem.append($('<div>', {class: 'card-img-top'}).css('maxHeight',300).append(canv));
+                      elem.append($('<div>', {class: 'card-body pt-0'})
+                              .append($('<h3>', {class: 'card-body pl-0 pb-0 pt-0'}).html('PDB ID: <a class="text-secondary" href="https://www.rcsb.org/structure/' + pdb + '">' + pdb + '</a>'))
+                              .append($('<p>', {class: 'card-text'}).html(
+                                'Chemical ID: <a class="text-secondary" href="https://www.rcsb.org/ligand/'
+                                 + v.chemicalID + '">' + v.chemicalID + '</a><br>' +
+                                 'Formula: ' + v.formula
+                                ))
+                          );
+                      smilesDrawer.draw(tree, canvID, 'light', false);
+                      canv.width('100%');
+                      canv.height('auto');
+                  });
+                } else {
+                  elem.append($('<div>', {class: 'card-body pt-2 pb-2'})
+                      .append($('<p>', {class: 'card-text text-muted'}).html('<i class="fas fa-exclamation mr-2 text-danger"></i>Unable to retrieve chromophore info for PDB ID: <a class="text-secondary" href="https://www.rcsb.org/structure/' + pdb + '">' + pdb + '</a>'))
+                    );
+                }
               })
           })
 
