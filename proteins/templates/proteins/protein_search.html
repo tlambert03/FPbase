@@ -137,12 +137,14 @@ If you find that you are not getting results, relax your query.</p>
     function name_options(){
         out = '';
         for (let n of available_fields){
-            if (n in labelLookup){
-                name = labelLookup[n];
-            } else{
-                name = toTitleCase(n);
+            if (n !== 'id' && n !== 'slug'){
+              if (n in labelLookup){
+                  name = labelLookup[n];
+              } else{
+                  name = toTitleCase(n);
+              }
+              out += '<option value='+ n +'>' + name + "</option>";
             }
-            out += '<option value='+ n +'>' + name + "</option>";
         }
         return out
     }

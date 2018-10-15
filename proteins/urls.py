@@ -95,12 +95,13 @@ urlpatterns = [
     # /proteins/api
     url(r'^api/spectrum/$', apiviews.SpectrumList.as_view(), name='spectrum-api'),
     url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
+    url(r'^api/proteins2/$', apiviews.ProteinListAPIView2.as_view(), name='protein-api2'),
     url(r'^api/proteins/spectraslugs/$', apiviews.spectraslugs, name='spectra-slugs'),
     url(r'^api/proteins/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
     url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
     url(r'^api/proteins/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
     # /proteins/api/:slug/
-    url(r'^api/(?P<slug>[-\w]+)/$', apiviews.ProteinRetrieveUpdateDestroyAPIView.as_view(), name='protein-api'),
+    url(r'^api/(?P<slug>[-\w]+)/$', apiviews.ProteinRetrieveAPIView.as_view(), name='protein-api'),
 
 
     # AJAX

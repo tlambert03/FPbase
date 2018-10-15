@@ -135,6 +135,8 @@ class ProteinFilter(filters.FilterSet):
             'primary_reference__year': ['gte', 'gt', 'lt', 'lte', 'range', 'exact'],
             'spectral_brightness': ['gt', 'lt'],
             'primary_reference__author__family': ['icontains'],
+            'slug': ['exact'],
+            'id': ['exact'],
         }
         operators = {
             'lt': 'is less than',
