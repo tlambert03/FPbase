@@ -2,6 +2,7 @@ import reversion
 from django.views.generic import DetailView, CreateView, UpdateView, ListView
 from django.views.generic.base import TemplateView
 from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
@@ -13,6 +14,7 @@ from django.db.models import Case, When, Count
 from django.db.models.functions import Substr
 from django.shortcuts import redirect
 from django.apps import apps
+from django.urls import reverse
 from django.utils.html import strip_tags
 from django.core.mail import mail_managers, mail_admins
 from ..models import Protein, State, Organism, BleachMeasurement, Spectrum, Excerpt
@@ -23,6 +25,40 @@ from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
 import json
+import re
+from django.utils.safestring import mark_safe
+from collections import OrderedDict
+
+
+def create_slug_dict():
+    slugs = OrderedDict(Protein.objects.all().values_list('name', 'slug'))
+    for item in Protein.objects.exclude(aliases=[]).values_list('aliases', 'slug'):
+        if item[0]:
+            for alias in item[0]:
+                slugs.update({alias: item[1]})
+    return OrderedDict(sorted(slugs.items(), key=lambda x: len(x[0]), reverse=True))
+
+
+def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
+    excerpt_list = list(excerpts_qs)
+    slug_dict = cache.get_or_set('slug_dict', create_slug_dict)
+    for excerpt in excerpt_list:
+        for name in slug_dict:
+            if name == obj_name or name in aliases:
+                excerpt.content = mark_safe(re.sub(
+                    r'(?<=[\s])(?<!>){}(?!.\d)(?!<)'.format(name),
+                    '<strong>{}</strong>'.format(name),
+                    excerpt.content
+                ))
+            else:
+                excerpt.content = mark_safe(re.sub(
+                    r'(?<=[\s])(?<!>){}(?!.\d)(?!<)'.format(name),
+                    '<a href="{}" class="text-info">{}</a>'.format(
+                        reverse('proteins:protein-detail', args=[slug_dict[name]]),
+                        name),
+                    excerpt.content
+                ))
+    return excerpt_list
 
 
 class ProteinDetailView(DetailView):
@@ -75,7 +111,10 @@ class ProteinDetailView(DetailView):
         similar = similar | Protein.visible.filter(name__iexact='td' + self.object.name)
         data['similar'] = similar.exclude(id=self.object.id)
         data['spectra_ids'] = ",".join([str(sp.id) for state in self.object.states.all() for sp in state.spectra.all()])
-        #data['additional_references'] = Reference.objects.filter(proteins=self.object).exclude(id=self.object.primary_reference.id).order_by('-year')
+        # data['additional_references'] = Reference.objects.filter(proteins=self.object).exclude(id=self.object.primary_reference.id).order_by('-year')
+
+        # put links in excerpts
+        data['excerpts'] = link_excerpts(self.object.excerpts.all(), self.object.name, self.object.aliases)
         return data
 
 
