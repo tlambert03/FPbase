@@ -710,7 +710,8 @@ $("#excerptModalForm").submit(function(e) {
 
 $(document).ready(function() {
 
-  $('#object-flag').click(function(e) {
+  $('a.object-flag').click(function(e) {
+    console.log('click')
     e.preventDefault();
     var button = $(this);
     if (button.data('flagged') == 0){
@@ -725,10 +726,10 @@ $(document).ready(function() {
         success: function(response) {
           if (response.status == 'flagged') {
             button.data('flagged', 1);
-            button.find('#flagicon').removeClass("far");
-            button.find('#flagicon').addClass("fas");
+            button.find('.flagicon').removeClass("far");
+            button.find('.flagicon').addClass("fas");
             document.getElementById('object-flag').setAttribute("data-original-title", "This excerpt has been flagged for review");
-            $("#object-flag").css("opacity", 1);
+            button.css("opacity", 1);
           }
         },
       });

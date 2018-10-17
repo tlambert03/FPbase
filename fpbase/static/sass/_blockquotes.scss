@@ -99,7 +99,7 @@ blockquote {
 }
 
 
-a#object-flag{
+a.object-flag{
   opacity: 0.3;
   &:hover{
     opacity: 1;
@@ -119,7 +119,7 @@ a#object-flag{
   }
 }
 
-#flagicon{
+.flagicon{
   color: $danger;
   margin-left:10px;
   font-size: 1.1rem;
