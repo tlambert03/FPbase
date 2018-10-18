@@ -78,8 +78,8 @@ class MicroscopeForm(forms.ModelForm):
         help_texts = {
             'name': 'Name of this microscope or set of filter configurations',
             'description': 'This text will appear below the name on your microscope page',
-            'managers': 'Grant others permission to edit this page (comma seperated list of email addresses)',
-            'extra_lasers': 'Comma seperated list of integers (300-1600)',
+            'managers': 'Grant others permission to edit this page (comma separated list of email addresses)',
+            'extra_lasers': 'Comma separated list of integers (300-1600)',
             'collection': 'Only show fluorophores from a custom collection (leave blank to allow all proteins)'
         }
         widgets = {
