@@ -181,17 +181,21 @@ class MicroscopeForm(forms.ModelForm):
                     '{}'.format(fname))
                 return None
 
-        def lookup(fname):
+        def lookup(fname, n=None):
             # lookup filter name in database, then check on chroma/semrock
             if not fname:
                 return None
             if isinstance(fname, str) and fname.isdigit():
-                    if int(fname) < 300 or int(fname) > 1600:
-                        self.add_error(
-                            'optical_configs',
-                            'Laser wavelengths must be between 300-1600.  Got: %s' % fname)
-                    else:
-                        return int(fname)
+                if n in (2, 3):
+                    self.add_error(
+                        'optical_configs',
+                        'Laser line (integers) are only accepted in the second position (err: "%s" in position %d)' % (fname, n + 1))
+                elif int(fname) < 300 or int(fname) > 1600:
+                    self.add_error(
+                        'optical_configs',
+                        'Laser wavelengths must be between 300-1600.  Got: %s' % fname)
+                else:
+                    return int(fname)
             try:
                 return Filter.objects.get(name__icontains=fname)
             except MultipleObjectsReturned:
@@ -256,9 +260,9 @@ class MicroscopeForm(forms.ModelForm):
                                 'Unable to parse Boolean in position 5: %s' % f)
                     else:
                         if isinstance(f, list):
-                            _out.append([lookup(x) for x in f])
+                            _out.append([lookup(x, n) for x in f])
                         else:
-                            _out.append(lookup(f))
+                            _out.append(lookup(f, n))
                 cleaned.append(_out)
             except Exception:
                 self.add_error(
