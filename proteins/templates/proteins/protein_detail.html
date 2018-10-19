@@ -517,9 +517,25 @@
 
       {% if protein.pdb %}
         <script type="text/javascript">
+          window.pdbids = {{protein.pdb|safe}};
+        </script>
+        <script defer type="text/javascript">
           angular.element(document).ready(function () {
             angular.bootstrap(document, ['pdb.litemol']);
-            getPDBinfo({{protein.pdb|safe}});
+            try {
+              // statements
+              getPDBinfo(pdbids);
+            } catch(e) {
+              var select = $("#pdb_select");
+              $(pdbids).each(function(i, d){
+                select.append($('<option>', {value: d}).html(d))
+              })
+              var litemolElement = $('#litemol-viewer');
+              liteMolScope = angular.element(litemolElement).isolateScope();
+              liteMolScope.LiteMolComponent.setBackground();
+              $("#pdb-info").html('<small class="text-muted">failed to retrieve metadata from PDB</small>');
+              console.error(e);
+            }
           });
         </script>
       {% endif %}
