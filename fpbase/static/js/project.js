@@ -711,7 +711,6 @@ $("#excerptModalForm").submit(function(e) {
 $(document).ready(function() {
 
   $('a.object-flag').click(function(e) {
-    console.log('click')
     e.preventDefault();
     var button = $(this);
     if (button.data('flagged') == 0){
@@ -847,8 +846,5 @@ $(function(){
     e.preventDefault();
   });
 
-
 })
-
-
 

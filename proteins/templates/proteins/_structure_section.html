@@ -1,0 +1,41 @@
+<h3>Structure</h3>
+<div class="row">
+  <div class="col-12 col-md-6 order-2 order-md-1">
+    <div  style="height: 400px; background: white;">
+      <pdb-lite-mol id="litemol-viewer" pdb-id="'{{protein.pdb.0}}'" hide-controls="true" load-ed-maps="false"></pdb-lite-mol>
+    </div>
+  </div>
+  <div class='col-12 col-md-6 mt-2 order-1 order-md-2'>
+    <div class="form-group mb-2">
+      <div class="input-group input-group-sm mb-0">
+        <div class="input-group-prepend">
+          <label class="input-group-text" for="pdb_select">PDB ID</label>
+        </div>
+        <select class="custom-select" id="pdb_select">
+        </select>
+        <div class="input-group-append">
+          <a href="https://www.rcsb.org/structure/{{protein.pdb.0}}" target="_blank" id="pdb-out-link"><button class="btn btn-outline-info" type="button"><i class="fas fa-external-link-alt"></i></button></a>
+        </div>
+      </div>
+      </div>
+      <h5 class='mb-0' id="chem-title"></h5>
+      <div class='row'>
+          <div class='col-12'>
+            <div class="text-muted" style="position: absolute; top:8px">
+              Deposited: <span id="chem-date"></span>, <span id="chem-authors"></span><a href="" id="chem-pubmed" target="_blank"><i class="small fas fa-external-link-alt ml-2 text-secondary"></i></a><br>
+              Chromophore{% if protein.chromophore %} ({{protein.chromophore}}){% endif %}: <span id='chem-id'></span><br>
+              <span id='chem-form' class="small"></span><br>
+            </div>
+            <div id="smilesDrawing" class="mt-3">
+              <div class="card-img-top" style="maxHeight: 300px;">
+                <canvas id="smilesCanvas" data-chemId=''></canvas>
+              </div>
+<!--              <div class="card-body pt-0">
+                  <button onclick="loadDensity()" class='btn btn-xs btn-outline-info' id="density_loader" style="position: absolute; z-index: 9;">load electron density</button>
+              </div> -->
+            </div>
+          </div>
+      </div>
+  </div>
+</div>
+

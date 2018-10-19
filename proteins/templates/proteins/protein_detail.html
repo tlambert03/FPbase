@@ -15,6 +15,8 @@
 
 {% block extrahead %}
 {% include 'proteins/_structured_data.html' with protein=protein %}
+<link rel="stylesheet" href="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/css/pdb.component.library.min-1.0.0.css" />
+
 {% endblock extrahead %}
 
 {% block content %}
@@ -248,7 +250,7 @@
 			    <p>no sequence available ... <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
 			{% endif %}
 
-			{% if protein.genbank or protein.uniprot or protein.ipg_id or protein.pdb %}
+			{% if protein.genbank or protein.uniprot or protein.ipg_id %}
 			<div class="row text-right justify-content-end">
 					{% if protein.genbank %}
 					<div class="col-md-3 col-sm-6">
@@ -268,27 +270,22 @@
 					</div>
 					{% endif %}
 
-					{% if protein.pdb %}
-					<div class="col-md-3 col-sm-6">
-					<small>PDB:
-						{% for pdbid in protein.pdb %}
-							<a href="https://www.rcsb.org/structure/{{pdbid}}" target="_blank" class="pdblink">{{ pdbid | default:''}}</a>{% if not forloop.last %}<br>{% endif %}
-						{% endfor %}
-					</small>
-					</div>
-					{% endif %}
 			</div>
 			{% endif %}
 		</div>
 
+    {% if protein.pdb %}
+      {% include "proteins/_structure_section.html" with protein=protein %}
+    {% endif %}
+
     <div class="excerpts">
       <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
       {% if excerpts %}
+        {% load protein_tags %}
         {% for excerpt in excerpts  %}
           {% if excerpt.status != 'rejected' %}
           <blockquote class="gray">
             <div class='flag'>
-              {% load protein_tags %}
               {% flag_object excerpt %}
             </div>
             <p class='excerpt-content'>{{excerpt.content}}</p>
@@ -327,27 +324,16 @@
 		</div>
 
 
-    <div class="row">
-      <div class='col-12 col-md-6'>
-        <div class="external-resources">
-          <h3>External Resources</h3>
-          <ul>
-{#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li> #}
-            <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank">Addgene</a> for {{ protein.name }}</li>
-          </ul>
-        </div>
-      </div>
-      <div class='col-12 col-md-6'>
-        {% if protein.pdb %}
-          <div class='chromophore'>
-            <h3>Chromophore{% if protein.chromophore %} ({{ protein.chromophore }}){% endif %}</h3>
-              <div class='row'>
-                  <div class='col-12'><div class="card smilesDrawing mb-2" data-pdb='{{protein.pdb.0}}'></div></div>
-              </div>
-          </div>
-        {% endif %}
-      </div>
-    </div>
+
+
+            <div class="external-resources">
+              <h3>External Resources</h3>
+              <ul>
+    {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li> #}
+                <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank">Addgene</a> for {{ protein.name }}</li>
+              </ul>
+            </div>
+
 
 
 
@@ -394,16 +380,22 @@
 
 
 {% block javascript %}
-
   <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
+
   {% compress js %}
   <script src="{% static 'favit/js/favorite.js' %}"></script>
   <script src="{% static 'js/jquery.formset.js' %}"></script>
   <script src="{% static "js/nvd3spectra.js" %}"> </script>
   <script src="{% static 'js/smiles-drawer.min.js' %}"></script>
   {% endcompress %}
+
+  {% if protein.pdb %}
+      <script src="//www.ebi.ac.uk/pdbe/pdb-component-library/libs/angular.1.4.7.min.js"></script>
+      <script src="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/js/pdb.component.library.min-1.0.0.js"></script>
+      <script src="{% static 'js/my-litemol.js' %}"></script>
+  {% endif %}
 
 <script type="text/javascript">
   $(document).ready(function () {
@@ -424,6 +416,55 @@
 
     <script type="text/javascript">
 	    $(function () {
+        {% if protein.has_spectra %}
+        // disable 2p by default
+        for (n = 0; n < myData.length; n++){
+          if (myData[n].key.indexOf("2p") >= 0 && myData.length > 1) {
+            myData[n].disabled = true;
+          }
+        };
+
+        var interactive = true;
+        if (typeof window.mobilecheck === 'function') {
+            interactive = !window.mobilecheck();
+        }
+        var chart = nv.models.lineChart();
+        chart.yDomain([0,1.04])
+        svg = d3.select('#spectra').append('svg').attr('role', 'img').attr('aria-labelledby', "svgDesc svgTitle");
+        $("#spectra svg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
+        $("#spectra svg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
+
+        chart.options({
+            margin: {left:20, bottom: 30},
+            noData: "Unable to load data...",
+            transitionDuration: 200,
+            showLegend: myData.length > 2 || myData.some(function(a){return a.type=='2p'}),
+            showXAxis: true,
+            showYAxis: false,
+            useInteractiveGuideline: interactive,
+            forceY: [0,1.04],
+            forceX: [350, 750],
+        });
+
+        /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
+        nv.addGraph(function() {
+            chart.xAxis     //Chart x-axis settings
+            //.axisLabel('Wavelength (nm)')
+            .tickFormat(d3.format(',r'));
+
+            // chart.yAxis     //Chart y-axis settings
+            //   .axisLabel('Normalized Ex/Em')
+            //   .tickFormat(d3.format('1%'));
+
+            svg.datum(myData)         //Populate the <svg> element with chart data...
+            .call(chart);        //Finally, render the chart!
+
+            //Update the chart when window resizes.
+            nv.utils.windowResize(function() { chart.update() });
+            return chart;
+        });
+        {% endif %}
+
 
 	      $('[data-toggle="popover"]').popover({html: true});
 
@@ -466,118 +507,24 @@
             }
         });
 
-
-        ////////// SMILES CARD ///////////
-
-          var smilesDrawer = new SmilesDrawer.Drawer({
-              compactDrawing: false,
-              width: 600,
-              height: 350
-          });
-          $('.smilesDrawing').each(function(i){
-            var elem = $(this);
-            var pdb = elem.data('pdb');
-            $.getJSON('https://www.rcsb.org/pdb/json/ligandInfo', {'structureId': pdb}, function(data){
-                // get the biggest ligand... probably the chromophore
-                if (data.ligandInfo.length) {
-                  var v = data.ligandInfo.reduce(function (a, b) {
-                    return a.smiles.length > b.smiles.length ? a : b;
-                  });
-                  smileCode = v.smiles.replace(/\\\\/g, '\\').replace('CC(=O)O', '*');
-                  SmilesDrawer.parse(smileCode, function(tree) {
-                      // Draw to the canvas
-                      var canvID = 'canvas' + pdb + i;
-                      var canv = $('<canvas>', {id: canvID});
-                      elem.append($('<div>', {class: 'card-img-top'}).css('maxHeight',300).append(canv));
-                      elem.append($('<div>', {class: 'card-body pt-0'})
-                              .append($('<h3>', {class: 'card-body pl-0 pb-0 pt-0'}).html('PDB ID: <a class="text-secondary" href="https://www.rcsb.org/structure/' + pdb + '">' + pdb + '</a>'))
-                              .append($('<p>', {class: 'card-text'}).html(
-                                'Chemical ID: <a class="text-secondary" href="https://www.rcsb.org/ligand/'
-                                 + v.chemicalID + '">' + v.chemicalID + '</a><br>' +
-                                 'Formula: ' + v.formula
-                                ))
-                          );
-                      smilesDrawer.draw(tree, canvID, 'light', false);
-                      canv.width('100%');
-                      canv.height('auto');
-                  });
-                } else {
-                  elem.append($('<div>', {class: 'card-body pt-2 pb-2'})
-                      .append($('<p>', {class: 'card-text text-muted'}).html('<i class="fas fa-exclamation mr-2 text-danger"></i>Unable to retrieve structural info for PDB ID: <a class="text-secondary" href="https://www.rcsb.org/structure/' + pdb + '">' + pdb + '</a>'))
-                    );
-                }
-              })
-          })
-
-          $('.pdblink').each(function(i){
-            var elem = $(this);
-            var pdbid = elem.text();
-            $.ajax({
-              url: 'https://www.rcsb.org/pdb/rest/customReport.xml?customReportColumns=resolution&pdbids=' + pdbid,
-              method: 'get',
-              success: function(doc){
-                var res = parseFloat(doc.getElementsByTagName('dimStructure.resolution')[0].textContent);
-                elem.text(elem.text() + ' (' + res + 'Å)');
-              }
-            })
-          })
 	    })
 
       $('.popover-dismiss').popover({
 	      trigger: 'focus'
-	    })
+	    });
 
-      {% if protein.has_spectra %}
-      // disable 2p by default
-      for (n = 0; n < myData.length; n++){
-      	if (myData[n].key.indexOf("2p") >= 0 && myData.length > 1) {
-      		myData[n].disabled = true;
-      	}
-      };
+      </script>
 
-      var interactive = true;
-      if (typeof window.mobilecheck === 'function') {
-          interactive = !window.mobilecheck();
-      }
-      var chart = nv.models.lineChart();
-      chart.yDomain([0,1.04])
-      svg = d3.select('#spectra').append('svg').attr('role', 'img').attr('aria-labelledby', "svgDesc svgTitle");
-      $("#spectra svg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
-      $("#spectra svg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
-
-      chart.options({
-          margin: {left:20, bottom: 30},
-          noData: "Unable to load data...",
-          transitionDuration: 200,
-          showLegend: myData.length > 2 || myData.some(function(a){return a.type=='2p'}),
-          showXAxis: true,
-          showYAxis: false,
-          useInteractiveGuideline: interactive,
-          forceY: [0,1.04],
-          forceX: [350, 750],
-      });
-
-      /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
-      nv.addGraph(function() {
-          chart.xAxis     //Chart x-axis settings
-          //.axisLabel('Wavelength (nm)')
-          .tickFormat(d3.format(',r'));
-
-          // chart.yAxis     //Chart y-axis settings
-          //   .axisLabel('Normalized Ex/Em')
-          //   .tickFormat(d3.format('1%'));
-
-          svg.datum(myData)         //Populate the <svg> element with chart data...
-          .call(chart);	       //Finally, render the chart!
-
-          //Update the chart when window resizes.
-          nv.utils.windowResize(function() { chart.update() });
-          return chart;
-      });
+      {% if protein.pdb %}
+        <script type="text/javascript">
+          angular.element(document).ready(function () {
+            angular.bootstrap(document, ['pdb.litemol']);
+            getPDBinfo({{protein.pdb|safe}});
+          });
+        </script>
       {% endif %}
-
-    </script>
 {% endblock %}
+
 
 
 
