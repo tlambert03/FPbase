@@ -1,4 +1,5 @@
 import os
+import csv
 import json
 import tablib
 import traceback
@@ -933,3 +934,78 @@ def import_lumencor():
             owner.url = 'http://lumencor.com/products/filters-for-spectra-x-light-engines/'
             owner.created_by = User.objects.first()
             owner.save()
+
+
+def osfp_import():
+    from collections import defaultdict
+    with open('_data/osfp-full-data-set.csv') as f:
+        csvrows = csv.reader(f)
+        D = defaultdict(dict)
+        for name, agg, seq, doi in csvrows:
+            D[name]['seq'] = seq.replace('\n', '')
+            D[name]['agg'] = agg
+            D[name]['doi'] = doi
+        return D
+        """
+        for name, agg, seq, doi in csvrows:
+            seq = seq.replace('\n', '')
+            p = getname(name)
+            if not p:
+                continue
+            if not p.seq:
+                print('ADD SEQ: ', name)
+            elif p.seq == seq:
+                pass
+            else:
+                print('seq mismatch: ', name)
+
+            # DOI
+            if p.primary_reference:
+                if not doi == p.primary_reference.doi:
+                    print('DOI mismatch on {} ({}->{})'.format(name, p.primary_reference.doi, doi))
+            elif doi:
+                print('Add DOI to {}: {}'.format(p, doi))
+
+            # AGG
+            if not agg == p.get_agg_display():
+                if not p.agg == Protein.WEAK_DIMER:
+                    print('change {} agg from {} to {}'.format(name, p.get_agg_display(), agg))
+        """
+
+
+def snapgene_import():
+    with open('snapgene.csv') as f:
+        csvrows = csv.reader(f)
+        for row in csvrows:
+            name = row[4]
+            seq = row[6]
+            try:
+                p = Protein.objects.get(name=name)
+            except Protein.DoesNotExist:
+                continue
+            if not p:
+                continue
+            if p.seq:
+                pass
+                # if not ParasailAlignment.from_seqs(seq, p.seq).mutations:
+                #    continue
+                # print(name, ParasailAlignment.from_seqs(seq, p.seq).mutations)
+
+
+def get_gb_data(file):
+    with open(file, 'r') as handle:
+        text = handle.read()
+    q = ('DEFINITION', 'ACCESSION', 'VERSION', 'KEYWORDS', 'SOURCE')
+    pat = ''
+    for i in range(len(q) - 1):
+        pat += r'(?=.*{} (?P<{}>.+){})?'.format(q[i], q[i].lower().replace(' ', ''), q[i + 1])
+    pat += r'(?=.*COMMENT (?P<comment>.+)FEAT)?'
+    pat += r'(?=.*PUBMED\s+(?P<pub>.+)REF)?'
+    pat += r'(?=.*/translation="(?P<seq>.+)")?'
+    D = re.search(pat, text, re.DOTALL).groupdict()
+    for k, v in D.items():
+        if v:
+            D[k] = v.replace('\n', '').replace('  ', '').strip()
+    D['seq'] = D.get('seq', '').replace(' ', '')
+    D['name'] = os.path.basename(file).strip('.gb')
+    return D

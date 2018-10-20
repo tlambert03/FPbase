@@ -26,7 +26,7 @@ from ..util.helpers import get_color_group, mless, get_base_name, spectra_fig
 from ..validators import protein_sequence_validator, validate_uniprot
 from .. import util
 from .spectrum import Spectrum
-from ..util.sequence import FPSeq
+from fpseq import FPSeq
 from reversion.models import Version
 
 from Bio import Entrez
