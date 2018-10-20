@@ -17,6 +17,8 @@ from django.apps import apps
 from django.urls import reverse
 from django.utils.html import strip_tags
 from django.core.mail import mail_managers, mail_admins
+from django.http import FileResponse
+
 from ..models import Protein, State, Organism, BleachMeasurement, Spectrum, Excerpt
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
                      BleachMeasurementForm, bleach_items_formset, BleachComparisonForm)
@@ -26,6 +28,7 @@ from reversion.views import _RollBackRevisionView
 from reversion.models import Version
 import json
 import re
+import io
 from django.utils.safestring import mark_safe
 from collections import OrderedDict
 
@@ -251,9 +254,6 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
 
 @cache_page(60 * 60)
 def spectra_image(request, slug, **kwargs):
-    from django.http import FileResponse
-    import io
-
     protein = get_object_or_404(Protein, slug=slug)
     try:
         D = {}

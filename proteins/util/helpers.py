@@ -1,5 +1,9 @@
 import re
 from uuid import uuid4
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import matplotlib.ticker as ticker
+import io
 
 
 def shortuuid(padding=None):
@@ -239,10 +243,6 @@ def forster_list():
 def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
                 xlim=None, fill=True, transparent=True, grid=False,
                 title=False, info=None, **kwargs):
-    from matplotlib.figure import Figure
-    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-    import matplotlib.ticker as ticker
-    import io
 
     fig = Figure(figsize=(12, 3), dpi=70)
     canvas = FigureCanvas(fig)
