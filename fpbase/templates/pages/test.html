@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block extrahead %}
+<link rel="stylesheet" href="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/css/pdb.component.library.min-1.0.0.css" />
+
+<!-- Dependencey scripts (these can be skipped if already included in page) -->
+<script src="//www.ebi.ac.uk/pdbe/pdb-component-library/libs/d3.min.js"></script>
+<script src="//www.ebi.ac.uk/pdbe/pdb-component-library/libs/angular.1.4.7.min.js"></script>
+
+<!-- Complied & minified library JS -->
+<script src="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/js/pdb.component.library.min-1.0.0.js"></script>
+
+<style type="text/css">
+  .lm-toast-container {
+    display: none;
+  }
+  .lm-background-tasks {
+    display: none;
+  }
+  .lm-viewport-controls{
+    opacity: 0.35;
+    transition: opacity .3s ease-in-out;
+    -moz-transition: opacity .3s ease-in-out;
+    -webkit-transition: opacity .3s ease-in-out;
+  }
+
+  button[title="Screenshot"] {
+    display: none !important;
+  }
+  .lm-viewport-controls:hover{
+    opacity: .9;
+  }
+  .lm-task-state {
+    display: none;
+  }
+  .lm-overlay {
+    display: none;
+  }
+
+</style>
+{% endblock extrahead %}
+
+{% block content %}
+<div class="container">
+  <div class=row>
+    <div class="col-12 col-md-6" style="height: 400px">
+      <div class="pdb-lite-mol" id="litemol-viewer" pdb-id="'4Q9X'" hide-controls="true" load-ed-maps="false"></div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+<script>
+
+  angular.element(document).ready(function () {
+    Boot = angular.bootstrap(document, ['pdb.litemol']);
+  });
+
+    //Method to bind component scope
+    var bindPdbComponentScope = function(element){
+    return angular.element(element).isolateScope();
+    }
+
+    //variable to store LiteMol Component Scope which has all the methods
+    var liteMolScope;
+
+    //bind to the component scope on window.onload
+    window.onload = function(e) {
+      var litemolElement = document.getElementById('litemol-viewer');
+      liteMolScope = bindPdbComponentScope(litemolElement);
+      liteMolScope.LiteMolComponent.setBackground();
+    };
+
+</script>
+{% endblock javascript %}
