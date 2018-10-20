@@ -156,7 +156,7 @@ class SkbSequence(object):
 
     def __eq__(self, other):
         """Determine if this sequence is equal to another."""
-        if self._string != other._string:
+        if str(self) != str(other):
             return False
         return True
 
