@@ -269,6 +269,30 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return self.references.exclude(id=self.primary_reference_id).order_by('-year')
 
     @property
+    def emhex(self):
+        if self.states.count() > 1:
+            colors = []
+            if self.states.count() > 1:
+                for state in self.states.order_by('-is_dark'):
+                    if state.ex_max and state.em_max:
+                        colors.append((state.emhex,
+                                       '#222' if state.em_max > 477
+                                       and state.em_max < 620 else '#eee',
+                                       state.ex_max, state.em_max))
+                    else:
+                        colors.append(("#000", "#eee", None, None))
+            bgs = []
+            stepsize = int(100 / (len(colors) + 1))
+            for i, color in enumerate(colors):
+                bgs.append('{} {}%'.format(color[0], (i + 1) * stepsize))
+            background = "linear-gradient(90deg, {})".format(", ".join(bgs))
+            return background
+        elif self.default_state:
+            return self.default_state.emhex
+        else:
+            return "#222"
+
+    @property
     def color(self):
         try:
             return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]
