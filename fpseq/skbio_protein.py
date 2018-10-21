@@ -48,7 +48,7 @@ def chunk_string(string, chunksize=10, max_width=55):
             line += cur_chunk
         else:
             line_chunks.append(line)
-            line = ''
+            line = cur_chunk
     line_chunks.append(line)
     return "\n".join(line_chunks)
 
