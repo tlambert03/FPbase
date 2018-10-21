@@ -7,11 +7,11 @@ from proteins.models import (Protein, State, StateTransition, Organism,
                              BleachMeasurement, Spectrum, Dye, OSERMeasurement,
                              Light, Filter, Camera, Mutation, Microscope,
                              OpticalConfig, FilterPlacement, Fluorophore,
-                             ProteinCollection, Excerpt)
+                             ProteinCollection, Excerpt, Lineage)
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.admin import VersionAdmin
+from mptt.admin import MPTTModelAdmin
 # from reversion.models import Version
-
 
 # ############ INLINES ###############
 
@@ -502,3 +502,23 @@ class ProteinCollectionAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request).annotate(proteins_count=Count('proteins'))
         return qs.prefetch_related('proteins')
+
+
+@admin.register(Lineage)
+class LineageAdmin(MPTTModelAdmin):
+    mptt_level_indent = 10
+    mptt_indent_field = "protein"
+    list_display = ('protein', 'display_mutation', 'created')
+    autocomplete_fields = ('protein', 'parent')
+    search_fields = ('protein__name',)
+    readonly_fields = ('display_mutation', 'created', 'modified')
+
+    fieldsets = [
+        (None, {
+            'fields': ('protein', 'parent', 'mutation',)
+        }),
+        ('Change History', {
+            'classes': ('collapse',),
+            'fields': (('created', 'modified'))
+        })
+    ]

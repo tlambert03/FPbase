@@ -8,6 +8,12 @@ from fpbase.decorators import login_required_message_and_redirect as login_requi
 
 app_name = 'proteins'
 
+from .models import Lineage
+from django.shortcuts import render
+
+def show_lineage(request):
+    return render(request, "lineages.html", {'lineages': Lineage.objects.prefetch_related('protein')})
+
 urlpatterns = [
     # detail view: /:slug
     url(r'^search/', views.protein_search, name='search'),
@@ -20,6 +26,7 @@ urlpatterns = [
                        message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
+    url(r'^lineage/', show_lineage),
     url(r'^tree/(?P<organism>\d+)/$', views.protein_tree, name='tree'),
 
     url(r'^sequence_problems/', views.sequence_problems, name='sequence_problems'),
@@ -119,6 +126,6 @@ urlpatterns = [
     url(r'^ajax/add_to_collection/$', views.add_to_collection, name='add_to_collection'),
     url(r'^ajax/comparison/$', views.update_comparison, name='update-comparison'),
 
-    url(r'^test/(?P<slug>[-\w]+)/$', views.Widget.as_view(), name='widget-detail'),
+    url(r'^widget/(?P<slug>[-\w]+)/$', views.Widget.as_view(), name='widget-detail'),
 
 ]

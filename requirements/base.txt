@@ -44,3 +44,4 @@ django-avatar==4.1.0
 numpy==1.15.2  # pyup: ignore
 parasail==1.1.12
 matplotlib==3.0.0
+django-mptt==0.9.1

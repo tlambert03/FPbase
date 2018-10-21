@@ -280,7 +280,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                                        and state.em_max < 620 else '#eee',
                                        state.ex_max, state.em_max))
                     else:
-                        colors.append(("#000", "#eee", None, None))
+                        colors.append(("#222", "#eee", None, None))
             bgs = []
             stepsize = int(100 / (len(colors) + 1))
             for i, color in enumerate(colors):

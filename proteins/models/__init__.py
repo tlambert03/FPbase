@@ -10,3 +10,4 @@ from .collection import *
 from .spectrum import *
 from .microscope import *
 from .excerpt import *
+from .mptt import Lineage
