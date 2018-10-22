@@ -2,28 +2,36 @@ import json
 from .skbio_protein import SkbSequence
 from .util import protein_weight, slugify
 from .align import nw_align
-from .mutations import Mutations, detect_offset
-
+from .mutations import find_mutations, mutate_sequence
 try:
     import requests
 except ImportError:
     print('Could not import requests. Cannot pull sequences from fpbase')
 
 
+def generate_labels(seq, mods=None, zeroindex=1):
+    """generate a list of len(seq), with position labels, possibly modified"""
+    i = zeroindex
+    if not mods:
+        return [str(x) for x in range(i, len(seq) + i)]
+    else:
+        if isinstance(mods, list):
+            mods = dict(mods)
+        pos_labels = []
+        for n in range(i, len(seq) + i):
+            if n in mods:
+                pos_labels.append(str(mods[n]))
+            else:
+                pos_labels.append(str(i))
+                i += 1
+        return pos_labels
+
+
 class FPSeq(SkbSequence):
 
     def __init__(self, sequence, position_lables=None, **kwargs):
-        if isinstance(position_lables, dict):
-            pos_labels = list()
-            i = 1
-            for n in range(i, len(sequence) + i):
-                if n in position_lables:
-                    pos_labels.append(str(position_lables[n]))
-                else:
-                    pos_labels.append(str(i))
-                    i += 1
-            kwargs['positional_metadata'] = {'position_lables': pos_labels}
         super().__init__(sequence, **kwargs)
+        self._poslabels = generate_labels(str(self), position_lables)
 
     @property
     def weight(self):
@@ -36,23 +44,10 @@ class FPSeq(SkbSequence):
         return nw_align(str(self), str(other), **kwargs)
 
     def mutations_to(self, other, **kwargs):
-        return self.align_to(other, **kwargs).mutations
+        return find_mutations(str(self), other, **kwargs)
 
     def mutate(self, mutations, zeroindex=1, err_on_shift=False):
-        if isinstance(mutations, str):
-            mutations = Mutations(mutations)
-        offset = detect_offset(self, mutations)
-        if offset != 0:
-            if offset is None or err_on_shift:
-                raise ValueError('Requested mutation numbers inconsistent '
-                                 'with current sequence frame')
-            else:
-                print('WARNING: mutations shifted {} position{} relative to sequence frame'
-                      .format(offset, 's' if abs(offset) > 1 else ''))
-        out = list(str(self))
-        for before, index, after in mutations:
-                out[index - zeroindex + offset] = after
-        return FPSeq("".join(out))
+        return FPSeq(mutate_sequence(str(self), mutations))
 
     @classmethod
     def from_fpbase(cls, slug):
