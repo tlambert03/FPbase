@@ -34,23 +34,7 @@
 
 import numpy as np
 import numbers
-from textwrap import wrap
-
-
-def chunk_string(string, chunksize=10, max_width=55):
-    chunks = wrap(string, chunksize)
-    line_chunks = []
-    line = ''
-    while chunks:
-        cur_chunk = chunks.pop(0)
-        if len(line) + len(cur_chunk) + 1 <= max_width:
-            line += ' ' if len(line) else ''
-            line += cur_chunk
-        else:
-            line_chunks.append(line)
-            line = cur_chunk
-    line_chunks.append(line)
-    return "\n".join(line_chunks)
+from .util import chunk_string
 
 
 class classproperty(property):
@@ -145,7 +129,7 @@ class SkbSequence(object):
         return self._bytes.tostring()
 
     def __repr__(self):
-        return 'Protein\n' + '-' * 54 + '\n' + chunk_string(str(self), 10, 55)
+        return 'Protein\n' + '-' * 54 + '\n' + "\n".join(chunk_string(str(self), 10, 55))
 
     def __str__(self):
         return str(self._bytes.tostring().decode("ascii"))

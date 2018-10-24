@@ -152,7 +152,7 @@ def parse_mutstring(string):
     return [Mutation(*mut) for mut in mutpattern.findall(string)]
 
 
-def _get_aligned_muts(AQS, AQT, gapchars='-.', zeroindex=1):
+def _get_aligned_muts(AQS, ATS, gapchars='-.', zeroindex=1):
     """ starting with two sequences that have been aligned,
     returns a list of mutation string codes, such as:
     ['K2_K6del', 'D26_N28delinsR', E39_A40insGD', 'R44K', *56LextPVPW']
@@ -183,7 +183,7 @@ def _get_aligned_muts(AQS, AQT, gapchars='-.', zeroindex=1):
             string += 'ins' + delins
         out.append(string)
 
-    for idx, (before, after) in enumerate(zip(AQS, AQT), zeroindex):
+    for idx, (before, after) in enumerate(zip(AQS, ATS), zeroindex):
         idx += ishift
         if before in gapchars:  # we have an insertion
             insertions += after  # add AA to insertion string

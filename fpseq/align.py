@@ -2,8 +2,7 @@ try:
     import parasail
 except ImportError:
     print('ERROR!!! could not import parasail... will not be able to align')
-
-import textwrap
+from .util import chunked_lines
 
 
 def nw_align(query, target, gop=5, gep=1, band_size=0):
@@ -23,17 +22,6 @@ def align_seqs(seq1, seq2):
     with gap chars if necessary"""
     algn = nw_align(str(seq1), str(seq2))
     return algn.aligned_query_sequence(), algn.aligned_target_sequence()
-
-
-# @property
-# def mutations(self):
-#     if self._mutations is not None:
-#         return self._mutations
-#     off = 1
-#     AQS, AQT = self.aligned_query_sequence(), self.aligned_target_sequence()
-#     muts = set((x, off + i, y) for x, (i, y) in zip(AQS, enumerate(AQT)) if x != y)
-#     self._mutations = Mutations(muts)
-#     return self._mutations
 
 
 class ParasailAlignment:
@@ -67,13 +55,14 @@ class ParasailAlignment:
         self._cigar_tuple = self._tuples_from_cigar()
         return self._cigar_tuple
 
-    def __str__(self, width=70):
-        a = textwrap.wrap(self.aligned_target_sequence(), width)
-        b = textwrap.wrap(self.aligned_query_sequence(), width)
+    def __str__(self):
+        a = chunked_lines(self.aligned_target_sequence(), spacer='')
+        b = chunked_lines(self.aligned_query_sequence(), spacer='')
         out = []
         for t, q in zip(a, b):
             out.append(q)
-            out.append("".join(['|' if x == y else '*' for x, y in zip(t, q)]))
+            out.append("".join(['*' if x != y else (' ' if x == ' ' else '|')
+                       for x, y in zip(t, q)]))
             out.append(t + '\n')
         return "\n".join(out)
 
