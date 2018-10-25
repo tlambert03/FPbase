@@ -335,7 +335,7 @@ class ComparisonView(TemplateView):
                         head = prots[0].name
                     elif i % 2 == 0:
                         head = prots[1].name
-                    out.append("{:<16}{}".format(head, row))
+                    out.append("{:<18.16}{}".format(head if len(head) < 17 else head[:13] + '...', row))
                 out.append('\n')
                 context['alignment'] = "\n".join(out)
                 context['mutations'] = mutstring
