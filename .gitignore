@@ -368,3 +368,5 @@ _data/*
 *.dump
 
 .pytest_cache
+
+/fpseq/addgene.py

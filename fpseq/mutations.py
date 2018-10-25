@@ -46,6 +46,10 @@ mutpattern = re.compile(r"""
     (?:,|$|/|\s)""".format("".join(SkbSequence.definite_chars), '{1}'), re.X)
 
 
+def parse_mutstring(string):
+    return [Mutation(*mut) for mut in mutpattern.findall(string)]
+
+
 class Mutation(object):
 
     def __init__(self, start_char, start_idx, stop_char, stop_idx,
@@ -147,9 +151,11 @@ class Mutation(object):
         if self.operation == 'ext':
             return seq + self.new_chars + self.ext, 0
 
-
-def parse_mutstring(string):
-    return [Mutation(*mut) for mut in mutpattern.findall(string)]
+    @classmethod
+    def from_str(cls, mutstring, sep='/'):
+        m = parse_mutstring(mutstring)
+        assert len(m) == 1, 'For multiple mutations, create a MutationSet instead'
+        return m[0]
 
 
 def _get_aligned_muts(AQS, ATS, gapchars='-.', zeroindex=1):
@@ -252,6 +258,11 @@ class MutationSet(object):
             raise ValueError('All MutationSet items must be Mutation Instances')
         self.muts = set(muts)
 
+    def __contains__(self, query):
+        if isinstance(query, str):
+            query = Mutation.from_str(query)
+        return query in self.muts
+
     def __add__(self, other):
         if isinstance(other, str):
             other = MutationSet.from_str(other)
@@ -335,6 +346,9 @@ class MutationSet(object):
                     if len(self.detect_offset(other)) == 1:
                         return True
         return False
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.muts, key=lambda x: x.start_idx)))
 
     def __len__(self):
         return len(self.muts)
