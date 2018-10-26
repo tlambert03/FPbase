@@ -324,10 +324,6 @@ class ComparisonView(TemplateView):
             seqB = prots_with_seqs[1]
             if seqA.seq and seqB.seq:
                 algn = seqA.seq.align_to(seqB.seq)
-                AQS = algn.aligned_query_sequence()
-                ATS = algn.aligned_target_sequence()
-                mutstring = "/".join(_get_aligned_muts(AQS, ATS))
-
                 out = []
                 for i, row in enumerate(str(algn).splitlines()):
                     head = ''
@@ -338,7 +334,7 @@ class ComparisonView(TemplateView):
                     out.append("{:<18.16}{}".format(head if len(head) < 17 else head[:13] + '...', row))
                 out.append('\n')
                 context['alignment'] = "\n".join(out)
-                context['mutations'] = mutstring
+                context['mutations'] = str(seqA.seq.mutations_to(seqB.seq))
         else:
             context['alignment'] = None
         context['proteins'] = prots
