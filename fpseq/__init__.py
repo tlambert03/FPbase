@@ -1,4 +1,4 @@
-from .fpseq import FPSeq
+from .fpseq import FPSeq, from_fpbase
 from .skbio_protein import SkbSequence
 from .align import ParasailAlignment, nw_align, align_seqs
 from .mutations import MutationSet, find_mutations, mutate_sequence
