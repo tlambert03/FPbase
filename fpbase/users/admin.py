@@ -42,6 +42,7 @@ class MyUserAdmin(AuthUserAdmin):
     list_display = ('username', 'email', '_date_joined', '_last_login', '_logins', '_collections', 'social', )
     search_fields = ['name', 'username', 'email']
     readonly_fields = ('avatar', 'email_verified', 'social', 'microscopes', 'collections')
+    ordering = ('-date_joined',)
 
     def _date_joined(self, obj):
         return obj.date_joined.strftime("%Y/%m/%d")
