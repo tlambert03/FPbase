@@ -64,9 +64,10 @@ class Reference(TimeStampedModel):
     issue = models.CharField(max_length=10, blank=True, default='')
     firstauthor = models.CharField(max_length=100, blank=True, default='')
     citation = models.CharField(max_length=256, blank=True, default='')
+    date = models.DateField(null=True, blank=True)
     year = models.PositiveIntegerField(
             validators=[MinLengthValidator(4), MaxLengthValidator(4),
-                MinValueValidator(1960), MaxValueValidator(datetime.now().year)],
+            MinValueValidator(1960), MaxValueValidator(datetime.now().year)],
             help_text="YYYY")
     authors = models.ManyToManyField("Author", through='ReferenceAuthor')
     summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
@@ -75,7 +76,7 @@ class Reference(TimeStampedModel):
     updated_by = models.ForeignKey(User, related_name='reference_modifier', blank=True, null=True, on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ('year', )
+        ordering = ('date', )
 
     def get_authors(self):
         return self.authors.order_by('referenceauthor')

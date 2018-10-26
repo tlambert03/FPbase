@@ -73,7 +73,7 @@ class ReferenceAdmin(CompareVersionAdmin):
     inlines = (PrimaryProteinInline, )
     fieldsets = [
         ('Reference', {
-            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'journal', 'volume', 'pages', 'issue', 'year')
+            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'journal', 'volume', 'pages', 'issue', 'year', 'date')
         }),
         ('Bleach Measurements', {
             'fields': ('bleach_links',)
@@ -83,7 +83,7 @@ class ReferenceAdmin(CompareVersionAdmin):
             'fields': (('created', 'created_by'), ('modified', 'updated_by'))
         })
     ]
-    readonly_fields = ('title', 'author_links', 'protein_links', 'bleach_links', 'journal',
+    readonly_fields = ('title', 'author_links', 'protein_links', 'bleach_links', 'journal', 'date',
                        'pages', 'volume', 'issue', 'year', 'created', 'created_by', 'modified', 'updated_by')
 
     def author_links(self, obj):
