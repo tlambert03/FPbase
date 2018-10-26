@@ -137,7 +137,9 @@ $("#pdb_select").change(function(){
   liteMolScope.LiteMolComponent.createPlugin();
   liteMolScope.LiteMolComponent.loadMolecule();
   liteMolScope.LiteMolComponent.setBackground();
-  $("#pdb-out-link").attr('href', "https://www.rcsb.org/structure/" + this.value)
-  loadSmiles(this.value);
-  loadChemInfo(this.value);
+  $("#pdb-out-link").attr('href', "https://www.rcsb.org/structure/" + this.value);
+  if (pdb_info[this.value]){
+    loadSmiles(this.value);
+    loadChemInfo(this.value);
+  }
 });

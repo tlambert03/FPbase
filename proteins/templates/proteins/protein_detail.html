@@ -97,6 +97,7 @@
       <div id="spectra">
        <a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link mr-2"></i></a>
        <a href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link ml-4'><i class="fas fa-download mr-2 ml-1"></i></a>
+       <svg id="spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
       </div>
       {% else %}
       <p class='mt-4'>No spectrum has been submitted ... <a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary'>add a spectrum!</a></p>
@@ -430,9 +431,9 @@
         }
         var chart = nv.models.lineChart();
         chart.yDomain([0,1.04])
-        svg = d3.select('#spectra').append('svg').attr('role', 'img').attr('aria-labelledby', "svgDesc svgTitle");
-        $("#spectra svg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
-        $("#spectra svg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
+        svg = d3.select('#spectrasvg');
+        $("#spectrasvg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
+        $("#spectrasvg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
 
         chart.options({
             margin: {left:20, bottom: 30},
@@ -517,9 +518,25 @@
 
       {% if protein.pdb %}
         <script type="text/javascript">
+          window.pdbids = {{protein.pdb|safe}};
+        </script>
+        <script defer type="text/javascript">
           angular.element(document).ready(function () {
             angular.bootstrap(document, ['pdb.litemol']);
-            getPDBinfo({{protein.pdb|safe}});
+            try {
+              // statements
+              getPDBinfo(pdbids);
+            } catch(e) {
+              var select = $("#pdb_select");
+              $(pdbids).each(function(i, d){
+                select.append($('<option>', {value: d}).html(d))
+              })
+              var litemolElement = $('#litemol-viewer');
+              liteMolScope = angular.element(litemolElement).isolateScope();
+              liteMolScope.LiteMolComponent.setBackground();
+              $("#pdb-info").html('<small class="text-muted">failed to retrieve metadata from PDB</small>');
+              console.error(e);
+            }
           });
         </script>
       {% endif %}
