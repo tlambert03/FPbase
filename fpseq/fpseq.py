@@ -56,8 +56,11 @@ class FPSeq(SkbSequence):
             return ref2b.difference(ref2a)
         return find_mutations(str(self), other, **kwargs)
 
-    def mutate(self, mutations, zeroindex=1, err_on_shift=False):
-        return FPSeq(mutate_sequence(str(self), mutations))
+    def mutate(self, mutations, **kwargs):
+        result = mutate_sequence(str(self), mutations, **kwargs)
+        if 'correct_offset' in kwargs:
+            return FPSeq(result[0]), result[1]
+        return FPSeq(result)
 
     @classmethod
     def from_fpbase(cls, slug):

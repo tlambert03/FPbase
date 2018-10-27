@@ -32,7 +32,7 @@ full string:
 import re
 from .skbio_protein import SkbSequence
 from .align import align_seqs
-
+import warnings
 
 # optional prefix could be added
 # (?:(?P<prefix>[A-Za-z0-9]+)\.)?
@@ -242,9 +242,9 @@ def find_mutations(seq1, seq2, **kwargs):
     return MutationSet.from_str(mutstring)
 
 
-def mutate_sequence(seq, mutstring):
+def mutate_sequence(seq, mutstring, **kwargs):
     ms = MutationSet.from_str(mutstring)
-    return ms(seq)
+    return ms(seq, **kwargs)
 
 
 class MutationSet(object):
@@ -277,14 +277,32 @@ class MutationSet(object):
         [newset.remove(that) for that in other.muts]
         return MutationSet(newset)
 
-    def __call__(self, seq, idx0=1):
+    def __call__(self, seq, idx0=1, correct_offset=False):
         """ apply the full mutation set to a sequence """
-        for mut in self.muts:
-            mut._assert_position_consistency(seq, idx0)
         shift = idx0
+        for mut in self.muts:
+            try:
+                mut._assert_position_consistency(seq, shift)
+            except Mutation.SequenceMismatch:
+                offset = self.detect_offset(seq)
+                if offset:
+                    if correct_offset:
+                        warnings.warn('An offset of {} amino acids was detected'
+                                      ' between the sequence and the mutation '
+                                      'set, and automatically corrected'.format(offset))
+                        shift -= offset
+                    else:
+                        print('MutationSet does not match sequence, but a match '
+                              'was found {} positions off.  Use correct_offset'
+                              '=True to auto-apply'.format(offset))
+                        raise
+                else:
+                    raise
         for mut in sorted(set(self.muts), key=lambda x: x.start_idx):
             seq, new_offset = mut(seq, shift)
             shift -= new_offset
+        if correct_offset:
+            return seq, shift
         return seq
 
     def union(self, other):
