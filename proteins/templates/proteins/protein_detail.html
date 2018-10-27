@@ -290,7 +290,9 @@
               {% flag_object excerpt %}
             </div>
             <p class='excerpt-content'>{{excerpt.content}}</p>
-            <a href="{{excerpt.reference.get_absolute_url}}"><h4>{{excerpt.reference.citation}}<a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info small ml-2"></i></a></h4></a>
+            {% if excerpt.reference %}
+              <a href="{{excerpt.reference.get_absolute_url}}"><h4>{{excerpt.reference.citation}}<a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info small ml-2"></i></a></h4></a>
+            {% endif %}
           </blockquote>
           {% endif %}
         {% endfor %}
