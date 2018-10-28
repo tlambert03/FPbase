@@ -1,15 +1,14 @@
 import requests
 import json
 import datetime
-from fpbase import __version__
 import re
 
 from Bio import Entrez
-from crossref.restful import Works, Etiquette
+from habanero import Crossref
+
 Entrez.email = 'talley.lambert+fpbase@gmail.com'
 email = Entrez.email
-my_etiquette = Etiquette('FPbase', __version__, 'http://fpbase.org', email)
-ID_CONVERT_URL = 'https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?tool=FPbase&email='+email+'&ids=%s&format=json'
+ID_CONVERT_URL = 'https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?tool=FPbase&email=' + email + '&ids=%s&format=json'
 
 
 def pmc_converter(id, to='pmid',):
@@ -50,61 +49,41 @@ def pmc_converter(id, to='pmid',):
         return None
 
 
-def get_doi_info(doi):
-    works = Works(etiquette=my_etiquette)
-    query = works.doi(doi)
-    try:
-        journal = query['container-title'][0]
-    except Exception:
-        journal = None
-    try:
-        title = query.get('title', None)
-        if title:
-            title = title[0]
-    except Exception:
-        title = None
-    try:
-        journal_iss = query.get('journal-issue', {})
-        dateparts = journal_iss.get('published-online', {})
-        if not dateparts:
-            dateparts = journal_iss.get('published-print', {})
-
-        try:
-            dateparts = dateparts.get('date-parts', None)[0]
-        except Exception:
-            pass
-
-        if dateparts:
-            pubyear = dateparts[0]
-            if len(dateparts) == 1:
-                dateparts.append(1)
-            if len(dateparts) == 2:
-                dateparts.append(1)
-            dateparts = datetime.date(*dateparts)
-        else:
-            issued = query.get('issued', [])
-            if issued:
-                pubyear = issued['date-parts'][0][0]
-                dp = issued['date-parts'][0]
-                if len(dp) == 1:
-                    dp.append(1)
-                if len(dp) == 2:
-                    dp.append(1)
-                dateparts = datetime.date(*dp)
-    except Exception as e:
-        pubyear = None
-        dateparts = None
-        print(e)
-    return {
-        'title': title,
-        'journal': journal,
-        'pages': query.get('page', None),
-        'volume': query.get('volume', None),
-        'issue': query.get('issue', None),
-        'authors': query.get('author', None),
-        'year': pubyear,
-        'date': dateparts
+def parse_crossref(doidict):
+    if 'message' in doidict:
+        doidict = doidict['message']
+    out = {}
+    out = {
+        'journal': doidict.get('container-title', [None])[0],
+        'title': doidict.get('title'),
+        'pages': doidict.get('page', None),
+        'volume': doidict.get('volume', None),
+        'issue': doidict.get('issue', None),
+        'authors': doidict.get('author', None),
+        'doi': doidict.get('DOI', None),
     }
+    out['title'] = out['title'][0] if len(out['title']) else None
+    dp = doidict.get('published-online',
+                     doidict.get('published-print',
+                                 doidict.get('issued', {}))) \
+                .get('date-parts', [None])[0]
+    dp.append(1) if dp and len(dp) == 1 else None
+    dp.append(1) if dp and len(dp) == 2 else None
+    out['date'] = datetime.date(*dp) if dp and all(dp) else None
+    out['year'] = dp[0] if dp and dp[0] else None
+    return out
+
+
+def crossref(doi):
+    cr = Crossref(mailto='talley.lambert+fpbase@gmail.org')
+    response = cr.works(ids=doi)
+    # habanero returns a list if doi is a list of len > 1
+    # otherwise a single dict
+    if isinstance(doi, (list, tuple, set)) and len(doi) > 1:
+        D = [parse_crossref(i) for i in response]
+        return {x.pop('DOI'): x for x in D}
+    else:
+        return parse_crossref(response)
 
 
 def doi2pmid(doi):
@@ -158,7 +137,7 @@ def merge_info(dict1, dict2, exclude=[]):
 
 
 def doi_lookup(doi):
-    info = get_doi_info(doi)
+    info = crossref(doi)
     pmid = doi2pmid(doi)
     if pmid:
         try:
