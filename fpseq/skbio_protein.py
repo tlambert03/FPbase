@@ -134,6 +134,25 @@ class SkbSequence(object):
     def __str__(self):
         return str(self._bytes.tostring().decode("ascii"))
 
+    def _munge_to_sequence(self, other, method):
+        if isinstance(other, SkbSequence):
+            if type(other) != type(self):
+                raise TypeError("Cannot use %s and %s together with `%s`" %
+                                (self.__class__.__name__,
+                                 other.__class__.__name__, method))
+            else:
+                return other
+
+        return SkbSequence(other)
+
+    def _munge_to_bytestring(self, other, method):
+        if type(other) is bytes:
+            return other
+        elif isinstance(other, str):
+            return other.encode('ascii')
+        else:
+            return self._munge_to_sequence(other, method)._string
+
     def __contains__(self, subsequence):
         """Determine if a subsequence is contained in this sequence."""
         return self._munge_to_bytestring(subsequence, "in") in self._string

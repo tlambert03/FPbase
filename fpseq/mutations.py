@@ -44,7 +44,7 @@ mutpattern = re.compile(r"""
     (?P<operation>delins|del|ins|)?
     (?P<new_chars>[A-Z*]+)?
     (?:ext(?P<ext>[{0}]+))?
-    (?:,|$|/|\s)""".format("".join(SkbSequence.definite_chars), '{1}'), re.X)
+    (?:,|$|/|\s)""".format("".join(SkbSequence.definite_chars.union('X')), '{1}'), re.X)
 
 
 def parse_mutstring(string):
@@ -316,13 +316,14 @@ class MutationSet(object):
                 return True
         return False
 
-    def merge_delins(self):
+    def merge_delins(self, merge_subs=4):
         """Clean up mutation set to remove substitutions next to dels or delins """
         groups = self._consecutive_groups()
         newgroups = []
         for g in groups:
             ops = [m.operation for m in g]
-            if ('sub' in ops and ('del' in ops or 'delins' in ops)):
+            if ((len(g) >= merge_subs and all([m == 'sub' for m in ops]))
+                    or ('sub' in ops and ('del' in ops or 'delins' in ops))):
                 # should already be sorted
                 start = '{}{}'.format(g[0].start_char, g[0].start_idx)
                 if g[-1].stop_char:

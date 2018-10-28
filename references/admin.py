@@ -66,14 +66,14 @@ class PrimaryProteinInline(admin.TabularInline):
 class ReferenceAdmin(CompareVersionAdmin):
     form = ReferenceForm
     model = Reference
-    ordering = ('-year', 'citation', 'created',)
-    list_display = ('id', 'citation', 'protein_links', 'title', 'year', 'doi', 'created')
+    ordering = ('-date', 'citation', 'created',)
+    list_display = ('id', 'citation', 'protein_links', 'title', 'date', 'doi', 'created')
     list_filter = ('created', 'modified')
     search_fields = ('pmid', 'doi', 'title', 'citation', 'firstauthor')
     inlines = (PrimaryProteinInline, )
     fieldsets = [
         ('Reference', {
-            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'journal', 'volume', 'pages', 'issue', 'year', 'date')
+            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'secondary_proteins', 'journal', 'volume', 'pages', 'issue', 'date')
         }),
         ('Bleach Measurements', {
             'fields': ('bleach_links',)
@@ -83,7 +83,7 @@ class ReferenceAdmin(CompareVersionAdmin):
             'fields': (('created', 'created_by'), ('modified', 'updated_by'))
         })
     ]
-    readonly_fields = ('title', 'author_links', 'protein_links', 'bleach_links', 'journal', 'date',
+    readonly_fields = ('author_links', 'protein_links', 'secondary_proteins', 'bleach_links', 'journal', 'date',
                        'pages', 'volume', 'issue', 'year', 'created', 'created_by', 'modified', 'updated_by')
 
     def author_links(self, obj):
@@ -104,6 +104,16 @@ class ReferenceAdmin(CompareVersionAdmin):
             links.append(link)
         return mark_safe(", ".join(links))
 
+    def secondary_proteins(self, obj):
+        primary = obj.primary_proteins.all()
+        proteins = obj.proteins.exclude(id__in=primary)
+        links = []
+        for prot in proteins:
+            url = reverse("admin:proteins_protein_change", args=(prot.pk,))
+            link = '<a href="{}">{}</a>'.format(url, prot)
+            links.append(link)
+        return mark_safe(", ".join(links))
+
     def bleach_links(self, obj):
         links = []
         for bm in obj.bleach_measurements.all():
@@ -115,12 +125,13 @@ class ReferenceAdmin(CompareVersionAdmin):
 
     author_links.short_description = 'Authors'
     protein_links.short_description = 'Primary Proteins'
+    secondary_proteins.short_description = 'Secondary Proteins'
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
             obj.created_by = request.user
         obj.updated_by = request.user
-        obj.save()
+        obj.save(skipdoi=True)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request).prefetch_related('authors', 'primary_proteins')
