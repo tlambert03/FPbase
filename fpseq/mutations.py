@@ -30,6 +30,7 @@ full string:
 """
 
 import re
+import numpy as np
 from .skbio_protein import SkbSequence
 from .align import align_seqs
 import warnings
@@ -239,7 +240,8 @@ def find_mutations(seq1, seq2, **kwargs):
     """get complete mutation string for a pair of sequences"""
     algn = align_seqs(seq1, seq2, **kwargs)
     mutstring = "/".join(_get_aligned_muts(*algn))
-    return MutationSet.from_str(mutstring)
+    mutset = MutationSet.from_str(mutstring)
+    return mutset
 
 
 def mutate_sequence(seq, mutstring, **kwargs):
@@ -257,6 +259,7 @@ class MutationSet(object):
         if not all([isinstance(m, Mutation) for m in muts]):
             raise ValueError('All MutationSet items must be Mutation Instances')
         self.muts = set(muts)
+        self.merge_delins()
 
     def __contains__(self, query):
         if isinstance(query, str):
@@ -298,12 +301,46 @@ class MutationSet(object):
                         raise
                 else:
                     raise
-        for mut in sorted(set(self.muts), key=lambda x: x.start_idx):
+        for mut in self:
             seq, new_offset = mut(seq, shift)
             shift -= new_offset
         if correct_offset:
             return seq, shift
         return seq
+
+    def _has_adjacent(self):
+        groups = self._consecutive_groups()
+        for g in groups:
+            ops = [m.operation for m in g]
+            if ('sub' in ops and ('del' in ops or 'delins' in ops)):
+                return True
+        return False
+
+    def merge_delins(self):
+        """Clean up mutation set to remove substitutions next to dels or delins """
+        groups = self._consecutive_groups()
+        newgroups = []
+        for g in groups:
+            ops = [m.operation for m in g]
+            if ('sub' in ops and ('del' in ops or 'delins' in ops)):
+                # should already be sorted
+                start = '{}{}'.format(g[0].start_char, g[0].start_idx)
+                if g[-1].stop_char:
+                    stop = '{}{}'.format(g[-1].stop_char, g[-1].stop_idx)
+                else:
+                    stop = '{}{}'.format(g[-1].start_char, g[-1].start_idx)
+                newchars = "".join([m.new_chars for m in g])
+                newgroups.append(Mutation.from_str('{}_{}delins{}'
+                                 .format(start, stop, newchars)))
+            else:
+                newgroups.extend([m for m in g])
+        # can't decide whether to return new object or update this one
+        self.muts = set(newgroups)
+
+    def _consecutive_groups(self):
+        msl = list(self)
+        g = np.split(msl, np.where(np.diff([m.start_idx for m in msl]) != 1)[0] + 1)
+        return g
 
     def union(self, other):
         if isinstance(other, str):
@@ -336,7 +373,9 @@ class MutationSet(object):
         return self.muts.isdisjoint(other.muts)
 
     def __iter__(self):
-        return self.muts.__iter__()
+        sorted_muts = sorted(self.muts, key=lambda x: x.start_idx)
+        while sorted_muts:
+            yield sorted_muts.pop(0)
 
     def __eq__(self, other):
         """ should be rather robust way to compare mutations to some string
@@ -366,7 +405,7 @@ class MutationSet(object):
         return False
 
     def __hash__(self):
-        return hash(tuple(sorted(self.muts, key=lambda x: x.start_idx)))
+        return hash(tuple(self))
 
     def __len__(self):
         return len(self.muts)
@@ -424,6 +463,7 @@ class MutationSet(object):
 def rand_mut(seq):
     from random import randint, choices
 
+    # make extensions less likely
     operation = choices(['sub', 'sub', 'sub', 'sub', 'del', 'del', 'ins',
                          'ins', 'ins', 'delins', 'delins', 'ext'])[0]
     AAs = 'ACDEFGHIKLMNPQRSTVWY'
