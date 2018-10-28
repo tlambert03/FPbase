@@ -4,7 +4,7 @@ from model_utils.models import TimeStampedModel
 
 
 class Lineage(MPTTModel, TimeStampedModel):
-    protein = models.ForeignKey('Protein', on_delete=models.CASCADE, related_name='lineages')
+    protein = models.OneToOneField('Protein', on_delete=models.CASCADE, related_name='lineages')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
     mutation = models.CharField(max_length=400, blank=True)
 
