@@ -1,5 +1,6 @@
 import unicodedata
 import re
+from textwrap import wrap
 
 
 AA_WEIGHTS = {
@@ -29,62 +30,36 @@ AA_WEIGHTS = {
 WATER = 18.0153
 
 letters_3to1 = {
-    'Ala': 'A',
-    'Arg': 'R',
-    'Asn': 'N',
-    'Asp': 'D',
-    'Asx': 'B',
-    'Cys': 'C',
-    'Gln': 'Q',
-    'Glu': 'E',
-    'Glx': 'Z',
-    'Gly': 'G',
-    'His': 'H',
-    'Ile': 'I',
-    'Leu': 'L',
-    'Lys': 'K',
-    'Met': 'M',
-    'Phe': 'F',
-    'Pro': 'P',
-    'Pyl': 'O',
-    'Sec': 'U',
-    'Ser': 'S',
-    'Thr': 'T',
-    'Trp': 'W',
-    'Tyr': 'Y',
-    'Val': 'V',
-    'Xaa': 'X',
-    'Xle': 'J'
+    'Ala': 'A',  # alanine
+    'Arg': 'R',  # arginine
+    'Asn': 'N',  # asparagine
+    'Asp': 'D',  # aspartic acid
+    'Asx': 'B',  # asparagine or aspartic acid
+    'Cys': 'C',  # cysteine
+    'Gln': 'Q',  # glutamine
+    'Glu': 'E',  # glutamic acid
+    'Glx': 'Z',  # glutamine or glutamic acid
+    'Gly': 'G',  # glycine
+    'His': 'H',  # histidine
+    'Ile': 'I',  # isoleucine
+    'Leu': 'L',  # leucine
+    'Lys': 'K',  # lysine
+    'Met': 'M',  # methionine
+    'Phe': 'F',  # phenylalanine
+    'Pro': 'P',  # proline
+    'Pyl': 'O',  # pyrrolysine (unusual)
+    'Sec': 'U',  # selenocysteine (unusual)
+    'Ser': 'S',  # serine
+    'Thr': 'T',  # threonine
+    'Trp': 'W',  # tryptophan
+    'Tyr': 'Y',  # tyrosine
+    'Val': 'V',  # valine
+    'Xaa': 'X',  # any amino acid
+    'Xle': 'J',  # leucine or isoleucine
+    'TERM': '*',  # terminatino codon
 }
 
-letters_1to3 = {
-    'A': 'Ala',
-    'B': 'Asx',
-    'C': 'Cys',
-    'D': 'Asp',
-    'E': 'Glu',
-    'F': 'Phe',
-    'G': 'Gly',
-    'H': 'His',
-    'I': 'Ile',
-    'J': 'Xle',
-    'K': 'Lys',
-    'L': 'Leu',
-    'M': 'Met',
-    'N': 'Asn',
-    'O': 'Pyl',
-    'P': 'Pro',
-    'Q': 'Gln',
-    'R': 'Arg',
-    'S': 'Ser',
-    'T': 'Thr',
-    'U': 'Sec',
-    'V': 'Val',
-    'W': 'Trp',
-    'X': 'Xaa',
-    'Y': 'Tyr',
-    'Z': 'Glx'
-}
+letters_1to3 = {v: k for k, v in letters_3to1.items()}
 
 
 def seq1(seq):
@@ -117,3 +92,32 @@ def slugify(value, allow_unicode=False):
         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
     value = re.sub(r'[^\w\s-]', '', value).strip().lower()
     return re.sub(r'[-\s]+', '-', value)
+
+
+def evenchunks(string, chunksize=10):
+    return [string[i:i + chunksize] for i in range(0, len(string), chunksize)]
+
+
+def chunked_lines(string, chunksize=10, chunks_per_line=5, spacer=' '):
+    chunks = evenchunks(string, chunksize)
+    lines = []
+    while chunks:
+        lines.append(spacer.join(chunks[:chunks_per_line]))
+        del chunks[:chunks_per_line]
+    return lines
+
+
+def chunk_string(string, chunksize=10, max_width=55, space=' '):
+    chunks = wrap(string, chunksize)
+    line_chunks = []
+    line = ''
+    while chunks:
+        cur_chunk = chunks.pop(0)
+        if len(line) + len(cur_chunk) + 1 <= max_width:
+            line += space if len(line) else ''
+            line += cur_chunk
+        else:
+            line_chunks.append(line)
+            line = cur_chunk
+    line_chunks.append(line)
+    return line_chunks

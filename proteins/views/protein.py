@@ -31,6 +31,7 @@ import re
 import io
 from django.utils.safestring import mark_safe
 from collections import OrderedDict
+from fpseq.mutations import _get_aligned_muts
 
 
 def create_slug_dict():
@@ -322,18 +323,18 @@ class ComparisonView(TemplateView):
             seqA = prots_with_seqs[0]
             seqB = prots_with_seqs[1]
             if seqA.seq and seqB.seq:
-                a = seqA.seq.align_to(seqB.seq)
+                algn = seqA.seq.align_to(seqB.seq)
                 out = []
-                for i, row in enumerate(str(a).splitlines()):
+                for i, row in enumerate(str(algn).splitlines()):
                     head = ''
                     if i % 4 == 0:
                         head = prots[0].name
                     elif i % 2 == 0:
                         head = prots[1].name
-                    out.append("{:<16}{}".format(head, row))
+                    out.append("{:<18.16}{}".format(head if len(head) < 17 else head[:13] + '...', row))
                 out.append('\n')
                 context['alignment'] = "\n".join(out)
-                context['mutations'] = a.mutations
+                context['mutations'] = str(seqA.seq.mutations_to(seqB.seq))
         else:
             context['alignment'] = None
         context['proteins'] = prots

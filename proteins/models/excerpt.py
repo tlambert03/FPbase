@@ -24,7 +24,8 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
         ordering = ['reference__year', 'created']
 
     def __str__(self):
-        return "{}: {}...".format(self.reference.citation, self.content[:30])
+        ref = self.reference.citation if self.reference else ''
+        return "{}: {}...".format(ref, self.content[:30])
 
     def get_absolute_url(self):
         return self.protein.get_absolute_url()

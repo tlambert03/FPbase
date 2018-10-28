@@ -180,9 +180,6 @@
   </div>
 </form>
 
-<!-- Modals -->
-{% include 'proteins/modals/_import_spectrum_modal.html' with user=user %}
-
 
 <!-- Modal -->
 <div class="modal fade modal-center" id="sureModal" tabindex="-1" role="dialog" aria-labelledby="sureModalLabel" aria-hidden="true">
@@ -204,6 +201,9 @@
     </div>
   </div>
 </div>
+
+<!-- Modals -->
+{% include 'proteins/modals/_import_spectrum_modal.html' with user=user %}
 
 
 {% endblock content %}
@@ -268,6 +268,16 @@
       $('#microscopeFormTabs a[href="#bulk"]').tab('show')
 
     }
+
+
+    $('#sureModal').on('show.bs.modal', function () {
+        $('#sureModal').css('z-index', 1200);
+    });
+
+    $('#sureModal').on('hidden.bs.modal', function () {
+        $('#sureModal').css('z-index', 1039);
+    });
+
   });
 
     $("#chromaImportForm, #semrockImportForm").submit(function(e) {

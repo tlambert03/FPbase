@@ -1,5 +1,6 @@
 import requests
 import json
+import datetime
 from fpbase import __version__
 import re
 
@@ -63,11 +64,36 @@ def get_doi_info(doi):
     except Exception:
         title = None
     try:
-        pubyear = query.get('issued', None)
-        if pubyear:
-            pubyear = pubyear['date-parts'][0][0]
+        journal_iss = query.get('journal-issue', {})
+        dateparts = journal_iss.get('published-online', {})
+        if not dateparts:
+            dateparts = journal_iss.get('published-print', {})
+
+        try:
+            dateparts = dateparts.get('date-parts', None)[0]
+        except Exception:
+            pass
+
+        if dateparts:
+            pubyear = dateparts[0]
+            if len(dateparts) == 1:
+                dateparts.append(1)
+            if len(dateparts) == 2:
+                dateparts.append(1)
+            dateparts = datetime.date(*dateparts)
+        else:
+            issued = query.get('issued', [])
+            if issued:
+                pubyear = issued['date-parts'][0][0]
+                dp = issued['date-parts'][0]
+                if len(dp) == 1:
+                    dp.append(1)
+                if len(dp) == 2:
+                    dp.append(1)
+                dateparts = datetime.date(*dp)
     except Exception as e:
         pubyear = None
+        dateparts = None
         print(e)
     return {
         'title': title,
@@ -77,6 +103,7 @@ def get_doi_info(doi):
         'issue': query.get('issue', None),
         'authors': query.get('author', None),
         'year': pubyear,
+        'date': dateparts
     }
 
 
@@ -100,6 +127,14 @@ def get_pmid_info(pmid):
     pubmed_record = Entrez.read(Entrez.esummary(db='pubmed', id=pmid, retmode='xml'))
     if len(pubmed_record):
         pubmed_record = pubmed_record[0]
+        date = None
+        try:
+            date = datetime.datetime.strptime(pubmed_record['PubDate'], "%Y %b %d").date()
+        except Exception:
+            try:
+                date = datetime.datetime.strptime(pubmed_record['EPubDate'], "%Y %b %d").date()
+            except Exception:
+                pass
         return {
             'doi': pubmed_record.get('DOI', None),
             'title': pubmed_record.get('Title', ''),
@@ -108,7 +143,8 @@ def get_pmid_info(pmid):
             'volume': pubmed_record.get('Volume', ''),
             'issue': pubmed_record.get('Issue', ''),
             'year': pubmed_record['PubDate'].split()[0],
-            'authors': pubmed_record['AuthorList']
+            'authors': pubmed_record['AuthorList'],
+            'date': date,
         }
 
 

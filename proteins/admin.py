@@ -212,7 +212,7 @@ class SpectrumAdmin(admin.ModelAdmin):
 @admin.register(Excerpt)
 class ExcerptAdmin(VersionAdmin):
     model = Excerpt
-    list_display = ('protein',  'content', 'reference', 'created_by', 'created')
+    list_display = ('protein', 'content', 'reference', 'created_by', 'created')
     list_filter = ('status',)
 
 

@@ -317,7 +317,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return self.seq.mutations_to(other, **kwargs)
 
     def mutations_from(self, other, **kwargs):
-        if not (self.seq and other.seq):
+        if isinstance(other, Protein):
+            other = other.seq
+        if not (self.seq and other):
             return None
         return other.seq.mutations_to(self.seq, **kwargs)
 
