@@ -1009,3 +1009,84 @@ def get_gb_data(file):
     D['seq'] = D.get('seq', '').replace(' ', '')
     D['name'] = os.path.basename(file).strip('.gb')
     return D
+
+
+def import_tree():
+    import tablib
+    from proteins.models import Protein, Reference, Lineage
+    from django.db import IntegrityError
+
+    def getprot(protein_name):
+        if not protein_name:
+            return
+        protein_name = protein_name.strip()
+        prot = None
+        try:
+            return Protein.objects.get(name__iexact=protein_name)
+        except Exception:
+            pass
+        try:
+            return Protein.objects.get(aliases__contains=[protein_name])
+        except Exception:
+            pass
+        return prot
+
+    with open('/Users/talley/Desktop/rfps.csv', 'r') as file:
+        data = tablib.Dataset().load(file.read())
+
+    for name in data['name']:
+        if not getprot(name):
+            Protein.objects.get_or_create(name=name)
+
+    for doi in data['\ufeffref']:
+        if doi:
+            try:
+                Reference.objects.get(doi=doi)
+            except Exception:
+                try:
+                    Reference.objects.get_or_create(doi=doi)
+                except Exception:
+                    pass
+
+    count = 1
+    while count > 0:
+        count = 0
+        for doi, prot, parnt, mutation, alias in data:
+            if not doi and prot and parnt:
+                continue
+            try:
+                child = getprot(prot.strip())
+            except Protein.DoesNotExist:
+                print('Could not find child ', prot)
+                continue
+            try:
+                parnt = parnt.strip()
+                parent = getprot(parnt)
+            except Protein.DoesNotExist:
+                if parnt:
+                    print('Could not find parent ', parnt)
+                    continue
+            try:
+                ref = Reference.objects.get(doi=doi)
+            except Reference.DoesNotExist:
+                ref = None
+
+            try:
+                if parent:
+                    parent = Lineage.objects.get(protein=parent)
+                    d = Lineage.objects.create(protein=child, parent=parent, reference=ref, mutation=mutation)
+                    print(d)
+                    count += 1
+                elif child:
+                    d = Lineage.objects.create(protein=child, parent=None, reference=ref, mutation=mutation)
+                    print(d)
+                    count += 1
+            except IntegrityError:
+                pass
+            except Lineage.DoesNotExist:
+                pass
+            except Exception as e:
+                print('\tParent: ', parent)
+                print('\tChild: ', child)
+                print(e)
+                raise

@@ -1,11 +1,13 @@
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from model_utils.models import TimeStampedModel
+from references.models import Reference
 
 
 class Lineage(MPTTModel, TimeStampedModel):
-    protein = models.OneToOneField('Protein', on_delete=models.CASCADE, related_name='lineages')
+    protein = models.OneToOneField('Protein', on_delete=models.CASCADE, related_name='lineage')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    reference = models.ForeignKey(Reference, on_delete=models.CASCADE, null=True, blank=True, related_name='lineages')
     mutation = models.CharField(max_length=400, blank=True)
 
     class MPTTMeta:

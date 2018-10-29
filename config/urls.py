@@ -97,9 +97,9 @@ if settings.DEBUG:
             data = super().get_context_data()
 
             try:
-                root = Protein.objects.get(slug=slug).lineages.first()
+                root = Protein.objects.get(slug=slug).lineage
             except Exception:
-                root = Protein.objects.get(slug='dsred').lineages.first()
+                root = Protein.objects.get(slug='avgfp').lineage
             root_nodes = cache_tree_children(root.get_family())
             dicts = []
             for n in root_nodes:
