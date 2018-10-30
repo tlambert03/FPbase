@@ -14,10 +14,10 @@ class Lineage(MPTTModel, TimeStampedModel):
         order_insertion_by = ['protein']
 
     def __repr__(self):
-        return self.protein.name
+        return '<Lineage: {}>'.format(self)
 
     def __str__(self):
-        return self.protein.name
+        return str(self.id)
 
     def display_mutation(self, maxwidth=30):
         if not self.mutation:

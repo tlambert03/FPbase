@@ -18,6 +18,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from model_utils.models import StatusModel, TimeStampedModel
 from model_utils.managers import QueryManager
 from model_utils import Choices
+from django.core.exceptions import ObjectDoesNotExist
 
 from references.models import Reference
 from .mixins import Authorable
@@ -236,6 +237,15 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         super().__init__(*args, **kwargs)
         # store IPG_ID so that we know if it changes
         self.__original_ipg_id = self.ipg_id
+
+    def mutations_from_root(self):
+        try:
+            root = self.lineage.get_root()
+            if root.protein.seq and self.seq:
+                muts = root.protein.seq.mutations_to(self.seq)
+                return muts
+        except ObjectDoesNotExist:
+            return None
 
     @property
     def mless(self):

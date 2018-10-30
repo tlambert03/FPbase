@@ -14,7 +14,7 @@ from ..models import (Protein, State, StateTransition, BleachMeasurement,
                       Organism, ProteinCollection, Dye, Spectrum, OSERMeasurement)
 from ..forms import SpectrumForm
 from ..util.importers import text_to_spectra, import_chroma_spectra
-from ..util.helpers import zip_wave_data
+from ..util.helpers import zip_wave_data, getprot
 from ..util.spectra_import import import_spectral_data
 from ..validators import protein_sequence_validator
 
@@ -1011,32 +1011,31 @@ def get_gb_data(file):
     return D
 
 
-def import_tree():
+def import_tree(filepath=None):
+    if not filepath:
+        filepath = os.path.join(BASEDIR, '_data/lineage.csv')
     import tablib
     from proteins.models import Protein, Reference, Lineage
     from django.db import IntegrityError
 
-    def getprot(protein_name):
-        if not protein_name:
-            return
-        protein_name = protein_name.strip()
-        prot = None
-        try:
-            return Protein.objects.get(name__iexact=protein_name)
-        except Exception:
-            pass
-        try:
-            return Protein.objects.get(aliases__contains=[protein_name])
-        except Exception:
-            pass
-        return prot
-
-    with open('/Users/talley/Desktop/rfps.csv', 'r') as file:
+    with open(filepath, 'r') as file:
         data = tablib.Dataset().load(file.read())
 
+    nonames = []
     for name in data['name']:
-        if not getprot(name):
-            Protein.objects.get_or_create(name=name)
+        print(name)
+        if name:
+            try:
+                getprot(name)
+            except Protein.DoesNotExist:
+                nonames.append(name)
+    if nonames:
+        r = input('The following {} names do not exist in the database:\n{}'
+                  '\nWould you like to create them? (y/n):  '
+                  .format(len(nonames), "\n".join(nonames)))
+        if r.lower() == 'y':
+            for name in nonames:
+                Protein.objects.get_or_create(name=name)
 
     for doi in data['\ufeffref']:
         if doi:
@@ -1051,14 +1050,16 @@ def import_tree():
     count = 1
     while count > 0:
         count = 0
-        for doi, prot, parnt, mutation, alias in data:
-            if not doi and prot and parnt:
+        for doi, author, year, prot, parnt, mutation, alias, note in data:
+            prot = prot.strip()
+            if not len(prot):
                 continue
             try:
-                child = getprot(prot.strip())
+                child = getprot(prot)
             except Protein.DoesNotExist:
-                print('Could not find child ', prot)
+                print('Could not find child "{}"'.format(prot))
                 continue
+            parent = None
             try:
                 parnt = parnt.strip()
                 parent = getprot(parnt)
@@ -1074,19 +1075,23 @@ def import_tree():
             try:
                 if parent:
                     parent = Lineage.objects.get(protein=parent)
-                    d = Lineage.objects.create(protein=child, parent=parent, reference=ref, mutation=mutation)
-                    print(d)
+                    Lineage.objects.create(protein=child, parent=parent, reference=ref, mutation=mutation)
+                    print("Created {} -> {}".format(parent, child))
                     count += 1
                 elif child:
-                    d = Lineage.objects.create(protein=child, parent=None, reference=ref, mutation=mutation)
-                    print(d)
+                    Lineage.objects.create(protein=child, parent=None, reference=ref, mutation=mutation)
+                    print("Created root: {}".format(child))
                     count += 1
-            except IntegrityError:
+            except IntegrityError as e:
+                print("IntegrityError: {}".format(e))
                 pass
             except Lineage.DoesNotExist:
                 pass
             except Exception as e:
-                print('\tParent: ', parent)
+                try:
+                    print('\tParent: ', parent)
+                except Exception:
+                    pass
                 print('\tChild: ', child)
                 print(e)
                 raise
