@@ -74,47 +74,14 @@ if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
     # these url in browser to see how these error pages look like.
 
-    import json
-    from mptt.templatetags.mptt_tags import cache_tree_children
-    from proteins.models import Protein
-
-    def recursive_node_to_dict(node):
-        result = {
-            'name': node.protein.name,
-            'mut': node.display_mutation(maxwidth=10) or "null",
-            'url': node.protein.get_absolute_url(),
-            'bg': node.protein.emhex,
-        }
-        children = [recursive_node_to_dict(c) for c in node.get_children()]
-        if children:
-            result['children'] = children
-        return result
-
-    class testview(TemplateView):
-        template_name = 'pages/test.html'
-
-        def get_context_data(self, slug=None):
-            data = super().get_context_data()
-
-            try:
-                root = Protein.objects.get(slug=slug).lineage
-            except Exception:
-                root = Protein.objects.get(slug='avgfp').lineage
-            root_nodes = cache_tree_children(root.get_family())
-            dicts = []
-            for n in root_nodes:
-                dicts.append(recursive_node_to_dict(n))
-            data['tree'] = json.dumps(dicts[0])
-            return data
-
     urlpatterns += [
         url(r'^400/$', default_views.bad_request, kwargs={'exception': Exception('Bad Request!')}),
         url(r'^403/$', default_views.permission_denied, kwargs={'exception': Exception('Permission Denied')}),
         url(r'^404/$', default_views.page_not_found, kwargs={'exception': Exception('Page not Found')}),
         url(r'^500/$', fpbase.views.server_error),
         url(r'^test500/', fpbase.views.test500),
-        url(r'^test/(?P<slug>[-\w]+)', testview.as_view()),
-        url(r'^test/$', testview.as_view())
+        url(r'^test/(?P<slug>[-\w]+)', fpbase.views.testview.as_view()),
+        url(r'^test/$', fpbase.views.testview.as_view())
     ]
     if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar
