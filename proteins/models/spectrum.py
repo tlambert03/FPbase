@@ -14,57 +14,7 @@ from model_utils.managers import QueryManager
 from references.models import Reference
 from .mixins import Authorable, Product, AdminURLMixin
 from ..util.helpers import wave_to_hex
-from scipy import interpolate
-from scipy.signal import argrelextrema  # savgol_filter
-
-
-def is_monotonic(array):
-    array = np.array(array)
-    return np.all(array[1:] > array[:-1])
-
-
-def make_monotonic(x, y):
-    X, Y = list(zip(*sorted(zip(x, y))))
-    X, xind = np.unique(X, return_index=True)
-    Y = np.array(Y)[xind]
-    return X, Y
-
-
-def interp_linear(x, y, s=1):
-    '''Interpolate pair of vectors at integer increments between min(x) and max(x)'''
-    if not is_monotonic(x):
-        x, y = make_monotonic(x, y)
-    xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
-    F = interpolate.interp1d(x, y)
-    ynew = F(xnew)
-    # ynew = savgol_filter(ynew, 9, 2)
-    return xnew, ynew
-
-
-def interp_univar(x, y, s=1):
-    if not is_monotonic(x):
-        x, y = make_monotonic(x, y)
-    '''Interpolate pair of vectors at integer increments between min(x) and max(x)'''
-    xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
-    F = interpolate.InterpolatedUnivariateSpline(x, y)
-    ynew = F(xnew)
-    # ynew = savgol_filter(ynew, 15, 2)
-    return xnew, ynew
-
-
-def norm2one(y):
-    return [round(max(yy / max(y), 0), 4) for yy in y]
-
-
-def norm2P(y):
-    '''Normalize peak value of vector to one'''
-    y = np.array(y)
-    localmax = argrelextrema(y, np.greater, order=100)
-    # can't be within first 10 points
-    localmax = [i for i in localmax[0] if i > 10]
-    maxind = localmax[np.argmax(y[localmax])]
-    maxy = y[maxind]
-    return [round(max(yy / maxy, 0), 4) for yy in y], maxy, maxind
+from ..util.spectra import interp_linear, interp_univar, norm2one, norm2P, step_size
 
 
 class SpectrumOwner(Authorable, TimeStampedModel):
@@ -207,14 +157,6 @@ class SpectrumManager(models.Manager):
             max_sim = max([s[0] for s in qs_list])
             qs_list = [i[1] for i in qs_list if max_sim - i[0] < .05]
         return qs_list
-
-
-def step_size(lol):
-    x, y = zip(*lol)
-    s = set(np.subtract(x[1:], x[:-1]))
-    if len(s) > 1:  # multiple step sizes
-        return False
-    return s.pop()
 
 
 class SpectrumData(ArrayField):
@@ -366,6 +308,20 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         # self.category = self.owner.__class__.__name__.lower()[0]
         super().save(*args, **kwargs)
 
+    def _norm2one(self):
+        if self.subtype == self.TWOP:
+            y, self._peakval2p, maxi = norm2P(self.y)
+            self._peakwave2p = self.x[maxi]
+            self.change_y(y)
+        else:
+            self.change_y(norm2one(self.y))
+
+    def _interpolated_data(self, method=None, **kwargs):
+        if not method or method.lower() == 'linear':
+            return [list(i) for i in zip(*interp_linear(*zip(*self.data)))]
+        elif method == 'univar':
+            return [list(i) for i in zip(*interp_univar(*zip(*self.data), **kwargs))]
+
     def clean(self):
         # model-wide validation after individual fields have been cleaned
         errors = {}
@@ -388,18 +344,13 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
 
         if self.data:
             if self.category == self.PROTEIN:
-                if self.subtype == self.TWOP:
-                    y, self._peakval2p, maxi = norm2P(self.y)
-                    self._peakwave2p = self.x[maxi]
-                    self.change_y(y)
-                else:
-                    self.change_y(norm2one(self.y))
+                self._norm2one()
             elif (max(self.y) > 1.5) or (max(self.y) < 0.1):
                 if self.category in (self.FILTER, self.CAMERA) and (10 < max(self.y) < 101):
                     # assume 100% scale
                     self.change_y([round(yy / 100, 4) for yy in self.y])
                 else:
-                    self.change_y(norm2one(self.y))
+                    self._norm2one()
 
         if errors:
             raise ValidationError(errors)
