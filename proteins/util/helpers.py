@@ -1,9 +1,21 @@
 import re
+import io
+import matplotlib.ticker as ticker
 from uuid import uuid4
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-import matplotlib.ticker as ticker
-import io
+from django.utils.text import slugify
+
+
+def getprot(protein_name):
+    from proteins.models import Protein
+
+    # assume that the slug is always the slugified name
+    try:
+        return Protein.objects.get(slug=slugify(protein_name))
+    except Exception:
+        pass
+    return Protein.objects.get(aliases__contains=[protein_name])
 
 
 def shortuuid(padding=None):
