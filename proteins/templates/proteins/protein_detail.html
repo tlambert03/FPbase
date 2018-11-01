@@ -89,8 +89,14 @@
           {{ protein.description | safe }}
         {% endif %}
       </div>
-
 		</div>
+
+
+    {% if protein.lineage %}
+      <div>
+       <div class="lineage" data-slug='{{protein.slug}}'></div>
+      </div>
+    {% endif %}
 
 		<div class="spectra">
 			{% if protein.has_spectra %}
@@ -103,6 +109,7 @@
       <p class='mt-4'>No spectrum has been submitted ... <a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary'>add a spectrum!</a></p>
       {% endif %}
 		</div>
+
 
     <div class="table mt-3">
       <table class="table mobile" id='flip-scroll'>
@@ -391,14 +398,14 @@
   <script src="{% static 'favit/js/favorite.js' %}"></script>
   <script src="{% static 'js/jquery.formset.js' %}"></script>
   <script src="{% static "js/nvd3spectra.js" %}"> </script>
-  <script src="{% static 'js/smiles-drawer.min.js' %}"></script>
-  {% endcompress %}
-
+  <script src="{% static 'js/lineage.js' %}"></script>
   {% if protein.pdb %}
-      <script src="//www.ebi.ac.uk/pdbe/pdb-component-library/libs/angular.1.4.7.min.js"></script>
-      <script src="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/js/pdb.component.library.min-1.0.0.js"></script>
+      <script src="{% static 'js/smiles-drawer.min.js' %}"></script>
+      <script src="{% static 'js/angular.1.4.7.min.js' %}"></script>
+      <script src="{% static 'js/pdb.component.library.min-1.0.0.js' %}"></script>
       <script src="{% static 'js/my-litemol.js' %}"></script>
   {% endif %}
+  {% endcompress %}
 
 <script type="text/javascript">
   $(document).ready(function () {
@@ -418,7 +425,26 @@
     {% endif %}
 
     <script type="text/javascript">
-	    $(function () {
+	    var linchart;
+      $(function () {
+
+        var resizeTimer;
+        $('.lineage').each(function(i, el){
+          var slug = $(el).data('slug') || '';
+          $.getJSON("/ajax/lineage/" + slug, function(data){
+            linchart = LineageChart().data(data);
+            var lineage = d3.select(el)
+            lineage.call(linchart, slug);
+            $(window).on('resize', function(e) {
+              clearTimeout(resizeTimer);
+              resizeTimer = setTimeout(function() {
+                lineage.call(linchart);
+              }, 250);
+            });
+          })
+        });
+
+
         {% if protein.has_spectra %}
         // disable 2p by default
         for (n = 0; n < myData.length; n++){
@@ -463,6 +489,7 @@
             .call(chart);        //Finally, render the chart!
 
             //Update the chart when window resizes.
+
             nv.utils.windowResize(function() { chart.update() });
             return chart;
         });

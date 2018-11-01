@@ -1,11 +1,13 @@
+from django.views.generic import DetailView
 from django.http import HttpResponseNotAllowed
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.core.mail import mail_managers
+from collections import defaultdict
 
-from ..models import Protein, Organism, Spectrum, Fluorophore
+from ..models import Protein, Organism, Spectrum, Fluorophore, Lineage
 import reversion
 
 
@@ -148,7 +150,62 @@ def validate_proteinname(request):
     return JsonResponse(data)
 
 
-from django.views.generic import DetailView
+def recursive_node_to_dict(node, widths=None):
+    if not widths:
+        widths = defaultdict(int)
+    widths[node.level] += 1
+
+    result = {
+        'name': node.protein.name,
+        'mut': ", ".join(node.mutation.split('/')),
+        # 'mut': node.display_mutation(maxwidth=10) or "null",
+        'url': node.protein.get_absolute_url(),
+        'bg': node.protein.emhex,
+        'slug': node.protein.slug,
+        'ref': node.reference.citation if node.reference else '',
+    }
+
+    children = []
+    for c in node.get_children():
+        child, widths = recursive_node_to_dict(c, widths)
+        children.append(child)
+    if children:
+        result['children'] = children
+    return result, widths
+
+
+def get_lineage(request, slug=None):
+    # if not request.is_ajax():
+    #     return HttpResponseNotAllowed([])
+
+    if slug:
+        item = Lineage.objects.get(protein__slug=slug)
+        ids = item.get_family()
+    else:
+        ids = Lineage.objects.all().values_list('id', flat=True)
+    # cache upfront everything we're going to need
+    root_nodes = Lineage.objects\
+        .filter(id__in=ids)\
+        .select_related('protein', 'reference', 'protein__default_state')\
+        .prefetch_related('protein__states')\
+        .get_cached_trees()
+
+    D = {
+        'name': 'fakeroot',
+        'children': [],
+        'widths': defaultdict(int)
+    }
+    for n in root_nodes:
+        result, D['widths'] = recursive_node_to_dict(n, D['widths'])
+        if 'children' in result:
+            D['children'].append(result)
+    D['max_width'] = max(D['widths'].values())
+    D['max_depth'] = max(D['widths'])
+    D['tot_nodes'] = sum(D['widths'].values())
+
+    # data['tree'] = json.dumps(D)
+
+    return JsonResponse(D)
 
 
 class Widget(DetailView):

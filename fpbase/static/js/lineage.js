@@ -1,0 +1,388 @@
+function n_sibs(node) {
+  return node.parent ? node.parent.children.length - 1 : 0;
+}
+
+function is_first_sib(node) {
+  if (!node.parent || node.parent.children.length == 1) {
+    return false;
+  }
+  var i = node.parent.children
+    .map(function(e) {
+      return e.name;
+    })
+    .indexOf(node.name);
+  if (i == 0) {
+    return true;
+  }
+  return false;
+}
+
+function is_last_sib(node) {
+  if (!node.parent || node.parent.children.length == 1) {
+    return false;
+  }
+  var i = node.parent.children
+    .map(function(e) {
+      return e.name;
+    })
+    .indexOf(node.name);
+  if (i == node.parent.children.length - 1) {
+    return true;
+  }
+  return false;
+}
+
+function text_position(node, slug) {
+  var x;
+  var y;
+  var anchor = "middle";
+  if (node.depth < 2) {
+    x = -13;
+    y = 0;
+    anchor = "end";
+  } else if (n_sibs(node) < 2) {
+    if (node.children || node._children) {
+      x = 0;
+      y = is_last_sib(node) ? 16 : -16;
+    } else {
+      x = 13;
+      y = 0;
+      anchor = "start";
+    }
+  } else {
+    y = 0;
+    if (node.children || node._children) {
+      if (is_first_sib(node)) {
+        y = -16;
+        x = 0;
+        anchor = "middle";
+      } else if (is_last_sib(node)) {
+        y = 16;
+        x = 0;
+        anchor = "middle";
+      } else {
+        x = -13;
+        anchor = "end";
+      }
+    } else {
+      x = 13;
+      anchor = "start";
+    }
+  }
+  if (node.slug === slug) {
+    if (node.children || node._children) {
+      y -= 8
+    } else { x += 6}
+  }
+  return [x, y, anchor];
+}
+
+function LineageChart() {
+  var margin = { top: 20, right: 130, bottom: 15, left: 60 },
+    width,
+    heightScalar = 28,
+    nodeWidth,
+    height,
+    i = 0,
+    duration = 350,
+    defaultRadius = 8,
+    slugRadius = 12.5,
+    data,
+    sel,
+    slug,
+    tree = d3.layout.tree();
+
+  var diagonal = d3.svg.diagonal().projection(function(d) {
+    return [d.y, d.x];
+  });
+
+  // Define the div for the tooltip
+  var div = d3
+    .select("body")
+    .append("div")
+    .attr("class", "tooltip lineage-tooltip")
+    .style("opacity", 0)
+    .style("width", "180px");
+
+  function stopEvent(event) {
+    if (event.preventDefault != undefined) event.preventDefault();
+    if (event.stopPropagation != undefined) event.stopPropagation();
+  }
+
+  function chart(selection, slug) {
+    sel = selection;
+    slug = slug;
+    selection.on("contextmenu", function() {
+      d3.event.preventDefault();
+    });
+
+    selection.each(function() {
+      var BB = selection.node().getBoundingClientRect();
+      var containerWidth = BB.width;
+      data.x0 = height / 2;
+      data.y0 = 0;
+      width = containerWidth - margin.right - margin.left;
+      height = 80 + data.max_width * heightScalar;
+      nodeWidth = width / data.max_depth ;
+      tree.size([height - margin.top - margin.bottom, width]);
+
+      // Select the svg element, if it exists.
+      var svg = selection.selectAll("svg").data([data]);
+
+      // Otherwise, create the skeletal chart.
+      var svgEnter = svg.enter().append("svg");
+      var gEnter = svgEnter.append("g");
+
+      // Update the outer dimensions.
+      svg.attr("width", "100%").attr("height", height);
+
+      // Update the inner dimensions.
+      var g = svg
+        .select("g")
+        .attr("width", width)
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // assign parent, children, height, depth
+      var root = data;
+      root.x0 = height / 2; // left edge of the rectangle
+      root.y0 = 0; // top edge of the triangle
+
+      update(root);
+
+      function update(source) {
+        // Compute the new tree layout.
+        var nodes = tree.nodes(root).reverse(),
+          links = tree.links(nodes);
+
+        // Normalize for fixed-depth.
+        nodes.forEach(function(d) {
+          d.y = (d.depth - 1) * nodeWidth;
+        });
+
+        // Update the nodes…
+        var node = g.selectAll("g.node").data(nodes, function(d) {
+          return d.id || (d.id = ++i);
+        });
+
+        // Enter any new nodes at the parent's previous position.
+        var nodeEnter = node
+          .enter()
+          .append("g")
+          .attr("class", "node")
+          .attr("transform", function(d) {
+            return "translate(" + source.y0 + "," + source.x0 + ")";
+          })
+          .on("contextmenu", click);
+
+        nodeEnter
+          .append("a")
+          .attr("xlink:href", function(d) {
+            return d.url;
+          })
+          .append("circle")
+          .attr("r", 1e-6)
+          .style("fill", function(d) {
+            return d.bg == "#222" ? "#777" : d.bg;
+          })
+          .on("mouseover", function(d) {
+
+            if (d.slug !== slug){
+              d3.select(this)
+                .transition(200)
+                .attr('r', function(d) {return d._children ? defaultRadius : defaultRadius * 1.3} );
+            }
+
+            var dtext = `<strong>${d.name}</strong><br><small>
+                        ${(d.parent.name === "fakeroot" ? '' : d.parent.name)}`
+            dtext += d.mut ? ` ➡ ${d.mut}<br>` : '';
+            dtext += d.ref ? `<em>${d.ref}</em>` : '';
+            dtext += '</small>';
+
+            div
+              .html(dtext)
+              .style("left", (d3.event.pageX - 90 ) + "px")
+              .style("top", (d3.event.pageY - div[0][0].clientHeight - 28) + "px")
+              .transition()
+              .duration(200)
+              .style("opacity", 0.9);
+          })
+          .on("mouseout", function(d) {
+
+            div.transition()
+               .duration(200)
+               .style("opacity", 0)
+               .transition().duration(0)
+               .style("top", (d3.event.pageY - div[0][0].clientHeight - 200) + "px");
+
+            if (d.slug !== slug){
+              d3.select(this)
+                .transition(150)
+                .attr('r', function(d){ return d._children ? defaultRadius/2 : (d.slug === slug ? slugRadius : defaultRadius); });
+            }
+          });
+        //.style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+        nodeEnter
+          .append("text")
+          .attr("x", function(d) {
+            return text_position(d)[0];
+          })
+          .attr("y", function(d) {
+            return text_position(d, slug)[1];
+          })
+          .attr("dy", ".35em")
+          .attr("text-anchor", function(d) {
+            return text_position(d)[2];
+          })
+          .text(function(d) {
+            return d.name;
+          })
+          .attr("class", function(d) { return d.slug === slug ? 'font-weight-bold' : '' })
+          .style("fill-opacity", 1e-6);
+
+        // Transition nodes to their new position.
+        var nodeUpdate = node
+          .transition()
+          .duration(duration)
+          .attr("transform", function(d) {
+            return "translate(" + d.y + "," + d.x + ")";
+          });
+
+        nodeUpdate
+          .select("circle")
+          .attr("r", function(d) {
+            return d._children ? defaultRadius/2 : (d.slug === slug ? slugRadius : defaultRadius);
+          })
+          .style("fill", function(d) {
+            return d.bg == "#222" ? "#888" : d.bg;
+          })
+          .style("stroke-width", function(d) {
+            return d._children ? defaultRadius/2 + "px" : "1px";
+          });
+
+        nodeUpdate.select("text").style("fill-opacity", 1);
+
+        // Transition exiting nodes to the parent's new position.
+        var nodeExit = node
+          .exit()
+          .transition()
+          .duration(duration)
+          .attr("transform", function(d) {
+            return "translate(" + source.y + "," + source.x + ")";
+          })
+          .remove();
+
+        nodeExit.select("circle").attr("r", 1e-6);
+
+        nodeExit.select("text").style("fill-opacity", 1e-6);
+
+        // Update the links…
+        var link = g.selectAll("path.link").data(links, function(d) {
+          return d.target.id;
+        });
+
+        // Enter any new links at the parent's previous position.
+        link
+          .enter()
+          .insert("path", "g")
+          .attr("class", "link")
+          .attr("d", function(d) {
+            var o = { x: source.x0, y: source.y0 };
+            return diagonal({ source: o, target: o });
+          });
+
+        // Transition links to their new position.
+        link
+          .transition()
+          .duration(duration)
+          .attr("d", diagonal);
+
+        // Transition exiting nodes to the parent's new position.
+        link
+          .exit()
+          .transition()
+          .duration(duration)
+          .attr("d", function(d) {
+            var o = { x: source.x, y: source.y };
+            return diagonal({ source: o, target: o });
+          })
+          .remove();
+
+        //Option 1: remove node
+        node.each(function(d) {
+          if (d.name == "fakeroot") d3.select(this).remove();
+        });
+
+        link.each(function(d) {
+          if (d.source.name == "fakeroot") d3.select(this).remove();
+        });
+
+        // Stash the old positions for transition.
+        nodes.forEach(function(d) {
+          d.x0 = d.x;
+          d.y0 = d.y;
+        });
+
+        // toggle children on click
+        function click(d) {
+          if (d.children) {
+            d._children = d.children;
+            d.children = null;
+          } else {
+            d.children = d._children;
+            d._children = null;
+          }
+          update(d);
+        }
+      }
+    });
+  }
+
+  // Public accessor methods
+
+  chart.margin = function(_) {
+    if (!arguments.length) return margin;
+    margin = _;
+    return chart;
+  };
+
+  chart.width = function(value) {
+    if (!arguments.length) return width;
+    width = value;
+    return chart;
+  };
+
+  chart.slug = function(value) {
+    if (!arguments.length) return slug;
+    slug = value;
+    return chart;
+  };
+
+  chart.height = function(value) {
+    if (!arguments.length) return height;
+    height = value;
+    return chart;
+  };
+
+  chart.data = function(value) {
+    if (!arguments.length) return data;
+    data = value;
+    if (typeof updateData === "function") updateData();
+    return chart;
+  };
+
+  chart.tree = function(value) {
+    if (!arguments.length) return tree;
+    if (value === 'cluster'){
+      tree = d3.layout.cluster();
+      chart(sel, slug);
+    } else {
+      tree = d3.layout.tree();
+      chart(sel, slug);
+    }
+    return chart;
+  };
+
+
+  return chart;
+}

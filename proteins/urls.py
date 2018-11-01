@@ -125,6 +125,8 @@ urlpatterns = [
     url(r'^ajax/flag_object/$', views.flag_object, name='flag_object'),
     url(r'^ajax/add_to_collection/$', views.add_to_collection, name='add_to_collection'),
     url(r'^ajax/comparison/$', views.update_comparison, name='update-comparison'),
+    url(r'^ajax/lineage/(?P<slug>[-\w]+)/$', views.get_lineage, name='get-lineage'),
+    url(r'^ajax/lineage/$', views.get_lineage, name='get-lineage'),
 
     url(r'^widget/(?P<slug>[-\w]+)/$', views.Widget.as_view(), name='widget-detail'),
 
