@@ -1,7 +1,68 @@
 from scipy import interpolate
 from scipy.signal import savgol_filter
 from django.http import HttpResponse
+from scipy.signal import argrelextrema  # savgol_filter
+import numpy as np
 import csv
+
+
+def is_monotonic(array):
+    array = np.array(array)
+    return np.all(array[1:] > array[:-1])
+
+
+def make_monotonic(x, y):
+    X, Y = list(zip(*sorted(zip(x, y))))
+    X, xind = np.unique(X, return_index=True)
+    Y = np.array(Y)[xind]
+    return X, Y
+
+
+def interp_linear(x, y, s=1, savgol=False):
+    '''Interpolate pair of vectors at integer increments between min(x) and max(x)'''
+    if not is_monotonic(x):
+        x, y = make_monotonic(x, y)
+    xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
+    F = interpolate.interp1d(x, y)
+    ynew = F(xnew)
+    if savgol:
+        ynew = savgol_filter(ynew, 9, 2)
+    return xnew, ynew
+
+
+def interp_univar(x, y, s=1, savgol=False):
+    if not is_monotonic(x):
+        x, y = make_monotonic(x, y)
+    '''Interpolate pair of vectors at integer increments between min(x) and max(x)'''
+    xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
+    F = interpolate.InterpolatedUnivariateSpline(x, y)
+    ynew = F(xnew)
+    if savgol:
+        ynew = norm2one(savgol_filter(ynew, 15, 2))
+    return xnew, ynew
+
+
+def norm2one(y):
+    return [round(max(yy / max(y), 0), 4) for yy in y]
+
+
+def step_size(lol):
+    x, y = zip(*lol)
+    s = set(np.subtract(x[1:], x[:-1]))
+    if len(s) > 1:  # multiple step sizes
+        return False
+    return s.pop()
+
+
+def norm2P(y):
+    '''Normalize peak value of vector to one'''
+    y = np.array(y)
+    localmax = argrelextrema(y, np.greater, order=100)
+    # can't be within first 10 points
+    localmax = [i for i in localmax[0] if i > 10]
+    maxind = localmax[np.argmax(y[localmax])]
+    maxy = y[maxind]
+    return [round(max(yy / maxy, 0), 4) for yy in y], maxy, maxind
 
 
 def spectra2csv(spectralist, filename='fpbase_spectra.csv'):
