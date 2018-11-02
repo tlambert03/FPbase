@@ -26,3 +26,7 @@
     text-align: center;
   }
 }
+
+#mutation-search-input::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+}

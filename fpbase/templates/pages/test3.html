@@ -4,7 +4,7 @@
 
 {% block content %}
 
-    <div class="lineage" data-slug=''></div>
+    <div class="lineage" data-slug='avgfp'></div>
 
 
 {% endblock content %}
@@ -19,7 +19,7 @@
 
 $('.lineage').each(function(i, el){
   $.getJSON("/ajax/lineage/" + ($(el).data('slug') || ''), function(data){
-    chart = LineageChart().data(data);
+    chart = LineageChart().data(data).withSearch(true).withToolbar(true);
     var lineage = d3.select(el)
     lineage.call(chart);
 

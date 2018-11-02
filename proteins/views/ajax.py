@@ -150,7 +150,7 @@ def validate_proteinname(request):
     return JsonResponse(data)
 
 
-def recursive_node_to_dict(node, widths=None):
+def recursive_node_to_dict(node, widths=None, rootseq=None):
     if not widths:
         widths = defaultdict(int)
     widths[node.level] += 1
@@ -165,9 +165,12 @@ def recursive_node_to_dict(node, widths=None):
         'ref': node.reference.citation if node.reference else '',
     }
 
+    if rootseq:
+        result['rootmut'] = str(rootseq.mutations_to(node.protein.seq))
+
     children = []
     for c in node.get_children():
-        child, widths = recursive_node_to_dict(c, widths)
+        child, widths = recursive_node_to_dict(c, widths, rootseq)
         children.append(child)
     if children:
         result['children'] = children
@@ -196,7 +199,7 @@ def get_lineage(request, slug=None):
         'widths': defaultdict(int)
     }
     for n in root_nodes:
-        result, D['widths'] = recursive_node_to_dict(n, D['widths'])
+        result, D['widths'] = recursive_node_to_dict(n, D['widths'], n.protein)
         if 'children' in result:
             D['children'].append(result)
     D['max_width'] = max(D['widths'].values())
