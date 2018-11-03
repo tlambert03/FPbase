@@ -210,8 +210,8 @@ function LineageChart() {
                 .attr('r', function(d) {return d._children ? defaultRadius : defaultRadius * 1.3} )
             }
 
-            var dtext = `<strong>${d.name}</strong><br><span style="font-size: 0.73rem;">
-                        ${(d.parent.name === "fakeroot" ? '' : d.parent.name)}`
+            var dtext = `<strong>${d.name}</strong><br><span style="font-size: 0.73rem;">`;
+            dtext += (d.parent.name === "fakeroot" ? '' : d.parent.name);
             dtext += d.mut ? ` ➡ ${d.mut}<br>` : '';
             dtext += d.ref ? `<em>${d.ref}</em>` : '';
             dtext += '</span>';
