@@ -1,3 +1,9 @@
+import re
+import numpy as np
+from .skbio_protein import SkbSequence
+from .align import align_seqs, parental_numbering
+import warnings
+
 """
 mutation strings attempt to follow HGVS-nomenclature
 http://varnomen.hgvs.org/recommendations/protein/
@@ -29,11 +35,6 @@ full string:
     'S65T/C76del/C76_G79del/K23_L24insRSG/C76delinsRRGY/C76_G78delinsRRGY/*315TextAKGT/M1_L2insVKSGEE'
 """
 
-import re
-import numpy as np
-from .skbio_protein import SkbSequence
-from .align import align_seqs
-import warnings
 
 # optional prefix could be added
 # (?:(?P<prefix>[A-Za-z0-9]+)\.)?
@@ -236,11 +237,14 @@ def _get_aligned_muts(AQS, ATS, gapchars='-.', zeroindex=1):
     return out
 
 
-def find_mutations(seq1, seq2, **kwargs):
+def find_mutations(seq1, seq2, reference=None):
     """get complete mutation string for a pair of sequences"""
-    algn = align_seqs(seq1, seq2, **kwargs)
+    algn = align_seqs(seq1, seq2)
     mutstring = "/".join(_get_aligned_muts(*algn))
-    mutset = MutationSet.from_str(mutstring)
+    poslist = None
+    if reference is not None:
+        poslist = parental_numbering(*align_seqs(reference, seq1))
+    mutset = MutationSet(mutstring, poslist)
     return mutset
 
 
@@ -251,7 +255,9 @@ def mutate_sequence(seq, mutstring, **kwargs):
 
 class MutationSet(object):
 
-    def __init__(self, muts=None):
+    def __init__(self, muts=None, position_labels=None):
+        """ optional position_labels list will change the numbering of the
+        muationset ... for instance, to match a reference sequence numbering """
         if isinstance(muts, str):
             muts = parse_mutstring(muts)
         elif not isinstance(muts, (list, set, tuple)):
@@ -260,6 +266,10 @@ class MutationSet(object):
             raise ValueError('All MutationSet items must be Mutation Instances')
         self.muts = set(muts)
         self.merge_delins()
+        if position_labels is not None:
+            for mut in self.muts:
+                # the - 1 assumes that the mutation positions are 1-indexed
+                mut.start_idx = position_labels[mut.start_idx - 1]
 
     def __contains__(self, query):
         if isinstance(query, str):
@@ -399,10 +409,10 @@ class MutationSet(object):
         else:
             if self.muts == otherm:
                 return True
-            else:
-                if len(self.muts) == len(otherm):
-                    if len(self.detect_offset(other)) == 1:
-                        return True
+            # else:
+            #     if len(self.muts) == len(otherm):
+            #         if len(self.detect_offset(other)) == 1:
+            #             return True
         return False
 
     def __hash__(self):

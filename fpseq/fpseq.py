@@ -1,7 +1,7 @@
 import json
 from .skbio_protein import SkbSequence
 from .util import protein_weight, slugify
-from .align import nw_align
+from .align import nw_align, align_seqs, parental_numbering
 from .mutations import find_mutations, mutate_sequence
 try:
     import requests
@@ -50,11 +50,10 @@ class FPSeq(SkbSequence):
         return nw_align(str(self), str(other), **kwargs)
 
     def mutations_to(self, other, reference=None, **kwargs):
-        if reference is not None:
-            ref2a = find_mutations(str(reference), str(self), **kwargs)
-            ref2b = find_mutations(str(reference), str(other), **kwargs)
-            return ref2b.difference(ref2a)
-        return find_mutations(str(self), other, **kwargs)
+        return find_mutations(str(self), other, reference)
+
+    def positions_relative_to(self, reference):
+        return parental_numbering(*align_seqs(self, reference))
 
     def mutate(self, mutations, **kwargs):
         result = mutate_sequence(str(self), mutations, **kwargs)

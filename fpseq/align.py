@@ -24,6 +24,27 @@ def align_seqs(seq1, seq2):
     return algn.aligned_query_sequence(), algn.aligned_target_sequence()
 
 
+def parental_numbering(aseq1, aseq2):
+    """ given two ALIGNED sequences, return a 'position list' for the second
+    sequence based on the parental sequence """
+    idx = 1
+    numlist = []
+    insertchars = 'abcdefghijklmnop'
+    insertidx = 0
+    for s1, s2 in zip(aseq1, aseq2):
+        if s2 == '-':
+            idx += 1
+            continue
+        if s1 == '-':
+            numlist.append(str(idx - 1) + insertchars[insertidx])
+            insertidx += 1
+            continue
+        insertidx = 0
+        numlist.append(idx)
+        idx += 1
+    return numlist
+
+
 class ParasailAlignment:
 
     def __init__(self, result):
