@@ -1083,7 +1083,7 @@ def import_tree(filepath=None):
                     print("Created root: {}".format(child))
                     count += 1
             except IntegrityError as e:
-                print("IntegrityError: {}".format(e))
+                # print("IntegrityError: {}".format(e))
                 pass
             except Lineage.DoesNotExist:
                 pass

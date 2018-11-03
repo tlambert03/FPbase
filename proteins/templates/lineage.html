@@ -22,7 +22,7 @@
 
 
 $('.lineage').each(function(i, el){
-  $.getJSON("/ajax/" + window.location.pathname, function(data){
+  $.getJSON("/ajax" + window.location.pathname, function(data){
     chart = LineageChart().data(data).withSearch(true).withToolbar(true);
     var lineage = d3.select(el)
     lineage.call(chart);
