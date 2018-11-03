@@ -11,7 +11,7 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
 
     STATUS = Choices('approved', 'flagged', 'rejected')
 
-    content = models.TextField(max_length=1024, help_text="Brief excerpt describing this protein")
+    content = models.TextField(max_length=1200, help_text="Brief excerpt describing this protein")
     protein = models.ForeignKey('Protein', related_name='excerpts', on_delete=models.CASCADE)
     reference = models.ForeignKey(Reference, related_name='excerpt',
                                   null=True, on_delete=models.SET_NULL,
