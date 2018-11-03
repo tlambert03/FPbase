@@ -5,14 +5,7 @@ from . import views
 from .api import views as apiviews
 from fpbase.decorators import login_required_message_and_redirect as login_required
 
-
 app_name = 'proteins'
-
-from .models import Lineage
-from django.shortcuts import render
-
-def show_lineage(request):
-    return render(request, "lineages.html", {'lineages': Lineage.objects.prefetch_related('protein')})
 
 urlpatterns = [
     # detail view: /:slug
@@ -26,7 +19,6 @@ urlpatterns = [
                        message="You must be logged in to update protein information"),
         name='update'),
     url(r'^table/', views.protein_table, name='table'),
-    url(r'^lineage/', show_lineage),
     url(r'^tree/(?P<organism>\d+)/$', views.protein_tree, name='tree'),
 
     url(r'^sequence_problems/', views.sequence_problems, name='sequence_problems'),
@@ -51,6 +43,7 @@ urlpatterns = [
     url(r'^compare/$', views.ComparisonView.as_view(), name='compare'),
     url(r'^compare/(?P<proteins>[\w,\-]+)/$', views.ComparisonView.as_view(), name='compare'),
 
+    url(r'^lineage/', TemplateView.as_view(template_name='lineage.html'), name='lineage'),
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
     url(r'^collections/(?P<owner>[\w.@+-]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),

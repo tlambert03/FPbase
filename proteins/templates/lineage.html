@@ -4,7 +4,11 @@
 
 {% block content %}
 
-    <div class="lineage" data-slug='avgfp'></div>
+  <div class="container">
+    <p>Hover over any circle to see mutations relative to the parental protein. Click on a circle to go to its page. Right click on a circle to collapse its descendent tree.</p>
+    <p>Use the search bar to search for a specific mutation, or a combination of mutations (using the "any/all" buttons to modify your search).  To search for mutations relative to the root protein, click relative to "root".  Use the arrows to compress/expand the tree, or group clusters tightly or losely</p>
+  </div>
+  <div class="lineage"></div>
 
 
 {% endblock content %}
@@ -18,7 +22,7 @@
 
 
 $('.lineage').each(function(i, el){
-  $.getJSON("/ajax/lineage/" + ($(el).data('slug') || ''), function(data){
+  $.getJSON("/ajax/" + window.location.pathname, function(data){
     chart = LineageChart().data(data).withSearch(true).withToolbar(true);
     var lineage = d3.select(el)
     lineage.call(chart);
