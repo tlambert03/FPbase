@@ -5,8 +5,10 @@ from ..models import Protein, State, Spectrum
 from .serializers import (ProteinSerializer, ProteinSerializer2, SpectrumSerializer,
                           BasicProteinSerializer, StateSerializer, ProteinSpectraSerializer)
 
+from django.db.models import F, Max
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.http import JsonResponse
 from django_filters import rest_framework as filters
 from ..filters import ProteinFilter, StateFilter, SpectrumFilter
 from rest_framework.settings import api_settings
@@ -49,7 +51,9 @@ class ProteinListAPIView(ListAPIView):
 
 
 class BasicProteinListAPIView(ProteinListAPIView):
-    queryset = Protein.objects.filter(switch_type=Protein.BASIC).select_related('default_state')
+    queryset = Protein.objects.filter(switch_type=Protein.BASIC)\
+                              .select_related('default_state')\
+                              .annotate(rate=Max(F('default_state__bleach_measurements__rate')))
     permission_classes = (AllowAny, )
     serializer_class = BasicProteinSerializer
 
@@ -83,7 +87,6 @@ class ProteinSpectraListAPIView(ListAPIView):
     serializer_class = ProteinSpectraSerializer
     queryset = Protein.objects.with_spectra().prefetch_related('states')
 
-from django.http import JsonResponse
 
 def spectraslugs(request):
     return JsonResponse(Spectrum.objects.sluglist(), safe=False)

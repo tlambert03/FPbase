@@ -44,7 +44,7 @@ if env('MAILGUN_API_KEY', default=False) and env('MAILGUN_DOMAIN', default=False
     }
     EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 
-
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['fpbase.org', 'localhost', 'testserver'])
 # CORS
 # -------
 
