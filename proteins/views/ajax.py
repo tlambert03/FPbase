@@ -198,7 +198,7 @@ def get_lineage(request, slug=None):
         'children': [],
         'widths': defaultdict(int)
     }
-    for n in root_nodes:
+    for n in sorted(root_nodes, key=lambda x: x.protein.name.lower()):
         result, D['widths'] = recursive_node_to_dict(n, D['widths'], n.protein)
         if 'children' in result:
             D['children'].append(result)
