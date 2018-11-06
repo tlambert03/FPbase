@@ -32,7 +32,7 @@ function is_last_sib(node) {
   return false;
 }
 
-function text_position(node, slug) {
+function text_position(node, slug, vertical) {
   var x;
   var y;
   var anchor = "middle";
@@ -74,6 +74,9 @@ function text_position(node, slug) {
       y -= 8
     } else { x += 6}
   }
+  if (vertical){
+    return [y, x, anchor];
+  }
   return [x, y, anchor];
 }
 
@@ -95,6 +98,7 @@ function LineageChart() {
     tree = d3.layout.tree(),
     withSearch = false,
     withToolbar = false,
+    vertical = false,
     dropShadow = {
       'stdDeviation': 4,
       'dx': 0,
@@ -138,9 +142,15 @@ function LineageChart() {
       var containerWidth = BB.width;
       data.x0 = height / 2;
       data.y0 = 0;
-      width = containerWidth - margin.right - margin.left;
-      height = 80 + data.max_width * heightScalar;
-      nodeWidth = widthScalar * width / data.max_depth ;
+      if (vertical){
+        height = containerWidth - margin.right - margin.left;
+        width = 80 + data.max_width * heightScalar;
+        nodeWidth = 1.4*widthScalar * width / data.max_depth ;
+      } else{
+        width = containerWidth - margin.right - margin.left;
+        height = 80 + data.max_width * heightScalar;
+        nodeWidth = widthScalar * width / data.max_depth ;
+      }
       tree.size([height - margin.top - margin.bottom, width]);
 
       // Select the svg element, if it exists.
@@ -172,10 +182,19 @@ function LineageChart() {
         var nodes = tree.nodes(root).reverse(),
           links = tree.links(nodes);
 
-        // Normalize for fixed-depth.
-        nodes.forEach(function(d) {
-          d.y = (d.depth - 1) * nodeWidth;
-        });
+
+          // Normalize for fixed-depth.
+          nodes.forEach(function(d) {
+            d.y = (d.depth - 1) * nodeWidth;
+          });
+
+        if (vertical) {
+          nodes.forEach(function(d) {
+            var f = d.x;
+            d.x = d.y;
+            d.y = f;
+          });
+        }
 
         // Update the nodes…
         var node = g.selectAll("g.node").data(nodes, function(d) {
@@ -247,14 +266,14 @@ function LineageChart() {
         nodeEnter
           .append("text")
           .attr("x", function(d) {
-            return text_position(d)[0];
+            return text_position(d, slug, vertical)[0];
           })
           .attr("y", function(d) {
-            return text_position(d, slug)[1];
+            return text_position(d, slug, vertical)[1];
           })
           .attr("dy", ".35em")
           .attr("text-anchor", function(d) {
-            return text_position(d)[2];
+            return text_position(d, slug, vertical)[2];
           })
           .text(function(d) {
             return d.name;
