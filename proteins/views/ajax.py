@@ -157,7 +157,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
 
     result = {
         'name': node.protein.name,
-        'mut': ", ".join(node.mutation.split('/')),
+        # 'mut': ", ".join(node.mutation.split('/')),
         # 'mut': node.display_mutation(maxwidth=10) or "null",
         'url': node.protein.get_absolute_url(),
         'bg': node.protein.emhex,
@@ -167,6 +167,8 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
 
     if rootseq:
         result['rootmut'] = str(rootseq.mutations_to(node.protein.seq))
+        if node.parent and node.parent.protein.seq:
+            result['mut'] = str(node.mut_from_parent()),
 
     children = []
     for c in node.get_children():
