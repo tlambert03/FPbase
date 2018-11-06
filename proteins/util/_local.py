@@ -1013,17 +1013,16 @@ def get_gb_data(file):
 
 def import_tree(filepath=None):
     if not filepath:
-        filepath = os.path.join(BASEDIR, '_data/lineage.csv')
-    import tablib
+        filepath = os.path.join(BASEDIR, '_data/Lineage.xlsx')
+
     from proteins.models import Protein, Reference, Lineage
     from django.db import IntegrityError
 
-    with open(filepath, 'r') as file:
-        data = tablib.Dataset().load(file.read())
+    data = pd.read_excel(filepath)
+    data = data.where((pd.notnull(data)), '').astype(str)
 
     nonames = []
     for name in data['name']:
-        print(name)
         if name:
             try:
                 getprot(name)
@@ -1037,7 +1036,7 @@ def import_tree(filepath=None):
             for name in nonames:
                 Protein.objects.get_or_create(name=name)
 
-    for doi in data['\ufeffref']:
+    for doi in data['ref']:
         if doi:
             try:
                 Reference.objects.get(doi=doi)
@@ -1050,7 +1049,7 @@ def import_tree(filepath=None):
     count = 1
     while count > 0:
         count = 0
-        for doi, author, year, prot, parnt, mutation, alias, note in data:
+        for rownum, (doi, author, year, prot, parnt, mutation, alias, note) in data.iterrows():
             prot = prot.strip()
             if not len(prot):
                 continue
