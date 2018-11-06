@@ -18,6 +18,25 @@ def getprot(protein_name):
     return Protein.objects.get(aliases__contains=[protein_name])
 
 
+def getmut(protname2, protname1=None, ref=None):
+    from fpseq.mutations import find_mutations
+    a = getprot(protname2)
+    if protname1:
+        b = getprot(protname1)
+    else:
+        b = a.lineage.parent.protein
+    ref = getprot(ref).seq if ref else None
+    return find_mutations(b.seq, a.seq, ref)
+
+
+def showalign(protname2, protname1=None):
+    a = getprot(protname2)
+    if protname1:
+        b = getprot(protname1)
+    else:
+        b = a.lineage.parent.protein
+    print(b.seq.align_to(a.seq))
+
 def shortuuid(padding=None):
     number = uuid4().int
     output = ""
