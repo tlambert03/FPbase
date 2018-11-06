@@ -29,14 +29,14 @@ def parental_numbering(aseq1, aseq2):
     sequence based on the parental sequence """
     idx = 1
     numlist = []
-    insertchars = 'abcdefghijklmnop'
+    insertchars = 'abcdefghijklmnopqrstuvwxyz'
     insertidx = 0
     for s1, s2 in zip(aseq1, aseq2):
         if s2 == '-':
             idx += 1
             continue
         if s1 == '-':
-            numlist.append(str(idx - 1) + insertchars[insertidx])
+            numlist.append(str(idx - 1) + insertchars[insertidx % len(insertchars)])
             insertidx += 1
             continue
         insertidx = 0
