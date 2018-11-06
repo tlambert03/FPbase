@@ -5,7 +5,9 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
+from django.http import (HttpResponseRedirect, HttpResponse, JsonResponse,
+                         HttpResponseBadRequest, HttpResponseNotAllowed,
+                         Http404)
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -28,6 +30,9 @@ import json
 import re
 from django.utils.safestring import mark_safe
 from collections import OrderedDict
+from django.utils.text import slugify
+from django.db.models import Func, F, Value
+from django.contrib import messages
 
 
 def create_slug_dict():
@@ -96,7 +101,21 @@ class ProteinDetailView(DetailView):
             if int(version.object_id) == self.get_object().id:
                 return self.version_view(request, version, *args, **kwargs)
             # TODO:  ELSE WHAT??
-        return super().get(request, *args, **kwargs)
+        try:
+            return super().get(request, *args, **kwargs)
+        except Http404:
+            name = slugify(self.kwargs.get(self.slug_url_kwarg))
+            aliases_lower = Func(Func(F('aliases'), function='unnest'), function='LOWER')
+            remove_space = Func(aliases_lower, Value(' '), Value('-'), function='replace')
+            final = Func(remove_space, Value('.'), Value(''), function='replace')
+            D = dict(Protein.objects.annotate(aka=final).values_list('aka', 'id'))
+            if name in D:
+                obj = Protein.objects.get(id=D[name])
+                messages.add_message(self.request, messages.INFO,
+                                     'The URL {} was not found.  You have been forwarded here'
+                                     .format(self.request.get_full_path()))
+                return HttpResponseRedirect(obj.get_absolute_url())
+            raise
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
