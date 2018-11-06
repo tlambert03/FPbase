@@ -92,3 +92,8 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # ------------------------------------------------------------------------------
 
 #SITE_ID = None
+
+SHELL_PLUS_POST_IMPORTS = [
+    ('proteins.util.helpers', ('getprot', 'getmut', 'showalign')),
+    ('fpseq', ('FPSeq', 'from_fpbase', 'MutationSet', 'find_mutations', 'mutate_sequence')),
+]
