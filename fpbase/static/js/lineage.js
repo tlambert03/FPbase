@@ -94,6 +94,8 @@ function LineageChart() {
     data,
     sel,
     slug,
+    show_inserts = true,
+    show_deletions = true,
     inputField,
     tree = d3.layout.tree(),
     withSearch = false,
@@ -231,8 +233,18 @@ function LineageChart() {
 
             var dtext = `<strong>${d.name}</strong><br><span style="font-size: 0.73rem;">`;
             dtext += (d.parent.name === "fakeroot" ? '' : d.parent.name);
-            dtext += d.mut ? ` ➡ ${d.mut}<br>` : '';
-            dtext += d.ref ? `<em>${d.ref}</em>` : '';
+            if (d.mut){
+              var muts = d.mut[0].split('/');
+              if (!show_inserts) {
+                muts = muts.filter((d) => d.includes('ins') ? '' : d3);
+                muts = muts.filter((d) => d.includes('ext') ? '' : d3)
+              }
+              if (!show_deletions) {
+                muts = muts.filter((d) => d.includes('del') ? '' : d3)
+              }
+              dtext += ` ➡ ${muts.join('/')}`;
+            }
+            dtext += d.ref ? `<br><em>${d.ref}</em>` : '';
             dtext += '</span>';
 
             div
@@ -469,7 +481,6 @@ function LineageChart() {
   chart.heightScalar = function(value) {
     if (!arguments.length) return heightScalar;
     heightScalar = value;
-    chart(sel, slug);
     return chart;
   };
 
@@ -500,7 +511,6 @@ function LineageChart() {
   chart.widthScalar = function(value) {
     if (!arguments.length) return widthScalar;
     widthScalar = value;
-    chart(sel, slug);
     return chart;
   };
 
