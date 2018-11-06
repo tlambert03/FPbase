@@ -16,6 +16,14 @@ def check_offset(protname):
         print("{}:\t{} -> {}".format(protname, ms, ms.shift(offset)))
 
 
+def add_missing_seqs():
+    for node in Lineage.objects.all():
+        if not node.protein.seq and (node.parent and node.parent.protein.seq):
+            seq, _ = node.parent.protein.seq.mutate(node.mutation, correct_offset=True)
+            node.protein.seq = seq
+            node.protein.save()
+
+
 def check_lineages(correct_offset=False):
     errors = defaultdict(set)  # each is tuple of (Node, error)
     good = set()
@@ -49,8 +57,8 @@ def check_lineages(correct_offset=False):
                         good.add(node.protein.name)
                 else:
                     seq, _ = parent.mutate(node.mutation, correct_offset=True)
-                    node.protein.seq = seq
-                    node.protein.save()
+                    # node.protein.seq = seq
+                    # node.protein.save()
         except Mutation.SequenceMismatch as e:
             errors[node.protein.name].add('SequenceMismatch: {}'.format(e))
             return
