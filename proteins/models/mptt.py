@@ -19,6 +19,18 @@ class Lineage(MPTTModel, TimeStampedModel):
     def __str__(self):
         return str(self.id)
 
+    def mut_from_parent(self, relroot=True):
+        ms = None
+        if self.parent and self.parent.protein.seq and self.protein.seq:
+            if relroot:
+                root = self.get_root()
+                if root.protein.seq:
+                    ms = self.parent.protein.seq.mutations_to(self.protein.seq, reference=root.protein.seq)
+                    return ms
+            else:
+                ms = self.parent.protein.seq.mutations_to(self.protein.seq)
+        return ms
+
     def display_mutation(self, maxwidth=30):
         if not self.mutation:
             return None
