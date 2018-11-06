@@ -5,6 +5,7 @@ from django.core.mail import mail_admins
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse_lazy, resolve
 from django.db import transaction
+from django.db.models import Count
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.decorators import method_decorator
@@ -210,7 +211,7 @@ class MicroscopeList(ListView):
 
     def get_queryset(self):
         # get all collections for current user and all other non-private collections
-        qs = Microscope.objects.all()
+        qs = Microscope.objects.annotate(nocs=Count('optical_configs')).filter(nocs__gt=1)
         if self.request.user.is_authenticated:
             qs = qs | Microscope.objects.filter(owner=self.request.user)
         if 'owner' in self.kwargs:
