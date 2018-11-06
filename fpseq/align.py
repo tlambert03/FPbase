@@ -40,7 +40,7 @@ def parental_numbering(aseq1, aseq2):
             insertidx += 1
             continue
         insertidx = 0
-        numlist.append(idx)
+        numlist.append(str(idx))
         idx += 1
     return numlist
 
