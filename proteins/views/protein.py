@@ -178,7 +178,7 @@ class ProteinCreateUpdateMixin:
                     self.object = form.save()
                     doi = form.cleaned_data.get('reference_doi')
                     if doi:
-                        ref, created = Reference.objects.get_or_create(doi=doi)
+                        ref, created = Reference.objects.get_or_create(doi=doi.lower())
                         self.object.primary_reference = ref
                     else:
                         self.object.primary_reference = None
@@ -399,7 +399,7 @@ def sequence_problems(request):
 def add_reference(request, slug=None):
     try:
         with reversion.create_revision():
-            doi = request.POST.get('reference_doi')
+            doi = request.POST.get('reference_doi').lower()
             P = Protein.objects.get(slug=slug)
             ref, created = Reference.objects.get_or_create(doi=doi)
             P.references.add(ref)
@@ -412,15 +412,15 @@ def add_reference(request, slug=None):
             P.save()
             reversion.set_user(request.user)
             reversion.set_comment('Ref: {} added to {}'.format(ref, P))
-        return JsonResponse({})
-    except Exception:
-        pass
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'failed', 'msg': e})
 
 
 def add_excerpt(request, slug=None):
     try:
         with reversion.create_revision():
-            doi = request.POST.get('excerpt_doi')
+            doi = request.POST.get('excerpt_doi').lower()
             P = Protein.objects.get(slug=slug)
             content = request.POST.get('excerpt_content')
             if content:
@@ -435,9 +435,9 @@ def add_excerpt(request, slug=None):
                 P.save()
                 reversion.set_user(request.user)
                 reversion.set_comment('Ref: {} added to {}'.format(ref, P))
-        return JsonResponse({})
-    except Exception:
-        pass
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'failed', 'msg': e})
 
 
 @staff_member_required

@@ -627,7 +627,11 @@ $("#refModalForm").submit(function(e) {
            url: form.attr("data-action-url"),
            data: form.serialize(),
            dataType: 'json',
-           success: function(data) {location.reload();}
+           success: function(data) {
+              if (data.status == 'success'){
+                location.reload();
+              }
+            }
          });
     e.preventDefault(); // avoid to execute the actual submit of the form.
 });
@@ -639,7 +643,11 @@ $("#excerptModalForm").submit(function(e) {
            url: form.attr("data-action-url"),
            data: form.serialize(),
            dataType: 'json',
-           success: function(data) {location.reload();}
+           success: function(data) {
+              if (data.status == 'success'){
+                location.reload();
+              }
+            }
          });
     e.preventDefault(); // avoid to execute the actual submit of the form.
 });
