@@ -128,6 +128,8 @@ class Reference(TimeStampedModel):
             self.doi = self.doi.strip()
 
     def save(self, skipdoi=False, *args, **kwargs):
+        if self.doi:
+            self.doi = self.doi.lower()
         if not skipdoi:
             info = doi_lookup(self.doi)
             authors = info.pop('authors')
