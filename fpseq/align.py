@@ -76,6 +76,9 @@ class ParasailAlignment:
         self._cigar_tuple = self._tuples_from_cigar()
         return self._cigar_tuple
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         a = chunked_lines(self.aligned_target_sequence(), spacer='')
         b = chunked_lines(self.aligned_query_sequence(), spacer='')

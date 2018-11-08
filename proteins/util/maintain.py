@@ -22,6 +22,7 @@ def add_missing_seqs():
             seq, _ = node.parent.protein.seq.mutate(node.mutation, correct_offset=True)
             node.protein.seq = seq
             node.protein.save()
+            print("saved seq for {}".format(node.protein))
 
 
 def check_lineages(correct_offset=False):

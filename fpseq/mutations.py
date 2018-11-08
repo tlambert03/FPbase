@@ -52,7 +52,7 @@ NEUTRAL_MUTATIONS = ['K26R', 'Q80R', 'N146H', 'H231L']
 
 
 def parse_mutstring(string):
-    return [Mutation(*mut) for mut in mutpattern.findall(string)]
+    return [Mutation(*mut) for mut in mutpattern.findall(str(string))]
 
 
 class Mutation(object):
@@ -267,7 +267,7 @@ def find_mutations(seq1, seq2, reference=None):
 
 def mutate_sequence(seq, mutstring, **kwargs):
     ms = MutationSet.from_str(mutstring)
-    return ms(seq, **kwargs)
+    return ms.apply_to(seq, **kwargs)
 
 
 class MutationSet(object):
@@ -314,8 +314,9 @@ class MutationSet(object):
         [newset.discard(that) for that in other.muts]
         return MutationSet(newset)
 
-    def __call__(self, seq, idx0=1, correct_offset=False):
+    def apply_to(self, seq, idx0=1, correct_offset=False):
         """ apply the full mutation set to a sequence """
+
         shift = idx0
         for mut in self.muts:
             try:
@@ -431,6 +432,8 @@ class MutationSet(object):
         """ should be rather robust way to compare mutations to some string
         or other Mutations instance, even if there's a little offset between
         the positions"""
+        if not other:
+            return False
         otherm = False
         if isinstance(other, MutationSet):
             otherm = other.muts
@@ -513,6 +516,12 @@ class MutationSet(object):
             except IndexError:
                 continue
         return None
+
+    def relative_to_root(self, parent, root):
+        """ display mutation string with parent amino acids, but with positioning
+        relative to some other root sequence"""
+        poslist = parental_numbering(*align_seqs(root, parent))
+        return str(MutationSet(str(self), poslist))
 
 
 def rand_mut(seq):

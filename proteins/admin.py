@@ -11,6 +11,9 @@ from proteins.models import (Protein, State, StateTransition, Organism,
 from reversion_compare.admin import CompareVersionAdmin
 from reversion.admin import VersionAdmin
 from mptt.admin import MPTTModelAdmin
+from proteins.models.lineage import MutationSetField
+from django.forms import TextInput
+
 # from reversion.models import Version
 
 # ############ INLINES ###############
@@ -508,17 +511,34 @@ class ProteinCollectionAdmin(admin.ModelAdmin):
 class LineageAdmin(MPTTModelAdmin):
     mptt_level_indent = 10
     mptt_indent_field = "protein"
-    list_display = ('protein', 'display_mutation', 'created')
+    list_display = ('protein', 'mutation_ellipsis', 'rootmut_ellipsis', 'created')
     autocomplete_fields = ('protein', 'parent')
     search_fields = ('protein__name',)
-    readonly_fields = ('display_mutation', 'created', 'modified')
+    readonly_fields = ('created', 'modified', 'rootmut', 'mutation_ellipsis')
 
     fieldsets = [
         (None, {
-            'fields': ('protein', 'parent', 'mutation',)
+            'fields': ('protein', 'parent', 'mutation', 'rootmut')
         }),
         ('Change History', {
             'classes': ('collapse',),
             'fields': (('created', 'modified'))
         })
     ]
+
+    formfield_overrides = {
+        MutationSetField: {'widget': TextInput(attrs={'size': '100%'})},
+    }
+
+    def mutation_ellipsis(self, obj):
+        if len(str(obj.mutation)) > 40:
+            return "%s..." % str(obj.mutation)[:40]
+        return str(obj.mutation)
+    mutation_ellipsis.short_description = 'Mutation from parent'
+
+    def rootmut_ellipsis(self, obj):
+        if len(str(obj.rootmut)) > 40:
+            return "%s..." % str(obj.rootmut)[:40]
+        return str(obj.rootmut)
+    rootmut_ellipsis.short_description = 'Mutation from root'
+

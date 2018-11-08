@@ -3,12 +3,26 @@ from django.core.validators import RegexValidator
 
 # from django.utils.translation import gettext as _
 import ast
+import re
+
 from Bio import Alphabet, Seq, Data
 from .fields import Spectrum
 from fpseq.mutations import Mutation
 
 validate_doi = RegexValidator(r"^10.\d{4,9}/[-._;()/:a-zA-Z0-9]+$", 'Not a valid DOI string')
 validate_uniprot = RegexValidator(r'[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}', 'Not a valid UniProt Accession')
+
+
+def validate_mutationset(mutset):
+    errors = []
+    for mut in re.split(' |,|/|\\\\', mutset):
+        if mut:
+            try:
+                validate_mutation(mut)
+            except ValidationError as e:
+                errors.append(ValidationError('Bad Mutation String: {}'.format(e), code='badmut'))
+    if errors:
+        raise ValidationError(errors)
 
 
 def validate_mutation(code):

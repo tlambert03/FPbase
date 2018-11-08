@@ -1012,6 +1012,8 @@ def get_gb_data(file):
 
 
 def import_tree(filepath=None):
+    from proteins.validators import validate_mutationset
+
     if not filepath:
         filepath = os.path.join(BASEDIR, '_data/Lineage.xlsx')
 
@@ -1034,7 +1036,7 @@ def import_tree(filepath=None):
                   .format(len(nonames), "\n".join(nonames)))
         if r.lower() == 'y':
             for name in nonames:
-                Protein.objects.get_or_create(name=name)
+                Protein.objects.create(name=name, created_by=SUPERUSER)
 
     for doi in data['ref']:
         if doi:
@@ -1042,7 +1044,7 @@ def import_tree(filepath=None):
                 Reference.objects.get(doi=doi)
             except Exception:
                 try:
-                    Reference.objects.get_or_create(doi=doi)
+                    Reference.objects.create(doi=doi, created_by=SUPERUSER)
                 except Exception:
                     pass
 
@@ -1051,6 +1053,7 @@ def import_tree(filepath=None):
         count = 0
         for rownum, (doi, author, year, prot, parnt, mutation, alias, note) in data.iterrows():
             prot = prot.strip()
+            validate_mutationset(mutation)
             if not len(prot):
                 continue
             try:
@@ -1074,11 +1077,14 @@ def import_tree(filepath=None):
             try:
                 if parent:
                     parent = Lineage.objects.get(protein=parent)
-                    Lineage.objects.create(protein=child, parent=parent, reference=ref, mutation=mutation)
+                    Lineage.objects.create(protein=child, parent=parent,
+                                           reference=ref, mutation=mutation,
+                                           created_by=SUPERUSER,)
                     print("Created {} -> {}".format(parent, child))
                     count += 1
                 elif child:
-                    Lineage.objects.create(protein=child, parent=None, reference=ref, mutation=mutation)
+                    Lineage.objects.create(protein=child, parent=None, reference=ref,
+                                           mutation=mutation, created_by=SUPERUSER)
                     print("Created root: {}".format(child))
                     count += 1
             except IntegrityError as e:

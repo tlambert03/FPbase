@@ -157,7 +157,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
 
     result = {
         'name': node.protein.name,
-        # 'mut': ", ".join(node.mutation.split('/')),
+        'mut': node.rootmut if node.rootmut else str(node.mutation),
         # 'mut': node.display_mutation(maxwidth=10) or "null",
         'url': node.protein.get_absolute_url(),
         'bg': node.protein.emhex,
@@ -167,8 +167,8 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
 
     if rootseq:
         result['rootmut'] = str(rootseq.mutations_to(node.protein.seq))
-        if node.parent and node.parent.protein.seq:
-            result['mut'] = str(node.mut_from_parent()),
+        # if node.parent and node.parent.protein.seq:
+        #     result['mut'] = str(node.mut_from_parent()),
 
     children = []
     for c in node.get_children():
@@ -183,6 +183,9 @@ def get_lineage(request, slug=None):
     # if not request.is_ajax():
     #     return HttpResponseNotAllowed([])
 
+    import time
+
+    start = time.time()
     if slug:
         item = Lineage.objects.get(protein__slug=slug)
         ids = item.get_family()
@@ -207,7 +210,8 @@ def get_lineage(request, slug=None):
     D['max_width'] = max(D['widths'].values())
     D['max_depth'] = max(D['widths'])
     D['tot_nodes'] = sum(D['widths'].values())
-
+    end = time.time()
+    print(end - start)
     # data['tree'] = json.dumps(D)
 
     return JsonResponse(D)

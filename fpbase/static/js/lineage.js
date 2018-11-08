@@ -234,7 +234,7 @@ function LineageChart() {
             var dtext = `<strong>${d.name}</strong><br><span style="font-size: 0.73rem;">`;
             dtext += (d.parent.name === "fakeroot" ? '' : d.parent.name);
             if (d.mut){
-              var muts = d.mut[0].split('/');
+              var muts = d.mut.split('/');
               if (!show_inserts) {
                 muts = muts.filter((d) => d.includes('ins') ? '' : d3);
                 muts = muts.filter((d) => d.includes('ext') ? '' : d3)
@@ -406,7 +406,8 @@ function LineageChart() {
             var relparent = d3.select('#parenttoggle').node().closest('label').classList.contains('active');
           }
 
-          var val = (d3.select('#mutation-search-input').node().value || '').toUpperCase().split(' ')
+          var val = (d3.select('#mutation-search-input').node().value || '')
+                        .toUpperCase().replace(',', ' ').split(' ')
                         .filter(function(a){ return a.length > 1 ? a : null });
 
           if (val.length){
