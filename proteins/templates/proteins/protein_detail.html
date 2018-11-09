@@ -95,8 +95,11 @@
 		<div class="spectra">
 			{% if protein.has_spectra %}
       <div id="spectra">
-       <a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link mr-2"></i></a>
-       <a href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link ml-4'><i class="fas fa-download mr-2 ml-1"></i></a>
+        <div class="spectra-overlay-div">
+          <span data-toggle="tooltip" data-placement="top" title="Download spectra as csv"><a href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link'><i class="fas fa-download"></i></a></span>
+          <span data-toggle="tooltip" data-placement="top" title="Generate spectra image/url" class='ml-2'><a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link"></i></a></span>
+        </div>
+
        <svg id="spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
       </div>
       {% else %}
