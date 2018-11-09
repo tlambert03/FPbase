@@ -672,6 +672,8 @@ $(function() {
         $('#undo-scaling').click(function() {
             unscale_all();
         });
+        setTimeout(function(){ chart.update(); }, 50);
+
     });
 
 

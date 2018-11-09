@@ -468,7 +468,7 @@
             //Update the chart when window resizes.
             nv.utils.windowResize(function() { chart.update() });
             return chart;
-        });
+        }, function(){ setTimeout(function(){ chart.update(); }, 50)} );
         {% endif %}
 
 
