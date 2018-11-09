@@ -37,6 +37,9 @@ from django.utils.text import slugify
 from fpseq.mutations import _get_aligned_muts
 from django.db.models import Func, F, Value
 from django.contrib import messages
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def create_slug_dict():
@@ -272,9 +275,9 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         return super().form_valid(form)
 
 
-@cache_page(60 * 60)
+@cache_page(60 * 10)
 def spectra_image(request, slug, **kwargs):
-    protein = get_object_or_404(Protein, slug=slug)
+    protein = get_object_or_404(Protein.objects.select_related('default_state'), slug=slug)
     try:
         D = {}
         for k, v in request.GET.dict().items():
@@ -298,8 +301,9 @@ def spectra_image(request, slug, **kwargs):
         if fmt == 'svg':
             fmt += '+xml'
         byt.seek(0)
-        response = FileResponse(byt, content_type="image/%s" % fmt)
+        response = HttpResponse(byt, content_type="image/%s" % fmt)
     except Exception as e:
+        logger.error(e)
         response = HttpResponseBadRequest(
             'failed to parse url parameters as JSON: {}'.format(e))
     return response

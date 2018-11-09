@@ -349,7 +349,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return json.dumps(spectra)
 
     def spectra_img(self, fmt='svg', output=None, **kwargs):
-        spectra = Spectrum.objects.filter(owner_state__protein=self).exclude(subtype='2p')
+        spectra = list(Spectrum.objects.filter(owner_state__protein=self).exclude(subtype='2p'))
         title = self.name if kwargs.pop('title', False) else None
         info = 'Ex/Em λ: {}/{}'.format(self.default_state.ex_max, self.default_state.em_max)
         info += '\nEC: {}   QY: {}'.format(self.default_state.ext_coeff, self.default_state.qy)
