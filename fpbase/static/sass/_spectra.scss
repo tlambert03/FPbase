@@ -5,10 +5,6 @@ h6 {
   margin-bottom: .6rem;
 }
 
-#spectra .tick line{
-    opacity: 0;
-}
-
 
 #scope-settings-buttons {
   float: left;
@@ -194,7 +190,7 @@ h6 {
   }
 
   #spectrasvg .tick line{
-    opacity: 0.3;
+    opacity: 0;
   }
 
   /* change opacity of spectrum paths */
@@ -232,13 +228,17 @@ h6 {
   }
 
 }
-.spectra-overlay-link {
+
+.spectra-overlay-div {
   position: absolute;
   top: 2.2rem;
   left: 1.5rem;
-  opacity: 0.6;
-  &:hover{
-    opacity: 0.9;
+  z-index: 10;
+  a {
+    opacity: 0.6;
+    &:hover{
+      opacity: 0.9;
+    }
   }
 }
 

@@ -16,9 +16,6 @@ class ProteinAutocomplete(autocomplete.Select2QuerySetView):
             ]
 
     def get_queryset(self):
-        # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated:
-            return Protein.objects.none()
         if self.request.GET.get('type', '') == 'spectra':
             qs = Protein.objects.with_spectra()
         else:
@@ -31,8 +28,8 @@ class ProteinAutocomplete(autocomplete.Select2QuerySetView):
 class StateAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated:
-            return State.objects.none()
+        # if not self.request.user.is_authenticated:
+        #     return State.objects.none()
         qs = State.objects.all().order_by('protein__name')
         if self.q:
             qs = qs.filter(protein__name__icontains=self.q)
