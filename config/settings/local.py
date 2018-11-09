@@ -93,8 +93,42 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 #SITE_ID = None
 
+
 SHELL_PLUS_POST_IMPORTS = [
     ('proteins.util.helpers', ('getprot', 'getmut', 'showalign')),
     ('proteins.util.maintain', 'check_lineages'),
     ('fpseq', ('FPSeq', 'from_fpbase', 'MutationSet', 'find_mutations', 'mutate_sequence')),
 ]
+
+import os
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/Users/talley/Desktop/debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+        },
+        'proteins': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+         },
+        'fpbase': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

@@ -80,8 +80,7 @@ if settings.DEBUG:
         url(r'^404/$', default_views.page_not_found, kwargs={'exception': Exception('Page not Found')}),
         url(r'^500/$', fpbase.views.server_error),
         url(r'^test500/', fpbase.views.test500),
-        url(r'^test/(?P<slug>[-\w]+)', fpbase.views.testview.as_view()),
-        url(r'^test/$', fpbase.views.testview.as_view())
+        url(r'^test/$', fpbase.views.testview)
     ]
     if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar

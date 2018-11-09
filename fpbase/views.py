@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpResponseServerError
 from django.template import loader
 from django.conf import settings
-from django.views.generic import TemplateView
+from proteins.models import Protein
 
 
 class ContactView(FormView):
@@ -33,8 +33,14 @@ def server_error(request, template_name='500.html'):
         'sentry_js_dsn': getattr(settings, 'SENTRY_JS_DSN', '')
     }))
 
+from django.views.decorators.cache import cache_page
 
-class testview(TemplateView):
-    template_name = 'pages/test3.html'
+@cache_page(10)
+def testview(request):
+    import logging
+    logger = logging.getLogger(__name__)
+    p = Protein.objects.get(name='mNeonGreen')
+    logger.info(p)
+    return render(request, 'pages/test.html', {'protein': p})
 
 

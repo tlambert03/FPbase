@@ -5,6 +5,9 @@ from uuid import uuid4
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from django.utils.text import slugify
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def getprot(protein_name):
@@ -36,6 +39,7 @@ def showalign(protname2, protname1=None):
     else:
         b = a.lineage.parent.protein
     print(b.seq.align_to(a.seq))
+
 
 def shortuuid(padding=None):
     number = uuid4().int
@@ -274,7 +278,7 @@ def forster_list():
 def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
                 xlim=None, fill=True, transparent=True, grid=False,
                 title=False, info=None, **kwargs):
-
+    logger.info('spectra_fig called on {}'.format(",".join([str(spec.id) for spec in spectra])))
     fig = Figure(figsize=(12, 3), dpi=70)
     canvas = FigureCanvas(fig)
     ax = fig.add_subplot(111)
