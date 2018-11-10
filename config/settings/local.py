@@ -97,7 +97,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 SHELL_PLUS_POST_IMPORTS = [
     ('proteins.util.helpers', ('getprot', 'getmut', 'showalign')),
     ('proteins.util.maintain', 'check_lineages'),
-    ('fpseq', ('FPSeq', 'from_fpbase', 'MutationSet', 'find_mutations', 'mutate_sequence')),
+    ('fpseq', ('FPSeq', 'from_fpbase', 'MutationSet', 'get_mutations', 'mutate_sequence')),
 ]
 
 import os

@@ -22,14 +22,14 @@ def getprot(protein_name):
 
 
 def getmut(protname2, protname1=None, ref=None):
-    from fpseq.mutations import find_mutations
+    from fpseq.mutations import get_mutations
     a = getprot(protname2)
     if protname1:
         b = getprot(protname1)
     else:
         b = a.lineage.parent.protein
     ref = getprot(ref).seq if ref else None
-    return find_mutations(b.seq, a.seq, ref)
+    return get_mutations(b.seq, a.seq, ref)
 
 
 def showalign(protname2, protname1=None):

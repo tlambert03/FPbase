@@ -1,27 +1,21 @@
 try:
-    import parasail
+    from parasail import nw_banded, nw_trace_scan_sat, blosum62
 except ImportError:
-    print('ERROR!!! could not import parasail... will not be able to align')
+    import warnings
+    warnings.warn('ERROR!!! could not import parasail... will not be able to align')
 from .util import chunked_lines
 
 
-def nw_align(query, target, gop=5, gep=1, band_size=0):
+def align_seqs(query, target, gop=5, gep=1, band_size=0):
     """ basic parasail global alignment of two sequences
-    result is wrapped in ParasailAlignment Class
-    """
+    result is wrapped in ParasailAlignment Class"""
+    query = str(query)
+    target = str(target)
     if band_size:
-        result = parasail.nw_banded(target, query, gop, gep,
-                                    band_size, parasail.blosum62)
+        result = nw_banded(target, query, gop, gep, band_size, blosum62)
     else:
-        result = parasail.nw_trace_scan_sat(target, query, gop, gep, parasail.blosum62)
+        result = nw_trace_scan_sat(target, query, gop, gep, blosum62)
     return ParasailAlignment(result)
-
-
-def align_seqs(seq1, seq2):
-    """take two strings and return two strings aligned to each other
-    with gap chars if necessary"""
-    algn = nw_align(str(seq1), str(seq2))
-    return algn.aligned_query_sequence(), algn.aligned_target_sequence()
 
 
 def parental_numbering(aseq1, aseq2):
@@ -46,6 +40,7 @@ def parental_numbering(aseq1, aseq2):
 
 
 class ParasailAlignment:
+    """ Convenience class to wrap the results of a parasail alignment """
 
     def __init__(self, result):
         self.cigar = result.cigar.decode
@@ -90,6 +85,18 @@ class ParasailAlignment:
             out.append(t + '\n')
         return "\n".join(out)
 
+    def __iter__(self):
+        yield self.aligned_query_sequence()
+        yield self.aligned_target_sequence()
+
+    def as_mutations(self, reference=None):
+        from .mutations import _get_aligned_muts, MutationSet
+        seq1, seq2 = self
+        mutstring = "/".join(_get_aligned_muts(*align_seqs(seq1, seq2)))
+        if reference is not None:
+            return MutationSet(mutstring, parental_numbering(*align_seqs(reference, seq1)))
+        return MutationSet(mutstring)
+
     def print_alignment(self, max_length=80):
         print(self.aligned_query_sequence() + '\n' + self.aligned_target_sequence())
 
@@ -118,4 +125,4 @@ class ParasailAlignment:
 
     @classmethod
     def from_seqs(cls, query, target, **kwargs):
-        return nw_align(query, target, **kwargs)
+        return align_seqs(query, target, **kwargs)

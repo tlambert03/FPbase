@@ -45,26 +45,52 @@ mutpattern = re.compile(r"""
     (?P<operation>delins|del|ins|)?
     (?P<new_chars>[{0}*]+)?
     (?:ext(?P<ext>[{0}]+))?
-    (?:,|$|/|\s)""".format("".join(SkbSequence.definite_chars.union('X')), '{1}'), re.X)
+    (?:,|$|/|\s)""".format(r"A-Z", '{1}'), re.X)
 
 
 NEUTRAL_MUTATIONS = ['K26R', 'Q80R', 'N146H', 'H231L']
 
 
 def parse_mutstring(string):
+    """Returns a list of Mutation objects found in a mutation string"""
     return [Mutation(*mut) for mut in mutpattern.findall(str(string))]
 
 
 class Mutation(object):
+    """ Basic mutation object to represent a single mutation operation"""
+
+    class SequenceMismatch(Exception):
+        pass
 
     def __init__(self, start_char, start_idx, stop_char, stop_idx,
-                 operation, new_chars, ext, pos_label=None, idx0=1):
-        """pos_label is an optional string to label the start position (e.g. V1a) """
+                 operation, new_chars, ext, pos_label=None, idx0=1,
+                 alphabet="".join(SkbSequence.definite_chars.union('X'))):
+        """
+        start_char: single letter amino acid code for start position (e.g. A)
+        start_idx:  position of start mutation (e.g. 206)
+        stop_char:  single letter amino acid code for stop position (e.g. A)
+        stop_idx:   range ending for mutations spanning multiple amino acids
+        operation:  type of mutation.  Must be one of:
+                    {'sub', 'del', 'ins', 'delins', 'ext'}
+        new_chars:  single or multiple letter amino acid code(s) for new amino acids
+        ext:        if operation == 'ext', extension characters to add (after new_chars)
+        pos_label:  optional string to label the start position (e.g. V1a)
+                    this is used when the start character does not agree with the
+                    start index... for instance, when displaying a mutation
+                    with numbering relative to an ancestor other than parent.
+        idx0:       index of first character (not well tested)
+
+        """
+        if alphabet and start_char not in alphabet:
+            raise ValueError('Invalid Amino Acid code: {}'.format(start_char))
         self.start_char = start_char
         try:
             self.start_idx = int(start_idx)
         except ValueError:
             raise ValueError('Mutation must have integer start index')
+
+        if alphabet and stop_char and stop_char not in alphabet:
+            raise ValueError('Invalid Amino Acid code: {}'.format(stop_char))
         self.stop_char = stop_char
         try:
             self.stop_idx = int(stop_idx)
@@ -80,6 +106,8 @@ class Mutation(object):
                              .format(stop_idx, start_idx))
         if self.operation.endswith('ins'):
             if not (stop_char and self.stop_idx):
+                print(stop_char)
+                print(self.stop_idx)
                 raise ValueError('Insertion mutations must specify a range (with stop_char/idx)')
             if not len(new_chars):
                 raise ValueError('Insertion mutations must specify new characters to insert')
@@ -117,13 +145,30 @@ class Mutation(object):
         return False
 
     def __hash__(self):
-        return hash((self.start_idx, self.start_char, self.stop_idx,
-                     self.stop_char, self.operation, self.ext, self.new_chars))
+        return hash(str(self))
 
-    class SequenceMismatch(Exception):
-        pass
+    def __call__(self, seq, idx0=1):
+        # not calling this since the start-CHAR may have changed from a
+        # previous mutation when stringing...
+        # instead... this gets called at each step of MutationSet.apply
+        # self._assert_position_consistency(seq, idx0)
+        startpos = self.start_idx - idx0
+        if self.operation == 'sub':
+            return (seq[:startpos] + self.new_chars + seq[startpos + 1:], 0)
+        if self.operation == 'ins':
+            return (seq[:startpos + 1] + self.new_chars + seq[startpos + 1:], len(self.new_chars))
+        if self.operation in ('del', 'delins'):
+            stoppos = startpos
+            if self.stop_idx:
+                stoppos = self.stop_idx - idx0
+            shift = len(self.new_chars) - (stoppos + 1 - startpos)
+            return (seq[:startpos] + self.new_chars + seq[stoppos + 1:], shift)
+        if self.operation == 'ext':
+            return seq + self.new_chars + self.ext, 0
 
     def _assert_position_consistency(self, seq, idx0=1):
+        """test whether the mutation actually lines up with the
+        provided sequence being mutated."""
         startpos = self.start_idx - idx0
         # leaving start_char out should prevent this check
         if self.operation == 'ext':
@@ -149,26 +194,9 @@ class Mutation(object):
                                               seq[stoppos + 1:stoppos + 4]),
                             idx0))
 
-    def __call__(self, seq, idx0=1):
-        # not calling this since the start-CHAR may have changed from a
-        # previous mutation when stringing...
-        # self._assert_position_consistency(seq, idx0)
-        startpos = self.start_idx - idx0
-        if self.operation == 'sub':
-            return (seq[:startpos] + self.new_chars + seq[startpos + 1:], 0)
-        if self.operation == 'ins':
-            return (seq[:startpos + 1] + self.new_chars + seq[startpos + 1:], len(self.new_chars))
-        if self.operation in ('del', 'delins'):
-            stoppos = startpos
-            if self.stop_idx:
-                stoppos = self.stop_idx - idx0
-            shift = len(self.new_chars) - (stoppos + 1 - startpos)
-            return (seq[:startpos] + self.new_chars + seq[stoppos + 1:], shift)
-        if self.operation == 'ext':
-            return seq + self.new_chars + self.ext, 0
-
     @classmethod
     def from_str(cls, mutstring, sep='/'):
+        """Generate a Mutation object from a mutation string such as 'A206K' """
         m = parse_mutstring(mutstring)
         if not m:
             raise ValueError('Mutation code invalid: {}'.format(mutstring))
@@ -254,23 +282,24 @@ def _get_aligned_muts(AQS, ATS, gapchars='-.', zeroindex=1):
     return out
 
 
-def find_mutations(seq1, seq2, reference=None):
-    """get complete mutation string for a pair of sequences"""
+def get_mutations(seq1, seq2, reference=None):
+    """Detects mutations from seq1 to seq2, returns a MutationSet"""
     algn = align_seqs(seq1, seq2)
-    mutstring = "/".join(_get_aligned_muts(*algn))
-    poslist = None
-    if reference is not None:
-        poslist = parental_numbering(*align_seqs(reference, seq1))
-    mutset = MutationSet(mutstring, poslist)
-    return mutset
+    return algn.as_mutations(reference=reference)
 
 
-def mutate_sequence(seq, mutstring, **kwargs):
+def mutate_sequence(seq, mutstring, idx0=1, correct_offset=False):
+    """ applies the provided mutstring to the provided sequence,
+    returning a mutated string result"""
     ms = MutationSet.from_str(mutstring)
-    return ms.apply_to(seq, **kwargs)
+    return ms.apply(seq, idx0=idx0, correct_offset=correct_offset)
 
 
 class MutationSet(object):
+    """ Class to hold a set of mutation objects, and apply them to a sequence.
+
+    Mostyl a wrapper around a python set()
+    """
 
     def __init__(self, muts=None, position_labels=None, merge_subs=5):
         """ optional position_labels list will change the numbering of the
@@ -314,7 +343,7 @@ class MutationSet(object):
         [newset.discard(that) for that in other.muts]
         return MutationSet(newset)
 
-    def apply_to(self, seq, idx0=1, correct_offset=False):
+    def apply(self, seq, idx0=1, correct_offset=False):
         """ apply the full mutation set to a sequence """
 
         shift = idx0
@@ -374,51 +403,73 @@ class MutationSet(object):
         self.muts = set(newgroups)
 
     def _consecutive_groups(self):
+        """ returns a list of np.arrays containin adjacent Mutation objects"""
         msl = list(self)
         g = np.split(msl, np.where(np.diff([m.start_idx for m in msl]) != 1)[0] + 1)
         return g
 
     def union(self, other):
+        """Return the union of mutations as a new set.
+
+        (i.e. all mutations that are in either set.)"""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return MutationSet(self.muts.union(other.muts))
 
     def intersection(self, other):
+        """Return the intersection of two mutation sets as a new set.
+
+        (i.e. all mutations that are in both sets.)"""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return MutationSet(self.muts.intersection(other.muts))
 
     def difference(self, other):
+        """Return the difference of two or more MutationSets as a new set.
+
+        (i.e. all mutations that are in this MutationSet but not the other.)"""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return MutationSet(self.muts.difference(other.muts))
 
     def issubset(self, other):
+        """Report whether another MutationSet contains this MutationSet."""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return self.muts.issubset(other.muts)
 
     def issuperset(self, other):
+        """Report whether this MutationSet contains another MutationSet."""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return self.muts.issuperset(other.muts)
 
     def isdisjoint(self, other):
+        """Return True if two MutationSets have a null intersection"""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return self.muts.isdisjoint(other.muts)
 
     def add(self, other):
+        """Add a mutation to a MutationSet.
+
+        This has no effect if the mutation is already present."""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return self.muts.add(other.muts)
 
     def remove(self, other):
+        """Remove a mutation from a MutationSet; it must be a member.
+
+        If the mutation is not a member, raise a KeyError."""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return self.muts.remove(other.muts)
 
     def discard(self, other):
+        """Remove a mutation from a MutationSet if it is a member.
+
+        If the mutation is not a member, do nothing."""
         if isinstance(other, str):
             other = MutationSet.from_str(other)
         return self.muts.discard(other.muts)
@@ -429,9 +480,7 @@ class MutationSet(object):
             yield sorted_muts.pop(0)
 
     def __eq__(self, other):
-        """ should be rather robust way to compare mutations to some string
-        or other Mutations instance, even if there's a little offset between
-        the positions"""
+        """ Determine whether two mutation sets are the same """
         if not other:
             return False
         otherm = False
@@ -476,21 +525,26 @@ class MutationSet(object):
 
     @property
     def deletions(self):
-        return MutationSet(i for i in self.muts if i.operation == 'del')
+        return MutationSet([i for i in self.muts if i.operation == 'del'])
 
     @property
     def insertions(self):
-        return MutationSet(i for i in self.muts if i.operation == 'ins')
+        return MutationSet([i for i in self.muts if i.operation == 'ins'])
 
     @property
     def delinsertions(self):
-        return MutationSet(i for i in self.muts if i.operation == 'delins')
+        return MutationSet([i for i in self.muts if i.operation == 'delins'])
 
     @property
     def substitutions(self):
-        return MutationSet(i for i in self.muts if i.operation == 'sub')
+        return MutationSet([i for i in self.muts if i.operation == 'sub'])
+
+    @property
+    def extensions(self):
+        return MutationSet([i for i in self.muts if i.operation == 'ext'])
 
     def shift(self, amount):
+        """ shift the position numbering of the mutation set by amount"""
         ms = MutationSet(str(self))
         for mut in ms.muts:
             mut.start_idx += amount
@@ -520,16 +574,15 @@ class MutationSet(object):
     def relative_to_root(self, parent, root):
         """ display mutation string with parent amino acids, but with positioning
         relative to some other root sequence"""
-        poslist = parental_numbering(*align_seqs(root, parent))
-        return str(MutationSet(str(self), poslist))
+        return str(MutationSet(str(self), parental_numbering(*align_seqs(root, parent))))
 
 
 def rand_mut(seq):
     from random import randint, choices
 
     # make extensions less likely
-    operation = choices(['sub', 'sub', 'sub', 'sub', 'del', 'del', 'ins',
-                         'ins', 'ins', 'delins', 'delins', 'ext'])[0]
+    ch = ['sub'] * 10 + ['del'] * 5 + ['ins'] * 5 + ['delins'] * 3 + ['ext']
+    operation = choices(ch)[0]
     AAs = 'ACDEFGHIKLMNPQRSTVWY'
     start_idx = randint(1, len(seq) - 1)
     start_char = seq[start_idx - 1]
@@ -543,9 +596,12 @@ def rand_mut(seq):
     elif operation in ('ins', 'delins'):
         new_chars = "".join(choices(AAs, k=randint(1, 6)))
     if operation in ('del', 'ins', 'delins'):
-        stop_idx = start_idx + randint(0, 6)
+        if operation == 'ins':
+            stop_idx = start_idx + 1
+        else:
+            stop_idx = start_idx + randint(1, 6)
         while stop_idx > len(seq) - 2:
             stop_idx = start_idx + randint(0, 6)
         stop_char = seq[stop_idx - 1]
-    return Mutation(start_char, start_idx, stop_char, stop_idx, operation, new_chars, ext)
+    return Mutation(start_char, start_idx, stop_char, stop_idx, operation, new_chars, ext, alphabet=None)
 

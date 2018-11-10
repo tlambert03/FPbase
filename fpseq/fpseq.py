@@ -1,8 +1,8 @@
 import json
 from .skbio_protein import SkbSequence
 from .util import protein_weight, slugify
-from .align import nw_align, align_seqs, parental_numbering
-from .mutations import find_mutations, mutate_sequence
+from .align import align_seqs, parental_numbering
+from .mutations import get_mutations, mutate_sequence
 try:
     import requests
 except ImportError:
@@ -47,10 +47,13 @@ class FPSeq(SkbSequence):
             pass
 
     def align_to(self, other, **kwargs):
-        return nw_align(str(self), str(other), **kwargs)
+        return align_seqs(str(self), str(other), **kwargs)
 
     def mutations_to(self, other, reference=None, **kwargs):
-        return find_mutations(str(self), other, reference)
+        return get_mutations(str(self), other, reference)
+
+    def mutations_from(self, other, reference=None, **kwargs):
+        return get_mutations(other, str(self), reference)
 
     def positions_relative_to(self, reference):
         return parental_numbering(*align_seqs(self, reference))
