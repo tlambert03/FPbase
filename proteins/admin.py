@@ -5,7 +5,7 @@ from django.db.models import Count, TextField
 from django.forms import Textarea
 from proteins.models import (Protein, State, StateTransition, Organism,
                              BleachMeasurement, Spectrum, Dye, OSERMeasurement,
-                             Light, Filter, Camera, Mutation, Microscope,
+                             Light, Filter, Camera, Microscope,
                              OpticalConfig, FilterPlacement, Fluorophore,
                              ProteinCollection, Excerpt, Lineage)
 from reversion_compare.admin import CompareVersionAdmin
@@ -170,11 +170,6 @@ class FilterAdmin(SpectrumOwner, VersionAdmin):
 @admin.register(Camera)
 class CameraAdmin(SpectrumOwner, VersionAdmin):
     model = Camera
-
-
-@admin.register(Mutation)
-class MutationAdmin(VersionAdmin):
-    model = Mutation
 
 
 @admin.register(Spectrum)
