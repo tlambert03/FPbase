@@ -9,7 +9,7 @@ from subprocess import run, PIPE
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth import get_user_model
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Func, F, Value
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.urls import reverse
@@ -80,6 +80,21 @@ class ProteinQuerySet(models.QuerySet):
 
 
 class ProteinManager(models.Manager):
+
+    def deep_get(self, name):
+        slug = slugify(name)
+        try:
+            return self.get(slug=slug)
+        except Protein.DoesNotExist:
+            pass
+        aliases_lower = Func(Func(F('aliases'), function='unnest'), function='LOWER')
+        remove_space = Func(aliases_lower, Value(' '), Value('-'), function='replace')
+        final = Func(remove_space, Value('.'), Value(''), function='replace')
+        D = dict(Protein.objects.annotate(aka=final).values_list('aka', 'id'))
+        if slug in D:
+            return self.get(id=D[slug])
+        else:
+            raise Protein.DoesNotExist('Protein matching query does not exist.')
 
     def get_queryset(self):
         return ProteinQuerySet(self.model, using=self._db)
