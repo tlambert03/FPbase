@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load crispy_forms_tags compress static %}
+{% load crispy_forms_tags static %}
 
 {% block content %}
 <h2>Update {{protein.name}} Bleach Measurements</h2>
@@ -29,15 +29,10 @@
 
 </form>
 
-
 {% endblock content %}
 
 
 {% block javascript %}
-
-	{% compress js %}
-	<script src="{% static 'js/jquery.formset.js' %}"></script>
-	{% endcompress %}
 
 	<script type="text/javascript">
 	$(function () {
@@ -60,7 +55,7 @@
 			{% endif %}
 		{% endif %}
 
-	})
+	});
 
 	</script>
 

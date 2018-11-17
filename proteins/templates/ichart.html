@@ -1,32 +1,35 @@
 {% extends "base.html" %}
-{% load static compress%}
+{% load static %}
 
 {% block title %}Interactive Fluorescent Protein Property Visualization{% endblock %}
 {% block meta-description %}Here, you can plot a variety of fluorescent protein properties in different ways.  Interactively change the axes of the graph and filter proteins based on certain characteristics.{% endblock %}
 
 
-{% block vendorcss %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
-{% endblock %}
+
 
 
 {% block container-class %}container-fluid{% endblock %}
 {% block content %}
-<div class="d3-container">
-	<div class="row">
-		<div class="col-md-8">
 
-			<div id="graph" class="svg-container mt-6">
-				<img width=151 height=100 class="loadinggif" src="{% static 'images/loading.gif' %}">
-			</div>
-			<div id="tooltip" class="hidden">
-			        <h3>FPname</h3>
-			        <p>Ex: <span id="exvalue"></span>nm</p>
-			        <p>Em: <span id="emvalue"></span>nm</p>
-			        <p>EC: <span id="ecvalue"></span></p>
-			        <p>QY: <span id="qyvalue"></span></p>
-			        <p>Brightness: <span id="brightnessvalue"></span></p>
-			</div>  <!-- end div#tooltip -->
+<div id="tooltip" class="hidden">
+        <h3>FPname</h3>
+        <p>Ex: <span id="exvalue"></span>nm</p>
+        <p>Em: <span id="emvalue"></span>nm</p>
+        <p>EC: <span id="ecvalue"></span></p>
+        <p>QY: <span id="qyvalue"></span></p>
+        <p>Brightness: <span id="brightnessvalue"></span></p>
+</div>  <!-- end div#tooltip -->
+
+<div class="d3-container">
+  <div class="row">
+    <div class="col-md-8">
+
+      <div id="graph" class="svg-container mt-6">
+        <div class="loadinggif ml-3">
+          loading...
+          <img width=151 height=100 src="{% static 'images/loading.gif' %}">
+        </div>
+      </div>
 			<form class='form-inline'>
 			<div class="form-group form-row">
 				<div class='col-sm-7'><label for="aggselect" class="control-label">Oligomerization</label></div>
@@ -92,47 +95,21 @@
 {# <p class="card-text text-center small mt-5 pt-3" style='color:gray'><em>This visualization is modified from the original <a href="https://github.com/FPvisualization/fpvisualization.github.io">GitHub project</a> by Talley Lambert and Kurt Thorn, <a href="https://github.com/FPvisualization/fpvisualization.github.io/blob/master/LICENSE">MIT License</a></em></p> #}
 {% endblock content %}
 
-{% block vendorjs %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha256-dsOXGNHAo/syFnazt+KTBsCQeRmlcW1XKL0bCK4Baec=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js" integrity="sha256-R9uiXmQekNb8r352uyt9EW3yRd3VZL3NyU8N0Z5fMo0=" crossorigin="anonymous"></script>
-{% compress js %}
-<script src="{% static 'js/ichart.js' %}"></script>
-{% endcompress %}
-{% endblock vendorjs %}
-
-
 {% block javascript %}
 <script>
-	// load the csv file and plot it
-	//d3.csv("https://raw.githubusercontent.com/FPvisualization/fpvisualization.github.io/master/FPs_processed.csv",
-	d3.json("{% url 'proteins:basic-protein-api' %}",
-	 function (data) {
-	 	if (data == null){
-	 		$('.loadinggif').hide()
-	 		//$('#errorModal').modal()
-	 		$('#errorModal').modal('show')
 
-	 		return;
-	 	}
-		data.forEach(function(d){
-			d.em_max = +d.em_max;		// typing these variables here for simplicity of code later on
-			d.ex_max = +d.ex_max;
-			d.ext_coeff = +d.ext_coeff;
-			d.qy = +d.qy;
-			d.brightness = +d.brightness;
-		})
+  d3.json("{% url 'proteins:basic-protein-api' %}", function(data){
+    if (data == null){
+      $('.loadinggif').hide();
+      //$('#errorModal').modal()
+      $('#errorModal').modal('show');
+      return;
+    }
 
-		FPdata = data;
-
-		//Only update max of saturation scale, so that gray corresponds to 0 brightness
-		//Use 80th percentile as max saturation so that not everything is muddy gray
-		saturationScale.domain([0,
-			d3.quantile(FPdata.map(function(a) {return (+a.brightness)}).sort(function(a,b){return a-b}),0.7)
-		]);
-
-		plot();
-		$('.loadinggif').hide()
-	});
+    fpchart = FPPropChart().data(data);
+    d3.select('#graph').call(fpchart);
+    $('.loadinggif').hide();
+  });
 
 </script>
 {% endblock	%}

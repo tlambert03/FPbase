@@ -39,11 +39,11 @@ var getPDBinfo = function(pdbids){
       pdbids[i] = pdbids[i].toUpperCase();
       pdb_info[pdbids[i]] = {}
     }
-    pdbidstring = pdbids.join(",");
+    var pdbidstring = pdbids.join(",");
   } else {
     pdbids = pdbids.toUpperCase();
     pdb_info[pdbids] = {};
-    pdbidstring = pdbids;
+    var pdbidstring = pdbids;
   }
 
   $.when(
@@ -117,6 +117,16 @@ var getPDBinfo = function(pdbids){
           }
         }
       });
+   })
+   .fail(function(){
+      var select = $("#pdb_select");
+      $(pdbids).each(function(i, d){
+        select.append($('<option>', {value: d}).html(d))
+      })
+      var litemolElement = $('#litemol-viewer');
+      //liteMolScope = angular.element(litemolElement).isolateScope();
+      liteMolScope.LiteMolComponent.setBackground();
+      $("#pdb-info").html('<small class="text-muted">failed to retrieve metadata from PDB</small>');
    });
 }
 
@@ -130,16 +140,20 @@ var ToggleDensity = function() {
   liteMolScope.LiteMolComponent.toggleDensity()
 }
 
-$("#pdb_select").change(function(){
-  liteMolScope.LiteMolComponent.destroyPlugin();
-  $("#litemol-viewer").attr('pdb-id', "'" + this.value + "'");
-  liteMolScope.LiteMolComponent.moleculeId = this.value;
-  liteMolScope.LiteMolComponent.createPlugin();
-  liteMolScope.LiteMolComponent.loadMolecule();
-  liteMolScope.LiteMolComponent.setBackground();
-  $("#pdb-out-link").attr('href', "https://www.rcsb.org/structure/" + this.value);
-  if (pdb_info[this.value]){
-    loadSmiles(this.value);
-    loadChemInfo(this.value);
-  }
-});
+export default function initPDB(pdbids) {
+  getPDBinfo(pdbids);
+  $("#pdb_select").change(function(){
+    liteMolScope.LiteMolComponent.destroyPlugin();
+    $("#litemol-viewer").attr('pdb-id', "'" + this.value + "'");
+    liteMolScope.LiteMolComponent.moleculeId = this.value;
+    liteMolScope.LiteMolComponent.createPlugin();
+    liteMolScope.LiteMolComponent.loadMolecule();
+    liteMolScope.LiteMolComponent.setBackground();
+    $("#pdb-out-link").attr('href', "https://www.rcsb.org/structure/" + this.value);
+    if (pdb_info[this.value]){
+      loadSmiles(this.value);
+      loadChemInfo(this.value);
+    }
+  });
+
+}

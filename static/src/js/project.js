@@ -193,7 +193,10 @@ $(function(){
 
 $('#proteinSlug').select2({ theme: "bootstrap", width: '80%',
   ajax: {
-    theme: 'bootstrap',
+    theme: "bootstrap",
+    containerCssClass: ':all:',
+    width: "auto",
+
     url: '/autocomplete-protein',
     dataType: 'json',
     cache: true,
@@ -258,36 +261,6 @@ if (document.getElementById("activeImg")){
   buildURL();
 }
 
-
-
-///////////DATA TABLE
-
-$(function() {
-  $('#proteinTable').DataTable({
-    "pageLength": 50,
-    "autoWidth": false,
-    "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100,"All"] ],
-    'fixedHeader': {
-        'header': false,
-        'footer': true
-    },
-    "order": [[ 6, 'desc' ]],
-  });
-
-  $('.table-filter').change(function(){
-    var searchval = this.value;
-    if (searchval != ''){
-      searchval = '^' + this.value +'$';
-    }
-    searchcol = $(this).attr('data-col')
-    $('#proteinTable').DataTable().column('.' + searchcol).search(searchval, true, false).draw();
-  });
-
-  // $('.exmax').each(function(){
-  //  $(this).closest('tr').css('background-color', get_color_group($(this).html()))
-  // })
-
-});
 
 function get_color_group(exwave){
     if (exwave < 380){ return "#C080FF" } //
@@ -735,7 +708,7 @@ $(document).ready(function() {
             button.data('flagged', 1);
             button.find('.flagicon').removeClass("far");
             button.find('.flagicon').addClass("fas");
-            document.getElementById('object-flag').setAttribute("data-original-title", "This excerpt has been flagged for review");
+            button.data("original-title", "This excerpt has been flagged for review");
             button.css("opacity", 1);
           }
         },

@@ -14,16 +14,13 @@
 {% endblock content %}
 
 {% block javascript %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
-<script src="{% static 'js/lineage.js' %}"></script>
-
 
 <script>
 
 
 $('.lineage').each(function(i, el){
   $.getJSON("/ajax" + window.location.pathname, function(data){
-    chart = LineageChart().data(data)
+    var chart = LineageChart().data(data)
                           .withSearch(true)
                           .withToolbar(true);
     chart.heightScalar(32);

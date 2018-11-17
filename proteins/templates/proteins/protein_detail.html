@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load static i18n compress favit_tags %}
+{% load static i18n favit_tags %}
 
 {% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
 {% block meta-description %}{{ protein.description }}{% endblock %}
 
-{% block vendorcss %}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
-{% endblock vendorcss %}
+
+
+
 {% block container-class %}container protein{% endblock %}
 
 {% block bodyopen %}
@@ -14,6 +14,7 @@
 {% endblock bodyopen %}
 
 {% block extrahead %}
+
 {% include 'proteins/_structured_data.html' with protein=protein %}
 <link rel="stylesheet" href="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/css/pdb.component.library.min-1.0.0.css" />
 
@@ -106,7 +107,7 @@
           <span data-toggle="tooltip" data-placement="top" title="Generate spectra image/url" class='ml-2'><a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link"></i></a></span>
         </div>
 
-       <svg id="spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
+       <svg id="simple_spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
       </div>
       {% else %}
       <p class='mt-4'>No spectrum has been submitted ... <a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary'>add a spectrum!</a></p>
@@ -394,21 +395,11 @@
 
 {% block javascript %}
   <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
 
-  {% compress js %}
-  <script src="{% static 'favit/js/favorite.js' %}"></script>
-  <script src="{% static 'js/jquery.formset.js' %}"></script>
-  <script src="{% static "js/nvd3spectra.js" %}"> </script>
-  <script src="{% static 'js/lineage.js' %}"></script>
   {% if protein.pdb %}
-      <script src="{% static 'js/smiles-drawer.min.js' %}"></script>
-      <script src="{% static 'js/angular.1.4.7.min.js' %}"></script>
-      <script src="{% static 'js/pdb.component.library.min-1.0.0.js' %}"></script>
-      <script src="{% static 'js/my-litemol.js' %}"></script>
+    <script src="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/js/pdb.component.library.min-1.0.0.js"></script>
   {% endif %}
-  {% endcompress %}
+
 
 <script type="text/javascript">
   $(document).ready(function () {
@@ -431,22 +422,6 @@
 	    var linchart;
       $(function () {
 
-        var resizeTimer;
-        $('.lineage').each(function(i, el){
-          var slug = $(el).data('slug') || '';
-          $.getJSON("/ajax/lineage/" + slug, function(data){
-            linchart = LineageChart().data(data);
-            var lineage = d3.select(el)
-            lineage.call(linchart, slug);
-            $(window).on('resize', function(e) {
-              clearTimeout(resizeTimer);
-              resizeTimer = setTimeout(function() {
-                lineage.call(linchart);
-              }, 250);
-            });
-          })
-        });
-
 
         {% if protein.has_spectra %}
         // disable 2p by default
@@ -462,9 +437,9 @@
         }
         var chart = nv.models.lineChart();
         chart.yDomain([0,1.04])
-        svg = d3.select('#spectrasvg');
-        $("#spectrasvg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
-        $("#spectrasvg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
+        svg = d3.select('#simple_spectrasvg');
+        $("#simple_spectrasvg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
+        $("#simple_spectrasvg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
 
         chart.options({
             margin: {left:20, bottom: 30},
@@ -497,9 +472,6 @@
             return chart;
         }, function(){ setTimeout(function(){ chart.update(); }, 50)} );
         {% endif %}
-
-
-	      $('[data-toggle="popover"]').popover({html: true});
 
         var snaptemplate = 'https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/'
         $.ajax({
@@ -540,35 +512,16 @@
             }
         });
 
-	    })
-
-      $('.popover-dismiss').popover({
-	      trigger: 'focus'
 	    });
 
       </script>
 
       {% if protein.pdb %}
-        <script type="text/javascript">
-          window.pdbids = {{protein.pdb|safe}};
-        </script>
+
         <script defer type="text/javascript">
-          angular.element(document).ready(function () {
-            angular.bootstrap(document, ['pdb.litemol']);
-            try {
-              // statements
-              getPDBinfo(pdbids);
-            } catch(e) {
-              var select = $("#pdb_select");
-              $(pdbids).each(function(i, d){
-                select.append($('<option>', {value: d}).html(d))
-              })
-              var litemolElement = $('#litemol-viewer');
-              liteMolScope = angular.element(litemolElement).isolateScope();
-              liteMolScope.LiteMolComponent.setBackground();
-              $("#pdb-info").html('<small class="text-muted">failed to retrieve metadata from PDB</small>');
-              console.error(e);
-            }
+          $(function () {
+            //angular.bootstrap(document, ['pdb.litemol']);
+            initPDB({{protein.pdb|safe}});
           });
         </script>
       {% endif %}

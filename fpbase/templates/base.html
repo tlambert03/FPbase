@@ -1,4 +1,7 @@
-{% load static i18n compress%}<!DOCTYPE html>
+{% load static i18n %}
+{% load render_bundle from webpack_loader %}
+
+<!DOCTYPE html>
 <html lang="en">
   <head>
     {% block ga %}
@@ -33,18 +36,11 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
 
-    {% block css %}
+    {% render_bundle 'main' 'css' %}
+    {% render_bundle 'vendor' 'css' %}
 
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.1/css/select2.min.css" rel="stylesheet" />
+    <!-- hi there -->
 
-    {% block vendorcss %}{% endblock vendorcss %}
-
-    {% compress css %}
-
-    <link href="{% static 'css/style.min.css' %}" rel="stylesheet">
-    {% endcompress %}
-    {% endblock %}
 
     {% block extrahead %}
     {% endblock extrahead %}
@@ -111,23 +107,6 @@
     {% block modal %}{% endblock modal %}
 
     {% endblock body %}
-      <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js" integrity="sha384-3LK/3kTpDE/Pkp8gTNp2gR/2gOiwQ6QaO7Td0zV76UFJVhqLl4Vl3KL1We6q6wR9" crossorigin="anonymous"></script>
-      <!-- Required by Bootstrap v4 beta -->
-      <script
-        src="https://code.jquery.com/jquery-3.2.1.min.js"
-        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-        crossorigin="anonymous"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
-      <script type="text/javascript" src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
-      <script type="text/javascript" src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
-      <script type="text/javascript" src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.1/js/select2.min.js"></script>
-      <script>
-      if (typeof jQuery == 'undefined') {
-          document.write(unescape("%3Cscript src='" + "{% static 'js/project.js' %}" + "' type='text/javascript'%3E%3C/script%3E"));
-      }
-      </script>
 
       {% block sentry %}
         {% if not debug %}
@@ -135,23 +114,10 @@
         {% endif %}
       {% endblock sentry %}
 
-      <!-- Third-party javascript libraries go here -->
-      {% block vendorjs %}{% endblock vendorjs %}
 
       <!-- place project specific Javascript -->
-      {% compress js %}
-      <script src="{% static 'js/project.js' %}"></script>
-      {% endcompress %}
-
-      <script type="text/javascript">
-      $(function () {
-        $('[data-toggle="tooltip"]').tooltip({
-          trigger : 'hover',
-          delay: { "show": 200 },
-        });
-      });
-      </script>
-
+      {% render_bundle 'vendor' 'js' %}
+      {% render_bundle 'main' 'js' %}
 
       {% block javascript %}{% endblock %}
 

@@ -26,7 +26,7 @@
     </noscript>
 		<main role="main" class="cover-container container">
 			<div class="row">
-				<div class="col-md-7 align-self-center text-center search-col order-sm-2 search-col" style="display: none;">
+				<div class="col-md-7 align-self-center text-center search-col order-sm-2 search-col">
 					<p class="cover-heading">Find a Protein</h1>
 						<form class="input-group home-search" method="get" action="/search/">
 							<input type="search" class="form-control" name="name__icontains" placeholder="protein name...">
@@ -50,12 +50,3 @@
 <!-- cover-wrapper -->
 {% endblock body %}
 
-{% block javascript %}
-	<script type="text/javascript">
-	$(document).ready(function() {
-		$(".search-col").fadeIn(300)
-		$("#protein-image img.no-glow").fadeOut(2200)
-		$("#protein-image img.glow").fadeIn(2200)
-	});
-	</script>
-{% endblock javascript %}

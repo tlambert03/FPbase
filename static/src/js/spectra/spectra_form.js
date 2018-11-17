@@ -1,4 +1,10 @@
-var formSelection = function(filter) {
+import { options, userOptions, CONST } from './constants.js';
+
+function uniqueID() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+}
+
+export function formSelection(filter) {
 
     var selWidget = $('<select>', {
         'class': 'custom-select custom-select-sm data-selector',
@@ -13,7 +19,7 @@ var formSelection = function(filter) {
         selWidget.append($('<option>', { value: 'custom_laser' }).text('Laser Line'));
     }
 
-    matches = spectra_options.filter(function(item) {
+    var matches = spectra_options.filter(function(item) {
         for (var key in filter) {
             if (item[key] === undefined || item[key] != filter[key]) {
                 // FIXME
@@ -42,7 +48,7 @@ var formSelection = function(filter) {
     return selWidget;
 };
 
-var fluorRow = function(widget) {
+export function fluorRow(widget) {
     var rowID = 'f' + uniqueID();
     return $('<div>', { 'class': 'form-inline fluor-row row' }).attr('id', rowID)
         .append($('<div>', {class: 'col input-group input-group-sm'})
@@ -109,7 +115,7 @@ var fluorRow = function(widget) {
 };
 
 
-var excRow = function(widget, cls) {
+export function excRow(widget, cls, refreshChart) {
     var rowID = 'l' + uniqueID();
     return $('<div>', { 'class': 'form-inline row ' + cls}).attr('id', rowID)
         .append($('<div>', { class: 'col input-group input-group-sm' })
@@ -195,7 +201,7 @@ var excRow = function(widget, cls) {
         );
 };
 
-var filterRow = function(widget, stype) {
+export function filterRow(widget, stype) {
     var rowID = stype + uniqueID();
     return $('<div>', { 'class': 'form-inline filter-row row', 'data-ftype': stype })
         .attr('id', rowID)
@@ -269,3 +275,4 @@ var filterRow = function(widget, stype) {
             )
         );
 };
+

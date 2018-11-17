@@ -45,7 +45,7 @@ mutpattern = re.compile(r"""
     (?P<operation>delins|del|ins|)?
     (?P<new_chars>[{0}*]+)?
     (?:ext(?P<ext>[{0}]+))?
-    (?:,|$|/|\s)""".format(r"A-Z", '{1}'), re.X)
+    (?:,|$|/|\s)""".format(r"A-Z*", '{1}'), re.X)
 
 
 NEUTRAL_MUTATIONS = ['K26R', 'Q80R', 'N146H', 'H231L']
@@ -64,7 +64,7 @@ class Mutation(object):
 
     def __init__(self, start_char, start_idx, stop_char, stop_idx,
                  operation, new_chars, ext, pos_label=None, idx0=1,
-                 alphabet="".join(SkbSequence.definite_chars.union('X'))):
+                 alphabet="".join(SkbSequence.definite_chars.union('X*'))):
         """
         start_char: single letter amino acid code for start position (e.g. A)
         start_idx:  position of start mutation (e.g. 206)

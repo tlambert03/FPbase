@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load crispy_forms_tags compress static %}
+{% load crispy_forms_tags static %}
 
 {% block container-class %}container bleach-form{% endblock container-class %}
 
@@ -37,10 +37,6 @@
 
 
 {% block javascript %}
-
-	{% compress js %}
-	<script src="{% static 'js/jquery.formset.js' %}"></script>
-	{% endcompress %}
 
 	<script type="text/javascript">
 	$(function () {

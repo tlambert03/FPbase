@@ -3,11 +3,7 @@
 {% block title %}{% if object %}{{object}} Microscope{% else %}Create a Microscope{% endif %} on FPbase{% endblock %}
 {% block meta-description %}Create and save your own microscope configuration (filters, light sources, detectors) and get a custom spectra viewer that you can use to explore the fluorophore spectra in the FPbase database.{% endblock %}
 
-{% load crispy_forms_tags compress static %}
-
-{% block extrahead %}
-  <link href="/static/autocomplete_light/select2.css" type="text/css" media="all" rel="stylesheet">
-{% endblock extrahead %}
+{% load crispy_forms_tags static %}
 
 {% block container-class %}container microscope-form{% endblock container-class %}
 
@@ -209,12 +205,8 @@
 {% endblock content %}
 
 {% block javascript %}
-  {% compress js %}
-  <script src="{% static 'js/jquery.formset.js' %}"></script>
-  {% endcompress %}
 
   <script type="text/javascript">
-
 
   {% if object %}
   var confirmError = false;
@@ -244,9 +236,10 @@
 
   $("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2({
     theme: "bootstrap",
+    containerCssClass: ':all:',
     placeholder: "---------",
     allowClear: true,
-    width: "100%",
+    width: "auto",
   });
 
   $(function () {

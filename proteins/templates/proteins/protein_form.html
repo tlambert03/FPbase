@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags compress static %}
+{% load crispy_forms_tags static %}
 
 
 {% block title %}{% if object %}Update {{ object.name }}{% else %}Submit a protein to FPbase{% endif %}{% endblock %}
@@ -77,15 +77,9 @@
 
 {% block javascript %}
 
-	{% compress js %}
-	<script src="{% static 'js/jquery.formset.js' %}"></script>
-	{% endcompress %}
-
 	<script type="text/javascript">
 
 		$(function () {
-
-			$('[data-toggle="tooltip"]').tooltip()
 
 			var deleteclass = 'state-delete-button'
 
