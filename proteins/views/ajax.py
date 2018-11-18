@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.core.mail import mail_managers
+from django.views.decorators.cache import cache_page
 from collections import defaultdict
 
 from ..models import Protein, Organism, Spectrum, Fluorophore, Lineage
@@ -179,6 +180,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
     return result, widths
 
 
+@cache_page(60 * 15)
 def get_lineage(request, slug=None):
     # if not request.is_ajax():
     #     return HttpResponseNotAllowed([])
