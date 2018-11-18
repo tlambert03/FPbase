@@ -12,7 +12,7 @@ from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
-from django.db.models import Case, When, Count
+from django.db.models import Case, When, Count, Exists, OuterRef
 from django.db.models.functions import Substr
 from django.shortcuts import redirect
 from django.apps import apps
@@ -75,8 +75,10 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
 
 class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
-    queryset = Protein.visible.annotate(has_spectra=Count('states__spectra')) \
-        .prefetch_related('states')
+    owned_spectra = Spectrum.objects.filter(owner_state__in=OuterRef('states'))
+    queryset = Protein.visible.annotate(has_spectra=Exists(owned_spectra)) \
+        .prefetch_related('states', 'excerpts__reference', 'oser_measurements__reference') \
+        .select_related('primary_reference')
 
     def version_view(self, request, version, *args, **kwargs):
         try:
