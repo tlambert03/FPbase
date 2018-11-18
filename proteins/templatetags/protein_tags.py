@@ -32,6 +32,7 @@ def flag_object(context, target):
 
     return render_to_string(
         'proteins/object_flag_button.html', {
+            'request': context['request'],
             'target_id': target.id,
             'target_model': target_model,
             'status': target.status,

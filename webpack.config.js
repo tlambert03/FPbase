@@ -99,7 +99,10 @@ if (devMode) {
 
 module.exports = {
   context: __dirname,
-  entry: './static/src/index.js',
+  entry: {
+    main: './static/src/index.js',
+    embedscope: './static/src/embedscope.js'
+  },
   output: {
     path: path.resolve('./static/dist/'),
     filename: devMode ? '[name].js' : '[name]-[hash].js',

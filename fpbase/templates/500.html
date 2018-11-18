@@ -10,7 +10,7 @@
 <p>We track these errors automatically, but if the problem persists feel free to <a href="{% url 'contact' %}">contact us</a>. {% if request.sentry.id %}You may reference this error as <strong>{{ request.sentry.id }}</strong>.{% endif %}</p>
 
 <!-- Sentry JS SDK 2.1.+ required -->
-<script src="https://cdn.ravenjs.com/2.3.0/raven.min.js"></script>
+<script src="https://cdn.ravenjs.com/3.26.4/raven.min.js" crossorigin="anonymous"></script>
 {% if request.sentry.id %}
   <script>
   Raven.showReportDialog({

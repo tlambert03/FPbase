@@ -586,7 +586,6 @@ def spectra_csv(request):
 
 @login_required
 def flag_object(request):
-
     if not request.is_ajax():
         return HttpResponseNotAllowed([])
     try:
@@ -594,16 +593,25 @@ def flag_object(request):
         id = request.POST["target_id"]
         model = apps.get_model(model_type)
         obj = get_object_or_404(model, id=id)
-        obj.status = model.STATUS.flagged
+
+        status = None
+        if request.POST["flagged"] == '1':
+            if request.user.is_staff:
+                obj.status = model.STATUS.approved
+                status = 'unflagged'
+        else:
+            obj.status = model.STATUS.flagged
+            status = 'flagged'
         obj.save()
 
-        mail_admins('%s flagged' % model_type,
-                    "User: {}\nObject: {}\nID: {}\n{}".format(
-                        request.user.username, obj, obj.pk, request.build_absolute_uri(obj.get_absolute_url())),
-                    fail_silently=True)
+        if status:
+            mail_admins('%s %s' % (model_type, status),
+                        "User: {}\nObject: {}\nID: {}\n{}".format(
+                            request.user.username, obj, obj.pk, request.build_absolute_uri(obj.get_absolute_url())),
+                        fail_silently=True)
 
         return JsonResponse({
-            'status': 'flagged',
+            'status': status,
         })
     except (KeyError, ValueError):
         return HttpResponseBadRequest()

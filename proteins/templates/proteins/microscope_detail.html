@@ -4,12 +4,6 @@
 {% block title %}{{ microscope.name }} on FPbase{% endblock %}
 {% block meta-description %}A collection of spectra representing the microscope {{microscope.name}} on FPbase. {% endblock %}
 
-{% block vendorcss %}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
-{% endblock vendorcss %}
-
-
 {% block container-class %}container-fluid spectrumpage microscopepage{% endblock %}
 
 {% block content %}
@@ -29,7 +23,6 @@
 
 
 {% block javascript %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js" integrity="sha256-R9uiXmQekNb8r352uyt9EW3yRd3VZL3NyU8N0Z5fMo0=" crossorigin="anonymous"></script>
 
 <script type="text/javascript">var scopespectra = {{ scopespectra|safe }};</script>
 

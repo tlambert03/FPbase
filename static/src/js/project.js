@@ -694,26 +694,31 @@ $(document).ready(function() {
   $('a.object-flag').click(function(e) {
     e.preventDefault();
     var button = $(this);
-    if (button.data('flagged') == 0){
-      $.ajax({
-        url: button.attr('data-action-url'),
-        type: 'POST',
-        data: {
-          target_model: button.data('model'),
-          target_id: button.data('id'),
-          csrfmiddlewaretoken:  window.CSRF_TOKEN,
-        },
-        success: function(response) {
-          if (response.status == 'flagged') {
-            button.data('flagged', 1);
-            button.find('.flagicon').removeClass("far");
-            button.find('.flagicon').addClass("fas");
-            button.data("original-title", "This excerpt has been flagged for review");
-            button.css("opacity", 1);
-          }
-        },
-      });
-    }
+
+    $.post({
+      url: button.data('action-url'),
+      data: {
+        flagged: button.data('flagged'),
+        target_model: button.data('model'),
+        target_id: button.data('id'),
+        csrfmiddlewaretoken:  window.CSRF_TOKEN,
+      },
+      success: function(response) {
+        if (response.status == 'flagged') {
+          button.data('flagged', 1);
+          button.find('.flagicon').removeClass("far");
+          button.find('.flagicon').addClass("fas");
+          button.data("original-title", "This excerpt has been flagged for review");
+          button.css("opacity", 1);
+        } else if (response.status == 'unflagged') {
+          button.data('flagged', 0);
+          button.find('.flagicon').removeClass("fas");
+          button.find('.flagicon').addClass("far");
+          button.data("original-title", "Flag this excerpt for review");
+          button.css("opacity", 0.3);
+        }
+      },
+    });
 
   });
 

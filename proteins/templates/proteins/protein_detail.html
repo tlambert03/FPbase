@@ -394,138 +394,33 @@
 
 
 {% block javascript %}
+
   <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
 
-  {% if protein.pdb %}
-    <script src="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/js/pdb.component.library.min-1.0.0.js"></script>
+  {% if protein.has_spectra %}
+  <script>
+  $(function(){
+    initSimpleSpectra('#simple_spectrasvg', {{ protein.d3_spectra|safe }}, "{{protein.name|safe}}");
+  });
+  </script>
   {% endif %}
 
-
-<script type="text/javascript">
-  $(document).ready(function () {
-      $('#excerptModal').on('show.bs.modal', function () {
-          $('#excerptModal').css('z-index', 1200);
-      });
-
-      $('#excerptModal').on('hidden.bs.modal', function () {
-          $('#excerptModal').css('z-index', 1039);
-      });
-  });
-
-</script>
-
-    {% if protein.has_spectra %}
-    <script>var myData = {{ protein.d3_spectra|safe }};</script>
-    {% endif %}
+  {% if protein.pdb %}
+    <script id="pdblibloader" defer src="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/js/pdb.component.library.min-1.0.0.js"></script>
 
     <script type="text/javascript">
-	    var linchart;
-      $(function () {
+    document.querySelector('#pdblibloader').addEventListener('load', function(){
+      initPDB({{protein.pdb|safe}});
+    });
+    </script>
+  {% endif %}
 
-
-        {% if protein.has_spectra %}
-        // disable 2p by default
-        for (n = 0; n < myData.length; n++){
-          if (myData[n].key.indexOf("2p") >= 0 && myData.length > 1) {
-            myData[n].disabled = true;
-          }
-        };
-
-        var interactive = true;
-        if (typeof window.mobilecheck === 'function') {
-            interactive = !window.mobilecheck();
-        }
-        var chart = nv.models.lineChart();
-        chart.yDomain([0,1.04])
-        svg = d3.select('#simple_spectrasvg');
-        $("#simple_spectrasvg").prepend($('<desc>', {id: 'svgDesc'}).text('Fluorescent protein {{ protein.name | safe}} excitation and emission spectra'))
-        $("#simple_spectrasvg").prepend($('<title>', {id: 'svgTitle'}).text('{{ protein.name | safe}} Spectrum'))
-
-        chart.options({
-            margin: {left:20, bottom: 30},
-            noData: "Unable to load data...",
-            transitionDuration: 200,
-            showLegend: myData.length > 2 || myData.some(function(a){return a.type=='2p'}),
-            showXAxis: true,
-            showYAxis: false,
-            useInteractiveGuideline: interactive,
-            forceY: [0,1.04],
-            forceX: [350, 750],
-        });
-
-        /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
-        nv.addGraph(function() {
-            chart.xAxis     //Chart x-axis settings
-            //.axisLabel('Wavelength (nm)')
-            .tickFormat(d3.format(',r'));
-
-            // chart.yAxis     //Chart y-axis settings
-            //   .axisLabel('Normalized Ex/Em')
-            //   .tickFormat(d3.format('1%'));
-
-            svg.datum(myData)         //Populate the <svg> element with chart data...
-            .call(chart);        //Finally, render the chart!
-
-            //Update the chart when window resizes.
-
-            nv.utils.windowResize(function() { chart.update() });
-            return chart;
-        }, function(){ setTimeout(function(){ chart.update(); }, 50)} );
-        {% endif %}
-
-        var snaptemplate = 'https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/'
-        $.ajax({
-            type: "get",
-            url: "https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/plasmids.xml",
-            dataType: "xml",
-            success: function(data) {
-                /* handle data here */
-                var hits = [];
-                $(data).find('[name*="{{ protein.name  }}"]').each(function(){
-                  var name = $(this).attr('name');
-                  while(name.charAt(0) === 'p') { name = name.substr(1); }
-                  $.each(['-N2', '-N1', '-N', '-C2', '-C1', '-C', '-1', '-B', '-S1', '-PRL'],
-                    function(index, val) {
-                      name = name.replace(val, '');
-                    }
-                  );
-                  if ((name == "{{ protein.name  }}") || (name == "{{ protein.name  }}1")){
-                    hits.push([$(this).attr('name'), $(this).attr('url')])
-                  }
-                })
-
-                if (hits.length){
-                  var t = 'SnapGene links: '
-                  if (hits.length == 1){t = 'SnapGene link: ' }
-                  var $li = $('<li>').text(t).appendTo($('.external-resources ul'))
-                  $.each(hits, function(index, val) {
-                    $li.append($('<a>', { 'href': snaptemplate.replace('*', val[1]) }).text(val[0]))
-                    if (index != hits.length-1){
-                      $li.append(', ')
-                    }
-                  });
-                }
-
-            },
-            error: function(xhr, status) {
-                /* handle error here */
-            }
-        });
-
-	    });
-
-      </script>
-
-      {% if protein.pdb %}
-
-        <script defer type="text/javascript">
-          $(function () {
-            //angular.bootstrap(document, ['pdb.litemol']);
-            initPDB({{protein.pdb|safe}});
-          });
-        </script>
-      {% endif %}
-{% endblock %}
+  <script type="text/javascript">
+    $(function () {
+        initSnapGene("{{protein.name|safe}}", '.external-resources ul')
+    });
+  </script>
+{% endblock javascript %}
 
 
 

@@ -1,4 +1,4 @@
-<script src="https://cdn.ravenjs.com/3.26.2/raven.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.ravenjs.com/3.26.4/raven.min.js" crossorigin="anonymous"></script>
 <script>
   Raven.config('{{ sentry_js_dsn }}').install();
   {% if request.user.is_authenticated %}Raven.setUserContext({email:'{{ request.user.email }}',id:'{{ request.user.id }}',name:'{{ request.user.username }}'});{% endif %}

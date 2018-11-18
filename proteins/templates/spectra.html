@@ -4,11 +4,6 @@
 {% block title %}FPbase Fluorescence Spectra Viewer{% endblock %}
 {% block meta-description %}An interactive fluorescence spectra viewer to evaluate the spectral properties of fluorescent proteins, organic dyes, filters, and detectors. Calculate collection efficiency or bleedthrough probabilities in your microscope and explore combinations of filters and dyes.{% endblock %}
 
-{% block vendorcss %}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
-{% endblock vendorcss %}
-
 
 {% block container-class %}container spectrumpage{% endblock %}
 
@@ -201,9 +196,6 @@
 
 
 {% block javascript %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js" integrity="sha256-R9uiXmQekNb8r352uyt9EW3yRd3VZL3NyU8N0Z5fMo0=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"> </script>
 
 <script type="text/javascript">
   $("#downloadSpectra").click(function(e){
