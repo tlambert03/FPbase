@@ -223,6 +223,19 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
 
+INSTALLED_APPS.append("webpack_loader")
+
+WEBPACK_LOADER = {
+    "DEFAULT": {
+        "CACHE": not DEBUG,
+        "BUNDLE_DIR_NAME": "dist/",
+        "STATS_FILE": str(ROOT_DIR('webpack-stats.json')),
+        "POLL_INTERVAL": 0.1,
+        "TIMEOUT": None,
+        "IGNORE": [r".*\.hot-update.js", r".+\.map"]
+    }
+}
+
 # MEDIA CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#media-root
@@ -298,19 +311,6 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 # ------------------------------------------------------------------------------
 # INSTALLED_APPS += ['compressor']
 # STATICFILES_FINDERS += ['compressor.finders.CompressorFinder']
-
-INSTALLED_APPS.append("webpack_loader")
-
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": not DEBUG,
-        "BUNDLE_DIR_NAME": "/",
-        "STATS_FILE": str(ROOT_DIR('webpack-stats.json')),
-        "POLL_INTERVAL": 0.1,
-        "TIMEOUT": None,
-        "IGNORE": [r".*\.hot-update.js", r".+\.map"]
-    }
-}
 
 # Location of root django.contrib.admin URL, use {% url 'admin:index' %}
 ADMIN_URL = r'^admin/'
