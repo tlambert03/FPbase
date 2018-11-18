@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static i18n %}
+{% load webpack_static from webpack_loader %}
 
 {% block meta-description %}FPbase is a moderated, user-editable fluorescent protein database designed by microscopists.  Search, share, and organize information about fluorescent proteins and their characteristics.{% endblock %}
 
@@ -9,7 +9,7 @@
 
 {% block body-class %}home-body{% endblock body-class %}
 {% block body %}
-<div class="cover-wrapper" style='background: url("/static/images/blurry_egfp.png") no-repeat center center'>
+<div class="cover-wrapper" style='background: url("{% webpack_static 'images/blurry_egfp.png' %}") no-repeat center center'>
 	<div class="cover-wrapper-inner">
 		<nav class="navbar navbar-expand-sm navbar-dark bg-transparent fixed-top">
 			{% block navcontainer %} {% include "_nav.html" %} {% endblock navcontainer %}
@@ -38,8 +38,8 @@
 {# 					<p class='m-t-4' style="color:#ccc"><br><i class='fa fa-info-circle'></i>  <em><a href='{% url "beta" %}' style="color:#ccc">FPbase is in beta</a></em></p> #}
 				</div>
 				<div class="col-md-4 align-self-center order-sm-1" id="protein-image">
-					<img src="{% static 'images/blurry_egfp.png' %}" style="position: absolute;" class="img-fluid no-glow" alt="EGFP image">
-					<img src="{% static 'images/blurry_egfp_glow.png' %}" style="display: none; position: absolute;" class="img-fluid glow" alt="EGFP image">
+					<img src="{% webpack_static 'images/blurry_egfp.png' %}" style="position: absolute;" class="img-fluid no-glow" alt="EGFP image">
+					<img src="{% webpack_static 'images/blurry_egfp_glow.png' %}" style="display: none; position: absolute;" class="img-fluid glow" alt="EGFP image">
 				</div>
 			</div>
 		</main>

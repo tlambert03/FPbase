@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load webpack_static from webpack_loader %}
 {% block title %}About FPbase: The Fluorescent Protein Database {% endblock %}
 {% block meta-description %}FPbase was created in 2018 by microscopists at Harvard Medical School, in order to facility the collection and dissemination of information about fluorescent proteins and their characterstics.  It accepts user contributions but is also moderated.{% endblock %}
 
@@ -25,7 +25,7 @@ Fluorescent proteins are tremendously complex.  Even "basic" fluorescent protein
 <div class="card">
   <div class="card-body">
    <h5 class="card-title"> <a href='{% url 'proteins:search' %}'><strong>Advanced Query Builder</strong></a></h5>
-    <p class="card-text"><img src="{% static 'images/query.png' %}" class='img-fluid'></p>
+    <p class="card-text"><img src="{% webpack_static 'images/query.png' %}" class='img-fluid'></p>
   </div>
 </div>
 
@@ -42,7 +42,7 @@ Fluorescent proteins are tremendously complex.  Even "basic" fluorescent protein
 <div class="card">
   <div class="card-body">
    <h5 class="card-title"> <a href='{% url 'proteins:ichart' %}'><strong>Interactive Viewer</strong></a></h5>
-    <p class="card-text text-center"><img src="{% static 'images/ichart.png' %}" class='img-fluid'><br><br>This page is based on the original <a href="https://github.com/FPvisualization/fpvisualization.github.io">GitHub project</a> by Talley Lambert and Kurt Thorn</p>
+    <p class="card-text text-center"><img src="{% webpack_static 'images/ichart.png' %}" class='img-fluid'><br><br>This page is based on the original <a href="https://github.com/FPvisualization/fpvisualization.github.io">GitHub project</a> by Talley Lambert and Kurt Thorn</p>
   </div>
 </div>
 

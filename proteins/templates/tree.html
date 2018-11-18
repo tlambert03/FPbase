@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% load static %}
+{% load webpack_static from webpack_loader %}
 
 {% block extrahead %}
-<link href="{% static 'css/phylotree.css' %}" rel="stylesheet">
+<link href="{% webpack_static 'css/phylotree.css' %}" rel="stylesheet">
  <style>
 
      .fa-rotate-45 {
@@ -114,7 +114,7 @@
 {% block javascript %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
-<script type='text/javascript' src="{% static 'js/phylotree.js' %}"></script>
+<script type='text/javascript' src="{% webpack_static 'js/phylotree.js' %}"></script>
 <script type="text/javascript">var newick ='{{tree|safe}}';</script>
 <script type="text/javascript">
 
