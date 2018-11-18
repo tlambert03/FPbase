@@ -371,6 +371,4 @@ _data/*
 
 /fpseq/addgene.py
 
-/webpack-stats.json
-
 webpack-stats.json
