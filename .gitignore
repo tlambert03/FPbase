@@ -370,3 +370,5 @@ _data/*
 .pytest_cache
 
 /fpseq/addgene.py
+
+/webpack-stats.json
