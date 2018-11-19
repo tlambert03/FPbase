@@ -1,9 +1,10 @@
 import reversion
-from django.views.generic import DetailView, CreateView, UpdateView, ListView
-from django.views.generic.base import TemplateView
+from django.views.generic import DetailView, CreateView, UpdateView, ListView, base
 from django.views.decorators.cache import cache_page
-from django.core.cache import cache
 from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.vary import vary_on_cookie
+from django.core.cache import cache
+from django.core.mail import mail_managers, mail_admins
 from django.shortcuts import render, get_object_or_404
 from django.http import (HttpResponseRedirect, HttpResponse, JsonResponse,
                          HttpResponseBadRequest, HttpResponseNotAllowed,
@@ -18,9 +19,9 @@ from django.shortcuts import redirect
 from django.apps import apps
 from django.urls import reverse
 from django.utils.html import strip_tags
-from django.core.mail import mail_managers, mail_admins
-from django.http import FileResponse
+from django.utils.decorators import method_decorator
 
+from fpbase.util import uncache_protein_page
 from ..models import Protein, State, Organism, BleachMeasurement, Spectrum, Excerpt
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
                      BleachMeasurementForm, bleach_items_formset, BleachComparisonForm)
@@ -34,7 +35,6 @@ import io
 from django.utils.safestring import mark_safe
 from collections import OrderedDict
 from django.utils.text import slugify
-from fpseq.mutations import _get_aligned_muts
 from django.db.models import Func, F, Value
 from django.contrib import messages
 import logging
@@ -79,6 +79,11 @@ class ProteinDetailView(DetailView):
     queryset = Protein.visible.annotate(has_spectra=Exists(owned_spectra)) \
         .prefetch_related('states', 'excerpts__reference', 'oser_measurements__reference') \
         .select_related('primary_reference')
+
+    @method_decorator(cache_page(60 * 720))
+    @method_decorator(vary_on_cookie)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def version_view(self, request, version, *args, **kwargs):
         try:
@@ -221,6 +226,10 @@ class ProteinCreateUpdateMixin:
                     reversion.set_user(self.request.user)
                     reversion.set_comment('{} {} form'.format(
                         self.object, self.get_form_type()))
+                    try:
+                        uncache_protein_page(self.object.protein.slug, self.request)
+                    except Exception as e:
+                        logger.error('failed to uncache protein: {}'.format(e))
             else:
                 context.update({
                     'states': states,
@@ -325,7 +334,7 @@ def protein_table(request):
         })
 
 
-class ComparisonView(TemplateView):
+class ComparisonView(base.TemplateView):
 
     template_name = "compare.html"
 
@@ -419,6 +428,10 @@ def add_reference(request, slug=None):
             P.save()
             reversion.set_user(request.user)
             reversion.set_comment('Ref: {} added to {}'.format(ref, P))
+            try:
+                uncache_protein_page(slug, request)
+            except Exception as e:
+                logger.error('failed to uncache protein: {}'.format(e))
         return JsonResponse({'status': 'success'})
     except Exception as e:
         return JsonResponse({'status': 'failed', 'msg': e})
@@ -441,7 +454,11 @@ def add_excerpt(request, slug=None):
                     mail_managers('Excerpt Added', msg, fail_silently=True)
                 P.save()
                 reversion.set_user(request.user)
-                reversion.set_comment('Ref: {} added to {}'.format(ref, P))
+                reversion.set_comment('Excerpt from {} added to {}'.format(ref, P))
+                try:
+                    uncache_protein_page(slug, request)
+                except Exception as e:
+                    logger.error('failed to uncache protein: {}'.format(e))
         return JsonResponse({'status': 'success'})
     except Exception as e:
         return JsonResponse({'status': 'failed', 'msg': e})
@@ -479,6 +496,10 @@ def update_transitions(request, slug=None):
                     obj.save()
                     reversion.set_user(request.user)
                     reversion.set_comment('Transitions edited on {}'.format(obj))
+                    try:
+                        uncache_protein_page(slug, request)
+                    except Exception as e:
+                        logger.error('failed to uncache protein: {}'.format(e))
             return HttpResponse(status=200)
         else:
             response = render(request, template_name, {'transition_form': formset}, status=422)
@@ -527,6 +548,10 @@ def protein_bleach_formsets(request, slug):
                     protein.save()
                     reversion.set_user(request.user)
                     reversion.set_comment('Updated bleach measurement on {}'.format(protein))
+                    try:
+                        uncache_protein_page(slug, request)
+                    except Exception as e:
+                        logger.error('failed to uncache protein: {}'.format(e))
             return HttpResponseRedirect(protein.get_absolute_url())
         else:
             return render(request, template_name, {'formset': formset, 'protein': protein})
@@ -607,6 +632,10 @@ def flag_object(request):
         obj.save()
 
         if status:
+            try:
+                uncache_protein_page(obj.protein.slug, request)
+            except Exception as e:
+                logger.error('failed to uncache protein: {}'.format(e))
             mail_admins('%s %s' % (model_type, status),
                         "User: {}\nObject: {}\nID: {}\n{}".format(
                             request.user.username, obj, obj.pk, request.build_absolute_uri(obj.get_absolute_url())),

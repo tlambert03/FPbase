@@ -15,10 +15,6 @@
 
 {% block extrahead %}
 
-{% if protein.lineage %}
-  <link rel="preload" href="{% url 'proteins:get-lineage' protein.slug %}" as="fetch">
-{% endif %}
-
 {% include 'proteins/_structured_data.html' with protein=protein %}
 <link rel="stylesheet" href="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/css/pdb.component.library.min-1.0.0.css" />
 
