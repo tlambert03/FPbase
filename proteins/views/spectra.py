@@ -5,6 +5,8 @@ from django.core.cache import cache
 from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.views.generic import CreateView
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from ..models import Spectrum, Filter, State, Protein
@@ -14,6 +16,8 @@ from ..util.importers import add_filter_to_database
 from ..util.helpers import forster_list
 
 
+@cache_page(60 * 10)
+@vary_on_cookie
 def protein_spectra(request, slug=None):
     ''' renders html for protein spectra page  '''
     template = 'spectra.html'

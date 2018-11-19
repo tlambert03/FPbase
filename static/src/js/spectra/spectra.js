@@ -2,12 +2,13 @@ import { options, userOptions, CONST } from './constants.js'
 import { formSelection, fluorRow, excRow, filterRow } from './spectra_form.js';
 import noUiSlider from 'nouislider';
 
-export default function initSpectra() {
-    var chart;
-    var data = [];
-    var localData = {};
-    var svg = d3.select('#spectra svg');
-
+export default function initSpectra(selection) {
+    let chart,
+        data = [],
+        localData = {},
+        svg = d3.select(selection),
+        overlaps = [],
+        disabledData = [];
 
     function getData(slug) {
         var dfd = $.Deferred();
@@ -867,7 +868,7 @@ export default function initSpectra() {
     }
 
 
-    var chartsvg = $('#spectra svg')[0]
+    var chartsvg = $(selection)[0]
     var chartsvgNS = chartsvg.namespaceURI;
     var grad = document.createElementNS(chartsvgNS, 'linearGradient');
     grad.setAttribute('id', 'wavecolor_gradient');
@@ -915,7 +916,7 @@ export default function initSpectra() {
         min = min || 300;
         max = max || 1000;
         var sum = 0;
-        for (i = 0; i < arr.length - 1; i++) {
+        for (var i = 0; i < arr.length - 1; i++) {
             if (arr[i].x > min) {
                 var d = (arr[i].y + arr[i + 1].y) / 2;
                 sum += d;
@@ -983,7 +984,7 @@ export default function initSpectra() {
     function calculateEfficiency() {
         let iSpectra = [];
         let iEmFilt = [];
-        let overlaps = [];
+        overlaps = [];
         $("#efficiency-table tbody").empty();
         $("#efficiency-table thead").empty();
         for (var i = 0; i < data.length; i++) {
@@ -999,7 +1000,7 @@ export default function initSpectra() {
         if (iSpectra.length && iEmFilt.length) {
             $('#efftab_blurb').hide();
             $("#efficiency-table thead").append($('<tr>').append($('<th>')));
-            for (x = 0; x < iEmFilt.length; x++) {
+            for (var x = 0; x < iEmFilt.length; x++) {
                 $('<th>').text(data[iEmFilt[x]].key).appendTo($("#efficiency-table").find('thead tr'));
             }
             $('.efftab_help').show();
@@ -1010,9 +1011,9 @@ export default function initSpectra() {
         }
 
         for (var s = 0; s < iSpectra.length; s++) {
-            emspectrum = data[iSpectra[s]];
+            var emspectrum = data[iSpectra[s]];
             $('<tr><td>' + emspectrum.key + '</td></tr>').appendTo($("#efficiency-table tbody"))
-            for (n = 0; n < iEmFilt.length; n++) {
+            for (var n = 0; n < iEmFilt.length; n++) {
                 var EMtrans = spectral_product(data[iEmFilt[n]].values, emspectrum.values);
                 overlaps.push(EMtrans);
                 var absEM = trapz(EMtrans)
@@ -1053,7 +1054,7 @@ export default function initSpectra() {
             dataType: 'json',
             success: function(data) {
                 if (data.status) {
-                    newdata = JSON.parse(data.spectra_options);
+                    var newdata = JSON.parse(data.spectra_options);
                     $('.data-selector[data-category="f"]').append($('<option>', { value: newdata.slug }).text(newdata.name));
                     $("#" + brand + "Input").removeClass('is-invalid');
                     $("#" + brand + "Help").removeClass('invalid-feedback').addClass('text-muted').text('Success!');
@@ -1159,6 +1160,8 @@ export default function initSpectra() {
         }
 
     })
+
+    return { getData: function(){ return data; }}
 }
 
 

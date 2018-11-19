@@ -198,20 +198,21 @@
 {% block javascript %}
 
 <script type="text/javascript">
+  var spectra_options = {{ spectra_options|safe }};
+  window.instance = initSpectra('#spectrasvg');
+</script>
+<script>
+
   $("#downloadSpectra").click(function(e){
     e.preventDefault();
-    var ids = data
+    var ids = instance.getData()
       .filter(function(obj){ if (obj.disabled){ return false }; return true })
       .map(function(obj){return obj.id});
     if (ids.length){
       url = {% url 'proteins:spectra_csv' %} + '?q=' + ids.join(',');
       window.location = url;
     }
-
   })
-  var spectra_options = {{ spectra_options|safe }};
-
-  initSpectra();
 
 </script>
 
