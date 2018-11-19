@@ -13,6 +13,7 @@ from reversion.admin import VersionAdmin
 from mptt.admin import MPTTModelAdmin
 from proteins.models.lineage import MutationSetField
 from django.forms import TextInput
+from fpbase.util import uncache_protein_page
 
 # from reversion.models import Version
 
@@ -391,6 +392,7 @@ class ProteinAdmin(CompareVersionAdmin):
         obj.updated_by = request.user
         obj.status = 'approved'
         obj.save()
+        uncache_protein_page(obj.slug, request)
 
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
