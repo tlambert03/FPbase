@@ -27,6 +27,7 @@ before_install:
 install:
   - pip install -r requirements/local.txt
   - npm install
+  - npm run build
 
 before_script:
   - python manage.py migrate --noinput
