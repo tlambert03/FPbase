@@ -102,7 +102,7 @@ module.exports = {
   entry: {
     main: './static/src/index.js',
     embedscope: './static/src/embedscope.js',
-    litemol: './static/src/js/pdb/my-litemol.js'
+    litemol: './static/src/my-litemol.js'
   },
   output: {
     path: path.resolve('./static/dist/'),

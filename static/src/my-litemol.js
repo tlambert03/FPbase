@@ -1,7 +1,7 @@
 import 'smiles-drawer/dist/smiles-drawer.min.js';
-import LiteMol from './LiteMol-Plugin.js';
-import '../../css/litemol/LiteMol-plugin-blue.css'
-window.LiteMol = LiteMol;
+import LiteMol from './js/pdb/LiteMol-Plugin.js';
+import './css/litemol/LiteMol-plugin-blue.css'
+
 
 var smilesDrawer = new SmilesDrawer.Drawer({
     compactDrawing: false,
@@ -199,7 +199,7 @@ var getPDBinfo = function(pdbids){
         ))
       })
 
-      window.plugin = initLiteMol('#litemol-viewer')
+      var plugin = initLiteMol('#litemol-viewer')
       plugin.dataCache = {};
 
       select.change(function(){
