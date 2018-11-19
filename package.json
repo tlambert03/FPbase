@@ -26,7 +26,6 @@
     "nouislider": "^12.1.0",
     "npm": "^6.4.1",
     "nvd3": "^1.8.6",
-    "pdb-lite-mol": "^0.1.0",
     "select2": "^4.0.6-rc.1",
     "select2-theme-bootstrap4": "^0.2.0-beta.2",
     "smiles-drawer": "^1.0.10"

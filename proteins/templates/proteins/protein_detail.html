@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% load static i18n favit_tags %}
+{% load i18n favit_tags %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
 {% block meta-description %}{{ protein.description }}{% endblock %}
@@ -15,8 +16,8 @@
 
 {% block extrahead %}
 
+
 {% include 'proteins/_structured_data.html' with protein=protein %}
-<link rel="stylesheet" href="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/css/pdb.component.library.min-1.0.0.css" />
 
 {% endblock extrahead %}
 
@@ -406,12 +407,9 @@
   {% endif %}
 
   {% if protein.pdb %}
-    <script id="pdblibloader" defer src="//www.ebi.ac.uk/pdbe/pdb-component-library/v1.0/js/pdb.component.library.min-1.0.0.js"></script>
-
+    {% render_bundle 'litemol' %}
     <script type="text/javascript">
-    document.querySelector('#pdblibloader').addEventListener('load', function(){
-      initPDB({{protein.pdb|safe}});
-    });
+    initPDB({{protein.pdb|safe}});
     </script>
   {% endif %}
 

@@ -1,7 +1,4 @@
 import LineageChart from './lineage.js';
-import initPDB from './my-litemol.js';
-
-window.initPDB = initPDB;
 
 window.initSimpleSpectra = function(selection, myData, protein) {
   // disable 2p by default

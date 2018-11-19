@@ -10,8 +10,6 @@ import 'bootstrap';
 import 'select2/dist/js/select2.full.js';
 import '@fortawesome/fontawesome-free/js/all.js';
 import './js/nv.d3.js';
-import 'smiles-drawer/dist/smiles-drawer.min.js';
-import 'pdb-lite-mol';
 
 import './js/project.js';
 import './js/protein_page.js';
