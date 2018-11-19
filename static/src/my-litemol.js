@@ -1,5 +1,5 @@
 import 'smiles-drawer/dist/smiles-drawer.min.js';
-import LiteMol from './js/LiteMol-Plugin.js';
+import LiteMol from './js/pdb/LiteMolPlugin.js';
 import './css/litemol/LiteMol-plugin-blue.css'
 
 
