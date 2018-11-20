@@ -41,11 +41,12 @@ const styleRule = {
 
 const jsRule = {
   test: /\.js$/,
-  exclude: /node_modules/,
+  //exclude: /node_modules/,
   use: {
     loader: 'babel-loader',
     options: {
       presets: ['@babel/preset-env'],
+      plugins: ["@babel/plugin-syntax-dynamic-import"],
     }
   }
 };
@@ -107,7 +108,8 @@ module.exports = {
   output: {
     path: path.resolve('./static/dist/'),
     filename: devMode ? '[name].js' : '[name]-[hash].js',
-    publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/'
+    publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
+    chunkFilename: '[name].bundle.js',
   },
   resolve: {
       alias: {

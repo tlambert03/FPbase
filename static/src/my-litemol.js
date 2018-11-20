@@ -1,27 +1,24 @@
-import 'smiles-drawer/dist/smiles-drawer.min.js';
-import LiteMol from './js/pdb/LiteMolPlugin.js';
 import './css/litemol/LiteMol-plugin-blue.css'
+//import(/* webpackPreload: true */ './js/pdb/LiteMolPlugin.js');
+//import(/* webpackPreload: true */ 'smiles-drawer');
 
+function initLiteMol(selection, changer){
 
-var smilesDrawer = new SmilesDrawer.Drawer({
-    compactDrawing: false,
-    height: 300,
-});
+  import(/* webpackChunkName: "LiteMol" */ './js/pdb/LiteMolPlugin.js')
+  .then(({ default: LiteMol }) => {
 
-const PluginSpec = LiteMol.Plugin.getDefaultSpecification();
-const LayoutRegion = LiteMol.Bootstrap.Components.LayoutRegion;
-const Components = LiteMol.Plugin.Components;
-PluginSpec.components = [
-  Components.Visualization.HighlightInfo(LayoutRegion.Main, true),
-  Components.Entity.Current('LiteMol', LiteMol.Plugin.VERSION.number)(LayoutRegion.Right, true),
-  Components.Transform.View(LayoutRegion.Right),
-  //Components.Context.Log(LayoutRegion.Bottom, true),
-  Components.Context.Overlay(LayoutRegion.Root),
-  //Components.Context.Toast(LayoutRegion.Main, true),
-  Components.Context.BackgroundTasks(LayoutRegion.Main, true)
-];
-
-function initLiteMol(selection){
+    const PluginSpec = LiteMol.Plugin.getDefaultSpecification();
+    const LayoutRegion = LiteMol.Bootstrap.Components.LayoutRegion;
+    const Components = LiteMol.Plugin.Components;
+    PluginSpec.components = [
+      Components.Visualization.HighlightInfo(LayoutRegion.Main, true),
+      Components.Entity.Current('LiteMol', LiteMol.Plugin.VERSION.number)(LayoutRegion.Right, true),
+      Components.Transform.View(LayoutRegion.Right),
+      //Components.Context.Log(LayoutRegion.Bottom, true),
+      Components.Context.Overlay(LayoutRegion.Root),
+      //Components.Context.Toast(LayoutRegion.Main, true),
+      Components.Context.BackgroundTasks(LayoutRegion.Main, true)
+    ];
 
     var plugin = LiteMol.Plugin.create({
         customSpecification: PluginSpec,
@@ -33,39 +30,30 @@ function initLiteMol(selection){
         },
         allowAnalytics: true
     });
-    // To see all the available methods on the SimpleController,
-    // please check src/Plugin/Plugin/SimpleController.ts
-    //////////////////////////////////////////////////////////////
-    //
-    // The underlaying instance of the plugin can be accessed by
-    //
-    //   plugin.instance
-    //////////////////////////////////////////////////////////////
-    //
-    // To create and apply transforms, use
-    //
-    //   let t = plugin.createTransform();
-    //   t.add(...).then(...);
-    //   plugin.applyTransform(t);
-    //
-    // Creation of transforms is illusted in other examples.
-    //////////////////////////////////////////////////////////////
-    //
-    // To execute commands, the SimpleController provides the method command.
-    //
-    //   plugin.command(command, params);
-    //
-    // To find examples of commands, please see the Commands example.
-    //////////////////////////////////////////////////////////////
-    //
-    // To subscribe for events, the SimpleController provides the method subscribe.
-    //
-    //   plugin.subscribe(event, callback);
-    //
-    // To find examples of events, please see the Commands example as well.
-    // It shows how to subscribe interaction events, where available events are located, etc.
 
-    return plugin
+
+    var dataCache = {};
+
+    changer.change(function(){
+      var id = this.value;
+      if (!dataCache.hasOwnProperty(id)){ dataCache[id] = getPDBbinary(id); }
+      plugin.clear();
+      dataCache[id].then(data => plugin.loadMolecule({ data, id }));
+      $("#pdb-out-link").attr('href', "https://www.rcsb.org/structure/" + this.value);
+      if (pdb_info[this.value]){
+        loadSmiles(this.value);
+        loadChemInfo(this.value);
+      }
+    }).trigger('change');
+
+    $('body').click(function(e) {
+      if ($(".lm-layout-right").length){
+        if ($(e.target).closest('#litemol-viewer').length === 0) {
+            plugin.setLayoutState({hideControls: true});
+        }
+      }
+    });
+  })
 }
 
 
@@ -148,18 +136,31 @@ function downloadPDBMeta(pdbidstring){
 }
 
 function loadSmiles(pdbid){
-  var canv = $('#smilesCanvas');
-  canv[0].getContext('2d').clearRect(0, 0, canv.width, canv.height);
-  if (canv.data('chemId') != pdb_info[pdbid].chemId){
-    SmilesDrawer.parse(pdb_info[pdbid].smiles, function(tree) {
-      canv.remove();
-      canv = $('<canvas>', {id: 'smilesCanvas'}).appendTo($('#smilesDrawing .card-img-top'));
-      smilesDrawer.draw(tree, 'smilesCanvas', 'light', false);
-      canv.data('chemId', pdb_info[pdbid].chemId)
-      canv.height('auto');
-      canv.width('100%');
+
+  import(/* webpackChunkName: "smilesDrawer" */ 'smiles-drawer')
+  .then(({ default: smilesDrawer }) => {
+
+    var canv = $('#smilesCanvas');
+
+    var myDrawer = new SmilesDrawer.Drawer({
+        compactDrawing: false,
+        height: 300,
     });
-  }
+
+    canv[0].getContext('2d').clearRect(0, 0, canv.width, canv.height);
+    if (canv.data('chemId') != pdb_info[pdbid].chemId){
+      SmilesDrawer.parse(pdb_info[pdbid].smiles, function(tree) {
+        canv.remove();
+        canv = $('<canvas>', {id: 'smilesCanvas'}).appendTo($('#smilesDrawing .card-img-top'));
+        myDrawer.draw(tree, 'smilesCanvas', 'light', false);
+        canv.data('chemId', pdb_info[pdbid].chemId)
+        canv.height('auto');
+        canv.width('100%');
+      });
+    }
+
+  })
+
 }
 
 function loadChemInfo(pdbid){
@@ -199,28 +200,7 @@ var getPDBinfo = function(pdbids){
         ))
       })
 
-      var plugin = initLiteMol('#litemol-viewer')
-      plugin.dataCache = {};
-
-      select.change(function(){
-        var id = this.value;
-        if (!plugin.dataCache.hasOwnProperty(id)){ plugin.dataCache[id] = getPDBbinary(id); }
-        plugin.clear();
-        plugin.dataCache[id].then(data => plugin.loadMolecule({ data, id }));
-        $("#pdb-out-link").attr('href', "https://www.rcsb.org/structure/" + this.value);
-        if (pdb_info[this.value]){
-          loadSmiles(this.value);
-          loadChemInfo(this.value);
-        }
-      }).trigger('change');
-
-      $('body').click(function(e) {
-        if ($(".lm-layout-right").length){
-          if ($(e.target).closest('#litemol-viewer').length === 0) {
-              plugin.setLayoutState({hideControls: true});
-          }
-        }
-      });
+      initLiteMol('#litemol-viewer', select)
    })
    .fail(function(){
       $(pdbids).each(function(i, d){
