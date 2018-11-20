@@ -76,7 +76,7 @@
 }
 
 
-#flip-scroll {
+.flip-scroll {
   td, th {
     @include media-breakpoint-up(md) { padding-top: 0.35rem; padding-bottom: 0.35rem;}
   }

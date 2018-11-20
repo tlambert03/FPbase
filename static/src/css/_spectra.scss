@@ -284,7 +284,7 @@ h6 {
   }
 
   @include media-breakpoint-down(sm){
-    #flip-scroll {
+    .flip-scroll {
       td {
         height: 38px;
         border-top: 0px;
