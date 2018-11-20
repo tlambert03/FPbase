@@ -8,7 +8,7 @@ import './css/nv.d3.css';
 
 import 'bootstrap';
 import 'select2/dist/js/select2.full.js';
-import '@fortawesome/fontawesome-free/js/all.js';
+import './js/my-fontawesome.js';
 import './js/nv.d3.js';
 
 import './js/project.js';
