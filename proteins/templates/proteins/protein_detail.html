@@ -216,7 +216,7 @@
                 <td class='small'>
                   {% if oserm.reference %}
                     <a href="{{oserm.reference.get_absolute_url}}">{{oserm.reference}}</a>
-                    <a href="https://doi.org/{{ oserm.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info"></i></a>
+                    <a href="https://doi.org/{{ oserm.reference.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt text-info"></i></a>
                   {% endif %}
                 </td>
               </tr>
@@ -267,19 +267,19 @@
 			<div class="row text-right justify-content-end">
 					{% if protein.genbank %}
 					<div class="col-md-3 col-sm-6">
-					<small>GenBank: <a href="https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}" target="_blank">{{ protein.genbank | default:''}}</a></small>
+					<small>GenBank: <a href="https://www.ncbi.nlm.nih.gov/protein/{{ protein.genbank }}" target="_blank" rel="noopener">{{ protein.genbank | default:''}}</a></small>
 					</div>
 					{% endif %}
 
 					{% if protein.uniprot %}
 					<div class="col-md-3 col-sm-6">
-					<small>UniProtKB: <a href="https://www.uniprot.org/uniprot/{{ protein.uniprot }}" target="_blank">{{ protein.uniprot | default:''}}</a></small>
+					<small>UniProtKB: <a href="https://www.uniprot.org/uniprot/{{ protein.uniprot }}" target="_blank" rel="noopener">{{ protein.uniprot | default:''}}</a></small>
 					</div>
 					{% endif %}
 
 					{% if protein.ipg_id %}
 					<div class="col-md-3 col-sm-6">
-					<small>IPG: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" target="_blank">{{ protein.ipg_id | default:''}}</a></small>
+					<small>IPG: <a href="https://www.ncbi.nlm.nih.gov/ipg/?term={{ protein.ipg_id }}[uid]" target="_blank" rel="noopener">{{ protein.ipg_id | default:''}}</a></small>
 					</div>
 					{% endif %}
 
@@ -303,7 +303,7 @@
             </div>
             <p class='excerpt-content'>{{excerpt.content}}</p>
             {% if excerpt.reference %}
-              <a href="{{excerpt.reference.get_absolute_url}}"><h4>{{excerpt.reference.citation}}<a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank"><i class="fas fa-external-link-alt text-info small ml-2"></i></a></h4></a>
+              <a href="{{excerpt.reference.get_absolute_url}}"><h4>{{excerpt.reference.citation}}<a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt text-info small ml-2"></i></a></h4></a>
             {% endif %}
           </blockquote>
           {% endif %}
@@ -344,8 +344,8 @@
             <div class="external-resources">
               <h3>External Resources</h3>
               <ul>
-    {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank">BioNumbers</a> for {{ protein.name }}</li> #}
-                <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank">Addgene</a> for {{ protein.name }}</li>
+    {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank" rel="noopener">BioNumbers</a> for {{ protein.name }}</li> #}
+                <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name }}</li>
               </ul>
             </div>
 

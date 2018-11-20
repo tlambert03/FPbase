@@ -25,7 +25,7 @@
     <tbody>
       {% for ref in reference_list  %}
         <tr>
-          <td class='text-center'><a href="https://doi.org/{{ ref.doi }}" target="_blank"><i class="fas fa-external-link-alt text-secondary font-weight-bold"></i></a></td>
+          <td class='text-center'><a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt text-secondary font-weight-bold"></i></a></td>
           <td class='text-center'>{{ref.year}}</td>
           <td>{{ ref.journal }}</td>
           <td><a href="{{ ref.get_absolute_url }}">{{ ref.title }}</a></td>

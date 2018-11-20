@@ -169,7 +169,7 @@ function loadChemInfo(pdbid){
   $('#chem-date').html(e.deposition_date);
   $('#chem-authors').html(e.structure_authors.split(',')[0] + ' et al. ');
   $('#chem-pubmed').attr('href', 'https://www.ncbi.nlm.nih.gov/pubmed/' + e.pubmedId);
-  $('#chem-id').html('<a target="_blank" class="text-secondary" href="https://www.rcsb.org/ligand/' + e.chemId + '">' + e.chemId + '</a>')
+  $('#chem-id').html('<a target="_blank" rel="noopener" class="text-secondary" href="https://www.rcsb.org/ligand/' + e.chemId + '">' + e.chemId + '</a>')
   $('#chem-form').html(e.formula)
 }
 

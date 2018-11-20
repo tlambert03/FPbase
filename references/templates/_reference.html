@@ -6,7 +6,7 @@
 		{% endfor %}
 	</p>
 	<p class='reference-details'>
-		({{ ref.year }}). <em>{{ ref.journal }}, {{ ref.volume }}</em>{% if ref.issue %}({{ ref.issue }}) {% endif %}, {{ ref.pages }}. doi: {{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank"><i class="fas fa-external-link-alt"></i> Journal</a>
-		{% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank"><i class="fas fa-external-link-alt"></i> Pubmed</a>{% endif %}
+		({{ ref.year }}). <em>{{ ref.journal }}, {{ ref.volume }}</em>{% if ref.issue %}({{ ref.issue }}) {% endif %}, {{ ref.pages }}. doi: {{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Journal</a>
+		{% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> Pubmed</a>{% endif %}
 	</p>
 </div>

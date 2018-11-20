@@ -21,7 +21,7 @@
         <tbody>
           {% for object in object_list  %}
           <tr>
-          <td><a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" class='text-info'>{{object.id}}</a></td>
+          <td><a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" rel="noopener" class='text-info'>{{object.id}}</a></td>
           <td><a href="{{ object.get_absolute_url }}">{{ object.scientific_name }}</a></td>
           <td>{{ object.division }}</td>
           <td>{{ object.num_prot }}</td>

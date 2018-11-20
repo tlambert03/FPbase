@@ -14,7 +14,7 @@
         <select class="custom-select" id="pdb_select">
         </select>
         <div class="input-group-append">
-          <a href="https://www.rcsb.org/structure/{{protein.pdb.0}}" target="_blank" id="pdb-out-link"><button class="btn btn-outline-info" type="button"><i class="fas fa-external-link-alt"></i></button></a>
+          <a href="https://www.rcsb.org/structure/{{protein.pdb.0}}" target="_blank" rel="noopener" id="pdb-out-link"><button class="btn btn-outline-info" type="button"><i class="fas fa-external-link-alt"></i></button></a>
         </div>
       </div>
     </div>
@@ -22,7 +22,7 @@
     <div class='row'>
         <div class='col-12'>
           <div class="text-muted" id="pdb-info" style="position: absolute; top:8px">
-            Deposited: <span id="chem-date"></span>, <span id="chem-authors"></span><a href="" id="chem-pubmed" target="_blank"><i class="small fas fa-external-link-alt ml-2 text-secondary"></i></a><br>
+            Deposited: <span id="chem-date"></span>, <span id="chem-authors"></span><a href="" id="chem-pubmed" target="_blank" ><i class="small fas fa-external-link-alt ml-2 text-secondary"></i></a><br>
             Chromophore{% if protein.chromophore %} ({{protein.chromophore}}){% endif %}: <span id='chem-id'></span><br>
             <span id='chem-form' class="small"></span><br>
           </div>
