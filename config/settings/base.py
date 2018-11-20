@@ -318,7 +318,8 @@ ADMIN_URL = r'^admin/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
-CANONICAL_URL = env('CANONICAL_URL', default='https://www.fpbase.org')
+#CANONICAL_URL = env('CANONICAL_URL', default='https://www.fpbase.org')
+CANONICAL_URL = env('CANONICAL_URL', default=None)
 
 
 # AVATAR CONFIGURATION
