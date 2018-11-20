@@ -72,7 +72,11 @@
 }
 
 #proteinTable_filter{
-	@extend #proteinTable_length
+	@extend #proteinTable_length;
+  text-align: right;
+  input {
+    margin-left: 0.5rem;
+  }
 }
 
 
