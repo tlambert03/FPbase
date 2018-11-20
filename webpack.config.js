@@ -65,8 +65,8 @@ const plugins = [
   new BundleTracker({ filename: './webpack-stats.json' }),
   //new VueLoaderPlugin(),
   new MiniCssExtractPlugin({
-    filename: devMode ? '[name].css' : '[name].[hash].css',
-    chunkFilename: devMode ? '[id].css' : '[id].[hash].css'
+    filename: devMode ? '[name].css' : '[name]-[hash].css',
+    chunkFilename: devMode ? '[id].css' : '[id]-[hash].css'
   }),
   new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false }),
   new webpack.HotModuleReplacementPlugin(),
@@ -109,7 +109,7 @@ module.exports = {
     path: path.resolve('./static/dist/'),
     filename: devMode ? '[name].js' : '[name]-[hash].js',
     publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
-    chunkFilename: '[name].bundle.js',
+    chunkFilename: '[name]-bundle-[hash].js',
   },
   resolve: {
       alias: {
