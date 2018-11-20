@@ -3,6 +3,7 @@ import {
     faBook,
     faCamera,
     faCheck,
+    faClock,
     faCog,
     faDownload,
     faExclamationCircle,
@@ -21,7 +22,9 @@ import {
     faPlus,
     faQuoteLeft,
     faSearch,
+    faShare,
     faShareSquare,
+    faSun,
     faTable,
     faTh,
     faThumbtack,
@@ -31,12 +34,13 @@ import {
     faWrench,
 } from '@fortawesome/free-solid-svg-icons'; // ES Module "as" syntax
 import { faHeart as farHeart, faEye as farEye } from '@fortawesome/free-regular-svg-icons';
-import { faTwitter } from '@fortawesome/free-brands-svg-icons';
+import { faTwitter, faGoogle } from '@fortawesome/free-brands-svg-icons';
 
 library.add(
     faBook,
     faCamera,
     faCheck,
+    faClock,
     faCog,
     faDownload,
     faExclamationCircle,
@@ -55,7 +59,9 @@ library.add(
     faPlus,
     faQuoteLeft,
     faSearch,
+    faShare,
     faShareSquare,
+    faSun,
     faTable,
     faTh,
     faThumbtack,
@@ -67,7 +73,8 @@ library.add(
     farHeart,
     farEye,
 
-    faTwitter
+    faTwitter,
+    faGoogle,
 );
 
 // Replace any existing <i> tags with <svg> and set up a MutationObserver to
