@@ -79,12 +79,13 @@ const plugins = [
 if (devMode) {
   styleRule.use = ['css-hot-loader', ...styleRule.use];
 } else {
-  // plugins.push(
-  //   new webpack.EnvironmentPlugin({
-  //     NODE_ENV: 'production',
-  //     SENTRY_ENVIRONMENT: false,
-  //   })
-  // );
+  plugins.push(
+    new webpack.EnvironmentPlugin({
+      NODE_ENV: 'development',
+      SOURCE_VERSION: false,
+      SENTRY_DSN: false,
+    })
+  );
 
   //if (process.env.SENTRY_DSN) {
   //  plugins.push(
