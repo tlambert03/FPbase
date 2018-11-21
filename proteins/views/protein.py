@@ -75,8 +75,7 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
 
 class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
-    owned_spectra = Spectrum.objects.filter(owner_state__in=OuterRef('states'))
-    queryset = Protein.visible.annotate(has_spectra=Exists(owned_spectra)) \
+    queryset = Protein.visible.annotate(has_spectra=Count('states__spectra')) \
         .prefetch_related('states', 'excerpts__reference', 'oser_measurements__reference') \
         .select_related('primary_reference')
 
