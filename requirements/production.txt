@@ -4,7 +4,8 @@
 
 gunicorn==19.9.0  # https://github.com/benoitc/gunicorn
 psycopg2==2.7.4 --no-binary psycopg2  # https://github.com/psycopg/psycopg2
-raven==6.9.0  # https://github.com/getsentry/raven-python
+#raven==6.9.0  # https://github.com/getsentry/raven-python
+sentry-sdk==0.5.5
 
 # Django
 # ------------------------------------------------------------------------------

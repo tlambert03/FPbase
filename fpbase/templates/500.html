@@ -7,18 +7,18 @@
 
 <h3>Looks like something went wrong :(</h3>
 
-<p>We track these errors automatically, but if the problem persists feel free to <a href="{% url 'contact' %}">contact us</a>. {% if request.sentry.id %}You may reference this error as <strong>{{ request.sentry.id }}</strong>.{% endif %}</p>
+<p>We track these errors automatically, but if the problem persists feel free to <a href="{% url 'contact' %}">contact us</a>. {% if sentry_event_id %}You may reference this error as <strong>{{ sentry_event_id }}</strong>.{% endif %}</p>
 
-<!-- Sentry JS SDK 2.1.+ required -->
-<script src="https://cdn.ravenjs.com/3.26.4/raven.min.js" crossorigin="anonymous"></script>
-{% if request.sentry.id %}
-  <script>
-  Raven.showReportDialog({
-    eventId: '{{ request.sentry.id }}',
-    dsn: '{{ sentry_js_dsn }}'
-  });
-  </script>
+
+{# <script src="https://browser.sentry-cdn.com/4.3.3/bundle.min.js" crossorigin="anonymous"></script> #}
+
+{% if sentry_event_id %}
+<script>
+  //Sentry.init({ dsn: '{{ sentry_js_dsn }}' });
+  Sentry.showReportDialog({ eventId: '{{ sentry_event_id }}' });
+</script>
 {% endif %}
+
 
 {% endblock content %}
 

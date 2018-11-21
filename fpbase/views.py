@@ -1,10 +1,10 @@
 from fpbase.forms import ContactForm
 from django.views.generic.edit import FormView
 from django.shortcuts import render
-from django.http import HttpResponseServerError
-from django.template import loader
 from django.conf import settings
 from proteins.models import Protein
+from sentry_sdk import last_event_id
+from django.views.decorators.cache import cache_page
 
 
 class ContactView(FormView):
@@ -26,14 +26,12 @@ def test500(request):
         raise Exception('Make response code 500!')
 
 
-def server_error(request, template_name='500.html'):
-    template = loader.get_template(template_name)
-    return HttpResponseServerError(template.render({
-        'request': request,
+def server_error(request, *args, **argv):
+    return render(request, "500.html", {
+        'sentry_event_id': last_event_id(),
         'sentry_js_dsn': getattr(settings, 'SENTRY_JS_DSN', '')
-    }))
+    }, status=500)
 
-from django.views.decorators.cache import cache_page
 
 @cache_page(10)
 def testview(request):
