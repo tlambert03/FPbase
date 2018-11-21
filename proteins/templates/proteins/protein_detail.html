@@ -409,9 +409,9 @@
   {% endif %}
 
   {% if protein.pdb %}
-    {% custom_static 'litemol' %}
+    {% custom_static 'litemol' attrs='defer' %}
     <script type="text/javascript">
-    $(function(){
+    $(window).on('load', function() {
       initPDB({{protein.pdb|safe}});
     });
     </script>
