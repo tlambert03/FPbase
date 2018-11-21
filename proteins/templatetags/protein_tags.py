@@ -1,17 +1,30 @@
 from django import template
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.templatetags.static import static
+from django.contrib.staticfiles.storage import staticfiles_storage
 from webpack_loader.templatetags.webpack_loader import render_bundle
+from webpack_loader.utils import _get_bundle
 
 register = template.Library()
 
 
 @register.simple_tag
-def custom_static(name, *args, **kwargs):
+def custom_static(bundle_name, extension=None, config='DEFAULT', attrs=''):
     if settings.DEBUG:
-        return render_bundle(name, *args, **kwargs)
-    return static(name)
+        return render_bundle(bundle_name, extension=extension, config=config, attrs=attrs)
+
+    bundle = _get_bundle(bundle_name, extension, config)
+    tags = []
+    for chunk in bundle:
+        if chunk['name'].endswith(('.js', '.js.gz')):
+            tags.append((
+                '<script type="text/javascript" src="{0}" {1}></script>'
+            ).format(staticfiles_storage.url(chunk['name']), attrs))
+        elif chunk['name'].endswith(('.css', '.css.gz')):
+            tags.append((
+                '<link type="text/css" href="{0}" rel="stylesheet" {1}/>'
+            ).format(staticfiles_storage.url(chunk['name']), attrs))
+    return "\n".join(tags)
 
 
 @register.simple_tag(takes_context=True)
