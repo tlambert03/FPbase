@@ -1,5 +1,20 @@
 "use strict";
 
+if (process.env.NODE_ENV === 'development' && process.env.SENTRY_JS_DSN) {
+    import('@sentry/browser').then((Sentry) => {
+        window.Sentry = Sentry;
+        Sentry.init({
+            dsn: process.env.SENTRY_JS_DSN,
+            release: VERSION,
+        });
+        if (window.FPBASE.user){
+            Sentry.configureScope((scope) => {
+              scope.setUser(window.FPBASE.user);
+            });
+        }
+    });
+}
+
 import 'select2/dist/css/select2.css';
 import 'select2-theme-bootstrap4/dist/select2-bootstrap.css';
 import 'nouislider/distribute/nouislider.min.css';

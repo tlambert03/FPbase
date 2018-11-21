@@ -1,14 +1,17 @@
 const path = require('path');
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
+const Dotenv = require('dotenv-webpack');
 
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const gitRevisionPlugin = new GitRevisionPlugin();
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const BundleTracker = require('webpack-bundle-tracker');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const SentryCliPlugin = require('@sentry/webpack-plugin');
+//const SentryCliPlugin = require('@sentry/webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 //const { VueLoaderPlugin } = require('vue-loader');
 
@@ -57,16 +60,25 @@ const assetRule = {
 };
 
 const plugins = [
+  new Dotenv(),
   new webpack.ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery'
+  }),
+  new GitRevisionPlugin({
+    branch: true
+  }),
+  new webpack.DefinePlugin({
+    'VERSION': JSON.stringify(gitRevisionPlugin.version()),
+    'COMMITHASH': JSON.stringify(gitRevisionPlugin.commithash()),
+    'BRANCH': JSON.stringify(gitRevisionPlugin.branch()),
   }),
   new webpack.IgnorePlugin(/vertx/),
   new BundleTracker({ filename: './webpack-stats.json' }),
   //new VueLoaderPlugin(),
   new MiniCssExtractPlugin({
-    filename: devMode ? '[name].css' : '[name]-[hash].css',
-    chunkFilename: devMode ? '[id].css' : '[id]-[hash].css'
+    filename: devMode ? '[name].css' : '[name]-[git-revision-hash].css',
+    chunkFilename: devMode ? '[id].css' : '[id]-[git-revision-hash].css'
   }),
   new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false }),
   new webpack.HotModuleReplacementPlugin(),
@@ -87,15 +99,15 @@ if (devMode) {
       SOURCE_VERSION: 1.0
     })
   );
-  if (process.env.SENTRY_DSN) {
-    plugins.push(
-      new SentryCliPlugin({
-        include: '.',
-        release: process.env.SOURCE_VERSION,
-        ignore: ['node_modules', 'webpack.config.js'],
-      })
-    );
-  }
+  //if (process.env.SENTRY_DSN) {
+  //  plugins.push(
+  //    new SentryCliPlugin({
+  //      include: '.',
+  //      release: process.env.SOURCE_VERSION,
+  //      ignore: ['node_modules', 'webpack.config.js'],
+  //    })
+  //  );
+  //}
 }
 
 module.exports = {
@@ -107,9 +119,9 @@ module.exports = {
   },
   output: {
     path: path.resolve('./static/dist/'),
-    filename: devMode ? '[name].js' : '[name]-[hash].js',
+    filename: devMode ? '[name].js' : '[name]-[git-revision-hash].js',
     publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
-    chunkFilename: '[name]-bundle-[hash].js',
+    chunkFilename: '[name]-bundle-[git-revision-hash].js',
   },
   resolve: {
       alias: {

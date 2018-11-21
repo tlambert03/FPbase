@@ -40,8 +40,17 @@
     {% custom_static 'vendor' 'css' %}
     {% custom_static 'main' 'css' %}
 
-    <!-- hi there -->
 
+    {% if request.user.is_authenticated %}
+      <script>
+        window.FPBASE = window.FPBASE || {};
+        window.FPBASE.user = {
+            email: "{{ request.user.email }}",
+            id: "{{ request.user.id }}",
+            name: "{{ request.user.username }}"
+        };
+      </script>
+    {% endif %}
 
     {% block extrahead %}
     {% endblock extrahead %}
@@ -108,13 +117,6 @@
     {% block modal %}{% endblock modal %}
 
     {% endblock body %}
-
-      {% block sentry %}
-        {% if not debug %}
-          {% include "_sentry.html" with sentry_js_dsn=sentry_js_dsn %}
-        {% endif %}
-      {% endblock sentry %}
-
 
       <!-- place project specific Javascript -->
       {% custom_static 'vendor' 'js' %}
