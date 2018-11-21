@@ -4,6 +4,7 @@ from django.template.loader import render_to_string
 from django.contrib.staticfiles.storage import staticfiles_storage
 from webpack_loader.templatetags.webpack_loader import render_bundle
 from webpack_loader.utils import _get_bundle
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -24,7 +25,7 @@ def custom_static(bundle_name, extension=None, config='DEFAULT', attrs=''):
             tags.append((
                 '<link type="text/css" href="{0}" rel="stylesheet" {1}/>'
             ).format(staticfiles_storage.url(chunk['name']), attrs))
-    return "\n".join(tags)
+    return mark_safe("\n".join(tags))
 
 
 @register.simple_tag(takes_context=True)
