@@ -67,7 +67,6 @@ urlpatterns = [
 
     url(r'^fav/', include('favit.urls')),
     url(r'^avatar/', include('avatar.urls')),
-    url(r'^test500/', fpbase.views.test500),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
