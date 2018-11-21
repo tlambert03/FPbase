@@ -1,7 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
-const Dotenv = require('dotenv-webpack');
 
 const GitRevisionPlugin = require('git-revision-webpack-plugin');
 const gitRevisionPlugin = new GitRevisionPlugin();
@@ -60,7 +59,6 @@ const assetRule = {
 };
 
 const plugins = [
-  new Dotenv(),
   new webpack.ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery'
