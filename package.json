@@ -70,7 +70,8 @@
     "webpack-dev-server": "^3.1.10"
   },
   "engines": {
-    "node": "10.0.0"
+    "node": "10.0.0",
+    "npm": "6.4.1"
   },
   "scripts": {
     "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
