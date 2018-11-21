@@ -214,7 +214,7 @@ STATIC_URL = '/static/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = [
-    str(ROOT_DIR.path('static/')),
+    str(ROOT_DIR.path('static/dist')),
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
@@ -228,7 +228,7 @@ INSTALLED_APPS.append("webpack_loader")
 WEBPACK_LOADER = {
     "DEFAULT": {
         "CACHE": not DEBUG,
-        "BUNDLE_DIR_NAME": "dist/",
+        "BUNDLE_DIR_NAME": "/",
         "STATS_FILE": str(ROOT_DIR('webpack-stats.json')),
         "POLL_INTERVAL": 0.1,
         "TIMEOUT": None,

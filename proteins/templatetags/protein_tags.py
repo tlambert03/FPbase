@@ -1,7 +1,17 @@
 from django import template
+from django.conf import settings
 from django.template.loader import render_to_string
+from django.templatetags.static import static
+from webpack_loader.templatetags.webpack_loader import render_bundle
 
 register = template.Library()
+
+
+@register.simple_tag
+def custom_static(name, *args, **kwargs):
+    if settings.DEBUG:
+        return render_bundle(name, *args, **kwargs)
+    return static(name)
 
 
 @register.simple_tag(takes_context=True)

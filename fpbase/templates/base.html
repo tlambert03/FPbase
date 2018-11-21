@@ -1,5 +1,6 @@
 {% load i18n %}
-{% load render_bundle webpack_static from webpack_loader %}
+{% load webpack_static from webpack_loader %}
+{% load custom_static from protein_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -36,8 +37,8 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
 
-    {% render_bundle 'vendor' 'css' %}
-    {% render_bundle 'main' 'css' %}
+    {% custom_static 'vendor' 'css' %}
+    {% custom_static 'main' 'css' %}
 
     <!-- hi there -->
 
@@ -116,8 +117,8 @@
 
 
       <!-- place project specific Javascript -->
-      {% render_bundle 'vendor' 'js' %}
-      {% render_bundle 'main' 'js' %}
+      {% custom_static 'vendor' 'js' %}
+      {% custom_static 'main' 'js' %}
 
       {% block javascript %}{% endblock %}
 
