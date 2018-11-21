@@ -1,11 +1,12 @@
 "use strict";
 
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_JS_DSN) {
+    console.log(process.env.SOURCE_VERSION)
     import('@sentry/browser').then((Sentry) => {
         window.Sentry = Sentry;
         Sentry.init({
             dsn: process.env.SENTRY_JS_DSN,
-            release: VERSION,
+            release: process.env.SOURCE_VERSION,
         });
         if (window.FPBASE.user){
             Sentry.configureScope((scope) => {

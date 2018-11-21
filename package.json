@@ -54,8 +54,6 @@
     "dotenv-webpack": "^1.5.7",
     "favicons": "^5.1.1",
     "file-loader": "^2.0.0",
-    "git-repo-version": "^1.0.2",
-    "git-revision-webpack-plugin": "^3.0.3",
     "imports-loader": "^0.8.0",
     "mini-css-extract-plugin": "^0.4.4",
     "node-sass": "^4.10.0",

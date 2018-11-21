@@ -2,8 +2,6 @@ const path = require('path');
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
 
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
-const gitRevisionPlugin = new GitRevisionPlugin();
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const BundleTracker = require('webpack-bundle-tracker');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
@@ -63,20 +61,12 @@ const plugins = [
     $: 'jquery',
     jQuery: 'jquery'
   }),
-  new GitRevisionPlugin({
-    branch: true
-  }),
-  new webpack.DefinePlugin({
-    'VERSION': JSON.stringify(gitRevisionPlugin.version()),
-    'COMMITHASH': JSON.stringify(gitRevisionPlugin.commithash()),
-    'BRANCH': JSON.stringify(gitRevisionPlugin.branch()),
-  }),
   new webpack.IgnorePlugin(/vertx/),
   new BundleTracker({ filename: './webpack-stats.json' }),
   //new VueLoaderPlugin(),
   new MiniCssExtractPlugin({
-    filename: devMode ? '[name].css' : '[name]-[git-revision-hash].css',
-    chunkFilename: devMode ? '[id].css' : '[id]-[git-revision-hash].css'
+    filename: '[name].css',
+    chunkFilename: '[id].css'
   }),
   new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false }),
   new webpack.HotModuleReplacementPlugin(),
@@ -117,9 +107,9 @@ module.exports = {
   },
   output: {
     path: path.resolve('./static/dist/'),
-    filename: devMode ? '[name].js' : '[name]-[git-revision-hash].js',
+    filename: '[name].js',
     publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
-    chunkFilename: '[name]-bundle-[git-revision-hash].js',
+    chunkFilename: '[name]-bundle.js',
   },
   resolve: {
       alias: {
