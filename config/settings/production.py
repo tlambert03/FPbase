@@ -118,6 +118,7 @@ AWS_IS_GZIPPED = True
 # Static Assets
 # ------------------------
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_MAX_AGE = 600
 
 # COMPRESSOR
 # ------------------------------------------------------------------------------
