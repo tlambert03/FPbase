@@ -1,15 +1,10 @@
 "use strict";
 
-console.log(process.env.SOURCE_VERSION)
-console.log(process.env.NODE_ENV)
-console.log(process.env.SENTRY_JS_DSN)
-
-if ((process.env.NODE_ENV === 'production') && process.env.SENTRY_JS_DSN) {
-    console.log(process.env.SOURCE_VERSION)
+if ((process.env.NODE_ENV === 'production') && process.env.SENTRY_DSN) {
     import('@sentry/browser').then((Sentry) => {
         window.Sentry = Sentry;
         Sentry.init({
-            dsn: process.env.SENTRY_JS_DSN,
+            dsn: process.env.SENTRY_DSN,
             release: process.env.SOURCE_VERSION,
         });
         if (window.FPBASE.user){

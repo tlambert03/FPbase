@@ -29,7 +29,7 @@ def test500(request):
 def server_error(request, *args, **argv):
     return render(request, "500.html", {
         'sentry_event_id': last_event_id(),
-        'sentry_js_dsn': getattr(settings, 'SENTRY_JS_DSN', '')
+        'sentry_dsn': getattr(settings, 'SENTRY_DSN', '')
     }, status=500)
 
 
