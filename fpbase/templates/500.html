@@ -12,7 +12,10 @@
 {% if sentry_event_id %}
 <script>
   Sentry.init({ dsn: '{{ sentry_dsn }}' });
-  Sentry.showReportDialog({ eventId: '{{ sentry_event_id }}' });
+  Sentry.showReportDialog({
+    eventId: '{{ sentry_event_id }}',
+    user: window.FPBASE.user
+  });
 </script>
 {% endif %}
 
