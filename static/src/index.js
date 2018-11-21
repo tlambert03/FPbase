@@ -1,6 +1,11 @@
 "use strict";
 
-if ((process.env.NODE_ENV === 'production') && process.env.SENTRY_DSN) {
+console.log(process.env.NODE_ENV)
+console.log((process.env.NODE_ENV === 'production'))
+console.log(process.env.SENTRY_DSN)
+console.log((process.env.NODE_ENV === 'production') && process.env.SENTRY_DSN)
+if ((process.env.NODE_ENV === 'production') && Boolean(process.env.SENTRY_DSN)) {
+    console.log('importing sentry');
     import('@sentry/browser').then((Sentry) => {
         window.Sentry = Sentry;
         Sentry.init({
