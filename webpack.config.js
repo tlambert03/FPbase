@@ -108,7 +108,7 @@ module.exports = {
   output: {
     path: path.resolve('./static/dist/'),
     filename: devMode ? '[name].js' : '[name]-[hash].js',
-    publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
+    publicPath: hotReload ? 'http://localhost:8080/static/' : '',
     chunkFilename: '[name]-bundle-[hash].js',
   },
   resolve: {
