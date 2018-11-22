@@ -1,6 +1,6 @@
 {% load i18n %}
 {% load webpack_static from webpack_loader %}
-{% load custom_static from protein_tags %}
+{% load custom_static webp_picture from protein_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -104,7 +104,8 @@
           <div class="col-8 text-right">
 
             <p>©FPbase, <span id='curyear'>2018</span>
-              <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" id="licenselink"><img alt="Creative Commons License" style="border-width:0; margin-top:-3px; margin-left:6px;" src="{% webpack_static 'images/by-sa.png' %}" /></a><br>
+              <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" id="licenselink">
+                {% webp_picture 'images/by-sa.png' 'ml-2 mb-1 mt-1' 'BY-SA Creative Commons License' %}</a><br>
             <a href="{% url 'terms' %}">Terms</a> &amp; <a href="{% url 'privacy' %}">Privacy</a><br>
 
             {% block extrafooter %}{% endblock extrafooter %}</p>

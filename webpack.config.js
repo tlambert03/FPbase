@@ -6,6 +6,8 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const BundleTracker = require('webpack-bundle-tracker');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const ImageminWebpackPlugin = require("imagemin-webpack-plugin").default;
+const ImageminWebP = require("imagemin-webp");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 //const SentryCliPlugin = require('@sentry/webpack-plugin');
@@ -72,8 +74,28 @@ const plugins = [
   new webpack.HotModuleReplacementPlugin(),
   new CleanWebpackPlugin(['./static/dist']),
   new CopyWebpackPlugin([
-    { from: './static/src/images/**/*', to: path.resolve('./static/dist/images/[name].[ext]'), toType: 'template' }
-  ])
+      {
+          from: './static/src/images/**/*',
+          to: path.resolve('./static/dist/images/[name].webp'),
+          toType: 'template',
+      },
+  ]),
+  new ImageminWebpackPlugin({
+      test: /\.(webp)$/i,
+      plugins: [
+          ImageminWebP({
+              quality: 90,
+              sharpness: 1,
+          }),
+      ],
+  }),
+  new CopyWebpackPlugin([
+      {
+          from: './static/src/images/**/*',
+          to: path.resolve('./static/dist/images/[name].[ext]'),
+          toType: 'template',
+      },
+  ]),
 ];
 
 if (devMode) {

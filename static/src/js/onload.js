@@ -1,6 +1,6 @@
 $(function() {
-    $("#protein-image img.no-glow").fadeOut(2200)
-    $("#protein-image img.glow").fadeIn(2200)
+    $("#protein-image .no-glow").fadeOut(2200)
+    $("#protein-image .glow").fadeIn(2200)
 
     $('[data-toggle="tooltip"]').tooltip({
       trigger : 'hover',

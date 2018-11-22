@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load webpack_static from webpack_loader %}
-
+{% load webp_picture from protein_tags %}
 {% block meta-description %}FPbase is a moderated, user-editable fluorescent protein database designed by microscopists.  Search, share, and organize information about fluorescent proteins and their characteristics.{% endblock %}
 
 
@@ -38,8 +38,12 @@
 {# 					<p class='m-t-4' style="color:#ccc"><br><i class='fa fa-info-circle'></i>  <em><a href='{% url "beta" %}' style="color:#ccc">FPbase is in beta</a></em></p> #}
 				</div>
 				<div class="col-md-4 align-self-center order-sm-1" id="protein-image">
-					<img src="{% webpack_static 'images/blurry_egfp.png' %}" style="position: absolute;" class="img-fluid no-glow" alt="EGFP image">
-					<img src="{% webpack_static 'images/blurry_egfp_glow.png' %}" style="display: none; position: absolute;" class="img-fluid glow" alt="EGFP image">
+          <div style="position: absolute;" class="no-glow">
+            {% webp_picture 'images/blurry_egfp.png' 'img-fluid' "EGFP image" %}
+          </div>
+          <div style="display: none; position: absolute;" class="glow">
+            {% webp_picture 'images/blurry_egfp_glow.png' 'img-fluid' "glowing EGFP image" %}
+          </div>
 				</div>
 			</div>
 		</main>

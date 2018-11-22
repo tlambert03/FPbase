@@ -3,10 +3,19 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.contrib.staticfiles.storage import staticfiles_storage
 from webpack_loader.templatetags.webpack_loader import render_bundle
-from webpack_loader.utils import _get_bundle
+from webpack_loader.utils import _get_bundle, get_static
 from django.utils.safestring import mark_safe
+from os.path import splitext
 
 register = template.Library()
+
+
+@register.simple_tag
+def webp_picture(name, classed='', alt=''):
+    webpname = splitext(name)[0] + '.webp'
+    return mark_safe('<picture><source srcset="{}" type="image/webp">'
+                     '<img src="{}" class="{}" alt="{}"></picture>'
+                     .format(get_static(webpname), get_static(name), classed, alt))
 
 
 @register.simple_tag

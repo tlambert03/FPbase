@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
+{% load webp_picture from protein_tags %}
 
 {% block title %}FPbase Database Design{% endblock %}
 {% block meta-description %}The FPbase database schema is designed to capture and categorize the important characteristics of fluorescent proteins for storage in a relational database.{% endblock %}
@@ -14,7 +14,7 @@
 
 
 <h5 class='text-center mt-4'><strong>FPbase Database Schema</strong></h5>
-<img src="{% webpack_static 'images/schema_fig.png' %}" class="img-fluid mb-5" alt="FPbase database schema">
+{% webp_picture 'images/schema_fig.png' 'img-fluid mb-5' 'FPbase database schema' %}
 
 <div class='description-list'>
   <hr>
