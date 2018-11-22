@@ -4,7 +4,7 @@ import './css/litemol/LiteMol-plugin-blue.css'
 
 function initLiteMol(selection, changer){
 
-  import(/* webpackChunkName: "LiteMol" */ './js/pdb/LiteMolPlugin.js')
+  import(/* webpackChunkName: "LiteMol" */ './js/pdb/LiteMol-plugin.js')
   .then(({ default: LiteMol }) => {
 
     const PluginSpec = LiteMol.Plugin.getDefaultSpecification();
