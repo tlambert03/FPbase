@@ -308,15 +308,16 @@ def spectra_image(request, slug, **kwargs):
     try:
         fmt = kwargs.get('extension', 'png')
         byt = protein.spectra_img(fmt, output=io.BytesIO(), **D)
-        if fmt == 'svg':
-            fmt += '+xml'
-        byt.seek(0)
-        response = HttpResponse(byt, content_type="image/%s" % fmt)
     except Exception as e:
         logger.error(e)
-        response = HttpResponseBadRequest(
+        return HttpResponseBadRequest(
             'failed to parse url parameters as JSON: {}'.format(e))
-    return response
+    if byt:
+        byt.seek(0)
+        if fmt == 'svg':
+            fmt += '+xml'
+        return HttpResponse(byt, content_type="image/%s" % fmt)
+    raise Http404()
 
 
 @cache_page(60 * 10)

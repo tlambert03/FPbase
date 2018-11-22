@@ -79,7 +79,7 @@ window.initSnapGene = function(protein, selection) {
       /* handle data here */
       var hits = [];
       $(data)
-        .find(`[name*=${protein}]`)
+        .find(`[name*="${protein}"]`)
         .each(function() {
           var name = $(this).attr('name');
           while (name.charAt(0) === 'p') {

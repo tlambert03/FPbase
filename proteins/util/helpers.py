@@ -278,6 +278,8 @@ def forster_list():
 def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
                 xlim=None, fill=True, transparent=True, grid=False,
                 title=False, info=None, **kwargs):
+    if not spectra:
+        return None
     logger.info('spectra_fig called on {}'.format(",".join([str(spec.id) for spec in spectra])))
     fig = Figure(figsize=(12, 3), dpi=70)
     canvas = FigureCanvas(fig)

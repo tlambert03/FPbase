@@ -126,6 +126,7 @@ function populate_comparison_tab(comparison_set){
                    .append($('<img>', {
                       src: '/spectra_img/' + val.slug + '.svg?xlim=400,700&fill=1&xlabels=0',
                       class:"img-fluid spectrum-svg",
+                      onerror: "this.style.display='none'",
                       alt: val.name + ' spectrum' }))
                    .append($('<button>', {
                         class: 'comparison-btn remove-protein',
