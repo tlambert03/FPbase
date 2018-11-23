@@ -354,10 +354,10 @@
 
 
 
-		<div class="container text-right mt-3">
+		<div class="text-left text-md-right mt-3">
 			 <p>Something missing or incorrect?
         <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary d-none d-sm-inline'>Submit a change</a>
-        <a role="button" class="btn btn-info btn-block mt-2 mb-3 d-block d-sm-none text-white"><i class="fas fa-upload mr-2"></i>Submit a change</a>
+        <a role="button" href="{% url 'proteins:update' slug=protein.slug %}" class="btn btn-info btn-block mt-2 mb-3 d-block d-sm-none text-white"><i class="fas fa-upload mr-2"></i>Submit a change</a>
        </p>
 		</div>
 
