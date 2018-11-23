@@ -691,7 +691,7 @@ import noUiSlider from 'nouislider';
 
         $("#fluor-select").select2({
             theme: "bootstrap", containerCssClass: ':all:', width: 'auto',
-       });
+        }, $("#fluor-select").removeClass('custom-select'));
 
         if (typeof scopespectra !== 'undefined'){
             for (var i=0; i < scopespectra.length; i++){
