@@ -139,6 +139,7 @@ $(window).on('load', function() {
           lineage.call(linchart);
         }, 250);
       });
+      linchart.duration(200);
     });
   });
 });

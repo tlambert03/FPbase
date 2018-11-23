@@ -81,14 +81,14 @@ function text_position(node, slug, vertical) {
 }
 
 export default function LineageChart() {
-  var margin = { top: 20, right: 130, bottom: 15, left: 65 },
+  var margin = { top: 20, right: 100, bottom: 15, left: 65 },
     width,
     heightScalar = 28,
     widthScalar = 1,
     nodeWidth,
     height,
     i = 0,
-    duration = 350,
+    duration = 0,
     defaultRadius = 8,
     slugRadius = 12.5,
     data,
@@ -470,6 +470,12 @@ export default function LineageChart() {
   chart.slug = function(value) {
     if (!arguments.length) return slug;
     slug = value;
+    return chart;
+  };
+
+  chart.duration = function(value) {
+    if (!arguments.length) return duration;
+    duration = value;
     return chart;
   };
 
