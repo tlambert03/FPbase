@@ -5,11 +5,18 @@
 
 
 {% block extrahead %}
+<style>
+  .cover-wrapper {
+    background: no-repeat center center;
+    background-image: url("{% webpack_static 'images/blurry_egfp.png' %}");
+  }
+</style>
+
 {% endblock extrahead %}
 
 {% block body-class %}home-body{% endblock body-class %}
 {% block body %}
-<div class="cover-wrapper" style='background: url("{% webpack_static 'images/blurry_egfp.png' %}") no-repeat center center'>
+<div class="cover-wrapper">
 	<div class="cover-wrapper-inner">
 		<nav class="navbar navbar-expand-sm navbar-dark bg-transparent fixed-top">
 			{% block navcontainer %} {% include "_nav.html" %} {% endblock navcontainer %}
