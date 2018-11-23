@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load favit_tags %}
-{% load webpack_static from webpack_loader %}
+{% load webp_picture from protein_tags %}
 
 {% block title %}FPbase FRET Calculator{% endblock %}
 {% block meta-description %}An interactive fluorescence spectra viewer and Förster radius calculator to visualize Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblock %}
@@ -114,7 +114,9 @@
 </div>
 <p class='text-muted  text-center mt-2'>
 <small class='font-italic'>QY = Quantum Yield, EC = Extinction Coefficient, J(&lambda;) = Overlap Integral, R<sub>0</sub> = Förster Radius, 𝓃 = refractive index, &kappa;<sup>2</sup> = orientation factor<br><a class='text-info' href="https://doi.org/10.1006/abio.1994.1134">Wu &amp; Brand (1994). Resonance Energy Transfer: Methods and Applications. <em>Analytical Biochem. </em><strong>218</strong></a></small>
-<br><img class="mt-2 mb-2 mx-4" src="{% webpack_static 'images/equation_r0.png' %}" style="opacity: 0.7">&amp;<img class="mt-2 mb-2 mx-4" src="{% webpack_static 'images/equation_Jlambda.png' %}" style="opacity: 0.7">
+<br>
+{% webp_picture 'images/equation_r0.png' 'mt-2 mb-2 mx-4' %}&amp;
+{% webp_picture 'images/equation_Jlambda.png' 'mt-2 mb-2 mx-4' %}
 </p>
 
 <div class="container">
@@ -182,9 +184,11 @@
           <dt class="col-sm-2">QY<sub class='small'>A</sub></dt>
           <dd class="col-sm-10">Quantum yield of the acceptor.  FRET acceptors with low quantum yield may provide very low dynamic range between low and high FRET conditions (unless you're doing FLIM and only looking at the lifetime of the donor).</dd>
           <dt class="col-sm-2">J(&lambda;)</dt>
-          <dd class="col-sm-10">Overlap integral of the donor emission and acceptor excitation spectra, where:<br><img class="mt-2 mb-2 mx-4" src="{% webpack_static 'images/equation_Jlambda.png' %}" style="opacity: 0.8"></dd>
+          <dd class="col-sm-10">Overlap integral of the donor emission and acceptor excitation spectra, where:<br>
+          {% webp_picture 'images/equation_Jlambda.png' 'mt-2 mb-2 mx-4' %}</dd>
           <dt class="col-sm-2">R<sub>0</sub></dt>
-          <dd class="col-sm-10">Förster radius: distance at which 50% FRET efficiency occurs (Å), where: <br><img class="mt-2 mb-2 mx-4" src="{% webpack_static 'images/equation_r0.png' %}" style="opacity: 0.7"></dd>
+          <dd class="col-sm-10">Förster radius: distance at which 50% FRET efficiency occurs (Å), where: <br>
+            {% webp_picture 'images/equation_r0.png' 'mt-2 mb-2 mx-4' %}</dd>
           <dt class="col-sm-2">R<sub>0</sub>&times;QY<sub class='small'>A</sub></dt>
           <dd class="col-sm-10">Förster radius multiplied by the quantum yield of the acceptor.  A useful indication of how large of an emission peak ratio change one might expect to see under high FRET vs. low FRET conditions </dd>
         </dl>

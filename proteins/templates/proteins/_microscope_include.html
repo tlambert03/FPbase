@@ -1,4 +1,6 @@
 {% load webpack_static from webpack_loader %}
+{% load webp_picture from protein_tags %}
+
 {% if object.description %}
 <div class="container font-italic text-muted text-center">
     {{object.description}}
@@ -401,7 +403,7 @@
 
         <h5 class="font-weight-bold">Emission (Collection) Efficiency</h5>
         <p>Excitation efficiency is the percentage of emission photons that can be collected given the emission path.  It is calculated as the area under the curve for the combined emission filters (and dichroics) + camera QE + fluorophore emission spectra, divided by the area under the full fluorophore emission spectrum.  In the image below, the EGFP emission spectrum is relatively well matched to the 525/50m filter, and the collection efficiency, represented by the area with diagonal lines, is about 58% the area of the full fluorophore emission spectrum.</p>
-        <img src="{% webpack_static 'images/good_em_efficiency.png' %}" class="img-fluid mx-auto d-block mb-3" alt='decent emission collection efficiency'>
+        {% webp_picture 'images/good_em_efficiency.png' 'img-fluid mx-auto d-block mb-3' 'decent emission collection efficiency' %}
 
       </div>
     </div>
