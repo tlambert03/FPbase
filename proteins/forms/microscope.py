@@ -279,7 +279,6 @@ class OpticalConfigForm(forms.ModelForm):
         widget=autocomplete.ModelSelect2Multiple(
             url='proteins:filter-autocomplete',
             attrs={
-                'class': 'custom-select',
                 'data-theme': 'bootstrap',
                 'data-width': "100%",
                 'data-placeholder': '----------',

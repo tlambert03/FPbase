@@ -62,7 +62,10 @@
 	}
 }
 
-#proteinTable_length{
+.dataTables_paginate{
+  float: right;
+}
+.dataTables_length{
 	&>label{
 		display: inline-flex;
 		select {
@@ -71,8 +74,8 @@
 	}
 }
 
-#proteinTable_filter{
-	@extend #proteinTable_length;
+.dataTables_filter{
+	@extend .dataTables_length;
   text-align: right;
   input {
     margin-left: 0.5rem;
