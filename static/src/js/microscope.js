@@ -683,7 +683,7 @@ import noUiSlider from 'nouislider';
             $('#undo-scaling').click(function() {
                 unscale_all();
             });
-            setTimeout(function(){ chart.update(); }, 50);
+            $(window).on('load', function() { chart.update(); });
 
         });
 

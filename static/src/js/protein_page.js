@@ -117,7 +117,7 @@ window.initSnapGene = function(protein, selection) {
   });
 };
 
-$(function() {
+$(window).on('load', function() {
   $('#excerptModal').on('show.bs.modal', function () {
       $('#excerptModal').css('z-index', 1200);
   });

@@ -405,7 +405,7 @@
 
   {% if protein.has_spectra %}
   <script>
-  $(function(){
+  $(window).on('load', function() {
     initSimpleSpectra('#simple_spectrasvg', {{ protein.d3_spectra|safe }}, "{{protein.name|safe}}");
   });
   </script>
