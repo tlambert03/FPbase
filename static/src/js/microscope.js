@@ -1294,15 +1294,15 @@ import noUiSlider from 'nouislider';
     });
 
 
-    if ($(".microscop-wrapper").length){
-        var topofDiv = $(".microscop-wrapper").offset().top;
+    if ($(".microscope-wrapper").length){
+        var topofDiv = $(".microscope-wrapper").offset().top;
         $(window).scroll(function(){
             if (options.stickySpectra){
                 if($(window).scrollTop() > (topofDiv)){
-                  $(".microscop-wrapper").addClass('shadowed');
+                  $(".microscope-wrapper").addClass('shadowed');
                 }
                 else{
-                  $(".microscop-wrapper").removeClass('shadowed');
+                  $(".microscope-wrapper").removeClass('shadowed');
                 }
             }
         });
@@ -1312,11 +1312,11 @@ import noUiSlider from 'nouislider';
         $('.pin-wrapper').toggleClass('rotate-90')
         if ($('.pin-wrapper').hasClass('rotate-90')){
             options.stickySpectra = false;
-            $('.microscop-wrapper').removeClass('sticky')
-            $(".microscop-wrapper").removeClass('shadowed');
+            $('.microscope-wrapper').removeClass('sticky')
+            $(".microscope-wrapper").removeClass('shadowed');
         } else {
             options.stickySpectra = true;
-            $('.microscop-wrapper').addClass('sticky')
+            $('.microscope-wrapper').addClass('sticky')
         }
     });
 
