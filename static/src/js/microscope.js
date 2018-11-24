@@ -1224,7 +1224,11 @@ import noUiSlider from 'nouislider';
         var L = $('#light-select :selected')
         if (L.data('type') === 'laser'){
           var Lwave = +L.val().replace('laser-', '');
-          var emeff = a.emvalues.filter(function(d){ return (d.x === Lwave || d.x === Lwave + 1)})[0].y;
+          try {
+            var emeff = a.emvalues.filter(function(d){ return (d.x === Lwave || d.x === Lwave + 1)})[0].y;
+          } catch(e) {
+            var emeff = null;
+          }
           var cameff = 1;
           try {
             if ($("#scale-camera").prop('checked')){
@@ -1233,9 +1237,10 @@ import noUiSlider from 'nouislider';
           } catch(e) {
 
           }
-
-          var blocking = Math.round(-Math.log10(emeff/cameff) * 10) / 10;
-          $("#laserBlocking").text('OD ' + blocking)
+          if (emeff){
+            var blocking = Math.round(-Math.log10(emeff/cameff) * 10) / 10;
+            $("#laserBlocking").text('OD ' + blocking)
+          }
         } else {
           $("#laserBlocking").text('')
         }
