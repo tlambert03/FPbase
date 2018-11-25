@@ -27,6 +27,7 @@ import './js/my-fontawesome.js';
 import './js/nv.d3.js';
 
 import './js/project.js';
+import './js/search_logic.js';
 import './js/protein_page.js';
 import './js/favit.js';
 import './js/jquery.formset.js';

@@ -2,6 +2,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.shortcuts import render, redirect
 from ..filters import ProteinFilter
 from ..models import Protein
+import json
 
 
 def protein_search(request):
@@ -28,4 +29,9 @@ def protein_search(request):
             return redirect(f.qs.first())
     else:
         f = ProteinFilter(request.GET, queryset=Protein.objects.none())
-    return render(request, 'proteins/protein_search.html', {'filter': f})
+    return render(request, 'proteins/protein_search.html',
+                  {'filter': f,
+                   'filter_fields': json.dumps({k: list(set(v)) for k, v in f.Meta.fields.items()}),
+                   'filter_operators': json.dumps(f.Meta.operators),
+                   'filter_labels': json.dumps(f.Meta.labels),
+                   })
