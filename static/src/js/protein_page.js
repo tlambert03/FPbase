@@ -15,14 +15,17 @@ window.initSimpleSpectra = function(selection, myData, protein) {
   var chart = nv.models.lineChart();
   chart.yDomain([0, 1.04]);
   var svg = d3.select(selection);
-  $(selection).prepend(
-    $('<desc>', { id: 'svgDesc' }).text(
-      `Fluorescent protein ${protein} excitation and emission spectra`
-    )
-  );
-  $(selection).prepend(
-    $('<title>', { id: 'svgTitle' }).text(`${protein} Spectrum`)
-  );
+
+  if (protein){
+    $(selection).prepend(
+      $('<desc>', { id: 'svgDesc' }).text(
+        `Fluorescent protein ${protein} excitation and emission spectra`
+      )
+    );
+    $(selection).prepend(
+      $('<title>', { id: 'svgTitle' }).text(`${protein} Spectrum`)
+    );
+  }
 
   chart.options({
     margin: { left: 20, bottom: 30 },

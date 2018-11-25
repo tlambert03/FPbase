@@ -371,8 +371,11 @@ class ComparisonView(base.TemplateView):
                 context['mutations'] = str(seqA.seq.mutations_to(seqB.seq))
         else:
             context['alignment'] = None
+        prots = list(prots)
         context['proteins'] = prots
-        refs = Reference.objects.filter(proteins__in=prots).distinct('id').order_by('id')
+        refs = Reference.objects.filter(primary_proteins__in=prots)
+        refs = refs | Reference.objects.filter(proteins__in=prots)
+        refs = refs.distinct('id').order_by('id')
         context['references'] = sorted([r for r in refs], key=lambda x: x.year)
         spectra = []
         for prot in prots:
