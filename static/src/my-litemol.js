@@ -20,25 +20,42 @@ function initLiteMol(selection, changer){
       Components.Context.BackgroundTasks(LayoutRegion.Main, true)
     ];
 
-    var plugin = LiteMol.Plugin.create({
-        customSpecification: PluginSpec,
-        target: selection,
-        viewportBackground: '#fff',
-        layoutState: {
-            hideControls: true,
-            isExpanded: false
-        },
-        allowAnalytics: true
-    });
+    try{
+      var plugin = LiteMol.Plugin.create({
+          customSpecification: PluginSpec,
+          target: selection,
+          viewportBackground: '#fff',
+          layoutState: {
+              hideControls: true,
+              isExpanded: false
+          },
+          allowAnalytics: true
+      });
 
+      var dataCache = {};
+      changer.change(function(){
+        var id = this.value;
+        if (!dataCache.hasOwnProperty(id)){ dataCache[id] = getPDBbinary(id); }
+        plugin.clear();
+        dataCache[id].then(data => plugin.loadMolecule({ data, id }));
+      });
 
-    var dataCache = {};
+      $('body').click(function(e) {
+        if ($(".lm-layout-right").length){
+          if ($(e.target).closest('#litemol-viewer').length === 0) {
+              plugin.setLayoutState({hideControls: true});
+          }
+        }
+      });
+
+    } catch(err) {
+      if (window.Sentry !== undefined){
+        Sentry.captureException(err);
+      }
+    }
 
     changer.change(function(){
       var id = this.value;
-      if (!dataCache.hasOwnProperty(id)){ dataCache[id] = getPDBbinary(id); }
-      plugin.clear();
-      dataCache[id].then(data => plugin.loadMolecule({ data, id }));
       $("#pdb-out-link").attr('href', "https://www.rcsb.org/structure/" + this.value);
       if (pdb_info[this.value]){
         loadSmiles(this.value);
@@ -46,13 +63,6 @@ function initLiteMol(selection, changer){
       }
     }).trigger('change');
 
-    $('body').click(function(e) {
-      if ($(".lm-layout-right").length){
-        if ($(e.target).closest('#litemol-viewer').length === 0) {
-            plugin.setLayoutState({hideControls: true});
-        }
-      }
-    });
   })
 }
 
