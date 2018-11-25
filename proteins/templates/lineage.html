@@ -21,17 +21,16 @@ $('.lineage').each(function(i, el){
     var chart = LineageChart().data(data)
                           .withSearch(true)
                           .withToolbar(true);
-    chart.heightScalar(32);
-    var lineage = d3.select(el)
-    lineage.call(chart);
+    d3.select(el).call(chart);
 
     var resizeTimer;
     $(window).on('resize', function(e) {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function() {
-        lineage.call(chart);
+        d3.select(el).call(chart);
       }, 100);
     });
+    chart.duration(200);
   })
 });
 
