@@ -25,7 +25,9 @@
 
 			<h5 class='pt-3'><strong>Proteins derived from this organism</strong></h5>
 			{% with proteins=object.proteins.all removebutton=False %}
+        <div class="table-responsive">
 			    {% include '_proteintable.html' %}
+        </div>
 			{% endwith %}
 
 {% endblock content %}

@@ -65,7 +65,9 @@
             </div>
             <div id="tdisplay" {% if request.GET.display == 'l' %}class="hidden"{% endif %}>
             {% with proteins=object.proteins.all removebutton=isowner %}
+              <div class="table-responsive">
                 {% include '_proteintable.html' %}
+              </div>
             {% endwith %}
             </div>
         {% else %}
