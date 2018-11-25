@@ -63,6 +63,7 @@ $logo-color: #efe;
       }
     }
     .logo-svg{
+      vertical-align: inherit;
       fill: $logo-color;
       fill-rule: evenodd;
       height: 2.5rem;
