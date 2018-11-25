@@ -15,7 +15,6 @@ import {
     faHeart,
     faInfo,
     faInfoCircle,
-    faKeyboard,
     faLightbulb,
     faLink,
     faList,
@@ -36,7 +35,7 @@ import {
     faUpload,
     faWrench,
 } from '@fortawesome/free-solid-svg-icons'; // ES Module "as" syntax
-import { faHeart as farHeart, faEye as farEye, faFlag as farFlag } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as farHeart, faEye as farEye, faFlag as farFlag, faKeyboard } from '@fortawesome/free-regular-svg-icons';
 import { faTwitter, faGoogle } from '@fortawesome/free-brands-svg-icons';
 
 library.add(
