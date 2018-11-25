@@ -1,4 +1,4 @@
-[![Logo](fpbase/static/images/logo_green_wide@1x.gif)](https://www.fpbase.org)
+[![Logo](static/src/images/logo_green_wide@1x.gif)](https://www.fpbase.org)
 
 # FPbase: The Fluorescent Protein Database
 
