@@ -1,10 +1,10 @@
-pytz==2018.5  # https://github.com/stub42/pytz
+pytz==2018.7  # https://github.com/stub42/pytz
 awesome-slugify==1.6.5  # https://github.com/dimka665/awesome-slugify
 Pillow==5.3.0  # https://github.com/python-pillow/Pillow
 rcssmin==1.0.6  # https://github.com/ndparker/rcssmin
 argon2-cffi==18.3.0  # https://github.com/hynek/argon2_cffi
-whitenoise[brotli]==4.1  # https://github.com/evansd/whitenoise
-redis==2.10.6  # https://github.com/antirez/redis
+whitenoise[brotli]==4.1.1  # https://github.com/evansd/whitenoise
+redis==3.0.1  # https://github.com/antirez/redis
 
 # Django
 # ------------------------------------------------------------------------------
@@ -13,14 +13,14 @@ django-environ==0.4.5  # https://github.com/joke2k/django-environ
 django-model-utils==3.1.2  # https://github.com/jazzband/django-model-utils
 django-allauth==0.38.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==1.7.2  # https://github.com/django-crispy-forms/django-crispy-forms
+django-redis==4.10.0  # https://github.com/niwinz/django-redis
 # django-compressor==2.2  # https://github.com/django-compressor/django-compressor
-django-redis==4.9.0  # https://github.com/niwinz/django-redis
 
 # Django REST Framework
-djangorestframework==3.8.2  # https://github.com/encode/django-rest-framework
+djangorestframework==3.9.0  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3  # https://github.com/core-api/python-client
 djangorestframework-csv==2.1.0
-drf-tweaks==0.7.1
+drf-tweaks==0.8.0
 markdown==3.0.1
 
 # MY STUFF
@@ -32,18 +32,18 @@ pandas==0.23.4
 
 habanero==0.6.2
 django-filter==2.0.0
-django-reversion==3.0.0
+django-reversion==3.0.2
 django-reversion-compare==0.8.5
 
 tablib==0.12.1
 scipy==1.1.0
 dnspython3==1.15.0
-django-anymail==4.3  # https://github.com/anymail/django-anymail
+django-anymail==5.0  # https://github.com/anymail/django-anymail
 django-autocomplete-light==3.3.2  # https://github.com/yourlabs/django-autocomplete-light
 django-avatar==4.1.0
 
 numpy==1.15.2  # pyup: ignore
 parasail==1.1.12
-matplotlib==3.0.0
+matplotlib==3.0.2
 django-mptt==0.9.1
 django-webpack-loader==0.6.0
