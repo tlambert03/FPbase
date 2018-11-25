@@ -28,7 +28,6 @@ import './js/nv.d3.js';
 
 import './js/project.js';
 import './js/protein_page.js';
-import './js/datatables.js';
 import './js/favit.js';
 import './js/jquery.formset.js';
 import './js/onload.js';
