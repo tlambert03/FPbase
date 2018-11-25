@@ -226,7 +226,7 @@ class ProteinCreateUpdateMixin:
                     reversion.set_comment('{} {} form'.format(
                         self.object, self.get_form_type()))
                     try:
-                        uncache_protein_page(self.object.protein.slug, self.request)
+                        uncache_protein_page(self.object.slug, self.request)
                     except Exception as e:
                         logger.error('failed to uncache protein: {}'.format(e))
             else:
