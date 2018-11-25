@@ -17,7 +17,7 @@ If you find that you are not getting results, relax your query.</p>
 </div>
 
 <form action="" method="get">
-    <div id="query_builder">Building query form...</div>
+    <div id="query_builder">Building query form... <i class="fas fa-spinner fa-spin ml-1"></i></div>
     <div class='clearfix button-row'>
     <button type="submit" class="btn btn-sm btn-primary form-group"><i class="fas fa-search"></i> Search</button>
     <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn"><i class="fas fa-filter"></i> Add Filter</button>
@@ -345,16 +345,23 @@ If you find that you are not getting results, relax your query.</p>
 
         $('#crispy-form label').remove();
 
-        var search = location.search.substring(1);
-        if(search!=""){
-            var URLobj = search?JSON.parse('{"' + search.replace(/&/g, '","').replace(/=/g,'":"') + '"}',
-            function(key, value) {
-                return key===""?value:decodeURIComponent(value);
-            }):{};
-            $('#query_builder').empty();
-            loadState(URLobj)
+        var urlParams;
+        (window.onpopstate = function () {
+            var match,
+                pl     = /\+/g,  // Regex for replacing addition symbol with a space
+                search = /([^&=]+)=?([^&]*)/g,
+                decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+                query  = window.location.search.substring(1);
+
+            urlParams = {};
+            while (match = search.exec(query))
+               urlParams[decode(match[1])] = decode(match[2]);
+        })();
+
+        $('#query_builder').empty();
+        if(urlParams){
+            loadState(urlParams)
         }else{
-            $('#query_builder').empty();
             addRow('#query_builder');
         }
 
