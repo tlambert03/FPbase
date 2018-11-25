@@ -83,7 +83,7 @@ function text_position(node, slug, vertical) {
 export default function LineageChart() {
   var margin = { top: 20, right: 100, bottom: 15, left: 65 },
     width,
-    heightScalar = 28,
+    heightScalar = 39,
     widthScalar = 1,
     nodeWidth,
     height,
