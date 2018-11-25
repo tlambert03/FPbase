@@ -7,7 +7,7 @@ if ((process.env.NODE_ENV === 'production') && Boolean(process.env.SENTRY_DSN)) 
             dsn: process.env.SENTRY_DSN,
             release: process.env.SOURCE_VERSION,
         });
-        if (window.FPBASE.user){
+        if (window.FPBASE.user !== undefined){
             Sentry.configureScope((scope) => {
               scope.setUser(window.FPBASE.user);
             });

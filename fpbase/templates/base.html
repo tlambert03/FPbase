@@ -41,16 +41,16 @@
     {% custom_static 'main' 'css' %}
 
 
-    {% if request.user.is_authenticated %}
       <script>
         window.FPBASE = window.FPBASE || {};
+        {% if request.user.is_authenticated %}
         window.FPBASE.user = {
             email: "{{ request.user.email }}",
             id: "{{ request.user.id }}",
             name: "{{ request.user.username }}"
         };
+        {% endif %}
       </script>
-    {% endif %}
 
     {% block extrahead %}
     {% endblock extrahead %}
