@@ -298,9 +298,9 @@ export default function initFRET(){
           'buttons': [
               'copy', 'excel', 'pdf'
           ],
+          "scrollX": true,
           "pageLength": 25,
           "order": [[10, 'desc']],
-          "responsive": true,
           "language": {
             "emptyTable": "No Data received from server...",
             "loadingRecords": "Calculating FRET efficiencies across database...  Please wait."
@@ -312,33 +312,22 @@ export default function initFRET(){
           },
           "columns": [
               { "data": function () { return '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>'},
-                "responsivePriority": 1,
                 "width": '1px',
                 "orderable": false},
               { "data": "donor",
-                "responsivePriority": 1,
                 "width": '20px'},
               { "data": "acceptor",
-                "responsivePriority": 1,
                 "width": '20px'},
               { "data": "donorPeak",
-                "responsivePriority": 5,
                 "width": '10px'},
               { "data": "emdist",
-                "responsivePriority": 5,
                 "width": '10px'},
-              { "data": "donorQY",
-                "responsivePriority": 4},
-              { "data": "acceptorEC",
-                "responsivePriority": 4},
-              { "data": "acceptorQY",
-                "responsivePriority": 6},
-              { "data": "overlap",
-                "responsivePriority": 4},
-              { "data": "forster",
-                "responsivePriority": 3},
-              { "data": "forsterQYA",
-                "responsivePriority": 2}
+              { "data": "donorQY" },
+              { "data": "acceptorEC" },
+              { "data": "acceptorQY" },
+              { "data": "overlap" },
+              { "data": "forster" },
+              { "data": "forsterQYA" },
           ],
       } );
 

@@ -10,7 +10,7 @@
 {% endblock vendorcss %}
 
 {% block extrahead %}
-
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css"/>
 {% endblock extrahead %}
 
 {% block container-class %}container-fluid spectrumpage fretpage{% endblock %}
@@ -18,7 +18,7 @@
 {% block content %}
 
 <h2 class='text-center'>FPbase FRET Calculator</h2>
-<div class="spectra-wrapper mt-2">
+<div class="spectra-wrapper mt-2 sticky">
   <div class="spectra container clearfix">
     <div id="spectra">
       <div class="svg-container">
@@ -46,7 +46,7 @@
       <div class="input-group-prepend">
         <label class="input-group-text text-white bg-info" for="donor-select">Donor</label>
       </div>
-      <select class="custom-select data-selector fluor-selector" id="donor-select" tabindex="-1" aria-hidden="true">
+      <select class="data-selector fluor-selector" id="donor-select" tabindex="-1" aria-hidden="true">
         <option value="">-----</option>
         {% for probe in probeslugs %}
         <option value="{{ probe.slug }}">{{ probe.name }}</option>
@@ -57,7 +57,7 @@
       <div class="input-group-prepend">
         <label class="input-group-text text-white bg-info" for="acceptor-select">Acceptor</label>
       </div>
-      <select class="custom-select data-selector fluor-selector" id="acceptor-select" tabindex="-1" aria-hidden="true">
+      <select class="data-selector fluor-selector" id="acceptor-select" tabindex="-1" aria-hidden="true">
         <option value="">-----</option>
         {% for probe in probeslugs %}
         <option value="{{ probe.slug }}">{{ probe.name }}</option>
@@ -88,7 +88,7 @@
 
 
 <div class="container table-wrapper" hidden>
-  <table class="table table-bordered flip-scroll">
+  <table class="table table-bordered table-sm">
     <thead>
       <tr class="table-header">
         <th>QY<sub class='small'>Donor</sub></th>
@@ -121,7 +121,7 @@
 
 <div class="container">
   <h5 class='text-center mt-2 mb-4' style='font-weight: 300;'>Förster Radii for all monomeric FP pairs in the database <button type="button" data-toggle="modal" data-target="#fretInfoModal" class='btn btn-info btn-circle ml-1'><i class="fas fa-info"></i></button></h5>
-  <table id="fret_report" class="display table table-striped" style="width:100%">
+  <table id="fret_report" class="display table table-sm table-striped" style="width:100%">
     <thead>
       <tr>
         <th>Show</th>
@@ -209,5 +209,8 @@
 
 
 {% block javascript %}
+  <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
+
   <script> initFRET(); </script>
 {% endblock javascript %}
