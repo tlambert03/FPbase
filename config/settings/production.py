@@ -183,6 +183,7 @@ CACHES = {
 
 SENTRY_DSN = env('SENTRY_DSN')
 SOURCE_VERSION = env('SOURCE_VERSION', default=None)
+print("SOURCE_VERSION = %s" % SOURCE_VERSION)
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[DjangoIntegration()],
