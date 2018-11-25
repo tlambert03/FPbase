@@ -4,13 +4,8 @@
 {% block title %}Interactive Fluorescent Protein Property Visualization{% endblock %}
 {% block meta-description %}Here, you can plot a variety of fluorescent protein properties in different ways.  Interactively change the axes of the graph and filter proteins based on certain characteristics.{% endblock %}
 
-
-
-
-
 {% block container-class %}container-fluid{% endblock %}
 {% block content %}
-
 <div id="tooltip" class="hidden">
         <h3>FPname</h3>
         <p>Ex: <span id="exvalue"></span>nm</p>
@@ -21,6 +16,7 @@
 </div>  <!-- end div#tooltip -->
 
 <div class="d3-container">
+  <p class="small text-muted ml-3">This chart presents an interactive graphical display of the fluorescence properties of all "basic" (constitutively fluorescent) proteins in the database. Each fluorescent protein begins plotted with excitation wavelength on the x-axis and emission wavelength on the y-axis. The color hue is based on the emission wavelength of the protein, and color saturation correlates with brightness. Proteins requiring an extrinisc cofactor are shown as squares. Dimeric proteins are indicated with a 2 inside the symbol; tandem dimeric proteins are shown with a t inside the symbol (you may filter by oligomerization with the select menu below the chart). Mouseover each circle to see info on that protein or click on any datapoint to go to that protein page. You can zoom using the mouse scroll wheel and pan by clicking and dragging. Use the filter sliders at the top right to select a subset of fluorescent proteins based on certain criteria. Use the X and Y axis toggle boxes to change what is plotted on each axis.</p>
   <div class="row">
     <div class="col-md-8">
 

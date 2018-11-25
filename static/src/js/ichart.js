@@ -305,7 +305,7 @@ export default function FPPropChart() {
 
 			entergroup.each(function(d, i) {
 				//determine type of protein and whether to plot a circle or a square
-				if (d["type"] =="e"){
+				if (d.cofactor !== ''){
 					//plot squeares (for proteins with cofactor)
 					plotsquare(d3.select(this));
 				} else {

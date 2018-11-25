@@ -181,5 +181,6 @@ class BasicProteinSerializer(ModelSerializer, serializers.HyperlinkedModelSerial
             'bleach',
             'maturation',
             'lifetime',
+            'cofactor',
         )
         on_demand_fields = ('uuid', 'ex_spectrum', 'em_spectrum')
