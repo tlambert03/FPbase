@@ -647,7 +647,7 @@ export default function initSpectra(selection) {
         var minX = parseFloat(center) - width / 2;
         var maxX = parseFloat(center) + width / 2;
         var vals = []
-        for (n = Math.min(minX, 300); n < Math.max(maxX, 1000); n++) {
+        for (var n = Math.min(minX, 300); n < Math.max(maxX, 1000); n++) {
             if (n >= minX && n <= maxX) {
                 vals.push({ x: n, y: +trans });
             } else {
