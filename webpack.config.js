@@ -110,7 +110,7 @@ if (devMode) {
     })
   );
 
-  if (process.env.SENTRY_AUTH_TOKEN) {
+  if (process.env.SENTRY_AUTH_TOKEN && !process.env.CI) {
     plugins.push(
       new SentryCliPlugin({
         include: 'static/',
