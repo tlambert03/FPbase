@@ -96,12 +96,6 @@ const plugins = [
           toType: 'template',
       },
   ]),
-  new SentryCliPlugin({
-    include: 'static/',
-    dryRun: devMode,
-    //release: process.env.SOURCE_VERSION,
-    ignore: ['node_modules', 'webpack.config.js'],
-  })
 ];
 
 if (devMode) {
@@ -115,6 +109,16 @@ if (devMode) {
       SENTRY_AUTH_TOKEN: false,
     })
   );
+
+  if (process.env.SENTRY_AUTH_TOKEN) {
+    plugins.push(
+      new SentryCliPlugin({
+        include: 'static/',
+        release: process.env.SOURCE_VERSION,
+        ignore: ['node_modules', 'webpack.config.js'],
+      })
+    );
+  }
 }
 
 module.exports = {
