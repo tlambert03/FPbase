@@ -21,7 +21,7 @@ export function formSelection(filter) {
 
     var matches = spectra_options.filter(function(item) {
         for (var key in filter) {
-            if (item[key] === undefined || item[key] != filter[key]) {
+            if (typeof item[key] === 'undefined' || item[key] != filter[key]) {
                 // FIXME
                 // terrible hack to add bp filters to both excitation and emission dropdowns
                 if ((filter[key] == 'bx' || filter[key] == 'bm') && item['subtype'] == 'bp') {
