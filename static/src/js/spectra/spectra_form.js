@@ -177,7 +177,7 @@ export function excRow(widget, cls, refreshChart) {
                     'id': rowID + '_norm',
                     }
                 ).click(function(e){
-                    lastval = $(this).data('lastval');
+                    var lastval = $(this).data('lastval');
                     $('.exnormcheck').data('lastval', '');
                     if (this.value == lastval){ //already clicked, unlick
                         $("#exnormRadioOFF").prop('checked', true);
