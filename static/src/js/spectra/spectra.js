@@ -420,7 +420,7 @@ export default function initSpectra(selection) {
                 if (data[i].slug == slug && data[i].type == type) {
                     data[i].disabled = !this.checked;
                 }
-                if (type == CONST.stype.twop) {
+                if ((type == CONST.stype.twop) && localData[slug]) {
                     var pos = localData[slug].map(function(e) { return e.type; }).indexOf('2p');
                     localData[slug][pos].disabled = !this.checked;
                 }
