@@ -1,8 +1,12 @@
 window.initSearch = function(filterfields, operatorLookup, labelLookup) {
-  let fields = {};
-  for (let [key, value] of Object.entries(filterfields)) {
-    fields[key] = new Set(value);
+  var fields = {};
+
+  for (var key in filterfields) {
+      if (filterfields.hasOwnProperty(key)) {
+        fields[key] = new Set(filterfields[key]);
+      }
   }
+
   var available_fields = new Set(Object.keys(fields));
   var i = 0;
   var prevName;
