@@ -99,7 +99,7 @@ AWS_QUERYSTRING_AUTH = False
 # AWS cache settings, don't change unless you know what you're doing:
 _AWS_EXPIRY = 60 * 60 * 24 * 7
 AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': f'max-age={_AWS_EXPIRY}, s-maxage={_AWS_EXPIRY}, must-revalidate',
+    'CacheControl': f'max-age={_AWS_EXPIRY}, s-maxage={_AWS_EXPIRY}, must-revalidate',  # noqa
 }
 
 # URL that handles the media served from MEDIA_ROOT, used for managing
@@ -126,7 +126,7 @@ INSTALLED_APPS += ['anymail', ]
 ANYMAIL = {
     'MAILGUN_API_KEY': env('MAILGUN_API_KEY'),
     'MAILGUN_SENDER_DOMAIN': env('MAILGUN_DOMAIN')
-   # "SENDGRID_API_KEY": env('SENDGRID_API_KEY'),
+    # "SENDGRID_API_KEY": env('SENDGRID_API_KEY'),
 }
 EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 # EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"

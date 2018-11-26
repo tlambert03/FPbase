@@ -326,10 +326,10 @@ CANONICAL_URL = env('CANONICAL_URL', default=None)
 # ------------------------------------------------------------------------------
 
 AVATAR_AUTO_GENERATE_SIZES = (80, 36)
-AVATAR_CACHE_ENABLED = False
+AVATAR_CACHE_ENABLED = True
 AVATAR_GRAVATAR_DEFAULT = 'identicon'
 AVATAR_CLEANUP_DELETED = True
-
+AVATAR_MAX_AVATARS_PER_USER = 8
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
