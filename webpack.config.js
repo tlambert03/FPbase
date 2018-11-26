@@ -10,7 +10,7 @@ const ImageminWebpackPlugin = require("imagemin-webpack-plugin").default;
 const ImageminWebP = require("imagemin-webp");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-//const SentryCliPlugin = require('@sentry/webpack-plugin');
+const SentryCliPlugin = require('@sentry/webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 //const { VueLoaderPlugin } = require('vue-loader');
 
@@ -106,18 +106,19 @@ if (devMode) {
       NODE_ENV: 'development',
       SOURCE_VERSION: false,
       SENTRY_DSN: false,
+      SENTRY_AUTH_TOKEN: false,
     })
   );
 
-  //if (process.env.SENTRY_DSN) {
-  //  plugins.push(
-  //    new SentryCliPlugin({
-  //      include: '.',
-  //      release: process.env.SOURCE_VERSION,
-  //      ignore: ['node_modules', 'webpack.config.js'],
-  //    })
-  //  );
-  //}
+  if (process.env.SENTRY_DSN) {
+    plugins.push(
+      new SentryCliPlugin({
+        include: 'static/',
+        release: process.env.SOURCE_VERSION,
+        ignore: ['node_modules', 'webpack.config.js'],
+      })
+    );
+  }
 }
 
 module.exports = {
