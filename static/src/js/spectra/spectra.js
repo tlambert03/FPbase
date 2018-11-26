@@ -509,7 +509,7 @@ export default function initSpectra(selection) {
         var slug = $(this).val();
         var row = $(this).closest('.row');
         // if the item is already selected, cancel operation
-        if (dataHasSlug(slug) && slug != focusedItem) {
+        if (dataHasSlug(slug) && slug != focusedItem && typeof localData[slug] !== 'undefined') {
             alert(localData[slug][0].key.replace(' em','').replace(' 2p','')
                 .replace(' ex','')+ ' is already selected.');
             if (focusedItem){
