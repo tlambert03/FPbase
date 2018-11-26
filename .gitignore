@@ -372,3 +372,5 @@ _data/*
 /fpseq/addgene.py
 
 webpack-stats.json
+
+/.sentryclirc
