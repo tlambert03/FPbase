@@ -178,7 +178,7 @@ class MicroscopeDetailView(DetailView):
             data['lights'] = Light.objects.all()
         if self.object.collection:
             proteins = self.object.collection.proteins.with_spectra() \
-                .prefetch_related('proteins', 'proteins__states')
+                .prefetch_related('states')
             data['probeslugs'] = [{'slug': s.slug, 'name': str(s)}
                                   for p in proteins for s in p.states.all()
                                   if s.spectra]
