@@ -257,27 +257,28 @@ export default function LineageChart(conf) {
               tooltip.style("width", "180px")
                      .style('position', 'absolute')
                      .style("left", (d3.event.pageX - 90 ) + "px")
-                     .style('border-radius', '8px');
+                     .style('border-radius', '8px')
+                     .style("top", (d3.event.pageY - tooltip[0][0].clientHeight - 28) + "px")
+                     .style("bottom", 'inherit')
             } else {
               var _left = 0;
               tooltip.style("width", "100%")
                      .style('border-radius', '0px')
                      .style('position', 'fixed')
-                     .style("left", 0);
+                     .style("left", 0)
+                     .style("top", 'inherit')
+                     .style("bottom", 0)
             }
             tooltip
               .html(dtext)
-              .style("top",  window.matchMedia("(min-width: 576px)").matches ?
-                  (d3.event.pageY - tooltip[0][0].clientHeight - 28) + "px" :
-                  svg.node().getBoundingClientRect().y +  svg.node().getBoundingClientRect().height + 'px' )
               .transition()
               .duration(150)
-              .style("opacity", window.matchMedia("(min-width: 576px)").matches ? 0.9 : 1)
+              .style("opacity", 0.9);
           })
           .on("mouseout", function(d) {
 
             tooltip.transition()
-               .duration(50)
+               .duration(150)
                .style("opacity", 0)
                .transition().duration(0)
                .style("left", (-9999) + "px");
