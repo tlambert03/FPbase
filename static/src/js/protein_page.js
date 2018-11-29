@@ -133,9 +133,9 @@ $(window).on('load', function() {
   $('.lineage').each(function(i, el) {
     var slug = $(el).data('slug') || '';
     $.getJSON('/ajax/lineage/' + slug, function(data) {
-      var linchart = LineageChart().data(data);
+      var linchart = LineageChart({slug: slug}).data(data);
       var lineage = d3.select(el);
-      lineage.call(linchart, slug);
+      lineage.call(linchart);
       $(window).on('resize', function(e) {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function() {
@@ -143,6 +143,11 @@ $(window).on('load', function() {
         }, 250);
       });
       linchart.duration(200);
+      if (slug && $('.lineage-wrapper')){
+        var slugpos = d3.select(`#${slug}_circle`).datum().y;
+        $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
+      }
+
     });
   });
 });

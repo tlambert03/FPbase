@@ -1,14 +1,12 @@
 .node {
   cursor: pointer;
-}
+  circle {
+    stroke: #222;
+  }
 
-.node circle {
-  stroke: #222;
-}
-
-.node text {
-  font-size: 0.73rem;
-
+  text {
+    font-size: 0.73rem;
+  }
 }
 
 .link {
@@ -20,7 +18,6 @@
 .tooltip {
   &.lineage-tooltip{
     background: rgba(0,0,0,.85);
-    border-radius: 8px;
     color: #ddd;
     padding: .6rem 0.4rem;
     text-align: center;
@@ -29,4 +26,13 @@
 
 #mutation-search-input::-webkit-search-cancel-button {
     -webkit-appearance: searchfield-cancel-button;
+}
+
+.lineage-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  svg {
+    width: 100%;
+  }
 }

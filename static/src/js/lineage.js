@@ -80,27 +80,29 @@ function text_position(node, slug, vertical) {
   return [x, y, anchor];
 }
 
-export default function LineageChart() {
-  var margin = { top: 20, right: 100, bottom: 15, left: 65 },
+export default function LineageChart(conf) {
+  let config = conf || {};
+  let margin = config.margin || { top: 20, right: 110, bottom: 15, left: 65 },
     width,
+    minNodeWidth = config.minNodeWidth || 85,
     heightScalar = 39,
     widthScalar = 1,
     nodeWidth,
     height,
     i = 0,
-    duration = 0,
+    duration = config.duration || 0,
     defaultRadius = 8,
-    slugRadius = 12.5,
+    slugRadius = 13,
     data,
     sel,
-    slug,
+    slug = config.slug || null,
     show_inserts = true,
     show_deletions = true,
     inputField,
     tree = d3.layout.tree(),
-    withSearch = false,
-    withToolbar = false,
-    vertical = false,
+    withSearch = config.withSearch || false,
+    withToolbar = config.withToolbar || false,
+    vertical = config.vertical || false,
     dropShadow = {
       'stdDeviation': 4,
       'dx': 0,
@@ -113,21 +115,19 @@ export default function LineageChart() {
   });
 
   // Define the div for the tooltip
-  var div = d3
+  var tooltip = d3
     .select("body")
     .append("div")
     .attr("class", "tooltip lineage-tooltip")
-    .style("opacity", 0)
-    .style("width", "180px");
+    .style("opacity", 0);
 
   function stopEvent(event) {
     if (event.preventDefault != undefined) event.preventDefault();
     if (event.stopPropagation != undefined) event.stopPropagation();
   }
 
-  function chart(selection, slug) {
+  function chart(selection) {
     sel = selection;
-    slug = slug;
     selection.on("contextmenu", function() {
       d3.event.preventDefault();
     });
@@ -139,9 +139,14 @@ export default function LineageChart() {
       createToolBar(selection);
     }
 
+    if (selection[0][0].classList.contains('lineage') && (!d3.select('.lineage-wrapper')[0][0])){
+      selection = selection.append('div').attr('class', 'lineage-wrapper')
+    }
+
     selection.each(function() {
-      var BB = selection.node().getBoundingClientRect();
-      var containerWidth = BB.width;
+      var minWidth = data.max_depth * minNodeWidth;
+      var containerWidth = d3.select('.lineage-wrapper').node().getBoundingClientRect().width;
+      containerWidth = Math.max(minWidth, containerWidth);
       data.x0 = height / 2;
       data.y0 = 0;
       if (vertical){
@@ -159,7 +164,7 @@ export default function LineageChart() {
       var svg = selection.selectAll("svg").data([data]);
 
       // Otherwise, create the skeletal chart.
-      var svgEnter = svg.enter().append("svg");
+      var svgEnter = svg.enter().append("svg").style('min-width', minWidth);
       var gEnter = svgEnter.append("g");
       addDrawDropShadow(svg, dropShadow);
 
@@ -208,6 +213,7 @@ export default function LineageChart() {
           .enter()
           .append("g")
           .attr("class", "node")
+          .attr("id", function(d){ return d.slug + "_circle"})
           .attr("transform", function(d) {
             return "translate(" + source.y0 + "," + source.x0 + ")";
           })
@@ -242,26 +248,40 @@ export default function LineageChart() {
               if (!show_deletions) {
                 muts = muts.filter((d) => d.includes('del') ? '' : d3)
               }
-              dtext += ` ➡ ${muts.join('/')}`;
+              dtext += ` &rarr; ${muts.join('/')}`;
             }
             dtext += d.ref ? `<br><em>${d.ref}</em>` : '';
             dtext += '</span>';
 
-            div
+            if (window.matchMedia("(min-width: 576px)").matches){
+              tooltip.style("width", "180px")
+                     .style('position', 'absolute')
+                     .style("left", (d3.event.pageX - 90 ) + "px")
+                     .style('border-radius', '8px')
+                     .style("top", (d3.event.pageY - tooltip[0][0].clientHeight - 28) + "px")
+                     .style("bottom", 'inherit')
+            } else {
+              var _left = 0;
+              tooltip.style("width", "100%")
+                     .style('border-radius', '0px')
+                     .style('position', 'fixed')
+                     .style("left", 0)
+                     .style("top", 'inherit')
+                     .style("bottom", 0)
+            }
+            tooltip
               .html(dtext)
-              .style("left", (d3.event.pageX - 90 ) + "px")
-              .style("top", (d3.event.pageY - div[0][0].clientHeight - 28) + "px")
               .transition()
               .duration(150)
               .style("opacity", 0.9);
           })
           .on("mouseout", function(d) {
 
-            div.transition()
+            tooltip.transition()
                .duration(150)
                .style("opacity", 0)
                .transition().duration(0)
-               .style("top", (-100) + "px");
+               .style("left", (-9999) + "px");
 
             if (d.slug !== slug){
               d3.select(this)
@@ -534,7 +554,7 @@ export default function LineageChart() {
   };
 
   function createToolBar(selection) {
-    var tbar = selection.append('div').attr({class: 'btn-toolbar container lineage-toolbar', role: 'toolbar'}).style('opacity', 0.8).on("hover", function(d){ console.log(d)})
+    var tbar = selection.append('div').attr({class: 'btn-toolbar container lineage-toolbar', role: 'toolbar'}).style('opacity', 0.8)
     var grp1 = tbar.append('div').attr({class: 'btn-group btn-group-sm mr-2', role: 'group'})
         grp1.append('button').on('click', chart.scaleWidthDown).attr({ type: 'button', class: 'btn btn-outline-dark'}).html("⇦");
         grp1.append('button').on('click', chart.scaleWidthUp).attr({ type: 'button', class: 'btn btn-outline-dark'}).html("⇨");

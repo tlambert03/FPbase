@@ -18,9 +18,10 @@
 
 $('.lineage').each(function(i, el){
   $.getJSON("/ajax" + window.location.pathname, function(data){
-    var chart = LineageChart().data(data)
-                          .withSearch(true)
-                          .withToolbar(true);
+    var chart = LineageChart({
+      withSearch: true,
+      withToolbar: true,
+    }).data(data);
     d3.select(el).call(chart);
 
     var resizeTimer;
@@ -28,9 +29,9 @@ $('.lineage').each(function(i, el){
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function() {
         d3.select(el).call(chart);
-      }, 100);
+      }, 50);
     });
-    chart.duration(200);
+    chart.duration(100);
   })
 });
 
