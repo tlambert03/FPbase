@@ -129,19 +129,13 @@ $(window).on('load', function() {
       $('#excerptModal').css('z-index', 1039);
   });
 
-  var resizeTimer;
+
   $('.lineage').each(function(i, el) {
     var slug = $(el).data('slug') || '';
     $.getJSON('/ajax/lineage/' + slug, function(data) {
       var linchart = LineageChart({slug: slug}).data(data);
       var lineage = d3.select(el);
       lineage.call(linchart);
-      $(window).on('resize', function(e) {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-          lineage.call(linchart);
-        }, 250);
-      });
       linchart.duration(200);
       if (slug && $('.lineage-wrapper')){
         var slugpos = d3.select(`#${slug}_circle`).datum().y;

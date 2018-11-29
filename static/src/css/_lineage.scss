@@ -17,9 +17,8 @@
 
 .tooltip {
   &.lineage-tooltip{
-    background: rgba(0,0,0,.85);
-    color: #ddd;
-    padding: .6rem 0.4rem;
+    background: #252525;
+    color: #d8d8d8;
     text-align: center;
   }
 }
@@ -34,5 +33,15 @@
   white-space: nowrap;
   svg {
     width: 100%;
+  }
+}
+
+.top-scroll-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  height: 20px;
+  .top-scroll-div {
+    height: 20px;
   }
 }
