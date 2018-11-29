@@ -119,29 +119,3 @@ window.initSnapGene = function(protein, selection) {
     }
   });
 };
-
-$(window).on('load', function() {
-  $('#excerptModal').on('show.bs.modal', function () {
-      $('#excerptModal').css('z-index', 1200);
-  });
-
-  $('#excerptModal').on('hidden.bs.modal', function () {
-      $('#excerptModal').css('z-index', 1039);
-  });
-
-
-  $('.lineage').each(function(i, el) {
-    var slug = $(el).data('slug') || '';
-    $.getJSON('/ajax/lineage/' + slug, function(data) {
-      var linchart = LineageChart({slug: slug}).data(data);
-      var lineage = d3.select(el);
-      lineage.call(linchart);
-      linchart.duration(200);
-      if (slug && $('.lineage-wrapper')){
-        var slugpos = d3.select(`#${slug}_circle`).datum().y;
-        $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
-      }
-
-    });
-  });
-});
