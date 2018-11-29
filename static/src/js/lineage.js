@@ -84,7 +84,7 @@ export default function LineageChart(conf) {
   let config = conf || {};
   let margin = config.margin || { top: 20, right: 110, bottom: 15, left: 65 },
     width,
-    minNodeWidth = config.minNodeWidth || 85,
+    minNodeWidth = config.minNodeWidth || 70,
     heightScalar = 39,
     widthScalar = 1,
     nodeWidth,
@@ -161,19 +161,17 @@ export default function LineageChart(conf) {
     selection.each(function() {
       var minWidth = data.max_depth * minNodeWidth;
       var containerWidth = d3.select('.lineage-wrapper').node().getBoundingClientRect().width;
-      containerWidth = Math.max(minWidth, containerWidth);
-      d3.select('.top-scroll-div').style('width', containerWidth + 'px');
-      d3.select('.top-scroll-wrapper').style('display', containerWidth > minWidth ? 'none' : 'block');
+      var scrollWidth = Math.max(minWidth, containerWidth);
       data.x0 = height / 2;
       data.y0 = 0;
       if (vertical){
-        height = containerWidth - margin.right - margin.left;
+        height = scrollWidth - margin.right - margin.left;
         width = 80 + data.max_width * heightScalar;
         nodeWidth = 1.4*widthScalar * width / data.max_depth ;
       } else{
-        width = containerWidth - margin.right - margin.left;
         height = 80 + data.max_width * heightScalar;
-        nodeWidth = widthScalar * width / data.max_depth ;
+        width = scrollWidth - margin.right - margin.left;
+        nodeWidth = Math.max(minNodeWidth, widthScalar * width / data.max_depth);
       }
       tree.size([height - margin.top - margin.bottom, width]);
 
@@ -181,12 +179,16 @@ export default function LineageChart(conf) {
       var svg = selection.selectAll("svg").data([data]);
 
       // Otherwise, create the skeletal chart.
-      var svgEnter = svg.enter().append("svg").style('min-width', minWidth);
+      var svgEnter = svg.enter().append("svg").style('width', "100%");
       var gEnter = svgEnter.append("g");
       addDrawDropShadow(svg, dropShadow);
 
+      var neededWidth = nodeWidth * data.max_depth +  margin.right + margin.left;
+      d3.select('.top-scroll-div').style('min-width', neededWidth + 'px');
+      d3.select('.top-scroll-wrapper').style('display', neededWidth <= containerWidth ? 'none' : 'block');
+
       // Update the outer dimensions.
-      svg.attr("width", "100%").attr("height", height);
+      svg.attr("height", height).style('min-width', neededWidth);
 
       // Update the inner dimensions.
       var g = svg
@@ -205,7 +207,6 @@ export default function LineageChart(conf) {
         // Compute the new tree layout.
         var nodes = tree.nodes(root).reverse(),
           links = tree.links(nodes);
-
 
           // Normalize for fixed-depth.
           nodes.forEach(function(d) {
@@ -362,7 +363,14 @@ export default function LineageChart(conf) {
             return d._children ? defaultRadius/2 + "px" : "1px";
           });
 
-        nodeUpdate.select("text").style("fill-opacity", 1);
+        nodeUpdate.select("text")
+            .style("fill-opacity", 1)
+            .attr("transform", function(d) {
+              console.log(d.children)
+                if (nodeWidth < 80 && d.children && d.children.length === 1 && n_sibs(d) === 0 && d.name.length > 8){
+                  return "rotate(-15) translate(2, -2)"
+                }
+            });
 
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node
@@ -631,7 +639,7 @@ export default function LineageChart(conf) {
  * @see http://stackoverflow.com/questions/14865915/how-to-lower-the-opacity-of-the-alpha-layer-in-an-svg-filter/14871278#14871278
  */
 function addDrawDropShadow(svg, dropShadow) {
-
+  if (!d3.select('#dropshadow').node()){
     var filter = svg.append('defs')
         .append('filter')
             .attr('id', 'dropshadow')
@@ -646,6 +654,7 @@ function addDrawDropShadow(svg, dropShadow) {
           .attr('dy', dropShadow.dy || 0)
           .attr('stdDeviation', dropShadow.stdDeviation || 4)
           .attr('flood-color', dropShadow.floodColor)
+  }
 }
 
 function applyDropShadow() {
