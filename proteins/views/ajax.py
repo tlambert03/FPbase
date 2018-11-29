@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.core.mail import mail_managers
 from django.views.decorators.cache import cache_page
 from collections import defaultdict
+import html
 
 from ..models import Protein, Organism, Spectrum, Fluorophore, Lineage
 import reversion
@@ -157,7 +158,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
     widths[node.level] += 1
 
     result = {
-        'name': node.protein.name,
+        'name': html.unescape(node.protein.name),
         'mut': node.rootmut if node.rootmut else str(node.mutation),
         # 'mut': node.display_mutation(maxwidth=10) or "null",
         'url': node.protein.get_absolute_url(),
@@ -180,20 +181,21 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
     return result, widths
 
 
-@cache_page(60 * 15)
-def get_lineage(request, slug=None):
+def get_lineage(request, slug=None, org=None):
     # if not request.is_ajax():
     #     return HttpResponseNotAllowed([])
-
-    import time
-
-    start = time.time()
-    if slug:
+    if org:
+        _ids = list(Lineage.objects.filter(protein__parent_organism=org, parent=None))
+        ids = []
+        for item in _ids:
+            ids.extend([i.pk for i in item.get_family()])
+    elif slug:
         item = Lineage.objects.get(protein__slug=slug)
         ids = item.get_family()
     else:
         ids = Lineage.objects.all().values_list('id', flat=True)
     # cache upfront everything we're going to need
+    print(len(ids))
     root_nodes = Lineage.objects\
         .filter(id__in=ids)\
         .select_related('protein', 'reference', 'protein__default_state')\
@@ -212,8 +214,7 @@ def get_lineage(request, slug=None):
     D['max_width'] = max(D['widths'].values())
     D['max_depth'] = max(D['widths'])
     D['tot_nodes'] = sum(D['widths'].values())
-    end = time.time()
-    print(end - start)
+
     # data['tree'] = json.dumps(D)
 
     return JsonResponse(D)

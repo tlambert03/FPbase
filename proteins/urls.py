@@ -120,6 +120,7 @@ urlpatterns = [
     url(r'^ajax/comparison/$', views.update_comparison, name='update-comparison'),
     url(r'^ajax/lineage/(?P<slug>[-\w]+)/$', views.get_lineage, name='get-lineage'),
     url(r'^ajax/lineage/$', views.get_lineage, name='get-lineage'),
+    url(r'^ajax/org_lineage/(?P<org>[-\w]+)/$', views.get_lineage, name='get-org-lineage'),
 
     url(r'^widget/(?P<slug>[-\w]+)/$', views.Widget.as_view(), name='widget-detail'),
 
