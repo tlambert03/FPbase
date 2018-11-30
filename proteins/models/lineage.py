@@ -48,7 +48,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         order_insertion_by = ['protein']
 
     def save(self, *args, **kwargs):
-        if self.pk and self.parent and self.parent.seq and self.mutation:
+        if self.pk and self.parent and self.parent.protein.seq and self.mutation:
             self.rootmut = self.mut_from_root()
         super().save(*args, **kwargs)
 
