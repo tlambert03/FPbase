@@ -30,7 +30,7 @@ def check_lineages(correct_offset=False):
     good = set()
 
     def recursive_check_children(node):
-        for mut in re.split(' |,|/|\\\\', node.mutation):
+        for mut in re.split(' |,|/|\\\\', str(node.mutation)):
             if mut:
                 try:
                     validate_mutation(mut)
