@@ -79,7 +79,7 @@ class ProteinDetailView(DetailView):
         .prefetch_related('states', 'excerpts__reference', 'oser_measurements__reference') \
         .select_related('primary_reference')
 
-    @method_decorator(cache_page(60 * 120))
+    @method_decorator(cache_page(60 * 30))
     @method_decorator(vary_on_cookie)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
