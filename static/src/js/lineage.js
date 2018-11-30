@@ -120,7 +120,8 @@ export default function LineageChart(conf) {
     .select("body")
     .append("div")
     .attr("class", "tooltip lineage-tooltip")
-    .style("opacity", 0);
+    .style("opacity", 0)
+
 
   function stopEvent(event) {
     if (event.preventDefault != undefined) event.preventDefault();
@@ -299,6 +300,20 @@ export default function LineageChart(conf) {
                      .style("padding", '1rem 0.4rem 1.8rem 0.4rem')
                      .style('font-size', '1.3rem')
                      .selectAll('span').style('font-size', '0.85rem')
+              tooltip.append("div")
+                .attr("class", "close-btn")
+                .style("color", '#fff')
+                .style("position", 'absolute')
+                .style("top", '10px')
+                .style("right", '10px')
+                .html("✖")
+                .on('click', function(){
+                  tooltip.transition()
+                     .duration(150)
+                     .style("opacity", 0)
+                     .transition().duration(0)
+                     .style("left", (-9999) + "px");
+                })
             }
             tooltip
               .transition()
@@ -366,8 +381,7 @@ export default function LineageChart(conf) {
         nodeUpdate.select("text")
             .style("fill-opacity", 1)
             .attr("transform", function(d) {
-              console.log(d.children)
-                if (nodeWidth < 80 && d.children && d.children.length === 1 && n_sibs(d) === 0 && d.name.length > 8){
+                if (nodeWidth < 80 && d.children && d.children.length === 1 && n_sibs(d) === 0 && d.name.length > 8 && n_sibs(d.parent) === 0){
                   return "rotate(-15) translate(2, -2)"
                 }
             });
