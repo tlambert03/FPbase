@@ -23,12 +23,12 @@
 
       <a href="{% url 'proteins:organism-list' %}" class='text-info'>See other organisms in the database</a>
 
-			<h5 class='pt-3'><strong>Proteins derived from this organism</strong></h5>
-
+			<h5 class='pt-3'><strong>Lineages derived from this organism</strong></h5>
       <div class="lineage mb-0" data-slug='{{protein.slug}}'></div>
 
+      <h5 class='pt-3'><strong>Proteins derived from this organism</strong></h5>
 			{% with proteins=object.proteins.all removebutton=False %}
-        <div class="table-responsive">
+        <div class="table-responsive mt-2">
 			    {% include '_proteintable.html' %}
         </div>
 			{% endwith %}
@@ -43,6 +43,7 @@ $('.lineage').each(function(i, el){
   $.getJSON("{% url 'proteins:get-org-lineage' object.pk %}", function(data){
     var chart = LineageChart({
       withToolbar: true,
+      withSearch: true,
       withTopScroll: true,
     }).data(data);
     d3.select(el).call(chart);
