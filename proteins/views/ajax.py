@@ -181,6 +181,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
     return result, widths
 
 
+@cache_page(60 * 10)
 def get_lineage(request, slug=None, org=None):
     # if not request.is_ajax():
     #     return HttpResponseNotAllowed([])
@@ -189,13 +190,14 @@ def get_lineage(request, slug=None, org=None):
         ids = []
         for item in _ids:
             ids.extend([i.pk for i in item.get_family()])
+        if not ids:
+            return JsonResponse({})
     elif slug:
         item = Lineage.objects.get(protein__slug=slug)
         ids = item.get_family()
     else:
         ids = Lineage.objects.all().values_list('id', flat=True)
     # cache upfront everything we're going to need
-    print(len(ids))
     root_nodes = Lineage.objects\
         .filter(id__in=ids)\
         .select_related('protein', 'reference', 'protein__default_state')\
