@@ -1013,30 +1013,62 @@ def get_gb_data(file):
 
 def import_tree(filepath=None):
     from proteins.validators import validate_mutationset
+    from django.db import transaction
+    from proteins.models import Protein, Reference, Lineage
+    from django.db import IntegrityError
 
     if not filepath:
         filepath = os.path.join(BASEDIR, '_data/Lineage.xlsx')
-
-    from proteins.models import Protein, Reference, Lineage
-    from django.db import IntegrityError
 
     data = pd.read_excel(filepath)
     data = data.where((pd.notnull(data)), '').astype(str)
 
     nonames = []
-    for name in data['name']:
+    for rownum, (doi, author, year, name, parnt, mutation, alias, note) in data.iterrows():
         if name:
             try:
                 getprot(name)
             except Protein.DoesNotExist:
-                nonames.append(name)
+                nonames.append((name, doi, parnt, alias))
     if nonames:
         r = input('The following {} names do not exist in the database:\n{}'
                   '\nWould you like to create them? (y/n):  '
-                  .format(len(nonames), "\n".join(nonames)))
+                  .format(len(nonames), "\n".join([x[0] for x in nonames])))
         if r.lower() == 'y':
-            for name in nonames:
-                Protein.objects.create(name=name, created_by=SUPERUSER)
+            while True:
+                i = 0
+                n = 0
+                for name, doi, parnt, alias in nonames:
+                    try:
+                        if parnt:
+                            par = getprot(parnt)
+                            org = par.parent_organism
+                        else:
+                            org = None
+                        if doi:
+                            ref, _ = Reference.objects.get_or_create(doi=doi)
+                        else:
+                            ref = None
+                        p = Protein.objects.create(name=name, created_by=SUPERUSER,
+                                               primary_reference=ref,
+                                               parent_organism=org)
+                        print(p)
+                        p.status = 'approved'
+                        p.save()
+                        n += 1
+                    except Protein.DoesNotExist:
+                        continue
+                    except IntegrityError:
+                        continue
+
+                i += 1
+                if i > 100:
+                    print('more than 100 iterations...')
+                    break
+                if n == 0:
+                    print('nothing done...')
+                    break
+            print(f'{i} rounds total')
 
     for doi in data['ref']:
         if doi:
@@ -1100,3 +1132,23 @@ def import_tree(filepath=None):
                 print('\tChild: ', child)
                 print(e)
                 raise
+
+    # add missing parent orgs:
+    for name, doi, parnt, alias in nonames:
+        if Lineage.objects.filter(protein__name=name).exists:
+            L = Lineage.objects.get(protein__name=name)
+            root = L.get_root()
+            p = getprot(name)
+            p.parent_organism = root.protein.parent_organism
+            if p.name.startswith('d') and not p.agg:
+                p.agg = 'd'
+            if p.name.startswith('m') and not p.agg:
+                p.agg = 'm'
+            if p.name.startswith('td') and not p.agg:
+                p.agg = 'td'
+            p.save()
+    from proteins.util.maintain import add_missing_seqs, check_lineages
+    add_missing_seqs()
+    add_missing_seqs()
+    add_missing_seqs()
+    [s.save() for s in Lineage.objects.all()]
