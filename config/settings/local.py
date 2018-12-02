@@ -100,7 +100,7 @@ ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.
 
 SHELL_PLUS_POST_IMPORTS = [
     ('proteins.util.helpers', ('getprot', 'getmut', 'showalign')),
-    ('proteins.util.maintain', 'check_lineages'),
+    ('proteins.util', ('maintain', '_local')),
     ('fpseq', ('FPSeq', 'from_fpbase', 'MutationSet', 'get_mutations', 'mutate_sequence')),
 ]
 
