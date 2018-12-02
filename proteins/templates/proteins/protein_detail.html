@@ -247,21 +247,23 @@
                 <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>
               {% endif %}
             {% endif %}
-				</div>
-			</div>
+        </div>
+      </div>
 
-
-			{% if protein.seq %}
+      {% if protein.lineage %}
+          <p>{{protein.name}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: {{protein.lineage.mutation}}</p>
+      {% endif %}
+      {% if protein.seq %}
 
         <div class="mt-2">
           {% if protein.seq_comment %}
             <p class='text-info small mb-1'><span class='font-weight-bold'>Note</span>: {{ protein.seq_comment | safe}}</p>
           {% endif %}
-    			<div class='aminosequence container'>{{ protein.seq }}</div>
+          <div class='aminosequence container'>{{ protein.seq }}</div>
         </div>
-			{% else %}
-			    <p>no sequence available ... <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
-			{% endif %}
+      {% else %}
+          <p>no sequence available ... <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
+      {% endif %}
 
 			{% if protein.genbank or protein.uniprot or protein.ipg_id %}
 			<div class="row text-right justify-content-end">
