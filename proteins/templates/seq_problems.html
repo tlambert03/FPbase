@@ -49,6 +49,15 @@
   </ul>
 </div>
 
+<h4 class='font-weight-bold'>Lineage Problems</h4>
+<div>
+  <ul class="row">
+    {% for prot, prob in linprobs %}
+      <li class="col-12"><a href="{{prot.get_absolute_url}}">{{prot|safe}}</a>: {{prob.0}}</li>
+    {% endfor %}
+  </ul>
+</div>
+
 {% endblock %}
 
 

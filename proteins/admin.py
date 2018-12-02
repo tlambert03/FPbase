@@ -14,6 +14,7 @@ from mptt.admin import MPTTModelAdmin
 from proteins.models.lineage import MutationSetField
 from django.forms import TextInput
 from fpbase.util import uncache_protein_page
+from proteins.util.maintain import validate_node
 
 # from reversion.models import Version
 
@@ -508,14 +509,14 @@ class ProteinCollectionAdmin(admin.ModelAdmin):
 class LineageAdmin(MPTTModelAdmin):
     mptt_level_indent = 10
     mptt_indent_field = "protein"
-    list_display = ('protein', 'mutation_ellipsis', 'rootmut_ellipsis', 'created')
+    list_display = ('protein', 'mutation_ellipsis', 'rootmut_ellipsis', 'created', 'status')
     autocomplete_fields = ('protein', 'parent')
     search_fields = ('protein__name',)
-    readonly_fields = ('created', 'modified', 'rootmut', 'mutation_ellipsis')
+    readonly_fields = ('created', 'modified', 'rootmut', 'mutation_ellipsis', 'status', 'errors')
 
     fieldsets = [
         (None, {
-            'fields': ('protein', 'parent', 'mutation', 'rootmut')
+            'fields': ('protein', 'parent', 'mutation', 'rootmut', 'errors')
         }),
         ('Change History', {
             'classes': ('collapse',),
@@ -527,15 +528,36 @@ class LineageAdmin(MPTTModelAdmin):
         MutationSetField: {'widget': TextInput(attrs={'size': '100%'})},
     }
 
+    max_length = 25
+
     def mutation_ellipsis(self, obj):
-        if len(str(obj.mutation)) > 40:
-            return "%s..." % str(obj.mutation)[:40]
+        if len(str(obj.mutation)) > self.max_length:
+            return "%s..." % str(obj.mutation)[:self.max_length]
         return str(obj.mutation)
     mutation_ellipsis.short_description = 'Mutation from parent'
 
     def rootmut_ellipsis(self, obj):
-        if len(str(obj.rootmut)) > 40:
-            return "%s..." % str(obj.rootmut)[:40]
+        if len(str(obj.rootmut)) > self.max_length:
+            return "%s..." % str(obj.rootmut)[:self.max_length]
         return str(obj.rootmut)
     rootmut_ellipsis.short_description = 'Mutation from root'
+
+    def status(self, obj):
+        if obj.parent and obj.parent.protein.seq and obj.protein.seq:
+            try:
+                newseq = obj.parent.protein.seq.mutate(obj.mutation)
+                if newseq != obj.protein.seq:
+                    return mark_safe("⚠️")
+            except Exception:
+                return mark_safe("❌")
+        return ''
+    status.short_description = 'OK?'
+
+    def errors(self, obj):
+        errors = validate_node(obj)
+        return '\n'.join(errors)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('protein', 'parent__protein')
 

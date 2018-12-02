@@ -16,7 +16,7 @@
 
 
 $('.lineage').each(function(i, el){
-  $.getJSON("/ajax" + window.location.pathname, function(data){
+  $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
     var chart = LineageChart({
       withSearch: true,
       withToolbar: true,

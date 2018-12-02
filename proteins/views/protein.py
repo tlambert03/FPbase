@@ -26,6 +26,7 @@ from ..models import Protein, State, Organism, BleachMeasurement, Spectrum, Exce
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
                      BleachMeasurementForm, bleach_items_formset, BleachComparisonForm)
 from proteins.util.spectra import spectra2csv
+from proteins.util.maintain import check_lineages
 from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
@@ -402,6 +403,9 @@ def sequence_problems(request):
     mprobs = Protein.objects.annotate(sub=Substr('seq', 206, 1)).filter(sub='A', name__istartswith='m')
     mprobs = mprobs | Protein.objects.annotate(sub=Substr('seq', 207, 1)).filter(sub='A', name__istartswith='m')
 
+    linerrors = check_lineages()[0]
+    linprobs = [(node.protein, v) for node, v in linerrors.items()]
+
     return render(
         request,
         'seq_problems.html',
@@ -409,6 +413,7 @@ def sequence_problems(request):
             "histags": Protein.objects.filter(seq__icontains='HHHHHH'),
             "noseqs": Protein.objects.filter(seq__isnull=True),
             "mprobs": mprobs,
+            "linprobs": linprobs,
             "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith='M'),
             "noparent": Protein.objects.filter(parent_organism__isnull=True),
             'request': request

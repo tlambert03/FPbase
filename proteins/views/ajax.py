@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.core.mail import mail_managers
 from django.views.decorators.cache import cache_page
 from collections import defaultdict
+from proteins.util.maintain import validate_node
 import html
 
 from ..models import Protein, Organism, Spectrum, Fluorophore, Lineage
@@ -152,7 +153,7 @@ def validate_proteinname(request):
     return JsonResponse(data)
 
 
-def recursive_node_to_dict(node, widths=None, rootseq=None):
+def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
     if not widths:
         widths = defaultdict(int)
     widths[node.level] += 1
@@ -172,9 +173,12 @@ def recursive_node_to_dict(node, widths=None, rootseq=None):
         # if node.parent and node.parent.protein.seq:
         #     result['mut'] = str(node.mut_from_parent()),
 
+    if validate:
+        result['err'] = validate_node(node)
+
     children = []
     for c in node.get_children():
-        child, widths = recursive_node_to_dict(c, widths, rootseq)
+        child, widths = recursive_node_to_dict(c, widths, rootseq, validate)
         children.append(child)
     if children:
         result['children'] = children
@@ -210,7 +214,9 @@ def get_lineage(request, slug=None, org=None):
         'widths': defaultdict(int)
     }
     for n in sorted(root_nodes, key=lambda x: x.protein.name.lower()):
-        result, D['widths'] = recursive_node_to_dict(n, D['widths'], n.protein)
+        result, D['widths'] = recursive_node_to_dict(n, D['widths'],
+                                                     n.protein,
+                                                     request.GET.get('validate', '').lower() in ('1', 'true'))
         if 'children' in result:
             D['children'].append(result)
     D['max_width'] = max(D['widths'].values())

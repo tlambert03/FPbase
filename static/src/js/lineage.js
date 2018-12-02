@@ -231,7 +231,7 @@ export default function LineageChart(conf) {
         var nodeEnter = node
           .enter()
           .append("g")
-          .attr("class", "node")
+          .attr("class", function(d) { return "node" + ((d.hasOwnProperty('err') && d.err.length > 0) ? ' has-err' : '')})
           .attr("id", function(d){ return d.slug + "_circle"})
           .attr("transform", function(d) {
             return "translate(" + source.y0 + "," + source.x0 + ")";
@@ -353,7 +353,11 @@ export default function LineageChart(conf) {
             return text_position(d, slug, vertical)[2];
           })
           .text(function(d) {
-            return d.name;
+            var t = d.name;
+            if (d.hasOwnProperty('err') && d.err.length > 0){
+              t += ` ! (${d.err[0].replace('SequenceMismatch:  diff: ', '')})`;
+            }
+            return t
           })
           .attr("class", function(d) { return d.slug === slug ? 'font-weight-bold' : '' })
           .style("fill-opacity", 1e-6);
