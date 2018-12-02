@@ -5,13 +5,12 @@ from references.models import Reference
 from django.utils.translation import gettext_lazy as _
 from fpseq.mutations import MutationSet
 from django.core.exceptions import ValidationError
-from ..validators import validate_mutationset
 from ..models.mixins import Authorable
 from ..models import Protein
+from ..util.maintain import validate_node
 
 
 def parse_mutation(mut_string):
-    validate_mutationset(mut_string)
     try:
         return MutationSet(mut_string)
     except ValueError as e:
@@ -43,14 +42,29 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
     reference = models.ForeignKey(Reference, on_delete=models.CASCADE, null=True, blank=True, related_name='lineages')
     mutation = MutationSetField(max_length=400, blank=True)
     rootmut = models.CharField(max_length=400, blank=True)
+    root_node = models.ForeignKey('self', null=True, on_delete=models.CASCADE,
+                                  related_name='descendants',
+                                  verbose_name='Root Node')
 
     class MPTTMeta:
         order_insertion_by = ['protein']
 
     def save(self, *args, **kwargs):
+        try:
+            self.root_node = self.get_root()
+        except self.ObjectDoesNotExist:
+            self.root_node = None
         if self.pk and self.parent and self.parent.protein.seq and self.mutation:
             self.rootmut = self.mut_from_root()
-        super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
+
+    def mut_from_root(self, root=None):
+        if root:
+            if not isinstance(root, Protein):
+                raise ValueError('root argument must be a protein instance')
+        else:
+            root = self.root_node.protein
+        return self.mutation.relative_to_root(self.parent.protein.seq, root.seq)
 
     def __repr__(self):
         return '<Lineage: {}>'.format(self)
@@ -58,13 +72,20 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
     def __str__(self):
         return str(self.id)
 
-    def mut_from_root(self, root=None):
-        if root:
-            if not isinstance(root, Protein):
-                raise ValueError('root argument must be a protein instance')
-        else:
-            root = self.get_root().protein
-        return self.mutation.relative_to_root(self.parent.protein.seq, root.seq)
+    def clean(self):
+        E = {}
+        errors = validate_node(self)
+        for error in errors:
+            if error.startswith('MutationMismatch'):
+                E['mutation'] = ValidationError(error)
+            if error.startswith('Bad Mutation'):
+                E['mutation'] = ValidationError(error)
+            if error.startswith('SequenceMismatch'):
+                E['protein'] = ValidationError(error)
+            if error.startswith('ValueError'):
+                E['mutation'] = ValidationError(error)
+        if E:
+            raise ValidationError(E)
 
     def derive_mutation(self, root=None):
         ms = None
