@@ -16,7 +16,7 @@ import noUiSlider from 'nouislider';
 
     if (!String.prototype.endsWith) {
         String.prototype.endsWith = function(search, this_len) {
-            if (this_len === undefined || this_len > this.length) {
+            if (typeof this_len === 'undefined' || this_len > this.length) {
                 this_len = this.length;
             }
             return this.substring(this_len - search.length, this_len) === search;
@@ -168,7 +168,7 @@ import noUiSlider from 'nouislider';
         d = d || data;
         return d.filter(function(item) {
             for (var key in filter) {
-                if (item[key] === undefined || item[key] != filter[key])
+                if (typeof item[key] === 'undefined' || item[key] != filter[key])
                     return false;
             }
             return true;
@@ -366,9 +366,9 @@ import noUiSlider from 'nouislider';
         for (var n=0; n < data.length; n++){
             // only scale certain data by filter
             var skip = false;
-            if(data[n].scaled || data[n].scalar === undefined){ skip = true; }
+            if(data[n].scaled || typeof data[n].scalar === 'undefined'){ skip = true; }
             for (var key in filter) {
-                if (data[n][key] === undefined || data[n][key] != filter[key]){
+                if (typeof data[n][key] === 'undefined' || data[n][key] != filter[key]){
                     skip=true;
                     break;
                 }
@@ -391,7 +391,7 @@ import noUiSlider from 'nouislider';
             // only scale certain data by filter
             var skip = false;
             for (var key in filter) {
-                if (data[n][key] === undefined || data[n][key] != filter[key] || !Boolean(data[n].scaled)){
+                if (typeof data[n][key] === 'undefined' || data[n][key] != filter[key] || !Boolean(data[n].scaled)){
                     skip=true;
                     break;
                 }
@@ -1190,7 +1190,7 @@ import noUiSlider from 'nouislider';
         if (data[n].inverted & ($.inArray(data[n].slug, inverted) == -1)){
           data[n].values = invertData(data[n].values);
           data[n].inverted = false;
-        } else if ((data[n].inverted === undefined || !data[n].inverted) & $.inArray(data[n].slug, inverted) > -1 ){
+        } else if ((typeof data[n].inverted === 'undefined' || !data[n].inverted) & $.inArray(data[n].slug, inverted) > -1 ){
           data[n].values = invertData(data[n].values);
           data[n].inverted = true;
         }

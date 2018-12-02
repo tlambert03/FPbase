@@ -128,7 +128,7 @@ export default function initFRET(){
       d = d || data;
       return d.filter(function(item) {
           for (var key in filter) {
-              if (item[key] === undefined || item[key] != filter[key])
+              if (typeof item[key] === 'undefined' || item[key] != filter[key])
                   return false;
           }
           return true;

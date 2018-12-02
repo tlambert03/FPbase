@@ -72,7 +72,7 @@ export default function initSpectra(selection) {
         d = d || data;
         return d.filter(function(item) {
             for (var key in filter) {
-                if (item[key] === undefined || item[key] != filter[key])
+                if (typeof item[key] === 'undefined' || item[key] != filter[key])
                     return false;
             }
             return true;
@@ -165,9 +165,9 @@ export default function initSpectra(selection) {
         for (var n=0; n < data.length; n++){
             // only scale certain data by filter
             var skip = false;
-            if(data[n].scaled || data[n].scalar === undefined){ skip = true; }
+            if(data[n].scaled || typeof data[n].scalar === 'undefined'){ skip = true; }
             for (var key in filter) {
-                if (data[n][key] === undefined || data[n][key] != filter[key]){
+                if (typeof data[n][key] === 'undefined' || data[n][key] != filter[key]){
                     skip=true;
                     break;
                 }
@@ -190,7 +190,7 @@ export default function initSpectra(selection) {
             // only scale certain data by filter
             var skip = false;
             for (var key in filter) {
-                if (data[n][key] === undefined || data[n][key] != filter[key] || !Boolean(data[n].scaled)){
+                if (typeof data[n][key] === 'undefined' || data[n][key] != filter[key] || !Boolean(data[n].scaled)){
                     skip=true;
                     break;
                 }
