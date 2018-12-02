@@ -177,7 +177,7 @@ class Mutation(object):
             return
         if self.start_char and seq[startpos] != self.start_char:
             raise self.SequenceMismatch(
-                'Mutation {} starting at {}{} does not match the sequence provided: {} (with idx0={})'
+                'Mutation {} starting at {}{} does not match the parent seq: {} (with idx0={})'
                 .format(self, self.start_char, self.start_idx,
                         '{}>{}<{}'.format(seq[startpos - 3:startpos],
                                           seq[startpos],

@@ -92,7 +92,7 @@ class ParasailAlignment:
     def as_mutations(self, reference=None):
         from .mutations import _get_aligned_muts, MutationSet
         seq1, seq2 = self
-        mutstring = "/".join(_get_aligned_muts(*align_seqs(seq1, seq2)))
+        mutstring = "/".join(_get_aligned_muts(seq1, seq2))
         if reference is not None:
             return MutationSet(mutstring, parental_numbering(*align_seqs(reference, seq1)))
         return MutationSet(mutstring)

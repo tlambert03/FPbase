@@ -50,9 +50,15 @@ class FPSeq(SkbSequence):
         return align_seqs(str(self), str(other), **kwargs)
 
     def mutations_to(self, other, reference=None, **kwargs):
+        # allow reference to be provided as a name of a protein
+        if reference and len(reference) < 40 and (len(self) - len(reference)) > 40:
+            reference = from_fpbase(reference)
         return get_mutations(str(self), other, reference)
 
     def mutations_from(self, other, reference=None, **kwargs):
+        # allow reference to be provided as a name of a protein
+        if reference and len(reference) < 40 and (len(self) - len(reference)) > 40:
+            reference = from_fpbase(reference)
         return get_mutations(other, str(self), reference)
 
     def positions_relative_to(self, reference):
