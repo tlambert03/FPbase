@@ -4,7 +4,9 @@
 <ul style='list-style: none;'>
 {% for fav_obj in favorite_list %}
   {% with protein=fav_obj|get_object %}
-      <li>{% unfave_button protein %}<a href="{{ protein.get_absolute_url }}">{{ protein }}</a></li>
+      {% if protein %}
+        <li>{% unfave_button protein %}<a href="{{ protein.get_absolute_url }}">{{ protein }}</a></li>
+      {% endif %}
   {% endwith %}
 {% endfor %}
 </ul>

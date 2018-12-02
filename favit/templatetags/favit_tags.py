@@ -94,7 +94,10 @@ def favorites_count(obj):
 def get_object(fav):
     ct_id = fav.target_content_type_id
     model = ContentType.objects.get_for_id(ct_id).model_class()
-    return model.objects.get(id=fav.target_object_id)
+    try:
+        return model.objects.get(id=fav.target_object_id)
+    except model.DoesNotExist:
+        return None
 
 
 @register.simple_tag
