@@ -109,8 +109,10 @@ class FavoriteManager(models.Manager):
             song = Song.objects.get(pk=1)
             Favorite.objects.get_favorite(user, song)
         """
-
-        content_type, obj = _get_content_type_and_obj(obj, model)
+        try:
+            content_type, obj = _get_content_type_and_obj(obj, model)
+        except AttributeError:
+            return None
 
         try:
             return self.get_query_set().get(
