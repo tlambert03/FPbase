@@ -1024,62 +1024,70 @@ def import_tree(filepath=None):
     data = data.where((pd.notnull(data)), '').astype(str)
 
     nonames = []
-    for rownum, (doi, author, year, name, parnt, mutation, alias, note) in data.iterrows():
+    for rownum, (doi, author, year, name, parnt, mutation, aliases, note) in data.iterrows():
         if name:
             try:
                 getprot(name)
             except Protein.DoesNotExist:
-                nonames.append((name, doi, parnt, alias))
+                nonames.append((name, doi, parnt, aliases))
     if nonames:
-        r = input('The following {} names do not exist in the database:\n{}'
-                  '\nWould you like to create them? (y/n):  '
-                  .format(len(nonames), "\n".join([x[0] for x in nonames])))
-        if r.lower() == 'y':
-            while True:
-                i = 0
-                n = 0
-                for name, doi, parnt, alias in nonames:
+        #r = input('The following {} names do not exist in the database:\n{}'
+        #          '\nWould you like to create them? (y/n):  '
+        #          .format(len(nonames), "\n".join([x[0] for x in nonames])))
+        #if r.lower() == 'y':
+        while True:
+            i = 0
+            n = 0
+            for name, doi, parnt, aliases in nonames:
+                try:
                     try:
                         if parnt:
                             par = getprot(parnt)
                             org = par.parent_organism
                         else:
                             org = None
-                        if doi:
-                            ref, _ = Reference.objects.get_or_create(doi=doi)
-                        else:
-                            ref = None
-                        p = Protein.objects.create(name=name, created_by=SUPERUSER,
+                    except Exception:
+                        org = None
+                    if doi:
+                        ref, _ = Reference.objects.get_or_create(doi=doi.lower())
+                    else:
+                        ref = None
+                    p = Protein.objects.create(name=name, created_by=SUPERUSER,
                                                primary_reference=ref,
                                                parent_organism=org)
-                        print(p)
-                        p.status = 'approved'
-                        p.save()
-                        n += 1
-                    except Protein.DoesNotExist:
-                        continue
-                    except IntegrityError:
-                        continue
+                    print(p)
+                    if aliases:
+                        p.aliases = [a.strip() for a in aliases.split(',')]
+                    p.status = 'approved'
+                    p.save()
+                    n += 1
+                except Protein.DoesNotExist:
+                    continue
+                except IntegrityError as e:
+                    continue
 
-                i += 1
-                if i > 100:
-                    print('more than 100 iterations...')
-                    break
-                if n == 0:
-                    print('nothing done...')
-                    break
-            print(f'{i} rounds total')
+            i += 1
+            if i > 100:
+                print('more than 100 iterations...')
+                break
+            if n == 0:
+                print('nothing done...')
+                break
+        print(f'{i} rounds total')
 
     for doi in data['ref']:
         if doi:
+            doi = doi.lower()
             try:
                 Reference.objects.get(doi=doi)
             except Exception:
                 try:
+                    print('creating reference doi: ', doi)
                     Reference.objects.create(doi=doi, created_by=SUPERUSER)
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f'failed to add reference {doi}: {e}')
 
+    print('starting ... ')
     count = 1
     while count > 0:
         count = 0
@@ -1112,7 +1120,7 @@ def import_tree(filepath=None):
                     Lineage.objects.create(protein=child, parent=parent,
                                            reference=ref, mutation=mutation,
                                            created_by=SUPERUSER,)
-                    print("Created {} -> {}".format(parent, child))
+                    print("Created {} -> {}".format(parent.protein, child))
                     count += 1
                 elif child:
                     Lineage.objects.create(protein=child, parent=None, reference=ref,
@@ -1120,6 +1128,7 @@ def import_tree(filepath=None):
                     print("Created root: {}".format(child))
                     count += 1
             except IntegrityError as e:
+                # already created this one...
                 # print("IntegrityError: {}".format(e))
                 pass
             except Lineage.DoesNotExist:
