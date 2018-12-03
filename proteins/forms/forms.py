@@ -268,7 +268,6 @@ class BaseStateFormSet(forms.BaseInlineFormSet):
             # Don't bother validating the formset unless each form is valid on its own
             return
         names = []
-        darkcount = 0
         for form in self.forms:
             if not form.cleaned_data:
                 continue
@@ -276,9 +275,6 @@ class BaseStateFormSet(forms.BaseInlineFormSet):
             if name in names:
                 raise forms.ValidationError("Different states must have distinct names.")
             names.append(name)
-            darkcount += 1 if form.cleaned_data.get('is_dark') else 0
-            if darkcount > 1:
-                raise forms.ValidationError("A protein can only have a single dark state")
 
 
 StateFormSet = inlineformset_factory(Protein, State, form=StateForm, formset=BaseStateFormSet, extra=1, can_delete=True)
