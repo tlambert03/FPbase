@@ -101,7 +101,7 @@ class Mutation(object):
             raise ValueError('Unrecognized operation: {}'.format(self.operation))
         if self.operation == 'sub' and (stop_char or self.stop_idx):
             raise ValueError('Substitution mutations cannot specify a range (or a stop_char/idx)')
-        if stop_idx and (int(stop_idx) <= int(start_idx)):
+        if stop_idx and (int(stop_idx) < int(start_idx)):
             raise ValueError('Stop position ({}) must be greater than start position ({})'
                              .format(stop_idx, start_idx))
         if self.operation.endswith('ins'):
