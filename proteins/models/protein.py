@@ -58,8 +58,8 @@ def findname(name):
 class ProteinQuerySet(models.QuerySet):
 
     def fasta(self):
-        seqs = self.exclude(seq__isnull=True).values('slug', 'seq')
-        return io.StringIO("\n".join([">{slug}\n{seq}".format(**s) for s in seqs]))
+        seqs = self.exclude(seq__isnull=True).values('name', 'slug', 'seq')
+        return io.StringIO("\n".join([">{name}\n{seq}".format(**s) for s in seqs]))
 
     def to_tree(self, output='clw'):
         fasta = self.fasta()
