@@ -15,6 +15,7 @@ from proteins.models.lineage import MutationSetField
 from django.forms import TextInput
 from fpbase.util import uncache_protein_page
 from proteins.util.maintain import validate_node
+from django import forms
 
 # from reversion.models import Version
 
@@ -505,18 +506,28 @@ class ProteinCollectionAdmin(admin.ModelAdmin):
         return qs.prefetch_related('proteins')
 
 
+class LineageAdminForm(forms.ModelForm):
+    class Meta:
+        model = Lineage
+        fields = ("protein", "parent", "mutation", "root_node", "rootmut")
+    parent = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related('protein').all())
+    root_node = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related('protein').all())
+
+
 @admin.register(Lineage)
 class LineageAdmin(MPTTModelAdmin):
+    form = LineageAdminForm
     mptt_level_indent = 10
     mptt_indent_field = "protein"
     list_display = ('protein', 'mutation_ellipsis', 'rootmut_ellipsis', 'created', 'status')
     autocomplete_fields = ('protein', 'parent')
     search_fields = ('protein__name',)
-    readonly_fields = ('created', 'modified', 'rootmut', 'mutation_ellipsis', 'status', 'errors')
+    readonly_fields = ('created', 'modified', 'rootmut', 'mutation_ellipsis',
+                       'status', 'errors', 'root_node', 'protein')
 
     fieldsets = [
         (None, {
-            'fields': ('protein', 'parent', 'mutation', 'rootmut', 'errors')
+            'fields': ('protein', 'parent', 'mutation', 'root_node', 'rootmut', 'errors')
         }),
         ('Change History', {
             'classes': ('collapse',),
