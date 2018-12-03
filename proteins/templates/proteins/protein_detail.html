@@ -106,6 +106,7 @@
         <div class="spectra-overlay-div">
           <span data-toggle="tooltip" data-placement="top" title="Download spectra as csv"><a href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link'><i class="fas fa-download"></i></a></span>
           <span data-toggle="tooltip" data-placement="top" title="Generate spectra image/url" class='ml-2'><a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link"></i></a></span>
+          <span data-toggle="tooltip" data-placement="top" title="Add another spectrum" class='ml-2'><a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary spectra-overlay-link'><i class="fas fa-chart-area"></i><sup>+</sup></a></span>
         </div>
 
        <svg id="simple_spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
