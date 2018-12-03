@@ -2,6 +2,7 @@ import { library, dom } from '@fortawesome/fontawesome-svg-core';
 import {
     faBook,
     faCamera,
+    faChartArea,
     faCheck,
     faClock,
     faCog,
@@ -42,6 +43,7 @@ import { faTwitter, faGoogle } from '@fortawesome/free-brands-svg-icons';
 library.add(
     faBook,
     faCamera,
+    faChartArea,
     faCheck,
     faClock,
     faCog,
