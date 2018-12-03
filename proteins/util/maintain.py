@@ -34,7 +34,7 @@ def check_node_sequence_mutation_consistent(node, correct_offset=False):
     if node.protein.seq:
         if seq != node.protein.seq:
             ms = seq.mutations_to(node.protein.seq, node.root_node.protein.seq)
-            ms -= "/".join(NEUTRAL_MUTATIONS)
+            #ms -= "/".join(NEUTRAL_MUTATIONS)
             return ms
 
 
