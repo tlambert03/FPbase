@@ -10,6 +10,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def merge_proteins(merge_prot, into_prot):
+    # need to update favorites
+    from favit.models import Favorite
+    for fav in Favorite.objects.filter(target_object_id=merge_prot.id):
+        try:
+            fav.target_object_id = into_prot.id
+            fav.save()
+        except Exception:
+            fav.delete()
+    into_prot.aliases.append(merge_prot.name)
+    # need a LOT more work...
+
+
 def getprot(protein_name):
     from proteins.models import Protein
 

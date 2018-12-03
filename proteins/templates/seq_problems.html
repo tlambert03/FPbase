@@ -54,6 +54,8 @@
   <ul class="row">
     {% for prot, prob in linprobs %}
       <li class="col-12"><a href="{{prot.get_absolute_url}}">{{prot|safe}}</a>: {{prob.0}}</li>
+    {% empty %}
+      <p>None!</p>
     {% endfor %}
   </ul>
 </div>
