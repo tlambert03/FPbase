@@ -730,16 +730,16 @@ function createMutationSearch(selection) {
                             .attr({class: 'btn-group-toggle btn-group', 'data-toggle': 'buttons'})
 
    anyallgroup.append('label')
-           .attr({class: 'btn btn-outline-primary update-mutations mut-any active'})
-           .text('any')
-           .append('input')
-           .attr({type: 'radio', name: 'anyall', id: 'anytoggle', autocomplete: 'off'})
-
-   anyallgroup.append('label')
-           .attr({class: 'btn btn-outline-primary update-mutations mut-all'})
+           .attr({class: 'btn btn-outline-primary update-mutations mut-all active'})
            .text('all')
            .append('input')
            .attr({type: 'radio', name: 'anyall', id: 'alltoggle', autocomplete: 'off'});
+
+   anyallgroup.append('label')
+           .attr({class: 'btn btn-outline-primary update-mutations mut-any'})
+           .text('any')
+           .append('input')
+           .attr({type: 'radio', name: 'anyall', id: 'anytoggle', autocomplete: 'off'})
 
    var rightdiv = wrapperDiv.append('div').attr({class: 'input-group col-12 col-lg-4 mb-2'})
     rightdiv.append('div')
@@ -750,15 +750,14 @@ function createMutationSearch(selection) {
     var relativetogroup = rightdiv.append('div').attr({class: 'btn-group-toggle btn-group input-group-append', 'data-toggle': 'buttons'})
 
     relativetogroup.append('label')
-            .attr({class: 'btn btn-outline-primary update-mutations mut-parent active'})
-            .text('parent')
-            .append('input')
-            .attr({type: 'radio', name: 'parentroot', id: 'parenttoggle', autocomplete: 'off'})
-
-    relativetogroup.append('label')
-            .attr({class: 'btn btn-outline-primary update-mutations mut-root'})
+            .attr({class: 'btn btn-outline-primary update-mutations mut-root active'})
             .text('root')
             .append('input')
             .attr({type: 'radio', name: 'parentroot', id: 'roottoggle', autocomplete: 'off'});
 
+    relativetogroup.append('label')
+            .attr({class: 'btn btn-outline-primary update-mutations mut-parent'})
+            .text('parent')
+            .append('input')
+            .attr({type: 'radio', name: 'parentroot', id: 'parenttoggle', autocomplete: 'off'})
 }
