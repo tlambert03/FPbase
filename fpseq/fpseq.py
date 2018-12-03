@@ -51,12 +51,16 @@ class FPSeq(SkbSequence):
 
     def mutations_to(self, other, reference=None, **kwargs):
         # allow reference to be provided as a name of a protein
+        if other.__class__.__name__ == "Protein":
+            other = other.seq
         if reference and len(reference) < 40 and (len(self) - len(reference)) > 40:
             reference = from_fpbase(reference)
         return get_mutations(str(self), other, reference)
 
     def mutations_from(self, other, reference=None, **kwargs):
         # allow reference to be provided as a name of a protein
+        if other.__class__.__name__ == "Protein":
+            other = other.seq
         if reference and len(reference) < 40 and (len(self) - len(reference)) > 40:
             reference = from_fpbase(reference)
         return get_mutations(other, str(self), reference)
