@@ -50,27 +50,39 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         order_insertion_by = ['protein']
 
     def save(self, *args, **kwargs):
-        try:
-            self.root_node = self.get_root()
-        except self.ObjectDoesNotExist:
-            self.root_node = None
+        if self.pk:
+            try:
+                self.root_node = self.get_root()
+            except models.ObjectDoesNotExist:
+                self.root_node = None
+            update_root = False
+        else:
+            update_root = True
+
         if self.pk and self.parent and self.parent.protein.seq and self.mutation:
             self.rootmut = self.mut_from_root()
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
+        if update_root:
+            self.save()
 
     def mut_from_root(self, root=None):
         if root:
             if not isinstance(root, Protein):
                 raise ValueError('root argument must be a protein instance')
         else:
-            root = self.root_node.protein
+            if self.root_node:
+                root = self.root_node.protein
+            else:
+                root = self.get_root().protein
+        if not isinstance(self.mutation, MutationSet):
+            self.mutation = parse_mutation(self.mutation)
         return self.mutation.relative_to_root(self.parent.protein.seq, root.seq)
 
     def __repr__(self):
         return '<Lineage: {}>'.format(self)
 
     def __str__(self):
-        return str(self.id)
+        return str(self.protein)
 
     def clean(self):
         E = {}
@@ -81,7 +93,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
             if error.startswith('Bad Mutation'):
                 E['mutation'] = ValidationError(error)
             if error.startswith('SequenceMismatch'):
-                E['protein'] = ValidationError(error)
+                E['mutation'] = ValidationError(error)
             if error.startswith('ValueError'):
                 E['mutation'] = ValidationError(error)
         if E:
