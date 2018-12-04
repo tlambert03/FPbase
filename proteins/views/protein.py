@@ -23,7 +23,7 @@ from django.utils.decorators import method_decorator
 
 from fpbase.util import uncache_protein_page
 from ..models import Protein, State, Organism, BleachMeasurement, Spectrum, Excerpt
-from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet,
+from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet, LineageFormSet,
                      BleachMeasurementForm, bleach_items_formset, BleachComparisonForm)
 from proteins.util.spectra import spectra2csv
 from proteins.util.maintain import check_lineages
@@ -184,10 +184,11 @@ class ProteinCreateUpdateMixin:
         # This method is called when valid form data has been POSTed.
         context = self.get_context_data()
         states = context['states']
+        lineage = context['lineage']
 
         with transaction.atomic():
             # only save the form if all the states are also valid
-            if states.is_valid():
+            if states.is_valid() and lineage.is_valid():
                 with reversion.create_revision():
                     self.object = form.save()
                     doi = form.cleaned_data.get('reference_doi')
@@ -208,6 +209,26 @@ class ProteinCreateUpdateMixin:
                         if self.object.default_state == s:
                             self.object.default_state = None
                         s.delete()
+
+                    lineage.instance = self.object
+                    for s in lineage.save(commit=False):
+                        if not (s.parent or s.mutation):
+                            s.delete()
+                            self.object.lineage = None
+                        else:
+                            if not s.created_by:
+                                s.created_by = self.request.user
+                            s.updated_by = self.request.user
+                            s.save()
+                    for s in lineage.deleted_objects:
+                        s.delete()
+
+                    if hasattr(self.object, 'lineage'):
+                        if not self.object.seq:
+                            seq = self.object.lineage.parent.protein.seq.mutate(self.object.lineage.mutation)
+                            self.object.seq = str(seq)
+                        if not self.object.parent_organism:
+                            self.object.parent_organism = self.object.lineage.root_node.protein.parent_organism
 
                     if not self.request.user.is_staff:
                         self.object.status = 'pending'
@@ -275,8 +296,12 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
             data['states'] = StateFormSet(
                 self.request.POST, instance=self.object)
             data['states'].full_clean()  # why is this here?
+
+            data['lineage'] = LineageFormSet(
+                self.request.POST, instance=self.object)
         else:
             data['states'] = StateFormSet(instance=self.object)
+            data['lineage'] = LineageFormSet(instance=self.object)
             if self.object.primary_reference:
                 data['form'].fields['reference_doi'].initial = self.object.primary_reference.doi
         return data

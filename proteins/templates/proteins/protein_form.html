@@ -32,11 +32,28 @@
 	        <div class='row'>
 	        	<div class='col'>
 	        		{% crispy form %}
-				</div>
-			</div>
+				    </div>
+			    </div>
 
+      {% if lineage.non_form_errors %}
+        <div class="alert alert-danger" role="alert">
+          {{ lineage.non_form_errors }}
+        </div>
+      {% endif %}
+      {{ lineage.management_form|crispy }}
+      {% for lineageform in lineage.forms %}
+        {% for hidden in lineageform.hidden_fields %}
+              {{ hidden }}
+          {% endfor %}
+    <div class="row">
+      <div class='col lineage-col'>
+        {% if lineageform.instance.pk %}{{ lineageform.DELETE }}{% endif %}
+        {% crispy lineageform lineageform.helper %}
+      </div>
+        </div>
+      {% endfor %}  <!-- end formset loop  -->
 
-			<div class="small alert alert-info alert-dismissible fade show" role="alert">
+			<div class="small alert alert-info alert-dismissible fade show mt-2" role="alert">
 			  <div class='h5 text-info'><i class="fas fa-info-circle mr-2 "></i> <strong>States</strong></div>
 			  FPbase uses <strong>states</strong> to encapsulate the various fluorescence characteristics that a protein can have.  Even a constitutively active "basic" protein is given a (single) state.  Rather than directly specifying the "type" of protein, FPbase uses the number of states and transitions between them to determine the type of fluorescent protein.<br><br>
 

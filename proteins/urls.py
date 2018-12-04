@@ -71,6 +71,7 @@ urlpatterns = [
     url(r'^protein/(?P<slug>[-\w]+)/ver/(?P<ver>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
 
     url(r'^autocomplete-protein/$', views.ProteinAutocomplete.as_view(), name='protein-autocomplete',),
+    url(r'^autocomplete-lineage/$', views.LineageAutocomplete.as_view(), name='lineage-autocomplete',),
     url(r'^autocomplete-state/$', views.StateAutocomplete.as_view(), name='state-autocomplete',),
     url(r'^autocomplete-filter/$', views.FilterAutocomplete.as_view(), name='filter-autocomplete',),
 

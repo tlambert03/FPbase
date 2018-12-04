@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 import re
 from dal import autocomplete
-from proteins.models import (Protein, State, StateTransition,
+from proteins.models import (Protein, State, StateTransition, Lineage,
                              ProteinCollection, BleachMeasurement)
 from references.models import Reference  # breaks application modularity
 
@@ -304,6 +304,61 @@ class StateTransitionForm(forms.ModelForm):
 
 
 StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=StateTransitionForm, extra=1)
+
+
+class LineageForm(forms.ModelForm):
+
+    parent = forms.ModelChoiceField(
+        help_text='Direct ancestor of this protein',
+        required=False,
+        queryset=Lineage.objects.all().prefetch_related('protein'),
+        widget=autocomplete.ModelSelect2(
+            url='proteins:lineage-autocomplete',
+            attrs={
+                'data-theme': 'bootstrap',
+                'data-width': "100%",
+                'data-placeholder': '----------',
+            })
+    )
+
+    class Meta:
+        model = Lineage
+        fields = ('protein', 'parent', 'mutation')
+        help_texts = {
+            'mutation': 'Mutations <em>relative to parent</em> in '
+                        '<a href="http://varnomen.hgvs.org/recommendations/protein/" '
+                        'target="_blank" rel="noopener">HGVS nomenclature</a>, separated by "/"'
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.disable_csrf = True
+        self.helper.layout = Layout(
+            Div(
+                Div('parent', css_class='col-sm-6'),
+                Div('mutation', css_class='col-sm-6'),
+                css_class='row',
+            ),
+        )
+
+
+class BaseLineageFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+        for form in self.forms:
+            if not form.cleaned_data:
+                continue
+            parent = form.cleaned_data.get('parent')
+            mutation = form.cleaned_data.get('mutation')
+            if (parent and not mutation) or (mutation and not parent):
+                raise forms.ValidationError("Both parent and mutation are required when providing lineage information")
+
+
+LineageFormSet = inlineformset_factory(Protein, Lineage, form=LineageForm, formset=BaseLineageFormSet, extra=1, can_delete=False)
 
 
 class CollectionForm(forms.ModelForm):

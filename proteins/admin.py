@@ -132,14 +132,11 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
     bleach_links.short_description = 'BleachMeasurements'
 
 
-# class FRETpairInline(admin.TabularInline):
-#     model = FRETpair
-#     autocomplete_fields = ("pair_references", 'acceptor')
-#     extra = 1
-#     can_delete = True
-#     show_change_link = True
-#     fk_name = 'donor'  # or 'acceptor'
-#     fields = ('acceptor', 'radius', 'pair_references')
+class LineageInline(admin.TabularInline):
+    model = Lineage
+    autocomplete_fields = ('parent', 'root_node')
+    readonly_fields = ('root_node', 'created_by', 'created', 'updated_by')
+    fields = ('parent', 'mutation', 'created_by', 'created')
 
 
 # ############# MODELS ###############
@@ -357,7 +354,7 @@ class ProteinAdmin(CompareVersionAdmin):
     list_filter = ('status', 'created', 'modified', 'switch_type',)
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
-    inlines = (StateInline, StateTransitionInline, OSERInline, ExcerptInline)
+    inlines = (StateInline, StateTransitionInline, OSERInline, ExcerptInline, LineageInline)
     fieldsets = [
         (None, {
             'fields': (('name', 'slug',), ('aliases', 'chromophore'),
