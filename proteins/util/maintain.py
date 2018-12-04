@@ -31,25 +31,24 @@ def check_node_sequence_mutation_consistent(node, correct_offset=False):
     else:
         seq = parent.mutate(node.mutation)
 
-    if node.protein.seq:
-        if seq != node.protein.seq:
-            ms = seq.mutations_to(node.protein.seq, node.root_node.protein.seq)
-            #ms -= "/".join(NEUTRAL_MUTATIONS)
-            return ms
+    if node.protein.seq and seq != node.protein.seq:
+        ms = seq.mutations_to(node.protein.seq)
+        #ms -= "/".join(NEUTRAL_MUTATIONS)
+        return ms
 
 
 def validate_node(node):
+    if not node.mutation:
+        return []
     errors = []
     # check that the mutation aligns with parent and actually yields the sequence
     try:
         if node.parent and node.parent.protein.seq:
             ms = check_node_sequence_mutation_consistent(node)
             if ms:
-                errors.append(f'SequenceMismatch: parent({node.parent.protein}) + mut({node.mutation}) != seq -> Δ:{ms}')  # noqa
+                errors.append(f'{node.parent.protein} + {node.mutation} does not match the current {node.protein} sequence (Δ: {ms})')  # noqa
     except Mutation.SequenceMismatch as e:
-        errors.append('MutationMismatch: {}'.format(e))
-    except ValueError as e:
-        errors.append('ValueError: {}'.format(e))
+        errors.append(str(e).replace('parent', node.parent.protein.name))
     return errors
 
 

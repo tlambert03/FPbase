@@ -177,22 +177,18 @@ class Mutation(object):
             return
         if self.start_char and seq[startpos] != self.start_char:
             raise self.SequenceMismatch(
-                'Mutation {} starting at {}{} does not match the parent seq: {} (with idx0={})'
-                .format(self, self.start_char, self.start_idx,
-                        '{}>{}<{}'.format(seq[startpos - 3:startpos],
-                                          seq[startpos],
-                                          seq[startpos + 1:startpos + 4]),
-                        idx0))
+                'Mutation {} does not match the parent seq: {}.'
+                .format(self, '{}>{}<{}'.format(seq[startpos - 3:startpos],
+                                                seq[startpos],
+                                                seq[startpos + 1:startpos + 4])))
         if self.stop_idx and self.stop_char:
             stoppos = self.stop_idx - idx0
             if not seq[stoppos] == self.stop_char:
                 raise self.SequenceMismatch(
-                    'Mutation {} stopping at {}{} does not match the sequence provided: {} (with idx0={})'
-                    .format(self, self.stop_char, self.stop_idx,
-                            '{}>{}<{}'.format(seq[stoppos - 3:stoppos],
-                                              seq[stoppos],
-                                              seq[stoppos + 1:stoppos + 4]),
-                            idx0))
+                    'Mutation {} does not match the sequence provided: {}'
+                    .format(self, '{}>{}<{}'.format(seq[stoppos - 3:stoppos],
+                                                    seq[stoppos],
+                                                    seq[stoppos + 1:stoppos + 4])))
 
     @classmethod
     def from_str(cls, mutstring, sep='/'):
@@ -350,7 +346,7 @@ class MutationSet(object):
         for mut in self.muts:
             try:
                 mut._assert_position_consistency(seq, shift)
-            except Mutation.SequenceMismatch:
+            except Mutation.SequenceMismatch as e:
                 offset = self.detect_offset(seq)
                 if offset:
                     if correct_offset:
@@ -359,12 +355,10 @@ class MutationSet(object):
                                       'set, and automatically corrected'.format(offset))
                         shift -= offset
                     else:
-                        print('MutationSet does not match sequence, but a match '
-                              'was found {} positions off.  Use correct_offset'
-                              '=True to auto-apply'.format(offset))
-                        raise
+                        raise Mutation.SequenceMismatch('{}. But a match was found {} position{} away: {}'
+                            .format(str(e), offset, 's' if abs(offset) > 1 else '', self.shift(offset))) from e
                 else:
-                    raise
+                    raise e
         for mut in self:
             seq, new_offset = mut(seq, shift)
             shift -= new_offset

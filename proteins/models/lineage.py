@@ -88,14 +88,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         E = {}
         errors = validate_node(self)
         for error in errors:
-            if error.startswith('MutationMismatch'):
-                E['mutation'] = ValidationError(error)
-            if error.startswith('Bad Mutation'):
-                E['mutation'] = ValidationError(error)
-            if error.startswith('SequenceMismatch'):
-                E['mutation'] = ValidationError(error)
-            if error.startswith('ValueError'):
-                E['mutation'] = ValidationError(error)
+            E['mutation'] = ValidationError(error)
         if E:
             raise ValidationError(E)
 
