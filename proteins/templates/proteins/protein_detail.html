@@ -137,7 +137,7 @@
               {% else %}
               <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>&lt;add one&gt;</a>
               {% endif %}</td>
-            <td>{{ protein.seq.weight|floatformat:"1" }} kDa</td>
+            <td>{{ protein.seq.weight|floatformat:"1" }} {% if protein.seq %} kDa{% else %}-{% endif %}</td>
             <td>{{protein.get_cofactor_display|default:'-' }}</td>
           </tr>
 
@@ -252,9 +252,9 @@
       </div>
 
       {% if protein.lineage and protein.lineage.parent %}
-          <p class="small text-muted">{{protein.name}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span><span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
-          {% if protein.lineage.root_node != protein.lineage.parent and protein.lineage.mutation != protein.lineage.rootmut %}
-          (amino acid numbers relative to <span class="mut-rel-parent hidden">{{protein.lineage.parent.protein}}</span><span class="mut-rel-root">{{protein.lineage.root_node}}</span>. <a href="" onclick="myFunction(event)" class="mut-rel-parent hidden text-secondary">show relative to {{protein.lineage.root_node}}</a><a href="" onclick="myFunction(event)" class="mut-rel-root text-secondary">show relative to {{protein.lineage.parent.protein}}</a>)
+          <p class="text-muted">{{protein.name}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span><span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
+          {% if protein.lineage.root_node != protein.lineage.parent and protein.lineage.mutation != protein.lineage.rootmut %}<span class="small">
+          amino acid numbers relative to <span class="mut-rel-parent hidden">{{protein.lineage.parent.protein}}</span><span class="mut-rel-root">{{protein.lineage.root_node}}</span>. <a href="" onclick="myFunction(event)" class="mut-rel-parent hidden text-secondary">show relative to {{protein.lineage.root_node}}</a><a href="" onclick="myFunction(event)" class="mut-rel-root text-secondary">show relative to {{protein.lineage.parent.protein}}</a></span>
           {% endif %}
           </p>
           <script>
