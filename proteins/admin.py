@@ -507,19 +507,20 @@ class LineageAdminForm(forms.ModelForm):
     class Meta:
         model = Lineage
         fields = ("protein", "parent", "mutation", "root_node", "rootmut")
-    parent = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related('protein').all())
+        readonly_fields = ('root_node')
+    parent = forms.ModelChoiceField(required=False, queryset=Lineage.objects.prefetch_related('protein').all())
     root_node = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related('protein').all())
 
 
 @admin.register(Lineage)
-class LineageAdmin(MPTTModelAdmin):
+class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
     form = LineageAdminForm
     mptt_level_indent = 10
     mptt_indent_field = "protein"
     list_display = ('protein', 'mutation_ellipsis', 'rootmut_ellipsis', 'created', 'status')
     autocomplete_fields = ('protein', 'parent')
     search_fields = ('protein__name',)
-    readonly_fields = ('created', 'modified', 'rootmut', 'mutation_ellipsis',
+    readonly_fields = ('created', 'modified', 'created_by', 'updated_by', 'rootmut', 'mutation_ellipsis',
                        'status', 'errors', 'root_node', 'protein')
 
     fieldsets = [
@@ -528,7 +529,7 @@ class LineageAdmin(MPTTModelAdmin):
         }),
         ('Change History', {
             'classes': ('collapse',),
-            'fields': (('created', 'modified'))
+            'fields': (('created', 'created_by', 'modified', 'updated_by'))
         })
     ]
 
@@ -569,3 +570,8 @@ class LineageAdmin(MPTTModelAdmin):
         qs = super().get_queryset(request)
         return qs.prefetch_related('protein', 'parent__protein')
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, **kwargs)
+        form.base_fields['parent'].queryset = Lineage.objects.exclude(id=obj.id)\
+            .prefetch_related('protein').all().order_by('protein__name')
+        return form
