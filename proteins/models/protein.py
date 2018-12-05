@@ -58,7 +58,7 @@ def findname(name):
 class ProteinQuerySet(models.QuerySet):
 
     def fasta(self):
-        seqs = self.exclude(seq__isnull=True).values('name', 'slug', 'seq')
+        seqs = self.exclude(seq__isnull=True).values('name', 'seq')
         return io.StringIO("\n".join([">{name}\n{seq}".format(**s) for s in seqs]))
 
     def to_tree(self, output='clw'):
@@ -202,9 +202,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     BILIVERDIN = 'bv'
     FLAVIN = 'fl'
+    PHYCOCYANOBILIN = 'pcb'
     COFACTOR_CHOICES = (
         (BILIVERDIN, 'Biliverdin'),
         (FLAVIN, 'Flavin'),
+        (PHYCOCYANOBILIN, 'Phycocyanobilin'),
     )
 
     # Attributes
