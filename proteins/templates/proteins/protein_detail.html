@@ -466,6 +466,9 @@
       $('.lineage').each(function(i, el) {
         var slug = $(el).data('slug') || '';
         $.getJSON('/ajax/lineage/' + slug, function(data) {
+          if (!data.children.length > 0){
+            return
+          }
           var linchart = LineageChart({slug: slug}).data(data);
           var lineage = d3.select(el);
           lineage.call(linchart);
