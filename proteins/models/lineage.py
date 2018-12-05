@@ -50,20 +50,22 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         order_insertion_by = ['protein']
 
     def save(self, *args, **kwargs):
-        if self.pk:
+        if not self.pk:
+            kwargs['force_insert'] = False
+            super().save(*args, **kwargs)
+        if self.parent:
             try:
                 self.root_node = self.get_root()
             except models.ObjectDoesNotExist:
                 self.root_node = None
-            update_root = False
         else:
-            update_root = True
+            self.root_node = None
 
-        if self.pk and self.parent and self.parent.protein.seq and self.mutation:
+        if self.pk and self.parent and self.parent.protein.seq:
             self.rootmut = self.mut_from_root()
+        else:
+            self.rootmut = ''
         super().save(*args, **kwargs)
-        if update_root:
-            self.save()
 
     def mut_from_root(self, root=None):
         if root:
