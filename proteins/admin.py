@@ -521,7 +521,7 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
     autocomplete_fields = ('protein', 'parent')
     search_fields = ('protein__name',)
     readonly_fields = ('created', 'modified', 'created_by', 'updated_by', 'rootmut', 'mutation_ellipsis',
-                       'status', 'errors', 'root_node', 'protein')
+                       'status', 'errors', 'root_node')
 
     fieldsets = [
         (None, {
@@ -572,6 +572,8 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, **kwargs)
-        form.base_fields['parent'].queryset = Lineage.objects.exclude(id=obj.id)\
-            .prefetch_related('protein').all().order_by('protein__name')
+        qs = Lineage.objects.prefetch_related('protein').all().order_by('protein__name')
+        if obj and hasattr(obj, 'id'):
+            qs = qs.exclude(id=obj.id)
+        form.base_fields['parent'].queryset = qs
         return form
