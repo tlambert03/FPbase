@@ -1,6 +1,5 @@
 from django import forms
 from django.utils.text import slugify
-from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 import re
@@ -95,7 +94,12 @@ class ProteinForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['seq'].disabled = self.instance.seq_validated
+        #self.fields['seq'].disabled = self.instance.seq_validated
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            if instance.seq_validated:
+                self.fields['seq'].widget.attrs['readonly'] = True
+
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.error_text_inline = True
@@ -121,7 +125,7 @@ class ProteinForm(forms.ModelForm):
             ),
             Div(
                 Div('seq', css_class='col'),
-                css_class='hidden' if self.instance.seq_validated else 'row',
+                css_class='row',
             )
         )
 
@@ -134,10 +138,10 @@ class ProteinForm(forms.ModelForm):
         }
         help_texts = {
             'aliases': 'Comma separated list of aliases',
-            'pdb': 'Comma separated list of <a href="https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html" target="_blank" rel="noopener">PDB IDs</a>',
-            'ipg_id': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/" target="_blank" rel="noopener">Identical Protein Group ID</a>',
-            'genbank': 'NCBI <a href="https://www.ncbi.nlm.nih.gov/genbank/sequenceids/" target="_blank" rel="noopener">GenBank ID</a>',
-            'uniprot': '<a href="https://www.uniprot.org/help/accession_numbers" target="_blank" rel="noopener">UniProt accession number</a>'
+            'pdb': 'Comma separated list of <a class="text-info" href="https://www.rcsb.org/pdb/staticHelp.do?p=help/advancedsearch/pdbIDs.html" target="_blank" rel="noopener">PDB IDs</a>',
+            'ipg_id': 'NCBI <a class="text-info" href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/" target="_blank" rel="noopener">Identical Protein Group ID</a>',
+            'genbank': 'NCBI <a class="text-info" href="https://www.ncbi.nlm.nih.gov/genbank/sequenceids/" target="_blank" rel="noopener">GenBank ID</a>',
+            'uniprot': '<a class="text-info" href="https://www.uniprot.org/help/accession_numbers" target="_blank" rel="noopener">UniProt accession number</a>'
         }
         widgets = {
             'parent_organism': SelectAddWidget(),
@@ -309,7 +313,7 @@ StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=St
 class LineageForm(forms.ModelForm):
 
     parent = forms.ModelChoiceField(
-        help_text='Direct ancestor of this protein',
+        help_text='Direct evolutionary ancestor (must have ancestor of its own to appear)',
         required=False,
         queryset=Lineage.objects.all().prefetch_related('protein'),
         widget=autocomplete.ModelSelect2(
@@ -325,13 +329,29 @@ class LineageForm(forms.ModelForm):
         model = Lineage
         fields = ('protein', 'parent', 'mutation')
         help_texts = {
-            'mutation': 'Mutations <em>relative to parent</em> in '
-                        '<a href="http://varnomen.hgvs.org/recommendations/protein/" '
-                        'target="_blank" rel="noopener">HGVS nomenclature</a>, separated by "/"'
+            'mutation': 'Mutations with <u><em>numbering relative to parent</em></u> in '
+                        '<a class="text-info" href="http://varnomen.hgvs.org/recommendations/protein/" '
+                        'target="_blank" rel="noopener">HGVS nomenclature</a>'
         }
+
+    def clean(self):
+        if not self.cleaned_data:
+            return
+        parent = self.cleaned_data.get('parent')
+        mutation = self.cleaned_data.get('mutation')
+        if (parent and not mutation) or (mutation and not parent):
+            raise forms.ValidationError('Both parent and mutation are '
+                                        'required when providing lineage information')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            if instance.protein.seq_validated or instance.children.exists():
+                self.fields['mutation'].widget.attrs['readonly'] = True
+                self.fields['parent'].widget.attrs['readonly'] = True
+
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.disable_csrf = True
@@ -340,25 +360,11 @@ class LineageForm(forms.ModelForm):
                 Div('parent', css_class='col-sm-6'),
                 Div('mutation', css_class='col-sm-6'),
                 css_class='row',
-            ),
+            )
         )
 
 
-class BaseLineageFormSet(forms.BaseInlineFormSet):
-    def clean(self):
-        if any(self.errors):
-            # Don't bother validating the formset unless each form is valid on its own
-            return
-        for form in self.forms:
-            if not form.cleaned_data:
-                continue
-            parent = form.cleaned_data.get('parent')
-            mutation = form.cleaned_data.get('mutation')
-            if (parent and not mutation) or (mutation and not parent):
-                raise forms.ValidationError("Both parent and mutation are required when providing lineage information")
-
-
-LineageFormSet = inlineformset_factory(Protein, Lineage, form=LineageForm, formset=BaseLineageFormSet, extra=1, can_delete=False)
+LineageFormSet = inlineformset_factory(Protein, Lineage, form=LineageForm, extra=1, can_delete=False)
 
 
 class CollectionForm(forms.ModelForm):
