@@ -43,7 +43,7 @@ urlpatterns = [
     url(r'^compare/$', views.ComparisonView.as_view(), name='compare'),
     url(r'^compare/(?P<proteins>[\w,\-]+)/$', views.ComparisonView.as_view(), name='compare'),
 
-    url(r'^lineage/', TemplateView.as_view(template_name='lineage.html'), name='lineage'),
+    url(r'^lineage/', TemplateView.as_view(template_name='lineage.html'), name='lineage-list'),
     url(r'^chart/', TemplateView.as_view(template_name='ichart.html'), name='ichart'),
     url(r'^collections/(?P<owner>[\w.@+-]+)/?$', views.CollectionList.as_view(), name='collections'),
     url(r'^collections/', views.CollectionList.as_view(), name='collections'),
