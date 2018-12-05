@@ -1040,40 +1040,35 @@ def import_tree(filepath=None):
             n = 0
             for name, doi, parnt, aliases in nonames:
                 try:
-                    try:
-                        if parnt:
-                            par = getprot(parnt)
-                            org = par.parent_organism
-                        else:
-                            org = None
-                    except Exception:
-                        org = None
-                    if doi:
-                        ref, _ = Reference.objects.get_or_create(doi=doi.lower())
+                    if parnt:
+                        par = getprot(parnt)
+                        org = par.parent_organism
                     else:
-                        ref = None
+                        org = None
+                except Exception:
+                    org = None
+                if doi:
+                    ref, _ = Reference.objects.get_or_create(doi=doi.lower())
+                else:
+                    ref = None
+
+                if not Protein.objects.filter(name=name).exists():
                     p = Protein.objects.create(name=name, created_by=SUPERUSER,
                                                primary_reference=ref,
                                                parent_organism=org)
-                    print(p)
+                    print("Created new protein: ", p)
                     if aliases:
                         p.aliases = [a.strip() for a in aliases.split(',')]
                     p.status = 'approved'
                     p.save()
                     n += 1
-                except Protein.DoesNotExist:
-                    continue
-                except IntegrityError as e:
-                    continue
 
             i += 1
             if i > 100:
                 print('more than 100 iterations...')
                 break
             if n == 0:
-                print('nothing done...')
                 break
-        print(f'{i} rounds total')
 
     for doi in data['ref']:
         if doi:
@@ -1083,7 +1078,7 @@ def import_tree(filepath=None):
             except Exception:
                 try:
                     print('creating reference doi: ', doi)
-                    Reference.objects.create(doi=doi, created_by=SUPERUSER)
+                    Reference.objects.create(doi__iexact=doi, created_by=SUPERUSER)
                 except Exception as e:
                     print(f'failed to add reference {doi}: {e}')
 
@@ -1110,37 +1105,44 @@ def import_tree(filepath=None):
                     print('Could not find parent ', parnt)
                     continue
             try:
-                ref = Reference.objects.get(doi=doi)
+                ref = Reference.objects.get(doi__iexact=doi)
             except Reference.DoesNotExist:
                 ref = None
 
-            try:
-                if parent:
+            if parent and not Lineage.objects.filter(protein=child).exists():
+                try:
                     parent = Lineage.objects.get(protein=parent)
-                    Lineage.objects.create(protein=child, parent=parent,
+                except Lineage.DoesNotExist:
+                    continue
+                L = Lineage.objects.create(protein=child, parent=parent,
                                            reference=ref, mutation=mutation,
                                            created_by=SUPERUSER,)
-                    print("Created {} -> {}".format(parent.protein, child))
-                    count += 1
-                elif child:
-                    Lineage.objects.create(protein=child, parent=None, reference=ref,
+                print("Created {} -> {}".format(L.parent, L.protein))
+                count += 1
+            elif child and not Lineage.objects.filter(protein=child).exists():
+                # create a root node
+                L = Lineage.objects.create(protein=child, parent=None, reference=ref,
                                            mutation=mutation, created_by=SUPERUSER)
-                    print("Created root: {}".format(child))
-                    count += 1
-            except IntegrityError as e:
-                # already created this one...
-                # print("IntegrityError: {}".format(e))
-                pass
-            except Lineage.DoesNotExist:
-                pass
-            except Exception as e:
-                try:
-                    print('\tParent: ', parent)
-                except Exception:
-                    pass
-                print('\tChild: ', child)
-                print(e)
-                raise
+
+                print("Created root: {}".format(L.protein))
+                count += 1
+            # except IntegrityError as e:
+            #     # already created this one...
+            #     # print("\t\tIntegrityError: {}".format(e))
+            #     pass
+            # except Lineage.DoesNotExist as e:
+            #     # parent doesn't exist yet... wait a minute
+            #     print("DoesNotExist: {}".format(e))
+            #     pass
+            # except Exception as e:
+            #     print(e)
+            #     try:
+            #         print('\tParent: ', parent)
+            #     except Exception:
+            #         pass
+            #     print('\tChild: ', child)
+            #     print(e)
+            #     raise
 
     # add missing parent orgs:
     for name, doi, parnt, alias in nonames:
