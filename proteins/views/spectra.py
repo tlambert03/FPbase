@@ -14,6 +14,7 @@ from ..forms import SpectrumForm
 from ..util.spectra import spectra2csv
 from ..util.importers import add_filter_to_database
 from ..util.helpers import forster_list
+from fpbase.util import uncache_protein_page
 
 
 @cache_page(60 * 10)
@@ -108,6 +109,10 @@ class SpectrumCreateView(CreateView):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
         i = super().form_valid(form)
+        try:
+            uncache_protein_page(self.object.owner_state.protein.slug, self.request)
+        except Exception:
+            pass
         if not self.request.user.is_staff:
             EmailMessage(
                 '[FPbase] Spectrum submitted: %s' % form.cleaned_data['owner'],
