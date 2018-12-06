@@ -181,6 +181,11 @@ export default function LineageChart(conf) {
 
       // Otherwise, create the skeletal chart.
       var svgEnter = svg.enter().append("svg").style('width', "100%");
+      var svgDefs = svgEnter.append('defs')
+      svgDefs.append('radialGradient').attr('id', 'unknown_gradient').html(
+        '<stop offset="10%" stop-color="#bcbcbc"/> \
+         <stop offset="80%" stop-color="#ccc"/> '
+        )
       var gEnter = svgEnter.append("g");
       addDrawDropShadow(svg, dropShadow);
 
@@ -247,8 +252,11 @@ export default function LineageChart(conf) {
           .attr("r", 1e-6)
           .style("filter", "url(#shadow);")
           .style("fill", function(d) {
-            if (d.bg && d.bg.startsWith("<stop")) {
-              svg.select('defs').append('linearGradient').attr('id', d.slug.replace('0', 'XX') + '_svggradient').html(d.bg)
+            if (d.bg && d.bg.startsWith("linear:")) {
+              svg.select('defs').append('linearGradient')
+                  // the 0 -> XX is a hack to fix a weird name-changing bug
+                  .attr('id', d.slug.replace('0', 'XX') + '_svggradient')
+                  .html(d.bg.replace('linear:', ''))
             }
           })
           .on("mouseover", function(d) {
@@ -378,8 +386,10 @@ export default function LineageChart(conf) {
             return d._children ? defaultRadius/2 : (d.slug === slug ? slugRadius : defaultRadius);
           })
           .style("fill", function(d) {
-            if (d.bg && d.bg.startsWith("<stop")) {
+            if (d.bg && d.bg.startsWith("linear:")) {
               return "url(#" + d.slug.replace('0', 'XX') + "_svggradient)";
+            } else if (d.bg == '?') {
+              return "url(#unknown_gradient)";
             }
             return d.bg == "#222" ? "#888" : d.bg;
           })
@@ -663,7 +673,7 @@ export default function LineageChart(conf) {
  */
 function addDrawDropShadow(svg, dropShadow) {
   if (!d3.select('#dropshadow').node()){
-    var filter = svg.append('defs')
+    var filter = svg.select('defs')
         .append('filter')
             .attr('id', 'dropshadow')
             // x, y, width and height represent values in the current coordinate system that results
@@ -695,20 +705,6 @@ function resetDropShadow() {
   svg.selectAll('circle')
     .attr('filter', null);
 }
-
-function updateDropShadowValues(dropShadow) {
-  var keys = Object.keys(inputs);
-
-  keys.forEach(function(key) {
-    dropShadow[key] = inputs[key].property('value');
-  });
-
-  svg.selectAll('defs').remove();
-
-  addDrawDropShadow();
-  applyDropShadow();
-}
-
 
 
 function createMutationSearch(selection) {

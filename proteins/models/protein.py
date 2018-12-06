@@ -311,19 +311,17 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     @property
     def em_svg(self):
-
         if self.states.count() > 1:
             stops = [st.emhex for st in self.states.all()]
-        else:
-            if self.default_state:
-                return self.default_state.emhex
-            stops = ["#9e9e9e", "#ccc"] * 3
-        stepsize = int(100 / (len(stops) + 1))
-        svgdef = ''
-        for i, color in enumerate(stops):
-            svgdef += '<stop offset="{}%" style="stop-color:{};" />'.format(
-                (i + 1) * stepsize, color)
-        return svgdef
+            stepsize = int(100 / (len(stops) + 1))
+            svgdef = 'linear:'
+            for i, color in enumerate(stops):
+                svgdef += '<stop offset="{}%" style="stop-color:{};" />'.format(
+                    (i + 1) * stepsize, color)
+            return svgdef
+        if self.default_state:
+            return self.default_state.emhex
+        return '?'
 
     @property
     def color(self):
