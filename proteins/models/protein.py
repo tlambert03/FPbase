@@ -301,8 +301,12 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             stops = [st.emhex for st in self.states.all()]
             bgs = []
             stepsize = int(100 / (len(stops) + 1))
+            shift = 1
             for i, _hex in enumerate(stops):
-                bgs.append('{} {}%'.format(_hex, (i + 1) * stepsize))
+                perc = (i + 1) * stepsize
+                if _hex == "#000":
+                    shift = 0.45
+                bgs.append('{} {}%'.format(_hex, perc * shift))
             return "linear-gradient(90deg, {})".format(", ".join(bgs))
         elif self.default_state:
             return self.default_state.emhex
@@ -316,8 +320,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             stepsize = int(100 / (len(stops) + 1))
             svgdef = 'linear:'
             for i, color in enumerate(stops):
+                perc = (i + 1) * stepsize
+                if color == "#000":
+                    perc *= 0.2
                 svgdef += '<stop offset="{}%" style="stop-color:{};" />'.format(
-                    (i + 1) * stepsize, color)
+                    perc, color)
             return svgdef
         if self.default_state:
             return self.default_state.emhex

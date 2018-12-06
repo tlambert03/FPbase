@@ -1,6 +1,7 @@
 from django.views.generic import DetailView
 from django.http import HttpResponseNotAllowed
 from django.utils.text import slugify
+from django.db.models import Prefetch
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
@@ -10,7 +11,7 @@ from collections import defaultdict
 from proteins.util.maintain import validate_node
 import html
 
-from ..models import Protein, Organism, Spectrum, Fluorophore, Lineage
+from ..models import Protein, Organism, Spectrum, Fluorophore, Lineage, State
 import reversion
 
 
@@ -202,10 +203,11 @@ def get_lineage(request, slug=None, org=None):
     else:
         ids = Lineage.objects.all().values_list('id', flat=True)
     # cache upfront everything we're going to need
+    stateprefetch = Prefetch('protein__states', queryset=State.objects.order_by('-is_dark', 'em_max'))
     root_nodes = Lineage.objects\
         .filter(id__in=ids)\
         .select_related('protein', 'reference', 'protein__default_state')\
-        .prefetch_related('protein__states')\
+        .prefetch_related(stateprefetch)\
         .get_cached_trees()
 
     D = {
