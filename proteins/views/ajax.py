@@ -163,7 +163,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
         'mut': node.rootmut if node.rootmut else str(node.mutation),
         # 'mut': node.display_mutation(maxwidth=10) or "null",
         'url': node.protein.get_absolute_url(),
-        'bg': node.protein.emhex,
+        'bg': node.protein.em_svg,
         'slug': node.protein.slug,
         'ref': node.reference.citation if node.reference else '',
     }
@@ -185,7 +185,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
     return result, widths
 
 
-@cache_page(60 * 10)
+#@cache_page(60 * 10)
 def get_lineage(request, slug=None, org=None):
     # if not request.is_ajax():
     #     return HttpResponseNotAllowed([])

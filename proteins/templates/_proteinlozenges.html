@@ -2,7 +2,7 @@
     {% for protein in proteins %}
     <div class="col-xl-2 col-lg-2 col-md-3 col-sm-6 ml-0 mr-0 pl-1 pr-1">
         <a href="{{ protein.get_absolute_url }}" class='protein_result_item'>
-            <div style="background: {{ protein.emhex }}">
+            <div style="background: {{ protein.em_css }}">
               <h4 style="color:
                 {% if  protein.default_state.em_max > 477 and protein.default_state.em_max < 590 %}
                     #222

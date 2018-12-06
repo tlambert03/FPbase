@@ -296,28 +296,34 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return self.references.exclude(id=self.primary_reference_id).order_by('-year')
 
     @property
-    def emhex(self):
+    def em_css(self):
         if self.states.count() > 1:
-            colors = []
-            if self.states.count() > 1:
-                for state in self.states.order_by('-is_dark'):
-                    if state.ex_max and state.em_max:
-                        colors.append((state.emhex,
-                                       '#222' if state.em_max > 477
-                                       and state.em_max < 620 else '#eee',
-                                       state.ex_max, state.em_max))
-                    else:
-                        colors.append(("#222", "#eee", None, None))
+            stops = [st.emhex for st in self.states.all()]
             bgs = []
-            stepsize = int(100 / (len(colors) + 1))
-            for i, color in enumerate(colors):
-                bgs.append('{} {}%'.format(color[0], (i + 1) * stepsize))
-            background = "linear-gradient(90deg, {})".format(", ".join(bgs))
-            return background
+            stepsize = int(100 / (len(stops) + 1))
+            for i, _hex in enumerate(stops):
+                bgs.append('{} {}%'.format(_hex, (i + 1) * stepsize))
+            return "linear-gradient(90deg, {})".format(", ".join(bgs))
         elif self.default_state:
             return self.default_state.emhex
         else:
-            return "#222"
+            return "repeating-linear-gradient(-45deg,#333,#333 8px,#444 8px,#444 16px);"
+
+    @property
+    def em_svg(self):
+
+        if self.states.count() > 1:
+            stops = [st.emhex for st in self.states.all()]
+        else:
+            if self.default_state:
+                return self.default_state.emhex
+            stops = ["#9e9e9e", "#ccc"] * 3
+        stepsize = int(100 / (len(stops) + 1))
+        svgdef = ''
+        for i, color in enumerate(stops):
+            svgdef += '<stop offset="{}%" style="stop-color:{};" />'.format(
+                (i + 1) * stepsize, color)
+        return svgdef
 
     @property
     def color(self):

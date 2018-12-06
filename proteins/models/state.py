@@ -30,6 +30,8 @@ class Fluorophore(SpectrumOwner):
                     validators=[MinValueValidator(2), MaxValueValidator(12)])  # pKa acid dissociation constant
     lifetime    = models.FloatField(null=True, blank=True, help_text="Lifetime (ns)",
                     validators=[MinValueValidator(0), MaxValueValidator(20)])  # fluorescence lifetime in nanoseconds
+    emhex       = models.CharField(max_length=7, blank=True)
+    exhex       = models.CharField(max_length=7, blank=True)
 
     class Meta:
         abstract = True
@@ -37,6 +39,10 @@ class Fluorophore(SpectrumOwner):
     def save(self, *args, **kwargs):
         if self.qy and self.ext_coeff:
             self.brightness = float(round(self.ext_coeff * self.qy / 1000, 2))
+
+        self.emhex = wave_to_hex(self.em_max)
+        self.exhex = wave_to_hex(self.ex_max)
+
         super().save(*args, **kwargs)
 
     @property
@@ -85,14 +91,6 @@ class Fluorophore(SpectrumOwner):
             return self.em_max - self.ex_max
         except TypeError:
             return None
-
-    @property
-    def emhex(self):
-        return wave_to_hex(self.em_max)
-
-    @property
-    def exhex(self):
-        return wave_to_hex(self.ex_max)
 
     def has_spectra(self):
         if any([self.ex_spectrum, self.em_spectrum, self.twop_spectrum]):

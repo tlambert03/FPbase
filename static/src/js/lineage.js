@@ -247,7 +247,9 @@ export default function LineageChart(conf) {
           .attr("r", 1e-6)
           .style("filter", "url(#shadow);")
           .style("fill", function(d) {
-            return d.bg == "#222" ? "#777" : d.bg;
+            if (d.bg && d.bg.startsWith("<stop")) {
+              svg.select('defs').append('linearGradient').attr('id', d.slug.replace('0', 'XX') + '_svggradient').html(d.bg)
+            }
           })
           .on("mouseover", function(d) {
             if (d.slug !== slug){
@@ -376,6 +378,9 @@ export default function LineageChart(conf) {
             return d._children ? defaultRadius/2 : (d.slug === slug ? slugRadius : defaultRadius);
           })
           .style("fill", function(d) {
+            if (d.bg && d.bg.startsWith("<stop")) {
+              return "url(#" + d.slug.replace('0', 'XX') + "_svggradient)";
+            }
             return d.bg == "#222" ? "#888" : d.bg;
           })
           .style("stroke-width", function(d) {

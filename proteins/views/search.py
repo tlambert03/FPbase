@@ -1,5 +1,6 @@
 from django.contrib.postgres.search import TrigramSimilarity
 from django.shortcuts import render, redirect
+from django.db.models import Count
 from ..filters import ProteinFilter
 from ..models import Protein
 import json
@@ -11,7 +12,7 @@ def protein_search(request):
     if request.GET:
         f = ProteinFilter(
             request.GET,
-            queryset=Protein.visible.select_related('default_state')
+            queryset=Protein.visible.annotate(nstates=Count('states')).select_related('default_state')
             .prefetch_related('states').order_by('default_state__em_max'))
 
         # if no hits, but name was provided... try trigram search

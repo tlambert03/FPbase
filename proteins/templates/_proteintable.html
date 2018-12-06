@@ -46,9 +46,9 @@
 								{% if not 'default' in state.name %} <small>({{ state.name }})</small>{% endif %}
 							</a>
 						</td>
-						<td class="numeric exmax">{{ state.ex_max | default_if_none:"" }}</td>
-						<td class="numeric">{{ state.em_max | default_if_none:"" }}</td>
-						<td class="numeric">{{ state.stokes | default:"" }}</td>
+						<td class="numeric exmax" style="opacity: 0.7;background: {{state.exhex}}; color:{% if  state.ex_max > 477 and state.ex_max < 590 %}#000{% else %}#eee{% endif %}">{{ state.ex_max | default_if_none:"" }}</td>
+						<td class="numeric" style="opacity: 0.7;background: {{state.emhex}};color:{% if  state.em_max > 477 and state.em_max < 590 %}#000{% else %}#eee{% endif %}">{{ state.em_max | default_if_none:"" }}</td>
+						<td class="numeric pl-2">{{ state.stokes | default:"" }}</td>
 						<td class="numeric">{% if state.ext_coeff %}{{ state.ext_coeff|intcomma}}{%else%}-{%endif%}</td>
 						<td class="numeric">{{ state.qy | default_if_none:"" }}</td>
 						<td class="numeric">{{ state.brightness | default:"" }}</td>
