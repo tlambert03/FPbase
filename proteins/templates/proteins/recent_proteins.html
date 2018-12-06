@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
+{% block meta-description %}{{ protein.description }}{% endblock %}
+
+
+{% block content %}
+{% for protein in object_list  %}
+  {{protein.name}}
+{% endfor %}
+{% endblock content %}

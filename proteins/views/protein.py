@@ -335,6 +335,11 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         return super().form_valid(form)
 
 
+class RecentProteinsView(ListView):
+    template_name = "proteins/recent_proteins.html"
+    queryset = Protein.objects.order_by('-created').prefetch_related('states')[:20]
+
+
 @cache_page(60 * 10)
 def spectra_image(request, slug, **kwargs):
     protein = get_object_or_404(Protein.objects.select_related('default_state'), slug=slug)
