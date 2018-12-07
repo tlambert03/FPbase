@@ -53,8 +53,9 @@ def parse_crossref(doidict):
     if 'message' in doidict:
         doidict = doidict['message']
     out = {}
+    ct = doidict.get('container-title', [])
     out = {
-        'journal': doidict.get('container-title', [None])[0],
+        'journal': ct[0] if ct else None,
         'title': doidict.get('title'),
         'pages': doidict.get('page', None),
         'volume': doidict.get('volume', None),
@@ -81,7 +82,7 @@ def crossref(doi):
     # otherwise a single dict
     if isinstance(doi, (list, tuple, set)) and len(doi) > 1:
         D = [parse_crossref(i) for i in response]
-        return {x.pop('DOI'): x for x in D}
+        return {x.pop('doi'): x for x in D}
     else:
         return parse_crossref(response)
 
