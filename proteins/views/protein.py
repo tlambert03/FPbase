@@ -230,19 +230,19 @@ class ProteinCreateUpdateMixin:
                         s.delete()
 
                     lineage.instance = self.object
-                    for s in lineage.save(commit=False):
+                    for lin in lineage.save(commit=False):
                         # if the form has been cleared and there are no children,
                         # let's clean up a little
-                        if not (s.mutation and s.parent) and not s.children.exists():
-                            print('DELETE')
-                            s.delete()
+                        if not (lin.mutation and lin.parent) and not lin.children.exists():
+                            lin.delete()
                         else:
-                            if not s.created_by:
-                                s.created_by = self.request.user
-                            s.updated_by = self.request.user
-                            s.save()
-                    for s in lineage.deleted_objects:
-                        s.delete()
+                            if not lin.created_by:
+                                lin.created_by = self.request.user
+                            lin.updated_by = self.request.user
+                            lin.reference = self.object.primary_reference
+                            lin.save()
+                    for lin in lineage.deleted_objects:
+                        lin.delete()
 
                     if hasattr(self.object, 'lineage'):
                         if not self.object.seq:
@@ -337,7 +337,12 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
 
 class RecentProteinsView(ListView):
     template_name = "proteins/recent_proteins.html"
-    queryset = Protein.objects.order_by('-created').prefetch_related('states')[:20]
+    queryset = Protein.objects.order_by('-created')[:20]
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['proteins_by_date'] = Protein.objects.order_by('-primary_reference__date')[:20]
+        return data
 
 
 @cache_page(60 * 10)
@@ -454,9 +459,6 @@ def protein_tree(request, organism):
 
 def sequence_problems(request):
     ''' renders html for protein table page  '''
-    mprobs = Protein.objects.annotate(sub=Substr('seq', 206, 1)).filter(sub='A', name__istartswith='m')
-    mprobs = mprobs | Protein.objects.annotate(sub=Substr('seq', 207, 1)).filter(sub='A', name__istartswith='m')
-
     linerrors = check_lineages()[0]
     linprobs = [(node.protein, v) for node, v in linerrors.items()]
 
@@ -466,7 +468,6 @@ def sequence_problems(request):
         {
             "histags": Protein.objects.filter(seq__icontains='HHHHHH'),
             "noseqs": Protein.objects.filter(seq__isnull=True),
-            "mprobs": mprobs,
             "linprobs": linprobs,
             "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith='M'),
             "noparent": Protein.objects.filter(parent_organism__isnull=True),

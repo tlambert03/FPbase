@@ -518,14 +518,14 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
     mptt_level_indent = 10
     mptt_indent_field = "protein"
     list_display = ('protein', 'mutation_ellipsis', 'rootmut_ellipsis', 'created', 'status')
-    autocomplete_fields = ('protein', 'parent')
+    autocomplete_fields = ('protein', 'parent', 'reference')
     search_fields = ('protein__name',)
     readonly_fields = ('created', 'modified', 'created_by', 'updated_by', 'rootmut', 'mutation_ellipsis',
                        'status', 'errors', 'root_node')
 
     fieldsets = [
         (None, {
-            'fields': ('protein', 'parent', 'mutation', 'root_node', 'rootmut', 'errors')
+            'fields': ('protein', 'parent', 'mutation', 'reference', 'root_node', 'rootmut', 'errors',)
         }),
         ('Change History', {
             'classes': ('collapse',),
