@@ -1,11 +1,89 @@
 {% extends "base.html" %}
 
-{% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
-{% block meta-description %}{{ protein.description }}{% endblock %}
+{% block title %} Recent {% endblock %}
+{% block meta-description %}{% endblock %}
 
+{% block extrahead %}
+<style>
+  .dot {
+    height: 17px;
+    width: 17px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    top: 2px;
+    margin-right: 8px;
+  }
+  .card a:first-child:hover {text-decoration: none !important;}
+  .card-body {padding: .8rem 1rem;}
+
+
+</style>
+{% endblock extrahead %}
 
 {% block content %}
-{% for protein in object_list  %}
-  {{protein.name}}
-{% endfor %}
+
+<div class="row">
+
+  <div class="col-12 col-md-6">
+    <h2 style="font-weight:300" class="mb-3 text-info">Recently Published</h2>
+
+        {% for protein in proteins_by_date  %}
+          <div class="card mb-2">
+            <card>
+                {% if protein.has_spectra %}
+                    <img class="card-img-top px-2 pt-1" src="{% url 'proteins:spectra-img' protein.slug %}.svg?xlim=400,750" alt="Card image cap">
+                {% endif %}
+
+              <div class='card-body'>
+                  <span class="dot" style="background: {{protein.em_css}}"></span><h4 class="d-inline" style="font-weight: 400; font-size:1.3rem"><a href="{{protein.get_absolute_url}}">{{protein.name}}</a></h4><span class="text-muted small ml-3 float-right">published: {{protein.primary_reference.date |date:"M j, Y"}}</span>
+              {% if protein.primary_reference %}
+                {% with ref=protein.primary_reference %}
+                  <p class='small mt-1 mb-0'>
+                    {{ref.citation}} {{ref.title}}.
+
+                   <span style="font-size: 0.7rem;"><em>{{ ref.journal }}</em>. doi:{{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener" class="text-secondary"><i class="fas fa-external-link-alt mr-2 ml-1"></i>Article</a>
+                    {% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank" rel="noopener" class="text-secondary"><i class="fas fa-external-link-alt mr-2"></i>Pubmed</a>{% endif %}</span>
+                  </p>
+                {% endwith %}
+              {% endif %}
+              </div>
+            </card>
+          </div>
+        {% endfor %}
+  </div>
+
+
+  <div class="col-12 col-md-6 mb-3">
+    <h2 style="font-weight:300" class="mb-3 text-info">Recently Added</h2>
+
+      {% for protein in object_list  %}
+        <div class="card mb-2">
+          <card>
+            {% if protein.has_spectra %}
+                <img class="card-img-top px-2 pt-1" src="{% url 'proteins:spectra-img' protein.slug %}.svg?xlim=400,750" alt="Card image cap">
+            {% endif %}
+
+            <div class='card-body'>
+                <span class="dot" style="background: {{protein.em_css}}"></span><h4 class="d-inline" style="font-weight: 400; font-size:1.3rem"><a href="{{protein.get_absolute_url}}">{{protein.name}}</a></h4><span class="text-muted small ml-3 float-right">added: {{protein.created |date:"M j, Y"}}</span>
+            {% if protein.primary_reference %}
+              {% with ref=protein.primary_reference %}
+                <p class='small mt-1 mb-0'>
+                  {{ref.citation}} {{ref.title}}.
+
+                 <span style="font-size: 0.7rem;"><em>{{ ref.journal }}</em>. doi:{{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener" class="text-secondary"><i class="fas fa-external-link-alt mr-2 ml-1"></i>Article</a>
+                  {% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank" rel="noopener" class="text-secondary"><i class="fas fa-external-link-alt mr-2"></i>Pubmed</a>{% endif %}</span>
+                </p>
+              {% endwith %}
+            {% endif %}
+            </div>
+          </card>
+        </div>
+      {% endfor %}
+  </div>
+
+</div>
+
+
 {% endblock content %}

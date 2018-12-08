@@ -13,7 +13,7 @@ from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
-from django.db.models import Case, When, Count, Exists, OuterRef
+from django.db.models import Case, When, Count, Exists, OuterRef, Prefetch
 from django.db.models.functions import Substr
 from django.shortcuts import redirect
 from django.apps import apps
@@ -25,6 +25,7 @@ from fpbase.util import uncache_protein_page
 from ..models import Protein, State, Organism, BleachMeasurement, Spectrum, Excerpt
 from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet, LineageFormSet,
                      BleachMeasurementForm, bleach_items_formset, BleachComparisonForm)
+
 from proteins.util.spectra import spectra2csv
 from proteins.util.maintain import check_lineages
 from references.models import Reference  # breaks application modularity
@@ -337,11 +338,15 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
 
 class RecentProteinsView(ListView):
     template_name = "proteins/recent_proteins.html"
-    queryset = Protein.objects.order_by('-created')[:20]
+    stateprefetch = Prefetch('states', queryset=State.objects.prefetch_related('spectra').order_by('-is_dark', 'em_max'))
+    queryset = Protein.visible.prefetch_related(stateprefetch, 'primary_reference').order_by('-created')[:18]
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        data['proteins_by_date'] = Protein.objects.order_by('-primary_reference__date')[:20]
+        stateprefetch = Prefetch('states', queryset=State.objects.prefetch_related('spectra').order_by('-is_dark', 'em_max'))
+        data['proteins_by_date'] = Protein.visible.annotate(nstates=Count('states')) \
+            .prefetch_related(stateprefetch, 'primary_reference') \
+            .order_by(F('primary_reference__date').desc(nulls_last=True))[:15]
         return data
 
 
