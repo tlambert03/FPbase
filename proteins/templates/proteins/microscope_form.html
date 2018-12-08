@@ -234,6 +234,14 @@
 
   });
 
+  $(document).on('show.bs.modal', '#sureModal', function () {
+      $('#sureModal').css('z-index', 1200);
+  });
+
+  $(document).on('hidden.bs.modal', '#sureModal', function () {
+      $('#sureModal').css('z-index', 1039);
+  });
+
   $("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2({
     theme: "bootstrap",
     containerCssClass: ':all:',
@@ -261,15 +269,6 @@
       $('#microscopeFormTabs a[href="#bulk"]').tab('show')
 
     }
-
-
-    $('#sureModal').on('show.bs.modal', function () {
-        $('#sureModal').css('z-index', 1200);
-    });
-
-    $('#sureModal').on('hidden.bs.modal', function () {
-        $('#sureModal').css('z-index', 1039);
-    });
 
   });
 

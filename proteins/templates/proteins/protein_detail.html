@@ -449,19 +449,20 @@
   {% endif %}
 
   <script type="text/javascript">
+    $(document).on('show.bs.modal', '#excerptModal', function () {
+        $('#excerptModal').css('z-index', 1200);
+    });
+
+    $(document).on('hidden.bs.modal', 'excerptModal', function () {
+        $('#excerptModal').css('z-index', 1039);
+    });
+
+
     $(function () {
         initSnapGene("{{protein.name|safe}}", '.external-resources ul')
     });
 
     $(window).on('load', function() {
-      $('#excerptModal').on('show.bs.modal', function () {
-          $('#excerptModal').css('z-index', 1200);
-      });
-
-      $('#excerptModal').on('hidden.bs.modal', function () {
-          $('#excerptModal').css('z-index', 1039);
-      });
-
 
       $('.lineage').each(function(i, el) {
         var slug = $(el).data('slug') || '';
