@@ -22,7 +22,9 @@
 
 
 $('.lineage').each(function(i, el){
+  $(el).html('<p>loading lineage info... <i class="fa fa-spinner fa-spin"></i></p>');
   $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
+    $(el).empty();
     var chart = LineageChart({
       withSearch: true,
       withToolbar: true,
