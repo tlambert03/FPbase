@@ -298,15 +298,15 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     @property
     def em_css(self):
         if self.states.count() > 1:
-            stops = [st.emhex for st in self.states.all()]
+            from collections import OrderedDict
+            stops = OrderedDict({st.emhex: '' for st in self.states.all()})
             bgs = []
             stepsize = int(100 / (len(stops) + 1))
-            shift = 1
+            sub = 0
             for i, _hex in enumerate(stops):
-                perc = (i + 1) * stepsize
                 if _hex == "#000":
-                    shift = 0.45
-                bgs.append('{} {}%'.format(_hex, perc * shift))
+                    sub = 18
+                bgs.append('{} {}%'.format(_hex, (i + 1) * stepsize - sub))
             return "linear-gradient(90deg, {})".format(", ".join(bgs))
         elif self.default_state:
             return self.default_state.emhex

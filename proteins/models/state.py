@@ -53,31 +53,39 @@ class Fluorophore(SpectrumOwner):
 
     @property
     def abs_spectrum(self):
-        spect = self.spectra.filter(subtype='ab')
-        if spect.count() > 1:
-            raise AssertionError('multiple abs spectra found')
-        return spect.first() or None
+        spect = [f for f in self.spectra.all() if f.subtype == 'ab']
+        if len(spect) > 1:
+            raise AssertionError('multiple ex spectra found')
+        if len(spect):
+            return spect[0]
+        return None
 
     @property
     def ex_spectrum(self):
-        spect = self.spectra.filter(subtype='ex')
-        if spect.count() > 1:
+        spect = [f for f in self.spectra.all() if f.subtype == 'ex']
+        if len(spect) > 1:
             raise AssertionError('multiple ex spectra found')
-        return spect.first() or self.abs_spectrum
+        if len(spect):
+            return spect[0]
+        return self.abs_spectrum
 
     @property
     def em_spectrum(self):
-        spect = self.spectra.filter(subtype='em')
-        if spect.count() > 1:
+        spect = [f for f in self.spectra.all() if f.subtype == 'em']
+        if len(spect) > 1:
             raise AssertionError('multiple em spectra found')
-        return spect.first() or None
+        if len(spect):
+            return spect[0]
+        return self.abs_spectrum
 
     @property
     def twop_spectrum(self):
-        spect = self.spectra.filter(subtype='2p')
-        if spect.count() > 1:
+        spect = [f for f in self.spectra.all() if f.subtype == '2p']
+        if len(spect) > 1:
             raise AssertionError('multiple 2p spectra found')
-        return spect.first() or None
+        if len(spect):
+            return spect[0]
+        return None
 
     @property
     def bright_rel_egfp(self):
