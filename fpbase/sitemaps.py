@@ -80,7 +80,7 @@ class StaticSitemap(Sitemap):
         u = [url.name for url in homeUrls if hasattr(url, 'name') and url.name]
         protUrls = ['search', 'submit', 'table', 'submit-spectra', 'spectra',
                     'ichart', 'collections', 'microscopes', 'fret', 'lineage',
-                    'compare', 'organisms']
+                    'compare', 'organisms', 'activity']
         for url in protUrls:
             try:
                 reverse('proteins:' + url)
