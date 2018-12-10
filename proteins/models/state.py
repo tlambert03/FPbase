@@ -10,26 +10,42 @@ from ..util.helpers import wave_to_hex
 
 
 class Fluorophore(SpectrumOwner):
-    ex_max      = models.PositiveSmallIntegerField(blank=True, null=True,
-                    validators=[MinValueValidator(300), MaxValueValidator(900)], db_index=True)
-    em_max      = models.PositiveSmallIntegerField(blank=True, null=True,
-                    validators=[MinValueValidator(300), MaxValueValidator(1000)], db_index=True)
-    twop_ex_max = models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Peak 2P excitation',
-                    validators=[MinValueValidator(700), MaxValueValidator(1600)], db_index=True)
-    ext_coeff   = models.IntegerField(blank=True, null=True,
-                    validators=[MinValueValidator(0), MaxValueValidator(300000)],
-                    verbose_name="Extinction Coefficient")  # extinction coefficient
-    twop_peakGM = models.FloatField(null=True, blank=True, verbose_name='Peak 2P cross-section of S0->S1 (GM)',
-                    validators=[MinValueValidator(0), MaxValueValidator(200)])
-    qy          = models.FloatField(null=True, blank=True, verbose_name="Quantum Yield",
-                    validators=[MinValueValidator(0), MaxValueValidator(1)])  # quantum yield
-    twop_qy     = models.FloatField(null=True, blank=True, verbose_name="2P Quantum Yield",
-                    validators=[MinValueValidator(0), MaxValueValidator(1)])  # quantum yield
-    brightness  = models.FloatField(null=True, blank=True, editable=False)
-    pka         = models.FloatField(null=True, blank=True, verbose_name='pKa',
-                    validators=[MinValueValidator(2), MaxValueValidator(12)])  # pKa acid dissociation constant
-    lifetime    = models.FloatField(null=True, blank=True, help_text="Lifetime (ns)",
-                    validators=[MinValueValidator(0), MaxValueValidator(20)])  # fluorescence lifetime in nanoseconds
+    ex_max      = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        validators=[MinValueValidator(300), MaxValueValidator(900)], db_index=True)
+    em_max      = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        validators=[MinValueValidator(300), MaxValueValidator(1000)], db_index=True)
+    twop_ex_max = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        verbose_name='Peak 2P excitation',
+        validators=[MinValueValidator(700), MaxValueValidator(1600)], db_index=True)
+    ext_coeff   = models.IntegerField(
+        blank=True, null=True,
+        verbose_name="Extinction Coefficient",
+        validators=[MinValueValidator(0), MaxValueValidator(300000)])  # extinction coefficient
+    twop_peakGM = models.FloatField(
+        null=True, blank=True,
+        verbose_name='Peak 2P cross-section of S0->S1 (GM)',
+        validators=[MinValueValidator(0), MaxValueValidator(200)])
+    qy          = models.FloatField(
+        null=True, blank=True,
+        verbose_name="Quantum Yield",
+        validators=[MinValueValidator(0), MaxValueValidator(1)])  # quantum yield
+    twop_qy     = models.FloatField(
+        null=True, blank=True,
+        verbose_name="2P Quantum Yield",
+        validators=[MinValueValidator(0), MaxValueValidator(1)])  # quantum yield
+    brightness  = models.FloatField(
+        null=True, blank=True, editable=False)
+    pka         = models.FloatField(
+        null=True, blank=True,
+        verbose_name='pKa',
+        validators=[MinValueValidator(2), MaxValueValidator(12)])  # pKa acid dissociation constant
+    lifetime    = models.FloatField(
+        null=True, blank=True,
+        help_text="Lifetime (ns)",
+        validators=[MinValueValidator(0), MaxValueValidator(20)])  # fluorescence lifetime in nanoseconds
     emhex       = models.CharField(max_length=7, blank=True)
     exhex       = models.CharField(max_length=7, blank=True)
 
