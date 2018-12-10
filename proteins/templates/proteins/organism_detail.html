@@ -25,7 +25,7 @@
 
       <div class="lineage mb-0" data-slug='{{protein.slug}}'></div>
 
-      <h5 class='pt-3'><strong>Proteins derived from this organism</strong></h5>
+      <h5 class='pt-3'><strong>Proteins derived from {{ object }}</strong></h5>
 			{% with proteins=object.proteins.all removebutton=False %}
         <div class="table-responsive mt-2">
 			    {% include '_proteintable.html' %}
@@ -41,7 +41,7 @@
 $('.lineage').each(function(i, el){
   $.getJSON("{% url 'proteins:get-org-lineage' object.pk %}", function(data){
     if(!$.isEmptyObject(data)){
-      $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from this organism</strong>').insertBefore(el)
+      $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
       var chart = LineageChart({
         withToolbar: true,
         withSearch: true,
