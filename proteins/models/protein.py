@@ -200,10 +200,12 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         (OTHER, 'Multistate'),
     )
 
+    BILIRUBIN = 'br'
     BILIVERDIN = 'bv'
     FLAVIN = 'fl'
     PHYCOCYANOBILIN = 'pc'
     COFACTOR_CHOICES = (
+        (BILIRUBIN, 'Bilirubin'),
         (BILIVERDIN, 'Biliverdin'),
         (FLAVIN, 'Flavin'),
         (PHYCOCYANOBILIN, 'Phycocyanobilin'),
