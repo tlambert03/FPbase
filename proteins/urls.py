@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^table/', views.protein_table, name='table'),
     # url(r'^tree/(?P<organism>\d+)/$', views.protein_tree, name='tree'),
 
-    url(r'^sequence_problems/', views.sequence_problems, name='sequence_problems'),
+    url(r'^problems/', views.sequence_problems, name='problems'),
 
     url(r'^spectra/submit/$',
         login_required(views.SpectrumCreateView.as_view(),

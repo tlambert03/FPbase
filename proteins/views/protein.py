@@ -471,11 +471,13 @@ def sequence_problems(request):
         request,
         'seq_problems.html',
         {
-            "histags": Protein.objects.filter(seq__icontains='HHHHHH'),
-            "noseqs": Protein.objects.filter(seq__isnull=True),
+            "histags": Protein.objects.filter(seq__icontains='HHHHH').values('name', 'slug'),
+            "noseqs": Protein.objects.filter(seq__isnull=True).values('name', 'slug'),
+            "nostates": Protein.objects.filter(states=None).values('name', 'slug'),
             "linprobs": linprobs,
             "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith='M'),
             "noparent": Protein.objects.filter(parent_organism__isnull=True),
+            "only2p": State.objects.filter(spectra__subtype='2p').exclude(spectra__subtype='ex').distinct('protein').values('protein__name', 'protein__slug'),
             'request': request
         })
 

@@ -2,51 +2,88 @@
 
 {% block content %}
 
-<h2 class="text-center">Sequences Needing Attention</h2>
+<h2 class="text-center">Proteins Needing Attention</h2>
 
-<h4 class='font-weight-bold'>Sequences still containing His tag</h4>
+<h4 class='font-weight-bold'>Sequences containing His tag</h4>
+<p>Usually, these sequences were pulled from PDB.  Cross-check with originally publication, and remove His tag and any C- N- terminal linkers</p>
 <div>
   <ul class="row">
     {% for p in histags  %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
     {% endfor %}
   </ul>
 </div>
 
 <h4 class='font-weight-bold'>Sequences not starting with methionine</h4>
+<p>Everything should start with Met.  Cross check sequences with original publication and clean up.</p>
 <div>
   <ul class="row">
     {% for p in nomet %}
-      <li class="col-12 col-lg-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a>: <span class='text-muted'>{{ p.seq|slice:":15" }}...</span></li>
+      <li class="col-12 col-md-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a>: <span class='text-muted'>{{ p.seq|slice:":15" }}...</span></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
     {% endfor %}
   </ul>
 </div>
 
 <h4 class='font-weight-bold'>Sequences missing</h4>
+<p>NOTE: sometimes easier is to simply add lineage information... which will autopoulate the sequence field based on a mutation from a parental protein</p>
 <div>
   <ul class="row">
     {% for p in noseqs  %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
     {% endfor %}
   </ul>
 </div>
 
 <h4 class='font-weight-bold'>Parental organism missing</h4>
+<p>Go to the original publication and try to figure out which organism it comes from.  NOTE: often easier is to simply add lineage information... which will populate the parent organism with the same organism as the parent protein.</p>
 <div>
   <ul class="row">
     {% for p in noparent %}
       <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
     {% endfor %}
   </ul>
 </div>
 
 <h4 class='font-weight-bold'>Lineage Problems</h4>
+<p>Either a mutation string problem, misalignment, or doesn't yield the child sequence.</p>
 <div>
   <ul class="row">
     {% for prot, prob in linprobs %}
       <li class="col-12"><a href="{{prot.get_absolute_url}}">{{prot|safe}}</a>: {{prob.0}}</li>
     {% empty %}
-      <p>None!</p>
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>No Fluorescent States</h4>
+<p>Nothing has been entered about the fluorescent properties of these proteins.  They will not be shown in color in many places on the website.</p>
+<div>
+  <ul class="row">
+    {% for p in nostates  %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>Only 2P Spectra</h4>
+<p>Having only 2P spectra looks strange in some places on the site.  Better to find the 1P spectra for these as well.</p>
+<div>
+  <ul class="row">
+    {% for p in only2p  %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.protein__slug %}">{{p.protein__name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
     {% endfor %}
   </ul>
 </div>
