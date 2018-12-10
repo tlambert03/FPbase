@@ -13,8 +13,7 @@ from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
-from django.db.models import Case, When, Count, Exists, OuterRef, Prefetch
-from django.db.models.functions import Substr
+from django.db.models import Case, When, Count, Prefetch
 from django.shortcuts import redirect
 from django.apps import apps
 from django.urls import reverse
@@ -28,6 +27,8 @@ from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet, LineageF
 
 from proteins.util.spectra import spectra2csv
 from proteins.util.maintain import check_lineages
+from proteins.util.helpers import most_favorited
+from proteins.extrest.ga import cached_ga_popular
 from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
@@ -337,7 +338,7 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
 
 
 class RecentProteinsView(ListView):
-    template_name = "proteins/recent_proteins.html"
+    template_name = "proteins/activity.html"
     stateprefetch = Prefetch('states', queryset=State.objects.prefetch_related('spectra').order_by('-is_dark', 'em_max'))
     queryset = Protein.visible.prefetch_related(stateprefetch, 'primary_reference').order_by('-created')[:18]
 
@@ -347,6 +348,8 @@ class RecentProteinsView(ListView):
         data['proteins_by_date'] = Protein.visible.annotate(nstates=Count('states')) \
             .prefetch_related(stateprefetch, 'primary_reference') \
             .order_by(F('primary_reference__date').desc(nulls_last=True))[:15]
+        data['most_popular'] = cached_ga_popular(max_results=12)
+        data['most_favorited'] = most_favorited(max_results=12)
         return data
 
 

@@ -6,8 +6,26 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from django.utils.text import slugify
 import logging
+from collections import Counter, OrderedDict
 
 logger = logging.getLogger(__name__)
+
+
+def most_favorited(max_results=20):
+    from proteins.models import Protein
+    from favit.models import Favorite
+
+    qs = Favorite.objects.for_model(Protein)
+    fave_counts = Counter(qs.values_list('target_object_id', flat=True))
+    fave_items = dict(fave_counts.most_common(max_results))
+    qs = Protein.objects.filter(id__in=fave_items.keys()).values('id', 'name', 'slug')
+    D = {q.pop('id'): q for q in qs}
+
+    od = OrderedDict()
+    for prot_id, count in fave_items.items():
+        od[prot_id] = D[prot_id]
+        od[prot_id]['count'] = count
+    return od
 
 
 def merge_proteins(merge_prot, into_prot):

@@ -5,7 +5,7 @@
 
 {% block extrahead %}
 <style>
-  .dot {
+/*   .dot {
     height: 17px;
     width: 17px;
     background-color: #bbb;
@@ -14,30 +14,64 @@
     position: relative;
     top: 2px;
     margin-right: 8px;
-  }
+  } */
+  h2, h4 {font-weight: 300;}
   .card a:first-child:hover {text-decoration: none !important;}
   .card-body {padding: .8rem 1rem;}
+  .protein-stats span.badge { float:right; background-color: #e5e5e5; color: #555; margin-top: 3px; margin-right: 2.3rem; font-size:0.8rem}
+  .protein-stats li { padding: 0.4rem 0.5rem; border-bottom: 1px solid #e5e5e5;}
+  @media only screen and (max-width: 768px) {
+    .protein-stats span.badge { margin-right: .2rem;}
+  }
 
-
+  .protein-stats h5 {font-weight: 400; font-size:1.1rem; display: inline;}
 </style>
 {% endblock extrahead %}
 
 {% block content %}
 
+<h2 class="mb-3">Recent FPbase Activity</h2>
+
+<h4 class="mb-3 mt-4 text-info">Most Viewed Proteins</h4>
+
+<div class="col-12 container">
+  <ol class="row protein-stats">
+    {% for slug, protein, perc in most_popular  %}
+    <li class="list-item col-12 col-md-6 col-lg-4">
+      <h5><a href="{% url 'proteins:protein-detail' slug %}">{{ protein }}</a> <span class="badge">{{perc |floatformat}}%</span></h5>
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+
+
+<h4 class="mb-3 mt-4 text-info">Most Favorited Proteins</h4>
+
+<div class="col-12 container">
+  <ol class="row protein-stats">
+    {% for prot in most_favorited.values  %}
+    <li class="list-item col-12 col-md-6 col-lg-4">
+      <h5><a href="{% url 'proteins:protein-detail' prot.slug %}">{{ prot.name }}</a> <span class="badge">{{prot.count}}</span></h5>
+
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+
+
 <div class="row">
 
-  <div class="col-12 col-md-6">
-    <h2 style="font-weight:300" class="mb-3 text-info">Recently Published</h2>
+  <div class="col-12 col-md-6 mt-4">
+    <h4 class="mb-3 text-info">Recently Published</h4>
 
         {% for protein in proteins_by_date  %}
           <div class="card mb-2">
-            <card>
                 {% if protein.has_spectra %}
                     <img class="card-img-top px-2 pt-1" src="{% url 'proteins:spectra-img' protein.slug %}.svg?xlim=400,750" alt="Card image cap">
                 {% endif %}
 
               <div class='card-body'>
-                  <span class="dot" style="background: {{protein.em_css}}"></span><h4 class="d-inline" style="font-weight: 400; font-size:1.3rem"><a href="{{protein.get_absolute_url}}">{{protein.name}}</a></h4><span class="text-muted small ml-3 float-right">published: {{protein.primary_reference.date |date:"M j, Y"}}</span>
+                  <h4 class="d-inline" style="font-weight: 400; font-size:1.3rem"><a href="{{protein.get_absolute_url}}">{{protein.name}}</a></h4><span class="text-muted small ml-3 float-right">published: {{protein.primary_reference.date |date:"M j, Y"}}</span>
               {% if protein.primary_reference %}
                 {% with ref=protein.primary_reference %}
                   <p class='small mt-1 mb-0'>
@@ -49,24 +83,22 @@
                 {% endwith %}
               {% endif %}
               </div>
-            </card>
           </div>
         {% endfor %}
   </div>
 
 
-  <div class="col-12 col-md-6 mb-3">
-    <h2 style="font-weight:300" class="mb-3 text-info">Recently Added</h2>
+  <div class="col-12 col-md-6 mb-3 mt-4">
+    <h4 class="mb-3 text-info">Recently Added to FPbase</h4>
 
       {% for protein in object_list  %}
         <div class="card mb-2">
-          <card>
             {% if protein.has_spectra %}
                 <img class="card-img-top px-2 pt-1" src="{% url 'proteins:spectra-img' protein.slug %}.svg?xlim=400,750" alt="Card image cap">
             {% endif %}
 
             <div class='card-body'>
-                <span class="dot" style="background: {{protein.em_css}}"></span><h4 class="d-inline" style="font-weight: 400; font-size:1.3rem"><a href="{{protein.get_absolute_url}}">{{protein.name}}</a></h4><span class="text-muted small ml-3 float-right">added: {{protein.created |date:"M j, Y"}}</span>
+                <h4 class="d-inline" style="font-weight: 400; font-size:1.3rem"><a href="{{protein.get_absolute_url}}">{{protein.name}}</a></h4><span class="text-muted small ml-3 float-right">added: {{protein.created |date:"M j, Y"}}</span>
             {% if protein.primary_reference %}
               {% with ref=protein.primary_reference %}
                 <p class='small mt-1 mb-0'>
@@ -78,7 +110,6 @@
               {% endwith %}
             {% endif %}
             </div>
-          </card>
         </div>
       {% endfor %}
   </div>

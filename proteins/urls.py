@@ -63,7 +63,7 @@ urlpatterns = [
 
     url(r'^organisms/$', views.OrganismListView.as_view(), name='organism-list'),
     url(r'^organism/(?P<pk>\d+)/$', views.OrganismDetailView.as_view(), name='organism-detail'),
-    url(r'^recent_proteins$', views.RecentProteinsView.as_view(), name='recent'),
+    url(r'^activity$', views.RecentProteinsView.as_view(), name='activity'),
     url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/bleach/$', views.protein_bleach_formsets, name='protein-bleach-form'),
     url(r'^bleach_comparison/(?P<pk>[-\w]+)/$', views.bleach_comparison, name='bleach-comparison'),

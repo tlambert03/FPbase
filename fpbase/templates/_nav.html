@@ -20,6 +20,7 @@
                     <a class="dropdown-item" href="{% url 'schema' %}">database design</a>
                     <a class="dropdown-item" href="{% url 'contributing' %}">contributing</a>
                     <a class="dropdown-item" href="{% url 'api' %}">API</a>
+                    <a class="dropdown-item" href="{% url 'proteins:activity' %}">recent activity</a>
                     <a class="dropdown-item" href="{% url 'contact' %}">contact</a>
                 </div>
             </li>
@@ -35,7 +36,6 @@
                     <a class="dropdown-item" href="{% url 'proteins:organism-list' %}">organisms</a>
                     <a class="dropdown-item" href="{% url 'proteins:spectra' %}">spectra</a>
                     <a class="dropdown-item" href="{% url 'reference-list' %}">references</a>
-                    <a class="dropdown-item" href="{% url 'proteins:recent' %}">recently added</a>
                     <h6 class="dropdown-header">SUBMIT</h6>
                     <a class="dropdown-item" href="{% url 'proteins:submit' %}">submit a protein</a>
                     <a class="dropdown-item" href="{% url 'proteins:submit-spectra' %}">submit a spectrum</a>
