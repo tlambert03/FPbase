@@ -7,6 +7,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.core.mail import mail_managers
 from django.views.decorators.cache import cache_page
+from fpbase.util import uncache_protein_page
 from collections import defaultdict
 from proteins.util.maintain import validate_node
 import html
@@ -101,6 +102,10 @@ def approve_protein(request, slug=None):
         with reversion.create_revision():
             P.status = 'approved'
             P.save()
+            try:
+                uncache_protein_page(P.slug, request)
+            except Exception:
+                pass
 
         return JsonResponse({})
     except Exception:
@@ -186,7 +191,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
     return result, widths
 
 
-#@cache_page(60 * 10)
+@cache_page(60 * 5)
 def get_lineage(request, slug=None, org=None):
     # if not request.is_ajax():
     #     return HttpResponseNotAllowed([])
