@@ -67,7 +67,7 @@ def cached_ga_popular(max_results=12, max_age=60 * 60 * 24):
     if not results or (len(results) != max_results):
         results = cache.get_or_set(
             'ga_popular_proteins',
-            ga_popular_proteins(max_results=max_results),
+            ga_popular_proteins(max_results=None)[:max_results],
             max_age) # only hit the api once a day...
     return results
 

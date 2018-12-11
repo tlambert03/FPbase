@@ -337,7 +337,7 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         return super().form_valid(form)
 
 
-class RecentProteinsView(ListView):
+class ActivityView(ListView):
     template_name = "proteins/activity.html"
     stateprefetch = Prefetch('states', queryset=State.objects.prefetch_related('spectra').order_by('-is_dark', 'em_max'))
     queryset = Protein.visible.prefetch_related(stateprefetch, 'primary_reference').order_by('-created')[:18]
