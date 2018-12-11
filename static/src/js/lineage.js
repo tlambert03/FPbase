@@ -237,7 +237,7 @@ export default function LineageChart(conf) {
           .enter()
           .append("g")
           .attr("class", function(d) { return "node" + ((d.hasOwnProperty('err') && d.err.length > 0) ? ' has-err' : '')})
-          .attr("id", function(d){ return d.slug + "_circle"})
+          .attr("id", function(d){ return "node_" + d.slug})
           .attr("transform", function(d) {
             return "translate(" + source.y0 + "," + source.x0 + ")";
           })
