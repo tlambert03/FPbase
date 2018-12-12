@@ -62,18 +62,25 @@ def get_first_profile_id(service):
     return None
 
 
-def cached_ga_popular(max_results=12, max_age=60 * 60 * 24):
+def cached_ga_popular(max_age=60 * 60 * 24):
     results = cache.get('ga_popular_proteins')
-    if not results or (len(results) != max_results):
-        results = cache.get_or_set(
-            'ga_popular_proteins',
-            ga_popular_proteins(max_results=None)[:max_results],
-            max_age) # only hit the api once a day...
+    if not results:
+        service = get_service()
+
+        def f(x):
+            return ga_popular_proteins(service, '168069800', x)[:12]
+        results = {
+            'day': f(1),
+            'week': f(7),
+            'month': f(30),
+            'year': f(365),
+        }
+        cache.set('ga_popular_proteins', results, max_age)
     return results
 
 
-def ga_popular_proteins(service=None, profile_id=None, days=30, max_results=100):
-    if not service:
+def ga_popular_proteins(service=None, profile_id=None, days=30, max_results=None):
+    if service is None:
         service = get_service()
     if not profile_id:
         profile_id = get_first_profile_id(service)

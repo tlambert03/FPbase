@@ -32,11 +32,47 @@
 
 <h2 class="mb-3">Recent FPbase Activity</h2>
 
-<h4 class="mb-3 mt-4 text-info">Most Viewed Proteins</h4>
-
-<div class="col-12 container">
+<div class="row">
+  <h4 class="text-info col-12 col-sm-9 mx-sm-0 my-2">Most Viewed Proteins</h4>
+  <div class="float-sm-right col-12 col-sm-3 my-2">
+    <select class='custom-select custom-select-sm' name="ga_range_selector" id="ga_range_selector">
+      <option value="day">today</option>
+      <option value="week" selected>this week</option>
+      <option value="month">this month</option>
+      <option value="year">this year</option>
+    </select>
+  </div>
+</div>
+<div class="col-12 hidden container ga-stats day">
   <ol class="row protein-stats">
-    {% for slug, protein, perc in most_popular  %}
+    {% for slug, protein, perc in most_popular.day  %}
+    <li class="list-item col-12 col-md-6 col-lg-4">
+      <h5><a href="{% url 'proteins:protein-detail' slug %}">{{ protein }}</a> <span class="badge">{{perc |floatformat}}%</span></h5>
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+<div class="col-12 container ga-stats week">
+  <ol class="row protein-stats">
+    {% for slug, protein, perc in most_popular.week  %}
+    <li class="list-item col-12 col-md-6 col-lg-4">
+      <h5><a href="{% url 'proteins:protein-detail' slug %}">{{ protein }}</a> <span class="badge">{{perc |floatformat}}%</span></h5>
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+<div class="col-12 hidden container ga-stats month">
+  <ol class="row protein-stats">
+    {% for slug, protein, perc in most_popular.month  %}
+    <li class="list-item col-12 col-md-6 col-lg-4">
+      <h5><a href="{% url 'proteins:protein-detail' slug %}">{{ protein }}</a> <span class="badge">{{perc |floatformat}}%</span></h5>
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+<div class="col-12 hidden container ga-stats year">
+  <ol class="row protein-stats">
+    {% for slug, protein, perc in most_popular.year  %}
     <li class="list-item col-12 col-md-6 col-lg-4">
       <h5><a href="{% url 'proteins:protein-detail' slug %}">{{ protein }}</a> <span class="badge">{{perc |floatformat}}%</span></h5>
     </li>
@@ -118,3 +154,14 @@
 
 
 {% endblock content %}
+
+{% block javascript %}
+    <script>
+      $(function(){
+        $('#ga_range_selector').change(function(d){
+          $('.ga-stats').hide()
+          $('.ga-stats.' + this.value).show()
+        })
+      })
+    </script>
+{% endblock javascript %}
