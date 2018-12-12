@@ -98,6 +98,9 @@ class ProteinFilter(filters.FilterSet):
     name__icontains = django_filters.CharFilter(
         field_name='name',
         method='name_or_alias_icontains', lookup_expr='icontains')
+    switch_type__ne = django_filters.ChoiceFilter(
+        choices=Protein.SWITCHING_CHOICES,
+        method='switch_type__notequal')
     # name__iexact = django_filters.CharFilter(
     #     field_name='name',
     #     method='name_or_alias_iexact', lookup_expr='iexact')
@@ -175,6 +178,9 @@ class ProteinFilter(filters.FilterSet):
 
     def name_or_alias_icontains(self, queryset, name, value):
         return queryset.filter(name__icontains=value) | queryset.filter(aliases__icontains=value)
+
+    def switch_type__notequal(self, queryset, name, value):
+        return queryset.exclude(switch_type=value)
 
     # def name_or_alias_iexact(self, queryset, name, value):
     #     return queryset.filter(name__iexact=value) | queryset.filter(aliases__iexact=value)
