@@ -73,7 +73,9 @@ class ReferenceAdmin(CompareVersionAdmin):
     inlines = (PrimaryProteinInline, )
     fieldsets = [
         ('Reference', {
-            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links', 'secondary_proteins', 'journal', 'volume', 'pages', 'issue', 'date')
+            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links',
+                       'secondary_proteins', 'journal', 'volume', 'pages',
+                       'issue', 'date', 'refetch_info_on_save')
         }),
         ('Bleach Measurements', {
             'fields': ('bleach_links',)
@@ -83,8 +85,8 @@ class ReferenceAdmin(CompareVersionAdmin):
             'fields': (('created', 'created_by'), ('modified', 'updated_by'))
         })
     ]
-    readonly_fields = ('author_links', 'protein_links', 'secondary_proteins', 'bleach_links', 'journal', 'date',
-                       'pages', 'volume', 'issue', 'year', 'created', 'created_by', 'modified', 'updated_by')
+    readonly_fields = ('author_links', 'protein_links', 'secondary_proteins', 'bleach_links',
+                       'created', 'created_by', 'modified', 'updated_by')
 
     def author_links(self, obj):
         authors = obj.authors.all()
@@ -131,7 +133,7 @@ class ReferenceAdmin(CompareVersionAdmin):
         if not obj.created_by:
             obj.created_by = request.user
         obj.updated_by = request.user
-        obj.save(skipdoi=True)
+        obj.save(skipdoi=not form.cleaned_data['refetch_info_on_save'])
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request).prefetch_related('authors', 'primary_proteins')

@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.forms import ModelForm
+from django import forms
 from references.models import Reference, Author
 
 
@@ -15,15 +15,15 @@ class UserMixin(object):
         return self.cleaned_data['updated_by']
 
 
-class AuthorForm(UserMixin, ModelForm):
+class AuthorForm(UserMixin, forms.ModelForm):
     class Meta:
         model = Author
         fields = ['family', 'given']
 
 
-class ReferenceForm(UserMixin, ModelForm):
+class ReferenceForm(UserMixin, forms.ModelForm):
+    refetch_info_on_save = forms.BooleanField(required=False)
+
     class Meta:
         model = Reference
-        fields = ['pmid', 'doi', ]
-
-
+        fields = ['pmid', 'doi', 'title', 'refetch_info_on_save']
