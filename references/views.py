@@ -1,6 +1,7 @@
 from .models import Author, Reference
 from django.views.generic import DetailView, ListView
 from dal import autocomplete
+from django.http import Http404
 
 # Create your views here.
 
@@ -18,6 +19,21 @@ class ReferenceListView(ListView):
 class ReferenceDetailView(DetailView):
     ''' renders html for single reference page  '''
     queryset = Reference.objects.all().prefetch_related('authors')
+
+    def get_object(self, queryset=None):
+        try:
+            return super().get_object(queryset=queryset)
+        except (ValueError, Http404):
+            # allow for doi to be used in url as well
+            if queryset is None:
+                queryset = self.get_queryset()
+            try:
+                doi = self.kwargs.get(self.pk_url_kwarg)
+                queryset = queryset.filter(doi=doi.lower())
+                obj = queryset.get()
+            except queryset.model.DoesNotExist:
+                raise Http404('No reference found matching this query')
+            return obj
 
 
 class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
