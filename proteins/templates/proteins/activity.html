@@ -103,7 +103,7 @@
         {% for protein in proteins_by_date  %}
           <div class="card mb-2">
                 {% if protein.has_spectra %}
-                    <img class="card-img-top px-2 pt-1" src="{% url 'proteins:spectra-img' protein.slug %}.svg?xlim=400,750" alt="Card image cap">
+                    <img class="card-img-top px-2 pt-1" src="{% url 'proteins:spectra-img' protein.slug %}.svg?xlim=400,750" alt="{{protein.name|safe}} spectrum">
                 {% endif %}
 
               <div class='card-body'>
