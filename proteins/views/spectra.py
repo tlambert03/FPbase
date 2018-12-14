@@ -58,7 +58,7 @@ def fret_chart(request):
             return JsonResponse({'data': L})
 
         else:
-            slugs = State.objects.filter(spectra__subtype='ex').values('slug', 'protein__name', 'spectra__category', 'spectra__subtype')
+            slugs = State.objects.filter(spectra__subtype__in=('ex', 'ab')).values('slug', 'protein__name', 'spectra__category', 'spectra__subtype')
             slugs = [{'slug': x['slug'], 'category': x['spectra__category'], 'subtype': x['spectra__subtype'], 'name': x['protein__name']} for x in slugs]
             return render(request, template, {
                 'probeslugs': slugs}
