@@ -52,24 +52,12 @@
   </ul>
 </div>
 
-<h4 class='font-weight-bold'>Lineage Problems</h4>
-<p>Either a mutation string problem, misalignment, or doesn't yield the child sequence.</p>
-<div>
-  <ul class="row">
-    {% for prot, prob in linprobs %}
-      <li class="col-12"><a href="{{prot.get_absolute_url}}">{{prot|safe}}</a>: {{prob.0}}</li>
-    {% empty %}
-      <p>None!  🎉🍾🏆</p>
-    {% endfor %}
-  </ul>
-</div>
-
 <h4 class='font-weight-bold'>No Fluorescent States</h4>
 <p>Nothing has been entered about the fluorescent properties of these proteins.  They will not be shown in color in many places on the website.</p>
 <div>
   <ul class="row">
     {% for p in nostates  %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
     {% empty %}
       <p>None!  🎉🍾🏆</p>
     {% endfor %}
@@ -87,6 +75,33 @@
     {% endfor %}
   </ul>
 </div>
+
+
+<h4 class='font-weight-bold'>Lineage Problems</h4>
+<p>Either a mutation string problem, misalignment, or doesn't yield the child sequence.</p>
+<div>
+  <ul class="row">
+    {% for prot, prob in linprobs %}
+      <li class="col-12"><a href="{{prot.get_absolute_url}}">{{prot|safe}}</a>: {{prob.0}}</li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>No Lineage</h4>
+<p>Either a mutation string problem, misalignment, or doesn't yield the child sequence.</p>
+<div>
+  <ul class="row">
+    {% for prot in nolineage %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+
 
 {% endblock %}
 

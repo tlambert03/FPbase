@@ -468,8 +468,6 @@ def protein_tree(request, organism):
 def sequence_problems(request):
     ''' renders html for protein table page  '''
     linerrors = check_lineages()[0]
-    linprobs = [(node.protein, v) for node, v in linerrors.items()]
-
     return render(
         request,
         'seq_problems.html',
@@ -477,10 +475,14 @@ def sequence_problems(request):
             "histags": Protein.objects.filter(seq__icontains='HHHHH').values('name', 'slug'),
             "noseqs": Protein.objects.filter(seq__isnull=True).values('name', 'slug'),
             "nostates": Protein.objects.filter(states=None).values('name', 'slug'),
-            "linprobs": linprobs,
+            "linprobs": [(node.protein, v) for node, v in linerrors.items()],
             "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith='M'),
             "noparent": Protein.objects.filter(parent_organism__isnull=True),
-            "only2p": State.objects.filter(spectra__subtype='2p').exclude(spectra__subtype='ex').distinct('protein').values('protein__name', 'protein__slug'),
+            "only2p": (State.objects.filter(spectra__subtype='2p')
+                                    .exclude(spectra__subtype='ex')
+                                    .distinct('protein')
+                                    .values('protein__name', 'protein__slug')),
+            'nolineage': Protein.objects.filter(lineage=None).annotate(ns=Count('states__spectra')).order_by('-ns'),
             'request': request
         })
 
