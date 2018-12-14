@@ -297,7 +297,7 @@ class MutationSet(object):
     Mostyl a wrapper around a python set()
     """
 
-    def __init__(self, muts=None, position_labels=None, merge_subs=5):
+    def __init__(self, muts=None, position_labels=None, merge_subs=7):
         """ optional position_labels list will change the numbering of the
         muationset ... for instance, to match a reference sequence numbering """
         if isinstance(muts, str):
