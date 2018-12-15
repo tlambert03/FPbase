@@ -63,7 +63,7 @@ class Mutation(object):
         pass
 
     def __init__(self, start_char, start_idx, stop_char, stop_idx,
-                 operation, new_chars, ext, pos_label=None, idx0=1,
+                 operation, new_chars, ext, start_label=None, stop_label=None, idx0=1,
                  alphabet="".join(SkbSequence.definite_chars.union('X*'))):
         """
         start_char: single letter amino acid code for start position (e.g. A)
@@ -74,7 +74,7 @@ class Mutation(object):
                     {'sub', 'del', 'ins', 'delins', 'ext'}
         new_chars:  single or multiple letter amino acid code(s) for new amino acids
         ext:        if operation == 'ext', extension characters to add (after new_chars)
-        pos_label:  optional string to label the start position (e.g. V1a)
+        start_label:  optional string to label the start position (e.g. V1a)
                     this is used when the start character does not agree with the
                     start index... for instance, when displaying a mutation
                     with numbering relative to an ancestor other than parent.
@@ -120,14 +120,15 @@ class Mutation(object):
         self.new_chars = new_chars
         self.ext = ext
         self.idx0 = idx0
-        self.pos_label = pos_label
+        self.start_label = start_label
+        self.stop_label = stop_label
         if self.operation == 'sub' and len(new_chars) != 1:
             raise ValueError('A substitution must have a single new character {}'.format(self))
 
     def __str__(self):
-        out = '{}{}'.format(self.start_char, self.pos_label or self.start_idx)
+        out = '{}{}'.format(self.start_char, self.start_label or self.start_idx)
         if self.stop_char and self.stop_idx:
-            out += '_{}{}'.format(self.stop_char, self.stop_idx)
+            out += '_{}{}'.format(self.stop_char, self.stop_label or self.stop_idx)
         if self.operation == 'ext':
             out += self.new_chars + self.operation + self.ext
         elif self.operation == 'sub':
@@ -297,7 +298,7 @@ class MutationSet(object):
     Mostyl a wrapper around a python set()
     """
 
-    def __init__(self, muts=None, position_labels=None, merge_subs=7):
+    def __init__(self, muts=None, position_labels=None):
         """ optional position_labels list will change the numbering of the
         muationset ... for instance, to match a reference sequence numbering """
         if isinstance(muts, str):
@@ -307,18 +308,19 @@ class MutationSet(object):
         if not all([isinstance(m, Mutation) for m in muts]):
             raise ValueError('All MutationSet items must be Mutation Instances')
         self.muts = set(muts)
-        self.merge_delins(merge_subs) if merge_subs else None
         if position_labels is not None:
             self.position_labels = position_labels
             for mut in self.muts:
                 if len(position_labels) >= mut.start_idx:
                     # the - 1 assumes that the mutation positions are 1-indexed
-                    mut.pos_label = position_labels[mut.start_idx - 1]
+                    mut.start_label = position_labels[mut.start_idx - 1]
+                    if mut.stop_idx:
+                        mut.stop_label = position_labels[mut.stop_idx - 1]
                 else:
                     try:
-                        mut.pos_label = str(len(position_labels) - mut.start_idx + int(position_labels[-1]))
+                        mut.start_label = str(len(position_labels) - mut.start_idx + int(position_labels[-1]))
                     except Exception:
-                        mut.pos_label = str(mut.start_idx)
+                        mut.start_label = str(mut.start_idx)
 
     def __contains__(self, query):
         if isinstance(query, str):
