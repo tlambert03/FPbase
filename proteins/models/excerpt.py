@@ -13,7 +13,7 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
 
     content = models.TextField(max_length=1200, help_text="Brief excerpt describing this protein")
     protein = models.ForeignKey('Protein', related_name='excerpts', on_delete=models.CASCADE)
-    reference = models.ForeignKey(Reference, related_name='excerpt',
+    reference = models.ForeignKey(Reference, related_name='excerpts',
                                   null=True, on_delete=models.SET_NULL,
                                   help_text="Source of this excerpt")
 
