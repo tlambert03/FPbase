@@ -1,9 +1,13 @@
 from .models import Author, Reference
 from django.views.generic import DetailView, ListView
 from dal import autocomplete
-from django.http import Http404
-
-# Create your views here.
+from django.http import Http404, HttpResponseNotAllowed
+from proteins.util.helpers import link_excerpts
+from django.utils.html import strip_tags
+from django.core.mail import mail_managers
+import reversion
+from proteins.models import Excerpt
+from django.http import JsonResponse
 
 
 class AuthorDetailView(DetailView):
@@ -35,6 +39,11 @@ class ReferenceDetailView(DetailView):
                 raise Http404('No reference found matching this query')
             return obj
 
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['excerpts'] = link_excerpts(self.object.excerpts.all())
+        return data
+
 
 class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
 
@@ -56,3 +65,26 @@ class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
         if self.q:
             qs = qs.filter(doi__icontains=self.q)
         return qs
+
+
+def add_excerpt(request, pk=None):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+    try:
+        with reversion.create_revision():
+            ref = Reference.objects.get(pk=pk)
+            content = request.POST.get('excerpt_content')
+            if content:
+                # P.references.add(ref)
+                Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
+                if not request.user.is_staff:
+                    msg = "User: {}\nReference: {}, {}\nExcerpt: {}\n{}".format(
+                        request.user.username, ref, ref.title, strip_tags(content),
+                        request.build_absolute_uri(ref.get_absolute_url()))
+                    mail_managers('Excerpt Added', msg, fail_silently=True)
+                reversion.set_user(request.user)
+                reversion.set_comment('Excerpt from {} added'.format(ref))
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'failed', 'msg': e})
+

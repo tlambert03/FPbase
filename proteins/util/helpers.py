@@ -7,8 +7,49 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from django.utils.text import slugify
 import logging
 from collections import Counter, OrderedDict
+from django.core.cache import cache
+from django.utils.safestring import mark_safe
+from django.urls import reverse
+
 
 logger = logging.getLogger(__name__)
+
+
+def create_slug_dict():
+    from proteins.models import Protein
+
+    slugs = OrderedDict(Protein.objects.all().values_list('name', 'slug'))
+    for item in Protein.objects.exclude(aliases=[]).values_list('aliases', 'slug'):
+        if item[0]:
+            for alias in item[0]:
+                slugs.update({alias: item[1]})
+    return OrderedDict(sorted(slugs.items(), key=lambda x: len(x[0]), reverse=True))
+
+
+def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
+    if not excerpts_qs:
+        return None
+    excerpt_list = list(excerpts_qs)
+    slug_dict = cache.get_or_set('slug_dict', create_slug_dict, 60)
+    for excerpt in excerpt_list:
+        for name in slug_dict:
+            if not len(name) > 1:
+                continue
+            if name == obj_name or name in aliases:
+                excerpt.content = mark_safe(re.sub(
+                    r'(?<=[\s(])(?<!>){}(?!.\d)(?!<)'.format(name),
+                    '<strong>{}</strong>'.format(name),
+                    excerpt.content
+                ))
+            else:
+                excerpt.content = mark_safe(re.sub(
+                    r'(?<=[\s(])(?<!>){}(?!.\d)(?!<)'.format(name),
+                    '<a href="{}" class="text-info">{}</a>'.format(
+                        reverse('proteins:protein-detail', args=[slug_dict[name]]),
+                        name),
+                    excerpt.content
+                ))
+    return excerpt_list
 
 
 def most_favorited(max_results=20):

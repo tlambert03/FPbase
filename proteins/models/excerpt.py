@@ -12,7 +12,7 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
     STATUS = Choices('approved', 'flagged', 'rejected')
 
     content = models.TextField(max_length=1200, help_text="Brief excerpt describing this protein")
-    protein = models.ForeignKey('Protein', related_name='excerpts', on_delete=models.CASCADE)
+    proteins = models.ManyToManyField('Protein', blank=True, related_name='excerpts')
     reference = models.ForeignKey(Reference, related_name='excerpts',
                                   null=True, on_delete=models.SET_NULL,
                                   help_text="Source of this excerpt")
@@ -28,4 +28,4 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
         return "{}: {}...".format(ref, self.content[:30])
 
     def get_absolute_url(self):
-        return self.protein.get_absolute_url()
+        return self.reference.get_absolute_url()

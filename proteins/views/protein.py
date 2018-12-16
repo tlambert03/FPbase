@@ -3,7 +3,6 @@ from django.views.generic import DetailView, CreateView, UpdateView, ListView, b
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.vary import vary_on_cookie
-from django.core.cache import cache
 from django.core.mail import mail_managers, mail_admins
 from django.shortcuts import render, get_object_or_404
 from django.http import (HttpResponseRedirect, HttpResponse, JsonResponse,
@@ -13,10 +12,9 @@ from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
-from django.db.models import Case, When, Count, Prefetch
+from django.db.models import Case, When, Count, Prefetch, Q
 from django.shortcuts import redirect
 from django.apps import apps
-from django.urls import reverse
 from django.utils.html import strip_tags
 from django.utils.decorators import method_decorator
 
@@ -27,53 +25,21 @@ from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet, LineageF
 
 from proteins.util.spectra import spectra2csv
 from proteins.util.maintain import check_lineages
-from proteins.util.helpers import most_favorited
+from proteins.util.helpers import most_favorited, link_excerpts
 from proteins.extrest.ga import cached_ga_popular
 from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
 import json
-import re
 import io
 from django.utils.safestring import mark_safe
-from collections import OrderedDict
 from django.utils.text import slugify
 from django.db.models import Func, F, Value
 from django.contrib import messages
+import operator
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-def create_slug_dict():
-    slugs = OrderedDict(Protein.objects.all().values_list('name', 'slug'))
-    for item in Protein.objects.exclude(aliases=[]).values_list('aliases', 'slug'):
-        if item[0]:
-            for alias in item[0]:
-                slugs.update({alias: item[1]})
-    return OrderedDict(sorted(slugs.items(), key=lambda x: len(x[0]), reverse=True))
-
-
-def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
-    excerpt_list = list(excerpts_qs)
-    slug_dict = cache.get_or_set('slug_dict', create_slug_dict)
-    for excerpt in excerpt_list:
-        for name in slug_dict:
-            if name == obj_name or name in aliases:
-                excerpt.content = mark_safe(re.sub(
-                    r'(?<=[\s])(?<!>){}(?!.\d)(?!<)'.format(name),
-                    '<strong>{}</strong>'.format(name),
-                    excerpt.content
-                ))
-            else:
-                excerpt.content = mark_safe(re.sub(
-                    r'(?<=[\s])(?<!>){}(?!.\d)(?!<)'.format(name),
-                    '<a href="{}" class="text-info">{}</a>'.format(
-                        reverse('proteins:protein-detail', args=[slug_dict[name]]),
-                        name),
-                    excerpt.content
-                ))
-    return excerpt_list
 
 
 class ProteinDetailView(DetailView):
@@ -468,6 +434,11 @@ def protein_tree(request, organism):
 def sequence_problems(request):
     ''' renders html for protein table page  '''
     linerrors = check_lineages()[0]
+
+    from functools import reduce
+    query = reduce(operator.or_, (Q(primary_reference__title__icontains = item)
+                   for item in ['activat', 'switch', 'convert', 'dark', 'revers']))
+
     return render(
         request,
         'seq_problems.html',
@@ -483,6 +454,7 @@ def sequence_problems(request):
                                     .distinct('protein')
                                     .values('protein__name', 'protein__slug')),
             'nolineage': Protein.objects.filter(lineage=None).annotate(ns=Count('states__spectra')).order_by('-ns'),
+            'switchers': Protein.objects.annotate(ns=Count('states')).filter(query).filter(ns=1),
             'request': request
         })
 
@@ -711,6 +683,7 @@ def flag_object(request):
                 uncache_protein_page(obj.protein.slug, request)
             except Exception as e:
                 logger.error('failed to uncache protein: {}'.format(e))
+
             mail_admins('%s %s' % (model_type, status),
                         "User: {}\nObject: {}\nID: {}\n{}".format(
                             request.user.username, obj, obj.pk, request.build_absolute_uri(obj.get_absolute_url())),

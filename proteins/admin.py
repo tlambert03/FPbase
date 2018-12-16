@@ -66,20 +66,6 @@ class BleachInline(admin.TabularInline):
     extra = 1
 
 
-class ExcerptInline(admin.TabularInline):
-    model = Excerpt
-    autocomplete_fields = ("reference",)
-    fieldsets = [
-        (None, {
-            'fields': (('reference', 'content', 'status'),)
-        }),
-    ]
-    extra = 1
-    formfield_overrides = {
-        TextField: {'widget': Textarea(attrs={'rows': 3, 'cols': 60})},
-    }
-
-
 class OSERInline(admin.StackedInline):
     model = OSERMeasurement
     autocomplete_fields = ('reference',)
@@ -100,6 +86,7 @@ class OSERInline(admin.StackedInline):
             'fields': (('created', 'created_by'), ('modified', 'updated_by'))
         })
     ]
+
 
 class StateInline(MultipleSpectraOwner, admin.StackedInline):
     # form = StateForm
@@ -205,13 +192,6 @@ class SpectrumAdmin(admin.ModelAdmin):
     # def get_queryset(self, request):
     #     qs = super().get_queryset(request)
     #     return qs.prefetch_related('owner_state__protein')
-
-
-@admin.register(Excerpt)
-class ExcerptAdmin(VersionAdmin):
-    model = Excerpt
-    list_display = ('protein', 'content', 'reference', 'created_by', 'created')
-    list_filter = ('status',)
 
 
 @admin.register(OSERMeasurement)
@@ -354,7 +334,7 @@ class ProteinAdmin(CompareVersionAdmin):
     list_filter = ('status', 'created', 'modified', 'switch_type',)
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
-    inlines = (StateInline, StateTransitionInline, OSERInline, ExcerptInline, LineageInline)
+    inlines = (StateInline, StateTransitionInline, OSERInline, LineageInline)
     fieldsets = [
         (None, {
             'fields': (('name', 'slug',), ('aliases', 'chromophore'),
@@ -510,6 +490,15 @@ class LineageAdminForm(forms.ModelForm):
         readonly_fields = ('root_node')
     parent = forms.ModelChoiceField(required=False, queryset=Lineage.objects.prefetch_related('protein').all())
     root_node = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related('protein').all())
+
+
+@admin.register(Excerpt)
+class ExcerptAdmin(VersionAdmin):
+    model = Excerpt
+    list_display = ('id', 'reference', 'content', 'created_by', 'created')
+    list_filter = ('status',)
+    list_select_related = ('reference', 'created_by')
+    autocomplete_fields = ('proteins', 'reference', 'created_by', 'updated_by')
 
 
 @admin.register(Lineage)
