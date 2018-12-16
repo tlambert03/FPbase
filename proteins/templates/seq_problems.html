@@ -90,10 +90,23 @@
 </div>
 
 <h4 class='font-weight-bold'>No Lineage</h4>
-<p>Either a mutation string problem, misalignment, or doesn't yield the child sequence.</p>
+<p>No lineage information</p>
 <div>
   <ul class="row">
     {% for prot in nolineage %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+
+<h4 class='font-weight-bold'>No Lineage</h4>
+<p>Proteins that may be switchable/convertable, etc... but that only have a single fluorescent state</p>
+<div>
+  <ul class="row">
+    {% for prot in switchers %}
       <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a></li>
     {% empty %}
       <p>None!  🎉🍾🏆</p>

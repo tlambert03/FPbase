@@ -436,8 +436,13 @@ def sequence_problems(request):
     linerrors = check_lineages()[0]
 
     from functools import reduce
-    query = reduce(operator.or_, (Q(primary_reference__title__icontains = item)
-                   for item in ['activat', 'switch', 'convert', 'dark', 'revers']))
+    titles = reduce(operator.or_, (Q(primary_reference__title__icontains=item)
+                    for item in ['activat', 'switch', 'convert', 'dark', 'revers']))
+    names = reduce(operator.or_, (Q(name__startswith=item)
+                   for item in ['PA', 'rs', 'mPA', 'PS', 'mPS']))
+    switchers = Protein.objects.filter(titles)
+    switchers = switchers | Protein.objects.filter(names)
+    switchers = switchers.annotate(ns=Count('states')).filter(ns=1)
 
     return render(
         request,
@@ -454,7 +459,7 @@ def sequence_problems(request):
                                     .distinct('protein')
                                     .values('protein__name', 'protein__slug')),
             'nolineage': Protein.objects.filter(lineage=None).annotate(ns=Count('states__spectra')).order_by('-ns'),
-            'switchers': Protein.objects.annotate(ns=Count('states')).filter(query).filter(ns=1),
+            'switchers': switchers,
             'request': request
         })
 
