@@ -6,7 +6,7 @@ from references.models import Reference, Author
 from references.forms import ReferenceForm
 from reversion_compare.admin import CompareVersionAdmin
 
-from proteins.models import Protein
+from proteins.models import Protein, Excerpt
 
 
 @admin.register(Author)
@@ -62,6 +62,19 @@ class PrimaryProteinInline(admin.TabularInline):
     show_change_link = True
 
 
+class ExcerptInline(admin.StackedInline):
+    # form = StateForm
+    # formset = StateFormSet
+    model = Excerpt
+    extra = 0
+    can_delete = True
+    show_change_link = True
+    fields = (('created', 'created_by'), 'content', ('proteins', 'status'))
+    autocomplete_fields = ('proteins', 'created_by')
+    readonly_fields = ('created', )
+    list_select_related = ('proteins')
+
+
 @admin.register(Reference)
 class ReferenceAdmin(CompareVersionAdmin):
     form = ReferenceForm
@@ -70,7 +83,7 @@ class ReferenceAdmin(CompareVersionAdmin):
     list_display = ('id', 'citation', 'protein_links', 'title', 'date', 'doi', 'created')
     list_filter = ('created', 'modified')
     search_fields = ('pmid', 'doi', 'title', 'citation', 'firstauthor')
-    inlines = (PrimaryProteinInline, )
+    inlines = (PrimaryProteinInline, ExcerptInline)
     fieldsets = [
         ('Reference', {
             'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links',
