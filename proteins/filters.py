@@ -170,6 +170,7 @@ class ProteinFilter(filters.FilterSet):
             'genbank': 'GenBank ID',
             'pdb': 'PDB ID',
             'seq': 'Sequence',
+            'name': 'Name or Alias',
             'agg': 'Oligomerization',
             'primary_reference__year': 'Year published',
             'default_state__bleach_measurements__rate': 'Photostability (s)',
