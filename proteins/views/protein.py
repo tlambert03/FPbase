@@ -489,7 +489,7 @@ def add_reference(request, slug=None):
         return JsonResponse({'status': 'failed', 'msg': e})
 
 
-def add_excerpt(request, slug=None):
+def add_protein_excerpt(request, slug=None):
     try:
         with reversion.create_revision():
             doi = request.POST.get('excerpt_doi').lower()
@@ -498,7 +498,8 @@ def add_excerpt(request, slug=None):
             if content:
                 ref, created = Reference.objects.get_or_create(doi=doi)
                 P.references.add(ref)
-                Excerpt.objects.create(protein=P, reference=ref, content=strip_tags(content), created_by=request.user)
+                excerpt = Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
+                excerpt.proteins.add(P)
                 if not request.user.is_staff:
                     msg = "User: {}\nProtein: {}\nReference: {}, {}\nExcerpt: {}\n{}".format(
                         request.user.username, P, ref, ref.title, strip_tags(content),
