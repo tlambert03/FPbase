@@ -25,7 +25,7 @@ export default function FPPropChart() {
 	var filters = {
 		"ex_max" : [350,800,1],		// array values represent [min range, max range, step (for the range slider)]
 		"em_max" : [350,800,1],
-		"ext_coeff"	: [10000,170000,1000],
+		"ext_coeff"	: [10000,230000,1000],
 		"qy"		: [0,1,0.01],
 		"brightness": [0,125,1],
 		"agg"	 	: '',
