@@ -24,7 +24,7 @@ drf-tweaks==0.8.1
 markdown==3.0.1
 
 # MY STUFF
-sentry-sdk==0.6.0
+sentry-sdk==0.6.5
 
 metapub==0.4.3.6
 biopython==1.72
