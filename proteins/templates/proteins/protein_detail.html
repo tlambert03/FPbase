@@ -2,7 +2,7 @@
 {% load i18n favit_tags %}
 {% load flag_object custom_static from protein_tags %}
 
-{% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
+{% block title %}{{ protein.name|safe  }} :: Fluorescent Protein Database {% endblock %}
 {% block meta-description %}{{ protein.description }}{% endblock %}
 
 
@@ -196,7 +196,7 @@
 
     {% if protein.oser_measurements.count %}
     <div class="attributes mt-1">
-      <h3>OSER Measurements</h3>
+      <h3>{{protein.name | safe}} OSER Measurements</h3>
         <table class="table table-striped flip-scroll">
           <thead>
             <tr class="table-header">
@@ -252,7 +252,7 @@
       </div>
 
       {% if protein.lineage and protein.lineage.parent %}
-          <p class="text-muted">{{protein.name}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span><span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
+          <p class="text-muted">{{protein.name | safe}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span><span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
           {% if protein.lineage.root_node != protein.lineage.parent and protein.lineage.mutation != protein.lineage.rootmut %}<span class="small">
           amino acid numbers relative to <span class="mut-rel-parent hidden">{{protein.lineage.parent.protein}}</span><span class="mut-rel-root">{{protein.lineage.root_node}}</span>. <a href="" onclick="myFunction(event)" class="mut-rel-parent hidden text-secondary">show relative to {{protein.lineage.root_node}}</a><a href="" onclick="myFunction(event)" class="mut-rel-root text-secondary">show relative to {{protein.lineage.parent.protein}}</a></span>
           {% endif %}
@@ -372,7 +372,7 @@
               <h3>External Resources</h3>
               <ul>
     {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank" rel="noopener">BioNumbers</a> for {{ protein.name }}</li> #}
-                <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name }}</li>
+                <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name | safe}}</li>
               </ul>
             </div>
 
@@ -422,7 +422,7 @@
     {% endif %}
     {% if request.user.is_staff %}
       {% load admin_urls %}
-      <a href="{% url 'admin:proteins_protein_change' protein.id %}">{{ protein.name}} on admin</a><br>
+      <a href="{% url 'admin:proteins_protein_change' protein.id %}">{{ protein.name | safe}} on admin</a><br>
     {% endif %}
 {% endblock extrafooter %}
 

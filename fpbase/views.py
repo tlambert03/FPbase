@@ -1,10 +1,23 @@
 from fpbase.forms import ContactForm
 from django.views.generic.edit import FormView
+from django.views.generic import TemplateView
 from django.shortcuts import render
 from django.conf import settings
-from proteins.models import Protein
+from proteins.models import Protein, Spectrum
 from sentry_sdk import last_event_id
 from django.views.decorators.cache import cache_page
+
+
+class HomeView(TemplateView):
+    template_name = 'pages/home.html'
+
+    def get_context_data(self):
+        data = super().get_context_data()
+        data['stats'] = {
+            'proteins': Protein.objects.count(),
+            'protspectra': Spectrum.objects.exclude(owner_state=None).count()
+        }
+        return data
 
 
 class ContactView(FormView):

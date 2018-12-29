@@ -25,8 +25,10 @@ sitemaps = {
 }
 
 urlpatterns = [
-    url(r'^$', TemplateView.as_view(template_name='pages/home.html'), name='home'),
+    url(r'^$', fpbase.views.HomeView.as_view(), name='home'),
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name='about'),
+
+    url(r'^faq/$', TemplateView.as_view(template_name='pages/faq.html'), name='faq'),
     url(r'^cite/$', TemplateView.as_view(template_name='pages/cite.html'), name='cite'),
     url(r'^terms/$', TemplateView.as_view(template_name='pages/terms.html'), name='terms'),
     url(r'^privacy/$', TemplateView.as_view(template_name='pages/terms.html'), name='privacy'),

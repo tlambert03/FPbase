@@ -36,7 +36,7 @@
 				<div class="col-md-7 align-self-center text-center search-col order-sm-2 search-col">
 					<p class="cover-heading">Find a Protein</h1>
 						<form class="input-group home-search" method="get" action="/search/">
-							<input type="search" class="form-control" name="name__icontains" placeholder="protein name...">
+							<input type="search" class="form-control" name="q" placeholder="protein name...">
 							<span class="input-group-btn">
 								<button class="btn btn-secondary" type="submit"><i class="fas fa-search"></i></button>
 							</span>
@@ -53,6 +53,18 @@
           </div>
 				</div>
 			</div>
+
+      <div class="row">
+        <div class="col-md-4 order-sm-1"></div>
+        <div class="col-md-7 text-center order-sm-2 text-white mt-5 mt-md-0">
+          <div class="d-flex bd-highlight small-sm" style='opacity:0.70; font-size: 16px'>
+            <div class="p-1 flex-fill bd-highlight"><i class="fas fa-sun mr-2" ></i>{{stats.proteins}} <a href="{% url 'proteins:table' %}" class='text-white'>Proteins</a></div>
+            <div class="p-1 flex-fill bd-highlight"><i class="fas fa-chart-area mr-2" ></i>{{stats.protspectra}} <a href="{% url 'proteins:spectra' %}" class='text-white'>FP Spectra</a></div></div>
+
+          </div>
+        </div>
+      </div>
+
 		</main>
 		{% include '_twittershare.html' %}
 	</div>

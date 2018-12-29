@@ -48,6 +48,7 @@ class Fluorophore(SpectrumOwner):
         validators=[MinValueValidator(0), MaxValueValidator(20)])  # fluorescence lifetime in nanoseconds
     emhex       = models.CharField(max_length=7, blank=True)
     exhex       = models.CharField(max_length=7, blank=True)
+    is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence",)
 
     class Meta:
         abstract = True
@@ -56,7 +57,7 @@ class Fluorophore(SpectrumOwner):
         if self.qy and self.ext_coeff:
             self.brightness = float(round(self.ext_coeff * self.qy / 1000, 2))
 
-        self.emhex = wave_to_hex(self.em_max)
+        self.emhex = "#000" if self.is_dark else wave_to_hex(self.em_max)
         self.exhex = wave_to_hex(self.ex_max)
 
         super().save(*args, **kwargs)
@@ -162,7 +163,6 @@ class State(Fluorophore):
 
     """ A class for the states that a given protein can be in (including spectra and other state-dependent properties)  """
     name        = models.CharField(max_length=64, default=DEFAULT_NAME)  # required
-    is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence",)
     maturation  = models.FloatField(null=True, blank=True, help_text="Maturation time (min)",  # maturation half-life in min
                                     validators=[MinValueValidator(0), MaxValueValidator(1600)])
     # Relations

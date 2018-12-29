@@ -1,15 +1,56 @@
 from django.contrib.postgres.search import TrigramSimilarity
 from django.shortcuts import render, redirect
-from django.db.models import Count, Prefetch
+from django.db.models import Count, Prefetch, Q
 from ..filters import ProteinFilter
-from ..models import Protein, State
+from ..models import Protein, State, Organism
+from references.models import Reference, Author
+
+
 import json
+from proteins.util.helpers import getprot
 
 
 def protein_search(request):
     ''' renders html for protein search page  '''
 
     if request.GET:
+        if set(request.GET.keys()) == {'q'}:
+            query = request.GET.get('q').strip()
+            page = None
+            try:
+                page = getprot(query)
+                return redirect(page)
+            except Protein.DoesNotExist:
+                pass
+            try:
+                page = Protein.objects.get(Q(genbank__iexact=query) | Q(uniprot__iexact=query) | Q(pdb__contains=[query.upper()]))
+                return redirect(page)
+            except Protein.DoesNotExist:
+                pass
+            try:
+                page = Author.objects.filter(family__iexact=query).annotate(nr=Count('publications')).order_by('-nr')
+                if page:
+                    return redirect(page.first())
+            except Author.DoesNotExist:
+                pass
+            try:
+                page = Reference.objects.get(doi=query.lower())
+                return redirect(page)
+            except Reference.DoesNotExist:
+                pass
+            if len(query) > 5:
+                try:
+                    page = Organism.objects.filter(scientific_name__istartswith=query).annotate(np=Count('proteins')).order_by('-np')
+                    if page.exists():
+                        return redirect(page.first())
+                except Organism.DoesNotExist:
+                    pass
+
+            request.GET._mutable = True
+            request.GET['name__icontains'] = query
+            del request.GET['q']
+            return redirect('/search/?name__iexact=' + query)
+
         stateprefetch = Prefetch('states', queryset=State.objects.order_by('-is_dark', 'em_max'))
         f = ProteinFilter(
             request.GET,
