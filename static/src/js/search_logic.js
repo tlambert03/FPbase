@@ -254,7 +254,9 @@ window.initSearch = function(filterfields, operatorLookup, labelLookup) {
         filter = splits.slice(0, splits.length - 1).join('__');
         operator = splits[splits.length - 1];
       }
-      addRow('#query_builder', filter, operator);
+      if (filter && operator){
+        addRow('#query_builder', filter, operator);
+      }
     }
   }
 
