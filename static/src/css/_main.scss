@@ -253,3 +253,9 @@ select[readonly].select2-hidden-accessible + .select2-container {
   }
 }
 
+
+.small-sm {
+  @include media-breakpoint-down(sm) { font-size: small !important; }
+}
+
+
