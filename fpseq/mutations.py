@@ -154,6 +154,9 @@ class Mutation(object):
         # instead... this gets called at each step of MutationSet.apply
         # self._assert_position_consistency(seq, idx0)
         startpos = self.start_idx - idx0
+        if startpos > len(seq):  # allowing one extra position for extensions
+            raise IndexError('Starting position {} is outside of sequence with length {}'.format(
+                             self.start_idx, len(seq)))
         if self.operation == 'sub':
             return (seq[:startpos] + self.new_chars + seq[startpos + 1:], 0)
         if self.operation == 'ins':
