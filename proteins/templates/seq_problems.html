@@ -40,6 +40,18 @@
   </ul>
 </div>
 
+<h4 class='font-weight-bold'>Sequences not matching GenBank</h4>
+<p>These sequences do not exactly match the sequence for the corresponding genbank ID.  Sometimes this is just because the genbank sequence has slight N/C terminal differences, or perhaps a His tag.  Sometimes it indicates a problem with our sequence, and sometimes Genbank is wrong!  The gray text shows the mutation from the FPbase sequence to the Genbank sequence.</p>
+<div>
+  <ul class="row">
+    {% for name, slug, genbank, muts, seq in mismatch  %}
+      <li class="col-12 col-lg-6"><a href="{% url 'proteins:protein-detail' slug %}">{{name|safe}}</a>: <span class='text-muted small'> (<a href="https://www.ncbi.nlm.nih.gov/protein/{{ genbank }}" target="_blank" class="text-info" rel="noopener">{{ genbank}}</a>){{muts|slice:":28" }}</span></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
 <h4 class='font-weight-bold'>Parental organism missing</h4>
 <p>Go to the original publication and try to figure out which organism it comes from.  NOTE: often easier is to simply add lineage information... which will populate the parent organism with the same organism as the parent protein.</p>
 <div>

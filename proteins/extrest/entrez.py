@@ -3,8 +3,13 @@ from Bio import Entrez, SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_dna
 from references.helpers import pmid2doi
+from django.core.cache import cache
 import re
+import time
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 Entrez.email = "talley_lambert@hms.harvard.edu"
 
@@ -147,7 +152,41 @@ def check_accession_type(gbid):
         database = 'protein'
     elif gbnucrx.match(gbid):
         database = 'nuccore'
+    elif gbid.upper().startswith(('WP_', 'XP_', 'YP_', 'NP_', 'AP_')):
+        database = 'protein'
     return database
+
+
+def get_cached_gbseqs(gbids, max_age=60 * 60 * 24):
+    gbseqs = cache.get('gbseqs', {})
+    now = time.time()
+    tofetch = [id for id in gbids if not ((id in gbseqs) and (gbseqs[id][1] - now < max_age))]
+    gbseqs.update({k: (v, now) for k, v in fetch_gb_seqs(tofetch).items()})
+    cache.set('gbseqs', gbseqs, 60 * 60 * 24)
+    return gbseqs
+
+
+def fetch_gb_seqs(gbids):
+    """ Retrieve protein sequence for multiple genbank IDs, (regardless of accession type)"""
+    prots = []
+    nucs = []
+    for id in gbids:
+        db = check_accession_type(id)
+        if db == 'protein':
+            prots.append(id)
+        elif db == 'nuccore':
+            nucs.append(id)
+        else:
+            prots.append(id)
+            logger.error('Could not determine accession type for {}'.format(id))
+    records = {}
+    if len(nucs):
+        with Entrez.efetch(db='nuccore', id=nucs, rettype="fasta", retmode="text") as handle:
+            records.update({l.id.split('.')[0]: l.translate().seq._data.strip('*') for l in SeqIO.parse(handle, "fasta")})
+    if len(prots):
+        with Entrez.efetch(db='protein', id=prots, rettype="fasta", retmode="text") as handle:
+            records.update({l.id.split('.')[0]: l.seq._data.strip('*') for l in SeqIO.parse(handle, "fasta")})
+    return records
 
 
 def get_gb_seq(gbid):

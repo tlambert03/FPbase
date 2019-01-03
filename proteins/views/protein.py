@@ -27,6 +27,7 @@ from proteins.util.spectra import spectra2csv
 from proteins.util.maintain import check_lineages
 from proteins.util.helpers import most_favorited, link_excerpts
 from proteins.extrest.ga import cached_ga_popular
+from proteins.extrest.entrez import get_cached_gbseqs
 from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
 from reversion.models import Version
@@ -444,6 +445,17 @@ def sequence_problems(request):
     switchers = switchers | Protein.objects.filter(names)
     switchers = switchers.annotate(ns=Count('states')).filter(ns=1)
 
+    with_genbank = Protein.objects.exclude(genbank=None).exclude(seq=None).values('slug', 'name', 'genbank', 'seq')
+    gbseqs = get_cached_gbseqs([g['genbank'] for g in with_genbank])
+    mismatch = []
+    for item in with_genbank:
+        if item['genbank'] in gbseqs:
+            gbseq = gbseqs.get(item['genbank'])[0]
+            ourseq = item['seq']
+            if ourseq != gbseq:
+                mismatch.append((item['name'], item['slug'], item['genbank'],
+                                 str(ourseq.mutations_to(gbseq)), item['seq']))
+
     return render(
         request,
         'seq_problems.html',
@@ -460,7 +472,8 @@ def sequence_problems(request):
                                     .values('protein__name', 'protein__slug')),
             'nolineage': Protein.objects.filter(lineage=None).annotate(ns=Count('states__spectra')).order_by('-ns'),
             'switchers': switchers,
-            'request': request
+            'request': request,
+            'mismatch': mismatch,
         })
 
 
