@@ -39,7 +39,7 @@ class MyUserAdmin(AuthUserAdmin):
     fieldsets = (
         ('User Profile', {'fields': ('avatar', 'name', 'email_verified', 'microscopes', 'collections')}),
     ) + AuthUserAdmin.fieldsets
-    list_display = ('username', 'email', '_date_joined', '_last_login', '_logins', '_collections', 'social', )
+    list_display = ('username', 'email', '_date_joined', '_last_login', '_logins', 'cols', 'scopes', 'faves', 'social', )
     search_fields = ['name', 'username', 'email']
     readonly_fields = ('avatar', 'email_verified', 'social', 'microscopes', 'collections')
     ordering = ('-date_joined',)
@@ -82,9 +82,17 @@ class MyUserAdmin(AuthUserAdmin):
     def social(self, obj):
         return ", ".join([q.provider.title() for q in obj.socialaccount_set.all()])
 
-    def _collections(self, obj):
+    def cols(self, obj):
         return obj._collections or ''
-    _collections.admin_order_field = '_collections'
+    cols.admin_order_field = '_collections'
+
+    def scopes(self, obj):
+        return obj._microscopes or ''
+    scopes.admin_order_field = '_microscopes'
+
+    def faves(self, obj):
+        return obj._favorites or ''
+    faves.admin_order_field = '_favorites'
 
     def _logins(self, obj):
         return obj._logins or ''
@@ -96,5 +104,7 @@ class MyUserAdmin(AuthUserAdmin):
                                   'proteincollections',
                                   'emailaddress_set') \
                 .annotate(_collections=Count('proteincollections'),
+                          _microscopes=Count('microscopes'),
+                          _favorites=Count('favorites'),
                           _logins=Count('logins'))
 

@@ -142,21 +142,25 @@ class LineageInline(admin.TabularInline):
 @admin.register(Light)
 class LightAdmin(SpectrumOwner, admin.ModelAdmin):
     model = Light
+    ordering = ('-created',)
 
 
 @admin.register(Dye)
 class DyeAdmin(MultipleSpectraOwner, VersionAdmin):
     model = Dye
+    ordering = ('-created',)
 
 
 @admin.register(Filter)
 class FilterAdmin(SpectrumOwner, VersionAdmin):
     model = Filter
+    ordering = ('-created',)
 
 
 @admin.register(Camera)
 class CameraAdmin(SpectrumOwner, VersionAdmin):
     model = Camera
+    ordering = ('-created',)
 
 
 @admin.register(Spectrum)
@@ -232,10 +236,10 @@ class BleachMeasurementAdmin(VersionAdmin):
 class StateAdmin(CompareVersionAdmin):
     # form = StateForm
     model = State
-    list_select_related = ('protein',)
+    list_select_related = ('protein', 'created_by', 'updated_by')
     search_fields = ('protein__name',)
-    list_display = ('__str__', 'protein_link', 'ex_max', 'em_max', 'created_by')
-    list_filter = ('created', 'modified', 'created_by__username')
+    list_display = ('__str__', 'protein_link', 'ex_max', 'em_max', 'created_by', 'updated_by', 'modified')
+    list_filter = ('created', 'modified')
     inlines = (BleachInline,)
     fieldsets = [
         (None, {
@@ -305,7 +309,8 @@ class StateTransitionInline(admin.TabularInline):
 
 @admin.register(Organism)
 class OrganismAdmin(CompareVersionAdmin):
-    list_display = ('scientific_name', 'id', 'created_by', 'created', 'modified')
+    list_select_related = ('created_by', 'updated_by')
+    list_display = ('scientific_name', 'id', 'created', 'created_by', 'modified', 'updated_by')
     list_filter = ('created', 'modified')
     search_fields = ('scientific_name', 'common_name', 'id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
 
@@ -330,8 +335,9 @@ class OrganismAdmin(CompareVersionAdmin):
 @admin.register(Protein)
 class ProteinAdmin(CompareVersionAdmin):
     autocomplete_fields = ('parent_organism', 'references', 'primary_reference')
-    list_display = ('__str__', 'ipg_id', 'switch_type', 'created', 'modified', 'states_all_count')
+    list_display = ('__str__', 'created', 'modified', 'created_by', 'updated_by', 'nstates')
     list_filter = ('status', 'created', 'modified', 'switch_type',)
+    list_select_related = ('created_by', 'updated_by')
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = (StateInline, StateTransitionInline, OSERInline, LineageInline)
@@ -351,7 +357,7 @@ class ProteinAdmin(CompareVersionAdmin):
     ]
     readonly_fields = ('created', 'created_by', 'modified', 'updated_by', 'switch_type')
 
-    def states_all_count(self, obj):
+    def nstates(self, obj):
         if obj:
             return obj.states.all().count()
         else:
@@ -422,9 +428,10 @@ class MicroscopeAdmin(admin.ModelAdmin):
     model = Microscope
     autocomplete_fields = ('extra_lights', 'extra_cameras')
     readonly_fields = ('configs', )
-    list_display = ('__str__', 'owner_link', 'created', 'numocs',)
+    list_display = ('__str__', 'owner_link', 'created', 'modified', 'OCs',)
     list_select_related = ('owner', )
     list_filter = ('created', )
+    ordering = ('-modified',)
 
     def owner_link(self, obj):
         if obj.owner:
@@ -432,9 +439,9 @@ class MicroscopeAdmin(admin.ModelAdmin):
             return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
     owner_link.short_description = 'Owner'
 
-    def numocs(self, obj):
+    def OCs(self, obj):
         return obj.optical_configs.count()
-    numocs.admin_order_field = 'oc_count'
+    OCs.admin_order_field = 'oc_count'
 
     def configs(self, obj):
         def _makelink(oc):
