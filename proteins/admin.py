@@ -160,7 +160,7 @@ class CameraAdmin(SpectrumOwner, VersionAdmin):
 
 
 @admin.register(Spectrum)
-class SpectrumAdmin(admin.ModelAdmin):
+class SpectrumAdmin(VersionAdmin):
     model = Spectrum
     autocomplete_fields = []
     list_select_related = ('owner_state__protein', 'owner_filter', 'owner_camera', 'owner_light', 'owner_dye', 'created_by')
