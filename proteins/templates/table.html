@@ -113,7 +113,7 @@
     window.table = $('#proteinTable').DataTable({
       scrollX: '100%',
       //scrollY: 600,
-      fixedColumns: true,
+      fixedColumns: !/^((?!chrome|android).)*safari/i.test(navigator.userAgent),
       pageLength: 20,
       //autoWidth: false,
       lengthMenu: [ [10, 20, 50, 100, -1], [10, 20, 50, 100,"All"] ],
