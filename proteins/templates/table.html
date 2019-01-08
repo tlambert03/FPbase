@@ -113,7 +113,7 @@
     window.table = $('#proteinTable').DataTable({
       scrollX: '100%',
       //scrollY: 600,
-      fixedColumns: !/^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+      fixedColumns: true,
       pageLength: 20,
       //autoWidth: false,
       lengthMenu: [ [10, 20, 50, 100, -1], [10, 20, 50, 100,"All"] ],
@@ -151,6 +151,9 @@
     //  $(this).closest('tr').css('background-color', get_color_group($(this).html()))
     // })
 
+    if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)){
+      setTimeout(window.table.draw, 50)
+    }
   });
 </script>
 {% endblock javascript %}
