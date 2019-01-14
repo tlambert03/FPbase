@@ -25,5 +25,5 @@ django-test-plus==1.1.1  # https://github.com/revsys/django-test-plus
 django-debug-toolbar==1.11  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==2.1.4  # https://github.com/django-extensions/django-extensions
 django-coverage-plugin==1.6.0  # https://github.com/nedbat/django_coverage_plugin
-pytest-django==3.4.4  # https://github.com/pytest-dev/pytest-django
+pytest-django==3.4.5  # https://github.com/pytest-dev/pytest-django
 django-cors-headers==2.4.0
