@@ -35,7 +35,7 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
         for name in slug_dict:
             if not len(name) > 1:
                 continue
-            if name == obj_name or name in aliases:
+            if name == obj_name or (aliases and name in aliases):
                 excerpt.content = mark_safe(re.sub(
                     r'(?<=[\s(])(?<!>){}(?!.\d)(?!<)'.format(name),
                     '<strong>{}</strong>'.format(name),
