@@ -1,6 +1,24 @@
 import LineageChart from './lineage.js';
 
+function padDataLimits(d, minw, maxw) {
+    for (var i = d.minwave - 1; i >= minw; i--) {
+        d.values.unshift({ x: i, y: 0 });
+    }
+    for (var n = d.maxwave + 1; n <= maxw; n++) {
+        d.values.push({ x: n, y: 0 });
+    }
+    return d;
+}
+
+function fixData(data) {
+  var minwave = Math.min.apply(null, data.map(function(n){ return n.minwave } ));
+  var maxwave = Math.max.apply(null, data.map(function(n){ if(n.key.indexOf('2p') < 0){ return n.maxwave } else { return 0 }} ));
+  return data.map(function(i) { return padDataLimits(i, minwave, maxwave)})
+}
+
 window.initSimpleSpectra = function(selection, myData, protein) {
+  window.myData = fixData(myData);
+
   // disable 2p by default
   for (var n = 0; n < myData.length; n++) {
     if (myData[n].key.indexOf('2p') >= 0 && myData.length > 1) {

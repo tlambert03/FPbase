@@ -475,10 +475,11 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         return D
 
     def d3data(self):
-        out = [{'x': w, 'y': 0} for w in range(300, int(self.min_wave))]
-        out.extend([{'x': elem[0], 'y': elem[1]} for elem in self.data])
-        out.extend([{'x': w, 'y': 0} for w in range(int(self.max_wave + 1), 801)])
-        return out
+        return [{'x': elem[0], 'y': elem[1]} for elem in self.data]
+        # out = [{'x': w, 'y': 0} for w in range(300, int(self.min_wave))]
+        # out.extend([{'x': elem[0], 'y': elem[1]} for elem in self.data])
+        # out.extend([{'x': w, 'y': 0} for w in range(int(self.max_wave + 1), 801)])
+        # return out
 
     def wave_value_pairs(self):
         output = {}
