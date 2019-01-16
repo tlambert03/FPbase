@@ -42,6 +42,13 @@ window.initSimpleSpectra = function(selection, myData, protein) {
     forceY: [0, 1.04],
     forceX: [350, 750],
   });
+  chart.interactiveLayer.tooltip.valueFormatter(function(d, i) {
+      if (d){
+          return Math.round(d*1000)/10 + '%';
+      } else {
+          return '--';
+      }
+  })
 
   /*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
   nv.addGraph(
