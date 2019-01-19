@@ -62,14 +62,12 @@ def long_blurb(self, withbright=False, withbleach=False):
         if M:
             if M <= 15:
                 mature = 'very rapidly-maturing'
-            elif M < 45:
+            elif M < 50:
                 mature = 'rapidly-maturing'
-            elif M < 70:
+            elif M < 90:
                 mature = 'somewhat slowly-maturing'
-            elif M < 100:
-                mature = 'slowly-maturing'
-            elif M >= 100:
-                mature = 'very slowly-maturing'
+            elif M >= 90:
+                mature = ''
         if mature:
             blurb += "It is reported to be a {} {}".format(mature,
                 self.get_agg_display().lower() or 'protein')
