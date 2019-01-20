@@ -3,6 +3,7 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 from django.views import defaults as default_views
 from django.views.decorators.cache import cache_page
 from django.contrib.sitemaps.views import sitemap
@@ -29,7 +30,7 @@ urlpatterns = [
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name='about'),
 
     #url(r'^faq/$', TemplateView.as_view(template_name='pages/faq.html'), name='faq'),
-    url(r'^help/$', TemplateView.as_view(template_name='pages/help.html'), name='help'),
+    url(r'^help/$', RedirectView.as_view(url='https://help.fpbase.org', query_string=True), name='help'),
     url(r'^cite/$', TemplateView.as_view(template_name='pages/cite.html'), name='cite'),
     url(r'^terms/$', TemplateView.as_view(template_name='pages/terms.html'), name='terms'),
     url(r'^privacy/$', TemplateView.as_view(template_name='pages/terms.html'), name='privacy'),
