@@ -39,7 +39,7 @@ class MyUserAdmin(AuthUserAdmin):
     fieldsets = (
         ('User Profile', {'fields': ('avatar', 'name', 'email_verified', 'microscopes', 'collections')}),
     ) + AuthUserAdmin.fieldsets
-    list_display = ('username', 'email', '_date_joined', '_last_login', '_logins', 'cols', 'scopes', 'faves', 'social', )
+    list_display = ('username', 'email', '_date_joined', '_last_login', 'email_verified', '_logins', 'cols', 'scopes', 'faves', 'social', )
     search_fields = ['name', 'username', 'email']
     readonly_fields = ('avatar', 'email_verified', 'social', 'microscopes', 'collections')
     ordering = ('-date_joined',)
@@ -60,7 +60,7 @@ class MyUserAdmin(AuthUserAdmin):
     avatar.allow_tags = True
 
     def email_verified(self, obj):
-        return any([e.verified for e in obj.emailaddress_set.all()])
+        return obj.verified
     email_verified.boolean = True
 
     def microscopes(self, obj):
@@ -82,10 +82,6 @@ class MyUserAdmin(AuthUserAdmin):
     def social(self, obj):
         return ", ".join([q.provider.title() for q in obj.socialaccount_set.all()])
 
-    def cols(self, obj):
-        return obj._collections or ''
-    cols.admin_order_field = '_collections'
-
     def scopes(self, obj):
         return obj._microscopes or ''
     scopes.admin_order_field = '_microscopes'
@@ -98,13 +94,18 @@ class MyUserAdmin(AuthUserAdmin):
         return obj._logins or ''
     _logins.admin_order_field = '_logins'
 
+    def cols(self, obj):
+        return obj._collections or ''
+    cols.admin_order_field = '_collections'
+
     def get_queryset(self, request):
             return super(MyUserAdmin, self).get_queryset(request) \
                 .prefetch_related('socialaccount_set',
                                   'proteincollections',
                                   'emailaddress_set') \
+                .add_verified() \
                 .annotate(_collections=Count('proteincollections'),
                           _microscopes=Count('microscopes'),
                           _favorites=Count('favorites'),
-                          _logins=Count('logins'))
+                          _logins=Count('logins')).add_verified()
 
