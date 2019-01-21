@@ -5,11 +5,14 @@
 <script src="https://cdn.jsdelivr.net/npm/vega@4.3.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@3.0.0-rc8"></script>
 <script src="https://cdn.jsdelivr.net/npm/vega-embed@3.20.0"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
 {% endblock extrahead %}
 
 
 {% block content %}
-  <div id="vis"></div>
+<canvas id="myChart" width="400" height="200"></canvas>
+
+  <div id="vis" class="mt-5"></div>
 {% endblock content %}
 
 
@@ -17,8 +20,97 @@
 
 <script>
 
+ const spec =
+  {
+    "$schema": "https://vega.github.io/schema/vega-lite/v3.0.0-rc8.json",
+    "width": 800,
+    "height": 400,
+    "layer": [
+      {
+        "encoding": {
+          "x": {"field": "x", "type": "quantitative"},
+          "y": {"field": "y", "type": "quantitative"},
+          "color": {"field": "symbol", "type": "nominal"}
+        },
+        "layer": [{
+          "mark": "area"
+        },{
+          "selection": {
+            "tooltip": {
+              "type": "single",
+              "nearest": true,
+              "on": "mouseover",
+              "encodings": [
+                "x"
+              ],
+              "empty": "none"
+            }
+          },
+          "mark": "point",
+          "encoding": {
+            "opacity": {
+              "condition": {
+                "selection": "tooltip",
+                "value": 1
+              },
+              "value": 0
+            }
+          }
+        }]
+      },
+      {
+        "transform": [
+          {
+            "filter": {
+              "selection": "tooltip"
+            }
+          }
+        ],
+        "layer": [{
+          "mark": {
+           "type": "rule",
+           "color": "gray"
+          },
+          "encoding": {
+            "x": {
+              "type": "quantitative",
+              "field": "x"
+            }
+          }
+        }, {
+          "mark": {
+            "type": "text",
+            "align": "left",
+            "dx": 5,
+            "dy": -5
+          },
+          "encoding": {
+            "text": {
+              "type": "quantitative",
+              "field": "y"
+            },
+            "color": {
+              "type": "nominal",
+              "field": "symbol"
+            },
+            "x": {
+              "type": "quantitative",
+              "field": "x"
+            },
+            "y": {
+              "type": "quantitative",
+              "field": "y"
+            }
+          }
+        }]
+     }
+   ]
+  }
+
+
   $.get("http://localhost:8000/spectra/egfp_default", function(json){
     var data = {name: 'egfp', values: []}
+    console.log(json.spectra)
     for (var i of json.spectra){
       for (var v of i.values){
         v.symbol = i.key;
@@ -27,97 +119,17 @@
       }
     }
     console.log(data)
-    const spec =
-      {
-        "$schema": "https://vega.github.io/schema/vega-lite/v3.0.0-rc8.json",
-        data,
-        "width": 800,
-        "height": 400,
-        "layer": [
-          {
-            "encoding": {
-              "x": {"field": "x", "type": "quantitative"},
-              "y": {"field": "y", "type": "quantitative"},
-              "color": {"field": "symbol", "type": "nominal"}
-            },
-            "layer": [{
-              "mark": "area"
-            },{
-              "selection": {
-                "tooltip": {
-                  "type": "single",
-                  "nearest": true,
-                  "on": "mouseover",
-                  "encodings": [
-                    "x"
-                  ],
-                  "empty": "none"
-                }
-              },
-              "mark": "point",
-              "encoding": {
-                "opacity": {
-                  "condition": {
-                    "selection": "tooltip",
-                    "value": 1
-                  },
-                  "value": 0
-                }
-              }
-            }]
-          },
-          {
-            "transform": [
-              {
-                "filter": {
-                  "selection": "tooltip"
-                }
-              }
-            ],
-            "layer": [{
-              "mark": {
-               "type": "rule",
-               "color": "gray"
-              },
-              "encoding": {
-                "x": {
-                  "type": "quantitative",
-                  "field": "x"
-                }
-              }
-            }, {
-              "mark": {
-                "type": "text",
-                "align": "left",
-                "dx": 5,
-                "dy": -5
-              },
-              "encoding": {
-                "text": {
-                  "type": "quantitative",
-                  "field": "y"
-                },
-                "color": {
-                  "type": "nominal",
-                  "field": "symbol"
-                },
-                "x": {
-                  "type": "quantitative",
-                  "field": "x"
-                },
-                "y": {
-                  "type": "quantitative",
-                  "field": "y"
-                }
-              }
-            }]
-         }
-       ]
-      }
+    spec.data = data;
+    //vegaEmbed('#vis', spec, {defaultStyle: true});
 
+    var ctx = document.getElementById("myChart").getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: data.values
+    });
 
-    vegaEmbed('#vis', spec, {defaultStyle: true});
   });
 </script>
+
 
 {% endblock javascript %}
