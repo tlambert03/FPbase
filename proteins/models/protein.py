@@ -189,6 +189,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     PHOTOACTIVATABLE = 'pa'
     PHOTOSWITCHABLE = 'ps'
     PHOTOCONVERTIBLE = 'pc'
+    MULTIPHOTOCHROMIC = 'mp'
     TIMER = 't'
     OTHER = 'o'
     SWITCHING_CHOICES = (
@@ -196,8 +197,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         (PHOTOACTIVATABLE, 'Photoactivatable'),
         (PHOTOSWITCHABLE, 'Photoswitchable'),
         (PHOTOCONVERTIBLE, 'Photoconvertible'),
-        (TIMER, 'Timer'),
+        (MULTIPHOTOCHROMIC, 'Multi-photochromic'), # both convertible and switchable
         (OTHER, 'Multistate'),
+        (TIMER, 'Timer'),
     )
 
     BILIRUBIN = 'br'
@@ -224,7 +226,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                                 help_text="Amino acid sequence (IPG ID is preferred)")
     seq_comment = models.CharField(max_length=512, blank=True, help_text="if necessary, comment on source of sequence")
 
-    pdb         = ArrayField(models.CharField(max_length=4), blank=True, null=True, verbose_name='Protein DataBank ID')
+    pdb         = ArrayField(models.CharField(max_length=4), blank=True, null=True, verbose_name='Protein DataBank IDs')
     genbank     = models.CharField(max_length=12, null=True, blank=True, unique=True, verbose_name='Genbank Accession', help_text="NCBI Genbank Accession")
     uniprot     = models.CharField(max_length=10, null=True, blank=True, unique=True, verbose_name='UniProtKB Accession', validators=[validate_uniprot])
     ipg_id      = models.CharField(max_length=12, null=True, blank=True, unique=True,
@@ -232,8 +234,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     mw          = models.FloatField(null=True, blank=True, help_text="Molecular Weight",)  # molecular weight
     agg         = models.CharField(max_length=2, choices=AGG_CHOICES, blank=True, help_text="Oligomerization tendency",)
     oser        = models.FloatField(null=True, blank=True, help_text="OSER score",)  # molecular weight
-    switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True,
-                    verbose_name='Type', help_text="Photoswitching type (basic if none)")
+    switch_type = models.CharField(max_length=2, choices=SWITCHING_CHOICES, blank=True, default='b',
+                    verbose_name='Switching Type', help_text="Photoswitching type (basic if none)")
     blurb       = models.TextField(max_length=512, blank=True, help_text="Brief descriptive blurb",)
     cofactor    = models.CharField(max_length=2, choices=COFACTOR_CHOICES, blank=True, help_text='Required for fluorescence')
     # evo_parent  = models.ForeignKey('self', related_name='evo_children', verbose_name="Parental protein", on_delete=models.SET_NULL, blank=True, null=True, help_text="Protein from which the protein was evolved",)
