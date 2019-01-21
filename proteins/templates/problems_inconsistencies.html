@@ -63,7 +63,7 @@
 <div>
   <ul class="row">
     {% for prot, suggestion in bad_switch %}
-      <li class="col-12 col-md-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a>: Is {{ prot.get_switch_type_display }}.  Looks like {{suggestion}}. </li>
+      <li class="col-12 col-md-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a>: <span class='text-muted'>Is <span class='text-dark'>{{ prot.get_switch_type_display }}</span>, looks like <span class='text-dark'>{{suggestion}}</span>. </span></li>
     {% empty %}
       <p>None!  🎉🍾🏆</p>
     {% endfor %}
