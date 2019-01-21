@@ -37,6 +37,51 @@ def check_node_sequence_mutation_consistent(node, correct_offset=False):
         return ms
 
 
+def suggested_switch_type(protein):
+    """ return the "apparent" switch type based on states and transitions
+    for best performance, pre-annotate the protein with ndark and nfrom:
+
+        .annotate(ndark=Count('states', filter=Q(states__is_dark=True)))
+        .annotate(nfrom=Count('transitions__from_state', distinct=True))
+    """
+    nstates = protein.states.count()
+    if not nstates:
+        return None
+    if nstates == 1:
+        return protein.BASIC
+    # 2 or more states...
+    n_transitions = protein.transitions.count()
+    if hasattr(protein, 'ndark'):
+        darkstates = protein.ndark
+    else:
+        darkstates = protein.states.filter(is_dark=True).count()
+    if not n_transitions:
+        return protein.OTHER
+    elif nstates == 2:
+        # 2 transitions with unique from_states
+        if hasattr(protein, 'nfrom'):
+            nfrom = protein.nfrom
+        else:
+            nfrom = len(set(protein.transitions.values_list('from_state', flat=True)))
+        if nfrom >= 2:
+            return protein.PHOTOSWITCHABLE
+        if darkstates == 0:
+            return protein.PHOTOCONVERTIBLE
+        if darkstates == 1:
+            return protein.PHOTOACTIVATABLE
+        if darkstates > 1:
+            return None
+    elif nstates > 2:
+        return protein.MULTIPHOTOCHROMIC
+
+
+def validate_switch_type(protein):
+    """ returns False if the protein has an unusual switch type
+    for its states & transitions.
+    """
+    return protein.switch_type == suggested_switch_type(protein)
+
+
 def validate_node(node):
     if not node.mutation:
         return []

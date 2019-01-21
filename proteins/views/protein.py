@@ -24,7 +24,7 @@ from ..forms import (ProteinForm, StateFormSet, StateTransitionFormSet, LineageF
                      BleachMeasurementForm, bleach_items_formset, BleachComparisonForm)
 
 from proteins.util.spectra import spectra2csv
-from proteins.util.maintain import check_lineages
+from proteins.util.maintain import check_lineages, suggested_switch_type
 from proteins.util.helpers import most_favorited, link_excerpts
 from proteins.extrest.ga import cached_ga_popular
 from proteins.extrest.entrez import get_cached_gbseqs
@@ -41,6 +41,18 @@ import operator
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def check_switch_type(object, request):
+    suggested = suggested_switch_type(object)
+    if not object.switch_type == suggested:
+        disp = dict(Protein.SWITCHING_CHOICES).get(suggested).lower()
+        actual = object.get_switch_type_display().lower()
+        msg = ("<i class='fa fa-exclamation-circle mr-2'></i><strong>Warning:</strong> Based on the number of states and transitions currently assigned " +
+               "to this protein, it appears to be a {} protein; ".format(disp) +
+               "however, it has been assigned a switching type of {}. ".format(actual) +
+               "Please confirm that the switch type, states, and transitions are correct.")
+        messages.add_message(request, messages.WARNING, msg)
 
 
 class ProteinDetailView(DetailView):
@@ -241,6 +253,9 @@ class ProteinCreateUpdateMixin:
                         uncache_protein_page(self.object.slug, self.request)
                     except Exception as e:
                         logger.error('failed to uncache protein: {}'.format(e))
+
+                    check_switch_type(self.object, self.request)
+
         else:
             context.update({
                 'states': states,
@@ -432,48 +447,65 @@ def protein_tree(request, organism):
         })
 
 
-def sequence_problems(request):
-    ''' renders html for protein table page  '''
-    linerrors = check_lineages()[0]
-
-    from functools import reduce
-    titles = reduce(operator.or_, (Q(primary_reference__title__icontains=item)
-                    for item in ['activat', 'switch', 'convert', 'dark', 'revers']))
-    names = reduce(operator.or_, (Q(name__startswith=item)
-                   for item in ['PA', 'rs', 'mPA', 'PS', 'mPS']))
-    switchers = Protein.objects.filter(titles)
-    switchers = switchers | Protein.objects.filter(names)
-    switchers = switchers.annotate(ns=Count('states')).filter(ns=1)
-
-    with_genbank = Protein.objects.exclude(genbank=None).exclude(seq=None).values('slug', 'name', 'genbank', 'seq')
-    gbseqs = get_cached_gbseqs([g['genbank'] for g in with_genbank])
-    mismatch = []
-    for item in with_genbank:
-        if item['genbank'] in gbseqs:
-            gbseq = gbseqs.get(item['genbank'])[0]
-            ourseq = item['seq']
-            if ourseq != gbseq:
-                mismatch.append((item['name'], item['slug'], item['genbank'],
-                                 str(ourseq.mutations_to(gbseq)), item['seq']))
-
+def problems_gaps(request):
     return render(
         request,
-        'seq_problems.html',
+        'problems_gaps.html',
         {
-            "histags": Protein.objects.filter(seq__icontains='HHHHH').values('name', 'slug'),
             "noseqs": Protein.objects.filter(seq__isnull=True).values('name', 'slug'),
             "nostates": Protein.objects.filter(states=None).values('name', 'slug'),
-            "linprobs": [(node.protein, v) for node, v in linerrors.items()],
-            "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith='M'),
             "noparent": Protein.objects.filter(parent_organism__isnull=True),
             "only2p": (State.objects.filter(spectra__subtype='2p')
                                     .exclude(spectra__subtype='ex')
                                     .distinct('protein')
                                     .values('protein__name', 'protein__slug')),
             'nolineage': Protein.objects.filter(lineage=None).annotate(ns=Count('states__spectra')).order_by('-ns'),
+            'request': request,
+        })
+
+
+def problems_inconsistencies(request):
+    from functools import reduce
+    titles = reduce(operator.or_, (Q(primary_reference__title__icontains=item)
+                    for item in ['activat', 'switch', 'convert', 'dark', 'revers']))
+    names = reduce(operator.or_, (Q(name__startswith=item)
+                   for item in ['PA', 'rs', 'mPA', 'PS', 'mPS']))
+    switchers = Protein.objects.exclude(name__startswith='mCerulean').filter(titles)
+    switchers = switchers | Protein.objects.filter(names)
+    switchers = switchers.annotate(ns=Count('states')).filter(ns=1)
+
+    GB_mismatch = []
+    with_genbank = Protein.objects.exclude(genbank=None).exclude(seq=None).values('slug', 'name', 'genbank', 'seq')
+    gbseqs = get_cached_gbseqs([g['genbank'] for g in with_genbank])
+    for item in with_genbank:
+        if item['genbank'] in gbseqs:
+            gbseq = gbseqs.get(item['genbank'])[0]
+            ourseq = item['seq']
+            if ourseq != gbseq:
+                GB_mismatch.append((item['name'], item['slug'], item['genbank'],
+                                   str(ourseq.mutations_to(gbseq)), item['seq']))
+
+    P = list(Protein.objects
+             .annotate(ndark=Count('states', filter=Q(states__is_dark=True)))
+             .annotate(nfrom=Count('transitions__from_state', distinct=True))
+             .prefetch_related('states', 'transitions'))
+    bad_switch = []
+    for prot in P:
+        suggestion = suggested_switch_type(prot)
+        if (prot.switch_type or suggestion) and (prot.switch_type != suggestion):
+            bad_switch.append((prot, dict(Protein.SWITCHING_CHOICES).get(suggestion)))
+
+    return render(
+        request,
+        'problems_inconsistencies.html',
+        {
+            "histags": Protein.objects.filter(seq__icontains='HHHHH').values('name', 'slug'),
+            "linprobs": [(node.protein, v) for node, v in check_lineages()[0].items()],
+            "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith='M'),
+            'bad_switch': bad_switch,
             'switchers': switchers,
             'request': request,
-            'mismatch': mismatch,
+            'mismatch': GB_mismatch,
         })
 
 
@@ -566,6 +598,7 @@ def update_transitions(request, slug=None):
                         uncache_protein_page(slug, request)
                     except Exception as e:
                         logger.error('failed to uncache protein: {}'.format(e))
+                    check_switch_type(obj, request)
             return HttpResponse(status=200)
         else:
             response = render(request, template_name, {'transition_form': formset}, status=422)

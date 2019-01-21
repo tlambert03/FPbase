@@ -389,7 +389,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             info += '\nEC: {}   QY: {}'.format(self.default_state.ext_coeff, self.default_state.qy)
         return spectra_fig(spectra, fmt, output, title=title, info=info, **kwargs)
 
-    def set_state_and_type(self):
+    def set_default_state(self):
         # FIXME: should allow control of default states in form
         # if only 1 state, make it the default state
         if not self.default_state or self.default_state.is_dark:
@@ -398,19 +398,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             # otherwise use farthest red non-dark state
             elif self.states.count() > 1:
                 self.default_state = self.states.exclude(is_dark=True).order_by('-em_max').first()
-
-        if self.states.count() == 1:
-            self.switch_type = self.BASIC
-        elif self.states.count() > 1:
-            if not self.transitions.count():
-                self.switch_type = self.OTHER
-            if self.transitions.count() == 1:
-                if self.states.filter(is_dark=True).count():
-                    self.switch_type = self.PHOTOACTIVATABLE
-                else:
-                    self.switch_type = self.PHOTOCONVERTIBLE
-            elif self.transitions.count() > 1:
-                self.switch_type = self.PHOTOSWITCHABLE
 
     def clean(self):
         errors = {}
@@ -436,7 +423,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
         self.slug = slugify(self.name)
         self.base_name = self._base_name
-        self.set_state_and_type()
+        self.set_default_state()
 
         super().save(*args, **kwargs)
         self.__original_ipg_id = self.ipg_id

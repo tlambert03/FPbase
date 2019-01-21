@@ -21,7 +21,9 @@ urlpatterns = [
     url(r'^table/', views.protein_table, name='table'),
     # url(r'^tree/(?P<organism>\d+)/$', views.protein_tree, name='tree'),
 
-    url(r'^problems/', views.sequence_problems, name='problems'),
+    url(r'^problems/$', TemplateView.as_view(template_name='problems.html'), name='problems'),
+    url(r'^problems/gaps/$', views.problems_gaps, name='problems-gaps'),
+    url(r'^problems/inconsistencies/$', views.problems_inconsistencies, name='problems-inconsistencies'),
 
     url(r'^spectra/submit/$',
         login_required(views.SpectrumCreateView.as_view(),
