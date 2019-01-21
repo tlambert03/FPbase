@@ -4,9 +4,10 @@ from django.utils.safestring import mark_safe
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef
 from .models import User
 from avatar.templatetags.avatar_tags import avatar_url
+from allauth.account.models import EmailAddress
 
 
 class MyUserChangeForm(UserChangeForm):
@@ -37,11 +38,11 @@ class MyUserAdmin(AuthUserAdmin):
     form = MyUserChangeForm
     add_form = MyUserCreationForm
     fieldsets = (
-        ('User Profile', {'fields': ('avatar', 'name', 'email_verified', 'microscopes', 'collections')}),
+        ('User Profile', {'fields': ('avatar', 'name', 'verified', 'microscopes', 'collections')}),
     ) + AuthUserAdmin.fieldsets
-    list_display = ('username', 'email', '_date_joined', '_last_login', 'email_verified', '_logins', 'cols', 'scopes', 'faves', 'social', )
+    list_display = ('username', 'email', '_date_joined', '_last_login', 'verified', '_logins', 'social', 'cols', 'scopes', 'faves',)
     search_fields = ['name', 'username', 'email']
-    readonly_fields = ('avatar', 'email_verified', 'social', 'microscopes', 'collections')
+    readonly_fields = ('avatar', 'verified', 'social', 'microscopes', 'collections')
     ordering = ('-date_joined',)
 
     def _date_joined(self, obj):
@@ -59,9 +60,9 @@ class MyUserAdmin(AuthUserAdmin):
         return mark_safe(url)
     avatar.allow_tags = True
 
-    def email_verified(self, obj):
+    def verified(self, obj):
         return obj.verified
-    email_verified.boolean = True
+    verified.boolean = True
 
     def microscopes(self, obj):
         def _makelink(m):
@@ -99,13 +100,13 @@ class MyUserAdmin(AuthUserAdmin):
     cols.admin_order_field = '_collections'
 
     def get_queryset(self, request):
-            return super(MyUserAdmin, self).get_queryset(request) \
-                .prefetch_related('socialaccount_set',
-                                  'proteincollections',
-                                  'emailaddress_set') \
-                .add_verified() \
-                .annotate(_collections=Count('proteincollections'),
-                          _microscopes=Count('microscopes'),
-                          _favorites=Count('favorites'),
-                          _logins=Count('logins')).add_verified()
+        return super(MyUserAdmin, self).get_queryset(request) \
+            .prefetch_related('socialaccount_set',
+                              'proteincollections',
+                              'emailaddress_set') \
+            .annotate(verified=Exists(EmailAddress.objects.filter(user_id=OuterRef('id'), verified=True))) \
+            .annotate(_collections=Count('proteincollections'),
+                      _microscopes=Count('microscopes'),
+                      _favorites=Count('favorites'),
+                      _logins=Count('logins'))
 

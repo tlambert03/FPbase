@@ -1,15 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.urls import reverse
 from django.db import models
-from django.db.models import Exists, OuterRef
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.signals import user_logged_in
-from allauth.account.models import EmailAddress
-
-
-class UserSet(models.QuerySet):
-    def add_verified(self):
-        return self.annotate(verified=Exists(EmailAddress.objects.filter(user_id=OuterRef('id'), verified=True)))
 
 
 class User(AbstractUser):
@@ -26,7 +19,6 @@ class User(AbstractUser):
     # First Name and Last Name do not cover name patterns
     # around the globe.
     name = models.CharField(_('Name of User'), blank=True, max_length=255)
-    objects = UserSet.as_manager()
 
     def __str__(self):
         return self.username
