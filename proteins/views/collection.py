@@ -33,7 +33,7 @@ def serialized_proteins_response(queryset, format='json', filename='FPbase_prote
 class CollectionList(ListView):
     def get_queryset(self):
         # get all collections for current user and all other non-private collections
-        qs = ProteinCollection.objects.exclude(private=True)
+        qs = ProteinCollection.objects.exclude(private=True).prefetch_related('owner')
         if self.request.user.is_authenticated:
             qs = qs | ProteinCollection.objects.filter(owner=self.request.user)
         if 'owner' in self.kwargs:

@@ -35,7 +35,7 @@ urlpatterns = [
     url(r'^terms/$', TemplateView.as_view(template_name='pages/terms.html'), name='terms'),
     url(r'^privacy/$', TemplateView.as_view(template_name='pages/terms.html'), name='privacy'),
     url(r'^contributing/$', TemplateView.as_view(template_name='pages/contributing.html'), name='contributing'),
-    url(r'^schema/$', TemplateView.as_view(template_name='pages/schema.html'), name='schema'),
+    url(r'^schema/$', RedirectView.as_view(url='https://help.fpbase.org/schema/schema'), name='schema'),
     url(r'^bleaching/$', TemplateView.as_view(template_name='pages/bleaching.html'), name='bleaching'),
     # url(r'^mutations/$', TemplateView.as_view(template_name='pages/mutations.html'), name='mutations'),
     url(r'^robots\.txt$', TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots"),
@@ -81,7 +81,8 @@ if settings.DEBUG:
         url(r'^404/$', default_views.page_not_found, kwargs={'exception': Exception('Page not Found')}),
         url(r'^500/$', fpbase.views.server_error),
         url(r'^test500/', fpbase.views.test500),
-        url(r'^test/$', fpbase.views.testview)
+        url(r'^test/$', fpbase.views.testview),
+        url(r'^autocomplete/$', TemplateView.as_view(template_name='pages/test_autocomplete.html'))
     ]
     if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar

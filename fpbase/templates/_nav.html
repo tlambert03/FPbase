@@ -15,8 +15,8 @@
             <li class="nav-item dropdown {% if request.user.is_authenticated %}pt-1{%endif%}">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">info</a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="{% url 'help' %}">help &amp; FAQs</a>
                     <a class="dropdown-item" href="{% url 'about' %}">about FPbase</a>
+                    <a class="dropdown-item" href="{% url 'help' %}">help &amp; FAQs</a>
                     <a class="dropdown-item" href="{% url 'cite' %}">how to cite FPbase</a>
                     <a class="dropdown-item" href="{% url 'schema' %}">database design</a>
                     <a class="dropdown-item" href="{% url 'contributing' %}">contributing</a>
