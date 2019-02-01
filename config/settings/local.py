@@ -61,8 +61,8 @@ CORS_URLS_REGEX = r'^/test/.*$'
 # ------------------------------------------------------------------------------
 CACHES = {
     'default': {
-        # 'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # don't actually cache
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        # 'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # don't actually cache
         'LOCATION': ''
     }
 }
