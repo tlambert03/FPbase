@@ -67,6 +67,7 @@ THIRD_PARTY_APPS = [
     'reversion_compare',
     'avatar',
     'mptt',
+    'algoliasearch_django',
 ]
 
 # Apps specific for this project go here.
@@ -194,7 +195,7 @@ TEMPLATES = [
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
                 # Your stuff: custom template context processors go here
-                'fpbase.context_processors.tracking_ids',
+                'fpbase.context_processors.api_keys',
                 'fpbase.context_processors.canonical',
             ],
         },
@@ -339,3 +340,11 @@ MODERATION_MODERATORS = ('talley.lambert+fpbase@gmail.com',)
 GOOGLE_RECAPTCHA_SECRET_KEY = env('GOOGLE_RECAPTCHA_SECRET_KEY', default=None)
 GOOGLE_API_PRIVATE_KEY = env('GOOGLE_API_PRIVATE_KEY', default='').replace('#', '\n')
 GOOGLE_API_CLIENT_EMAIL = env('GOOGLE_API_CLIENT_EMAIL', default=None)
+
+ALGOLIA_SUFFIX = 'dev' if (DEBUG or ('staging' in env('SENTRY_PROJECT', default=''))) else 'prod'
+ALGOLIA_PUBLIC_KEY = '421b453d4f93e332ebd0c7f3ace29476'
+ALGOLIA = {
+    'APPLICATION_ID': '9WAWQMVNTB',
+    'API_KEY': env('ALGOLIA_API_KEY', default=None),
+    'INDEX_SUFFIX': ALGOLIA_SUFFIX
+}

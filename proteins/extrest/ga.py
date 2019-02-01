@@ -68,7 +68,7 @@ def cached_ga_popular(max_age=60 * 60 * 24):
         service = get_service()
 
         def f(x):
-            return ga_popular_proteins(service, '168069800', x)[:12]
+            return ga_popular_proteins(service, '168069800', x)
         results = {
             'day': f(1),
             'week': f(7),

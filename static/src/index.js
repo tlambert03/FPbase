@@ -15,6 +15,11 @@ if ((process.env.NODE_ENV === 'production') && Boolean(process.env.SENTRY_DSN)) 
     });
 }
 
+import algoliasearch from 'algoliasearch'
+window.algoliasearch = algoliasearch;
+import autocomplete from 'autocomplete.js'
+window.autocomplete = autocomplete;
+
 import 'select2/dist/css/select2.css';
 import 'select2-theme-bootstrap4/dist/select2-bootstrap.css';
 import 'nouislider/distribute/nouislider.min.css';
@@ -22,12 +27,16 @@ import './css/style.scss';
 import './css/nv.d3.css';
 
 import 'bootstrap';
+
 import 'select2/dist/js/select2.full.js';
 import './js/my-fontawesome.js';
 import './js/nv.d3.js';
 
 import './js/project.js';
 import './js/search_logic.js';
+import initAutocomplete from './js/algolia.js';
+window.initAutocomplete = initAutocomplete;
+
 import './js/protein_page.js';
 import './js/favit.js';
 import './js/jquery.formset.js';

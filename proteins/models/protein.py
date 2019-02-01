@@ -5,6 +5,7 @@ import re
 import io
 import sys
 import os
+import datetime
 from subprocess import run, PIPE
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
@@ -22,6 +23,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from references.models import Reference
 from .mixins import Authorable
+from .collection import ProteinCollection
 from ..util.helpers import get_color_group, mless, get_base_name, spectra_fig
 # from .extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator, validate_uniprot
@@ -29,6 +31,8 @@ from .. import util
 from .spectrum import Spectrum
 from fpseq import FPSeq
 from reversion.models import Version
+from favit.models import Favorite
+
 
 from Bio import Entrez
 Entrez.email = settings.ADMINS[0][1]
@@ -431,3 +435,104 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     # Meta
     class Meta:
         ordering = ['name']
+
+    ###################################33
+    # for algolia index
+    def img_url(self):
+        if self.has_spectra():
+            return "https://www.fpbase.org" + reverse('proteins:spectra-img', args=[self.slug]) + ".png?xlabels=0&xlim=400,800"
+        else:
+            return None
+
+    def tags(self):
+        tags = [self.get_switch_type_display(), self.get_agg_display(), self.color]
+        return [i for i in tags if i]
+
+    def date_published(self, norm=False):
+        d = None
+        if self.primary_reference:
+            d = self.primary_reference.date
+        if norm:
+            return (d.year - 1992) / (datetime.datetime.now().year - 1992) if d else 0
+        return datetime.datetime.combine(d, datetime.datetime.min.time()) if d else None
+
+    def n_faves(self, norm=False):
+        nf = Favorite.objects.for_model(Protein).filter(target_object_id=self.id).count()
+        if norm:
+            from collections import Counter
+            mx = Counter(Favorite.objects.for_model(Protein)
+                         .values_list('target_object_id', flat=True)).most_common(1)[0][1]
+            return nf / mx
+        return nf
+
+    def n_cols(self):
+        return ProteinCollection.objects.filter(proteins=self.id).count()
+
+    def ga_views(self, period='month', norm=False):
+        from proteins.extrest.ga import cached_ga_popular
+        hits = cached_ga_popular()[period]
+        for slug, name, rating in hits:
+            if slug == self.slug:
+                return rating / max(list(zip(*hits))[2]) if norm else rating
+        return 0
+
+    def impact(self, norm=False):
+        from _data import impact
+        if self.primary_reference:
+            i = impact.impact.get(self.primary_reference.journal.lower(), 0)
+            return i / max(impact.impact.values()) if norm else i
+        return 0
+
+    def switchType(self):
+        return self.get_switch_type_display()
+
+    def _agg(self):
+        return self.get_agg_display()
+
+    def url(self):
+        return self.get_absolute_url()
+
+    def ex(self):
+        if not self.states.exists():
+            return None
+        ex = [s.ex_max for s in self.states.all()]
+        return ex[0] if len(ex) == 1 else ex
+
+    def em(self):
+        if not self.states.exists():
+            return None
+        em = [s.em_max for s in self.states.all()]
+        return em[0] if len(em) == 1 else em
+
+    def pka(self):
+        if not self.states.exists():
+            return None
+        n = [s.pka for s in self.states.all()]
+        return n[0] if len(n) == 1 else n
+
+    def ec(self):
+        if not self.states.exists():
+            return None
+        n = [s.ext_coeff for s in self.states.all()]
+        return n[0] if len(n) == 1 else n
+
+    def qy(self):
+        if not self.states.exists():
+            return None
+        n = [s.qy for s in self.states.all()]
+        return n[0] if len(n) == 1 else n
+
+    def rank(self):
+        # max rank is 1
+        return (0.4 * self.impact(norm=True) +
+                0.5 * self.date_published(norm=True) +
+                0.6 * self.ga_views(norm=True) +
+                1.0 * self.n_faves(norm=True)) / 2.5
+
+    def local_brightness(self):
+        if self.states.exists():
+            return max([s.local_brightness for s in self.states.all()])
+
+    def first_author(self):
+        if self.primary_reference:
+            return self.primary_reference.first_author.family

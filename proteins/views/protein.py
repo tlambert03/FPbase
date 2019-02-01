@@ -330,8 +330,8 @@ class ActivityView(ListView):
         data['proteins_by_date'] = Protein.visible.annotate(nstates=Count('states')) \
             .prefetch_related(stateprefetch, 'primary_reference') \
             .order_by(F('primary_reference__date').desc(nulls_last=True))[:15]
-        data['most_popular'] = cached_ga_popular()
-        data['most_favorited'] = most_favorited(max_results=12)
+        data['most_popular'] = {k: v[:12] for k, v in cached_ga_popular().items()}
+        data['most_favorited'] = most_favorited(max_results=18)
         return data
 
 

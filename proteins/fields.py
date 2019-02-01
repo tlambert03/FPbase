@@ -11,7 +11,7 @@ class Around(Lookup):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params + lhs_params + rhs_params
-        return '%s > %s - 16 AND %s < %s + 16' % (lhs, rhs, lhs, rhs), params
+        return '%s > %s - 21 AND %s < %s + 21' % (lhs, rhs, lhs, rhs), params
 
 
 fields.PositiveSmallIntegerField.register_lookup(Around)

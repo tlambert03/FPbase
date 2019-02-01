@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load webpack_static from webpack_loader %}
+
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <form action="#" class="form">
+        <h3>Basic example</h3>
+        <input class="form-control algolia-searchbar" id="algolia-search-input" name="q" type="search" placeholder='Search' />
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

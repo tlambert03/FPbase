@@ -38,3 +38,7 @@ class Organism(Authorable, TimeStampedModel):
         self.genus = pubmed_record[0]['Genus']
         self.rank = pubmed_record[0]['Rank']
         super().save(*args, **kwargs)
+
+    def url(self):
+        return self.get_absolute_url()
+

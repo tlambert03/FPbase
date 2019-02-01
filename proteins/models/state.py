@@ -118,7 +118,7 @@ class Fluorophore(SpectrumOwner):
             return None
 
     def has_spectra(self):
-        if any([self.ex_spectrum, self.em_spectrum, self.twop_spectrum]):
+        if any([self.ex_spectrum, self.em_spectrum]):
             return True
         return False
 

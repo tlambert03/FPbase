@@ -43,6 +43,14 @@
 
       <script>
         window.FPBASE = window.FPBASE || {};
+        window.FPBASE.imageDir = "{% webpack_static 'images/' %}";
+        window.FPBASE.ALGOLIA = {
+          'appID': '{{ algolia_app_id }}',
+          'publicKey': '{{ algolia_public_key }}',
+          'proteinIndex': 'Protein_{{ algolia_suffix}}',
+          'organismIndex': 'Organism_{{ algolia_suffix}}',
+          'referenceIndex': 'Reference_{{ algolia_suffix}}',
+        };
         {% if request.user.is_authenticated %}
         window.FPBASE.user = {
             email: "{{ request.user.email }}",
@@ -122,6 +130,10 @@
       <!-- place project specific Javascript -->
       {% custom_static 'vendor' 'js' %}
       {% custom_static 'main' 'js' %}
+      <script>
+        window.initAutocomplete();
+      </script>
+
 
       {% block javascript %}{% endblock %}
 
