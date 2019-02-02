@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 
 def check_switch_type(object, request):
     suggested = suggested_switch_type(object)
-    if not object.switch_type == suggested:
+    if suggested and not object.switch_type == suggested:
         disp = dict(Protein.SWITCHING_CHOICES).get(suggested).lower()
         actual = object.get_switch_type_display().lower()
         msg = ("<i class='fa fa-exclamation-circle mr-2'></i><strong>Warning:</strong> Based on the number of states and transitions currently assigned " +
