@@ -1,7 +1,8 @@
 sudo: true
+dist: xenial
 language: python
 python:
-  - "3.6"
+  - "3.7.1"
 services: postgresql
 addons:
   postgresql: "10"
