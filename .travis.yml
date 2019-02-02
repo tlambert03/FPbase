@@ -25,7 +25,7 @@ before_install:
   - sudo apt-get install -qq libsqlite3-dev libxml2 libxml2-dev libssl-dev libbz2-dev wget curl llvm
 
 install:
-  - pip install -r requirements/local.txt
+  - pip install -r requirements/test.txt
   - npm install
   - npm run build
 

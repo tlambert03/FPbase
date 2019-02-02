@@ -43,7 +43,6 @@ django-autocomplete-light==3.3.2  # https://github.com/yourlabs/django-autocompl
 django-avatar==4.1.0
 
 numpy==1.15.2  # pyup: ignore
-parasail==1.1.12
 matplotlib==3.0.2
 django-mptt==0.9.1
 django-webpack-loader==0.6.0
