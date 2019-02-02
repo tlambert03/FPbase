@@ -131,10 +131,10 @@
       <table class="table mobile flip-scroll">
         <thead>
           <tr class="table-header ">
-            <th>Aggregation</th>
-            <th>Organism</th>
-            <th>Molecular Weight</th>
-            <th>Cofactor</th>
+            <th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#oligomerization">Oligomerization</a></th>
+            <th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#organism">Organism</a></th>
+            <th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#molecular-weight">Molecular Weight</a></th>
+            <th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#cofactor">Cofactor</a></th>
           </tr>
         </thead>
         <tbody>
@@ -206,7 +206,7 @@
 
     {% if protein.oser_measurements.count %}
     <div class="attributes mt-1">
-      <h3>{{protein.name | safe}} OSER Measurements</h3>
+      <h3>{{protein.name | safe}} OSER Measurements <a href="{{ HELP_URL }}glossary#oser" target="_blank"><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
         <table class="table table-striped flip-scroll">
           <thead>
             <tr class="table-header">

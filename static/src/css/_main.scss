@@ -269,3 +269,14 @@ select[readonly].select2-hidden-accessible + .select2-container {
 }
 
 
+a.help-link {
+  abbr {
+    text-decoration: none;
+  }
+  color: inherit;
+  &:hover {
+    text-decoration: none;
+    cursor: help;
+    text-shadow: 0px 0px 1px #cce;
+  }
+}

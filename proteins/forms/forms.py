@@ -146,7 +146,7 @@ class ProteinForm(forms.ModelForm):
             'ipg_id': 'NCBI <a class="text-info" href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/" target="_blank" rel="noopener">Identical Protein Group ID</a>',
             'genbank': 'NCBI <a class="text-info" href="https://www.ncbi.nlm.nih.gov/genbank/sequenceids/" target="_blank" rel="noopener">GenBank ID</a>',
             'uniprot': '<a class="text-info" href="https://www.uniprot.org/help/accession_numbers" target="_blank" rel="noopener">UniProt accession number</a>',
-            'switch_type': '<a class="text-info" href="https://help.fpbase.org/schema/glossary#switch-type" target="_blank">See help</a> for type classifications.'
+            'switch_type': '<a class="text-info" href="https://help.fpbase.org/glossary#switch-type" target="_blank">See help</a> for type classifications.'
         }
         widgets = {
             'parent_organism': SelectAddWidget(),

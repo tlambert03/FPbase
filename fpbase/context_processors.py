@@ -12,4 +12,7 @@ def api_keys(request):
 
 
 def canonical(request):
-    return {'CANONICAL_URL': settings.CANONICAL_URL}
+    return {
+        'CANONICAL_URL': settings.CANONICAL_URL,
+        'HELP_URL': 'https://help.fpbase.org/'
+    }

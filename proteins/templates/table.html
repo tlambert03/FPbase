@@ -34,7 +34,7 @@
   	  </select>
   	</div>
   	<div class="form-group mt-1">
-  	  <label for="agg_filter" class='pr-2'>Aggregation Type: </label>
+  	  <label for="agg_filter" class='pr-2'>Oligomerization Type: </label>
   	  <select class="form-control form-control-sm table-filter custom-select" id='agg_filter' data-col='agg_type'>
   	  	<option value=''>All</option>
   	  	{% for choice in proteins.0.AGG_CHOICES %}
@@ -84,7 +84,7 @@
                       case 5: return 'Quantum Yield';
                       case 6: return 'Brightness';
                       case 7: return 'Photostability (half-life, s)';
-                      case 9: return 'Aggregation';
+                      case 9: return 'Oligomerization';
                       case 10: return 'Maturation (min)';
                       case 11: return 'Lifetime (ns)';
                       default: return data;

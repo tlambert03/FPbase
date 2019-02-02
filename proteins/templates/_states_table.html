@@ -1,19 +1,19 @@
 {% load humanize %}
 
 {% if protein.states.count %}
-	<table class="table table-striped flip-scroll">
+	<table class="table table-striped flip-scroll states-table">
 		<thead>
 			<tr class="table-header">
 				{% if protein.states.count > 1 %}<th>State</th>{% endif %}
-				<th>Ex &lambda;</th>
-	  			<th>Em &lambda;</th>
-	  			<th>EC <span class='small'>(M<sup>-1</sup> cm<sup>-1</sup>)</span></th>
-	  			<th>QY</th>
-	  			<th>Brightness</th>
-{# 	  			<th>Stability</th> #}
-	  			<th>pKa</th>
-	  			<th>Maturation <span class='small'>(min)</span></th>
-	  			<th>Lifetime <span class='small'>(ns)</span></th>
+				<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#ex-max"><abbr title="Excitation Maximum">Ex &lambda;</abbr></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#em-max"><abbr title="Emission Maximum">Em &lambda;</abbr></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#extinction-coefficient"><abbr title="Extinction Coefficient">EC</abbr> <span class='small'>(M<sup>-1</sup> cm<sup>-1</sup>)</span></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#quantum-yield"><abbr title="Quantum Yield">QY</abbr></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#brightness">Brightness</a></th>
+{# 	  		<th>Stability</a></th> #}
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#pka">pKa</a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#maturation">Maturation <span class='small'>(min)</span></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#lifetime">Lifetime <span class='small'>(ns)</span></a></th>
 			</tr>
 		</thead>
 		<tbody>
