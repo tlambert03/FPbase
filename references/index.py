@@ -7,4 +7,4 @@ from .models import Reference
 class ReferenceIndex(AlgoliaIndex):
     fields = ('doi', 'journal', 'pmid', 'year', 'first_author', 'title',
               'citation', 'date', 'prot_primary', 'prot_secondary',
-              '_excerpts', 'url', 'impact')
+              '_excerpts', 'url')

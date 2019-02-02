@@ -167,12 +167,6 @@ class Reference(TimeStampedModel):
     def url(self):
         return self.get_absolute_url()
 
-    def impact(self, norm=False):
-        from _data import impact
-        if self.journal:
-            i = impact.impact.get(self.journal.lower(), 0)
-            return i / max(impact.impact.values()) if norm else i
-        return 0
 
 
 class ReferenceAuthor(models.Model):

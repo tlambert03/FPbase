@@ -476,13 +476,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 return rating / max(list(zip(*hits))[2]) if norm else rating
         return 0
 
-    def impact(self, norm=False):
-        from _data import impact
-        if self.primary_reference:
-            i = impact.impact.get(self.primary_reference.journal.lower(), 0)
-            return i / max(impact.impact.values()) if norm else i
-        return 0
-
     def switchType(self):
         return self.get_switch_type_display()
 
@@ -524,8 +517,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     def rank(self):
         # max rank is 1
-        return (0.4 * self.impact(norm=True) +
-                0.5 * self.date_published(norm=True) +
+        return (0.5 * self.date_published(norm=True) +
                 0.6 * self.ga_views(norm=True) +
                 1.0 * self.n_faves(norm=True)) / 2.5
 
