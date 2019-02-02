@@ -17,8 +17,8 @@ if ((process.env.NODE_ENV === 'production') && Boolean(process.env.SENTRY_DSN)) 
 
 import algoliasearch from 'algoliasearch'
 window.algoliasearch = algoliasearch;
-import autocomplete from 'autocomplete.js'
-window.autocomplete = autocomplete;
+import autocomplete from 'autocomplete.js/dist/autocomplete.jquery.js'
+
 
 import 'select2/dist/css/select2.css';
 import 'select2-theme-bootstrap4/dist/select2-bootstrap.css';

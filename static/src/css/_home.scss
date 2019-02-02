@@ -6,6 +6,9 @@
   height: 100%; /* For at least Firefox */
   min-height: 100%;
   box-shadow: inset 1rem 1rem 8rem rgba($black,0.15);
+  @include media-breakpoint-down(sm) {
+    background-position: 50% calc(50% - 7vh);
+  }
 }
 .cover-wrapper-inner {
   display: table-cell;
@@ -19,6 +22,10 @@
 /* Padding for spacing */
 .cover-container {
   padding: 1.5rem;
+  @include media-breakpoint-down(sm) {
+    position: relative;
+    top: -7vh;
+  }
 }
 
 #protein-image{
@@ -119,4 +126,29 @@ $search-colors: rgba($white,0.4);
   padding-top: 0;
   height: 100vh;
   @include gradient-directional(rgba(darken($primary,5%), 1), rgba(lighten($primary, 15%),1), 160deg);
+}
+
+.home-stats{
+  position: fixed;
+  bottom: 0px;
+  color: white;
+  width: 100%;
+  margin-left: 0;
+  padding-left: 0;
+  font-size: 1rem;
+  @include media-breakpoint-up(md) {
+    font-size: 1.2rem;
+    //text-align: center;
+  }
+  a{
+    opacity: 0.7;
+  }
+  a:hover{
+    text-decoration: none;
+    opacity: 1;
+  }
+  span {
+    margin-left: 20px;
+    @include media-breakpoint-up(sm) {margin-left: 40px;}
+  }
 }

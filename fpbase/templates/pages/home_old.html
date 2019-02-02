@@ -17,10 +17,10 @@
 {% block body-class %}home-body{% endblock body-class %}
 {% block body %}
 <div class="cover-wrapper">
-    <div class="cover-wrapper-inner">
-        <nav class="navbar navbar-expand-sm navbar-dark bg-transparent fixed-top">
-            {% block navcontainer %} {% include "_nav.html" %} {% endblock navcontainer %}
-        </nav>
+	<div class="cover-wrapper-inner">
+		<nav class="navbar navbar-expand-sm navbar-dark bg-transparent fixed-top">
+			{% block navcontainer %} {% include "_nav.html" %} {% endblock navcontainer %}
+		</nav>
     <noscript>
         <div class="container text-center mt-0 bg-dark text-white pt-3 pb-4"><p><strong>Javascript is disabled!&nbsp;  Many pages and features of FPbase will not work properly</strong></p>
           <form class="input-group home-search" method="get" action="/search/">
@@ -31,27 +31,28 @@
           </form>
         </div>
     </noscript>
-        <main role="main" class="cover-container container">
-            <div class="row">
-                <div class="col-md-7  search-col order-sm-2 search-col">
-                    <p class="cover-heading text-center ">Find a Protein</h1>
-
-                    <form class="input-group" method="get" action="/search/">
-                      <input class="form-control algolia-searchbar" id="algolia-search-input" name="q" type="search" placeholder='Search' />
-                    </form>
-
-                    <p class="m-t-4 advanced-search"><a href="{% url 'proteins:search' %}">advanced search</a></p>
-{#                  <p class='m-t-4' style="color:#ccc"><br><i class='fa fa-info-circle'></i>  <em><a href='{% url "beta" %}' style="color:#ccc">FPbase is in beta</a></em></p> #}
-                </div>
-                <div class="col-md-4 align-self-center order-sm-1" id="protein-image">
+		<main role="main" class="cover-container container">
+			<div class="row">
+				<div class="col-md-7 align-self-center text-center search-col order-sm-2 search-col">
+					<p class="cover-heading">Find a Protein</h1>
+						<form class="input-group home-search" method="get" action="/search/">
+							<input type="search" class="form-control" name="q" placeholder="Protein name, accession, doi, organism, author...">
+							<span class="input-group-btn">
+								<button class="btn btn-secondary" type="submit"><i class="fas fa-search"></i></button>
+							</span>
+						</form>
+					<p class="m-t-4 advanced-search"><a href="{% url 'proteins:search' %}">advanced search</a></p>
+{# 					<p class='m-t-4' style="color:#ccc"><br><i class='fa fa-info-circle'></i>  <em><a href='{% url "beta" %}' style="color:#ccc">FPbase is in beta</a></em></p> #}
+				</div>
+				<div class="col-md-4 align-self-center order-sm-1" id="protein-image">
           <div style="position: absolute;" class="no-glow">
             {% webp_picture 'images/blurry_egfp.png' 'img-fluid' "EGFP image" %}
           </div>
           <div style="display: none; position: absolute;" class="glow">
             {% webp_picture 'images/blurry_egfp_glow.png' 'img-fluid' "glowing EGFP image" %}
           </div>
-                </div>
-            </div>
+				</div>
+			</div>
 
       <div class="row">
         <div class="col-md-4 order-sm-1"></div>
@@ -64,10 +65,10 @@
         </div>
       </div>
 
-        </main>
-        {% include '_twittershare.html' %}
-    </div>
-    <!-- cover-wrapper-inner -->
+		</main>
+		{% include '_twittershare.html' %}
+	</div>
+	<!-- cover-wrapper-inner -->
 </div>
 <!-- cover-wrapper -->
 {% endblock body %}

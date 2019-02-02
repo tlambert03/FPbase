@@ -72,6 +72,25 @@ $logo-color: #efe;
     }
   }
   .nav-search{
+    .input-group {
+      width: 170px;
+      @include media-breakpoint-down(sm) {
+        width: 100%;
+        margin-top: 8px;
+      }
+      transition: width 0.2s;
+      &:focus-within  {
+        @include media-breakpoint-up(md) {
+          width: 270px;
+        }
+        @include media-breakpoint-up(lg) {
+          width: 450px;
+        }
+        @include media-breakpoint-up(xl) {
+          width: 540px;
+        }
+      }
+    }
     .input-group-append {
       margin-left: 0px;
     }
@@ -79,6 +98,7 @@ $logo-color: #efe;
       background: rgba(white, 0.25);
       border: none;
       color: white;
+      width: 100%;
       font-weight: 600;
       &::placeholder {
         font-weight: 200;
@@ -88,11 +108,11 @@ $logo-color: #efe;
         }
       }
       &:focus{
-        background: white;
+        background: white !important;
         color: $gray-800;
       }
-      @include media-breakpoint-up(lg) { margin-left: 1rem; }
-      @include media-breakpoint-down(md) { width: 170px; }
+      //@include media-breakpoint-up(lg) { margin-left: 1rem; }
+      //@include media-breakpoint-down(md) { width: 170px; }
     }
     button{
       background: rgba(white, 0.15);

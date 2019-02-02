@@ -3,7 +3,7 @@
   box-shadow: 0 1px 10px rgba(0,0,0,0.2), 0 2px 4px 0 rgba(0,0,0,0.1);
   color: #60a263;
   font-family: "Raleway", "Helvetica Neue", helvetica;
-  height: 48px;
+  height: 50px;
   padding-: 16px;
   padding-right: 16px;
   border-radius: 4px;
@@ -18,6 +18,42 @@
 
 input[type=search]::-webkit-search-cancel-button {
     -webkit-appearance: searchfield-cancel-button;
+}
+
+.cover-container .aa-dropdown-menu {
+  overflow-y: auto;
+  max-height: 50vh;
+  @include media-breakpoint-down(sm) {max-height: 48vh;}
+
+}
+
+.search-footer {
+  font-size: 0.72em;
+  margin: 0.5em 0.2em 0.5rem 12px;
+  font-weight: 500;
+  color: #aaa;
+
+  a{
+    color: #aaa;
+    &:hover {
+      color: $primary;
+      text-decoration: none;
+    }
+  }
+  .branding {
+    float: right;
+    padding-right: 0.7rem;
+    a {
+      opacity: 0.7;
+      &:hover {
+        opacity: 1;
+      }
+    }
+    img {
+      height: 1.22em;
+    }
+
+  }
 }
 
 .algolia-autocomplete {
@@ -35,9 +71,29 @@ input[type=search]::-webkit-search-cancel-button {
     box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2), 0 2px 4px 0 rgba(0, 0, 0, 0.1);
     border-radius: 3px;
     margin-top: 3px;
+
+    .aa-empty{
+      padding: 10px 10px 0px 10px;
+      margin-bottom: 0;
+      position: relative;
+      color: #777;
+      font-size: 0.9rem;
+
+      span.nohits:after {
+        //content: '\00D7';
+        margin-right: 6px;
+        line-height: 1rem;
+        margin-bottom: 0;
+        position: relative;
+        top: 2px;
+        color: red;
+        opacity: 0.8;
+        font-size: 1.8rem;
+      }
+    }
     .aa-suggestion {
       cursor: pointer;
-      padding: 10px 10px 10px 34px;
+      padding: 8px 10px 8px 34px;
       position: relative;
 
       .highlighted-hits {
@@ -45,6 +101,22 @@ input[type=search]::-webkit-search-cancel-button {
         font-size: 0.8rem;
         color: #999;
         overflow: hidden;
+      }
+
+      .ref-title, .excerpt {
+        line-height: 1rem;
+        margin-top: 3px;
+        margin-left: 6px;
+      }
+      .ref-title {
+        font-size: 0.82rem;
+        color: #666;
+      }
+      .excerpt {
+        color: #999;
+        margin-top: 4px;
+        font-size: 0.78rem;
+        font-style: italic;
       }
 
       .info {
@@ -101,35 +173,17 @@ input[type=search]::-webkit-search-cancel-button {
           opacity: 0.6;
           height: 1.4rem;
           padding-top: 5px;
-          margin-right: 7px;
+          margin-right: 9px;
+          margin-left: 4px;
           &.protein {
             opacity: 0.8;
             height: 1.6rem;
             padding-top: 0px;
+            margin-left: 0px;
           }
         }
       }
     } // end .aa-suggestion
-
-    .branding {
-      font-size: 0.72em;
-      margin: 0.3em 0.2em 0.5em;
-      float: right;
-      font-weight: 500;
-      color: #777;
-      padding-right: 0.7rem;
-      a {
-        opacity: 0.7;
-        &:hover {
-          opacity: 1;
-        }
-      }
-
-      img {
-        height: 1.22em;
-      }
-
-    }
 
   } // end aa-dropdown-menu
 }
