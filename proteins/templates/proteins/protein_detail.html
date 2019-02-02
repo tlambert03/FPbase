@@ -6,22 +6,16 @@
 {% block meta-description %}{{ protein.description }}{% endblock %}
 
 
-
-
-{% block container-class %}container protein{% endblock %}
-
-{% block bodyopen %}
-    {% include '_comparetab.html' %}
-{% endblock bodyopen %}
+{% block twitter_card %}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@FPbase" />
+  <meta property="og:url" content="https://fpbase.org{{ protein.get_absolute_url }}" />
+  <meta property="og:title" content="{{protein.name|safe}} at FPbase" />
+  <meta property="og:description" content="{{ protein.description }}" />
+  <meta property="og:image" content="https://www.fpbase.org/spectra_img/{{protein.slug}}.png?title=1&xlabels=0&transparent=0" />
+{% endblock %}
 
 {% block extrahead %}
-
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:site" content="@fpbase" />
-<meta property="og:url" content="https://fpbase.org{{ protein.get_absolute_url }}" />
-<meta property="og:title" content="{{protein.name|safe}} at FPbase" />
-<meta property="og:description" content="{{ protein.description }}" />
-<meta property="og:image" content="https://www.fpbase.org/spectra_img/{{protein.slug}}.png?title=1&xlabels=0&transparent=0" />
 
 
 {% include 'proteins/_structured_data.html' with protein=protein %}
@@ -31,6 +25,14 @@
   <link rel="prefetch" href='https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/plasmids.xml'>
 
 {% endblock extrahead %}
+
+
+{% block container-class %}container protein{% endblock %}
+
+{% block bodyopen %}
+    {% include '_comparetab.html' %}
+{% endblock bodyopen %}
+
 
 {% block content %}
 			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name | safe }}</h1>

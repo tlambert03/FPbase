@@ -31,13 +31,23 @@ footer {
 
 
 
-.home-body .twitter-share-button{
+.home-body .twitter-share-wrapper{
 	position: absolute;
-	bottom: 0;
-	right: 1rem;
+  z-index: 10;
+	bottom: 15px;
+	left: 15px;
 }
 
-.twitter-share-button {
+.footer .twitter-share-wrapper{
+  position: relative;
+  z-index: 10;
+  top:-13px;
+}
+
+a.twitter-share-button {
+  position: relative;
+  top: 14px;
+  left: -4px;
 	.fa-twitter {
 		color: rgba(white, 0.7);
 		&:hover {

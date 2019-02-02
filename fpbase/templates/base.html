@@ -20,7 +20,7 @@
       "@context": "http://schema.org",
       "@type": "Organization",
       "url": "https://www.fpbase.org",
-      "logo": "https://www.fpbase.org{% webpack_static 'images/logo_green_wide.png' %}"
+      "logo": "{% webpack_static 'images/circle_logo_full.png' %}"
     };
     </script>
 
@@ -29,6 +29,17 @@
     <link rel="canonical" href="{% block canonical_url %}{{ CANONICAL_URL }}{{ request.get_full_path }}{% endblock %}">
     <meta name="author" content="Talley Lambert">
     <meta name="copyright" content="Talley Lambert" />
+
+
+    {% block twitter_card %}
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:site" content="@FPbase" />
+      <meta property="og:site_name" content="FPbase">
+      <meta property="og:url" content="https://www.fpbase.org">
+      <meta property="og:title" content="FPbase: The Fluorescent Protein Database">
+      <meta property="og:description" content="FPbase is a free and open-source, community-editable database for fluorescent proteins (FPs) and their properties.">
+      <meta property="og:image" content="{% webpack_static 'images/circle_logo_full.png' %}">
+    {% endblock twitter_card %}
 
     <link rel="shortcut icon" href="{% webpack_static 'images/favicon.ico' %}">
 
@@ -103,13 +114,13 @@
 
     </div> <!-- /container -->
 
-    <footer class="footer container-fluid">
+    <footer class="footer container-fluid pl-0">
       <div class="container">
         <div class="row">
-          <div class="col-4">
+          <div class="col-1 pl-0">
             {% include '_twittershare.html' %}<br>
           </div>
-          <div class="col-8 text-right">
+          <div class="col-11 text-right">
 
             <p>©FPbase, <span id='curyear'>2018</span>
               <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" id="licenselink">
