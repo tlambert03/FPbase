@@ -151,4 +151,12 @@ $search-colors: rgba($white,0.4);
     margin-left: 20px;
     @include media-breakpoint-up(sm) {margin-left: 40px;}
   }
+
+  .gfpicon {
+    height: 38px;
+    margin-bottom:0;
+    padding-bottom: 3px;
+    filter: brightness(140%);
+    opacity: 0.8;
+  }
 }
