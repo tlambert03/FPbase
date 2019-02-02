@@ -67,7 +67,6 @@ THIRD_PARTY_APPS = [
     'reversion_compare',
     'avatar',
     'mptt',
-    'algoliasearch_django',
 ]
 
 # Apps specific for this project go here.
@@ -345,6 +344,9 @@ ALGOLIA_SUFFIX = 'dev' if (DEBUG or ('staging' in env('SENTRY_PROJECT', default=
 ALGOLIA_PUBLIC_KEY = '421b453d4f93e332ebd0c7f3ace29476'
 ALGOLIA = {
     'APPLICATION_ID': '9WAWQMVNTB',
-    'API_KEY': env('ALGOLIA_API_KEY', default=None),
+    'API_KEY': env('ALGOLIA_API_KEY', default=''),
     'INDEX_SUFFIX': ALGOLIA_SUFFIX
 }
+
+if ALGOLIA['API_KEY']:
+    INSTALLED_APPS += ['algoliasearch_django']
