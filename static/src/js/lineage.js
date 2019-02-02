@@ -86,7 +86,7 @@ export default function LineageChart(conf) {
     width,
     minNodeWidth = config.minNodeWidth || 70,
     heightScalar = 50,
-    widthScalar = 1.2,
+    widthScalar = 1,
     nodeWidth,
     height,
     i = 0,
