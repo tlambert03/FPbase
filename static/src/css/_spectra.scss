@@ -52,7 +52,7 @@ h6 {
   .spectra-wrapper, .microscope-wrapper {
     position: relative;
     top: 0px;
-    z-index:100;
+    z-index:99;
     background:white;
     margin: auto;
     width: 100%;
@@ -83,7 +83,7 @@ h6 {
       color: $gray-500;
       font-size: 0.9rem;
       font-weight: 600;
-      z-index: 99;
+      z-index: 98;
     }
   }
 

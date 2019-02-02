@@ -56,6 +56,7 @@ input[type=search]::-webkit-search-cancel-button {
   }
 }
 
+
 .algolia-autocomplete {
   width: 100%;
   .aa-input {
@@ -100,7 +101,6 @@ input[type=search]::-webkit-search-cancel-button {
         margin-left: 5px;
         font-size: 0.8rem;
         color: #999;
-        overflow: hidden;
       }
 
       .ref-title, .excerpt {
