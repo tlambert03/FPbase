@@ -416,7 +416,24 @@
 {% include 'proteins/modals/_reference_modal.html' with user=user protein=protein %}
 {% include 'proteins/modals/_add_to_collection_modal.html' with user=user protein=protein %}
 {% if protein.has_spectra %}
-  {% include 'proteins/modals/_spectra_url_modal.html' with protein=protein %}
+
+<div class="modal fade" id="spectraURLModal" role="dialog" aria-labelledby="spectraURLModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="spectraURLModalLongTitle"><strong>Spectrum Image URL Builder</strong></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+        <div class="modal-body">
+          {% include 'proteins/modals/_spectra_url_modal.html' with protein=protein %}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% endif %}
 
 {% if protein.states.count > 1 %}

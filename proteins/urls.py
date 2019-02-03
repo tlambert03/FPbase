@@ -39,6 +39,8 @@ urlpatterns = [
     url(r'^spectra/$', views.protein_spectra, name='spectra'),
     url(r'^spectra_csv/', views.spectra_csv, name='spectra_csv'),
     url(r'^spectra_img/(?P<slug>[-\w]+)(\.(?P<extension>(png)|(svg)|(tif?f)|(pdf)|(jpe?g))?)?$', views.spectra_image, name='spectra-img'),
+    url(r'^spectra_url_builder/$', TemplateView.as_view(template_name='spectrum_url_form.html'), name='spectra-url-builder'),
+
 
     url(r'^fret/', views.fret_chart, name='fret'),
 
