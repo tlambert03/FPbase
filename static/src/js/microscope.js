@@ -68,6 +68,7 @@ import noUiSlider from 'nouislider';
         precision: isSafari ? 2 : 1,
         interpolate: false,
         calcEff: true,
+        exEffBroadband: false,
     };
     var userOptions = {
         calcEff: {type: 'checkbox', msg: 'Calculate efficiency on update. (may be slower)'},
@@ -81,6 +82,7 @@ import noUiSlider from 'nouislider';
         interpolate: {type: 'checkbox', msg: 'Spline interpolation on chart'},
         precision: {type: 'number', msg: 'Precision of chart in nm (higher = faster)', max: 8, min: 1},
         scaleToQY: {type: 'checkbox', msg: 'Scale emission spectra to quantum yield'},
+        exEffBroadband: {type: 'checkbox', msg: '"Broadband" excitation efficiency mode <a href="https://help.fpbase.org/tools/microscopes/efficiency#broadband" target="_blank"><i class="fa fa-question-circle text-muted"></i></a>'},
     };
 
     var mobilecheck = function() {
@@ -593,7 +595,7 @@ import noUiSlider from 'nouislider';
 
                     })
                 )
-                .append($('<label>', {for: key + '_input', class: value.type === 'checkbox' ? 'custom-control-label' : 'ml-2'}).text(value.msg))
+                .append($('<label>', {for: key + '_input', class: value.type === 'checkbox' ? 'custom-control-label' : 'ml-2'}).html(value.msg))
             )
         });
 
@@ -1069,7 +1071,11 @@ import noUiSlider from 'nouislider';
         if (fluor.type == 'em'){
             var efficiency = filter_dye_area / trapz(fluorspectrum);
         } else if (fluor.type == 'ex'){
-            var efficiency = filter_dye_area / trapz(filtervalues);
+            if (options.exEffBroadband) {
+                var efficiency = filter_dye_area / trapz(fluorspectrum);
+            } else {
+                var efficiency = filter_dye_area / trapz(filtervalues);
+            }
         }
 
         return {
