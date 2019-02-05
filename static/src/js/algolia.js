@@ -168,6 +168,7 @@ export default function initAutocomplete() {
       getRankingInfo: false,
       minLength: 3,
       autoselect: true,
+      autoselectOnBlur: window.mobilecheck(),
       templates: {
         empty: empty,
         footer: '<div class="search-footer"><a href="/search/">advanced search</a><div class="branding">powered by <a href="https://algolia.com"><img src="https://www.algolia.com/static_assets/images/press/downloads/algolia-logo-light.svg" /></a></div></div>'
@@ -176,7 +177,7 @@ export default function initAutocomplete() {
     [
       {
         // add {attributesToRetrieve: }
-        source: $.fn.autocomplete.sources.hits(proteinIndex, { hitsPerPage: 5, getRankingInfo: 1}),
+        source: $.fn.autocomplete.sources.hits(proteinIndex, { hitsPerPage: 5}),
         displayKey: 'name',
         templates: {
           suggestion: function(suggestion) {
@@ -216,7 +217,7 @@ export default function initAutocomplete() {
         }
       },
       {
-        source: $.fn.autocomplete.sources.hits(referenceIndex, { hitsPerPage: 3, getRankingInfo: 1}),
+        source: $.fn.autocomplete.sources.hits(referenceIndex, { hitsPerPage: 3}),
         displayKey: 'citation',
         templates: {
           suggestion: function(suggestion) {
@@ -228,7 +229,7 @@ export default function initAutocomplete() {
         }
       },
       {
-        source: $.fn.autocomplete.sources.hits(organismIndex, { hitsPerPage: 2, getRankingInfo: 1 }),
+        source: $.fn.autocomplete.sources.hits(organismIndex, { hitsPerPage: 2 }),
         displayKey: 'scientific_name',
         templates: {
           suggestion: function(suggestion) {
