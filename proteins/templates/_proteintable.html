@@ -24,7 +24,8 @@
   			<th>pKa</th>
   			<th class='agg_type'>Agg<span class="d-none d-xl-inline">regation</span></th>
   			<th>Mat<span class="d-none d-xl-inline">uration</span></th>
-  			<th><span class="d-none d-lg-inline">Lifetime</span><span class="d-block d-lg-none">&tau;</span></th>
+  			<th><span class="d-none d-xl-inline">Lifetime</span><span class="d-block d-xl-none">&tau;</span></th>
+        <th>kDa</th>
   			<th class='hidden switch_type'>Switch Type</th>
         <td class='hidden'>Aliases</td>
         {% if comparison %}
@@ -58,6 +59,7 @@
 						<td class="numeric">{{ protein.agg | default_if_none:"" }} </td>
 						<td class="numeric">{{ state.maturation | default_if_none:"" }}</td>
 						<td class="numeric">{{ state.lifetime | default_if_none:"" }}</td>
+            <td class="numeric weight">{{ protein.seq.weight|floatformat:2 }}</td>
 						<td class='hidden'>{{ state.protein.switch_type }}</td>
             <td class='hidden'>{{ state.protein.aliases }}</td>
             {% if comparison %}
@@ -88,6 +90,7 @@
                   <td class="numeric">{% if protein.agg %}{{ protein.agg }}{%else%}-{%endif%}</td>
                   <td class="numeric"></td>
                   <td class="numeric"></td>
+                  <td class="numeric weight">{{ protein.seq.weight|floatformat:2 }}</td>
                   <td class='hidden'>{{ protein.switch_type }}</td>
                   <td class='hidden'>{{ state.protein.aliases }}</td>
                   {% if comparison %}

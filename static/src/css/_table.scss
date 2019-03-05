@@ -4,8 +4,11 @@
   @include media-breakpoint-up(sm){
     padding: 15px;
   }
+  @include media-breakpoint-up(lg){
+    padding: 25px;
+  }
 	@include media-breakpoint-up(xl){
-		max-width: map-get($container-max-widths, xl);
+		max-width: 1400px;
 		margin: auto;
 	}
 	//@include media-breakpoint-down(md){max-width: map-get($container-max-widths, md);}

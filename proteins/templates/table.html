@@ -8,7 +8,7 @@
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css"/>
 {% endblock extrahead %}
 
-{% block container-class %}tablecontainer{% endblock %}
+{% block container-class %}tablecontainer container-fluid{% endblock %}
 
 {% block bodyopen %}
     {% include '_comparetab.html' %}
@@ -19,7 +19,7 @@
 <h2 class="text-center">Fluorescent Protein Table</h2>
 
   <div class="mb-3">
-    <p class="small mb-2 mt-3">This is a comprehensive table of all proteins in the database. You may sort by clicking the column headers (multi-sort by shift-clicking the headers), or search any column by typing in the search field.
+    <p class="small mb-2 mt-3 container">This is a comprehensive table of all proteins in the database. You may sort by clicking the column headers (multi-sort by shift-clicking the headers), or search any column by typing in the search field.
     <em><strong>Tip:</strong> click the <button class="btn btn-outline-info btn-circle"><i class="fas fa-plus"></i></button> button to add a protein to the comparison slider on right.</em>
     </p>
   </div>
@@ -64,7 +64,7 @@
       ] );
 
     var exportOptions = {
-      columns: [ 0,1,2,3,4,5,6,7,8,10,11 ]
+      columns: [ 0,1,2,3,4,5,6,7,8,10,11,12]
     };
 
     var buttonCommon = {
@@ -87,6 +87,7 @@
                       case 9: return 'Oligomerization';
                       case 10: return 'Maturation (min)';
                       case 11: return 'Lifetime (ns)';
+                      case 12: return 'Molecular Weight (kDa)';
                       default: return data;
                   }
                 },
@@ -119,7 +120,7 @@
       lengthMenu: [ [10, 20, 50, 100, -1], [10, 20, 50, 100,"All"] ],
       order: [[ 6, 'desc' ]],
       columnDefs: [
-        { type: numbersType, targets: [1,2,3,4,5,6,7,8,10,11] },
+        { type: numbersType, targets: [1,2,3,4,5,6,7,8,10,11,12] },
         { type: stringsType, targets: [9]}
       ],
       dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
