@@ -374,3 +374,4 @@ _data/*
 webpack-stats.json
 
 /.sentryclirc
+.vscode/
