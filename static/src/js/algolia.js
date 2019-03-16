@@ -171,7 +171,9 @@ export default function initAutocomplete() {
       autoselectOnBlur: window.mobilecheck(),
       templates: {
         empty: empty,
-        footer: '<div class="search-footer"><a href="/search/">advanced search</a><div class="branding">powered by <a href="https://algolia.com"><img src="https://www.algolia.com/static_assets/images/press/downloads/algolia-logo-light.svg" /></a></div></div>'
+        footer: '<div class="search-footer"><a href="/search/">advanced search\
+                 </a><div class="branding">powered by <a href="https://algolia.com">\
+                 <img src="' + window.FPBASE.imageDir + 'logo-algolia-nebula-blue-full.svg" /></a></div></div>'
       }
     },
     [
