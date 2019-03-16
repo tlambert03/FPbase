@@ -102,7 +102,7 @@ window.initSnapGene = function(protein, selection) {
   var snaptemplate =
     'https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/';
   $.get({
-    url: snaptemplate.replace('*/', 'plasmids.xml'),
+    url: '/media/snapgene.xml',
     success: function(data) {
       /* handle data here */
       var hits = [];
