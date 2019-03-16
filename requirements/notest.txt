@@ -1,1 +1,1 @@
-parasail==1.1.12
+parasail==1.1.16
