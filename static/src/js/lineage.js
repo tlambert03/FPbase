@@ -85,7 +85,7 @@ export default function LineageChart(conf) {
   let margin = config.margin || { top: 20, right: 110, bottom: 15, left: 65 },
     width,
     minNodeWidth = config.minNodeWidth || 70,
-    heightScalar = 50,
+    heightScalar = 40,
     widthScalar = 1,
     nodeWidth,
     height,

@@ -35,6 +35,7 @@ $('.lineage').each(function(i, el){
       withToolbar: true,
       withTopScroll: true,
     }).data(data);
+    chart.heightScalar(52);
     d3.select(el).call(chart);
     chart.duration(100);
   })
