@@ -461,7 +461,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         if norm:
             from collections import Counter
             mx = Counter(Favorite.objects.for_model(Protein)
-                         .values_list('target_object_id', flat=True)).most_common(1)[0][1]
+                         .values_list('target_object_id', flat=True)).most_common(1)
+            if mx:
+                mx = [0][1]
+            else:
+                mx = 1
             return nf / mx
         return nf
 
