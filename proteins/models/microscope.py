@@ -4,10 +4,13 @@ from django.contrib.postgres.fields import ArrayField
 from django.urls import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.utils.functional import cached_property
 from .spectrum import sorted_ex2em
 from ..util.helpers import shortuuid
 from .collection import OwnedCollection
 from . import Camera, Light, Filter
+from ..util.efficiency import spectral_product
+
 
 
 class Microscope(OwnedCollection):
@@ -182,6 +185,14 @@ class OpticalConfig(OwnedCollection):
             p.append(invert(x.filter.spectrum.data) if x.reflects
                      else x.filter.spectrum.data)
         return p
+
+    @cached_property
+    def combined_ex_spectra(self):
+        return spectral_product(self.ex_spectra)
+
+    @cached_property
+    def combined_em_spectra(self):
+        return spectral_product(self.em_spectra)
 
     @property
     def inverted_bs(self):

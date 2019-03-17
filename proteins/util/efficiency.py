@@ -5,7 +5,8 @@ from ..models import State, Dye
 def spectral_product(arrlist):
     # calculate (overlapping) product of a list of spectra.values
     # assumes monotonic increase with step = 1
-
+    if not len(arrlist):
+        return None
     minwaves = [int(a[0][0]) for a in arrlist]
     minwave = max(minwaves)
     offsets = [minwave - i for i in minwaves]
@@ -47,32 +48,34 @@ def oclist_efficiency_report(oclist, fluor_collection=None, include_dyes=True):
             fluor_collection += list(Dye.objects.with_spectra())
     D = {}
     for oc in oclist:
-        D[oc.name] = path_efficiency_report(oc, fluor_collection)
+        D[oc.name] = oc_efficiency_report(oc, fluor_collection)
     return D
 
 
-def path_efficiency_report(oc, fluor_collection):
+def oc_efficiency_report(oc, fluor_collection):
     # where oc is an optical config and fluor_collection is a list of a SpectrumOwner subclass
     D = {}
-    oc_em = spectral_product(oc.em_spectra)
-    oc_ex = spectral_product(oc.ex_spectra)
+    oc_em = oc.combined_em_spectra
+    oc_ex = oc.combined_ex_spectra
     for fluor in fluor_collection:
         D[fluor.slug] = {
             'fluor': fluor.fluor_name,
             'ex': None,
+            'ex_broad': None,
             'em': None,
             'bright': 0,
             'color': fluor.emhex,
             'ftype': 'p' if isinstance(fluor, State) else 'd',
             'url': fluor.get_absolute_url() or ''
         }
-        if fluor.em_spectrum:
+        if fluor.em_spectrum and oc_em:
             combospectrum = spectral_product([oc_em, fluor.em_spectrum.data])
             D[fluor.slug]['em'] = round(area(combospectrum) / area(fluor.em_spectrum.data), 3)
-        if fluor.ex_spectrum:
+        if fluor.ex_spectrum and oc_ex:
             combospectrum = spectral_product([oc_ex, fluor.ex_spectrum.data])
             D[fluor.slug]['ex'] = round(area(combospectrum) / area(oc_ex), 3)
-        if D[fluor.slug]['em'] and D[fluor.slug]['ex'] and fluor.ext_coeff and fluor.qy:
+            D[fluor.slug]['ex_broad'] = round(area(combospectrum) / area(fluor.ex_spectrum.data), 3)
+        if D[fluor.slug].get('em') and D[fluor.slug].get('ex') and fluor.ext_coeff and fluor.qy:
             b = D[fluor.slug]['em'] * D[fluor.slug]['ex'] * fluor.ext_coeff * fluor.qy / 1000
             D[fluor.slug]['bright'] = round(b, 3)
     return D

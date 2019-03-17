@@ -16,7 +16,31 @@ from django.core.cache import cache
 from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from .mixins import OwnableObject
-from ..util.efficiency import microscope_efficiency_report
+#from ..util.efficiency import microscope_efficiency_report
+from ..models.efficiency import OcFluorEff
+from collections import defaultdict
+from urllib.parse import quote
+
+
+def get_eff_report(microscope):
+    effs = OcFluorEff.objects.filter(oc__in=microscope.optical_configs.all())
+    effs = effs.exclude(ex_eff=None).exclude(em_eff=None).prefetch_related('fluor', 'oc')
+    data = defaultdict(list)
+    for item in effs:
+        if not (item.ex_eff and item.em_eff):
+            continue
+        data[item.oc.name].append({
+            'fluor': item.fluor_name,
+            'x': item.ex_eff,
+            'y': item.em_eff,
+            'bright': item.brightness,
+            'size': item.brightness if item.brightness else 0.01,
+            'color': item.fluor.emhex,
+            'shape': 'circle' if item.content_type.model == 'state' else 'square',
+            'probe_url': '/proteins/' + item.fluor.slug,
+            'url': microscope.get_absolute_url() + '?c={}&p={}'.format(quote(item.oc.name), quote(item.fluor.slug))
+        })
+    return [{'key': k, 'values': v} for k, v in data.items()]
 
 
 class ScopeReportView(DetailView):
@@ -25,36 +49,18 @@ class ScopeReportView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ScopeReportView, self).get_context_data(**kwargs)
-        cachekey = self.object.id + '_report'
-        if not cache.get(cachekey):
-            # oc = list(m.optical_configs.all())
-            # fluors = list(State.objects.with_spectra())
-            # fluors.extend(list(Dye.objects.all()))
-            # report = oclist_efficiency_report(oc, fluors)
-            report = microscope_efficiency_report(self.object)
-            cache.set(cachekey, report, 43200)
-        _rep = cache.get(cachekey)
-        report = {}
-        data = []
-        for oc, dct in _rep.items():
-            data.append({
-                'key': oc,
-                'values': []
-            })
-            for slug, effdata in dct.items():
-                if effdata['ex'] and effdata['em']:
-                    data[-1]['values'].append({
-                        'fluor': effdata['fluor'],
-                        'x': effdata['ex'],
-                        'y': effdata['em'],
-                        'bright': effdata['bright'],
-                        'size': effdata['bright'] if effdata['bright'] else 0.01,
-                        'color': effdata['color'],
-                        'shape': 'circle' if effdata['ftype'] == 'p' else 'square',
-                        'url': effdata['url'],
-                    })
 
-        context['report'] = data
+        #cachekey = self.object.id + '_report'
+        #if not cache.get(cachekey):
+        #    # oc = list(m.optical_configs.all())
+        #    # fluors = list(State.objects.with_spectra())
+        #    # fluors.extend(list(Dye.objects.all()))
+        #    # report = oclist_efficiency_report(oc, fluors)
+        #    report = microscope_efficiency_report(self.object)
+        #    cache.set(cachekey, report, 43200)
+        #_rep = cache.get(cachekey)
+
+        context['report'] = get_eff_report(self.object)
         return context
 
 

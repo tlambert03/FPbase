@@ -61,13 +61,15 @@
         chart.dispatch.on('stateChange', function(e) { ('New State:', JSON.stringify(e)); });
         chart.tooltip.contentGenerator(function (key, x, y, e, graph) {
             return ('<div style="text-align: left"><p><strong>' + key.point.fluor + '</strong></p>' +
-                    '<p>Ex eff: ' + key.point.x + ' %</p>' +
-                    '<p>Em eff: ' + key.point.y + ' %</p>' +
+                    '<p>Ex eff: ' + Math.round(1000 * key.point.x) / 10 + ' %</p>' +
+                    '<p>Em eff: ' + Math.round(1000 * key.point.y) / 10 + ' %</p>' +
                     '<p>Brightness: ' + key.point.bright + '</p></div>')  ;
             });
         chart.scatter.dispatch.on('elementClick', function(event) {
-            location.href = event.point.url;
+            //location.href = event.point.url;
+            window.open(event.point.url);
         });
+
 
         return chart;
     }, function(){

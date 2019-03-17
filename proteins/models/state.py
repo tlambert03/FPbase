@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Avg
 from django.utils.text import slugify
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.contenttypes.fields import GenericRelation
 
 from .mixins import Product
 from .spectrum import SpectrumOwner
@@ -49,6 +50,7 @@ class Fluorophore(SpectrumOwner):
     emhex       = models.CharField(max_length=7, blank=True)
     exhex       = models.CharField(max_length=7, blank=True)
     is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence",)
+    oc_eff = GenericRelation('OcFluorEff', related_query_name='fluors')
 
     class Meta:
         abstract = True
