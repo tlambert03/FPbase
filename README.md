@@ -5,7 +5,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![cookie](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-brightgreen.svg)](https://github.com/pydanny/cookiecutter-django/)
 [![Build Status](https://travis-ci.org/tlambert03/FPbase.svg?branch=develop)](https://travis-ci.org/tlambert03/FPbase)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1244328.svg)](https://doi.org/10.5281/zenodo.1244328)
+[![DOI](https://zenodo.org/badge/DOI/10.1038/s41592-019-0352-8.svg)](https://doi.org/10.1038/s41592-019-0352-8)
 
 
 https://www.fpbase.org
@@ -44,22 +44,20 @@ https://www.fpbase.org
 ```
 
 
+### How to cite FPbase
+
+If you have used FPbase in a publication, or are referencing an FPbase protein collection or microscope in your methods, please cite the following paper:
+
+Lambert, TJ (2019) FPbase: a community-editable fluorescent protein database. *Nature Methods*. doi: [10.1038/s41592-019-0352-8](https://doi.org/10.1038/s41592-019-0352-8)
+
+
 ### Contributing
 
-Please branch off of develop for any pull requests.
+If you would like to contribute to the website directly (for instance, to add a feature or fix an error), please branch off of develop and submit a pull request.
 
-### Cite as 
+If you have data that you would like to contribute to the database, please do *not* do that here.  All data can be submitted directly on the website:
 
-Talley Lambert. tlambert03/FPbase (2018). doi:10.5281/zenodo.1244328
+[Submit a fluorescent protein](https://www.fpbase.org/submit/)
 
-#### TODO
+[Submit spectral information](https://www.fpbase.org/spectra/submit/)
 
-* mutations / lineages
-* weighted scoring based on user-selected attributes
-* user scoring/comments
-* user submit unpublished data
-* photoswitchable chart
-* bleach comparisons within studies
-* allow spectra/attributes to be embedded elsewhere
-* OSER data
-* Maturation data
