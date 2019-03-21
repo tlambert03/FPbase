@@ -270,9 +270,7 @@ container-fluid
 
       }
       $('input.toggle-vis').on( 'click', function (e) {
-        console.log($(this).val())
           var columns = dt.columns('.col_' + $(this).val())[0];
-          console.log(columns)
           var excluded = $("input.meas-vis:checkbox:not(:checked)").map(function(x, d){return ".col_" + d.value}).toArray().join(', ');
           excluded = dt.columns(excluded)[0];
           columns = columns.filter(function(elem){ return !excluded.includes(elem)});
