@@ -89,7 +89,7 @@ urlpatterns = [
                        message="You must be logged in to delete microscopes"),
         name='deletemicroscope'),
     url(r'^embedscope/(?P<pk>[-\w]+)/$', views.MicroscopeEmbedView.as_view(), name='microscope-embed'),
-    url(r'^microscope/(?P<pk>[-\w]+)/report$', views.ScopeReportView.as_view(), name='scope-report'),
+    url(r'^microscope/(?P<pk>[-\w]+)/report/$', views.ScopeReportView.as_view(), name='scope-report'),
     url(r'^microscope/(?P<pk>[-\w]+)/$', views.MicroscopeDetailView.as_view(), name='microscope-detail'),
     url(r'^microscope/(?P<pk>[-\w]+)/update/',
         login_required(views.MicroscopeUpdateView.as_view(),
@@ -97,6 +97,9 @@ urlpatterns = [
         name='updatemicroscope'),
     url(r'^microscopes/(?P<owner>[\w.@+-]+)/?$', views.MicroscopeList.as_view(), name='microscopes'),
     url(r'^microscopes/', views.MicroscopeList.as_view(), name='microscopes'),
+
+
+
 
     # /proteins/api
     url(r'^api/spectrum/$', apiviews.SpectrumList.as_view(), name='spectrum-api'),
@@ -127,6 +130,11 @@ urlpatterns = [
     url(r'^ajax/lineage/(?P<slug>[-\w]+)/$', views.get_lineage, name='get-lineage'),
     url(r'^ajax/lineage/$', views.get_lineage, name='get-lineage'),
     url(r'^ajax/org_lineage/(?P<org>[-\w]+)/$', views.get_lineage, name='get-org-lineage'),
+
+    url(r'^ajax/request_scope_report/$', views.request_scope_report, name='request_scope_report'),
+    url(r'^ajax/check_scope_report/$', views.check_scope_report, name='check_scope_report'),
+    url(r'^ajax/cancel_scope_report/$', views.cancel_scope_report, name='cancel_scope_report'),
+    url(r'^microscope/(?P<pk>[-\w]+)/report/json/$', views.scope_report_json, name='scope_report_json'),
 
     url(r'^widget/(?P<slug>[-\w]+)/$', views.Widget.as_view(), name='widget-detail'),
 

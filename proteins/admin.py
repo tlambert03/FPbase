@@ -170,7 +170,7 @@ class SpectrumAdmin(VersionAdmin):
     list_select_related = ('owner_state__protein', 'owner_filter', 'owner_camera', 'owner_light', 'owner_dye', 'created_by')
     list_display = ('__str__', 'category', 'subtype', 'owner', 'created_by')
     list_filter = ('created', 'category', 'subtype')
-    readonly_fields = ('owner', 'name', 'created')
+    readonly_fields = ('owner', 'name', 'created', 'modified')
     search_fields = ('owner_state__protein__name', 'owner_filter__name', 'owner_camera__name', 'owner_light__name', 'owner_dye__name')
 
     def get_fields(self, request, obj=None):
@@ -184,7 +184,7 @@ class SpectrumAdmin(VersionAdmin):
         fields.extend(own)
         self.autocomplete_fields.extend(own)
         fields += ['category', 'subtype', 'data', 'ph', 'solvent',
-                   ('created', 'created_by', 'updated_by')]
+                   ('created', 'created_by'), ('modified', 'updated_by')]
         return fields
 
     def owner(self, obj):

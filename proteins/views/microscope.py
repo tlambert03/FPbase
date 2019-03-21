@@ -5,42 +5,121 @@ from django.core.mail import mail_admins
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse_lazy, resolve
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, F, Value, CharField
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib import messages
-from django.core.cache import cache
-
-from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig
+from ..models import Microscope, Camera, Light, Spectrum, OpticalConfig, State, Dye
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from .mixins import OwnableObject
 #from ..util.efficiency import microscope_efficiency_report
 from ..models.efficiency import OcFluorEff
 from collections import defaultdict
 from urllib.parse import quote
+from django.http import HttpResponseNotAllowed, JsonResponse
+from fpbase.celery import app
+from ..tasks import calculate_scope_report
+from celery.task.control import revoke
 
 
-def get_eff_report(microscope):
+def request_scope_report(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+    scope_id = request.POST.get('scope_id')
+    outdated = request.POST.get('outdated')
+    if outdated:
+        outdated = json.loads(outdated)
+    if scope_id:
+        job = calculate_scope_report.delay(scope_id, outdated_ids=outdated)
+        return JsonResponse({
+            'status': 200,
+            'job': job.id
+        })
+    return JsonResponse({
+        'status': 404,
+    })
+
+
+def check_scope_report(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+
+    job_id = request.POST.get('job_id')
+    if job_id:
+        result = app.AsyncResult(job_id)
+        ready = result.ready()
+        return JsonResponse({
+            'status': 200,
+            'ready': ready,
+            'info': result.info
+        })
+    return JsonResponse({
+        'status': 404,
+    })
+
+
+def cancel_scope_report(request):
+    if not request.is_ajax():
+        return HttpResponseNotAllowed([])
+
+    job_id = request.POST.get('job_id')
+    if job_id:
+        result = app.AsyncResult(job_id)
+        revoke(job_id, terminate=True)
+        return JsonResponse({
+            'status': 200,
+            'ready': result.ready(),
+            'info': 'result.info',
+            'canceled': True,
+        })
+    return JsonResponse({
+        'status': 404,
+    })
+
+
+def scope_report_json(request, pk):
+    microscope = Microscope.objects.get(id=pk)
     effs = OcFluorEff.objects.filter(oc__in=microscope.optical_configs.all())
-    effs = effs.exclude(ex_eff=None).exclude(em_eff=None).prefetch_related('fluor', 'oc')
+    effs = effs.prefetch_related('fluor', 'oc')
     data = defaultdict(list)
     for item in effs:
         if not (item.ex_eff and item.em_eff):
             continue
         data[item.oc.name].append({
             'fluor': item.fluor_name,
-            'x': item.ex_eff,
-            'y': item.em_eff,
-            'bright': item.brightness,
-            'size': item.brightness if item.brightness else 0.01,
-            'color': item.fluor.emhex,
+            'fluor_slug': item.fluor.slug,
+            'ex_eff': item.ex_eff,
+            'ex_eff_broad': item.ex_eff_broad,
+            'em_eff': item.em_eff,
+            'brightness': item.brightness or None,
+            # 'ext_coeff': item.fluor.ext_coeff,
+            # 'qy': item.fluor.qy,
+            # 'color': item.fluor.emhex,
             'shape': 'circle' if item.content_type.model == 'state' else 'square',
-            'probe_url': '/proteins/' + item.fluor.slug,
             'url': microscope.get_absolute_url() + '?c={}&p={}'.format(quote(item.oc.name), quote(item.fluor.slug))
         })
-    return [{'key': k, 'values': v} for k, v in data.items()]
+
+    states = State.objects.with_spectra().prefetch_related('protein')
+    fluors = {i['slug']: i for i in states
+              .annotate(agg=F('protein__agg'),
+                        type=Value('p', CharField()),
+                        switch_type=F('protein__switch_type'))
+              .values('slug', 'ext_coeff', 'qy', 'agg', 'emhex', 'ex_max',
+                      'em_max', 'type', 'switch_type')}
+    dyes = Dye.objects.with_spectra()
+    fluors.update({i['slug']: i for i in dyes
+                   .annotate(agg=Value('', CharField()),
+                             type=Value('d', CharField()),
+                             switch_type=Value('', CharField()))
+                   .values('slug', 'ext_coeff', 'qy', 'agg', 'emhex', 'ex_max',
+                           'em_max', 'type', 'switch_type')})
+    return JsonResponse({
+        'microscope': pk,
+        'report': [{'key': k, 'values': v} for k, v in data.items()],
+        'fluors': fluors
+    })
 
 
 class ScopeReportView(DetailView):
@@ -49,18 +128,11 @@ class ScopeReportView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ScopeReportView, self).get_context_data(**kwargs)
-
-        #cachekey = self.object.id + '_report'
-        #if not cache.get(cachekey):
-        #    # oc = list(m.optical_configs.all())
-        #    # fluors = list(State.objects.with_spectra())
-        #    # fluors.extend(list(Dye.objects.all()))
-        #    # report = oclist_efficiency_report(oc, fluors)
-        #    report = microscope_efficiency_report(self.object)
-        #    cache.set(cachekey, report, 43200)
-        #_rep = cache.get(cachekey)
-
-        context['report'] = get_eff_report(self.object)
+        probe_count = State.objects.with_spectra().count() + Dye.objects.with_spectra().count()
+        ids = self.object.optical_configs.all().values_list('id', flat=True)
+        effs = OcFluorEff.objects.filter(oc__in=ids)
+        context['outdated'] = list(effs.outdated().values_list('id', flat=True))
+        context['needs_update'] = bool(context['outdated']) or (probe_count * len(ids) > effs.count())
         return context
 
 

@@ -50,7 +50,6 @@ class Fluorophore(SpectrumOwner):
     emhex       = models.CharField(max_length=7, blank=True)
     exhex       = models.CharField(max_length=7, blank=True)
     is_dark     = models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence",)
-    oc_eff = GenericRelation('OcFluorEff', related_query_name='fluors')
 
     class Meta:
         abstract = True
@@ -158,6 +157,7 @@ class FluorophoreManager(models.Manager):
 
 class Dye(Fluorophore, Product):
     objects = FluorophoreManager()
+    oc_eff = GenericRelation('OcFluorEff', related_query_name='dye')
 
 
 class State(Fluorophore):
@@ -170,6 +170,7 @@ class State(Fluorophore):
     # Relations
     transitions = models.ManyToManyField('State', related_name='transition_state', verbose_name="State Transitions", blank=True, through='StateTransition')  # any additional papers that reference the protein
     protein     = models.ForeignKey('Protein', related_name="states", help_text="The protein to which this state belongs", on_delete=models.CASCADE)
+    oc_eff = GenericRelation('OcFluorEff', related_query_name='state')
 
     # Managers
     objects = FluorophoreManager()

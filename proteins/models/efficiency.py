@@ -2,10 +2,28 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from model_utils.models import TimeStampedModel
 from django.db import models
+from django.db.models import OuterRef, Subquery, Max, F, Q
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from ..util.efficiency import oc_efficiency_report
+from . import State, Dye
+
+
+class OcFluorEffQuerySet(models.QuerySet):
+
+    def outdated(self):
+        state_id = ContentType.objects.get(app_label='proteins', model='state').id
+        dye_id = ContentType.objects.get(app_label='proteins', model='dye').id
+
+        state_mod = State.objects.filter(id=OuterRef('object_id')).annotate(m=Max('spectra__modified')).values('m')
+        dye_mod = Dye.objects.filter(id=OuterRef('object_id')).annotate(m=Max('spectra__modified')).values('m')
+
+        q = self.filter(content_type=state_id).annotate(fluor_mod=F('state__modified'), spec_mod=Subquery(state_mod))
+        r = self.filter(content_type=dye_id).annotate(fluor_mod=F('dye__modified'), spec_mod=Subquery(dye_mod))
+        return (q | r).filter(Q(modified__lt=F('fluor_mod')) |
+                              Q(modified__lt=F('spec_mod')) |
+                              Q(modified__lt=F('oc__modified')))
 
 
 class OcFluorEff(TimeStampedModel):
@@ -23,6 +41,7 @@ class OcFluorEff(TimeStampedModel):
     em_eff = models.FloatField(null=True, blank=True, verbose_name="Emission Efficiency",
                                validators=[MinValueValidator(0), MaxValueValidator(1)])
     brightness = models.FloatField(null=True, blank=True)
+    objects = OcFluorEffQuerySet.as_manager()
 
     class Meta:
         unique_together = ("oc", "content_type", 'object_id')
@@ -41,11 +60,17 @@ class OcFluorEff(TimeStampedModel):
         self.em_eff = rep.get('em')
         self.brightness = rep.get('bright')
 
+    @property
+    def outdated(self):
+        #smod = [s.modified for s in self.fluor.spectra.all()]
+        return (self.modified < self.oc.modified) or (self.modified < self.fluor.modified)
+
     def save(self, *args, **kwargs):
-        if (self.pk is None or
-                (self.modified < self.oc.modified) or
-                (self.modified < self.fluor.modified)):
+        if (self.pk is None or self.outdated):
             self.update_effs()
         if not self.fluor_name:
             self.fluor_name = str(self.fluor)
         super().save(*args, **kwargs)
+
+    def __repr__(self):
+        return '<OcFluorEff: {} with {}>'.format(self.oc.name, self.fluor.slug)

@@ -28,6 +28,7 @@
     "npm": "^6.9.0",
     "nvd3": "^1.8.6",
     "popper.js": "^1.14.7",
+    "progressbar.js": "^1.0.1",
     "select2": "^4.0.6-rc.1",
     "select2-theme-bootstrap4": "^0.2.0-beta.3",
     "smiles-drawer": "^1.0.10"
@@ -70,7 +71,7 @@
   },
   "engines": {
     "node": "11.7.x",
-    "npm": "6.4.x"
+    "npm": "6.9.x"
   },
   "scripts": {
     "start": "HOT_RELOAD=1 webpack-dev-server --mode development",

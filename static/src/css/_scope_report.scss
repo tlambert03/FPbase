@@ -1,0 +1,63 @@
+.nvtooltip{
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+.report-tooltip{
+  background: rgba(0,0,0,0.78);
+  color: #eee;
+  padding: 8px;
+  border-radius: 4px;
+  line-height: 0.7rem;
+  font-size: 0.9rem;
+}
+
+#report_chart {
+    margin: 0px;
+    padding: 0px;
+    height: 800px;
+    width: 100%;
+}
+
+#status {
+  margin: auto;
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color:#666;
+}
+
+.nv-point-paths path:hover {
+  cursor: pointer;
+}
+
+#request-report {
+  width: 80px;
+}
+#update-progress {
+  margin: 5px;
+  margin-left: 20px;
+  height: 8px;
+  width: calc(100% - 110px);
+}
+
+#report_chart{
+  .nv-axis{
+    path {
+      stroke: none;
+    }
+    text {
+      font-weight: 100;
+    }
+    .tick {
+      stroke: none;
+    }
+  }
+  .nv-group{
+    .nv-point{
+      stroke-width: 0.5px;
+    }
+  }
+}

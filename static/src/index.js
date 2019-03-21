@@ -32,6 +32,9 @@ import 'select2/dist/js/select2.full.js';
 import './js/my-fontawesome.js';
 import './js/nv.d3.js';
 
+import ProgressBar from 'progressbar.js';
+window.ProgressBar = ProgressBar;
+
 import './js/project.js';
 import './js/search_logic.js';
 import initAutocomplete from './js/algolia.js';

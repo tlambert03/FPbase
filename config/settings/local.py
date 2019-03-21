@@ -10,7 +10,7 @@ Local settings for FPbase project.
 """
 
 from .base import *  # noqa
-
+import os
 
 # DEBUG
 # ------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ SHELL_PLUS_POST_IMPORTS = [
     ('fpseq', ('FPSeq', 'from_fpbase', 'MutationSet', 'get_mutations', 'mutate_sequence')),
 ]
 
-import os
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -136,3 +136,4 @@ LOGGING = {
         },
     },
 }
+

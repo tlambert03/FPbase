@@ -375,3 +375,5 @@ webpack-stats.json
 
 /.sentryclirc
 .vscode/
+
+/dump.rdb
