@@ -244,6 +244,15 @@ class MicroscopeDetailView(DetailView):
         'optical_configs__camera',
         'optical_configs__light')
 
+    def get_object(self, queryset=None):
+        try:
+            scope = Microscope.objects.get(id__istartswith=self.kwargs.get('pk'))
+            return scope
+        except Microscope.MultipleObjectsReturned:
+            raise Http404('Multiple microscopes found matching this query')
+        except Microscope.DoesNotExist:
+            raise Http404('No microscope found matching this query')
+
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         if not (self.object.cameras.exists()
