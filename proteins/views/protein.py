@@ -81,6 +81,18 @@ class ProteinDetailView(DetailView):
         except _RollBackRevisionView as ex:
             return ex.response
 
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+        try:
+            obj = queryset.get(slug=self.kwargs.get('slug'))
+        except Protein.DoesNotExist:
+            try:
+                obj = queryset.get(uuid=self.kwargs.get('slug', '').upper())
+            except Protein.DoesNotExist:
+                raise Http404('No protein found matching this query')
+        return obj
+
     def get(self, request, *args, **kwargs):
         if 'rev' in kwargs:
             try:

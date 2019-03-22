@@ -36,7 +36,6 @@
 
 {% block content %}
 			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name | safe }}</h1>
-
 			{% if protein.aliases %}
 				<p class='text-center aliases pb-2'>
 					a.k.a.
@@ -378,15 +377,15 @@
 
 
 
-            <div class="external-resources">
-              <h3>External Resources</h3>
-              <ul>
-    {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank" rel="noopener">BioNumbers</a> for {{ protein.name }}</li> #}
-                <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name | safe}}</li>
-              </ul>
-            </div>
+    <div class="external-resources">
+      <h3>External Resources</h3>
+      <ul>
+      {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank" rel="noopener">BioNumbers</a> for {{ protein.name }}</li> #}
+        <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name | safe}}</li>
+      </ul>
+    </div>
 
-
+    <h3>FPbase ID: <span class="text-muted font-weight-bold">{{ protein.uuid }}</span></h3>
 
 
 		<div class="text-left text-md-right mt-3">

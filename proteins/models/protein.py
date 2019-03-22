@@ -32,12 +32,23 @@ from .spectrum import Spectrum
 from fpseq import FPSeq
 from reversion.models import Version
 from favit.models import Favorite
-
-
+from random import choices
 from Bio import Entrez
+
+
 Entrez.email = settings.ADMINS[0][1]
 
 User = get_user_model()
+
+
+def prot_uuid(k=5, opts='ABCDEFGHJKLMNOPQRSTUVWXYZ123456789'):
+    i = "".join(choices(opts, k=k))
+    try:
+        Protein.objects.get(uuid=i)
+    except Protein.DoesNotExist:
+        return i
+    else:
+        return prot_uuid(k, opts)
 
 
 def findname(name):
@@ -218,7 +229,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     )
 
     # Attributes
-    uuid        = models.UUIDField(default=uuid_lib.uuid4, editable=False, unique=True)  # for API
+    #uuid        = models.UUIDField(default=uuid_lib.uuid4, editable=False, unique=True)  # for API
+    uuid        = models.CharField(max_length=5, default=prot_uuid, editable=False, unique=True, db_index=True)
     name        = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
     slug        = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name   = models.CharField(max_length=128)  # easily searchable "family" name
