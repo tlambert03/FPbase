@@ -14,5 +14,7 @@ def api_keys(request):
 def canonical(request):
     return {
         'CANONICAL_URL': settings.CANONICAL_URL,
-        'HELP_URL': 'https://help.fpbase.org/'
+        'HELP_URL': 'https://help.fpbase.org/',
+        'ABSOLUTE_ROOT': request.build_absolute_uri('/')[:-1].strip("/"),
+        'ABSOLUTE_ROOT_URL': request.build_absolute_uri('/').strip("/"),
     }

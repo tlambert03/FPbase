@@ -154,6 +154,9 @@
       </table>
     </div>
 
+    <h3 class="fpbase-id"><a tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>"><i class="fas fa-info-circle ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a>FPbase ID: <span style="font-weight:400;">
+      <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}' class="text-muted">{{ protein.uuid }}</a></span></h3>
+
 
 		<div class="attributes">
 			<h3>Attributes</h3>
@@ -384,8 +387,6 @@
         <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name | safe}}</li>
       </ul>
     </div>
-
-    <h3>FPbase ID: <span class="text-muted font-weight-bold">{{ protein.uuid }}</span></h3>
 
 
 		<div class="text-left text-md-right mt-3">

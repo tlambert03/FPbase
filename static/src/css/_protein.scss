@@ -1,6 +1,15 @@
 // single protein pages
 // ------------------------
 
+.fpbase-id {
+  @include media-breakpoint-up(md){
+    font-size:1.1rem !important;
+    float:right;
+    position: relative;
+    top:4px;
+  }
+}
+
 .protein {
 	font-size: 0.9rem;
 
