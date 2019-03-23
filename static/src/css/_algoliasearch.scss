@@ -29,12 +29,14 @@ input[type=search]::-webkit-search-cancel-button {
 
 .search-footer {
   font-size: 0.72em;
-  margin: 0.5em 0.2em 0.5rem 12px;
+  margin-top: 4px;
   font-weight: 500;
   color: #aaa;
 
-  a{
-    color: #aaa;
+  .asearch{
+    color: $info !important;
+    font-weight: 400;
+    font-size: 0.9rem;
     &:hover {
       color: $primary;
       text-decoration: none;

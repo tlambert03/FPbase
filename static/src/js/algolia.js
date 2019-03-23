@@ -171,9 +171,6 @@ export default function initAutocomplete() {
       autoselectOnBlur: window.mobilecheck(),
       templates: {
         empty: empty,
-        footer: '<div class="search-footer"><a href="/search/">advanced search\
-                 </a><div class="branding">powered by <a href="https://algolia.com">\
-                 <img src="' + window.FPBASE.imageDir + 'logo-algolia-nebula-blue-full.svg" /></a></div></div>'
       }
     },
     [
@@ -238,6 +235,21 @@ export default function initAutocomplete() {
             var str = suggestion._highlightResult.scientific_name.value;
             str = str + "<img class='type' src='" + FPBASE.imageDir + "organism_icon.png" + "'>";
             return "<a href='" + suggestion.url + "'><div>" + str + "</div></a>";
+          }
+        }
+      },
+      {
+        source: function(query, callback) {
+          callback([{query: query, url: '/search/?q=' + encodeURI(query) }]);
+        },
+        templates: {
+          suggestion: function(suggestion){
+            return '<div class="search-footer">\
+            <a class="asearch" href="' + suggestion.url + '">Advanced search for: <em>' + suggestion.query + '</em></a>\
+                         <div class="branding">search powered by <a href="https://algolia.com">\
+                         <img src="' + window.FPBASE.imageDir + 'logo-algolia-nebula-blue-full.svg" />\
+                         </a></div>\
+                    </div>'
           }
         }
       },

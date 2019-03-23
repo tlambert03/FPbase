@@ -23,7 +23,7 @@ def protein_search(request):
             except Protein.DoesNotExist:
                 pass
             try:
-                page = Protein.objects.get(Q(genbank__iexact=query) | Q(uniprot__iexact=query) | Q(pdb__contains=[query.upper()]))
+                page = Protein.objects.get(Q(genbank__iexact=query) | Q(uniprot__iexact=query) | Q(pdb__contains=[query.upper()]) | Q(uuid__iexact=query.upper()))
                 return redirect(page)
             except Protein.DoesNotExist:
                 pass
