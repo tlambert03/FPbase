@@ -18,12 +18,12 @@ def protein_search(request):
             query = request.GET.get('q').strip()
             page = None
             try:
-                page = getprot(query)
+                page = getprot(query, visible=True)
                 return redirect(page)
             except Protein.DoesNotExist:
                 pass
             try:
-                page = Protein.objects.get(Q(genbank__iexact=query) | Q(uniprot__iexact=query) | Q(pdb__contains=[query.upper()]) | Q(uuid__iexact=query.upper()))
+                page = Protein.visible.get(Q(genbank__iexact=query) | Q(uniprot__iexact=query) | Q(pdb__contains=[query.upper()]) | Q(uuid__iexact=query.upper()))
                 return redirect(page)
             except Protein.DoesNotExist:
                 pass
@@ -65,13 +65,13 @@ def protein_search(request):
             elif 'name__iexact' in f.form.data:
                 name = f.form.data['name__iexact']
             if name:
-                f.recs = Protein.objects.annotate(
+                f.recs = Protein.visible.annotate(
                     similarity=TrigramSimilarity('name', name)).filter(
                     similarity__gt=0.2).order_by('-similarity')
         if len(f.qs) == 1:
             return redirect(f.qs.first())
     else:
-        f = ProteinFilter(request.GET, queryset=Protein.objects.none())
+        f = ProteinFilter(request.GET, queryset=Protein.visible.none())
     return render(request, 'proteins/protein_search.html',
                   {'filter': f,
                    'filter_fields': json.dumps({k: list(set(v)) for k, v in f.Meta.fields.items()}),

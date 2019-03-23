@@ -230,7 +230,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     # Attributes
     #uuid        = models.UUIDField(default=uuid_lib.uuid4, editable=False, unique=True)  # for API
-    uuid        = models.CharField(max_length=5, default=prot_uuid, editable=False, unique=True, db_index=True)
+    uuid        = models.CharField(max_length=5, default=prot_uuid, editable=False, unique=True, db_index=True, verbose_name='FPbase ID')
     name        = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
     slug        = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name   = models.CharField(max_length=128)  # easily searchable "family" name
@@ -450,6 +450,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     ###################################33
     # for algolia index
+
+    def is_visible(self):
+        return self.status != 'hidden'
+
     def img_url(self):
         if self.has_spectra():
             return "https://www.fpbase.org" + reverse('proteins:spectra-img', args=[self.slug]) + ".png?xlabels=0&xlim=400,800"

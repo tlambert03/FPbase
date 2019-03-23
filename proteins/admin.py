@@ -343,7 +343,7 @@ class ProteinAdmin(CompareVersionAdmin):
     inlines = (StateInline, StateTransitionInline, OSERInline, LineageInline)
     fieldsets = [
         (None, {
-            'fields': (('name', 'slug',), ('aliases', 'chromophore'),
+            'fields': (('name', 'slug',), ('aliases', 'status', 'chromophore'),
                        ('seq', 'seq_validated', 'seq_comment'), ('ipg_id', 'genbank', 'uniprot', 'pdb'),
                        ('parent_organism', 'switch_type'), ('agg', 'mw'), 'blurb')
         }),
@@ -375,7 +375,7 @@ class ProteinAdmin(CompareVersionAdmin):
         if not obj.created_by:
             obj.created_by = request.user
         obj.updated_by = request.user
-        obj.status = 'approved'
+        # obj.status = 'approved'
         obj.save()
         uncache_protein_page(obj.slug, request)
 

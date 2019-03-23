@@ -70,17 +70,28 @@
 
 			{% if not protein.status == 'approved' %}
 				<div class="alert alert-info clearfix" role="alert">
-				    <div class="d-inline-block align-middle">
-				    	<strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>This protein has unmoderated changes.
-					    {% if last_approved %}
-					       <a href="{% url 'proteins:protein-detail' slug=protein.slug ver=last_approved.id %}" class="alert-link">Click here</a> to view the last moderated version of this protein from {{ last_approved.revision.date_created|date:"M j, Y H:i:s" }}.
-					    {% endif %}
-				    </div>
-				    {% if request.user.is_staff %}
-					 	<form id="adminApprove" class='float-sm-right' data-action-url="{% url 'proteins:admin_approve_protein' slug=protein.slug %}" data-success="{{ protein.get_absolute_url }}">{% csrf_token %}
-						    <button type="submit" class="btn btn-info btn-sm btn-block-xs">Approve</button>
-					 	</form>
-				    {% endif %}
+          {% if protein.status == 'hidden'  %}
+
+            <div class="d-inline-block align-middle">
+              <strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>This protein page is not visible to the public.  Only the creator of this protein and FPbase staff can view or edit this protein.
+            </div>
+
+          {% else %}
+
+            <div class="d-inline-block align-middle">
+              <strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>This protein has unmoderated changes.
+              {% if last_approved %}
+                 <a href="{% url 'proteins:protein-detail' slug=protein.slug ver=last_approved.id %}" class="alert-link">Click here</a> to view the last moderated version of this protein from {{ last_approved.revision.date_created|date:"M j, Y H:i:s" }}.
+              {% endif %}
+            </div>
+            {% if request.user.is_staff %}
+              <form id="adminApprove" class='float-sm-right' data-action-url="{% url 'proteins:admin_approve_protein' slug=protein.slug %}" data-success="{{ protein.get_absolute_url }}">{% csrf_token %}
+                  <button type="submit" class="btn btn-info btn-sm btn-block-xs">Approve</button>
+              </form>
+            {% endif %}
+
+          {% endif %}
+
 				</div>
 			{% endif %}
 
@@ -121,7 +132,11 @@
        <svg id="simple_spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
       </div>
       {% else %}
-      <p class='mt-4'>No spectrum has been submitted ... <a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary'>add a spectrum!</a></p>
+        {% if protein.states.count %}
+          <p class='mt-4'>No spectrum has been submitted ... <a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary'>add a spectrum!</a></p>
+          {% else %}
+          <p class='mt-4'>No spectrum has been submitted ... but a protein must have at least one state first.  <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary d-none d-sm-inline'>Add a state.</a></p>
+        {% endif %}
       {% endif %}
 		</div>
 
@@ -244,7 +259,7 @@
 	    	{% if protein.has_bleach_measurements %}
 	    	    {% include '_bleach_table.html' %}
 	    	{% else %}
-	    		<p>no photostability measurements available ... <a href="{% url 'proteins:protein-bleach-form' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
+	    		<p>No photostability measurements available ... <a href="{% url 'proteins:protein-bleach-form' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
 	    	{% endif %}
 	    </div>
 
@@ -371,7 +386,7 @@
 					<li class="mt-2 mb-2">{% include "_reference.html" %}</li>
 				{% endfor %}
 				{% else %}
-				    <p style='color: #888;'>No additional references yet...<p>
+				    <p style='color: #888;'>No additional references have been added.<p>
 				{% endif %}
 				<a class='text-info' data-toggle="modal" data-target="#referenceModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-book mr-2"></i>Add a reference</button></a>
 			</ol>

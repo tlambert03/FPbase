@@ -82,12 +82,15 @@ def merge_proteins(merge_prot, into_prot):
     # need a LOT more work...
 
 
-def getprot(protein_name):
+def getprot(protein_name, visible=False):
     from proteins.models import Protein
 
     # assume that the slug is always the slugified name
     try:
-        return Protein.objects.get(slug=slugify(protein_name))
+        if visible:
+            return Protein.visible.get(slug=slugify(protein_name))
+        else:
+            return Protein.objects.get(slug=slugify(protein_name))
     except Exception:
         pass
     return Protein.objects.get(aliases__contains=[protein_name])

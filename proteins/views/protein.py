@@ -57,7 +57,7 @@ def check_switch_type(object, request):
 
 class ProteinDetailView(DetailView):
     ''' renders html for single protein page  '''
-    queryset = Protein.visible.annotate(has_spectra=Count('states__spectra')) \
+    queryset = Protein.objects.annotate(has_spectra=Count('states__spectra')) \
         .prefetch_related('states', 'excerpts__reference', 'oser_measurements__reference') \
         .select_related('primary_reference')
 
@@ -90,6 +90,9 @@ class ProteinDetailView(DetailView):
             try:
                 obj = queryset.get(uuid=self.kwargs.get('slug', '').upper())
             except Protein.DoesNotExist:
+                raise Http404('No protein found matching this query')
+        if obj.status == 'hidden':
+            if not (obj.created_by == self.request.user or self.request.user.is_staff) :
                 raise Http404('No protein found matching this query')
         return obj
 
@@ -309,6 +312,21 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
     ''' renders html for protein submission page '''
     model = Protein
     form_class = ProteinForm
+
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+        try:
+            obj = queryset.get(slug=self.kwargs.get('slug'))
+        except Protein.DoesNotExist:
+            try:
+                obj = queryset.get(uuid=self.kwargs.get('slug', '').upper())
+            except Protein.DoesNotExist:
+                raise Http404('No protein found matching this query')
+        if obj.status == 'hidden':
+            if not (obj.created_by == self.request.user or self.request.user.is_staff) :
+                raise Http404('No protein found matching this query')
+        return obj
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)

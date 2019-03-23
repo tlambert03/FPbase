@@ -10,6 +10,7 @@ class ProteinIndex(AlgoliaIndex):
               'created', 'rank', 'ga_views', 'n_faves', 'n_cols', 'ex',
               'em', 'pka', 'ec', 'qy', 'em_css', 'local_brightness', 'seq',
               'first_author', 'cofactor', 'color')
+    should_index = 'is_visible'
     tags = 'tags'
 
 
