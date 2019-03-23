@@ -145,7 +145,6 @@ class ProteinSerializer2(ModelSerializer):
 class BasicProteinSerializer(ModelSerializer, serializers.HyperlinkedModelSerializer):
     # states = StateSerializer(many=True, read_only=True)
     url = serializers.CharField(source='get_absolute_url', read_only=True)
-    uuid = serializers.UUIDField(format='hex')
     ex_max = serializers.IntegerField(source='default_state.ex_max', read_only=True)
     em_max = serializers.IntegerField(source='default_state.em_max', read_only=True)
     ex_spectrum = serializers.CharField(source='default_state.ex_spectrum', read_only=True)
