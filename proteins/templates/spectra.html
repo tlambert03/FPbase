@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 {% load favit_tags %}
+{% load webpack_static from webpack_loader %}
 
 {% block title %}FPbase Fluorescence Spectra Viewer{% endblock %}
 {% block meta-description %}An interactive fluorescence spectra viewer to evaluate the spectral properties of fluorescent proteins, organic dyes, filters, and detectors. Calculate collection efficiency or bleedthrough probabilities in your microscope and explore combinations of filters and dyes.{% endblock %}
+
+{% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
+{% block twitter_title %}FPbase Fluorescence Spectra Viewer{% endblock twitter_title %}
+{% block twitter_description %}An interactive fluorescence spectra viewer to evaluate the spectral properties of fluorescent proteins, organic dyes, filters, and detectors.{% endblock twitter_description %}
+{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% webpack_static 'images/spectra_twitter_card.png' %}{% endblock twitter_image %}
 
 
 {% block container-class %}container spectrumpage{% endblock %}

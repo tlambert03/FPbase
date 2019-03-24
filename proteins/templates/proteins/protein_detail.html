@@ -5,19 +5,13 @@
 {% block title %}{{ protein.name|safe  }} :: Fluorescent Protein Database {% endblock %}
 {% block meta-description %}{{ protein.description }}{% endblock %}
 
+{% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
+{% block twitter_title %}{{protein.name|safe}} at FPbase{% endblock twitter_title %}
+{% block twitter_description %}{{ protein.description }}{% endblock twitter_description %}
+{% block twitter_image %}{{ABSOLUTE_ROOT}}{% url 'proteins:spectra-img' slug=protein.slug %}.png?twitter=1{% endblock twitter_image %}
 
-{% block twitter_card %}
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:site" content="@FPbase" />
-  <meta property="og:url" content="https://fpbase.org{{ protein.get_absolute_url }}" />
-  <meta property="og:title" content="{{protein.name|safe}} at FPbase" />
-  <meta property="og:description" content="{{ protein.description }}" />
-  <meta property="og:image" content="https://www.fpbase.org/spectra_img/{{protein.slug}}.png?title=1&xlabels=0&transparent=0" />
-{% endblock %}
 
 {% block extrahead %}
-
-
 {% include 'proteins/_structured_data.html' with protein=protein %}
 {% if protein.pdb %}
   <link rel="preconnect" href="https://www.ebi.ac.uk">

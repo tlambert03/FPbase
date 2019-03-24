@@ -2,7 +2,13 @@
 {% load webpack_static from webpack_loader %}
 
 {% block title %}Interactive Fluorescent Protein Property Visualization{% endblock %}
-{% block meta-description %}Here, you can plot a variety of fluorescent protein properties in different ways.  Interactively change the axes of the graph and filter proteins based on certain characteristics.{% endblock %}
+{% block meta-description %}Plot a variety of fluorescent protein properties in different ways.  Interactively change the axes of the graph and filter proteins based on certain characteristics.{% endblock %}
+
+{% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
+{% block twitter_title %}FPbase Fluorescent Protein Property Visualization{% endblock twitter_title %}
+{% block twitter_description %}Plot a variety of fluorescent protein properties in different ways.  Interactively change the axes of the graph and filter proteins based on certain characteristics.{% endblock twitter_description %}
+{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% webpack_static 'images/ichart_twitter_card.png' %}{% endblock twitter_image %}
+
 
 {% block container-class %}container-fluid{% endblock %}
 {% block content %}

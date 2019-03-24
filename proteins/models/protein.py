@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import uuid as uuid_lib
 import json
 import re
 import io
@@ -399,6 +398,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def spectra_img(self, fmt='svg', output=None, **kwargs):
         spectra = list(Spectrum.objects.filter(owner_state__protein=self).exclude(subtype='2p'))
         title = self.name if kwargs.pop('title', False) else None
+        if kwargs.get('twitter', False):
+            title = self.name
         info = ''
         if self.default_state:
             info += 'Ex/Em λ: {}/{}'.format(self.default_state.ex_max, self.default_state.em_max)

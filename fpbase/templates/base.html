@@ -32,13 +32,13 @@
 
 
     {% block twitter_card %}
-      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:card" content="{% block twitter_card_type %}summary{% endblock twitter_card_type %}" />
       <meta name="twitter:site" content="@FPbase" />
       <meta property="og:site_name" content="FPbase">
-      <meta property="og:url" content="https://www.fpbase.org">
-      <meta property="og:title" content="FPbase: The Fluorescent Protein Database">
-      <meta property="og:description" content="FPbase is a free and open-source, community-editable database for fluorescent proteins and their properties.">
-      <meta property="og:image" content="https://www.fpbase.org{% webpack_static 'images/square_logo_white_on_green.gif' %}">
+      <meta property="og:url" content="{{ABSOLUTE_ROOT_URL}}{{ request.get_full_path }}">
+      <meta property="og:title" content="{% block twitter_title %}FPbase: The Fluorescent Protein Database{% endblock twitter_title %}">
+      <meta property="og:description" content="{% block twitter_description %}FPbase is a free and open-source, community-editable database for fluorescent proteins and their properties.{% endblock twitter_description %}">
+      <meta property="og:image" content="{% block twitter_image %}https://www.fpbase.org{% webpack_static 'images/square_logo_white_on_green.gif' %}{% endblock twitter_image %}">
     {% endblock twitter_card %}
 
     <link rel="shortcut icon" href="{% webpack_static 'images/favicon.ico' %}">

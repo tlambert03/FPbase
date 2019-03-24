@@ -352,19 +352,27 @@ def forster_list():
 
 def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
                 xlim=None, fill=True, transparent=True, grid=False,
-                title=False, info=None, **kwargs):
+                title=False, info=None, figsize=(12, 3), **kwargs):
     if not spectra:
         return None
+
+    alph = kwargs.pop('alpha', None)
+    colr = kwargs.pop('color', None)
+    twitter = kwargs.pop('twitter', 0)
+
     logger.info('spectra_fig called on {}'.format(",".join([str(spec.id) for spec in spectra])))
-    fig = Figure(figsize=(12, 3), dpi=70)
+    if twitter:
+        xlabels = False
+        transparent = False
+        figsize = (12, 6)
+        xlim = (400, 760)
+        xlabels = True
+    fig = Figure(figsize=figsize, dpi=70)
     canvas = FigureCanvas(fig)
     ax = fig.add_subplot(111)
     if transparent:
         fig.patch.set_alpha(0)
         ax.patch.set_alpha(0)
-
-    alph = kwargs.pop('alpha', None)
-    colr = kwargs.pop('color', None)
     if not xlim:
         xlim = (min([s.min_wave for s in spectra]), max([s.max_wave for s in spectra]))
     for spec in spectra:
@@ -378,6 +386,8 @@ def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
             ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)
     ax.set_ylim((-0.005, 1.025))
     ax.set_xlim(xlim)
+    if twitter:
+        ax.set_ylim((0, 1.07))
     # Hide the right and top spines
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
