@@ -1,4 +1,10 @@
 from celery import shared_task
+from .util.helpers import forster_list
+
+
+@shared_task
+def calc_fret():
+    return forster_list()
 
 
 @shared_task(bind=True)

@@ -13,8 +13,9 @@ from ..models import Spectrum, Filter, State, Protein
 from ..forms import SpectrumForm
 from ..util.spectra import spectra2csv
 from ..util.importers import add_filter_to_database
-from ..util.helpers import forster_list
 from fpbase.util import uncache_protein_page
+from ..tasks import calc_fret
+from fpbase.celery import app
 
 
 # @cache_page(60 * 10)
@@ -53,8 +54,17 @@ def fret_chart(request):
         if request.is_ajax():
             L = cache.get('forster_list')
             if not L:
-                L = forster_list()
-                cache.set('forster_list', L, 60 * 60 * 24 * 7)
+                job = cache.get('calc_fret_job')
+                if cache.get('calc_fret_job'):
+                    result = app.AsyncResult(job)
+                    if result.ready():
+                        L = result.get()
+                        cache.set('forster_list', L, 60 * 60 * 24)
+                        cache.delete('calc_fret_job')
+                else:
+                    job = calc_fret.delay()
+                    if job:
+                        cache.set('calc_fret_job', job.id)
             return JsonResponse({'data': L})
 
         else:
