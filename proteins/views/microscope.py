@@ -94,9 +94,6 @@ def scope_report_json(request, pk):
             'ex_eff_broad': item.ex_eff_broad,
             'em_eff': item.em_eff,
             'brightness': item.brightness or None,
-            # 'ext_coeff': item.fluor.ext_coeff,
-            # 'qy': item.fluor.qy,
-            # 'color': item.fluor.emhex,
             'shape': 'circle' if item.content_type.model == 'state' else 'square',
             'url': microscope.get_absolute_url() + '?c={}&p={}'.format(quote(item.oc.name), quote(item.fluor.slug))
         })

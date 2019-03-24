@@ -16,7 +16,7 @@
 #report_chart {
     margin: 0px;
     padding: 0px;
-    height: 800px;
+    height: 750px;
     width: 100%;
 }
 
@@ -61,3 +61,10 @@
     }
   }
 }
+
+#report_table_info, #report_table_paginate {
+  font-size: small;
+  color: #888 !important;
+}
+
+table textarea { min-width: 450px; }

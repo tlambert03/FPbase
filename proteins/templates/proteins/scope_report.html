@@ -2,6 +2,9 @@
 {% load static %}
 {% load webpack_static from webpack_loader %}
 
+{% block title %}FPbase efficiency report for {{object}}{% endblock %}
+{% block meta-description %}Graphical and tabular representation of excitation and collection efficiency for each optical configuration on the scope, with each fluorophore in the database {% endblock %}
+
 
 {% block extrahead %}
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css"/>
@@ -15,10 +18,10 @@ container-fluid
 {% block content %}
 <div class="container">
   <h3 style="font-weight:200">Microscope efficiency report for {{object}}</h3>
-  <p>This page calculates excitation efficiency and collection efficiency for every probe in the database with each optical configuration saved on this microscope. This info is combined with probe brightness to calculate a "predicted" brightness metric for each fluorophore/optical configuration pair (indicated by the size of the points on the chart).  The table below the chart can be used to explore the data more selectively.<br>
+  <p>This page calculates excitation efficiency and collection efficiency for every probe in the database with each optical configuration saved on this microscope. This info is combined with probe brightness to calculate a "predicted" brightness metric for each fluorophore/optical configuration pair (indicated by the size of the points on the chart).  The table below the chart can be used to explore the data more selectively.  For more information on how each efficiency metric is calculated, see the <a href="{{ HELP_URL }}tools/microscopes/efficiency">documentation</a>.<br>
     <span class="text-muted small">Note: only probes for which spectra are available will appear in this report. Effective brightess is only calculated for probes whose extinction coefficients and quantum yields are known. On this page: "brightess" refers to the product of excitation efficiency, collection efficiency, extinction coefficient, and quantum yield. </span></p>
   {% if needs_update or request.user.is_staff %}
-  <div class="alert alert-info " role="alert">
+  <div class="alert alert-info " role="alert" id="update-alert">
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
@@ -38,49 +41,25 @@ container-fluid
     </div>
   </div>
   {% endif %}
+  <p id="status">loading scope report... <img src="{% webpack_static 'images/GFP_spinner.gif' %}"></p>
   <div id="report_chart" class="mb-4">
-    <p id="status">loading scope report... <img src="{% webpack_static 'images/GFP_spinner.gif' %}"></p>
+    <span class="float-right needs-data hidden small text-info mr-5">&darr; click to hide/show configs</span>
     <svg></svg>
   </div>
 </div>
 
-<div class='px-5'>
-  <form class='mb-3'>
+<div class='px-5 needs-data hidden'>
+  <form class='mb-3 ml-1'>
     <div class="form-row"><span class="text-muted font-weight-bold">Select Configs: </span><span id='oc-toggles' class="form-row"></span></div>
-    <div class="form-row"><span class="text-muted font-weight-bold mt-2">Select Measurement: </span>
-      <div class="form-row">
-        <div class="custom-control custom-checkbox ml-3 mt-2">
-          <input type="checkbox" class="custom-control-input meas-vis" value="ext_coeff" id="ec_checkbox">
-          <label class="custom-control-label" for="ec_checkbox">EC</label>
-        </div>
-        <div class="custom-control custom-checkbox ml-3 mt-2">
-          <input type="checkbox" class="custom-control-input meas-vis" value="qy" id="qy_checkbox">
-          <label class="custom-control-label" for="qy_checkbox">QY</label>
-        </div>
-        <div class="custom-control custom-checkbox ml-3 mt-2">
-          <input type="checkbox" class="custom-control-input meas-vis" value="ex_eff" id="ex_eff_checkbox" checked>
-          <label class="custom-control-label" for="ex_eff_checkbox">Ex Eff</label>
-        </div>
-        <div class="custom-control custom-checkbox ml-3 mt-2">
-          <input type="checkbox" class="custom-control-input meas-vis" value="ex_eff_broad" id="ex_eff_broad_checkbox">
-          <label class="custom-control-label" for="ex_eff_broad_checkbox">Ex Eff (Broadband)</label>
-        </div>
-        <div class="custom-control custom-checkbox ml-3 mt-2">
-          <input type="checkbox" class="custom-control-input meas-vis" value="em_eff" id="em_eff_checkbox" checked>
-          <label class="custom-control-label" for="em_eff_checkbox">Em Eff</label>
-        </div>
-        <div class="custom-control custom-checkbox ml-3 mt-2">
-          <input type="checkbox" class="custom-control-input meas-vis" value="brightness" id="brightness_checkbox" checked>
-          <label class="custom-control-label" for="brightness_checkbox">Brightness</label>
-        </div>
-      </div>
+    <div class="form-row"><span class="text-muted font-weight-bold mt-3">Select Measurement: </span>
+      <span id='meas-toggles' class="form-row mt-3"></span>
     </div>
   </form>
 
     <form class='form-inline mb-3'>
       <div class="form-group mt-1 mr-3">
-        <label for="switch_filter" class='pr-2'>Switch Type: </label>
-        <select class="form-control form-control-sm table-filter custom-select" id='switch_filter' data-col='switch_type'>
+        <label for="switch_filter" class='pr-2 text-muted font-weight-bold'>Switch Type: </label>
+        <select class="form-control form-control-sm table-filter custom-select custom-select-sm" id='switch_filter' data-col='switch_type'>
           <option value="">All</option>
           <option value="b">Basic</option>
           <option value="pa">Photoactivatable</option>
@@ -89,8 +68,8 @@ container-fluid
         </select>
       </div>
       <div class="form-group mt-1">
-        <label for="agg_filter" class='pr-2'>Oligomerization Type: </label>
-        <select class="form-control form-control-sm table-filter custom-select" id='agg_filter' data-col='agg'>
+        <label for="agg_filter" class='pr-2 text-muted font-weight-bold'>Oligomerization Type: </label>
+        <select class="form-control form-control-sm table-filter custom-select custom-select-sm" id='agg_filter' data-col='agg'>
           <option value="">All</option>
           <option value="m">Monomers</option>
           <option value="d">Dimers</option>
@@ -155,31 +134,46 @@ container-fluid
 
   function updateData() {
     d3.json("{% url 'proteins:scope_report_json' object.id %}", function(d) {
-      if (d.fluors){
-        FLUORS = d.fluors;
-      }
-      if (d.report && d.report.length) {
-        chartData
-          .datum(d.report)
-          .transition()
-          .duration(300)
-          .call(chart);
-        $('#status').hide();
-      } else {
+
+      if (!(d.report && d.report.length)){
         $('#status').html(
           '<p class="mt-5">No data yet.  Please update scope report.</p>'
         );
         $('#status').show();
+        $('.needs-data').hide();
+        $("#report_chart").height(0);
+        return
       }
 
+      FLUORS = d.fluors;
+      $("#report_chart").height(750);
+      chartData
+        .datum(d.report)
+        .transition()
+        .duration(300)
+        .call(chart);
+      $('#status').hide();
+      $('.needs-data').show();
+
       var colHeaders = ['ex_eff', 'ex_eff_broad', 'em_eff', 'brightness'];
-      var colTitles = [{'title': 'Fluor', class:'fluor'},
-                       {'title': 'EC', class:'col_ext_coeff', visible: false},
-                       {'title': 'QY', class:'col_qy', visible: false},
-                       {'title': 'Ex Max', class:'col_ex_max', visible: false},
-                       {'title': 'Em Max', class:'col_em_max', visible: false},
-                       {'title': 'Agg', class:'col_agg', visible: false},
-                       {'title': 'Switch Type', class:'col_switch_type', visible: false}]
+      var colTitles = [
+        { title: 'Fluor', class: 'fluor', width: 180, targets: 0 },
+        {
+          title: 'EC',
+          class: 'col_ext_coeff',
+          visible:
+            localStorage.getItem(SCOPE_ID + 'ext_coeff_checkbox') === 'true',
+        },
+        {
+          title: 'QY',
+          class: 'col_qy',
+          visible: localStorage.getItem(SCOPE_ID + 'qy_checkbox') === 'true',
+        },
+        { title: 'Ex Max', class: 'col_ex_max', visible: false },
+        { title: 'Em Max', class: 'col_em_max', visible: false },
+        { title: 'Agg', class: 'col_agg', visible: false },
+        { title: 'Switch Type', class: 'col_switch_type', visible: false },
+      ];
       var ocNames = [];
       var fluorData = {};
 
@@ -187,23 +181,26 @@ container-fluid
       // d.report is an array, where each item is an object corresponding to a different OC
       for (var i = d.report.length - 1; i >= 0; i--) {
         var values = d.report[i].values; // the array of values for this OC
-        var thisOC = d.report[i].key;  // the name of this thisOC
+        var thisOC = d.report[i].key; // the name of this thisOC
         ocNames.push(thisOC);
 
         for (var x = 0; x < colHeaders.length; x++) {
           var cls = slugify('col_' + thisOC) + ' ' + 'col_' + colHeaders[x];
-          var vis = true;
-          if (colHeaders[x].includes('_broad')) {
-            vis = false;
-          }
-          colTitles.push({'title': thisOC + ' ' + titleCase(colHeaders[x]), 'class': cls, visible: vis});
+          var vis =
+            localStorage.getItem(SCOPE_ID + slugify(thisOC) + '_checkbox') !==
+              'false' && $('#' + colHeaders[x] + '_checkbox').prop('checked');
+          colTitles.push({
+            title: thisOC + ' ' + titleCase(colHeaders[x]),
+            class: cls,
+            visible: vis,
+          });
         }
 
         for (var r = values.length - 1; r >= 0; r--) {
           //extract the values for this OC / Fluor combination
           var thisFluor = values[r].fluor_slug;
           if (fluorData[thisFluor] === undefined) {
-            fluorData[thisFluor] = { 'name': values[r].fluor }
+            fluorData[thisFluor] = { name: values[r].fluor };
           }
 
           if (fluorData[thisFluor][thisOC] === undefined) {
@@ -211,24 +208,22 @@ container-fluid
           }
 
           for (var h = 0; h < colHeaders.length; h++) {
-            if (values[r][colHeaders[h]] !== null){
+            if (values[r][colHeaders[h]] !== null) {
               fluorData[thisFluor][thisOC].push(values[r][colHeaders[h]]);
             } else {
               fluorData[thisFluor][thisOC].push('-');
             }
           }
-
         }
       }
 
       // change object into array for Datatables
       var dataRows = [];
 
-      var empty = []
+      var empty = [];
       for (var x = colHeaders.length - 1; x >= 0; x--) {
         empty.push('-');
       }
-
 
       for (var fluor in fluorData) {
         // skip loop if the property is from prototype
@@ -236,7 +231,15 @@ container-fluid
 
         var fluorlink = fluorData[fluor].name;
         if (FLUORS[fluor].type === 'p') {
-          var fluorlink = '<a href="/protein/'+ FLUORS[fluor].slug.split("_")[0] + '">' + fluorlink + '</a>'
+          //var fluorlink = '<a href="/protein/'+ FLUORS[fluor].slug.split("_")[0] + '">' + fluorlink + '</a>'
+          var fluorlink =
+            '<a href="' +
+            "{% url 'proteins:microscope-detail' object.id %}" +
+            '?p=' +
+            FLUORS[fluor].slug +
+            '">' +
+            fluorlink +
+            '</a>';
         }
         var f = [
           fluorlink,
@@ -245,73 +248,94 @@ container-fluid
           FLUORS[fluor]['ex_max'],
           FLUORS[fluor]['em_max'],
           FLUORS[fluor]['agg'],
-          FLUORS[fluor]['switch_type']
-        ]
+          FLUORS[fluor]['switch_type'],
+        ];
         for (var o = 0; o < ocNames.length; o++) {
-          if (fluorData[fluor].hasOwnProperty(ocNames[o])){
-            f = f.concat(fluorData[fluor][ocNames[o]] );
+          if (fluorData[fluor].hasOwnProperty(ocNames[o])) {
+            f = f.concat(fluorData[fluor][ocNames[o]]);
           } else {
             f = f.concat(empty);
           }
         }
-
         dataRows.push(f);
       }
 
-      $("#oc-toggles").empty();
+      $('#oc-toggles').empty();
       for (var o = 0; o < ocNames.length; o++) {
-        var el = $('<div>', {class: 'custom-control custom-checkbox ml-3'}).append(
-            $('<input>', {class: 'custom-control-input toggle-vis', type: 'checkbox', id: slugify(ocNames[o]) + '_check', value: slugify(ocNames[o]), checked: true})
-          ).append(
-            $('<label>', {class: 'custom-control-label', for: slugify(ocNames[o]) + '_check'}).text(ocNames[o])
+        var ischecked =
+          localStorage.getItem(SCOPE_ID + slugify(ocNames[o]) + '_checkbox') !==
+          'false';
+        var el = $('<div>', { class: 'custom-control custom-checkbox ml-3' })
+          .append(
+            $('<input>', {
+              class: 'custom-control-input toggle-vis',
+              type: 'checkbox',
+              id: slugify(ocNames[o]) + '_checkbox',
+              value: slugify(ocNames[o]),
+              checked: ischecked,
+            })
           )
+          .append(
+            $('<label>', {
+              class: 'custom-control-label',
+              for: slugify(ocNames[o]) + '_checkbox',
+            }).text(ocNames[o])
+          );
 
-        el.appendTo($("#oc-toggles"))
-
+        el.appendTo($('#oc-toggles'));
       }
-      $('input.toggle-vis').on( 'click', function (e) {
-          var columns = dt.columns('.col_' + $(this).val())[0];
-          var excluded = $("input.meas-vis:checkbox:not(:checked)").map(function(x, d){return ".col_" + d.value}).toArray().join(', ');
-          excluded = dt.columns(excluded)[0];
-          columns = columns.filter(function(elem){ return !excluded.includes(elem)});
-          dt.columns(columns).visible( $(this).prop('checked') );
-      } );
 
-      $('input.meas-vis').on( 'click', function (e) {
-        if (['ext_coeff', 'qy'].includes($(this).val())){
-          dt.columns('.col_' + $(this).val()).visible( $(this).prop('checked') );
-          return
-        }
-        if ($(this).prop('checked')){
-          // only reactivate columns whose OC toggles are active
-          var columns = dt.columns('.col_' + $(this).val())[0];
-          var included = $("input.toggle-vis:checkbox:checked").map(function(x, d){return ".col_" + d.value}).toArray().join(', ');
-          included = dt.columns(included)[0];
-          columns = columns.filter(function(elem){ return included.includes(elem)});
-          dt.columns(columns).visible( $(this).prop('checked') );
-        } else {
-          dt.columns('.col_' + $(this).val()).visible( $(this).prop('checked') );
-        }
-      } );
-
-
-      $('.table-filter').change(function(){
-        var searchval = this.value;
-        if (searchval != ''){
-          searchval = '^' + this.value +'$';
-        }
-        searchcol = $(this).data('col');
-        dt.column('.col_' + searchcol).search(searchval, true, false).draw();
-      });
-
+      var buttonCommon = {
+        init: function(api, node, config) {
+          $(node).removeClass('btn-secondary');
+        },
+        className: 'btn-sm btn-primary',
+        exportOptions: {
+          format: {
+            body: function(data, row, column, node) {
+              switch (column) {
+                case 0:
+                  if (data.startsWith('<a')) {
+                    return node.childNodes[0].innerHTML;
+                  }
+                  return data;
+                default:
+                  if (data === '-') {
+                    return '';
+                  }
+                  return data;
+              }
+            },
+          },
+        },
+      };
 
       dt = $('#report_table').DataTable({
+        retrieve: true,
         scrollX: '100%',
         fixedColumns: true,
-        retrieve: true,
-        data: dataRows,
         columns: colTitles,
+        dom:
+          "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+          "<'row'<'col-sm-12'tr>>" +
+          "<'row mt-2 small text-small'<'col-sm-12 col-md-3 d-none d-md-block'B><'col-xs-12 col-sm-5 col-md-4'i><'col-xs-12 col-sm-7 col-md-5'p>>",
+        buttons: [
+          $.extend(true, {}, buttonCommon, {
+            extend: 'copyHtml5',
+          }),
+          $.extend(true, {}, buttonCommon, {
+            extend: 'excelHtml5',
+          }),
+          $.extend(true, {}, buttonCommon, {
+            extend: 'csvHtml5',
+          }),
+        ],
       });
+
+      dt.clear();
+      dt.rows.add(dataRows);
+      dt.draw();
+
     });
   }
 
@@ -347,7 +371,10 @@ container-fluid
           dataType: 'json',
           success: function(data) {
             if(data.ready || data.info === undefined || data.info === null){
-              line.animate(1, {duration: 200});
+              // job went to completion
+              line.animate(1, {duration: 200}, function() {
+                $("#update-alert").fadeOut();
+              });
               reset_button();
             } else {
               var passed = (Date.now() - START_TIME);
@@ -423,8 +450,8 @@ container-fluid
                 })
                 .pointRange([10, 400])
                 .pointDomain([1, 80])
-                .showDistX(true)
-                .showDistY(true)
+                //.showDistX(true)
+                //.showDistY(true)
                 //.yDomain([0, 1])
                 //.xDomain([0, 1])
                 .useVoronoi(true)
@@ -459,6 +486,76 @@ container-fluid
             return chart;
         });
         updateData();
+
+
+        $('body').on('click', 'input.toggle-vis, input.meas-vis', function(e) {
+          localStorage.setItem(
+            SCOPE_ID + $(this).attr('id'),
+            $(this).prop('checked')
+          );
+          if (['ext_coeff', 'qy'].includes($(this).val())) {
+            dt.columns('.col_' + $(this).val()).visible($(this).prop('checked'));
+            return;
+          }
+          if ($(this).prop('checked')) {
+            // prevent "re-enabling disabled things"
+            var columns = dt.columns('.col_' + $(this).val())[0];
+            if ($(this).hasClass('toggle-vis')) {
+              var included = $('input.meas-vis:checkbox:checked')
+                .map(function(x, d) {
+                  return '.col_' + d.value;
+                })
+                .toArray()
+                .join(', ');
+            } else {
+              var included = $('input.toggle-vis:checkbox:checked')
+                .map(function(x, d) {
+                  return '.col_' + d.value;
+                })
+                .toArray()
+                .join(', ');
+            }
+            included = dt.columns(included)[0];
+            columns = columns.filter(function(elem) {
+              return included.includes(elem);
+            });
+            dt.columns(columns).visible($(this).prop('checked'));
+          } else {
+            dt.columns('.col_' + $(this).val()).visible($(this).prop('checked'));
+          }
+        });
+
+        $('.table-filter').change(function() {
+          localStorage.setItem(SCOPE_ID + $(this).attr('id'), this.value);
+          var searchval = this.value;
+          if (searchval != '') {
+            searchval = '^' + this.value + '$';
+          }
+          searchcol = $(this).data('col');
+          dt.column('.col_' + searchcol)
+            .search(searchval, true, false)
+            .draw();
+        });
+
+        $("#meas-toggles").empty();
+        var measbuttons = [['ext_coeff', 'EC'], ['qy', 'QY'], ['ex_eff', 'Ex Eff'], ['ex_eff_broad', 'Ex Eff (Broadband)'], ['em_eff', 'Em Eff'], ['brightness', 'Brightness']]
+        for (var o = 0; o < measbuttons.length; o++) {
+          var id = measbuttons[o][0] + '_checkbox';
+          var ischecked = localStorage.getItem(SCOPE_ID + id)
+          if (ischecked === null && (['ex_eff_checkbox', 'em_eff_checkbox', 'brightness_checkbox'].includes(id))){
+            ischecked = true;
+          } else {
+            ischecked = ischecked === "true";
+          }
+
+          var el = $('<div>', {class: 'custom-control custom-checkbox ml-3'}).append(
+              $('<input>', {class: 'custom-control-input meas-vis', type: 'checkbox', id: id, value: measbuttons[o][0], checked: ischecked })
+            ).append(
+              $('<label>', {class: 'custom-control-label', for: id}).text(measbuttons[o][1])
+            )
+          el.appendTo($("#meas-toggles"))
+        }
+
   });
 
 </script>
