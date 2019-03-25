@@ -15,6 +15,8 @@ container-fluid
 {% endblock container-class %}
 
 
+{% block body-class %}report-body{% endblock body-class %}
+
 {% block content %}
 <div class="container">
   <h3 style="font-weight:200">Microscope efficiency report for {{object}}</h3>
@@ -90,6 +92,7 @@ container-fluid
     <li><strong>Do not forget about expression level, and FP maturation.</strong>. <em>These numbers are theoretical!</em> "Brightness" here only considers the relative compatibility of a dye with an optical configuration, and "molecular brightness" of the probe (EC * QY).  However, a rapidly maturing (or over-expressing) FP may be <em>practically</em> brighter than a poorly maturing FP, even if the rapidly maturing FP was predicted to be dimmer on this page.</li>
     <li><strong>However, for single molecule imaging...</strong> Poor FP maturation will manifest not as decreased intensity, but rather as decreased "labeling efficiency".  For single molecule experiments, you may wish to maximize collection efficiency and quantum yield.</li>
     <li><strong>Consider bleedthrough.</strong> If you are designing a multi-color experiment, note the predicted brightness for your candidate probes in <em>all</em> of optical configurations you will be using.  For example, if your brightest "green" probe has a much higher predicted brightness in your "red" channel than a slightly less-bright alternative green probe, you may experience more bleedthrough (cross-talk) with the brightest green probe than the alternative; and it might be worth trying the slightly dimmer one as well.</li>
+    <li><strong>These numbers are only as accurate as the underlying spectral data.</strong>. If the spectral data for one of the probes is inaccurate, the resulting efficiency calculation will also be inaccurate.  For instance, if the spectrum for a given probe is heavily truncated, then it will (falsely) appear to have a very narrow excitation/emission spectrum and may yield an artificially high or low efficiency prediction.</li>
   </ul>
 </div>
 
