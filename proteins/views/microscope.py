@@ -24,56 +24,39 @@ from ..tasks import calculate_scope_report
 from celery.task.control import revoke
 
 
-def request_scope_report(request):
-    if not request.is_ajax():
-        return HttpResponseNotAllowed([])
+def update_scope_report(request):
+    job_id = request.POST.get('job_id')
     scope_id = request.POST.get('scope_id')
-    outdated = request.POST.get('outdated')
-    if outdated:
-        outdated = json.loads(outdated)
-    if scope_id:
-        job = calculate_scope_report.delay(scope_id, outdated_ids=outdated)
-        return JsonResponse({
-            'status': 200,
-            'job': job.id
-        })
-    return JsonResponse({
-        'status': 404,
-    })
 
-
-def check_scope_report(request):
-    if not request.is_ajax():
-        return HttpResponseNotAllowed([])
-
-    job_id = request.POST.get('job_id')
-    if job_id:
-        result = app.AsyncResult(job_id)
-        ready = result.ready()
-        return JsonResponse({
-            'status': 200,
-            'ready': ready,
-            'info': result.info
-        })
-    return JsonResponse({
-        'status': 404,
-    })
-
-
-def cancel_scope_report(request):
-    if not request.is_ajax():
-        return HttpResponseNotAllowed([])
-
-    job_id = request.POST.get('job_id')
-    if job_id:
-        result = app.AsyncResult(job_id)
-        revoke(job_id, terminate=True)
-        return JsonResponse({
-            'status': 200,
-            'ready': result.ready(),
-            'info': 'result.info',
-            'canceled': True,
-        })
+    if request.POST.get('action') == 'update':
+        outdated = request.POST.get('outdated')
+        if outdated:
+            outdated = json.loads(outdated)
+        if scope_id:
+            job = calculate_scope_report.delay(scope_id, outdated_ids=outdated)
+            return JsonResponse({
+                'status': 200,
+                'job': job.id
+            })
+    elif request.POST.get('action') == 'check':
+        if job_id:
+            result = app.AsyncResult(job_id)
+            ready = result.ready()
+            return JsonResponse({
+                'status': 200,
+                'ready': ready,
+                'info': result.info
+            })
+    elif request.POST.get('action') == 'cancel':
+        if job_id:
+            result = app.AsyncResult(job_id)
+            revoke(job_id, terminate=True)
+            return JsonResponse({
+                'status': 200,
+                'ready': result.ready(),
+                'info': 'result.info',
+                'canceled': True,
+            })
     return JsonResponse({
         'status': 404,
     })
@@ -122,6 +105,16 @@ def scope_report_json(request, pk):
 class ScopeReportView(DetailView):
     template_name = 'proteins/scope_report.html'
     queryset = Microscope.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        if request.is_ajax():
+            return scope_report_json(request, self.get_object().id)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if request.is_ajax():
+            return update_scope_report(request)
+        return HttpResponseNotAllowed([])
 
     def get_context_data(self, **kwargs):
         context = super(ScopeReportView, self).get_context_data(**kwargs)

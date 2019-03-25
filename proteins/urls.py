@@ -131,9 +131,6 @@ urlpatterns = [
     url(r'^ajax/lineage/$', views.get_lineage, name='get-lineage'),
     url(r'^ajax/org_lineage/(?P<org>[-\w]+)/$', views.get_lineage, name='get-org-lineage'),
 
-    url(r'^ajax/request_scope_report/$', views.request_scope_report, name='request_scope_report'),
-    url(r'^ajax/check_scope_report/$', views.check_scope_report, name='check_scope_report'),
-    url(r'^ajax/cancel_scope_report/$', views.cancel_scope_report, name='cancel_scope_report'),
     url(r'^microscope/(?P<pk>[-\w]+)/report/json/$', views.scope_report_json, name='scope_report_json'),
 
     url(r'^widget/(?P<slug>[-\w]+)/$', views.Widget.as_view(), name='widget-detail'),

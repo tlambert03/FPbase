@@ -45,6 +45,8 @@ import './js/favit.js';
 import './js/jquery.formset.js';
 import './js/onload.js';
 import './js/microscope.js';
+import './js/scope_report.js';
+
 import LineageChart from './js/lineage.js'
 window.LineageChart = LineageChart;
 
