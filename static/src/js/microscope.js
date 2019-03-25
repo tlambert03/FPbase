@@ -766,6 +766,12 @@ import noUiSlider from 'nouislider';
         });
 
         setup_from_url(urlParams);
+
+        if (!options.showArea) {
+            setTimeout(function(){$(".nv-groups").addClass('area-hidden')}, 100)
+        }
+
+
     });
 
 
