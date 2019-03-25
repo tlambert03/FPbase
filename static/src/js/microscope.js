@@ -49,9 +49,10 @@ import noUiSlider from 'nouislider';
     };
     var data = [];
     var localData = {};
+    console.log(localStorage.getItem('microscope_stickySpectra'))
     var options = {
-        showArea: true,
-        stickySpectra: false,
+        showArea: localStorage.getItem('microscope_showArea') !== "false",
+        stickySpectra: localStorage.getItem('microscope_stickySpectra'),
         minwave: 350,
         maxwave: 800,
         startingBrush: [350, 800],
@@ -59,16 +60,16 @@ import noUiSlider from 'nouislider';
         exNormWave: undefined,
         scale: 'linear',
         hide2p: true,
-        normMergedEx: true,
+        normMergedEx: localStorage.getItem('microscope_normMergedEx') !== "false",
         normMergedScalar: 1,
-        focusEnable: true,
+        focusEnable: localStorage.getItem('microscope_focusEnable') !== "false",
     //    scaleToEC: false,
-        scaleToQY: false,
-        oneAtaTime: true,
-        precision: isSafari ? 2 : 1,
-        interpolate: false,
-        calcEff: true,
-        exEffBroadband: false,
+        scaleToQY: localStorage.getItem('microscope_scaleToQY') === "true",
+        oneAtaTime: localStorage.getItem('microscope_oneAtaTime') !== "false",
+        precision: localStorage.getItem('microscope_precision') || (isSafari ? 2 : 1),
+        interpolate: localStorage.getItem('microscope_interpolate') === "true",
+        calcEff: localStorage.getItem('microscope_calcEff') !== "false",
+        exEffBroadband: localStorage.getItem('microscope_exEffBroadband') === "true",
     };
     var userOptions = {
         calcEff: {type: 'checkbox', msg: 'Calculate efficiency on update. (may be slower)'},
@@ -493,16 +494,16 @@ import noUiSlider from 'nouislider';
 
 
     function setup_from_url(urlParams){
-        if ('p' in urlParams){
-            $("#fluor-select").val(urlParams.p).trigger('change.select2');
-        }
         if ('l' in urlParams){
             $("#light-select").val(urlParams.l);
         }
         if ('d' in urlParams){
             $("#camera-select").val(urlParams.d);
         }
-
+        if ('p' in urlParams){
+            //$("#fluor-select").val(urlParams.p).trigger('change.select2');
+            $("#fluor-select").val(urlParams.p).change();
+        }
         if ('c' in urlParams){
             $('#config-select option').each(function(){
                 if (this.value == urlParams.c) {
@@ -523,12 +524,12 @@ import noUiSlider from 'nouislider';
 
         if ('sticky' in urlParams){
             options.stickySpectra = Boolean(urlParams.sticky === 'true' || +urlParams.sticky > 0);
-            if(options.stickySpectra){
-             $('#stickyPin').click();
-            }
+        }
+        if(options.stickySpectra === true){
+         $('#stickyPin').click();
         }
 
-        updateChart();
+        setTimeout(updateChart, 300);
     }
 
 
@@ -538,7 +539,7 @@ import noUiSlider from 'nouislider';
 
         var urlParams = getUrlParams();
         options.precision = urlParams.precision || options.precision;
-        if (urlParams.eff !== 'undefined'){
+        if (urlParams.eff !== undefined){
             options.calcEff = !(urlParams.eff == 'false')
         }
 
@@ -561,8 +562,11 @@ import noUiSlider from 'nouislider';
                     .change(function(){
                         if (value.type == 'checkbox') {
                             options[key] = this.checked;
+                            localStorage.setItem('microscope_'+key, this.checked)
                         } else {
-                            options[key] = Math.min(Math.max(this.value, value.min), value.max);
+                            var val = Math.min(Math.max(this.value, value.min), value.max)
+                            options[key] = val;
+                            localStorage.setItem('microscope_'+key, val)
                         }
 
                         if (key === 'showArea'){
@@ -1329,6 +1333,7 @@ import noUiSlider from 'nouislider';
             options.stickySpectra = true;
             $('.microscope-wrapper').addClass('sticky')
         }
+        localStorage.setItem('microscope_stickySpectra', options.stickySpectra)
     });
 
     function build_current_uri(){
