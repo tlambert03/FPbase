@@ -67,4 +67,6 @@
   color: #888 !important;
 }
 
-table textarea { min-width: 450px; }
+.json-button {
+  @include button-variant($primary, transparent, darken($primary, 5));
+}

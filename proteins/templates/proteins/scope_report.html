@@ -93,8 +93,6 @@ container-fluid
   </ul>
 </div>
 
-
-
 {% endblock content %}
 
 {% block javascript %}
@@ -104,7 +102,7 @@ container-fluid
 
 <script type="text/javascript">
   $(function() {
-      $('#check_report').scopeReport({
+      $.fn.scopeReport({
           csrfToken: "{{ csrf_token }}",
           scopeID: "{{ object.id }}",
           interval: 3500,

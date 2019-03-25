@@ -249,6 +249,17 @@ jQuery.fn.extend({
             $.extend(true, {}, buttonCommon, {
               extend: 'csvHtml5',
             }),
+            {
+                text: 'JSON',
+                className:'btn-sm btn-primary json-button',
+                action: function ( e, dt, node, config ) {
+                  $.fn.dataTable.fileSave(
+                      new Blob( [ JSON.stringify( d.report ) ] ),
+                      'report_' + SCOPE_ID + '.json'
+                  );
+
+                }
+            }
           ],
         });
 
