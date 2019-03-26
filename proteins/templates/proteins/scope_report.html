@@ -20,8 +20,7 @@ container-fluid
 {% block content %}
 <div class="container">
   <h3 style="font-weight:200">Microscope efficiency report for {{object}}</h3>
-  <p>This page calculates excitation efficiency and collection efficiency for every probe in the database with each optical configuration saved on this microscope. This info is combined with probe brightness to calculate a "predicted" brightness metric for each fluorophore/optical configuration pair (indicated by the size of the points on the chart).  The table below the chart can be used to explore the data more selectively.  For more information on how each efficiency metric is calculated, see the <a href="{{ HELP_URL }}tools/microscopes/efficiency">documentation</a>.<br>
-    <span class="text-muted small">Note: This report only includes probes in the database for which spectra are available. Effective brightess is only calculated for probes whose extinction coefficients and quantum yields are known. "Brightess" on this page refers to the product of excitation efficiency, collection efficiency, extinction coefficient, and quantum yield. </span></p>
+  <p>This page calculates excitation efficiency and collection efficiency for every probe in the database with each optical configuration saved on this microscope. This info is combined with probe brightness to calculate a "predicted" brightness metric for each fluorophore/optical configuration pair (indicated by the size of the points on the chart).  The table below the chart can be used to explore the data more selectively.  For more information on how each efficiency metric is calculated, see the <a href="{{ HELP_URL }}tools/microscopes/efficiency">documentation</a>.</p>
   {% if needs_update or request.user.is_staff %}
   <div class="alert alert-info " role="alert" id="update-alert">
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -88,7 +87,8 @@ container-fluid
 
 <div class="container small">
   <h5 style="font-weight:300" class="mt-4">Efficiency considerations</h5>
-  <p>In addition to the efficiency calculation notes in the <a href="{{ HELP_URL }}tools/microscopes/efficiency">documentation</a>, here are some things to keep in mind when evaluating this information</p>
+  <p>This report only includes probes in the database for which spectra are available. Effective brightess is only calculated for probes whose extinction coefficients and quantum yields are known. "Brightess" on this page refers to the product of excitation efficiency, collection efficiency, extinction coefficient, and quantum yield.</p>
+  <p>In addition to the efficiency calculation notes in the <a href="{{ HELP_URL }}tools/microscopes/efficiency">documentation</a>, here are some things to keep in mind when evaluating this information.</p>
   <ul>
     <li><strong>Emission efficiency is often more important than excitation efficiency.</strong> Fluorophores emit a limited number of photons before bleaching, so it's important to collect as many as possible.  While we can sometimes compensate for poor excitation efficiency simply by increasing the illumination light power (at the potential cost of phototoxicity), the same cannot be said for poor collection efficiency: those lost emission photons are gone forever.  Therefore, if the "brightest" probe for a given channel has much lower collection efficiency ("em eff") than other probes, you may have better practical success with the other probes.</li>
     <li><strong>Do not forget about expression level, and FP maturation.</strong>. <em>These numbers are theoretical!</em> "Brightness" here only considers the relative compatibility of a dye with an optical configuration, and "molecular brightness" of the probe (EC * QY).  However, a rapidly maturing (or over-expressing) FP may be <em>practically</em> brighter than a poorly maturing FP, even if the rapidly maturing FP was predicted to be dimmer on this page.</li>

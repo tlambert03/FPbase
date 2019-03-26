@@ -11,7 +11,10 @@
 
     {% if not owner %}
     <h1 class='mb-4'>FPbase Microscopes 🔬</h1>
-    <p>Microscopes on FPbase are collections of optical configurations, including filters, light sources, lasers, and detectors, meant to represent the hardware of a specific microscope or other imaging device.  Once you save your microscope configuration, you get a personalized spectra-viewer app that you can use to visualize the efficiency of excitation, collection, and predicted brightness of any of the fluorophores in FPbase for your hardware.  You can create as many different microscope pages as you'd like and you can share the link to your microscope page with anyone, or embed the app in your website for others to use.<br>
+    <p>Microscopes on FPbase are collections of optical configurations, including filters, light sources, lasers, and detectors, meant to represent the hardware of a specific microscope or other imaging device.  Once you save your microscope configuration, you get a personalized spectra-viewer app that you can use to visualize the efficiency of excitation, collection, and predicted brightness of any of the fluorophores in FPbase for your hardware.  You can create as many different microscope pages as you'd like and you can share the link to your microscope page with anyone, or embed the app in your website for others to use.</p>
+    <h4 class='mb-4' style="font-weight:300">Fluorophore Efficiency Reports</h4>
+    <p>Once you have saved the components of your microscope, you can generate a "fluorophore efficiency report": a prediction for excitation and collection efficiency for every fluorophore in the database for which spectral data is available, matched with every optical configuration in your scope.  Either click the <i class="fas fa-table text-primary"></i> icon next to the corresponding microscope here, or find the report button at the bottom of any microscope page.</p>
+    <p>
     <a href="{% url 'proteins:newmicroscope' %}"><button class='btn btn-primary btn-sm mt-3'>Create a new microscope</button></a></p>
     {% endif %}
 
@@ -26,7 +29,8 @@
                 <ul class='mb-3'>
                     {% for object in example_list %}
                         <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
-                          text-muted ml-2' ><small>{{object.description}}</small></span></li>
+                          text-muted ml-2' ><small>{{object.description}}</small></span><a href="{% url 'proteins:microscope-report' object.id %}" class="text-primary" title='fluorophore efficiency report'><i class="fa fa-table small ml-2" style="margin-bottom: 2px"></i>
+                </a></li>
                     {% endfor %}
                 </ul>
             {% endif %}
@@ -37,7 +41,10 @@
     <ul class='mb-5'>
         {% for object in object_list %}
             <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
-              text-muted ml-2' ><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>{% if request.user.username == owner %}<a href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'><i class="fa fa-wrench small mr-2 ml-2" style="margin-bottom: 2px"></i></a><a href="{% url 'proteins:deletemicroscope' object.id %}" class="mr-2 text-danger" title='delete microscope'><i class="fa fa-trash-alt small" style="margin-bottom: 2px"></i></a>{% endif%}</li>
+              text-muted ml-2' ><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>{% if request.user.username == owner %}<a href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'><i class="fa fa-wrench small mr-2 ml-2" style="margin-bottom: 2px"></i></a><a href="{% url 'proteins:deletemicroscope' object.id %}" class="text-danger" title='delete microscope'><i class="fa fa-trash-alt small" style="margin-bottom: 2px"></i></a>{% endif%}
+            <a href="{% url 'proteins:microscope-report' object.id %}" class="text-primary ml-1" title='fluorophore efficiency report'>
+              <i class="fa fa-table small" style="margin-bottom: 2px"></i>
+            </a></li>
         {% empty %}
             {% if owner %}
                 <p>{% if request.user.username == owner %}You have not created any microscopes.{% else %}User {{owner}} has not created any microscopes.{%endif%}</p>
@@ -52,8 +59,19 @@
         <h1 class='mb-4'>Microscopes you manage</h1>
         <ul class='mb-5'>
           {% for object in managing %}
-              <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
-                text-muted ml-2' ><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>{% if request.user.username == owner %}<a href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'><i class="fa fa-wrench small mr-2 ml-2" style="margin-bottom: 2px"></i></a>{% endif%}</li>
+              <li>
+                <a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a>
+                <span class='
+                text-muted ml-2' ><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>
+                {% if request.user.username == owner %}
+                  <a href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'>
+                    <i class="fa fa-wrench small mr-2 ml-2" style="margin-bottom: 2px"></i>
+                  </a>
+                {% endif%}
+                <a href="{% url 'proteins:microscope-report' object.id %}" class="text-primary" title='fluorophore efficiency report'>
+                  <i class="fa fa-table small" style="margin-bottom: 2px"></i>
+                </a>
+              </li>
           {% endfor %}
         </ul>
       {% endif %}
