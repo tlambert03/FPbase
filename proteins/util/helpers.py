@@ -439,3 +439,17 @@ def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
         output = io.BytesIO()
     canvas.print_figure(output, format=format, transparent=True)
     return output
+
+
+def wipe_bad_uuids():
+    """ get rid of old uuids in version histories """
+    from reversion.models import Version
+    import json
+    for version in Version.objects.all():
+        data = json.loads(version.serialized_data)
+        for item in data:
+            if 'fields' in item and 'uuid' in item['fields'] and len(item['fields']['uuid']) > 5:
+                item['fields']['uuid'] = '-----'
+        version.serialized_data = json.dumps(data)
+        version.save()
+
