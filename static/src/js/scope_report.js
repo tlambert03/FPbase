@@ -47,13 +47,14 @@ jQuery.fn.extend({
     }
     var interval = config.interval || 3500;
     var FLUORS;
+    var REPORT;
     var START_TIME;
     var chart;
     var chartData;
     var dt;
 
     function updateData() {
-      $.get('', function(d) {
+      $.get(window.location + 'json/', function(d) {
         if (!(d.report && d.report.length)) {
           $('#status').html(
             '<p class="mt-5">No data yet.  Please update scope report.</p>'
@@ -65,9 +66,10 @@ jQuery.fn.extend({
         }
 
         FLUORS = d.fluors;
+        REPORT = d.report;
         $('#report_chart').height(750);
         chartData
-          .datum(d.report)
+          .datum(REPORT)
           .transition()
           .duration(300)
           .call(chart);
@@ -80,8 +82,7 @@ jQuery.fn.extend({
           {
             title: 'EC',
             class: 'col_ext_coeff',
-            visible:
-              localStorage.getItem(SCOPE_ID + 'ext_coeff_checkbox') === 'true',
+            visible:localStorage.getItem(SCOPE_ID + 'ext_coeff_checkbox') === 'true',
           },
           {
             title: 'QY',
@@ -230,11 +231,17 @@ jQuery.fn.extend({
           },
         };
 
+        colTitles = colTitles.map(function(d){
+          d.orderSequence = [ "desc", "asc"];
+          return d;
+        });
+
         dt = $('#report_table').DataTable({
           retrieve: true,
           scrollX: '100%',
           fixedColumns: true,
           columns: colTitles,
+          orderSequence: [ "desc", "ascending"],
           dom:
             "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
             "<'row'<'col-sm-12'tr>>" +
@@ -398,8 +405,9 @@ jQuery.fn.extend({
           .tickFormat(d3.format('.02f'))
           .axisLabel('Collection Efficiency');
 
-        chartData = d3.select('#report_chart svg').datum([]);
+        chartData = d3.select('#report_chart svg');
         chartData
+          .datum([])
           .transition()
           .duration(300)
           .call(chart);
@@ -488,6 +496,22 @@ jQuery.fn.extend({
         dt.column('.col_' + searchcol)
           .search(searchval, true, false)
           .draw();
+
+        var newReport = [];
+        for (var i = 0; i < REPORT.length; i++) {
+          newReport.push(Object.assign({}, REPORT[i]));
+          newReport[i].values = newReport[i].values.filter(function(d){
+            return (
+              ($("#agg_filter").val() === "" || FLUORS[d.fluor_slug].agg == $("#agg_filter").val()) &&
+              ($("#switch_filter").val() === "" || FLUORS[d.fluor_slug].switch_type == $("#switch_filter").val())
+            )
+          })
+        }
+
+        d3.select('#report_chart svg').datum(newReport);
+        chart.update();
+
+
       });
 
       $('#meas-toggles').empty();

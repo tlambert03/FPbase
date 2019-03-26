@@ -106,11 +106,6 @@ class ScopeReportView(DetailView):
     template_name = 'proteins/scope_report.html'
     queryset = Microscope.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        if request.is_ajax():
-            return scope_report_json(request, self.get_object().id)
-        return super().get(request, *args, **kwargs)
-
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             return update_scope_report(request)
