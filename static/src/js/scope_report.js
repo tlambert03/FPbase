@@ -296,6 +296,9 @@ jQuery.fn.extend({
       updateData();
     }
 
+    var LAST_PROG=0;
+    var LAST_TIME;
+
     function check_status(next) {
       next = next || interval;
       if (JOB_ID !== null) {
@@ -315,18 +318,17 @@ jQuery.fn.extend({
               });
               reset_button();
             } else {
-              var passed = Date.now() - START_TIME;
-              var predicted_total =
-                passed / (data.info.current / data.info.total);
-              var current_position = Math.min(
-                (next + passed) / predicted_total,
-                1
-              );
-              line.animate(Math.max(line.value(), current_position), {
-                duration: interval,
-              });
-              var predicted_left = predicted_total - passed;
-              setTimeout(check_status, Math.min(next, predicted_left));
+              var passed = Date.now() - LAST_TIME;
+              var curRate = passed / (data.info.current - LAST_PROG);
+              var nextPosition = data.info.current + (interval / curRate);
+              var timeRemaining = (data.info.total - data.info.current) * curRate;
+              var nextCheck = Math.min(interval, timeRemaining);
+              LAST_PROG = data.info.current;
+              LAST_TIME = Date.now()
+
+              line.animate(Math.min(nextPosition / data.info.total, 1), { duration: nextCheck});
+
+              setTimeout(check_status, nextCheck);
               //window.CHECKER = setInterval(check_status, interval);
             }
           },
@@ -370,6 +372,7 @@ jQuery.fn.extend({
             $('#request-report').addClass('cancel');
             $('#request-report').addClass('btn-danger');
             JOB_ID = data.job;
+            LAST_TIME = Date.now()
             setTimeout(check_status, 250, interval - 250);
           }
         },

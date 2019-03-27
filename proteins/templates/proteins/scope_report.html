@@ -110,7 +110,7 @@ container-fluid
       $.fn.scopeReport({
           csrfToken: "{{ csrf_token }}",
           scopeID: "{{ object.id }}",
-          interval: 3500,
+          interval: 3000,
           outdated: JSON.parse("{{outdated}}"),
           scopeURL: "{% url 'proteins:microscope-detail' object.id %}"
       })
