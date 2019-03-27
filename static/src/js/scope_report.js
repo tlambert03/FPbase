@@ -336,6 +336,8 @@ jQuery.fn.extend({
 
     $('#request-report').click(function(e) {
       $('#request-report').attr('disabled', true);
+      $('#request-report').val('Running');
+
       e.preventDefault();
       var form = $(this).closest('form');
       var action = 'update';
@@ -365,7 +367,6 @@ jQuery.fn.extend({
             // start request
             line.animate(0, { duration: 10 });
             START_TIME = Date.now();
-            $('#request-report').val('Running');
             $('#request-report').addClass('cancel');
             $('#request-report').addClass('btn-danger');
             JOB_ID = data.job;
@@ -376,12 +377,16 @@ jQuery.fn.extend({
           $("#alert-msg").text('Sorry!  There was an unexpected error on the server.  Please try again in a few minutes, or contact us if the problem persists.')
           $("#update-alert").removeClass('alert-info')
           $("#update-alert").addClass('alert-danger')
+          $('#request-report').val('Error!');
+          $('#request-report').addClass('btn-danger')
           setTimeout(function(){
+            reset_button();
             $('#request-report').attr('disabled', false);
             $("#alert-msg").text('try again?...')
             $("#update-alert").removeClass('alert-danger')
             $("#update-alert").addClass('alert-info')
-          },20000)
+            $('#request-report').removeClass('btn-danger')
+          }, 20000)
         }
       });
     });
