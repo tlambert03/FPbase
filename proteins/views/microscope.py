@@ -34,20 +34,21 @@ def update_scope_report(request):
             outdated = json.loads(outdated)
         if scope_id:
             active = app.control.inspect().active()
-            for worker, jobs in active.items():
-                for job in jobs:
-                    if (job['name'].endswith('calculate_scope_report') and
-                            (scope_id in job['args'])):
+            if active:
+                for worker, jobs in active.items():
+                    for job in jobs:
+                        if (job['name'].endswith('calculate_scope_report') and
+                                (scope_id in job['args'])):
+                            return JsonResponse({
+                                'status': 200,
+                                'job': job['id']
+                            })
+                    if len(jobs) >= 2:
                         return JsonResponse({
                             'status': 200,
-                            'job': job['id']
+                            'job': None,
+                            'waiting': True,
                         })
-                if len(jobs) >= 2:
-                    return JsonResponse({
-                        'status': 200,
-                        'job': None,
-                        'waiting': True,
-                    })
             job_id = calculate_scope_report.delay(scope_id, outdated_ids=outdated).id
             return JsonResponse({
                 'status': 200,

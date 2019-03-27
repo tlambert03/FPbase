@@ -55,6 +55,7 @@ jQuery.fn.extend({
 
     function updateData() {
       $.get(window.location + 'json/', function(d) {
+        $("#update-alert").show()
         if (!(d.report && d.report.length)) {
           $('#status').html(
             '<p class="mt-5">No data yet.  Please update scope report.</p>'
@@ -334,6 +335,7 @@ jQuery.fn.extend({
     }
 
     $('#request-report').click(function(e) {
+      $('#request-report').attr('disabled', true);
       e.preventDefault();
       var form = $(this).closest('form');
       var action = 'update';
@@ -363,13 +365,24 @@ jQuery.fn.extend({
             // start request
             line.animate(0, { duration: 10 });
             START_TIME = Date.now();
-            $('#request-report').val('Stop');
+            $('#request-report').val('Running');
             $('#request-report').addClass('cancel');
             $('#request-report').addClass('btn-danger');
             JOB_ID = data.job;
             setTimeout(check_status, 250, interval - 250);
           }
         },
+        error: function( req, status, err ) {
+          $("#alert-msg").text('Sorry!  There was an unexpected error on the server.  Please try again in a few minutes, or contact us if the problem persists.')
+          $("#update-alert").removeClass('alert-info')
+          $("#update-alert").addClass('alert-danger')
+          setTimeout(function(){
+            $('#request-report').attr('disabled', false);
+            $("#alert-msg").text('try again?...')
+            $("#update-alert").removeClass('alert-danger')
+            $("#update-alert").addClass('alert-info')
+          },20000)
+        }
       });
     });
 
