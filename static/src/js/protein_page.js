@@ -103,6 +103,7 @@ window.initSnapGene = function(protein, selection) {
     'https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/';
   $.get({
     url: 'https://fpbase.s3.amazonaws.com/snapgene.xml',
+    crossDomain: true,
     success: function(data) {
       /* handle data here */
       var hits = [];
