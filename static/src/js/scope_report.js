@@ -274,6 +274,11 @@ jQuery.fn.extend({
         dt.clear();
         dt.rows.add(dataRows);
         dt.draw();
+
+        $("#report_table_filter input").on( 'keyup', function () {
+          dt.search( this.value.replace(/,\s*$/g, '').replace(/,\s*/g, '|.*'), true ).draw();
+        })
+
       });
     }
 
