@@ -355,6 +355,10 @@ jQuery.fn.extend({
             line.animate(0, { duration: 200 });
             JOB_ID = null;
             reset_button();
+          } else if (data.waiting){
+            alert('Too many jobs currently running on the server, please wait a minute and try again.')
+            JOB_ID = null;
+            reset_button();
           } else {
             // start request
             line.animate(0, { duration: 10 });
