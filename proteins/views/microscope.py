@@ -43,7 +43,7 @@ def update_scope_report(request):
                                 'status': 200,
                                 'job': job['id']
                             })
-                    if len(jobs) >= 2:
+                    if len(jobs) >= 4:
                         return JsonResponse({
                             'status': 200,
                             'job': None,

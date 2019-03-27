@@ -351,6 +351,7 @@ ALGOLIA = {
 if ALGOLIA['API_KEY']:
     INSTALLED_APPS += ['algoliasearch_django']
 
-CELERY_BROKER_URL = env('REDIS_URL', default='redis://localhost/')
+#CELERY_BROKER_URL = env('REDIS_URL', default='redis://localhost/')
+CELERY_BROKER_URL = env('CLOUDAMQP_URL', default='amqp://localhost')
 CELERY_RESULT_BACKEND = env('REDIS_URL', default='redis://localhost/')
 
