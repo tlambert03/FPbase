@@ -304,9 +304,7 @@
     </div>
 {% endif %}
 
-<div class="text-center mt-2"><a class="btn btn-secondary" href="{% url 'proteins:microscope-report' object.id %}" role="button"><i class="fas fa-table mr-2"></i>Fluorophore Efficiency Report</a></div>
-
-
+<div class="text-center mt-2" id="efflink"><a class="btn btn-secondary" href="{% url 'proteins:microscope-report' object.id %}" role="button"><i class="fas fa-table mr-2"></i>Fluorophore Efficiency Report</a></div>
 
 <div class="hidden" id='linkSVG'><i class="fas fa-external-link-alt"></i></div>
 <svg height="8" width="8" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="crosshatch" patternUnits="userSpaceOnUse" width="8" height="8"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc4JyBoZWlnaHQ9JzgnPgogIDxyZWN0IHdpZHRoPSc4JyBoZWlnaHQ9JzgnIGZpbGw9JyNmZmYnLz4KICA8cGF0aCBkPSdNMCAwTDggOFpNOCAwTDAgOFonIHN0cm9rZS13aWR0aD0nMC41JyBzdHJva2U9JyNhYWEnLz4KPC9zdmc+Cg==" x="0" y="0" width="8" height="8"> </image> </pattern> </defs> </svg>
