@@ -34,7 +34,7 @@ def update_scope_report(request):
             outdated = json.loads(outdated)
         if scope_id:
             try:
-                # this is throwing connection resets...
+                # this is throwing connection resets
                 active = app.control.inspect().active()
             except Exception:
                 active = None
