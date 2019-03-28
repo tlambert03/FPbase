@@ -33,7 +33,11 @@ def update_scope_report(request):
         if outdated:
             outdated = json.loads(outdated)
         if scope_id:
-            active = app.control.inspect().active()
+            try:
+                # this is throwing connection resets...
+                active = app.control.inspect().active()
+            except Exception:
+                active = None
             if active:
                 for worker, jobs in active.items():
                     for job in jobs:
