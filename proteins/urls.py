@@ -2,7 +2,6 @@ from django.conf.urls import url
 from django.views.generic import TemplateView
 
 from . import views
-from .api import views as apiviews
 from fpbase.decorators import login_required_message_and_redirect as login_required
 
 app_name = 'proteins'
@@ -98,19 +97,6 @@ urlpatterns = [
     url(r'^microscopes/(?P<owner>[\w.@+-]+)/?$', views.MicroscopeList.as_view(), name='microscopes'),
     url(r'^microscopes/', views.MicroscopeList.as_view(), name='microscopes'),
 
-
-
-
-    # /proteins/api
-    url(r'^api/spectrum/$', apiviews.SpectrumList.as_view(), name='spectrum-api'),
-    url(r'^api/proteins/$', apiviews.ProteinListAPIView.as_view(), name='protein-api'),
-    url(r'^api/proteins2/$', apiviews.ProteinListAPIView2.as_view(), name='protein-api2'),
-    url(r'^api/proteins/spectraslugs/$', apiviews.spectraslugs, name='spectra-slugs'),
-    url(r'^api/proteins/spectra/$', apiviews.ProteinSpectraListAPIView.as_view(), name='spectra-api'),
-    url(r'^api/proteins/basic/$', apiviews.BasicProteinListAPIView.as_view(), name='basic-protein-api'),
-    url(r'^api/proteins/states/$', apiviews.StatesListAPIView.as_view(), name='states-api'),
-    # /proteins/api/:slug/
-    url(r'^api/(?P<slug>[-\w]+)/$', apiviews.ProteinRetrieveAPIView.as_view(), name='protein-api'),
 
 
     # AJAX

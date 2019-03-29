@@ -1,135 +1,173 @@
 {% extends "base.html" %}
 
 
-{% block extrahead %}
-<script src="https://cdn.jsdelivr.net/npm/vega@4.3.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-lite@3.0.0-rc8"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-embed@3.20.0"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js"></script>
-{% endblock extrahead %}
-
-
 {% block content %}
-<canvas id="myChart" width="400" height="200"></canvas>
-
-  <div id="vis" class="mt-5"></div>
+      <div id="container" style="height: 350px;"></div>
 {% endblock content %}
 
 
 {% block javascript %}
 
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
 <script>
+var chart;
 
- const spec =
-  {
-    "$schema": "https://vega.github.io/schema/vega-lite/v3.0.0-rc8.json",
-    "width": 800,
-    "height": 400,
-    "layer": [
-      {
-        "encoding": {
-          "x": {"field": "x", "type": "quantitative"},
-          "y": {"field": "y", "type": "quantitative"},
-          "color": {"field": "symbol", "type": "nominal"}
-        },
-        "layer": [{
-          "mark": "area"
-        },{
-          "selection": {
-            "tooltip": {
-              "type": "single",
-              "nearest": true,
-              "on": "mouseover",
-              "encodings": [
-                "x"
-              ],
-              "empty": "none"
-            }
-          },
-          "mark": "point",
-          "encoding": {
-            "opacity": {
-              "condition": {
-                "selection": "tooltip",
-                "value": 1
-              },
-              "value": 0
-            }
-          }
-        }]
-      },
-      {
-        "transform": [
-          {
-            "filter": {
-              "selection": "tooltip"
-            }
-          }
-        ],
-        "layer": [{
-          "mark": {
-           "type": "rule",
-           "color": "gray"
-          },
-          "encoding": {
-            "x": {
-              "type": "quantitative",
-              "field": "x"
-            }
-          }
-        }, {
-          "mark": {
-            "type": "text",
-            "align": "left",
-            "dx": 5,
-            "dy": -5
-          },
-          "encoding": {
-            "text": {
-              "type": "quantitative",
-              "field": "y"
-            },
-            "color": {
-              "type": "nominal",
-              "field": "symbol"
-            },
-            "x": {
-              "type": "quantitative",
-              "field": "x"
-            },
-            "y": {
-              "type": "quantitative",
-              "field": "y"
-            }
-          }
-        }]
-     }
-   ]
-  }
+var my_array = [];
+for (var i=31; i <= 38; i++){
+  my_array.push($.get('http://localhost:8000/api/spectrum/' + i))
+}
 
 
-  $.get("http://localhost:8000/spectra/egfp_default", function(json){
-    var data = {name: 'egfp', values: []}
-    console.log(json.spectra)
-    for (var i of json.spectra){
-      for (var v of i.values){
-        v.symbol = i.key;
-        v.color = i.color;
-        data.values.push(v)
-      }
+(function (H) {
+    // Pass error messages
+    H.Axis.prototype.allowNegativeLog = true;
+
+    // Override conversions
+    H.Axis.prototype.log2lin = function (num) {
+        var isNegative = num < 0,
+            adjustedNum = Math.abs(num),
+            result;
+        if (adjustedNum < 10) {
+            adjustedNum += (10 - adjustedNum) / 10;
+        }
+        result = Math.log(adjustedNum) / Math.LN10;
+        return isNegative ? -result : result;
+    };
+    H.Axis.prototype.lin2log = function (num) {
+        var isNegative = num < 0,
+            absNum = Math.abs(num),
+            result = Math.pow(10, absNum);
+        if (result < 10) {
+            result = (10 * (result - 1)) / (10 - 1);
+        }
+        return isNegative ? -result : result;
+    };
+}(Highcharts));
+
+$.when(...my_array).done(function(...args) {
+  var series = args.map(function(v) {
+    return {
+      name: v[0].name,
+      data: v[0].data,
+      color: v[0].color,
+      className: 'sub-' + v[0].subtype + ' cat-' + v[0].category,
     }
-    console.log(data)
-    spec.data = data;
-    //vegaEmbed('#vis', spec, {defaultStyle: true});
+  })
 
-    var ctx = document.getElementById("myChart").getContext('2d');
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: data.values
-    });
+  chart = Highcharts.chart('container', {
+    chart: {
+      zoomType: 'x',
+      type: 'areaspline',
+      animation: {duration: 200}
+    },
+    navigation: {
+        buttonOptions: {
+            theme: {
+                'stroke-width': 0,
+                opacity: 0.35,
+                states: {
+                    hover: {
+                        fill: null,
+                        opacity: 0.9,
+                    },
+                    select: {
+                        fill: '#EEEEEE',
+                        opacity: 0.9,
+                    }
+                }
+            }
+        }
+    },
+    credits: false,
+    legend: {
+      verticalAlign: 'top',
+      align: 'right',
+      x: -20,
+    },
+    tooltip: {
+      useHTML: true,
+      backgroundColor: "#FFFFFFCC",
+      borderColor: "#999",
+      crosshairs: true,
+      shared: true,
+      valueDecimals: 3,
+      positioner: function(labelWidth, labelHeight, point) {
+        var chartwidth = this.chart.chartWidth;
+        var y = Math.min(Math.max(point.plotY, 60),
+          this.chart.chartHeight - labelHeight - 40);
+        if (40 + point.plotX + labelWidth < chartwidth) {
+          return {
+            x: point.plotX + 35,
+            y: y
+          };
+        } else {
+          return {
+            x: point.plotX - labelWidth - 20,
+            y: y
+          };
+        }
 
+      },
+      shadow: false,
+      style: {
+          color: '#333',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";',
+          fontSize: '0.8rem',
+      }
+    },
+    title: false,
+    yAxis: {
+      min: 0,
+      max: 1,
+      gridLineWidth: 0,
+      labels: false,
+      title: false,
+    },
+    plotOptions: {
+      series: {
+        fillOpacity: .45,
+        animation: false,
+        lineWidth: 0,
+        marker: {
+          enabled: false,
+          symbol: 'circle',
+        },
+        states: {
+            hover: {
+              halo: false,
+              lineWidthPlus: 0,
+            }
+        }
+      },
+    },
+    series,
+    exporting: {
+            sourceWidth: 1200,
+            scale: 1,
+            chartOptions: {
+                chart:{
+                    height: this.chartHeight,
+                },
+                title: false,
+            }
+        }
   });
+
+
+
+
+});
+
+
 </script>
+
+</html>
 
 
 {% endblock javascript %}

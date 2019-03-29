@@ -22,6 +22,12 @@ class SpectrumList(ListAPIView):
     filterset_class = SpectrumFilter
 
 
+class SpectrumDetail(RetrieveAPIView):
+    queryset = Spectrum.objects.prefetch_related('owner_state')
+    permission_classes = (AllowAny, )
+    serializer_class = SpectrumSerializer
+
+
 class ProteinListAPIView2(ListAPIView):
     queryset = Protein.objects.all().prefetch_related('states', 'transitions')
     permission_classes = (AllowAny, )
