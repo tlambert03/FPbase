@@ -61,3 +61,16 @@ If you have data that you would like to contribute to the database, please do *n
 
 [Submit spectral information](https://www.fpbase.org/spectra/submit/)
 
+### Thank you to these providers for supporting open source projects!
+<br/>
+
+[<img src="static/src/images/logo-algolia-nebula-blue-full.svg" width="170">](https://www.algolia.com/)
+
+[<img src="static/src/images/sentry-logo-black.svg" width="200">](https://sentry.io/)
+
+[<img src="static/src/images/TravisCI-Full-Color.png" width="190">](https://travis-ci.org/)
+
+[<img src="static/src/images/gitbook_avatar-rectangle.png" width="200">](https://www.gitbook.com/)
+
+[<img src="static/src/images/Browserstack-logo@2x.png" width="250">](https://www.browserstack.com)
+

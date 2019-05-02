@@ -343,7 +343,7 @@ class ProteinAdmin(CompareVersionAdmin):
     inlines = (StateInline, StateTransitionInline, OSERInline, LineageInline)
     fieldsets = [
         (None, {
-            'fields': (('name', 'slug',), ('aliases', 'status', 'chromophore'),
+            'fields': (('uuid', 'name', 'slug'), ('aliases', 'status', 'chromophore'),
                        ('seq', 'seq_validated', 'seq_comment'), ('ipg_id', 'genbank', 'uniprot', 'pdb'),
                        ('parent_organism', 'switch_type'), ('agg', 'mw'), 'blurb')
         }),
@@ -355,7 +355,7 @@ class ProteinAdmin(CompareVersionAdmin):
             'fields': (('created', 'created_by'), ('modified', 'updated_by'))
         })
     ]
-    readonly_fields = ('created', 'created_by', 'modified', 'updated_by', 'switch_type')
+    readonly_fields = ('created', 'created_by', 'modified', 'updated_by', 'switch_type', 'uuid')
 
     def nstates(self, obj):
         if obj:

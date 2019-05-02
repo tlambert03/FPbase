@@ -77,5 +77,11 @@
     "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
     "build": "NODE_ENV=production webpack --mode production",
     "heroku-postbuild": "NODE_ENV=production webpack --mode production"
-  }
+  },
+  "browserslist": [
+    "last 1 version",
+    "> 0.5% in my stats",
+    "maintained node versions",
+    "not dead"
+  ]
 }

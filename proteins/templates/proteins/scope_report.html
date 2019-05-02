@@ -56,9 +56,19 @@ container-fluid
 
 <div class='px-5 needs-data hidden'>
     <form class='form-inline mb-3'>
-      <div class="form-group mt-1 mr-3">
+      <div class="form-group mt-2 mr-3">
+        <label for="probe_filter" class='pr-2 text-muted font-weight-bold'>Protein collection: </label>
+        <select class="form-control form-control-sm table-filter custom-select" id='probe_filter' data-col='uuid'>
+          <option value="">-----</option>
+          {% for col in collections %}
+            <option value="{{col.id}}" data-ids='{{col.uuids}}'>{{col.name}}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group mt-2 mr-3">
         <label for="switch_filter" class='pr-2 text-muted font-weight-bold'>Switch Type: </label>
-        <select class="form-control form-control-sm table-filter custom-select custom-select-sm" id='switch_filter' data-col='switch_type'>
+        <select class="form-control form-control-sm table-filter custom-select" id='switch_filter' data-col='switch_type'>
           <option value="">All</option>
           <option value="b">Basic</option>
           <option value="pa">Photoactivatable</option>
@@ -66,9 +76,9 @@ container-fluid
           <option value="pc">Photoconvertible</option>
         </select>
       </div>
-      <div class="form-group mt-1">
+      <div class="form-group mt-2">
         <label for="agg_filter" class='pr-2 text-muted font-weight-bold'>Oligomerization Type: </label>
-        <select class="form-control form-control-sm table-filter custom-select custom-select-sm" id='agg_filter' data-col='agg'>
+        <select class="form-control form-control-sm table-filter custom-select" id='agg_filter' data-col='agg'>
           <option value="">All</option>
           <option value="m">Monomers</option>
           <option value="d">Dimers</option>
@@ -76,6 +86,7 @@ container-fluid
           <option value="t">Tetramers</option>
         </select>
       </div>
+
     </form>
 
   <form class='mb-3 ml-1'>
@@ -119,5 +130,11 @@ container-fluid
           scopeURL: "{% url 'proteins:microscope-detail' object.id %}"
       })
   });
+
+  // In your Javascript (external .js resource or <script> tag)
+  $(document).ready(function() {
+      $('#probe_filter').select2({theme: 'bootstrap', width: '300px'});
+  });
+
 </script>
 {% endblock javascript %}
