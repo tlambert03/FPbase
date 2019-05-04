@@ -9,6 +9,7 @@ from django.http import (HttpResponseRedirect, HttpResponse, JsonResponse,
                          HttpResponseBadRequest, HttpResponseNotAllowed,
                          Http404)
 from django.forms.models import modelformset_factory
+import django.forms
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db import transaction
@@ -53,6 +54,47 @@ def check_switch_type(object, request):
                "however, it has been assigned a switching type of {}. ".format(actual) +
                "Please confirm that the switch type, states, and transitions are correct.")
         messages.add_message(request, messages.WARNING, msg)
+
+
+def form_changes(form, pre=''):
+    if not form.has_changed():
+        return []
+    changes = []
+    for field_name in form.changed_data:
+        old = form.initial.get(field_name)
+        new = form.cleaned_data.get(field_name)
+        chg = pre + '{}: {} -> {}'.format(form.fields.get(field_name).label, old, new)
+        changes.append(chg)
+    return changes
+
+
+def formset_changes(formset):
+    if not formset.has_changed():
+        return []
+    changes = []
+    model = formset.model.__name__
+    for obj in formset.deleted_objects:
+        changes.append('Deleted {} {}'.format(model, obj))
+    for obj in formset.new_objects:
+        changes.append('Created {} {}'.format(model, obj))
+    for obj, fields in formset.changed_objects:
+        form = next(_form for _form in formset.forms if _form.instance == obj)
+        frm_chg = form_changes(form)
+        changes.append('Changed {} {}: ({})'.format(model, obj, "; ".join(frm_chg)))
+    return changes
+
+
+def get_form_changes(*forms):
+    """ accepts a list of forms or formsets and returns a list of all the fields
+    that were added, deleted, or changed"""
+
+    changes = []
+    for form in forms:
+        if isinstance(form, django.forms.BaseForm):
+            changes.extend(form_changes(form))
+        elif isinstance(form, django.forms.formsets.BaseFormSet):
+            changes.extend(formset_changes(form))
+    return changes
 
 
 class ProteinDetailView(DetailView):
@@ -247,23 +289,23 @@ class ProteinCreateUpdateMixin:
                         if not self.object.parent_organism:
                             self.object.parent_organism = self.object.lineage.root_node.protein.parent_organism
 
+                    comment = '{} {} form.'.format(self.object, self.get_form_type())
+                    chg_string = "\n".join(get_form_changes(form, states, lineage))
+
                     if not self.request.user.is_staff:
                         self.object.status = 'pending'
-                        sbj = 'Protein {} {}'.format(
-                            self.object, self.get_form_type() + 'ed')
-                        msg = "User: {}\nProtein: {}\n{}".format(
+                        msg = "User: {}\nProtein: {}\n\n{}\n\n{}".format(
                             self.request.user.username,
-                            self.object,
+                            self.object, chg_string,
                             self.request.build_absolute_uri(
                                 self.object.get_absolute_url()))
-                        mail_managers(sbj, msg, fail_silently=True)
-                    else:
-                        self.object.status = 'approved'
+                        mail_managers(comment, msg, fail_silently=True)
+                    # else:
+                    #     self.object.status = 'approved'
 
                     self.object.save()
                     reversion.set_user(self.request.user)
-                    reversion.set_comment('{} {} form'.format(
-                        self.object, self.get_form_type()))
+                    reversion.set_comment(chg_string)
                     try:
                         uncache_protein_page(self.object.slug, self.request)
                     except Exception as e:
@@ -313,6 +355,16 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
     model = Protein
     form_class = ProteinForm
 
+    def get_form(self, form_class=None):
+        """Return an instance of the form to be used in this view."""
+        if form_class is None:
+            form_class = self.get_form_class()
+        form_kwargs = self.get_form_kwargs()
+        doi = self.object.primary_reference.doi
+        if doi:
+            form_kwargs['initial']['reference_doi'] = doi
+        return form_class(**form_kwargs)
+
     def get_object(self, queryset=None):
         if queryset is None:
             queryset = self.get_queryset()
@@ -340,8 +392,6 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         else:
             data['states'] = StateFormSet(instance=self.object)
             data['lineage'] = LineageFormSet(instance=self.object)
-            if self.object.primary_reference:
-                data['form'].fields['reference_doi'].initial = self.object.primary_reference.doi
         return data
 
     def form_valid(self, form):
@@ -548,13 +598,13 @@ def add_reference(request, slug=None):
             P.references.add(ref)
             if not request.user.is_staff:
                 P.status = 'pending'
-                msg = "User: {}\nProtein: {}\nReference: {}, {}\n{}".format(
+                msg = "User: {}\nProtein: {}\nReference: {}. {}\n\n{}".format(
                     request.user.username, P, ref, ref.title,
                     request.build_absolute_uri(P.get_absolute_url()))
                 mail_managers('Reference Added', msg, fail_silently=True)
             P.save()
             reversion.set_user(request.user)
-            reversion.set_comment('Ref: {} added to {}'.format(ref, P))
+            reversion.set_comment('Added Reference: {}'.format(ref))
             try:
                 uncache_protein_page(slug, request)
             except Exception as e:
@@ -582,7 +632,7 @@ def add_protein_excerpt(request, slug=None):
                     mail_managers('Excerpt Added', msg, fail_silently=True)
                 P.save()
                 reversion.set_user(request.user)
-                reversion.set_comment('Excerpt from {} added to {}'.format(ref, P))
+                reversion.set_comment('Added Excerpt from {}'.format(ref))
                 try:
                     uncache_protein_page(slug, request)
                 except Exception as e:
@@ -612,18 +662,21 @@ def update_transitions(request, slug=None):
             with transaction.atomic():
                 with reversion.create_revision():
                     formset.save()
+                    chg_string = "\n".join(get_form_changes(formset))
+
                     if request.user.is_staff:
-                        obj.status = 'approved'
+                        pass
+                        # obj.status = 'approved'
                     else:
                         obj.status = 'pending'
                         mail_managers(
                             'Transition updated',
-                            "User: {}\nProtein: {}\nForm: {}"
-                            .format(request.user.username, obj, formset),
+                            "User: {}\nProtein: {}\n\n{}"
+                            .format(request.user.username, obj, chg_string),
                             fail_silently=True)
                     obj.save()
                     reversion.set_user(request.user)
-                    reversion.set_comment('Transitions edited on {}'.format(obj))
+                    reversion.set_comment(chg_string)
                     try:
                         uncache_protein_page(slug, request)
                     except Exception as e:
@@ -663,20 +716,22 @@ def protein_bleach_formsets(request, slug):
                     for s in formset.deleted_objects:
                         s.delete()
 
+                    chg_string = "\n".join(get_form_changes(formset))
+
                     if not request.user.is_staff:
                         protein.status = 'pending'
                         mail_managers(
                             'BleachMeasurement Added',
-                            "User: {}\nProtein: {}\n{}".format(
-                                request.user.username, protein,
+                            "User: {}\nProtein: {}\n{}\n\n{}".format(
+                                request.user.username, protein, chg_string,
                                 request.build_absolute_uri(protein.get_absolute_url())),
                             fail_silently=True)
-                    else:
-                        protein.status = 'approved'
+                    # else:
+                    #     protein.status = 'approved'
 
                     protein.save()
                     reversion.set_user(request.user)
-                    reversion.set_comment('Updated bleach measurement on {}'.format(protein))
+                    reversion.set_comment(chg_string)
                     try:
                         uncache_protein_page(slug, request)
                     except Exception as e:
@@ -776,3 +831,9 @@ def flag_object(request):
         })
     except (KeyError, ValueError):
         return HttpResponseBadRequest()
+
+
+from reversion_compare.views import HistoryCompareDetailView
+class SimpleModelHistoryCompareView(HistoryCompareDetailView):
+    model = Protein
+
