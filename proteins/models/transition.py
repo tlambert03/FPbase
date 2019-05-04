@@ -40,5 +40,7 @@ class StateTransition(Authorable, TimeStampedModel):
             raise ValidationError(errors)
 
     def __str__(self):
-        return "Transition: {} {} -> {}".format(self.protein.name,
-            self.from_state.name, self.to_state.name)
+        return "{} {} -{}-> {}".format(self.protein.name,
+                                         self.from_state.name,
+                                         self.trans_wave,
+                                         self.to_state.name)
