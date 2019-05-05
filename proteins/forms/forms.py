@@ -87,8 +87,7 @@ class ProteinForm(forms.ModelForm):
     seq = SequenceField(
         required=False,
         help_text='Amino acid sequence',
-        label=popover_html('Sequence', 'If you enter an IPG ID, the sequence '
-                           'can be automatically fetched from NCBI'))
+        label='Sequence')
     # reference_pmid = forms.CharField(max_length=24, label='Reference Pubmed ID',
     #     required=False, help_text='e.g. 23524392 (must provide either DOI or PMID)')
 
