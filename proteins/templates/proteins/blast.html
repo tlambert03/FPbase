@@ -1,6 +1,16 @@
-{% extends "base.html" %} {% block extra-header %}
+{% extends "base.html" %}
+{% load webpack_static from webpack_loader %}
 
-{% endblock extra-header %} {% block content %}
+{% block title %}FPbase Fluorescent Protein Sequence BLAST{% endblock %}
+{% block meta-description %}Search the database at FPbase for fluorescent protein sequences similar to a query amino acid or nucleotide sequence.{% endblock %}
+
+{% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
+{% block twitter_title %}FPbase Fluorescent Protein Sequence BLAST{% endblock twitter_title %}
+{% block twitter_description %}Search the database at FPbase for fluorescent protein sequences similar to a query amino acid or nucleotide sequence.{% endblock twitter_description %}
+{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% webpack_static 'images/blast_twitter_card.png' %}{% endblock twitter_image %}
+
+
+{% block content %}
 <h2>Fluorescent Protein BLAST</h2>
 <p>
   Use this tool to search for fluorescent protein sequences in the database that
@@ -16,7 +26,9 @@
 
 <div id="blast_app" class="mt-3"></div>
 
-{% endblock content %} {% block javascript %}
+{% endblock content %}
+
+{% block javascript %}
 <script>
   $(function() {
     FPblast.init('blast_app');
