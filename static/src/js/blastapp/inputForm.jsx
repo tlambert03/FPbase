@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-function InputForm({ onSubmit, defaultValue }) {
+function InputForm({ onSubmit }) {
     function handleSubmit(e) {
         e.preventDefault();
         onSubmit(e.target);
@@ -22,7 +22,6 @@ function InputForm({ onSubmit, defaultValue }) {
                     required
                     name="query"
                     as="textarea"
-                    defaultValue={defaultValue}
                     rows="4"
                 />
                 <Form.Text className="text-muted">
