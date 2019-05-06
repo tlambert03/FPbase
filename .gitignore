@@ -377,3 +377,5 @@ webpack-stats.json
 .vscode/
 
 /dump.rdb
+
+blastdb/*

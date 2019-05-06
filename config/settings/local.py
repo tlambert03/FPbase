@@ -19,7 +19,7 @@ TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
-CSRF_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_HTTPONLY = True
 
 # SECRET CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -61,8 +61,8 @@ CORS_URLS_REGEX = r'^/test/.*$'
 # ------------------------------------------------------------------------------
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        #'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # don't actually cache
+        #'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # don't actually cache
         'LOCATION': ''
     }
 }
