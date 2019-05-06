@@ -9,10 +9,13 @@ def blast_view(request):
         binary = request.POST.get('binary', 'blastp')
         assert binary in ('blastx', 'blastp')
         if seq:
-            return JsonResponse({
-                'status': 200,
-                'blastResult': blast(seq, binary)
-            })
+            try:
+                return JsonResponse({
+                    'status': 200,
+                    'blastResult': blast(seq, binary)
+                })
+            except Exception:
+                return JsonResponse({'status': 500})
         return JsonResponse({
             'status': 204,
             'blastResult': []

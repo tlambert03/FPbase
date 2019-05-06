@@ -67,6 +67,10 @@ function APP() {
         $.post('', $(target).serialize() + '&binary=' + bin, data => {
             if (data.status == 200) {
                 setResults(data.blastResult);
+            } else if (data.status == 500) {
+                alert(
+                    'There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format'
+                );
             }
         });
     }

@@ -51,7 +51,7 @@ function BlastReport({ report }) {
     if (report.report.results.search.hits.length < 1) {
         return (
             <div className="mt-4 text-align-center">
-                <Alert dismissible variant="info">
+                <Alert variant="info">
                     <Alert.Heading>
                         There were no hits for this query...
                     </Alert.Heading>
