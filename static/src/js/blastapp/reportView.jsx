@@ -5,6 +5,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import Dropdown from 'react-bootstrap/Dropdown';
+import Alert from 'react-bootstrap/Alert';
 import BlastReportDescription from './reportDescription.jsx';
 import BlastReportAlignments from './reportAlignments.jsx';
 
@@ -45,6 +46,24 @@ function BlastReport({ report }) {
     }
 
     const classes = useStyles();
+
+    if (report.report.results.search.hits.length < 1) {
+        return (
+            <div className="mt-4 text-align-center">
+                <Alert dismissible variant="info">
+                    <Alert.Heading>
+                        There were no hits for this query...
+                    </Alert.Heading>
+                    <p>
+                        You may try again with a new sequence. Please confirm
+                        that you are entering either amino acid sequence(s) or
+                        nucleotide sequence(s), (but not both in the same FASTA
+                        entry).
+                    </p>
+                </Alert>
+            </div>
+        );
+    }
 
     return (
         <div>

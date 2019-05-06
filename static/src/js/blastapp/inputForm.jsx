@@ -3,8 +3,7 @@ import Cookies from 'js-cookie';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
-
-function InputForm({ onSubmit }) {
+function InputForm({ onSubmit, defaultValue }) {
     function handleSubmit(e) {
         e.preventDefault();
         onSubmit(e.target);
@@ -23,14 +22,13 @@ function InputForm({ onSubmit }) {
                     required
                     name="query"
                     as="textarea"
-                    defaultValue=">a
-MVSKGEEDNMAIIKEFMRFKVHMEGSVNGHEFEIEGEGEGRPYEGTQTAKLKVTKGGPLPFAWDILSPQFMYGSKAYVKHPADIPDYLKLSFPEGFKWERVMNFEDGGVVTVTQDSSLQDGEFIYKVKLRGTNFPSDGPVMQKKTMGWEASSERMYPEDGALKGEIKQRLKLKDGGHYDAEVKTTYKAKKPVQLPGAYNVNIKLDITSHNEDYTIVEQYERAEGRHSTGGMDELYK
->b
-MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKLLCTTGKLPVPWPTLVTTLGYGVQCFARYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTLVNRIELKGIDFKEDGNILGHKLEYNYNSHNVYITADKQKNGIKANFKIRHNIEDGGVQLADHYQQNTPIGDGPVLLPDNHYLSYQSALFKDPNEKRDHMVLLEFLTAAGITEGMNELYK"
+                    defaultValue={defaultValue}
                     rows="4"
                 />
                 <Form.Text className="text-muted">
-                    Single sequence or multiple sequences in FASTA format. Accepts both amino acid and nucleotide sequences, but all must be of the same type.
+                    Single sequence or multiple sequences in FASTA format.
+                    Accepts either amino acid or nucleotide sequences, but all
+                    sequences in a query be of the same type.
                 </Form.Text>
             </Form.Group>
             <Button variant="secondary" type="submit">

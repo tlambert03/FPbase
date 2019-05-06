@@ -81,7 +81,6 @@ function APP() {
         const reference = results[0].report.reference;
     }
 
-    console.log(results);
     return (
         <div>
             <InputForm onSubmit={handleSubmit} />
