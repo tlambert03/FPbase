@@ -28,8 +28,9 @@ footer {
     }
 }
 
-
-
+button:focus {
+    outline: none !important;
+}
 
 .home-body .twitter-share-wrapper{
 	position: absolute;

@@ -19,11 +19,11 @@ from model_utils.models import StatusModel, TimeStampedModel
 from model_utils.managers import QueryManager
 from model_utils import Choices
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.core.files.storage import default_storage
 from references.models import Reference
 from .mixins import Authorable
 from .collection import ProteinCollection
-from ..util.helpers import get_color_group, mless, get_base_name, spectra_fig
+from ..util.helpers import get_color_group, mless, get_base_name, spectra_fig, remember_cwd
 # from .extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator, validate_uniprot
 from .. import util
@@ -69,18 +69,45 @@ def findname(name):
     return None
 
 
+def write_fasta(fpath='blastdb/FPbase_blastdb.fsa'):
+    """Writes all FPsequences to fasta file in default storage location"""
+    from shutil import copyfileobj
+
+    with default_storage.open(fpath, 'w') as fd:
+        try:
+            # for some reason, first write usually throws an exception
+            fd.write('')
+        except Exception:
+            pass
+        fasta = Protein.objects.all().fasta()
+        fasta.seek(0)
+        copyfileobj(fasta, fd)
+        return fd.name
+
+
+def make_blastdb(dirname='blastdb', name='FPbase_blastdb'):
+    root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    binary = root + '/bin/makeblastdb_' + 'osx' if sys.platform == 'darwin' else 'nix'
+    binary = os.path.abspath(binary)
+    with remember_cwd():
+        os.chdir(default_storage.path(dirname))
+        write_fasta(default_storage.path(os.path.join(dirname, name + '.fsa')))
+        cmd = [binary, '-in', name + '.fsa', '-parse_seqids', '-blastdb_version',
+               '5', '-title', 'FPbase Sequence Database', '-dbtype', 'prot',
+               '-out', name]
+        run(cmd)
+
+
+
 class ProteinQuerySet(models.QuerySet):
 
     def fasta(self):
-        seqs = self.exclude(seq__isnull=True).values('name', 'seq')
-        return io.StringIO("\n".join([">{name}\n{seq}".format(**s) for s in seqs]))
+        seqs = self.exclude(seq__isnull=True).values('uuid', 'name', 'seq')
+        return io.StringIO("\n".join([">{uuid} {name}\n{seq}".format(**s) for s in seqs]))
 
     def to_tree(self, output='clw'):
         fasta = self.fasta()
-        if sys.platform == 'darwin':
-            binary = 'bin/muscle_osx'
-        else:
-            binary = 'bin/muscle_nix'
+        binary = 'bin/muscle_' + 'osx' if sys.platform == 'darwin' else 'nix'
         cmd = [binary]
         # faster
         cmd += ['-maxiters', '2', '-diags', '-quiet', '-' + output]

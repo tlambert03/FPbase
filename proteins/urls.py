@@ -10,6 +10,7 @@ app_name = 'proteins'
 urlpatterns = [
     # detail view: /:slug
     url(r'^search/', views.protein_search, name='search'),
+    url(r'^blast/', views.blast_view, name='blast'),
     url(r'^submit/',
         login_required(views.ProteinCreateView.as_view(),
                        message="You must be logged in to submit a new protein"),

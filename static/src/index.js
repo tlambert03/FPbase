@@ -59,3 +59,6 @@ window.initSpectra = initSpectra;
 
 import FPPropChart from './js/ichart.js';
 window.FPPropChart = FPPropChart;
+
+import BlastApp from './js/blastapp/app.jsx'
+window.FPblast = BlastApp;
