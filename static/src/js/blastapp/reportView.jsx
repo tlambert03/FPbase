@@ -16,6 +16,7 @@ const useStyles = makeStyles(theme => ({
         overflowX: 'auto',
         position: 'sticky',
         top: '0px',
+        'zIndex': '1000',
     },
 }));
 

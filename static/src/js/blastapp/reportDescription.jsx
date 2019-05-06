@@ -44,7 +44,7 @@ function BlastReportDescription({ report, onClick }) {
 
     const classes = useStyles();
     return (
-        <Paper>
+        <Paper style={{'overflowX': 'scroll'}}>
             <Table className={classes.table} size="small">
                 <TableHead>
                     <TableRow>
