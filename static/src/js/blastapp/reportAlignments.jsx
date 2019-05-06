@@ -66,7 +66,7 @@ function FormattedBlastAlignment({ hit, lineWidth }) {
             let hsplit = h.split('')
             let msplit = m.split('')
             qsplit.forEach((letter, index) => {
-                if (letter !== hsplit[index]) {
+                if (letter.toUpperCase() !== hsplit[index].toUpperCase()) {
                     qsplit[index] = `<span class="mismatch">${qsplit[index]}</span>`
                     hsplit[index] = `<span class="mismatch">${hsplit[index]}</span>`
                     msplit[index] = `<span class="mismatch">${msplit[index]}</span>`
