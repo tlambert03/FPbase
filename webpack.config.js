@@ -143,6 +143,7 @@ module.exports = {
   devServer: {
     hot: true,
     quiet: false,
+    port: 8080,
     headers: { 'Access-Control-Allow-Origin': '*' }
   },
   module: { rules: [jsRule, styleRule, assetRule] },
