@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from ..util.blast import blast
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 
+@ensure_csrf_cookie
 def blast_view(request):
     if request.is_ajax():
         seq = request.POST.get('query')

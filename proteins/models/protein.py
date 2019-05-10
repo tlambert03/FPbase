@@ -78,7 +78,7 @@ class ProteinQuerySet(models.QuerySet):
 
     def to_tree(self, output="clw"):
         fasta = self.fasta()
-        binary = "bin/muscle_" + "osx" if sys.platform == "darwin" else "nix"
+        binary = 'bin/muscle_' + ('osx' if sys.platform == 'darwin' else 'nix')
         cmd = [binary]
         # faster
         cmd += ["-maxiters", "2", "-diags", "-quiet", "-" + output]

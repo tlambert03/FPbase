@@ -61,6 +61,21 @@ function FormattedBlastAlignment({ hit, lineWidth }) {
         chunkString(hit.midline, lineWidth),
         chunkString(hit.hseq, lineWidth)
     ).map(([q, m, h], index) => {
+        if (q !== h){
+            let qsplit = q.split('')
+            let hsplit = h.split('')
+            let msplit = m.split('')
+            qsplit.forEach((letter, index) => {
+                if (letter.toUpperCase() !== hsplit[index].toUpperCase()) {
+                    qsplit[index] = `<span class="mismatch">${qsplit[index]}</span>`
+                    hsplit[index] = `<span class="mismatch">${hsplit[index]}</span>`
+                    msplit[index] = `<span class="mismatch">${msplit[index]}</span>`
+                }
+            })
+            q = qsplit.join('')
+            h = hsplit.join('')
+            m = msplit.join('')
+        }
         return [
             `Query   ${String(index * lineWidth + hit.query_from).padEnd(
                 5
@@ -70,8 +85,8 @@ function FormattedBlastAlignment({ hit, lineWidth }) {
             '', // adds a space between triplets
         ].join('\n');
     });
-
-    return <pre>{text.join('\n')}</pre>;
+    console.log(text.join('\n'))
+    return <pre dangerouslySetInnerHTML={{ __html: text.join('\n') }} ></pre>;
 }
 
 function BlastHitSummary({ data }) {
@@ -117,7 +132,6 @@ function BlastHit({ data }) {
 function BlastReportAlignments({ report }) {
     const hits = report.search.hits;
 
-    const classes = useStyles();
     return (
         <div className="mx-2">
             {hits.map(hit => (
