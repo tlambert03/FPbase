@@ -71,6 +71,7 @@ urlpatterns = [
     url(r'^activity$', views.ActivityView.as_view(), name='activity'),
     url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/bleach/$', views.protein_bleach_formsets, name='protein-bleach-form'),
+    url(r'^protein/(?P<slug>[-\w]+)/history/$', views.protein_history, name='protein-history'),
     url(r'^bleach_comparison/(?P<pk>[-\w]+)/$', views.bleach_comparison, name='bleach-comparison'),
     url(r'^bleach_comparison/$', views.bleach_comparison, name='bleach-comparison'),
     url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Change History for {{protein|safe}}</h3>
+<ul class="small text-muted" style="word-wrap: break-word">
+  {% for revision, changes in history.items %}
+  <li>
+    <span style="font-weight:600; color: #668">{{revision.date_created|date:"Y-m-d H:i"}}, user: {{revision.user.username}}</span>
+    <ul>
+      {% for obj, changelist in changes.items %}
+      {% for change in changelist %}
+      {% if not change.1 %}
+      <li>{{change.0}} {{obj}}</li>
+      {% else %}
+      <li>{{change.0}} {{obj}} {{change.1}}: {{change.2}}</li>
+      {% endif %}
+      {% endfor %}
+      {% endfor %}
+    </ul>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock content %}

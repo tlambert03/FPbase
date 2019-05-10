@@ -75,7 +75,9 @@
             <div class="d-inline-block align-middle">
               <strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>This protein has unmoderated changes.
               {% if last_approved %}
-                 <a href="{% url 'proteins:protein-detail' slug=protein.slug ver=last_approved.id %}" class="alert-link">Click here</a> to view the last moderated version of this protein from {{ last_approved.revision.date_created|date:"M j, Y H:i:s" }}.
+                 <a href="{% url 'proteins:protein-detail' slug=protein.slug ver=last_approved.id %}" class="alert-link">Click here</a>
+                 to view the last moderated version of this protein from {{ last_approved.revision.date_created|date:"M j, Y H:i:s" }}.
+                 Or view the full <a href="{% url 'proteins:protein-history' slug=protein.slug %}" class="alert-link">change history</a>
               {% endif %}
             </div>
             {% if request.user.is_staff %}
@@ -399,6 +401,7 @@
 
 
 		<div class="text-left text-md-right mt-3">
+      <a href="{% url 'proteins:protein-history' slug=protein.slug %}" class="text-muted">Change history</a>
 			 <p>Something missing or incorrect?
         <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary d-none d-sm-inline'>Submit a change</a>
         <a role="button" href="{% url 'proteins:update' slug=protein.slug %}" class="btn btn-info btn-block mt-2 mb-3 d-block d-sm-none text-white"><i class="fas fa-upload mr-2"></i>Submit a change</a>
