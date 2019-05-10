@@ -27,12 +27,19 @@ const styleRule = {
   test: /\.(sa|sc|c)ss$/,
   use: [
     MiniCssExtractPlugin.loader,
-    { loader: 'css-loader', options: { sourceMap: true } },
+    {
+      loader: 'css-loader',
+      options: {
+        sourceMap: true
+      }
+    },
     {
       loader: 'postcss-loader',
       options: {
         plugins: () => [
-          autoprefixer({ browsers: ['last 2 versions'] }),
+          autoprefixer({
+            browsers: ['last 2 versions']
+          }),
           require('cssnano')
         ],
       },
@@ -47,7 +54,13 @@ const jsRule = {
   use: {
     loader: 'babel-loader',
     options: {
-      presets: ['@babel/preset-env', '@babel/preset-react'],
+      presets: [
+        ["@babel/preset-env", {
+          useBuiltIns: "entry",
+          corejs: 3,
+        }],
+        '@babel/preset-react'
+      ],
       plugins: ["@babel/plugin-syntax-dynamic-import"],
     }
   }
@@ -64,38 +77,39 @@ const plugins = [
     jQuery: 'jquery'
   }),
   new webpack.IgnorePlugin(/vertx/),
-  new BundleTracker({ filename: './webpack-stats.json' }),
+  new BundleTracker({
+    filename: './webpack-stats.json'
+  }),
   //new VueLoaderPlugin(),
   new MiniCssExtractPlugin({
     filename: '[name].css',
     chunkFilename: '[id].css'
   }),
-  new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false }),
+  new BundleAnalyzerPlugin({
+    analyzerMode: 'static',
+    openAnalyzer: false
+  }),
   new webpack.HotModuleReplacementPlugin(),
   new CleanWebpackPlugin(['./static/dist']),
-  new CopyWebpackPlugin([
-      {
-          from: './static/src/images/**/*',
-          to: path.resolve('./static/dist/images/[name].webp'),
-          toType: 'template',
-      },
-  ]),
+  new CopyWebpackPlugin([{
+    from: './static/src/images/**/*',
+    to: path.resolve('./static/dist/images/[name].webp'),
+    toType: 'template',
+  }, ]),
   new ImageminWebpackPlugin({
-      test: /\.(webp)$/i,
-      plugins: [
-          ImageminWebP({
-              quality: 90,
-              sharpness: 1,
-          }),
-      ],
+    test: /\.(webp)$/i,
+    plugins: [
+      ImageminWebP({
+        quality: 90,
+        sharpness: 1,
+      }),
+    ],
   }),
-  new CopyWebpackPlugin([
-      {
-          from: './static/src/images/**/*',
-          to: path.resolve('./static/dist/images/[name].[ext]'),
-          toType: 'template',
-      },
-  ]),
+  new CopyWebpackPlugin([{
+    from: './static/src/images/**/*',
+    to: path.resolve('./static/dist/images/[name].[ext]'),
+    toType: 'template',
+  }, ]),
 ];
 
 if (devMode) {
@@ -135,19 +149,26 @@ module.exports = {
     chunkFilename: '[name]-bundle.js',
   },
   resolve: {
-      alias: {
-          jquery: "jquery/src/jquery"
-      }
+    alias: {
+      jquery: "jquery/src/jquery"
+    }
   },
+  stats: 'minimal',
   devtool: devMode ? 'cheap-eval-source-map' : 'source-map',
   devServer: {
     hot: true,
     quiet: false,
     port: 8080,
-    headers: { 'Access-Control-Allow-Origin': '*' }
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
   },
-  module: { rules: [jsRule, styleRule, assetRule] },
-  externals: { Sentry: 'Sentry' },
+  module: {
+    rules: [jsRule, styleRule, assetRule]
+  },
+  externals: {
+    Sentry: 'Sentry'
+  },
   plugins: plugins,
   optimization: {
     minimizer: [

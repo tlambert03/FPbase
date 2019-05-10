@@ -14,6 +14,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/polyfill": "^7.4.4",
     "@fortawesome/fontawesome-svg-core": "^1.2.17",
     "@fortawesome/free-brands-svg-icons": "^5.8.1",
     "@fortawesome/free-regular-svg-icons": "^5.8.1",
@@ -22,6 +23,8 @@
     "@sentry/browser": "^4.6.6",
     "algoliasearch": "^3.32.1",
     "autocomplete.js": "^0.35.0",
+    "caniuse-lite": "^1.0.30000967",
+    "core-js": "^3.0.1",
     "d3": "3.5.17",
     "jquery": "^3.4.1",
     "js-cookie": "^2.2.0",
