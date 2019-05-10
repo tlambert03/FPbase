@@ -50,7 +50,7 @@ const styleRule = {
 
 const jsRule = {
   test: /\.jsx?$/,
-  exclude: /node_modules/,
+  exclude: /node_modules\/(?!smiles-drawer\/).*/,
   use: {
     loader: 'babel-loader',
     options: {
