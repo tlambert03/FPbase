@@ -685,5 +685,5 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             return max([s.local_brightness for s in self.states.all()])
 
     def first_author(self):
-        if self.primary_reference:
+        if self.primary_reference and self.primary_reference.first_author:
             return self.primary_reference.first_author.family
