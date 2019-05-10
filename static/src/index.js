@@ -16,8 +16,9 @@ if ((process.env.NODE_ENV === 'production') && Boolean(process.env.SENTRY_DSN)) 
 }
 
 
-import "core-js";
-import "regenerator-runtime/runtime";
+// import "core-js/stable";
+// import 'core-js/features/array';
+// import "regenerator-runtime/runtime";
 
 //import './js/my-polyfills.js';
 import algoliasearch from 'algoliasearch'
