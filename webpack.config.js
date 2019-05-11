@@ -130,7 +130,7 @@ if (devMode) {
       new SentryCliPlugin({
         include: 'static/',
         release: process.env.SOURCE_VERSION,
-        ignore: ['node_modules', 'webpack.config.js'],
+        ignore: ['node_modules', 'webpack.config.js', 'static/src/js/pdb/LiteMol-plugin.js'],
       })
     );
   }
@@ -146,8 +146,8 @@ module.exports = {
   output: {
     path: path.resolve('./static/dist/'),
     filename: '[name].js',
-    //publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
-    publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
+    publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
+    //publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
     chunkFilename: '[name]-bundle.js',
   },
   resolve: {
