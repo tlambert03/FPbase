@@ -85,7 +85,6 @@ function FormattedBlastAlignment({ hit, lineWidth }) {
             '', // adds a space between triplets
         ].join('\n');
     });
-    console.log(text.join('\n'))
     return <pre dangerouslySetInnerHTML={{ __html: text.join('\n') }} ></pre>;
 }
 

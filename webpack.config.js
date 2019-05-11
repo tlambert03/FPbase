@@ -72,6 +72,7 @@ const assetRule = {
 };
 
 const plugins = [
+  new webpack.ProgressPlugin(),
   new webpack.ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery'
@@ -90,7 +91,7 @@ const plugins = [
     openAnalyzer: false
   }),
   new webpack.HotModuleReplacementPlugin(),
-  new CleanWebpackPlugin(['./static/dist']),
+  new CleanWebpackPlugin(),
   new CopyWebpackPlugin([{
     from: './static/src/images/**/*',
     to: path.resolve('./static/dist/images/[name].webp'),
@@ -145,7 +146,8 @@ module.exports = {
   output: {
     path: path.resolve('./static/dist/'),
     filename: '[name].js',
-    publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
+    //publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
+    publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
     chunkFilename: '[name]-bundle.js',
   },
   resolve: {
