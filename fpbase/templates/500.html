@@ -7,6 +7,10 @@
 <h3>Looks like something went wrong :(</h3>
 <p>We track these errors automatically, but if the problem persists feel free to <a href="{% url 'contact' %}">contact us</a>. {% if sentry_event_id %}You may reference this error as <strong>{{ sentry_event_id }}</strong>.{% endif %}</p>
 
+{% endblock content %}
+
+{% block javascript %}
+
 <script>
   var eid = "{{sentry_event_id}}";
   console.log("EventID: " + eid);
@@ -16,14 +20,13 @@
     beforeSend(event, hint) {
       // Check if it is an exception, and if so, show the report dialog
       if (event.exception) {
-        Sentry.showReportDialog({ eventId: event.event_id });
+        Sentry.showReportDialog({ eventId: event.event_id || eid });
       }
       return event;
     }
   });
 </script>
 
-
-{% endblock content %}
+{% endblock %}
 
 
