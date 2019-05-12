@@ -97,6 +97,10 @@ const plugins = [
     to: path.resolve('./static/dist/images/[name].webp'),
     toType: 'template',
   }, ]),
+  new CopyWebpackPlugin([{
+    from: './static/src/js/sentry.*.js',
+    to: path.resolve('./static/dist/sentry.js'),
+  }, ]),
   new ImageminWebpackPlugin({
     test: /\.(webp)$/i,
     plugins: [
