@@ -1306,11 +1306,11 @@ import noUiSlider from 'nouislider';
     $(window).on('load', function() {
       setTimeout(function(){
           autoSizeText();
-          chart.update();
+          chart && chart.update();
           if ($(document).width() < 576){
               chart.legend.maxKeyLength(15);
           }
-      }, 100);
+      }, 150);
     });
 
 
