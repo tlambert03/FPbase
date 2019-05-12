@@ -67,7 +67,8 @@ class MicroscopeForm(forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self.fields['collection'].queryset = (ProteinCollection.objects.exclude(private=True)
-                                              | ProteinCollection.objects.filter(owner=self.user))
+                                              | ProteinCollection.objects.filter(owner=self.user)
+                                              | ProteinCollection.objects.filter(id=self.initial.get('collection'))).order_by('name')
 
     class Meta:
         model = Microscope
