@@ -332,6 +332,14 @@ class OrganismAdmin(CompareVersionAdmin):
         obj.save()
 
 
+def make_approved(modeladmin, request, queryset):
+    # note, this will fail if the list is ordered by numproteins
+    queryset.update(status=Protein.STATUS.approved)
+
+
+make_approved.short_description = "Mark selected proteins as approved"
+
+
 @admin.register(Protein)
 class ProteinAdmin(CompareVersionAdmin):
     autocomplete_fields = ('parent_organism', 'references', 'primary_reference')
@@ -341,6 +349,7 @@ class ProteinAdmin(CompareVersionAdmin):
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = (StateInline, StateTransitionInline, OSERInline, LineageInline)
+    actions = [make_approved]
     fieldsets = [
         (None, {
             'fields': (('uuid', 'name', 'slug'), ('aliases', 'status', 'chromophore'),
