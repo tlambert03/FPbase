@@ -43,7 +43,7 @@ from proteins.extrest.ga import cached_ga_popular
 from proteins.extrest.entrez import get_cached_gbseqs
 from references.models import Reference  # breaks application modularity
 from reversion.views import _RollBackRevisionView
-from reversion.models import Version
+from reversion.models import Version, Revision
 import json
 import io
 from django.utils.safestring import mark_safe
@@ -769,6 +769,28 @@ def revert_version(request, ver=None):
         return JsonResponse({})
     except Exception:
         pass
+
+
+@staff_member_required
+def revert_revision(request, rev=None):
+    revision = get_object_or_404(Revision, id=rev)
+
+    with transaction.atomic():
+        revision.revert(delete=True)
+        proteins = {v.object for v in revision.version_set.all()
+                    if v.object._meta.model_name == 'protein'}
+        if len(proteins) == 1:
+            P = proteins.pop()
+            with reversion.create_revision():
+                reversion.set_user(request.user)
+                reversion.set_comment('Reverted to revision dated {}'.format(revision.date_created))
+                P.save()
+                try:
+                    uncache_protein_page(P.slug, request)
+                except Exception:
+                    pass
+
+    return JsonResponse({'status': 200})
 
 
 @login_required

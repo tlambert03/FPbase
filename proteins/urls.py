@@ -122,6 +122,8 @@ urlpatterns = [
     url(r'^ajax/add_protein_excerpt/(?P<slug>[-\w]+)/$', views.add_protein_excerpt, name='add_protein_excerpt'),
     url(r'^ajax/admin_approve_protein/(?P<slug>[-\w]+)/$', views.approve_protein, name='admin_approve_protein'),
     url(r'^ajax/admin_revert_version/(?P<ver>\d+)$', views.revert_version, name='admin_revert_version'),
+    url(r'^ajax/admin_revert_revision/(?P<rev>\d+)$', views.revert_revision, name='admin_revert_revision'),
+
     url(r'^ajax/update_transitions/(?P<slug>[-\w]+)/$', views.update_transitions, name='update_transitions'),
     url(r'^ajax/validate_proteinname/$', views.validate_proteinname, name='validate_proteinname'),
     url(r'^ajax/validate_spectrumownername/$', views.similar_spectrum_owners, name='validate_spectrumownername'),
