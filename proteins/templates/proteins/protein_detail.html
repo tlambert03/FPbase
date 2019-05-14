@@ -363,7 +363,7 @@
         <p class='text-muted'>No excerpts have been added for {{protein.name | safe }}<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
       {% endif %}
-      <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i></i>Add an excerpt</button></a>
+      <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i>Add an excerpt</button></a>
     </div>
 
 
@@ -413,7 +413,7 @@
 		<p class='small text-muted'><em>We welcome relevant and respectful comments. Off-topic comments may be removed.</em></p>
 		<div id="disqus_thread"></div>
 -->
-	</div>
+
 
 
 {# {% include '_disqus.html' %} #}
@@ -457,7 +457,7 @@
 
 {% block extrafooter %}
     {% if debug %}
-      <a href="https://www.fpbase.org{{protein.get_absolute_url}}">on FPbase</a></br>
+      <a href="https://www.fpbase.org{{protein.get_absolute_url}}">on FPbase</a><br/>
     {% endif %}
     {% if request.user.is_staff %}
       {% load admin_urls %}
@@ -502,7 +502,6 @@
     });
 
     $(window).on('load', function() {
-
       $('.lineage').each(function(i, el) {
         var slug = $(el).data('slug') || '';
         $.getJSON('/ajax/lineage/' + slug, function(data) {
@@ -514,7 +513,7 @@
           lineage.call(linchart);
           linchart.duration(200);
           if (slug && $('.lineage-wrapper')){
-            var slugpos = d3.select(`#node_${slug}`).datum().y;
+            var slugpos = d3.select("#node_" + slug).datum().y;
             $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
           }
 
