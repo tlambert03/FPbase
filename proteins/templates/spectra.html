@@ -204,8 +204,7 @@
 {% block javascript %}
 
 <script type="text/javascript">
-  var spectra_options = {{ spectra_options|safe }};
-  window.instance = initSpectra('#spectrasvg');
+  window.instance = initSpectra('#spectrasvg', {{ spectra_options|safe }});
 </script>
 <script>
 
