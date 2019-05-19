@@ -28,8 +28,9 @@ footer {
     }
 }
 
-
-
+button:focus {
+    outline: none !important;
+}
 
 .home-body .twitter-share-wrapper{
 	position: absolute;
@@ -42,6 +43,7 @@ footer {
   position: relative;
   z-index: 10;
   top:-13px;
+  left: 15px;
 }
 
 a.twitter-share-button {
@@ -279,4 +281,11 @@ a.help-link {
     cursor: help;
     text-shadow: 0px 0px 1px #cce;
   }
+}
+
+// for Blast App styles
+pre .mismatch {
+    color: firebrick;
+    background-color: yellow;
+    font-weight: bold;
 }

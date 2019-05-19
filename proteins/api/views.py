@@ -57,7 +57,7 @@ class ProteinListAPIView(ListAPIView):
 
 
 class BasicProteinListAPIView(ProteinListAPIView):
-    queryset = Protein.objects.filter(switch_type=Protein.BASIC)\
+    queryset = Protein.visible.filter(switch_type=Protein.BASIC)\
                               .select_related('default_state')\
                               .annotate(rate=Max(F('default_state__bleach_measurements__rate')))
     permission_classes = (AllowAny, )

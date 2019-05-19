@@ -10,9 +10,20 @@ from collections import Counter, OrderedDict
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from django.urls import reverse
+import contextlib
+import os
 
 
 logger = logging.getLogger(__name__)
+
+
+@contextlib.contextmanager
+def remember_cwd():
+    curdir = os.getcwd()
+    try:
+        yield
+    finally:
+        os.chdir(curdir)
 
 
 def create_slug_dict():

@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.views.generic import CreateView
 # from django.views.decorators.cache import cache_page
 # from django.views.decorators.vary import vary_on_cookie
+from django import forms
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from ..models import Spectrum, Filter, State, Protein
@@ -89,8 +90,8 @@ class SpectrumCreateView(CreateView):
         init = super().get_initial()
         if self.kwargs.get('slug', False):
             try:
-                p = Protein.objects.get(slug=self.kwargs.get('slug'))
-                init['owner_state'] = p.default_state
+                self.protein = Protein.objects.get(slug=self.kwargs.get('slug'))
+                init['owner_state'] = self.protein.default_state
                 init['category'] = Spectrum.PROTEIN
             except Exception:
                 pass
@@ -106,11 +107,10 @@ class SpectrumCreateView(CreateView):
 
         if self.kwargs.get('slug', False):
             try:
-                from django import forms
-                p = Protein.objects.get(slug=self.kwargs.get('slug'))
                 form.fields['owner_state'] = forms.ModelChoiceField(
-                    required=True, label='Protein', empty_label=None,
-                    queryset=State.objects.filter(protein=p).select_related('protein'))
+                    required=True, label='Protein (state)', empty_label=None,
+                    queryset=State.objects.filter(protein=self.protein).select_related('protein'))
+                form.fields['category'].disabled = True
             except Exception:
                 pass
         return form
@@ -135,6 +135,8 @@ class SpectrumCreateView(CreateView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
+        if hasattr(self, 'protein'):
+            context['protein'] = self.protein
         return context
 
 

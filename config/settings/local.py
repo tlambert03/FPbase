@@ -19,7 +19,7 @@ TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
-CSRF_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_HTTPONLY = True
 
 # SECRET CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ if env('MAILGUN_API_KEY', default=False) and env('MAILGUN_DOMAIN', default=False
     }
     EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['fpbase.org', 'localhost', 'testserver'])
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['fpbase.org', 'localhost', 'testserver', '10.0.2.2'])
 # CORS
 # -------
 
@@ -61,8 +61,8 @@ CORS_URLS_REGEX = r'^/test/.*$'
 # ------------------------------------------------------------------------------
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        #'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # don't actually cache
+        #'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # don't actually cache
         'LOCATION': ''
     }
 }
@@ -89,11 +89,6 @@ INSTALLED_APPS += ['django_extensions', ]
 # TESTING
 # ------------------------------------------------------------------------------
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
-
-# Your local stuff: Below this line define 3rd party library settings
-# ------------------------------------------------------------------------------
-
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1' ])
 
 #SITE_ID = None
 

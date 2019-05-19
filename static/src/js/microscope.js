@@ -49,7 +49,6 @@ import noUiSlider from 'nouislider';
     };
     var data = [];
     var localData = {};
-    console.log(localStorage.getItem('microscope_stickySpectra'))
     var options = {
         showArea: localStorage.getItem('microscope_showArea') !== "false",
         stickySpectra: localStorage.getItem('microscope_stickySpectra'),
@@ -691,6 +690,12 @@ import noUiSlider from 'nouislider';
             });
             $(window).on('load', function() { chart.update(); });
 
+            setup_from_url(urlParams);
+
+            if (!options.showArea) {
+                setTimeout(function(){$(".nv-groups").addClass('area-hidden')}, 100)
+            }
+
         });
 
 
@@ -764,12 +769,6 @@ import noUiSlider from 'nouislider';
           $("#settingsModal").modal('hide');
           $("#embedModal").modal('show');
         });
-
-        setup_from_url(urlParams);
-
-        if (!options.showArea) {
-            setTimeout(function(){$(".nv-groups").addClass('area-hidden')}, 100)
-        }
 
 
     });
@@ -1307,11 +1306,11 @@ import noUiSlider from 'nouislider';
     $(window).on('load', function() {
       setTimeout(function(){
           autoSizeText();
-          chart.update();
+          chart && chart.update();
           if ($(document).width() < 576){
               chart.legend.maxKeyLength(15);
           }
-      }, 100);
+      }, 150);
     });
 
 

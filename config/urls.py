@@ -70,8 +70,10 @@ urlpatterns = [
 
     url(r'^fav/', include('favit.urls')),
     url(r'^avatar/', include('avatar.urls')),
+    url(r'^test500/', fpbase.views.test500),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+handler500 = 'fpbase.views.server_error'
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
@@ -82,7 +84,6 @@ if settings.DEBUG:
         url(r'^403/$', default_views.permission_denied, kwargs={'exception': Exception('Permission Denied')}),
         url(r'^404/$', default_views.page_not_found, kwargs={'exception': Exception('Page not Found')}),
         url(r'^500/$', fpbase.views.server_error),
-        url(r'^test500/', fpbase.views.test500),
         url(r'^test/$', fpbase.views.testview),
         url(r'^autocomplete/$', TemplateView.as_view(template_name='pages/test_autocomplete.html'))
     ]

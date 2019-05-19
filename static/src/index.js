@@ -15,7 +15,11 @@ if ((process.env.NODE_ENV === 'production') && Boolean(process.env.SENTRY_DSN)) 
     });
 }
 
-import './js/my-polyfills.js';
+
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+
+//import './js/my-polyfills.js';
 import algoliasearch from 'algoliasearch'
 window.algoliasearch = algoliasearch;
 import autocomplete from 'autocomplete.js/dist/autocomplete.jquery.js'
@@ -59,3 +63,6 @@ window.initSpectra = initSpectra;
 
 import FPPropChart from './js/ichart.js';
 window.FPPropChart = FPPropChart;
+
+import BlastApp from './js/blastapp/app.jsx'
+window.FPblast = BlastApp;

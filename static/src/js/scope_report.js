@@ -94,6 +94,7 @@ jQuery.fn.extend({
           { title: 'Em Max', class: 'col_em_max', visible: false },
           { title: 'Agg', class: 'col_agg', visible: false },
           { title: 'Switch Type', class: 'col_switch_type', visible: false },
+          { title: 'UUID', class: 'col_uuid', visible: false },
         ];
         var ocNames = [];
         var fluorData = {};
@@ -170,6 +171,7 @@ jQuery.fn.extend({
             FLUORS[fluor]['em_max'],
             FLUORS[fluor]['agg'],
             FLUORS[fluor]['switch_type'],
+            FLUORS[fluor]['uuid']
           ];
           for (var o = 0; o < ocNames.length; o++) {
             if (fluorData[fluor].hasOwnProperty(ocNames[o])) {
@@ -180,7 +182,6 @@ jQuery.fn.extend({
           }
           dataRows.push(f);
         }
-
         $('#oc-toggles').empty();
         for (var o = 0; o < ocNames.length; o++) {
           var ischecked =
@@ -525,21 +526,29 @@ jQuery.fn.extend({
       });
 
       $('.table-filter').change(function() {
+        var uuids = $("#probe_filter option:selected").data('ids');
+
+        // filter the table
         localStorage.setItem(SCOPE_ID + $(this).attr('id'), this.value);
         var searchval = this.value;
         if (searchval != '') {
           searchval = '^' + this.value + '$';
+        }
+        if (this.id == 'probe_filter' && uuids){
+          searchval = '^(' + uuids.join("|") + ')$';
         }
         searchcol = $(this).data('col');
         dt.column('.col_' + searchcol)
           .search(searchval, true, false)
           .draw();
 
+        // filter the chart
         var newReport = [];
         for (var i = 0; i < REPORT.length; i++) {
           newReport.push(Object.assign({}, REPORT[i]));
           newReport[i].values = newReport[i].values.filter(function(d){
             return (
+              ($("#probe_filter").val() === "" || (FLUORS[d.fluor_slug].type == 'p' && uuids.includes(FLUORS[d.fluor_slug].uuid))) &&
               ($("#agg_filter").val() === "" || FLUORS[d.fluor_slug].agg == $("#agg_filter").val()) &&
               ($("#switch_filter").val() === "" || FLUORS[d.fluor_slug].switch_type == $("#switch_filter").val())
             )

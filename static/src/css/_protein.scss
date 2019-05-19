@@ -185,7 +185,8 @@
     th, td {
       margin: 0;
       vertical-align: top;
-      line-height: 0.8rem;
+      line-height: 1.1rem;
+
     }
 
     td {
@@ -195,7 +196,16 @@
       border-left: 0 ;
       border-right: 0;
       border-bottom: 0;
-      height: 37px;
+      line-height: 1.1rem;
+      margin-left: 0.3rem;
+      //height: 37px;
+      empty-cells: show;
+
+      &:empty{
+        &:after{
+          content: "\00a0\00a0";
+        }
+      }
     }
 
     .cf:after {

@@ -9,6 +9,7 @@ app_name = 'proteins'
 urlpatterns = [
     # detail view: /:slug
     url(r'^search/', views.protein_search, name='search'),
+    url(r'^blast/', views.blast_view, name='blast'),
     url(r'^submit/',
         login_required(views.ProteinCreateView.as_view(),
                        message="You must be logged in to submit a new protein"),
@@ -69,6 +70,7 @@ urlpatterns = [
     url(r'^activity$', views.ActivityView.as_view(), name='activity'),
     url(r'^protein/(?P<slug>[-\w]+)/$', views.ProteinDetailView.as_view(), name='protein-detail'),
     url(r'^protein/(?P<slug>[-\w]+)/bleach/$', views.protein_bleach_formsets, name='protein-bleach-form'),
+    url(r'^protein/(?P<slug>[-\w]+)/history/$', views.protein_history, name='protein-history'),
     url(r'^bleach_comparison/(?P<pk>[-\w]+)/$', views.bleach_comparison, name='bleach-comparison'),
     url(r'^bleach_comparison/$', views.bleach_comparison, name='bleach-comparison'),
     url(r'^protein/(?P<slug>[-\w]+)/rev/(?P<rev>\d+)$', views.ProteinDetailView.as_view(), name='protein-detail'),
@@ -106,6 +108,8 @@ urlpatterns = [
     url(r'^ajax/add_protein_excerpt/(?P<slug>[-\w]+)/$', views.add_protein_excerpt, name='add_protein_excerpt'),
     url(r'^ajax/admin_approve_protein/(?P<slug>[-\w]+)/$', views.approve_protein, name='admin_approve_protein'),
     url(r'^ajax/admin_revert_version/(?P<ver>\d+)$', views.revert_version, name='admin_revert_version'),
+    url(r'^ajax/admin_revert_revision/(?P<rev>\d+)$', views.revert_revision, name='admin_revert_revision'),
+
     url(r'^ajax/update_transitions/(?P<slug>[-\w]+)/$', views.update_transitions, name='update_transitions'),
     url(r'^ajax/validate_proteinname/$', views.validate_proteinname, name='validate_proteinname'),
     url(r'^ajax/validate_spectrumownername/$', views.similar_spectrum_owners, name='validate_spectrumownername'),

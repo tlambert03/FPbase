@@ -27,12 +27,19 @@ const styleRule = {
   test: /\.(sa|sc|c)ss$/,
   use: [
     MiniCssExtractPlugin.loader,
-    { loader: 'css-loader', options: { sourceMap: true } },
+    {
+      loader: 'css-loader',
+      options: {
+        sourceMap: true
+      }
+    },
     {
       loader: 'postcss-loader',
       options: {
         plugins: () => [
-          autoprefixer({ browsers: ['last 2 versions'] }),
+          autoprefixer({
+            browsers: ['last 2 versions']
+          }),
           require('cssnano')
         ],
       },
@@ -42,12 +49,18 @@ const styleRule = {
 };
 
 const jsRule = {
-  test: /\.js$/,
-  //exclude: /node_modules/,
+  test: /\.jsx?$/,
+  exclude: /node_modules\/(?!smiles-drawer\/).*/,
   use: {
     loader: 'babel-loader',
     options: {
-      presets: ['@babel/preset-env'],
+      presets: [
+        ["@babel/preset-env", {
+          useBuiltIns: "entry",
+          corejs: 3,
+        }],
+        '@babel/preset-react'
+      ],
       plugins: ["@babel/plugin-syntax-dynamic-import"],
     }
   }
@@ -59,43 +72,49 @@ const assetRule = {
 };
 
 const plugins = [
+  new webpack.ProgressPlugin(),
   new webpack.ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery'
   }),
   new webpack.IgnorePlugin(/vertx/),
-  new BundleTracker({ filename: './webpack-stats.json' }),
+  new BundleTracker({
+    filename: './webpack-stats.json'
+  }),
   //new VueLoaderPlugin(),
   new MiniCssExtractPlugin({
     filename: '[name].css',
     chunkFilename: '[id].css'
   }),
-  new BundleAnalyzerPlugin({ analyzerMode: 'static', openAnalyzer: false }),
-  new webpack.HotModuleReplacementPlugin(),
-  new CleanWebpackPlugin(['./static/dist']),
-  new CopyWebpackPlugin([
-      {
-          from: './static/src/images/**/*',
-          to: path.resolve('./static/dist/images/[name].webp'),
-          toType: 'template',
-      },
-  ]),
-  new ImageminWebpackPlugin({
-      test: /\.(webp)$/i,
-      plugins: [
-          ImageminWebP({
-              quality: 90,
-              sharpness: 1,
-          }),
-      ],
+  new BundleAnalyzerPlugin({
+    analyzerMode: 'static',
+    openAnalyzer: false
   }),
-  new CopyWebpackPlugin([
-      {
-          from: './static/src/images/**/*',
-          to: path.resolve('./static/dist/images/[name].[ext]'),
-          toType: 'template',
-      },
-  ]),
+  new webpack.HotModuleReplacementPlugin(),
+  new CleanWebpackPlugin(),
+  new CopyWebpackPlugin([{
+    from: './static/src/images/**/*',
+    to: path.resolve('./static/dist/images/[name].webp'),
+    toType: 'template',
+  }, ]),
+  new CopyWebpackPlugin([{
+    from: './static/src/js/sentry.*.js',
+    to: path.resolve('./static/dist/sentry.js'),
+  }, ]),
+  new ImageminWebpackPlugin({
+    test: /\.(webp)$/i,
+    plugins: [
+      ImageminWebP({
+        quality: 90,
+        sharpness: 1,
+      }),
+    ],
+  }),
+  new CopyWebpackPlugin([{
+    from: './static/src/images/**/*',
+    to: path.resolve('./static/dist/images/[name].[ext]'),
+    toType: 'template',
+  }, ]),
 ];
 
 if (devMode) {
@@ -115,7 +134,7 @@ if (devMode) {
       new SentryCliPlugin({
         include: 'static/',
         release: process.env.SOURCE_VERSION,
-        ignore: ['node_modules', 'webpack.config.js'],
+        ignore: ['node_modules', 'webpack.config.js', 'static/src/js/pdb/LiteMol-plugin.js'],
       })
     );
   }
@@ -132,21 +151,30 @@ module.exports = {
     path: path.resolve('./static/dist/'),
     filename: '[name].js',
     publicPath: hotReload ? 'http://localhost:8080/static/' : '/static/',
+    //publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
     chunkFilename: '[name]-bundle.js',
   },
   resolve: {
-      alias: {
-          jquery: "jquery/src/jquery"
-      }
+    alias: {
+      jquery: "jquery/src/jquery"
+    }
   },
+  stats: 'minimal',
   devtool: devMode ? 'cheap-eval-source-map' : 'source-map',
   devServer: {
     hot: true,
     quiet: false,
-    headers: { 'Access-Control-Allow-Origin': '*' }
+    port: 8080,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
   },
-  module: { rules: [jsRule, styleRule, assetRule] },
-  externals: { Sentry: 'Sentry' },
+  module: {
+    rules: [jsRule, styleRule, assetRule]
+  },
+  externals: {
+    Sentry: 'Sentry'
+  },
   plugins: plugins,
   optimization: {
     minimizer: [

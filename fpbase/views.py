@@ -6,6 +6,7 @@ from django.conf import settings
 from proteins.models import Protein, Spectrum
 from sentry_sdk import last_event_id
 from django.views.decorators.cache import cache_page
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 class HomeView(TemplateView):
@@ -34,6 +35,7 @@ class ContactView(FormView):
         return render(self.request, self.template_name, self.get_context_data())
 
 
+@staff_member_required
 def test500(request):
         # Return an "Internal Server Error" 500 response code.
         raise Exception('Make response code 500!')

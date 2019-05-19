@@ -100,6 +100,8 @@ def approve_protein(request, slug=None):
             pass
 
         with reversion.create_revision():
+            reversion.set_user(request.user)
+            reversion.set_comment('%s approved current version' % request.user)
             P.status = 'approved'
             P.save()
             try:

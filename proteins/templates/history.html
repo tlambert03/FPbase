@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Change History for {{protein|safe}}</h3>
+<ul class="small text-muted" style="word-wrap: break-word">
+  {% for revision, changes in history.items %}
+  <li>
+    <span style="font-weight:600; color: #668">{{revision.date_created|date:"Y-m-d H:i"}}, user: {{revision.user.username}}</span>
+
+      {% if request.user.is_staff %}
+      <form id="adminRevert" style="display:inline; font-weight: bold;" data-action-url="{% url 'proteins:admin_revert_revision' rev=revision.id %}" data-success="{{ protein.get_absolute_url }}">
+      {% csrf_token %}
+      <a class="text-secondary ml-3"  href="#" onclick="$(this).closest('form').submit()">Revert to this revision</a>
+      </form>
+      {% endif %}
+
+    <ul>
+      {% for obj, changelist in changes.items %}
+      {% for change in changelist %}
+      {% if not change.1 %}
+      <li>{{change.0}} {{obj}}</li>
+      {% else %}
+      <li>{{change.0}} {{obj}} {{change.1}}: {{change.2}}</li>
+      {% endif %}
+      {% endfor %}
+      {% endfor %}
+    </ul>
+  </li>
+  {% endfor %}
+</ul>
+
+<p>
+<a href="{% url 'proteins:protein-detail' slug=protein.slug %}">Back to current {{protein.name | safe}} version</a>
+</p>
+
+
+{% if request.user.is_staff %}
+{% if not protein.status == 'approved' %}
+<div class="alert alert-info clearfix" role="alert">
+    <div class="d-inline-block align-middle">
+        <strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>
+        This protein has unmoderated changes.
+    </div>
+
+    <form
+        id="adminApprove"
+        class="float-sm-right"
+        data-action-url="{% url 'proteins:admin_approve_protein' slug=protein.slug %}"
+        data-success="{{ protein.get_absolute_url }}"
+    >
+        {% csrf_token %}
+        <button type="submit" class="btn btn-info btn-sm btn-block-xs">
+            Mark approved
+        </button>
+    </form>
+</div>
+{% endif %}
+{% endif %}
+
+{% endblock content %}

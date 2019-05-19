@@ -11,6 +11,13 @@ $chart-theme: desaturate(darken($secondary, 5%), 15%);
   margin:auto;
 }
 
+
+#graph {
+  height: 400px;
+  @include media-breakpoint-up(md){height: 700px;}
+  width: 100%;
+}
+
 /* Graph Styles */
 .FP, .PSFP
 {
@@ -31,7 +38,7 @@ text.FP
 .PSFP
 {
 	stroke-width: 1.5px;
-}
+}\
 line.PSFP
 {
 	stroke-width: 1px;

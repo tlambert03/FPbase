@@ -332,6 +332,14 @@ class OrganismAdmin(CompareVersionAdmin):
         obj.save()
 
 
+def make_approved(modeladmin, request, queryset):
+    # note, this will fail if the list is ordered by numproteins
+    queryset.update(status=Protein.STATUS.approved)
+
+
+make_approved.short_description = "Mark selected proteins as approved"
+
+
 @admin.register(Protein)
 class ProteinAdmin(CompareVersionAdmin):
     autocomplete_fields = ('parent_organism', 'references', 'primary_reference')
@@ -341,9 +349,10 @@ class ProteinAdmin(CompareVersionAdmin):
     search_fields = ('name', 'aliases', 'slug', 'ipg_id', 'created_by__username', 'created_by__first_name', 'created_by__last_name')
     prepopulated_fields = {'slug': ('name',)}
     inlines = (StateInline, StateTransitionInline, OSERInline, LineageInline)
+    actions = [make_approved]
     fieldsets = [
         (None, {
-            'fields': (('name', 'slug',), ('aliases', 'status', 'chromophore'),
+            'fields': (('uuid', 'name', 'slug'), ('aliases', 'status', 'chromophore'),
                        ('seq', 'seq_validated', 'seq_comment'), ('ipg_id', 'genbank', 'uniprot', 'pdb'),
                        ('parent_organism', 'switch_type'), ('agg', 'mw'), 'blurb')
         }),
@@ -355,7 +364,7 @@ class ProteinAdmin(CompareVersionAdmin):
             'fields': (('created', 'created_by'), ('modified', 'updated_by'))
         })
     ]
-    readonly_fields = ('created', 'created_by', 'modified', 'updated_by', 'switch_type')
+    readonly_fields = ('created', 'created_by', 'modified', 'updated_by', 'switch_type', 'uuid')
 
     def nstates(self, obj):
         if obj:
