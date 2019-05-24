@@ -1,6 +1,8 @@
 import { GET_SPECTRUM } from "./queries";
 import client from "./client";
 
+const DEFAULT_EXPIRY = 24 * 60 * 60; // 24 hours
+
 const ID = () => {
   // Math.random should be unique because of its seeding algorithm.
   // Convert it to base 36 (numbers + letters), and grab the first 9 characters
@@ -30,7 +32,7 @@ const getStorageWithExpire = (cacheKey, expiry) => {
 };
 
 const getCachedSpectrum = async (id, options) => {
-  let expiry = 10 * 60; // 10 min default
+  let expiry = DEFAULT_EXPIRY; // 10 min default
   if (typeof options === "number") {
     expiry = options;
   } else if (typeof options === "object") {
@@ -54,28 +56,35 @@ const getCachedSpectrum = async (id, options) => {
   }
 };
 
-async function fetchSpectra(id) {
+async function fetchSpectrum(id) {
   const data = await getCachedSpectrum(id);
-  return {
-    ...data,
-    name: data.owner.name,
-    inverted: false,
-    visible: true,
-    ecNormed: false,
-    qyNormed: false
-  };
+  if (data) {
+    return {
+      ...data,
+      name: data.owner.name,
+      inverted: false,
+      visible: true,
+      ecNormed: false,
+      qyNormed: false
+    };
+  }
+  const msg = `Could not find spectrum with ID: ${id}`;
+  console.error(msg);
+  throw new Error(msg);
 }
 
-const updateSpectra = async ({ toAdd, toRemove, dispatch }) => {
-  let add = [];
-  let remove = [];
-  if (toAdd) {
-    add = await Promise.all(toAdd.map(spec => fetchSpectra(spec.id)));
-  }
-  if (toRemove) {
-    remove = toRemove.map(item => item.id);
-  }
-  dispatch({ type: "updateSeries", add, remove });
-};
+async function fetchSpectraList(ids) {
+  const results = await Promise.all(
+    ids.map(id => fetchSpectrum(id)).map(p => p.catch(e => e))
+  );
+  const valid = results.filter(result => !(result instanceof Error));
+  return valid;
+}
 
-export { ID, getCachedSpectrum, getStorageWithExpire, updateSpectra };
+export {
+  ID,
+  getCachedSpectrum,
+  getStorageWithExpire,
+  fetchSpectraList,
+  DEFAULT_EXPIRY
+};

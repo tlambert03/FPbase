@@ -42,6 +42,7 @@
     "popper.js": "^1.15.0",
     "progressbar.js": "^1.0.1",
     "prop-types": "^15.7.2",
+    "qs": "^6.7.0",
     "react": "^16.8.6",
     "react-apollo": "^2.5.5",
     "react-dom": "^16.8.6",

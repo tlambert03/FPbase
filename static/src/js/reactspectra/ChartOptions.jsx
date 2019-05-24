@@ -6,6 +6,7 @@ require("highcharts/modules/exporting")(Highcharts);
 
 const SPECTRUM_CHARTOPTS = {
   chart: {
+    height: "330px",
     zoomType: "x",
     type: "areaspline",
     animation: { duration: 200 },
@@ -123,8 +124,10 @@ const SpectraViewer = ({ series }) => {
     window.chart = chart.current.chart;
   }
 
-  console.log("HighchartsReact Render")
-  return <HighchartsReact highcharts={Highcharts} options={options} ref={chart}/>;
+  console.log("HighchartsReact Render");
+  return (
+    <HighchartsReact highcharts={Highcharts} options={options} ref={chart} />
+  );
 };
 
 export { SpectraViewer, SPECTRUM_CHARTOPTS };

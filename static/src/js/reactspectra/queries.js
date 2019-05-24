@@ -24,6 +24,7 @@ const SPECTRA_LIST = gql`
       category
       subtype
       owner {
+        id
         name
         slug
       }
