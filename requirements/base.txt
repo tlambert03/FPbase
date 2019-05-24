@@ -52,3 +52,7 @@ oauth2client==4.1.3
 algoliasearch_django==1.7.0
 
 celery[redis]==4.2.1
+graphene==2.1.3
+graphene-django==2.2.0
+graphene-django-optimizer==0.4.0
+django-graphql-jwt==0.1.5

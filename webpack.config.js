@@ -155,6 +155,7 @@ module.exports = {
     chunkFilename: '[name]-bundle.js',
   },
   resolve: {
+    extensions: ['.js', '.jsx'],
     alias: {
       jquery: "jquery/src/jquery"
     }

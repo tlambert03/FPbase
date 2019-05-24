@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="app"></div>
+{% endblock content %}
+
+{% block javascript %}
+<script>
+    $(function () {
+        initReactSpectra('app', {option: 'sdf'});
+    })
+</script>
+{% endblock %}

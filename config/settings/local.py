@@ -106,7 +106,7 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'INFO',
+            'level': 'DEBUG',
         },
         'file': {
             'level': 'DEBUG',

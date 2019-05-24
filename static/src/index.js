@@ -35,8 +35,7 @@ import 'bootstrap';
 
 import 'select2/dist/js/select2.full.js';
 import './js/my-fontawesome.js';
-import './js/nv.d3.js';
-
+import './js/nv.d3.js'
 import ProgressBar from 'progressbar.js';
 window.ProgressBar = ProgressBar;
 
@@ -66,3 +65,6 @@ window.FPPropChart = FPPropChart;
 
 import BlastApp from './js/blastapp/app.jsx'
 window.FPblast = BlastApp;
+
+import initReactSpectra from './js/reactspectra/app.jsx'
+window.initReactSpectra = initReactSpectra;

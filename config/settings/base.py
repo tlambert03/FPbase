@@ -355,3 +355,8 @@ if ALGOLIA['API_KEY']:
 CELERY_BROKER_URL = env('CLOUDAMQP_URL', default='amqp://localhost')
 CELERY_RESULT_BACKEND = env('REDIS_URL', default='redis://localhost/')
 
+
+INSTALLED_APPS += ['graphene_django']
+GRAPHENE = {
+    'SCHEMA': 'fpbase.schema.schema',
+}

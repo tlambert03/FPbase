@@ -14,6 +14,9 @@ from fpbase.sitemaps import (ProteinSitemap, OrganismsSitemap, StaticSitemap,
 from fpbase.decorators import check_recaptcha
 import fpbase.views
 from references.views import ReferenceListView
+from django.views.decorators.csrf import csrf_exempt
+from graphene_django.views import GraphQLView
+
 
 sitemaps = {
     'static': StaticSitemap(),
@@ -71,6 +74,7 @@ urlpatterns = [
     url(r'^fav/', include('favit.urls')),
     url(r'^avatar/', include('avatar.urls')),
     url(r'^test500/', fpbase.views.test500),
+    url('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler500 = 'fpbase.views.server_error'
@@ -85,6 +89,7 @@ if settings.DEBUG:
         url(r'^404/$', default_views.page_not_found, kwargs={'exception': Exception('Page not Found')}),
         url(r'^500/$', fpbase.views.server_error),
         url(r'^test/$', fpbase.views.testview),
+        url(r'^reactspectra/$', TemplateView.as_view(template_name='pages/react_spectra.html')),
         url(r'^autocomplete/$', TemplateView.as_view(template_name='pages/test_autocomplete.html'))
     ]
     if 'debug_toolbar' in settings.INSTALLED_APPS:
