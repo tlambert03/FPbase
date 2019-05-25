@@ -239,6 +239,7 @@ const SpectrumSelector = ({ options, defaultValue, defaultSubtypes }) => {
     // if it's the same as the previous value do nothing
     const newValue = e && e.value;
     if (newValue === value) return;
+    setSubtypes([])
     setValue(newValue);
     // otherwise, set the state (so we can know the previous value on change)
     // then update the AppContext
@@ -289,11 +290,13 @@ const SpectrumSelector = ({ options, defaultValue, defaultSubtypes }) => {
       }));
       available.sort(dyeCompare);
       setAvailableSubtypes(available);
-      if (subtypes.length === 0) {
+      if (subtypes === null || subtypes.length === 0) {
         setSubtypes(available.map(({ subtype }) => subtype));
       }
+    } else {
+      setAvailableSubtypes([]);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

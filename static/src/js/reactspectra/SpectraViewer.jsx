@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
@@ -78,7 +78,9 @@ const SPECTRUM_CHARTOPTS = {
     tickLength: 0,
     labels: {
       y: 15
-    }
+    },
+    min: null,
+    max: null
   },
   yAxis: {
     min: 0,
@@ -120,14 +122,13 @@ const SpectraViewer = ({ series }) => {
   const options = { ...SPECTRUM_CHARTOPTS, series };
   const chart = useRef();
 
-  if (chart && chart.current) {
-    window.chart = chart.current.chart;
-  }
+  useEffect(() => {
+    window.chart = chart.current && chart.current.chart;
+  });
 
-  console.log("HighchartsReact Render");
   return (
     <HighchartsReact highcharts={Highcharts} options={options} ref={chart} />
   );
 };
 
-export { SpectraViewer, SPECTRUM_CHARTOPTS };
+export default SpectraViewer;

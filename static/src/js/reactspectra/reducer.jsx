@@ -35,7 +35,6 @@ function reducer(state, action) {
           newState[prop] = action[prop];
         }
       });
-      console.log(state);
       window.series = newState.series;
       window.owners = newState.owners;
       return newState;
