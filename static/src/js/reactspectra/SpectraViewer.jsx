@@ -1,20 +1,32 @@
-import React, { useRef, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
+import {
+  withHighcharts,
+  HighchartsChart,
+  Chart,
+  Legend,
+  XAxis,
+  YAxis,
+  AreaSplineSeries,
+  Tooltip,
+  Credits
+} from "react-jsx-highcharts";
+import applyExporting from "highcharts/modules/exporting";
+import applyExportingData from "highcharts/modules/export-data";
+import { AppContext } from "./Store";
+import { fetchSpectraList } from "./util";
 
-require("highcharts/modules/exporting")(Highcharts);
+applyExporting(Highcharts);
+applyExportingData(Highcharts);
 
 const SPECTRUM_CHARTOPTS = {
   chart: {
-    height: "330px",
+    height: "350px",
     zoomType: "x",
     type: "areaspline",
-    animation: { duration: 200 },
+    animation: { duration: 150 },
     panKey: "meta",
-    panning: true,
-    events: {
-      click: e => console.log(e)
-    }
+    panning: true
   },
   navigation: {
     buttonOptions: {
@@ -32,6 +44,12 @@ const SPECTRUM_CHARTOPTS = {
           }
         }
       }
+    },
+    menuItemStyle: {
+      color: "#333",
+      fontFamily:
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";',
+      fontSize: "0.7rem"
     }
   },
   credits: false,
@@ -80,7 +98,8 @@ const SPECTRUM_CHARTOPTS = {
       y: 15
     },
     min: null,
-    max: null
+    max: null,
+    crosshair: true
   },
   yAxis: {
     min: 0,
@@ -93,7 +112,7 @@ const SPECTRUM_CHARTOPTS = {
     series: {
       fillOpacity: 0.45,
       animation: false,
-      lineWidth: 0,
+      lineWidth: 0.4,
       marker: {
         enabled: false,
         symbol: "circle"
@@ -109,26 +128,75 @@ const SPECTRUM_CHARTOPTS = {
   exporting: {
     sourceWidth: 1200,
     scale: 1,
+    csv: {},
     chartOptions: {
       chart: {
         height: this && this.chartHeight
       },
       title: false
+    },
+    buttons: {
+      contextButton: {
+        menuItems: [
+          "downloadPNG",
+          "downloadPDF",
+          "downloadSVG",
+          "separator",
+          "downloadCSV",
+          "printChart"
+          // "openInCloud"
+          // "viewData"
+        ]
+      }
     }
   }
 };
 
-const SpectraViewer = ({ series }) => {
-  const options = { ...SPECTRUM_CHARTOPTS, series };
-  const chart = useRef();
+const SpectraViewer = () => {
+  const [series, setSeries] = useState([]);
+  const { state } = useContext(AppContext);
 
   useEffect(() => {
-    window.chart = chart.current && chart.current.chart;
-  });
+    window.STATE = state;
+    const updateSeriesData = async () => {
+      const { currentSpectra } = state;
+      let newSeries = series.filter(x => currentSpectra.includes(x.id));
+      const seriesIDs = newSeries.map(x => x.id);
+      const added = currentSpectra.filter(x => !seriesIDs.includes(x));
 
+      if (added.length) {
+        const newData = await fetchSpectraList(added);
+        newSeries = [...newSeries, ...newData];
+      }
+      setSeries(newSeries);
+    };
+    updateSeriesData();
+  }, [state.currentSpectra]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  console.log(state.currentSpectra);
   return (
-    <HighchartsReact highcharts={Highcharts} options={options} ref={chart} />
+    <HighchartsChart
+      plotOptions={SPECTRUM_CHARTOPTS.plotOptions}
+      navigation={SPECTRUM_CHARTOPTS.navigation}
+      exporting={SPECTRUM_CHARTOPTS.exporting}
+    >
+      <Chart {...SPECTRUM_CHARTOPTS.chart} />
+      <Credits position={{ y: -45 }}>fpbase.org</Credits>
+      <Legend {...SPECTRUM_CHARTOPTS.legend} />
+
+      <XAxis {...SPECTRUM_CHARTOPTS.xAxis}>
+        <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
+      </XAxis>
+
+      <YAxis {...SPECTRUM_CHARTOPTS.yAxis}>
+        {series.map(serie => (
+          <AreaSplineSeries key={serie.id} {...serie} />
+        ))}
+      </YAxis>
+
+      <Tooltip {...SPECTRUM_CHARTOPTS.tooltip} />
+    </HighchartsChart>
   );
 };
 
-export default SpectraViewer;
+export default withHighcharts(SpectraViewer, Highcharts);

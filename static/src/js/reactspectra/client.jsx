@@ -4,6 +4,4 @@ const client = new ApolloClient({
   uri: "/graphql/"
 });
 
-window.client = client;
-
 export default client;
