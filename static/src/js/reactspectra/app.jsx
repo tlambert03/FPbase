@@ -1,41 +1,22 @@
 import React, { useEffect, useContext } from "react";
 import ReactDOM from "react-dom";
+import Button from "@material-ui/core/Button";
 import SpectraSelectForm from "./SpectraSelectForm";
 import SpectraViewer from "./SpectraViewer";
 import { Store, AppContext } from "./Store";
 import LoadingLogo from "./LoadingLogo";
-import { ID } from "./util";
-// window.onpopstate = event => {};
-
-const stateToSpectraForms = state => {
-  const { currentSpectra, spectraInfo } = state;
-  return [...new Set(currentSpectra)].reduce((prev, id) => {
-    if (!Object.prototype.hasOwnProperty.call(spectraInfo, id)) {
-      console.error(`could not get info for spectrum ID ${id}`) // eslint-disable-line
-      return prev;
-    }
-    const { category, owner, label, subtype } = spectraInfo[id];
-    if (!Object.prototype.hasOwnProperty.call(prev, category)) {
-      // eslint-disable-next-line no-param-reassign
-      prev[category] = [];
-    }
-    const idx = prev[category].findIndex(x => x.value === owner);
-    if (idx > -1) {
-      prev[category][idx].spectra.push({ id, subtype });
-    } else {
-      prev[category].push({
-        id: ID(),
-        value: owner,
-        label,
-        spectra: [{ id, subtype }]
-      });
-    }
-    return prev;
-  }, {});
-};
 
 const App = () => {
-  const { state } = useContext(AppContext);
+  const { state, dispatch } = useContext(AppContext);
+
+  useEffect(() => {
+    // window.onpopstate = event => {
+    //   dispatch({
+    //     type: "UPDATE",
+    //     currentSpectra: event.state.currentSpectra
+    //   });
+    // };
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (!state.loading) {
@@ -44,16 +25,25 @@ const App = () => {
       if (currentSpectra.length > 0) {
         url = `?s=${currentSpectra.join(",")}`;
       }
+
+      window.history.pushState(state, "", url);
     }
-  }, [state]);
+  }, [state.currentSpectra]); // eslint-disable-line
 
   return state && !state.loading ? (
     <div>
       <SpectraViewer />
-      <SpectraSelectForm
-        formStates={stateToSpectraForms(state)}
-        initialTab={state.tab}
-      />
+      <SpectraSelectForm />
+      <Button
+        variant="contained"
+        color="primary"
+        className="mt-2"
+        onClick={() => {
+          dispatch({ type: "UPDATE", currentSpectra: [] });
+        }}
+      >
+        reset
+      </Button>
     </div>
   ) : (
     <LoadingLogo />

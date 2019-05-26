@@ -1,62 +1,62 @@
-import React, { useState, useContext } from "react";
+import React from "react";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import SpectrumSelectGroup from "./SpectrumSelectGroup";
 import { AppContext } from "./Store";
 
-const SpectraSelectForm = ({ formStates, initialTab }) => {
-  const [currentTab, setCurrentTab] = useState(initialTab);
-  const { state } = useContext(AppContext);
-  const { ownerCategories } = state;
+const SpectraSelectForm = () => {
+  const {
+    state: { tab, formState },
+    dispatch
+  } = React.useContext(AppContext);
 
-  function handleChange(event, newValue) {
-    setCurrentTab(newValue);
-  }
+  const handleTabChange = (event, newValue) => {
+    if (newValue !== tab) {
+      dispatch({ type: "CHANGE_TAB", payload: newValue });
+    }
+  };
+
+  const isPopulated = category =>
+    formState[category] && formState[category].filter(i => i.value).length > 0;
+
+  const smartLabel = (label, cats) => {
+    const populated = cats.some(c => isPopulated(c));
+    return (
+      <span
+        style={{
+          fontWeight: populated ? "bold" : "normal"
+        }}
+      >
+        {label}
+        {populated ? " ✶" : ""}
+      </span>
+    );
+  };
 
   return (
     <div>
       <Tabs
-        value={currentTab}
-        onChange={handleChange}
+        value={tab}
+        onChange={handleTabChange}
         indicatorColor="primary"
         textColor="primary"
         centered
         style={{ marginBottom: "18px" }}
       >
-        <Tab label="Fluorophores" />
-        <Tab label="Filters" />
-        <Tab label="Light Sources" />
-        <Tab label="Cameras" />
+        <Tab label={smartLabel("Fluorophores", ["D", "P"])} />
+        <Tab label={smartLabel("Filters", ["F"])} />
+        <Tab label={smartLabel("Light Sources", ["L"])} />
+        <Tab label={`Cameras ${isPopulated("C") ? "*" : ""}`} />
         <Tab label="Options" />
       </Tabs>
-      <TabContainer index={currentTab}>
+      <TabContainer index={tab}>
         <div>
-          <SpectrumSelectGroup
-            options={ownerCategories.P}
-            formState={formStates.P}
-            hint="Protein"
-          />
-          <SpectrumSelectGroup
-            options={ownerCategories.D}
-            formState={formStates.D}
-            hint="Dye"
-          />
+          <SpectrumSelectGroup category="P" hint="Protein" />
+          <SpectrumSelectGroup category="D" hint="Dye" />
         </div>
-        <SpectrumSelectGroup
-          options={ownerCategories.F}
-          formState={formStates.F}
-          hint="Filter"
-        />
-        <SpectrumSelectGroup
-          options={ownerCategories.L}
-          formState={formStates.L}
-          hint="Light Source"
-        />
-        <SpectrumSelectGroup
-          options={ownerCategories.C}
-          formState={formStates.Cchild}
-          hint="Camera"
-        />
+        <SpectrumSelectGroup category="F" hint="Filter" />
+        <SpectrumSelectGroup category="L" hint="Light Source" />
+        <SpectrumSelectGroup category="C" hint="Detector" />
         <div>
           <h4>options</h4>
         </div>
@@ -65,6 +65,7 @@ const SpectraSelectForm = ({ formStates, initialTab }) => {
   );
 };
 
+// here to make sure we always render each tab to maintain the formstate
 const TabContainer = ({ index, children }) =>
   children &&
   children.map((child, idx) => (

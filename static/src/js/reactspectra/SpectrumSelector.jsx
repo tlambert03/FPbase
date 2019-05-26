@@ -1,11 +1,10 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import Select from "react-select";
 import Box from "@material-ui/core/Box";
 import ToggleButton from "@material-ui/lab/ToggleButton";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppContext } from "./Store";
-import { ID } from "./util";
 
 const useStyles = makeStyles(theme => ({
   toggleButton: { height: "38px" },
@@ -29,49 +28,43 @@ function subtypeSorter(a, b) {
 }
 
 // where value = {value: "ownerslug", lable: "ownername", spectra: [Array, of, IDs]}
-const SpectrumSelector = ({
-  options,
-  initialValue,
-  initialSubtypes,
-  initialAvailableSubtypes
-}) => {
-  const [value, setValue] = useState(initialValue);
-  const [subtypes, setSubtypes] = useState(initialSubtypes);
-  const [availableSubtypes, setAvailableSubtypes] = useState(
-    initialAvailableSubtypes
-  );
-  const { dispatch } = useContext(AppContext);
+const SpectrumSelector = ({ options, selector, category }) => {
+  const {
+    state: { formState },
+    dispatch
+  } = useContext(AppContext);
+
+  const value = options.find(opt => opt.value === selector.value);
+  const subtypes = (value && value.spectra) || [];
 
   // when the spectrum selector changes
   const handleOwnerChange = e => {
     // if it's the same as the previous value do nothing
-    if (e && e.value === value) return;
+    const newValue = e && e.value;
+    if (newValue === value) return;
     dispatch({
-      type: "UPDATE_SPECTRA",
-      add: e && e.spectra.map(({ id }) => id),
-      remove: value && value.spectra.map(({ id }) => id)
+      type: "CHANGE_FORM_OWNER",
+      id: selector.id,
+      category,
+      newValue
     });
-    setSubtypes((e && e.spectra) || []);
-    setValue(e);
   };
 
   // clean up on unmount
   useEffect(() => {
-    setAvailableSubtypes((value && value.spectra) || []);
     return () => {
       if (value)
         dispatch({
-          type: "REMOVE_SPECTRA",
-          payload: value.spectra.map(({ id }) => id)
+          type: "UPDATE_SPECTRA",
+          remove: value.spectra.map(({ id }) => id)
         });
     };
   }, [dispatch, value]);
 
-  const handleSelectionChange = (e, newSelection) => {
-    setSubtypes(
-      availableSubtypes.filter(({ id }) => newSelection.includes(id))
-    );
-  };
+  const otherOwners = formState[category]
+    .filter(i => i.value && i.value !== selector.value)
+    .map(i => i.value);
+  const myOptions = options.filter(opt => !otherOwners.includes(opt.value));
 
   return (
     <Box display="flex">
@@ -82,16 +75,10 @@ const SpectrumSelector = ({
           placeholder="Type to search..."
           filterOption={customFilterOption}
           onChange={handleOwnerChange}
-          options={options}
+          options={myOptions}
         />
       </Box>
-      {availableSubtypes.length > 1 && (
-        <SubtypeSelector
-          subtypes={availableSubtypes}
-          onChange={handleSelectionChange}
-          intialValue={subtypes.map(({ id }) => id)}
-        />
-      )}
+      {subtypes.length > 1 && <SubtypeSelector subtypes={subtypes} />}
     </Box>
   );
 };
@@ -100,23 +87,23 @@ SpectrumSelector.defaultProps = {
   defaultSubtypes: []
 };
 
-const SubtypeSelector = ({ subtypes, onChange, intialValue }) => {
+const SubtypeSelector = ({ subtypes }) => {
   const { dispatch } = useContext(AppContext);
   const classes = useStyles();
 
   const handleClick = e => {
     const elem = e.target.closest("button");
     const checked = !elem.classList.contains("Mui-selected");
-    const type = checked ? "ADD_SPECTRA" : "REMOVE_SPECTRA";
-    dispatch({ type, payload: [elem.value] });
+    const action = { type: "UPDATE_SPECTRA" };
+    action[checked ? "add" : "remove"] = [elem.value];
+    dispatch(action);
   };
 
   subtypes.sort(subtypeSorter);
   return (
     <Box>
       <ToggleButtonGroup
-        value={intialValue}
-        onChange={onChange}
+        value={subtypes.filter(i => i.active).map(i => i.id)}
         size="small"
         className={classes.toggleButtonGroup}
       >

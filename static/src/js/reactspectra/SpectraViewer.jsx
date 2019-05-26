@@ -173,7 +173,6 @@ const SpectraViewer = () => {
     updateSeriesData();
   }, [state.currentSpectra]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  console.log(state.currentSpectra);
   return (
     <HighchartsChart
       plotOptions={SPECTRUM_CHARTOPTS.plotOptions}

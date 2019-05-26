@@ -1,7 +1,7 @@
 import { GET_SPECTRUM } from "./queries";
 import client from "./client";
 
-const DEFAULT_EXPIRY = 24 * 60 * 60; // 24 hours
+const DEFAULT_EXPIRY = 10 * 60 * 60; // n hours
 
 const ID = () => {
   // Math.random should be unique because of its seeding algorithm.
@@ -11,6 +11,8 @@ const ID = () => {
     .toString(36)
     .substr(2, 9)}`;
 };
+
+const emptyFormSelector = () => ({ id: ID(), value: null });
 
 const getStorageWithExpire = (cacheKey, expiry) => {
   const cached = localStorage.getItem(cacheKey);
@@ -69,7 +71,6 @@ async function fetchSpectrum(id) {
     };
   }
   const msg = `Could not find spectrum with ID: ${id}`;
-  console.error(msg);
   throw new Error(msg);
 }
 
@@ -83,6 +84,7 @@ async function fetchSpectraList(ids) {
 
 export {
   ID,
+  emptyFormSelector,
   getCachedSpectrum,
   getStorageWithExpire,
   fetchSpectraList,
