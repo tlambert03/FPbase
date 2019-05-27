@@ -30,10 +30,9 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const SearchModal = ({ options }) => {
+const SearchModal = ({ options, open, setOpen }) => {
   const [modalStyle] = useState(getModalStyle);
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
   const { dispatch } = useContext(AppContext);
 
   useEffect(() => {

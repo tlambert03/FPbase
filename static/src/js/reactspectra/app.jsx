@@ -1,6 +1,7 @@
 import React, { useEffect, useContext } from "react";
 import ReactDOM from "react-dom";
 import { ThemeProvider } from "@material-ui/styles";
+import IconButton from "@material-ui/core/IconButton";
 import SpectraSelectForm from "./SpectraSelectForm";
 import SpectraViewer from "./SpectraViewer";
 import { Store, AppContext } from "./Store";
@@ -10,7 +11,8 @@ import WelcomeModal from "./WelcomeModal";
 import theme from "./theme";
 
 const App = () => {
-  const { state, dispatch } = useContext(AppContext);
+  const { state } = useContext(AppContext);
+  const [searchOpen, setSearchOpen] = React.useState(false);
 
   useEffect(() => {
     // window.onpopstate = event => {
@@ -33,10 +35,26 @@ const App = () => {
   }, [state.currentSpectra, state.tab]) // eslint-disable-line
 
   return state && !state.loading ? (
-    <div>
+    <div style={{ position: "relative" }}>
+      <IconButton
+        style={{
+          position: "absolute",
+          top: 2.5,
+          right: 25,
+          zIndex: 10000,
+          backgroundColor: "transparent"
+        }}
+        onClick={() => setSearchOpen(true)}
+      >
+        <i className="fa fa-search" style={{ fontSize: "0.9rem" }} />
+      </IconButton>
       <SpectraViewer />
       <SpectraSelectForm />
-      <SearchModal options={Object.values(state.owners)} />
+      <SearchModal
+        options={Object.values(state.owners)}
+        open={searchOpen}
+        setOpen={setSearchOpen}
+      />
       <WelcomeModal />
     </div>
   ) : (

@@ -9,8 +9,9 @@
 
 {% block javascript %}
 <script>
+    // loadSpectraViewer().then(function(init){init('app');})
     $(function () {
-        initReactSpectra('app', {option: 'sdf'});
+        initReactSpectra('app');
     })
 </script>
 {% endblock %}

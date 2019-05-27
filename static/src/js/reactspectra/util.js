@@ -1,7 +1,7 @@
 import { GET_SPECTRUM } from "./queries";
 import client from "./client";
 
-const DEFAULT_EXPIRY = 0 * 60 * 60; // n hours
+const DEFAULT_EXPIRY = 10 * 60 * 60; // n hours
 
 const ID = () => {
   // Math.random should be unique because of its seeding algorithm.

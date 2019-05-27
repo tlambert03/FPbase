@@ -13,11 +13,16 @@ import {
 } from "react-jsx-highcharts";
 import applyExporting from "highcharts/modules/exporting";
 import applyExportingData from "highcharts/modules/export-data";
+import Switch from "@material-ui/core/Switch";
+import FormGroup from "@material-ui/core/FormGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 import { AppContext, initialize } from "./Store";
 import { fetchSpectraList } from "./util";
+import fixLogScale from "./fixLogScale";
 
 applyExporting(Highcharts);
 applyExportingData(Highcharts);
+fixLogScale(Highcharts);
 
 const FONTS =
   'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";';
@@ -30,6 +35,24 @@ const SPECTRUM_CHARTOPTS = {
     animation: { duration: 150 },
     panKey: "meta",
     panning: true
+  },
+  plotOptions: {
+    areaspline: {},
+    series: {
+      fillOpacity: 0.45,
+      animation: false,
+      lineWidth: 0.4,
+      marker: {
+        enabled: false,
+        symbol: "circle"
+      },
+      states: {
+        hover: {
+          halo: false,
+          lineWidthPlus: 0
+        }
+      }
+    }
   },
   navigation: {
     buttonOptions: {
@@ -58,7 +81,8 @@ const SPECTRUM_CHARTOPTS = {
   legend: {
     verticalAlign: "top",
     align: "right",
-    x: -20,
+    x: -45,
+    y: -1,
     itemStyle: {
       fontWeight: 600,
       fontSize: "11px",
@@ -108,28 +132,9 @@ const SPECTRUM_CHARTOPTS = {
     crosshair: true
   },
   yAxis: {
-    min: 0,
-    max: 1,
-    gridLineWidth: 0,
-    labels: false,
-    title: false
-  },
-  plotOptions: {
-    series: {
-      fillOpacity: 0.45,
-      animation: false,
-      lineWidth: 0.4,
-      marker: {
-        enabled: false,
-        symbol: "circle"
-      },
-      states: {
-        hover: {
-          halo: false,
-          lineWidthPlus: 0
-        }
-      }
-    }
+    gridLineWidth: 0
+    // title: false
+    // reversed: true,
   },
   exporting: {
     sourceWidth: 1200,
@@ -191,28 +196,75 @@ const SpectraViewer = () => {
       text: "Remove all spectra"
     }
   };
+
+  const OD = num => (num <= 0 ? 10 : -Math.log10(num));
+  const [logScale, setLogScale] = useState(false);
+  const showOD = logScale || state.formState.F.filter(i => i.value).length > 0;
+
   return (
-    <HighchartsChart
-      plotOptions={SPECTRUM_CHARTOPTS.plotOptions}
-      navigation={SPECTRUM_CHARTOPTS.navigation}
-      exporting={exportOptions}
-    >
-      <Chart {...SPECTRUM_CHARTOPTS.chart} />
-      <Credits position={{ y: -45 }}>fpbase.org</Credits>
-      <Legend {...SPECTRUM_CHARTOPTS.legend} />
+    <div>
+      <HighchartsChart
+        plotOptions={SPECTRUM_CHARTOPTS.plotOptions}
+        navigation={SPECTRUM_CHARTOPTS.navigation}
+        exporting={exportOptions}
+      >
+        <Chart {...SPECTRUM_CHARTOPTS.chart} />
+        <Credits position={{ y: -45 }}>fpbase.org</Credits>
+        <Legend {...SPECTRUM_CHARTOPTS.legend} />
 
-      <XAxis {...SPECTRUM_CHARTOPTS.xAxis}>
-        <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
-      </XAxis>
+        <XAxis {...SPECTRUM_CHARTOPTS.xAxis}>
+          <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
+        </XAxis>
 
-      <YAxis {...SPECTRUM_CHARTOPTS.yAxis}>
-        {series.map(serie => (
-          <AreaSplineSeries key={serie.id} {...serie} />
-        ))}
-      </YAxis>
+        <YAxis
+          {...SPECTRUM_CHARTOPTS.yAxis}
+          reversed={logScale}
+          min={0}
+          max={logScale ? 6 : 1}
+          labels={{ enabled: logScale }}
+        >
+          {series.map(serie => {
+            let data = [...serie.data];
+            if (logScale) {
+              data = [...serie.data].map(([a, b]) => [a, OD(b)]);
+            }
+            return (
+              <AreaSplineSeries
+                key={serie.id}
+                {...serie}
+                data={data}
+                threshold={logScale ? 10 : 0}
+              />
+            );
+          })}
+        </YAxis>
 
-      <Tooltip {...SPECTRUM_CHARTOPTS.tooltip} />
-    </HighchartsChart>
+        <Tooltip {...SPECTRUM_CHARTOPTS.tooltip} />
+      </HighchartsChart>
+
+      {showOD && (
+        <FormGroup
+          style={{
+            position: "absolute",
+            top: 30,
+            right: 0,
+            opacity: logScale ? 0.8 : 0.5
+          }}
+        >
+          <FormControlLabel
+            // prettier-ignore
+            control={(
+              <Switch
+                color="default"
+                checked={logScale}
+                onChange={(e,v)=> setLogScale(v)}
+              />
+)}
+            label="OD"
+          />
+        </FormGroup>
+      )}
+    </div>
   );
 };
 

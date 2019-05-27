@@ -208,7 +208,6 @@ function Menu({ selectProps, innerProps, children }) {
 
 const MenuList = props => {
   const { children } = props;
-  console.log(children);
   return (
     // limit to 25 results
     <components.MenuList {...props}>
