@@ -1,15 +1,15 @@
 import React, { useContext } from "react";
+import PropTypes from "prop-types";
 import Box from "@material-ui/core/Box";
 import IconButton from "@material-ui/core/IconButton";
 import Button from "@material-ui/core/Button";
 import DeleteIcon from "@material-ui/icons/Delete";
 import AddIcon from "@material-ui/icons/Add";
 import { makeStyles } from "@material-ui/core/styles";
-import { ID } from "./util";
 import SpectrumSelector from "./SpectrumSelector";
 import { AppContext } from "./Store";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   button: {
     "&:hover": {
       // you want this to be the same as the backgroundColor above
@@ -77,16 +77,20 @@ const SpectrumSelectGroup = ({ category, hint }) => {
         className="mt-2"
         onClick={addRow}
       >
-        {`Add ${hint || "item"}`}
+        {`Add ${hint}`}
         <AddIcon />
       </Button>
     </>
   );
 };
 
+SpectrumSelectGroup.propTypes = {
+  category: PropTypes.string.isRequired,
+  hint: PropTypes.string
+};
+
 SpectrumSelectGroup.defaultProps = {
-  // one id: is required otherwise there will be no rows
-  formState: [{ id: ID(), value: null, subtypes: [] }]
+  hint: "item"
 };
 
 export default SpectrumSelectGroup;

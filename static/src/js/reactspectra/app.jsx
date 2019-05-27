@@ -20,15 +20,14 @@ const App = () => {
 
   useEffect(() => {
     if (!state.loading) {
-      const { currentSpectra } = state;
+      const { currentSpectra, tab } = state;
       let url = window.location.pathname;
       if (currentSpectra.length > 0) {
-        url = `?s=${currentSpectra.join(",")}`;
+        url = `?s=${currentSpectra.join(",")}&t=${tab}`;
       }
-
       window.history.pushState(state, "", url);
     }
-  }, [state.currentSpectra]); // eslint-disable-line
+  }, [state.currentSpectra, state.tab]); // eslint-disable-line
 
   return state && !state.loading ? (
     <div>

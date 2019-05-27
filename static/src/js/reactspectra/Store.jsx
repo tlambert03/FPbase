@@ -1,4 +1,5 @@
 import React, { useReducer, useEffect } from "react";
+import PropTypes from "prop-types";
 import qs from "qs";
 import client from "./client";
 import { SPECTRA_LIST } from "./queries";
@@ -196,6 +197,10 @@ const initialize = async dispatch => {
     const ids = [...new Set(urlSeries.split(","))];
     dispatch({ type: "UPDATE_SPECTRA", add: ids });
   }
+  const tab = urlParams.tab || urlParams.t;
+  if (tab) {
+    dispatch({ type: "UPDATE", tab: +tab });
+  }
 
   // Grab available spectra ids and owner slugs from storage or server
   const cacheKey = "_availableSpectra";
@@ -265,6 +270,13 @@ const Store = ({ children }) => {
       {children}
     </AppContext.Provider>
   );
+};
+
+Store.propTypes = {
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node
+  ]).isRequired
 };
 
 export { Store, AppContext };

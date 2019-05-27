@@ -1,4 +1,5 @@
 import React, { useContext, useEffect } from "react";
+import PropTypes from "prop-types";
 import Select from "react-select";
 import Box from "@material-ui/core/Box";
 import ToggleButton from "@material-ui/lab/ToggleButton";
@@ -6,7 +7,7 @@ import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppContext } from "./Store";
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   toggleButton: { height: "38px" },
   toggleButtonGroup: { marginLeft: "5px" }
 }));
@@ -83,8 +84,10 @@ const SpectrumSelector = ({ options, selector, category }) => {
   );
 };
 
-SpectrumSelector.defaultProps = {
-  defaultSubtypes: []
+SpectrumSelector.propTypes = {
+  options: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selector: PropTypes.arrayOf(PropTypes.object).isRequired,
+  category: PropTypes.string.isRequired
 };
 
 const SubtypeSelector = ({ subtypes }) => {
@@ -120,6 +123,10 @@ const SubtypeSelector = ({ subtypes }) => {
       </ToggleButtonGroup>
     </Box>
   );
+};
+
+SubtypeSelector.propTypes = {
+  subtypes: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.string)).isRequired
 };
 
 export default SpectrumSelector;
