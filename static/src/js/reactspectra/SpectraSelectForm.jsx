@@ -1,14 +1,36 @@
-import React from "react";
+import React, { useContext } from "react";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
+import Button from "@material-ui/core/Button";
+import { makeStyles } from "@material-ui/core/styles";
 import SpectrumSelectGroup from "./SpectrumSelectGroup";
-import { AppContext } from "./Store";
+import { AppContext, initialize } from "./Store";
+
+const useStyles = makeStyles(theme => ({
+  tabHeader: {
+    marginBottom: "14px"
+  },
+  tabLabel: {
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.67rem"
+    },
+    [theme.breakpoints.up("sm")]: {
+      fontSize: ".8rem",
+      paddingLeft: 20,
+      paddingRight: 20
+    },
+    [theme.breakpoints.up("lg")]: {
+      fontSize: ".9rem"
+    }
+  }
+}));
 
 const SpectraSelectForm = () => {
   const {
     state: { tab, formState },
     dispatch
-  } = React.useContext(AppContext);
+  } = useContext(AppContext);
+  const classes = useStyles();
 
   const handleTabChange = (event, newValue) => {
     if (newValue !== tab) {
@@ -41,13 +63,25 @@ const SpectraSelectForm = () => {
         indicatorColor="primary"
         textColor="primary"
         centered
-        style={{ marginBottom: "18px" }}
+        className={classes.tabHeader}
       >
-        <Tab label={smartLabel("Fluorophores", ["D", "P"])} />
-        <Tab label={smartLabel("Filters", ["F"])} />
-        <Tab label={smartLabel("Light Sources", ["L"])} />
-        <Tab label={`Cameras ${isPopulated("C") ? "*" : ""}`} />
-        <Tab label="Options" />
+        <Tab
+          className={classes.tabLabel}
+          label={smartLabel("Fluorophores", ["D", "P"])}
+        />
+        <Tab
+          className={classes.tabLabel}
+          label={smartLabel("Filters", ["F"])}
+        />
+        <Tab
+          className={classes.tabLabel}
+          label={smartLabel("Light Sources", ["L"])}
+        />
+        <Tab
+          className={classes.tabLabel}
+          label={`Cameras ${isPopulated("C") ? "*" : ""}`}
+        />
+        <Tab className={classes.tabLabel} label="Options" />
       </Tabs>
       <TabContainer index={tab}>
         <div>
@@ -58,7 +92,17 @@ const SpectraSelectForm = () => {
         <SpectrumSelectGroup category="L" hint="Light Source" />
         <SpectrumSelectGroup category="C" hint="Detector" />
         <div>
-          <h4>options</h4>
+          <Button
+            variant="contained"
+            color="secondary"
+            className="mt-2"
+            onClick={() => {
+              dispatch({ type: "RESET" });
+              initialize(dispatch, false);
+            }}
+          >
+            Remove All Spectra
+          </Button>
         </div>
       </TabContainer>
     </div>

@@ -15,6 +15,9 @@ class SpectrumOwnerInterface(graphene.Interface):
     def resolve_typ(self, info):
         return self.__class__.__name__.lower()
 
+    def resolve_name(self, info):
+        return str(self)
+
 
 class Camera(DjangoObjectType):
     class Meta:
@@ -59,7 +62,7 @@ class SpectrumOwnerUnion(graphene.Union):
 class Spectrum(gdo.OptimizedDjangoObjectType):
     class Meta:
         model = models.Spectrum
-    
+
     owner = graphene.Field(SpectrumOwnerInterface)
     color = graphene.String()
 
@@ -81,16 +84,50 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
     )
     def resolve_owner(self, info, **kwargs):
         return self.owner
-    
+
     def resolve_color(self, info, **kwargs):
         return self.color()
+
+
+class SpectrumOwnerInfo(graphene.ObjectType):
+    name = graphene.String()
+    slug = graphene.String()
+    id = graphene.ID()
+
+    def resolve_name(self, info):
+        return self.get("name")
+
+    def resolve_slug(self, info):
+        return self.get("slug")
+
+    def resolve_id(self, info):
+        return int(self.get("id"))
+
+
+class SpectrumInfo(graphene.ObjectType):
+    id = graphene.ID()
+    category = graphene.String()
+    subtype = graphene.String()
+    owner = graphene.Field(SpectrumOwnerInfo)
+
+    def resolve_id(self, info):
+        return int(self.get("id"))
+
+    def resolve_category(self, info):
+        return self.get("category").upper()
+
+    def resolve_subtype(self, info):
+        return self.get("subtype").upper()
+
+    def resolve_owner(self, info):
+        return self.get("owner")
 
 
 class Query(graphene.ObjectType):
     state = graphene.Field(State, id=graphene.Int())
     spectrum = graphene.Field(Spectrum, id=graphene.Int())
     states = graphene.List(State)
-    spectra = graphene.List(Spectrum)
+    spectra = graphene.List(SpectrumInfo)
 
     def resolve_state(self, info, **kwargs):
         id = kwargs.get("id")
@@ -111,5 +148,10 @@ class Query(graphene.ObjectType):
         return models.State.objects.all()
 
     def resolve_spectra(self, info, **kwargs):
-        return gdo.query(models.Spectrum.objects.all(), info)
+        selections = info.field_asts[0].selection_set.selections
+        requested_fields = [f.name.value for f in selections]
+        if "owner" in requested_fields:
+            return models.Spectrum.objects.sluglist()
+        return models.Spectrum.objects.all().values(*requested_fields)
+        # return gdo.query(models.Spectrum.objects.all(), info)
 

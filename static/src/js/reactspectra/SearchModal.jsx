@@ -2,11 +2,10 @@ import React, { useState, useEffect, useContext } from "react";
 import PropTypes from "prop-types";
 import Modal from "@material-ui/core/Modal";
 import Typography from "@material-ui/core/Typography";
-import Select from "react-select";
-import NoSsr from "@material-ui/core/NoSsr";
 import { makeStyles } from "@material-ui/core/styles";
 import { customFilterOption } from "./util";
 import { AppContext } from "./Store";
+import IntegrationReactSelect from "./IntegrationReactSelect";
 
 function getModalStyle() {
   const top = 45;
@@ -105,17 +104,15 @@ const SearchModal = ({ options }) => {
         >
           Quick Entry
         </Typography>
-        <NoSsr>
-          <Select
-            autoFocus
-            autoBlur
-            classes={classes}
-            options={options}
-            filterOption={customFilterOption}
-            onChange={handleChange}
-            placeholder="Type the name of any spectrum owner"
-          />
-        </NoSsr>
+
+        <IntegrationReactSelect
+          autoFocus
+          // classes={classes}
+          options={options}
+          filterOption={customFilterOption}
+          onChange={handleChange}
+          placeholder="Type the name of any spectrum"
+        />
       </div>
     </Modal>
   );

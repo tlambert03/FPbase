@@ -32,7 +32,7 @@ const LoadingLogo = () => (
             <animate
               attributeName="stop-color"
               values="#eee; #888"
-              dur="1.3s"
+              dur="1s"
               fill="freeze"
             />
           </stop>
@@ -40,7 +40,7 @@ const LoadingLogo = () => (
             <animate
               attributeName="stop-color"
               values="#eee; #888"
-              dur="1.3s"
+              dur="1s"
               fill="freeze"
               begin="1s"
             />
@@ -51,7 +51,7 @@ const LoadingLogo = () => (
             <animate
               attributeName="width"
               values="0;2947"
-              dur="1.6s"
+              dur="1.3s"
               fill="freeze"
             />
           </rect>

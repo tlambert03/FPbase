@@ -1,11 +1,13 @@
 import React, { useEffect, useContext } from "react";
 import ReactDOM from "react-dom";
-import Button from "@material-ui/core/Button";
+import { ThemeProvider } from "@material-ui/styles";
 import SpectraSelectForm from "./SpectraSelectForm";
 import SpectraViewer from "./SpectraViewer";
-import { Store, AppContext, initialize } from "./Store";
+import { Store, AppContext } from "./Store";
 import LoadingLogo from "./LoadingLogo";
 import SearchModal from "./SearchModal";
+import WelcomeModal from "./WelcomeModal";
+import theme from "./theme";
 
 const App = () => {
   const { state, dispatch } = useContext(AppContext);
@@ -34,18 +36,8 @@ const App = () => {
     <div>
       <SpectraViewer />
       <SpectraSelectForm />
-      <Button
-        variant="contained"
-        color="primary"
-        className="mt-2"
-        onClick={() => {
-          dispatch({ type: "RESET" });
-          initialize(dispatch, false);
-        }}
-      >
-        reset
-      </Button>
       <SearchModal options={Object.values(state.owners)} />
+      <WelcomeModal />
     </div>
   ) : (
     <LoadingLogo />
@@ -55,7 +47,9 @@ const App = () => {
 const initReactSpectra = elem => {
   ReactDOM.render(
     <Store>
-      <App />
+      <ThemeProvider theme={theme}>
+        <App />
+      </ThemeProvider>
     </Store>,
     document.getElementById(elem)
   );

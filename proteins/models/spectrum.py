@@ -68,12 +68,13 @@ class SpectrumManager(models.Manager):
 
     def sluglist(self):
         ''' probably using this one going forward for spectra page'''
-        Q = self.get_queryset().values(
-            'category', 'subtype', 'owner_state__protein__name',
-            'owner_state__slug', 'owner_dye__slug', 'owner_filter__slug',
-            'owner_light__slug', 'owner_camera__slug', 'owner_state__name',
-            'owner_dye__name', 'owner_filter__name', 'owner_light__name',
-            'owner_camera__name')
+
+        owners = ['state', 'dye', 'filter', 'light', 'camera']
+        vals = ['id', 'category', 'subtype', 'owner_state__protein__name']
+        for suffix in ['slug', 'id', 'name']:
+            for owner in owners:
+                vals.append('owner_{}__{}'.format(owner, suffix))
+        Q = self.get_queryset().values(*vals)
 
         out = []
         for v in Q:
@@ -82,13 +83,21 @@ class SpectrumManager(models.Manager):
                     v['owner_camera__slug'])
             name = (v['owner_dye__name'] or v['owner_filter__name'] or
                     v['owner_light__name'] or v['owner_camera__name'] or None)
+            owner_id = (v['owner_state__id'] or v['owner_dye__id'] or v['owner_filter__id'] or
+                    v['owner_light__id'] or v['owner_camera__id'] or None)
             if not name:
                 prot = v['owner_state__protein__name']
                 state = v['owner_state__name']
                 name = prot if state == 'default' else '{} ({})'.format(prot, state)
             out.append({
+                'id': v['id'],
                 'category': v['category'],
                 'subtype': v['subtype'],
+                'owner': {
+                    'slug': slug,
+                    'name': name,
+                    'id': owner_id,
+                },
                 'slug': slug,
                 'name': name,
             })

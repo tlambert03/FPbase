@@ -13,7 +13,7 @@ import {
 } from "react-jsx-highcharts";
 import applyExporting from "highcharts/modules/exporting";
 import applyExportingData from "highcharts/modules/export-data";
-import { AppContext } from "./Store";
+import { AppContext, initialize } from "./Store";
 import { fetchSpectraList } from "./util";
 
 applyExporting(Highcharts);
@@ -149,7 +149,9 @@ const SPECTRUM_CHARTOPTS = {
           "downloadSVG",
           "separator",
           "downloadCSV",
-          "printChart"
+          "printChart",
+          "separator",
+          "reset"
           // "openInCloud"
           // "viewData"
         ]
@@ -160,7 +162,7 @@ const SPECTRUM_CHARTOPTS = {
 
 const SpectraViewer = () => {
   const [series, setSeries] = useState([]);
-  const { state } = useContext(AppContext);
+  const { state, dispatch } = useContext(AppContext);
 
   useEffect(() => {
     window.STATE = state;
@@ -179,11 +181,21 @@ const SpectraViewer = () => {
     updateSeriesData();
   }, [state.currentSpectra]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const exportOptions = { ...SPECTRUM_CHARTOPTS.exporting };
+  exportOptions.menuItemDefinitions = {
+    reset: {
+      onclick: () => {
+        dispatch({ type: "RESET" });
+        initialize(dispatch, false);
+      },
+      text: "Remove all spectra"
+    }
+  };
   return (
     <HighchartsChart
       plotOptions={SPECTRUM_CHARTOPTS.plotOptions}
       navigation={SPECTRUM_CHARTOPTS.navigation}
-      exporting={SPECTRUM_CHARTOPTS.exporting}
+      exporting={exportOptions}
     >
       <Chart {...SPECTRUM_CHARTOPTS.chart} />
       <Credits position={{ y: -45 }}>fpbase.org</Credits>
