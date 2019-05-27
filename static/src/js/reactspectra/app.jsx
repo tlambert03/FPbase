@@ -3,8 +3,9 @@ import ReactDOM from "react-dom";
 import Button from "@material-ui/core/Button";
 import SpectraSelectForm from "./SpectraSelectForm";
 import SpectraViewer from "./SpectraViewer";
-import { Store, AppContext } from "./Store";
+import { Store, AppContext, initialize } from "./Store";
 import LoadingLogo from "./LoadingLogo";
+import SearchModal from "./SearchModal";
 
 const App = () => {
   const { state, dispatch } = useContext(AppContext);
@@ -16,10 +17,10 @@ const App = () => {
     //     currentSpectra: event.state.currentSpectra
     //   });
     // };
-  }, []); // eslint-disable-line
+  }, []) // eslint-disable-line
 
   useEffect(() => {
-    if (!state.loading) {
+    if (!state.loading && state.pushState) {
       const { currentSpectra, tab } = state;
       let url = window.location.pathname;
       if (currentSpectra.length > 0) {
@@ -27,7 +28,7 @@ const App = () => {
       }
       window.history.pushState(state, "", url);
     }
-  }, [state.currentSpectra, state.tab]); // eslint-disable-line
+  }, [state.currentSpectra, state.tab]) // eslint-disable-line
 
   return state && !state.loading ? (
     <div>
@@ -38,11 +39,13 @@ const App = () => {
         color="primary"
         className="mt-2"
         onClick={() => {
-          dispatch({ type: "UPDATE", currentSpectra: [] });
+          dispatch({ type: "RESET" });
+          initialize(dispatch, false);
         }}
       >
         reset
       </Button>
+      <SearchModal options={Object.values(state.owners)} />
     </div>
   ) : (
     <LoadingLogo />

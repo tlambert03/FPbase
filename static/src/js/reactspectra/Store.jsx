@@ -20,6 +20,7 @@ const initialState = {
   ecNormed: false,
   qyNormed: false,
   loading: true,
+  pushState: true,
   tab: 0
 };
 
@@ -76,8 +77,14 @@ const stateToSpectraForms = (
         });
       }
     });
+    // put empty search fields at the end
+    newForm[key].sort((a, b) => (a.value && !b.value ? -1 : 0));
   });
-
+  ["P", "D", "L", "F", "C"].forEach(letter => {
+    if (!(letter in newForm)) {
+      newForm[letter] = [emptyFormSelector()];
+    }
+  });
   return newForm;
 };
 
@@ -89,7 +96,7 @@ const addAndRemoveFromArray = (array, action) => {
   if (action.add) {
     newArray = [...newArray, ...action.add];
   }
-  return newArray;
+  return [...new Set(newArray)];
 };
 
 function reducer(state, action) {
@@ -108,7 +115,6 @@ function reducer(state, action) {
           newState[prop] = action[prop];
         }
       });
-      window.STATE = newState;
       return newState;
     }
     case "CHANGE_TAB": {
@@ -168,6 +174,9 @@ function reducer(state, action) {
       );
       return newState;
     }
+    case "RESET": {
+      return { ...initialState, formState: {} };
+    }
     default:
       throw new Error(`Unrecognized reducer action type: ${action.type}`);
   }
@@ -189,17 +198,19 @@ const seperateOwnerCategories = owners => {
   }, {});
 };
 
-const initialize = async dispatch => {
+const initialize = async (dispatch, parseURL = true) => {
   // look for params in the URL
-  const urlParams = qs.parse(window.location.search.substr(1));
-  const urlSeries = urlParams.series || urlParams.s;
-  if (urlSeries) {
-    const ids = [...new Set(urlSeries.split(","))];
-    dispatch({ type: "UPDATE_SPECTRA", add: ids });
-  }
-  const tab = urlParams.tab || urlParams.t;
-  if (tab) {
-    dispatch({ type: "UPDATE", tab: +tab });
+  if (parseURL) {
+    const urlParams = qs.parse(window.location.search.substr(1));
+    const urlSeries = urlParams.series || urlParams.s;
+    if (urlSeries) {
+      const ids = [...new Set(urlSeries.split(","))];
+      dispatch({ type: "UPDATE_SPECTRA", add: ids });
+    }
+    const tab = urlParams.tab || urlParams.t;
+    if (tab) {
+      dispatch({ type: "UPDATE", tab: +tab });
+    }
   }
 
   // Grab available spectra ids and owner slugs from storage or server
@@ -242,14 +253,15 @@ const initialize = async dispatch => {
     localStorage.setItem(`${cacheKey}:ts`, Date.now());
   }
   const { owners, spectraInfo } = cachedData;
-  window.owners = owners;
-  window.spectraInfo = spectraInfo;
+
   dispatch({
     type: "UPDATE",
     owners,
     spectraInfo,
     ownerCategories: seperateOwnerCategories(owners)
   });
+  // next line prevents an empty form item at the beginning
+  // before all of the populated form items
   dispatch({ type: "UPDATE_FORM" });
   dispatch({ type: "UPDATE", loading: false });
 };
@@ -261,6 +273,8 @@ const Store = ({ children }) => {
     initialize(dispatch);
   }, []);
 
+  // This effect keeps the form consistent with the
+  // spectra in state.currentSpectra
   useEffect(() => {
     if (!state.loading) dispatch({ type: "UPDATE_FORM" });
   }, [state.currentSpectra]) // eslint-disable-line
@@ -279,4 +293,4 @@ Store.propTypes = {
   ]).isRequired
 };
 
-export { Store, AppContext };
+export { Store, AppContext, initialize };

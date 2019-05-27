@@ -6,19 +6,12 @@ import ToggleButton from "@material-ui/lab/ToggleButton";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import { makeStyles } from "@material-ui/core/styles";
 import { AppContext } from "./Store";
+import { customFilterOption } from "./util";
 
 const useStyles = makeStyles(() => ({
   toggleButton: { height: "38px" },
   toggleButtonGroup: { marginLeft: "5px" }
 }));
-
-export const customFilterOption = (option, rawInput) => {
-  const words = rawInput.split(" ");
-  return words.reduce(
-    (acc, cur) => acc && option.label.toLowerCase().includes(cur.toLowerCase()),
-    true
-  );
-};
 
 function subtypeSorter(a, b) {
   const TYPE_ORDER = ["AB", "A_2P", "EX", "EM"];
@@ -34,6 +27,7 @@ const SpectrumSelector = ({ options, selector, category }) => {
     state: { formState },
     dispatch
   } = useContext(AppContext);
+  const selectRef = React.useRef();
 
   const value = options.find(opt => opt.value === selector.value);
   const subtypes = (value && value.spectra) || [];
@@ -67,10 +61,19 @@ const SpectrumSelector = ({ options, selector, category }) => {
     .map(i => i.value);
   const myOptions = options.filter(opt => !otherOwners.includes(opt.value));
 
+  useEffect(() => {
+    const blurme = e => (e.code === "Escape" ? selectRef.current.blur() : null);
+    document.addEventListener("keydown", blurme);
+    return () => {
+      document.removeEventListener("keydown", blurme);
+    };
+  }, []);
+
   return (
     <Box display="flex">
       <Box flexGrow={1}>
         <Select
+          ref={selectRef}
           isClearable
           defaultValue={value}
           placeholder="Type to search..."
@@ -86,7 +89,7 @@ const SpectrumSelector = ({ options, selector, category }) => {
 
 SpectrumSelector.propTypes = {
   options: PropTypes.arrayOf(PropTypes.object).isRequired,
-  selector: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selector: PropTypes.objectOf(PropTypes.any).isRequired,
   category: PropTypes.string.isRequired
 };
 
@@ -126,7 +129,9 @@ const SubtypeSelector = ({ subtypes }) => {
 };
 
 SubtypeSelector.propTypes = {
-  subtypes: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.string)).isRequired
+  subtypes: PropTypes.arrayOf(
+    PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool]))
+  ).isRequired
 };
 
 export default SpectrumSelector;

@@ -19,6 +19,9 @@ import { fetchSpectraList } from "./util";
 applyExporting(Highcharts);
 applyExportingData(Highcharts);
 
+const FONTS =
+  'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";';
+
 const SPECTRUM_CHARTOPTS = {
   chart: {
     height: "350px",
@@ -47,8 +50,7 @@ const SPECTRUM_CHARTOPTS = {
     },
     menuItemStyle: {
       color: "#333",
-      fontFamily:
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";',
+      fontFamily: FONTS,
       fontSize: "0.7rem"
     }
   },
@@ -56,7 +58,12 @@ const SPECTRUM_CHARTOPTS = {
   legend: {
     verticalAlign: "top",
     align: "right",
-    x: -20
+    x: -20,
+    itemStyle: {
+      fontWeight: 600,
+      fontSize: "11px",
+      fontFamily: FONTS
+    }
   },
   tooltip: {
     useHTML: true,
@@ -85,8 +92,7 @@ const SPECTRUM_CHARTOPTS = {
     shadow: false,
     style: {
       color: "#333",
-      fontFamily:
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";',
+      fontFamily: FONTS,
       fontSize: "0.8rem"
     }
   },

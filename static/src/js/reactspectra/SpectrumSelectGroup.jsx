@@ -36,7 +36,7 @@ const SpectrumSelectGroup = ({ category, hint }) => {
     dispatch({ type: "REMOVE_FORM_ROW", category, id });
   };
 
-  if (!formState[category]) addRow(category);
+  // if (!formState[category]) addRow(category);
 
   if (!(selectors && selectors.length)) {
     return <></>;
