@@ -230,7 +230,8 @@ const initialize = async (dispatch, parseURL = true) => {
             category: cur.category,
             label: cur.owner.name,
             spectra: [],
-            value: cur.owner.slug
+            value: cur.owner.slug,
+            url: cur.owner.url
           };
         }
         prev.owners[cur.owner.slug].spectra.push({

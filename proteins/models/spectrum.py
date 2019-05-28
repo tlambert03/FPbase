@@ -70,7 +70,9 @@ class SpectrumManager(models.Manager):
         ''' probably using this one going forward for spectra page'''
 
         owners = ['state', 'dye', 'filter', 'light', 'camera']
-        vals = ['id', 'category', 'subtype', 'owner_state__protein__name']
+        vals = ['id', 'category', 'subtype', 'owner_state__protein__name',
+                'owner_dye__url', 'owner_filter__url', 'owner_camera__url',
+                'owner_light__url', 'owner_state__protein__slug']
         for suffix in ['slug', 'id', 'name']:
             for owner in owners:
                 vals.append('owner_{}__{}'.format(owner, suffix))
@@ -83,6 +85,8 @@ class SpectrumManager(models.Manager):
                     v['owner_camera__slug'])
             name = (v['owner_dye__name'] or v['owner_filter__name'] or
                     v['owner_light__name'] or v['owner_camera__name'] or None)
+            url = (v['owner_dye__url'] or v['owner_filter__url'] or v['owner_state__protein__slug'] or 
+                    v['owner_light__url'] or v['owner_camera__url'] or None)
             owner_id = (v['owner_state__id'] or v['owner_dye__id'] or v['owner_filter__id'] or
                     v['owner_light__id'] or v['owner_camera__id'] or None)
             if not name:
@@ -97,6 +101,7 @@ class SpectrumManager(models.Manager):
                     'slug': slug,
                     'name': name,
                     'id': owner_id,
+                    'url': url
                 },
                 'slug': slug,
                 'name': name,

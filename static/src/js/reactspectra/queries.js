@@ -26,6 +26,7 @@ const SPECTRA_LIST = gql`
       owner {
         name
         slug
+        url
       }
     }
   }

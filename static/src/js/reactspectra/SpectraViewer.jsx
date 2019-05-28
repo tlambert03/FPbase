@@ -16,6 +16,7 @@ import applyExportingData from "highcharts/modules/export-data";
 import Switch from "@material-ui/core/Switch";
 import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import { single } from "rxjs/operator/single";
 import { AppContext, initialize } from "./Store";
 import { fetchSpectraList } from "./util";
 import fixLogScale from "./fixLogScale";
@@ -29,12 +30,16 @@ const FONTS =
 
 const SPECTRUM_CHARTOPTS = {
   chart: {
-    height: "350px",
     zoomType: "x",
     type: "areaspline",
     animation: { duration: 150 },
     panKey: "meta",
-    panning: true
+    panning: true,
+    resetZoomButton: {
+      position: {
+        y: 20
+      }
+    }
   },
   plotOptions: {
     areaspline: {},
@@ -81,7 +86,7 @@ const SPECTRUM_CHARTOPTS = {
   legend: {
     verticalAlign: "top",
     align: "right",
-    x: -45,
+    x: -40,
     y: -1,
     itemStyle: {
       fontWeight: 600,
@@ -201,6 +206,18 @@ const SpectraViewer = () => {
   const [logScale, setLogScale] = useState(false);
   const showOD = logScale || state.formState.F.filter(i => i.value).length > 0;
 
+  const calcHeight = () =>
+    (25 * document.getElementById("app").clientWidth) ** 0.58;
+  const [height, setHeight] = useState(calcHeight());
+  useEffect(() => {
+    window.onresize = () => {
+      setTimeout(() => setHeight(calcHeight()), 300);
+    };
+    return () => {
+      window.onresize = null;
+    };
+  }, []);
+
   return (
     <div>
       <HighchartsChart
@@ -208,7 +225,7 @@ const SpectraViewer = () => {
         navigation={SPECTRUM_CHARTOPTS.navigation}
         exporting={exportOptions}
       >
-        <Chart {...SPECTRUM_CHARTOPTS.chart} />
+        <Chart {...SPECTRUM_CHARTOPTS.chart} height={height} />
         <Credits position={{ y: -45 }}>fpbase.org</Credits>
         <Legend {...SPECTRUM_CHARTOPTS.legend} />
 

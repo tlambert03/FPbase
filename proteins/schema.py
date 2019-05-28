@@ -92,6 +92,7 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
 class SpectrumOwnerInfo(graphene.ObjectType):
     name = graphene.String()
     slug = graphene.String()
+    url = graphene.String()
     id = graphene.ID()
 
     def resolve_name(self, info):
@@ -99,6 +100,9 @@ class SpectrumOwnerInfo(graphene.ObjectType):
 
     def resolve_slug(self, info):
         return self.get("slug")
+
+    def resolve_url(self, info):
+        return self.get("url")
 
     def resolve_id(self, info):
         return int(self.get("id"))

@@ -5,8 +5,11 @@ import Box from "@material-ui/core/Box";
 import ToggleButton from "@material-ui/lab/ToggleButton";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 import { makeStyles } from "@material-ui/core/styles";
-import { AppContext } from "./Store";
+import Icon from "@material-ui/core/Icon";
+import IconButton from "@material-ui/core/IconButton";
+import LinkIcon from "@material-ui/icons/Link";
 import { customFilterOption } from "./util";
+import { AppContext } from "./Store";
 
 const useStyles = makeStyles(() => ({
   toggleButton: { height: "38px" },
@@ -69,6 +72,11 @@ const SpectrumSelector = ({ options, selector, category }) => {
     };
   }, []);
 
+  const ownerLink =
+    category === "P" && selector.url
+      ? `/protein/${selector.url}`
+      : selector.url || null;
+
   return (
     <Box display="flex">
       <Box flexGrow={1}>
@@ -83,6 +91,16 @@ const SpectrumSelector = ({ options, selector, category }) => {
         />
       </Box>
       {subtypes.length > 1 && <SubtypeSelector subtypes={subtypes} />}
+      {ownerLink && (
+        <IconButton
+          color="primary"
+          aria-label="Delete"
+          href={ownerLink}
+          style={{ padding: 6, marginLeft: 10, marginRight: 2 }}
+        >
+          <LinkIcon />
+        </IconButton>
+      )}
     </Box>
   );
 };
