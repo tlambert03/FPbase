@@ -7,6 +7,15 @@ import FormGroup from "@material-ui/core/FormGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import Divider from "@material-ui/core/Divider";
+import SearchIcon from "@material-ui/icons/Search";
+import ChartIcon from "@material-ui/icons/InsertChart";
+import FileIcon from "@material-ui/icons/GetApp";
+import CachedIcon from "@material-ui/icons/Cached";
 
 function getModalStyle() {
   const top = 40;
@@ -20,6 +29,10 @@ function getModalStyle() {
 }
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    width: "100%",
+    maxWidth: 500
+  },
   paper: {
     position: "absolute",
     width: "80%",
@@ -41,17 +54,11 @@ const useStyles = makeStyles(theme => ({
 
 const SearchModal = () => {
   const [modalStyle] = useState(getModalStyle);
-  const [checked, setChecked] = useState(false);
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
-
   const storageKey = "_hideFPbaseSpectraWelcome";
-  useEffect(() => {
-    const show = localStorage.getItem(storageKey);
-    if (show !== "true") {
-      setOpen(true);
-    }
-  }, []);
+  const hide = localStorage.getItem(storageKey) === "true";
+  const [checked, setChecked] = useState(hide);
+  const [open, setOpen] = useState(!hide);
 
   const handleChange = e => {
     localStorage.setItem(storageKey, e.target.checked);
@@ -73,6 +80,43 @@ const SearchModal = () => {
         >
           Welcome to the new FPbase Spectra Viewer!
         </Typography>
+
+        <div className={classes.root}>
+          <Typography variant="h4" gutterBottom>
+            h4. Heading
+          </Typography>
+        </div>
+
+        <List>
+          <ListItem>
+            <ListItemIcon>
+              <SearchIcon />
+            </ListItemIcon>
+            <ListItemText primary="Quick Spectrum Entry" />
+          </ListItem>
+          <ListItem>
+            <ListItemText inset primary="Quick Spectrum Entry" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon>
+              <ChartIcon />
+            </ListItemIcon>
+            <ListItemText primary="Improved graphics" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon>
+              <FileIcon />
+            </ListItemIcon>
+            <ListItemText primary="Exporting" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon>
+              <CachedIcon />
+            </ListItemIcon>
+            <ListItemText primary="State Recovery" />
+          </ListItem>
+        </List>
+
         <Box display="flex">
           <Button
             variant="contained"

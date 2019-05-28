@@ -12,7 +12,7 @@ const LoadingLogo = () => (
     <span
       style={{
         top: "118px",
-        left: "291px",
+        left: "34%",
         position: "absolute",
         fontSize: "4.6rem",
         color: "#ccc"

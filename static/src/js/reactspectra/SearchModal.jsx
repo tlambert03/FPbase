@@ -8,12 +8,12 @@ import { AppContext } from "./Store";
 import IntegrationReactSelect from "./IntegrationReactSelect";
 
 function getModalStyle() {
-  const top = 45;
-  const left = 50;
+  const top = 42;
+  const left = 45;
 
   return {
-    top: `40%`,
-    left: `50%`,
+    top: `${top}%`,
+    left: `${left}%`,
     transform: `translate(-${top}%, -${left}%)`
   };
 }
