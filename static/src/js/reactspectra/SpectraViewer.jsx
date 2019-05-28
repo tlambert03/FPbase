@@ -43,7 +43,7 @@ const SPECTRUM_CHARTOPTS = {
   plotOptions: {
     areaspline: {},
     series: {
-      fillOpacity: 0.45,
+      fillOpacity: 0.5,
       animation: false,
       lineWidth: 0.4,
       marker: {

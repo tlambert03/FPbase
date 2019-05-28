@@ -89,7 +89,6 @@ if settings.DEBUG:
         url(r'^404/$', default_views.page_not_found, kwargs={'exception': Exception('Page not Found')}),
         url(r'^500/$', fpbase.views.server_error),
         url(r'^test/$', fpbase.views.testview),
-        url(r'^reactspectra/$', TemplateView.as_view(template_name='pages/react_spectra.html')),
         url(r'^autocomplete/$', TemplateView.as_view(template_name='pages/test_autocomplete.html'))
     ]
     if 'debug_toolbar' in settings.INSTALLED_APPS:
