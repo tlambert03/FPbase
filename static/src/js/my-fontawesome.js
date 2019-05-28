@@ -1,6 +1,7 @@
 import { library, dom } from "@fortawesome/fontawesome-svg-core";
 import {
   faBan,
+  faBars,
   faAdjust,
   faBook,
   faCamera,
@@ -53,6 +54,7 @@ import { faTwitter, faGoogle } from "@fortawesome/free-brands-svg-icons";
 library.add(
   faAdjust,
   faBan,
+  faBars,
   faBook,
   faCamera,
   faChartArea,

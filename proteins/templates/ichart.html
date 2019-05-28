@@ -102,7 +102,7 @@
 {% block javascript %}
 <script>
 
-  d3.json("{% url 'proteins:basic-protein-api' %}", function(data){
+  d3.json("{% url 'api:basic-protein-api' %}", function(data){
     if (data == null){
       $('.loadinggif').hide();
       //$('#errorModal').modal()

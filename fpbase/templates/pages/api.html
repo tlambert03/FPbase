@@ -37,12 +37,12 @@ you will now be searching using the protein api.  To retrieve the results in JSO
 <h3><strong>Entry points</strong></h3>
 
 <dl class="row">
-	<dt class="col-sm-4"><code>{% url 'proteins:protein-api' %}</code></dt>
+	<dt class="col-sm-4"><code>{% url 'api:protein-api' %}</code></dt>
 	<dd class="col-sm-8">Main protein list api</dd>
-	<dt class="col-sm-4"><code>{% url 'proteins:basic-protein-api' %}</code></dt>
+	<dt class="col-sm-4"><code>{% url 'api:basic-protein-api' %}</code></dt>
 	<dd class="col-sm-8">Dedicated api for 'basic' (non-switchable) proteins that delivers a flat dictionary of attributes (default state is assumed)</dd>
 
-	<dt class="col-sm-4"><code>{% url 'proteins:spectra-api' %}</code></dt>
+	<dt class="col-sm-4"><code>{% url 'api:spectra-api' %}</code></dt>
 	<dd class="col-sm-8">Retrieve protein spectra</dd>
 </dl>
 

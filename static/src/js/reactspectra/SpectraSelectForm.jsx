@@ -8,9 +8,13 @@ import { AppContext, initialize } from "./Store";
 
 const useStyles = makeStyles(theme => ({
   tabHeader: {
-    marginBottom: "14px"
+    marginBottom: 12
   },
   tabLabel: {
+    marginTop: 0,
+    paddingTop: 0,
+    minHeight: 40,
+    // lineHeight: 0,
     [theme.breakpoints.down("xs")]: {
       fontSize: "0.67rem"
     },
@@ -95,7 +99,7 @@ const SpectraSelectForm = () => {
           <Button
             variant="contained"
             color="secondary"
-            className="mt-2"
+            className="mt-0"
             onClick={() => {
               dispatch({ type: "RESET" });
               initialize(dispatch, false);
