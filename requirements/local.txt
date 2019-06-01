@@ -16,4 +16,4 @@ coverage==4.5.3  # https://github.com/nedbat/coveragepy
 
 django-debug-toolbar==1.11  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==2.1.7  # https://github.com/django-extensions/django-extensions
-django-cors-headers==2.5.2
+django-cors-headers==3.0.2
