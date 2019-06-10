@@ -74,7 +74,7 @@ urlpatterns = [
     url(r'^fav/', include('favit.urls')),
     url(r'^avatar/', include('avatar.urls')),
     url(r'^test500/', fpbase.views.test500),
-    url('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    url(r'^graphql', csrf_exempt(GraphQLView.as_view(graphiql=True))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler500 = 'fpbase.views.server_error'

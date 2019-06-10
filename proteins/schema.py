@@ -6,6 +6,31 @@ from graphene_django.types import DjangoObjectType
 from . import models
 
 
+class Protein(gdo.OptimizedDjangoObjectType):
+    class Meta:
+        model = models.Protein
+
+
+class FluorophoreInterface(graphene.Interface):
+    qy = graphene.Float()
+    extCoeff = graphene.Float()
+    twopPeakgm = graphene.Float()
+    exMax = graphene.Float()
+    emMax = graphene.Float()
+
+    def resolve_extCoeff(self, info):
+        return self.ext_coeff
+
+    def resolve_twopPeakgm(self, info):
+        return self.twop_peakGM
+
+    def resolve_exMax(self, info):
+        return self.ex_max
+
+    def resolve_emMax(self, info):
+        return self.em_max
+
+
 class SpectrumOwnerInterface(graphene.Interface):
     name = graphene.String()
     id = graphene.ID()
@@ -27,7 +52,7 @@ class Camera(DjangoObjectType):
 
 class Dye(DjangoObjectType):
     class Meta:
-        interfaces = (SpectrumOwnerInterface,)
+        interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.Dye
 
 
@@ -45,8 +70,14 @@ class Light(DjangoObjectType):
 
 class State(gdo.OptimizedDjangoObjectType):
     class Meta:
-        interfaces = (SpectrumOwnerInterface,)
+        interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.State
+
+    protein = graphene.Field(Protein)
+
+    @gdo.resolver_hints(select_related=("protein",), only=("protein",))
+    def resolve_protein(self, info, **kwargs):
+        return self.protein
 
     # spectra = graphene.List(SpectrumType)
 
@@ -131,6 +162,7 @@ class Query(graphene.ObjectType):
     state = graphene.Field(State, id=graphene.Int())
     spectrum = graphene.Field(Spectrum, id=graphene.Int())
     states = graphene.List(State)
+    # spectra = graphene.List(Spectrum)
     spectra = graphene.List(SpectrumInfo)
 
     def resolve_state(self, info, **kwargs):
@@ -157,5 +189,7 @@ class Query(graphene.ObjectType):
         if "owner" in requested_fields:
             return models.Spectrum.objects.sluglist()
         return models.Spectrum.objects.all().values(*requested_fields)
-        # return gdo.query(models.Spectrum.objects.all(), info)
+
+    # def resolve_spectra(self, info, **kwargs):
+    #     return gdo.query(models.Spectrum.objects.all(), info)
 

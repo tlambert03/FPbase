@@ -360,3 +360,13 @@ INSTALLED_APPS += ['graphene_django']
 GRAPHENE = {
     'SCHEMA': 'fpbase.schema.schema',
 }
+
+# CORS
+# -------
+
+MIDDLEWARE = ['corsheaders.middleware.CorsMiddleware', ] + MIDDLEWARE
+INSTALLED_APPS += ['corsheaders', ]
+CORS_ORIGIN_WHITELIST = (
+    'localhost:8000',
+    'localhost:3000',
+)
