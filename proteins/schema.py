@@ -1,9 +1,24 @@
 import graphene
 import graphene_django_optimizer as gdo
 from graphene_django.types import DjangoObjectType
+from django.db.models import Prefetch
 
 
 from . import models
+
+
+def parse_selection(sel):
+    return (
+        {sel.name.value: [parse_selection(s) for s in sel.selection_set.selections]}
+        if sel.selection_set
+        else sel.name.value
+    )
+
+
+def get_requested_fields(info):
+    selections = info.field_asts[0].selection_set.selections
+    requested_fields = [f.name.value for f in selections]
+    return requested_fields
 
 
 class Protein(gdo.OptimizedDjangoObjectType):
@@ -158,12 +173,60 @@ class SpectrumInfo(graphene.ObjectType):
         return self.get("owner")
 
 
+class FilterPlacement(gdo.OptimizedDjangoObjectType):
+    id = graphene.ID()
+    spectrum = graphene.Field(Spectrum)
+    spectrumId = id = graphene.ID()
+    path = graphene.String()
+    reflects = graphene.Boolean()
+
+    class Meta:
+        model = models.FilterPlacement
+
+    @gdo.resolver_hints(select_related=("filter__spectrum"))
+    def resolve_spectrum(self, info):
+        return self.filter.spectrum
+
+    @gdo.resolver_hints(
+        select_related=("filter__spectrum"), only=("filter__spectrum__id",)
+    )
+    def resolve_spectrumId(self, info):
+        return self.filter.spectrum.id
+
+    def resolve_id(self, info):
+        return self.filter_id
+
+
+class Microscope(DjangoObjectType):
+    class Meta:
+        model = models.Microscope
+
+
+class OpticalConfig(gdo.OptimizedDjangoObjectType):
+    filters = graphene.List(FilterPlacement)
+    microscope = graphene.Field(Microscope)
+
+    class Meta:
+        model = models.OpticalConfig
+
+    @gdo.resolver_hints(
+        prefetch_related=(
+            "filterplacement_set",
+            "filterplacement_set__filter",
+            "filterplacement_set__filter__spectrum",
+        )
+    )
+    def resolve_filters(self, info):
+        return self.filterplacement_set.all()
+
 class Query(graphene.ObjectType):
     state = graphene.Field(State, id=graphene.Int())
     spectrum = graphene.Field(Spectrum, id=graphene.Int())
     states = graphene.List(State)
     # spectra = graphene.List(Spectrum)
     spectra = graphene.List(SpectrumInfo)
+    opticalConfigs = graphene.List(OpticalConfig)
+    opticalConfig = graphene.Field(OpticalConfig, id=graphene.Int())
 
     def resolve_state(self, info, **kwargs):
         id = kwargs.get("id")
@@ -184,11 +247,20 @@ class Query(graphene.ObjectType):
         return models.State.objects.all()
 
     def resolve_spectra(self, info, **kwargs):
-        selections = info.field_asts[0].selection_set.selections
-        requested_fields = [f.name.value for f in selections]
+        requested_fields = get_requested_fields(info)
         if "owner" in requested_fields:
             return models.Spectrum.objects.sluglist()
         return models.Spectrum.objects.all().values(*requested_fields)
+
+    def resolve_opticalConfigs(self, info, **kwargs):
+        # return models.OpticalConfig.objects.all().prefetch_related("microscope")
+        return gdo.query(models.OpticalConfig.objects.all(), info)
+
+    def resolve_opticalConfig(self, info, **kwargs):
+        id = kwargs.get("id")
+        if id is not None:
+            return gdo.query(models.OpticalConfig.objects.filter(id=id), info).get()
+        return None
 
     # def resolve_spectra(self, info, **kwargs):
     #     return gdo.query(models.Spectrum.objects.all(), info)
