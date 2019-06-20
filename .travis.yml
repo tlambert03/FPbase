@@ -15,8 +15,12 @@ env:
   - DJANGO_SETTINGS_MODULE=config.settings.test
 
 before_install:
-#  - createdb fpbase
-  - sudo psql -U postgres -c 'create database fpbase;'
+#  - createdb 
+  - sudo apt-get update
+  - sudo apt-get --yes remove postgresql\*
+  - sudo apt-get install -y postgresql-10 postgresql-client-10
+  - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
+  - sudo service postgresql restart 10
   - sudo apt-get update -qq
   - sudo apt-get install -qq build-essential gettext python-dev zlib1g-dev libpq-dev xvfb
   - sudo apt-get install -qq libtiff4-dev libjpeg8-dev libfreetype6-dev liblcms1-dev libwebp-dev
@@ -30,6 +34,11 @@ install:
   - npm run build
 
 before_script:
+  - psql --version
+  - psql -c 'CREATE DATABASE fpbase;' -U postgres
+  - psql -c 'CREATE ROLE travis SUPERUSER LOGIN CREATEDB;' -U postgres
+  - cp config/database.yml.travis config/database.yml
+
   - python manage.py migrate --noinput
   - python manage.py collectstatic
 
