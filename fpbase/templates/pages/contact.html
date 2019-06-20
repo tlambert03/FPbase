@@ -7,6 +7,9 @@
 {% block content %}
 <h2>What's on your mind?</h2>
 
+<p class="small text-muted">A common reason people contact us is to request that new spectra be added to the database.
+    While we will eventually try to accomodate these requests, please note that much of FPbase is publicly editable, and
+    you can <a href="{% url "proteins:submit-spectra" %}">add spectra to the database here</a>.</p>
 <form action="{% url 'contact' %}" method="post">
     {% csrf_token %}
     {{ form|crispy }}
