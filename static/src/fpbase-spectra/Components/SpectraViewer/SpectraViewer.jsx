@@ -130,6 +130,21 @@ const SpectraViewer = memo(function SpectraViewer({
   const numSpectra = data.length
   return (
     <div className="spectra-viewer" style={{ position: "relative" }}>
+      <span
+        id="zoom-info"
+        style={{
+          display: "none",
+          position: "absolute",
+          fontWeight: 600,
+          textAlign: 'center',
+          bottom: -1,
+          width: '100%',
+          zIndex: 10,
+          fontSize: '0.68rem',
+          color: "#c9c9c9"
+        }}
+      >
+      </span>
       {numSpectra === 0 && <NoData height={height} />}
       <HighchartsChart
         plotOptions={plotOptions}

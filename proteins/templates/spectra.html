@@ -14,10 +14,8 @@
 {% block container-class %}container-fluid px-2 px-sm-3 px-lg-5{% endblock %}
 
 {% block content %}
-<div id="spectra-viewer">loading</div>
-<script>console.time('process')</script>
+<div id="spectra-viewer">{% include "proteins/_loading_logo.html" %}</div>
 {% custom_static 'spectraViewer' %}
-<script>console.timeLog('process', 1)</script>
 {% endblock content %}
 
 {% block footer %}

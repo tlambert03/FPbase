@@ -2,6 +2,7 @@ import React from "react"
 import { makeStyles } from "@material-ui/core/styles"
 import AppBar from "@material-ui/core/AppBar"
 import Toolbar from "@material-ui/core/Toolbar"
+import Tooltip from "@material-ui/core/Tooltip"
 import Fab from "@material-ui/core/Fab"
 
 import AddIcon from "@material-ui/icons/Add"
@@ -80,14 +81,16 @@ const MyAppBar = ({ spectraOptions, clearForm }) => {
       >
         <Toolbar>
           <SettingsDrawer clearForm={clearForm} />
-          <Fab
-            tabIndex={-1}
-            onClick={handleClick}
-            aria-label="Add"
-            className={classes.fabButton}
-          >
-            <AddIcon />
-          </Fab>
+          <Tooltip title="Click [or spacebar] for Quick Entry" enterDelay={700} leaveDelay={200}>
+            <Fab
+              tabIndex={-1}
+              onClick={handleClick}
+              aria-label="Add"
+              className={classes.fabButton}
+            >
+              <AddIcon />
+            </Fab>
+          </Tooltip>
           <div className={classes.spaceBar}>spacebar</div>
           <div className={classes.grow} />
           <FormControlLabel

@@ -3,6 +3,18 @@ import { useMutation, useQuery } from "react-apollo-hooks"
 import { provideAxis } from "react-jsx-highcharts"
 import Input from "@material-ui/core/Input"
 import gql from "graphql-tag"
+import { Tooltip, Zoom } from "@material-ui/core"
+import { withStyles } from "@material-ui/core/styles"
+
+const LightTooltip = withStyles(theme => ({
+  tooltip: {
+    backgroundColor: theme.palette.common.white,
+    color: "rgba(0, 0, 0, 0.87)",
+    boxShadow: theme.shadows[1],
+    fontSize: 12,
+    margin: "0 13px 7px"
+  }
+}))(Tooltip)
 
 const CLASSES = {
   minInput: {
@@ -48,7 +60,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
   const minNode = useRef()
   const maxNode = useRef()
   const axis = getAxis()
-  const forceUpdate = React.useState()[1];
+  const forceUpdate = React.useState()[1]
 
   useEffect(() => {
     if (min || max) {
@@ -104,7 +116,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
 
     const Highcharts = getHighcharts()
     Highcharts.addEvent(axis.object.chart, "redraw", positionInputs)
-    Highcharts.addEvent(axis.object, 'afterSetExtremes', handleAfterSetExtremes);
+    Highcharts.addEvent(axis.object, "afterSetExtremes", handleAfterSetExtremes)
 
     Highcharts.addEvent(
       axis.object.chart,
@@ -160,34 +172,46 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
         display: visible ? "block" : "none"
       }}
     >
-      <Input
-        name="min"
-        type="text"
-        placeholder={`${extremes.dataMin || ""}`}
-        value={Math.round(min) || ""}
-        inputRef={minNode}
-        onChange={e =>
-          mutateExtremes({ variables: { extremes: [e.target.value, max] } })
-        }
-        onKeyPress={handleKeyPress}
-        onBlur={updateRange}
-        style={{ ...CLASSES.minInput, color: minColor }}
-        inputProps={{ style: { textAlign: "center" } }}
-      />
-      <Input
-        name="max"
-        type="text"
-        placeholder={`${extremes.dataMax || ""}`}
-        value={Math.round(max) || ""}
-        inputRef={maxNode}
-        onChange={e =>
-          mutateExtremes({ variables: { extremes: [min, e.target.value] } })
-        }
-        onKeyPress={handleKeyPress}
-        onBlur={updateRange}
-        style={{ ...CLASSES.maxInput, color: maxColor }}
-        inputProps={{ style: { textAlign: "center" } }}
-      />
+      <LightTooltip
+        title="Type to change min, clear to autoscale"
+        placement="top-end"
+        TransitionProps={{ timeout: { enter: 150, exit: 400 } }}
+      >
+        <Input
+          name="min"
+          type="text"
+          placeholder={`${extremes.dataMin || ""}`}
+          value={Math.round(min) || ""}
+          inputRef={minNode}
+          onChange={e =>
+            mutateExtremes({ variables: { extremes: [e.target.value, max] } })
+          }
+          onKeyPress={handleKeyPress}
+          onBlur={updateRange}
+          style={{ ...CLASSES.minInput, color: minColor }}
+          inputProps={{ style: { textAlign: "center" } }}
+        />
+      </LightTooltip>
+      <LightTooltip
+        title="Type to change max, clear to autoscale"
+        placement="top-start"
+        TransitionProps={{ timeout: { enter: 150, exit: 400 } }}
+      >
+        <Input
+          name="max"
+          type="text"
+          placeholder={`${extremes.dataMax || ""}`}
+          value={Math.round(max) || ""}
+          inputRef={maxNode}
+          onChange={e =>
+            mutateExtremes({ variables: { extremes: [min, e.target.value] } })
+          }
+          onKeyPress={handleKeyPress}
+          onBlur={updateRange}
+          style={{ ...CLASSES.maxInput, color: maxColor }}
+          inputProps={{ style: { textAlign: "center" } }}
+        />
+      </LightTooltip>
     </div>
   )
 }

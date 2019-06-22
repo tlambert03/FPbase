@@ -1,3 +1,5 @@
+import { EAGAIN } from "constants"
+
 const FONTS =
   'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";'
 
@@ -26,6 +28,16 @@ const toolTipRow = entry => {
 const DEFAULT_OPTIONS = {
   plotOptions: {
     series: {
+      events: {
+        mouseOver: function({ target: { xAxis } }, b) {
+          const el = document.getElementById("zoom-info")
+          if (el) el.style.display = "block"
+        },
+        mouseOut: function() {
+          const el = document.getElementById("zoom-info")
+          if (el) el.style.display = "none"
+        }
+      },
       animation: false,
       lineWidth: 0.5,
       marker: {
@@ -61,7 +73,19 @@ const DEFAULT_OPTIONS = {
       y: 15,
       enabled: true
     },
-    crosshair: true
+    crosshair: true,
+    events: {
+      afterSetExtremes: function({ userMin, userMax }) {
+        const el = document.getElementById("zoom-info")
+        if (el) {
+          if (userMin || userMax) {
+            el.innerHTML = "click and drag to zoom, shift-click and drag to pan"
+          } else {
+            el.innerHTML = "click and drag to zoom"
+          }
+        }
+      }
+    }
   },
   navigation: {
     buttonOptions: {
@@ -87,7 +111,7 @@ const DEFAULT_OPTIONS = {
     }
   },
   exporting: {
-    filename: 'FPbase_Spectra.csv',
+    filename: "FPbase_Spectra.csv",
     sourceWidth: 1200,
     scale: 1,
     csv: {},
@@ -118,7 +142,7 @@ const DEFAULT_OPTIONS = {
   },
   legend: {
     verticalAlign: "top",
-//    align: "left",
+    align: "left",
     itemStyle: {
       fontWeight: 600,
       fontSize: "11px",
