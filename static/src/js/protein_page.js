@@ -1,4 +1,7 @@
-import LineageChart from './lineage.js';
+import nv from "nvd3"
+import "../css/nv.d3.css"
+import d3 from "d3"
+import $ from "jquery"
 
 function padDataLimits(d, minw, maxw) {
     for (var i = d.minwave - 1; i >= minw; i--) {
@@ -52,7 +55,7 @@ window.initSimpleSpectra = function(selection, myData, protein) {
     showLegend:
       myData.length > 2 ||
       myData.some(function(a) {
-        return a.type == '2p';
+        return a.type === '2p';
       }),
     showXAxis: true,
     showYAxis: false,
@@ -120,14 +123,14 @@ window.initSnapGene = function(protein, selection) {
               name = name.replace(val, '');
             }
           );
-          if (name == protein || name == `${protein}1`) {
+          if (name === protein || name === `${protein}1`) {
             hits.push([$(this).attr('name'), $(this).attr('url')]);
           }
         });
 
       if (hits.length) {
         var t = 'SnapGene links: ';
-        if (hits.length == 1) {
+        if (hits.length === 1) {
           t = 'SnapGene link: ';
         }
         var $li = $('<li>')
@@ -137,7 +140,7 @@ window.initSnapGene = function(protein, selection) {
           $li.append(
             $('<a>', { href: snaptemplate.replace('*', val[1]) }).text(val[0])
           );
-          if (index != hits.length - 1) {
+          if (index !== hits.length - 1) {
             $li.append(', ');
           }
         });

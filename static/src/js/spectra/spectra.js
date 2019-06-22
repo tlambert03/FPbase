@@ -3,6 +3,8 @@ import d3 from "d3";
 import noUiSlider from "nouislider";
 import $ from "jquery";
 import nv from "nvd3";
+import "./css/nv.d3.css"
+
 import {
   options,
   userOptions,
@@ -88,7 +90,7 @@ export default function initSpectra(selection, _spectra_options) {
 
   function slugOptions(slug) {
     for (let i = 0; i < spectra_options.length; i++) {
-      if (spectra_options[i].slug == slug) {
+      if (spectra_options[i].slug === slug) {
         return spectra_options[i];
       }
     }
@@ -99,7 +101,7 @@ export default function initSpectra(selection, _spectra_options) {
     d = d || data;
     return d.filter(item => {
       for (const key in filter) {
-        if (typeof item[key] === "undefined" || item[key] != filter[key])
+        if (typeof item[key] === "undefined" || item[key] !== filter[key])
           return false;
       }
       return true;
@@ -165,7 +167,7 @@ export default function initSpectra(selection, _spectra_options) {
       for (const key in filter) {
         if (
           typeof data[n][key] === "undefined" ||
-          data[n][key] != filter[key]
+          data[n][key] !== filter[key]
         ) {
           skip = true;
           break;
@@ -174,7 +176,7 @@ export default function initSpectra(selection, _spectra_options) {
 
       if (!skip) {
         let SCALE = data[n].scalar || 0.001;
-        if (data[n].type == "ex") {
+        if (data[n].type === "ex") {
           SCALE /= maxScalar;
         }
         // do the scaling
@@ -193,7 +195,7 @@ export default function initSpectra(selection, _spectra_options) {
       for (const key in filter) {
         if (
           typeof data[n][key] === "undefined" ||
-          data[n][key] != filter[key] ||
+          data[n][key] !== filter[key] ||
           !data[n].scaled
         ) {
           skip = true;
@@ -338,7 +340,7 @@ export default function initSpectra(selection, _spectra_options) {
       if ($(".fluor-row").length > 1) {
         $("#toggle_alls").show();
       }
-    } else if (category == CONST.category.light) {
+    } else if (category === CONST.category.light) {
       $(excRow(selWidget, "light-row", refreshChart)).appendTo(
         $("#light-table")
       );
@@ -545,10 +547,10 @@ export default function initSpectra(selection, _spectra_options) {
         .val();
       const type = $(this).val();
       for (let i = 0; i < data.length; i++) {
-        if (data[i].slug == slug && data[i].type == type) {
+        if (data[i].slug === slug && data[i].type === type) {
           data[i].disabled = !this.checked;
         }
-        if (type == CONST.stype.twop && localData[slug]) {
+        if (type === CONST.stype.twop && localData[slug]) {
           const pos = localData[slug]
             .map(function (e) {
               return e.type;
@@ -619,7 +621,7 @@ export default function initSpectra(selection, _spectra_options) {
     const cd = chart.yDomain();
     const m = cd[0];
     const n = cd[1];
-    if (type == "log") {
+    if (type === "log") {
       options.scale = "log";
       chart.yDomain([0.001, n]);
       chart.yScale(d3.scale.log());
@@ -734,7 +736,7 @@ export default function initSpectra(selection, _spectra_options) {
     // if the item is already selected, cancel operation
     if (
       dataHasSlug(slug) &&
-      slug != focusedItem &&
+      slug !== focusedItem &&
       typeof localData[slug] !== "undefined"
     ) {
       alert(
@@ -759,7 +761,7 @@ export default function initSpectra(selection, _spectra_options) {
     }
 
     // special behavior for custom bandpass
-    if (this.value == "custom_bp") {
+    if (this.value === "custom_bp") {
       row.children(":first").removeClass("col");
       row.children(":first").addClass("col-4");
       row.find(".custom_bp_form").show();
@@ -769,7 +771,7 @@ export default function initSpectra(selection, _spectra_options) {
       row.find(".custom_bp_form").hide();
     }
     // special behavior for custom bandpass
-    if (this.value == "custom_laser") {
+    if (this.value === "custom_laser") {
       row.find(".custom_laser_form").show();
     } else {
       row.find(".custom_laser_form").hide();
@@ -781,7 +783,7 @@ export default function initSpectra(selection, _spectra_options) {
       .siblings(".item-link")
       .remove();
     // different process if it was a custom filter
-    if (focusedItem == "custom_bp") {
+    if (focusedItem === "custom_bp") {
       removeItem(row.attr("id"));
     }
 
@@ -992,7 +994,7 @@ export default function initSpectra(selection, _spectra_options) {
     $("#efficiency-table thead").empty();
     for (let i = 0; i < data.length; i++) {
       // look through current data for iSpectra and iEmFilt
-      if (data[i].type == CONST.stype.em) {
+      if (data[i].type === CONST.stype.em) {
         iSpectra.push(i);
       } else if (
         $.inArray(data[i].type, ["em_filter", "bp", "bm", "bs", "sp", "lp"]) >=
