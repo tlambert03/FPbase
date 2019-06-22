@@ -1,14 +1,3 @@
 {
-  "extends": ["airbnb", "prettier"],
-  "env": {
-    "node": true,
-    "es6": true,
-    "browser": true
-  },
-  "plugins": ["prettier", "react-hooks"],
-  "rules": {
-    "prettier/prettier": ["error"],
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn"
-  }
+  "extends": ["react-app"]
 }
