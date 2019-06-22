@@ -73,9 +73,13 @@ const MyAppBar = ({ spectraOptions, clearForm }) => {
 
   return (
     <>
-      <AppBar position="fixed" color="primary" className={classes.appBar}>
+      <AppBar
+        position="fixed"
+        style={{ backgroundColor: "#0D4B33" }}
+        className={classes.appBar}
+      >
         <Toolbar>
-          <SettingsDrawer clearForm={clearForm}></SettingsDrawer>
+          <SettingsDrawer clearForm={clearForm} />
           <Fab
             tabIndex={-1}
             onClick={handleClick}
@@ -98,7 +102,7 @@ const MyAppBar = ({ spectraOptions, clearForm }) => {
             }
             label="OD"
           />
-          <ShareButton></ShareButton>
+          <ShareButton />
         </Toolbar>
       </AppBar>
       <SearchModal
