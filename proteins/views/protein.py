@@ -525,7 +525,7 @@ def protein_table(request):
         "table.html",
         {
             "proteins": Protein.visible.all().prefetch_related(
-                "states", "states__bleach_measurements"
+                "states"
             ),
             "request": request,
         },
