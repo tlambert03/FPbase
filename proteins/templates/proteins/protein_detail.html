@@ -508,7 +508,7 @@
           if (!data.children.length > 0){
             return
           }
-          var linchart = LineageChart({slug: slug}).data(data);
+          var linchart = window.FPBASE.LineageChart({slug: slug}).data(data);
           var lineage = d3.select(el);
           lineage.call(linchart);
           linchart.duration(200);

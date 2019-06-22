@@ -3,17 +3,20 @@
 {% load webp_picture from protein_tags %}
 
 {% block title %}FPbase FRET Calculator{% endblock %}
-{% block meta-description %}An interactive fluorescence spectra viewer and Förster radius calculator to visualize Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblock %}
+{% block meta-description %}An interactive fluorescence spectra viewer and Förster radius calculator to visualize
+Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblock %}
 {% block twitter_title %}FPbase FRET Calculator{% endblock twitter_title %}
-{% block twitter_description %}An interactive fluorescence spectra viewer and Förster radius calculator to visualize Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblock twitter_description %}
+{% block twitter_description %}An interactive fluorescence spectra viewer and Förster radius calculator to visualize
+Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblock twitter_description %}
 
 
 {% block vendorcss %}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
 {% endblock vendorcss %}
 
 {% block extrahead %}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css"/>
+<link rel="stylesheet" type="text/css"
+  href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css" />
 {% endblock extrahead %}
 
 {% block container-class %}container-fluid spectrumpage fretpage{% endblock %}
@@ -27,7 +30,7 @@
       <div class="svg-container">
         <svg id="spectrasvg"></svg>
       </div>
-  <!--
+      <!--
       <div class="focusnote">click and drag to zoom</div>
       <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
         <label class="btn btn-info active">
@@ -103,7 +106,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr >
+      <tr>
         <td id='QYD'></td>
         <td id='ECA'></td>
         <td id='QYA'></td>
@@ -116,14 +119,19 @@
 
 </div>
 <p class='text-muted  text-center mt-2'>
-<small class='font-italic'>QY = Quantum Yield, EC = Extinction Coefficient, J(&lambda;) = Overlap Integral, R<sub>0</sub> = Förster Radius, 𝓃 = refractive index, &kappa;<sup>2</sup> = orientation factor<br><a class='text-info' href="https://doi.org/10.1006/abio.1994.1134">Wu &amp; Brand (1994). Resonance Energy Transfer: Methods and Applications. <em>Analytical Biochem. </em><strong>218</strong></a></small>
-<br>
-{% webp_picture 'images/equation_r0.png' 'mt-2 mb-2 mx-4' %}&amp;
-{% webp_picture 'images/equation_Jlambda.png' 'mt-2 mb-2 mx-4' %}
+  <small class='font-italic'>QY = Quantum Yield, EC = Extinction Coefficient, J(&lambda;) = Overlap Integral,
+    R<sub>0</sub> = Förster Radius, 𝓃 = refractive index, &kappa;<sup>2</sup> = orientation factor<br><a
+      class='text-info' href="https://doi.org/10.1006/abio.1994.1134">Wu &amp; Brand (1994). Resonance Energy Transfer:
+      Methods and Applications. <em>Analytical Biochem. </em><strong>218</strong></a></small>
+  <br>
+  {% webp_picture 'images/equation_r0.png' 'mt-2 mb-2 mx-4' %}&amp;
+  {% webp_picture 'images/equation_Jlambda.png' 'mt-2 mb-2 mx-4' %}
 </p>
 
 <div class="container">
-  <h5 class='text-center mt-2 mb-4' style='font-weight: 300;'>Förster Radii for all monomeric FP pairs in the database <button type="button" data-toggle="modal" data-target="#fretInfoModal" class='btn btn-info btn-circle ml-1'><i class="fas fa-info"></i></button></h5>
+  <h5 class='text-center mt-2 mb-4' style='font-weight: 300;'>Förster Radii for all monomeric FP pairs in the database
+    <button type="button" data-toggle="modal" data-target="#fretInfoModal" class='btn btn-info btn-circle ml-1'><i
+        class="fas fa-info"></i></button></h5>
   <table id="fret_report" class="display table table-sm table-striped" style="width:100%">
     <thead>
       <tr>
@@ -158,10 +166,19 @@
   </table>
 </div>
 
-<svg height="10" width="10" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="diagonal-stripe-r" patternUnits="userSpaceOnUse" width="10" height="10"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxMCcgaGVpZ2h0PScxMCc+CiAgPHJlY3Qgd2lkdGg9JzEwJyBoZWlnaHQ9JzEwJyBmaWxsPSdibGFjaycvPgogIDxwYXRoIGQ9J00tMSwxIGwyLC0yCiAgICAgICAgICAgTTAsMTAgbDEwLC0xMAogICAgICAgICAgIE05LDExIGwyLC0yJyBzdHJva2U9J3doaXRlJyBzdHJva2Utd2lkdGg9JzMnLz4KPC9zdmc+" x="0" y="0" width="10" height="10"> </image> </pattern> </defs> </svg>
+<svg height="10" width="10" xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <defs>
+    <pattern id="diagonal-stripe-r" patternUnits="userSpaceOnUse" width="10" height="10">
+      <image
+        xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxMCcgaGVpZ2h0PScxMCc+CiAgPHJlY3Qgd2lkdGg9JzEwJyBoZWlnaHQ9JzEwJyBmaWxsPSdibGFjaycvPgogIDxwYXRoIGQ9J00tMSwxIGwyLC0yCiAgICAgICAgICAgTTAsMTAgbDEwLC0xMAogICAgICAgICAgIE05LDExIGwyLC0yJyBzdHJva2U9J3doaXRlJyBzdHJva2Utd2lkdGg9JzMnLz4KPC9zdmc+"
+        x="0" y="0" width="10" height="10"> </image>
+    </pattern>
+  </defs>
+</svg>
 
 
-<div class="modal fade" id="fretInfoModal" tabindex="-1" role="dialog" aria-labelledby="transitionModalTitle" aria-hidden="true">
+<div class="modal fade" id="fretInfoModal" tabindex="-1" role="dialog" aria-labelledby="transitionModalTitle"
+  aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -173,37 +190,50 @@
       <div class="modal-body container mb-4 mt-4">
         <dl class="row">
           <dt class="col-sm-2">𝓃</dt>
-          <dd class="col-sm-10">Refractive index of the medium  (1.33 is used for the table calculations)</dd>
+          <dd class="col-sm-10">Refractive index of the medium (1.33 is used for the table calculations)</dd>
           <dt class="col-sm-2">&kappa;<sup>2</sup></dt>
           <dd class="col-sm-10">Orientation factor (0.667 is used for the table calculations)</dd>
           <dt class="col-sm-2">&lambda;max<sub class='small'>D</sub></dt>
           <dd class="col-sm-10">Excitation maximum of the donor (nm)</dd>
           <dt class="col-sm-2">&Delta;&lambda;<sub class='small'>em</sub></dt>
-          <dd class="col-sm-10">Separation between emission maxima of the donor and acceptor (nm).  FRET pairs with small emission seperation are difficult to use in practice due to overlapping emission.</dd>
+          <dd class="col-sm-10">Separation between emission maxima of the donor and acceptor (nm). FRET pairs with small
+            emission seperation are difficult to use in practice due to overlapping emission.</dd>
           <dt class="col-sm-2">QY<sub class='small'>D</sub></dt>
           <dd class="col-sm-10">Quantum yield of the donor</dd>
           <dt class="col-sm-2">&epsilon;<sub class='small'>A</sub></dt>
           <dd class="col-sm-10">Extinction Coefficient of the acceptor (M<sup>-1</sup> cm<sup>-1</sup>)</dd>
           <dt class="col-sm-2">QY<sub class='small'>A</sub></dt>
-          <dd class="col-sm-10">Quantum yield of the acceptor.  FRET acceptors with low quantum yield may provide very low dynamic range between low and high FRET conditions (unless you're doing FLIM and only looking at the lifetime of the donor).</dd>
+          <dd class="col-sm-10">Quantum yield of the acceptor. FRET acceptors with low quantum yield may provide very
+            low dynamic range between low and high FRET conditions (unless you're doing FLIM and only looking at the
+            lifetime of the donor).</dd>
           <dt class="col-sm-2">J(&lambda;)</dt>
           <dd class="col-sm-10">Overlap integral of the donor emission and acceptor excitation spectra, where:<br>
-          {% webp_picture 'images/equation_Jlambda.png' 'mt-2 mb-2 mx-4' %}</dd>
+            {% webp_picture 'images/equation_Jlambda.png' 'mt-2 mb-2 mx-4' %}</dd>
           <dt class="col-sm-2">R<sub>0</sub></dt>
           <dd class="col-sm-10">Förster radius: distance at which 50% FRET efficiency occurs (Å), where: <br>
             {% webp_picture 'images/equation_r0.png' 'mt-2 mb-2 mx-4' %}</dd>
           <dt class="col-sm-2">R<sub>0</sub>&times;QY<sub class='small'>A</sub></dt>
-          <dd class="col-sm-10">Förster radius multiplied by the quantum yield of the acceptor.  A useful indication of how large of an emission peak ratio change one might expect to see under high FRET vs. low FRET conditions </dd>
+          <dd class="col-sm-10">Förster radius multiplied by the quantum yield of the acceptor. A useful indication of
+            how large of an emission peak ratio change one might expect to see under high FRET vs. low FRET conditions
+          </dd>
         </dl>
 
         <h5 style="font-weight: 400" class='mb-3'>Helpful References</h5>
         <ul class='small'>
-          <li>Wu &amp; Brand (1994). Resonance Energy Transfer: Methods and Applications. <em>Analytical Biochem. </em><strong>218(1)</strong><a target="_blank" rel="noopener" href="https://doi.org/10.1006/abio.1994.1134"><i class="fas fa-external-link-alt ml-2 small"></i></a></li>
-          <li>Bajar et al. (2016). A Guide to Fluorescent Protein FRET Pairs. <em>Sensors</em> <strong>16(9)</strong><a target="_blank" rel="noopener" href="https://doi.org/10.3390/s16091488"><i class="fas fa-external-link-alt ml-2 small"></i></a></li>
-          <li>Mastop et al. (2017). Characterization of a spectrally diverse set of fluorescent proteins as FRET acceptors for mTurquoise2. <em>Sci. Rep. </em><strong>7(1)</strong><a target="_blank" rel="noopener" href="https://doi.org/10.1038/s41598-017-12212-x"><i class="fas fa-external-link-alt ml-2 small"></i></a></li>
+          <li>Wu &amp; Brand (1994). Resonance Energy Transfer: Methods and Applications. <em>Analytical Biochem.
+            </em><strong>218(1)</strong><a target="_blank" rel="noopener"
+              href="https://doi.org/10.1006/abio.1994.1134"><i class="fas fa-external-link-alt ml-2 small"></i></a></li>
+          <li>Bajar et al. (2016). A Guide to Fluorescent Protein FRET Pairs. <em>Sensors</em> <strong>16(9)</strong><a
+              target="_blank" rel="noopener" href="https://doi.org/10.3390/s16091488"><i
+                class="fas fa-external-link-alt ml-2 small"></i></a></li>
+          <li>Mastop et al. (2017). Characterization of a spectrally diverse set of fluorescent proteins as FRET
+            acceptors for mTurquoise2. <em>Sci. Rep. </em><strong>7(1)</strong><a target="_blank" rel="noopener"
+              href="https://doi.org/10.1038/s41598-017-12212-x"><i class="fas fa-external-link-alt ml-2 small"></i></a>
+          </li>
         </ul>
 
-        <p class='font-italic text-muted small'>Note: the search bar may be used to select for individual phrases in the table.  Use spaces to seperate protein names.</p>
+        <p class='font-italic text-muted small'>Note: the search bar may be used to select for individual phrases in the
+          table. Use spaces to seperate protein names.</p>
       </div>
     </div>
   </div>
@@ -212,8 +242,12 @@
 
 
 {% block javascript %}
-  <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
-  <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
+<script type="text/javascript"
+  src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js">
+</script>
+<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
 
-  <script> initFRET(); </script>
+<script>
+  $(window).on('load', function(){window.FPBASE.initFRET()})
+</script>
 {% endblock javascript %}

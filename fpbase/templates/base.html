@@ -114,6 +114,7 @@
 
     </div> <!-- /container -->
 
+    {% block footer %}
     <footer class="footer container-fluid pl-0">
       <div class="container">
         <div class="row">
@@ -133,7 +134,8 @@
       </div>
       <script type="text/javascript">document.getElementById("curyear").innerHTML = (new Date()).getFullYear();</script>
     </footer>
-
+    {% endblock footer %}
+    
     {% block modal %}{% endblock modal %}
 
     {% endblock body %}
@@ -142,7 +144,7 @@
       {% custom_static 'vendor' 'js' %}
       {% custom_static 'main' 'js' %}
       <script>
-        window.initAutocomplete();
+        FPBASE.initAutocomplete();
       </script>
 
 

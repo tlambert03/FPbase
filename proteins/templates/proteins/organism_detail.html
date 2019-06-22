@@ -42,7 +42,7 @@ $('.lineage').each(function(i, el){
   $.getJSON("{% url 'proteins:get-org-lineage' object.pk %}", function(data){
     if(!$.isEmptyObject(data)){
       $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
-      var chart = LineageChart({
+      var chart = window.FPBASE.LineageChart({
         withToolbar: true,
         withSearch: true,
         withTopScroll: true,

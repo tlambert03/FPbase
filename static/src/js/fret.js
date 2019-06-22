@@ -1,3 +1,8 @@
+import d3 from "d3"
+import nv from "nvd3"
+import "../css/nv.d3.css"
+import $ from "jquery"
+
 export default function initFRET() {
   var chart;
   var data = [];
@@ -130,7 +135,7 @@ export default function initFRET() {
   function dataHasKey(key) {
     return (
       $.grep(data, function(obj) {
-        return obj.key == key;
+        return obj.key === key;
       }).length > 0
     );
   }
@@ -139,7 +144,7 @@ export default function initFRET() {
     d = d || data;
     return d.filter(function(item) {
       for (var key in filter) {
-        if (typeof item[key] === 'undefined' || item[key] != filter[key])
+        if (typeof item[key] === 'undefined' || item[key] !== filter[key])
           return false;
       }
       return true;
@@ -171,7 +176,7 @@ export default function initFRET() {
   function spectral_product(ar1, ar2) {
     // calculate product of two spectra.values
     var output = [];
-    var step = ar1[1].x - ar1[0].x;
+    //var step = ar1[1].x - ar1[0].x;
     var left = Math.max(ar1[0].x, ar2[0].x);
     var right = Math.min(ar1[ar1.length - 1].x, ar2[ar2.length - 1].x);
 
@@ -475,3 +480,4 @@ export default function initFRET() {
     }
   });
 }
+

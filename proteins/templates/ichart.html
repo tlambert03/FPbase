@@ -110,7 +110,7 @@
       return;
     }
 
-    fpchart = FPPropChart().data(data);
+    fpchart = window.FPBASE.FPPropChart().data(data);
     d3.select('#graph').call(fpchart);
     $('.loadinggif').hide();
   });
