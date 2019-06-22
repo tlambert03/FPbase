@@ -512,8 +512,10 @@
           var lineage = d3.select(el);
           lineage.call(linchart);
           linchart.duration(200);
+          console.log($('.lineage-wrapper'))
           if (slug && $('.lineage-wrapper')){
             var slugpos = d3.select("#node_" + slug).datum().y;
+            console.log(slugpos)
             $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
           }
 

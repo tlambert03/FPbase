@@ -204,7 +204,7 @@ export default function LineageChart(conf) {
         .html(
           '<stop offset="10%" stop-color="#bcbcbc"/> <stop offset="80%" stop-color="#ccc"/> '
         )
-      //var gEnter = svgEnter.append("g");
+      svgEnter.append("g");
       addDrawDropShadow(svg, dropShadow)
 
       var neededWidth = nodeWidth * data.max_depth + margin.right + margin.left

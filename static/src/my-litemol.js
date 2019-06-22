@@ -190,7 +190,7 @@ function downloadPDBMeta(pdbidstring) {
 }
 
 async function loadSmiles(pdbid) {
-  const { default: SmilesDrawer } = import("smiles-drawer")
+  const { default: SmilesDrawer } = await import("smiles-drawer")
 
   var canv = $("#smilesCanvas")
 
