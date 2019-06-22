@@ -9,7 +9,7 @@ $logo-color: #efe;
   ul.nav li.dropdown:hover{
     &> .dropdown-menu {
       @include media-breakpoint-up(md){
-        display: block;
+        //display: block;
       }
     }
   }
