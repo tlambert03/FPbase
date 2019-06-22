@@ -159,10 +159,10 @@ module.exports = {
   },
   output: {
     path: path.resolve("./static/dist/"),
-    filename: "[name].[hash].js",
+    filename: devMode ?  "[name].js" : "[name].[hash].js",
     publicPath: hotReload ? "http://localhost:8080/static/" : "/static/",
     // publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
-    chunkFilename: "[name].[chunkhash].js"
+    chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js"
   },
   resolve: {
     extensions: [".js", ".jsx"],
