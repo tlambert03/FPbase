@@ -43,7 +43,7 @@ const styleRule = {
 
 const jsRule = {
   test: /\.jsx?$/,
-  exclude: /node_modules\/(?![qs|debounce\-raf|smiles\-drawer]).*/,
+  exclude: /node_modules\/(?!(smiles-drawer|qs|debounce-raf)\/).*/,
   use: {
     loader: "babel-loader",
     options: {
