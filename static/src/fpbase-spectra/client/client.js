@@ -11,6 +11,7 @@ import introspectionQueryResultData from "../fragmentTypes.json"
 import { decoder } from "../util"
 import qs from "qs"
 import { GET_CHART_OPTIONS } from "./queries"
+import 'unfetch/polyfill'
 
 function intializeClient({ uri, storage }) {
   const fragmentMatcher = new IntrospectionFragmentMatcher({
