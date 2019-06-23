@@ -10,7 +10,7 @@ const ImageminWebP = require("imagemin-webp")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
 const SentryCliPlugin = require("@sentry/webpack-plugin")
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin")
+const TerserJSPlugin = require("terser-webpack-plugin")
 const CSSnano = require("cssnano")
 
 const devMode = process.env.NODE_ENV !== "production"
@@ -159,7 +159,7 @@ module.exports = {
   },
   output: {
     path: path.resolve("./static/dist/"),
-    filename: devMode ?  "[name].js" : "[name].[hash].js",
+    filename: devMode ? "[name].js" : "[name].[hash].js",
     publicPath: hotReload ? "http://localhost:8080/static/" : "/static/",
     // publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
     chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js"
@@ -187,14 +187,15 @@ module.exports = {
   },
   plugins,
   optimization: {
-    minimizer: [
-      new UglifyJsPlugin({
-        cache: true,
-        parallel: true,
-        sourceMap: true // set to true if you want JS source maps
-      }),
-      new OptimizeCSSAssetsPlugin({})
-    ],
+    // minimizer: [
+    //   new UglifyJsPlugin({
+    //     cache: true,
+    //     parallel: true,
+    //     sourceMap: true // set to true if you want JS source maps
+    //   }),
+    //   new OptimizeCSSAssetsPlugin({})
+    // ],
+    minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
     splitChunks: {
       cacheGroups: {
         commons: {
