@@ -3,12 +3,17 @@ import PropTypes from "prop-types"
 import Tabs from "@material-ui/core/Tabs"
 import Tab from "@material-ui/core/Tab"
 import { makeStyles } from "@material-ui/core/styles"
-
-
+import { RingLoader } from "react-spinners"
+import { css } from "@emotion/core"
 import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 import { Typography } from "@material-ui/core"
 import useWindowWidth from "./useWindowWidth"
 
+const override = css`
+  display: block;
+  margin: 50px auto;
+  border-color: red;
+`
 
 const useStyles = makeStyles(theme => ({
   tabHeader: {
@@ -65,10 +70,13 @@ function selectorSorter(a, b) {
   return -1
 }
 
-
-const OwnersContainer = ({ owners, selectors, addRow, changeOwner, removeRow, clearForm }) => {
+const OwnersContainer = ({
+  owners,
+  selectors,
+  changeOwner,
+  removeRow
+}) => {
   const classes = useStyles()
-  console.log(selectors)
   const [tab, setTab] = useState(0)
 
   const handleTabChange = (event, newValue) => {
@@ -140,7 +148,6 @@ const OwnersContainer = ({ owners, selectors, addRow, changeOwner, removeRow, cl
       <SpectrumSelectorGroup
         selectors={selectors}
         options={allOptions}
-        addRow={addRow}
         showCategoryIcon={!Boolean(category)}
         changeOwner={changeOwner}
         removeRow={removeRow}
@@ -192,22 +199,34 @@ const OwnersContainer = ({ owners, selectors, addRow, changeOwner, removeRow, cl
         />
       </Tabs>
 
-      <TabContainer index={tab}>
-        <div>{spectrumCategoryGroup()}</div>
-        <div>
-          <Typography variant="h6" className={classes.categoryHeader}>
-            Fluorescent Proteins
-          </Typography>
-          {spectrumCategoryGroup("P", "protein")}
-          <Typography variant="h6" className={classes.categoryHeader}>
-            Dyes
-          </Typography>
-          {spectrumCategoryGroup("D", "dye")}
+      {Object.keys(owners).length === 0 ? (
+        <div className="sweet-loading">
+          <RingLoader
+            css={override}
+            sizeUnit={"px"}
+            size={100}
+            color={"#ccc"}
+            loading={true}
+          />
         </div>
-        <div>{spectrumCategoryGroup("F", "filter")}</div>
-        <div>{spectrumCategoryGroup("L", "light")}</div>
-        <div>{spectrumCategoryGroup("C", "camera")}</div>
-      </TabContainer>
+      ) : (
+        <TabContainer index={tab}>
+          <div>{spectrumCategoryGroup()}</div>
+          <div>
+            <Typography variant="h6" className={classes.categoryHeader}>
+              Fluorescent Proteins
+            </Typography>
+            {spectrumCategoryGroup("P", "protein")}
+            <Typography variant="h6" className={classes.categoryHeader}>
+              Dyes
+            </Typography>
+            {spectrumCategoryGroup("D", "dye")}
+          </div>
+          <div>{spectrumCategoryGroup("F", "filter")}</div>
+          <div>{spectrumCategoryGroup("L", "light")}</div>
+          <div>{spectrumCategoryGroup("C", "camera")}</div>
+        </TabContainer>
+      )}
     </div>
   )
 }
