@@ -8,12 +8,15 @@ import { categoryIcon } from "../Components/FaIcon"
 import Typography from "@material-ui/core/Typography"
 
 export const useStyles = makeStyles(theme => ({
-  root: {
-    [theme.breakpoints.down("sm")]: {
-      height: 42
-    }
-  },
+  // root: {
+  //   [theme.breakpoints.down("sm")]: {
+  //     height: 42
+  //   }
+  // },
   deleteButton: {
+    padding: "6px 6px",
+    marginRight: 2,
+    marginLeft: 2,
     [theme.breakpoints.down("xs")]: {
       display: "none"
     },
@@ -88,7 +91,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   return (
     <>
       {selectors.map(selector => (
-        <div style={{ width: "100%" }} key={selector.id}>
+        <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
           {!category &&
             selector.category !== lastCategory &&
             ((lastCategory = selector.category) && (
@@ -115,7 +118,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                 onChange={changeOwner(selector.id, category)}
               />
             </Box>
-            { selector.owner ? (
+            {selector.owner ? (
               <Box>
                 <IconButton
                   aria-label="Delete"

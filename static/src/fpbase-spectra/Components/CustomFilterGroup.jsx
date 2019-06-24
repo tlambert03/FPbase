@@ -48,9 +48,9 @@ const CustomFilterGroup = () => {
   }, [activeSpectra]) // eslint-disable-line
 
   return (
-    <div style={{ marginTop: 3 }}>
+    <div>
       {customFilters.map(filter => (
-        <div style={{ width: "100%" }} key={filter}>
+        <div style={{ width: "100%", margin: "4px 0" }} key={filter}>
           <Box display="flex" alignItems="center">
             {categoryIcon("CF", "rgba(0,0,50,0.4)", {
               style: {
@@ -70,6 +70,11 @@ const CustomFilterGroup = () => {
                 color="secondary"
                 tabIndex={-1}
                 onClick={() => removeRow(filter)}
+                style={{
+                  padding: "6px 6px",
+                  marginRight: 2,
+                  marginLeft: 2
+                }}
               >
                 <DeleteIcon />
               </IconButton>
@@ -81,7 +86,7 @@ const CustomFilterGroup = () => {
         variant="contained"
         color="primary"
         onClick={() => addRow()}
-        style={{ marginTop: 8 }}
+        style={{ marginTop: 8, marginLeft: 34 }}
       >
         <AddIcon />
         {`Add Custom Filter`}

@@ -57,7 +57,7 @@ const customFilterSpectrum = _id => {
   subtype = subtype.toUpperCase()
   trans = +trans / 100 || 0.9
   let data = []
-  let name = `Custom Filter`
+  let name = `Custom `
   switch (subtype) {
     case "BP":
       const min = Math.round(+center - width / 2)
@@ -65,7 +65,7 @@ const customFilterSpectrum = _id => {
       data.push([min - 1, 0])
       rangexy(min, max).forEach(x => data.push([x, +trans]))
       data.push([max + 1, 0])
-      name += ` ${center}/${width}`
+      name += ` ${center}/${width} bp`
       break
     case "LP":
       rangexy(300, center).forEach(x => data.push([x, 0]))

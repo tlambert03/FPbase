@@ -23,7 +23,7 @@ const CROSS_HATCH = {
 const VERT_LINES = {
   pattern: {
     path: {
-      d: "M 2,10 L 2,0"
+      d: ["M 2,10 L 2,0"]
     },
     width: 3,
     height: 10,

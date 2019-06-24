@@ -11,14 +11,16 @@ import Visibility from "@material-ui/icons/Visibility"
 const useStyles = makeStyles(theme => ({
   toggleButton: {
     height: "38px",
-    [theme.breakpoints.down(960)]: {
-      height: "34px"
-    },
+    // [theme.breakpoints.down(960)]: {
+    //   height: "34px"
+    // },
+  },
+  toggleButtonGroup: {
+    marginLeft: "5px",
     [theme.breakpoints.down("xs")]: {
       display: "none"
     }
-  },
-  toggleButtonGroup: { marginLeft: "5px" }
+  }
 }))
 
 function subtypeSorter(a, b) {
@@ -67,7 +69,7 @@ const SubtypeSelector = ({ subtypes, skip }) => {
             style={{ padding: 0 }}
             tabIndex={-1}
           >
-            {skip ? <Visibility></Visibility> : st.subtype.replace(/^A_/g, "")}
+            {skip ? <Visibility /> : st.subtype.replace(/^A_/g, "")}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>

@@ -14,37 +14,36 @@ import { components } from "react-select"
 
 import theme from "./theme"
 const customStyles = {
-  control: provided => ({
-    ...provided,
-    [theme.breakpoints.down(960)]: {
-      minHeight: 34,
-      height: 34
-    }
-  }),
+  // control: provided => ({
+  //   ...provided,
+  //   [theme.breakpoints.down(960)]: {
+  //     minHeight: 34,
+  //     height: 34
+  //   }
+  // }),
   menu: provided => ({
     ...provided,
     zIndex: "10000"
   }),
-  placeholder: provided => ({
-    ...provided,
-    [theme.breakpoints.down(960)]: {
-      top: "42%",
-      fontSize: "0.9rem"
-    }
-  }),
-  indicatorsContainer: provided => ({
-    ...provided,
-    [theme.breakpoints.down(960)]: {
-      position: "relative",
-      top: "-1px",
-      height: 34
-    }
-  }),
+  // placeholder: provided => ({
+  //   ...provided,
+  //   [theme.breakpoints.down(960)]: {
+  //     top: "42%",
+  //     fontSize: "0.9rem"
+  //   }
+  // }),
+  // indicatorsContainer: provided => ({
+  //   ...provided,
+  //   [theme.breakpoints.down(960)]: {
+  //     position: "relative",
+  //     top: "-1px",
+  //     height: 34
+  //   }
+  // }),
   singleValue: (provided, state) => ({
     ...provided,
-    [theme.breakpoints.down("sm")]: {
-      fontSize: "0.9rem",
-      top: "42%"
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.88rem",
     }
   })
 }

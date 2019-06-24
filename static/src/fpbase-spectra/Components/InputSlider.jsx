@@ -2,7 +2,18 @@ import React from "react"
 import Slider from "@material-ui/lab/Slider"
 import Grid from "@material-ui/core/Grid"
 import Input from "@material-ui/core/Input"
-import { useStyles } from "./CustomFilterCreator"
+import { makeStyles } from "@material-ui/core/styles"
+
+export const useStyles = makeStyles({
+  root: {
+    width: "100%"
+  },
+  input: {
+    width: 42,
+    position: "relative",
+    top: -18
+  }
+})
 
 const InputSlider = ({ value, setValue, min, max, step }) => {
   const classes = useStyles()
