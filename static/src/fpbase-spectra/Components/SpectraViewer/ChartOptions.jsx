@@ -1,4 +1,3 @@
-import { EAGAIN } from "constants"
 
 const FONTS =
   'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";'
@@ -79,9 +78,18 @@ const DEFAULT_OPTIONS = {
         const el = document.getElementById("zoom-info")
         if (el) {
           if (userMin || userMax) {
-            el.innerHTML = "click and drag to zoom, shift-click and drag to pan"
+            if (window.USER_IS_TOUCHING) {
+              el.innerHTML = "pinch to zoom, two-finger drag to pan"
+            } else {
+              el.innerHTML =
+                "click and drag to zoom, shift-click and drag to pan"
+            }
           } else {
-            el.innerHTML = "click and drag to zoom"
+            if (window.USER_IS_TOUCHING) {
+              el.innerHTML = "pinch to zoom"
+            } else {
+              el.innerHTML = "click and drag to zoom"
+            }
           }
         }
       }

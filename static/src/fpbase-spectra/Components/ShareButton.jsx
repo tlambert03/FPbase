@@ -52,6 +52,9 @@ const useStyles = makeStyles(theme => ({
     flexBasis: 200,
     width: "98%",
     margin: theme.spacing(1)
+  },
+  listIcon: {
+    minWidth: 42,
   }
 }))
 
@@ -177,6 +180,7 @@ const ShareButton = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [shareLinkOpen, setShareLinkOpen] = useState(false)
   const chart = Highcharts.charts[0]
+  const classes = useStyles()
 
   function handleShareClick(event) {
     setAnchorEl(event.currentTarget)
@@ -231,43 +235,43 @@ const ShareButton = () => {
         {hasSeries ? (
           <div>
             <MenuItem onClick={() => exportChart("image/svg+xml")}>
-              <ListItemIcon>
+              <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
-              <ListItemText primary="Download chart as SVG vector graphic" />
+              <ListItemText primary="Download chart as SVG" style={{paddingRight: 20}}/>
             </MenuItem>
             <MenuItem onClick={() => exportChart("image/png")}>
-              <ListItemIcon>
+              <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
-              <ListItemText primary="Download chart as PNG image" />
+              <ListItemText primary="Download chart as PNG" />
             </MenuItem>
             <MenuItem onClick={() => exportChart("application/pdf")}>
-              <ListItemIcon>
+              <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
-              <ListItemText primary="Download chart as PDF document" />
+              <ListItemText primary="Download chart as PDF" />
             </MenuItem>
             <Divider />
             <MenuItem onClick={() => exportChart("csv")}>
-              <ListItemIcon>
+              <ListItemIcon className={classes.listIcon}>
                 <ChartIcon />
               </ListItemIcon>
               <ListItemText primary="Download data as CSV" />
             </MenuItem>
             <Divider light />
             <MenuItem onClick={printChart}>
-              <ListItemIcon>
+              <ListItemIcon className={classes.listIcon}>
                 <PrintIcon />
               </ListItemIcon>
-              <ListItemText primary="Print Chart" />
+              <ListItemText primary="Print chart" />
             </MenuItem>
             <Divider />
             <MenuItem onClick={openShareModal}>
-              <ListItemIcon>
+              <ListItemIcon className={classes.listIcon}>
                 <LinkIcon />
               </ListItemIcon>
-              <ListItemText primary="Share Chart as URL" />
+              <ListItemText primary="Share chart as URL" />
             </MenuItem>
             <ShareLinkAlert
               open={shareLinkOpen}

@@ -12,7 +12,7 @@ const theme = createMuiTheme({
     values: {
       xs: 0,
       sm: 768,
-      md: 992,
+      md: 960,
       lg: 1280,
       sl: 1920
     }

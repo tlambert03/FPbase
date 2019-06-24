@@ -9,16 +9,18 @@ const ProductLink = ({ current }) => {
     ownerLink = current.url ? `/protein/${current.url}` : current.url || null
   }
   return (
-    <IconButton
-      color="primary"
-      aria-label="Delete"
-      href={ownerLink}
-      target="_blank"
-      tabIndex={-1}
-      style={{ padding: 6, marginLeft: 10, marginRight: 2 }}
-    >
-      <LinkIcon />
-    </IconButton>
+    ownerLink && (
+      <IconButton
+        color="primary"
+        aria-label="Delete"
+        href={ownerLink}
+        target="_blank"
+        tabIndex={-1}
+        style={{ padding: 6, marginLeft: 6, marginRight: 2 }}
+      >
+        <LinkIcon />
+      </IconButton>
+    )
   )
 }
 

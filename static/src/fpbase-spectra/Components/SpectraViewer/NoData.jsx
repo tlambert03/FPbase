@@ -15,12 +15,14 @@ const NoData = memo(function NoData({ height, loading }) {
           top: 0.4 * height,
           zIndex: 50,
           textAlign: "center",
+          fontFamily: "'Century Gothic', Roboto",
+          paddingRight: "8%",
           width: "100%"
         }}
       >
-        Select spectra below or hit the&nbsp;
-        <span className="kbd">L</span>
-        &nbsp; key for quick lookup
+        Select spectra below<br />or hit&nbsp;
+        <span className="kbd">spacebar</span>
+        &nbsp;for quick entry
       </div>
       <svg
         xmlns="http://www.w3.org/2000/svg"

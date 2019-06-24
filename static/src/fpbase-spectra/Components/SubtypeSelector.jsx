@@ -11,7 +11,7 @@ import Visibility from "@material-ui/icons/Visibility"
 const useStyles = makeStyles(theme => ({
   toggleButton: {
     height: "38px",
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down(960)]: {
       height: "34px"
     },
     [theme.breakpoints.down("xs")]: {

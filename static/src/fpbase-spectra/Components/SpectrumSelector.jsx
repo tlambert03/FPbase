@@ -16,7 +16,7 @@ import theme from "./theme"
 const customStyles = {
   control: provided => ({
     ...provided,
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down(960)]: {
       minHeight: 34,
       height: 34
     }
@@ -27,14 +27,14 @@ const customStyles = {
   }),
   placeholder: provided => ({
     ...provided,
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down(960)]: {
       top: "42%",
       fontSize: "0.9rem"
     }
   }),
   indicatorsContainer: provided => ({
     ...provided,
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down(960)]: {
       position: "relative",
       top: "-1px",
       height: 34
@@ -43,7 +43,8 @@ const customStyles = {
   singleValue: (provided, state) => ({
     ...provided,
     [theme.breakpoints.down("sm")]: {
-      fontSize: "0.9rem"
+      fontSize: "0.9rem",
+      top: "42%"
     }
   })
 }
@@ -153,10 +154,12 @@ const SpectrumSelector = ({
           components={{ SingleValue }}
         />
       </Box>
-      <SubtypeSelector
-        subtypes={subtypes}
-        skip={value && !["P", "D"].includes(value.category)}
-      />
+      {subtypes.length > 0 && (
+        <SubtypeSelector
+          subtypes={subtypes}
+          skip={value && !["P", "D"].includes(value.category)}
+        />
+      )}
       <ProductLink current={value} />
     </Box>
   )

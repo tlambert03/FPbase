@@ -140,8 +140,8 @@ const SpectraViewer = memo(function SpectraViewer({
           bottom: -1,
           width: '100%',
           zIndex: 10,
-          fontSize: '0.68rem',
-          color: "#c9c9c9"
+          fontSize: '0.7rem',
+          color: "#bbb"
         }}
       >
       </span>
