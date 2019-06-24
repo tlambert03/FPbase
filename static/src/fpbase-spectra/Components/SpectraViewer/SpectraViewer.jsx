@@ -128,6 +128,7 @@ const SpectraViewer = memo(function SpectraViewer({
   }
 
   const numSpectra = data.length
+  const exData = data.filter(i => i.subtype === "EX")
   return (
     <div className="spectra-viewer" style={{ position: "relative" }}>
       <span
@@ -136,15 +137,14 @@ const SpectraViewer = memo(function SpectraViewer({
           display: "none",
           position: "absolute",
           fontWeight: 600,
-          textAlign: 'center',
+          textAlign: "center",
           bottom: -1,
-          width: '100%',
+          width: "100%",
           zIndex: 10,
-          fontSize: '0.7rem',
+          fontSize: "0.7rem",
           color: "#bbb"
         }}
-      >
-      </span>
+      />
       {numSpectra === 0 && <NoData height={height} />}
       <HighchartsChart
         plotOptions={plotOptions}
@@ -182,7 +182,7 @@ const SpectraViewer = memo(function SpectraViewer({
           labels={{
             ...yAxis.labels,
             enabled: chartOptions.scaleEC,
-            style: { fontWeight: 600 }
+            style: { fontWeight: 600, fontSize: "0.65rem" }
           }}
           opposite
           gridLineWidth={chartOptions.scaleEC && chartOptions.showGrid}
@@ -192,15 +192,18 @@ const SpectraViewer = memo(function SpectraViewer({
           min={0}
           endOnTick={chartOptions.scaleEC}
         >
-          {data
-            .filter(i => i.subtype === "EX")
-            .map(spectrum => (
-              <SpectrumSeries
-                spectrum={spectrum}
-                key={spectrum.id}
-                {...chartOptions}
-              />
-            ))}
+          {exData.length > 0 && chartOptions.scaleEC && (
+            <YAxis.Title style={{ fontSize: "0.65rem" }}>
+              Extinction Coefficient
+            </YAxis.Title>
+          )}
+          {exData.map(spectrum => (
+            <SpectrumSeries
+              spectrum={spectrum}
+              key={spectrum.id}
+              {...chartOptions}
+            />
+          ))}
         </YAxis>
 
         <XAxisWithRange options={xAxis} showPickers={numSpectra > 0} />
@@ -242,7 +245,7 @@ const MyCredits = provideAxis(function MyCredits({
 export const XAxisWithRange = ({ options, showPickers }) => {
   return (
     <>
-      <XAxis {...options} id="xAxis">
+      <XAxis {...options} lineWidth={showPickers ? 1 : 0} id="xAxis">
         <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
       </XAxis>
       <XRangePickers
