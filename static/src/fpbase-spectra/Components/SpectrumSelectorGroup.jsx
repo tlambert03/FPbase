@@ -40,17 +40,16 @@ export const useStyles = makeStyles(theme => ({
   }
 }))
 
-const SpectrumSelectorGroup = ({
+const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   selectors,
   options,
   category,
-  addRow,
   changeOwner,
   removeRow,
   showCategoryIcon,
   hint,
   owners
-}) => {
+}) {
   const classes = useStyles()
   const allOwners = selectors.map(({ owner }) => owner)
 
@@ -61,9 +60,9 @@ const SpectrumSelectorGroup = ({
   }
 
   // make sure there is always one empty selector available
-  if (selectors.filter(({ owner }) => !owner).length < 1) {
-    addRow(category || null)
-  }
+  // if (selectors.filter(({ owner }) => !owner).length < 1) {
+  //   addRow(category || null)
+  // }
 
   let lastCategory = ""
   const categoryNames = {
@@ -121,11 +120,7 @@ const SpectrumSelectorGroup = ({
                 onChange={changeOwner(selector.id, category)}
               />
             </Box>
-            {(selector.category ? (
-              selectors.length > 1
-            ) : (
-              selectors.filter(({ category }) => !category).length > 1
-            )) ? (
+            { selector.owner ? (
               <Box>
                 <IconButton
                   aria-label="Delete"
@@ -154,7 +149,7 @@ const SpectrumSelectorGroup = ({
       </Button> */}
     </>
   )
-}
+})
 
 SpectrumSelectorGroup.defaultProps = {
   hint: "item",

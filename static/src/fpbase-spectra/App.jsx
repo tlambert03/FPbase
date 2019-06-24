@@ -9,6 +9,10 @@ import { useCachedQuery } from "./useCachedQuery"
 import useSelectors from "./Components/useSelectors"
 import MyAppBar from "./Components/MyAppBar"
 
+const daysSinceLaunch = Math.round(
+  (new Date(2019, 6, 1) - Date.now()) / (1000 * 60 * 60 * 24)
+)
+
 const App = () => {
   const stash = useCachedQuery(SPECTRA_LIST, "_FPbaseSpectraStash", 5 * 60)
   const owners = useRef({})
@@ -19,9 +23,10 @@ const App = () => {
     spectraInfo.current = data.spectraInfo
   }
 
-  const { selectors, changeOwner, removeRow, addRow, clearForm } = useSelectors(
-    { owners: owners.current, spectraInfo: spectraInfo.current }
-  )
+  const { selectors, changeOwner, removeRow, clearForm } = useSelectors({
+    owners: owners.current,
+    spectraInfo: spectraInfo.current
+  })
 
   const storageKey = "_hideFPbaseSpectraWelcome"
   const hide = localStorage.getItem(storageKey) === "true"
@@ -36,16 +41,13 @@ const App = () => {
   return (
     <>
       <SpectraViewer spectraInfo={spectraInfo.current} />
-      {spectraInfo.current && owners.current && (
-        <OwnersContainer
-          owners={owners.current}
-          selectors={selectors}
-          addRow={addRow}
-          changeOwner={changeOwner}
-          removeRow={removeRow}
-          clearForm={clearForm}
-        />
-      )}
+      <OwnersContainer
+        owners={owners.current}
+        selectors={selectors}
+        changeOwner={changeOwner}
+        removeRow={removeRow}
+        clearForm={clearForm}
+      />
       <MyAppBar
         spectraOptions={Object.values(owners.current || {})}
         clearForm={clearForm}
@@ -56,11 +58,7 @@ const App = () => {
         checked={checked}
         close={() => setOpen(false)}
         handleChange={handleChange}
-        isNew={
-          Math.round(
-            (new Date(2019, 6, 1) - Date.now()) / (1000 * 60 * 60 * 24)
-          ) < 120
-        }
+        isNew={daysSinceLaunch < 120}
       />
     </>
   )

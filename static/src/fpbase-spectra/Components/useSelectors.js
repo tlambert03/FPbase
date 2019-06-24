@@ -14,19 +14,40 @@ const useSelectors = ({ owners, spectraInfo, initial = [] }) => {
   const [selectors, setSelectors] = useState(initial)
   const selectorId = useRef(0)
 
-  // this makes sure that all active spectra are reflected in the ownerSlugs array
+  // this makes sure that all active spectra are reflected in the selectors array
   useEffect(() => {
     const currentOwners = selectors.map(({ owner }) => owner)
-    let newOwners = activeSpectra
+    const newOwners = activeSpectra
       .map(id => spectraInfo[id] && spectraInfo[id].owner)
       .filter(owner => owner && !currentOwners.includes(owner))
-    newOwners = [...new Set(newOwners)].map(owner => ({
+    let newSelectors = [...new Set(newOwners)].map(owner => ({
       id: selectorId.current++,
       owner,
       category: owners[owner].category
     }))
-    setSelectors(update(selectors, { $push: newOwners }))
-  }, [activeSpectra]) // eslint-disable-line
+
+    newSelectors = update(selectors, { $push: newSelectors })
+
+    setSelectors(newSelectors)
+  }, [activeSpectra, owners, selectors, spectraInfo])
+
+  useEffect(() => {
+    let newSelectors = selectors
+    Array.from(["D", "P", "L", "C", "F", null]).forEach(cat => {
+      if (!newSelectors.find(item => item.category === cat && !item.owner)) {
+        newSelectors = update(newSelectors, {
+          $push: [
+            {
+              id: selectorId.current++,
+              owner: null,
+              category: cat
+            }
+          ]
+        })
+      }
+    })
+    setSelectors(newSelectors)
+  }, [selectors])
 
   const addRow = (category = null) => {
     let newSelectors = update(selectors, {
