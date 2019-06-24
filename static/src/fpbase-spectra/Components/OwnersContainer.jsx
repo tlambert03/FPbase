@@ -68,7 +68,7 @@ function selectorSorter(a, b) {
 
 const OwnersContainer = ({ owners, selectors, addRow, changeOwner, removeRow, clearForm }) => {
   const classes = useStyles()
-
+  console.log(selectors)
   const [tab, setTab] = useState(0)
 
   const handleTabChange = (event, newValue) => {

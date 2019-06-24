@@ -100,6 +100,16 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
+            <ChartIcon />
+          </Icon>
+          Improved Charts
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          The chart is faster, less buggy, and handles larger numbers of
+          spectra.
+        </Typography>
+        <Typography variant="h6" gutterBottom>
+          <Icon className={classes.headerIcon}>
             <SettingsIcon />
           </Icon>
           Configurable
@@ -118,16 +128,6 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
         <Typography variant="body1" gutterBottom>
           The state of the viewer in any tab will persist across browser refresh
         </Typography>
-        <Typography variant="h6" gutterBottom>
-          <Icon className={classes.headerIcon}>
-            <ChartIcon />
-          </Icon>
-          Better Charts
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          The chart is faster, less buggy, and handles larger numbers of
-          spectra.
-        </Typography>
       </DialogContent>
       <DialogActions>
         <FormGroup row>
@@ -144,7 +144,7 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
             label="Don't show on load"
           />
         </FormGroup>
-        <Button onClick={close} color="primary">
+        <Button style={{marginRight: 10}} onClick={close} color="primary">
           Close
         </Button>
       </DialogActions>
