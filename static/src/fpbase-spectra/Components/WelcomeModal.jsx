@@ -29,11 +29,12 @@ const useStyles = makeStyles(theme => ({
     },
     "& h6": {
       color: "#333",
-      marginTop: 4
+      marginTop: 6
     },
     "& p": {
       color: "#666",
       marginLeft: "2.2rem",
+      marginBottom: 10,
       [theme.breakpoints.down("xs")]: {
         marginLeft: ".4rem"
       }
@@ -82,7 +83,12 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
           Hit&nbsp;
           <span className="kbd">spacebar</span>
           &nbsp;to quickly lookup and load any spectrum group in the database.
-          Try it now!
+          You can also load the complete optical setup from any optical
+          config in any{" "}
+          <a href="/microscopes" target="_blank">
+            FPbase microscope
+          </a>
+          . Try it now!
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
@@ -141,10 +147,10 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
                 value="checked"
               />
             }
-            label="Don't show on load"
+            label="Don't show this on load"
           />
         </FormGroup>
-        <Button style={{marginRight: 10}} onClick={close} color="primary">
+        <Button style={{ marginRight: 10 }} onClick={close} color="primary">
           Close
         </Button>
       </DialogActions>

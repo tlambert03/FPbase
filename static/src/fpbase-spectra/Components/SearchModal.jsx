@@ -48,7 +48,7 @@ const useStyles = makeStyles(theme => ({
   },
   title: {
     color: "black",
-    marginTop: 25,
+    marginTop: 29,
     marginBotton: 5,
     [theme.breakpoints.down("xs")]: {
       fontSize: "1.2rem"
@@ -176,7 +176,7 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
           components={{ Option: OptionWithBlurb }}
           placeholder="Search optical configs"
         />
-        <p style={{ fontSize: "smaller", color: "#666", fontStyle: "italic" }}>
+        <p style={{ fontSize: "smaller", color: "#666", fontStyle: "italic", marginTop: 8 }}>
           This is a list of optical configurations used in FPbase user
           microcopes. Selecting one will load all items from that config into
           the spectra viewer.
