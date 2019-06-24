@@ -14,10 +14,6 @@ export const useStyles = makeStyles(theme => ({
     }
   },
   deleteButton: {
-    top: -6,
-    [theme.breakpoints.down("sm")]: {
-      top: -8
-    },
     [theme.breakpoints.down("xs")]: {
       display: "none"
     },
@@ -100,11 +96,10 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                 {categoryNames[selector.category]}
               </Typography>
             ))}
-          <Box display="flex" className={classes.root}>
+          <Box display="flex" alignItems="center" className={classes.root}>
             {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
               style: {
                 position: "relative",
-                top: 8,
                 left: category === "L" ? 4 : 2,
                 height: "1.3rem",
                 marginRight: 10

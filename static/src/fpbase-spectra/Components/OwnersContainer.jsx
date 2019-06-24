@@ -8,6 +8,7 @@ import { css } from "@emotion/core"
 import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 import { Typography } from "@material-ui/core"
 import useWindowWidth from "./useWindowWidth"
+import CustomFilterGroup from "./CustomFilterGroup"
 
 const override = css`
   display: block;
@@ -70,12 +71,7 @@ function selectorSorter(a, b) {
   return -1
 }
 
-const OwnersContainer = ({
-  owners,
-  selectors,
-  changeOwner,
-  removeRow
-}) => {
+const OwnersContainer = ({ owners, selectors, changeOwner, removeRow }) => {
   const classes = useStyles()
   const [tab, setTab] = useState(0)
 
@@ -222,7 +218,10 @@ const OwnersContainer = ({
             </Typography>
             {spectrumCategoryGroup("D", "dye")}
           </div>
-          <div>{spectrumCategoryGroup("F", "filter")}</div>
+          <div>
+            {spectrumCategoryGroup("F", "filter")}
+            <CustomFilterGroup />
+          </div>
           <div>{spectrumCategoryGroup("L", "light")}</div>
           <div>{spectrumCategoryGroup("C", "camera")}</div>
         </TabContainer>

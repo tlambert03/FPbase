@@ -83,8 +83,8 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
           Hit&nbsp;
           <span className="kbd">spacebar</span>
           &nbsp;to quickly lookup and load any spectrum group in the database.
-          You can also load the complete optical setup from any optical
-          config in any{" "}
+          You can also load the complete optical setup from any optical config
+          in any{" "}
           <a href="/microscopes" target="_blank">
             FPbase microscope
           </a>
@@ -122,8 +122,9 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
         </Typography>
         <Typography variant="body1" gutterBottom>
           Change the look and feel with a variety of options in the settings
-          menu at the bottom left. Set the X range by clicking and dragging,
-          shift-click-drag to pan, or directly enter the max and min values.
+          menu at the bottom left. Set the X-axis range by clicking and dragging
+          or directly enter the max and min values into the inputs. Once zoomed
+          you can shift-click-drag to pan.
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>

@@ -6,7 +6,8 @@ import {
   faFlask,
   faAdjust,
   faLightbulb,
-  faCamera
+  faCamera,
+  faSlidersH
 } from "@fortawesome/free-solid-svg-icons"
 
 function FAIcon(props) {
@@ -33,7 +34,8 @@ function categoryIcon(category, color = "#aaa", props) {
     D: faFlask,
     F: faAdjust,
     L: faLightbulb,
-    C: faCamera
+    C: faCamera,
+    CF: faSlidersH
   }
   if (category in iconMap) {
     iconClass = iconMap[category]

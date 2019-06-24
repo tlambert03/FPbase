@@ -27,7 +27,7 @@ import DEFAULT_OPTIONS from "./ChartOptions"
 import update from "immutability-helper"
 import NoData from "./NoData"
 import useWindowWidth from "../useWindowWidth"
-
+import COLORS from "../../../js/spectra/colors"
 applyExporting(Highcharts)
 applyExportingData(Highcharts)
 applyPatterns(Highcharts)
@@ -46,6 +46,52 @@ export function spectraSorter(a, b) {
   if (SPECTRA_ORDER.indexOf(a.category) > SPECTRA_ORDER.indexOf(b.category))
     return 1
   return -1
+}
+
+const rangexy = (start, end) =>
+  Array.from({ length: end - start }, (v, k) => k + start)
+
+// $cf1_type_center_width_trans
+const customFilterSpectrum = _id => {
+  let [id, subtype, center, width, trans] = _id.split("_")
+  subtype = subtype.toUpperCase()
+  trans = +trans / 100 || 0.9
+  let data = []
+  let name = `Custom Filter`
+  switch (subtype) {
+    case "BP":
+      const min = Math.round(+center - width / 2)
+      const max = Math.round(+center + width / 2)
+      data.push([min - 1, 0])
+      rangexy(min, max).forEach(x => data.push([x, +trans]))
+      data.push([max + 1, 0])
+      name += ` ${center}/${width}`
+      break
+    case "LP":
+      rangexy(300, center).forEach(x => data.push([x, 0]))
+      rangexy(+center + 1, 1000).forEach(x => data.push([x, +trans]))
+      name += ` ${center}lp`
+      break
+    case "SP":
+      rangexy(300, center).forEach(x => data.push([x, +trans]))
+      rangexy(+center + 1, 1000).forEach(x => data.push([x, 0]))
+      name += ` ${center}sp`
+      break
+    default:
+      break
+  }
+  return {
+    data: {
+      spectrum: {
+        id: _id,
+        subtype,
+        owner: { id, name },
+        category: "F",
+        data,
+        color: +center in COLORS ? COLORS[+center] : "#bbbbbb"
+      }
+    }
+  }
 }
 
 const SpectraViewerContainer = ({ spectraInfo }) => {
@@ -76,6 +122,7 @@ const SpectraViewerContainer = ({ spectraInfo }) => {
   })
   tooltip.shared = chartOptions.shareTooltip
 
+  // $cf1_type_center_width
   const [data, setData] = useState([])
   const client = useApolloClient()
   useEffect(() => {
@@ -83,7 +130,11 @@ const SpectraViewerContainer = ({ spectraInfo }) => {
       let _data = await Promise.all(
         activeSpectra
           .filter(i => i)
-          .map(id => client.query({ query: GET_SPECTRUM, variables: { id } }))
+          .map(id =>
+            id.startsWith("$cf")
+              ? customFilterSpectrum(id)
+              : client.query({ query: GET_SPECTRUM, variables: { id } })
+          )
       )
       setData(_data.map(({ data }) => data.spectrum))
     }
@@ -160,6 +211,7 @@ const SpectraViewer = memo(function SpectraViewer({
           reversed={chartOptions.logScale}
           max={chartOptions.logScale ? 6 : 1}
           min={0}
+          gridLineWidth={chartOptions.showGrid && numSpectra > 0 ? 1 : 0}
           endOnTick={chartOptions.scaleEC}
           labels={{
             ...yAxis.labels,

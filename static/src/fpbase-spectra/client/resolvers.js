@@ -102,7 +102,13 @@ export const resolvers = {
     },
     updateActiveSpectra: async (_, { add, remove }, { cache, client }) => {
       let { activeSpectra } = cache.readQuery({ query: GET_ACTIVE_SPECTRA })
-      activeSpectra = activeSpectra.filter(id => !(remove || []).includes(id))
+      activeSpectra = activeSpectra.filter(id => {
+        if (id.startsWith("$cf") && remove) {
+          const _id = id.split("_")[0]
+          return !(remove.findIndex(item => item.startsWith(_id)) > -1)
+        }
+        return !(remove || []).includes(id)
+      })
       const toAdd = (add || []).filter(id => id).map(id => String(id))
       const data = {
         activeSpectra: [...new Set([...activeSpectra, ...toAdd])]

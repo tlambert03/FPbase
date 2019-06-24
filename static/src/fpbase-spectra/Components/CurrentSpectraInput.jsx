@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useQuery, useMutation } from "react-apollo-hooks"
-import { GET_ACTIVE_SPECTRA, SET_ACTIVE_SPECTRA } from "./client/queries"
+import { GET_ACTIVE_SPECTRA, SET_ACTIVE_SPECTRA } from "../client/queries"
 
 const CurrentSpectraInput = () => {
   const {
