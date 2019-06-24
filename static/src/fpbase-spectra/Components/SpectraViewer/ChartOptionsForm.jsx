@@ -27,7 +27,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
   return (
     <List dense>
       <Grid container spacing={3}>
-        <Grid item sm={12} md={6} style={{margin: 0, padding: 0}}>
+        <Grid item sm={12} md={6} style={{ margin: 0, padding: 0 }}>
           <ListCheckbox
             onCheckItem={toggleY}
             checked={chartOptions.showY}
@@ -49,7 +49,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
             name="Fill area under curves"
           />
         </Grid>
-        <Grid item sm={12} md={6} style={{margin: 0, padding: 0}}>
+        <Grid item sm={12} md={6} style={{ margin: 0, padding: 0 }}>
           <ListCheckbox
             onCheckItem={toggleScaleEC}
             checked={chartOptions.scaleEC}
@@ -63,7 +63,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
           <ListCheckbox
             onCheckItem={toggleShareTooltip}
             checked={chartOptions.shareTooltip}
-            name="Share Tooltip (on hover)"
+            name="Show Y value for all spectra on hover"
           />
         </Grid>
       </Grid>
