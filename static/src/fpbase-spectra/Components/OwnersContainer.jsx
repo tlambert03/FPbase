@@ -1,31 +1,27 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import PropTypes from "prop-types"
-import { useMutation, useQuery } from "react-apollo-hooks"
-import {
-  UPDATE_ACTIVE_SPECTRA,
-  GET_ACTIVE_SPECTRA,
-  SET_ACTIVE_SPECTRA
-} from "../client/queries"
-import update from "immutability-helper"
 import Tabs from "@material-ui/core/Tabs"
 import Tab from "@material-ui/core/Tab"
 import { makeStyles } from "@material-ui/core/styles"
-import MyAppBar from "./MyAppBar"
+
 
 import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 import { Typography } from "@material-ui/core"
 import useWindowWidth from "./useWindowWidth"
+
 
 const useStyles = makeStyles(theme => ({
   tabHeader: {
     //marginBottom: 12,
     //marginLeft: 60,
     //paddingLeft: 0
-    whiteSpace: "nowrap"
+    whiteSpace: "nowrap",
+    minHeight: 52
   },
   tabLabel: {
     marginTop: 0,
-    paddingTop: 0,
+    paddingTop: 3,
+    paddingBottom: 3,
     minHeight: 40,
     // lineHeight: 0,
     [theme.breakpoints.down("xs")]: {
@@ -53,7 +49,7 @@ const useStyles = makeStyles(theme => ({
     textTransform: "uppercase",
     fontSize: "small",
     color: "#3F51B5",
-    marginTop: ".2rem",
+    marginTop: ".25rem",
     marginBottom: "0.4rem"
   }
 }))
@@ -69,12 +65,8 @@ function selectorSorter(a, b) {
   return -1
 }
 
-const OwnersContainer = ({ owners, spectraInfo }) => {
-  const {
-    data: { activeSpectra }
-  } = useQuery(GET_ACTIVE_SPECTRA)
-  const [selectors, setSelectors] = useState([])
-  const selectorId = useRef(0)
+
+const OwnersContainer = ({ owners, selectors, addRow, changeOwner, removeRow, clearForm }) => {
   const classes = useStyles()
 
   const [tab, setTab] = useState(0)
@@ -117,65 +109,6 @@ const OwnersContainer = ({ owners, spectraInfo }) => {
     }
   }, [])
 
-  // this makes sure that all active spectra are reflected in the ownerSlugs array
-  useEffect(() => {
-    const currentOwners = selectors.map(({ owner }) => owner)
-    let newOwners = activeSpectra
-      .map(id => spectraInfo[id] && spectraInfo[id].owner)
-      .filter(owner => owner && !currentOwners.includes(owner))
-    newOwners = [...new Set(newOwners)].map(owner => ({
-      id: selectorId.current++,
-      owner,
-      category: owners[owner].category
-    }))
-    setSelectors(update(selectors, { $push: newOwners }))
-  }, [activeSpectra]) // eslint-disable-line
-
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
-  const removeRow = selector => {
-    if (owners[selector.owner] && owners[selector.owner].spectra) {
-      updateSpectra({
-        variables: {
-          remove: owners[selector.owner].spectra.map(({ id }) => id)
-        }
-      })
-    }
-    setSelectors(selectors.filter(({ id }) => id !== selector.id))
-  }
-
-  const addRow = (category = null) => {
-    let newSelectors = update(selectors, {
-      $push: [
-        {
-          id: selectorId.current++,
-          owner: null,
-          category
-        }
-      ]
-    })
-    setSelectors(newSelectors)
-  }
-
-  const changeOwner = (id, category = null) => {
-    return function(newOwner) {
-      const index = selectors.findIndex(selector => selector.id === id)
-      let newSelectors
-      if (newOwner) {
-        newSelectors = update(selectors, {
-          [index]: {
-            owner: { $set: newOwner },
-            category: {
-              $set: newOwner ? owners[newOwner].category : category
-            }
-          }
-        })
-        setSelectors(newSelectors)
-      } else {
-        removeRow({ id, category, owner: newOwner })
-      }
-    }
-  }
-
   const isPopulated = cat =>
     selectors.filter(({ owner, category }) => category === cat && owner)
       .length > 0
@@ -198,29 +131,6 @@ const OwnersContainer = ({ owners, spectraInfo }) => {
         {populated ? " ✶" : ""}
       </span>
     )
-  }
-
-  const setSpectra = useMutation(SET_ACTIVE_SPECTRA)
-  const clearForm = (leave = [], appendSpectra = []) => {
-    const preserve = selectors.filter(({ category }) =>
-      leave.includes(category)
-    )
-    setSelectors([
-      ...preserve,
-      {
-        id: selectorId.current++,
-        owner: null,
-        category: null
-      }
-    ])
-    const keepSpectra = activeSpectra.filter(
-      id => spectraInfo[id] && leave.includes(spectraInfo[id].category)
-    )
-    setSpectra({
-      variables: {
-        activeSpectra: [...new Set([...keepSpectra, ...appendSpectra])]
-      }
-    })
   }
 
   selectors.sort(selectorSorter)
@@ -255,7 +165,11 @@ const OwnersContainer = ({ owners, spectraInfo }) => {
         scrollButtons="on"
         className={classes.tabHeader}
       >
-        <Tab           tabIndex={-1} className={classes.tabLabel} label={smartLabel("All", null)} />
+        <Tab
+          tabIndex={-1}
+          className={classes.tabLabel}
+          label={smartLabel("All", null)}
+        />
         <Tab
           className={classes.tabLabel}
           tabIndex={-1}
@@ -294,8 +208,6 @@ const OwnersContainer = ({ owners, spectraInfo }) => {
         <div>{spectrumCategoryGroup("L", "light")}</div>
         <div>{spectrumCategoryGroup("C", "camera")}</div>
       </TabContainer>
-
-      <MyAppBar spectraOptions={allOptions} clearForm={clearForm} />
     </div>
   )
 }

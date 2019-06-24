@@ -9,8 +9,9 @@ import Icon from "@material-ui/core/Icon"
 import SearchIcon from "@material-ui/icons/Search"
 import ChartIcon from "@material-ui/icons/InsertChart"
 import FileIcon from "@material-ui/icons/GetApp"
+import SettingsIcon from "@material-ui/icons/Settings"
 import CachedIcon from "@material-ui/icons/Cached"
-
+import ShareIcon from "@material-ui/icons/Share"
 import Dialog from "@material-ui/core/Dialog"
 import DialogActions from "@material-ui/core/DialogActions"
 import DialogContent from "@material-ui/core/DialogContent"
@@ -18,20 +19,29 @@ import DialogTitle from "@material-ui/core/DialogTitle"
 
 const useStyles = makeStyles(theme => ({
   root: {
-
+    width: "100%",
+    "& .MuiPaper-root ": {
+      margin: 48,
+      [theme.breakpoints.down("xs")]: {
+        margin: 22,
+        maxHeight: "calc(100% - 44px)"
+      }
+    },
     "& h6": {
-      color: "#333"
+      color: "#333",
+      marginTop: 4
     },
     "& p": {
       color: "#666",
-      marginLeft: "2.2rem"
+      marginLeft: "2.2rem",
+      [theme.breakpoints.down("xs")]: {
+        marginLeft: ".4rem"
+      }
     }
   },
   headerIcon: {
     marginRight: ".6rem",
-    color: "#999",
-    top: 5,
-    position: "relative"
+    color: "#999"
   },
   button: {
     height: 40,
@@ -46,30 +56,20 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const SearchModal = () => {
+const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
   const classes = useStyles()
-  const storageKey = "_hideFPbaseSpectraWelcome"
-  const hide = localStorage.getItem(storageKey) === "true"
-  const [checked, setChecked] = useState(hide)
-  const [open, setOpen] = useState(!hide)
-
-  const handleChange = e => {
-    localStorage.setItem(storageKey, e.target.checked)
-    setChecked(e.target.checked)
-  }
 
   return (
     <Dialog
       open={open}
-      onClose={() => setOpen(false)}
+      onClose={close}
       aria-labelledby="scroll-dialog-title"
       className={classes.root}
-      fullWidth
-      maxWidth={'md'}
+      maxWidth={"md"}
     >
       <DialogTitle id="scroll-dialog-title">
         {" "}
-        Welcome to the new FPbase Spectra Viewer!
+        Welcome to the {isNew ? "new" : ""} FPbase Spectra Viewer!
       </DialogTitle>
       <DialogContent dividers>
         <Typography variant="h6" gutterBottom>
@@ -79,26 +79,35 @@ const SearchModal = () => {
           Quick Entry
         </Typography>
         <Typography variant="body1" gutterBottom>
-          Hit the
-          <span className="kbd">L</span>
-          &nbsp;key to quickly lookup and load any spectrum group in the
-          database. Try it now!
+          Hit&nbsp;
+          <span className="kbd">spacebar</span>
+          &nbsp;to quickly lookup and load any spectrum group in the database.
+          Try it now!
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
             <FileIcon />
           </Icon>
-          Export Options
+          Export &amp; Sharing
         </Typography>
         <Typography variant="body1" gutterBottom>
           The chart may now be exported as PNG, PDF, or SVG vector graphics
-          format. You can also download all of the data in the current chart in
-          CSV format. (Use the
-          <Icon
-            className="fas fa-bars"
-            style={{ fontSize: "0.93rem", margin: "0 5px" }}
-          />
-          context menu at the top right)
+          format. Or download all of the current data as CSV format. You may
+          also save your chart as a URL for sharing or later recall. All in the
+          the share icon (&nbsp;
+          <ShareIcon />
+          &nbsp;) at the bottom right.
+        </Typography>
+        <Typography variant="h6" gutterBottom>
+          <Icon className={classes.headerIcon}>
+            <SettingsIcon />
+          </Icon>
+          Configurable
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          Change the look and feel with a variety of options in the settings
+          menu at the bottom left. Set the X range by clicking and dragging,
+          shift-click-drag to pan, or directly enter the max and min values.
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
@@ -107,9 +116,7 @@ const SearchModal = () => {
           State Recovery
         </Typography>
         <Typography variant="body1" gutterBottom>
-          The state of the spectra viewer is captured in the URL. So you can
-          bookmark or refresh without losing your work. Or share a specific
-          arrangement of spectra with someone else
+          The state of the viewer in any tab will persist across browser refresh
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
@@ -125,6 +132,7 @@ const SearchModal = () => {
       <DialogActions>
         <FormGroup row>
           <FormControlLabel
+            style={{ paddingTop: 8 }}
             control={
               <Checkbox
                 checked={checked}
@@ -133,10 +141,10 @@ const SearchModal = () => {
                 value="checked"
               />
             }
-            label="Don't show again"
+            label="Don't show on load"
           />
         </FormGroup>
-        <Button onClick={() => setOpen(false)} color="primary">
+        <Button onClick={close} color="primary">
           Close
         </Button>
       </DialogActions>
@@ -144,4 +152,7 @@ const SearchModal = () => {
   )
 }
 
-export default SearchModal
+WelcomeModal.defaultProps = {
+  isNew: false
+}
+export default WelcomeModal

@@ -4,7 +4,7 @@ import AppBar from "@material-ui/core/AppBar"
 import Toolbar from "@material-ui/core/Toolbar"
 import Tooltip from "@material-ui/core/Tooltip"
 import Fab from "@material-ui/core/Fab"
-
+import HelpIcon from "@material-ui/icons/Help"
 import AddIcon from "@material-ui/icons/Add"
 import SearchModal from "./SearchModal"
 
@@ -15,6 +15,7 @@ import Switch from "@material-ui/core/Switch"
 import gql from "graphql-tag"
 import ShareButton from "./ShareButton"
 import SettingsDrawer from "./SettingsDrawer"
+import { IconButton } from "@material-ui/core"
 
 export const useStyles = makeStyles(theme => ({
   text: {
@@ -56,7 +57,7 @@ export const useStyles = makeStyles(theme => ({
   }
 }))
 
-const MyAppBar = ({ spectraOptions, clearForm }) => {
+const MyAppBar = ({ spectraOptions, clearForm, openHelp }) => {
   const classes = useStyles()
   const [searchOpen, setSearchOpen] = React.useState(false)
   const handleClick = () => setSearchOpen(true)
@@ -81,7 +82,14 @@ const MyAppBar = ({ spectraOptions, clearForm }) => {
       >
         <Toolbar>
           <SettingsDrawer clearForm={clearForm} />
-          <Tooltip title="Click [or spacebar] for Quick Entry" enterDelay={700} leaveDelay={200}>
+          <IconButton color="inherit" onClick={openHelp}>
+            <HelpIcon />
+          </IconButton>
+          <Tooltip
+            title="Click [or spacebar] for Quick Entry"
+            enterDelay={700}
+            leaveDelay={200}
+          >
             <Fab
               tabIndex={-1}
               onClick={handleClick}
@@ -104,6 +112,7 @@ const MyAppBar = ({ spectraOptions, clearForm }) => {
               />
             }
             label="OD"
+            style={{ paddingTop: 6, paddingRight: 4 }}
           />
           <ShareButton />
         </Toolbar>
