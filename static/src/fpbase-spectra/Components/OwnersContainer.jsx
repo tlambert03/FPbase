@@ -56,7 +56,7 @@ const useStyles = makeStyles(theme => ({
     textTransform: "uppercase",
     fontSize: "small",
     color: "#3F51B5",
-    marginTop: ".25rem",
+    marginTop: ".35rem",
     marginBottom: "0.4rem"
   }
 }))

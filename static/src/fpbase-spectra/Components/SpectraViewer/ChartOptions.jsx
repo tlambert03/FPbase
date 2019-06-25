@@ -1,4 +1,3 @@
-
 const FONTS =
   'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";'
 
@@ -50,7 +49,20 @@ const DEFAULT_OPTIONS = {
     zoomType: "x",
     panning: true,
     panKey: "shift",
-    animation: { duration: 50 }
+    animation: { duration: 50 },
+    resetZoomButton: {
+      theme: {
+        fill: "RGBA(55, 168, 59, 0.6)",
+        style: { color: "#FFFFFF", fontSize: "0.68rem", fontWeight: "bold" },
+        r: 3,
+        stroke: "rgba(255,255,255,0.3)",
+        states: {
+          hover: {
+            fill: "RGBA(55, 168, 59, 0.85)"
+          }
+        }
+      }
+    }
   },
   yAxis: {
     gridLineWidth: 1,

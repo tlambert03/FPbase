@@ -66,7 +66,7 @@ const InputSlider = ({ value, setValue, min, max, step }) => {
 
 InputSlider.defaultProps = {
   min: 300,
-  max: 1000,
+  max: 999,
   step: 1
 }
 
