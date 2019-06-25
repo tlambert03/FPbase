@@ -11,7 +11,11 @@ import CloseIcon from "@material-ui/icons/Close"
 import Divider from "@material-ui/core/Divider"
 import ShareIcon from "@material-ui/icons/Share"
 import { useQuery } from "react-apollo-hooks"
-import { GET_ACTIVE_SPECTRA, GET_CHART_OPTIONS } from "../client/queries"
+import {
+  GET_ACTIVE_SPECTRA,
+  GET_CHART_OPTIONS,
+  GET_EX_NORM
+} from "../client/queries"
 import stateToUrl from "./stateToUrl"
 import TextField from "@material-ui/core/TextField"
 import Tooltip from "@material-ui/core/Tooltip"
@@ -54,7 +58,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1)
   },
   listIcon: {
-    minWidth: 42,
+    minWidth: 42
   }
 }))
 
@@ -70,12 +74,16 @@ function ShareLinkAlert({ open, setOpen }) {
     loading: chartLoading,
     data: { chartOptions }
   } = useQuery(GET_CHART_OPTIONS)
+  const {
+    loading: exNormLoading,
+    data: { exNorm }
+  } = useQuery(GET_EX_NORM)
 
   useEffect(() => {
-    if (!spectraLoading && !chartLoading) {
-      setQString(stateToUrl(activeSpectra, chartOptions))
+    if (!spectraLoading && !chartLoading && !exNormLoading) {
+      setQString(stateToUrl(activeSpectra, chartOptions, exNorm))
     }
-  }, [activeSpectra, spectraLoading, chartOptions, chartLoading])
+  }, [activeSpectra, spectraLoading, chartOptions, chartLoading, exNormLoading, exNorm])
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 
@@ -138,7 +146,7 @@ function ShareLinkAlert({ open, setOpen }) {
                       id="copy-button"
                       aria-label="Toggle password visibility"
                     >
-                      <FAIcon icon={faCopy} style={{}}></FAIcon>
+                      <FAIcon icon={faCopy} style={{}} />
                     </IconButton>
                   </Tooltip>
                 </InputAdornment>
@@ -154,7 +162,7 @@ function ShareLinkAlert({ open, setOpen }) {
               "%26"
             )}`}
           >
-            <FAIcon icon={faEnvelope} style={{}}></FAIcon>
+            <FAIcon icon={faEnvelope} style={{}} />
           </IconButton>
           <IconButton
             color="primary"
@@ -165,10 +173,10 @@ function ShareLinkAlert({ open, setOpen }) {
             title="Tweet"
             target="_blank"
           >
-            <FAIcon icon={faTwitter} style={{}}></FAIcon>
+            <FAIcon icon={faTwitter} style={{}} />
           </IconButton>
           <IconButton onClick={() => setOpen(false)} color="primary" autoFocus>
-            <CloseIcon></CloseIcon>
+            <CloseIcon />
           </IconButton>
         </DialogActions>
       </Dialog>
@@ -238,7 +246,10 @@ const ShareButton = () => {
               <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
-              <ListItemText primary="Download chart as SVG" style={{paddingRight: 20}}/>
+              <ListItemText
+                primary="Download chart as SVG"
+                style={{ paddingRight: 20 }}
+              />
             </MenuItem>
             <MenuItem onClick={() => exportChart("image/png")}>
               <ListItemIcon className={classes.listIcon}>
@@ -273,10 +284,7 @@ const ShareButton = () => {
               </ListItemIcon>
               <ListItemText primary="Share chart as URL" />
             </MenuItem>
-            <ShareLinkAlert
-              open={shareLinkOpen}
-              setOpen={setShareLinkOpen}
-            ></ShareLinkAlert>
+            <ShareLinkAlert open={shareLinkOpen} setOpen={setShareLinkOpen} />
           </div>
         ) : (
           <MenuItem disabled>

@@ -1,5 +1,5 @@
 import gql from "graphql-tag"
-import { GET_ACTIVE_SPECTRA } from "./queries"
+import { GET_ACTIVE_SPECTRA, GET_EX_NORM } from "./queries"
 
 export const defaults = {
   activeSpectra: [],
@@ -15,6 +15,7 @@ export const defaults = {
     extremes: [null, null],
     __typename: "chartOptions"
   },
+  exNorm: [null, null], // [normWave, normID]
   excludeSubtypes: ["2P"]
 }
 
@@ -117,6 +118,10 @@ export const resolvers = {
         activeSpectra: [...new Set([...activeSpectra, ...toAdd])]
       }
       await client.writeQuery({ query: GET_ACTIVE_SPECTRA, data })
+      return data
+    },
+    setExNorm: async (_, { data }, { client }) => {
+      await client.writeQuery({ query: GET_EX_NORM, data: { exNorm: data } })
       return data
     }
   }

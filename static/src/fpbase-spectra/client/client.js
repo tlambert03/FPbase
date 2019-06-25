@@ -11,7 +11,7 @@ import introspectionQueryResultData from "../fragmentTypes.json"
 import { decoder } from "../util"
 import qs from "qs"
 import { GET_CHART_OPTIONS } from "./queries"
-import 'unfetch/polyfill/index.js'
+import "unfetch/polyfill/index.js"
 
 function intializeClient({ uri, storage }) {
   const fragmentMatcher = new IntrospectionFragmentMatcher({
@@ -53,23 +53,25 @@ function intializeClient({ uri, storage }) {
     })
   }
 
-  window.qs = qs
   function parseURL() {
     const url = qs.parse(window.location.search.replace(/^\?/, ""), { decoder })
     if (Object.keys(url).length === 0 && url.constructor === Object) return
-    
+
     let data = cache.readQuery({ query: GET_CHART_OPTIONS })
     const booleanOptions = Object.keys(defaults.chartOptions).filter(
       key => typeof defaults.chartOptions[key] === "boolean"
     )
 
     const extremes = [null, null]
+    const exNorm = [null, null]
     Object.keys(url).forEach(key => {
       if (booleanOptions.includes(key)) {
         data.chartOptions[key] = Boolean(+url[key])
       }
       if (key === "xMin") extremes[0] = +url[key]
       if (key === "xMax") extremes[1] = +url[key]
+      if (key === "normWave") exNorm[0] = url[key]
+      if (key === "normID") exNorm[1] = url[key]
       if (["s", "activeSpectra"].includes(key)) {
         let active = url[key]
         if (!Array.isArray(active)) active = active.split(",")
@@ -77,6 +79,8 @@ function intializeClient({ uri, storage }) {
       }
     })
     if (extremes.some(i => i)) data.chartOptions.extremes = extremes
+    if (exNorm.some(i => i)) data.exNorm = exNorm
+    console.log(data)
     cache.writeData({ data })
   }
 

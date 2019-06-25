@@ -6,31 +6,37 @@ import Button from "@material-ui/core/Button"
 import AddIcon from "@material-ui/icons/Add"
 import DeleteIcon from "@material-ui/icons/Delete"
 import { categoryIcon } from "./FaIcon"
-import { useQuery, useMutation } from "react-apollo-hooks"
-import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useMutation, useQuery } from "react-apollo-hooks"
+import {
+  UPDATE_ACTIVE_SPECTRA,
+  GET_EX_NORM,
+  SET_EX_NORM
+} from "../client/queries"
 
-const CustomLaserGroup = () => {
+const CustomLaserGroup = ({ activeSpectra }) => {
   const laserCounter = useRef(0)
   const [customLasers, setLasers] = useState([])
   const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
-
-  const addRow = () => {
-    setLasers([...customLasers, `$cl${laserCounter.current++}`])
-  }
-
-  const removeRow = laser => {
-    const laserID = laser.split("_")[0]
-    setLasers(customLasers.filter(id => !id.startsWith(laserID)))
-    updateSpectra({
-      variables: {
-        remove: [laserID]
-      }
-    })
-  }
-
   const {
-    data: { activeSpectra }
-  } = useQuery(GET_ACTIVE_SPECTRA)
+    data: {
+      exNorm: [_, normID]
+    }
+  } = useQuery(GET_EX_NORM)
+  const mutateExNormWave = useMutation(SET_EX_NORM)
+
+  const setExNorm = React.useCallback(
+    data => mutateExNormWave({ variables: { data } }),
+    [mutateExNormWave]
+  )
+
+  const clearNorm = React.useCallback(
+    () => mutateExNormWave({ variables: { data: [null, null] } }),
+    [mutateExNormWave]
+  )
+
+  // const {
+  //   data: { activeSpectra }
+  // } = useQuery(GET_ACTIVE_SPECTRA)
   useEffect(() => {
     if (activeSpectra && activeSpectra.length > 0) {
       const newLasers = activeSpectra.filter(
@@ -47,6 +53,23 @@ const CustomLaserGroup = () => {
     }
   }, [activeSpectra]) // eslint-disable-line
 
+  const addRow = () => {
+    setLasers([...customLasers, `$cl${laserCounter.current++}`])
+  }
+
+  const removeRow = laser => {
+    const laserID = laser.split("_")[0]
+    if (laserID === normID) {
+      clearNorm()
+    }
+    setLasers(customLasers.filter(id => !id.startsWith(laserID)))
+    updateSpectra({
+      variables: {
+        remove: [laserID]
+      }
+    })
+  }
+
   return (
     <div>
       {customLasers.map(laser => (
@@ -62,7 +85,13 @@ const CustomLaserGroup = () => {
               }
             })}
             <Box flexGrow={1}>
-              <CustomLaserCreator key={laser.split("_")[0]} id={laser} />
+              <CustomLaserCreator
+                key={laser.split("_")[0]}
+                id={laser}
+                setExNorm={setExNorm}
+                clearNorm={clearNorm}
+                normID={normID}
+              />
             </Box>
             <Box>
               <IconButton
@@ -89,7 +118,7 @@ const CustomLaserGroup = () => {
         style={{ marginTop: 8, marginLeft: 34 }}
       >
         <AddIcon />
-        {`Add Custom Laser`}
+        {`Add Laser`}
       </Button>
     </div>
   )

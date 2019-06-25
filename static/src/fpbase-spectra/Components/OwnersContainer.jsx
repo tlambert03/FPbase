@@ -72,7 +72,13 @@ function selectorSorter(a, b) {
   return -1
 }
 
-const OwnersContainer = ({ owners, selectors, changeOwner, removeRow }) => {
+const OwnersContainer = ({
+  owners,
+  selectors,
+  changeOwner,
+  removeRow,
+  activeSpectra
+}) => {
   const classes = useStyles()
   const [tab, setTab] = useState(0)
 
@@ -124,6 +130,12 @@ const OwnersContainer = ({ owners, selectors, changeOwner, removeRow }) => {
       populated = Boolean(selectors.filter(i => i.owner).length)
     } else {
       populated = cats.some(c => isPopulated(c))
+      if (cats.find(i => i === "F")) {
+        populated = populated || activeSpectra.some(s => s.startsWith("$cf"))
+      }
+      if (cats.find(i => i === "L")) {
+        populated = populated || activeSpectra.some(s => s.startsWith("$cl"))
+      }
     }
     return (
       <span
@@ -208,7 +220,9 @@ const OwnersContainer = ({ owners, selectors, changeOwner, removeRow }) => {
         </div>
       ) : (
         <TabContainer index={tab}>
-          <div>{spectrumCategoryGroup()}</div>
+          <div>
+            {spectrumCategoryGroup()}
+          </div>
           <div>
             <Typography variant="h6" className={classes.categoryHeader}>
               Fluorescent Proteins
@@ -221,11 +235,11 @@ const OwnersContainer = ({ owners, selectors, changeOwner, removeRow }) => {
           </div>
           <div>
             {spectrumCategoryGroup("F", "filter")}
-            <CustomFilterGroup />
+            <CustomFilterGroup activeSpectra={activeSpectra} />
           </div>
           <div>
             {spectrumCategoryGroup("L", "light")}
-            <CustomLaserGroup />
+            <CustomLaserGroup activeSpectra={activeSpectra} />
           </div>
           <div>{spectrumCategoryGroup("C", "camera")}</div>
         </TabContainer>

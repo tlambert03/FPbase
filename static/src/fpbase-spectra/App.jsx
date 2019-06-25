@@ -23,7 +23,13 @@ const App = () => {
     spectraInfo.current = data.spectraInfo
   }
 
-  const { selectors, changeOwner, removeRow, clearForm } = useSelectors({
+  const {
+    selectors,
+    changeOwner,
+    removeRow,
+    clearForm,
+    activeSpectra
+  } = useSelectors({
     owners: owners.current,
     spectraInfo: spectraInfo.current
   })
@@ -40,13 +46,14 @@ const App = () => {
 
   return (
     <>
-      <SpectraViewer spectraInfo={spectraInfo.current} />
+      <SpectraViewer activeSpectra={activeSpectra} ownerInfo={owners.current} />
       <OwnersContainer
         owners={owners.current}
         selectors={selectors}
         changeOwner={changeOwner}
         removeRow={removeRow}
         clearForm={clearForm}
+        activeSpectra={activeSpectra}
       />
       <MyAppBar
         spectraOptions={Object.values(owners.current || {})}

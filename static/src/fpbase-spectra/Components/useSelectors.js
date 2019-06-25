@@ -117,7 +117,7 @@ const useSelectors = ({ owners, spectraInfo, initial = [] }) => {
     })
   }
 
-  return { selectors, addRow, clearForm, changeOwner, removeRow }
+  return { activeSpectra, selectors, addRow, clearForm, changeOwner, removeRow }
 }
 
 export default useSelectors

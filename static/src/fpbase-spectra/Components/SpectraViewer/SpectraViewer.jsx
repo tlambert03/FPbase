@@ -1,9 +1,9 @@
 import React, { useEffect, memo, useState } from "react"
 import { useQuery, useApolloClient } from "react-apollo-hooks"
 import {
-  GET_ACTIVE_SPECTRA,
   GET_CHART_OPTIONS,
-  GET_SPECTRUM
+  GET_SPECTRUM,
+  GET_EX_NORM
 } from "../../client/queries"
 import Highcharts from "highcharts"
 import {
@@ -28,6 +28,7 @@ import update from "immutability-helper"
 import NoData from "./NoData"
 import useWindowWidth from "../useWindowWidth"
 import COLORS from "../../../js/spectra/colors"
+
 applyExporting(Highcharts)
 applyExportingData(Highcharts)
 applyPatterns(Highcharts)
@@ -54,22 +55,22 @@ const rangexy = (start, end) =>
 // $cl1_wave
 const customLaserSpectrum = _id => {
   let [id, wave] = _id.split("_")
-  let data = [[+wave - 1, 0], [+wave, 1], [+wave + 1, 0]]
+  const data = [[+wave - 1, 0], [+wave, 1], [+wave + 1, 0]]
   const name = `${wave} laser`
-  return {
+  return Promise.resolve({
     data: {
       spectrum: {
-        id: _id,
+        id: id,
         subtype: "L",
-        owner: { id, name },
+        owner: { name },
         category: "F",
         data,
-        color: +wave in COLORS ? COLORS[+wave] : "#bbbbbb"
+        color: +wave in COLORS ? COLORS[+wave] : "#999999"
       }
     }
-  }
-
+  })
 }
+
 // $cf1_type_center_width_trans
 const customFilterSpectrum = _id => {
   let [id, subtype, center, width, trans] = _id.split("_")
@@ -82,7 +83,7 @@ const customFilterSpectrum = _id => {
       const min = Math.round(+center - width / 2)
       const max = Math.round(+center + width / 2)
       data.push([min - 1, 0])
-      rangexy(min, max).forEach(x => data.push([x, +trans]))
+      rangexy(min, max + 1).forEach(x => data.push([x, +trans]))
       data.push([max + 1, 0])
       name += ` ${center}/${width} bp`
       break
@@ -99,27 +100,33 @@ const customFilterSpectrum = _id => {
     default:
       break
   }
+
   return {
     data: {
       spectrum: {
-        id: _id,
+        // setting this to "id" is faster, but causes an error when you mash the sliders
+        // setting it to "_id" is safer, but incurs a full update with each change
+        id: id,
         subtype,
-        owner: { id, name },
+        owner: { name },
         category: "F",
         data,
-        color: +center in COLORS ? COLORS[+center] : "#bbbbbb"
+        color: +center in COLORS ? COLORS[+center] : "#999999"
       }
     }
   }
 }
 
-const SpectraViewerContainer = ({ spectraInfo }) => {
-  const {
-    data: { activeSpectra }
-  } = useQuery(GET_ACTIVE_SPECTRA)
+const SpectraViewerContainer = ({ activeSpectra, ownerInfo }) => {
   const {
     data: { chartOptions }
   } = useQuery(GET_CHART_OPTIONS)
+  const {
+    data: {
+      exNorm: [normWave]
+    }
+  } = useQuery(GET_EX_NORM)
+
   let {
     plotOptions,
     xAxis,
@@ -158,6 +165,7 @@ const SpectraViewerContainer = ({ spectraInfo }) => {
             return client.query({ query: GET_SPECTRUM, variables: { id } })
           })
       )
+
       setData(_data.map(({ data }) => data.spectrum))
     }
     fetchData()
@@ -175,6 +183,8 @@ const SpectraViewerContainer = ({ spectraInfo }) => {
       yAxis={yAxis}
       xAxis={xAxis}
       chartOptions={chartOptions}
+      exNorm={+normWave}
+      ownerInfo={ownerInfo}
     />
   )
 }
@@ -189,14 +199,17 @@ const SpectraViewer = memo(function SpectraViewer({
   tooltip,
   yAxis,
   xAxis,
-  chartOptions
+  exNorm,
+  chartOptions,
+  ownerInfo
 }) {
   const windowWidth = useWindowWidth()
   let height = calcHeight(windowWidth)
 
   const _chart = Highcharts.charts[0]
+  let legendHeight
   if (_chart) {
-    const legendHeight = Highcharts.charts[0].legend.legendHeight || 0
+    legendHeight = Highcharts.charts[0].legend.legendHeight || 0
     height += legendHeight
   }
 
@@ -219,6 +232,7 @@ const SpectraViewer = memo(function SpectraViewer({
         }}
       />
       {numSpectra === 0 && <NoData height={height} />}
+      <ExNormNotice exNorm={exNorm} ownerInfo={ownerInfo} />
       <HighchartsChart
         plotOptions={plotOptions}
         navigation={navigation}
@@ -244,8 +258,10 @@ const SpectraViewer = memo(function SpectraViewer({
             .filter(i => i.subtype !== "EX")
             .map(spectrum => (
               <SpectrumSeries
+                exNorm={exNorm}
                 spectrum={spectrum}
                 key={spectrum.id}
+                ownerInfo={ownerInfo}
                 {...chartOptions}
               />
             ))}
@@ -329,5 +345,26 @@ export const XAxisWithRange = ({ options, showPickers }) => {
     </>
   )
 }
+
+const ExNormNotice = memo(function ExNormNotice({ exNorm, ownerInfo }) {
+  return (
+    <div
+      style={{
+        position: "relative",
+        top: -11,
+        left: 20,
+        zIndex: 1000,
+        color: "rgba(140,0,0,0.4)",
+        fontWeight: 600,
+        fontSize: "0.9rem",
+        height: 0
+      }}
+    >
+      {exNorm && Object.keys(ownerInfo).length > 0
+        ? `EM NORMED TO ${exNorm} EX`
+        : ""}
+    </div>
+  )
+})
 
 export default withHighcharts(SpectraViewerContainer, Highcharts)

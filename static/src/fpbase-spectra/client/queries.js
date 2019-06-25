@@ -165,6 +165,18 @@ const GET_OWNER_OPTIONS = gql`
   }
 `
 
+const SET_EX_NORM = gql`
+  mutation setExNorm($data: [String]) {
+    setExNorm(data: $data) @client
+  }
+`
+
+const GET_EX_NORM = gql`
+  {
+    exNorm @client
+  }
+`
+
 export {
   batchSpectra,
   GET_SPECTRUM,
@@ -175,5 +187,7 @@ export {
   GET_CHART_OPTIONS,
   GET_OWNER_OPTIONS,
   OPTICAL_CONFIG_LIST,
-  GET_OPTICAL_CONFIG
+  GET_OPTICAL_CONFIG,
+  SET_EX_NORM,
+  GET_EX_NORM
 }
