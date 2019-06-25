@@ -106,6 +106,9 @@ export const resolvers = {
         if (id.startsWith("$cf") && remove) {
           const _id = id.split("_")[0]
           return !(remove.findIndex(item => item.startsWith(_id)) > -1)
+        } else if (id.startsWith("$cl") && remove) {
+          const _id = id.split("_")[0]
+          return !(remove.findIndex(item => item.startsWith(_id)) > -1)
         }
         return !(remove || []).includes(id)
       })

@@ -51,6 +51,25 @@ export function spectraSorter(a, b) {
 const rangexy = (start, end) =>
   Array.from({ length: end - start }, (v, k) => k + start)
 
+// $cl1_wave
+const customLaserSpectrum = _id => {
+  let [id, wave] = _id.split("_")
+  let data = [[+wave - 1, 0], [+wave, 1], [+wave + 1, 0]]
+  const name = `${wave} laser`
+  return {
+    data: {
+      spectrum: {
+        id: _id,
+        subtype: "L",
+        owner: { id, name },
+        category: "F",
+        data,
+        color: +wave in COLORS ? COLORS[+wave] : "#bbbbbb"
+      }
+    }
+  }
+
+}
 // $cf1_type_center_width_trans
 const customFilterSpectrum = _id => {
   let [id, subtype, center, width, trans] = _id.split("_")
@@ -130,11 +149,14 @@ const SpectraViewerContainer = ({ spectraInfo }) => {
       let _data = await Promise.all(
         activeSpectra
           .filter(i => i)
-          .map(id =>
-            id.startsWith("$cf")
-              ? customFilterSpectrum(id)
-              : client.query({ query: GET_SPECTRUM, variables: { id } })
-          )
+          .map(id => {
+            if (id.startsWith("$cf")) {
+              return customFilterSpectrum(id)
+            } else if (id.startsWith("$cl")) {
+              return customLaserSpectrum(id)
+            }
+            return client.query({ query: GET_SPECTRUM, variables: { id } })
+          })
       )
       setData(_data.map(({ data }) => data.spectrum))
     }

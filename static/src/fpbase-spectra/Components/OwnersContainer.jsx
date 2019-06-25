@@ -9,6 +9,7 @@ import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 import { Typography } from "@material-ui/core"
 import useWindowWidth from "./useWindowWidth"
 import CustomFilterGroup from "./CustomFilterGroup"
+import CustomLaserGroup from "./CustomLaserGroup"
 
 const override = css`
   display: block;
@@ -186,7 +187,7 @@ const OwnersContainer = ({ owners, selectors, changeOwner, removeRow }) => {
         <Tab
           tabIndex={-1}
           className={classes.tabLabel}
-          label={smartLabel("Lights", ["L"])}
+          label={smartLabel("Light Sources", ["L"])}
         />
         <Tab
           tabIndex={-1}
@@ -222,7 +223,10 @@ const OwnersContainer = ({ owners, selectors, changeOwner, removeRow }) => {
             {spectrumCategoryGroup("F", "filter")}
             <CustomFilterGroup />
           </div>
-          <div>{spectrumCategoryGroup("L", "light")}</div>
+          <div>
+            {spectrumCategoryGroup("L", "light")}
+            <CustomLaserGroup />
+          </div>
           <div>{spectrumCategoryGroup("C", "camera")}</div>
         </TabContainer>
       )}
