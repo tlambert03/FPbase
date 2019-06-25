@@ -3,7 +3,8 @@ import { useMutation, useQuery } from "react-apollo-hooks"
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_ACTIVE_SPECTRA,
-  SET_ACTIVE_SPECTRA
+  SET_ACTIVE_SPECTRA,
+  SET_EX_NORM
 } from "../client/queries"
 import update from "immutability-helper"
 
@@ -95,6 +96,7 @@ const useSelectors = ({ owners, spectraInfo, initial = [] }) => {
   }
 
   const setSpectra = useMutation(SET_ACTIVE_SPECTRA)
+  const mutateExNormWave = useMutation(SET_EX_NORM)
   const clearForm = (leave = [], appendSpectra = []) => {
     const preserve = selectors.filter(({ category }) =>
       leave.includes(category)
@@ -110,6 +112,7 @@ const useSelectors = ({ owners, spectraInfo, initial = [] }) => {
     const keepSpectra = activeSpectra.filter(
       id => spectraInfo[id] && leave.includes(spectraInfo[id].category)
     )
+    mutateExNormWave({ variables: { data: [null, null] } })
     setSpectra({
       variables: {
         activeSpectra: [...new Set([...keepSpectra, ...appendSpectra])]
