@@ -533,7 +533,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             self.data[i][1] = value[i]
 
     def get_absolute_url(self):
-        return reverse('proteins:spectra') + '?s={}'.format(self.owner.slug)
+        return reverse('proteins:spectra') + '?s={}'.format(self.id)
 
 
 class Filter(SpectrumOwner, Product):

@@ -45,5 +45,6 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        if self.url:
-            return self.url
+        if hasattr(self, 'spectrum'):
+            return self.spectrum.get_absolute_url()
+        return self.url
