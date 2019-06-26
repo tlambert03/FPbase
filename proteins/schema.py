@@ -1,8 +1,7 @@
 import graphene
 import graphene_django_optimizer as gdo
-from graphene_django.types import DjangoObjectType
 from django.db.models import Prefetch
-
+from graphene_django.types import DjangoObjectType
 
 from . import models
 
@@ -219,6 +218,7 @@ class OpticalConfig(gdo.OptimizedDjangoObjectType):
     def resolve_filters(self, info):
         return self.filterplacement_set.all()
 
+
 class Query(graphene.ObjectType):
     state = graphene.Field(State, id=graphene.Int())
     spectrum = graphene.Field(Spectrum, id=graphene.Int())
@@ -227,6 +227,20 @@ class Query(graphene.ObjectType):
     spectra = graphene.List(SpectrumInfo)
     opticalConfigs = graphene.List(OpticalConfig)
     opticalConfig = graphene.Field(OpticalConfig, id=graphene.Int())
+    proteins = graphene.List(Protein)
+    protein = graphene.Field(Protein, id=graphene.String())
+
+    def resolve_proteins(self, info, **kwargs):
+        return gdo.query(models.Protein.objects.all(), info)
+
+    def resolve_protein(self, info, **kwargs):
+        id = kwargs.get("id")
+        if id is not None:
+            try:
+                return gdo.query(models.Protein.objects.filter(uuid=id), info).get()
+            except models.Spectrum.DoesNotExist:
+                return None
+        return None
 
     def resolve_state(self, info, **kwargs):
         id = kwargs.get("id")
@@ -264,4 +278,3 @@ class Query(graphene.ObjectType):
 
     # def resolve_spectra(self, info, **kwargs):
     #     return gdo.query(models.Spectrum.objects.all(), info)
-
