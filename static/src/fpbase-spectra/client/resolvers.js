@@ -93,7 +93,7 @@ export const resolvers = {
         //.filter(id => Boolean(spectrumFrag(cache, id)))
         .map(i => String(i))
       const data = {
-        activeSpectra: filtered
+        activeSpectra: validSpectraIds(filtered)
       }
       await client.writeQuery({ query: GET_ACTIVE_SPECTRA, data })
       return data
@@ -115,7 +115,9 @@ export const resolvers = {
       })
       const toAdd = (add || []).filter(id => id).map(id => String(id))
       const data = {
-        activeSpectra: [...new Set([...activeSpectra, ...toAdd])]
+        activeSpectra: validSpectraIds([
+          ...new Set([...activeSpectra, ...toAdd])
+        ])
       }
       await client.writeQuery({ query: GET_ACTIVE_SPECTRA, data })
       return data
@@ -126,3 +128,10 @@ export const resolvers = {
     }
   }
 }
+
+const validSpectraIds = spectra =>
+  spectra.filter(
+    id => id && (!isNaN(id) || id.startsWith("$cl") || id.startsWith("$cf"))
+  )
+
+export { validSpectraIds }

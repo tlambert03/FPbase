@@ -12,6 +12,7 @@ import { decoder } from "../util"
 import qs from "qs"
 import { GET_CHART_OPTIONS } from "./queries"
 import "unfetch/polyfill/index.js"
+import { validSpectraIds } from "../client/resolvers"
 
 function intializeClient({ uri, storage }) {
   const fragmentMatcher = new IntrospectionFragmentMatcher({
@@ -75,7 +76,7 @@ function intializeClient({ uri, storage }) {
       if (["s", "activeSpectra"].includes(key)) {
         let active = url[key]
         if (!Array.isArray(active)) active = active.split(",")
-        data.activeSpectra = active
+        data.activeSpectra = validSpectraIds(active)
       }
     })
     if (extremes.some(i => i)) data.chartOptions.extremes = extremes

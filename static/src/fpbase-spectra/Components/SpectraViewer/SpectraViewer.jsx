@@ -165,8 +165,7 @@ const SpectraViewerContainer = ({ activeSpectra, ownerInfo }) => {
             return client.query({ query: GET_SPECTRUM, variables: { id } })
           })
       )
-
-      setData(_data.map(({ data }) => data.spectrum))
+      setData(_data.map(({ data }) => data.spectrum).filter(i => i))
     }
     fetchData()
   }, [activeSpectra, client])
