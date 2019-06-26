@@ -12,10 +12,13 @@ import FileIcon from "@material-ui/icons/GetApp"
 import SettingsIcon from "@material-ui/icons/Settings"
 import CachedIcon from "@material-ui/icons/Cached"
 import ShareIcon from "@material-ui/icons/Share"
+import InfoIcon from "@material-ui/icons/Info"
 import Dialog from "@material-ui/core/Dialog"
 import DialogActions from "@material-ui/core/DialogActions"
 import DialogContent from "@material-ui/core/DialogContent"
 import DialogTitle from "@material-ui/core/DialogTitle"
+import Paper from "@material-ui/core/Paper"
+import { fontStyle } from "@material-ui/system"
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -135,6 +138,26 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
         <Typography variant="body1" gutterBottom>
           The state of the viewer in any tab will persist across browser refresh
         </Typography>
+        <div
+          style={{
+            padding: 20,
+            margin: "5px auto",
+            textAlign: "center",
+          }}
+        >
+          <InfoIcon style={{ color: "#777", marginRight: 8 }} />
+          <Typography variant="p" style={{ color: "#666" }}>
+            Full documentation is available at{" "}
+          </Typography>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontWeight: "bold" }}
+            href="https://help.fpbase.org/tools/spectra-viewer"
+          >
+            https://help.fpbase.org/tools/spectra-viewer
+          </a>
+        </div>
       </DialogContent>
       <DialogActions>
         <FormGroup row>
