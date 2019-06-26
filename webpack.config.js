@@ -3,7 +3,7 @@ const webpack = require("webpack")
 const autoprefixer = require("autoprefixer")
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
 const BundleTracker = require("webpack-bundle-tracker")
-const CleanWebpackPlugin = require("clean-webpack-plugin")
+const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 const ImageminWebpackPlugin = require("imagemin-webpack-plugin").default
 const ImageminWebP = require("imagemin-webp")
@@ -30,9 +30,7 @@ const styleRule = {
       loader: "postcss-loader",
       options: {
         plugins: () => [
-          autoprefixer({
-            browsers: ["last 2 versions"]
-          }),
+          autoprefixer(),
           CSSnano
         ]
       }
