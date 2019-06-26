@@ -80,7 +80,6 @@ function intializeClient({ uri, storage }) {
     })
     if (extremes.some(i => i)) data.chartOptions.extremes = extremes
     if (exNorm.some(i => i)) data.exNorm = exNorm
-    console.log(data)
     cache.writeData({ data })
   }
 
