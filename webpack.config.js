@@ -29,10 +29,7 @@ const styleRule = {
     {
       loader: "postcss-loader",
       options: {
-        plugins: () => [
-          autoprefixer(),
-          CSSnano
-        ]
+        plugins: () => [autoprefixer(), CSSnano]
       }
     },
     "sass-loader"
@@ -193,7 +190,10 @@ module.exports = {
     //   }),
     //   new OptimizeCSSAssetsPlugin({})
     // ],
-    minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
+    minimizer: [
+      new TerserJSPlugin({ cache: true, parallel: true, sourceMap: true }),
+      new OptimizeCSSAssetsPlugin({})
+    ],
     splitChunks: {
       cacheGroups: {
         commons: {

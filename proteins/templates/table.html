@@ -148,10 +148,6 @@
       $('#proteinTable').DataTable().column('.' + searchcol).search(searchval, true, false).draw();
     });
 
-    // $('.exmax').each(function(){
-    //  $(this).closest('tr').css('background-color', get_color_group($(this).html()))
-    // })
-
     if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)){
       setTimeout(window.table.draw, 50)
     }
