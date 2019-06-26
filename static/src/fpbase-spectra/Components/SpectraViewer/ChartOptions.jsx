@@ -52,13 +52,13 @@ const DEFAULT_OPTIONS = {
     animation: { duration: 50 },
     resetZoomButton: {
       theme: {
-        fill: "RGBA(55, 168, 59, 0.6)",
-        style: { color: "#FFFFFF", fontSize: "0.68rem", fontWeight: "bold" },
+        fill: "RGBA(90, 90, 90, 0.35)",
+        style: { color: "#FFFFFF", fontSize: "0.7rem", fontWeight: "bold" },
         r: 3,
-        stroke: "rgba(255,255,255,0.3)",
+        stroke: "RGBA(90, 90, 90, 0.1)",
         states: {
           hover: {
-            fill: "RGBA(55, 168, 59, 0.85)"
+            fill: "RGBA(18, 75, 51, 0.8)"
           }
         }
       }

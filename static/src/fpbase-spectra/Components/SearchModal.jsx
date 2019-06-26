@@ -34,15 +34,14 @@ const useStyles = makeStyles(theme => ({
     width: "620px",
     backgroundColor: theme.palette.background.paper,
     boxShadow: theme.shadows[5],
-    padding: 30,
-    paddingTop: 5,
+    padding: "5px 30px 15px",
     outline: "none",
     [theme.breakpoints.down("sm")]: {
       width: "80%"
     },
     [theme.breakpoints.down("xs")]: {
       width: "84%",
-      padding: "5px 22px 30px",
+      padding: "5px 22px 15px",
       fontSize: "small"
     }
   },
@@ -176,10 +175,17 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
           components={{ Option: OptionWithBlurb }}
           placeholder="Search optical configs"
         />
-        <p style={{ fontSize: "smaller", color: "#666", fontStyle: "italic", marginTop: 8 }}>
+        <p
+          style={{
+            fontSize: "smaller",
+            color: "#666",
+            fontStyle: "italic",
+            marginTop: 8,
+            marginBottom: 1,
+          }}
+        >
           This is a list of optical configurations used in FPbase user
-          microcopes. Selecting one will load all items from that config into
-          the spectra viewer.
+          microcopes. Selecting one will populate the chart with items from that config.
         </p>
         <FormControlLabel
           control={
@@ -189,8 +195,17 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
               value={"preserveFluors"}
             />
           }
-          label="Preserve fluorophores when changing config"
+          label={<span style={{fontSize: 'small'}}>Preserve fluorophores</span>}
         />
+        <p
+          style={{
+            marginTop: 8,
+            fontSize: 'small',
+            textAlign: "center"
+          }}
+        >
+          Spectra missing? <a href="/spectra/submit/">Submit a spectrum</a>
+        </p>
       </div>
     </Modal>
   )

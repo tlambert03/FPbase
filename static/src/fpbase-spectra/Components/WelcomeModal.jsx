@@ -145,7 +145,7 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
             textAlign: "center",
           }}
         >
-          <InfoIcon style={{ color: "#777", marginRight: 8 }} />
+         
           <Typography variant="p" style={{ color: "#666" }}>
             Full documentation is available at{" "}
           </Typography>
