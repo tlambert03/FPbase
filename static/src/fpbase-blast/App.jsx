@@ -4,6 +4,7 @@ import BlastReport from "./ReportView.jsx"
 import Form from "react-bootstrap/Form"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
+import $ from "jquery"
 
 function ReportSelect({ reports, binary, index, onChange }) {
   const unit = binary === "blastp" ? "aa" : "nt"
@@ -58,9 +59,9 @@ function App() {
     setBinary(bin)
 
     $.post("", $(target).serialize() + "&binary=" + bin, data => {
-      if (data.status == 200) {
+      if (data.status === 200) {
         setResults(data.blastResult)
-      } else if (data.status == 500) {
+      } else if (data.status === 500) {
         alert(
           "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
         )

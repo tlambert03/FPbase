@@ -3,20 +3,68 @@ import { makeStyles } from "@material-ui/core/styles"
 import Paper from "@material-ui/core/Paper"
 import Tabs from "@material-ui/core/Tabs"
 import Tab from "@material-ui/core/Tab"
-import Alert from "react-bootstrap/Alert"
 import BlastReportDescription from "./ReportDescription.jsx"
 import BlastReportAlignments from "./ReportAlignments.jsx"
+import Snackbar from "@material-ui/core/Snackbar"
+import IconButton from "@material-ui/core/IconButton"
+import CloseIcon from "@material-ui/icons/Close"
+import { Typography } from "@material-ui/core"
 
 const useStyles = makeStyles(theme => ({
   root: {
-    width: "100%",
-    marginTop: "20px",
-    overflowX: "auto",
-    position: "sticky",
-    top: "0px",
-    zIndex: "1000"
+    marginRight: "20px"
+  },
+  close: {
+    padding: theme.spacing(0.5)
   }
 }))
+
+const NoHitsMessage = ({ open, handleClose }) => {
+  const classes = useStyles()
+
+  return (
+    <div>
+      <Snackbar
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left"
+        }}
+        open={open}
+        autoHideDuration={20000}
+        onClose={handleClose}
+        ContentProps={{
+          "aria-describedby": "message-id"
+        }}
+        className={classes.root}
+        message={
+          <span id="message-id">
+            <Typography
+              key="undo"
+              color="secondary"
+              size="small"
+              onClick={handleClose}
+            >
+              NO HITS
+            </Typography>
+            Please confirm that you are entering either amino acid sequence(s)
+            or nucleotide sequence(s).
+          </span>
+        }
+        action={[
+          <IconButton
+            key="close"
+            aria-label="Close"
+            color="inherit"
+            className={classes.close}
+            onClick={handleClose}
+          >
+            <CloseIcon />
+          </IconButton>
+        ]}
+      />
+    </div>
+  )
+}
 
 function BlastReport({ report }) {
   const [tab, setTab] = useState(0)
@@ -46,20 +94,23 @@ function BlastReport({ report }) {
 
   const classes = useStyles()
 
-  if (report.report.results.search.hits.length < 1) {
-    return (
-      <div className="mt-4 text-align-center">
-        <Alert variant="info">
-          <Alert.Heading>There were no hits for this query...</Alert.Heading>
-          <p>
-            You may try again with a new sequence. Please confirm that you are
-            entering either amino acid sequence(s) or nucleotide sequence(s),
-            (but not both in the same FASTA entry).
-          </p>
-        </Alert>
-      </div>
-    )
+  const [open, setOpen] = React.useState(true)
+  function closeSnackbar(event, reason) {
+    if (reason === "clickaway") {
+      return
+    }
+    setOpen(false)
   }
+
+  useEffect(() => {
+    console.log(report.report)
+    if (report.report.results.search.hits.length < 1) {
+      setOpen(true)
+    }
+  }, [report.report, report.report.results.search.hits])
+
+  if (report.report.results.search.hits.length < 1)
+    return <NoHitsMessage open={open} handleClose={closeSnackbar} />
 
   return (
     <div>
