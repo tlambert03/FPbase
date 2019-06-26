@@ -113,6 +113,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'django.utils': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
         'proteins': {
             'handlers': ['console'],
             'level': 'DEBUG',
