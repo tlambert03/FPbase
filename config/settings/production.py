@@ -16,6 +16,7 @@ Production settings for FPbase project.
 from .base import *  # noqa
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 # SECRET CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -174,7 +175,7 @@ SOURCE_VERSION = env('SOURCE_VERSION', default=None)
 print("SOURCE_VERSION = %s" % SOURCE_VERSION)
 sentry_sdk.init(
     dsn=SENTRY_DSN,
-    integrations=[DjangoIntegration()],
+    integrations=[DjangoIntegration(), CeleryIntegration()],
     send_default_pii=True,
     release=SOURCE_VERSION
 )
