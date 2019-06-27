@@ -366,7 +366,8 @@ GRAPHENE = {
 
 MIDDLEWARE = ['corsheaders.middleware.CorsMiddleware', ] + MIDDLEWARE
 INSTALLED_APPS += ['corsheaders', ]
-CORS_ORIGIN_WHITELIST = (
-    'localhost:8000',
-    'localhost:3000',
-)
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8000',
+    'http://localhost:8080',
+    'http://localhost:3000',
+]
