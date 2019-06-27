@@ -217,7 +217,7 @@ class SpectrumForm(forms.ModelForm):
                     stype = (
                         obj.spectra.filter(subtype=stype).first().get_subtype_display()
                     )
-            elif obj.spectrum:
+            elif hasattr(obj, 'spectrum') and obj.spectrum:
                 exists = True
                 stype = obj.spectrum.get_subtype_display()
             if exists:
