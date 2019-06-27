@@ -79,7 +79,7 @@
     "css-loader": "^3.0.0",
     "cssnano": "^4.1.10",
     "dotenv-webpack": "^1.7.0",
-    "eslint": "^6.0.1",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-config-react-app": "^4.0.1",
