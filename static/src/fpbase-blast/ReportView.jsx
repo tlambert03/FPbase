@@ -11,8 +11,13 @@ import CloseIcon from "@material-ui/icons/Close"
 import { Typography } from "@material-ui/core"
 
 const useStyles = makeStyles(theme => ({
-  root: {
-    marginRight: "20px"
+  paperRoot: {
+    width: "100%",
+    marginTop: "23px",
+    overflowX: "auto",
+    position: "sticky",
+    top: "0px",
+    zIndex: "1000"
   },
   close: {
     padding: theme.spacing(0.5)
@@ -35,7 +40,6 @@ const NoHitsMessage = ({ open, handleClose }) => {
         ContentProps={{
           "aria-describedby": "message-id"
         }}
-        className={classes.root}
         message={
           <span id="message-id">
             <Typography
@@ -114,7 +118,7 @@ function BlastReport({ report }) {
 
   return (
     <div>
-      <Paper square className={classes.root}>
+      <Paper square className={classes.paperRoot}>
         <Tabs
           value={tab}
           onChange={handleTabClick}
