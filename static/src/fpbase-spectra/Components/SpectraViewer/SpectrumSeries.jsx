@@ -70,18 +70,23 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
         let scalar = 0
         const ownerSpectra = ownerInfo[spectrum.owner.slug].spectra
         if (ownerSpectra) {
-          const exSpectrum = ownerSpectra.find(i => i.subtype === "EX")
-          const {
-            data: {
-              spectrum: { data: exData }
+          const exSpectrum =
+            ownerSpectra.find(i => i.subtype === "EX") ||
+            ownerSpectra.find(i => i.subtype === "AB")
+          if (exSpectrum) {
+            const {
+              data: {
+                spectrum: { data: exData }
+              }
+            } = await client.query({
+              query: GET_SPECTRUM,
+              variables: { id: exSpectrum.id }
+            })
+            const exEfficiency = exData.find(([x]) => x === exNorm)
+            if (exEfficiency) {
+              scalar = exEfficiency[1]
             }
-          } = await client.query({
-            query: GET_SPECTRUM,
-            variables: { id: exSpectrum.id }
-          })
-          const exEfficiency = exData.find(([x]) => x === exNorm)
-          if (exEfficiency) {
-            scalar = exEfficiency[1]
+          } else {
           }
         }
         setSerie(List([...spectrum.data].map(([a, b]) => [a, b * scalar])))
