@@ -17,6 +17,7 @@
 {% block container-class %}container-fluid px-2 px-sm-3 px-lg-5{% endblock %}
 
 {% block content %}
+<h1 style="text-align: center; font-size: 1.3rem; font-weight: 600; color: #999; height: 0; visibility: hidden">FPbase Spectra Viewer</h1>
 <div id="spectra-viewer">{% include "proteins/_loading_logo.html" %}</div>
 {% custom_static 'spectraViewer' %}
 {% endblock content %}
