@@ -1,4 +1,4 @@
-import React from "react"
+import React, { memo } from "react"
 import { makeStyles } from "@material-ui/core/styles"
 import AppBar from "@material-ui/core/AppBar"
 import Toolbar from "@material-ui/core/Toolbar"
@@ -57,7 +57,7 @@ export const useStyles = makeStyles(theme => ({
   }
 }))
 
-const MyAppBar = ({ spectraOptions, clearForm, openHelp }) => {
+const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp }) {
   const classes = useStyles()
   const [searchOpen, setSearchOpen] = React.useState(false)
   const handleClick = () => setSearchOpen(true)
@@ -66,7 +66,7 @@ const MyAppBar = ({ spectraOptions, clearForm, openHelp }) => {
     data: {
       chartOptions: { logScale }
     }
-  } = useQuery(GET_CHART_OPTIONS)
+  } = useQuery(GET_CHART_OPTIONS) 
   const toggleLogScale = useMutation(gql`
     mutation ToggleLogScale {
       toggleLogScale @client
@@ -125,6 +125,6 @@ const MyAppBar = ({ spectraOptions, clearForm, openHelp }) => {
       />
     </>
   )
-}
+})
 
 export default MyAppBar
