@@ -48,7 +48,22 @@ function toggleChartOption(cache, key) {
 //   })
 // }
 
+function trapz(arr) {
+  // approximate area under curve as series of trapezoids
+  // arr = [[wave, data], ...]
+  let sum = 0
+  for (let i = 1; i < arr.length; i++) {
+    sum += 0.5 * (arr[i][1] + arr[i - 1][1]) * (arr[i][0] - arr[i - 1][0])
+  }
+  return sum
+}
+
 export const resolvers = {
+  Spectrum: {
+    area: (spectrum, obj, cli) => {
+      return trapz(spectrum.data)
+    }
+  },
   Mutation: {
     toggleYAxis: (_root, variables, { cache }) => {
       return toggleChartOption(cache, "showY")
