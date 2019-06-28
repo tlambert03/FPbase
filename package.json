@@ -52,6 +52,7 @@
     "react-select": "^3.0.4",
     "react-select-async-paginate": "^0.3.4",
     "react-spinners": "^0.5.4",
+    "react-windowed-select": "^1.0.2-beta",
     "select2": "^4.0.7-rc.0",
     "select2-theme-bootstrap4": "^0.2.0-beta.3",
     "smiles-drawer": "^1.1.20",
