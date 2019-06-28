@@ -189,7 +189,7 @@ export default function FPPropChart() {
         }
         $("<div id='" + i + "' class='noUi-slider'/>").appendTo("#sliders")
         var slider = document.getElementById(i)
-        //var label = $("<label class='noUi-slider-label' for="+i+">"+strings[i]+"</label>").appendTo(slider);
+        $("<label class='noUi-slider-label' for="+i+">"+strings[i]+"</label>").appendTo(slider);
 
         noUiSlider.create(slider, {
           start: [v[0], v[1]], // 4 handles, starting at...
