@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useMutation, useQuery } from "react-apollo-hooks"
 import {
   UPDATE_ACTIVE_SPECTRA,
@@ -97,7 +97,7 @@ const useSelectors = ({ owners, spectraInfo, initial = [] }) => {
 
   const setSpectra = useMutation(SET_ACTIVE_SPECTRA)
   const mutateExNormWave = useMutation(SET_EX_NORM)
-  const clearForm = (leave = [], appendSpectra = []) => {
+  const clearForm = useCallback((leave = [], appendSpectra = []) => {
     const preserve = selectors.filter(({ category }) =>
       leave.includes(category)
     )
@@ -118,7 +118,7 @@ const useSelectors = ({ owners, spectraInfo, initial = [] }) => {
         activeSpectra: [...new Set([...keepSpectra, ...appendSpectra])]
       }
     })
-  }
+  }, [])
 
   return { activeSpectra, selectors, addRow, clearForm, changeOwner, removeRow }
 }
