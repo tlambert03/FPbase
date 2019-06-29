@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 import COLORS from "../../js/spectra/colors"
-import { GET_SPECTRUM } from "../client/queries"
-import { useApolloClient } from "react-apollo-hooks"
+import { GET_SPECTRUM, GET_ACTIVE_SPECTRA } from "../client/queries"
+import { useApolloClient, useQuery } from "@apollo/react-hooks"
+import update from "immutability-helper"
 
 const rangexy = (start, end) =>
   Array.from({ length: end - start }, (v, k) => k + start)
@@ -71,30 +72,49 @@ const customFilterSpectrum = _id => {
   }
 }
 
-const useSpectralData = activeSpectra => {
+const useSpectralData = () => {
   // $cf1_type_center_width
-  const [data, setData] = useState([])
+  const [currentData, setCurrentData] = useState([])
   const client = useApolloClient()
-  useEffect(() => {
-    async function fetchData() {
-      let _data = await Promise.all(
-        activeSpectra
-          .filter(i => i)
-          .map(id => {
-            if (id.startsWith("$cf")) {
-              return customFilterSpectrum(id)
-            } else if (id.startsWith("$cl")) {
-              return customLaserSpectrum(id)
-            }
-            return client.query({ query: GET_SPECTRUM, variables: { id } })
-          })
-      )
-      setData(_data.map(({ data }) => data.spectrum).filter(i => i))
-    }
-    fetchData()
-  }, [activeSpectra, client])
+  const {
+    data: { activeSpectra }
+  } = useQuery(GET_ACTIVE_SPECTRA)
 
-  return data
+  useEffect(() => {
+    function idToData(id) {
+      if (id.startsWith("$cf")) {
+        return customFilterSpectrum(id)
+      } else if (id.startsWith("$cl")) {
+        return customLaserSpectrum(id)
+      }
+      return client.query({ query: GET_SPECTRUM, variables: { id } })
+    }
+
+    async function updateData() {
+      const deadSpectra = currentData.reduceRight((acc, item, idx) => {
+        if (!activeSpectra.includes(item.id)) acc.push([idx, 1])
+        return acc
+      }, [])
+
+      const currentIDs = currentData.map(item => item.id)
+      const newSpectra = activeSpectra.filter(
+        id => id && !currentIDs.includes(id)
+      )
+      let newData = await Promise.all(newSpectra.map(id => idToData(id)))
+      newData = newData.map(item => item.data.spectrum)
+      let nextData = update(currentData, {
+        $splice: deadSpectra,
+        $push: newData
+      })
+      if (nextData !== currentData) {
+        setCurrentData(nextData)
+      }
+    }
+
+    updateData()
+  }, [activeSpectra, client, currentData])
+
+  return currentData
 }
 
 export default useSpectralData

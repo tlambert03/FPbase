@@ -53,7 +53,7 @@ const App = () => {
 
   return (
     <>
-      <SpectraViewer activeSpectra={activeSpectra} ownerInfo={owners.current} />
+      <SpectraViewer ownerInfo={owners.current} />
       <OwnersContainer
         owners={owners.current}
         selectors={selectors}
@@ -81,6 +81,5 @@ const App = () => {
     </>
   )
 }
-
 
 export default App
