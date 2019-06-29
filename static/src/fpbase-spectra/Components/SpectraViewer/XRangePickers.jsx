@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react"
-import { useMutation, useQuery } from "react-apollo-hooks"
+import { useMutation, useQuery } from "@apollo/react-hooks"
 import { provideAxis } from "react-jsx-highcharts"
 import Input from "@material-ui/core/Input"
 import gql from "graphql-tag"
@@ -56,7 +56,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
       }
     }
   } = useQuery(GET_CHART_EXTREMES)
-  const mutateExtremes = useMutation(MUTATE_CHART_EXTREMES)
+  const [mutateExtremes] = useMutation(MUTATE_CHART_EXTREMES)
   const minNode = useRef()
   const maxNode = useRef()
   const axis = getAxis()

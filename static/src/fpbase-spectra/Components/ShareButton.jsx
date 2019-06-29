@@ -10,7 +10,7 @@ import LinkIcon from "@material-ui/icons/Link"
 import CloseIcon from "@material-ui/icons/Close"
 import Divider from "@material-ui/core/Divider"
 import ShareIcon from "@material-ui/icons/Share"
-import { useQuery } from "react-apollo-hooks"
+import { useQuery } from "@apollo/react-hooks"
 import {
   GET_ACTIVE_SPECTRA,
   GET_CHART_OPTIONS,

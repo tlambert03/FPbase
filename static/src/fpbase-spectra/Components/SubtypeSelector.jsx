@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 import Box from "@material-ui/core/Box"
 import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
-import { useQuery, useMutation } from "react-apollo-hooks"
+import { useQuery, useMutation } from "@apollo/react-hooks"
 import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 import { makeStyles } from "@material-ui/core"
 import Visibility from "@material-ui/icons/Visibility"
@@ -42,7 +42,7 @@ const SubtypeSelector = ({ subtypes, skip }) => {
     subtype.active = activeSpectra.includes(subtype.id)
   })
 
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const handleClick = e => {
     const elem = e.target.closest("button")
     const checked = !elem.classList.contains("Mui-selected")

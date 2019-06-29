@@ -4,7 +4,7 @@ import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
 import { makeStyles, Typography } from "@material-ui/core"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries";
-import { useMutation } from "react-apollo-hooks";
+import { useMutation } from "@apollo/react-hooks";
 
 const useStyles = makeStyles(theme => ({
   toggleButton: {
@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
 const SubtypeToggle = ({ subtypes }) => {
   const classes = useStyles()
 
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const handleClick = e => {
     const elem = e.target.closest("button")
     const checked = !elem.classList.contains("Mui-selected")

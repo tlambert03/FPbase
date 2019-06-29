@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react"
-import { useMutation, useQuery } from "react-apollo-hooks"
+import { useMutation, useQuery } from "@apollo/react-hooks"
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_ACTIVE_SPECTRA,
@@ -63,7 +63,7 @@ const useSelectors = ({ owners, spectraInfo, initial = [] }) => {
     setSelectors(newSelectors)
   }
 
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const removeRow = selector => {
     if (owners[selector.owner] && owners[selector.owner].spectra) {
       updateSpectra({
@@ -95,8 +95,8 @@ const useSelectors = ({ owners, spectraInfo, initial = [] }) => {
     }
   }
 
-  const setSpectra = useMutation(SET_ACTIVE_SPECTRA)
-  const mutateExNormWave = useMutation(SET_EX_NORM)
+  const [setSpectra] = useMutation(SET_ACTIVE_SPECTRA)
+  const [mutateExNormWave] = useMutation(SET_EX_NORM)
   const clearForm = useCallback((leave = [], appendSpectra = []) => {
     const preserve = selectors.filter(({ category }) =>
       leave.includes(category)

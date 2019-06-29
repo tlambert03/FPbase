@@ -47,7 +47,7 @@
     "progressbar.js": "^1.0.1",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
-    "react-apollo-hooks": "^0.4.5",
+    "@apollo/react-hooks": "^0.4.5",
     "react-bootstrap": "^1.0.0-beta.9",
     "react-dom": "^16.8.6",
     "react-jsx-highcharts": "^3.6.0",

@@ -3,7 +3,7 @@ import Box from "@material-ui/core/Box"
 import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
-import { useMutation } from "react-apollo-hooks"
+import { useMutation } from "@apollo/react-hooks"
 import Typography from "@material-ui/core/Typography"
 import InputSlider from "./InputSlider"
 import { makeStyles } from "@material-ui/core/styles"
@@ -24,7 +24,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
   const [width, setWidth] = React.useState(_width || 50)
   const [trans, setTrans] = React.useState(_trans || 90)
 
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
   const handleType = (event, newType) => {
     if (newType) {

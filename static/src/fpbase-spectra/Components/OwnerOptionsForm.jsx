@@ -1,6 +1,6 @@
 import React from "react"
 import gql from "graphql-tag"
-import { useQuery, useMutation } from "react-apollo-hooks"
+import { useQuery, useMutation } from "@apollo/react-hooks"
 import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
 import { GET_OWNER_OPTIONS } from "../client/queries"
@@ -13,7 +13,7 @@ const MUTATE_OWNER_OPTIONS = gql`
 `
 
 const OwnerOptionsForm = () => {
-  const setSubtypes = useMutation(MUTATE_OWNER_OPTIONS)
+  const [setSubtypes] = useMutation(MUTATE_OWNER_OPTIONS)
   const {
     data: { excludeSubtypes }
   } = useQuery(GET_OWNER_OPTIONS)

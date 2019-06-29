@@ -2,7 +2,7 @@ import React, { useEffect, memo, useState } from "react"
 import Box from "@material-ui/core/Box"
 
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
-import { useMutation, useQuery } from "react-apollo-hooks"
+import { useMutation, useQuery } from "@apollo/react-hooks"
 import Typography from "@material-ui/core/Typography"
 import InputSlider from "./InputSlider"
 import { makeStyles } from "@material-ui/core/styles"
@@ -30,7 +30,7 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
   let [laserID, _wave] = id.split("_")
   const [wave, setWave] = useState(_wave || 488)
 
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   useEffect(() => {
     updateSpectra({
       variables: {

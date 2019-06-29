@@ -6,13 +6,13 @@ import Button from "@material-ui/core/Button"
 import AddIcon from "@material-ui/icons/Add"
 import DeleteIcon from "@material-ui/icons/Delete"
 import { categoryIcon } from "./FaIcon"
-import { useMutation } from "react-apollo-hooks"
+import { useMutation } from "@apollo/react-hooks"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const CustomFilterGroup = ({activeSpectra}) => {
   const filterCounter = useRef(0)
   const [customFilters, setFilters] = useState([])
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
   const addRow = () => {
     setFilters([...customFilters, `$cf${filterCounter.current++}`])

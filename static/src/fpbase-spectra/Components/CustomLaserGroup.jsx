@@ -6,7 +6,7 @@ import Button from "@material-ui/core/Button"
 import AddIcon from "@material-ui/icons/Add"
 import DeleteIcon from "@material-ui/icons/Delete"
 import { categoryIcon } from "./FaIcon"
-import { useMutation, useQuery } from "react-apollo-hooks"
+import { useMutation, useQuery } from "@apollo/react-hooks"
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_EX_NORM,
@@ -16,13 +16,13 @@ import {
 const CustomLaserGroup = ({ activeSpectra }) => {
   const laserCounter = useRef(0)
   const [customLasers, setLasers] = useState([])
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const {
     data: {
       exNorm: [_, normID]
     }
   } = useQuery(GET_EX_NORM)
-  const mutateExNormWave = useMutation(SET_EX_NORM)
+  const [mutateExNormWave] = useMutation(SET_EX_NORM)
 
   const setExNorm = React.useCallback(
     data => mutateExNormWave({ variables: { data } }),

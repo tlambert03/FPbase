@@ -1,7 +1,7 @@
 import React, { useEffect } from "react"
 import PropTypes from "prop-types"
 import Box from "@material-ui/core/Box"
-import { useQuery, useMutation, useApolloClient } from "react-apollo-hooks"
+import { useQuery, useMutation, useApolloClient } from "@apollo/react-hooks"
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_OWNER_OPTIONS,
@@ -104,7 +104,7 @@ const SpectrumSelector = ({
 }) => {
   //const [value, setValue] = useState(current)
   const subtypes = (value && value.spectra) || []
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
   const {
     data: { excludeSubtypes }

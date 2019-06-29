@@ -1,5 +1,5 @@
-import React, { useEffect, memo, useState } from "react"
-import { useQuery } from "react-apollo-hooks"
+import React, { useEffect, memo } from "react"
+import { useQuery } from "@apollo/react-hooks"
 import { GET_CHART_OPTIONS, GET_EX_NORM } from "../../client/queries"
 import Highcharts from "highcharts"
 import {
@@ -45,7 +45,18 @@ const calcHeight = width => {
 //   return -1
 // }
 
-const SpectraViewerContainer = ({ activeSpectra, ownerInfo }) => {
+let {
+  plotOptions,
+  xAxis,
+  yAxis,
+  chart,
+  navigation,
+  exporting,
+  legend,
+  tooltip
+} = DEFAULT_OPTIONS
+
+const SpectraViewerContainer = ({ ownerInfo }) => {
   const {
     data: { chartOptions }
   } = useQuery(GET_CHART_OPTIONS)
@@ -55,16 +66,6 @@ const SpectraViewerContainer = ({ activeSpectra, ownerInfo }) => {
     }
   } = useQuery(GET_EX_NORM)
 
-  let {
-    plotOptions,
-    xAxis,
-    yAxis,
-    chart,
-    navigation,
-    exporting,
-    legend,
-    tooltip
-  } = DEFAULT_OPTIONS
   yAxis = update(yAxis, {
     labels: { enabled: { $set: chartOptions.showY || chartOptions.logScale } },
     gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 }
@@ -76,7 +77,7 @@ const SpectraViewerContainer = ({ activeSpectra, ownerInfo }) => {
   })
   tooltip.shared = chartOptions.shareTooltip
 
-  const data = useSpectraData(activeSpectra)
+  const data = useSpectraData()
 
   return (
     <SpectraViewer

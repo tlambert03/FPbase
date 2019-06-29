@@ -4,7 +4,7 @@ import Modal from "@material-ui/core/Modal"
 import Typography from "@material-ui/core/Typography"
 import { makeStyles } from "@material-ui/core/styles"
 import MuiReactSelect from "./MuiReactSelect"
-import { useMutation, useQuery, useApolloClient } from "react-apollo-hooks"
+import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
 import { components } from "react-select"
 import {
   UPDATE_ACTIVE_SPECTRA,
@@ -108,7 +108,7 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
     }
   }, [setOpen])
 
-  const updateSpectra = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
   const {
     data: { excludeSubtypes }

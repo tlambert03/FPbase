@@ -1,6 +1,6 @@
 import React, { memo } from "react"
 import List from "@material-ui/core/List"
-import { useMutation, useQuery } from "react-apollo-hooks"
+import { useMutation, useQuery } from "@apollo/react-hooks"
 import gql from "graphql-tag"
 import { GET_CHART_OPTIONS } from "../../client/queries"
 import { ListCheckbox } from "../ListCheckbox"
@@ -13,13 +13,13 @@ mutation Toggle${param} {
 `
 
 const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
-  const toggleY = useMutation(toggleMut("YAxis"))
-  const toggleX = useMutation(toggleMut("XAxis"))
-  const toggleGrid = useMutation(toggleMut("Grid"))
-  const toggleScaleEC = useMutation(toggleMut("ScaleEC"))
-  const toggleScaleQY = useMutation(toggleMut("ScaleQY"))
-  const toggleShareTooltip = useMutation(toggleMut("ShareTooltip"))
-  const toggleAreaFill = useMutation(toggleMut("AreaFill"))
+  const [toggleY] = useMutation(toggleMut("YAxis"))
+  const [toggleX] = useMutation(toggleMut("XAxis"))
+  const [toggleGrid] = useMutation(toggleMut("Grid"))
+  const [toggleScaleEC] = useMutation(toggleMut("ScaleEC"))
+  const [toggleScaleQY] = useMutation(toggleMut("ScaleQY"))
+  const [toggleShareTooltip] = useMutation(toggleMut("ShareTooltip"))
+  const [toggleAreaFill] = useMutation(toggleMut("AreaFill"))
   const {
     data: { chartOptions }
   } = useQuery(GET_CHART_OPTIONS)

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useApolloClient } from "react-apollo-hooks"
+import { useApolloClient } from "@apollo/react-hooks"
 import { getStorageWithExpire, setStorageWithTimeStamp } from "./util"
 
 export const useCachedQuery = (query, cacheKey, maxAge) => {

@@ -8,7 +8,7 @@ import HelpIcon from "@material-ui/icons/Help"
 import AddIcon from "@material-ui/icons/Add"
 import SearchModal from "./SearchModal"
 
-import { useMutation, useQuery } from "react-apollo-hooks"
+import { useMutation, useQuery } from "@apollo/react-hooks"
 import { GET_CHART_OPTIONS } from "../client/queries"
 import FormControlLabel from "@material-ui/core/FormControlLabel"
 import Switch from "@material-ui/core/Switch"
@@ -67,7 +67,7 @@ const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp })
       chartOptions: { logScale }
     }
   } = useQuery(GET_CHART_OPTIONS) 
-  const toggleLogScale = useMutation(gql`
+  const [toggleLogScale] = useMutation(gql`
     mutation ToggleLogScale {
       toggleLogScale @client
     }
