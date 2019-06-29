@@ -87,6 +87,7 @@ const GET_SPECTRUM = gql`
       category
       color
       subtype
+      area @client
       owner {
         slug
         name

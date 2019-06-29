@@ -12,7 +12,7 @@ export const defaults = {
     scaleQY: false,
     shareTooltip: true,
     areaFill: true,
-    extremes: [null, null],
+    extremes: [undefined, undefined],
     __typename: "chartOptions"
   },
   exNorm: [null, null], // [normWave, normID]
