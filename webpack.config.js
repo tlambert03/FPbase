@@ -165,7 +165,7 @@ module.exports = {
       jquery: "jquery/src/jquery"
     }
   },
-  devtool: devMode ? "cheap-eval-source-map" : "source-map",
+  devtool: devMode ? "cheap-module-eval-source-map" : "source-map",
   devServer: {
     hot: true,
     quiet: false,
