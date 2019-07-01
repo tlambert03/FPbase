@@ -52,10 +52,6 @@ const App = () => {
         handleChange={handleChange}
         isNew={daysSinceLaunch < 120}
       />
-      {/* <EfficiencyTable
-        activeSpectra={activeSpectra}
-        spectraInfo={spectraInfo.current}
-      /> */}
     </>
   )
 }

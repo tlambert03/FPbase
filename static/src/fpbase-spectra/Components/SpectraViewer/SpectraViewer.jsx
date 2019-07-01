@@ -24,6 +24,7 @@ import update from "immutability-helper"
 import NoData from "./NoData"
 import useWindowWidth from "../useWindowWidth"
 import useSpectraData from "../useSpectraData"
+import gql from "graphql-tag"
 
 applyExporting(Highcharts)
 applyExportingData(Highcharts)
@@ -60,13 +61,26 @@ const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
   ownerInfo
 }) {
   const {
-    data: { chartOptions }
-  } = useQuery(GET_CHART_OPTIONS)
-  const {
     data: {
+      chartOptions,
       exNorm: [normWave]
     }
-  } = useQuery(GET_EX_NORM)
+  } = useQuery(gql`
+    query ChartOptions {
+      chartOptions @client {
+        showY
+        showX
+        showGrid
+        areaFill
+        logScale
+        scaleEC
+        scaleQY
+        extremes
+        shareTooltip
+      }
+      exNorm @client
+    }
+  `)
 
   yAxis = update(yAxis, {
     labels: { enabled: { $set: chartOptions.showY || chartOptions.logScale } },

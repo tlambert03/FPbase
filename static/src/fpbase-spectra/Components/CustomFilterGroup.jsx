@@ -49,7 +49,7 @@ const CustomFilterGroup = ({activeSpectra}) => {
 
   return (
     <div>
-      {customFilters.map(filter => (
+      {customFilters.sort().map(filter => (
         <div style={{ width: "100%", margin: "4px 0" }} key={filter}>
           <Box display="flex" alignItems="center">
             {categoryIcon("CF", "rgba(0,0,50,0.4)", {

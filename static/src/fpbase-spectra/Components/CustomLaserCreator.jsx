@@ -2,7 +2,7 @@ import React, { useEffect, memo, useState } from "react"
 import Box from "@material-ui/core/Box"
 
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
-import { useMutation, useQuery } from "@apollo/react-hooks"
+import { useApolloClient } from "@apollo/react-hooks"
 import Typography from "@material-ui/core/Typography"
 import InputSlider from "./InputSlider"
 import { makeStyles } from "@material-ui/core/styles"
@@ -30,21 +30,20 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
   let [laserID, _wave] = id.split("_")
   const [wave, setWave] = useState(_wave || 488)
 
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const client = useApolloClient()
   useEffect(() => {
-    updateSpectra({
+    client.mutate({
+      mutation: UPDATE_ACTIVE_SPECTRA,
       variables: {
         add: [`${laserID}_${wave}`],
         remove: [laserID]
       }
     })
+
     if (laserID === normID) {
       setExNorm([String(wave), laserID])
     }
-    // for some reason setExNorm and updateSpectra are changing causing infinite loop when
-    // adding a second laser line
-    // eslint-disable-next-line
-  }, [laserID, normID, wave])
+  }, [client, laserID, normID, setExNorm, wave])
 
   const handleNormCheck = (e, checked) => {
     if (checked) {

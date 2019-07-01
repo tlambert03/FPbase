@@ -3,7 +3,7 @@ import Box from "@material-ui/core/Box"
 import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
-import { useMutation } from "@apollo/react-hooks"
+import { useMutation, useApolloClient } from "@apollo/react-hooks"
 import Typography from "@material-ui/core/Typography"
 import InputSlider from "./InputSlider"
 import { makeStyles } from "@material-ui/core/styles"
@@ -24,22 +24,22 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
   const [width, setWidth] = React.useState(_width || 50)
   const [trans, setTrans] = React.useState(_trans || 90)
 
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const client = useApolloClient()
+  useEffect(() => {
+    client.mutate({
+      mutation: UPDATE_ACTIVE_SPECTRA,
+      variables: {
+        add: [`${filterID}_${type}_${center}_${width}_${trans}`],
+        remove: [filterID]
+      }
+    })
+  }, [width, center, type, trans, filterID, client])
 
   const handleType = (event, newType) => {
     if (newType) {
       setType(newType)
     }
   }
-
-  useEffect(() => {
-    updateSpectra({
-      variables: {
-        add: [`${filterID}_${type}_${center}_${width}_${trans}`],
-        remove: [filterID]
-      }
-    })
-  }, [width, center, type, updateSpectra, trans, filterID])
 
   return (
     <div
@@ -50,9 +50,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
       }}
     >
       <Box display="flex" flexWrap="wrap">
-        <Typography
-          style={{ margin: "8px 10px 3px" }}
-        >
+        <Typography style={{ margin: "8px 10px 3px" }}>
           Custom Filter Type
         </Typography>
         <ToggleButtonGroup

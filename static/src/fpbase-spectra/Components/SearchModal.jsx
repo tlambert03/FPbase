@@ -15,7 +15,13 @@ import {
 import { useCachedQuery } from "../useCachedQuery"
 import Checkbox from "@material-ui/core/Checkbox"
 import FormControlLabel from "@material-ui/core/FormControlLabel"
+import gql from "graphql-tag"
 
+const CLEAR_FORM = gql`
+  mutation ClearForm($leave: [String], $appendSpectra: [String]) {
+    clearForm(leave: $leave, appendSpectra: $appendSpectra) @client
+  }
+`
 function getModalStyle() {
   const top = 40
   const left = 42
@@ -62,7 +68,11 @@ const filterOption = ({ label }, query) => {
   return words.reduce((acc, cur) => acc && opt.includes(cur), true)
 }
 
-const SearchModal = ({ options, open, setOpen, clearForm }) => {
+const SearchModal = React.memo(function SearchModal({
+  options,
+  open,
+  setOpen
+}) {
   const [modalStyle] = useState(getModalStyle)
   const classes = useStyles()
 
@@ -127,6 +137,7 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
     setOpen(false)
   }
 
+  const [clearForm] = useMutation(CLEAR_FORM)
   const client = useApolloClient()
   const [preserveFluors, setPreserveFluors] = useState(true)
   const handleOCChange = async ({ value }) => {
@@ -142,7 +153,12 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
     opticalConfig.light && spectra.push(opticalConfig.light.spectrum.id)
     opticalConfig.camera && spectra.push(opticalConfig.camera.spectrum.id)
 
-    clearForm(preserveFluors ? ["P", "D"] : [], spectra)
+    clearForm({
+      variables: {
+        leave: preserveFluors ? ["P", "D"] : [],
+        appendSpectra: spectra
+      }
+    })
     setOpen(false)
   }
 
@@ -181,11 +197,12 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
             color: "#666",
             fontStyle: "italic",
             marginTop: 8,
-            marginBottom: 1,
+            marginBottom: 1
           }}
         >
           This is a list of optical configurations used in FPbase user
-          microcopes. Selecting one will populate the chart with items from that config.
+          microcopes. Selecting one will populate the chart with items from that
+          config.
         </p>
         <FormControlLabel
           control={
@@ -195,12 +212,14 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
               value={"preserveFluors"}
             />
           }
-          label={<span style={{fontSize: 'small'}}>Preserve fluorophores</span>}
+          label={
+            <span style={{ fontSize: "small" }}>Preserve fluorophores</span>
+          }
         />
         <p
           style={{
             marginTop: 8,
-            fontSize: 'small',
+            fontSize: "small",
             textAlign: "center"
           }}
         >
@@ -209,7 +228,7 @@ const SearchModal = ({ options, open, setOpen, clearForm }) => {
       </div>
     </Modal>
   )
-}
+})
 
 const OptionWithBlurb = props => {
   const myProps = { ...props }

@@ -47,8 +47,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   category,
   showCategoryIcon,
   hint,
-  ownerInfo,
-  updateSelector
+  ownerInfo
 }) {
   const classes = useStyles()
   const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [

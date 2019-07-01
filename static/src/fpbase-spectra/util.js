@@ -186,11 +186,22 @@ function isTouchDevice() {
   }
 }
 
+function trapz(arr) {
+  // approximate area under curve as series of trapezoids
+  // arr = [[wave, data], ...]
+  let sum = 0
+  for (let i = 1; i < arr.length; i++) {
+    sum += 0.5 * (arr[i][1] + arr[i - 1][1]) * (arr[i][0] - arr[i - 1][0])
+  }
+  return sum
+}
+
 export {
   debounce,
   reshapeSpectraInfo,
   decoder,
   getStorageWithExpire,
   setStorageWithTimeStamp,
-  isTouchDevice
+  isTouchDevice,
+  trapz
 }

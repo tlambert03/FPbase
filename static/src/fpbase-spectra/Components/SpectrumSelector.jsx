@@ -136,7 +136,6 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
       const newOwner = newValue && newValue.value
       setValue(newOwner && ownerInfo[newOwner]) // FIXME: replace with optimistic UI?
 
-      console.timeLog("timer", "comboMutate")
       comboMutate({
         variables: {
           add:

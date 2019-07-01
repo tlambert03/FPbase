@@ -46,18 +46,15 @@ function intializeClient({ uri, storage }) {
 
   // Populate from localstorage?
   const setupLocalStorage = async () => {
-    console.timeLog("timer", "setupLocalStorage")
     cache.writeData({ data: defaults })
     await persistCache({
       cache,
       storage: storage || window.sessionStorage,
       debounce: 400
     })
-    console.timeLog("timer", "cachePersisted")
   }
 
   function parseURL() {
-    console.timeLog("timer", "parseURL")
     const url = qs.parse(window.location.search.replace(/^\?/, ""), { decoder })
     if (Object.keys(url).length === 0 && url.constructor === Object) return
 
@@ -85,7 +82,6 @@ function intializeClient({ uri, storage }) {
     })
     if (extremes.some(i => i)) data.chartOptions.extremes = extremes
     if (exNorm.some(i => i)) data.exNorm = exNorm
-    console.timeLog("timer", "writeData URL data to cache")
     cache.writeData({ data })
   }
 

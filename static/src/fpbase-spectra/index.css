@@ -40,10 +40,12 @@ code {
 }
 
 .tab-header {
-  white-space: "nowrap";
-  font-weight: "normal";
+  white-space: nowrap;
+  font-weight: normal;
 }
 
 .tab-header.populated {
-  font-weight: "bold";
+  font-weight: bold;
 }
+
+.MuiTableBody-root tr:nth-child(odd) {background-color: #f4f4f4;}

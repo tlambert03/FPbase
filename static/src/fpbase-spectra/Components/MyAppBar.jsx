@@ -23,7 +23,8 @@ export const useStyles = makeStyles(theme => ({
   },
   appBar: {
     top: "auto",
-    bottom: 0
+    bottom: 0,
+    backgroundColor: "#0D4B33" 
   },
   grow: {
     flexGrow: 1
@@ -54,10 +55,15 @@ export const useStyles = makeStyles(theme => ({
     top: 30,
     margin: "0 auto",
     width: "71px"
-  }
+  },
+  odToggle: { paddingTop: 6, marginRight: 2 }
 }))
 
-const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp }) {
+const MyAppBar = memo(function MyAppBar({
+  spectraOptions,
+  clearForm,
+  openHelp
+}) {
   const classes = useStyles()
   const [searchOpen, setSearchOpen] = React.useState(false)
   const handleClick = () => setSearchOpen(true)
@@ -66,7 +72,7 @@ const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp })
     data: {
       chartOptions: { logScale }
     }
-  } = useQuery(GET_CHART_OPTIONS) 
+  } = useQuery(GET_CHART_OPTIONS)
   const [toggleLogScale] = useMutation(gql`
     mutation ToggleLogScale {
       toggleLogScale @client
@@ -77,11 +83,10 @@ const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp })
     <>
       <AppBar
         position="fixed"
-        style={{ backgroundColor: "#0D4B33" }}
         className={classes.appBar}
       >
         <Toolbar>
-          <SettingsDrawer clearForm={clearForm} />
+          <SettingsDrawer />
           <IconButton color="inherit" onClick={openHelp}>
             <HelpIcon />
           </IconButton>
@@ -112,17 +117,19 @@ const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp })
               />
             }
             label="OD"
-            style={{ paddingTop: 6, paddingRight: 4 }}
+            className={classes.odToggle}
           />
           <ShareButton />
         </Toolbar>
       </AppBar>
-      <SearchModal
-        options={spectraOptions}
-        open={searchOpen}
-        clearForm={clearForm}
-        setOpen={setSearchOpen}
-      />
+      {spectraOptions.length > 0 && (
+        <SearchModal
+          options={spectraOptions}
+          open={searchOpen}
+          clearForm={clearForm}
+          setOpen={setSearchOpen}
+        />
+      )}
     </>
   )
 })

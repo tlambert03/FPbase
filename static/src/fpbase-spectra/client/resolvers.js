@@ -6,6 +6,7 @@ import {
   ADD_SELECTORS
 } from "./queries"
 import update from "immutability-helper"
+import { trapz } from "../util"
 
 export const defaults = {
   activeSpectra: [],
@@ -54,16 +55,6 @@ function toggleChartOption(cache, key) {
 //     `
 //   })
 // }
-
-function trapz(arr) {
-  // approximate area under curve as series of trapezoids
-  // arr = [[wave, data], ...]
-  let sum = 0
-  for (let i = 1; i < arr.length; i++) {
-    sum += 0.5 * (arr[i][1] + arr[i - 1][1]) * (arr[i][0] - arr[i - 1][0])
-  }
-  return sum
-}
 
 function activeSpectraToSelectors(
   activeSpectra,
@@ -143,7 +134,6 @@ export const resolvers = {
       return data
     },
     setActiveSpectra: async (_, { activeSpectra }, { cache, client }) => {
-      console.timeLog("timer", "setActiveSpectra")
       const filtered = [...new Set(activeSpectra)]
         //.filter(id => Boolean(spectrumFrag(cache, id)))
         .map(i => String(i))
@@ -154,7 +144,6 @@ export const resolvers = {
       return data
     },
     updateActiveSpectra: async (_, { add, remove }, { cache, client }) => {
-      console.timeLog("timer", "updateActiveSpectra")
       let { activeSpectra } = cache.readQuery({ query: GET_ACTIVE_SPECTRA })
       activeSpectra = activeSpectra.filter(id => {
         if (id.startsWith("$cf") && remove) {
@@ -179,7 +168,6 @@ export const resolvers = {
       return data
     },
     normalizeCurrent: (_, args, { cache, client }) => {
-      console.timeLog("timer", "normalize Called")
       let { activeSpectra, selectors: currentSelectors } = cache.readQuery({
         query: gql`
           {
@@ -215,11 +203,9 @@ export const resolvers = {
         return sel
       })
       const data = { selectors: update(currentSelectors, { $push: selectors }) }
-      console.timeLog("timer", "addSelectors", data.selectors)
       client.writeQuery({ query: GET_SELECTORS, data })
     },
     updateSelector: (_, { selector }, { cache, client }) => {
-      console.timeLog("timer", "updateSelectors")
       let { selectors } = cache.readQuery({ query: GET_SELECTORS })
       const index = selectors.findIndex(item => item.id === selector.id)
       let data
@@ -235,13 +221,33 @@ export const resolvers = {
       client.writeQuery({ query: GET_SELECTORS, data })
     },
     removeSelector: (_, { id }, { cache, client }) => {
-      console.timeLog("timer", "removeSelector")
       let { selectors } = cache.readQuery({ query: GET_SELECTORS })
       const index = selectors.findIndex(selector => selector.id === id)
       const data = {
         selectors: update(selectors, { $splice: [[index, 1]] })
       }
       client.writeQuery({ query: GET_SELECTORS, data })
+    },
+    clearForm: async (_, args, { cache }) => {
+      const { leave, appendSpectra } = args || {}
+      const { activeSpectra } = cache.readQuery({ query: GET_ACTIVE_SPECTRA })
+      let keepSpectra = []
+      if ((leave || []).length > 0) {
+        keepSpectra = activeSpectra.filter(
+          id =>
+            window.spectraInfo[id] &&
+            leave.includes(window.spectraInfo[id].category)
+        )
+      }
+      cache.writeData({
+        data: {
+          exNorm: [null, null],
+          selectors: [],
+          activeSpectra: [
+            ...new Set([...keepSpectra, ...(appendSpectra || [])])
+          ]
+        }
+      })
     }
   }
 }

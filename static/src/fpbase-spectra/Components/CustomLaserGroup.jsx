@@ -6,14 +6,14 @@ import Button from "@material-ui/core/Button"
 import AddIcon from "@material-ui/icons/Add"
 import DeleteIcon from "@material-ui/icons/Delete"
 import { categoryIcon } from "./FaIcon"
-import { useMutation, useQuery } from "@apollo/react-hooks"
+import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_EX_NORM,
   SET_EX_NORM
 } from "../client/queries"
 
-const CustomLaserGroup = ({ activeSpectra }) => {
+const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra }) {
   const laserCounter = useRef(0)
   const [customLasers, setLasers] = useState([])
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
@@ -22,21 +22,22 @@ const CustomLaserGroup = ({ activeSpectra }) => {
       exNorm: [_, normID]
     }
   } = useQuery(GET_EX_NORM)
-  const [mutateExNormWave] = useMutation(SET_EX_NORM)
 
+  const client = useApolloClient()
   const setExNorm = React.useCallback(
-    data => mutateExNormWave({ variables: { data } }),
-    [mutateExNormWave]
+    data => client.mutate({ mutation: SET_EX_NORM, variables: { data } }),
+    [client]
   )
 
   const clearNorm = React.useCallback(
-    () => mutateExNormWave({ variables: { data: [null, null] } }),
-    [mutateExNormWave]
+    () =>
+      client.mutate({
+        mutation: SET_EX_NORM,
+        variables: { data: [null, null] }
+      }),
+    [client]
   )
 
-  // const {
-  //   data: { activeSpectra }
-  // } = useQuery(GET_ACTIVE_SPECTRA)
   useEffect(() => {
     if (activeSpectra && activeSpectra.length > 0) {
       const newLasers = activeSpectra.filter(
@@ -44,7 +45,6 @@ const CustomLaserGroup = ({ activeSpectra }) => {
           as.startsWith("$cl") &&
           !customLasers.find(item => item.startsWith(as.split("_")[0]))
       )
-
       if (newLasers.length) {
         const inds = newLasers.map(id => +id.split("_")[0].replace("$cl", ""))
         laserCounter.current = Math.max(...inds) + 1
@@ -72,7 +72,7 @@ const CustomLaserGroup = ({ activeSpectra }) => {
 
   return (
     <div>
-      {customLasers.map(laser => (
+      {customLasers.sort().map(laser => (
         <div style={{ width: "100%", margin: "4px 0" }} key={laser}>
           <Box display="flex" alignItems="center">
             {categoryIcon("CL", "rgba(0,0,50,0.4)", {
@@ -122,6 +122,6 @@ const CustomLaserGroup = ({ activeSpectra }) => {
       </Button>
     </div>
   )
-}
+})
 
 export default CustomLaserGroup

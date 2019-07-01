@@ -13,6 +13,11 @@ const typeDefs = gql`
   extend type Spectrum {
     area: Float
   }
+  
+  type Overlap {
+    data: [[Int]],
+    ids: String,
+  }
 
   type Selector {
     id: Int

@@ -8,6 +8,8 @@ import Button from "@material-ui/core/Button"
 import CloseIcon from "@material-ui/icons/Close"
 import DeleteIcon from "@material-ui/icons/Cached"
 import { makeStyles } from "@material-ui/core/styles"
+import { useMutation } from "@apollo/react-hooks"
+import gql from "graphql-tag"
 
 export const useStyles = makeStyles(theme => ({
   root: {
@@ -20,10 +22,20 @@ export const useStyles = makeStyles(theme => ({
   }
 }))
 
-const SettingsDrawer = ({ clearForm }) => {
+const SettingsDrawer = () => {
   const classes = useStyles()
   const [drawerOpen, setDrawerOpen] = React.useState(false)
 
+  const [clearForm] = useMutation(gql`
+    mutation ClearForm {
+      clearForm @client
+    }
+  `)
+
+  const handleClearForm = () => {
+    clearForm()
+    setDrawerOpen(false)
+  }
   return (
     <div>
       <IconButton
@@ -56,10 +68,7 @@ const SettingsDrawer = ({ clearForm }) => {
             variant="contained"
             color="secondary"
             style={{ float: "right" }}
-            onClick={() => {
-              clearForm()
-              setDrawerOpen(false)
-            }}
+            onClick={handleClearForm}
           >
             <DeleteIcon /> &nbsp; Remove All Spectra
           </Button>

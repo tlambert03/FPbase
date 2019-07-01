@@ -16,7 +16,7 @@ const customLaserSpectrum = _id => {
     data: {
       spectrum: {
         id: id,
-        custom_id: _id,
+        customId: _id,
         subtype: "L",
         owner: { name },
         category: "F",
@@ -63,7 +63,7 @@ const customFilterSpectrum = _id => {
         // setting this to "id" is faster, but causes an error when you mash the sliders
         // setting it to "_id" is safer, but incurs a full update with each change
         id: id,
-        custom_id: _id,
+        customId: _id,
         subtype,
         owner: { name },
         category: "F",
@@ -94,12 +94,12 @@ const useSpectralData = () => {
 
     async function updateData() {
       const deadSpectra = currentData.reduceRight((acc, item, idx) => {
-        if (!activeSpectra.includes(item.custom_id || item.id))
+        if (!activeSpectra.includes(item.customId || item.id))
           acc.push([idx, 1])
         return acc
       }, [])
 
-      const currentIDs = currentData.map(item => item.custom_id || item.id)
+      const currentIDs = currentData.map(item => item.customId || item.id)
       const newSpectra = activeSpectra.filter(
         id => id && !currentIDs.includes(id)
       )

@@ -147,17 +147,17 @@ const SpectrumSeries = memo(function SpectrumSeries({
   }
   let color = hex2rgba(spectrum.color, 0.9)
   let fillColor = hex2rgba(spectrum.color, 0.5)
-  let lineWidth = 0.5
+  let lineWidth = areaFill ? 0.5 : 1.8
   let type = areaFill ? "areaspline" : "spline"
   if (spectrum.category === "C") {
     fillColor = CROSS_HATCH
   }
   if (spectrum.category === "L") {
     fillColor = { ...VERT_LINES }
-    lineWidth = 1
+    lineWidth = areaFill ? 1 : 1.8
   }
   if (["BS", "LP"].includes(spectrum.subtype)) {
-    lineWidth = 1.5
+    lineWidth = 1.8
     type = "spline"
     color = "#999"
   }

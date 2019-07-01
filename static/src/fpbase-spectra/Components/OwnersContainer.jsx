@@ -14,6 +14,8 @@ import { useQuery, useApolloClient } from "@apollo/react-hooks"
 import { NORMALIZE_CURRENT } from "../client/queries"
 import gql from "graphql-tag"
 import { isTouchDevice } from "../util"
+import EfficiencyTable from "./EfficiencyTable"
+import { categoryIcon } from "./FaIcon"
 
 const ISTOUCH = isTouchDevice()
 
@@ -58,6 +60,27 @@ const useStyles = makeStyles(theme => ({
       paddingRight: 60
     }
   },
+  bigShow: {
+    [theme.breakpoints.down("sm")]: {
+      display: "none"
+    },
+    [theme.breakpoints.up("md")]: {
+      display: "block"
+    }
+  },
+  bigHide: {
+    [theme.breakpoints.down("sm")]: {
+      display: "block",
+      marginRight: 13,
+      marginLeft: 13
+    },
+    [theme.breakpoints.down("xs")]: {
+      display: "block"
+    },
+    [theme.breakpoints.up("md")]: {
+      display: "none"
+    }
+  },
   categoryHeader: {
     textTransform: "uppercase",
     fontSize: "small",
@@ -86,8 +109,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
   const [tab, setTab] = useState(0)
 
   const {
-    data: { activeSpectra, selectors },
-    networkStatus
+    data: { activeSpectra, selectors }
   } = useQuery(gql`
     {
       selectors @client
@@ -95,10 +117,8 @@ const OwnersContainer = React.memo(function OwnersContainer({
     }
   `)
 
-  console.timeLog("timer", "render", selectors, activeSpectra, networkStatus)
   const client = useApolloClient()
   useEffect(() => {
-    console.timeLog("timer", "effect", selectors, activeSpectra, networkStatus)
     client.mutate({ mutation: NORMALIZE_CURRENT })
   }, [activeSpectra, client]) //eslint-disable-line
 
@@ -121,13 +141,14 @@ const OwnersContainer = React.memo(function OwnersContainer({
         case "Digit3":
         case "Digit4":
         case "Digit5":
+        case "Digit6":
           setTab(event.key - 1)
           break
         case "ArrowRight":
-          setTab(prevTab => (prevTab === 4 ? 0 : prevTab + 1))
+          setTab(prevTab => (prevTab === 5 ? 0 : prevTab + 1))
           break
         case "ArrowLeft":
-          setTab(prevTab => (prevTab === 0 ? 4 : prevTab - 1))
+          setTab(prevTab => (prevTab === 0 ? 5 : prevTab - 1))
           break
         default:
           break
@@ -154,18 +175,25 @@ const OwnersContainer = React.memo(function OwnersContainer({
   }
 
   const smartLabel = (label, cats) => {
-    if ((activeSpectra || []).length === 0) return label
     cats = cats ? cats.split("") : null
-    let populated
-    if (cats === null) {
+    let populated = false
+    if (label === "All") {
       populated = Boolean(selectors.filter(i => i.owner).length)
-    } else {
-      populated = cats.some(c => isPopulated(c, activeSpectra))
+    } else if (label !== "Efficiency") {
+      if (activeSpectra.length > 0) {
+        populated = cats.some(c => isPopulated(c, activeSpectra))
+      }
     }
     return (
       <span className={`tab-header ${populated ? " populated" : ""}`}>
-        {label}
-        {populated ? " ✶" : ""}
+        <span className={classes.bigShow}>
+          {label} {populated ? " ✶" : ""}
+        </span>
+        <span className={classes.bigHide}>
+          {categoryIcon(cats && cats[cats.length - 1], "", {
+            style: { position: "relative", left: 0, height: "1rem" }
+          })}
+        </span>
       </span>
     )
   }
@@ -209,6 +237,11 @@ const OwnersContainer = React.memo(function OwnersContainer({
           tabIndex={-1}
           className={classes.tabLabel}
           label={smartLabel("Detectors", "C")}
+        />
+        <Tab
+          tabIndex={-1}
+          className={classes.tabLabel}
+          label={smartLabel("Efficiency", "%")}
         />
       </Tabs>
 
@@ -300,6 +333,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
               />
             </div>
           )}
+          {tab === 5 && <EfficiencyTable spectraInfo={spectraInfo} />}
         </div>
       )}
     </div>
