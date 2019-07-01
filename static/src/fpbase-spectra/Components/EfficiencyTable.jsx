@@ -7,7 +7,7 @@ import TableRow from "@material-ui/core/TableRow"
 import Paper from "@material-ui/core/Paper"
 import { makeStyles } from "@material-ui/core/styles"
 import useSpectralData from "./Components/useSpectraData"
-
+import {trapz} from "./"
 
 const useStyles = makeStyles(theme => ({
   table: {
@@ -16,15 +16,6 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-function trapz(arr) {
-  // approximate area under curve as series of trapezoids
-  // arr = [[wave, data], ...]
-  let sum = 0
-  for (let i = 1; i < arr.length; i++) {
-    sum += 0.5 * (arr[i][1] + arr[i - 1][1]) * (arr[i][0] - arr[i - 1][0])
-  }
-  return sum
-}
 
 function spectraProduct(ar1, ar2) {
   // calculate product of two spectra.values
