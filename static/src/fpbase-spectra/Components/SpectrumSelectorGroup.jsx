@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useMemo, useCallback } from "react"
 import Box from "@material-ui/core/Box"
 import IconButton from "@material-ui/core/IconButton"
 import DeleteIcon from "@material-ui/icons/Delete"
@@ -6,6 +6,8 @@ import SpectrumSelector from "./SpectrumSelector"
 import { makeStyles } from "@material-ui/core/styles"
 import { categoryIcon } from "../Components/FaIcon"
 import Typography from "@material-ui/core/Typography"
+import { useMutation } from "@apollo/react-hooks"
+import { UPDATE_ACTIVE_SPECTRA, REMOVE_SELECTOR } from "../client/queries"
 
 export const useStyles = makeStyles(theme => ({
   // root: {
@@ -43,14 +45,15 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   selectors,
   options,
   category,
-  changeOwner,
-  removeRow,
   showCategoryIcon,
   hint,
-  owners
+  ownerInfo,
+  updateSelector
 }) {
   const classes = useStyles()
-  const allOwners = selectors.map(({ owner }) => owner)
+  const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [
+    selectors
+  ])
 
   if (category) {
     selectors = selectors.filter(sel => sel.category === category)
@@ -72,21 +75,30 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
     C: "Detectors"
   }
 
-  // disable options that are already claimed by other selectors
-  function makeOptions(selector) {
-    const otherOwners = allOwners.filter(i => i !== selector.owner)
-    return options
-      .filter(opt => (category ? opt.category === category : true))
-      .map(opt =>
-        (otherOwners || []).includes(opt.value)
-          ? {
-              ...opt,
-              label: opt.label + " (already selected)",
-              isDisabled: true
+  const categoryOptions = useMemo(
+    () => options.filter(opt => (category ? opt.category === category : true)),
+    [category, options]
+  )
+
+  const [removeSelector, { loading: removeLoading }] = useMutation(
+    REMOVE_SELECTOR
+  )
+  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const removeRow = useCallback(
+    selector => {
+      if (!removeLoading) {
+        removeSelector({ variables: { id: selector.id } })
+        if (ownerInfo[selector.owner] && ownerInfo[selector.owner].spectra) {
+          updateSpectra({
+            variables: {
+              remove: ownerInfo[selector.owner].spectra.map(({ id }) => id)
             }
-          : opt
-      )
-  }
+          })
+        }
+      }
+    },
+    [ownerInfo, removeLoading, removeSelector, updateSpectra]
+  )
 
   return (
     <>
@@ -112,10 +124,11 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
               <SpectrumSelector
                 key={selector.id}
                 // this line restricts the options to similar categories
-                options={makeOptions(selector)}
+                options={categoryOptions}
+                allOwners={allOwners}
                 showCategoryIcon={showCategoryIcon}
-                value={selector.owner && owners[selector.owner]}
-                onChange={changeOwner(selector.id, category)}
+                selector={selector}
+                ownerInfo={ownerInfo}
               />
             </Box>
             {selector.owner ? (

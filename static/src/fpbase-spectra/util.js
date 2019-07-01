@@ -103,9 +103,11 @@ function reshapeSpectraInfo(arr) {
   if (!arr) return {}
   return arr.reduce(
     (prev, cur) => {
-      if (!Object.prototype.hasOwnProperty.call(prev.owners, cur.owner.slug)) {
+      if (
+        !Object.prototype.hasOwnProperty.call(prev.ownerInfo, cur.owner.slug)
+      ) {
         // eslint-disable-next-line no-param-reassign
-        prev.owners[cur.owner.slug] = {
+        prev.ownerInfo[cur.owner.slug] = {
           category: cur.category,
           label: cur.owner.name,
           spectra: [],
@@ -113,7 +115,7 @@ function reshapeSpectraInfo(arr) {
           url: cur.owner.url
         }
       }
-      prev.owners[cur.owner.slug].spectra.push({
+      prev.ownerInfo[cur.owner.slug].spectra.push({
         id: cur.id,
         subtype: cur.subtype,
         active: true
@@ -127,7 +129,7 @@ function reshapeSpectraInfo(arr) {
       }
       return prev
     },
-    { owners: {}, spectraInfo: {} }
+    { ownerInfo: {}, spectraInfo: {} }
   )
 }
 
@@ -161,10 +163,34 @@ function decoder(str, decoder, charset) {
   }
 }
 
+function isTouchDevice() {
+  try {
+    let prefixes = " -webkit- -moz- -o- -ms- ".split(" ")
+
+    let mq = function(query) {
+      return window.matchMedia(query).matches
+    }
+
+    if (
+      "ontouchstart" in window ||
+      (typeof window.DocumentTouch !== "undefined" &&
+        document instanceof window.DocumentTouch)
+    ) {
+      return true
+    }
+
+    return mq(["(", prefixes.join("touch-enabled),("), "heartz", ")"].join(""))
+  } catch (e) {
+    //console.error("(Touch detect failed)", e)
+    return false
+  }
+}
+
 export {
   debounce,
   reshapeSpectraInfo,
   decoder,
   getStorageWithExpire,
-  setStorageWithTimeStamp
+  setStorageWithTimeStamp,
+  isTouchDevice
 }

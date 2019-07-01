@@ -34,3 +34,16 @@ code {
 .Select-menu-outer {
   z-index: 999 !important;
 }
+
+.tab-wrapper {
+  padding-bottom: 100px;
+}
+
+.tab-header {
+  white-space: "nowrap";
+  font-weight: "normal";
+}
+
+.tab-header.populated {
+  font-weight: "bold";
+}

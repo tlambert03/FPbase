@@ -178,6 +178,34 @@ const GET_EX_NORM = gql`
   }
 `
 
+const GET_SELECTORS = gql`
+  query Selectors {
+    selectors @client
+  }
+`
+const ADD_SELECTORS = gql`
+  mutation AddSelectors($selectors: [Selector]!) {
+    addSelectors(selectors: $selectors) @client
+  }
+`
+
+const NORMALIZE_CURRENT = gql`
+  mutation {
+    normalizeCurrent @client
+  }
+`
+
+const UPDATE_SELECTOR = gql`
+  mutation UpdateSelector($selector: Selector) {
+    updateSelector(selector: $selector) @client
+  }
+`
+const REMOVE_SELECTOR = gql`
+  mutation RemoveSelector($id: String) {
+    removeSelector(id: $id) @client
+  }
+`
+
 export {
   batchSpectra,
   GET_SPECTRUM,
@@ -190,5 +218,10 @@ export {
   OPTICAL_CONFIG_LIST,
   GET_OPTICAL_CONFIG,
   SET_EX_NORM,
-  GET_EX_NORM
+  GET_EX_NORM,
+  GET_SELECTORS,
+  ADD_SELECTORS,
+  UPDATE_SELECTOR,
+  REMOVE_SELECTOR,
+  NORMALIZE_CURRENT
 }

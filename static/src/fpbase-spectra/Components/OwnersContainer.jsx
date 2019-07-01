@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import PropTypes from "prop-types"
 import Tabs from "@material-ui/core/Tabs"
 import Tab from "@material-ui/core/Tab"
@@ -7,9 +7,15 @@ import { RingLoader } from "react-spinners"
 import { css } from "@emotion/core"
 import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 import { Typography } from "@material-ui/core"
-import useWindowWidth from "./useWindowWidth"
 import CustomFilterGroup from "./CustomFilterGroup"
 import CustomLaserGroup from "./CustomLaserGroup"
+//import useSelectors from "./useSelectors"
+import { useQuery, useApolloClient } from "@apollo/react-hooks"
+import { NORMALIZE_CURRENT } from "../client/queries"
+import gql from "graphql-tag"
+import { isTouchDevice } from "../util"
+
+const ISTOUCH = isTouchDevice()
 
 const override = css`
   display: block;
@@ -72,15 +78,29 @@ function selectorSorter(a, b) {
   return -1
 }
 
-const OwnersContainer = ({
-  owners,
-  selectors,
-  changeOwner,
-  removeRow,
-  activeSpectra
-}) => {
+const OwnersContainer = React.memo(function OwnersContainer({
+  ownerInfo,
+  spectraInfo
+}) {
   const classes = useStyles()
   const [tab, setTab] = useState(0)
+
+  const {
+    data: { activeSpectra, selectors },
+    networkStatus
+  } = useQuery(gql`
+    {
+      selectors @client
+      activeSpectra @client
+    }
+  `)
+
+  console.timeLog("timer", "render", selectors, activeSpectra, networkStatus)
+  const client = useApolloClient()
+  useEffect(() => {
+    console.timeLog("timer", "effect", selectors, activeSpectra, networkStatus)
+    client.mutate({ mutation: NORMALIZE_CURRENT })
+  }, [activeSpectra, client]) //eslint-disable-line
 
   const handleTabChange = (event, newValue) => {
     if (newValue !== tab) {
@@ -120,30 +140,30 @@ const OwnersContainer = ({
     }
   }, [])
 
-  const isPopulated = cat =>
-    selectors.filter(({ owner, category }) => category === cat && owner)
-      .length > 0
+  const isPopulated = (cat, activeSpectra) => {
+    let populated =
+      selectors.filter(({ owner, category }) => category === cat && owner)
+        .length > 0
+    if (cat === "F") {
+      populated = populated || activeSpectra.some(s => s.startsWith("$cf"))
+    }
+    if (cat === "L") {
+      populated = populated || activeSpectra.some(s => s.startsWith("$cl"))
+    }
+    return populated
+  }
 
   const smartLabel = (label, cats) => {
+    if ((activeSpectra || []).length === 0) return label
+    cats = cats ? cats.split("") : null
     let populated
     if (cats === null) {
       populated = Boolean(selectors.filter(i => i.owner).length)
     } else {
-      populated = cats.some(c => isPopulated(c))
-      if (cats.find(i => i === "F")) {
-        populated = populated || activeSpectra.some(s => s.startsWith("$cf"))
-      }
-      if (cats.find(i => i === "L")) {
-        populated = populated || activeSpectra.some(s => s.startsWith("$cl"))
-      }
+      populated = cats.some(c => isPopulated(c, activeSpectra))
     }
     return (
-      <span
-        style={{
-          fontWeight: populated ? "bold" : "normal",
-          whiteSpace: "nowrap"
-        }}
-      >
+      <span className={`tab-header ${populated ? " populated" : ""}`}>
         {label}
         {populated ? " ✶" : ""}
       </span>
@@ -151,33 +171,17 @@ const OwnersContainer = ({
   }
 
   selectors.sort(selectorSorter)
-  const allOptions = Object.values(owners)
-  const spectrumCategoryGroup = (category, hint) => {
-    return (
-      <SpectrumSelectorGroup
-        selectors={selectors}
-        options={allOptions}
-        showCategoryIcon={!Boolean(category)}
-        changeOwner={changeOwner}
-        removeRow={removeRow}
-        owners={owners}
-        category={category}
-        hint={hint}
-      />
-    )
-  }
-
-  const width = useWindowWidth()
+  const options = useMemo(() => Object.values(ownerInfo), [ownerInfo])
 
   return (
-    <div style={{ paddingBottom: 100 }}>
+    <div className="tab-wrapper">
       <Tabs
         value={tab}
         onChange={handleTabChange}
         indicatorColor="primary"
         textColor="primary"
-        centered={width >= 500 ? true : false}
-        variant={width >= 500 ? "standard" : "scrollable"}
+        centered={ISTOUCH ? false : true}
+        variant={ISTOUCH ? "scrollable" : "standard"}
         scrollButtons="on"
         className={classes.tabHeader}
       >
@@ -189,26 +193,26 @@ const OwnersContainer = ({
         <Tab
           className={classes.tabLabel}
           tabIndex={-1}
-          label={smartLabel("Fluorophores", ["D", "P"])}
+          label={smartLabel("Fluorophores", "DP")}
         />
         <Tab
           className={classes.tabLabel}
           tabIndex={-1}
-          label={smartLabel("Filters", ["F"])}
+          label={smartLabel("Filters", "F")}
         />
         <Tab
           tabIndex={-1}
           className={classes.tabLabel}
-          label={smartLabel("Light Sources", ["L"])}
+          label={smartLabel("Light Sources", "L")}
         />
         <Tab
           tabIndex={-1}
           className={classes.tabLabel}
-          label={smartLabel("Detectors", ["C"])}
+          label={smartLabel("Detectors", "C")}
         />
       </Tabs>
 
-      {Object.keys(owners).length === 0 ? (
+      {Object.keys(ownerInfo).length === 0 ? (
         <div className="sweet-loading">
           <RingLoader
             css={override}
@@ -219,34 +223,88 @@ const OwnersContainer = ({
           />
         </div>
       ) : (
-        <TabContainer index={tab}>
-          <div>
-            {spectrumCategoryGroup()}
-          </div>
-          <div>
-            <Typography variant="h6" className={classes.categoryHeader}>
-              Fluorescent Proteins
-            </Typography>
-            {spectrumCategoryGroup("P", "protein")}
-            <Typography variant="h6" className={classes.categoryHeader}>
-              Dyes
-            </Typography>
-            {spectrumCategoryGroup("D", "dye")}
-          </div>
-          <div>
-            {spectrumCategoryGroup("F", "filter")}
-            <CustomFilterGroup activeSpectra={activeSpectra} />
-          </div>
-          <div>
-            {spectrumCategoryGroup("L", "light")}
-            <CustomLaserGroup activeSpectra={activeSpectra} />
-          </div>
-          <div>{spectrumCategoryGroup("C", "camera")}</div>
-        </TabContainer>
+        <div>
+          {tab === 0 && (
+            <div>
+              <SpectrumSelectorGroup
+                selectors={selectors}
+                options={options}
+                showCategoryIcon
+                ownerInfo={ownerInfo}
+              />
+            </div>
+          )}
+          {tab === 1 && (
+            <div>
+              <Typography variant="h6" className={classes.categoryHeader}>
+                Fluorescent Proteins
+              </Typography>
+
+              <SpectrumSelectorGroup
+                selectors={selectors}
+                options={options}
+                showCategoryIcon
+                ownerInfo={ownerInfo}
+                category="P"
+                hint="protein"
+              />
+
+              <Typography variant="h6" className={classes.categoryHeader}>
+                Dyes
+              </Typography>
+              <SpectrumSelectorGroup
+                selectors={selectors}
+                options={options}
+                showCategoryIcon
+                ownerInfo={ownerInfo}
+                category="D"
+                hint="dye"
+              />
+            </div>
+          )}
+          {tab === 2 && (
+            <div>
+              <SpectrumSelectorGroup
+                selectors={selectors}
+                options={options}
+                showCategoryIcon
+                ownerInfo={ownerInfo}
+                category="F"
+                hint="filter"
+              />
+              <CustomFilterGroup activeSpectra={activeSpectra} />
+            </div>
+          )}
+          {tab === 3 && (
+            <div>
+              <SpectrumSelectorGroup
+                selectors={selectors}
+                options={options}
+                showCategoryIcon
+                ownerInfo={ownerInfo}
+                category="L"
+                hint="light source"
+              />
+              <CustomLaserGroup activeSpectra={activeSpectra} />
+            </div>
+          )}
+          {tab === 4 && (
+            <div>
+              <SpectrumSelectorGroup
+                selectors={selectors}
+                options={options}
+                showCategoryIcon
+                ownerInfo={ownerInfo}
+                category="C"
+                hint="detector"
+              />
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
-}
+})
 
 OwnersContainer.propTypes = {
   category: PropTypes.string
@@ -255,9 +313,5 @@ OwnersContainer.propTypes = {
 OwnersContainer.defaultProps = {
   category: ""
 }
-
-// here to make sure we always render each tab to maintain the formstate
-const TabContainer = ({ index, children }) =>
-  children && React.cloneElement(children[index])
 
 export default OwnersContainer

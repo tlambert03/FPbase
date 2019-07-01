@@ -17,7 +17,7 @@ function FAIcon(props) {
       viewBox="0 0 512 512"
       style={{
         position: "relative",
-        top: 3,
+      top: -1,
         left: props.icon === faLightbulb ? -3 : -5,
         height: "1rem"
       }}

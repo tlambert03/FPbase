@@ -10,7 +10,7 @@ import Visibility from "@material-ui/icons/Visibility"
 
 const useStyles = makeStyles(theme => ({
   toggleButton: {
-    height: "38px",
+    height: "38px"
     // [theme.breakpoints.down(960)]: {
     //   height: "34px"
     // },
@@ -31,7 +31,10 @@ function subtypeSorter(a, b) {
   return -1
 }
 
-const SubtypeSelector = ({ subtypes, skip }) => {
+const SubtypeSelector = React.memo(function SubtypeSelector({
+  subtypes,
+  skip
+}) {
   const classes = useStyles()
 
   const {
@@ -75,7 +78,8 @@ const SubtypeSelector = ({ subtypes, skip }) => {
       </ToggleButtonGroup>
     </Box>
   )
-}
+})
+
 SubtypeSelector.propTypes = {
   subtypes: PropTypes.arrayOf(
     PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool]))

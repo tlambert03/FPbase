@@ -56,7 +56,9 @@ let {
   tooltip
 } = DEFAULT_OPTIONS
 
-const SpectraViewerContainer = ({ ownerInfo }) => {
+const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
+  ownerInfo
+}) {
   const {
     data: { chartOptions }
   } = useQuery(GET_CHART_OPTIONS)
@@ -95,7 +97,7 @@ const SpectraViewerContainer = ({ ownerInfo }) => {
       ownerInfo={ownerInfo}
     />
   )
-}
+})
 
 const SpectraViewer = memo(function SpectraViewer({
   data,

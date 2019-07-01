@@ -5,7 +5,8 @@ import TextField from "@material-ui/core/TextField"
 import Paper from "@material-ui/core/Paper"
 import PropTypes from "prop-types"
 import { makeStyles, useTheme } from "@material-ui/core/styles"
-import SortablePaginatedSelect from "./SortablePaginatedSelect"
+import regeneratorRuntime from "regenerator-runtime" // why do I need this?!?
+import SortableWindowedSelect from "./SortableWindowedSelect"
 import Select from "react-select"
 
 const useStyles = makeStyles(theme => ({
@@ -177,7 +178,7 @@ function MuiReactSelect({ paginate, components, ...otherprops }) {
     <div className={classes.root}>
       <NoSsr>
         {paginate ? (
-          <SortablePaginatedSelect
+          <SortableWindowedSelect
             {...otherprops}
             classes={classes}
             styles={selectStyles}

@@ -64,7 +64,13 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
+const WelcomeModal = React.memo(function WelcomeModal({
+  open,
+  checked,
+  handleChange,
+  close,
+  isNew
+}) {
   const classes = useStyles()
 
   return (
@@ -174,7 +180,7 @@ const WelcomeModal = ({ open, checked, handleChange, close, isNew }) => {
       </DialogActions>
     </Dialog>
   )
-}
+})
 
 WelcomeModal.defaultProps = {
   isNew: false

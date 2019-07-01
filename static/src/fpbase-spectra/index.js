@@ -7,13 +7,14 @@ import initializeClient from "./client/client"
 
 if (process.env.NODE_ENV !== "production") {
   const whyDidYouRender = require("@welldone-software/why-did-you-render")
-  whyDidYouRender(React, { 
-  include: [/^MyApp|^App|^SpectraViewer|^Spectr.*|Selector/], 
-    // logOnDifferentValues: false,
-    collapseGroups: true,
+  whyDidYouRender(React, {
+    include: [],
+    logOnDifferentValues: false,
+    collapseGroups: true
   })
 }
 
+console.time('timer')
 const AppWrapper = ({ uri }) => {
   const client = useRef(initializeClient({ uri }))
   return (
