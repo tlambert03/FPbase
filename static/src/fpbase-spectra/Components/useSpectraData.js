@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react"
 import COLORS from "../../js/spectra/colors"
-import { GET_SPECTRUM, GET_ACTIVE_SPECTRA } from "../client/queries"
+import {
+  GET_SPECTRUM,
+  GET_OVERLAP,
+  GET_ACTIVE_SPECTRA,
+  GET_ACTIVE_OVERLAPS
+} from "../client/queries"
 import { useApolloClient, useQuery } from "@apollo/react-hooks"
 import update from "immutability-helper"
+import gql from "graphql-tag"
 
 const rangexy = (start, end) =>
   Array.from({ length: end - start }, (v, k) => k + start)
@@ -79,8 +85,13 @@ const useSpectralData = () => {
   const [currentData, setCurrentData] = useState([])
   const client = useApolloClient()
   const {
-    data: { activeSpectra }
-  } = useQuery(GET_ACTIVE_SPECTRA)
+    data: { activeSpectra, activeOverlaps }
+  } = useQuery(gql`
+    {
+      activeSpectra @client
+      activeOverlaps @client
+    }
+  `)
 
   useEffect(() => {
     function idToData(id) {
@@ -93,29 +104,44 @@ const useSpectralData = () => {
     }
 
     async function updateData() {
+
+      // find dead Spectra
       const deadSpectra = currentData.reduceRight((acc, item, idx) => {
-        if (!activeSpectra.includes(item.customId || item.id))
+        if (
+          !activeSpectra.includes(item.customId || item.id) &&
+          !activeOverlaps.includes(item.id)
+        )
           acc.push([idx, 1])
         return acc
       }, [])
 
+      // find new activeSpectra that aren't in current Data
       const currentIDs = currentData.map(item => item.customId || item.id)
       const newSpectra = activeSpectra.filter(
         id => id && !currentIDs.includes(id)
       )
       let newData = await Promise.all(newSpectra.map(id => idToData(id)))
       newData = newData.map(item => item.data.spectrum)
-      let nextData = update(currentData, {
-        $splice: deadSpectra,
-        $push: newData
-      })
-      if (nextData !== currentData) {
-        setCurrentData(nextData)
+
+      // find new overlaps that aren't in current Data
+      const newOverlaps = activeOverlaps.filter(
+        id => id && !currentIDs.includes(id)
+      )
+
+      const newOverlapData = newOverlaps.map(id => window.OverlapCache[id])
+
+      if (deadSpectra.length || newData.length || newOverlapData.length) {
+        setCurrentData(
+          update(currentData, {
+            $splice: deadSpectra,
+            $push: [...newData, ...newOverlapData]
+          })
+        )
       }
     }
 
     updateData()
-  }, [activeSpectra, client, currentData])
+  }, [activeOverlaps, activeSpectra, client, currentData])
 
   return currentData
 }

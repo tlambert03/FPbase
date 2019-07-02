@@ -1,9 +1,10 @@
 import gql from "graphql-tag"
 
 const typeDefs = gql`
-  # extend type Query {
-  #   activeSpectra: [Int]
-  # }
+  extend type Query {
+    activeSpectra: [Int]
+    overlap: Spectrum
+  }
 
   # extend type Mutation {
   #   setActiveSpectra(activeSpectra: [Int]!): [Int],
@@ -12,11 +13,6 @@ const typeDefs = gql`
 
   extend type Spectrum {
     area: Float
-  }
-  
-  type Overlap {
-    data: [[Int]],
-    ids: String,
   }
 
   type Selector {

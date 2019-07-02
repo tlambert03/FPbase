@@ -3,13 +3,16 @@ import {
   GET_ACTIVE_SPECTRA,
   GET_EX_NORM,
   GET_SELECTORS,
-  ADD_SELECTORS
+  ADD_SELECTORS,
+  batchSpectra,
+  GET_ACTIVE_OVERLAPS
 } from "./queries"
 import update from "immutability-helper"
-import { trapz } from "../util"
+import { trapz, spectraProduct } from "../util"
 
 export const defaults = {
   activeSpectra: [],
+  activeOverlaps: [],
   chartOptions: {
     showY: false,
     showX: true,
@@ -82,6 +85,31 @@ function activeSpectraToSelectors(
 }
 
 export const resolvers = {
+  Query: {
+    overlap: async (_root, { ids }, { client }) => {
+      const idString = ids.sort((a, b) => a - b).join("_")
+      let { data } = await client.query({
+        query: batchSpectra(ids)
+      })
+      const dataArray = ids.map(id => data[`spectrum_${id}`].data)
+      const name = ids.map(id => data[`spectrum_${id}`].owner.name).join(" & ")
+      const ownerID = ids
+        .map(id => data[`spectrum_${id}`].owner.id)
+        .sort((a, b) => a - b)
+        .join("_")
+      const product = spectraProduct(...dataArray)
+      return {
+        data: product,
+        area: trapz(product),
+        id: idString,
+        category: "O",
+        subtype: "O",
+        color: "#000000",
+        owner: { id: ownerID, name, __typename: "Owner" },
+        __typename: "Spectrum"
+      }
+    }
+  },
   Spectrum: {
     area: (spectrum, obj, cli) => {
       return trapz(spectrum.data)
@@ -165,6 +193,18 @@ export const resolvers = {
       // client.mutate({
       //   mutation: NORMALIZE_CURRENT
       // })
+      return data
+    },
+    updateActiveOverlaps: async (_, { add, remove }, { cache, client }) => {
+      let { activeOverlaps } = cache.readQuery({ query: GET_ACTIVE_OVERLAPS })
+      activeOverlaps = activeOverlaps.filter(id => !(remove || []).includes(id))
+      const toAdd = (add || []).filter(id => id)
+      const data = {
+        activeOverlaps: validSpectraIds([
+          ...new Set([...activeOverlaps, ...toAdd])
+        ])
+      }
+      await client.writeQuery({ query: GET_ACTIVE_OVERLAPS, data })
       return data
     },
     normalizeCurrent: (_, args, { cache, client }) => {
@@ -252,9 +292,19 @@ export const resolvers = {
   }
 }
 
-const validSpectraIds = spectra =>
-  spectra.filter(
-    id => id && (!isNaN(id) || id.startsWith("$cl") || id.startsWith("$cf"))
-  )
+const isValidId = id => {
+  if (!id) return false
+  if (!isNaN(id)) return true
+  if (typeof id === "string") {
+    if (id.startsWith("$cl") || id.startsWith("$cf")) {
+      return true
+    } else {
+      return id.split("_").every(i => isValidId(i))
+    }
+  }
+  return false
+}
+
+const validSpectraIds = spectra => spectra.filter(id => isValidId(id))
 
 export { validSpectraIds }

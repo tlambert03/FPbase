@@ -52,6 +52,7 @@ function intializeClient({ uri, storage }) {
       storage: storage || window.sessionStorage,
       debounce: 400
     })
+    cache.writeData({ data: { activeOverlaps: [] } })
   }
 
   function parseURL() {

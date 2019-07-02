@@ -18,13 +18,11 @@ const batchSpectra = ids => {
       id
       data
       category
-      color
       subtype
       owner {
         slug
         name
         id
-        url
       }
     }
   `
@@ -111,6 +109,22 @@ const GET_SPECTRUM = gql`
   }
 `
 
+const GET_OVERLAP = gql`
+  {
+    overlap(ids: $ids) @client {
+      id
+      data
+      category
+      color
+      subtype
+      owner {
+        id
+        name
+      }
+    }
+  }
+`
+
 const SPECTRA_LIST = gql`
   {
     spectra {
@@ -129,6 +143,12 @@ const SPECTRA_LIST = gql`
 const GET_ACTIVE_SPECTRA = gql`
   query ActiveSpectra {
     activeSpectra @client
+  }
+`
+
+const GET_ACTIVE_OVERLAPS = gql`
+  query ActiveOverlaps {
+    activeOverlaps @client
   }
 `
 
@@ -209,6 +229,8 @@ const REMOVE_SELECTOR = gql`
 export {
   batchSpectra,
   GET_SPECTRUM,
+  GET_OVERLAP,
+  GET_ACTIVE_OVERLAPS,
   SPECTRA_LIST,
   GET_ACTIVE_SPECTRA,
   SET_ACTIVE_SPECTRA,

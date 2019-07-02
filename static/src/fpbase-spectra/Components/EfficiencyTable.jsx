@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { makeStyles } from "@material-ui/core/styles"
 import useSpectralData from "./useSpectraData"
 import { trapz } from "../util"
@@ -13,6 +13,10 @@ import Search from "@material-ui/icons/Search"
 import ResetSearch from "@material-ui/icons/Clear"
 import Filter from "@material-ui/icons/FilterList"
 import Shuffle from "@material-ui/icons/Shuffle"
+import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
+import Button from "@material-ui/core/Button"
+import gql from "graphql-tag"
+import { GET_ACTIVE_OVERLAPS } from "../client/queries"
 
 const TABLE_ICONS = {
   Export,
@@ -43,26 +47,36 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const OverlapCache = {}
+window.OverlapCache = {}
 
 function getOverlap(...args) {
   const idString = args
     .map(arg => arg.customId || arg.id)
     .sort((a, b) => a - b)
     .join("_")
-  if (!(idString in OverlapCache)) {
+
+  const ownerName = args.map(({ owner }) => owner.name).join(" & ")
+  const ownerID = args
+    .map(({ owner }) => owner.id)
+    .sort((a, b) => a - b)
+    .join("_")
+
+  if (!(idString in window.OverlapCache)) {
     const product = spectraProduct(...args.map(({ data }) => data))
-    OverlapCache[idString] = {
+    window.OverlapCache[idString] = {
       data: product,
       area: trapz(product),
-      key: idString
+      id: idString,
+      category: "O",
+      subtype: "O",
+      color: "#000000",
+      owner: { id: ownerID, name: ownerName }
     }
   }
-  return OverlapCache[idString]
+  return window.OverlapCache[idString]
 }
 
 function spectraProduct(ar1, ar2) {
-  console.log("PRODUCT")
   // calculate product of two spectra.values
   // these assume monotonic increase w/ step = 1
   const output = []
@@ -78,59 +92,66 @@ function spectraProduct(ar1, ar2) {
   return output
 }
 
-const EfficiencyTable = ({ activeSpectra, initialTranspose }) => {
+const EfficiencyTable = ({ initialTranspose }) => {
   const [transposed, setTransposed] = useState(initialTranspose)
-  const data = useSpectralData(activeSpectra)
-
+  const [[rows, headers], setTableData] = useState([[], []])
   const classes = useStyles()
-  const filters = data.filter(
-    ({ category, subtype }) => category === "F" && subtype !== "BX"
-  )
-  const emSpectra = data.filter(({ subtype }) => subtype === "EM")
-  
-  console.log(filters)
-  let rows, headers
+  const spectraData = useSpectralData()
+  const client = useApolloClient()
 
-  const cellStyle = { fontSize: "1rem" }
-  if (transposed) {
-    rows = []
-    headers = [{ title: "Fluorophore", field: "fluor" }]
-    filters.forEach(({ owner }) => {
-      headers.push({
-        title: owner.name,
-        field: owner.id,
-        type: "numeric",
-        cellStyle
+  useEffect(() => {
+    return () => {
+      client.writeData({ data: { activeOverlaps: [] } })
+    }
+  }, [client])
+
+  useEffect(() => {
+    async function updateTableData() {
+      const filters = spectraData.filter(
+        ({ category, subtype }) => category === "F" && subtype !== "BX"
+      )
+      const emSpectra = spectraData.filter(({ subtype }) => subtype === "EM")
+
+      // untransposed columns represent different fluors
+      let colItems = emSpectra
+      let rowItems = filters
+      let newHeaders = [{ title: "Filter", field: "field" }]
+      let newRows = []
+      if (transposed) {
+        // columns represent different filters
+        colItems = filters
+        rowItems = emSpectra
+        newHeaders = [{ title: "Fluorophore", field: "field" }]
+      }
+
+      colItems.forEach(({ owner }) => {
+        newHeaders.push({
+          title: owner.name,
+          field: owner.id,
+          type: "numeric",
+          cellStyle: { fontSize: "1rem" },
+          render: rowData => {
+            const overlapID = rowData[`${owner.id}_overlapID`]
+            return <OverlapToggle id={overlapID}>{rowData[owner.id]}</OverlapToggle>
+          }
+        })
       })
-    })
-    emSpectra.forEach(fluor => {
-      const row = { fluor: fluor.owner.name }
-      filters.forEach(filter => {
-        const overlap = getOverlap(fluor, filter)
-        row[filter.owner.id] = (100 * overlap.area / fluor.area).toFixed(1)
+
+      rowItems.forEach(rowItem => {
+        const row = { field: rowItem.owner.name }
+        colItems.forEach(colItem => {
+          const overlap = getOverlap(rowItem, colItem)
+          const fluor = transposed ? rowItem : colItem
+          row[colItem.owner.id] = ((100 * overlap.area) / fluor.area).toFixed(1)
+          row[`${colItem.owner.id}_overlapID`] = overlap.id
+        })
+        newRows.push(row)
       })
-      rows.push(row)
-    })
-  } else {
-    rows = []
-    headers = [{ title: "Filter", field: "filter" }]
-    emSpectra.forEach(({ owner }) => {
-      headers.push({
-        title: owner.name,
-        field: owner.id,
-        type: "numeric",
-        cellStyle
-      })
-    })
-    filters.forEach(filter => {
-      const row = { filter: filter.owner.name }
-      emSpectra.forEach(emSpectra => {
-        const overlap = getOverlap(filter, emSpectra)
-        row[emSpectra.owner.id] = (100 * overlap.area / emSpectra.area).toFixed(1)
-      })
-      rows.push(row)
-    })
-  }
+      setTableData([newRows, newHeaders])
+    }
+
+    updateTableData()
+  }, [client, spectraData, transposed])
 
   if (rows.length < 1 || headers.length < 2) {
     return (
@@ -166,4 +187,44 @@ const EfficiencyTable = ({ activeSpectra, initialTranspose }) => {
   )
 }
 
+const OverlapToggle = ({ children, id, isActive }) => {
+  const [active, setActive] = useState(isActive)
+  const {
+    data: { activeOverlaps }
+  } = useQuery(GET_ACTIVE_OVERLAPS)
+
+  useEffect(() => {
+    setActive(activeOverlaps.includes(id))
+  }, [activeOverlaps, id])
+
+  const [setOverlaps] = useMutation(gql`
+    mutation updateActiveOverlaps($add: [String], $remove: [String]) {
+      updateActiveOverlaps(add: $add, remove: $remove) @client
+    }
+  `)
+
+  const handleClick = event => {
+    const elem = event.target.closest("button")
+    const checked = !elem.checked
+    const variables = {}
+    variables[checked ? "add" : "remove"] = [id]
+    setOverlaps({ variables })
+    setActive(checked)
+  }
+
+  return (
+    <Button
+      size="small"
+      onClick={handleClick}
+      value={id}
+      checked={active}
+      variant={active ? "contained" : "outlined"}
+      color={
+        +children > 40 ? "primary" : +children > 5 ? "default" : "secondary"
+      }
+    >
+      {children}
+    </Button>
+  )
+}
 export default EfficiencyTable

@@ -196,6 +196,22 @@ function trapz(arr) {
   return sum
 }
 
+function spectraProduct(ar1, ar2) {
+  // calculate product of two spectra.values
+  // these assume monotonic increase w/ step = 1
+  const output = []
+  const left = Math.max(ar1[0][0], ar2[0][0]) // the min wavelength shared by both arrays
+  const right = Math.min(ar1[ar1.length - 1][0], ar2[ar2.length - 1][0]) // the max wavelength shared by both arrays
+  if (left >= right) return []
+
+  const offsetA1 = left - ar1[0][0]
+  const offsetA2 = left - ar2[0][0]
+  for (let i = 0; i < right - left; i++) {
+    output.push([left + i, ar1[offsetA1 + i][1] * ar2[offsetA2 + i][1]])
+  }
+  return output
+}
+
 export {
   debounce,
   reshapeSpectraInfo,
@@ -203,5 +219,6 @@ export {
   getStorageWithExpire,
   setStorageWithTimeStamp,
   isTouchDevice,
-  trapz
+  trapz,
+  spectraProduct
 }
