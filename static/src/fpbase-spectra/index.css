@@ -48,4 +48,32 @@ code {
   font-weight: bold;
 }
 
-.MuiTableBody-root tr:nth-child(odd) {background-color: #f4f4f4;}
+.MuiTableBody-root tr:nth-child(odd) {
+  background-color: #f4f4f4;
+}
+
+.efficiency-table h6 {
+  font-weight: 600;
+  color: #666;
+}
+
+.efficiency-table th.MuiTableCell-root {
+  padding: 14px 24px 14px 16px;
+}
+
+@media screen and (max-width: 420px) {
+  .efficiency-table h6 {
+    font-size: 1.2rem !important;
+  }
+  .efficiency-table th.MuiTableCell-root {
+    padding: 6px 12px;
+  }
+
+  .efficiency-table td.MuiTableCell-sizeSmall {
+    padding: 6px 12px;
+  }
+
+  .efficiency-table button[title="Export"] {
+    display: none;
+  }
+}

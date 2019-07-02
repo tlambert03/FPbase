@@ -191,7 +191,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
         </span>
         <span className={classes.bigHide}>
           {categoryIcon(cats && cats[cats.length - 1], "", {
-            style: { position: "relative", left: 0, height: "1rem" }
+            style: { position: "relative", left: 0, height: "1.1rem" }
           })}
         </span>
       </span>

@@ -146,7 +146,7 @@ const EfficiencyTable = ({ activeSpectra, initialTranspose }) => {
   }
 
   return (
-    <div>
+    <div className="efficiency-table">
       <MaterialTable
         columns={headers}
         data={rows}
