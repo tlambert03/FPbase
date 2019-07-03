@@ -18,6 +18,16 @@ import Button from "@material-ui/core/Button"
 import gql from "graphql-tag"
 import { GET_ACTIVE_OVERLAPS } from "../client/queries"
 
+class ErrorBoundary extends React.Component {
+  componentDidCatch(error, info) {}
+  static getDerivedStateFromError(error) {
+    return { hasError: true }
+  }
+  render() {
+    return this.props.children
+  }
+}
+
 const TABLE_ICONS = {
   Export,
   FirstPage,
@@ -132,7 +142,9 @@ const EfficiencyTable = ({ initialTranspose }) => {
           cellStyle: { fontSize: "1rem" },
           render: rowData => {
             const overlapID = rowData[`${owner.id}_overlapID`]
-            return <OverlapToggle id={overlapID}>{rowData[owner.id]}</OverlapToggle>
+            return (
+              <OverlapToggle id={overlapID}>{rowData[owner.id]}</OverlapToggle>
+            )
           }
         })
       })
@@ -168,21 +180,23 @@ const EfficiencyTable = ({ initialTranspose }) => {
 
   return (
     <div className="efficiency-table">
-      <MaterialTable
-        columns={headers}
-        data={rows}
-        options={TABLE_OPTIONS}
-        icons={TABLE_ICONS}
-        title="Collection Efficiency (%)"
-        actions={[
-          {
-            icon: Shuffle,
-            tooltip: "Transpose",
-            isFreeAction: true,
-            onClick: event => setTransposed(transposed => !transposed)
-          }
-        ]}
-      />
+      <ErrorBoundary>
+        <MaterialTable
+          columns={headers}
+          data={rows}
+          options={TABLE_OPTIONS}
+          icons={TABLE_ICONS}
+          title="Collection Efficiency (%)"
+          actions={[
+            {
+              icon: Shuffle,
+              tooltip: "Transpose",
+              isFreeAction: true,
+              onClick: () => setTransposed(transposed => !transposed)
+            }
+          ]}
+        />
+      </ErrorBoundary>
     </div>
   )
 }
@@ -227,4 +241,5 @@ const OverlapToggle = ({ children, id, isActive }) => {
     </Button>
   )
 }
+
 export default EfficiencyTable
