@@ -283,6 +283,7 @@ export const resolvers = {
         data: {
           exNorm: [null, null],
           selectors: [],
+          activeOverlaps: [],
           activeSpectra: [
             ...new Set([...keepSpectra, ...(appendSpectra || [])])
           ]
