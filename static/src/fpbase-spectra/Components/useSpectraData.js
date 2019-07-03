@@ -115,14 +115,15 @@ const useSpectralData = () => {
         id => id && !currentIDs.includes(id)
       )
       let newData = await Promise.all(newSpectra.map(id => idToData(id)))
-      newData = newData.map(item => item.data.spectrum)
-
+      newData = newData.map(item => item.data.spectrum).filter(i => i)
       // find new overlaps that aren't in current Data
       const newOverlaps = activeOverlaps.filter(
         id => id && !currentIDs.includes(id)
       )
 
-      const newOverlapData = newOverlaps.map(id => window.OverlapCache[id])
+      const newOverlapData = newOverlaps
+        .map(id => window.OverlapCache[id])
+        .filter(i => i)
 
       if (deadSpectra.length || newData.length || newOverlapData.length) {
         setCurrentData(
