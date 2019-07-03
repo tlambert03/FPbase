@@ -59,16 +59,26 @@ const useStyles = makeStyles(theme => ({
 
 window.OverlapCache = {}
 
+function numStringSort(a, b) {
+  if (isNaN(a)) {
+    if (isNaN(b)) {
+      return a - b
+    }
+    return -1
+  }
+  return a - b
+}
+
 function getOverlap(...args) {
   const idString = args
-    .map(arg => arg.customId || arg.id)
-    .sort((a, b) => a - b)
+    .map(arg => arg.id)
+    .sort(numStringSort)
     .join("_")
 
   const ownerName = args.map(({ owner }) => owner.name).join(" & ")
   const ownerID = args
     .map(({ owner }) => owner.id)
-    .sort((a, b) => a - b)
+    .sort(numStringSort)
     .join("_")
   const qy = args.reduce((acc, next) => next.owner.qy || acc, null)
 

@@ -24,7 +24,7 @@ const customLaserSpectrum = _id => {
         id: id,
         customId: _id,
         subtype: "L",
-        owner: { name },
+        owner: { name, id: _id },
         category: "F",
         data,
         color: +wave in COLORS ? COLORS[+wave] : "#999999"
@@ -71,7 +71,7 @@ const customFilterSpectrum = _id => {
         id: id,
         customId: _id,
         subtype,
-        owner: { name },
+        owner: { name, id: _id },
         category: "F",
         data,
         color: +center in COLORS ? COLORS[+center] : "#999999"
