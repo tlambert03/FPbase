@@ -223,7 +223,7 @@ const SearchModal = React.memo(function SearchModal({
             textAlign: "center"
           }}
         >
-          Spectra missing? <a href="/spectra/submit/">Submit a spectrum</a>
+          Spectra missing? <a href="/spectra/submit/" target="_blank">Submit a spectrum</a>
         </p>
       </div>
     </Modal>
