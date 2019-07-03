@@ -169,7 +169,7 @@ const DEFAULT_OPTIONS = {
         name = name.replace("Chroma", "Chr").replace("Semrock", "Sem")
       }
       if (+this.chart.chartWidth < 500) {
-        name = name.length > 19 ? name.slice(0, 19) + "..." : name
+        name = name.length > 18 ? name.slice(0, 18) + "..." : name
       }
       return name
     },
