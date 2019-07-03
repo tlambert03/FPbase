@@ -126,7 +126,9 @@ const SpectrumSeries = memo(function SpectrumSeries({
     spectrum.subtype === "EX" && scaleEC && spectrum.owner.extCoeff
   )
   const willScaleQY = Boolean(
-    spectrum.subtype === "EM" && scaleQY && spectrum.owner.qy
+    (spectrum.subtype === "EM" || spectrum.subtype === "O") &&
+      scaleQY &&
+      spectrum.owner.qy
   )
   if (willScaleEC) {
     serie = serie.map(([a, b]) => [a, b * spectrum.owner.extCoeff])
