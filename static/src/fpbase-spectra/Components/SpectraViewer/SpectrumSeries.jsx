@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useRef } from "react"
+import React, { memo, useEffect, useState } from "react"
 import { Series } from "react-jsx-highcharts"
 import { useApolloClient } from "@apollo/react-hooks"
 import { GET_SPECTRUM } from "../../client/queries"

@@ -1,6 +1,5 @@
 import React, { useEffect, memo } from "react"
 import { useQuery } from "@apollo/react-hooks"
-import { GET_CHART_OPTIONS, GET_EX_NORM } from "../../client/queries"
 import Highcharts from "highcharts"
 import {
   withHighcharts,

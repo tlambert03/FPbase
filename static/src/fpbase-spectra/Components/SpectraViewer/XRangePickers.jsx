@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@apollo/react-hooks"
 import { provideAxis } from "react-jsx-highcharts"
 import Input from "@material-ui/core/Input"
 import gql from "graphql-tag"
-import { Tooltip, Zoom } from "@material-ui/core"
+import { Tooltip } from "@material-ui/core"
 import { withStyles } from "@material-ui/core/styles"
 
 const LightTooltip = withStyles(theme => ({
