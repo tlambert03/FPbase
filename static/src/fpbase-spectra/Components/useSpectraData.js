@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react"
 import COLORS from "../../js/spectra/colors"
-import {
-  GET_SPECTRUM,
-  GET_OVERLAP,
-  GET_ACTIVE_SPECTRA,
-  GET_ACTIVE_OVERLAPS
-} from "../client/queries"
+import { GET_SPECTRUM } from "../client/queries"
 import { useApolloClient, useQuery } from "@apollo/react-hooks"
 import update from "immutability-helper"
 import gql from "graphql-tag"
@@ -23,9 +18,9 @@ const customLaserSpectrum = _id => {
       spectrum: {
         id: id,
         customId: _id,
-        subtype: "L",
+        subtype: "PD",
         owner: { name, id: _id },
-        category: "F",
+        category: "L",
         data,
         color: +wave in COLORS ? COLORS[+wave] : "#999999"
       }
@@ -104,7 +99,6 @@ const useSpectralData = () => {
     }
 
     async function updateData() {
-
       // find dead Spectra
       const deadSpectra = currentData.reduceRight((acc, item, idx) => {
         if (

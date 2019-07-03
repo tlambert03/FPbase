@@ -93,7 +93,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
       }
     }
 
-    if (spectrum.subtype === "EM" && exNorm) {
+    if ((spectrum.subtype === "EM" || spectrum.subtype === "O") && exNorm) {
       getExData()
     } else {
       setSerie(List([...spectrum.data]))

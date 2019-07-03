@@ -81,6 +81,10 @@ function getOverlap(...args) {
     .sort(numStringSort)
     .join("_")
   const qy = args.reduce((acc, next) => next.owner.qy || acc, null)
+  const slug = args.reduce(
+    (acc, next) => (["P", "D"].includes(next.category) ? next.owner.slug : acc),
+    null
+  )
 
   if (!(idString in window.OverlapCache)) {
     const product = spectraProduct(...args.map(({ data }) => data))
@@ -91,7 +95,7 @@ function getOverlap(...args) {
       category: "O",
       subtype: "O",
       color: "#000000",
-      owner: { id: ownerID, name: ownerName, qy }
+      owner: { id: ownerID, name: ownerName, qy, slug }
     }
   }
   return window.OverlapCache[idString]
