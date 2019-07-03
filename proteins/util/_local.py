@@ -1163,3 +1163,79 @@ def import_tree(filepath=None):
     add_missing_seqs()
     add_missing_seqs()
     [s.save() for s in Lineage.objects.all()]
+
+
+
+CF_EC = {
+    'CF350': 18000,
+    'CF405S': 33000,
+    'CF405M': 41000,
+    'CF405L': 24000,
+    'CF430': 40000,
+    'CF440': 40000,
+    'CF450': 40000,
+    'CF488A': 70000,
+    'CF514': 105000,
+    'CF532': 96000,
+    'CF535ST': 95000,
+    'CF543': 100000,
+    'CF555': 150000,
+    'CF568': 100000,
+    'CF594': 115000,
+    'CF594ST': 115000,
+    'CF620R': 115000,
+    'CF633': 100000,
+    'CF640R': 105000,
+    'CF647': 240000,
+    'CF660C': 200000,
+    'CF660C': 100000,
+    'CF680': 210000,
+    'CF680R': 140000,
+    'CF750': 250000,
+    'CF770': 220000,
+    'CF790': 210000,
+    'CF800': 210000
+}
+
+def import_cf(path='_data/Biotium/biotium_spectra.csv'):
+    from proteins.forms import SpectrumForm
+    from django.core.files import File
+    d = os.path.join(BASEDIR, path)
+    df = pd.DataFrame.from_csv(os.path.join(BASEDIR, path))
+
+    for dye_name in df:
+        data = zip_wave_data(df.index, df[dye_name])
+        subtype = Spectrum.ABS if dye_name.endswith('Abs') else Spectrum.EM
+        name = dye_name.replace(' Abs', '').replace(' Em', '')
+        sf = SpectrumForm({
+            'owner': name,
+            'category': Spectrum.DYE,
+            'subtype': subtype,
+            'data': data,
+            'confirmation': True
+        })
+        if sf.is_valid():
+            obj = sf.save(commit=False)
+            obj.created_by = User.objects.first()
+            obj.save()
+
+            dye = obj.owner
+            dye.manufacturer = 'Biotium'
+            dye.part = name
+            #dye.url = 'https://biotium.com/'
+            uri = 'https://biotium.com/search-results/keyword/{}/search-in/product/cat-in/all/search-other/product,p_sku,p_cat,post,page'
+            dye.url = uri.format(name.replace(" ", "+"))
+            # if name in props:
+            #     for k, v in props[name].items():
+            #         if v:
+            #             setattr(dye, k, v)
+            # else:
+            #     print('could not find props for ', name)
+            if name in CF_EC:
+                dye.ext_coeff = CF_EC[name]
+            dye.created_by = User.objects.first()
+            dye.save()
+
+            print("SUCCESS: ", obj)
+        else:
+            print(sf.errors)
