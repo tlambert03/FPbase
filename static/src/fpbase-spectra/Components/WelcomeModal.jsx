@@ -98,7 +98,11 @@ const WelcomeModal = React.memo(function WelcomeModal({
           &nbsp;to quickly lookup and load any spectrum group in the database.
           You can also load the complete optical setup from any optical config
           in any{" "}
-          <a href="/microscopes" target="_blank">
+          <a
+            href="https://www.fpbase.org/microscopes"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             FPbase microscope
           </a>
           . Try it now!
