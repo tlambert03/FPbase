@@ -13,32 +13,10 @@ import theme from "./theme"
 import gql from "graphql-tag"
 
 const customStyles = {
-  // control: provided => ({
-  //   ...provided,
-  //   [theme.breakpoints.down(960)]: {
-  //     minHeight: 34,
-  //     height: 34
-  //   }
-  // }),
   menu: provided => ({
     ...provided,
     zIndex: "10000"
   }),
-  // placeholder: provided => ({
-  //   ...provided,
-  //   [theme.breakpoints.down(960)]: {
-  //     top: "42%",
-  //     fontSize: "0.9rem"
-  //   }
-  // }),
-  // indicatorsContainer: provided => ({
-  //   ...provided,
-  //   [theme.breakpoints.down(960)]: {
-  //     position: "relative",
-  //     top: "-1px",
-  //     height: 34
-  //   }
-  // }),
   singleValue: (provided, state) => ({
     ...provided,
     [theme.breakpoints.down("xs")]: {
@@ -67,6 +45,8 @@ const SingleValue = ({ children, ...props }) => {
           if (extCoeff) val += `EC: ${extCoeff.toLocaleString()}`
           val += ")"
           setExtra(val)
+        } else {
+          setExtra('')
         }
       }
     }
@@ -151,25 +131,6 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
           }
         }
       })
-      // updateSpectra({
-      //   variables: {
-      //     add:
-      //       newValue &&
-      //       newValue.spectra
-      //         .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
-      //         .map(({ id }) => id),
-      //     remove: value && value.spectra.map(({ id }) => id)
-      //   }
-      // })
-      // updateSelector({
-      //   variables: {
-      //     selector: {
-      //       id: selector.id,
-      //       owner: newOwner,
-      //       category: ownerInfo[newOwner] && ownerInfo[newOwner].category
-      //     }
-      //   }
-      // })
     },
     [excludeSubtypes, ownerInfo, selector.id, value] // eslint-disable-line
   )
