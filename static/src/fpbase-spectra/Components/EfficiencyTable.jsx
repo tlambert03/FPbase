@@ -234,7 +234,7 @@ const OverlapToggle = ({ children, id, isActive }) => {
       checked={active}
       variant={active ? "contained" : "outlined"}
       color={
-        +children > 40 ? "primary" : +children > 5 ? "default" : "secondary"
+        +children > 50 ? "primary" : +children > 5 ? "default" : "secondary"
       }
     >
       {children}
