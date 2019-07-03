@@ -163,11 +163,25 @@ const DEFAULT_OPTIONS = {
   legend: {
     verticalAlign: "top",
     align: "left",
+    labelFormatter: function() {
+      let name = this.name
+      if (this.chart.chartWidth < 800) {
+        name = name.replace("Chroma", "Chr").replace("Semrock", "Sem")
+      }
+      if (+this.chart.chartWidth < 500) {
+        name = name.length > 19 ? name.slice(0, 19) + "..." : name
+      }
+      return name
+    },
     itemStyle: {
       fontWeight: 600,
       fontSize: "11px",
       fontFamily: FONTS
     }
+  },
+  boost: {
+    useGPUTranslations: true,
+    seriesThreshold: 5
   },
   tooltip: {
     useHTML: true,

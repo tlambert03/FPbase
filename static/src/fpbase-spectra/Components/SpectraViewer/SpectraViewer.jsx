@@ -18,6 +18,7 @@ import SpectrumSeries from "./SpectrumSeries"
 import applyExporting from "highcharts/modules/exporting"
 import applyPatterns from "highcharts/modules/pattern-fill"
 import applyExportingData from "highcharts/modules/export-data"
+import addBoostModule from 'highcharts/modules/boost';
 import fixLogScale from "./fixLogScale"
 import DEFAULT_OPTIONS from "./ChartOptions"
 import update from "immutability-helper"
@@ -29,6 +30,7 @@ import gql from "graphql-tag"
 applyExporting(Highcharts)
 applyExportingData(Highcharts)
 applyPatterns(Highcharts)
+addBoostModule(Highcharts)
 fixLogScale(Highcharts)
 
 const calcHeight = width => {
@@ -54,7 +56,8 @@ let {
   navigation,
   exporting,
   legend,
-  tooltip
+  tooltip,
+  boost
 } = DEFAULT_OPTIONS
 
 const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
@@ -98,11 +101,6 @@ const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
   return (
     <SpectraViewer
       data={data}
-      plotOptions={plotOptions}
-      navigation={navigation}
-      exporting={exporting}
-      chart={chart}
-      legend={legend}
       tooltip={tooltip}
       yAxis={yAxis}
       xAxis={xAxis}
@@ -115,11 +113,6 @@ const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
 
 const SpectraViewer = memo(function SpectraViewer({
   data,
-  plotOptions,
-  navigation,
-  exporting,
-  chart,
-  legend,
   tooltip,
   yAxis,
   xAxis,
@@ -161,6 +154,7 @@ const SpectraViewer = memo(function SpectraViewer({
         plotOptions={plotOptions}
         navigation={navigation}
         exporting={exporting}
+        boost={boost}
       >
         <Chart {...chart} height={height} />
         <Legend {...legend} />
@@ -256,7 +250,10 @@ const MyCredits = provideAxis(function MyCredits({
   )
 })
 
-export const XAxisWithRange = ({ options, showPickers }) => {
+export const XAxisWithRange = memo(function XAxisWithRange({
+  options,
+  showPickers
+}) {
   return (
     <>
       <XAxis {...options} lineWidth={showPickers ? 1 : 0} id="xAxis">
@@ -268,7 +265,7 @@ export const XAxisWithRange = ({ options, showPickers }) => {
       />
     </>
   )
-}
+})
 
 const ExNormNotice = memo(function ExNormNotice({ exNorm, ownerInfo }) {
   return (

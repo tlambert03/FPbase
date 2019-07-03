@@ -61,6 +61,22 @@ code {
   padding: 14px 24px 14px 16px;
 }
 
+.efficiency-table .MuiButton-sizeSmall {
+  padding: 4px 2px;
+}
+.efficiency-table .MuiButton-label {
+  opacity: 0.75;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.efficiency-table .MuiButton-outlinedPrimary .MuiButton-label,
+.efficiency-table .MuiButton-containedPrimary .MuiButton-label,
+.efficiency-table .MuiButton-outlinedSecondary .MuiButton-label,
+.efficiency-table .MuiButton-containedSecondary .MuiButton-label  {
+  opacity: 1;
+}
+
 @media screen and (max-width: 420px) {
   .efficiency-table h6 {
     font-size: 1.2rem !important;
