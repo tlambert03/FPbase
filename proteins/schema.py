@@ -114,13 +114,7 @@ class SpectrumOwnerUnion(graphene.Union):
 class Spectrum(gdo.OptimizedDjangoObjectType):
     class Meta:
         model = models.Spectrum
-        exclude_fields = (
-            "owner_state",
-            "owner_dye",
-            "owner_filter",
-            "owner_camera",
-            "owner_light",
-        )
+
 
     owner = graphene.Field(SpectrumOwnerInterface)
     color = graphene.String()
