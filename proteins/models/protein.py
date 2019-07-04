@@ -360,16 +360,16 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         on_delete=models.SET_NULL,
     )
 
-    __original_ipg_id = None
+    # __original_ipg_id = None
 
     # managers
     objects = ProteinManager()
     visible = QueryManager(~Q(status="hidden"))
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # store IPG_ID so that we know if it changes
-        self.__original_ipg_id = self.ipg_id
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     # store IPG_ID so that we know if it changes
+    #     self.__original_ipg_id = self.ipg_id
 
     def mutations_from_root(self):
         try:
@@ -564,7 +564,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         self.set_default_state()
 
         super().save(*args, **kwargs)
-        self.__original_ipg_id = self.ipg_id
+        # self.__original_ipg_id = self.ipg_id
 
     # Meta
     class Meta:
