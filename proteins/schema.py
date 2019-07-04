@@ -21,8 +21,14 @@ def get_requested_fields(info):
 
 
 class Protein(gdo.OptimizedDjangoObjectType):
+    id = graphene.String()
+    
     class Meta:
         model = models.Protein
+        exclude_fields = ("id", "status", "status_changed", "uuid", "base_name")
+
+    def resolve_id(self, info):
+        return self.uuid
 
 
 class FluorophoreInterface(graphene.Interface):
@@ -86,6 +92,7 @@ class State(gdo.OptimizedDjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.State
+        exclude_fields = ()
 
     protein = graphene.Field(Protein)
 
@@ -107,6 +114,13 @@ class SpectrumOwnerUnion(graphene.Union):
 class Spectrum(gdo.OptimizedDjangoObjectType):
     class Meta:
         model = models.Spectrum
+        exclude_fields = (
+            "owner_state",
+            "owner_dye",
+            "owner_filter",
+            "owner_camera",
+            "owner_light",
+        )
 
     owner = graphene.Field(SpectrumOwnerInterface)
     color = graphene.String()
@@ -199,6 +213,15 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
 class Microscope(DjangoObjectType):
     class Meta:
         model = models.Microscope
+        only_fields = (
+            "id",
+            "name",
+            "description",
+            "extra_lights",
+            "extra_cameras",
+            "extra_lasers",
+            "optical_configs",
+        )
 
 
 class OpticalConfig(gdo.OptimizedDjangoObjectType):
@@ -207,6 +230,17 @@ class OpticalConfig(gdo.OptimizedDjangoObjectType):
 
     class Meta:
         model = models.OpticalConfig
+        only_fields = (
+            "id",
+            "name",
+            "description",
+            "microscope",
+            "comments",
+            "filters",
+            "light",
+            "camera",
+            "laser",
+        )
 
     @gdo.resolver_hints(
         prefetch_related=(
@@ -229,6 +263,10 @@ class Query(graphene.ObjectType):
     opticalConfig = graphene.Field(OpticalConfig, id=graphene.Int())
     proteins = graphene.List(Protein)
     protein = graphene.Field(Protein, id=graphene.String())
+    microscopes = graphene.List(Microscope)
+
+    def resolve_microscopes(self, info, **kwargs):
+        return gdo.query(models.Microscope.objects.all(), info)
 
     def resolve_proteins(self, info, **kwargs):
         return gdo.query(models.Protein.objects.all(), info)
