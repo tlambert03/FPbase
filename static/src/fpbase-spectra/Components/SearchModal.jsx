@@ -94,7 +94,7 @@ const SearchModal = React.memo(function SearchModal({
   useEffect(() => {
     const handleKeyDown = event => {
       // don't do anything if we're on an input
-      if (document.activeElement.tagName.toUpperCase() === "INPUT") {
+      if (document.activeElement && document.activeElement.tagName.toUpperCase() === "INPUT") {
         return
       }
       switch (event.code) {
