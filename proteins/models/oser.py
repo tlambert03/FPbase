@@ -7,7 +7,7 @@ from .mixins import Authorable
 
 
 class OSERMeasurement(Authorable, TimeStampedModel):
-    percent   = models.FloatField(verbose_name='Percent Normal Cells', help_text="Photobleaching half-life (s)",
+    percent   = models.FloatField(verbose_name='Percent Normal Cells', help_text="Percentage of 'normal' looking cells",
                                   blank=True, null=True,
                                   validators=[MinValueValidator(0), MaxValueValidator(100)])
     percent_stddev = models.FloatField(verbose_name='StdDev', help_text="Standard deviation of percent normal cells (if applicable)",

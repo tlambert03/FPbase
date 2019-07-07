@@ -304,6 +304,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         max_length=2,
         choices=AGG_CHOICES,
         blank=True,
+        verbose_name='Oligomerization',
         help_text="Oligomerization tendency",
     )
     oser = models.FloatField(
