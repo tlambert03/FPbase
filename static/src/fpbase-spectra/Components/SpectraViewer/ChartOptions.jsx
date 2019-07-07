@@ -26,6 +26,7 @@ const toolTipRow = entry => {
 const DEFAULT_OPTIONS = {
   plotOptions: {
     series: {
+      boostThreshold: 800,
       events: {
         mouseOver: function({ target: { xAxis } }, b) {
           const el = document.getElementById("zoom-info")
@@ -42,6 +43,16 @@ const DEFAULT_OPTIONS = {
         enabled: false,
         symbol: "circle"
       }
+    }
+  },
+  boost: {
+    useGPUTranslations: true,
+    seriesThreshold: 4,
+    enabled: true,
+    debug: {
+      showSkipSummary: true,
+      timeSeriesProcessing: true,
+      timeRendering: true,
     }
   },
   chart: {
@@ -178,10 +189,6 @@ const DEFAULT_OPTIONS = {
       fontSize: "11px",
       fontFamily: FONTS
     }
-  },
-  boost: {
-    useGPUTranslations: true,
-    seriesThreshold: 5
   },
   tooltip: {
     useHTML: true,
