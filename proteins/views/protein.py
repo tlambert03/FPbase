@@ -1,57 +1,56 @@
+import io
+import json
+import logging
+import operator
+
+import django.forms
 import reversion
-from django.views.generic import DetailView, CreateView, UpdateView, ListView, base
+from django.apps import apps
+from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.core.mail import mail_admins, mail_managers
+from django.db import transaction
+from django.db.models import Case, Count, F, Func, Prefetch, Q, Value, When
+from django.forms.models import modelformset_factory
+from django.http import (
+    Http404,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseNotAllowed,
+    HttpResponseRedirect,
+    JsonResponse,
+)
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.decorators import method_decorator
+from django.utils.html import strip_tags
+from django.utils.safestring import mark_safe
+from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.vary import vary_on_cookie
-from django.core.mail import mail_managers, mail_admins
-from django.shortcuts import render, get_object_or_404
-from django.http import (
-    HttpResponseRedirect,
-    HttpResponse,
-    JsonResponse,
-    HttpResponseBadRequest,
-    HttpResponseNotAllowed,
-    Http404,
-)
-from django.forms.models import modelformset_factory
-import django.forms
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
-from django.db import transaction
-from django.db.models import Case, When, Count, Prefetch, Q
-from django.shortcuts import redirect
-from django.apps import apps
-from django.utils.html import strip_tags
-from django.utils.decorators import method_decorator
+from django.views.generic import CreateView, DetailView, ListView, UpdateView, base
+from reversion.models import Revision, Version
+from reversion.views import _RollBackRevisionView
 
 from fpbase.util import uncache_protein_page
-from ..models import Protein, State, Organism, BleachMeasurement, Spectrum, Excerpt
+from proteins.extrest.entrez import get_cached_gbseqs
+from proteins.extrest.ga import cached_ga_popular
+from proteins.util.helpers import link_excerpts, most_favorited
+from proteins.util.maintain import check_lineages, suggested_switch_type
+from proteins.util.spectra import spectra2csv
+from references.models import Reference  # breaks application modularity
+
 from ..forms import (
+    BleachComparisonForm,
+    BleachMeasurementForm,
+    LineageFormSet,
     ProteinForm,
     StateFormSet,
     StateTransitionFormSet,
-    LineageFormSet,
-    BleachMeasurementForm,
     bleach_items_formset,
-    BleachComparisonForm,
 )
-
-from proteins.util.spectra import spectra2csv
-from proteins.util.maintain import check_lineages, suggested_switch_type
-from proteins.util.helpers import most_favorited, link_excerpts
-from proteins.extrest.ga import cached_ga_popular
-from proteins.extrest.entrez import get_cached_gbseqs
-from references.models import Reference  # breaks application modularity
-from reversion.views import _RollBackRevisionView
-from reversion.models import Version, Revision
-import json
-import io
-from django.utils.safestring import mark_safe
-from django.utils.text import slugify
-from django.db.models import Func, F, Value
-from django.contrib import messages
-import operator
-import logging
+from ..models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +61,8 @@ def check_switch_type(object, request):
         disp = dict(Protein.SWITCHING_CHOICES).get(suggested).lower()
         actual = object.get_switch_type_display().lower()
         msg = (
-            "<i class='fa fa-exclamation-circle mr-2'></i><strong>Warning:</strong> Based on the number of states and transitions currently assigned "
+            "<i class='fa fa-exclamation-circle mr-2'></i><strong>Warning:</strong> "
+            + "Based on the number of states and transitions currently assigned "
             + "to this protein, it appears to be a {} protein; ".format(disp)
             + "however, it has been assigned a switching type of {}. ".format(actual)
             + "Please confirm that the switch type, states, and transitions are correct."
@@ -223,7 +223,8 @@ class ProteinDetailView(DetailView):
                 for sp in state.spectra.all()
             ]
         )
-        # data['additional_references'] = Reference.objects.filter(proteins=self.object).exclude(id=self.object.primary_reference.id).order_by('-year')
+        # data['additional_references'] = Reference.objects.filter(proteins=self.object)
+        #                .exclude(id=self.object.primary_reference.id).order_by('-year')
 
         # put links in excerpts
         data["excerpts"] = link_excerpts(
@@ -277,9 +278,9 @@ class ProteinCreateUpdateMixin:
                         try:
                             prot = Protein.objects.get(seq__iexact=str(seq))
                             msg = mark_safe(
-                                '<a href="{}" style="text-decoration: underline;">{}</a> already has the sequence that would be generated by this parent & mutation'.format(
-                                    prot.get_absolute_url(), prot.name
-                                )
+                                f'<a href="{prot.get_absolute_url()}" style="text-decoration: '
+                                + f'underline;">{prot.name}</a> already has the sequence that'
+                                + " would be generated by this parent & mutation"
                             )
                             lform.add_error(None, msg)
                             context.update({"states": states, "lineage": lineage})
@@ -498,7 +499,7 @@ def spectra_image(request, slug, **kwargs):
                     D[k] = True
                 else:
                     D[k] = int(v) if v.isdigit() else v
-    except Exception as e:
+    except Exception:
         return HttpResponseBadRequest("failed to parse url parameters as JSON")
     try:
         fmt = kwargs.get("extension", "png")
@@ -524,9 +525,7 @@ def protein_table(request):
         request,
         "table.html",
         {
-            "proteins": Protein.visible.all().prefetch_related(
-                "states"
-            ),
+            "proteins": Protein.visible.all().prefetch_related("states"),
             "request": request,
         },
     )
@@ -777,20 +776,25 @@ def revert_revision(request, rev=None):
 
     with transaction.atomic():
         revision.revert(delete=True)
-        proteins = {v.object for v in revision.version_set.all()
-                    if v.object._meta.model_name == 'protein'}
+        proteins = {
+            v.object
+            for v in revision.version_set.all()
+            if v.object._meta.model_name == "protein"
+        }
         if len(proteins) == 1:
             P = proteins.pop()
             with reversion.create_revision():
                 reversion.set_user(request.user)
-                reversion.set_comment('Reverted to revision dated {}'.format(revision.date_created))
+                reversion.set_comment(
+                    "Reverted to revision dated {}".format(revision.date_created)
+                )
                 P.save()
                 try:
                     uncache_protein_page(P.slug, request)
                 except Exception:
                     pass
 
-    return JsonResponse({'status': 200})
+    return JsonResponse({"status": 200})
 
 
 @login_required
@@ -1016,11 +1020,10 @@ def protein_history(request, slug):
                     "emhex",
                     "exhex",
                     "updated_by_id",
-                    'status',
-                    'seq_comment'
+                    "status",
+                    "seq_comment",
                 ]
             ),
             "request": request,
         },
     )
-

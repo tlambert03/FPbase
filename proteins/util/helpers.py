@@ -29,8 +29,8 @@ def remember_cwd():
 def create_slug_dict():
     from proteins.models import Protein
 
-    slugs = OrderedDict(Protein.objects.all().values_list('name', 'slug'))
-    for item in Protein.objects.exclude(aliases=[]).values_list('aliases', 'slug'):
+    slugs = OrderedDict(Protein.objects.all().values_list("name", "slug"))
+    for item in Protein.objects.exclude(aliases=[]).values_list("aliases", "slug"):
         if item[0]:
             for alias in item[0]:
                 slugs.update({alias: item[1]})
@@ -41,25 +41,30 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
     if not excerpts_qs:
         return None
     excerpt_list = list(excerpts_qs)
-    slug_dict = cache.get_or_set('slug_dict', create_slug_dict, 60)
+    slug_dict = cache.get_or_set("slug_dict", create_slug_dict, 60)
     for excerpt in excerpt_list:
         for name in slug_dict:
             if not len(name) > 1:
                 continue
             if name == obj_name or (aliases and name in aliases):
-                excerpt.content = mark_safe(re.sub(
-                    r'(?<=[\s(])(?<!>){}(?!.\d)(?!<)'.format(name),
-                    '<strong>{}</strong>'.format(name),
-                    excerpt.content
-                ))
+                excerpt.content = mark_safe(
+                    re.sub(
+                        r"(?<=[\s(])(?<!>){}(?!.\d)(?!<)".format(name),
+                        "<strong>{}</strong>".format(name),
+                        excerpt.content,
+                    )
+                )
             else:
-                excerpt.content = mark_safe(re.sub(
-                    r'(?<=[\s(])(?<!>){}(?!.\d)(?!<)'.format(name),
-                    '<a href="{}" class="text-info">{}</a>'.format(
-                        reverse('proteins:protein-detail', args=[slug_dict[name]]),
-                        name),
-                    excerpt.content
-                ))
+                excerpt.content = mark_safe(
+                    re.sub(
+                        r"(?<=[\s(])(?<!>){}(?!.\d)(?!<)".format(name),
+                        '<a href="{}" class="text-info">{}</a>'.format(
+                            reverse("proteins:protein-detail", args=[slug_dict[name]]),
+                            name,
+                        ),
+                        excerpt.content,
+                    )
+                )
     return excerpt_list
 
 
@@ -68,21 +73,22 @@ def most_favorited(max_results=20):
     from favit.models import Favorite
 
     qs = Favorite.objects.for_model(Protein)
-    fave_counts = Counter(qs.values_list('target_object_id', flat=True))
+    fave_counts = Counter(qs.values_list("target_object_id", flat=True))
     fave_items = dict(fave_counts.most_common(max_results))
-    qs = Protein.objects.filter(id__in=fave_items.keys()).values('id', 'name', 'slug')
-    D = {q.pop('id'): q for q in qs}
+    qs = Protein.objects.filter(id__in=fave_items.keys()).values("id", "name", "slug")
+    D = {q.pop("id"): q for q in qs}
 
     od = OrderedDict()
     for prot_id, count in fave_items.items():
         od[prot_id] = D[prot_id]
-        od[prot_id]['count'] = count
+        od[prot_id]["count"] = count
     return od
 
 
 def merge_proteins(merge_prot, into_prot):
     # need to update favorites
     from favit.models import Favorite
+
     for fav in Favorite.objects.filter(target_object_id=merge_prot.id):
         try:
             fav.target_object_id = into_prot.id
@@ -109,6 +115,7 @@ def getprot(protein_name, visible=False):
 
 def getmut(protname2, protname1=None, ref=None):
     from fpseq.mutations import get_mutations
+
     a = getprot(protname2)
     if protname1:
         b = getprot(protname1)
@@ -143,19 +150,23 @@ def shortuuid(padding=None):
 
 def zip_wave_data(waves, data, minmax=None):
     minmax = minmax or (200, 1600)
-    return [list(i) for i in zip(waves, data) if (i[1] > 0 and minmax[0] <= i[0] <= minmax[1])]
+    return [
+        list(i)
+        for i in zip(waves, data)
+        if (i[1] > 0 and minmax[0] <= i[0] <= minmax[1])
+    ]
 
 
 def wave_to_hex(wavelength, gamma=1):
-    '''This converts a given wavelength into an approximate RGB value.
+    """This converts a given wavelength into an approximate RGB value.
     The given wavelength is in nanometers.
     The range of wavelength is 380 nm through 750 nm.
 
     Based on code by Dan Bruton
     http://www.physics.sfasu.edu/astro/color/spectra.html
-    '''
+    """
     if not wavelength:
-        return '#000'
+        return "#000"
 
     wavelength = float(wavelength)
     if 520 <= wavelength:
@@ -198,10 +209,10 @@ def wave_to_hex(wavelength, gamma=1):
     R *= 255
     G *= 255
     B *= 255
-    return '#%02x%02x%02x' % (int(R), int(G), int(B))
+    return "#%02x%02x%02x" % (int(R), int(G), int(B))
 
 
-#def wave_to_hex(wave):
+# def wave_to_hex(wave):
 #    wave = int(wave)
 #    if wave < 380:
 #        return "#000000"
@@ -209,6 +220,7 @@ def wave_to_hex(wavelength, gamma=1):
 #        return "#FFFF00"
 #    else:
 #        return COLORS[wave]
+
 
 def get_color_group(ex_max, em_max):
     if (em_max - ex_max) > 90:
@@ -236,47 +248,47 @@ def get_color_group(ex_max, em_max):
 
 
 def mless(name):
-    if re.search('^m[A-Z]', name):
-        return name.lstrip('m')
-    if name.startswith('monomeric'):
-        name = name.lstrip('monomeric')
-    if name.startswith('Monomeric'):
-        name = name.lstrip('Monomeric')
-    return name.lstrip(' ')
+    if re.search("^m[A-Z]", name):
+        return name.lstrip("m")
+    if name.startswith("monomeric"):
+        name = name.lstrip("monomeric")
+    if name.startswith("Monomeric"):
+        name = name.lstrip("Monomeric")
+    return name.lstrip(" ")
 
 
 def get_base_name(name):
     '''return core name of protein, stripping prefixes like "m" or "Tag"'''
 
     # remove PA/(Pa), PS, PC, from beginning
-    if name.startswith(('PA', 'Pa', 'PS', 'Ps', 'PC', 'pc', 'rs')):
+    if name.startswith(("PA", "Pa", "PS", "Ps", "PC", "pc", "rs")):
         name = name[2:]
 
-    if re.match('LSS', name):
-        name = name[3:].lstrip('-')
+    if re.match("LSS", name):
+        name = name[3:].lstrip("-")
 
     # remove m (if next letter is caps) or monomeric
-    if re.match('m[A-Z]', name):
+    if re.match("m[A-Z]", name):
         name = name[1:]
 
     # get rid of Td or td
-    if re.match('[Tt][Dd][A-Z]', name):
+    if re.match("[Tt][Dd][A-Z]", name):
         name = name[2:]
 
-    name = name.lstrip('Monomeric')
-    name = name.lstrip('Tag')
+    name = name.lstrip("Monomeric")
+    name = name.lstrip("Tag")
 
     # remove E at beginning (if second letter is caps)
-    if re.match('E[A-Z]', name):
+    if re.match("E[A-Z]", name):
         name = name[1:]
     # remove S at beginning (if second letter is caps)
-    if re.match('S[A-Z]', name):
+    if re.match("S[A-Z]", name):
         name = name[1:]
     # remove T- at beginning (if second letter is caps)
-    if re.match('T-', name):
+    if re.match("T-", name):
         name = name[2:]
 
-    name = name.lstrip('-').lstrip(' ')
+    name = name.lstrip("-").lstrip(" ")
 
     return name
 
@@ -285,32 +297,38 @@ def get_base_name(name):
 #       Spectral Functions
 # ###########################################
 
+
 def calculate_spectral_overlap(donor, acceptor):
-    accEx  = acceptor.default_state.ex_spectrum
-    accEC  = acceptor.default_state.ext_coeff
-    donEm  = donor.default_state.em_spectrum
+    accEx = acceptor.default_state.ex_spectrum
+    accEC = acceptor.default_state.ext_coeff
+    donEm = donor.default_state.em_spectrum
     # donQY  = donor.default_state.qy
     donCum = sum(donEm.y)
 
     minAcc = accEx.min_wave
     maxAcc = accEx.max_wave
-    minEm  = donEm.min_wave
-    maxEm  = donEm.max_wave
+    minEm = donEm.min_wave
+    maxEm = donEm.max_wave
 
     startingwave = int(max(minAcc, minEm))
     endingwave = int(min(maxAcc, maxEm))
 
     A = accEx.wave_value_pairs()
     D = donEm.wave_value_pairs()
-    overlap = [(pow(wave, 4) * A[wave] * accEC * D[wave] / donCum) for
-               wave in range(startingwave, endingwave + 1)]
+    overlap = [
+        (pow(wave, 4) * A[wave] * accEC * D[wave] / donCum)
+        for wave in range(startingwave, endingwave + 1)
+    ]
 
     return sum(overlap)
 
 
 def forsterDist(donor, acceptor, n=1.329, k=2 / 3):
     overlap = calculate_spectral_overlap(donor, acceptor)
-    return overlap * 1e-15, 0.2108 * pow(donor.default_state.qy * k * pow(n, -4) * overlap, (1 / 6))
+    return (
+        overlap * 1e-15,
+        0.2108 * pow(donor.default_state.qy * k * pow(n, -4) * overlap, (1 / 6)),
+    )
 
 
 def fretEfficiency(distance, forster):
@@ -319,10 +337,13 @@ def fretEfficiency(distance, forster):
 
 def forster_list():
     from ..models import Protein
-    qs = Protein.objects.with_spectra() \
-        .filter(agg=Protein.MONOMER, switch_type=Protein.BASIC) \
-        .select_related('default_state') \
-        .prefetch_related('default_state__spectra')
+
+    qs = (
+        Protein.objects.with_spectra()
+        .filter(agg=Protein.MONOMER, switch_type=Protein.BASIC)
+        .select_related("default_state")
+        .prefetch_related("default_state__spectra")
+    )
     out = []
     withSpectra = []
     for p in qs:
@@ -334,44 +355,72 @@ def forster_list():
     for donor in withSpectra:
         for acceptor in withSpectra:
             try:
-                if ((acceptor.default_state.ex_max > donor.default_state.ex_max) and
-                        acceptor.default_state.ext_coeff and donor.default_state.qy):
+                if (
+                    (acceptor.default_state.ex_max > donor.default_state.ex_max)
+                    and acceptor.default_state.ext_coeff
+                    and donor.default_state.qy
+                ):
                     overlap, r0 = forsterDist(donor, acceptor)
-                    out.append({
-                        'donor': "<a href='{}'>{}{}</a>".format(
-                            donor.get_absolute_url(), donor.name,
-                            '<sub>{}</sub>'.format(donor.cofactor.upper())
-                            if donor.cofactor else ''),
-                        'acceptor': "<a href='{}'>{}{}</a>".format(
-                            acceptor.get_absolute_url(), acceptor.name,
-                            '<sub>{}</sub>'.format(acceptor.cofactor.upper())
-                            if acceptor.cofactor else ''),
-                        'donorPeak': donor.default_state.ex_max,
-                        'acceptorPeak': acceptor.default_state.ex_max,
-                        'emdist': acceptor.default_state.em_max - donor.default_state.em_max,
-                        'donorQY': donor.default_state.qy,
-                        'acceptorQY': acceptor.default_state.qy,
-                        'acceptorEC': "{:,}".format(acceptor.default_state.ext_coeff),
-                        'overlap': round(overlap, 2),
-                        'forster': round(r0.real, 2),
-                        'forsterQYA': round(r0.real * acceptor.default_state.qy, 2),
-                    })
+                    out.append(
+                        {
+                            "donor": "<a href='{}'>{}{}</a>".format(
+                                donor.get_absolute_url(),
+                                donor.name,
+                                "<sub>{}</sub>".format(donor.cofactor.upper())
+                                if donor.cofactor
+                                else "",
+                            ),
+                            "acceptor": "<a href='{}'>{}{}</a>".format(
+                                acceptor.get_absolute_url(),
+                                acceptor.name,
+                                "<sub>{}</sub>".format(acceptor.cofactor.upper())
+                                if acceptor.cofactor
+                                else "",
+                            ),
+                            "donorPeak": donor.default_state.ex_max,
+                            "acceptorPeak": acceptor.default_state.ex_max,
+                            "emdist": acceptor.default_state.em_max
+                            - donor.default_state.em_max,
+                            "donorQY": donor.default_state.qy,
+                            "acceptorQY": acceptor.default_state.qy,
+                            "acceptorEC": "{:,}".format(
+                                acceptor.default_state.ext_coeff
+                            ),
+                            "overlap": round(overlap, 2),
+                            "forster": round(r0.real, 2),
+                            "forsterQYA": round(r0.real * acceptor.default_state.qy, 2),
+                        }
+                    )
             except Exception:
                 continue
-    return list(reversed(sorted(out, key=lambda x: x['forster'])))
+    return list(reversed(sorted(out, key=lambda x: x["forster"])))
 
 
-def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
-                xlim=None, fill=True, transparent=True, grid=False,
-                title=False, info=None, figsize=(12, 3), **kwargs):
+def spectra_fig(
+    spectra,
+    format="svg",
+    output=None,
+    xlabels=True,
+    ylabels=False,
+    xlim=None,
+    fill=True,
+    transparent=True,
+    grid=False,
+    title=False,
+    info=None,
+    figsize=(12, 3),
+    **kwargs
+):
     if not spectra:
         return None
 
-    alph = kwargs.pop('alpha', None)
-    colr = kwargs.pop('color', None)
-    twitter = kwargs.pop('twitter', 0)
+    alph = kwargs.pop("alpha", None)
+    colr = kwargs.pop("color", None)
+    twitter = kwargs.pop("twitter", 0)
 
-    logger.info('spectra_fig called on {}'.format(",".join([str(spec.id) for spec in spectra])))
+    logger.info(
+        "spectra_fig called on {}".format(",".join([str(spec.id) for spec in spectra]))
+    )
     if twitter:
         xlabels = False
         transparent = False
@@ -390,8 +439,13 @@ def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
         color = spec.color() if not colr else colr
         if fill:
             alpha = 0.5 if not alph else float(alph)
-            ax.fill_between(*list(zip(*spec.data)), color=color,
-                            alpha=alpha, url='http://google.com=', **kwargs)
+            ax.fill_between(
+                *list(zip(*spec.data)),
+                color=color,
+                alpha=alpha,
+                url="http://google.com=",
+                **kwargs
+            )
         else:
             alpha = 1 if not alph else float(alph)
             ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)
@@ -400,51 +454,52 @@ def spectra_fig(spectra, format='svg', output=None, xlabels=True, ylabels=False,
     if twitter:
         ax.set_ylim((0, 1.07))
     # Hide the right and top spines
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["top"].set_visible(False)
 
     if grid:
-        ax.grid(color='gray', axis='both', alpha=0.15, which='both')
-        ax.xaxis.grid(True, which='minor')
+        ax.grid(color="gray", axis="both", alpha=0.15, which="both")
+        ax.xaxis.grid(True, which="minor")
         ax.xaxis.set_minor_locator(ticker.MultipleLocator(10))
-        ax.yaxis.set_minor_locator(ticker.MultipleLocator(.1))
+        ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.1))
         ax.set_axisbelow(True)
 
     pos = [0, 0.017, 0.97, 0.98]
     if xlabels:
-        ax.spines['bottom'].set_linewidth(0.4)
-        ax.spines['bottom'].set_color((.5, .5, .5))
-        ax.tick_params(axis='x', colors=(.2, .2, .2), length=0)
+        ax.spines["bottom"].set_linewidth(0.4)
+        ax.spines["bottom"].set_color((0.5, 0.5, 0.5))
+        ax.tick_params(axis="x", colors=(0.2, 0.2, 0.2), length=0)
         ax.xaxis.set_major_locator(ticker.MultipleLocator(50))
         pos[0] = 0.02
         pos[1] = 0.08
-        pos[3] -= .065
+        pos[3] -= 0.065
     else:
-        ax.spines['bottom'].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
         ax.get_xaxis().set_ticks([])
     if ylabels:
-        ax.tick_params(axis='y', colors=(.2, .2, .2), length=0)
-        ax.spines['left'].set_linewidth(0.4)
-        ax.spines['left'].set_color((.5, .5, .5))
+        ax.tick_params(axis="y", colors=(0.2, 0.2, 0.2), length=0)
+        ax.spines["left"].set_linewidth(0.4)
+        ax.spines["left"].set_color((0.5, 0.5, 0.5))
         pos[0] = 0.025
         pos[2] = 0.96
         pos[3] -= 0.01
     else:
-        ax.spines['left'].set_visible(False)
+        ax.spines["left"].set_visible(False)
         ax.get_yaxis().set_ticks([])
         pos[0] = 0.015
 
     ax.set_position(pos)
     if title:
-        font = {'family': 'sans-serif',
-                'color': 'black',
-                'weight': 'normal',
-                'size': 18,
-                }
-        ax.text(xlim[0] + 2, 0.97, title, va='top', fontdict=font, alpha=0.5)
+        font = {
+            "family": "sans-serif",
+            "color": "black",
+            "weight": "normal",
+            "size": 18,
+        }
+        ax.text(xlim[0] + 2, 0.97, title, va="top", fontdict=font, alpha=0.5)
         if info:
-            font['size'] = 14
-            ax.text(xlim[0] + 2, 0.85, info, va='top', fontdict=font, alpha=0.5)
+            font["size"] = 14
+            ax.text(xlim[0] + 2, 0.85, info, va="top", fontdict=font, alpha=0.5)
 
     if not output:
         output = io.BytesIO()
@@ -456,11 +511,15 @@ def wipe_bad_uuids():
     """ get rid of old uuids in version histories """
     from reversion.models import Version
     import json
+
     for version in Version.objects.all():
         data = json.loads(version.serialized_data)
         for item in data:
-            if 'fields' in item and 'uuid' in item['fields'] and len(item['fields']['uuid']) > 5:
-                item['fields']['uuid'] = '-----'
+            if (
+                "fields" in item
+                and "uuid" in item["fields"]
+                and len(item["fields"]["uuid"]) > 5
+            ):
+                item["fields"]["uuid"] = "-----"
         version.serialized_data = json.dumps(data)
         version.save()
-

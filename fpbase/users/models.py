@@ -18,18 +18,19 @@ class User(AbstractUser):
 
     # First Name and Last Name do not cover name patterns
     # around the globe.
-    name = models.CharField(_('Name of User'), blank=True, max_length=255)
+    name = models.CharField(_("Name of User"), blank=True, max_length=255)
 
     def __str__(self):
         return self.username
 
     def get_absolute_url(self):
-        return reverse('users:detail', kwargs={'username': self.username})
+        return reverse("users:detail", kwargs={"username": self.username})
 
 
 class UserLogin(models.Model):
     """Represent users' logins, one per record"""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logins')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="logins")
     timestamp = models.DateTimeField(auto_now_add=True)
 
 

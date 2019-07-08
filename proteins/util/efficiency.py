@@ -1,5 +1,6 @@
 import numpy as np
-from ..models import State, Dye
+
+from ..models.state import Dye, State
 
 
 def spectral_product(arrlist):
@@ -13,8 +14,12 @@ def spectral_product(arrlist):
     waverange = min([int(a[-1][0]) for a in arrlist]) - minwave
     vals = []
     for w in range(waverange + 1):
-        vals.append([w + minwave, np.product([a[w + offsets[i]][1]
-                     for i, a in enumerate(arrlist)])])
+        vals.append(
+            [
+                w + minwave,
+                np.product([a[w + offsets[i]][1] for i, a in enumerate(arrlist)]),
+            ]
+        )
     return vals
 
 
@@ -25,8 +30,8 @@ def area(arr):
     return area
 
 
-def print_scope_report(report, sortby='bright', show=('bright', 'ex', 'em'), limit=10):
-    form = '{:<20}' + ('{:>15}  ' * limit)
+def print_scope_report(report, sortby="bright", show=("bright", "ex", "em"), limit=10):
+    form = "{:<20}" + ("{:>15}  " * limit)
     for oc, values in report.items():
         topfluors = sorted(values.items(), key=lambda kv: kv[1][sortby])
         topfluors.reverse()
@@ -59,23 +64,38 @@ def oc_efficiency_report(oc, fluor_collection):
     oc_ex = oc.combined_ex_spectra
     for fluor in fluor_collection:
         D[fluor.slug] = {
-            'fluor': fluor.fluor_name,
-            'ex': None,
-            'ex_broad': None,
-            'em': None,
-            'bright': 0,
-            'color': fluor.emhex,
-            'ftype': 'p' if isinstance(fluor, State) else 'd',
-            'url': fluor.get_absolute_url() or ''
+            "fluor": fluor.fluor_name,
+            "ex": None,
+            "ex_broad": None,
+            "em": None,
+            "bright": 0,
+            "color": fluor.emhex,
+            "ftype": "p" if isinstance(fluor, State) else "d",
+            "url": fluor.get_absolute_url() or "",
         }
         if fluor.em_spectrum and oc_em:
             combospectrum = spectral_product([oc_em, fluor.em_spectrum.data])
-            D[fluor.slug]['em'] = round(area(combospectrum) / area(fluor.em_spectrum.data), 3)
+            D[fluor.slug]["em"] = round(
+                area(combospectrum) / area(fluor.em_spectrum.data), 3
+            )
         if fluor.ex_spectrum and oc_ex:
             combospectrum = spectral_product([oc_ex, fluor.ex_spectrum.data])
-            D[fluor.slug]['ex'] = round(area(combospectrum) / area(oc_ex), 3)
-            D[fluor.slug]['ex_broad'] = round(area(combospectrum) / area(fluor.ex_spectrum.data), 3)
-        if D[fluor.slug].get('em') and D[fluor.slug].get('ex') and fluor.ext_coeff and fluor.qy:
-            b = D[fluor.slug]['em'] * D[fluor.slug]['ex'] * fluor.ext_coeff * fluor.qy / 1000
-            D[fluor.slug]['bright'] = round(b, 3)
+            D[fluor.slug]["ex"] = round(area(combospectrum) / area(oc_ex), 3)
+            D[fluor.slug]["ex_broad"] = round(
+                area(combospectrum) / area(fluor.ex_spectrum.data), 3
+            )
+        if (
+            D[fluor.slug].get("em")
+            and D[fluor.slug].get("ex")
+            and fluor.ext_coeff
+            and fluor.qy
+        ):
+            b = (
+                D[fluor.slug]["em"]
+                * D[fluor.slug]["ex"]
+                * fluor.ext_coeff
+                * fluor.qy
+                / 1000
+            )
+            D[fluor.slug]["bright"] = round(b, 3)
     return D

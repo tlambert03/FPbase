@@ -1,23 +1,24 @@
 import json
-from django.conf import settings
-from django.core.mail import EmailMessage
-from django.core.cache import cache
-from django.http import Http404, HttpResponse, JsonResponse
-from django.urls import reverse
-from django.views.generic import CreateView
 
 # from django.views.decorators.cache import cache_page
 # from django.views.decorators.vary import vary_on_cookie
 from django import forms
+from django.conf import settings
+from django.core.cache import cache
+from django.core.mail import EmailMessage
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
-from ..models import Spectrum, Filter, State, Protein
-from ..forms import SpectrumForm
-from ..util.spectra import spectra2csv
-from ..util.importers import add_filter_to_database
-from fpbase.util import uncache_protein_page
-from ..tasks import calc_fret
+from django.views.generic import CreateView
+
 from fpbase.celery import app
+from fpbase.util import uncache_protein_page
+
+from ..forms import SpectrumForm
+from ..models import Filter, Protein, Spectrum, State
+from ..tasks import calc_fret
+from ..util.importers import add_filter_to_database
+from ..util.spectra import spectra2csv
 
 
 # @cache_page(60 * 10)

@@ -2,7 +2,8 @@ try:
     from parasail import nw_banded, nw_trace_scan_sat, blosum62
 except ImportError:
     import warnings
-    warnings.warn('ERROR!!! could not import parasail... will not be able to align')
+
+    warnings.warn("ERROR!!! could not import parasail... will not be able to align")
 from .util import chunked_lines
 
 
@@ -23,13 +24,13 @@ def parental_numbering(aseq1, aseq2):
     sequence based on the parental sequence """
     idx = 1
     numlist = []
-    insertchars = 'abcdefghijklmnopqrstuvwxyz'
+    insertchars = "abcdefghijklmnopqrstuvwxyz"
     insertidx = 0
     for s1, s2 in zip(aseq1, aseq2):
-        if s2 == '-':
+        if s2 == "-":
             idx += 1
             continue
-        if s1 == '-':
+        if s1 == "-":
             numlist.append(str(idx - 1) + insertchars[insertidx % len(insertchars)])
             insertidx += 1
             continue
@@ -66,7 +67,7 @@ class ParasailAlignment:
 
     @property
     def cigar_tuple(self):
-        if hasattr(self, '_cigar_tuple'):
+        if hasattr(self, "_cigar_tuple"):
             return self._cigar_tuple
         self._cigar_tuple = self._tuples_from_cigar()
         return self._cigar_tuple
@@ -75,14 +76,20 @@ class ParasailAlignment:
         return str(self)
 
     def __str__(self):
-        a = chunked_lines(self.aligned_target_sequence(), spacer='')
-        b = chunked_lines(self.aligned_query_sequence(), spacer='')
+        a = chunked_lines(self.aligned_target_sequence(), spacer="")
+        b = chunked_lines(self.aligned_query_sequence(), spacer="")
         out = []
         for t, q in zip(a, b):
             out.append(q)
-            out.append("".join(['*' if x != y else (' ' if x == ' ' else '|')
-                       for x, y in zip(t, q)]))
-            out.append(t + '\n')
+            out.append(
+                "".join(
+                    [
+                        "*" if x != y else (" " if x == " " else "|")
+                        for x, y in zip(t, q)
+                    ]
+                )
+            )
+            out.append(t + "\n")
         return "\n".join(out)
 
     def __iter__(self):
@@ -91,35 +98,40 @@ class ParasailAlignment:
 
     def as_mutations(self, reference=None):
         from .mutations import _get_aligned_muts, MutationSet
+
         seq1, seq2 = self
         mutstring = "/".join(_get_aligned_muts(seq1, seq2))
         if reference is not None:
-            return MutationSet(mutstring, parental_numbering(*align_seqs(reference, seq1)))
+            return MutationSet(
+                mutstring, parental_numbering(*align_seqs(reference, seq1))
+            )
         return MutationSet(mutstring)
 
     def print_alignment(self, max_length=80):
-        print(self.aligned_query_sequence() + '\n' + self.aligned_target_sequence())
+        print(self.aligned_query_sequence() + "\n" + self.aligned_target_sequence())
 
     def aligned_query_sequence(self):
-        return self._get_aligned_sequence(self.query, 'I')
+        return self._get_aligned_sequence(self.query, "I")
 
     def aligned_target_sequence(self):
-        return self._get_aligned_sequence(self.target, 'D')
+        return self._get_aligned_sequence(self.target, "D")
 
-    def _get_aligned_sequence(self, seq, gap_type, gap_char='-', eq_char='='):
+    def _get_aligned_sequence(self, seq, gap_type, gap_char="-", eq_char="="):
         # assume zero based
         # gap_type is 'D' when returning aligned query sequence
         # gap_type is 'I' when returning aligned target sequence
-        aligned_sequence = ''
+        aligned_sequence = ""
         index = 0
         for length, symbol in self.cigar_tuple:
-            if symbol in (eq_char, 'X'):
-                aligned_sequence += seq[index:length + index]
+            if symbol in (eq_char, "X"):
+                end = length + index
+                aligned_sequence += seq[index:end]
                 index += length
             elif symbol == gap_type:
                 aligned_sequence += gap_char * length
-            elif symbol in ('D', 'I'):
-                aligned_sequence += seq[index:length + index]
+            elif symbol in ("D", "I"):
+                end = length + index
+                aligned_sequence += seq[index:end]
                 index += length
         return aligned_sequence
 

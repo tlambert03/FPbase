@@ -117,7 +117,8 @@
   "scripts": {
     "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
     "build": "NODE_ENV=production webpack --mode production",
-    "heroku-postbuild": "NODE_ENV=production webpack --mode production"
+    "heroku-postbuild": "NODE_ENV=production webpack --mode production",
+    "black": "black --exclude \"/migrations/\" favit fpbase fpseq proteins references"
   },
   "browserslist": [
     "last 1 version",

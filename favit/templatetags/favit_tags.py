@@ -11,19 +11,20 @@ register = template.Library()
 
 @register.simple_tag(takes_context=True)
 def favorite_button(context, target):
-    user = context['request'].user
+    user = context["request"].user
 
     # moved to the template
     if not user.is_authenticated:
         return render_to_string(
-            'favit/button.html', {
-                'authenticated': False,
-                'path': context['request'].path,
-                'fav_count': Favorite.objects.for_object(target).count()
-            }
+            "favit/button.html",
+            {
+                "authenticated": False,
+                "path": context["request"].path,
+                "fav_count": Favorite.objects.for_object(target).count(),
+            },
         )
 
-    target_model = '.'.join((target._meta.app_label, target._meta.object_name))
+    target_model = ".".join((target._meta.app_label, target._meta.object_name))
 
     undo = False
     # prepare button to unfave if the user
@@ -32,34 +33,33 @@ def favorite_button(context, target):
         undo = True
 
     return render_to_string(
-        'favit/button.html', {
-            'target_model': target_model,
-            'target_object_id': target.id,
-            'undo': undo,
-            'authenticated': True,
-            'fav_count': Favorite.objects.for_object(target).count()
-        }
+        "favit/button.html",
+        {
+            "target_model": target_model,
+            "target_object_id": target.id,
+            "undo": undo,
+            "authenticated": True,
+            "fav_count": Favorite.objects.for_object(target).count(),
+        },
     )
 
 
 @register.simple_tag(takes_context=True)
 def unfave_button(context, target):
-    user = context['request'].user
+    user = context["request"].user
 
     # do nothing when user isn't authenticated
     if not user.is_authenticated:
-        return ''
+        return ""
 
     if Favorite.objects.get_favorite(user, target) is None:
-        return ''
+        return ""
 
-    target_model = '.'.join((target._meta.app_label, target._meta.object_name))
+    target_model = ".".join((target._meta.app_label, target._meta.object_name))
 
     return render_to_string(
-        'favit/unfave-button.html', {
-            'target_model': target_model,
-            'target_object_id': target.id,
-        }
+        "favit/unfave-button.html",
+        {"target_model": target_model, "target_object_id": target.id},
     )
 
 
@@ -101,7 +101,7 @@ def get_object(fav):
 
 
 @register.simple_tag
-def user_favorites(user, app_model='proteins.Protein'):
+def user_favorites(user, app_model="proteins.Protein"):
     """
     Usage:
 

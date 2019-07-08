@@ -100,4 +100,3 @@ def blast(
                 return json.loads(out).get("BlastOutput2")
             else:
                 return outfile.file.read().decode()
-

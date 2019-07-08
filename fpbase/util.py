@@ -4,7 +4,9 @@ from django.urls import reverse
 from django.utils.cache import get_cache_key
 
 
-def get_view_cache_key(view_name, args=[], namespace=None, key_prefix=None, request=None):
+def get_view_cache_key(
+    view_name, args=None, namespace=None, key_prefix=None, request=None
+):
     """
     This function allows you to invalidate any view-level cache.
     view_name: view function you wish to invalidate or it's named url pattern
@@ -17,7 +19,10 @@ def get_view_cache_key(view_name, args=[], namespace=None, key_prefix=None, requ
         req = request
     else:
         req = HttpRequest()
-        req.META = {'HTTP_HOST': '127.0.0.1:8000', 'SERVER_PORT': 8000}
+        req.META = {"HTTP_HOST": "127.0.0.1:8000", "SERVER_PORT": 8000}
+
+    if args is None:
+        args = []
 
     # Loookup the req path:
     if namespace:
@@ -37,11 +42,12 @@ def clear_view_cache(*args, **kwargs):
 
 
 def uncache_protein_page(slug, request):
-    clear_view_cache('proteins:protein-detail', args=[slug], request=request)
+    clear_view_cache("proteins:protein-detail", args=[slug], request=request)
 
 
 def show_queries():
     import logging
-    logger = logging.getLogger('django.db.backends')
+
+    logger = logging.getLogger("django.db.backends")
     logger.setLevel(logging.DEBUG)
     logger.addHandler(logging.StreamHandler())

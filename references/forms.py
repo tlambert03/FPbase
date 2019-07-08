@@ -5,20 +5,20 @@ from references.models import Reference, Author
 
 class UserMixin(object):
     def clean_user(self):
-        if not self.cleaned_data['added_by']:
+        if not self.cleaned_data["added_by"]:
             return User()
-        return self.cleaned_data['added_by']
+        return self.cleaned_data["added_by"]
 
     def clean_updated_by(self):
-        if not self.cleaned_data['updated_by']:
+        if not self.cleaned_data["updated_by"]:
             return User()
-        return self.cleaned_data['updated_by']
+        return self.cleaned_data["updated_by"]
 
 
 class AuthorForm(UserMixin, forms.ModelForm):
     class Meta:
         model = Author
-        fields = ['family', 'given']
+        fields = ["family", "given"]
 
 
 class ReferenceForm(UserMixin, forms.ModelForm):
@@ -26,4 +26,4 @@ class ReferenceForm(UserMixin, forms.ModelForm):
 
     class Meta:
         model = Reference
-        fields = ['pmid', 'doi', 'title', 'refetch_info_on_save']
+        fields = ["pmid", "doi", "title", "refetch_info_on_save"]

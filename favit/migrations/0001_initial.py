@@ -13,28 +13,48 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('contenttypes', '0002_remove_content_type_name'),
+        ("contenttypes", "0002_remove_content_type_name"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Favorite',
+            name="Favorite",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('target_object_id', models.PositiveIntegerField()),
-                ('timestamp', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('target_content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("target_object_id", models.PositiveIntegerField()),
+                ("timestamp", models.DateTimeField(auto_now_add=True, db_index=True)),
+                (
+                    "target_content_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="contenttypes.ContentType",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'favorite',
-                'verbose_name_plural': 'favorites',
-                'ordering': ['-timestamp'],
-                'get_latest_by': 'timestamp',
+                "verbose_name": "favorite",
+                "verbose_name_plural": "favorites",
+                "ordering": ["-timestamp"],
+                "get_latest_by": "timestamp",
             },
         ),
         migrations.AlterUniqueTogether(
-            name='favorite',
-            unique_together=set([('user', 'target_content_type', 'target_object_id')]),
+            name="favorite",
+            unique_together=set([("user", "target_content_type", "target_object_id")]),
         ),
     ]

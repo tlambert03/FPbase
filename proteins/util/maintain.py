@@ -1,8 +1,4 @@
-import re
-from fpseq.mutations import MutationSet, Mutation, NEUTRAL_MUTATIONS
-from django.core.exceptions import ValidationError
-
-from ..validators import validate_mutation
+from fpseq.mutations import Mutation, MutationSet
 from proteins.util.helpers import getprot
 
 
@@ -16,6 +12,7 @@ def check_offset(protname):
 
 def add_missing_seqs():
     from ..models import Lineage
+
     for node in Lineage.objects.all():
         if not node.protein.seq and (node.parent and node.parent.protein.seq):
             seq, _ = node.parent.protein.seq.mutate(node.mutation, correct_offset=True)
@@ -33,7 +30,7 @@ def check_node_sequence_mutation_consistent(node, correct_offset=False):
 
     if node.protein.seq and seq != node.protein.seq:
         ms = seq.mutations_to(node.protein.seq)
-        #ms -= "/".join(NEUTRAL_MUTATIONS)
+        # ms -= "/".join(NEUTRAL_MUTATIONS)
         return ms
 
 
@@ -51,7 +48,7 @@ def suggested_switch_type(protein):
         return protein.BASIC
     # 2 or more states...
     n_transitions = protein.transitions.count()
-    if hasattr(protein, 'ndark'):
+    if hasattr(protein, "ndark"):
         darkstates = protein.ndark
     else:
         darkstates = protein.states.filter(is_dark=True).count()
@@ -59,10 +56,10 @@ def suggested_switch_type(protein):
         return protein.OTHER
     elif nstates == 2:
         # 2 transitions with unique from_states
-        if hasattr(protein, 'nfrom'):
+        if hasattr(protein, "nfrom"):
             nfrom = protein.nfrom
         else:
-            nfrom = len(set(protein.transitions.values_list('from_state', flat=True)))
+            nfrom = len(set(protein.transitions.values_list("from_state", flat=True)))
         if nfrom >= 2:
             return protein.PHOTOSWITCHABLE
         if darkstates == 0:
@@ -91,9 +88,12 @@ def validate_node(node):
         if node.parent and node.parent.protein.seq:
             ms = check_node_sequence_mutation_consistent(node)
             if ms:
-                errors.append(f'{node.parent.protein} + {node.mutation} does not match the current {node.protein} sequence (Δ: {ms})')  # noqa
+                errors.append(
+                    f"{node.parent.protein} + {node.mutation} does not match "
+                    + f"the current {node.protein} sequence (Δ: {ms})"
+                )  # noqa
     except Mutation.SequenceMismatch as e:
-        errors.append(str(e).replace('parent', node.parent.protein.name))
+        errors.append(str(e).replace("parent", node.parent.protein.name))
     return errors
 
 
@@ -103,9 +103,12 @@ def check_lineages(qs=None, correct_offset=False):
 
     if not qs:
         from ..models import Lineage
+
         qs = Lineage.objects.all()
 
-    for node in list(qs.prefetch_related('protein', 'parent__protein', 'root_node__protein')):
+    for node in list(
+        qs.prefetch_related("protein", "parent__protein", "root_node__protein")
+    ):
         err = validate_node(node)
         if err:
             errors[node] = err

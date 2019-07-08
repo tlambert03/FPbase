@@ -79,7 +79,9 @@ class SpectraQueriesTestCase(GraphQLTestCase):
     def setUp(self):
         self.microscope = models.Microscope.objects.create()
         self.protein = models.Protein.objects.create(name="test")
-        self.optical_config = models.OpticalConfig.objects.create(microscope=self.microscope)
+        self.optical_config = models.OpticalConfig.objects.create(
+            microscope=self.microscope
+        )
         self.dye = models.Dye.objects.create()
         self.spectrum = models.Spectrum.objects.create(
             category=models.Spectrum.DYE,

@@ -1,16 +1,17 @@
 import urllib.parse
-from django.db import models
-from django.contrib.postgres.fields import ArrayField
-from django.urls import reverse
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.utils.functional import cached_property
-from .spectrum import sorted_ex2em
-from ..util.helpers import shortuuid
-from .collection import OwnedCollection
-from . import Camera, Light, Filter
-from ..util.efficiency import spectral_product
 
+from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.urls import reverse
+from django.utils.functional import cached_property
+
+from ..util.efficiency import spectral_product
+from ..util.helpers import shortuuid
+from .spectrum import Camera, Filter, Light
+from .collection import OwnedCollection
+from .spectrum import sorted_ex2em
 
 
 class Microscope(OwnedCollection):
@@ -22,22 +23,45 @@ class Microscope(OwnedCollection):
         configs: optical configs in the collection
                  (all spectra will be added to spectra)
     """
-    id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
-    extra_lights = models.ManyToManyField('Light', blank=True, related_name='microscopes')
-    extra_cameras = models.ManyToManyField('Camera', blank=True, related_name='microscopes')
-    extra_lasers = ArrayField(models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(300), MaxValueValidator(1600)]),
-        default=list, blank=True)
-    collection = models.ForeignKey('ProteinCollection', blank=True, null=True, related_name='on_scope', on_delete=models.CASCADE)
-    fluors = models.ForeignKey('FluorophoreCollection', blank=True, null=True, related_name='fluor_on_scope', on_delete=models.CASCADE)
+
+    id = models.CharField(
+        primary_key=True, max_length=22, default=shortuuid, editable=False
+    )
+    extra_lights = models.ManyToManyField(
+        "Light", blank=True, related_name="microscopes"
+    )
+    extra_cameras = models.ManyToManyField(
+        "Camera", blank=True, related_name="microscopes"
+    )
+    extra_lasers = ArrayField(
+        models.PositiveSmallIntegerField(
+            validators=[MinValueValidator(300), MaxValueValidator(1600)]
+        ),
+        default=list,
+        blank=True,
+    )
+    collection = models.ForeignKey(
+        "ProteinCollection",
+        blank=True,
+        null=True,
+        related_name="on_scope",
+        on_delete=models.CASCADE,
+    )
+    fluors = models.ForeignKey(
+        "FluorophoreCollection",
+        blank=True,
+        null=True,
+        related_name="fluor_on_scope",
+        on_delete=models.CASCADE,
+    )
 
     class Meta:
-        ordering = ['created']
+        ordering = ["created"]
 
     @classmethod
     def from_oclist(cls, name, oclist):
         if not isinstance(oclist, (list, tuple)):
-            raise ValueError('oclist argument must be list or tuple')
+            raise ValueError("oclist argument must be list or tuple")
         microscope = cls(name=name)
         microscope.save()
         for row in oclist:
@@ -50,63 +74,88 @@ class Microscope(OwnedCollection):
     @property
     def has_inverted_bs(self):
         return self.optical_configs.filter(
-            filterplacement__path=FilterPlacement.BS,
-            filterplacement__reflects=True).exists()
+            filterplacement__path=FilterPlacement.BS, filterplacement__reflects=True
+        ).exists()
 
     @property
     def has_reflective_emfilters(self):
         return self.optical_configs.filter(
-            filterplacement__path=FilterPlacement.EM,
-            filterplacement__reflects=True).exists()
+            filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True
+        ).exists()
 
     def inverted_bs_set(self):
-        return {i.filter.slug for oc in self.optical_configs.all() for i in oc.inverted_bs.all()}
+        return {
+            i.filter.slug
+            for oc in self.optical_configs.all()
+            for i in oc.inverted_bs.all()
+        }
 
     def get_absolute_url(self):
         return reverse("proteins:microscope-detail", args=[self.id])
 
     @property
     def lights(self):
-        oclights = Light.objects.filter(id__in=self.optical_configs.values('light'))
+        oclights = Light.objects.filter(id__in=self.optical_configs.values("light"))
         return oclights
 
     @property
     def cameras(self):
-        occams = Camera.objects.filter(id__in=self.optical_configs.values('camera'))
+        occams = Camera.objects.filter(id__in=self.optical_configs.values("camera"))
         return occams
 
     @property
     def lasers(self):
-        return list(self.optical_configs
-                    .exclude(laser=None)
-                    .values_list('laser', flat=True)
-                    .order_by('laser')
-                    .distinct('laser'))
+        return list(
+            self.optical_configs.exclude(laser=None)
+            .values_list("laser", flat=True)
+            .order_by("laser")
+            .distinct("laser")
+        )
 
     @property
     def ex_filters(self):
-        return Filter.objects.filter(id__in=FilterPlacement.objects.filter(
-            config__id__in=self.optical_configs.values('id'), path=FilterPlacement.EX)
-            .distinct('filter').values('filter__id'))
+        return Filter.objects.filter(
+            id__in=FilterPlacement.objects.filter(
+                config__id__in=self.optical_configs.values("id"),
+                path=FilterPlacement.EX,
+            )
+            .distinct("filter")
+            .values("filter__id")
+        )
 
     @property
     def em_filters(self):
-        return Filter.objects.filter(id__in=FilterPlacement.objects.filter(
-            config__id__in=self.optical_configs.values('id'), path=FilterPlacement.EM)
-            .distinct('filter').values('filter__id'))
+        return Filter.objects.filter(
+            id__in=FilterPlacement.objects.filter(
+                config__id__in=self.optical_configs.values("id"),
+                path=FilterPlacement.EM,
+            )
+            .distinct("filter")
+            .values("filter__id")
+        )
 
     @property
     def bs_filters(self):
-        return Filter.objects.filter(id__in=FilterPlacement.objects.filter(
-            config__id__in=self.optical_configs.values('id'), path=FilterPlacement.BS)
-            .distinct('filter').values('filter__id'))
+        return Filter.objects.filter(
+            id__in=FilterPlacement.objects.filter(
+                config__id__in=self.optical_configs.values("id"),
+                path=FilterPlacement.BS,
+            )
+            .distinct("filter")
+            .values("filter__id")
+        )
 
     @property
     def spectra(self):
         spectra = []
-        for f in (self.ex_filters, self.em_filters, self.bs_filters,
-                  self.lights, self.cameras):
-            for i in f.select_related('spectrum'):
+        for f in (
+            self.ex_filters,
+            self.em_filters,
+            self.bs_filters,
+            self.lights,
+            self.cameras,
+        ):
+            for i in f.select_related("spectrum"):
                 spectra.append(i.spectrum)
         return spectra
 
@@ -120,19 +169,37 @@ def invert(sp):
 
 class OpticalConfig(OwnedCollection):
     """ A a single optical configuration comprising a set of filters """
-    microscope = models.ForeignKey('Microscope', related_name='optical_configs', on_delete=models.CASCADE)
+
+    microscope = models.ForeignKey(
+        "Microscope", related_name="optical_configs", on_delete=models.CASCADE
+    )
     comments = models.CharField(max_length=256, blank=True)
     filters = models.ManyToManyField(
-        'Filter', related_name='optical_configs', blank=True, through='FilterPlacement')
-    light = models.ForeignKey('Light', null=True, blank=True, related_name='optical_configs', on_delete=models.SET_NULL)
-    camera = models.ForeignKey('Camera', null=True, blank=True, related_name='optical_configs', on_delete=models.SET_NULL)
+        "Filter", related_name="optical_configs", blank=True, through="FilterPlacement"
+    )
+    light = models.ForeignKey(
+        "Light",
+        null=True,
+        blank=True,
+        related_name="optical_configs",
+        on_delete=models.SET_NULL,
+    )
+    camera = models.ForeignKey(
+        "Camera",
+        null=True,
+        blank=True,
+        related_name="optical_configs",
+        on_delete=models.SET_NULL,
+    )
     laser = models.PositiveSmallIntegerField(
-        blank=True, null=True,
-        validators=[MinValueValidator(300), MaxValueValidator(1600)])
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(300), MaxValueValidator(1600)],
+    )
 
     class Meta:
         unique_together = (("name", "microscope"),)
-        ordering = ['name']
+        ordering = ["name"]
 
     def save(self, **kwargs):
         super().save(**kwargs)
@@ -145,7 +212,9 @@ class OpticalConfig(OwnedCollection):
     @property
     def em_filters(self):
         """ all filters that have an emission role """
-        return self.filters.filter(filterplacement__path=FilterPlacement.EM, filterplacement__reflects=False)
+        return self.filters.filter(
+            filterplacement__path=FilterPlacement.EM, filterplacement__reflects=False
+        )
 
     @property
     def bs_filters(self):
@@ -154,7 +223,9 @@ class OpticalConfig(OwnedCollection):
 
     @property
     def ref_em_filters(self):
-        return self.filters.filter(filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True)
+        return self.filters.filter(
+            filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True
+        )
 
     @property
     def ex_spectra(self):
@@ -165,11 +236,15 @@ class OpticalConfig(OwnedCollection):
         elif self.light:
             p.append(self.light.spectrum.data)
         for x in self.filterplacement_set.filter(path=FilterPlacement.BS):
-            p.append(invert(x.filter.spectrum.data) if not x.reflects
-                     else x.filter.spectrum.data)
+            p.append(
+                invert(x.filter.spectrum.data)
+                if not x.reflects
+                else x.filter.spectrum.data
+            )
         for x in self.filterplacement_set.filter(path=FilterPlacement.EX):
-            p.append(invert(x.filter.spectrum.data) if x.reflects
-                     else x.filter.spectrum.data)
+            p.append(
+                invert(x.filter.spectrum.data) if x.reflects else x.filter.spectrum.data
+            )
         return p
 
     @property
@@ -179,11 +254,13 @@ class OpticalConfig(OwnedCollection):
         if self.camera:
             p.append(self.camera.spectrum.data)
         for x in self.filterplacement_set.filter(path=FilterPlacement.BS):
-            p.append(invert(x.filter.spectrum.data) if x.reflects
-                     else x.filter.spectrum.data)
+            p.append(
+                invert(x.filter.spectrum.data) if x.reflects else x.filter.spectrum.data
+            )
         for x in self.filterplacement_set.filter(path=FilterPlacement.EM):
-            p.append(invert(x.filter.spectrum.data) if x.reflects
-                     else x.filter.spectrum.data)
+            p.append(
+                invert(x.filter.spectrum.data) if x.reflects else x.filter.spectrum.data
+            )
         return p
 
     @cached_property
@@ -199,47 +276,52 @@ class OpticalConfig(OwnedCollection):
         return self.filterplacement_set.filter(path=FilterPlacement.BS, reflects=True)
 
     def add_filter(self, filter, path, reflects=False):
-        return FilterPlacement.objects.create(filter=filter, config=self,
-                                              reflects=reflects, path=path)
+        return FilterPlacement.objects.create(
+            filter=filter, config=self, reflects=reflects, path=path
+        )
 
     def __repr__(self):
         fltrs = sorted_ex2em(self.filters.all())
         return "<{}: {}>".format(
-            self.__class__.__name__, ", ".join([f.name for f in fltrs]))
+            self.__class__.__name__, ", ".join([f.name for f in fltrs])
+        )
 
     def __str__(self):
-        return super().__str__() or self.__repr__().lstrip('<').rstrip('>')
+        return super().__str__() or self.__repr__().lstrip("<").rstrip(">")
 
     def get_absolute_url(self):
-        url = '{}?c={}'.format(
+        url = "{}?c={}".format(
             reverse("proteins:microscope-detail", args=[self.microscope.id]),
-            urllib.parse.quote(self.name))
+            urllib.parse.quote(self.name),
+        )
         return url
 
 
 class FilterPlacement(models.Model):
     """ Through table to specify placement of each filter in an OpticalConfig """
 
-    EX = 'ex'
-    EM = 'em'
-    BS = 'bs'
-    PATH_CHOICES = (
-        (EX, 'Excitation Path'),
-        (EM, 'Emission Path'),
-        (BS, 'Both Paths'),
-    )
+    EX = "ex"
+    EM = "em"
+    BS = "bs"
+    PATH_CHOICES = ((EX, "Excitation Path"), (EM, "Emission Path"), (BS, "Both Paths"))
 
-    filter = models.ForeignKey('Filter', on_delete=models.CASCADE)
-    config = models.ForeignKey('OpticalConfig', on_delete=models.CASCADE)
-    path = models.CharField(max_length=2, choices=PATH_CHOICES, verbose_name='Ex/Em Path')
+    filter = models.ForeignKey("Filter", on_delete=models.CASCADE)
+    config = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
+    path = models.CharField(
+        max_length=2, choices=PATH_CHOICES, verbose_name="Ex/Em Path"
+    )
     # when path == BS, reflects refers to the emission path
     reflects = models.BooleanField(
         default=False,
-        help_text='Filter reflects light at this position in the light path')
+        help_text="Filter reflects light at this position in the light path",
+    )
 
     def __repr__(self):
-        return "<{} Filter: {}{}>".format(self.path.title(), self.filter.name,
-                                          " (reflecting)" if self.reflects else '')
+        return "<{} Filter: {}{}>".format(
+            self.path.title(),
+            self.filter.name,
+            " (reflecting)" if self.reflects else "",
+        )
 
 
 def quick_OC(name, filternames, scope, bs_ex_reflect=True):
@@ -260,7 +342,7 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
     if len(filternames) == 4:
         bs_em_reflect = not bool(filternames.pop())
     if not len(filternames) == 3:
-        raise ValueError('filternames argument must be iterable with length 3 or 4')
+        raise ValueError("filternames argument must be iterable with length 3 or 4")
 
     oc = OpticalConfig.objects.create(name=name, microscope=scope)
 
@@ -279,8 +361,12 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
                 filt = Filter.objects.get(part__iexact=_f)
             else:
                 filt = Filter.objects.get(name__icontains=_f)
-            fp = FilterPlacement(filter=filt, config=oc, path=_paths[i],
-                                 reflects=bs_em_reflect if i == 1 else False)
+            fp = FilterPlacement(
+                filter=filt,
+                config=oc,
+                path=_paths[i],
+                reflects=bs_em_reflect if i == 1 else False,
+            )
             fp.save()
 
     for i, fnames in enumerate(filternames):
@@ -291,7 +377,7 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
         elif isinstance(fnames, (tuple, list)):
             pass
         else:
-            raise ValueError('value must be string, list, or tuple: %s' % fnames)
+            raise ValueError("value must be string, list, or tuple: %s" % fnames)
 
         for fname in fnames:
             try:
@@ -300,7 +386,10 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
                 try:
                     _assign_filt(fname, i, True)
                 except ObjectDoesNotExist:
-                    print('Filter name "%s" returned multiple hits and exact match not found' % fname)
+                    print(
+                        'Filter name "%s" returned multiple hits and exact match not found'
+                        % fname
+                    )
                     oc.delete()
                     return None
             except ObjectDoesNotExist:

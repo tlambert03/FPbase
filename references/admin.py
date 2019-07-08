@@ -11,11 +11,11 @@ from proteins.models import Protein, Excerpt
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'num_refs')
-    fields = (('family', 'given'), 'ref_links', 'protein_links')
-    readonly_fields = ('ref_links', 'protein_links')
-    search_fields = ('family',)
-    ordering = ('family',)
+    list_display = ("full_name", "num_refs")
+    fields = (("family", "given"), "ref_links", "protein_links")
+    readonly_fields = ("ref_links", "protein_links")
+    search_fields = ("family",)
+    ordering = ("family",)
 
     def num_refs(self, obj):
         return mark_safe(obj.publications.all().count())
@@ -38,11 +38,11 @@ class AuthorAdmin(admin.ModelAdmin):
             links.append(link)
         return mark_safe(", ".join(links))
 
-    ref_links.short_description = 'References'
-    protein_links.short_description = 'Proteins'
+    ref_links.short_description = "References"
+    protein_links.short_description = "Proteins"
 
     def get_queryset(self, request):
-        queryset = super().get_queryset(request).prefetch_related('publications')
+        queryset = super().get_queryset(request).prefetch_related("publications")
         return queryset
 
 
@@ -69,37 +69,68 @@ class ExcerptInline(admin.StackedInline):
     extra = 0
     can_delete = True
     show_change_link = True
-    fields = (('created', 'created_by'), 'content', ('proteins', 'status'))
-    autocomplete_fields = ('proteins', 'created_by')
-    readonly_fields = ('created', )
-    list_select_related = ('proteins')
+    fields = (("created", "created_by"), "content", ("proteins", "status"))
+    autocomplete_fields = ("proteins", "created_by")
+    readonly_fields = ("created",)
+    list_select_related = "proteins"
 
 
 @admin.register(Reference)
 class ReferenceAdmin(CompareVersionAdmin):
     form = ReferenceForm
     model = Reference
-    ordering = ('-date', 'citation', 'created',)
-    list_display = ('id', 'citation', 'protein_links', 'title', 'date', 'doi', 'created')
-    list_filter = ('created', 'modified')
-    search_fields = ('pmid', 'doi', 'title', 'citation', 'firstauthor')
+    ordering = ("-date", "citation", "created")
+    list_display = (
+        "id",
+        "citation",
+        "protein_links",
+        "title",
+        "date",
+        "doi",
+        "created",
+    )
+    list_filter = ("created", "modified")
+    search_fields = ("pmid", "doi", "title", "citation", "firstauthor")
     inlines = (PrimaryProteinInline, ExcerptInline)
     fieldsets = [
-        ('Reference', {
-            'fields': ('pmid', 'doi', 'title', 'author_links', 'protein_links',
-                       'secondary_proteins', 'journal', 'volume', 'pages',
-                       'issue', 'date', 'refetch_info_on_save')
-        }),
-        ('Bleach Measurements', {
-            'fields': ('bleach_links',)
-        }),
-        ('Change History', {
-            'classes': ('collapse',),
-            'fields': (('created', 'created_by'), ('modified', 'updated_by'))
-        })
+        (
+            "Reference",
+            {
+                "fields": (
+                    "pmid",
+                    "doi",
+                    "title",
+                    "author_links",
+                    "protein_links",
+                    "secondary_proteins",
+                    "journal",
+                    "volume",
+                    "pages",
+                    "issue",
+                    "date",
+                    "refetch_info_on_save",
+                )
+            },
+        ),
+        ("Bleach Measurements", {"fields": ("bleach_links",)}),
+        (
+            "Change History",
+            {
+                "classes": ("collapse",),
+                "fields": (("created", "created_by"), ("modified", "updated_by")),
+            },
+        ),
     ]
-    readonly_fields = ('author_links', 'protein_links', 'secondary_proteins', 'bleach_links',
-                       'created', 'created_by', 'modified', 'updated_by')
+    readonly_fields = (
+        "author_links",
+        "protein_links",
+        "secondary_proteins",
+        "bleach_links",
+        "created",
+        "created_by",
+        "modified",
+        "updated_by",
+    )
 
     def author_links(self, obj):
         authors = obj.authors.all()
@@ -136,19 +167,23 @@ class ReferenceAdmin(CompareVersionAdmin):
             link = '<a href="{}">{}</a>'.format(url, bm)
             links.append(link)
         return mark_safe(", ".join(links))
-    bleach_links.short_description = 'BleachMeasurements'
 
-    author_links.short_description = 'Authors'
-    protein_links.short_description = 'Primary Proteins'
-    secondary_proteins.short_description = 'Secondary Proteins'
+    bleach_links.short_description = "BleachMeasurements"
+
+    author_links.short_description = "Authors"
+    protein_links.short_description = "Primary Proteins"
+    secondary_proteins.short_description = "Secondary Proteins"
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
             obj.created_by = request.user
         obj.updated_by = request.user
-        obj.save(skipdoi=not form.cleaned_data['refetch_info_on_save'])
+        obj.save(skipdoi=not form.cleaned_data["refetch_info_on_save"])
 
     def get_queryset(self, request):
-        queryset = super().get_queryset(request).prefetch_related('authors', 'primary_proteins')
+        queryset = (
+            super()
+            .get_queryset(request)
+            .prefetch_related("authors", "primary_proteins")
+        )
         return queryset
-

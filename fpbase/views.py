@@ -10,21 +10,21 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 
 class HomeView(TemplateView):
-    template_name = 'pages/home.html'
+    template_name = "pages/home.html"
 
     def get_context_data(self):
         data = super().get_context_data()
-        data['stats'] = {
-            'proteins': Protein.objects.count(),
-            'protspectra': Spectrum.objects.exclude(owner_state=None).count()
+        data["stats"] = {
+            "proteins": Protein.objects.count(),
+            "protspectra": Spectrum.objects.exclude(owner_state=None).count(),
         }
         return data
 
 
 class ContactView(FormView):
-    template_name = 'pages/contact.html'
+    template_name = "pages/contact.html"
     form_class = ContactForm
-    success_url = '/thanks/'
+    success_url = "/thanks/"
 
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
@@ -37,23 +37,27 @@ class ContactView(FormView):
 
 @staff_member_required
 def test500(request):
-        # Return an "Internal Server Error" 500 response code.
-        raise Exception('Make response code 500!')
+    # Return an "Internal Server Error" 500 response code.
+    raise Exception("Make response code 500!")
 
 
 def server_error(request, *args, **argv):
-    return render(request, "500.html", {
-        'sentry_event_id': last_event_id(),
-        'sentry_dsn': getattr(settings, 'SENTRY_DSN', '')
-    }, status=500)
+    return render(
+        request,
+        "500.html",
+        {
+            "sentry_event_id": last_event_id(),
+            "sentry_dsn": getattr(settings, "SENTRY_DSN", ""),
+        },
+        status=500,
+    )
 
 
 @cache_page(10)
 def testview(request):
     import logging
+
     logger = logging.getLogger(__name__)
-    p = Protein.objects.get(name='mNeonGreen')
+    p = Protein.objects.get(name="mNeonGreen")
     logger.info(p)
-    return render(request, 'pages/test.html', {'protein': p})
-
-
+    return render(request, "pages/test.html", {"protein": p})

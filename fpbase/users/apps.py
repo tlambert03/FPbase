@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class UsersConfig(AppConfig):
-    name = 'fpbase.users'
+    name = "fpbase.users"
     verbose_name = "Users"
 
     def ready(self):
@@ -10,4 +10,4 @@ class UsersConfig(AppConfig):
             Users system checks
             Users signal registration
         """
-        from . import signals
+        from . import signals  # noqa

@@ -5,26 +5,26 @@ from .util.helpers import wave_to_hex
 
 
 class Around(Lookup):
-    lookup_name = 'around'
+    lookup_name = "around"
 
     def as_sql(self, compiler, connection):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params + lhs_params + rhs_params
-        return '%s > %s - 21 AND %s < %s + 21' % (lhs, rhs, lhs, rhs), params
+        return "%s > %s - 21 AND %s < %s + 21" % (lhs, rhs, lhs, rhs), params
 
 
 fields.PositiveSmallIntegerField.register_lookup(Around)
 
 
 class NotEqual(Lookup):
-    lookup_name = 'ne'
+    lookup_name = "ne"
 
     def as_sql(self, compiler, connection):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params
-        return '%s <> %s' % (lhs, rhs), params
+        return "%s <> %s" % (lhs, rhs), params
 
 
 fields.CharField.register_lookup(NotEqual)
@@ -35,6 +35,7 @@ fields.CharField.register_lookup(NotEqual)
 # forward/reverse migrations for now
 ########################################################################
 
+
 class Spectrum(object):
     """ Python class for spectra as a list of lists """
 
@@ -42,13 +43,17 @@ class Spectrum(object):
         if data:
             if not isinstance(data, list):  # must be a list
                 raise TypeError("Spectrum object must be of type List")
-            if not all(isinstance(elem, list) for elem in data):  # must be list of lists
+            if not all(
+                isinstance(elem, list) for elem in data
+            ):  # must be list of lists
                 raise TypeError("Spectrum object must be a list of lists")
             for elem in data:
                 if not len(elem) == 2:
                     raise TypeError("All elements in Spectrum list must have two items")
                 if not all(isinstance(n, (int, float)) for n in elem):
-                    raise TypeError("All items in Spectrum list elements must be numbers")
+                    raise TypeError(
+                        "All items in Spectrum list elements must be numbers"
+                    )
         self.data = data
 
     @property
@@ -87,7 +92,9 @@ class Spectrum(object):
     def width(self, height=0.5):
         try:
             upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
-            downindex = len(self.y) - next(x[0] for x in enumerate(reversed(self.y)) if x[1] > height)
+            downindex = len(self.y) - next(
+                x[0] for x in enumerate(reversed(self.y)) if x[1] > height
+            )
             return (self.x[upindex], self.x[downindex])
         except Exception:
             return False
@@ -112,11 +119,11 @@ class Spectrum(object):
         output = []
         # arrayLength = len(self.data)
         for wave in range(350, int(self.min_wave)):
-            output.append({'x': wave, 'y': 0})
+            output.append({"x": wave, "y": 0})
         for elem in self.data:
-            output.append({'x': elem[0], 'y': elem[1]})
+            output.append({"x": elem[0], "y": elem[1]})
         for wave in range(int(self.max_wave), 751):
-            output.append({'x': wave, 'y': 0})
+            output.append({"x": wave, "y": 0})
         return output
 
     def wave_value_pairs(self):

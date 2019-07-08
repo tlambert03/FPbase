@@ -1,80 +1,106 @@
-from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponseNotAllowed, HttpResponseBadRequest
-from django.utils.text import slugify
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django import forms
-from django.urls import resolve, reverse_lazy
-from django.core.mail import mail_admins
-from django.core.exceptions import PermissionDenied
-
 import json
-from ..models import ProteinCollection
+
+from django import forms
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.core.mail import mail_admins
+from django.http import (
+    HttpResponseBadRequest,
+    HttpResponseNotAllowed,
+    HttpResponseRedirect,
+    JsonResponse,
+)
+from django.shortcuts import get_object_or_404, render
+from django.urls import resolve, reverse_lazy
+from django.utils.text import slugify
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
+
 from ..forms import CollectionForm
+from ..models import ProteinCollection
 from .mixins import OwnableObject
 
 
-def serialized_proteins_response(queryset, format='json', filename='FPbase_proteins'):
+def serialized_proteins_response(queryset, format="json", filename="FPbase_proteins"):
     from proteins.api.serializers import ProteinSerializer as PS
+
     PS.Meta.on_demand_fields = ()
     serializer = PS(queryset, many=True)
-    if format == 'json':
+    if format == "json":
         from rest_framework.renderers import JSONRenderer as rend
+
         response = JsonResponse(serializer.data, safe=False)
-    elif format == 'csv':
+    elif format == "csv":
         from rest_framework_csv.renderers import CSVStreamingRenderer as rend
         from django.http import StreamingHttpResponse
-        response = StreamingHttpResponse(rend().render(serializer.data), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(filename)
+
+        response = StreamingHttpResponse(
+            rend().render(serializer.data), content_type="text/csv"
+        )
+        response["Content-Disposition"] = 'attachment; filename="{}.csv"'.format(
+            filename
+        )
     return response
 
 
 class CollectionList(ListView):
     def get_queryset(self):
         # get all collections for current user and all other non-private collections
-        qs = ProteinCollection.objects.exclude(private=True).prefetch_related('owner')
+        qs = ProteinCollection.objects.exclude(private=True).prefetch_related("owner")
         if self.request.user.is_authenticated:
             qs = qs | ProteinCollection.objects.filter(owner=self.request.user)
-        if 'owner' in self.kwargs:
-            qs = qs.filter(owner__username=self.kwargs['owner'])
-        return qs.order_by('-created')
+        if "owner" in self.kwargs:
+            qs = qs.filter(owner__username=self.kwargs["owner"])
+        return qs.order_by("-created")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if 'owner' in self.kwargs:
-            context['owner'] = self.kwargs['owner']
+        if "owner" in self.kwargs:
+            context["owner"] = self.kwargs["owner"]
         return context
 
 
 class CollectionDetail(DetailView):
-    queryset = ProteinCollection.objects.all().prefetch_related('proteins', 'proteins__states', 'proteins__states__spectra', 'proteins__default_state')
+    queryset = ProteinCollection.objects.all().prefetch_related(
+        "proteins",
+        "proteins__states",
+        "proteins__states__spectra",
+        "proteins__default_state",
+    )
 
     def get(self, request, *args, **kwargs):
-        format = request.GET.get('format', '').lower()
-        if format in ('json', 'csv'):
+        format = request.GET.get("format", "").lower()
+        if format in ("json", "csv"):
             col = self.get_object()
-            return serialized_proteins_response(col.proteins.all(), format,
-                                                filename=slugify(col.name))
+            return serialized_proteins_response(
+                col.proteins.all(), format, filename=slugify(col.name)
+            )
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
-        context['isowner'] = self.request.user == self.object.owner
+        context["isowner"] = self.request.user == self.object.owner
 
         _ids = []
         for prot in self.object.proteins.all():
             for state in prot.states.all():
                 for sp in state.spectra.all():
                     _ids.append(sp.id)
-        context['spectra_ids'] = ",".join([str(i) for i in _ids])
+        context["spectra_ids"] = ",".join([str(i) for i in _ids])
         return context
 
     def render_to_response(self, *args, **kwargs):
         if not self.request.user.is_superuser:
             if self.object.private and (self.object.owner != self.request.user):
-                return render(self.request, 'proteins/private_collection.html', {'foo': 'bar'})
+                return render(
+                    self.request, "proteins/private_collection.html", {"foo": "bar"}
+                )
         return super().render_to_response(*args, **kwargs)
 
 
@@ -93,9 +119,7 @@ def collection_remove(request):
     if not col.owner == request.user:
         return HttpResponseNotAllowed([])
     col.proteins.remove(protein)
-    response = {
-        'status': 'deleted',
-    }
+    response = {"status": "deleted"}
     return JsonResponse(response)
 
 
@@ -104,33 +128,39 @@ def add_to_collection(request):
     if not request.is_ajax():
         return HttpResponseNotAllowed([])
 
-    if request.method == 'GET':
+    if request.method == "GET":
         qs = ProteinCollection.objects.filter(owner=request.user)
-        widget = forms.Select(attrs={'class': 'form-control custom-select', 'id': 'collectionSelect'})
-        choicefield = forms.ChoiceField(choices=qs.values_list('id', 'name'), widget=widget)
+        widget = forms.Select(
+            attrs={"class": "form-control custom-select", "id": "collectionSelect"}
+        )
+        choicefield = forms.ChoiceField(
+            choices=qs.values_list("id", "name"), widget=widget
+        )
 
         members = []
-        if request.GET.get('id'):
+        if request.GET.get("id"):
             try:
-                qs = qs.filter(proteins=int(request.GET.get('id')))
+                qs = qs.filter(proteins=int(request.GET.get("id")))
                 members = [(item.name, item.get_absolute_url()) for item in qs]
-            except Exception as e:
+            except Exception:
                 pass
 
         response = {
-            'widget': choicefield.widget.render('collectionChoice', ''),
-            'members': json.dumps(members),
+            "widget": choicefield.widget.render("collectionChoice", ""),
+            "members": json.dumps(members),
         }
         return JsonResponse(response)
 
-    elif request.method == 'POST':
+    elif request.method == "POST":
         try:
-            collection = ProteinCollection.objects.get(id=request.POST.get('collectionChoice'))
-            collection.proteins.add(int(request.POST.get('protein')))
-            status = 'success'
-        except Exception as e:
-            status = 'error'
-        return JsonResponse({'status': status})
+            collection = ProteinCollection.objects.get(
+                id=request.POST.get("collectionChoice")
+            )
+            collection.proteins.add(int(request.POST.get("protein")))
+            status = "success"
+        except Exception:
+            status = "error"
+        return JsonResponse({"status": status})
 
     return HttpResponseNotAllowed([])
 
@@ -144,30 +174,37 @@ class CollectionCreateView(OwnableObject, CreateView):
         kwargs = super().get_form_kwargs()
         # the protein_search.html template has a form that can send a list of
         # proteins to create a new collection
-        if len(self.request.POST.getlist('protein')):
-            kwargs['proteins'] = self.request.POST.getlist('protein')
+        if len(self.request.POST.getlist("protein")):
+            kwargs["proteins"] = self.request.POST.getlist("protein")
         # alternatively, a list of proteins from an existing collection can
         # be used to make a new collection
-        elif self.request.POST.get('dupcollection', False):
-            id = self.request.POST.get('dupcollection')
-            kwargs['proteins'] = [p.id for p in ProteinCollection.objects.get(id=id).proteins.all()]
+        elif self.request.POST.get("dupcollection", False):
+            id = self.request.POST.get("dupcollection")
+            kwargs["proteins"] = [
+                p.id for p in ProteinCollection.objects.get(id=id).proteins.all()
+            ]
         return kwargs
 
     def form_valid(self, form):
         self.attach_owner(form)
-        if getattr(form, 'proteins', None):
+        if getattr(form, "proteins", None):
             self.object.proteins.add(*form.proteins)
         if not self.request.user.is_staff:
-            mail_admins('Collection Created',
+            mail_admins(
+                "Collection Created",
                 "User: {}\nCollection: {}\n{}".format(
                     self.request.user.username,
                     self.object,
-                    self.request.build_absolute_uri(self.object.get_absolute_url())),
-                fail_silently=True)
+                    self.request.build_absolute_uri(self.object.get_absolute_url()),
+                ),
+                fail_silently=True,
+            )
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        redirect_url = self.request.POST.get('next') or self.request.GET.get('next', None)
+        redirect_url = self.request.POST.get("next") or self.request.GET.get(
+            "next", None
+        )
         try:
             # check that this is an internal redirection
             resolve(redirect_url)
@@ -177,8 +214,8 @@ class CollectionCreateView(OwnableObject, CreateView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        if self.request.POST.get('colname', False):
-            data['colname'] = self.request.POST.get('colname')
+        if self.request.POST.get("colname", False):
+            data["colname"] = self.request.POST.get("colname")
         return data
 
 
@@ -194,7 +231,7 @@ class CollectionUpdateView(OwnableObject, UpdateView):
 
 class CollectionDeleteView(DeleteView):
     model = ProteinCollection
-    success_url = reverse_lazy('proteins:collections')
+    success_url = reverse_lazy("proteins:collections")
 
     def dispatch(self, request, *args, **kwargs):
         if not self.get_object().owner == self.request.user:
@@ -202,7 +239,9 @@ class CollectionDeleteView(DeleteView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        redirect_url = reverse_lazy('proteins:collections', kwargs={'owner': self.request.user})
+        redirect_url = reverse_lazy(
+            "proteins:collections", kwargs={"owner": self.request.user}
+        )
         try:
             # check that this is an internal redirection
             resolve(redirect_url)

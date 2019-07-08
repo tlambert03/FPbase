@@ -1,7 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
-from proteins.models import Protein, Organism, Microscope, ProteinCollection, Reference
-from references.models import Author
+from proteins.models import Protein, Organism, Microscope, ProteinCollection
+from references.models import Author, Reference
 
 
 class ProteinCollectionSitemap(Sitemap):
@@ -72,19 +72,33 @@ class ReferencesSitemap(Sitemap):
 
 class StaticSitemap(Sitemap):
     priority = 0.8
-    changefreq = 'weekly'
+    changefreq = "weekly"
 
     # The below method returns all urls defined in urls.py file
     def items(self):
         from config.urls import urlpatterns as homeUrls
-        u = [url.name for url in homeUrls if hasattr(url, 'name') and url.name]
-        protUrls = ['search', 'submit', 'table', 'submit-spectra', 'spectra',
-                    'ichart', 'collections', 'microscopes', 'fret', 'lineage',
-                    'compare', 'organisms', 'activity', 'blast']
+
+        u = [url.name for url in homeUrls if hasattr(url, "name") and url.name]
+        protUrls = [
+            "search",
+            "submit",
+            "table",
+            "submit-spectra",
+            "spectra",
+            "ichart",
+            "collections",
+            "microscopes",
+            "fret",
+            "lineage",
+            "compare",
+            "organisms",
+            "activity",
+            "blast",
+        ]
         for url in protUrls:
             try:
-                reverse('proteins:' + url)
-                u.append('proteins:' + url)
+                reverse("proteins:" + url)
+                u.append("proteins:" + url)
             except Exception:
                 pass
         return u

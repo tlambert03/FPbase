@@ -42,6 +42,7 @@ class classproperty(property):
     borrowed from scikit-bio
     https://github.com/biocore/scikit-bio/blob/master/skbio/util/_decorator.py#L304
     """
+
     def __init__(self, func):
         name = func.__name__
         doc = func.__doc__
@@ -62,6 +63,7 @@ class SkbSequence(object):
     bio package for full Sequence class and documentation!!
     https://github.com/biocore/scikit-bio
     """
+
     _number_of_extended_ascii_codes = 256
     __validation_mask = None
     __degenerate_codes = None
@@ -72,7 +74,7 @@ class SkbSequence(object):
         if isinstance(sequence, np.ndarray):
             if sequence.dtype == np.uint8:
                 self._set_bytes_contiguous(sequence)
-            elif sequence.dtype == '|S1':
+            elif sequence.dtype == "|S1":
                 sequence = sequence.view(np.uint8)
                 if sequence.shape == ():
                     sequence = np.array([sequence], dtype=np.uint8)
@@ -80,8 +82,8 @@ class SkbSequence(object):
             else:
                 raise TypeError(
                     "Can only create sequence from numpy.ndarray of dtype "
-                    "np.uint8 or '|S1'. Invalid dtype: %s" %
-                    sequence.dtype)
+                    "np.uint8 or '|S1'. Invalid dtype: %s" % sequence.dtype
+                )
         elif isinstance(sequence, SkbSequence):
             sequence._assert_can_cast_to(type(self))
             sequence = sequence._bytes
@@ -89,13 +91,14 @@ class SkbSequence(object):
             self._set_bytes(sequence)
         else:
             if isinstance(sequence, str):
-                sequence = sequence.replace(' ', '').replace('\n', '')
+                sequence = sequence.replace(" ", "").replace("\n", "")
                 sequence = sequence.encode("ascii")
 
             s = np.fromstring(sequence, dtype=np.uint8)
             if isinstance(sequence, np.generic) and len(s) != 1:
-                raise TypeError("Can cannot create a sequence with %r" %
-                                type(sequence).__name__)
+                raise TypeError(
+                    "Can cannot create a sequence with %r" % type(sequence).__name__
+                )
 
             sequence = s
             self._owns_bytes = True
@@ -106,7 +109,7 @@ class SkbSequence(object):
 
     def _set_bytes_contiguous(self, sequence):
         """Munge the sequence data into a numpy array of dtype uint8."""
-        if not sequence.flags['C_CONTIGUOUS']:
+        if not sequence.flags["C_CONTIGUOUS"]:
             # https://github.com/numpy/numpy/issues/5716
             sequence = np.ascontiguousarray(sequence)
             self._owns_bytes = True
@@ -121,15 +124,16 @@ class SkbSequence(object):
     @classmethod
     def _assert_can_cast_to(cls, target):
         if not (issubclass(cls, target) or issubclass(target, cls)):
-            raise TypeError("Cannot cast %r as %r." %
-                            (cls.__name__, target.__name__))
+            raise TypeError("Cannot cast %r as %r." % (cls.__name__, target.__name__))
 
     @property
     def _string(self):
         return self._bytes.tostring()
 
     def __repr__(self):
-        return 'Protein\n' + '-' * 54 + '\n' + "\n".join(chunk_string(str(self), 10, 55))
+        return (
+            "Protein\n" + "-" * 54 + "\n" + "\n".join(chunk_string(str(self), 10, 55))
+        )
 
     def __str__(self):
         return str(self._bytes.tostring().decode("ascii"))
@@ -137,9 +141,10 @@ class SkbSequence(object):
     def _munge_to_sequence(self, other, method):
         if isinstance(other, SkbSequence):
             if type(other) != type(self):
-                raise TypeError("Cannot use %s and %s together with `%s`" %
-                                (self.__class__.__name__,
-                                 other.__class__.__name__, method))
+                raise TypeError(
+                    "Cannot use %s and %s together with `%s`"
+                    % (self.__class__.__name__, other.__class__.__name__, method)
+                )
             else:
                 return other
 
@@ -149,7 +154,7 @@ class SkbSequence(object):
         if type(other) is bytes:
             return other
         elif isinstance(other, str):
-            return other.encode('ascii')
+            return other.encode("ascii")
         else:
             return self._munge_to_sequence(other, method)._string
 
@@ -182,9 +187,9 @@ class SkbSequence(object):
 
     def __getitem__(self, indexable):
         """Slice this sequence."""
-        if (not isinstance(indexable, np.ndarray) and
-            ((not isinstance(indexable, str)) and
-             hasattr(indexable, '__iter__'))):
+        if not isinstance(indexable, np.ndarray) and (
+            (not isinstance(indexable, str)) and hasattr(indexable, "__iter__")
+        ):
             indexable_ = indexable
             indexable = np.asarray(indexable)
 
@@ -197,7 +202,8 @@ class SkbSequence(object):
                     indexable = np.asarray(indexable)
                 else:
                     seq = np.concatenate(
-                        list(_slices_from_iter(self._bytes, indexable)))
+                        list(_slices_from_iter(self._bytes, indexable))
+                    )
                     # index = _as_slice_if_single_index(indexable)
 
                     # positional_metadata = None
@@ -210,22 +216,24 @@ class SkbSequence(object):
                     # if self.has_metadata():
                     #    metadata = self.metadata
 
-                    return self._constructor(
-                        sequence=seq)
+                    return self._constructor(sequence=seq)
                     # metadata=metadata,
                     # positional_metadata=positional_metadata)
 
-        elif (isinstance(indexable, str) or
-                isinstance(indexable, bool)):
-            raise IndexError("Cannot index with %s type: %r" %
-                             (type(indexable).__name__, indexable))
+        elif isinstance(indexable, str) or isinstance(indexable, bool):
+            raise IndexError(
+                "Cannot index with %s type: %r" % (type(indexable).__name__, indexable)
+            )
 
-        if (isinstance(indexable, np.ndarray) and
-            indexable.dtype == bool and
-                len(indexable) != len(self)):
-            raise IndexError("An boolean vector index must be the same length"
-                             " as the sequence (%d, not %d)." %
-                             (len(self), len(indexable)))
+        if (
+            isinstance(indexable, np.ndarray)
+            and indexable.dtype == bool
+            and len(indexable) != len(self)
+        ):
+            raise IndexError(
+                "An boolean vector index must be the same length"
+                " as the sequence (%d, not %d)." % (len(self), len(indexable))
+            )
 
         if isinstance(indexable, np.ndarray) and indexable.size == 0:
             # convert an empty ndarray to a supported dtype for slicing a numpy
@@ -246,9 +254,12 @@ class SkbSequence(object):
         # TODO These masks could be defined (as literals) on each concrete
         # object. For now, memoize!
         if cls.__validation_mask is None:
-            cls.__validation_mask = np.invert(np.bincount(
-                np.fromstring(''.join(cls.alphabet), dtype=np.uint8),
-                minlength=cls._number_of_extended_ascii_codes).astype(bool))
+            cls.__validation_mask = np.invert(
+                np.bincount(
+                    np.fromstring("".join(cls.alphabet), dtype=np.uint8),
+                    minlength=cls._number_of_extended_ascii_codes,
+                ).astype(bool)
+            )
         return cls.__validation_mask
 
     @classproperty
@@ -262,8 +273,7 @@ class SkbSequence(object):
     def _definite_char_codes(cls):
         if cls.__definite_char_codes is None:
             definite_chars = cls.definite_chars
-            cls.__definite_char_codes = np.asarray(
-                [ord(d) for d in definite_chars])
+            cls.__definite_char_codes = np.asarray([ord(d) for d in definite_chars])
         return cls.__definite_char_codes
 
     @classproperty
@@ -275,32 +285,35 @@ class SkbSequence(object):
 
     def _validate(self):
         """https://github.com/biocore/scikit-bio/blob/0.5.4/skbio/sequence/_grammared_sequence.py#L340"""
-        invalid_characters = np.bincount(
-            self._bytes, minlength=self._number_of_extended_ascii_codes
-        ) * self._validation_mask
+        invalid_characters = (
+            np.bincount(self._bytes, minlength=self._number_of_extended_ascii_codes)
+            * self._validation_mask
+        )
         if np.any(invalid_characters):
-            bad = list(np.where(
-                invalid_characters > 0)[0].astype(np.uint8).view('|S1'))
+            bad = list(np.where(invalid_characters > 0)[0].astype(np.uint8).view("|S1"))
             raise ValueError(
                 "Invalid character%s in sequence: %r. \n"
                 "Valid characters: %r\n"
                 "Note: Use `lowercase` if your sequence contains lowercase "
                 "characters not in the sequence's alphabet."
-                % ('s' if len(bad) > 1 else '',
-                   [str(b.tostring().decode("ascii")) for b in bad] if
-                   len(bad) > 1 else bad[0],
-                   list(self.alphabet)))
+                % (
+                    "s" if len(bad) > 1 else "",
+                    [str(b.tostring().decode("ascii")) for b in bad]
+                    if len(bad) > 1
+                    else bad[0],
+                    list(self.alphabet),
+                )
+            )
 
     @classproperty
     def alphabet(cls):
-        return cls.degenerate_chars | cls.definite_chars | cls.gap_chars | cls.stop_chars
+        return (
+            cls.degenerate_chars | cls.definite_chars | cls.gap_chars | cls.stop_chars
+        )
 
     @classproperty
     def degenerate_map(cls):
-        return {
-            "B": set("DN"), "Z": set("EQ"),
-            "X": set("ACDEFGHIKLMNPQRSTVWY")
-        }
+        return {"B": set("DN"), "Z": set("EQ"), "X": set("ACDEFGHIKLMNPQRSTVWY")}
 
     @classproperty
     def degenerate_chars(cls):
@@ -312,7 +325,7 @@ class SkbSequence(object):
 
     @classproperty
     def gap_chars(cls):
-        return set('-.')
+        return set("-.")
 
     @classproperty
     def _stop_codes(cls):
@@ -323,7 +336,7 @@ class SkbSequence(object):
 
     @classproperty
     def stop_chars(cls):
-        return set('*')
+        return set("*")
 
     def gaps(self):
         return np.in1d(self._bytes, self._gap_codes)
@@ -353,8 +366,7 @@ def _single_index_to_slice(start_index):
 
 
 def _is_single_index(index):
-    return (isinstance(index, numbers.Integral) and
-            not isinstance(index, bool))
+    return isinstance(index, numbers.Integral) and not isinstance(index, bool)
 
 
 def _as_slice_if_single_index(indexable):
@@ -371,7 +383,8 @@ def _slices_from_iter(array, indexables):
         elif _is_single_index(i):
             i = _single_index_to_slice(i)
         else:
-            raise IndexError("Cannot slice sequence from iterable "
-                             "containing %r." % i)
+            raise IndexError(
+                "Cannot slice sequence from iterable " "containing %r." % i
+            )
 
         yield array[i]

@@ -9,4 +9,4 @@ class Command(BaseCommand):
 
     def handle(self, *app_labels, **options):
         L = forster_list()
-        cache.set('forster_list', L, 60 * 60 * 24)
+        cache.set("forster_list", L, 60 * 60 * 24)

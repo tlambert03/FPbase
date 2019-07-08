@@ -62,11 +62,11 @@ def power_density_to_photon_flux(power, wavelength):
 
 
 def total_photon_prediction(k_bleach, EC, QY, power, wavelength):
-    abs_cross_section = ec_to_cross_section(EC)     # cm^2/molecule
+    abs_cross_section = ec_to_cross_section(EC)  # cm^2/molecule
     photon_flux = power_density_to_photon_flux(power, wavelength)  # photons/(s*cm^2)
     k_excitation = abs_cross_section * photon_flux  # photons/molecule/s
-    k_radiative_decay = QY * k_excitation           # photons/molecule/s
-    N_emmission = k_radiative_decay / k_bleach      # photons/molecule
+    k_radiative_decay = QY * k_excitation  # photons/molecule/s
+    N_emmission = k_radiative_decay / k_bleach  # photons/molecule
     return N_emmission
 
 
@@ -84,5 +84,3 @@ def fit_points(t, y, offset=0):
     # Linear Fit (Note that we have to provide the y-offset ("C") value!!
     A, K = fit_exp_linear(t, y, offset)
     return A, -K
-
-

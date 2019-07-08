@@ -1,8 +1,8 @@
-from .protein import *
-from .collection import *
-from .ajax import *
-from .autocomplete import *
-from .search import *
-from .spectra import *
-from .microscope import *
-from .blast import *
+from .protein import *  # noqa
+from .collection import *  # noqa
+from .ajax import *  # noqa
+from .autocomplete import *  # noqa
+from .search import *  # noqa
+from .spectra import *  # noqa
+from .microscope import *  # noqa
+from .blast import *  # noqa

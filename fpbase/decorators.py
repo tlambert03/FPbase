@@ -18,13 +18,16 @@ def user_passes_test(test_func, message=default_message):
     setting a message in case of no success. The test should be a callable
     that takes the user object and returns True if the user passes.
     """
+
     def decorator(view_func):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
             if not test_func(request.user):
                 messages.error(request, message)
             return view_func(request, *args, **kwargs)
+
         return _wrapped_view
+
     return decorator
 
 
@@ -33,44 +36,49 @@ def login_required_message(function=None, message=default_message):
     Decorator for views that checks that the user is logged in, redirecting
     to the log-in page if necessary.
     """
-    actual_decorator = user_passes_test(
-        lambda u: u.is_authenticated,
-        message=message,
-    )
+    actual_decorator = user_passes_test(lambda u: u.is_authenticated, message=message)
     if function:
         return actual_decorator(function)
     return actual_decorator
 
 
-def login_required_message_and_redirect(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None, message=default_message):
+def login_required_message_and_redirect(
+    function=None,
+    redirect_field_name=REDIRECT_FIELD_NAME,
+    login_url=None,
+    message=default_message,
+):
 
     if function:
         return login_required_message(
-            login_required(function, redirect_field_name, login_url),
-            message
+            login_required(function, redirect_field_name, login_url), message
         )
 
-    return lambda deferred_function: login_required_message_and_redirect(deferred_function, redirect_field_name, login_url, message)
+    return lambda deferred_function: login_required_message_and_redirect(
+        deferred_function, redirect_field_name, login_url, message
+    )
 
 
 def check_recaptcha(function):
     def wrap(request, *args, **kwargs):
         request.recaptcha_is_valid = None
-        if request.method == 'POST':
-            recaptcha_response = request.POST.get('g-recaptcha-response')
+        if request.method == "POST":
+            recaptcha_response = request.POST.get("g-recaptcha-response")
             print(settings.GOOGLE_RECAPTCHA_SECRET_KEY)
             data = {
-                'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
-                'response': recaptcha_response
+                "secret": settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+                "response": recaptcha_response,
             }
-            r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
+            r = requests.post(
+                "https://www.google.com/recaptcha/api/siteverify", data=data
+            )
             result = r.json()
-            if result['success']:
+            if result["success"]:
                 request.recaptcha_is_valid = True
             else:
                 print(result)
                 request.recaptcha_is_valid = False
-                messages.error(request, 'Invalid reCAPTCHA. Please try again.')
+                messages.error(request, "Invalid reCAPTCHA. Please try again.")
         return function(request, *args, **kwargs)
 
     wrap.__doc__ = function.__doc__

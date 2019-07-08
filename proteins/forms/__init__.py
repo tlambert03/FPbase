@@ -1,3 +1,3 @@
-from .forms import *
-from .spectrum import *
-from .microscope import *
+from .forms import *  # noqa
+from .spectrum import *  # noqa
+from .microscope import *  # noqa

@@ -18,8 +18,11 @@ class FavoriteManager(models.Manager):
     """
     A Manager for Favorite objects
     """
+
     from django import VERSION
+
     if VERSION > (1, 8):
+
         def get_query_set(self):
             return self.get_queryset()
 
@@ -66,9 +69,7 @@ class FavoriteManager(models.Manager):
 
         content_type = ContentType.objects.get_for_model(model)
 
-        qs = self.get_query_set().filter(
-            target_content_type=content_type
-        )
+        qs = self.get_query_set().filter(target_content_type=content_type)
 
         return qs.order_by("-timestamp")
 
@@ -89,8 +90,7 @@ class FavoriteManager(models.Manager):
         content_type, obj = _get_content_type_and_obj(obj, model)
 
         qs = self.get_query_set().filter(
-            target_content_type=content_type,
-            target_object_id=obj.pk
+            target_content_type=content_type, target_object_id=obj.pk
         )
 
         return qs.order_by("-timestamp")
@@ -116,9 +116,7 @@ class FavoriteManager(models.Manager):
 
         try:
             return self.get_query_set().get(
-                user=user,
-                target_content_type=content_type,
-                target_object_id=obj.id
+                user=user, target_content_type=content_type, target_object_id=obj.id
             )
         except self.model.DoesNotExist:
             return None
@@ -133,7 +131,7 @@ class FavoriteManager(models.Manager):
             user=user,
             target_content_type=content_type,
             target_object_id=content_object.pk,
-            target=content_object
+            target=content_object,
         )
 
         return fav

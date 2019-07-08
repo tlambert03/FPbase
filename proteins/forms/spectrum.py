@@ -88,7 +88,7 @@ class SpectrumForm(forms.ModelForm):
                 Div("solvent", css_class="col-md-6 col-sm-12"),
                 css_class="row",
             ),
-            Field("confirmation", css_class='custom-checkbox'),
+            Field("confirmation", css_class="custom-checkbox"),
         )
 
         super().__init__(*args, **kwargs)
@@ -217,7 +217,7 @@ class SpectrumForm(forms.ModelForm):
                     stype = (
                         obj.spectra.filter(subtype=stype).first().get_subtype_display()
                     )
-            elif hasattr(obj, 'spectrum') and obj.spectrum:
+            elif hasattr(obj, "spectrum") and obj.spectrum:
                 exists = True
                 stype = obj.spectrum.get_subtype_display()
             if exists:

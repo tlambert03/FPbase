@@ -117,9 +117,9 @@ def get_history(obj, ignoreKeys=[]):
                 revision = versions[n + 1].revision
                 for field, actions in diffs.items():
                     for action, result in actions.items():
-                        if field == 'references':
+                        if field == "references":
                             _result = []
-                            for ref_id in result.split(', '):
+                            for ref_id in result.split(", "):
                                 try:
                                     ref = Reference.objects.get(id=ref_id)
                                     _result.append(ref.citation)

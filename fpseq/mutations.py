@@ -1,8 +1,10 @@
 import re
-import numpy as np
-from .skbio_protein import SkbSequence
-from .align import align_seqs, parental_numbering
 import warnings
+
+import numpy as np
+
+from .align import align_seqs, parental_numbering
+from .skbio_protein import SkbSequence
 
 """
 mutation strings attempt to follow HGVS-nomenclature
@@ -38,17 +40,22 @@ full string:
 
 # optional prefix could be added
 # (?:(?P<prefix>[A-Za-z0-9]+)\.)?
-mutpattern = re.compile(r"""
+mutpattern = re.compile(
+    r"""
     (?P<start_char>[{0}*]{1})
     (?P<start_idx>\d+)
     (?:_(?P<stop_char>[{0}]{1})(?P<stop_idx>\d+))?
     (?P<operation>delins|del|ins|)?
     (?P<new_chars>[{0}*]+)?
     (?:ext(?P<ext>[{0}]+))?
-    (?:,|$|/|\s)""".format(r"A-Z*", '{1}'), re.X)
+    (?:,|$|/|\s)""".format(
+        r"A-Z*", "{1}"
+    ),
+    re.X,
+)
 
 
-NEUTRAL_MUTATIONS = ['K26R', 'Q80R', 'N146H', 'H231L']
+NEUTRAL_MUTATIONS = ["K26R", "Q80R", "N146H", "H231L"]
 
 
 def parse_mutstring(string):
@@ -62,9 +69,20 @@ class Mutation(object):
     class SequenceMismatch(Exception):
         pass
 
-    def __init__(self, start_char, start_idx, stop_char, stop_idx,
-                 operation, new_chars, ext, start_label=None, stop_label=None, idx0=1,
-                 alphabet="".join(SkbSequence.definite_chars.union('X*'))):
+    def __init__(
+        self,
+        start_char,
+        start_idx,
+        stop_char,
+        stop_idx,
+        operation,
+        new_chars,
+        ext,
+        start_label=None,
+        stop_label=None,
+        idx0=1,
+        alphabet="".join(SkbSequence.definite_chars.union("X*")),
+    ):
         """
         start_char: single letter amino acid code for start position (e.g. A)
         start_idx:  position of start mutation (e.g. 206)
@@ -82,67 +100,84 @@ class Mutation(object):
 
         """
         if alphabet and start_char not in alphabet:
-            raise ValueError('Invalid Amino Acid code: {}'.format(start_char))
+            raise ValueError("Invalid Amino Acid code: {}".format(start_char))
         self.start_char = start_char
         try:
             self.start_idx = int(start_idx)
         except ValueError:
-            raise ValueError('Mutation must have integer start index')
+            raise ValueError("Mutation must have integer start index")
 
         if alphabet and stop_char and stop_char not in alphabet:
-            raise ValueError('Invalid Amino Acid code: {}'.format(stop_char))
+            raise ValueError("Invalid Amino Acid code: {}".format(stop_char))
         self.stop_char = stop_char
         try:
             self.stop_idx = int(stop_idx)
         except ValueError:
             self.stop_idx = None
-        self.operation = 'ext' if ext else (operation or 'sub')
-        if self.operation not in ('sub', 'del', 'ins', 'delins', 'ext'):
-            raise ValueError('Unrecognized operation: {}'.format(self.operation))
-        if self.operation == 'sub' and (stop_char or self.stop_idx):
-            raise ValueError('Substitution mutations cannot specify a range (or a stop_char/idx)')
+        self.operation = "ext" if ext else (operation or "sub")
+        if self.operation not in ("sub", "del", "ins", "delins", "ext"):
+            raise ValueError("Unrecognized operation: {}".format(self.operation))
+        if self.operation == "sub" and (stop_char or self.stop_idx):
+            raise ValueError(
+                "Substitution mutations cannot specify a range (or a stop_char/idx)"
+            )
         if stop_idx and (int(stop_idx) < int(start_idx)):
-            raise ValueError('Stop position ({}) must be greater than start position ({})'
-                             .format(stop_idx, start_idx))
-        if self.operation.endswith('ins'):
+            raise ValueError(
+                "Stop position ({}) must be greater than start position ({})".format(
+                    stop_idx, start_idx
+                )
+            )
+        if self.operation.endswith("ins"):
             if not (stop_char and self.stop_idx):
                 print(stop_char)
                 print(self.stop_idx)
-                raise ValueError('Insertion mutations must specify a range (with stop_char/idx)')
+                raise ValueError(
+                    "Insertion mutations must specify a range (with stop_char/idx)"
+                )
             if not len(new_chars):
-                raise ValueError('Insertion mutations must specify new characters to insert')
-            if self.operation == 'ins' and (int(stop_idx) - int(start_idx) != 1):
-                raise ValueError('Insertion range ({}-{}) is {} than 1 position'
-                                 .format(start_idx, stop_idx, 'greater' if
-                                         (int(stop_idx) - int(start_idx) > 1) else 'less'))
-        if self.operation == 'del' and new_chars:
-            raise ValueError('Deletion mutations cannot specify new_chars (use delins instead)')
+                raise ValueError(
+                    "Insertion mutations must specify new characters to insert"
+                )
+            if self.operation == "ins" and (int(stop_idx) - int(start_idx) != 1):
+                raise ValueError(
+                    "Insertion range ({}-{}) is {} than 1 position".format(
+                        start_idx,
+                        stop_idx,
+                        "greater" if (int(stop_idx) - int(start_idx) > 1) else "less",
+                    )
+                )
+        if self.operation == "del" and new_chars:
+            raise ValueError(
+                "Deletion mutations cannot specify new_chars (use delins instead)"
+            )
         self.new_chars = new_chars
         self.ext = ext
         self.idx0 = idx0
         self.start_label = start_label
         self.stop_label = stop_label
-        if self.operation == 'sub' and len(new_chars) != 1:
-            raise ValueError('A substitution must have a single new character {}'.format(self))
+        if self.operation == "sub" and len(new_chars) != 1:
+            raise ValueError(
+                "A substitution must have a single new character {}".format(self)
+            )
 
     def __str__(self):
-        out = '{}{}'.format(self.start_char, self.start_label or self.start_idx)
+        out = "{}{}".format(self.start_char, self.start_label or self.start_idx)
         if self.stop_char and self.stop_idx:
-            out += '_{}{}'.format(self.stop_char, self.stop_label or self.stop_idx)
-        if self.operation == 'ext':
+            out += "_{}{}".format(self.stop_char, self.stop_label or self.stop_idx)
+        if self.operation == "ext":
             out += self.new_chars + self.operation + self.ext
-        elif self.operation == 'sub':
+        elif self.operation == "sub":
             out += self.new_chars
         else:
             out += self.operation + self.new_chars
         return out
 
     def __repr__(self):
-        return '<Mutation: {}>'.format(self)
+        return "<Mutation: {}>".format(self)
 
     def __eq__(self, other):
         if str(self) == str(other):
-                return True
+            return True
         return False
 
     def __hash__(self):
@@ -155,19 +190,28 @@ class Mutation(object):
         # self._assert_position_consistency(seq, idx0)
         startpos = self.start_idx - idx0
         if startpos > len(seq):  # allowing one extra position for extensions
-            raise IndexError('Starting position {} is outside of sequence with length {}'.format(
-                             self.start_idx, len(seq)))
-        if self.operation == 'sub':
-            return (seq[:startpos] + self.new_chars + seq[startpos + 1:], 0)
-        if self.operation == 'ins':
-            return (seq[:startpos + 1] + self.new_chars + seq[startpos + 1:], len(self.new_chars))
-        if self.operation in ('del', 'delins'):
+            raise IndexError(
+                "Starting position {} is outside of sequence with length {}".format(
+                    self.start_idx, len(seq)
+                )
+            )
+        if self.operation == "sub":
+            end = startpos + 1
+            return (seq[:startpos] + self.new_chars + seq[end:], 0)
+        if self.operation == "ins":
+            end = startpos + 1
+            return (
+                seq[: startpos + 1] + self.new_chars + seq[end:],
+                len(self.new_chars),
+            )
+        if self.operation in ("del", "delins"):
             stoppos = startpos
+            nextpos = stoppos + 1
             if self.stop_idx:
                 stoppos = self.stop_idx - idx0
-            shift = len(self.new_chars) - (stoppos + 1 - startpos)
-            return (seq[:startpos] + self.new_chars + seq[stoppos + 1:], shift)
-        if self.operation == 'ext':
+            shift = len(self.new_chars) - (nextpos - startpos)
+            return (seq[:startpos] + self.new_chars + seq[nextpos:], shift)
+        if self.operation == "ext":
             return seq + self.new_chars + self.ext, 0
 
     def _assert_position_consistency(self, seq, idx0=1):
@@ -175,65 +219,80 @@ class Mutation(object):
         provided sequence being mutated."""
         startpos = self.start_idx - idx0
         # leaving start_char out should prevent this check
-        if self.operation == 'ext':
+        if self.operation == "ext":
             if self.start_idx != len(seq) - idx0 + 2:
-                raise ValueError('Extension start char not consistent')
+                raise ValueError("Extension start char not consistent")
             return
         if self.start_char and seq[startpos] != self.start_char:
+            beg = startpos - 3
+            beg2 = startpos + 1
+            end = startpos + 4
             raise self.SequenceMismatch(
-                'Mutation {} does not align with the parent seq: {}.'
-                .format(self, '{}>{}<{}'.format(seq[startpos - 3:startpos],
-                                                seq[startpos],
-                                                seq[startpos + 1:startpos + 4])))
+                "Mutation {} does not align with the parent seq: {}.".format(
+                    self,
+                    "{}>{}<{}".format(seq[beg:startpos], seq[startpos], seq[beg2:end]),
+                )
+            )
         if self.stop_idx and self.stop_char:
             stoppos = self.stop_idx - idx0
             if not seq[stoppos] == self.stop_char:
+                beg = stoppos - 3
+                beg2 = stoppos + 1
+                end = stoppos + 4
                 raise self.SequenceMismatch(
-                    'Mutation {} does not match the sequence provided: {}'
-                    .format(self, '{}>{}<{}'.format(seq[stoppos - 3:stoppos],
-                                                    seq[stoppos],
-                                                    seq[stoppos + 1:stoppos + 4])))
+                    "Mutation {} does not match the sequence provided: {}".format(
+                        self,
+                        "{}>{}<{}".format(
+                            seq[beg:stoppos], seq[stoppos], seq[beg2:end]
+                        ),
+                    )
+                )
 
     @classmethod
-    def from_str(cls, mutstring, sep='/'):
+    def from_str(cls, mutstring, sep="/"):
         """Generate a Mutation object from a mutation string such as 'A206K' """
         m = parse_mutstring(mutstring)
         if not m:
-            raise ValueError('Mutation code invalid: {}'.format(mutstring))
+            raise ValueError("Mutation code invalid: {}".format(mutstring))
         if len(m) > 1:
-            raise ValueError('Multiple mutation codes found. For multiple mutations, create a MutationSet instead')
+            raise ValueError(
+                "Multiple mutation codes found. For multiple mutations, create a MutationSet instead"
+            )
         return m[0]
 
 
-def _get_aligned_muts(AQS, ATS, gapchars='-.', zeroindex=1):
+def _get_aligned_muts(AQS, ATS, gapchars="-.", zeroindex=1):
     """ starting with two sequences that have been aligned,
     returns a list of mutation string codes, such as:
     ['K2_K6del', 'D26_N28delinsR', E39_A40insGD', 'R44K', *56LextPVPW']
     """
     out = []
     ins_start_idx = None
-    insertions = ''
+    insertions = ""
     delstart = None
-    lastchar = '*'
+    lastchar = "*"
     ishift = 0
     numdel = 0
-    delins = ''
+    delins = ""
 
     def clear_insertions(ins_start_idx, insertions, extension=False):
         if extension:
-            out.append('*{}{}ext{}'.format(
-                ins_start_idx + 1, insertions[0], insertions[1:]))
+            out.append(
+                "*{}{}ext{}".format(ins_start_idx + 1, insertions[0], insertions[1:])
+            )
         else:
-            out.append('{}{}_{}{}ins{}'.format(
-                ins_start_char, ins_start_idx, before,
-                ins_start_idx + 1, insertions))
+            out.append(
+                "{}{}_{}{}ins{}".format(
+                    ins_start_char, ins_start_idx, before, ins_start_idx + 1, insertions
+                )
+            )
 
     def clear_deletions(delstart, numdel, delins, idx):
-        string = '{}{}del'.format(
-            delstart,
-            '_{}'.format(lastchar + str(idx - 1)) if numdel > 1 else '')
+        string = "{}{}del".format(
+            delstart, "_{}".format(lastchar + str(idx - 1)) if numdel > 1 else ""
+        )
         if delins:
-            string += 'ins' + delins
+            string += "ins" + delins
         out.append(string)
 
     for idx, (before, after) in enumerate(zip(AQS, ATS), zeroindex):
@@ -256,7 +315,7 @@ def _get_aligned_muts(AQS, ATS, gapchars='-.', zeroindex=1):
         if insertions:  # not an insertions but insertions need to be processed
             clear_insertions(ins_start_idx, insertions)
             ins_start_idx = None
-            insertions = ''
+            insertions = ""
 
         if before != after:
             if delstart:  # we are mid deletion... this should be a delins
@@ -270,7 +329,7 @@ def _get_aligned_muts(AQS, ATS, gapchars='-.', zeroindex=1):
         else:
             if delstart:  # not a deletion but deletions need to be processed
                 delstart = clear_deletions(delstart, numdel, delins, idx)
-                delstart, numdel, delins = (None, 0, '')
+                delstart, numdel, delins = (None, 0, "")
 
         lastchar = before
 
@@ -307,9 +366,9 @@ class MutationSet(object):
         if isinstance(muts, str):
             muts = parse_mutstring(muts)
         elif not isinstance(muts, (list, set, tuple)):
-            raise ValueError('Mutations argument must be str, list, set, or tuple')
+            raise ValueError("Mutations argument must be str, list, set, or tuple")
         if not all([isinstance(m, Mutation) for m in muts]):
-            raise ValueError('All MutationSet items must be Mutation Instances')
+            raise ValueError("All MutationSet items must be Mutation Instances")
         self.muts = set(muts)
         if position_labels is not None:
             self.position_labels = position_labels
@@ -321,7 +380,11 @@ class MutationSet(object):
                         mut.stop_label = position_labels[mut.stop_idx - 1]
                 else:
                     try:
-                        mut.start_label = str(len(position_labels) - mut.start_idx + int(position_labels[-1]))
+                        mut.start_label = str(
+                            len(position_labels)
+                            - mut.start_idx
+                            + int(position_labels[-1])
+                        )
                     except Exception:
                         mut.start_label = str(mut.start_idx)
 
@@ -355,13 +418,21 @@ class MutationSet(object):
                 offset = self.detect_offset(seq)
                 if offset:
                     if correct_offset:
-                        warnings.warn('An offset of {} amino acids was detected'
-                                      ' between the sequence and the mutation '
-                                      'set, and automatically corrected'.format(offset))
+                        warnings.warn(
+                            "An offset of {} amino acids was detected"
+                            " between the sequence and the mutation "
+                            "set, and automatically corrected".format(offset)
+                        )
                         shift -= offset
                     else:
-                        raise Mutation.SequenceMismatch('{}. But a match was found {} position{} away: {}'
-                            .format(str(e), offset, 's' if abs(offset) > 1 else '', self.shift(offset))) from e
+                        raise Mutation.SequenceMismatch(
+                            "{}. But a match was found {} position{} away: {}".format(
+                                str(e),
+                                offset,
+                                "s" if abs(offset) > 1 else "",
+                                self.shift(offset),
+                            )
+                        ) from e
                 else:
                     raise e
         for mut in self:
@@ -375,7 +446,7 @@ class MutationSet(object):
         groups = self._consecutive_groups()
         for g in groups:
             ops = [m.operation for m in g]
-            if ('sub' in ops and ('del' in ops or 'delins' in ops)):
+            if "sub" in ops and ("del" in ops or "delins" in ops):
                 return True
         return False
 
@@ -385,17 +456,19 @@ class MutationSet(object):
         newgroups = []
         for g in groups:
             ops = [m.operation for m in g]
-            if ((len(g) >= merge_subs and all([m == 'sub' for m in ops]))
-                    or ('sub' in ops and ('del' in ops or 'delins' in ops))):
+            if (len(g) >= merge_subs and all([m == "sub" for m in ops])) or (
+                "sub" in ops and ("del" in ops or "delins" in ops)
+            ):
                 # should already be sorted
-                start = '{}{}'.format(g[0].start_char, g[0].start_idx)
+                start = "{}{}".format(g[0].start_char, g[0].start_idx)
                 if g[-1].stop_char:
-                    stop = '{}{}'.format(g[-1].stop_char, g[-1].stop_idx)
+                    stop = "{}{}".format(g[-1].stop_char, g[-1].stop_idx)
                 else:
-                    stop = '{}{}'.format(g[-1].start_char, g[-1].start_idx)
+                    stop = "{}{}".format(g[-1].start_char, g[-1].start_idx)
                 newchars = "".join([m.new_chars for m in g])
-                newgroups.append(Mutation.from_str('{}_{}delins{}'
-                                 .format(start, stop, newchars)))
+                newgroups.append(
+                    Mutation.from_str("{}_{}delins{}".format(start, stop, newchars))
+                )
             else:
                 newgroups.extend([m for m in g])
         # can't decide whether to return new object or update this one
@@ -492,10 +565,14 @@ class MutationSet(object):
                 otherm = MutationSet(other).muts
             except Exception:
                 raise ValueError(
-                    'Could not compare MutationSet object with other: {}'.format(other))
+                    "Could not compare MutationSet object with other: {}".format(other)
+                )
         if not otherm:
             raise ValueError(
-                'operation not valid between type MutationSet and {}'.format(type(other)))
+                "operation not valid between type MutationSet and {}".format(
+                    type(other)
+                )
+            )
         else:
             if self.muts == otherm:
                 return True
@@ -512,35 +589,37 @@ class MutationSet(object):
         return len(self.muts)
 
     def __repr__(self):
-        return '<MutationSet: {}>'.format(self)
+        return "<MutationSet: {}>".format(self)
 
     def __str__(self):
-        delim = '/'
-        return delim.join([str(m) for m in sorted(set(self.muts), key=lambda x: x.start_idx)])
+        delim = "/"
+        return delim.join(
+            [str(m) for m in sorted(set(self.muts), key=lambda x: x.start_idx)]
+        )
 
     @classmethod
-    def from_str(cls, mutstring, sep='/'):
+    def from_str(cls, mutstring, sep="/"):
         return cls(parse_mutstring(mutstring))
 
     @property
     def deletions(self):
-        return MutationSet([i for i in self.muts if i.operation == 'del'])
+        return MutationSet([i for i in self.muts if i.operation == "del"])
 
     @property
     def insertions(self):
-        return MutationSet([i for i in self.muts if i.operation == 'ins'])
+        return MutationSet([i for i in self.muts if i.operation == "ins"])
 
     @property
     def delinsertions(self):
-        return MutationSet([i for i in self.muts if i.operation == 'delins'])
+        return MutationSet([i for i in self.muts if i.operation == "delins"])
 
     @property
     def substitutions(self):
-        return MutationSet([i for i in self.muts if i.operation == 'sub'])
+        return MutationSet([i for i in self.muts if i.operation == "sub"])
 
     @property
     def extensions(self):
-        return MutationSet([i for i in self.muts if i.operation == 'ext'])
+        return MutationSet([i for i in self.muts if i.operation == "ext"])
 
     def shift(self, amount):
         """ shift the position numbering of the mutation set by amount"""
@@ -564,7 +643,12 @@ class MutationSet(object):
         mutD = {m.start_idx: m.start_char for m in self.muts}
         for offset in offsets:
             try:
-                if all([seqlist[pos - idx0 + offset] == letter for pos, letter in mutD.items()]):
+                if all(
+                    [
+                        seqlist[pos - idx0 + offset] == letter
+                        for pos, letter in mutD.items()
+                    ]
+                ):
                     return offset
             except IndexError:
                 continue
@@ -573,34 +657,44 @@ class MutationSet(object):
     def relative_to_root(self, parent, root):
         """ display mutation string with parent amino acids, but with positioning
         relative to some other root sequence"""
-        return str(MutationSet(str(self), parental_numbering(*align_seqs(root, parent))))
+        return str(
+            MutationSet(str(self), parental_numbering(*align_seqs(root, parent)))
+        )
 
 
 def rand_mut(seq):
     from random import randint, choices
 
     # make extensions less likely
-    ch = ['sub'] * 10 + ['del'] * 5 + ['ins'] * 5 + ['delins'] * 3 + ['ext']
+    ch = ["sub"] * 10 + ["del"] * 5 + ["ins"] * 5 + ["delins"] * 3 + ["ext"]
     operation = choices(ch)[0]
-    AAs = 'ACDEFGHIKLMNPQRSTVWY'
+    AAs = "ACDEFGHIKLMNPQRSTVWY"
     start_idx = randint(1, len(seq) - 1)
     start_char = seq[start_idx - 1]
-    ext, stop_idx, stop_char, new_chars = ('', '', '', '')
-    if operation in ('sub', 'ext'):
+    ext, stop_idx, stop_char, new_chars = ("", "", "", "")
+    if operation in ("sub", "ext"):
         new_chars = choices(AAs)[0]
-        if operation == 'ext':
-            start_char = '*'
+        if operation == "ext":
+            start_char = "*"
             start_idx = len(seq) + 1
             ext = "".join(choices(AAs, k=randint(1, 6)))
-    elif operation in ('ins', 'delins'):
+    elif operation in ("ins", "delins"):
         new_chars = "".join(choices(AAs, k=randint(1, 6)))
-    if operation in ('del', 'ins', 'delins'):
-        if operation == 'ins':
+    if operation in ("del", "ins", "delins"):
+        if operation == "ins":
             stop_idx = start_idx + 1
         else:
             stop_idx = start_idx + randint(1, 6)
         while stop_idx > len(seq) - 2:
             stop_idx = start_idx + randint(0, 6)
         stop_char = seq[stop_idx - 1]
-    return Mutation(start_char, start_idx, stop_char, stop_idx, operation, new_chars, ext, alphabet=None)
-
+    return Mutation(
+        start_char,
+        start_idx,
+        stop_char,
+        stop_idx,
+        operation,
+        new_chars,
+        ext,
+        alphabet=None,
+    )

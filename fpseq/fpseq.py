@@ -3,10 +3,11 @@ from .skbio_protein import SkbSequence
 from .util import protein_weight, slugify
 from .align import align_seqs, parental_numbering
 from .mutations import get_mutations, mutate_sequence
+
 try:
     import requests
 except ImportError:
-    print('Could not import requests. Cannot pull sequences from fpbase')
+    print("Could not import requests. Cannot pull sequences from fpbase")
 
 
 def generate_labels(seq, mods=None, zeroindex=1):
@@ -28,13 +29,12 @@ def generate_labels(seq, mods=None, zeroindex=1):
 
 
 def from_fpbase(slug):
-    url = 'https://www.fpbase.org/api/{}/?format=json'.format(slugify(slug))
+    url = "https://www.fpbase.org/api/{}/?format=json".format(slugify(slug))
     response = requests.get(url)
-    return FPSeq(json.loads(response.content).get('seq'))
+    return FPSeq(json.loads(response.content).get("seq"))
 
 
 class FPSeq(SkbSequence):
-
     def __init__(self, sequence, position_lables=None, **kwargs):
         super().__init__(sequence, **kwargs)
         self._poslabels = generate_labels(str(self), position_lables)
@@ -70,7 +70,7 @@ class FPSeq(SkbSequence):
 
     def mutate(self, mutations, **kwargs):
         result = mutate_sequence(str(self), mutations, **kwargs)
-        if 'correct_offset' in kwargs:
+        if "correct_offset" in kwargs:
             return FPSeq(result[0]), result[1]
         return FPSeq(result)
 

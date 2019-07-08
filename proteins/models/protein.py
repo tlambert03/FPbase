@@ -1,39 +1,40 @@
 # -*- coding: utf-8 -*-
-import json
-import re
-import io
-import sys
-import os
 import datetime
-from subprocess import run, PIPE
-from django.db import models
-from django.contrib.postgres.fields import ArrayField
-from django.contrib.auth import get_user_model
-from django.db.models import Q, Count, Func, F, Value
-from django.utils.text import slugify
-from django.core.exceptions import ValidationError
-from django.urls import reverse
+import io
+import json
+import os
+import re
+import sys
+from random import choices
+from subprocess import PIPE, run
+
+from Bio import Entrez
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
-from model_utils.models import StatusModel, TimeStampedModel
-from model_utils.managers import QueryManager
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import models
+from django.db.models import Count, F, Func, Q, Value
+from django.urls import reverse
+from django.utils.text import slugify
 from model_utils import Choices
-from django.core.exceptions import ObjectDoesNotExist
+from model_utils.managers import QueryManager
+from model_utils.models import StatusModel, TimeStampedModel
+from reversion.models import Version
+
+from favit.models import Favorite
+from fpseq import FPSeq
 from references.models import Reference
-from .mixins import Authorable
-from .collection import ProteinCollection
-from ..util.helpers import get_color_group, mless, get_base_name, spectra_fig
+
+from .. import util
+from ..util.helpers import get_base_name, get_color_group, mless, spectra_fig
 
 # from .extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator, validate_uniprot
-from .. import util
+from .collection import ProteinCollection
+from .mixins import Authorable
 from .spectrum import Spectrum
-from fpseq import FPSeq
-from reversion.models import Version
-from favit.models import Favorite
-from random import choices
-from Bio import Entrez
-
 
 Entrez.email = settings.ADMINS[0][1]
 
@@ -78,7 +79,7 @@ class ProteinQuerySet(models.QuerySet):
 
     def to_tree(self, output="clw"):
         fasta = self.fasta()
-        binary = 'bin/muscle_' + ('osx' if sys.platform == 'darwin' else 'nix')
+        binary = "bin/muscle_" + ("osx" if sys.platform == "darwin" else "nix")
         cmd = [binary]
         # faster
         cmd += ["-maxiters", "2", "-diags", "-quiet", "-" + output]
@@ -304,7 +305,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         max_length=2,
         choices=AGG_CHOICES,
         blank=True,
-        verbose_name='Oligomerization',
+        verbose_name="Oligomerization",
         help_text="Oligomerization tendency",
     )
     oser = models.FloatField(
@@ -327,8 +328,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         blank=True,
         help_text="Required for fluorescence",
     )
-    # evo_parent  = models.ForeignKey('self', related_name='evo_children', verbose_name="Parental protein", on_delete=models.SET_NULL, blank=True, null=True, help_text="Protein from which the protein was evolved",)
-    # evo_mutations = ArrayField(models.CharField(max_length=5), validators=[validate_mutation], blank=True, null=True)
 
     # Relations
     parent_organism = models.ForeignKey(
@@ -532,7 +531,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         errors = {}
         # Don't allow basic switch_types to have more than one state.
         #        if self.switch_type == 'b' and self.states.count() > 1:
-        #            errors.update({'switch_type': 'Basic (non photoconvertible) proteins cannot have more than one state.'})
+        #            errors.update({'switch_type': 'Basic (non photoconvertible) proteins '
+        #                                          'cannot have more than one state.'})
         if self.pdb:
             self.pdb = list(set(self.pdb))
             for item in self.pdb:
@@ -573,9 +573,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     def history(self, ignoreKeys=[]):
         from proteins.util.history import get_history
+
         return get_history(self, ignoreKeys)
 
-    ###################################33
+    # ##################################
     # for algolia index
 
     def is_visible(self):
