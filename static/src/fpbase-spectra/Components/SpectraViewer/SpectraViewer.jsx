@@ -17,7 +17,7 @@ import SpectrumSeries from "./SpectrumSeries"
 import applyExporting from "highcharts/modules/exporting"
 import applyPatterns from "highcharts/modules/pattern-fill"
 import applyExportingData from "highcharts/modules/export-data"
-import addBoostModule from 'highcharts/modules/boost';
+import addBoostModule from "highcharts/modules/boost"
 import fixLogScale from "./fixLogScale"
 import DEFAULT_OPTIONS from "./ChartOptions"
 import update from "immutability-helper"
@@ -148,7 +148,12 @@ const SpectraViewer = memo(function SpectraViewer({
         }}
       />
       {numSpectra === 0 && <NoData height={height} />}
-      <ExNormNotice exNorm={exNorm} ownerInfo={ownerInfo} />
+      <ExNormNotice
+        exNorm={exNorm}
+        ownerInfo={ownerInfo}
+        ecNorm={chartOptions.scaleEC}
+        qyNorm={chartOptions.scaleQY}
+      />
       <HighchartsChart
         plotOptions={plotOptions}
         navigation={navigation}
@@ -266,7 +271,14 @@ export const XAxisWithRange = memo(function XAxisWithRange({
   )
 })
 
-const ExNormNotice = memo(function ExNormNotice({ exNorm, ownerInfo }) {
+const ExNormNotice = memo(function ExNormNotice({
+  exNorm,
+  ecNorm,
+  qyNorm,
+  ownerInfo
+}) {
+  const exNormed = (ecNorm) && (Object.keys(ownerInfo).length > 0)
+  const emNormed = (exNorm || qyNorm) && (Object.keys(ownerInfo).length > 0)
   return (
     <div
       style={{
@@ -274,15 +286,16 @@ const ExNormNotice = memo(function ExNormNotice({ exNorm, ownerInfo }) {
         top: -11,
         left: 20,
         zIndex: 1000,
-        color: "rgba(140,0,0,0.4)",
+        color: "rgba(200,0,0,0.45)",
         fontWeight: 600,
-        fontSize: "0.9rem",
+        fontSize: "0.82rem",
         height: 0
       }}
     >
-      {exNorm && Object.keys(ownerInfo).length > 0
-        ? `EM NORMED TO ${exNorm} EX`
-        : ""}
+      {exNormed ? `EX NORMED TO EXT COEFF ${emNormed ? " & ": ""}`: "" }
+      {emNormed && "EM NORMED TO " }
+      {exNorm ? `${exNorm} EX${qyNorm ? " & ": ""}` : ""}
+      {qyNorm && "QY"}
     </div>
   )
 })

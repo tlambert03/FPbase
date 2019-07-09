@@ -73,7 +73,7 @@ code {
 .efficiency-table .MuiButton-outlinedPrimary .MuiButton-label,
 .efficiency-table .MuiButton-containedPrimary .MuiButton-label,
 .efficiency-table .MuiButton-outlinedSecondary .MuiButton-label,
-.efficiency-table .MuiButton-containedSecondary .MuiButton-label  {
+.efficiency-table .MuiButton-containedSecondary .MuiButton-label {
   opacity: 1;
 }
 
@@ -91,5 +91,17 @@ code {
 
   .efficiency-table button[title="Export"] {
     display: none;
+  }
+
+  .mobile-hide {
+    display: none;
+  }
+
+  .settings-list .MuiFormControlLabel-label {
+    font-size: 0.85rem;
+  }
+  
+  .settings-list .MuiFormControlLabel-root {
+    margin-right: 0;
   }
 }

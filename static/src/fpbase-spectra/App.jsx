@@ -8,6 +8,8 @@ import WelcomeModal from "./Components/WelcomeModal"
 import { useCachedQuery } from "./useCachedQuery"
 import MyAppBar from "./Components/MyAppBar"
 import "./polyfills"
+import useKeyboardShortcuts from "./Components/useKeyboardShortcuts"
+
 
 const daysSinceLaunch = Math.round(
   (new Date(2019, 6, 1) - Date.now()) / (1000 * 60 * 60 * 24)
@@ -35,6 +37,7 @@ const App = () => {
   const openHelp = useCallback(() => setHelpOpen(true), [setHelpOpen])
   const closeHelp = useCallback(() => setHelpOpen(false), [setHelpOpen])
   
+  useKeyboardShortcuts()
   return (
     <>
       <SpectraViewer ownerInfo={ownerInfo} />

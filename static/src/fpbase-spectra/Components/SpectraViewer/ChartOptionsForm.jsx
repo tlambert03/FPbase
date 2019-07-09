@@ -25,45 +25,45 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
   } = useQuery(GET_CHART_OPTIONS)
 
   return (
-    <List dense>
+    <List dense className={"settings-list"}>
       <Grid container spacing={3}>
         <Grid item sm={12} md={6} style={{ margin: 0, padding: 0 }}>
           <ListCheckbox
             onCheckItem={toggleY}
             checked={chartOptions.showY}
-            name="Show Y Axis"
+            name={<span>Show Y Axis<span className="mobile-hide small text-muted ml-3">(Y key)</span></span>}
           />
           <ListCheckbox
             onCheckItem={toggleX}
             checked={chartOptions.showX}
-            name="Show X Axis"
+            name={<span>Show X Axis<span className="mobile-hide small text-muted ml-3">(X key)</span></span>}
           />
           <ListCheckbox
             onCheckItem={toggleGrid}
             checked={chartOptions.showGrid}
-            name="Show Grid"
+            name={<span>Show Grid<span className="mobile-hide small text-muted ml-3">(G key)</span></span>}
           />
           <ListCheckbox
             onCheckItem={toggleAreaFill}
             checked={chartOptions.areaFill}
-            name="Fill area under curves"
+            name={<span>Fill area under curves<span className="mobile-hide small text-muted ml-3">(A key)</span></span>}
           />
         </Grid>
         <Grid item sm={12} md={6} style={{ margin: 0, padding: 0 }}>
           <ListCheckbox
             onCheckItem={toggleScaleEC}
             checked={chartOptions.scaleEC}
-            name="Scale Excitation to Extinction Coefficient"
+            name={<span>Scale Excitation to Extinction Coefficient<span className="mobile-hide small text-muted ml-3">(E key)</span></span>}
           />
           <ListCheckbox
             onCheckItem={toggleScaleQY}
             checked={chartOptions.scaleQY}
-            name="Scale Emission to Quantum Yield"
+            name={<span>Scale Emission to Quantum Yield<span className="mobile-hide small text-muted ml-3">(Q key)</span></span>}
           />
           <ListCheckbox
             onCheckItem={toggleShareTooltip}
             checked={chartOptions.shareTooltip}
-            name="Show Y value for all spectra on hover"
+            name={<span>Show Y value for all spectra on chart hover<span className="mobile-hide small text-muted ml-3">(T key)</span></span>}
           />
         </Grid>
       </Grid>
