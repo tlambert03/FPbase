@@ -79,6 +79,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
           e.userMin && Math.round(e.min),
           e.userMax && Math.round(e.max)
         ]
+        // this seems to be causing a bug with the inputs
         mutateExtremes({ variables: { extremes } })
         forceUpdate(counter++)
       }
@@ -147,6 +148,13 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
     if (e.key === "Enter") {
       updateRange()
       e.target.select()
+    } else {
+      if (e.target.name === 'min'){
+        minNode.current.value = e.target.value
+      }
+      if (e.target.name === 'max'){
+        maxNode.current.value = e.target.value
+      }
     }
   }
 
