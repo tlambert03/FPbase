@@ -15,6 +15,7 @@
   "private": true,
   "dependencies": {
     "@apollo/react-hooks": "^0.1.0-beta.10",
+    "@date-io/date-fns": "^1.3.8",
     "@fortawesome/fontawesome-svg-core": "^1.2.19",
     "@fortawesome/free-brands-svg-icons": "^5.9.0",
     "@fortawesome/free-regular-svg-icons": "^5.9.0",
@@ -35,6 +36,7 @@
     "clipboard": "^2.0.4",
     "core-js": "^3.1.4",
     "d3": "3.5.17",
+    "date-fns": "^2.0.0-alpha.27",
     "graphql": "^14.4.1",
     "graphql-tag": "^2.10.1",
     "highcharts": "^7.1.2",
@@ -47,6 +49,7 @@
     "nvd3": "^1.8.6",
     "progressbar.js": "^1.0.1",
     "prop-types": "^15.7.2",
+    "qs": "^6.7.0",
     "react": "^16.8.6",
     "react-bootstrap": "^1.0.0-beta.9",
     "react-dom": "^16.8.6",
@@ -68,7 +71,7 @@
     "@sentry/webpack-plugin": "^1.6.2",
     "@welldone-software/why-did-you-render": "^3.2.1",
     "autoprefixer": "^9.6.0",
-    "babel-eslint": "^9.0.0",
+    "babel-eslint": "^10.0.2",
     "babel-loader": "^8.0.6",
     "babel-plugin-transform-imports": "^1.5.1",
     "bootstrap": "^4.3.1",
@@ -83,12 +86,13 @@
     "cssnano": "^4.1.10",
     "dotenv-webpack": "^1.7.0",
     "eslint": "^5.16.0",
-    "eslint-config-react-app": "^4.0.1",
-    "eslint-plugin-flowtype": "^2.50.3",
+    "eslint-config-airbnb": "^17.1.1",
+    "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-import": "^2.18.0",
-    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.0",
     "eslint-plugin-react": "^7.14.2",
-    "eslint-plugin-react-hooks": "^1.5.0",
+    "eslint-plugin-react-hooks": "^1.6.1",
     "favicons": "^5.4.1",
     "favicons-webpack-plugin": "0.0.9",
     "file-loader": "^4.0.0",
@@ -98,7 +102,7 @@
     "install": "^0.12.2",
     "mini-css-extract-plugin": "^0.7.0",
     "node-sass": "^4.12.0",
-    "npm": "^6.9.0",
+    "npm": "^6.10.0",
     "optimize-css-assets-webpack-plugin": "^5.0.3",
     "postcss-loader": "^3.0.0",
     "prettier": "^1.18.2",
@@ -117,13 +121,20 @@
   "scripts": {
     "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
     "build": "NODE_ENV=production webpack --mode production",
-    "heroku-postbuild": "NODE_ENV=production webpack --mode production",
-    "black": "black --exclude \"/migrations/\" favit fpbase fpseq proteins references"
+    "heroku-postbuild": "NODE_ENV=production webpack --mode production"
   },
-  "browserslist": [
-    "last 1 version",
-    "> 0.5% in my stats",
-    "maintained node versions",
-    "not dead"
-  ]
+  "browserslist": {
+    "production": [
+      "last 1 version",
+      "> 0.2% in my stats",
+      "maintained node versions",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }
