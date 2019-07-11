@@ -9,22 +9,23 @@ import {
   Legend,
   Tooltip,
   provideAxis,
-  Chart /* etc... */
+  Chart /* etc... */,
+  XAxis
 } from "react-jsx-highcharts"
-import XRangePickers from "./XRangePickers"
-import { XAxis } from "react-jsx-highcharts"
-import SpectrumSeries from "./SpectrumSeries"
 import applyExporting from "highcharts/modules/exporting"
 import applyPatterns from "highcharts/modules/pattern-fill"
 import applyExportingData from "highcharts/modules/export-data"
 import addBoostModule from "highcharts/modules/boost"
+import update from "immutability-helper"
+import gql from "graphql-tag"
+import XRangePickers from "./XRangePickers"
+
+import SpectrumSeries from "./SpectrumSeries"
 import fixLogScale from "./fixLogScale"
 import DEFAULT_OPTIONS from "./ChartOptions"
-import update from "immutability-helper"
 import NoData from "./NoData"
 import useWindowWidth from "../useWindowWidth"
 import useSpectraData from "../useSpectraData"
-import gql from "graphql-tag"
 
 applyExporting(Highcharts)
 applyExportingData(Highcharts)
@@ -47,16 +48,16 @@ const calcHeight = width => {
 //   return -1
 // }
 
-let {
-  plotOptions,
-  xAxis,
-  yAxis,
-  chart,
-  navigation,
-  exporting,
-  legend,
-  tooltip,
-  boost
+const {
+  plotOptions: _plotOptions,
+  xAxis: _xAxis,
+  yAxis: _yAxis,
+  chart: _chart,
+  navigation: _navigation,
+  exporting: _exporting,
+  legend: _legend,
+  tooltip: _tooltip,
+  boost: _boost
 } = DEFAULT_OPTIONS
 
 const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
@@ -84,16 +85,19 @@ const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
     }
   `)
 
-  yAxis = update(yAxis, {
+  const yAxis = update(_yAxis, {
     labels: { enabled: { $set: chartOptions.showY || chartOptions.logScale } },
     gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 }
   })
 
-  xAxis = update(xAxis, {
+  const xAxis = update(_xAxis, {
     labels: { enabled: { $set: chartOptions.showX } },
     gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 }
   })
-  tooltip.shared = chartOptions.shareTooltip
+
+  const tooltip = update(_tooltip, {
+    shared: { $set: chartOptions.shareTooltip }
+  })
 
   const data = useSpectraData()
 
@@ -122,15 +126,16 @@ const SpectraViewer = memo(function SpectraViewer({
   const windowWidth = useWindowWidth()
   let height = calcHeight(windowWidth)
 
-  const _chart = Highcharts.charts[0]
+  const hChart = Highcharts.charts[0]
   let legendHeight
-  if (_chart) {
+  if (hChart) {
     legendHeight = Highcharts.charts[0].legend.legendHeight || 0
     height += legendHeight
   }
 
   const numSpectra = data.length
-  const exData = data.filter(i => i.subtype === "EX")
+  const exData = data.filter(i => i.subtype === "EX" || i.subtype === "AB")
+  const nonExData = data.filter(i => i.subtype !== "EX" && i.subtype !== "AB")
   return (
     <div className="spectra-viewer" style={{ position: "relative" }}>
       <span
@@ -155,13 +160,13 @@ const SpectraViewer = memo(function SpectraViewer({
         qyNorm={chartOptions.scaleQY}
       />
       <HighchartsChart
-        plotOptions={plotOptions}
-        navigation={navigation}
-        exporting={exporting}
-        boost={boost}
+        plotOptions={_plotOptions}
+        navigation={_navigation}
+        exporting={_exporting}
+        boost={_boost}
       >
-        <Chart {...chart} height={height} />
-        <Legend {...legend} />
+        <Chart {..._chart} height={height} />
+        <Legend {..._legend} />
         <Tooltip {...tooltip} />
         <YAxis
           id="yAx1"
@@ -176,17 +181,15 @@ const SpectraViewer = memo(function SpectraViewer({
             enabled: yAxis.labels.enabled && numSpectra > 0
           }}
         >
-          {data
-            .filter(i => i.subtype !== "EX")
-            .map(spectrum => (
-              <SpectrumSeries
-                exNorm={exNorm}
-                spectrum={spectrum}
-                key={spectrum.id}
-                ownerInfo={ownerInfo}
-                {...chartOptions}
-              />
-            ))}
+          {nonExData.map(spectrum => (
+            <SpectrumSeries
+              exNorm={exNorm}
+              spectrum={spectrum}
+              key={spectrum.id}
+              ownerInfo={ownerInfo}
+              {...chartOptions}
+            />
+          ))}
         </YAxis>
         <YAxis
           id="yAx2"
@@ -238,10 +241,10 @@ const MyCredits = provideAxis(function MyCredits({
         position: { y: -25 - yShift, x: -25 - axis.object.axisTitleMargin }
       })
     }
-    const Highcharts = getHighcharts()
-    Highcharts.addEvent(axis.object.chart, "redraw", shiftCredits)
+    const hChart = getHighcharts()
+    hChart.addEvent(axis.object.chart, "redraw", shiftCredits)
     shiftCredits()
-  }, []) // eslint-disable-line
+  }, []); // eslint-disable-line
 
   return (
     <Credits
@@ -277,8 +280,8 @@ const ExNormNotice = memo(function ExNormNotice({
   qyNorm,
   ownerInfo
 }) {
-  const exNormed = (ecNorm) && (Object.keys(ownerInfo).length > 0)
-  const emNormed = (exNorm || qyNorm) && (Object.keys(ownerInfo).length > 0)
+  const exNormed = ecNorm && Object.keys(ownerInfo).length > 0
+  const emNormed = (exNorm || qyNorm) && Object.keys(ownerInfo).length > 0
   return (
     <div
       style={{
@@ -292,9 +295,9 @@ const ExNormNotice = memo(function ExNormNotice({
         height: 0
       }}
     >
-      {exNormed ? `EX NORMED TO EXT COEFF ${emNormed ? " & ": ""}`: "" }
-      {emNormed && "EM NORMED TO " }
-      {exNorm ? `${exNorm} EX${qyNorm ? " & ": ""}` : ""}
+      {exNormed ? `EX NORMED TO EXT COEFF ${emNormed ? " & " : ""}` : ""}
+      {emNormed && "EM NORMED TO "}
+      {exNorm ? `${exNorm} EX${qyNorm ? " & " : ""}` : ""}
       {qyNorm && "QY"}
     </div>
   )

@@ -1,8 +1,8 @@
 import React, { memo, useEffect, useState } from "react"
 import { Series } from "react-jsx-highcharts"
 import { useApolloClient } from "@apollo/react-hooks"
-import { GET_SPECTRUM } from "../../client/queries"
 import { List } from "immutable"
+import { GET_SPECTRUM } from "../../client/queries"
 
 const OD = num => (num <= 0 ? 10 : -Math.log10(num))
 
@@ -55,8 +55,8 @@ class ErrorBoundary extends React.Component {
     //   // You can render any custom fallback UI
     //   return this.props.children
     // }
-
-    return this.props.children
+    const { children } = this.props
+    return children
   }
 }
 
@@ -84,9 +84,8 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
             })
             const exEfficiency = exData.find(([x]) => x === exNorm)
             if (exEfficiency) {
-              scalar = exEfficiency[1]
+              [, scalar] = exEfficiency
             }
-          } else {
           }
         }
         setSerie(List([...spectrum.data].map(([a, b]) => [a, b * scalar])))
@@ -121,9 +120,11 @@ const SpectrumSeries = memo(function SpectrumSeries({
   ownerInfo
 }) {
   let serie = useExNormedData({ exNorm, spectrum, ownerInfo })
-  if (!spectrum) return
+  if (!spectrum) return null
   const willScaleEC = Boolean(
-    spectrum.subtype === "EX" && scaleEC && spectrum.owner.extCoeff
+    (spectrum.subtype === "EX" || spectrum.subtype === "AB") &&
+      scaleEC &&
+      spectrum.owner.extCoeff
   )
   const willScaleQY = Boolean(
     (spectrum.subtype === "EM" || spectrum.subtype === "O") &&
