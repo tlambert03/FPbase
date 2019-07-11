@@ -14,24 +14,24 @@ const hex2rgba = (hex, alpha = 1) => {
 const CROSS_HATCH = {
   pattern: {
     path: {
-      d: ["M 5,5 L 10,10", "M 5,5 L 0,10", "M 5,5 L 10,0", "M 5,5 L 0,0"]
+      d: ["M 5,5 L 10,10", "M 5,5 L 0,10", "M 5,5 L 10,0", "M 5,5 L 0,0"],
     },
     width: 10,
     height: 10,
     color: "#ddd",
-    opacity: 0.4
-  }
+    opacity: 0.4,
+  },
 }
 
 const VERT_LINES = {
   pattern: {
     path: {
-      d: ["M 2,10 L 2,0"]
+      d: ["M 2,10 L 2,0"],
     },
     width: 3,
     height: 10,
-    opacity: 0.2
-  }
+    opacity: 0.2,
+  },
 }
 
 class ErrorBoundary extends React.Component {
@@ -55,8 +55,8 @@ class ErrorBoundary extends React.Component {
     //   // You can render any custom fallback UI
     //   return this.props.children
     // }
-    const { children } = this.props
-    return children
+
+    return this.props.children
   }
 }
 
@@ -76,15 +76,15 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
           if (exSpectrum) {
             const {
               data: {
-                spectrum: { data: exData }
-              }
+                spectrum: { data: exData },
+              },
             } = await client.query({
               query: GET_SPECTRUM,
-              variables: { id: exSpectrum.id }
+              variables: { id: exSpectrum.id },
             })
             const exEfficiency = exData.find(([x]) => x === exNorm)
             if (exEfficiency) {
-              [, scalar] = exEfficiency
+              ;[, scalar] = exEfficiency
             }
           }
         }
@@ -103,7 +103,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
     ownerInfo,
     spectrum.data,
     spectrum.owner.slug,
-    spectrum.subtype
+    spectrum.subtype,
   ])
 
   return serie
@@ -117,14 +117,12 @@ const SpectrumSeries = memo(function SpectrumSeries({
   spectrum,
   areaFill,
   exNorm,
-  ownerInfo
+  ownerInfo,
 }) {
   let serie = useExNormedData({ exNorm, spectrum, ownerInfo })
   if (!spectrum) return null
   const willScaleEC = Boolean(
-    (spectrum.subtype === "EX" || spectrum.subtype === "AB") &&
-      scaleEC &&
-      spectrum.owner.extCoeff
+    spectrum.subtype === "EX" && scaleEC && spectrum.owner.extCoeff
   )
   const willScaleQY = Boolean(
     (spectrum.subtype === "EM" || spectrum.subtype === "O") &&

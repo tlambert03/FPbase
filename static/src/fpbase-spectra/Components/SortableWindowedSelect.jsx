@@ -1,9 +1,8 @@
 import React, { useEffect } from "react"
-import { categoryIcon } from "./FaIcon"
 import Select, { components } from "react-select"
 import { WindowedMenuList } from "react-windowed-select"
 import PropTypes from "prop-types"
-
+import { categoryIcon } from "./FaIcon"
 
 const filterOptions = (query, label) => {
   const words = query.toLowerCase().split(" ")
@@ -32,7 +31,7 @@ const OptionWithIcon = props => {
 
   myProps.children = (
     <>
-      {categoryIcon(props.data.category, "#aaa")}
+      {categoryIcon(myProps.data.category, "#aaa")}
       {myProps.children}
     </>
   )
@@ -44,7 +43,7 @@ OptionWithIcon.propTypes = {
   innerProps: PropTypes.object,
   innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
   isFocused: PropTypes.bool,
-  isSelected: PropTypes.bool
+  isSelected: PropTypes.bool,
 }
 
 const emptyFilter = () => true
@@ -95,7 +94,7 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
     () => ({
       ...components,
       ...(showIcon ? { Option: OptionWithIcon } : {}),
-      ...{ MenuList: WindowedMenuList }
+      ...{ MenuList: WindowedMenuList },
     }),
     [components, showIcon]
   )
@@ -111,7 +110,13 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
         components={memoizedComponents}
       />
     ),
-    [dynamicOptions, handleInputChange, inputValue, memoizedComponents, otherprops]
+    [
+      dynamicOptions,
+      handleInputChange,
+      inputValue,
+      memoizedComponents,
+      otherprops,
+    ]
   )
   return component
 })
@@ -119,11 +124,11 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
 SortableWindowedSelect.propTypes = {
   showIcon: PropTypes.bool,
   components: PropTypes.object,
-  options: PropTypes.array
+  options: PropTypes.array,
 }
 
 SortableWindowedSelect.defaultProps = {
-  showIcon: false
+  showIcon: false,
 }
 
 export default SortableWindowedSelect

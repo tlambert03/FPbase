@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useMemo } from "react"
-import PropTypes from "prop-types"
 import Tabs from "@material-ui/core/Tabs"
 import Tab from "@material-ui/core/Tab"
 import { makeStyles } from "@material-ui/core/styles"
 import { RingLoader } from "react-spinners"
 import { css } from "@emotion/core"
-import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 import { Typography } from "@material-ui/core"
+import { useQuery, useApolloClient } from "@apollo/react-hooks"
+import gql from "graphql-tag"
+import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 import CustomFilterGroup from "./CustomFilterGroup"
 import CustomLaserGroup from "./CustomLaserGroup"
-//import useSelectors from "./useSelectors"
-import { useQuery, useApolloClient } from "@apollo/react-hooks"
+// import useSelectors from "./useSelectors"
 import { NORMALIZE_CURRENT } from "../client/queries"
-import gql from "graphql-tag"
 import { isTouchDevice } from "../util"
 import EfficiencyTable from "./EfficiencyTable"
 import { categoryIcon } from "./FaIcon"
@@ -27,11 +26,11 @@ const override = css`
 
 const useStyles = makeStyles(theme => ({
   tabHeader: {
-    //marginBottom: 12,
-    //marginLeft: 60,
-    //paddingLeft: 0
+    // marginBottom: 12,
+    // marginLeft: 60,
+    // paddingLeft: 0
     whiteSpace: "nowrap",
-    minHeight: 52
+    minHeight: 52,
   },
   tabLabel: {
     marginTop: 0,
@@ -42,52 +41,52 @@ const useStyles = makeStyles(theme => ({
     [theme.breakpoints.down("xs")]: {
       fontSize: "0.7rem",
       paddingLeft: 5,
-      paddingRight: 5
+      paddingRight: 5,
     },
     [theme.breakpoints.up("sm")]: {
       fontSize: ".73rem",
       paddingLeft: "4%",
-      paddingRight: "4%"
+      paddingRight: "4%",
     },
     [theme.breakpoints.up("md")]: {
       fontSize: ".76rem",
       paddingLeft: 20,
-      paddingRight: 20
+      paddingRight: 20,
     },
     [theme.breakpoints.up("lg")]: {
       fontSize: ".9rem",
       paddingLeft: 60,
-      paddingRight: 60
-    }
+      paddingRight: 60,
+    },
   },
   bigShow: {
     [theme.breakpoints.down("sm")]: {
-      display: "none"
+      display: "none",
     },
     [theme.breakpoints.up("md")]: {
-      display: "block"
-    }
+      display: "block",
+    },
   },
   bigHide: {
     [theme.breakpoints.down("sm")]: {
       display: "block",
       marginRight: 13,
-      marginLeft: 13
+      marginLeft: 13,
     },
     [theme.breakpoints.down("xs")]: {
-      display: "block"
+      display: "block",
     },
     [theme.breakpoints.up("md")]: {
-      display: "none"
-    }
+      display: "none",
+    },
   },
   categoryHeader: {
     textTransform: "uppercase",
     fontSize: "small",
     color: "#3F51B5",
     marginTop: ".35rem",
-    marginBottom: "0.4rem"
-  }
+    marginBottom: "0.4rem",
+  },
 }))
 
 function selectorSorter(a, b) {
@@ -103,13 +102,13 @@ function selectorSorter(a, b) {
 
 const OwnersContainer = React.memo(function OwnersContainer({
   ownerInfo,
-  spectraInfo
+  spectraInfo,
 }) {
   const classes = useStyles()
   const [tab, setTab] = useState(0)
 
   const {
-    data: { activeSpectra, selectors }
+    data: { activeSpectra, selectors },
   } = useQuery(gql`
     {
       selectors @client
@@ -164,7 +163,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
     }
   }, [])
 
-  const isPopulated = (cat, activeSpectra) => {
+  const isPopulated = cat => {
     let populated =
       selectors.filter(({ owner, category }) => category === cat && owner)
         .length > 0
@@ -178,23 +177,25 @@ const OwnersContainer = React.memo(function OwnersContainer({
   }
 
   const smartLabel = (label, cats) => {
-    cats = cats ? cats.split("") : null
+    const _cats = cats ? cats.split("") : null
     let populated = false
     if (label === "All") {
       populated = Boolean(selectors.filter(i => i.owner).length)
     } else if (label !== "Efficiency") {
       if (activeSpectra.length > 0) {
-        populated = cats.some(c => isPopulated(c, activeSpectra))
+        populated = _cats.some(c => isPopulated(c))
       }
     }
     return (
       <span className={`tab-header ${populated ? " populated" : ""}`}>
         <span className={classes.bigShow}>
-          {label} {populated ? " ✶" : ""}
+          {label} 
+          {' '}
+          {populated ? " ✶" : ""}
         </span>
         <span className={classes.bigHide}>
-          {categoryIcon(cats && cats[cats.length - 1], "", {
-            style: { position: "relative", left: 0, height: "1.1rem" }
+          {categoryIcon(_cats && _cats[_cats.length - 1], "", {
+            style: { position: "relative", left: 0, height: "1.1rem" },
           })}
         </span>
       </span>
@@ -211,7 +212,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
         onChange={handleTabChange}
         indicatorColor="primary"
         textColor="primary"
-        centered={ISTOUCH ? false : true}
+        centered={!ISTOUCH}
         variant={ISTOUCH ? "scrollable" : "standard"}
         scrollButtons="on"
         className={classes.tabHeader}
@@ -252,10 +253,10 @@ const OwnersContainer = React.memo(function OwnersContainer({
         <div className="sweet-loading">
           <RingLoader
             css={override}
-            sizeUnit={"px"}
+            sizeUnit="px"
             size={100}
-            color={"#ccc"}
-            loading={true}
+            color="#ccc"
+            loading
           />
         </div>
       ) : (
@@ -342,13 +343,5 @@ const OwnersContainer = React.memo(function OwnersContainer({
     </div>
   )
 })
-
-OwnersContainer.propTypes = {
-  category: PropTypes.string
-}
-
-OwnersContainer.defaultProps = {
-  category: ""
-}
 
 export default OwnersContainer

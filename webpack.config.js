@@ -23,17 +23,17 @@ const styleRule = {
     {
       loader: "css-loader",
       options: {
-        sourceMap: true
-      }
+        sourceMap: true,
+      },
     },
     {
       loader: "postcss-loader",
       options: {
-        plugins: () => [autoprefixer(), CSSnano]
-      }
+        plugins: () => [autoprefixer(), CSSnano],
+      },
     },
-    "sass-loader"
-  ]
+    "sass-loader",
+  ],
 }
 
 const jsRule = {
@@ -47,69 +47,69 @@ const jsRule = {
           "@babel/preset-env",
           {
             useBuiltIns: "entry",
-            corejs: 3
-          }
+            corejs: 3,
+          },
         ],
-        "@babel/preset-react"
+        "@babel/preset-react",
       ],
-      plugins: ["@babel/plugin-syntax-dynamic-import"]
-    }
-  }
+      plugins: ["@babel/plugin-syntax-dynamic-import"],
+    },
+  },
 }
 
 const assetRule = {
   test: /.(jpg|png|woff(2)?|eot|ttf|svg)$/,
-  loader: "file-loader"
+  loader: "file-loader",
 }
 
 const plugins = [
   new webpack.ProgressPlugin(),
   new webpack.ProvidePlugin({
     $: "jquery",
-    jQuery: "jquery"
+    jQuery: "jquery",
   }),
   new webpack.IgnorePlugin(/vertx/),
   new BundleTracker({
-    filename: "./webpack-stats.json"
+    filename: "./webpack-stats.json",
   }),
   new MiniCssExtractPlugin({
     filename: "[name].[contenthash].css",
-    chunkFilename: "[id].[chunkhash].css"
+    chunkFilename: "[id].[chunkhash].css",
   }),
   new BundleAnalyzerPlugin({
     analyzerMode: "static",
-    openAnalyzer: false
+    openAnalyzer: false,
   }),
   new CleanWebpackPlugin(),
   new CopyWebpackPlugin([
     {
       from: "./static/src/images/**/*",
       to: path.resolve("./static/dist/images/[name].webp"),
-      toType: "template"
-    }
+      toType: "template",
+    },
   ]),
   new CopyWebpackPlugin([
     {
       from: "./static/src/js/sentry.*.js",
-      to: path.resolve("./static/dist/sentry.js")
-    }
+      to: path.resolve("./static/dist/sentry.js"),
+    },
   ]),
   new ImageminWebpackPlugin({
     test: /\.(webp)$/i,
     plugins: [
       ImageminWebP({
         quality: 90,
-        sharpness: 1
-      })
-    ]
+        sharpness: 1,
+      }),
+    ],
   }),
   new CopyWebpackPlugin([
     {
       from: "./static/src/images/**/*",
       to: path.resolve("./static/dist/images/[name].[ext]"),
-      toType: "template"
-    }
-  ])
+      toType: "template",
+    },
+  ]),
 ]
 
 if (devMode) {
@@ -124,7 +124,7 @@ if (devMode) {
       NODE_ENV: "development",
       SOURCE_VERSION: false,
       SENTRY_DSN: false,
-      SENTRY_AUTH_TOKEN: false
+      SENTRY_AUTH_TOKEN: false,
     })
   )
 
@@ -136,8 +136,8 @@ if (devMode) {
         ignore: [
           "node_modules",
           "webpack.config.js",
-          "static/src/js/pdb/LiteMol-plugin.js"
-        ]
+          "static/src/js/pdb/LiteMol-plugin.js",
+        ],
       })
     )
   }
@@ -150,35 +150,36 @@ module.exports = {
     embedscope: "./static/src/embedscope.js",
     litemol: "./static/src/my-litemol.js",
     spectraViewer: "./static/src/spectra-viewer.js",
-    blast: "./static/src/blast-app.js"
+    blast: "./static/src/blast-app.js",
   },
   output: {
     path: path.resolve("./static/dist/"),
     filename: devMode ? "[name].js" : "[name].[hash].js",
     publicPath: hotReload ? "http://localhost:8080/static/" : "/static/",
     // publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
-    chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js"
+    chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js",
   },
   resolve: {
     extensions: [".js", ".jsx"],
     alias: {
-      jquery: "jquery/src/jquery"
-    }
+      jquery: "jquery/src/jquery",
+    },
   },
   devtool: devMode ? "cheap-module-eval-source-map" : "source-map",
   devServer: {
     hot: true,
+    overlay: true,
     quiet: false,
     port: 8080,
     headers: {
-      "Access-Control-Allow-Origin": "*"
-    }
+      "Access-Control-Allow-Origin": "*",
+    },
   },
   module: {
-    rules: [jsRule, styleRule, assetRule]
+    rules: [jsRule, styleRule, assetRule],
   },
   externals: {
-    Sentry: "Sentry"
+    Sentry: "Sentry",
   },
   plugins,
   optimization: {
@@ -192,16 +193,16 @@ module.exports = {
     // ],
     minimizer: [
       new TerserJSPlugin({ cache: true, parallel: true, sourceMap: true }),
-      new OptimizeCSSAssetsPlugin({})
+      new OptimizeCSSAssetsPlugin({}),
     ],
     splitChunks: {
       cacheGroups: {
         commons: {
           test: /[\\/]node_modules[\\/]/,
           name: "vendor",
-          chunks: "initial"
-        }
-      }
-    }
-  }
+          chunks: "initial",
+        },
+      },
+    },
+  },
 }

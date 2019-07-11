@@ -2,23 +2,23 @@ import React, { useEffect } from "react"
 import Box from "@material-ui/core/Box"
 import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 import { useApolloClient } from "@apollo/react-hooks"
 import Typography from "@material-ui/core/Typography"
-import InputSlider from "./InputSlider"
 import { makeStyles } from "@material-ui/core/styles"
+import InputSlider from "./InputSlider"
+import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 export const useStyles = makeStyles({
   label: {
     fontSize: "small",
-    color: "#444"
-  }
+    color: "#444",
+  },
 })
 
 const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
   const classes = useStyles()
 
-  let [filterID, _type, _center, _width, _trans] = id.split("_")
+  const [filterID, _type, _center, _width, _trans] = id.split("_")
   const [type, setType] = React.useState((_type || "").toUpperCase() || "BP")
   const [center, setCenter] = React.useState(_center || 525)
   const [width, setWidth] = React.useState(_width || 50)
@@ -30,8 +30,8 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
       mutation: UPDATE_ACTIVE_SPECTRA,
       variables: {
         add: [`${filterID}_${type}_${center}_${width}_${trans}`],
-        remove: [filterID]
-      }
+        remove: [filterID],
+      },
     })
   }, [width, center, type, trans, filterID, client])
 
@@ -46,7 +46,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
       style={{
         padding: "10px 10px 0px 10px",
         border: "1px solid #ccc",
-        borderRadius: 4
+        borderRadius: 4,
       }}
     >
       <Box display="flex" flexWrap="wrap">
@@ -83,7 +83,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
             <div
               style={{
                 margin: "0 10px",
-                minWidth: 150
+                minWidth: 150,
               }}
             >
               <Typography className={classes.label}>Bandwidth</Typography>
@@ -102,7 +102,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
           <div
             style={{
               margin: "0 10px",
-              minWidth: 160
+              minWidth: 160,
             }}
           >
             <Typography className={classes.label}>Transmission %</Typography>

@@ -5,7 +5,7 @@ import { GET_ACTIVE_SPECTRA, SET_ACTIVE_SPECTRA } from "../client/queries"
 const CurrentSpectraInput = () => {
   const {
     loading,
-    data: { activeSpectra }
+    data: { activeSpectra },
   } = useQuery(GET_ACTIVE_SPECTRA)
   const [updateSpectra] = useMutation(SET_ACTIVE_SPECTRA)
   const [value, setValue] = useState("")
@@ -23,18 +23,18 @@ const CurrentSpectraInput = () => {
       .filter(i => i)
     updateSpectra({
       variables: {
-        activeSpectra: newVal
+        activeSpectra: newVal,
       },
       update: (
         cache,
         {
           data: {
-            setActiveSpectra: { activeSpectra }
-          }
+            setActiveSpectra: { activeSpectra },
+          },
         }
       ) => {
         setValue(activeSpectra.join(", "))
-      }
+      },
     })
   }
   const handleChange = e => {

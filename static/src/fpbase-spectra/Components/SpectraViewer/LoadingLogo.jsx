@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 
 const LoadingLogo = () => (
   <div
@@ -6,7 +6,7 @@ const LoadingLogo = () => (
       position: "relative",
       width: "100%",
       margin: "auto",
-      textAlign: "center"
+      textAlign: "center",
     }}
   >
     <span
@@ -15,7 +15,7 @@ const LoadingLogo = () => (
         left: "34%",
         position: "absolute",
         fontSize: "4.6rem",
-        color: "#ccc"
+        color: "#ccc",
       }}
     >
       loading...
@@ -71,6 +71,6 @@ const LoadingLogo = () => (
       />
     </svg>
   </div>
-);
+)
 
-export default LoadingLogo;
+export default LoadingLogo

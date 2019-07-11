@@ -1,13 +1,13 @@
 import gql from "graphql-tag"
+import update from "immutability-helper"
 import {
   GET_ACTIVE_SPECTRA,
   GET_EX_NORM,
   GET_SELECTORS,
   ADD_SELECTORS,
   batchSpectra,
-  GET_ACTIVE_OVERLAPS
+  GET_ACTIVE_OVERLAPS,
 } from "./queries"
-import update from "immutability-helper"
 import { trapz, spectraProduct } from "../util"
 
 export const defaults = {
@@ -23,11 +23,11 @@ export const defaults = {
     shareTooltip: true,
     areaFill: true,
     extremes: [undefined, undefined],
-    __typename: "chartOptions"
+    __typename: "chartOptions",
   },
   exNorm: [null, null], // [normWave, normID]
   excludeSubtypes: ["2P"],
-  selectors: []
+  selectors: [],
 }
 
 function toggleChartOption(cache, key) {
@@ -38,7 +38,7 @@ function toggleChartOption(cache, key) {
           ${key}
         }
       }
-    `
+    `,
   })
   const data = { ...current }
   data.chartOptions[key] = !current.chartOptions[key]
@@ -69,27 +69,41 @@ function activeSpectraToSelectors(
   const newOwners = activeSpectra
     .map(id => spectraInfo[id] && spectraInfo[id].owner)
     .filter(owner => owner && !currentOwners.includes(owner))
-  let toAdd = [...new Set(newOwners)].map(owner => ({
+  const toAdd = [...new Set(newOwners)].map(owner => ({
     owner,
-    category: ownerInfo[owner].category
+    category: ownerInfo[owner].category,
   }))
   Array.from(["D", "P", "L", "C", "F", null]).forEach(cat => {
     if (!selectors.find(item => item.category === cat && !item.owner)) {
       toAdd.push({
         owner: null,
-        category: cat
+        category: cat,
       })
     }
   })
   return toAdd
 }
 
+const isValidId = id => {
+  if (!id) return false
+  if (!Number.isNaN(parseFloat(id))) return true
+  if (typeof id === "string") {
+    if (id.startsWith("$cl") || id.startsWith("$cf")) {
+      return true
+    }
+    return id.split("_").every(i => isValidId(i))
+  }
+  return false
+}
+
+const validSpectraIds = spectra => spectra.filter(id => isValidId(id))
+
 export const resolvers = {
   Query: {
     overlap: async (_root, { ids }, { client }) => {
       const idString = ids.sort((a, b) => a - b).join("_")
-      let { data } = await client.query({
-        query: batchSpectra(ids)
+      const { data } = await client.query({
+        query: batchSpectra(ids),
       })
       const dataArray = ids.map(id => data[`spectrum_${id}`].data)
       const name = ids.map(id => data[`spectrum_${id}`].owner.name).join(" & ")
@@ -106,14 +120,14 @@ export const resolvers = {
         subtype: "O",
         color: "#000000",
         owner: { id: ownerID, name, __typename: "Owner" },
-        __typename: "Spectrum"
+        __typename: "Spectrum",
       }
-    }
+    },
   },
   Spectrum: {
     area: (spectrum, obj, cli) => {
       return trapz(spectrum.data)
-    }
+    },
   },
   Mutation: {
     toggleYAxis: (_root, variables, { cache }) => {
@@ -150,7 +164,7 @@ export const resolvers = {
             }
           }
         `,
-        data
+        data,
       })
       return data
     },
@@ -163,10 +177,10 @@ export const resolvers = {
     },
     setActiveSpectra: async (_, { activeSpectra }, { cache, client }) => {
       const filtered = [...new Set(activeSpectra)]
-        //.filter(id => Boolean(spectrumFrag(cache, id)))
+        // .filter(id => Boolean(spectrumFrag(cache, id)))
         .map(i => String(i))
       const data = {
-        activeSpectra: validSpectraIds(filtered)
+        activeSpectra: validSpectraIds(filtered),
       }
       await client.writeQuery({ query: GET_ACTIVE_SPECTRA, data })
       return data
@@ -177,7 +191,8 @@ export const resolvers = {
         if (id.startsWith("$cf") && remove) {
           const _id = id.split("_")[0]
           return !(remove.findIndex(item => item.startsWith(_id)) > -1)
-        } else if (id.startsWith("$cl") && remove) {
+        }
+        if (id.startsWith("$cl") && remove) {
           const _id = id.split("_")[0]
           return !(remove.findIndex(item => item.startsWith(_id)) > -1)
         }
@@ -186,8 +201,8 @@ export const resolvers = {
       const toAdd = (add || []).filter(id => id).map(id => String(id))
       const data = {
         activeSpectra: validSpectraIds([
-          ...new Set([...activeSpectra, ...toAdd])
-        ])
+          ...new Set([...activeSpectra, ...toAdd]),
+        ]),
       }
       await client.writeQuery({ query: GET_ACTIVE_SPECTRA, data })
       // client.mutate({
@@ -201,20 +216,20 @@ export const resolvers = {
       const toAdd = (add || []).filter(id => id)
       const data = {
         activeOverlaps: validSpectraIds([
-          ...new Set([...activeOverlaps, ...toAdd])
-        ])
+          ...new Set([...activeOverlaps, ...toAdd]),
+        ]),
       }
       await client.writeQuery({ query: GET_ACTIVE_OVERLAPS, data })
       return data
     },
     normalizeCurrent: (_, args, { cache, client }) => {
-      let { activeSpectra, selectors: currentSelectors } = cache.readQuery({
+      const { activeSpectra, selectors: currentSelectors } = cache.readQuery({
         query: gql`
           {
             activeSpectra @client
             selectors @client
           }
-        `
+        `,
       })
       const selectors = activeSpectraToSelectors(
         activeSpectra,
@@ -225,46 +240,48 @@ export const resolvers = {
       if (selectors.length > 0) {
         client.mutate({
           mutation: ADD_SELECTORS,
-          variables: { selectors }
+          variables: { selectors },
         })
       }
       return [currentSelectors, selectors]
     },
     addSelectors: (_, { selectors }, { cache, client }) => {
-      let { selectors: currentSelectors } = cache.readQuery({
-        query: GET_SELECTORS
+      const { selectors: currentSelectors } = cache.readQuery({
+        query: GET_SELECTORS,
       })
       let selectorIDs = currentSelectors.reduce(
         (acc, next) => Math.max(acc, next.id),
         0
       )
-      selectors = selectors.map(sel => {
+      const newSelectors = selectors.map(sel => {
         sel.id = ++selectorIDs
         return sel
       })
-      const data = { selectors: update(currentSelectors, { $push: selectors }) }
+      const data = {
+        selectors: update(currentSelectors, { $push: newSelectors }),
+      }
       client.writeQuery({ query: GET_SELECTORS, data })
     },
     updateSelector: (_, { selector }, { cache, client }) => {
-      let { selectors } = cache.readQuery({ query: GET_SELECTORS })
+      const { selectors } = cache.readQuery({ query: GET_SELECTORS })
       const index = selectors.findIndex(item => item.id === selector.id)
       let data
       if (selector.owner) {
         data = {
-          selectors: update(selectors, { [index]: { $set: selector } })
+          selectors: update(selectors, { [index]: { $set: selector } }),
         }
       } else {
         data = {
-          selectors: update(selectors, { $splice: [[index, 1]] })
+          selectors: update(selectors, { $splice: [[index, 1]] }),
         }
       }
       client.writeQuery({ query: GET_SELECTORS, data })
     },
     removeSelector: (_, { id }, { cache, client }) => {
-      let { selectors } = cache.readQuery({ query: GET_SELECTORS })
+      const { selectors } = cache.readQuery({ query: GET_SELECTORS })
       const index = selectors.findIndex(selector => selector.id === id)
       const data = {
-        selectors: update(selectors, { $splice: [[index, 1]] })
+        selectors: update(selectors, { $splice: [[index, 1]] }),
       }
       client.writeQuery({ query: GET_SELECTORS, data })
     },
@@ -285,27 +302,12 @@ export const resolvers = {
           selectors: [],
           activeOverlaps: [],
           activeSpectra: [
-            ...new Set([...keepSpectra, ...(appendSpectra || [])])
-          ]
-        }
+            ...new Set([...keepSpectra, ...(appendSpectra || [])]),
+          ],
+        },
       })
-    }
-  }
+    },
+  },
 }
-
-const isValidId = id => {
-  if (!id) return false
-  if (!isNaN(id)) return true
-  if (typeof id === "string") {
-    if (id.startsWith("$cl") || id.startsWith("$cf")) {
-      return true
-    } else {
-      return id.split("_").every(i => isValidId(i))
-    }
-  }
-  return false
-}
-
-const validSpectraIds = spectra => spectra.filter(id => isValidId(id))
 
 export { validSpectraIds }

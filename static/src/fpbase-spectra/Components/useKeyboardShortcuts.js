@@ -64,7 +64,15 @@ const useKeyboardShortcuts = () => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
     }
-  }, [toggleAreaFill, toggleGrid, toggleScaleEC, toggleScaleQY, toggleShareTooltip, toggleX, toggleY])
+  }, [
+    toggleAreaFill,
+    toggleGrid,
+    toggleScaleEC,
+    toggleScaleQY,
+    toggleShareTooltip,
+    toggleX,
+    toggleY,
+  ])
 }
 
 export default useKeyboardShortcuts

@@ -3,12 +3,12 @@ import Box from "@material-ui/core/Box"
 import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
 import { makeStyles, Typography } from "@material-ui/core"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries";
-import { useMutation } from "@apollo/react-hooks";
+import { useMutation } from "@apollo/react-hooks"
+import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const useStyles = makeStyles(theme => ({
   toggleButton: {
-    height: "38px"
+    height: "38px",
     // [theme.breakpoints.down(960)]: {
     //   height: "34px"
     // },
@@ -16,9 +16,9 @@ const useStyles = makeStyles(theme => ({
   toggleButtonGroup: {
     marginLeft: "5px",
     [theme.breakpoints.down("xs")]: {
-      display: "none"
-    }
-  }
+      display: "none",
+    },
+  },
 }))
 
 // THIS IS NOT FINISHED
@@ -37,7 +37,14 @@ const SubtypeToggle = ({ subtypes }) => {
   return (
     <div style={{ width: "100%", marginTop: 6 }}>
       <Box display="flex" justifyContent="flex-end" align="center">
-        <Typography style={{ color: "#999", fontSize: "0.8rem", marginTop: 10, marginRight: 6 }}>
+        <Typography
+          style={{
+            color: "#999",
+            fontSize: "0.8rem",
+            marginTop: 10,
+            marginRight: 6,
+          }}
+        >
           TOGGLE ALL
         </Typography>
         <ToggleButtonGroup

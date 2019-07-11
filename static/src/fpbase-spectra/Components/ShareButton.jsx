@@ -11,12 +11,6 @@ import CloseIcon from "@material-ui/icons/Close"
 import Divider from "@material-ui/core/Divider"
 import ShareIcon from "@material-ui/icons/Share"
 import { useQuery } from "@apollo/react-hooks"
-import {
-  GET_ACTIVE_SPECTRA,
-  GET_CHART_OPTIONS,
-  GET_EX_NORM
-} from "../client/queries"
-import stateToUrl from "./stateToUrl"
 import TextField from "@material-ui/core/TextField"
 import Tooltip from "@material-ui/core/Tooltip"
 import InputAdornment from "@material-ui/core/InputAdornment"
@@ -26,19 +20,24 @@ import Dialog from "@material-ui/core/Dialog"
 import DialogTitle from "@material-ui/core/DialogTitle"
 import DialogContent from "@material-ui/core/DialogContent"
 import DialogActions from "@material-ui/core/DialogActions"
-import { FAIcon } from "./FaIcon"
 import { faEnvelope, faCopy } from "@fortawesome/free-solid-svg-icons"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons"
 import ClipboardJS from "clipboard"
 import { makeStyles } from "@material-ui/core/styles"
 import Zoom from "@material-ui/core/Zoom"
+import { FAIcon } from "./FaIcon"
+import stateToUrl from "./stateToUrl"
+import {
+  GET_ACTIVE_SPECTRA,
+  GET_CHART_OPTIONS,
+  GET_EX_NORM,
+} from "../client/queries"
 
 window.twttr = (function(d, s, id) {
-  var js,
-    fjs = d.getElementsByTagName(s)[0],
-    t = window.twttr || {}
+  const fjs = d.getElementsByTagName(s)[0]
+  const t = window.twttr || {}
   if (d.getElementById(id)) return t
-  js = d.createElement(s)
+  const js = d.createElement(s)
   js.id = id
   js.src = "https://platform.twitter.com/widgets.js"
   fjs.parentNode.insertBefore(js, fjs)
@@ -55,11 +54,11 @@ const useStyles = makeStyles(theme => ({
   textField: {
     flexBasis: 200,
     width: "98%",
-    margin: theme.spacing(1)
+    margin: theme.spacing(1),
   },
   listIcon: {
-    minWidth: 42
-  }
+    minWidth: 42,
+  },
 }))
 
 function ShareLinkAlert({ open, setOpen }) {
@@ -68,22 +67,29 @@ function ShareLinkAlert({ open, setOpen }) {
 
   const {
     loading: spectraLoading,
-    data: { activeSpectra }
+    data: { activeSpectra },
   } = useQuery(GET_ACTIVE_SPECTRA)
   const {
     loading: chartLoading,
-    data: { chartOptions }
+    data: { chartOptions },
   } = useQuery(GET_CHART_OPTIONS)
   const {
     loading: exNormLoading,
-    data: { exNorm }
+    data: { exNorm },
   } = useQuery(GET_EX_NORM)
 
   useEffect(() => {
     if (!spectraLoading && !chartLoading && !exNormLoading) {
       setQString(stateToUrl(activeSpectra, chartOptions, exNorm))
     }
-  }, [activeSpectra, spectraLoading, chartOptions, chartLoading, exNormLoading, exNorm])
+  }, [
+    activeSpectra,
+    spectraLoading,
+    chartOptions,
+    chartLoading,
+    exNormLoading,
+    exNorm,
+  ])
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 
@@ -96,7 +102,7 @@ function ShareLinkAlert({ open, setOpen }) {
     const cp = new ClipboardJS("#copy-button", {
       target: function(trigger) {
         return document.getElementById("qString-input")
-      }
+      },
     })
     cp.on("success", handleTooltipOpen)
     return () => {
@@ -112,7 +118,7 @@ function ShareLinkAlert({ open, setOpen }) {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
         fullWidth
-        maxWidth={"md"}
+        maxWidth="md"
       >
         <DialogTitle id="alert-dialog-title">
           You can use this URL to recreate the current graph:
@@ -122,7 +128,7 @@ function ShareLinkAlert({ open, setOpen }) {
             id="qString-input"
             className={classes.textField}
             variant="outlined"
-            type={"text"}
+            type="text"
             label="URL"
             value={qString}
             fullWidth
@@ -150,7 +156,7 @@ function ShareLinkAlert({ open, setOpen }) {
                     </IconButton>
                   </Tooltip>
                 </InputAdornment>
-              )
+              ),
             }}
           />
         </DialogContent>
@@ -204,7 +210,7 @@ const ShareButton = () => {
     } else {
       chart.exportChart({
         type: format,
-        filename: "FPbaseSpectra"
+        filename: "FPbaseSpectra",
       })
     }
     setAnchorEl(null)

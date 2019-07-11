@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react"
 import { makeStyles } from "@material-ui/core/styles"
-import useSpectralData from "./useSpectraData"
-import { trapz } from "../util"
 import { Typography } from "@material-ui/core"
 import MaterialTable from "material-table"
 import Export from "@material-ui/icons/SaveAlt"
@@ -16,15 +14,20 @@ import Shuffle from "@material-ui/icons/Shuffle"
 import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
 import Button from "@material-ui/core/Button"
 import gql from "graphql-tag"
+import { trapz } from "../util"
+import useSpectralData from "./useSpectraData"
 import { GET_ACTIVE_OVERLAPS } from "../client/queries"
 
 class ErrorBoundary extends React.Component {
-  componentDidCatch(error, info) {}
   static getDerivedStateFromError(error) {
     return { hasError: true }
   }
+
+  componentDidCatch(error, info) {}
+
   render() {
-    return this.props.children
+    const { children } = this.props
+    return children
   }
 }
 
@@ -36,7 +39,7 @@ const TABLE_ICONS = {
   LastPage,
   Search,
   ResetSearch,
-  Filter
+  Filter,
 }
 
 const TABLE_OPTIONS = {
@@ -44,29 +47,45 @@ const TABLE_OPTIONS = {
   paging: false,
   exportButton: true,
   exportAllData: true,
-  padding: "dense"
+  padding: "dense",
 }
 
 const useStyles = makeStyles(theme => ({
   table: {
     marginTop: "10px",
-    minWidth: 650
+    minWidth: 650,
   },
   description: {
-    padding: "8px 20px"
-  }
+    padding: "8px 20px",
+  },
 }))
 
 window.OverlapCache = {}
 
 function numStringSort(a, b) {
-  if (isNaN(a)) {
-    if (isNaN(b)) {
+  if (Number.isNaN(parseFloat(a))) {
+    if (Number.isNaN(parseFloat(b))) {
       return a - b
     }
     return -1
   }
   return a - b
+}
+
+function spectraProduct(ar1, ar2) {
+  // calculate product of two spectra.values
+  // these assume monotonic increase w/ step = 1
+  const output = []
+  const left = Math.max(ar1[0][0], ar2[0][0]) // the min wavelength shared by both arrays
+  const right = Math.min(ar1[ar1.length - 1][0], ar2[ar2.length - 1][0]) // the max wavelength shared by both arrays
+  if (left >= right) return []
+
+  const offsetA1 = left - ar1[0][0]
+  const offsetA2 = left - ar2[0][0]
+  for (let i = 0; i < right - left; i++) {
+    output.push([left + i, ar1[offsetA1 + i][1] * ar2[offsetA2 + i][1]])
+  }
+  return output
 }
 
 function getOverlap(...args) {
@@ -95,26 +114,10 @@ function getOverlap(...args) {
       category: "O",
       subtype: "O",
       color: "#000000",
-      owner: { id: ownerID, name: ownerName, qy, slug }
+      owner: { id: ownerID, name: ownerName, qy, slug },
     }
   }
   return window.OverlapCache[idString]
-}
-
-function spectraProduct(ar1, ar2) {
-  // calculate product of two spectra.values
-  // these assume monotonic increase w/ step = 1
-  const output = []
-  const left = Math.max(ar1[0][0], ar2[0][0]) // the min wavelength shared by both arrays
-  const right = Math.min(ar1[ar1.length - 1][0], ar2[ar2.length - 1][0]) // the max wavelength shared by both arrays
-  if (left >= right) return []
-
-  const offsetA1 = left - ar1[0][0]
-  const offsetA2 = left - ar2[0][0]
-  for (let i = 0; i < right - left; i++) {
-    output.push([left + i, ar1[offsetA1 + i][1] * ar2[offsetA2 + i][1]])
-  }
-  return output
 }
 
 const EfficiencyTable = ({ initialTranspose }) => {
@@ -141,7 +144,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
       let colItems = emSpectra
       let rowItems = filters
       let newHeaders = [{ title: "Filter", field: "field" }]
-      let newRows = []
+      const newRows = []
       if (transposed) {
         // columns represent different filters
         colItems = filters
@@ -160,7 +163,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
             return (
               <OverlapToggle id={overlapID}>{rowData[owner.id]}</OverlapToggle>
             )
-          }
+          },
         })
       })
 
@@ -186,8 +189,8 @@ const EfficiencyTable = ({ initialTranspose }) => {
         <Typography variant="h6">Efficiency Table</Typography>
         <Typography variant="body1">
           Add at least on filter and one fluorophore, and this tab will show a
-          table of collection efficiency (sometimes called "spillover") for each
-          filter/fluorophore combination
+          table of collection efficiency (sometimes called
+          &quot;spillover&quot;) for each filter/fluorophore combination
         </Typography>
       </div>
     )
@@ -207,8 +210,8 @@ const EfficiencyTable = ({ initialTranspose }) => {
               icon: Shuffle,
               tooltip: "Transpose",
               isFreeAction: true,
-              onClick: () => setTransposed(transposed => !transposed)
-            }
+              onClick: () => setTransposed(transposed => !transposed),
+            },
           ]}
         />
       </ErrorBoundary>
@@ -219,7 +222,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
 const OverlapToggle = ({ children, id, isActive }) => {
   const [active, setActive] = useState(isActive)
   const {
-    data: { activeOverlaps }
+    data: { activeOverlaps },
   } = useQuery(GET_ACTIVE_OVERLAPS)
 
   useEffect(() => {

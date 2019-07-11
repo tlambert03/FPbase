@@ -4,13 +4,13 @@ import Box from "@material-ui/core/Box"
 import ToggleButton from "@material-ui/lab/ToggleButton"
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
 import { useQuery, useMutation } from "@apollo/react-hooks"
-import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 import { makeStyles } from "@material-ui/core"
 import Visibility from "@material-ui/icons/Visibility"
+import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const useStyles = makeStyles(theme => ({
   toggleButton: {
-    height: "38px"
+    height: "38px",
     // [theme.breakpoints.down(960)]: {
     //   height: "34px"
     // },
@@ -18,9 +18,9 @@ const useStyles = makeStyles(theme => ({
   toggleButtonGroup: {
     marginLeft: "5px",
     [theme.breakpoints.down("xs")]: {
-      display: "none"
-    }
-  }
+      display: "none",
+    },
+  },
 }))
 
 function subtypeSorter(a, b) {
@@ -33,12 +33,12 @@ function subtypeSorter(a, b) {
 
 const SubtypeSelector = React.memo(function SubtypeSelector({
   subtypes,
-  skip
+  skip,
 }) {
   const classes = useStyles()
 
   const {
-    data: { activeSpectra }
+    data: { activeSpectra },
   } = useQuery(GET_ACTIVE_SPECTRA)
   subtypes.sort(subtypeSorter)
   subtypes.forEach(subtype => {
@@ -54,7 +54,7 @@ const SubtypeSelector = React.memo(function SubtypeSelector({
     updateSpectra({ variables })
   }
 
-  //if (skip) return null
+  // if (skip) return null
 
   return (
     <Box>
@@ -83,7 +83,7 @@ const SubtypeSelector = React.memo(function SubtypeSelector({
 SubtypeSelector.propTypes = {
   subtypes: PropTypes.arrayOf(
     PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool]))
-  ).isRequired
+  ).isRequired,
 }
 
 export default SubtypeSelector

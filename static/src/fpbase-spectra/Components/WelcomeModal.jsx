@@ -24,44 +24,44 @@ const useStyles = makeStyles(theme => ({
       margin: 48,
       [theme.breakpoints.down("xs")]: {
         margin: 22,
-        maxHeight: "calc(100% - 44px)"
-      }
+        maxHeight: "calc(100% - 44px)",
+      },
     },
     "& h6": {
       color: "#333",
-      marginTop: 6
+      marginTop: 6,
     },
     "& p": {
       color: "#666",
       marginLeft: "2.2rem",
       marginBottom: 10,
       [theme.breakpoints.down("xs")]: {
-        marginLeft: ".4rem"
-      }
-    }
+        marginLeft: ".4rem",
+      },
+    },
   },
   headerIcon: {
     marginRight: ".6rem",
-    color: "#999"
+    color: "#999",
   },
   button: {
     height: 40,
-    marginRight: 20
+    marginRight: 20,
   },
   title: {
     color: "black",
-    marginBottom: 15
+    marginBottom: 15,
   },
   footer: {
-    marginTop: 15
+    marginTop: 15,
   },
   docsButton: {
     textAlign: "center",
     margin: "18px auto 12px",
     "&:hover": {
-      color: "inherit"
-    }
-  }
+      color: "inherit",
+    },
+  },
 }))
 
 const WelcomeModal = React.memo(function WelcomeModal({
@@ -69,7 +69,7 @@ const WelcomeModal = React.memo(function WelcomeModal({
   checked,
   handleChange,
   close,
-  isNew
+  isNew,
 }) {
   const classes = useStyles()
 
@@ -79,11 +79,15 @@ const WelcomeModal = React.memo(function WelcomeModal({
       onClose={close}
       aria-labelledby="scroll-dialog-title"
       className={classes.root}
-      maxWidth={"md"}
+      maxWidth="md"
     >
       <DialogTitle id="scroll-dialog-title">
         {" "}
-        Welcome to the {isNew ? "new" : ""} FPbase Spectra Viewer!
+        Welcome to the 
+        {' '}
+        {isNew ? "new" : ""}
+        {' '}
+FPbase Spectra Viewer!
       </DialogTitle>
       <DialogContent dividers>
         <Typography variant="h6" gutterBottom>
@@ -97,7 +101,8 @@ const WelcomeModal = React.memo(function WelcomeModal({
           <span className="kbd">spacebar</span>
           &nbsp;to quickly lookup and load any spectrum group in the database.
           You can also load the complete optical setup from any optical config
-          in any{" "}
+          in any
+          {" "}
           <a
             href="https://www.fpbase.org/microscopes"
             target="_blank"
@@ -167,14 +172,14 @@ const WelcomeModal = React.memo(function WelcomeModal({
         <FormGroup row>
           <FormControlLabel
             style={{ paddingTop: 8 }}
-            control={
+            control={(
               <Checkbox
                 checked={checked}
                 color="primary"
                 onChange={handleChange}
                 value="checked"
               />
-            }
+)}
             label="Don't show this on load"
           />
         </FormGroup>
@@ -187,6 +192,6 @@ const WelcomeModal = React.memo(function WelcomeModal({
 })
 
 WelcomeModal.defaultProps = {
-  isNew: false
+  isNew: false,
 }
 export default WelcomeModal

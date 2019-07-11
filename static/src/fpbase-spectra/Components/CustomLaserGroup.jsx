@@ -1,26 +1,28 @@
 import React, { useEffect, useRef, useState } from "react"
 import Box from "@material-ui/core/Box"
-import CustomLaserCreator from "./CustomLaserCreator"
 import IconButton from "@material-ui/core/IconButton"
 import Button from "@material-ui/core/Button"
 import AddIcon from "@material-ui/icons/Add"
 import DeleteIcon from "@material-ui/icons/Delete"
-import { categoryIcon } from "./FaIcon"
 import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
+import { categoryIcon } from "./FaIcon"
+import CustomLaserCreator from "./CustomLaserCreator"
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_EX_NORM,
-  SET_EX_NORM
+  SET_EX_NORM,
 } from "../client/queries"
 
-const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra }) {
+const CustomLaserGroup = React.memo(function CustomLaserGroup({
+  activeSpectra,
+}) {
   const laserCounter = useRef(0)
   const [customLasers, setLasers] = useState([])
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const {
     data: {
-      exNorm: [_, normID]
-    }
+      exNorm: [, normID],
+    },
   } = useQuery(GET_EX_NORM)
 
   const client = useApolloClient()
@@ -33,7 +35,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
     () =>
       client.mutate({
         mutation: SET_EX_NORM,
-        variables: { data: [null, null] }
+        variables: { data: [null, null] },
       }),
     [client]
   )
@@ -65,8 +67,8 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
     setLasers(customLasers.filter(id => !id.startsWith(laserID)))
     updateSpectra({
       variables: {
-        remove: [laserID]
-      }
+        remove: [laserID],
+      },
     })
   }
 
@@ -81,8 +83,8 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
                 top: 0,
                 left: 2,
                 height: "1.3rem",
-                marginRight: 10
-              }
+                marginRight: 10,
+              },
             })}
             <Box flexGrow={1}>
               <CustomLaserCreator
@@ -102,7 +104,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
                 style={{
                   padding: "6px 6px",
                   marginRight: 2,
-                  marginLeft: 2
+                  marginLeft: 2,
                 }}
               >
                 <DeleteIcon />

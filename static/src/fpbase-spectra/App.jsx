@@ -5,11 +5,10 @@ import { reshapeSpectraInfo } from "./util"
 import { SpectraViewer } from "./Components/SpectraViewer"
 import OwnersContainer from "./Components/OwnersContainer"
 import WelcomeModal from "./Components/WelcomeModal"
-import { useCachedQuery } from "./useCachedQuery"
+import useCachedQuery from "./useCachedQuery"
 import MyAppBar from "./Components/MyAppBar"
 import "./polyfills"
 import useKeyboardShortcuts from "./Components/useKeyboardShortcuts"
-
 
 const daysSinceLaunch = Math.round(
   (new Date(2019, 6, 1) - Date.now()) / (1000 * 60 * 60 * 24)
@@ -36,19 +35,13 @@ const App = () => {
   const options = useMemo(() => Object.values(ownerInfo || {}), [ownerInfo])
   const openHelp = useCallback(() => setHelpOpen(true), [setHelpOpen])
   const closeHelp = useCallback(() => setHelpOpen(false), [setHelpOpen])
-  
+
   useKeyboardShortcuts()
   return (
     <>
       <SpectraViewer ownerInfo={ownerInfo} />
-      <OwnersContainer
-        ownerInfo={ownerInfo}
-        spectraInfo={spectraInfo}
-      />
-      <MyAppBar
-        spectraOptions={options}
-        openHelp={openHelp}
-      />
+      <OwnersContainer ownerInfo={ownerInfo} spectraInfo={spectraInfo} />
+      <MyAppBar spectraOptions={options} openHelp={openHelp} />
       <WelcomeModal
         open={helpOpen}
         checked={checked}

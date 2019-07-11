@@ -3,11 +3,11 @@ import Checkbox from "@material-ui/core/Checkbox"
 import MUIListItem from "@material-ui/core/ListItem"
 import FormControlLabel from "@material-ui/core/FormControlLabel"
 
-export const ListCheckbox = memo(function ListCheckbox({
+const ListCheckbox = memo(function ListCheckbox({
   onCheckItem,
   name,
   value,
-  checked
+  checked,
 }) {
   return (
     <MUIListItem>
@@ -20,3 +20,5 @@ export const ListCheckbox = memo(function ListCheckbox({
     </MUIListItem>
   )
 })
+
+export default ListCheckbox

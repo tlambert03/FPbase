@@ -9,7 +9,7 @@ import {
   faCamera,
   faSlidersH,
   faBolt,
-  faPercent
+  faPercent,
 } from "@fortawesome/free-solid-svg-icons"
 
 function FAIcon(props) {
@@ -20,7 +20,7 @@ function FAIcon(props) {
         position: "relative",
         top: -1,
         left: props.icon === faLightbulb ? -3 : -5,
-        height: "1rem"
+        height: "1rem",
       }}
       {...props}
     >
@@ -39,12 +39,12 @@ function categoryIcon(category, color = "#aaa", props) {
     C: faCamera,
     CF: faSlidersH,
     CL: faBolt,
-    '%': faPercent,
+    "%": faPercent,
   }
   if (category in iconMap) {
     iconClass = iconMap[category]
   }
-  return <FAIcon icon={iconClass} htmlColor={color} {...props}></FAIcon>
+  return <FAIcon icon={iconClass} htmlColor={color} {...props} />
 }
 
 export { categoryIcon, FAIcon }

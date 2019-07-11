@@ -3,19 +3,34 @@ import PropTypes from "prop-types"
 import Modal from "@material-ui/core/Modal"
 import Typography from "@material-ui/core/Typography"
 import { makeStyles } from "@material-ui/core/styles"
-import MuiReactSelect from "./MuiReactSelect"
 import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
 import { components } from "react-select"
+import Checkbox from "@material-ui/core/Checkbox"
+import FormControlLabel from "@material-ui/core/FormControlLabel"
+import gql from "graphql-tag"
+import useCachedQuery from "../useCachedQuery"
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_OWNER_OPTIONS,
   OPTICAL_CONFIG_LIST,
-  GET_OPTICAL_CONFIG
+  GET_OPTICAL_CONFIG,
 } from "../client/queries"
-import { useCachedQuery } from "../useCachedQuery"
-import Checkbox from "@material-ui/core/Checkbox"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
-import gql from "graphql-tag"
+import MuiReactSelect from "./MuiReactSelect"
+
+const OptionWithBlurb = props => {
+  const myProps = { ...props }
+
+  myProps.children = (
+    <>
+      {myProps.children}
+      <span style={{ fontSize: "0.69rem", color: "#666" }}>
+        <br />
+        {myProps.data.comments}
+      </span>
+    </>
+  )
+  return <components.Option {...myProps} />
+}
 
 const CLEAR_FORM = gql`
   mutation ClearForm($leave: [String], $appendSpectra: [String]) {
@@ -29,7 +44,7 @@ function getModalStyle() {
   return {
     top: `${top}%`,
     left: `${left}%`,
-    transform: `translate(-${top}%, -${left}%)`
+    transform: `translate(-${top}%, -${left}%)`,
   }
 }
 
@@ -43,22 +58,22 @@ const useStyles = makeStyles(theme => ({
     padding: "5px 30px 15px",
     outline: "none",
     [theme.breakpoints.down("sm")]: {
-      width: "80%"
+      width: "80%",
     },
     [theme.breakpoints.down("xs")]: {
       width: "84%",
       padding: "5px 22px 15px",
-      fontSize: "small"
-    }
+      fontSize: "small",
+    },
   },
   title: {
     color: "black",
     marginTop: 29,
     marginBotton: 5,
     [theme.breakpoints.down("xs")]: {
-      fontSize: "1.2rem"
-    }
-  }
+      fontSize: "1.2rem",
+    },
+  },
 }))
 
 const filterOption = ({ label }, query) => {
@@ -71,7 +86,7 @@ const filterOption = ({ label }, query) => {
 const SearchModal = React.memo(function SearchModal({
   options,
   open,
-  setOpen
+  setOpen,
 }) {
   const [modalStyle] = useState(getModalStyle)
   const classes = useStyles()
@@ -84,7 +99,7 @@ const SearchModal = React.memo(function SearchModal({
         ({ id, name, microscope, comments }) => ({
           label: `${name} (${microscope.name})`,
           value: id,
-          comments: comments
+          comments: comments,
         })
       )
       setOcOptions(newOpts)
@@ -94,7 +109,10 @@ const SearchModal = React.memo(function SearchModal({
   useEffect(() => {
     const handleKeyDown = event => {
       // don't do anything if we're on an input
-      if (document.activeElement && document.activeElement.tagName.toUpperCase() === "INPUT") {
+      if (
+        document.activeElement &&
+        document.activeElement.tagName.toUpperCase() === "INPUT"
+      ) {
         return
       }
       switch (event.code) {
@@ -121,7 +139,7 @@ const SearchModal = React.memo(function SearchModal({
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
   const {
-    data: { excludeSubtypes }
+    data: { excludeSubtypes },
   } = useQuery(GET_OWNER_OPTIONS)
 
   const handleChange = event => {
@@ -142,10 +160,10 @@ const SearchModal = React.memo(function SearchModal({
   const [preserveFluors, setPreserveFluors] = useState(true)
   const handleOCChange = async ({ value }) => {
     const {
-      data: { opticalConfig }
+      data: { opticalConfig },
     } = await client.query({
       query: GET_OPTICAL_CONFIG,
-      variables: { id: value }
+      variables: { id: value },
     })
     const spectra = []
     opticalConfig.filters &&
@@ -156,8 +174,8 @@ const SearchModal = React.memo(function SearchModal({
     clearForm({
       variables: {
         leave: preserveFluors ? ["P", "D"] : [],
-        appendSpectra: spectra
-      }
+        appendSpectra: spectra,
+      },
     })
     setOpen(false)
   }
@@ -197,7 +215,7 @@ const SearchModal = React.memo(function SearchModal({
             color: "#666",
             fontStyle: "italic",
             marginTop: 8,
-            marginBottom: 1
+            marginBottom: 1,
           }}
         >
           This is a list of optical configurations used in FPbase user
@@ -205,13 +223,13 @@ const SearchModal = React.memo(function SearchModal({
           config.
         </p>
         <FormControlLabel
-          control={
+          control={(
             <Checkbox
               onChange={() => setPreserveFluors(!preserveFluors)}
               checked={preserveFluors}
-              value={"preserveFluors"}
+              value="preserveFluors"
             />
-          }
+)}
           label={
             <span style={{ fontSize: "small" }}>Preserve fluorophores</span>
           }
@@ -220,33 +238,22 @@ const SearchModal = React.memo(function SearchModal({
           style={{
             marginTop: 8,
             fontSize: "small",
-            textAlign: "center"
+            textAlign: "center",
           }}
         >
-          Spectra missing? <a href="/spectra/submit/" target="_blank">Submit a spectrum</a>
+          Spectra missing?
+          {" "}
+          <a href="/spectra/submit/" target="_blank">
+            Submit a spectrum
+          </a>
         </p>
       </div>
     </Modal>
   )
 })
 
-const OptionWithBlurb = props => {
-  const myProps = { ...props }
-
-  myProps.children = (
-    <>
-      {myProps.children}
-      <span style={{ fontSize: "0.69rem", color: "#666" }}>
-        <br />
-        {props.data.comments}
-      </span>
-    </>
-  )
-  return <components.Option {...myProps} />
-}
-
 SearchModal.propTypes = {
-  options: PropTypes.arrayOf(PropTypes.object).isRequired
+  options: PropTypes.arrayOf(PropTypes.object).isRequired,
 }
 
 export default SearchModal

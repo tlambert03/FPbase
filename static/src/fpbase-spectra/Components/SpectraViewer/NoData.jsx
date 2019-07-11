@@ -6,7 +6,7 @@ const NoData = memo(function NoData({ height, loading }) {
       style={{
         height: height,
         width: "100%",
-        position: loading ? "relative" : "absolute"
+        position: loading ? "relative" : "absolute",
       }}
     >
       <div
@@ -17,10 +17,12 @@ const NoData = memo(function NoData({ height, loading }) {
           textAlign: "center",
           fontFamily: "'Century Gothic', Roboto",
           paddingRight: "8%",
-          width: "100%"
+          width: "100%",
         }}
       >
-        Select spectra below<br />or hit&nbsp;
+        Select spectra below
+        <br />
+        or hit&nbsp;
         <span className="kbd">spacebar</span>
         &nbsp;for quick entry
       </div>
@@ -35,7 +37,7 @@ const NoData = memo(function NoData({ height, loading }) {
           left: "1%",
           zIndex: 49,
           margin: "auto",
-          width: "100%"
+          width: "100%",
         }}
       >
         <path
@@ -43,7 +45,7 @@ const NoData = memo(function NoData({ height, loading }) {
             fillRule: "evenodd",
             clipRule: "evenodd",
             fill: "#000",
-            opacity: 0.06
+            opacity: 0.06,
           }}
           d="M2947,1060.88s-624.57-60.18-1103.06-405.741C1525.93,409.081,1419.45-13.191,1341.92.314c-95.24,10.978-78.62,259.289-202.86,656.871-130.38,402.445-420.5,403.7-420.5,403.7H2947Zm-1445.59,0s-201.41-.43-287.43-335.216C1110.65,323.49,1096.05,1,1047.32,1.221,977.2,1.535,902.926,557.3,647.811,769.037,308.211,1050.89,0,1060.88,0,1060.88H1501.41Z"
         />

@@ -1,17 +1,19 @@
 import React, { useRef } from "react"
 import "./index.css"
-import App from "./App"
-//import { ApolloProvider } from "@apollo/react-hooks"
 import { ApolloProvider } from "@apollo/react-hooks"
+import App from "./App"
+// import { ApolloProvider } from "@apollo/react-hooks"
 import initializeClient from "./client/client"
 
 if (process.env.NODE_ENV !== "production") {
-  const whyDidYouRender = require("@welldone-software/why-did-you-render")
-  whyDidYouRender(React, {
-    include: [],
-    logOnDifferentValues: true,
-    collapseGroups: true
-  })
+  import("@welldone-software/why-did-you-render").then(
+    ({ default: whyDidYouRender }) =>
+      whyDidYouRender(React, {
+        include: [],
+        logOnDifferentValues: true,
+        collapseGroups: true,
+      })
+  )
 }
 
 const AppWrapper = ({ uri }) => {
@@ -24,7 +26,7 @@ const AppWrapper = ({ uri }) => {
 }
 
 AppWrapper.defaultProps = {
-  uri: "/graphql/"
+  uri: "/graphql/",
 }
 
 export default AppWrapper

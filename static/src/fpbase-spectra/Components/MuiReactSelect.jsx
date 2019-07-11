@@ -5,50 +5,50 @@ import TextField from "@material-ui/core/TextField"
 import Paper from "@material-ui/core/Paper"
 import PropTypes from "prop-types"
 import { makeStyles, useTheme } from "@material-ui/core/styles"
-import regeneratorRuntime from "regenerator-runtime" // why do I need this?!?
-import SortableWindowedSelect from "./SortableWindowedSelect"
+import "regenerator-runtime" // why do I need this?!?
 import Select from "react-select"
+import SortableWindowedSelect from "./SortableWindowedSelect"
 
 const useStyles = makeStyles(theme => ({
   root: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   input: {
     display: "flex",
     padding: 0,
     height: "auto",
     paddingBottom: 4,
-    fontSize: "1.2rem"
+    fontSize: "1.2rem",
   },
   valueContainer: {
     display: "flex",
     flexWrap: "wrap",
     flex: 1,
     alignItems: "center",
-    overflow: "hidden"
+    overflow: "hidden",
   },
   noOptionsMessage: {
-    padding: theme.spacing(1, 2)
+    padding: theme.spacing(1, 2),
   },
   singleValue: {
-    fontSize: 16
+    fontSize: 16,
   },
   placeholder: {
     position: "absolute",
     left: 4,
     bottom: 7,
-    fontSize: "1.2rem"
+    fontSize: "1.2rem",
   },
   paper: {
     position: "absolute",
     zIndex: 1,
     marginTop: theme.spacing(1),
     left: 0,
-    right: 0
+    right: 0,
   },
   divider: {
-    height: theme.spacing(2)
-  }
+    height: theme.spacing(2),
+  },
 }))
 
 function NoOptionsMessage({ selectProps, innerProps, children }) {
@@ -66,7 +66,7 @@ function NoOptionsMessage({ selectProps, innerProps, children }) {
 NoOptionsMessage.propTypes = {
   children: PropTypes.node,
   innerProps: PropTypes.object,
-  selectProps: PropTypes.object.isRequired
+  selectProps: PropTypes.object.isRequired,
 }
 
 function inputComponent({ inputRef, ...props }) {
@@ -74,7 +74,7 @@ function inputComponent({ inputRef, ...props }) {
 }
 
 inputComponent.propTypes = {
-  inputRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object])
+  inputRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 }
 
 function Control({ selectProps, innerRef, innerProps, children }) {
@@ -87,8 +87,8 @@ function Control({ selectProps, innerRef, innerProps, children }) {
           className: selectProps.classes.input,
           inputRef: innerRef,
           children,
-          ...innerProps
-        }
+          ...innerProps,
+        },
       }}
       {...selectProps.TextFieldProps}
     />
@@ -99,7 +99,7 @@ Control.propTypes = {
   children: PropTypes.node,
   innerProps: PropTypes.object,
   innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-  selectProps: PropTypes.object.isRequired
+  selectProps: PropTypes.object.isRequired,
 }
 
 function Placeholder({ selectProps, innerProps, children }) {
@@ -117,7 +117,7 @@ function Placeholder({ selectProps, innerProps, children }) {
 Placeholder.propTypes = {
   children: PropTypes.node,
   innerProps: PropTypes.object,
-  selectProps: PropTypes.object.isRequired
+  selectProps: PropTypes.object.isRequired,
 }
 
 function SingleValue({ selectProps, innerProps, children }) {
@@ -134,7 +134,7 @@ function ValueContainer({ selectProps, children }) {
 
 ValueContainer.propTypes = {
   children: PropTypes.node,
-  selectProps: PropTypes.object.isRequired
+  selectProps: PropTypes.object.isRequired,
 }
 
 function Menu({ selectProps, innerProps, children }) {
@@ -148,7 +148,7 @@ function Menu({ selectProps, innerProps, children }) {
 Menu.propTypes = {
   children: PropTypes.node,
   innerProps: PropTypes.object,
-  selectProps: PropTypes.object
+  selectProps: PropTypes.object,
 }
 
 const myComponents = {
@@ -157,7 +157,7 @@ const myComponents = {
   NoOptionsMessage,
   Placeholder,
   SingleValue,
-  ValueContainer
+  ValueContainer,
 }
 
 function MuiReactSelect({ paginate, components, ...otherprops }) {
@@ -169,9 +169,9 @@ function MuiReactSelect({ paginate, components, ...otherprops }) {
       ...base,
       color: theme.palette.text.primary,
       "& input": {
-        font: "inherit"
-      }
-    })
+        font: "inherit",
+      },
+    }),
   }
 
   return (
@@ -198,7 +198,7 @@ function MuiReactSelect({ paginate, components, ...otherprops }) {
 }
 
 MuiReactSelect.defaultProps = {
-  paginate: true
+  paginate: true,
 }
 
 export default MuiReactSelect

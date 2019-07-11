@@ -2,11 +2,11 @@ import React, { useMemo, useCallback } from "react"
 import Box from "@material-ui/core/Box"
 import IconButton from "@material-ui/core/IconButton"
 import DeleteIcon from "@material-ui/icons/Delete"
-import SpectrumSelector from "./SpectrumSelector"
 import { makeStyles } from "@material-ui/core/styles"
-import { categoryIcon } from "../Components/FaIcon"
 import Typography from "@material-ui/core/Typography"
 import { useMutation } from "@apollo/react-hooks"
+import { categoryIcon } from "./FaIcon"
+import SpectrumSelector from "./SpectrumSelector"
 import { UPDATE_ACTIVE_SPECTRA, REMOVE_SELECTOR } from "../client/queries"
 
 export const useStyles = makeStyles(theme => ({
@@ -20,25 +20,25 @@ export const useStyles = makeStyles(theme => ({
     marginRight: 2,
     marginLeft: 2,
     [theme.breakpoints.down("xs")]: {
-      display: "none"
+      display: "none",
     },
     "&:hover": {
       // you want this to be the same as the backgroundColor above
       backgroundColor: "#fff",
-      color: "#C84064"
-    }
+      color: "#C84064",
+    },
   },
   addButton: {
     marginTop: 6,
-    marginRight: 6
+    marginRight: 6,
   },
   categoryHeader: {
     textTransform: "uppercase",
     fontSize: "small",
     color: "#3F51B5",
     marginTop: ".35rem",
-    marginBottom: "0.4rem"
-  }
+    marginBottom: "0.4rem",
+  },
 }))
 
 const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
@@ -47,17 +47,18 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   category,
   showCategoryIcon,
   hint,
-  ownerInfo
+  ownerInfo,
 }) {
   const classes = useStyles()
   const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [
-    selectors
+    selectors,
   ])
 
+  let mySelectors
   if (category) {
-    selectors = selectors.filter(sel => sel.category === category)
+    mySelectors = selectors.filter(sel => sel.category === category)
   } else {
-    selectors = selectors.filter(sel => sel.owner || !sel.category)
+    mySelectors = selectors.filter(sel => sel.owner || !sel.category)
   }
 
   // make sure there is always one empty selector available
@@ -71,7 +72,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
     D: "Dyes",
     F: "Filters",
     L: "Light Sources",
-    C: "Detectors"
+    C: "Detectors",
   }
 
   const categoryOptions = useMemo(
@@ -90,8 +91,8 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
         if (ownerInfo[selector.owner] && ownerInfo[selector.owner].spectra) {
           updateSpectra({
             variables: {
-              remove: ownerInfo[selector.owner].spectra.map(({ id }) => id)
-            }
+              remove: ownerInfo[selector.owner].spectra.map(({ id }) => id),
+            },
           })
         }
       }
@@ -101,7 +102,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
 
   return (
     <>
-      {selectors.map(selector => (
+      {mySelectors.map(selector => (
         <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
           {!category &&
             selector.category !== lastCategory &&
@@ -116,8 +117,8 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                 position: "relative",
                 left: category === "L" ? 4 : 2,
                 height: "1.3rem",
-                marginRight: 10
-              }
+                marginRight: 10,
+              },
             })}
             <Box flexGrow={1}>
               <SpectrumSelector
@@ -163,7 +164,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
 
 SpectrumSelectorGroup.defaultProps = {
   hint: "item",
-  category: ""
+  category: "",
 }
 
 export default SpectrumSelectorGroup

@@ -6,28 +6,28 @@ import Tooltip from "@material-ui/core/Tooltip"
 import Fab from "@material-ui/core/Fab"
 import HelpIcon from "@material-ui/icons/Help"
 import AddIcon from "@material-ui/icons/Add"
-import SearchModal from "./SearchModal"
 
 import { useMutation, useQuery } from "@apollo/react-hooks"
-import { GET_CHART_OPTIONS } from "../client/queries"
 import FormControlLabel from "@material-ui/core/FormControlLabel"
 import Switch from "@material-ui/core/Switch"
 import gql from "graphql-tag"
+import { IconButton } from "@material-ui/core"
 import ShareButton from "./ShareButton"
 import SettingsDrawer from "./SettingsDrawer"
-import { IconButton } from "@material-ui/core"
+import { GET_CHART_OPTIONS } from "../client/queries"
+import SearchModal from "./SearchModal"
 
 export const useStyles = makeStyles(theme => ({
   text: {
-    padding: theme.spacing(2, 2, 0)
+    padding: theme.spacing(2, 2, 0),
   },
   appBar: {
     top: "auto",
     bottom: 0,
-    backgroundColor: "#0D4B33" 
+    backgroundColor: "#0D4B33",
   },
   grow: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   fabButton: {
     backgroundColor: "#3CA644",
@@ -39,11 +39,11 @@ export const useStyles = makeStyles(theme => ({
     top: -30,
     left: 0,
     right: 0,
-    margin: "0 auto"
+    margin: "0 auto",
   },
   spaceBar: {
     [theme.breakpoints.down("sm")]: {
-      display: "none"
+      display: "none",
     },
     color: "rgba(255,255,255,0.2)",
     textTransform: "uppercase",
@@ -54,15 +54,15 @@ export const useStyles = makeStyles(theme => ({
     right: 0,
     top: 30,
     margin: "0 auto",
-    width: "71px"
+    width: "71px",
   },
-  odToggle: { paddingTop: 6, marginRight: 2 }
+  odToggle: { paddingTop: 6, marginRight: 2 },
 }))
 
 const MyAppBar = memo(function MyAppBar({
   spectraOptions,
   clearForm,
-  openHelp
+  openHelp,
 }) {
   const classes = useStyles()
   const [searchOpen, setSearchOpen] = React.useState(false)
@@ -70,8 +70,8 @@ const MyAppBar = memo(function MyAppBar({
 
   const {
     data: {
-      chartOptions: { logScale }
-    }
+      chartOptions: { logScale },
+    },
   } = useQuery(GET_CHART_OPTIONS)
   const [toggleLogScale] = useMutation(gql`
     mutation ToggleLogScale {
@@ -81,10 +81,7 @@ const MyAppBar = memo(function MyAppBar({
 
   return (
     <>
-      <AppBar
-        position="fixed"
-        className={classes.appBar}
-      >
+      <AppBar position="fixed" className={classes.appBar}>
         <Toolbar>
           <SettingsDrawer />
           <IconButton color="inherit" onClick={openHelp}>
@@ -108,14 +105,14 @@ const MyAppBar = memo(function MyAppBar({
           <div className={classes.grow} />
           <FormControlLabel
             labelPlacement="start"
-            control={
+            control={(
               <Switch
                 tabIndex={-1}
                 checked={logScale}
                 onChange={toggleLogScale}
                 color="default"
               />
-            }
+)}
             label="OD"
             className={classes.odToggle}
           />

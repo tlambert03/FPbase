@@ -91,8 +91,8 @@ const setStorageWithTimeStamp = (cacheKey, value) => {
 const debounce = (fn, time) => {
   let timeout
 
-  return function() {
-    const functionCall = () => fn.apply(this, arguments)
+  return function(...args) {
+    const functionCall = () => fn.apply(this, args)
 
     clearTimeout(timeout)
     timeout = setTimeout(functionCall, time)
@@ -112,20 +112,20 @@ function reshapeSpectraInfo(arr) {
           label: cur.owner.name,
           spectra: [],
           value: cur.owner.slug,
-          url: cur.owner.url
+          url: cur.owner.url,
         }
       }
       prev.ownerInfo[cur.owner.slug].spectra.push({
         id: cur.id,
         subtype: cur.subtype,
-        active: true
+        active: true,
       })
       // eslint-disable-next-line no-param-reassign
       prev.spectraInfo[cur.id] = {
         subtype: cur.subtype,
         owner: cur.owner.slug,
         label: cur.owner.name,
-        category: cur.category
+        category: cur.category,
       }
       return prev
     },
@@ -133,7 +133,7 @@ function reshapeSpectraInfo(arr) {
   )
 }
 
-function decoder(str, decoder, charset) {
+function decoder(str, _, charset) {
   const strWithoutPlus = str.replace(/\+/g, " ")
   if (charset === "iso-8859-1") {
     // unescape never throws, no try...catch needed:
@@ -142,14 +142,14 @@ function decoder(str, decoder, charset) {
 
   if (/^(\d+|\d*\.\d+)$/.test(str)) {
     return str
-    //return parseFloat(str)
+    // return parseFloat(str)
   }
 
   const keywords = {
     true: true,
     false: false,
     null: null,
-    undefined
+    undefined,
   }
   if (str in keywords) {
     return keywords[str]
@@ -165,9 +165,9 @@ function decoder(str, decoder, charset) {
 
 function isTouchDevice() {
   try {
-    let prefixes = " -webkit- -moz- -o- -ms- ".split(" ")
+    const prefixes = " -webkit- -moz- -o- -ms- ".split(" ")
 
-    let mq = function(query) {
+    const mq = function(query) {
       return window.matchMedia(query).matches
     }
 
@@ -181,7 +181,7 @@ function isTouchDevice() {
 
     return mq(["(", prefixes.join("touch-enabled),("), "heartz", ")"].join(""))
   } catch (e) {
-    //console.error("(Touch detect failed)", e)
+    // console.error("(Touch detect failed)", e)
     return false
   }
 }
@@ -220,5 +220,5 @@ export {
   setStorageWithTimeStamp,
   isTouchDevice,
   trapz,
-  spectraProduct
+  spectraProduct,
 }

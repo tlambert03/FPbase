@@ -12,8 +12,8 @@ const LightTooltip = withStyles(theme => ({
     color: "rgba(0, 0, 0, 0.87)",
     boxShadow: theme.shadows[1],
     fontSize: 12,
-    margin: "0 13px 7px"
-  }
+    margin: "0 13px 7px",
+  },
 }))(Tooltip)
 
 const CLASSES = {
@@ -22,15 +22,15 @@ const CLASSES = {
     fontSize: "0.75rem",
     width: 30,
     color: "#444",
-    position: "absolute"
+    position: "absolute",
   },
   maxInput: {
     position: "absolute",
     fontWeight: "bold",
     fontSize: "0.75rem",
     width: 30,
-    color: "#444"
-  }
+    color: "#444",
+  },
 }
 
 const MUTATE_CHART_EXTREMES = gql`
@@ -52,9 +52,9 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
   const {
     data: {
       chartOptions: {
-        extremes: [min, max]
-      }
-    }
+        extremes: [min, max],
+      },
+    },
   } = useQuery(GET_CHART_EXTREMES)
   const [mutateExtremes] = useMutation(MUTATE_CHART_EXTREMES)
   const minNode = useRef()
@@ -77,7 +77,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
       if (e) {
         const extremes = [
           e.userMin && Math.round(e.min),
-          e.userMax && Math.round(e.max)
+          e.userMax && Math.round(e.max),
         ]
         // this seems to be causing a bug with the inputs
         mutateExtremes({ variables: { extremes } })
@@ -100,12 +100,12 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
         axis.object.labelGroup.element.childNodes.forEach(
           node => (node.style.display = "block")
         )
-        const { min, max } = axis.getExtremes()
+        const { min: exMin, max: exMax } = axis.getExtremes()
         axis.object.labelGroup.element.childNodes.forEach(node => {
           if (
             Math.min(
-              Math.abs(node.textContent - min),
-              Math.abs(node.textContent - max)
+              Math.abs(node.textContent - exMin),
+              Math.abs(node.textContent - exMax)
             ) <
             0.43 * axis.object.tickInterval
           ) {
@@ -123,7 +123,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
       axis.object.chart,
       "redraw",
       handleAfterSetExtremes
-      //debounce(handleAfterSetExtremes, 200)
+      // debounce(handleAfterSetExtremes, 200)
     )
     handleAfterSetExtremes()
     positionInputs()
@@ -132,7 +132,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
         getAxis().object,
         "afterSetExtremes",
         handleAfterSetExtremes
-        //debounce(handleAfterSetExtremes, 200)
+        // debounce(handleAfterSetExtremes, 200)
       )
     }
   }, []) // eslint-disable-line
@@ -140,7 +140,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
   const updateRange = () => {
     const extremes = [
       +minNode.current.value || null,
-      +maxNode.current.value || null
+      +maxNode.current.value || null,
     ]
     axis.setExtremes(...extremes)
   }
@@ -149,10 +149,10 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
       updateRange()
       e.target.select()
     } else {
-      if (e.target.name === 'min'){
+      if (e.target.name === "min") {
         minNode.current.value = e.target.value
       }
-      if (e.target.name === 'max'){
+      if (e.target.name === "max") {
         maxNode.current.value = e.target.value
       }
     }
@@ -177,7 +177,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
         height: 0,
         position: "relative",
         bottom: 38,
-        display: visible ? "block" : "none"
+        display: visible ? "block" : "none",
       }}
     >
       <LightTooltip

@@ -1,22 +1,24 @@
 import { ApolloClient } from "apollo-client"
-import { InMemoryCache } from "apollo-cache-inmemory"
+import {
+  InMemoryCache,
+  IntrospectionFragmentMatcher,
+} from "apollo-cache-inmemory"
 import { HttpLink } from "apollo-link-http"
 import { onError } from "apollo-link-error"
 import { ApolloLink } from "apollo-link"
 import { persistCache } from "apollo-cache-persist"
-import { defaults, resolvers } from "./resolvers"
-import { typeDefs } from "./schema"
-import { IntrospectionFragmentMatcher } from "apollo-cache-inmemory"
+import qs from "qs"
+import { defaults, resolvers, validSpectraIds } from "./resolvers"
+import typeDefs from "./schema"
+
 import introspectionQueryResultData from "../fragmentTypes.json"
 import { decoder } from "../util"
-import qs from "qs"
 import { GET_CHART_OPTIONS } from "./queries"
-import "unfetch/polyfill/index.js"
-import { validSpectraIds } from "../client/resolvers"
+import "unfetch/polyfill/index"
 
 function intializeClient({ uri, storage }) {
   const fragmentMatcher = new IntrospectionFragmentMatcher({
-    introspectionQueryResultData
+    introspectionQueryResultData,
   })
 
   const cache = new InMemoryCache({ fragmentMatcher })
@@ -33,15 +35,15 @@ function intializeClient({ uri, storage }) {
     }),
     new HttpLink({
       uri: uri || "https://www.fpbase.org/graphql/",
-      credentials: "same-origin"
-    })
+      credentials: "same-origin",
+    }),
   ])
 
   const client = new ApolloClient({
     link,
     cache,
     typeDefs,
-    resolvers
+    resolvers,
   })
 
   // Populate from localstorage?
@@ -50,16 +52,18 @@ function intializeClient({ uri, storage }) {
     await persistCache({
       cache,
       storage: storage || window.sessionStorage,
-      debounce: 400
+      debounce: 400,
     })
     cache.writeData({ data: { activeOverlaps: [] } })
   }
 
   function parseURL() {
-    const url = qs.parse(window.location.search.replace(/^\?/, ""), { decoder })
+    const url = qs.parse(window.location.search.replace(/^\?/, ""), {
+      decoder,
+    })
     if (Object.keys(url).length === 0 && url.constructor === Object) return
 
-    let data = cache.readQuery({ query: GET_CHART_OPTIONS })
+    const data = cache.readQuery({ query: GET_CHART_OPTIONS })
     data.selectors = []
     const booleanOptions = Object.keys(defaults.chartOptions).filter(
       key => typeof defaults.chartOptions[key] === "boolean"

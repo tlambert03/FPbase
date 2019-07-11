@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react"
-import COLORS from "../../js/spectra/colors"
-import { GET_SPECTRUM } from "../client/queries"
 import { useApolloClient, useQuery } from "@apollo/react-hooks"
 import update from "immutability-helper"
 import gql from "graphql-tag"
+import { GET_SPECTRUM } from "../client/queries"
+import COLORS from "../../js/spectra/colors"
 
 const rangexy = (start, end) =>
   Array.from({ length: end - start }, (v, k) => k + start)
 
 // $cl1_wave
 const customLaserSpectrum = _id => {
-  let [id, wave] = _id.split("_")
+  const [id, wave] = _id.split("_")
   const data = [[+wave - 1, 0], [+wave, 1], [+wave + 1, 0]]
   const name = `${wave} laser`
   return Promise.resolve({
@@ -22,9 +22,9 @@ const customLaserSpectrum = _id => {
         owner: { name, id: _id },
         category: "L",
         data,
-        color: +wave in COLORS ? COLORS[+wave] : "#999999"
-      }
-    }
+        color: +wave in COLORS ? COLORS[+wave] : "#999999",
+      },
+    },
   })
 }
 
@@ -33,10 +33,10 @@ const customFilterSpectrum = _id => {
   let [id, subtype, center, width, trans] = _id.split("_")
   subtype = subtype.toUpperCase()
   trans = +trans / 100 || 0.9
-  let data = []
+  const data = []
   let name = `Custom `
   switch (subtype) {
-    case "BP":
+    case "BP": {
       const min = Math.round(+center - width / 2)
       const max = Math.round(+center + width / 2)
       data.push([min - 1, 0])
@@ -44,6 +44,7 @@ const customFilterSpectrum = _id => {
       data.push([max + 1, 0])
       name += ` ${center}/${width} bp`
       break
+    }
     case "LP":
       rangexy(300, center).forEach(x => data.push([x, 0]))
       rangexy(+center + 1, 1000).forEach(x => data.push([x, +trans]))
@@ -69,9 +70,9 @@ const customFilterSpectrum = _id => {
         owner: { name, id: _id },
         category: "F",
         data,
-        color: +center in COLORS ? COLORS[+center] : "#999999"
-      }
-    }
+        color: +center in COLORS ? COLORS[+center] : "#999999",
+      },
+    },
   }
 }
 
@@ -80,7 +81,7 @@ const useSpectralData = () => {
   const [currentData, setCurrentData] = useState([])
   const client = useApolloClient()
   const {
-    data: { activeSpectra, activeOverlaps }
+    data: { activeSpectra, activeOverlaps },
   } = useQuery(gql`
     {
       activeSpectra @client
@@ -92,7 +93,8 @@ const useSpectralData = () => {
     function idToData(id) {
       if (id.startsWith("$cf")) {
         return customFilterSpectrum(id)
-      } else if (id.startsWith("$cl")) {
+      }
+      if (id.startsWith("$cl")) {
         return customLaserSpectrum(id)
       }
       return client.query({ query: GET_SPECTRUM, variables: { id } })
@@ -129,7 +131,7 @@ const useSpectralData = () => {
         setCurrentData(
           update(currentData, {
             $splice: deadSpectra,
-            $push: [...newData, ...newOverlapData]
+            $push: [...newData, ...newOverlapData],
           })
         )
       }
