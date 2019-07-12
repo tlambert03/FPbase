@@ -189,6 +189,18 @@ class DyeAdmin(MultipleSpectraOwner, VersionAdmin):
 class FilterAdmin(SpectrumOwner, VersionAdmin):
     model = Filter
     ordering = ("-created",)
+    readonly_fields = ("configs",)
+
+    def configs(self, obj):
+        def _makelink(oc):
+            url = reverse("admin:proteins_opticalconfig_change", args=(oc.pk,))
+            return '<a href="{}">{}</a>'.format(url, oc)
+
+        links = []
+        [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
+        return mark_safe(", ".join(links))
+
+    configs.short_description = "OC Memberships"
 
 
 @admin.register(Camera)
