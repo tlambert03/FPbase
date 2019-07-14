@@ -212,7 +212,7 @@ class CameraAdmin(SpectrumOwner, VersionAdmin):
 @admin.register(Spectrum)
 class SpectrumAdmin(VersionAdmin):
     model = Spectrum
-    autocomplete_fields = []
+    autocomplete_fields = ["reference"]
     list_select_related = (
         "owner_state__protein",
         "owner_filter",
@@ -254,6 +254,8 @@ class SpectrumAdmin(VersionAdmin):
             "data",
             "ph",
             "solvent",
+            "source",
+            "reference",
             ("created", "created_by"),
             ("modified", "updated_by"),
         ]

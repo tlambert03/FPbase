@@ -1,6 +1,9 @@
 import numpy as np
 from ..forms import SpectrumForm
 from .helpers import zip_wave_data
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 def get_stype(header):
@@ -64,10 +67,20 @@ def import_spectral_data(
 
         D = zip_wave_data(waves, datum, minmax)
         sf = SpectrumForm(
-            {"data": D, "category": cat, "subtype": stype, "owner": iowner}
+            {
+                "data": D,
+                "category": cat,
+                "subtype": stype,
+                "owner": iowner,
+                "confirmation": True,
+            }
         )
         if sf.is_valid():
-            newob = sf.save()
+            newob = sf.save(commit=False)
+            newob.created_by = User.objects.first()
+            newob.save()
+            newob.owner.created_by = User.objects.first()
+            newob.owner.save()
             newObjects.append(newob)
             print("Successfully imported {}, {}, {}".format(iowner, cat, stype))
         else:

@@ -101,6 +101,7 @@ class SpectrumForm(forms.ModelForm):
             "file",
             "data",
             "ph",
+            "source",
             "solvent",
             "owner_state",
             "owner",

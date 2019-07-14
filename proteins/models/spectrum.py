@@ -399,6 +399,9 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         on_delete=models.SET_NULL,
         related_name="spectra",
     )
+    source = models.CharField(
+        max_length=128, blank=True, help_text="Source of the spectra data"
+    )
 
     objects = SpectrumManager()
     fluorophores = QueryManager(models.Q(category=DYE) | models.Q(category=PROTEIN))
@@ -509,7 +512,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         elif self.owner_dye:
             return "{} {}".format(self.owner, self.subtype)
         elif self.owner_filter:
-            return str(self.owner.part or self.owner)
+            return str(self.owner)
         else:
             return str(self.owner)
 
