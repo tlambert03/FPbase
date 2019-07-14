@@ -100,8 +100,17 @@ code {
   .settings-list .MuiFormControlLabel-label {
     font-size: 0.85rem;
   }
-  
+
   .settings-list .MuiFormControlLabel-root {
     margin-right: 0;
   }
+}
+
+.stats-list {
+  padding-left: 0;
+  color: #999;
+  font-size: small;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  margin-top: 5px;
 }

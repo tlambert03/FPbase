@@ -13,12 +13,20 @@ collections
 
 {% if not owner %}
 <h1 class='mb-4'>FPbase Microscopes 🔬</h1>
-<p>Microscopes on FPbase are collections of optical configurations, including filters, light sources, lasers, and
+<p>Microscopes on FPbase are collections of
+  <a href="https://help.fpbase.org/tools/microscopes/create-microscope#optical-configurations">optical
+    configurations</a>, including filters, light sources, lasers, and
   detectors, meant to represent the hardware of a specific microscope or other imaging device. Once you save your
   microscope configuration, you get a personalized spectra-viewer app that you can use to visualize the efficiency of
-  excitation, collection, and predicted brightness of any of the fluorophores in FPbase for your hardware.  (As a bonus, you can also quickly recall the filter settings from any of your optical configs in the general <a href="{% url 'proteins:spectra' %}">FPbase spectra viewer</a>) You can
+  excitation, collection, and predicted brightness of any of the fluorophores in FPbase for your hardware. (As a bonus,
+  you can also quickly recall the filter settings from any of your optical configs in the general <a
+    href="{% url 'proteins:spectra' %}">FPbase spectra viewer</a>) You can
   create as many different microscope pages as you'd like and you can share the link to your microscope page with
   anyone, or embed the app in your website for others to use.</p>
+<p>
+  For more information on building a microscope page, see the
+  <a href="https://help.fpbase.org/tools/microscopes/create-microscope">documentation</a>.
+</p>
 <h4 class='mb-4' style="font-weight:300">Fluorophore Efficiency Reports</h4>
 <p>Once you have saved the components of your microscope, you can generate a "fluorophore efficiency report": a
   prediction for excitation and collection efficiency for every fluorophore in the database for which spectral data is

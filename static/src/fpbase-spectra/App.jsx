@@ -48,6 +48,7 @@ const App = () => {
         close={closeHelp}
         handleChange={handleChange}
         isNew={daysSinceLaunch < 120}
+        ownerInfo={ownerInfo}
       />
     </>
   )

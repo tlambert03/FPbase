@@ -70,9 +70,16 @@ const WelcomeModal = React.memo(function WelcomeModal({
   handleChange,
   close,
   isNew,
+  ownerInfo,
 }) {
   const classes = useStyles()
 
+  const counter =
+    ownerInfo &&
+    Object.values(ownerInfo).reduce((acc, next) => {
+      acc[next.category] = acc[next.category] + 1 || 1
+      return acc
+    }, {})
   return (
     <Dialog
       open={open}
@@ -81,13 +88,21 @@ const WelcomeModal = React.memo(function WelcomeModal({
       className={classes.root}
       maxWidth="md"
     >
-      <DialogTitle id="scroll-dialog-title">
-        {" "}
-        Welcome to the 
-        {' '}
-        {isNew ? "new" : ""}
-        {' '}
-FPbase Spectra Viewer!
+      <DialogTitle id="scroll-dialog-title" style={{ textAlign: "center" }}>
+        Welcome to the
+        {isNew ? " new " : ""}
+        FPbase Spectra Viewer!
+        {Object.values(counter).length > 0 && (
+          <div className="stats-list">
+            {[
+              `${counter.P} proteins`,
+              `${counter.D} dyes`,
+              `${counter.F} filters`,
+              `${counter.L} light sources`,
+              `${counter.C} detectors`,
+            ].join(" ◦ ")}
+          </div>
+        )}
       </DialogTitle>
       <DialogContent dividers>
         <Typography variant="h6" gutterBottom>
@@ -99,9 +114,8 @@ FPbase Spectra Viewer!
         <Typography variant="body1" gutterBottom>
           Hit&nbsp;
           <span className="kbd">spacebar</span>
-          &nbsp;to quickly lookup and load any spectrum group in the database.
-          You can also load the complete optical setup from any optical config
-          in any
+          &nbsp;to quickly lookup and load any spectrum in the database. Or,
+          load any optical config from any
           {" "}
           <a
             href="https://www.fpbase.org/microscopes"
@@ -110,7 +124,10 @@ FPbase Spectra Viewer!
           >
             FPbase microscope
           </a>
-          . Try it now!
+          {" "}
+          (including all major
+          <strong> filter sets </strong>
+          from Chroma, Semrock, Omega, and Zeiss). Try it now!
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
@@ -145,8 +162,14 @@ FPbase Spectra Viewer!
         <Typography variant="body1" gutterBottom>
           Change the look and feel with a variety of options in the settings
           menu at the bottom left. Set the X-axis range by clicking and dragging
-          or directly enter the max and min values into the inputs. Once zoomed
-          you can shift-click-drag to pan.
+          or directly enter the max and min values into the inputs. Once zoomed,
+          shift-click &amp; drag to pan. See
+          {" "}
+          <a href="https://help.fpbase.org/tools/spectra-viewer#keyboard-shortcuts">
+            documentation
+          </a>
+          {" "}
+          for all keyboard shortcuts.
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>

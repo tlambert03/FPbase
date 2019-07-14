@@ -165,14 +165,6 @@
       "black --exclude \"/migrations/\"",
       "flake8 --ignore=W503,I100,I101,I201,I202",
       "git add"
-    ],
-    "*.css": [
-      "stylelint --fix",
-      "git add"
-    ],
-    "*.scss": [
-      "stylelint --syntax=scss --fix",
-      "git add"
     ]
   }
 }
