@@ -142,28 +142,66 @@ def fetch_semrock_part(part):
     must resolve to a url such as:
     https://www.semrock.com/_ProductData/Spectra/FF01-571_72_Spectrum.txt
     """
+    response = requests.get("https://www.semrock.com/FilterDetails.aspx?id=" + part)
+    if not response.status_code == 200:
+        raise ValueError("Semrock part not valid for URL: {}".format(part))
 
-    part = normalize_semrock_part(part)
-    part = part.replace("/", "_").upper()
-    semrockURL = "https://www.semrock.com/_ProductData/Spectra/"
-    url = semrockURL + slugify(part) + "_Spectrum.txt"
     try:
-        urlv = URLValidator()
-        urlv(url)
+        url = "https://www.semrock.com" + (
+            str(response.content)
+            .split('" title="Click to Download ASCII')[0]
+            .split('href="')[-1]
+        )
     except Exception:
-        raise ValueError("invalid url for Semrock download: {}".format(url))
+        raise ValueError("Could not parse page for semrock part: {}".format(part))
 
     response = requests.get(url)
-    if response.status_code == 200:
-        T = response.text
-        if T.startswith("Typical") and "Data format" in T:
-            T = T.split("Data format")[1]
-            T = "".join(T.split("\n")[1:])
-            T = T.split("---")[0]
-            T = T.strip("\r").replace("\r", "\n")
-        return T
-    else:
-        raise ValueError("Could not retrieve Semrock part: {}".format(part))
+    if response.status_code != 200:
+        raise ValueError("Could not retrieve data for Semrock part: {}".format(part))
+
+    T = response.text
+    if T.startswith("Typical") and "Data format" in T:
+        T = T.split("Data format")[1]
+        T = "".join(T.split("\n")[1:])
+        T = T.split("---")[0]
+        T = T.strip("\r").replace("\r", "\n")
+        if len(set([len(x.split("\t")) for x in T.split("\n")])) > 1:
+            return "\n".join([x for x in T.split("\n") if len(x.split("\t")) == 2])
+    return T
+
+
+# def fetch_semrock_part(part):
+#     """ Retrieve ASCII spectra for a semrock part number
+
+#     part is a string:
+#    'FF01-571/72' or  'FF01-571/72-25' (-25) will be clipped
+#     must resolve to a url such as:
+#     https://www.semrock.com/_ProductData/Spectra/FF01-571_72_Spectrum.txt
+#     """
+#     semrockURL = "https://www.semrock.com/_ProductData/Spectra/"
+#     orig_part = normalize_semrock_part(part)
+#     part = orig_part.replace("/", "_").upper()
+#     url = semrockURL + slugify(part) + "_Spectrum.txt"
+#     try:
+#         urlv = URLValidator()
+#         urlv(url)
+#     except Exception:
+#         raise ValueError("invalid url for Semrock download: {}".format(url))
+
+#     response = requests.get(url)
+#     if response.status_code != 200:
+#         part = orig_part.replace("/", "-").upper()
+#         url = semrockURL + slugify(part) + "_Spectrum.txt"
+#         response = requests.get(url)
+#         if response.status_code != 200:
+#             raise ValueError("Could not retrieve Semrock part: {}".format(orig_part))
+#     T = response.text
+#     if T.startswith("Typical") and "Data format" in T:
+#         T = T.split("Data format")[1]
+#         T = "".join(T.split("\n")[1:])
+#         T = T.split("---")[0]
+#         T = T.strip("\r").replace("\r", "\n")
+#     return T
 
 
 def extract_headers(text, delimiters=";|,|\t"):
@@ -245,6 +283,8 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
     kwargs["categories"] = "f"
     newObjects, errors = import_spectral_data(waves, data, headers, **kwargs)
     for obj in newObjects:
+        obj.source = "Chroma website"
+        obj.save()
         obj.owner.manufacturer = "Chroma"
         obj.owner.part = part
         obj.owner.save()
@@ -280,6 +320,8 @@ def import_semrock_spectra(part=None, **kwargs):
 
     newObjects, errors = import_spectral_data(waves, data, headers, **kwargs)
     for obj in newObjects:
+        obj.source = "Semrock website"
+        obj.save()
         obj.owner.manufacturer = "Semrock"
         obj.owner.part = part
         obj.owner.save()
