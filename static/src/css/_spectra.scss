@@ -2,21 +2,20 @@
 //-----------------
 
 h6 {
-  margin-bottom: .6rem;
+  margin-bottom: 0.6rem;
 }
-
 
 #scope-settings-buttons {
   float: left;
   font-size: 1.4rem;
-  margin-left: .5rem;
+  margin-left: 0.5rem;
   position: relative;
   top: -5px;
   span {
-    margin-right: .6rem;
+    margin-right: 0.6rem;
     cursor: pointer;
     :hover {
-      color: darken($info, 10)
+      color: darken($info, 10);
     }
     &.pin-wrapper {
       transition: transform 200ms;
@@ -32,11 +31,9 @@ h6 {
   }
 }
 
-
 .nvd3 .nv-brushBackground rect {
   shape-rendering: crispEdges;
   stroke-width: 0.3;
-
 }
 
 .sticky {
@@ -44,30 +41,39 @@ h6 {
   top: 0px;
 }
 
-#shareModal, #settingsModal, #embedModal, #infoModal {
+#shareModal,
+#settingsModal,
+#embedModal,
+#infoModal {
   z-index: 1080;
 }
 
-.spectrumpage{
-  .spectra-wrapper, .microscope-wrapper {
+.spectrumpage {
+  .spectra-wrapper,
+  .microscope-wrapper {
     position: relative;
     top: 0px;
-    z-index:99;
-    background:white;
+    z-index: 99;
+    background: white;
     margin: auto;
     width: 100%;
-    @include media-breakpoint-down(lg) { width: 100% }
-    @include media-breakpoint-up(lg) { width: 962px }
-    @include media-breakpoint-up(xl) { width: 1170px }
+    @include media-breakpoint-down(lg) {
+      width: 100%;
+    }
+    @include media-breakpoint-up(lg) {
+      width: 962px;
+    }
+    @include media-breakpoint-up(xl) {
+      width: 1170px;
+    }
     &.sticky {
       position: sticky;
       top: 0px;
     }
     &.shadowed {
-      box-shadow: 0 12px 8px -8px rgba(0,0,0,.2);
+      box-shadow: 0 12px 8px -8px rgba(0, 0, 0, 0.2);
     }
   }
-
 
   &.microscopepage {
     .select2-container--bootstrap .select2-selection--single {
@@ -75,7 +81,7 @@ h6 {
       height: calc(2.25rem + 2px) !important;
     }
 
-    #laserBlocking{
+    #laserBlocking {
       position: absolute;
       right: 4.8rem;
       text-align: right;
@@ -87,79 +93,91 @@ h6 {
     }
   }
 
-  @include media-breakpoint-down(md){
-    &.container, {
-       width: 100%;
-       max-width: 98%;
+  @include media-breakpoint-down(md) {
+    &.container {
+      width: 100%;
+      max-width: 98%;
     }
-    .container{
+    .container {
       max-width: 100%;
     }
   }
 
-  .spectra-tabs{
+  .spectra-tabs {
     font-size: small;
     margin-top: 0rem;
     padding-top: 0px;
 
     .tab-content {
       padding-bottom: 1.2rem;
-      border-bottom: 1px solid #DEE2E6;
+      border-bottom: 1px solid #dee2e6;
     }
-    label.custom-control-label{ padding-top: 2px;}
-    @include media-breakpoint-down(sm){
-      label.custom-control-label{ padding-top: 4px;}
-      font-size: 0.70rem; bottom: 15px;
+    label.custom-control-label {
+      padding-top: 2px;
     }
-    @include media-breakpoint-down(xs){
-      #toggle_alls p { padding-top: 1rem;}
+    @include media-breakpoint-down(sm) {
+      label.custom-control-label {
+        padding-top: 4px;
+      }
+      font-size: 0.7rem;
+      bottom: 15px;
+    }
+    @include media-breakpoint-down(xs) {
+      #toggle_alls p {
+        padding-top: 1rem;
+      }
     }
   }
-  .form-inline label{
+  .form-inline label {
     display: inline;
   }
 }
 
-
 /* hides NVD3 gridlines */
-#spectra, #spectrasvg {
+#spectra,
+#spectrasvg {
   // spectra area fill and outline
   position: relative;
 
   .faded-fret {
-    .nv-area { opacity: 0.15; }
-    .nv-line{
-    stroke-width: 1.2 !important;
-    stroke-dasharray: 5, 5;
-    stroke: rgba(0, 0, 0, 0.5) !important;
+    .nv-area {
+      opacity: 0.15;
+    }
+    .nv-line {
+      stroke-width: 1.2 !important;
+      stroke-dasharray: 5, 5;
+      stroke: rgba(0, 0, 0, 0.5) !important;
     }
   }
 
-  .subtype-bs, .subtype-lp {
-    .nv-area { display:none }
-    .nv-line{
-    stroke-width: 1.6 !important;
-    stroke-dasharray: 5, 5;
-    stroke: rgba(0, 0, 0, 0.5) !important;
+  .subtype-bs,
+  .subtype-lp {
+    .nv-area {
+      display: none;
+    }
+    .nv-line {
+      stroke-width: 1.6 !important;
+      stroke-dasharray: 5, 5;
+      stroke: rgba(0, 0, 0, 0.5) !important;
     }
   }
   .subtype-eff {
-    .nv-area{
+    .nv-area {
       stroke-width: 0 !important;
       fill-opacity: 0.5;
     }
-    .nv-line{
+    .nv-line {
       stroke-opacity: 1 !important;
       stroke-width: 2 !important;
       stroke: rgba(0, 0, 0, 0.7) !important;
     }
   }
 
-  .nv-groups.area-hidden{
-    .nv-area{
+  .nv-groups.area-hidden {
+    .nv-area {
       display: none;
     }
-    .nv-line{
+    .nv-line {
       stroke-width: 1.5 !important;
       stroke: inherit;
     }
@@ -171,9 +189,9 @@ h6 {
 
   path {
     &.nv-line {
-      stroke-width: .06rem;
-      opacity: .5;
-      fill:none;
+      stroke-width: 0.06rem;
+      opacity: 0.5;
+      fill: none;
     }
     &.nv-area {
       opacity: 0.8;
@@ -181,7 +199,7 @@ h6 {
   }
 
   // x axis numbers
-  .tick{
+  .tick {
     stroke: none;
     text-rendering: optimizeLegibility;
     line {
@@ -189,44 +207,45 @@ h6 {
     }
   }
 
-  #spectrasvg .tick line{
+  #spectrasvg .tick line {
     opacity: 0;
   }
 
   /* change opacity of spectrum paths */
   .nv-group {
-    fill-opacity: .6 !important;
+    fill-opacity: 0.6 !important;
   }
   // prevent first and last numbers from being bold
   .nv-axisMaxMin text {
     font-weight: normal;
   }
 
-
   .nv-axis text {
-      line{
-        stroke: none;
-        fill: none;
-      }
-      //font-family: sans-serif;
-      font-size: 0.8rem;
-      font-weight: 100;
+    line {
+      stroke: none;
+      fill: none;
+    }
+    //font-family: sans-serif;
+    font-size: 0.8rem;
+    font-weight: 100;
   }
 
-  .nv-line, .nv-axis path {
-      fill: none;
-      stroke: rgba($gray-700, 0.3);
-      shape-rendering: geometricPrecision;
+  .nv-line,
+  .nv-axis path {
+    fill: none;
+    stroke: rgba($gray-700, 0.3);
+    shape-rendering: geometricPrecision;
   }
 
   .scale-btns {
     float: right;
     margin-right: 1.2rem;
-    @include media-breakpoint-down(sm){ margin-right: 0rem; }
+    @include media-breakpoint-down(sm) {
+      margin-right: 0rem;
+    }
     padding-top: 1px;
     //margin-top: -45px;
   }
-
 }
 
 .spectra-overlay-div {
@@ -236,7 +255,7 @@ h6 {
   z-index: 10;
   a {
     opacity: 0.6;
-    &:hover{
+    &:hover {
       opacity: 0.9;
     }
   }
@@ -248,42 +267,70 @@ h6 {
 }
 
 .protein svg.nvd3-svg {
-  width:100%;
-  @include media-breakpoint-up(xs){ height: 170px; }
-  @include media-breakpoint-up(sm){ height: 190px; }
-  @include media-breakpoint-up(md){ height: 200px; }
-  @include media-breakpoint-up(lg){ height: 230px; }
-  @include media-breakpoint-up(xl){ height: 290px; }
+  width: 100%;
+  @include media-breakpoint-up(xs) {
+    height: 170px;
+  }
+  @include media-breakpoint-up(sm) {
+    height: 190px;
+  }
+  @include media-breakpoint-up(md) {
+    height: 200px;
+  }
+  @include media-breakpoint-up(lg) {
+    height: 230px;
+  }
+  @include media-breakpoint-up(xl) {
+    height: 290px;
+  }
 }
 
-
 .spectrumpage svg.nvd3-svg {
-  width:100%;
+  width: 100%;
   height: 500px;
-  @include media-breakpoint-up(xs){ height: 240px; }
-  @include media-breakpoint-up(sm){ height: 290px; }
-  @include media-breakpoint-up(md){ height: 320px; }
-  @include media-breakpoint-up(lg){ height: 370px; }
-  @include media-breakpoint-up(xl){ height: 400px; }
+  @include media-breakpoint-up(xs) {
+    height: 240px;
+  }
+  @include media-breakpoint-up(sm) {
+    height: 290px;
+  }
+  @include media-breakpoint-up(md) {
+    height: 320px;
+  }
+  @include media-breakpoint-up(lg) {
+    height: 370px;
+  }
+  @include media-breakpoint-up(xl) {
+    height: 400px;
+  }
   margin-bottom: -30px;
 }
 
-
 .fretpage {
   svg.nvd3-svg {
-    @include media-breakpoint-up(xs){ height: 230px; }
-    @include media-breakpoint-up(sm){ height: 280px; }
-    @include media-breakpoint-up(md){ height: 290px; }
-    @include media-breakpoint-up(lg){ height: 310px; }
-    @include media-breakpoint-up(xl){ height: 330px; }
+    @include media-breakpoint-up(xs) {
+      height: 230px;
+    }
+    @include media-breakpoint-up(sm) {
+      height: 280px;
+    }
+    @include media-breakpoint-up(md) {
+      height: 290px;
+    }
+    @include media-breakpoint-up(lg) {
+      height: 310px;
+    }
+    @include media-breakpoint-up(xl) {
+      height: 330px;
+    }
   }
 
   .table {
-  margin-bottom: 0;
-  font-weight: 100;
+    margin-bottom: 0;
+    font-weight: 100;
   }
 
-  @include media-breakpoint-down(sm){
+  @include media-breakpoint-down(sm) {
     .flip-scroll {
       td {
         height: 38px;
@@ -296,16 +343,16 @@ h6 {
     }
   }
 
-  .table-header th{
-  background-color: $secondary;
-  border-color: rgba($white, 0.05);
-  color: white;
-  text-align: center;
-  //  line-height: 2em;
+  .table-header th {
+    background-color: $secondary;
+    border-color: rgba($white, 0.05);
+    color: white;
+    text-align: center;
+    //  line-height: 2em;
   }
-  td{
-  //  line-height: 2em;
-  text-align: center;
+  td {
+    //  line-height: 2em;
+    text-align: center;
   }
 }
 .focusnote {
@@ -315,30 +362,34 @@ h6 {
   text-align: right;
   font-size: 0.93rem;
   font-weight: bold;
-  color: #CDD;
+  color: #cdd;
   z-index: -1;
-  @include media-breakpoint-down(sm){ font-size: 0.85rem; bottom: 15px; }
+  @include media-breakpoint-down(sm) {
+    font-size: 0.85rem;
+    bottom: 15px;
+  }
 }
 
-.nv-focusWrap.nvd3-svg{
+.nv-focusWrap.nvd3-svg {
   opacity: 0.55;
 }
 
-ul.spectra-tabs{
-  a.nav-link{
-    @include media-breakpoint-down(sm){ font-size: small;}
+ul.spectra-tabs {
+  a.nav-link {
+    @include media-breakpoint-down(sm) {
+      font-size: small;
+    }
   }
 }
 
-
-@include media-breakpoint-up(sm){
-  @supports (zoom:2) {
-    .big-checkbox{
-    zoom: 1.5;
+@include media-breakpoint-up(sm) {
+  @supports (zoom: 2) {
+    .big-checkbox {
+      zoom: 1.5;
     }
   }
-  @supports not (zoom:2) {
-    .big-checkbox{
+  @supports not (zoom: 2) {
+    .big-checkbox {
       transform: scale(1.5);
       margin: 15px;
     }
@@ -355,45 +406,90 @@ ul.spectra-tabs{
 //  max-width: 95%;
 //}
 
-
 #efficiency-table {
-  th { border-top: none;}
+  th {
+    border-top: none;
+  }
 }
 
 table.spectra-form {
   td {
     border-top: none;
   }
-  tr.fluor-row{
-
+  tr.fluor-row {
   }
-  tr.light-row{
-    td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
-    td:nth-child(3){ width: 20%; padding-top: 12px;}
-    td:nth-child(4){ width: 20%; padding-top: 18px;}
+  tr.light-row {
+    td:nth-child(1) {
+      width: 5%;
+      margin-right: 0;
+      padding-right: 0;
+    }
+    td:nth-child(3) {
+      width: 20%;
+      padding-top: 12px;
+    }
+    td:nth-child(4) {
+      width: 20%;
+      padding-top: 18px;
+    }
   }
-  tr.filter-row{
-    label{margin-right:0.5rem;}
-    td:nth-child(1){ width: 5%; margin-right: 0; padding-right: 0;}
-    td:nth-child(2){ width: 40%}
-    td:nth-child(3){ padding: 0; padding-top: 12px;}
-    td:nth-child(4){ padding: 0; padding-top: 12px;}
-    td:nth-child(5){ padding: 0; padding-top: 12px;}
+  tr.filter-row {
+    label {
+      margin-right: 0.5rem;
+    }
+    td:nth-child(1) {
+      width: 5%;
+      margin-right: 0;
+      padding-right: 0;
+    }
+    td:nth-child(2) {
+      width: 40%;
+    }
+    td:nth-child(3) {
+      padding: 0;
+      padding-top: 12px;
+    }
+    td:nth-child(4) {
+      padding: 0;
+      padding-top: 12px;
+    }
+    td:nth-child(5) {
+      padding: 0;
+      padding-top: 12px;
+    }
   }
-  tr.emission-row{
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
+  tr.emission-row {
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
-    input {width:3rem;}
-    td:nth-child(1){ width: 2%; margin-right: 0; padding-right: 0;}
-    td:nth-child(3){ width: 110px; margin: 0 inherit; padding: 0 inherit;}
-    td:nth-child(4){ width: 100px; margin: 0 inherit; padding: 0 inherit;}
-    td:nth-child(5){ width: 7%; input {width:3.1rem;}}
+    input {
+      width: 3rem;
+    }
+    td:nth-child(1) {
+      width: 2%;
+      margin-right: 0;
+      padding-right: 0;
+    }
+    td:nth-child(3) {
+      width: 110px;
+      margin: 0 inherit;
+      padding: 0 inherit;
+    }
+    td:nth-child(4) {
+      width: 100px;
+      margin: 0 inherit;
+      padding: 0 inherit;
+    }
+    td:nth-child(5) {
+      width: 7%;
+      input {
+        width: 3.1rem;
+      }
+    }
   }
 }
-
 
 // .efficiency-vgood {
 //   font-weight: 700;
@@ -418,37 +514,47 @@ table.spectra-form {
   font-size: 0.8rem;
 }
 
-
-.svg-container{
+.svg-container {
   position: relative;
 
-  #sticky-button{
+  #sticky-button {
     position: absolute;
     top: 2rem;
     right: 2rem;
   }
-
 }
 
-#y-zoom-slider{
+#y-zoom-slider {
   position: absolute;
   right: 1.1%;
   width: 8px;
   height: 90%;
   top: 50px;
-  @include media-breakpoint-down(md){ width: 6px; top: 42px; }
-  @include media-breakpoint-down(sm){ width: 5px; top: 38px; }
-
+  @include media-breakpoint-down(md) {
+    width: 6px;
+    top: 42px;
+  }
+  @include media-breakpoint-down(sm) {
+    width: 5px;
+    top: 38px;
+  }
 }
 .noUi-vertical .noUi-handle {
   width: 20px;
   height: 28px;
   left: -7px;
-  @include media-breakpoint-down(md){ height: 25px; left: -8px; }
-  @include media-breakpoint-down(sm){ height: 20px;  left: -9px;}
+  @include media-breakpoint-down(md) {
+    height: 25px;
+    left: -8px;
+  }
+  @include media-breakpoint-down(sm) {
+    height: 20px;
+    left: -9px;
+  }
 }
 
-.noUi-handle:after, .noUi-handle:before {
+.noUi-handle:after,
+.noUi-handle:before {
   display: none;
 }
 
@@ -465,15 +571,17 @@ table.spectra-form {
 }
 
 .select2-selection {
-  width:100% !important;
+  width: 100% !important;
   font-size: 0.8rem;
 }
 
-.select2-container--bootstrap.select2-container--focus .select2-selection, {
-  box-shadow:none;
+.select2-container--bootstrap.select2-container--focus .select2-selection {
+  box-shadow: none;
 }
 
-.select2-container--bootstrap .select2-selection--single .select2-selection__rendered{
+.select2-container--bootstrap
+  .select2-selection--single
+  .select2-selection__rendered {
   padding-left: 0.5rem !important;
 }
 
@@ -488,7 +596,7 @@ table.spectra-form {
 .item-link .btn-sm {
   font-size: 0.5rem !important;
   line-height: 1.33rem;
-  &:focus{
+  &:focus {
     box-shadow: none;
   }
 }
@@ -501,49 +609,73 @@ table.spectra-form {
   padding-bottom: 5px;
   padding-top: 5px;
 }
-.spectra-form .row:nth-child(n+2) {
-  @include media-breakpoint-down(xs){ border-top: 1px solid #ddd };
+.spectra-form .row:nth-child(n + 2) {
+  @include media-breakpoint-down(xs) {
+    border-top: 1px solid #ddd;
+  }
 }
 
+span.first-word {
+  display: inline;
+}
 
 .filter-label {
   font-size: 1rem;
   height: 1.4rem;
   width: 100%;
-  @include media-breakpoint-up(md){
-    font-size: 0.75rem };
-  @include media-breakpoint-up(lg){ font-size: 1rem };
-}
-
-.filters .card {
-  .list-group-item, .card-header{
-    padding: .55rem 1.25rem;
-  }
-}
-
-.filters{
-  .custom-control-label::after, .custom-control-label::before{
-    @include media-breakpoint-up(md){ top: 0; }
-    @include media-breakpoint-up(lg){ top: 0.25rem; }
-  }
-  .external-link {
-    color: #CCC;
-    margin-left: .65rem;
+  @include media-breakpoint-up(sm) {
     font-size: 0.75rem;
-    top: -1px;
-    position:relative;
-
-    :hover {
-      color: rgba($primary, 0.8)
+    span.first-word {
+      display: none;
+    }
+  }
+  @include media-breakpoint-up(lg) {
+    font-size: 1rem;
+    span.first-word {
+      display: inline;
     }
   }
 }
 
-.form-control{
-  &:disabled { background-color: white; }
-  &::placeholder{ color: #333; font-size: 0.85rem; }
+.filters .card {
+  .list-group-item,
+  .card-header {
+    padding: 0.55rem 1.25rem;
+  }
 }
 
+.filters {
+  .custom-control-label::after,
+  .custom-control-label::before {
+    @include media-breakpoint-up(md) {
+      top: 0;
+    }
+    @include media-breakpoint-up(lg) {
+      top: 0.25rem;
+    }
+  }
+  .external-link {
+    color: #ccc;
+    margin-left: 0.65rem;
+    font-size: 0.75rem;
+    top: -1px;
+    position: relative;
+
+    :hover {
+      color: rgba($primary, 0.8);
+    }
+  }
+}
+
+.form-control {
+  &:disabled {
+    background-color: white;
+  }
+  &::placeholder {
+    color: #333;
+    font-size: 0.85rem;
+  }
+}
 
 //
 // Switches for Bootstrap 4.
@@ -558,22 +690,21 @@ table.spectra-form {
 //
 $font-size-base: 1rem;
 $font-size-lg: ($font-size-base * 1.25);
-$font-size-sm: ($font-size-base * .875);
+$font-size-sm: ($font-size-base * 0.875);
 $input-height: 1.3rem;
 $input-height-sm: 1.3rem;
 $input-height-lg: 3rem;
-$input-btn-focus-width: .2rem;
+$input-btn-focus-width: 0.2rem;
 $custom-control-indicator-bg: #dee2e6;
 $custom-control-indicator-disabled-bg: #e9ecef;
 $custom-control-description-disabled-color: #868e96;
 
-
 //
 // These variables can be used to customize the switch component.
 //
-$switch-height: calc(#{$input-height} * .8) !default;
-$switch-height-sm: calc(#{$input-height-sm} * .8) !default;
-$switch-height-lg: calc(#{$input-height-lg} * .8) !default;
+$switch-height: calc(#{$input-height} * 0.8) !default;
+$switch-height-sm: calc(#{$input-height-sm} * 0.8) !default;
+$switch-height-lg: calc(#{$input-height-lg} * 0.8) !default;
 $switch-border-radius: $switch-height !default;
 $switch-bg: $custom-control-indicator-bg !default;
 $switch-checked-bg: rgba($info, 0.7) !default;
@@ -582,8 +713,9 @@ $switch-disabled-color: $custom-control-description-disabled-color !default;
 $switch-thumb-bg: $white !default;
 $switch-thumb-border-radius: 50% !default;
 $switch-thumb-padding: 2px !default;
-$switch-focus-box-shadow: 0 0 0 $input-btn-focus-width rgba(map-get($theme-colors, 'primary'), .25);
-$switch-transition: .2s all !default;
+$switch-focus-box-shadow: 0 0 0 $input-btn-focus-width
+  rgba(map-get($theme-colors, "primary"), 0.25);
+$switch-transition: 0.2s all !default;
 
 .switch {
   font-size: $font-size-base;
@@ -615,13 +747,13 @@ $switch-transition: .2s all !default;
       cursor: pointer;
       outline: none;
       user-select: none;
-      text-indent: calc(calc(#{$switch-height} * 2) + .5rem);
+      text-indent: calc(calc(#{$switch-height} * 2) + 0.5rem);
       margin-bottom: 0 !important;
     }
 
     + label::before,
     + label::after {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       left: 0;
@@ -679,7 +811,7 @@ $switch-transition: .2s all !default;
         min-width: calc(#{$switch-height-sm} * 2);
         height: $switch-height-sm;
         line-height: $switch-height-sm;
-        text-indent: calc(calc(#{$switch-height-sm} * 2) + .5rem);
+        text-indent: calc(calc(#{$switch-height-sm} * 2) + 0.5rem);
       }
 
       + label::before {
@@ -706,7 +838,7 @@ $switch-transition: .2s all !default;
         min-width: calc(#{$switch-height-lg} * 2);
         height: $switch-height-lg;
         line-height: $switch-height-lg;
-        text-indent: calc(calc(#{$switch-height-lg} * 2) + .5rem);
+        text-indent: calc(calc(#{$switch-height-lg} * 2) + 0.5rem);
       }
 
       + label::before {

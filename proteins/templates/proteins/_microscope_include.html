@@ -175,11 +175,8 @@
             <div class="custom-control custom-checkbox mr-sm-2">
               <input type="checkbox" class="custom-control-input filter-selector ex-filter" id="filter-ex-{{filt.id}}" value="{{filt.slug}}">
               <label class="custom-control-label filter-label" for="filter-ex-{{filt.id}}">
-                {% if filt.manufacturer and filt.part %}
-                  <span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}
-                {% else %}
-                    {{ filt.name }}
-                {% endif %}
+                {{ filt.name }}
+
                 {% if filt.url %}
                   <a href="{{ filt.url }}" class='external-link' target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i></a>
                 {% endif %}
@@ -206,11 +203,8 @@
                   <input type="checkbox" class="custom-control-input filter-selector bs-filter" id="filter-bs-{{filt.id}}" value="{{filt.slug}}">
 
                   <label class="custom-control-label filter-label" for="filter-bs-{{filt.id}}">
-                    {% if filt.manufacturer and filt.part %}
-                      <span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}
-                    {% else %}
-                        {{ filt.name }}
-                    {% endif %}
+                    {{ filt.name }}
+
                     {% if filt.url %}
                       <a href="{{ filt.url }}" class='external-link' target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i></a>
                     {% endif %}
@@ -251,11 +245,7 @@
                     <input type="checkbox" class="custom-control-input filter-selector em-filter" id="filter-em-{{filt.id}}" value="{{filt.slug}}">
 
                     <label class="custom-control-label filter-label" for="filter-em-{{filt.id}}">
-                      {% if filt.manufacturer and filt.part %}
-                        <span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}
-                      {% else %}
-                          {{ filt.name }}
-                      {% endif %}
+                      {{ filt.name }}
                       {% if filt.url %}
                         <a href="{{ filt.url }}" class='external-link' target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i></a>
                       {% endif %}
@@ -275,11 +265,8 @@
                 <input type="checkbox" class="custom-control-input filter-selector em-filter" id="filter-em-{{filt.id}}" value="{{filt.slug}}">
 
                 <label class="custom-control-label filter-label" for="filter-em-{{filt.id}}">
-                  {% if filt.manufacturer and filt.part %}
-                    <span class="d-inline d-sm-none d-lg-inline">{{ filt.manufacturer }} </span>{{ filt.part }}
-                  {% else %}
-                      {{ filt.name }}
-                  {% endif %}
+                  {{ filt.name }}
+
                   {% if filt.url %}
                     <a href="{{ filt.url }}" class='external-link' target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i></a>
                   {% endif %}

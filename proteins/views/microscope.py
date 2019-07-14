@@ -380,7 +380,16 @@ class MicroscopeDetailView(DetailView):
 
     def get_object(self, queryset=None):
         try:
-            scope = Microscope.objects.get(id__istartswith=self.kwargs.get("pk"))
+            scope = (
+                Microscope.objects.filter(id__istartswith=self.kwargs.get("pk"))
+                .prefetch_related(
+                    "optical_configs__filterplacement_set__filter",
+                    "optical_configs__camera",
+                    "optical_configs__light",
+                    "optical_configs",
+                )
+                .get()
+            )
             return scope
         except Microscope.MultipleObjectsReturned:
             raise Http404("Multiple microscopes found matching this query")
