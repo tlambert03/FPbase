@@ -48,6 +48,7 @@ const useKeyboardShortcuts = () => {
           toggleScaleQY()
           break
         case "KeyA":
+        case "KeyF":
           event.preventDefault()
           toggleAreaFill()
           break
