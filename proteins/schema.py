@@ -95,7 +95,7 @@ class Protein(gdo.OptimizedDjangoObjectType):
 
     class Meta:
         model = models.Protein
-        exclude_fields = (
+        exclude = (
             "id",
             "status",
             "status_changed",
@@ -203,7 +203,6 @@ class State(gdo.OptimizedDjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.State
-        exclude_fields = ()
 
     @gdo.resolver_hints(select_related=("protein",), only=("protein",))
     def resolve_protein(self, info, **kwargs):
