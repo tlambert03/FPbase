@@ -253,18 +253,11 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 {% block javascript %}
 
 <script type="text/javascript">
-  {
-    %
-    if object %
-  }
-  var confirmError = false; {
-    %
-    else %
-  }
-  var confirmError = true; {
-    %
-    endif %
-  }
+  {% if object %}
+  var confirmError = false; 
+  {% else %}
+  var confirmError = true; 
+  {% endif %}
 
   $("#microscopeform").submit(function (e) {
 
