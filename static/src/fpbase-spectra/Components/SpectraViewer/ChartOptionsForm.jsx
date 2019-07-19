@@ -71,7 +71,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
               <span>
                 Fill area under curves
                 <span className="mobile-hide small text-muted ml-3">
-                  (A key)
+                  (F key)
                 </span>
               </span>
 )}
