@@ -504,7 +504,7 @@
     $(window).on('load', function() {
       $('.lineage').each(function(i, el) {
         var slug = $(el).data('slug') || '';
-        $.getJSON('/ajax/lineage/' + slug, function(data) {
+        $.getJSON('/ajax/lineage/' + slug + '/', function(data) {
           if (!data.children.length > 0){
             return
           }
