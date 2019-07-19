@@ -10,6 +10,8 @@
 
 https://www.fpbase.org
 
+documentation and info on using the site: https://help.fpbase.org
+
 ## Installation for local development
 
 1. Clone repo and cd into directory
