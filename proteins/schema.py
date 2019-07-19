@@ -291,17 +291,21 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
     id = graphene.ID()
     spectrum = graphene.Field(Spectrum)
     spectrumId = id = graphene.ID()
-    reflects = graphene.Boolean()
+    name = graphene.String()
 
     class Meta:
         model = models.FilterPlacement
 
-    @gdo.resolver_hints(select_related=("filter__spectrum"))
+    @gdo.resolver_hints(select_related=("filter__spectrum",), only=("filter__name",))
     def resolve_spectrum(self, info):
         return self.filter.spectrum
 
+    @gdo.resolver_hints(select_related=("filter__name",), only=("filter__name",))
+    def resolve_name(self, info):
+        return self.filter.name
+
     @gdo.resolver_hints(
-        select_related=("filter__spectrum"), only=("filter__spectrum__id",)
+        select_related=("filter__spectrum",), only=("filter__spectrum__id",)
     )
     def resolve_spectrumId(self, info):
         return self.filter.spectrum.id
