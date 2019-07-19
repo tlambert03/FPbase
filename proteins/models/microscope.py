@@ -308,12 +308,11 @@ class FilterPlacement(models.Model):
     filter = models.ForeignKey("Filter", on_delete=models.CASCADE)
     config = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
     path = models.CharField(
-        max_length=2, choices=PATH_CHOICES, verbose_name="Ex/Em Path"
+        max_length=2, choices=PATH_CHOICES, verbose_name="Ex/Bs/Em Path"
     )
     # when path == BS, reflects refers to the emission path
     reflects = models.BooleanField(
-        default=False,
-        help_text="Filter reflects light at this position in the light path",
+        default=False, help_text="Filter reflects emission (if BS or EM filter)"
     )
 
     def __repr__(self):
