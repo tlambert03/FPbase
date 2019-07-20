@@ -1,20 +1,24 @@
-import numpy as np
 import ast
 import json
-from django.db import models
+
+import numpy as np
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.search import TrigramSimilarity
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.utils.text import slugify
+from django.db import models
+from django.forms import CharField, Textarea
 from django.urls import reverse
-from django.forms import Textarea, CharField
-from django.contrib.postgres.search import TrigramSimilarity
-from model_utils.models import TimeStampedModel
+from django.utils.text import slugify
 from model_utils.managers import QueryManager
+from model_utils.models import TimeStampedModel
+
 from references.models import Reference
-from .mixins import Authorable, Product, AdminURLMixin
+
 from ..util.helpers import wave_to_hex
 from ..util.spectra import interp_linear, interp_univar, norm2one, norm2P, step_size
+from .mixins import AdminURLMixin, Authorable, Product
 
 
 class SpectrumOwner(Authorable, TimeStampedModel):
@@ -57,6 +61,17 @@ def sorted_ex2em(filterset):
         return Spectrum.category_subtypes[Spectrum.FILTER].index(stype)
 
     return sorted(filterset, key=lambda x: _sort(x.subtype))
+
+
+SPECTRA_CACHE_KEY = "spectra_sluglist"
+
+
+def get_cached_spectra_info(timeout=60 * 60):
+    spectrainfo = cache.get(SPECTRA_CACHE_KEY)
+    if not spectrainfo:
+        spectrainfo = json.dumps({"data": {"spectra": Spectrum.objects.sluglist()}})
+        cache.set(SPECTRA_CACHE_KEY, spectrainfo, timeout)
+    return spectrainfo
 
 
 class SpectrumManager(models.Manager):
@@ -144,11 +159,9 @@ class SpectrumManager(models.Manager):
                     "category": v["category"],
                     "subtype": v["subtype"],
                     "owner": {"slug": slug, "name": name, "id": owner_id, "url": url},
-                    "slug": slug,
-                    "name": name,
                 }
             )
-        return sorted(out, key=lambda k: k["name"])
+        return sorted(out, key=lambda k: k["owner"]["name"])
 
     # FIXME:  Stupid dumb dumb
     def fluorlist(self, withdyes=True):
@@ -431,6 +444,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         if sum(bool(x) for x in self.owner_set) > 1:
             raise ValidationError("Spectrum must have only one owner!")
         # self.category = self.owner.__class__.__name__.lower()[0]
+        cache.delete(SPECTRA_CACHE_KEY)
         super().save(*args, **kwargs)
 
     def _norm2one(self):

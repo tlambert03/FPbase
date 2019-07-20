@@ -8,11 +8,10 @@ import { components } from "react-select"
 import Checkbox from "@material-ui/core/Checkbox"
 import FormControlLabel from "@material-ui/core/FormControlLabel"
 import gql from "graphql-tag"
-import useCachedQuery from "../useCachedQuery"
+import { useCachedFetch } from "../useCachedQuery"
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_OWNER_OPTIONS,
-  OPTICAL_CONFIG_LIST,
   GET_OPTICAL_CONFIG,
 } from "../client/queries"
 import MuiReactSelect from "./MuiReactSelect"
@@ -92,7 +91,12 @@ const SearchModal = React.memo(function SearchModal({
   const classes = useStyles()
 
   const [ocOptions, setOcOptions] = useState([])
-  const stash = useCachedQuery(OPTICAL_CONFIG_LIST, "_FPbaseOCStash", 5 * 60)
+  const stash = useCachedFetch(
+    "/api/proteins/ocinfo/",
+    "_FPbaseOCStash",
+    10 * 60
+  )
+  // const stash = useCachedQuery(OPTICAL_CONFIG_LIST, "_FPbaseOCStash", 5 * 60)
   useEffect(() => {
     if (stash) {
       const newOpts = stash.opticalConfigs.map(

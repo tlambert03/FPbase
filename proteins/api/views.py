@@ -1,28 +1,39 @@
-from rest_framework.generics import (
-    ListAPIView,
-    RetrieveUpdateDestroyAPIView,
-    RetrieveAPIView,
-)
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-
-from ..models import Protein, State, Spectrum
-from .serializers import (
-    ProteinSerializer,
-    ProteinSerializer2,
-    SpectrumSerializer,
-    BasicProteinSerializer,
-    StateSerializer,
-    ProteinSpectraSerializer,
-)
-
 from django.db.models import F, Max
+from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from django.http import JsonResponse
 from django_filters import rest_framework as filters
-from ..filters import ProteinFilter, StateFilter, SpectrumFilter
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.settings import api_settings
 from rest_framework_csv import renderers as r
+
+from ..filters import ProteinFilter, SpectrumFilter, StateFilter
+from ..models import Protein, State
+from ..models.spectrum import Spectrum, get_cached_spectra_info
+from ..models.microscope import get_cached_optical_configs
+from .serializers import (
+    BasicProteinSerializer,
+    ProteinSerializer,
+    ProteinSerializer2,
+    ProteinSpectraSerializer,
+    SpectrumSerializer,
+    StateSerializer,
+)
+
+
+def spectraslugs(request):
+    spectrainfo = get_cached_spectra_info()
+    return HttpResponse(spectrainfo, content_type="application/json")
+
+
+def ocinfo(request):
+    ocinfo = get_cached_optical_configs()
+    return HttpResponse(ocinfo, content_type="application/json")
 
 
 class SpectrumList(ListAPIView):
@@ -108,7 +119,3 @@ class ProteinSpectraListAPIView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinSpectraSerializer
     queryset = Protein.objects.with_spectra().prefetch_related("states")
-
-
-def spectraslugs(request):
-    return JsonResponse(Spectrum.objects.sluglist(), safe=False)

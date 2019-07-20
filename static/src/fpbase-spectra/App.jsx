@@ -1,11 +1,10 @@
 import React, { useMemo, useCallback } from "react"
-import { SPECTRA_LIST } from "./client/queries"
 
 import { reshapeSpectraInfo } from "./util"
 import { SpectraViewer } from "./Components/SpectraViewer"
 import OwnersContainer from "./Components/OwnersContainer"
 import WelcomeModal from "./Components/WelcomeModal"
-import useCachedQuery from "./useCachedQuery"
+import { useCachedFetch } from "./useCachedQuery"
 import MyAppBar from "./Components/MyAppBar"
 import "./polyfills"
 import useKeyboardShortcuts from "./Components/useKeyboardShortcuts"
@@ -16,7 +15,12 @@ const daysSinceLaunch = Math.round(
 
 const EMPTY = { ownerInfo: {}, spectraInfo: {} }
 const App = () => {
-  const stash = useCachedQuery(SPECTRA_LIST, "_FPbaseSpectraStash", 5 * 60)
+  const stash = useCachedFetch(
+    "/api/proteins/spectraslugs/",
+    "_FPbaseSpectraStash",
+    60 * 10
+  )
+  // const stash = useCachedQuery(SPECTRA_LIST, "_FPbaseSpectraStash", 5 * 60)
   const { ownerInfo, spectraInfo } = useMemo(() => {
     return stash ? reshapeSpectraInfo(stash.spectra) : EMPTY
   }, [stash])

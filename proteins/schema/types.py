@@ -4,13 +4,10 @@ from django.db.models import Prefetch
 from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectType
-from graphql import GraphQLError
-from graphene_django.filter import DjangoFilterConnectionField
-
 
 from references.schema import Reference
 
-from . import models
+from .. import models
 
 
 def nullable_enum_from_field(_model, _field):
@@ -43,12 +40,6 @@ def parse_selection(sel):
         if sel.selection_set
         else sel.name.value
     )
-
-
-def get_requested_fields(info):
-    selections = info.field_asts[0].selection_set.selections
-    requested_fields = [f.name.value for f in selections]
-    return requested_fields
 
 
 class Organism(gdo.OptimizedDjangoObjectType):
@@ -141,17 +132,6 @@ class Protein(gdo.OptimizedDjangoObjectType):
         return self.primary_reference
 
 
-class ProteinNode(Protein):
-    class Meta:
-        model = models.Protein
-        interfaces = (graphene.relay.Node,)
-        filter_fields = {
-            "name": ["exact", "icontains", "istartswith"],
-            "switch_type": ["exact"],
-            "agg": ["exact"],
-        }
-
-
 class FluorophoreInterface(graphene.Interface):
     qy = graphene.Float()
     extCoeff = graphene.Float(source="ext_coeff")
@@ -217,6 +197,22 @@ class State(gdo.OptimizedDjangoObjectType):
 class SpectrumOwnerUnion(graphene.Union):
     class Meta:
         types = (State,)
+
+
+# class SpectrumLoader(DataLoader):
+#     def batch_load_fn(self, keys):
+#         spectra = {
+#             spectrum.id: spectrum
+#             for spectrum in models.Spectrum.objects.filter(id__in=keys).select_related(
+#                 "owner_state",
+#                 "owner_state__protein",
+#                 "owner_dye",
+#                 "owner_camera",
+#                 "owner_filter",
+#                 "owner_light",
+#             )
+#         }
+#         return Promise.resolve([spectra.get(spectra_id) for spectra_id in keys])
 
 
 class Spectrum(gdo.OptimizedDjangoObjectType):
@@ -355,107 +351,3 @@ class OpticalConfig(gdo.OptimizedDjangoObjectType):
     )
     def resolve_filters(self, info):
         return self.filterplacement_set.all()
-
-
-class Query(graphene.ObjectType):
-
-    microscopes = graphene.List(Microscope)
-    microscope = graphene.Field(Microscope, id=graphene.String())
-
-    all_proteins = DjangoFilterConnectionField(ProteinNode)
-
-    def resolve_microscopes(self, info, **kwargs):
-        return gdo.query(models.Microscope.objects.all(), info)
-
-    def resolve_microscope(self, info, **kwargs):
-        id = kwargs.get("id")
-        if id is not None:
-            try:
-                obj = gdo.query(
-                    models.Microscope.objects.filter(id__istartswith=id), info
-                )
-                return obj.get()
-            except models.Microscope.MultipleObjectsReturned:
-                raise GraphQLError(
-                    'Multiple microscopes found starting with "{}"'.format(id)
-                )
-            except models.Microscope.DoesNotExist:
-                return None
-        return None
-
-    organisms = graphene.List(Organism)
-    organism = graphene.Field(Organism, id=graphene.Int())
-
-    def resolve_organisms(self, info, **kwargs):
-        return gdo.query(models.Organism.objects.all(), info)
-
-    def resolve_organism(self, info, **kwargs):
-        id = kwargs.get("id")
-        if id is not None:
-            try:
-                return gdo.query(models.Organism.objects.filter(id=id), info).get()
-            except models.Organism.DoesNotExist:
-                return None
-        return None
-
-    proteins = graphene.List(Protein)
-    protein = graphene.Field(Protein, id=graphene.String())
-
-    def resolve_proteins(self, info, **kwargs):
-        return gdo.query(models.Protein.objects.all(), info)
-
-    def resolve_protein(self, info, **kwargs):
-        id = kwargs.get("id")
-        if id is not None:
-            try:
-                return gdo.query(models.Protein.objects.filter(uuid=id), info).get()
-            except models.Spectrum.DoesNotExist:
-                return None
-        return None
-
-    # spectra = graphene.List(Spectrum)
-    spectra = graphene.List(SpectrumInfo)
-    spectrum = graphene.Field(Spectrum, id=graphene.Int())
-
-    def resolve_spectra(self, info, **kwargs):
-        requested_fields = get_requested_fields(info)
-        if "owner" in requested_fields:
-            return models.Spectrum.objects.sluglist()
-        return models.Spectrum.objects.all().values(*requested_fields)
-
-    def resolve_spectrum(self, info, **kwargs):
-        id = kwargs.get("id")
-        if id is not None:
-            try:
-                return gdo.query(models.Spectrum.objects.filter(id=id), info).get()
-            except models.Spectrum.DoesNotExist:
-                return None
-        return None
-
-    state = graphene.Field(State, id=graphene.Int())
-    states = graphene.List(State)
-
-    def resolve_states(self, info, **kwargs):
-        return models.State.objects.all()
-
-    def resolve_state(self, info, **kwargs):
-        id = kwargs.get("id")
-        if id is not None:
-            return models.State.objects.get(id=id)
-        return None
-
-    opticalConfigs = graphene.List(OpticalConfig)
-    opticalConfig = graphene.Field(OpticalConfig, id=graphene.Int())
-
-    def resolve_opticalConfigs(self, info, **kwargs):
-        # return models.OpticalConfig.objects.all().prefetch_related("microscope")
-        return gdo.query(models.OpticalConfig.objects.all(), info)
-
-    def resolve_opticalConfig(self, info, **kwargs):
-        id = kwargs.get("id")
-        if id is not None:
-            return gdo.query(models.OpticalConfig.objects.filter(id=id), info).get()
-        return None
-
-    # def resolve_spectra(self, info, **kwargs):
-    #     return gdo.query(models.Spectrum.objects.all(), info)

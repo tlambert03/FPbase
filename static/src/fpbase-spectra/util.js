@@ -108,7 +108,7 @@ function reshapeSpectraInfo(arr) {
       ) {
         // eslint-disable-next-line no-param-reassign
         prev.ownerInfo[cur.owner.slug] = {
-          category: cur.category,
+          category: cur.category.toUpperCase(),
           label: cur.owner.name,
           spectra: [],
           value: cur.owner.slug,
@@ -116,16 +116,16 @@ function reshapeSpectraInfo(arr) {
         }
       }
       prev.ownerInfo[cur.owner.slug].spectra.push({
-        id: cur.id,
-        subtype: cur.subtype,
+        id: String(cur.id),
+        subtype: cur.subtype.toUpperCase(),
         active: true,
       })
       // eslint-disable-next-line no-param-reassign
       prev.spectraInfo[cur.id] = {
-        subtype: cur.subtype,
+        subtype: cur.subtype.toUpperCase(),
         owner: cur.owner.slug,
         label: cur.owner.name,
-        category: cur.category,
+        category: cur.category.toUpperCase(),
       }
       return prev
     },

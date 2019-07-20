@@ -1,6 +1,8 @@
+import json
 import urllib.parse
 
 from django.contrib.postgres.fields import ArrayField
+from django.core.cache import cache
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -9,9 +11,8 @@ from django.utils.functional import cached_property
 
 from ..util.efficiency import spectral_product
 from ..util.helpers import shortuuid
-from .spectrum import Camera, Filter, Light
 from .collection import OwnedCollection
-from .spectrum import sorted_ex2em
+from .spectrum import Camera, Filter, Light, sorted_ex2em
 
 
 class Microscope(OwnedCollection):
@@ -165,6 +166,28 @@ class Microscope(OwnedCollection):
 
 def invert(sp):
     return [[a[0], 1 - a[1]] for a in sp]
+
+
+OC_CACHE_KEY = "optical_config_list"
+
+
+def get_cached_optical_configs(timeout=60 * 60):
+    ocinfo = cache.get(OC_CACHE_KEY)
+    if not ocinfo:
+        vals = OpticalConfig.objects.all().values(
+            "id", "name", "comments", "microscope__id", "microscope__name"
+        )
+        ocinfo = []
+        for val in vals:
+            scope = {
+                "id": val.pop("microscope__id"),
+                "name": val.pop("microscope__name"),
+            }
+            val["microscope"] = scope
+            ocinfo.append(val)
+        ocinfo = json.dumps({"data": {"opticalConfigs": ocinfo}})
+        cache.set(OC_CACHE_KEY, ocinfo, timeout)
+    return ocinfo
 
 
 class OpticalConfig(OwnedCollection):

@@ -12,7 +12,6 @@ urlpatterns = [
     path("spectrum/<int:pk>/", views.SpectrumDetail.as_view()),
     url(r"^proteins/$", views.ProteinListAPIView.as_view(), name="protein-api"),
     url(r"^proteins2/$", views.ProteinListAPIView2.as_view(), name="protein-api2"),
-    url(r"^proteins/spectraslugs/$", views.spectraslugs, name="spectra-slugs"),
     url(
         r"^proteins/spectra/$",
         views.ProteinSpectraListAPIView.as_view(),
@@ -30,4 +29,7 @@ urlpatterns = [
         views.ProteinRetrieveAPIView.as_view(),
         name="protein-api",
     ),
+    # non-normal endpoints
+    url(r"^proteins/spectraslugs/$", views.spectraslugs, name="spectra-slugs"),
+    url(r"^proteins/ocinfo/$", views.ocinfo, name="ocinfo"),
 ]
