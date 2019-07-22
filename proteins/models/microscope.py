@@ -225,6 +225,7 @@ class OpticalConfig(OwnedCollection):
         ordering = ["name"]
 
     def save(self, **kwargs):
+        cache.delete(OC_CACHE_KEY)
         super().save(**kwargs)
 
     @property
