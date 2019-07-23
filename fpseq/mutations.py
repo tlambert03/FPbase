@@ -206,9 +206,9 @@ class Mutation(object):
             )
         if self.operation in ("del", "delins"):
             stoppos = startpos
-            nextpos = stoppos + 1
             if self.stop_idx:
                 stoppos = self.stop_idx - idx0
+            nextpos = stoppos + 1
             shift = len(self.new_chars) - (nextpos - startpos)
             return (seq[:startpos] + self.new_chars + seq[nextpos:], shift)
         if self.operation == "ext":
