@@ -419,7 +419,10 @@ class MicroscopeDetailView(DetailView):
             ]
         else:
             data["probeslugs"] = Spectrum.objects.fluorlist()
-        data["scopespectra"] = json.dumps(self.object.spectra_d3())
+        if len(self.object.em_filters) + len(self.object.ex_filters) < 20:
+            data["scopespectra"] = json.dumps(self.object.spectra_d3())
+        else:
+            data["scopespectra"] = {}
         # safari = ('Safari' in self.request.META['HTTP_USER_AGENT']
         #           and 'Chrome' not in self.request.META['HTTP_USER_AGENT'])
         # if safari:

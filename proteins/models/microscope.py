@@ -72,13 +72,13 @@ class Microscope(OwnedCollection):
         microscope.save()
         return microscope
 
-    @property
+    @cached_property
     def has_inverted_bs(self):
         return self.optical_configs.filter(
             filterplacement__path=FilterPlacement.BS, filterplacement__reflects=True
         ).exists()
 
-    @property
+    @cached_property
     def has_reflective_emfilters(self):
         return self.optical_configs.filter(
             filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True
@@ -94,17 +94,17 @@ class Microscope(OwnedCollection):
     def get_absolute_url(self):
         return reverse("proteins:microscope-detail", args=[self.id])
 
-    @property
+    @cached_property
     def lights(self):
         oclights = Light.objects.filter(id__in=self.optical_configs.values("light"))
         return oclights
 
-    @property
+    @cached_property
     def cameras(self):
         occams = Camera.objects.filter(id__in=self.optical_configs.values("camera"))
         return occams
 
-    @property
+    @cached_property
     def lasers(self):
         return list(
             self.optical_configs.exclude(laser=None)
@@ -113,7 +113,7 @@ class Microscope(OwnedCollection):
             .distinct("laser")
         )
 
-    @property
+    @cached_property
     def ex_filters(self):
         return Filter.objects.filter(
             id__in=FilterPlacement.objects.filter(
@@ -124,7 +124,7 @@ class Microscope(OwnedCollection):
             .values("filter__id")
         )
 
-    @property
+    @cached_property
     def em_filters(self):
         return Filter.objects.filter(
             id__in=FilterPlacement.objects.filter(
@@ -135,7 +135,7 @@ class Microscope(OwnedCollection):
             .values("filter__id")
         )
 
-    @property
+    @cached_property
     def bs_filters(self):
         return Filter.objects.filter(
             id__in=FilterPlacement.objects.filter(
@@ -146,7 +146,7 @@ class Microscope(OwnedCollection):
             .values("filter__id")
         )
 
-    @property
+    @cached_property
     def spectra(self):
         spectra = []
         for f in (
@@ -228,30 +228,30 @@ class OpticalConfig(OwnedCollection):
         cache.delete(OC_CACHE_KEY)
         super().save(**kwargs)
 
-    @property
+    @cached_property
     def ex_filters(self):
         """ all filters that have an excitation role """
         return self.filters.filter(filterplacement__path=FilterPlacement.EX)
 
-    @property
+    @cached_property
     def em_filters(self):
         """ all filters that have an emission role """
         return self.filters.filter(
             filterplacement__path=FilterPlacement.EM, filterplacement__reflects=False
         )
 
-    @property
+    @cached_property
     def bs_filters(self):
         """ all filters that are in both ex and em paths have a beamsplitting role """
         return self.filters.filter(filterplacement__path=FilterPlacement.BS)
 
-    @property
+    @cached_property
     def ref_em_filters(self):
         return self.filters.filter(
             filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True
         )
 
-    @property
+    @cached_property
     def ex_spectra(self):
         """ returns components in the excitation path """
         p = []
@@ -271,7 +271,7 @@ class OpticalConfig(OwnedCollection):
             )
         return p
 
-    @property
+    @cached_property
     def em_spectra(self):
         """ returns components in the emissino path """
         p = []
@@ -295,7 +295,7 @@ class OpticalConfig(OwnedCollection):
     def combined_em_spectra(self):
         return spectral_product(self.em_spectra)
 
-    @property
+    @cached_property
     def inverted_bs(self):
         return self.filterplacement_set.filter(path=FilterPlacement.BS, reflects=True)
 
