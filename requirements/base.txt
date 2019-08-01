@@ -28,7 +28,7 @@ sentry-sdk==0.10.2  # https://github.com/getsentry/sentry-python/
 
 metapub==0.4.3.6
 biopython==1.74
-pandas==0.24.2
+pandas==0.25.0
 
 habanero==0.6.2
 django-filter==2.1.0
