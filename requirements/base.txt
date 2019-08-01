@@ -52,7 +52,7 @@ oauth2client==4.1.3
 algoliasearch_django==1.7.1
 
 celery[redis]==4.3.0  # https://github.com/celery/celery
-graphene==2.1.6  # https://github.com/graphql-python/graphene
+graphene==2.1.7  # https://github.com/graphql-python/graphene
 graphene-django==2.4.0  # https://github.com/graphql-python/graphene-django
 graphene-django-optimizer==0.4.2  # https://github.com/tfoxy/graphene-django-optimizer
 django-graphql-jwt==0.2.1
