@@ -1,7 +1,7 @@
 import django_filters
 from django_filters import rest_framework as filters
 from django import forms
-from .models import Protein, State, Spectrum
+from .models import Protein, State, Spectrum, Organism
 from Bio import Seq, Alphabet
 from .validators import cdna_sequence_validator
 
@@ -127,6 +127,10 @@ class ProteinFilter(filters.FilterSet):
     switch_type__ne = django_filters.ChoiceFilter(
         choices=Protein.SWITCHING_CHOICES, method="switch_type__notequal"
     )
+    parent_organism__ne = django_filters.ModelChoiceFilter(
+        queryset=Organism.objects.all(), method="parent_organism__notequal"
+    )
+
     # name__iexact = django_filters.CharFilter(
     #     field_name='name',
     #     method='name_or_alias_iexact', lookup_expr='iexact')
@@ -166,7 +170,7 @@ class ProteinFilter(filters.FilterSet):
             "uniprot": ["iexact"],
             "status": ["exact"],
             "switch_type": ["exact", "ne"],
-            "parent_organism": ["exact"],
+            "parent_organism": ["exact", "ne"],
             "primary_reference__year": ["gte", "gt", "lt", "lte", "range", "exact"],
             "spectral_brightness": ["gt", "lt"],
             "primary_reference__author__family": ["icontains"],
@@ -217,6 +221,9 @@ class ProteinFilter(filters.FilterSet):
 
     def switch_type__notequal(self, queryset, name, value):
         return queryset.exclude(switch_type=value)
+
+    def parent_organism__notequal(self, queryset, name, value):
+        return queryset.exclude(parent_organism=value)
 
     # def name_or_alias_iexact(self, queryset, name, value):
     #     return queryset.filter(name__iexact=value) | queryset.filter(aliases__iexact=value)
