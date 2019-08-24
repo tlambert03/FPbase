@@ -349,6 +349,7 @@ export default function initFRET() {
   $(document).ready(function() {
     var getData = function(data, callback, settings) {
       $.get({
+        url: '',
         success: function(d) {
           if (d.data === null) {
             setTimeout(getData.bind(this, data, callback, settings), 1500);

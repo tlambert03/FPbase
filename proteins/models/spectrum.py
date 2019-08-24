@@ -613,7 +613,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             D["color"] = "url(#wavecolor_gradient)"
 
         if self.category in (self.PROTEIN, self.DYE):
-            if self.subtype == self.EX:
+            if self.subtype == self.EX or self.subtype == self.ABS:
                 D.update({"scalar": self.owner.ext_coeff, "ex_max": self.owner.ex_max})
             elif self.subtype == self.EM:
                 D.update({"scalar": self.owner.qy, "em_max": self.owner.em_max})
