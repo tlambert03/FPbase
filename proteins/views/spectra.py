@@ -4,19 +4,16 @@ import json
 # from django.views.decorators.vary import vary_on_cookie
 from django import forms
 from django.conf import settings
-from django.core.cache import cache
 from django.core.mail import EmailMessage
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.views.generic import CreateView
 
-from fpbase.celery import app
 from fpbase.util import uncache_protein_page
 
 from ..forms import SpectrumForm
 from ..models import Filter, Protein, Spectrum, State
-from ..tasks import calc_fret
 from ..util.importers import add_filter_to_database
 from ..util.spectra import spectra2csv
 
@@ -45,41 +42,6 @@ def protein_spectra(request, slug=None):
     # return render(request, template, {
     #     'spectra_options': json.dumps(spectra)}
     # )
-
-
-def fret_chart(request):
-    """ renders html for protein spectra page  """
-    template = "fret.html"
-
-    if request.is_ajax():
-        L = cache.get("forster_list")
-        if not L:
-            job = cache.get("calc_fret_job")
-            if cache.get("calc_fret_job"):
-                result = app.AsyncResult(job)
-                if result.ready():
-                    L = result.get()
-                    cache.set("forster_list", L, 60 * 60 * 24)
-                    cache.delete("calc_fret_job")
-            else:
-                job = calc_fret.delay()
-                if job:
-                    cache.set("calc_fret_job", job.id)
-        return JsonResponse({"data": L})
-
-    slugs = State.objects.filter(spectra__subtype__in=("ex", "ab")).values(
-        "slug", "protein__name", "spectra__category", "spectra__subtype"
-    )
-    slugs = [
-        {
-            "slug": x["slug"],
-            "category": x["spectra__category"],
-            "subtype": x["spectra__subtype"],
-            "name": x["protein__name"],
-        }
-        for x in slugs
-    ]
-    return render(request, template, {"probeslugs": slugs})
 
 
 class SpectrumCreateView(CreateView):

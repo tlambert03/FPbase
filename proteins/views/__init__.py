@@ -6,3 +6,4 @@ from .search import *  # noqa
 from .spectra import *  # noqa
 from .microscope import *  # noqa
 from .blast import *  # noqa
+from .fret import *  # noqa
