@@ -39,7 +39,7 @@ tablib==0.13.0
 scipy==1.3.1
 dnspython==1.16.0
 django-anymail==6.1.0  # https://github.com/anymail/django-anymail
-django-autocomplete-light==3.3.5  # https://github.com/yourlabs/django-autocomplete-light
+django-autocomplete-light==3.4.1  # https://github.com/yourlabs/django-autocomplete-light
 django-avatar==4.1.0
 
 numpy==1.15.2  # pyup: ignore
