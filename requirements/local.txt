@@ -20,4 +20,4 @@ pylint-django==2.0.11  # https://github.com/PyCQA/pylint-django
 # ------------------------------------------------------------------------------
 
 django-debug-toolbar==2.0  # https://github.com/jazzband/django-debug-toolbar
-django-extensions==2.1.9  # https://github.com/django-extensions/django-extensions
+django-extensions==2.2.1  # https://github.com/django-extensions/django-extensions
