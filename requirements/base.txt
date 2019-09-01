@@ -56,4 +56,4 @@ graphene==2.1.8  # https://github.com/graphql-python/graphene
 graphene-django==2.5.0  # https://github.com/graphql-python/graphene-django
 graphene-django-optimizer==0.6.0  # https://github.com/tfoxy/graphene-django-optimizer
 django-graphql-jwt==0.2.2
-django-cors-headers==3.0.2
+django-cors-headers==3.1.0
