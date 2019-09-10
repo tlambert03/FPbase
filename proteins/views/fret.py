@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 from fpbase.celery import app
 
-from ..models import State
+from ..models import State, Dye
 from ..tasks import calc_fret
 
 
@@ -28,8 +28,13 @@ def fret_chart(request):
                     cache.set("calc_fret_job", job.id)
         return JsonResponse({"data": L})
 
-    slugs = State.objects.filter(spectra__subtype__in=("ex", "ab")).values(
-        "slug", "name", "protein__name", "spectra__category", "spectra__subtype"
+    slugs = (
+        State.objects.exclude(ext_coeff=None)
+        .exclude(qy=None)
+        .filter(spectra__subtype__in=("ex", "ab"))
+        .values(
+            "slug", "name", "protein__name", "spectra__category", "spectra__subtype"
+        )
     )
 
     slugs = [
@@ -42,4 +47,22 @@ def fret_chart(request):
         }
         for x in slugs
     ]
+
+    good_dyes = (
+        Dye.objects.exclude(ext_coeff=None)
+        .exclude(qy=None)
+        .filter(spectra__subtype__in=("ex", "ab"))
+    ).values("slug", "name", "spectra__category", "spectra__subtype")
+
+    slugs += [
+        {
+            "slug": x["slug"],
+            "category": x["spectra__category"],
+            "subtype": x["spectra__subtype"],
+            "name": x["name"],
+        }
+        for x in good_dyes
+    ]
+
+    slugs.sort(key=lambda x: x["name"])
     return render(request, template, {"probeslugs": slugs})
