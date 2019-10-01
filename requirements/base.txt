@@ -26,7 +26,7 @@ markdown==3.1.1
 # MY STUFF
 sentry-sdk==0.12.2  # https://github.com/getsentry/sentry-python/
 
-metapub==0.5.1
+metapub==0.5.3
 biopython==1.74
 pandas==0.25.1
 
