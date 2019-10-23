@@ -15,6 +15,7 @@ import introspectionQueryResultData from "../fragmentTypes.json"
 import { decoder } from "../util"
 import { GET_CHART_OPTIONS } from "./queries"
 import "unfetch/polyfill/index"
+import PALETTES from "../palettes"
 
 function intializeClient({ uri, storage }) {
   const fragmentMatcher = new IntrospectionFragmentMatcher({
@@ -74,6 +75,9 @@ function intializeClient({ uri, storage }) {
     Object.keys(url).forEach(key => {
       if (booleanOptions.includes(key)) {
         data.chartOptions[key] = Boolean(+url[key])
+      }
+      if (key === "palette" && url[key] in PALETTES) {
+        data.chartOptions.palette = url[key]
       }
       if (key === "xMin") extremes[0] = +url[key]
       if (key === "xMax") extremes[1] = +url[key]

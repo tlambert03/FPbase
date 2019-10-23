@@ -164,6 +164,7 @@ const GET_CHART_OPTIONS = gql`
       scaleQY
       extremes
       shareTooltip
+      palette
     }
   }
 `
@@ -245,5 +246,5 @@ export {
   ADD_SELECTORS,
   UPDATE_SELECTOR,
   REMOVE_SELECTOR,
-  NORMALIZE_CURRENT
+  NORMALIZE_CURRENT,
 }

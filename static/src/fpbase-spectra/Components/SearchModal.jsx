@@ -120,7 +120,7 @@ const SearchModal = React.memo(function SearchModal({
         return
       }
       switch (event.code) {
-        case "KeyL":
+        // case "KeyL":
         case "Space":
           event.preventDefault()
           setOpen(true)

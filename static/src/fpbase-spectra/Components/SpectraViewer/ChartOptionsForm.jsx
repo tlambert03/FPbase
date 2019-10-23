@@ -3,13 +3,21 @@ import List from "@material-ui/core/List"
 import { useMutation, useQuery } from "@apollo/react-hooks"
 import gql from "graphql-tag"
 import Grid from "@material-ui/core/Grid"
+import MenuItem from "@material-ui/core/MenuItem"
+import Select from "@material-ui/core/Select"
 import { GET_CHART_OPTIONS } from "../../client/queries"
 import ListCheckbox from "../ListCheckbox"
+import PALETTES from "../../palettes"
 
 const toggleMut = param => gql`
 mutation Toggle${param} {
   toggle${param} @client
 }
+`
+const MUTATE_PALETTE = gql`
+  mutation SetPalette($palette: String!) {
+    setPalette(palette: $palette) @client
+  }
 `
 
 const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
@@ -20,6 +28,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
   const [toggleScaleQY] = useMutation(toggleMut("ScaleQY"))
   const [toggleShareTooltip] = useMutation(toggleMut("ShareTooltip"))
   const [toggleAreaFill] = useMutation(toggleMut("AreaFill"))
+  const [mutatePalette] = useMutation(MUTATE_PALETTE)
   const {
     data: { chartOptions },
   } = useQuery(GET_CHART_OPTIONS)
@@ -114,6 +123,27 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
               </span>
 )}
           />
+          <div style={{ marginBottom: 20 }}>
+            <span style={{ marginRight: 14, marginLeft: 14 }}>
+              Color palette:
+            </span>
+            <Select
+              value={chartOptions.palette}
+              onChange={e =>
+                mutatePalette({ variables: { palette: e.target.value } })
+              }
+              inputProps={{
+                name: "color-palette",
+                id: "color-palette-select",
+              }}
+            >
+              {Object.keys(PALETTES).map(i => (
+                <MenuItem value={i} key={i}>
+                  {PALETTES[i].name}
+                </MenuItem>
+              ))}
+            </Select>
+          </div>
         </Grid>
       </Grid>
     </List>
