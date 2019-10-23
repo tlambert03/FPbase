@@ -143,6 +143,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
                 </MenuItem>
               ))}
             </Select>
+            <span className="mobile-hide small text-muted ml-3">(C key)</span>
           </div>
         </Grid>
       </Grid>
