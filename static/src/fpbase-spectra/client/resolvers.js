@@ -9,6 +9,9 @@ import {
   GET_ACTIVE_OVERLAPS,
 } from "./queries"
 import { trapz, spectraProduct } from "../util"
+import PALETTES from "../palettes"
+
+const PALETTE_KEYS = Object.keys(PALETTES)
 
 export const defaults = {
   activeSpectra: [],
@@ -22,6 +25,7 @@ export const defaults = {
     scaleQY: false,
     shareTooltip: true,
     areaFill: true,
+    palette: "wavelength",
     extremes: [undefined, undefined],
     __typename: "chartOptions",
   },
@@ -46,18 +50,20 @@ function toggleChartOption(cache, key) {
   return data
 }
 
-// function spectrumFrag(cache, id) {
-//   return cache.readFragment({
-//     id: "SpectrumInfo:" + String(id),
-//     fragment: gql`
-//       fragment Spectrum on SpectrumInfo {
-//         owner {
-//           slug
-//         }
-//       }
-//     `
-//   })
-// }
+function _setPalette(palette, client) {
+  const data = { chartOptions: { palette, __typename: "chartOptions" } }
+  client.writeQuery({
+    query: gql`
+      {
+        chartOptions @client {
+          palette
+        }
+      }
+    `,
+    data,
+  })
+  return data
+}
 
 function activeSpectraToSelectors(
   activeSpectra,
@@ -167,6 +173,25 @@ export const resolvers = {
         data,
       })
       return data
+    },
+    setPalette: (_root, { palette }, { client }) => {
+      return _setPalette(palette, client)
+    },
+    cyclePalette: (_root, variables, { cache, client }) => {
+      const {
+        chartOptions: { palette },
+      } = cache.readQuery({
+        query: gql`
+          {
+            chartOptions {
+              palette
+            }
+          }
+        `,
+      })
+      const curIndex = PALETTE_KEYS.indexOf(palette)
+      const newpalette = PALETTE_KEYS[(curIndex + 1) % PALETTE_KEYS.length]
+      return _setPalette(newpalette, client)
     },
     setExcludeSubtypes: (_, { excludeSubtypes }, { cache }) => {
       cache.writeData({ data: { excludeSubtypes } })
@@ -311,3 +336,16 @@ export const resolvers = {
 }
 
 export { validSpectraIds }
+
+// function spectrumFrag(cache, id) {
+//   return cache.readFragment({
+//     id: "SpectrumInfo:" + String(id),
+//     fragment: gql`
+//       fragment Spectrum on SpectrumInfo {
+//         owner {
+//           slug
+//         }
+//       }
+//     `
+//   })
+// }

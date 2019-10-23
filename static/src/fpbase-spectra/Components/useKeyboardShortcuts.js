@@ -8,6 +8,12 @@ mutation Toggle${param} {
 }
 `
 
+const CYCLE_PALLETE = gql`
+  mutation CyclePalette {
+    cyclePalette @client
+  }
+`
+
 const useKeyboardShortcuts = () => {
   const [toggleY] = useMutation(toggleMut("YAxis"))
   const [toggleX] = useMutation(toggleMut("XAxis"))
@@ -16,6 +22,7 @@ const useKeyboardShortcuts = () => {
   const [toggleScaleQY] = useMutation(toggleMut("ScaleQY"))
   const [toggleShareTooltip] = useMutation(toggleMut("ShareTooltip"))
   const [toggleAreaFill] = useMutation(toggleMut("AreaFill"))
+  const [cyclePalette] = useMutation(CYCLE_PALLETE)
 
   useEffect(() => {
     const handleKeyDown = event => {
@@ -56,6 +63,10 @@ const useKeyboardShortcuts = () => {
           event.preventDefault()
           toggleShareTooltip()
           break
+        case "KeyC":
+          event.preventDefault()
+          cyclePalette()
+          break
         default:
           break
       }
@@ -73,6 +84,7 @@ const useKeyboardShortcuts = () => {
     toggleShareTooltip,
     toggleX,
     toggleY,
+    cyclePalette,
   ])
 }
 

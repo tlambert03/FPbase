@@ -3,6 +3,7 @@ import { Series } from "react-jsx-highcharts"
 import { useApolloClient } from "@apollo/react-hooks"
 import { List } from "immutable"
 import { GET_SPECTRUM } from "../../client/queries"
+import PALETTES from "../../palettes"
 
 const OD = num => (num <= 0 ? 10 : -Math.log10(num))
 
@@ -117,6 +118,8 @@ const SpectrumSeries = memo(function SpectrumSeries({
   spectrum,
   areaFill,
   exNorm,
+  palette,
+  ownerIndex,
   ownerInfo,
 }) {
   let serie = useExNormedData({ exNorm, spectrum, ownerInfo })
@@ -146,8 +149,17 @@ const SpectrumSeries = memo(function SpectrumSeries({
   if (["EX", "EM", "A_2P", "2P"].includes(spectrum.subtype)) {
     name += ` ${spectrum.subtype.replace("A_", "")}`
   }
-  let color = hex2rgba(spectrum.color, 0.9)
-  let fillColor = hex2rgba(spectrum.color, 0.5)
+  let dashStyle = "Solid"
+  if (["EX", "AB", "A_2P", "2P"].includes(spectrum.subtype)) {
+    dashStyle = "ShortDash"
+  }
+  let myColor = spectrum.color
+  if (palette !== "wavelength" && palette in PALETTES) {
+    const { hexlist } = PALETTES[palette]
+    myColor = hexlist[ownerIndex % hexlist.length]
+  }
+  let color = hex2rgba(myColor, 0.9)
+  let fillColor = hex2rgba(myColor, 0.5)
   let lineWidth = areaFill ? 0.5 : 1.8
   let type = areaFill ? "areaspline" : "spline"
   if (spectrum.category === "C") {
@@ -173,6 +185,7 @@ const SpectrumSeries = memo(function SpectrumSeries({
         name={name}
         color={color}
         fillColor={fillColor}
+        dashStyle={dashStyle}
         lineWidth={lineWidth}
         className={`cat-${spectrum.category} subtype-${spectrum.subtype}`}
         data={serie}

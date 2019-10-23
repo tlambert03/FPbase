@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import IconButton from "@material-ui/core/IconButton"
 import SettingsIcon from "@material-ui/icons/Settings"
 import SwipeableDrawer from "@material-ui/core/SwipeableDrawer"
@@ -31,6 +31,31 @@ const SettingsDrawer = () => {
       clearForm @client
     }
   `)
+
+  useEffect(() => {
+    const handleKeyDown = event => {
+      // don't do anything if we're on an input
+      if (
+        document.activeElement &&
+        document.activeElement.tagName.toUpperCase() === "INPUT"
+      ) {
+        return
+      }
+      switch (event.code) {
+        case "Comma":
+          event.preventDefault()
+          setDrawerOpen(!drawerOpen)
+          break
+        default:
+          break
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [drawerOpen])
 
   const handleClearForm = () => {
     clearForm()

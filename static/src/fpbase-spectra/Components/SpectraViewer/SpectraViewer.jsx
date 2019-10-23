@@ -10,7 +10,7 @@ import {
   Tooltip,
   provideAxis,
   Chart /* etc... */,
-  XAxis
+  XAxis,
 } from "react-jsx-highcharts"
 import applyExporting from "highcharts/modules/exporting"
 import applyPatterns from "highcharts/modules/pattern-fill"
@@ -57,17 +57,17 @@ const {
   exporting: _exporting,
   legend: _legend,
   tooltip: _tooltip,
-  boost: _boost
+  boost: _boost,
 } = DEFAULT_OPTIONS
 
 const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
-  ownerInfo
+  ownerInfo,
 }) {
   const {
     data: {
       chartOptions,
-      exNorm: [normWave]
-    }
+      exNorm: [normWave],
+    },
   } = useQuery(gql`
     query ChartOptions {
       chartOptions @client {
@@ -80,6 +80,7 @@ const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
         scaleQY
         extremes
         shareTooltip
+        palette
       }
       exNorm @client
     }
@@ -87,16 +88,16 @@ const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
 
   const yAxis = update(_yAxis, {
     labels: { enabled: { $set: chartOptions.showY || chartOptions.logScale } },
-    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 }
+    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
   })
 
   const xAxis = update(_xAxis, {
     labels: { enabled: { $set: chartOptions.showX } },
-    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 }
+    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
   })
 
   const tooltip = update(_tooltip, {
-    shared: { $set: chartOptions.shareTooltip }
+    shared: { $set: chartOptions.shareTooltip },
   })
 
   const data = useSpectraData()
@@ -121,7 +122,7 @@ const SpectraViewer = memo(function SpectraViewer({
   xAxis,
   exNorm,
   chartOptions,
-  ownerInfo
+  ownerInfo,
 }) {
   const windowWidth = useWindowWidth()
   let height = calcHeight(windowWidth)
@@ -133,6 +134,7 @@ const SpectraViewer = memo(function SpectraViewer({
     height += legendHeight
   }
 
+  const owners = [...new Set(data.map(item => item.owner.slug))]
   const numSpectra = data.length
   const exData = data.filter(i => i.subtype === "EX" || i.subtype === "AB")
   const nonExData = data.filter(i => i.subtype !== "EX" && i.subtype !== "AB")
@@ -149,7 +151,7 @@ const SpectraViewer = memo(function SpectraViewer({
           width: "100%",
           zIndex: 10,
           fontSize: "0.7rem",
-          color: "#bbb"
+          color: "#bbb",
         }}
       />
       {numSpectra === 0 && <NoData height={height} />}
@@ -168,6 +170,7 @@ const SpectraViewer = memo(function SpectraViewer({
         <Chart {..._chart} height={height} />
         <Legend {..._legend} />
         <Tooltip {...tooltip} />
+        {/* the first Yaxis is for everything besides excitation data */}
         <YAxis
           id="yAx1"
           {...yAxis}
@@ -178,7 +181,7 @@ const SpectraViewer = memo(function SpectraViewer({
           endOnTick={chartOptions.scaleEC}
           labels={{
             ...yAxis.labels,
-            enabled: yAxis.labels.enabled && numSpectra > 0
+            enabled: yAxis.labels.enabled && numSpectra > 0,
           }}
         >
           {nonExData.map(spectrum => (
@@ -187,17 +190,19 @@ const SpectraViewer = memo(function SpectraViewer({
               spectrum={spectrum}
               key={spectrum.id}
               ownerInfo={ownerInfo}
+              ownerIndex={owners.indexOf(spectrum.owner.slug)}
               {...chartOptions}
             />
           ))}
         </YAxis>
+        {/* a second axis for ex data, which may need to be scaled by EC */}
         <YAxis
           id="yAx2"
           {...yAxis}
           labels={{
             ...yAxis.labels,
             enabled: chartOptions.scaleEC,
-            style: { fontWeight: 600, fontSize: "0.65rem" }
+            style: { fontWeight: 600, fontSize: "0.65rem" },
           }}
           opposite
           gridLineWidth={chartOptions.scaleEC && chartOptions.showGrid}
@@ -216,6 +221,7 @@ const SpectraViewer = memo(function SpectraViewer({
             <SpectrumSeries
               spectrum={spectrum}
               key={spectrum.id}
+              ownerIndex={owners.indexOf(spectrum.owner.slug)}
               {...chartOptions}
             />
           ))}
@@ -231,20 +237,20 @@ const SpectraViewer = memo(function SpectraViewer({
 const MyCredits = provideAxis(function MyCredits({
   getAxis,
   getHighcharts,
-  hide
+  hide,
 }) {
   useEffect(() => {
     const axis = getAxis()
     function shiftCredits() {
       const yShift = axis.object.chart.get("xAxis").axisTitleMargin
       axis.object.chart.credits.update({
-        position: { y: -25 - yShift, x: -25 - axis.object.axisTitleMargin }
+        position: { y: -25 - yShift, x: -25 - axis.object.axisTitleMargin },
       })
     }
     const hChart = getHighcharts()
     hChart.addEvent(axis.object.chart, "redraw", shiftCredits)
     shiftCredits()
-  }, []); // eslint-disable-line
+  }, []) // eslint-disable-line
 
   return (
     <Credits
@@ -259,7 +265,7 @@ const MyCredits = provideAxis(function MyCredits({
 
 export const XAxisWithRange = memo(function XAxisWithRange({
   options,
-  showPickers
+  showPickers,
 }) {
   return (
     <>
@@ -278,7 +284,7 @@ const ExNormNotice = memo(function ExNormNotice({
   exNorm,
   ecNorm,
   qyNorm,
-  ownerInfo
+  ownerInfo,
 }) {
   const exNormed = ecNorm && Object.keys(ownerInfo).length > 0
   const emNormed = (exNorm || qyNorm) && Object.keys(ownerInfo).length > 0
@@ -292,7 +298,7 @@ const ExNormNotice = memo(function ExNormNotice({
         color: "rgba(200,0,0,0.45)",
         fontWeight: 600,
         fontSize: "0.82rem",
-        height: 0
+        height: 0,
       }}
     >
       {exNormed ? `EX NORMED TO EXT COEFF ${emNormed ? " & " : ""}` : ""}
