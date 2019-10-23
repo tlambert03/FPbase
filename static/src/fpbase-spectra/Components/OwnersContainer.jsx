@@ -26,17 +26,18 @@ const override = css`
 
 const useStyles = makeStyles(theme => ({
   tabHeader: {
-    // marginBottom: 12,
+    marginBottom: 12,
     // marginLeft: 60,
     // paddingLeft: 0
     whiteSpace: "nowrap",
-    minHeight: 52,
+    minHeight: 40,
   },
   tabLabel: {
     marginTop: 0,
     paddingTop: 3,
     paddingBottom: 3,
     minHeight: 40,
+    minWidth: 72,
     // lineHeight: 0,
     [theme.breakpoints.down("xs")]: {
       fontSize: "0.7rem",
@@ -52,6 +53,7 @@ const useStyles = makeStyles(theme => ({
       fontSize: ".76rem",
       paddingLeft: 20,
       paddingRight: 20,
+      minWidth: 160,
     },
     [theme.breakpoints.up("lg")]: {
       fontSize: ".9rem",

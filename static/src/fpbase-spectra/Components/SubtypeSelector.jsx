@@ -10,6 +10,8 @@ import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const useStyles = makeStyles(theme => ({
   toggleButton: {
+    paddingLeft: "11px",
+    paddingRight: "11px",
     height: "38px",
     // [theme.breakpoints.down(960)]: {
     //   height: "34px"
@@ -69,7 +71,6 @@ const SubtypeSelector = React.memo(function SubtypeSelector({
             value={st.id}
             onClick={handleClick}
             className={classes.toggleButton}
-            style={{ padding: 0 }}
             tabIndex={-1}
           >
             {skip ? <Visibility /> : st.subtype.replace(/^A_/g, "")}
