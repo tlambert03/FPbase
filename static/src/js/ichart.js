@@ -339,7 +339,7 @@ export default function FPPropChart() {
         .attr("class", "FP")
         .text(function(d) {
           if (d.agg === "d") {
-            return ""
+            return "2"
           }
           if (d.agg === "td") {
             return "t"
