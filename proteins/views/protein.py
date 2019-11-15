@@ -412,9 +412,10 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         if form_class is None:
             form_class = self.get_form_class()
         form_kwargs = self.get_form_kwargs()
-        doi = self.object.primary_reference.doi
-        if doi:
-            form_kwargs["initial"]["reference_doi"] = doi
+        if self.object.primary_reference:
+            doi = self.object.primary_reference.doi
+            if doi:
+                form_kwargs["initial"]["reference_doi"] = doi
         return form_class(**form_kwargs)
 
     def get_object(self, queryset=None):
