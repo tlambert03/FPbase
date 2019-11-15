@@ -588,24 +588,7 @@ export default function FPPropChart() {
 
     FPdata = value
 
-    // Only update max of saturation scale, so that gray corresponds to 0 brightness
-    // Use 80th percentile as max saturation so that not everything is muddy gray
-    saturationScale.domain([
-      0,
-      d3.quantile(
-        FPdata.map(function(a) {
-          let br = +a.brightness
-          if (!br && br !== 0) {
-            br = null
-          }
-          return br
-        }).sort(function(a, b) {
-          return a - b
-        }),
-        0.7
-      ),
-    ])
-
+    saturationScale.domain([0, 35])
     return chart
   }
 
