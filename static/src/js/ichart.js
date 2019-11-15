@@ -502,16 +502,28 @@ export default function FPPropChart() {
           `<label class='noUi-slider-label' for=${i}>${strings[i]}</label>`
         ).appendTo(slider)
 
+        const formatttip = {
+          to: function(value) {
+            if (value < 1) {
+              return value
+            }
+            if (value >= 10000) {
+              return `${Math.round(value / 1000)}k`
+            }
+            return Math.round(value)
+          },
+        }
+
         noUiSlider.create(slider, {
           start: [v[0], v[1]], // 4 handles, starting at...
           connect: true, // Display a colored bar between the handles
           behaviour: "tap-drag", // Move handle on tap, bar is draggable
           step: v[2],
-          tooltips: true,
+          tooltips: [formatttip, formatttip],
           range: { min: v[0], max: v[1] },
           format: {
             to: function(value) {
-              return value
+              return Math.round(value)
             },
             from: function(value) {
               return value
