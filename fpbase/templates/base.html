@@ -20,7 +20,12 @@
       "@context": "http://schema.org",
       "@type": "Organization",
       "url": "https://www.fpbase.org",
-      "logo": "https://www.fpbase.org{% webpack_static 'images/circle_logo_full.png' %}"
+      "logo": "https://www.fpbase.org{% webpack_static 'images/circle_logo_full.png' %}",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.fpbase.org/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
     };
     </script>
 
