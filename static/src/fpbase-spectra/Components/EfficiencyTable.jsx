@@ -90,7 +90,7 @@ function spectraProduct(ar1, ar2) {
 
 function getOverlap(...args) {
   const idString = args
-    .map(arg => arg.id)
+    .map(arg => arg.customId || arg.id)
     .sort(numStringSort)
     .join("_")
 
