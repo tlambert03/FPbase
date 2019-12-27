@@ -46,7 +46,7 @@
     "js-cookie": "^2.2.1",
     "material-table": "^1.54.2",
     "memoize-one": "^5.1.1",
-    "nouislider": "^13.1.5",
+    "nouislider": "^14.1.1",
     "nvd3": "^1.8.6",
     "progressbar.js": "^1.1.0",
     "prop-types": "^15.7.2",

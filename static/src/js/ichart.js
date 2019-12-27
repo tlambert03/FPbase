@@ -521,14 +521,6 @@ export default function FPPropChart() {
           step: v[2],
           tooltips: [formatttip, formatttip],
           range: { min: v[0], max: v[1] },
-          format: {
-            to: function(value) {
-              return Math.round(value)
-            },
-            from: function(value) {
-              return value
-            },
-          },
         })
 
         let resizeTimer
