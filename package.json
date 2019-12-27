@@ -62,7 +62,7 @@
     "select2": "^4.0.8",
     "select2-theme-bootstrap4": "^0.2.0-beta.4",
     "smiles-drawer": "^1.1.22",
-    "terser-webpack-plugin": "^1.4.1",
+    "terser-webpack-plugin": "^2.3.1",
     "unfetch": "^4.1.0"
   },
   "devDependencies": {
@@ -71,7 +71,7 @@
     "@babel/preset-env": "^7.7.7",
     "@babel/preset-react": "^7.7.4",
     "@sentry/cli": "^1.48.0",
-    "@sentry/webpack-plugin": "^1.9.1",
+    "@sentry/webpack-plugin": "^1.9.3",
     "@welldone-software/why-did-you-render": "^3.3.8",
     "autoprefixer": "^9.6.5",
     "babel-eslint": "^10.0.3",
