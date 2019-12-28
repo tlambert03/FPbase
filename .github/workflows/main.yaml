@@ -43,22 +43,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
       
-      # - name: cache node modules
-      #   uses: actions/cache@v1
-      #   id: nodecache
-      #   with:
-      #     path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-build-${{ env.cache-name }}-
-      #       ${{ runner.os }}-build-
-      #       ${{ runner.os }}-
+      - name: cache node modules
+        uses: actions/cache@v1
+        id: nodecache
+        with:
+          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
       - name: Install python dependencies
         run: |
           sudo apt-get install -qq gfortran libopenblas-dev liblapack-dev python-dev libpq-dev
           pip install -r requirements/test.txt
-        if: steps.pipcache.outputs.cache-hit != 'true'
+        # if: steps.pipcache.outputs.cache-hit != 'true'
       
       - name: Install node dependencies
         run: npm install
