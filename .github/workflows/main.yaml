@@ -7,17 +7,17 @@ jobs:
   test:
     runs-on: ubuntu-18.04
 
-    services:
-      postgres:
-        image: postgres:11.6
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-        - 5432:5432
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    # services:
+    #   postgres:
+    #     image: postgres:11.6
+    #     env:
+    #       POSTGRES_USER: postgres
+    #       POSTGRES_PASSWORD: postgres
+    #       POSTGRES_DB: postgres
+    #     ports:
+    #     - 5432:5432
+    #     # needed because the postgres container does not provide a healthcheck
+    #     options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - uses: actions/checkout@v2
@@ -33,6 +33,11 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
+
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '11.6'
+          postgresql db: fpbase
 
       - name: cache pip modules
         uses: actions/cache@v1
@@ -64,12 +69,14 @@ jobs:
         run: npm install
         # if: steps.nodecache.outputs.cache-hit != 'true'
 
+      - name: build
+        run: npm run build
+
       - name: pytest
         env:
           DJANGO_SETTINGS_MODULE: config.settings.test
           # SECRETS_FILE: .confidential/ci.json
         run: |
-          npm run build
           python manage.py migrate --noinput
           python manage.py collectstatic
           pytest --cov=fpbase --cov=proteins
