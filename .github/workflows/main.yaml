@@ -7,6 +7,18 @@ jobs:
   test:
     runs-on: ubuntu-18.04
 
+    services:
+      postgres:
+        image: postgres:11.6
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+        - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
       - uses: actions/checkout@v2
         with:
@@ -44,7 +56,7 @@ jobs:
 
       - name: Install python dependencies
         run: |
-          sudo apt-get install -qq gfortran libopenblas-dev liblapack-dev python-dev
+          sudo apt-get install -qq gfortran libopenblas-dev liblapack-dev python-dev libpq-dev
           pip install -r requirements/test.txt
         if: steps.pipcache.outputs.cache-hit != 'true'
       
