@@ -64,11 +64,18 @@ jobs:
         run: npm install
         if: steps.nodecache.outputs.cache-hit != 'true'
 
-      # - name: Test with pytest
-      #   env:
-      #     DJANGO_SETTINGS_MODULE: project.settings
-      #     SECRETS_FILE: .confidential/ci.json
-      #   run: poetry run pytest --cov . -n 2
+      - name: pytest
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.test
+          # SECRETS_FILE: .confidential/ci.json
+        run: |
+          createdb fpbase
+          npm run build
+          python manage.py migrate --noinput
+          python manage.py collectstatic
+          pytest --cov=fpbase --cov=proteins
+          coverage xml
+          python-codacy-coverage -r coverage.xml
 
 # before_install:
 #   - createdb fpbase
