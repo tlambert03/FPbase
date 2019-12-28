@@ -69,7 +69,6 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings.test
           # SECRETS_FILE: .confidential/ci.json
         run: |
-          createdb fpbase
           npm run build
           python manage.py migrate --noinput
           python manage.py collectstatic
