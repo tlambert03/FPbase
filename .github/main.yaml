@@ -1,0 +1,53 @@
+name: CI
+
+on: [push]
+
+jobs:
+
+  test:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Cache pip modules
+        uses: actions/cache@v1
+        id: pipcache
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Cache node modules
+        uses: actions/cache@v1
+        id: nodecache
+        with:
+          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Install python dependencies
+        run: pip install -r requirements/test.txt
+        if: steps.pipcache.outputs.cache-hit != 'true'
+      
+      - name: Install node dependencies
+        run: npm install
+        if: steps.nodecache.outputs.cache-hit != 'true'
+
+      # - name: Test with pytest
+      #   env:
+      #     DJANGO_SETTINGS_MODULE: project.settings
+      #     SECRETS_FILE: .confidential/ci.json
+      #   run: poetry run pytest --cov . -n 2
