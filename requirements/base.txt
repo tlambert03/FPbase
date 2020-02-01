@@ -43,7 +43,7 @@ django-avatar==4.1.0
 
 numpy==1.18.0  # pyup: ignore
 matplotlib==3.1.2
-django-mptt==0.10.0
+django-mptt==0.11.0
 django-webpack-loader==0.6.0
 
 google-api-python-client==1.7.11
