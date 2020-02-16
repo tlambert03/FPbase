@@ -108,7 +108,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
                 <code>Widefield Green, FF01-466/40, FF495-Di03, FF03-525/50</code><br>
                 <code>Dual-FRET, ET430/24x, 69008bs, ET535/30m</code><br>
                 <code>Yokogawa 488nm, 488, Di01-T405/488/568/647, ET525/50m, false</code><br>
-                <code>TIRF 647nm, 647, ZT405/488/561/647rpc, (ZET405/488/561/647m, ET700/75m)</code></strong>
+                <code>TIRF 647nm, 647, ZT405/488/561/647rpc, {ZET405/488/561/647m, ET700/75m}</code></strong>
             </p>
             <p style="font-size: 0.9rem;">Optical configurations represent a set of filters in your microscope, (usually
               for a specific channel or wavelength). Add all of your configurations in the box above, with each one on a
@@ -121,8 +121,8 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
             <div class="container mt-4 mb-2">
               <dl class="row">
                 <dt class="col-sm-3">Config Name</dt>
-                <dd class="col-sm-9">Any string to describe the configuration (If you need parentheses or commas in
-                  names, you can use the other tab to add that item individually, or remove parenthesis during creation
+                <dd class="col-sm-9">Any string to describe the configuration (If you need curly brackets {} or commas in
+                  names, you can use the other tab to add that item individually, or omit brackets during creation
                   and edit the name later).</dd>
               </dl>
               <dl class="row">
@@ -136,7 +136,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
               </dl>
               <dl class="row">
                 <dt class="col-sm-3">Multiple Filters</dt>
-                <dd class="col-sm-9">You may specify multiple filters for a given path by enclosing them in parentheses.
+                <dd class="col-sm-9">You may specify multiple filters for a given path by enclosing them in curly brackets {}.
                 </dd>
               </dl>
               <dl class="row">

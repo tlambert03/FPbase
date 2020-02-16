@@ -213,7 +213,7 @@ class MicroscopeForm(forms.ModelForm):
         if self.instance:
             namestore.extend([oc.name for oc in self.instance.optical_configs.all()])
         # on update form allow for the same name (case insensitive)
-        brackets = re.compile(r"[\[\]\(\)]")
+        brackets = re.compile(r"[\[\]\{\}]")
 
         def _getpromise(fname):
             fp = FilterPromise(fname)
@@ -261,12 +261,12 @@ class MicroscopeForm(forms.ModelForm):
                 if not line:
                     continue
                 try:
-                    if (line.index("(") < line.index(",")) or (
-                        line.index(")") < line.index(",")
+                    if (line.index("{") < line.index(",")) or (
+                        line.index("}") < line.index(",")
                     ):
                         self.add_error(
                             "optical_configs",
-                            "No parentheses allowed in name (line #{})".format(
+                            "No curly braces allowed in name (line #{})".format(
                                 linenum + 1
                             ),
                         )
@@ -276,7 +276,7 @@ class MicroscopeForm(forms.ModelForm):
                 _out = []
                 if brackets.search(line):
                     _splt = [
-                        i.strip() for i in re.split(r"(\([^)]*\))", line) if i.strip()
+                        i.strip() for i in re.split(r"({[^}]*})", line) if i.strip()
                     ]
                     splt = []
                     for item in _splt:
@@ -337,61 +337,31 @@ class MicroscopeForm(forms.ModelForm):
         return cleaned
 
 
+class MultipleFilterField(forms.ModelMultipleChoiceField):
+    def __init__(self, label):
+
+        super().__init__(
+            label="Excitation Filter(s)",
+            queryset=Filter.objects.all(),
+            required=False,
+            widget=autocomplete.ModelSelect2Multiple(
+                url="proteins:filter-autocomplete",
+                attrs={
+                    "data-theme": "bootstrap",
+                    "data-width": "100%",
+                    "data-placeholder": "----------",
+                },
+            ),
+        )
+
+
 class OpticalConfigForm(forms.ModelForm):
 
-    ex_filters = forms.ModelMultipleChoiceField(
-        label="Excitation Filter(s)",
-        queryset=Filter.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(
-            url="proteins:filter-autocomplete",
-            attrs={
-                "data-theme": "bootstrap",
-                "data-width": "100%",
-                "data-placeholder": "----------",
-            },
-        ),
-    )
-    em_filters = forms.ModelMultipleChoiceField(
-        label="Emission Filter(s)",
-        queryset=Filter.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(
-            url="proteins:filter-autocomplete",
-            attrs={
-                "data-theme": "bootstrap",
-                "data-width": "100%",
-                "data-placeholder": "----------",
-            },
-        ),
-    )
-    ref_em_filters = forms.ModelMultipleChoiceField(
-        label="Advanced: Reflective Emission Filter(s)",
-        queryset=Filter.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(
-            url="proteins:filter-autocomplete",
-            attrs={
-                "data-theme": "bootstrap",
-                "data-width": "100%",
-                "data-placeholder": "----------",
-            },
-        ),
-    )
+    ex_filters = MultipleFilterField("Excitation Filter(s)")
+    em_filters = MultipleFilterField("Emission Filter(s)")
+    ref_em_filters = MultipleFilterField("Advanced: Reflective Emission Filter(s)")
+    bs_filters = MultipleFilterField("Dichroic Filter(s)")
 
-    bs_filters = forms.ModelMultipleChoiceField(
-        label="Dichroic Filter(s)",
-        queryset=Filter.objects.all(),
-        required=False,
-        widget=autocomplete.ModelSelect2Multiple(
-            url="proteins:filter-autocomplete",
-            attrs={
-                "data-theme": "bootstrap",
-                "data-width": "100%",
-                "data-placeholder": "----------",
-            },
-        ),
-    )
     invert_bs = forms.BooleanField(
         required=False,
         widget=forms.widgets.CheckboxInput(attrs={"class": "custom-control-input"}),
