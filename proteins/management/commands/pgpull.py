@@ -8,5 +8,5 @@ class Command(BaseCommand):
 
     def handle(self, *app_labels, **options):
         run(["dropdb", "fpbase"])
-        run(["heroku", "pg:pull", "DATABASE_URL", "fpbase"])
+        run(["heroku", "pg:pull", "DATABASE_URL", "fpbase", "-a", "fpbase"])
         run(["python", "manage.py", "migrate"])

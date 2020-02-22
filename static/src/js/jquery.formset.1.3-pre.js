@@ -1,5 +1,5 @@
 /**
- * jQuery Formset 1.5-pre
+ * jQuery Formset 1.3-pre
  * @author Stanislaus Madueke (stan DOT madueke AT gmail DOT com)
  * @requires jQuery 1.2.6 or later
  *
@@ -57,28 +57,27 @@
     const insertDeleteLink = function(row) {
       const delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, ".")
       const addCssSelector = $.trim(options.addCssClass).replace(/\s+/g, ".")
-
-      const delButtonHTML = `<a class="${options.deleteCssClass}" href="javascript:void(0)">${options.deleteText}</a>`
-      if (options.deleteContainerClass) {
-        // If we have a specific container for the remove button,
-        // place it as the last child of that container:
-        row
-          .find(`[class*="${options.deleteContainerClass}"]`)
-          .append(delButtonHTML)
-      } else if (row.is("TR")) {
+      if (row.is("TR")) {
         // If the forms are laid out in table rows, insert
         // the remove button into the last table cell:
-        row.children(":last").append(deleteButtonHTML)
+        row
+          .children(":last")
+          .append(
+            `<a class="${options.deleteCssClass}" href="javascript:void(0)">${options.deleteText}</a>`
+          )
       } else if (row.is("UL") || row.is("OL")) {
         // If they're laid out as an ordered/unordered list,
         // insert an <li> after the last list item:
-        row.append(`<li>${deleteButtonHTML}</li>`)
+        row.append(
+          `<li><a class="${options.deleteCssClass}" href="javascript:void(0)">${options.deleteText}</a></li>`
+        )
       } else {
         // Otherwise, just insert the remove button as the
         // last child element of the form's container:
-        row.append(delButtonHTML)
+        row.append(
+          `<a class="${options.deleteCssClass}" href="javascript:void(0)">${options.deleteText}</a>`
+        )
       }
-
       // Check if we're under the minimum number of forms - not to display delete link at rendering
       if (!showDeleteLinks()) {
         row.find(`a.${delCssSelector}`).hide()
@@ -102,7 +101,7 @@
           row.remove()
           // Update the TOTAL_FORMS count:
           forms = $(`.${options.formCssClass}`).not(".formset-custom-template")
-          totalForms.val(forms.length)
+          totalForms.val(forms.length).trigger("change")
         }
         for (var i = 0, formCount = forms.length; i < formCount; i++) {
           // Apply `extraClasses` to form rows so they're nicely alternating:
@@ -161,7 +160,7 @@
       }
       if (hasChildElements(row)) {
         row.addClass(options.formCssClass)
-        if (row.is(":visible")) {
+        if (row.is(":visible") || options.processHidden) {
           insertDeleteLink(row)
           applyExtraClasses(row, i)
         }
@@ -188,7 +187,6 @@
       } else {
         // Otherwise, use the last form in the formset; this works much better if you've got
         // extra (>= 1) forms (thnaks to justhamade for pointing this out):
-        if (options.hideLastAddForm) $(`.${options.formCssClass}:last`).hide()
         template = $(`.${options.formCssClass}:last`)
           .clone(true)
           .removeAttr("id")
@@ -211,30 +209,24 @@
       // FIXME: Perhaps using $.data would be a better idea?
       options.formTemplate = template
 
-      const addButtonHTML = `<a class="${options.addCssClass}" href="javascript:void(0)">${options.addText}</a>`
-      if (options.addContainerClass) {
-        // If we have a specific container for the "add" button,
-        // place it as the last child of that container:
-        const addContainer = $(`[class*="${options.addContainerClass}"`)
-        addContainer.append(addButtonHTML)
-        addButton = addContainer.find(`[class="${options.addCssClass}"]`)
-      } else if ($$.is("TR")) {
+      if ($$.is("TR")) {
         // If forms are laid out as table rows, insert the
         // "add" button in a new table row:
         const numCols = $$.eq(0).children().length // This is a bit of an assumption :|
         const buttonRow = $(
-          `<tr><td colspan="${numCols}">${addButtonHTML}</tr>`
+          `<tr><td colspan="${numCols}"><a class="${options.addCssClass}" href="javascript:void(0)">${options.addText}</a></tr>`
         ).addClass(`${options.formCssClass}-add`)
         $$.parent().append(buttonRow)
+        if (hideAddButton) buttonRow.hide()
         addButton = buttonRow.find("a")
       } else {
         // Otherwise, insert it immediately after the last form:
-        $$.filter(":last").after(addButtonHTML)
+        $$.filter(":last").after(
+          `<a class="${options.addCssClass}" href="javascript:void(0)">${options.addText}</a>`
+        )
         addButton = $$.filter(":last").next()
+        if (hideAddButton) addButton.hide()
       }
-
-      if (hideAddButton) addButton.hide()
-
       addButton.click(function() {
         const formCount = parseInt(totalForms.val())
         const row = options.formTemplate
@@ -254,7 +246,7 @@
         row.find(childElementSelector).each(function() {
           updateElementIndex($(this), options.prefix, formCount)
         })
-        totalForms.val(formCount + 1)
+        totalForms.val(formCount + 1).trigger("change")
         // Check if we're above the minimum allowed number of forms -> show all delete link(s)
         if (showDeleteLinks()) {
           $(`a.${delCssSelector}`).each(function() {
@@ -278,8 +270,6 @@
     formTemplate: null, // The jQuery selection cloned to generate new form instances
     addText: "add another", // Text for the add link
     deleteText: "remove", // Text for the delete link
-    addContainerClass: null, // Container CSS class for the add link
-    deleteContainerClass: null, // Container CSS class for the delete link
     addCssClass: "add-row", // CSS class applied to the add link
     deleteCssClass: "delete-row", // CSS class applied to the delete link
     formCssClass: "dynamic-form", // CSS class applied to each form in a formset
@@ -287,6 +277,5 @@
     keepFieldValues: "", // jQuery selector for fields whose values should be kept when the form is cloned
     added: null, // Function called each time a new form is added
     removed: null, // Function called each time a form is deleted
-    hideLastAddForm: false, // When set to true, hide last empty add form (becomes visible when clicking on add button)
   }
 })(jQuery)
