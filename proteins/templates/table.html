@@ -5,7 +5,7 @@
 {% block meta-description %}A comprehensive, sortable, searchable table of all the fluorescent proteins in the fluorescent protein database.{% endblock %}
 
 {% block extrahead %}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css"/>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/fc-3.3.0/datatables.min.css"/>
 {% endblock extrahead %}
 
 {% block container-class %}tablecontainer container-fluid{% endblock %}
@@ -51,21 +51,17 @@
 
 {% block javascript %}
 
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/fc-3.3.0/datatables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.20/sorting/absolute.js"></script>
 
 <script>
   $(function() {
     var numbersType = $.fn.dataTable.absoluteOrderNumber(
       [{ value: '', position: 'bottom' }, { value: '-', position: 'bottom' }]
     );
-    var stringsType = $.fn.dataTable.absoluteOrder( [
-        { value: '-', position: 'bottom' }
-      ] );
-
-    var exportOptions = {
-      columns: [ 0,1,2,3,4,5,6,7,8,10,11,12]
-    };
+    var stringsType = $.fn.dataTable.absoluteOrder( 
+      [{ value: '', position: 'bottom' }, { value: '-', position: 'bottom' }] 
+    );
 
     var buttonCommon = {
         init: function(api, node, config) {
@@ -83,11 +79,11 @@
                       case 4: return 'Extinction Coefficient';
                       case 5: return 'Quantum Yield';
                       case 6: return 'Brightness';
-                      case 7: return 'Photostability (half-life, s)';
-                      case 9: return 'Oligomerization';
-                      case 10: return 'Maturation (min)';
-                      case 11: return 'Lifetime (ns)';
-                      case 12: return 'Molecular Weight (kDa)';
+                      case 7: return 'pKa';
+                      case 8: return 'Oligomerization';
+                      case 9: return 'Maturation (min)';
+                      case 10: return 'Lifetime (ns)';
+                      case 11: return 'Molecular Weight (kDa)';
                       default: return data;
                   }
                 },
@@ -120,8 +116,8 @@
       lengthMenu: [ [10, 20, 50, 100, -1], [10, 20, 50, 100,"All"] ],
       order: [[ 6, 'desc' ]],
       columnDefs: [
-        { type: numbersType, targets: [1,2,3,4,5,6,7,8,10,11,12] },
-        { type: stringsType, targets: [9]}
+        { type: numbersType, targets: [1,2,3,4,5,6,7,9,10,11,12] },
+        { type: stringsType, targets: [8]}
       ],
       dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
            "<'row'<'col-sm-12'tr>>" +
