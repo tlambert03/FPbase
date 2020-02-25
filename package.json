@@ -59,7 +59,7 @@
     "react-spinners": "^0.7.2",
     "react-windowed-select": "^2.0.1",
     "regenerator-runtime": "^0.13.3",
-    "select2": "^4.0.13",
+    "select2": "^4.0.5",
     "select2-theme-bootstrap4": "^0.2.0-beta.4",
     "smiles-drawer": "^1.1.22",
     "terser-webpack-plugin": "^2.3.1",

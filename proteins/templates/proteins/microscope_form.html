@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_static from protein_tags %}
 
 {% block title %}{% if object %}{{object}} Microscope{% else %}Create a Microscope{% endif %} on FPbase{% endblock %}
 {% block meta-description %}Create and save your own microscope configuration (filters, light sources, detectors) and
@@ -9,14 +10,22 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 {% block container-class %}container microscope-form{% endblock container-class %}
 
 {% block content %}
-
+{% custom_static 'vendor' 'js' %}
+<script type="text/javascript">
+  {% if object %}
+  var confirmError = false; 
+  {% else %}
+  var confirmError = true; 
+  {% endif %}
+  var formErrors = '{{ form.errors|safe }}';
+</script>
+{% custom_static 'microscopeForm' %}  
 
 {% if object %}
 <h2>Update microscope: {{object}}</h2>
 {% else %}
 <h2>Create a New Microscope</h2>
 {% endif %}
-<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
 
 <div class="alert alert-info pb-0" role="alert">
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -251,119 +260,3 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 
 {% endblock content %}
 
-{% block javascript %}
-
-<script type="text/javascript">
-  {% if object %}
-  var confirmError = false; 
-  {% else %}
-  var confirmError = true; 
-  {% endif %}
-
-  $("#microscopeform").submit(function (e) {
-
-    if (confirmError) {
-      var multidichroics = $("select[id*='bs_filters']").filter(function () {
-        return $(this).val().length > 1
-      });
-      var multiex = $("select[id*='ex_filters']").filter(function () {
-        return $(this).val().length > 1
-      });
-      if (multidichroics.length > 0 || multiex.length > 0) {
-        e.preventDefault();
-        $('#sureModal').one('hidden.bs.modal', function (e) {
-          if ($(document.activeElement).attr('id') === 'save') {
-            confirmError = false;
-            $("#microscopeform").submit()
-          }
-        }).modal();
-      }
-    } else {
-      $("#spinner").css('display', 'inline');
-    }
-
-  });
-
-  $(document).on('show.bs.modal', '#sureModal', function () {
-    $('#sureModal').css('z-index', 1200);
-  });
-
-  $(document).on('hidden.bs.modal', '#sureModal', function () {
-    $('#sureModal').css('z-index', 1039);
-  });
-
-  $("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2({
-    theme: "bootstrap",
-    containerCssClass: ':all:',
-    placeholder: "---------",
-    allowClear: true,
-    width: "auto",
-  });
-
-  $(function () {
-
-    var deleteclass = 'oc-delete-button'
-
-    $('.formset_div').formset({
-      addText: 'Add Optical Configuration',
-      addCssClass: 'btn btn-sm btn-info add-oc-button mb-1 mr-1',
-      deleteCssClass: deleteclass,
-      deleteText: '&times;',
-      processHidden: true,
-      prefix: 'optical_configs' // it's important that this match the string used for the
-      // related_name attribute in the "Microscope" foreign key field
-      // in the OpticalConfig model
-    });
-
-    if ('{{ form.errors|safe }}') {
-      $('#microscopeFormTabs a[href="#bulk"]').tab('show')
-
-    }
-
-  });
-
-  $("#chromaImportForm, #semrockImportForm").submit(function (e) {
-    e.preventDefault(); // avoid to execute the actual submit of the form.
-    $("#footerSpinner").show();
-    $("#footerFail").hide();
-    $("#footerSuccess").hide();
-    var form = $(this).closest("form");
-    var brand = form.data('brand');
-    $.ajax({
-      type: "POST",
-      url: form.attr("data-action-url"),
-      data: form.serialize(),
-      dataType: 'json',
-      success: function (data) {
-        if (data.status) {
-          newdata = JSON.parse(data.spectra_options);
-          $('.data-selector[data-category="f"]').append($('<option>', {
-            value: newdata.slug
-          }).text(newdata.name));
-          $("#" + brand + "Input").removeClass('is-invalid');
-          $("#" + brand + "Help").removeClass('invalid-feedback').addClass('text-muted').text('Success!');
-          $("#footerSpinner").hide();
-          $("#footerFail").hide();
-          $("#footerSuccess").show();
-        } else {
-          $("#" + brand + "Input").addClass('is-invalid');
-          $("#" + brand + "Help").removeClass('text-muted').addClass('invalid-feedback').text('ERROR: ' + data
-            .message).show();
-          $("#footerSpinner").hide();
-          $("#footerFail").show();
-          $("#footerSuccess").hide();
-        }
-      }
-    }).then(function (d) {
-      $("#footerSpinner").hide();
-      // $('#importModal').modal('hide');
-    });
-  });
-
-  $(".importerClose").click(function () {
-    $("#footerSpinner").hide();
-    $("#footerFail").hide();
-    $("#footerSuccess").hide();
-  });
-</script>
-{% endblock javascript %}
