@@ -339,9 +339,8 @@ class MicroscopeForm(forms.ModelForm):
 
 class MultipleFilterField(forms.ModelMultipleChoiceField):
     def __init__(self, label):
-
         super().__init__(
-            label="Excitation Filter(s)",
+            label=label,
             queryset=Filter.objects.all(),
             required=False,
             widget=autocomplete.ModelSelect2Multiple(
