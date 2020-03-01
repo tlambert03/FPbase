@@ -20,7 +20,7 @@ djangorestframework==3.11.0  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3  # https://github.com/core-api/python-client
 djangorestframework-csv==2.1.0
 drf-tweaks==0.9.3
-markdown==3.1.1
+markdown==3.2.1
 
 # MY STUFF
 sentry-sdk==0.13.5  # https://github.com/getsentry/sentry-python/
