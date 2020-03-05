@@ -5,6 +5,7 @@
   "name":"{{ protein.name | safe }}",
   "description":"{{ protein.description | safe }}",
   "url":"https://www.fpbase.org{{protein.get_absolute_url}}",
+  "license":"https://creativecommons.org/licenses/by-sa/4.0/",
   {% if protein.has_spectra %}"image":"https://www.fpbase.org/spectra_img/{{protein.slug}}.svg",{% endif %}
   "keywords":[
      "FLUORESCENT PROTEIN",
