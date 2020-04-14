@@ -125,7 +125,9 @@ const SpectrumSeries = memo(function SpectrumSeries({
   let serie = useExNormedData({ exNorm, spectrum, ownerInfo })
   if (!spectrum) return null
   const willScaleEC = Boolean(
-    spectrum.subtype === "EX" && scaleEC && spectrum.owner.extCoeff
+    (spectrum.subtype === "EX" || spectrum.subtype === "AB") &&
+      scaleEC &&
+      spectrum.owner.extCoeff
   )
   const willScaleQY = Boolean(
     (spectrum.subtype === "EM" || spectrum.subtype === "O") &&
