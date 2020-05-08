@@ -278,6 +278,8 @@ ACCOUNT_ADAPTER = "fpbase.users.adapters.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "fpbase.users.adapters.SocialAccountAdapter"
 SOCIALACCOUNT_AUTO_SIGNUP = False
 
+ACCOUNT_FORMS = {"signup": "fpbase.forms.CustomSignupForm"}
+
 # Custom user app defaults
 # Select the correct user model
 AUTH_USER_MODEL = "users.User"
@@ -315,12 +317,10 @@ AVATAR_MAX_AVATARS_PER_USER = 8
 
 MODERATION_MODERATORS = ("talley.lambert+fpbase@gmail.com",)
 
-# v2 version
-GOOGLE_RECAPTCHA_SECRET_KEY = env("GOOGLE_RECAPTCHA_SECRET_KEY", default=None)
-
 # v3 API for django-recaptcha
-RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY", default=None)
-RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY", default=None)
+RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_V2_PUBLIC_KEY", default=None)
+RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_V2_PRIVATE_KEY", default=None)
+NOCAPTCHA = True
 
 GOOGLE_API_PRIVATE_KEY = env("GOOGLE_API_PRIVATE_KEY", default="").replace("#", "\n")
 GOOGLE_API_CLIENT_EMAIL = env("GOOGLE_API_CLIENT_EMAIL", default=None)

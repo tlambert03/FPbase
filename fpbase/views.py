@@ -1,12 +1,13 @@
-from fpbase.forms import ContactForm
-from django.views.generic.edit import FormView
-from django.views.generic import TemplateView
-from django.shortcuts import render
 from django.conf import settings
-from proteins.models import Protein, Spectrum
-from sentry_sdk import last_event_id
-from django.views.decorators.cache import cache_page
 from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import render
+from django.views.decorators.cache import cache_page
+from django.views.generic import TemplateView
+from django.views.generic.edit import FormView
+from sentry_sdk import last_event_id
+
+from fpbase.forms import ContactForm
+from proteins.models import Protein, Spectrum
 
 
 class HomeView(TemplateView):
@@ -29,10 +30,8 @@ class ContactView(FormView):
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        if self.request.recaptcha_is_valid:
-            form.send_email()
-            return super().form_valid(form)
-        return render(self.request, self.template_name, self.get_context_data())
+        form.send_email()
+        return super().form_valid(form)
 
 
 @staff_member_required

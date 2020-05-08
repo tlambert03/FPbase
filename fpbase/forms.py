@@ -1,6 +1,8 @@
+from allauth.account.forms import SignupForm
+from captcha.fields import ReCaptchaField
 from django import forms
-from django.core.mail import EmailMessage
 from django.conf import settings
+from django.core.mail import EmailMessage
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -9,6 +11,7 @@ class ContactForm(forms.Form):
     name = forms.CharField()
     email = forms.EmailField()
     message = forms.CharField(widget=forms.Textarea)
+    captcha = ReCaptchaField(label="")
 
     def friendly_email(self):
         fullname = self.cleaned_data["name"]
@@ -23,3 +26,8 @@ class ContactForm(forms.Form):
             to=[a[1] for a in settings.ADMINS],
             headers={"Reply-To": self.friendly_email()},
         ).send()
+
+
+class CustomSignupForm(SignupForm):
+    captcha = ReCaptchaField(label="")
+    field_order = ["username", "email", "password1", "password2", "captcha"]

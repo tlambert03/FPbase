@@ -13,8 +13,6 @@
 <form action="{% url 'contact' %}" method="post">
     {% csrf_token %}
     {{ form|crispy }}
-    <script src='https://www.google.com/recaptcha/api.js'></script>
-    <div class="g-recaptcha mb-2" data-sitekey="6Les1V4UAAAAABFh1rJ8j0CgUWXlifo60Gk-EfGD"></div>
     <input type="submit" class="btn btn-primary" value="Submit" />
 </form>
 

@@ -17,7 +17,7 @@ from fpbase.sitemaps import (
     ProteinCollectionSitemap,
     ReferencesSitemap,
 )
-from fpbase.decorators import check_recaptcha
+
 import fpbase.views
 from references.views import ReferenceListView
 from django.views.decorators.csrf import csrf_exempt
@@ -90,11 +90,7 @@ urlpatterns = [
         TemplateView.as_view(template_name="googleaecf5301782589e7.html"),
         name="verification",
     ),
-    url(
-        r"^contact/$",
-        check_recaptcha(fpbase.views.ContactView.as_view()),
-        name="contact",
-    ),
+    url(r"^contact/$", fpbase.views.ContactView.as_view(), name="contact"),
     url(
         r"^thanks/$",
         TemplateView.as_view(template_name="pages/thanks.html"),
