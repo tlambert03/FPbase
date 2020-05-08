@@ -23,6 +23,7 @@ drf-tweaks==0.9.3
 markdown==3.1.1
 
 # MY STUFF
+django-recaptcha==2.0.6  # https://github.com/praekelt/django-recaptcha
 sentry-sdk==0.14.3  # https://github.com/getsentry/sentry-python/
 
 metapub==0.5.3
