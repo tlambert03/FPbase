@@ -318,8 +318,8 @@ AVATAR_MAX_AVATARS_PER_USER = 8
 MODERATION_MODERATORS = ("talley.lambert+fpbase@gmail.com",)
 
 # v3 API for django-recaptcha
-RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_V2_PUBLIC_KEY", default=None)
-RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_V2_PRIVATE_KEY", default=None)
+RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_V2_PUBLIC_KEY", default="")
+RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_V2_PRIVATE_KEY", default="")
 NOCAPTCHA = True
 
 GOOGLE_API_PRIVATE_KEY = env("GOOGLE_API_PRIVATE_KEY", default="").replace("#", "\n")
