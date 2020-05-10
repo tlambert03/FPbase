@@ -1,5 +1,4 @@
 import io
-import json
 import logging
 import operator
 
@@ -591,8 +590,12 @@ class ComparisonView(base.TemplateView):
         spectra = []
         for prot in prots:
             for state in prot.states.all():
-                spectra.extend(state.d3_dicts())
-        context["spectra"] = json.dumps(spectra) if spectra else None
+                spectra.extend(state.spectra.all())
+        context["spectra_ids"] = ",".join([str(sp.id) for sp in spectra])
+        context["hidden_spectra"] = ",".join(
+            [str(sp.id) for sp in spectra if sp.subtype in ("2p")]
+        )
+
         return context
 
 

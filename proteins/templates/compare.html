@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-
+{% load custom_static from protein_tags %}
 {% block title %}{% endblock %}
 {% block meta-description %}{% endblock %}
 
@@ -15,16 +15,17 @@
 {% if proteins %}
     <h3 class='mb-3 d-inline'>Comparing: </h3>
     {% for protein in proteins  %}
-    <a class="text-muted" href="{{protein.get_absolute_url}}">{{protein.name}}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+    <a class="text-muted" href="{{protein.get_absolute_url}}">{{protein.name}}</a>{% if not forloop.last %}, {% endif %}
+    {% endfor %}
 
 
     <p style="word-wrap: break-word">
     <small><i class="fas fa-share-square mr-2"></i>You can share this comparison at: <a href="{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}">{{ request.META.HTTP_HOST }}{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}</a></small></p>
 
-      {% if spectra %}
+      {% if spectra_ids %}
         <div class="spectra mt-3">
-          <div id="spectra">
-            <svg id="simple_spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
+          <div id="spectra-viewer" data-spectra='[{{spectra_ids}}]' data-hidden='[{{hidden_spectra}}]'
+            data-options='{"height": 0.65, "simpleMode": true}'>
           </div>
         </div>
       {% endif %}
@@ -87,11 +88,7 @@
 
 
 {% block javascript %}
-    {% if spectra %}
-    <script>
-    $(window).on('load', function() {
-      initSimpleSpectra('#simple_spectrasvg', {{ spectra|safe }});
-    });
-    </script>
-    {% endif %}
+  {% if spectra_ids %}
+  {% custom_static 'simpleSpectraViewer' %}
+  {% endif %}
 {% endblock javascript %}

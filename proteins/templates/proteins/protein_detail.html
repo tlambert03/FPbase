@@ -484,11 +484,6 @@
 
   {% if protein.has_spectra %}
   {% custom_static 'simpleSpectraViewer' %}
-  <script>
-  {% comment %} $(window).on('load', function() {
-    initSimpleSpectra('#simple_spectrasvg', {{ protein.d3_spectra|safe }}, "{{protein.name|safe}}");
-  }); {% endcomment %}
-  </script>
   {% endif %}
 
   {% if protein.pdb %}
