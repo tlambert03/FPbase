@@ -5,6 +5,9 @@
 
 import noUiSlider from "nouislider"
 import $ from "jquery"
+import nv from "nvd3"
+import "../css/nv.d3.css"
+import d3 from "d3"
 
 ;
 
@@ -316,7 +319,7 @@ import $ from "jquery"
 
   function pushData(item) {
     if (options.precision > 1) {
-      const newitem = Object.assign({}, item)
+      const newitem = { ...item }
       newitem.values = newitem.values.filter(function(d) {
         return d.x % options.precision === 0
       })
@@ -1597,7 +1600,7 @@ import $ from "jquery"
       .get()
 
     for (let n = 0; n < bspath.length; n++) {
-      const invVals = Object.assign({}, bspath[n])
+      const invVals = { ...bspath[n] }
       invVals.values = invertData(bspath[n].values)
       empath.push(bspath[n])
       expath.push(invVals)
