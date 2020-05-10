@@ -121,6 +121,7 @@ const SpectrumSeries = memo(function SpectrumSeries({
   palette,
   ownerIndex,
   ownerInfo,
+  visible = true,
 }) {
   let serie = useExNormedData({ exNorm, spectrum, ownerInfo })
   if (!spectrum) return null
@@ -185,6 +186,7 @@ const SpectrumSeries = memo(function SpectrumSeries({
         scaleEC={willScaleEC}
         scaleQY={willScaleQY}
         name={name}
+        visible={visible}
         color={color}
         fillColor={fillColor}
         dashStyle={dashStyle}

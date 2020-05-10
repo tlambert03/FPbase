@@ -60,62 +60,77 @@ const {
   boost: _boost,
 } = DEFAULT_OPTIONS
 
-const SpectraViewerContainer = React.memo(function SpectraViewerContainer({
-  ownerInfo,
-}) {
-  const {
-    data: {
-      chartOptions,
-      exNorm: [normWave],
-    },
-  } = useQuery(gql`
-    query ChartOptions {
-      chartOptions @client {
-        showY
-        showX
-        showGrid
-        areaFill
-        logScale
-        scaleEC
-        scaleQY
-        extremes
-        shareTooltip
-        palette
-      }
-      exNorm @client
+const BaseSpectraViewerContainer = React.memo(
+  function BaseSpectraViewerContainer({
+    ownerInfo,
+    provideOptions,
+    provideSpectra,
+    provideOverlaps,
+    provideHidden = [],
+  }) {
+    const { data } = useQuery(
+      gql`
+        query ChartOptions {
+          chartOptions @client {
+            showY
+            showX
+            showGrid
+            areaFill
+            logScale
+            scaleEC
+            scaleQY
+            extremes
+            shareTooltip
+            palette
+          }
+          exNorm @client
+        }
+      `,
+      { skip: provideOptions }
+    )
+    let chartOptions
+    let normWave
+    if (provideOptions) {
+      chartOptions = provideOptions
+      normWave = null
+    } else {
+      chartOptions = data.chartOptions
+      normWave = data.exNorm.normWave
     }
-  `)
 
-  const yAxis = update(_yAxis, {
-    labels: { enabled: { $set: chartOptions.showY || chartOptions.logScale } },
-    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
-  })
+    const yAxis = update(_yAxis, {
+      labels: {
+        enabled: { $set: chartOptions.showY || chartOptions.logScale },
+      },
+      gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
+    })
 
-  const xAxis = update(_xAxis, {
-    labels: { enabled: { $set: chartOptions.showX } },
-    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
-  })
+    const xAxis = update(_xAxis, {
+      labels: { enabled: { $set: chartOptions.showX } },
+      gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
+    })
 
-  const tooltip = update(_tooltip, {
-    shared: { $set: chartOptions.shareTooltip },
-  })
+    const tooltip = update(_tooltip, {
+      shared: { $set: chartOptions.shareTooltip },
+    })
 
-  const data = useSpectraData()
+    const spectraldata = useSpectraData(provideSpectra, provideOverlaps)
+    return (
+      <BaseSpectraViewer
+        data={spectraldata}
+        tooltip={tooltip}
+        yAxis={yAxis}
+        xAxis={xAxis}
+        chartOptions={chartOptions}
+        exNorm={+normWave}
+        ownerInfo={ownerInfo}
+        hidden={provideHidden}
+      />
+    )
+  }
+)
 
-  return (
-    <SpectraViewer
-      data={data}
-      tooltip={tooltip}
-      yAxis={yAxis}
-      xAxis={xAxis}
-      chartOptions={chartOptions}
-      exNorm={+normWave}
-      ownerInfo={ownerInfo}
-    />
-  )
-})
-
-const SpectraViewer = memo(function SpectraViewer({
+export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   data,
   tooltip,
   yAxis,
@@ -123,9 +138,10 @@ const SpectraViewer = memo(function SpectraViewer({
   exNorm,
   chartOptions,
   ownerInfo,
+  hidden,
 }) {
   const windowWidth = useWindowWidth()
-  let height = calcHeight(windowWidth)
+  let height = calcHeight(windowWidth) * (chartOptions.height || 1)
 
   const hChart = Highcharts.charts[0]
   let legendHeight
@@ -189,6 +205,7 @@ const SpectraViewer = memo(function SpectraViewer({
               exNorm={exNorm}
               spectrum={spectrum}
               key={spectrum.id}
+              visible={!hidden.includes(spectrum.id)}
               ownerInfo={ownerInfo}
               ownerIndex={owners.indexOf(spectrum.owner.slug)}
               {...chartOptions}
@@ -227,7 +244,10 @@ const SpectraViewer = memo(function SpectraViewer({
           ))}
         </YAxis>
 
-        <XAxisWithRange options={xAxis} showPickers={numSpectra > 0} />
+        <XAxisWithRange
+          options={xAxis}
+          showPickers={numSpectra > 0 && chartOptions.showPickers}
+        />
         <MyCredits axisId="yAx2" hide={numSpectra < 1} />
       </HighchartsChart>
     </div>
@@ -272,10 +292,12 @@ export const XAxisWithRange = memo(function XAxisWithRange({
       <XAxis {...options} lineWidth={showPickers ? 1 : 0} id="xAxis">
         <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
       </XAxis>
-      <XRangePickers
-        axisId="xAxis"
-        visible={showPickers && options.labels.enabled}
-      />
+      {showPickers && (
+        <XRangePickers
+          axisId="xAxis"
+          visible={showPickers && options.labels.enabled}
+        />
+      )}
     </>
   )
 })
@@ -309,4 +331,8 @@ const ExNormNotice = memo(function ExNormNotice({
   )
 })
 
-export default withHighcharts(SpectraViewerContainer, Highcharts)
+export const SpectraViewerContainer = withHighcharts(
+  BaseSpectraViewerContainer,
+  Highcharts
+)
+export const SpectraViewer = withHighcharts(BaseSpectraViewer, Highcharts)

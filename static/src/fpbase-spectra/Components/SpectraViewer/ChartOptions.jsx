@@ -169,7 +169,7 @@ const DEFAULT_OPTIONS = {
   },
   legend: {
     verticalAlign: "top",
-    align: "left",
+    align: "right",
     labelFormatter: function() {
       let { name } = this
       if (this.chart.chartWidth < 800) {

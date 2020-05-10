@@ -1,4 +1,4 @@
-import SpectraViewer from "./SpectraViewer"
+import { SpectraViewerContainer, SpectraViewer } from "./SpectraViewer"
 import ChartOptionsForm from "./ChartOptionsForm"
 
-export {SpectraViewer, ChartOptionsForm}
+export { SpectraViewerContainer, SpectraViewer, ChartOptionsForm }

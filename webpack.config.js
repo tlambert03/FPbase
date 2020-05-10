@@ -150,6 +150,7 @@ module.exports = {
     embedscope: "./static/src/embedscope.js",
     litemol: "./static/src/my-litemol.js",
     spectraViewer: "./static/src/spectra-viewer.js",
+    simpleSpectraViewer: "./static/src/simple-spectra-viewer.js",
     microscopeForm: "./static/src/microscope-form.js",
     blast: "./static/src/blast-app.js",
   },

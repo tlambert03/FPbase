@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback } from "react"
 
 import { reshapeSpectraInfo } from "./util"
-import { SpectraViewer } from "./Components/SpectraViewer"
+import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import OwnersContainer from "./Components/OwnersContainer"
 import WelcomeModal from "./Components/WelcomeModal"
 import { useCachedFetch } from "./useCachedQuery"
@@ -43,7 +43,7 @@ const App = () => {
   useKeyboardShortcuts()
   return (
     <>
-      <SpectraViewer ownerInfo={ownerInfo} />
+      <SpectraViewerContainer ownerInfo={ownerInfo} />
       <OwnersContainer ownerInfo={ownerInfo} spectraInfo={spectraInfo} />
       <MyAppBar spectraOptions={options} openHelp={openHelp} />
       <WelcomeModal

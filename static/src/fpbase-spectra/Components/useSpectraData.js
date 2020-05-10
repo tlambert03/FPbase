@@ -11,7 +11,11 @@ const rangexy = (start, end) =>
 // $cl1_wave
 const customLaserSpectrum = _id => {
   const [id, wave] = _id.split("_")
-  const data = [[+wave - 1, 0], [+wave, 1], [+wave + 1, 0]]
+  const data = [
+    [+wave - 1, 0],
+    [+wave, 1],
+    [+wave + 1, 0],
+  ]
   const name = `${wave} laser`
   return Promise.resolve({
     data: {
@@ -76,19 +80,28 @@ const customFilterSpectrum = _id => {
   }
 }
 
-const useSpectralData = () => {
+const useSpectralData = (provideSpectra, provideOverlaps) => {
   // $cf1_type_center_width
   const [currentData, setCurrentData] = useState([])
   const client = useApolloClient()
-  const {
-    data: { activeSpectra, activeOverlaps },
-  } = useQuery(gql`
-    {
-      activeSpectra @client
-      activeOverlaps @client
-    }
-  `)
-
+  const { data } = useQuery(
+    gql`
+      {
+        activeSpectra @client
+        activeOverlaps @client
+      }
+    `,
+    { skip: provideSpectra }
+  )
+  let activeSpectra
+  let activeOverlaps
+  if (provideSpectra) {
+    activeSpectra = provideSpectra
+    activeOverlaps = provideOverlaps
+  } else {
+    activeSpectra = data.activeSpectra
+    activeOverlaps = data.activeOverlaps
+  }
   useEffect(() => {
     function idToData(id) {
       if (id.startsWith("$cf")) {
