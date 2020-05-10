@@ -216,15 +216,14 @@ class ProteinDetailView(DetailView):
         )
         similar = similar | Protein.visible.filter(name__iexact="td" + self.object.name)
         data["similar"] = similar.exclude(id=self.object.id)
-        data["spectra_ids"] = ",".join(
-            [
-                str(sp.id)
-                for state in self.object.states.all()
-                for sp in state.spectra.all()
-            ]
+        spectra = [
+            sp for state in self.object.states.all() for sp in state.spectra.all()
+        ]
+
+        data["spectra_ids"] = ",".join([str(sp.id) for sp in spectra])
+        data["hidden_spectra"] = ",".join(
+            [str(sp.id) for sp in spectra if sp.subtype in ("2p")]
         )
-        # data['additional_references'] = Reference.objects.filter(proteins=self.object)
-        #                .exclude(id=self.object.primary_reference.id).order_by('-year')
 
         # put links in excerpts
         data["excerpts"] = link_excerpts(

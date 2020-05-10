@@ -43,7 +43,7 @@ export const SimpleSpectraViewer = ({ ids, overlaps, options, hidden }) => {
   )
 }
 
-const Inner = ({ ids = [], overlaps = [], options, hidden }) => {
+const Inner = ({ ids = [], overlaps = [], options, hidden = [] }) => {
   const provideOptions = Object.assign(defaults.chartOptions, options)
 
   return (
@@ -51,7 +51,7 @@ const Inner = ({ ids = [], overlaps = [], options, hidden }) => {
       provideSpectra={ids.map(String)}
       provideOverlaps={overlaps}
       provideOptions={provideOptions}
-      provideHidden={hidden}
+      provideHidden={hidden.map(String)}
     />
   )
 }

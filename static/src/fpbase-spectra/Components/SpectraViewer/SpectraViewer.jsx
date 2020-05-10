@@ -17,9 +17,10 @@ import applyPatterns from "highcharts/modules/pattern-fill"
 import applyExportingData from "highcharts/modules/export-data"
 import addBoostModule from "highcharts/modules/boost"
 import update from "immutability-helper"
+import { css } from "@emotion/core"
+import { BarLoader } from "react-spinners"
 import gql from "graphql-tag"
 import XRangePickers from "./XRangePickers"
-
 import SpectrumSeries from "./SpectrumSeries"
 import fixLogScale from "./fixLogScale"
 import DEFAULT_OPTIONS from "./ChartOptions"
@@ -33,8 +34,17 @@ applyPatterns(Highcharts)
 addBoostModule(Highcharts)
 fixLogScale(Highcharts)
 
+const override = css`
+  display: block;
+  position: absolute;
+  left: 40%;
+  top: 50%;
+  width: 20%;
+  z-index: 10;
+`
+
 const calcHeight = width => {
-  if (width < 600) return 235
+  if (width < 600) return 275
   if (width < 960) return 325
   if (width < 1280) return 370
   if (width < 1920) return 400
@@ -92,10 +102,10 @@ const BaseSpectraViewerContainer = React.memo(
     let normWave
     if (provideOptions) {
       chartOptions = provideOptions
-      normWave = null
+      normWave = undefined
     } else {
       chartOptions = data.chartOptions
-      normWave = data.exNorm.normWave
+      ;[normWave] = data.exNorm
     }
 
     const yAxis = update(_yAxis, {
@@ -140,6 +150,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   ownerInfo,
   hidden,
 }) {
+  console.log("exNorm", exNorm)
   const windowWidth = useWindowWidth()
   let height = calcHeight(windowWidth) * (chartOptions.height || 1)
 
@@ -155,7 +166,10 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   const exData = data.filter(i => i.subtype === "EX" || i.subtype === "AB")
   const nonExData = data.filter(i => i.subtype !== "EX" && i.subtype !== "AB")
   return (
-    <div className="spectra-viewer" style={{ position: "relative" }}>
+    <div
+      className="spectra-viewer"
+      style={{ position: "relative", height: height }}
+    >
       <span
         id="zoom-info"
         style={{
@@ -170,7 +184,21 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
           color: "#bbb",
         }}
       />
-      {numSpectra === 0 && <NoData height={height} />}
+      {numSpectra === 0 &&
+        (chartOptions.simpleMode ? (
+          <div className="sweet-loading">
+            <BarLoader
+              css={override}
+              sizeUnit="px"
+              size={100}
+              color="#ccc"
+              loading
+            />
+          </div>
+        ) : (
+          <NoData height={height} />
+        ))}
+
       <ExNormNotice
         exNorm={exNorm}
         ownerInfo={ownerInfo}
@@ -246,9 +274,12 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
 
         <XAxisWithRange
           options={xAxis}
-          showPickers={numSpectra > 0 && chartOptions.showPickers}
+          showPickers={numSpectra > 0 && !chartOptions.simpleMode}
         />
-        <MyCredits axisId="yAx2" hide={numSpectra < 1} />
+        <MyCredits
+          axisId="yAx2"
+          hide={numSpectra < 1 || chartOptions.simpleMode}
+        />
       </HighchartsChart>
     </div>
   )

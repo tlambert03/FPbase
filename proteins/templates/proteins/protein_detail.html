@@ -117,25 +117,35 @@
     {% endif %}
 
 		<div class="spectra">
-			{% if protein.has_spectra %}
-      <div id="spectra">
-        <div class="spectra-overlay-div">
-          <span data-toggle="tooltip" data-placement="top" title="Download spectra as csv"><a href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link'><i class="fas fa-download"></i></a></span>
-          <span data-toggle="tooltip" data-placement="top" title="Generate spectra image/url" class='ml-2'><a href="#" class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i class="fas fa-link"></i></a></span>
-          <span data-toggle="tooltip" data-placement="top" title="Add another spectrum" class='ml-2'><a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary spectra-overlay-link'><i class="fas fa-chart-area"></i><sup>+</sup></a></span>
-        </div>
-       
-       <div id="spectra-viewer" data-spectra='[{{spectra_ids}}]' data-options='{"height": 0.6, "showPickers": false}' data-name="{{protein.name|safe}}">
-       <svg id="simple_spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
-       </div>
-      </div>
-      {% else %}
-        {% if protein.states.count %}
-          <p class='mt-4'>No spectrum has been submitted ... <a href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary'>add a spectrum!</a></p>
-          {% else %}
-          <p class='mt-4'>No spectrum has been submitted ... but a protein must have at least one state first.  <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary d-none d-sm-inline'>Add a state.</a></p>
-        {% endif %}
-      {% endif %}
+		  {% if protein.has_spectra %}
+		  <div id="spectra">
+		    <div class="spectra-overlay-div">
+		      <span data-toggle="tooltip" data-placement="top" title="Download spectra as csv"><a
+		          href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link'><i
+		            class="fas fa-download"></i></a></span>
+		      <span data-toggle="tooltip" data-placement="top" title="Generate spectra image/url" class='ml-2'><a href="#"
+		          class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i
+		            class="fas fa-link"></i></a></span>
+		      <span data-toggle="tooltip" data-placement="top" title="Add another spectrum" class='ml-2'><a
+		          href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary spectra-overlay-link'><i
+		            class="fas fa-chart-area"></i><sup>+</sup></a></span>
+		    </div>
+
+		    <div id="spectra-viewer" data-spectra='[{{spectra_ids}}]' data-hidden='[{{hidden_spectra}}]'
+		      data-options='{"height": 0.6, "simpleMode": true}' data-name="{{protein.name|safe}}">
+		      <svg id="simple_spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
+		    </div>
+		  </div>
+		  {% else %}
+		  {% if protein.states.count %}
+		  <p class='mt-4'>No spectrum has been submitted ... <a href="{% url 'proteins:submit-spectra' slug=protein.slug %}"
+		      class='text-secondary'>add a spectrum!</a></p>
+		  {% else %}
+		  <p class='mt-4'>No spectrum has been submitted ... but a protein must have at least one state first. <a
+		      href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary d-none d-sm-inline'>Add a state.</a>
+		  </p>
+		  {% endif %}
+		  {% endif %}
 		</div>
 
 
