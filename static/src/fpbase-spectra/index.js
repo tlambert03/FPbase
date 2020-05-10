@@ -33,14 +33,18 @@ AppWrapper.defaultProps = {
 
 export default AppWrapper
 
-export const SimpleSpectraViewer = ({ ids, overlaps, options, hidden }) => {
-  const client = useRef(initializeClient("/graphql/"))
+const SimpleSpectraViewer = ({ uri, ids, overlaps, options, hidden }) => {
+  const client = useRef(initializeClient({ uri }))
 
   return (
     <ApolloProvider client={client.current}>
       <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
     </ApolloProvider>
   )
+}
+
+SimpleSpectraViewer.defaultProps = {
+  uri: "/graphql/",
 }
 
 const Inner = ({ ids = [], overlaps = [], options, hidden = [] }) => {
@@ -55,3 +59,5 @@ const Inner = ({ ids = [], overlaps = [], options, hidden = [] }) => {
     />
   )
 }
+
+export { SimpleSpectraViewer }

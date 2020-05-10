@@ -150,7 +150,6 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   ownerInfo,
   hidden,
 }) {
-  console.log("exNorm", exNorm)
   const windowWidth = useWindowWidth()
   let height = calcHeight(windowWidth) * (chartOptions.height || 1)
 
