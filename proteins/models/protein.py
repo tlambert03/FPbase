@@ -74,7 +74,7 @@ class ProteinQuerySet(models.QuerySet):
     def fasta(self):
         seqs = self.exclude(seq__isnull=True).values("uuid", "name", "seq")
         return io.StringIO(
-            "\n".join([">{uuid} {name}\n{seq}".format(**s) for s in seqs])
+            "\n".join([">{name} {uuid}\n{seq}".format(**s) for s in seqs])
         )
 
     def to_tree(self, output="clw"):
