@@ -1,10 +1,10 @@
 -r ./base.txt
 -r ./notest.txt
 
-Werkzeug==0.16.0  # https://github.com/pallets/werkzeug
-ipdb==0.12.3  # https://github.com/gotcha/ipdb
-Sphinx==2.3.1  # https://github.com/sphinx-doc/sphinx
-psycopg2-binary==2.8.4  # https://github.com/psycopg/psycopg2
+Werkzeug==1.0.1  # https://github.com/pallets/werkzeug
+ipdb==0.13.2  # https://github.com/gotcha/ipdb
+Sphinx==3.0.3  # https://github.com/sphinx-doc/sphinx
+psycopg2-binary==2.8.5  # https://github.com/psycopg/psycopg2
 
 # Code quality
 # ------------------------------------------------------------------------------
@@ -12,12 +12,12 @@ flake8==3.7.9  # https://github.com/PyCQA/flake8
 flake8-black==0.1.1
 # flake8-bugbear==19.3.0
 # flake8-import-order==0.18.1
-coverage==5.0.1  # https://github.com/nedbat/coveragepy
-black==19.3b0  # https://github.com/ambv/black
-pylint-django==2.0.13  # https://github.com/PyCQA/pylint-django
+coverage==5.1  # https://github.com/nedbat/coveragepy
+black==19.10b0  # https://github.com/ambv/black
+pylint-django==2.0.15  # https://github.com/PyCQA/pylint-django
 
 # Django
 # ------------------------------------------------------------------------------
 
-django-debug-toolbar==2.1  # https://github.com/jazzband/django-debug-toolbar
-django-extensions==2.2.5  # https://github.com/django-extensions/django-extensions
+django-debug-toolbar==2.2  # https://github.com/jazzband/django-debug-toolbar
+django-extensions==2.2.9  # https://github.com/django-extensions/django-extensions

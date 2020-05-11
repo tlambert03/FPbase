@@ -1,10 +1,10 @@
-pytz==2019.3  # https://github.com/stub42/pytz
+pytz==2020.1  # https://github.com/stub42/pytz
 python-slugify==4.0.0  # https://github.com/dimka665/awesome-slugify
-Pillow==7.1.1  # https://github.com/python-pillow/Pillow
+Pillow==7.1.2  # https://github.com/python-pillow/Pillow
 rcssmin==1.0.6  # https://github.com/ndparker/rcssmin
 argon2-cffi==19.2.0  # https://github.com/hynek/argon2_cffi
 whitenoise[brotli]==5.0.1  # https://github.com/evansd/whitenoise
-redis==3.4.1  # https://github.com/antirez/redis
+redis==3.5.1  # https://github.com/antirez/redis
 
 # Django
 # ------------------------------------------------------------------------------
@@ -19,14 +19,14 @@ django-redis==4.11.0  # https://github.com/niwinz/django-redis
 djangorestframework==3.11.0  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3  # https://github.com/core-api/python-client
 djangorestframework-csv==2.1.0
-drf-tweaks==0.9.3
+drf-tweaks==0.9.4
 markdown==3.1.1
 
 # MY STUFF
 django-recaptcha==2.0.6  # https://github.com/praekelt/django-recaptcha
 sentry-sdk==0.14.3  # https://github.com/getsentry/sentry-python/
 
-metapub==0.5.3
+metapub==0.5.5
 biopython==1.76
 pandas==0.25.3
 
@@ -43,7 +43,7 @@ django-autocomplete-light==3.5.1  # https://github.com/yourlabs/django-autocompl
 django-avatar==4.1.0
 
 numpy==1.18.0  # pyup: ignore
-matplotlib==3.1.2
+matplotlib==3.2.1
 django-mptt==0.10.0
 django-webpack-loader==0.7.0
 
