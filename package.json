@@ -62,7 +62,7 @@
     "regenerator-runtime": "^0.13.5",
     "select2": "^4.0.5",
     "select2-theme-bootstrap4": "^0.2.0-beta.4",
-    "smiles-drawer": "^1.2.0",
+    "smiles-drawer": "^1.1.22",
     "terser-webpack-plugin": "^3.0.1",
     "unfetch": "^4.1.0"
   },
