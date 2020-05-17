@@ -556,9 +556,10 @@ class ComparisonView(base.TemplateView):
         prots_with_seqs = prots.exclude(seq__isnull=True)
         if prots_with_seqs.count() > 2:
             a, _ = prots_with_seqs.to_tree("html")
-            context["alignment"] = "\n".join(a.splitlines()[3:]).replace(
-                "FFEEE0", "FFFFFF"
-            )
+            alignment = "\n".join(a.splitlines()[3:]).replace("FFEEE0", "FFFFFF")
+            for p in prots:
+                alignment = alignment.replace(f"{p.uuid:16}", f"{p.name[:16]:16}")
+            context["alignment"] = alignment
         elif prots_with_seqs.count() == 2:
             seqA = prots_with_seqs[0]
             seqB = prots_with_seqs[1]
