@@ -127,6 +127,9 @@ class ProteinFilter(filters.FilterSet):
     switch_type__ne = django_filters.ChoiceFilter(
         choices=Protein.SWITCHING_CHOICES, method="switch_type__notequal"
     )
+    cofactor__ne = django_filters.ChoiceFilter(
+        choices=Protein.COFACTOR_CHOICES, method="cofactor__notequal"
+    )
     parent_organism__ne = django_filters.ModelChoiceFilter(
         queryset=Organism.objects.all(), method="parent_organism__notequal"
     )
@@ -170,6 +173,7 @@ class ProteinFilter(filters.FilterSet):
             "uniprot": ["iexact"],
             "status": ["exact"],
             "switch_type": ["exact", "ne"],
+            "cofactor": ["exact", "ne"],
             "parent_organism": ["exact", "ne"],
             "primary_reference__year": ["gte", "gt", "lt", "lte", "range", "exact"],
             "spectral_brightness": ["gt", "lt"],
@@ -221,6 +225,9 @@ class ProteinFilter(filters.FilterSet):
 
     def switch_type__notequal(self, queryset, name, value):
         return queryset.exclude(switch_type=value)
+
+    def cofactor__notequal(self, queryset, name, value):
+        return queryset.exclude(cofactor=value)
 
     def parent_organism__notequal(self, queryset, name, value):
         return queryset.exclude(parent_organism=value)
