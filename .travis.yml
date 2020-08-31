@@ -26,6 +26,8 @@ before_install:
 
 install:
   - pip install -r requirements/test.txt
+  - npm --version
+  - node --version
   - npm install
   - npm run build
 
