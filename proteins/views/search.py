@@ -97,9 +97,7 @@ def protein_search(request):
         "proteins/protein_search.html",
         {
             "filter": f,
-            "filter_fields": json.dumps(
-                {k: list(set(v)) for k, v in f.Meta.fields.items()}
-            ),
+            "filter_fields": json.dumps(f.Meta.form_fields),
             "filter_operators": json.dumps(f.Meta.operators),
             "filter_labels": json.dumps(f.Meta.labels),
         },

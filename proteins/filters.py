@@ -19,7 +19,6 @@ class StateFilter(filters.FilterSet):
     em_spectra = django_filters.BooleanFilter(
         field_name="em_spectra", lookup_expr="isnull"
     )
-
     spectral_brightness = django_filters.NumberFilter(
         field_name="spectral_brightness",
         method="get_specbright",
@@ -64,9 +63,6 @@ class StateFilter(filters.FilterSet):
             "brightness": ["gte", "lte", "range", "exact"],
             "pka": ["gte", "lte", "range", "exact"],
             "bleach_measurements__rate": ["gte", "lte", "range", "exact"],
-            "spectral_brightness": ["gt", "lt"],
-            "ex_spectra": ["isnull"],
-            "em_spectra": ["isnull"],
         }
 
 
@@ -176,11 +172,11 @@ class ProteinFilter(filters.FilterSet):
             "cofactor": ["exact", "ne"],
             "parent_organism": ["exact", "ne"],
             "primary_reference__year": ["gte", "gt", "lt", "lte", "range", "exact"],
-            "spectral_brightness": ["gt", "lt"],
             "primary_reference__author__family": ["icontains"],
             "slug": ["exact"],
             "id": ["exact"],
         }
+        form_fields = dict(**fields, spectral_brightness=["gt", "lt"])
         operators = {
             "lt": "is less than",
             "gt": "is greater than",
