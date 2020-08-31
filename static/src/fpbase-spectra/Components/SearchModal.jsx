@@ -223,8 +223,8 @@ const SearchModal = React.memo(function SearchModal({
           }}
         >
           This is a list of optical configurations used in FPbase user
-          microcopes. Selecting one will populate the chart with items from that
-          config.
+          microscopes. Selecting one will populate the chart with items from
+          that config.
         </p>
         <FormControlLabel
           control={(
@@ -233,7 +233,7 @@ const SearchModal = React.memo(function SearchModal({
               checked={preserveFluors}
               value="preserveFluors"
             />
-)}
+          )}
           label={
             <span style={{ fontSize: "small" }}>Preserve fluorophores</span>
           }

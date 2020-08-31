@@ -309,7 +309,7 @@ class MicroscopeCreateView(MicroscopeCreateUpdateMixin, OwnableObject, CreateVie
             messages.add_message(
                 self.request,
                 messages.SUCCESS,
-                "Welcome to your new microcope page!  You can find this "
+                "Welcome to your new microscope page!  You can find this "
                 "page any time in your profile, and share this link with "
                 "others.  To <strong>update</strong> or <strong>delete</strong> this microscope, "
                 "click the <i class='fas fa-cog mx-1'></i> icon below the graph.",
