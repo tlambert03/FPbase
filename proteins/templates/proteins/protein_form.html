@@ -1,11 +1,14 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags static %}
-
+{% load static %}
 
 {% block title %}{% if object %}Update {{ object.name }}{% else %}Submit a protein to FPbase{% endif %}{% endblock %}
 
 {% block meta-description %}{% if object %}This page allows users with an account at FPbase to update information relating to the protein {{ object.name}}{% else %}This page allows users with an account at FPbase to add a new protein to the database{% endif %}{% endblock %}
 
+{% block extrahead %}
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+{% endblock extrahead %}
 
 {% block content %}
 
