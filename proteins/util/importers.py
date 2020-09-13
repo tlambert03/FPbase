@@ -1,10 +1,12 @@
 import os
-import tablib
 import re
-import numpy as np
+from io import StringIO
+
+import pandas as pd
 import requests
 from django.core.validators import URLValidator
 from django.template.defaultfilters import slugify
+
 from ..models import Filter
 from .helpers import zip_wave_data
 
@@ -170,52 +172,18 @@ def fetch_semrock_part(part):
     return T
 
 
-# def fetch_semrock_part(part):
-#     """ Retrieve ASCII spectra for a semrock part number
-
-#     part is a string:
-#    'FF01-571/72' or  'FF01-571/72-25' (-25) will be clipped
-#     must resolve to a url such as:
-#     https://www.semrock.com/_ProductData/Spectra/FF01-571_72_Spectrum.txt
-#     """
-#     semrockURL = "https://www.semrock.com/_ProductData/Spectra/"
-#     orig_part = normalize_semrock_part(part)
-#     part = orig_part.replace("/", "_").upper()
-#     url = semrockURL + slugify(part) + "_Spectrum.txt"
-#     try:
-#         urlv = URLValidator()
-#         urlv(url)
-#     except Exception:
-#         raise ValueError("invalid url for Semrock download: {}".format(url))
-
-#     response = requests.get(url)
-#     if response.status_code != 200:
-#         part = orig_part.replace("/", "-").upper()
-#         url = semrockURL + slugify(part) + "_Spectrum.txt"
-#         response = requests.get(url)
-#         if response.status_code != 200:
-#             raise ValueError("Could not retrieve Semrock part: {}".format(orig_part))
-#     T = response.text
-#     if T.startswith("Typical") and "Data format" in T:
-#         T = T.split("Data format")[1]
-#         T = "".join(T.split("\n")[1:])
-#         T = T.split("---")[0]
-#         T = T.strip("\r").replace("\r", "\n")
-#     return T
-
-
-def extract_headers(text, delimiters=";|,|\t"):
-    headers = []
-    split = text.splitlines()
-    for i, txt in enumerate(split):
-        try:
-            _h = re.split(delimiters, txt)
-            float(_h[0])
-            return "\n".join(split[i:]), headers
-        except ValueError:
-            if i == 0:
-                headers = _h
-            continue
+def read_csv_text(text) -> pd.DataFrame:
+    fmt = dict(sep=";", thousands=".", decimal=",")
+    df = pd.read_csv(StringIO(text), **fmt, nrows=2)
+    if df.ndim != 2 or df.shape[1] < 2 or any(f != "float" for f in df.dtypes):
+        fmt = dict(sep=",", thousands=",", decimal=".")
+        df = pd.read_csv(StringIO(text), **fmt, nrows=2)
+    if df.ndim != 2 or df.shape[1] < 2 or any(f != "float" for f in df.dtypes):
+        raise ValueError("Could not parse text as valid spectra csv.")
+    try:
+        return pd.read_csv(StringIO(text), **fmt, header=None, dtype="float")
+    except ValueError:
+        return pd.read_csv(StringIO(text), **fmt, dtype="float")
 
 
 def text_to_spectra(text, wavecol=0):
@@ -229,27 +197,12 @@ def text_to_spectra(text, wavecol=0):
         tuple: (waves, outdata, headers).  waves is 1D, outdata is MxN, where M
             is the number of data columns and N is the number of wavelenghts.
             headers is 1D of length M, containing titles of data colums
-
     """
-    text, headers = extract_headers(text)
-    data = tablib.Dataset().load(text, headers=headers)
-    waves = np.array([x if x else 0 for x in data.get_col(wavecol)], dtype="f")
-    headers = data.headers
-    if headers:
-        headers.pop(wavecol)
-
-    outdata = np.zeros((data.width - 1, data.height), dtype="f")
-    if data.height:
-        s = 0
-        for column in range(data.width):
-            if column == wavecol:
-                s = 1
-                continue
-            outdata[column - s] = np.array(
-                [x if x else np.nan for x in data.get_col(column)], dtype="f"
-            )
-
-    return waves, outdata, headers
+    df = read_csv_text(text)
+    waves = df.iloc[:, wavecol].to_numpy(dtype="f")
+    headers = [str(h) for i, h in enumerate(df.columns) if i != wavecol]
+    outdata = df.drop(df.columns[wavecol], axis=1).to_numpy(dtype="f")
+    return waves, outdata.T.tolist(), headers
 
 
 def import_chroma_spectra(part=None, url=None, **kwargs):

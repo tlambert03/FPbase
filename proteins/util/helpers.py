@@ -1,5 +1,7 @@
 import re
 import io
+from math import isnan
+
 import matplotlib.ticker as ticker
 from uuid import uuid4
 from matplotlib.figure import Figure
@@ -150,7 +152,11 @@ def shortuuid(padding=None):
 
 def zip_wave_data(waves, data, minmax=None):
     minmax = minmax or (150, 1800)
-    return [list(i) for i in zip(waves, data) if (minmax[0] <= i[0] <= minmax[1])]
+    return [
+        list(i)
+        for i in zip(waves, data)
+        if (minmax[0] <= i[0] <= minmax[1]) and not isnan(i[1])
+    ]
 
 
 def wave_to_hex(wavelength, gamma=1):

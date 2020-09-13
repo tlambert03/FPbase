@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-import tablib
+import tablib  # TODO: convert to pandas
 import re
 import pandas as pd
 
