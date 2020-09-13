@@ -865,7 +865,7 @@ function createMutationSearch(selection) {
     type: "search",
     class: "form-control",
     name: "textInput",
-    placeholder: "Mutations (e.g. A206K) seperated by spaces",
+    placeholder: "Mutations (e.g. A206K) separated by spaces",
     id: "mutation-search-input"
   })
 
