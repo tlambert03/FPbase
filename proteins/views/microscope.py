@@ -40,7 +40,6 @@ from urllib.parse import quote
 from django.http import HttpResponseNotAllowed, JsonResponse
 from fpbase.celery import app
 from ..tasks import calculate_scope_report
-from celery.task.control import revoke
 
 
 def update_scope_report(request):
@@ -78,7 +77,7 @@ def update_scope_report(request):
     elif request.POST.get("action") == "cancel":
         if job_id:
             result = app.AsyncResult(job_id)
-            revoke(job_id, terminate=True)
+            result.revoke(terminate=True)
             return JsonResponse(
                 {
                     "status": 200,

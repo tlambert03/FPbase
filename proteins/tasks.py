@@ -1,5 +1,6 @@
 from celery import shared_task
 from .util.helpers import forster_list
+from sentry_sdk import capture_exception
 
 
 @shared_task
@@ -37,4 +38,7 @@ def calculate_scope_report(self, scope_id, outdated_ids=None, fluor_collection=N
                     obj.save()
                     updated.append((oc, f))
             except OcFluorEff.DoesNotExist:
-                OcFluorEff.objects.create(oc=oc, fluor=f)
+                try:
+                    OcFluorEff.objects.create(oc=oc, fluor=f)
+                except Exception as e:
+                    capture_exception(e)
