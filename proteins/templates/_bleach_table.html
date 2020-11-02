@@ -24,13 +24,21 @@
 					</td>
 					<td>{{measurement.get_light_display}}</td>
 					<td>{{measurement.get_modality_display}}</td>
-					<td class='text-muted small'>{% if measurement.in_cell == 0 %}
+					<td class='text-muted small'>
+					{% if measurement.in_cell == 0 %}
 						<i class="fas fa-times">
 					{% elif measurement.in_cell == 1 %}
-						<i class="fas fa-check">
+					
+						{% if measurement.cell_type %}
+							{{measurement.cell_type}}
+						{% else %}
+							<i class="fas fa-check">
+						{% endif %}
+
 					{% else %}
-          &nbsp;
-					{% endif %}</td>
+          			&nbsp;
+					{% endif %}
+					</td>
 					<td>{{measurement.fusion}}</td>
 					<td>{{measurement.temp | default:''}}</td>
 					<td class='small'>
