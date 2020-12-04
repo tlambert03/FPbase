@@ -360,6 +360,7 @@ pip-selfcheck.json
 
 fpbase/media/
 _data/*
+_data
 
 /fpbase/static/css/style.css
 /fpbase/static/css/style.min.css
