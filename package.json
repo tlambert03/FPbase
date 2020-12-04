@@ -168,7 +168,7 @@
     ],
     "*.py": [
       "black --exclude \"/migrations/\"",
-      "flake8 --ignore=W503,I100,I101,I201,I202",
+      "flake8 --ignore=W503,I100,I101,I201,I202 --exclude=config/settings/*",
       "git add"
     ]
   }

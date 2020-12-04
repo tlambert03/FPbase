@@ -282,7 +282,7 @@ def create_collection(
 
 
 def import_csv_spectra(file, **kwargs):
-    """ import CSV or text file of spectral data
+    """import CSV or text file of spectral data
 
     kwargs:
     headers=None
@@ -577,9 +577,7 @@ def import_fpd(file=None, overwrite=True):
             # look for photoswitching in naming
             row["name"], switch = name_check(row["name"])
 
-            namemismatch = (
-                False
-            )  # will be true if something already has this sequence with a diff name
+            namemismatch = False  # will be true if something already has this sequence with a diff name
 
             # check if protein already exists a variety of ways
             if Protein.objects.filter(slug=slugify(row.get("name"))).exists():
