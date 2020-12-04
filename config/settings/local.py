@@ -14,8 +14,8 @@ import os
 
 # DEBUG
 # ------------------------------------------------------------------------------
-DEBUG = env.bool('DJANGO_DEBUG', default=True)
-TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
+DEBUG = env.bool("DJANGO_DEBUG", default=True)
+TEMPLATES[0]["OPTIONS"]["debug"] = DEBUG
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
@@ -25,109 +25,107 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 # Note: This random key only used for development and testing, not on live site.
-SECRET_KEY = env('DJANGO_SECRET_KEY', default='w)CU)uzJ<JMlkGTrfz?:)W>]EG!PFngIvQZq#9.r=sfHUmCPIe')
+SECRET_KEY = env(
+    "DJANGO_SECRET_KEY", default="w)CU)uzJ<JMlkGTrfz?:)W>]EG!PFngIvQZq#9.r=sfHUmCPIe"
+)
 
 # Mail settings
 # ------------------------------------------------------------------------------
 
 EMAIL_PORT = 1025
 
-EMAIL_HOST = 'localhost'
-EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND',
-                    default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = "localhost"
+EMAIL_BACKEND = env(
+    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
 
-if env('MAILGUN_API_KEY', default=False) and env('MAILGUN_DOMAIN', default=False):
-    INSTALLED_APPS += ['anymail', ]
+if env("MAILGUN_API_KEY", default=False) and env("MAILGUN_DOMAIN", default=False):
+    INSTALLED_APPS += [
+        "anymail",
+    ]
     ANYMAIL = {
-        'MAILGUN_API_KEY': env('MAILGUN_API_KEY'),
-        'MAILGUN_SENDER_DOMAIN': env('MAILGUN_DOMAIN')
+        "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
+        "MAILGUN_SENDER_DOMAIN": env("MAILGUN_DOMAIN"),
     }
-    EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+    EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['fpbase.org', 'localhost', 'testserver', '10.0.2.2'])
+ALLOWED_HOSTS = env.list(
+    "DJANGO_ALLOWED_HOSTS",
+    default=["fpbase.org", "localhost", "testserver", "10.0.2.2", "127.0.0.1"],
+)
 
 # CACHING
 # ------------------------------------------------------------------------------
 CACHES = {
-    'default': {
+    "default": {
         #'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',  # don't actually cache
-        'LOCATION': ''
+        "BACKEND": "django.core.cache.backends.dummy.DummyCache",  # don't actually cache
+        "LOCATION": "",
     }
 }
 
 
 # django-debug-toolbar
 # ------------------------------------------------------------------------------
-MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
-INSTALLED_APPS += ['debug_toolbar', ]
+MIDDLEWARE += [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+]
+INSTALLED_APPS += [
+    "debug_toolbar",
+]
 
-INTERNAL_IPS = ['127.0.0.1', '10.0.2.2', ]
+INTERNAL_IPS = [
+    "127.0.0.1",
+    "10.0.2.2",
+]
 
 DEBUG_TOOLBAR_CONFIG = {
-    'DISABLE_PANELS': [
-        'debug_toolbar.panels.redirects.RedirectsPanel',
-    ],
-    'SHOW_TEMPLATE_CONTEXT': True,
+    "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel",],
+    "SHOW_TEMPLATE_CONTEXT": True,
 }
 
 # django-extensions
 # ------------------------------------------------------------------------------
-INSTALLED_APPS += ['django_extensions', ]
+INSTALLED_APPS += [
+    "django_extensions",
+]
 
 # TESTING
 # ------------------------------------------------------------------------------
-TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+TEST_RUNNER = "django.test.runner.DiscoverRunner"
 
-#SITE_ID = None
+# SITE_ID = None
 
 
 SHELL_PLUS_POST_IMPORTS = [
-    ('proteins.util.helpers', ('getprot', 'getmut', 'showalign')),
-    ('proteins.util', ('maintain', '_local')),
-    ('fpseq', ('FPSeq', 'from_fpbase', 'MutationSet', 'get_mutations', 'mutate_sequence')),
+    ("proteins.util.helpers", ("getprot", "getmut", "showalign")),
+    ("proteins.util", ("maintain", "_local")),
+    (
+        "fpseq",
+        ("FPSeq", "from_fpbase", "MutationSet", "get_mutations", "mutate_sequence"),
+    ),
 ]
 
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'level': 'DEBUG',
-        },
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/Users/talley/Desktop/debug.log',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "level": "DEBUG",},
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": "/Users/talley/Desktop/debug.log",
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "DEBUG"),
         },
-        'django.template': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'django.utils': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'proteins': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-         },
-        'fpbase': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
+        "django.template": {"handlers": ["file"], "level": "INFO", "propagate": True,},
+        "django.utils": {"handlers": ["file"], "level": "INFO", "propagate": True,},
+        "proteins": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
+        "fpbase": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
     },
 }
-
