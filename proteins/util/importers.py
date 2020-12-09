@@ -172,13 +172,17 @@ def fetch_semrock_part(part):
     return T
 
 
+def all_numbers(df):
+    return all(pd.api.types.is_numeric_dtype(t) for t in df.dtypes)
+
+
 def read_csv_text(text) -> pd.DataFrame:
     fmt = dict(sep=";", thousands=".", decimal=",")
-    df = pd.read_csv(StringIO(text), **fmt, nrows=2)
-    if df.ndim != 2 or df.shape[1] < 2 or any(f != "float" for f in df.dtypes):
+    df = pd.read_csv(StringIO(text), **fmt)
+    if df.ndim != 2 or df.shape[1] < 2 or not all_numbers(df):
         fmt = dict(sep=",", thousands=",", decimal=".")
-        df = pd.read_csv(StringIO(text), **fmt, nrows=2)
-    if df.ndim != 2 or df.shape[1] < 2 or any(f != "float" for f in df.dtypes):
+        df = pd.read_csv(StringIO(text), **fmt)
+    if df.ndim != 2 or df.shape[1] < 2 or not all_numbers(df):
         raise ValueError("Could not parse text as valid spectra csv.")
     try:
         return pd.read_csv(StringIO(text), **fmt, header=None, dtype="float")
