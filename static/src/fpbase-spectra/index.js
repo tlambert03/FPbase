@@ -7,16 +7,16 @@ import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import initializeClient from "./client/client"
 import { defaults } from "./client/resolvers"
 
-if (process.env.NODE_ENV !== "production") {
-  import("@welldone-software/why-did-you-render").then(
-    ({ default: whyDidYouRender }) =>
-      whyDidYouRender(React, {
-        include: [],
-        logOnDifferentValues: true,
-        collapseGroups: true,
-      })
-  )
-}
+/* eslint-disable */
+// if (process.env.NODE_ENV === 'development') {
+//   const whyDidYouRender = require('@welldone-software/why-did-you-render');
+//   whyDidYouRender(React, {
+//     trackAllPureComponents: true,
+//     logOnDifferentValues: true,
+//     collapseGroups: true,
+//   })
+// }
+/* eslint-enable */
 
 const AppWrapper = ({ uri }) => {
   const client = useRef(initializeClient({ uri }))
