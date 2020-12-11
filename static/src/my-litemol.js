@@ -1,11 +1,65 @@
 import "./css/litemol/LiteMol-plugin-blue.css"
-import LiteMol from "./js/pdb/LiteMol-plugin.js"
 import $ from "jquery"
+import LiteMol from "./js/pdb/LiteMol-plugin"
+
+const pdbInfo = {}
+
+async function loadSmiles(pdbid) {
+  const _id = pdbInfo[pdbid].chromophore.id
+  const url = `https://cdn.rcsb.org/images/ccd/unlabeled/${_id[0]}/${_id}.svg`
+  $("#smilesDrawing div").html(
+    `<img id="smilesImg" src="${url}" alt="Diagram chromophore structure (${_id})">`
+  )
+}
+
+function getPDBbinary(id) {
+  return new Promise(function(resolve, reject) {
+    $.get(
+      `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`
+    )
+      .done(response => {
+        resolve(response)
+      })
+      .fail((xhr, status, error) => {
+        $.get(`https://files.rcsb.org/download/${id}.cif`)
+          .done(response => {
+            resolve(response)
+          })
+          .fail(_xhr =>
+            reject(
+              new Error({
+                status: _xhr.status,
+                statusText: _xhr.statusText,
+              })
+            )
+          )
+      })
+  })
+}
+
+function loadChemInfo(pdbid) {
+  const e = pdbInfo[pdbid]
+  $("#chem-title").html(e.struct.title)
+  const d = new Date(e.rcsb_accession_info.deposit_date)
+  $("#chem-date").html(
+    d.toLocaleDateString("en-US", { year: "numeric", month: "short" })
+  )
+  $("#chem-authors").html(`${e.audit_author[0].name} et al. `)
+  $("#chem-pubmed").attr(
+    "href",
+    `https://www.ncbi.nlm.nih.gov/pubmed/${e.rcsb_primary_citation.pdbx_database_id_PubMed}`
+  )
+  $("#chem-id").html(
+    `<a target="_blank" rel="noopener" class="text-secondary" 
+    href="https://www.rcsb.org/ligand/${e.chromophore.id}">${e.chromophore.id}</a>`
+  )
+  $("#chem-form").html(e.chromophore.formula)
+}
 
 function initLiteMol(selection, changer) {
   const PluginSpec = LiteMol.Plugin.getDefaultSpecification()
-  const LayoutRegion = LiteMol.Bootstrap.Components.LayoutRegion
-  const Components = LiteMol.Plugin.Components
+  const { LayoutRegion } = LiteMol.Bootstrap.Components
+  const { Components } = LiteMol.Plugin
   PluginSpec.components = [
     Components.Visualization.HighlightInfo(LayoutRegion.Main, true),
     Components.Entity.Current("LiteMol", LiteMol.Plugin.VERSION.number)(
@@ -13,28 +67,28 @@ function initLiteMol(selection, changer) {
       true
     ),
     Components.Transform.View(LayoutRegion.Right),
-    //Components.Context.Log(LayoutRegion.Bottom, true),
+    // Components.Context.Log(LayoutRegion.Bottom, true),
     Components.Context.Overlay(LayoutRegion.Root),
-    //Components.Context.Toast(LayoutRegion.Main, true),
-    Components.Context.BackgroundTasks(LayoutRegion.Main, true)
+    // Components.Context.Toast(LayoutRegion.Main, true),
+    Components.Context.BackgroundTasks(LayoutRegion.Main, true),
   ]
 
   try {
-    var plugin = LiteMol.Plugin.create({
+    const plugin = LiteMol.Plugin.create({
       customSpecification: PluginSpec,
       target: selection,
       viewportBackground: "#fff",
       layoutState: {
         hideControls: true,
-        isExpanded: false
+        isExpanded: false,
       },
-      allowAnalytics: true
+      allowAnalytics: true,
     })
 
-    var dataCache = {}
+    const dataCache = {}
     changer.change(function() {
-      var id = this.value
-      if (!dataCache.hasOwnProperty(id)) {
+      const id = this.value
+      if (!Object.prototype.hasOwnProperty.call(dataCache, "id")) {
         dataCache[id] = getPDBbinary(id)
       }
       plugin.clear()
@@ -42,7 +96,7 @@ function initLiteMol(selection, changer) {
         data =>
           plugin.loadMolecule({
             data,
-            id
+            id,
           }),
         reason => {
           $(selection).html(
@@ -52,11 +106,11 @@ function initLiteMol(selection, changer) {
       )
     })
 
-    $("body").click(function(e) {
+    $("body").on("click", function(e) {
       if ($(".lm-layout-right").length) {
         if ($(e.target).closest("#litemol-viewer").length === 0) {
           plugin.setLayoutState({
-            hideControls: true
+            hideControls: true,
           })
         }
       }
@@ -72,9 +126,9 @@ function initLiteMol(selection, changer) {
       // var id = this.value
       $("#pdb-out-link").attr(
         "href",
-        "https://www.rcsb.org/structure/" + this.value
+        `https://www.rcsb.org/structure/${this.value}`
       )
-      if (pdb_info[this.value]) {
+      if (pdbInfo[this.value]) {
         loadSmiles(this.value)
         loadChemInfo(this.value)
       }
@@ -82,218 +136,103 @@ function initLiteMol(selection, changer) {
     .trigger("change")
 }
 
-function getPDBbinary(id) {
-  return new Promise(function(resolve, reject) {
-    $.get(
-      "https://www.ebi.ac.uk/pdbe/static/entry/" +
-        id.toLowerCase() +
-        "_updated.cif"
-    )
-      .done(response => {
-        resolve(response)
-      })
-      .fail((xhr, status, error) => {
-        $.get("https://files.rcsb.org/download/" + id + ".cif")
-          .done(response => {
-            resolve(response)
-          })
-          .fail(xhr =>
-            reject({
-              status: xhr.status,
-              statusText: xhr.statusText
-            })
-          )
-      })
-  })
-}
-
-function downloadPDBMeta(pdbidstring) {
+function downloadPDBMeta(pdbIds) {
   return $.when(
-    $.get({
-      url:
-        "https://www.rcsb.org/pdb/rest/describeMol?structureId=" + pdbidstring,
-      dataType: "xml",
-      success: function(xml) {
-        $(xml)
-          .find("structureId")
-          .each(function(i, p) {
-            var el = $(p)
-            var pdbid = el.attr("id")
-            //pdb_info[pdbid].macroMolecule = el.find('macroMolecule').attr('name');
-            pdb_info[pdbid].chains = el
-              .find("chain")
-              .map(function(i, d) {
-                return d.id
-              })
-              .toArray()
-          })
-      }
-    }),
-    $.get({
-      url:
-        "https://www.rcsb.org/pdb/rest/describePDB?structureId=" + pdbidstring,
-      dataType: "xml",
-      success: function(xml) {
-        $(xml)
-          .find("PDB")
-          .each(function(i, p) {
-            var pdb = $(p)
-            var pdbid = pdb.attr("structureId")
-            pdb_info[pdbid].title = pdb.attr("title")
-            pdb_info[pdbid].expMethod = pdb.attr("expMethod")
-            pdb_info[pdbid].resolution = parseFloat(pdb.attr("resolution"))
-            pdb_info[pdbid].deposition_date = pdb.attr("deposition_date")
-            pdb_info[pdbid].last_modification_date = pdb.attr(
-              "last_modification_date"
-            )
-            pdb_info[pdbid].structure_authors = pdb.attr("structure_authors")
-            pdb_info[pdbid].pubmedId = pdb.attr("pubmedId")
-          })
-      }
-    }),
-    $.get({
-      url:
-        "https://www.rcsb.org/pdb/rest/ligandInfo?structureId=" + pdbidstring,
-      dataType: "xml",
-      success: function(xml) {
-        $(xml)
-          .find("structureId")
-          .each(function(i, p) {
-            var el = $(p)
-            var pdbid = el.attr("id")
-            var heavy = el
-              .find("ligand")
-              .toArray()
-              .reduce(function(a, b) {
-                return +$(a).attr("molecularWeight") >
-                  +$(b).attr("molecularWeight")
-                  ? a
-                  : b
-              })
-            pdb_info[pdbid].smiles = $(heavy)
-              .find("smiles")
-              .text()
-              .replace(/\\\\/g, "\\")
-              .replace("CC(=O)O", "*")
-            pdb_info[pdbid].chemId = $(heavy).attr("chemicalID")
-            pdb_info[pdbid].chemicalName = $(heavy)
-              .find("chemicalName")
-              .text()
-            pdb_info[pdbid].formula = $(heavy)
-              .find("formula")
-              .text()
-            pdb_info[pdbid].molecularWeight = $(heavy).attr("molecularWeight")
-          })
-      }
-    })
-  )
-}
-
-async function loadSmiles(pdbid) {
-  const { default: SmilesDrawer } = await import("smiles-drawer")
-
-  var canv = $("#smilesCanvas")
-
-  var myDrawer = new SmilesDrawer.Drawer({
-    compactDrawing: false,
-    height: 300
-  })
-
-  canv[0].getContext("2d").clearRect(0, 0, canv.width, canv.height)
-  if (canv.data("chemId") !== pdb_info[pdbid].chemId) {
-    SmilesDrawer.parse(pdb_info[pdbid].smiles, function(tree) {
-      canv.remove()
-      canv = $("<canvas>", {
-        id: "smilesCanvas"
-      }).appendTo($("#smilesDrawing .card-img-top"))
-      myDrawer.draw(tree, "smilesCanvas", "light", false)
-      canv.data("chemId", pdb_info[pdbid].chemId)
-      canv.height("auto")
-      canv.width("100%")
-    })
-  }
-}
-
-function loadChemInfo(pdbid) {
-  var e = pdb_info[pdbid]
-  $("#chem-title").html(e.title)
-  $("#chem-date").html(e.deposition_date)
-  $("#chem-authors").html(e.structure_authors.split(",")[0] + " et al. ")
-  $("#chem-pubmed").attr(
-    "href",
-    "https://www.ncbi.nlm.nih.gov/pubmed/" + e.pubmedId
-  )
-  $("#chem-id").html(
-    '<a target="_blank" rel="noopener" class="text-secondary" href="https://www.rcsb.org/ligand/' +
-      e.chemId +
-      '">' +
-      e.chemId +
-      "</a>"
-  )
-  $("#chem-form").html(e.formula)
-}
-
-//variable to store LiteMol Component Scope which has all the methods
-// var liteMolScope
-var pdb_info = {}
-var getPDBinfo = function(pdbids) {
-  let pdbidstring
-  if (Array.isArray(pdbids)) {
-    for (var i = 0; i < pdbids.length; ++i) {
-      pdbids[i] = pdbids[i].toUpperCase()
-      pdb_info[pdbids[i]] = {}
-    }
-    pdbidstring = pdbids.join(",")
-  } else {
-    pdbids = pdbids.toUpperCase()
-    pdb_info[pdbids] = {}
-    pdbidstring = pdbids
-  }
-
-  downloadPDBMeta(pdbidstring)
-    .done(function() {
-      var select = $("#pdb_select")
-      $(
-        pdbids.sort(function(a, b) {
-          return pdb_info[a].resolution - pdb_info[b].resolution
+    $.post({
+      url: "https://data.rcsb.org/graphql",
+      contentType: "application/json",
+      data: JSON.stringify({
+        query: `{
+          entries(entry_ids:${pdbIds}) {
+            entry {
+              id
+            }
+            struct {
+              title
+            }
+            rcsb_entry_info {
+              experimental_method
+              resolution_combined
+            }
+            rcsb_accession_info {
+              deposit_date
+              revision_date
+            }
+            audit_author {
+              name
+            }
+            rcsb_primary_citation {
+              pdbx_database_id_PubMed
+            }
+            polymer_entities {
+              chem_comp_nstd_monomers {
+                chem_comp {
+                  id
+                  type
+                  formula_weight
+                  name
+                  formula
+                }
+                pdbx_chem_comp_descriptor {
+                  descriptor
+                  type
+                  program
+                }
+              }
+            }
+          }
+        }`,
+      }),
+      success: function({ data }) {
+        data.entries.forEach(entry => {
+          pdbInfo[entry.entry.id] = entry
+          const heavy = entry.polymer_entities[0].chem_comp_nstd_monomers.reduce(
+            (a, b) =>
+              a.chem_comp.formula_weight > b.chem_comp.formula_weight ? a : b
+          )
+          pdbInfo[entry.entry.id].chromophore = { ...heavy.chem_comp }
+          let _smile = heavy.pdbx_chem_comp_descriptor[1].descriptor
+          _smile = _smile.replace(/\\\\/g, "\\").replace("CC(=O)O", "*")
+          pdbInfo[entry.entry.id].chromophore.smiles = _smile
+          // eslint-disable-next-line prefer-destructuring
+          pdbInfo[entry.entry.id].resolution =
+            entry.rcsb_entry_info.resolution_combined[0]
         })
-      ).each(function(i, d) {
+      },
+    })
+  )
+}
+
+const getPDBinfo = function(pdbIds) {
+  downloadPDBMeta(`["${pdbIds.join('","')}"]`)
+    .done(() => {
+      const select = $("#pdb_select")
+      pdbIds.sort((a, b) =>
+        pdbInfo[a].resolution > pdbInfo[b].resolution ? 1 : -1
+      )
+      pdbIds.forEach(id => {
         select.append(
           $("<option>", {
-            value: d
-          }).html(
-            `${d} (${pdb_info[d].resolution} Å, ${
-              pdb_info[d].chains.length
-            }-chain)`
-          )
+            value: id,
+          }).html(`${id} (${pdbInfo[id].resolution} Å)`)
         )
       })
 
       initLiteMol("#litemol-viewer", select)
     })
     .fail(function() {
-      $(pdbids).each(function(i, d) {
-        $("#pdb_select").append(
-          $("<option>", {
-            value: d
-          }).html(d)
-        )
+      let html =
+        '<div><p><small class="text-muted">Failed to retrieve metadata from PDB!</small></p>'
+      html += "Please look for these IDs at RSCB PDB: &nbsp;"
+      pdbIds.forEach(_id => {
+        html += `<a href="https://www.rcsb.org/structure/${_id}">${_id}</a>, `
       })
-      $("#pdb-info").html(
-        '<small class="text-muted">failed to retrieve metadata from PDB</small>'
-      )
+      html += "</div>"
+      $("#protein-structure")
+        .html(html)
+        .removeClass("row")
     })
 }
-
-// var loadDensity = function() {
-//   liteMolScope.LiteMolComponent.loadDensity()
-//   $("#density_loader").text("toggle electron density")
-//   $("#density_loader").attr("onclick", "ToggleDensity()")
-// }
-
-// var ToggleDensity = function() {
-//   liteMolScope.LiteMolComponent.toggleDensity()
-// }
 
 export default function initPDB(pdbids) {
   getPDBinfo(pdbids)

@@ -1,5 +1,5 @@
 <h3>Structure</h3>
-<div class="row">
+<div class='row' id="protein-structure">
   <div class="col-12 col-md-6 order-2 order-md-1">
     <div  style="height: 400px; background: white;">
       <div id="litemol-viewer"></div>
@@ -22,13 +22,13 @@
     <div class='row'>
         <div class='col-12'>
           <div class="text-muted" id="pdb-info" style="position: absolute; top:8px">
-            Deposited: <span id="chem-date"></span>, <span id="chem-authors"></span><a href="" id="chem-pubmed" target="_blank" ><i class="small fas fa-external-link-alt ml-2 text-secondary"></i></a><br>
+            Deposited: <span id="chem-date"></span>, <span id="chem-authors"></span>
+            <a href="" id="chem-pubmed" target="_blank" ><i class="small fas fa-external-link-alt ml-2 text-secondary"></i></a><br>
             Chromophore{% if protein.chromophore %} ({{protein.chromophore}}){% endif %}: <span id='chem-id'></span><br>
             <span id='chem-form' class="small"></span><br>
           </div>
           <div id="smilesDrawing" class="mt-4">
             <div class="card-img-top" style="maxHeight: 300px;">
-              <canvas id="smilesCanvas" data-chemId=''></canvas>
             </div>
 <!--              <div class="card-body pt-0">
                 <button onclick="loadDensity()" class='btn btn-xs btn-outline-info' id="density_loader" style="position: absolute; z-index: 9;">load electron density</button>
