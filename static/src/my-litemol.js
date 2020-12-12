@@ -8,7 +8,9 @@ async function loadSmiles(pdbid) {
   const _id = pdbInfo[pdbid].chromophore.id
   const url = `https://cdn.rcsb.org/images/ccd/unlabeled/${_id[0]}/${_id}.svg`
   $("#smilesDrawing div").html(
-    `<img id="smilesImg" src="${url}" alt="Diagram chromophore structure (${_id})">`
+    `<a href="https://www.rcsb.org/ligand/${_id}">
+      <img id="smilesImg" src="${url}" alt="Diagram chromophore structure (${_id})">
+    </a>`
   )
 }
 
@@ -173,10 +175,16 @@ function downloadPDBMeta(pdbIds) {
                   name
                   formula
                 }
-                pdbx_chem_comp_descriptor {
-                  descriptor
+              }
+            }
+            nonpolymer_entities {
+              nonpolymer_comp {
+                chem_comp {
+                  id
                   type
-                  program
+                  formula_weight
+                  name
+                  formula
                 }
               }
             }
@@ -185,15 +193,17 @@ function downloadPDBMeta(pdbIds) {
       }),
       success: function({ data }) {
         data.entries.forEach(entry => {
+          console.log(entry)
           pdbInfo[entry.entry.id] = entry
-          const heavy = entry.polymer_entities[0].chem_comp_nstd_monomers.reduce(
-            (a, b) =>
+          let chromo =
+            entry.polymer_entities[0].chem_comp_nstd_monomers ||
+            entry.nonpolymer_entities[0].nonpolymer_comp
+          if (Array.isArray(chromo)) {
+            chromo = chromo.reduce((a, b) =>
               a.chem_comp.formula_weight > b.chem_comp.formula_weight ? a : b
-          )
-          pdbInfo[entry.entry.id].chromophore = { ...heavy.chem_comp }
-          let _smile = heavy.pdbx_chem_comp_descriptor[1].descriptor
-          _smile = _smile.replace(/\\\\/g, "\\").replace("CC(=O)O", "*")
-          pdbInfo[entry.entry.id].chromophore.smiles = _smile
+            )
+          }
+          pdbInfo[entry.entry.id].chromophore = { ...chromo.chem_comp }
           // eslint-disable-next-line prefer-destructuring
           pdbInfo[entry.entry.id].resolution =
             entry.rcsb_entry_info.resolution_combined[0]
