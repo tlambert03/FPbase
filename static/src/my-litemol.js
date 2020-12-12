@@ -193,7 +193,6 @@ function downloadPDBMeta(pdbIds) {
       }),
       success: function({ data }) {
         data.entries.forEach(entry => {
-          console.log(entry)
           pdbInfo[entry.entry.id] = entry
           let chromo =
             entry.polymer_entities[0].chem_comp_nstd_monomers ||
