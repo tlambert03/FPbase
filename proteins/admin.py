@@ -570,7 +570,7 @@ class FilterPlacementInline(admin.TabularInline):
 class OpticalConfigAdmin(admin.ModelAdmin):
     model = OpticalConfig
     inlines = (FilterPlacementInline,)
-    list_display = ("__str__", "microscope", "owner_link")
+    list_display = ("__str__", "microscope", "owner_link", "created")
     fields = (("name", "microscope"), ("laser", "light"), ("camera", "owner"))
 
     def owner_link(self, obj):
