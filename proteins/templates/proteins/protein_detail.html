@@ -496,14 +496,6 @@
   {% endif %}
 
   <script type="text/javascript">
-    $(document).on('show.bs.modal', '#excerptModal', function () {
-        $('#excerptModal').css('z-index', 1200);
-    });
-
-    $(document).on('hidden.bs.modal', 'excerptModal', function () {
-        $('#excerptModal').css('z-index', 1039);
-    });
-
 
     $(function () {
         initSnapGene("{{protein.name|safe}}", '.external-resources ul')
