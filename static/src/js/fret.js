@@ -278,9 +278,9 @@ export default function initFRET() {
         acceptorEX = dataItemMatching({ slug: acceptorslug, type: 'ex' })[0];
         acceptorEX.classed += ' faded-fret';
         $('#ECA').text(acceptorEX.scalar.toLocaleString());
-        $('#QYA').text(
-          dataItemMatching({ slug: acceptorslug, type: 'em' })[0].scalar
-        );
+
+        var acceptorEM = dataItemMatching({ slug: acceptorslug, type: 'em' })[0]
+        $('#QYA').text(acceptorEM ? acceptorEM.scalar : '');
       } else {
         $('#ECA, #QYA').text('');
       }
