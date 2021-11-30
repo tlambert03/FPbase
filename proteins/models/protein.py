@@ -225,11 +225,13 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     BILIVERDIN = "bv"
     FLAVIN = "fl"
     PHYCOCYANOBILIN = "pc"
+    RIBITYL_LUMAZINE = "rl"
     COFACTOR_CHOICES = (
         (BILIRUBIN, "Bilirubin"),
         (BILIVERDIN, "Biliverdin"),
         (FLAVIN, "Flavin"),
         (PHYCOCYANOBILIN, "Phycocyanobilin"),
+        (RIBITYL_LUMAZINE, "ribityl-lumazine"),
     )
 
     # Attributes
