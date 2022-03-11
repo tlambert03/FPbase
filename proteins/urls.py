@@ -3,8 +3,13 @@ from django.views.generic import TemplateView
 
 from . import views
 from fpbase.decorators import login_required_message_and_redirect as login_required
+from os import getenv
 
 app_name = "proteins"
+
+disabled = TemplateView.as_view(template_name="updates_disabled.html")
+
+CONTRIBS_OPEN = not getenv("BLOCK_CONTRIBUTIONS")
 
 urlpatterns = [
     # detail view: /:slug
@@ -15,7 +20,9 @@ urlpatterns = [
         login_required(
             views.ProteinCreateView.as_view(),
             message="You must be logged in to submit a new protein",
-        ),
+        )
+        if CONTRIBS_OPEN
+        else disabled,
         name="submit",
     ),
     url(
@@ -23,7 +30,9 @@ urlpatterns = [
         login_required(
             views.ProteinUpdateView.as_view(),
             message="You must be logged in to update protein information",
-        ),
+        )
+        if CONTRIBS_OPEN
+        else disabled,
         name="update",
     ),
     url(r"^table/", views.protein_table, name="table"),
@@ -44,7 +53,9 @@ urlpatterns = [
         login_required(
             views.SpectrumCreateView.as_view(),
             message="You must be logged in to submit a new spectrum",
-        ),
+        )
+        if CONTRIBS_OPEN
+        else disabled,
         name="submit-spectra",
     ),
     url(
@@ -52,7 +63,9 @@ urlpatterns = [
         login_required(
             views.SpectrumCreateView.as_view(),
             message="You must be logged in to submit a new spectrum",
-        ),
+        )
+        if CONTRIBS_OPEN
+        else disabled,
         name="submit-spectra",
     ),
     url(r"^spectra/(?P<slug>[-\w]+)", views.protein_spectra, name="spectra"),
