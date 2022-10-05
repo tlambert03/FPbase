@@ -16,14 +16,14 @@ async function loadSmiles(pdbid) {
 
 function getPDBbinary(id) {
   return new Promise(function(resolve, reject) {
-    $.get(
-      `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`
-    )
+    $.get(`https://files.rcsb.org/download/${id}.cif`)
       .done(response => {
         resolve(response)
       })
       .fail((xhr, status, error) => {
-        $.get(`https://files.rcsb.org/download/${id}.cif`)
+        $.get(
+          `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`
+        )
           .done(response => {
             resolve(response)
           })
