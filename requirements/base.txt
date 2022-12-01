@@ -55,5 +55,5 @@ celery[redis]==5.2.7  # https://github.com/celery/celery
 graphene==3.1.1  # https://github.com/graphql-python/graphene
 graphene-django==3.0.0  # https://github.com/graphql-python/graphene-django
 graphene-django-optimizer==0.9.1  # https://github.com/tfoxy/graphene-django-optimizer
-django-graphql-jwt==0.3.0
+django-graphql-jwt==0.3.4
 django-cors-headers==3.2.1
