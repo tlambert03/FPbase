@@ -24,7 +24,7 @@ markdown==3.4.1
 
 # MY STUFF
 django-recaptcha==3.0.0  # https://github.com/praekelt/django-recaptcha
-sentry-sdk==0.19.1  # https://github.com/getsentry/sentry-python/
+sentry-sdk==1.12.1  # https://github.com/getsentry/sentry-python/
 
 metapub==0.5.5
 biopython==1.76
