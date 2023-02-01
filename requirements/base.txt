@@ -30,7 +30,7 @@ metapub==0.5.5
 biopython==1.80
 pandas==1.5.3
 
-habanero==0.7.4
+habanero==1.2.2
 django-filter==2.3.0
 django-reversion==3.0.8
 django-reversion-compare==0.12.2
