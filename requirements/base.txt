@@ -1,6 +1,6 @@
 pytz==2022.7.1  # https://github.com/stub42/pytz
 python-slugify==8.0.0  # https://github.com/dimka665/awesome-slugify
-Pillow==7.2.0  # https://github.com/python-pillow/Pillow
+Pillow==9.4.0  # https://github.com/python-pillow/Pillow
 rcssmin==1.0.6  # https://github.com/ndparker/rcssmin
 argon2-cffi==20.1.0  # https://github.com/hynek/argon2_cffi
 whitenoise[brotli]==5.2.0  # https://github.com/evansd/whitenoise
