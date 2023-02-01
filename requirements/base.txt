@@ -40,7 +40,7 @@ scipy==1.10.0
 dnspython==2.3.0  # 
 django-anymail==9.0  # https://github.com/anymail/django-anymail
 django-autocomplete-light==3.9.4  # https://github.com/yourlabs/django-autocomplete-light
-django-avatar==5.0.0
+django-avatar==7.0.1
 
 numpy==1.18.0  # pyup: ignore
 matplotlib==3.2.1
