@@ -33,7 +33,7 @@ pandas==1.5.3
 habanero==1.2.2
 django-filter==22.1
 django-reversion==5.0.4
-django-reversion-compare==0.12.2
+django-reversion-compare==0.15.0
 
 tablib==1.1.0
 scipy==1.5.2
