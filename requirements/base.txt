@@ -13,7 +13,7 @@ django-environ==0.9.0  # https://github.com/joke2k/django-environ
 django-model-utils==4.3.1  # https://github.com/jazzband/django-model-utils
 django-allauth==0.52.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==2.0  # https://github.com/django-crispy-forms/django-crispy-forms
-django-redis==4.12.1  # https://github.com/niwinz/django-redis
+django-redis==5.2.0  # https://github.com/niwinz/django-redis
 
 # Django REST Framework
 djangorestframework==3.11.1  # https://github.com/encode/django-rest-framework
