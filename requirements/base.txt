@@ -31,7 +31,7 @@ biopython==1.81
 pandas==1.5.3
 
 habanero==1.2.3
-django-filter==2.3.0
+django-filter==22.1
 django-reversion==3.0.8
 django-reversion-compare==0.12.2
 
