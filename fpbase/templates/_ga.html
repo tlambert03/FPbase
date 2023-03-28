@@ -5,6 +5,7 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', '{{ ga_tracking_id }}');
+  gtag('config', 'G-C8W3G31KL6');
   {% if request.user.is_authenticated %}gtag('set', {'user_id': '{{ request.user.id }}'}){% endif %};
   var trackOutboundLink = function(url) {
     gtag('event', 'click', {
