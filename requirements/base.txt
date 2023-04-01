@@ -35,7 +35,7 @@ django-filter==23.1
 django-reversion==5.0.4
 django-reversion-compare==0.15.0
 
-tablib==1.1.0
+tablib==3.4.0
 scipy==1.5.2
 dnspython==1.16.0  # 
 django-anymail==7.0.0  # https://github.com/anymail/django-anymail
