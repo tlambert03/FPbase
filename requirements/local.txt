@@ -19,5 +19,5 @@ pylint-django==2.5.3  # https://github.com/PyCQA/pylint-django
 # Django
 # ------------------------------------------------------------------------------
 
-django-debug-toolbar==2.2  # https://github.com/jazzband/django-debug-toolbar
+django-debug-toolbar==3.8.1  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==2.2.9  # https://github.com/django-extensions/django-extensions
