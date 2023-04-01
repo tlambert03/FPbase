@@ -3,7 +3,7 @@ psycopg2-binary==2.9.5  # https://github.com/psycopg/psycopg2
 
 # Testing
 # ------------------------------------------------------------------------------
-pytest==6.0.1  # https://github.com/pytest-dev/pytest
+pytest==7.2.2  # https://github.com/pytest-dev/pytest
 pytest-sugar==0.9.4  # https://github.com/Frozenball/pytest-sugar
 pytest-cov==2.10.1
 codacy-coverage==1.3.11
