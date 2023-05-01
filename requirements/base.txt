@@ -43,7 +43,7 @@ django-autocomplete-light==3.9.4  # https://github.com/yourlabs/django-autocompl
 django-avatar==7.1.1
 
 numpy==1.18.0  # pyup: ignore
-matplotlib==3.2.1
+matplotlib==3.7.1
 django-mptt==0.11.0  # https://github.com/django-mptt/django-mptt
 django-webpack-loader==0.7.0
 
