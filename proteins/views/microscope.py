@@ -1,45 +1,53 @@
 import json
+from collections import defaultdict
+from urllib.parse import quote
+
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.core.exceptions import PermissionDenied
+from django.core.mail import mail_admins
+from django.db import transaction
+from django.db.models import CharField, Count, F, Q, Value
+from django.db.models.functions import Lower
+from django.http import (
+    Http404,
+    HttpResponseNotAllowed,
+    HttpResponseRedirect,
+    JsonResponse,
+)
+from django.urls import resolve, reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import (
-    DetailView,
     CreateView,
     DeleteView,
+    DetailView,
     ListView,
     UpdateView,
 )
-from django.http import HttpResponseRedirect, Http404
-from django.core.mail import mail_admins
-from django.core.exceptions import PermissionDenied
-from django.urls import reverse_lazy, resolve
-from django.db import transaction
-from django.db.models import Count, F, Value, CharField, Q
-from django.db.models.functions import Lower
-from django.contrib.auth import get_user_model
-from django.contrib.messages.views import SuccessMessageMixin
-from django.utils.decorators import method_decorator
-from django.views.decorators.clickjacking import xframe_options_exempt
-from django.contrib import messages
-from django.contrib.postgres.aggregates import ArrayAgg
-from django.contrib.contenttypes.models import ContentType
-from ..models import (
-    Microscope,
-    Camera,
-    Light,
-    Spectrum,
-    OpticalConfig,
-    State,
-    Dye,
-    ProteinCollection,
-)
+
+from fpbase.celery import app
+from fpbase.util import is_ajax
+
 from ..forms import MicroscopeForm, OpticalConfigFormSet
-from .mixins import OwnableObject
+from ..models import (
+    Camera,
+    Dye,
+    Light,
+    Microscope,
+    OpticalConfig,
+    ProteinCollection,
+    Spectrum,
+    State,
+)
 
 # from ..util.efficiency import microscope_efficiency_report
 from ..models.efficiency import OcFluorEff
-from collections import defaultdict
-from urllib.parse import quote
-from django.http import HttpResponseNotAllowed, JsonResponse
-from fpbase.celery import app
 from ..tasks import calculate_scope_report
+from .mixins import OwnableObject
 
 
 def update_scope_report(request):
@@ -219,7 +227,7 @@ class ScopeReportView(DetailView):
     queryset = Microscope.objects.all()
 
     def post(self, request, *args, **kwargs):
-        if request.is_ajax():
+        if is_ajax(request):
             return update_scope_report(request)
         return HttpResponseNotAllowed([])
 

@@ -1,13 +1,15 @@
-from .models import Author, Reference
-from django.views.generic import DetailView, ListView
-from dal import autocomplete
-from django.http import Http404, HttpResponseNotAllowed
-from proteins.util.helpers import link_excerpts
-from django.utils.html import strip_tags
-from django.core.mail import mail_managers
 import reversion
+from dal import autocomplete
+from django.core.mail import mail_managers
+from django.http import Http404, HttpResponseNotAllowed, JsonResponse
+from django.utils.html import strip_tags
+from django.views.generic import DetailView, ListView
+
+from fpbase.util import is_ajax
 from proteins.models import Excerpt
-from django.http import JsonResponse
+from proteins.util.helpers import link_excerpts
+
+from .models import Author, Reference
 
 
 class AuthorDetailView(DetailView):
@@ -75,7 +77,7 @@ class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
 
 
 def add_excerpt(request, pk=None):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
     try:
         with reversion.create_revision():

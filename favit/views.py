@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseNotAllowed, HttpResponseBadRequest, JsonResponse
 from django.apps import apps
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
+
+from fpbase.util import is_ajax, uncache_protein_page
+
 from .models import Favorite
-from fpbase.util import uncache_protein_page
 
 
 @login_required
 def add_or_remove(request):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
     user = request.user
     try:
@@ -44,7 +46,7 @@ def add_or_remove(request):
 @login_required
 def remove(request):
 
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
 
     user = request.user

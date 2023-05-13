@@ -31,7 +31,7 @@ from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, base
 from reversion.models import Revision, Version
 
-from fpbase.util import uncache_protein_page
+from fpbase.util import is_ajax, uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
 from proteins.extrest.ga import cached_ga_popular
 from proteins.util.helpers import link_excerpts, most_favorited
@@ -971,7 +971,7 @@ def spectra_csv(request):
 
 @login_required
 def flag_object(request):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
     try:
         model_type = request.POST["target_model"]

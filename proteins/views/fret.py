@@ -3,8 +3,9 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from fpbase.celery import app
+from fpbase.util import is_ajax
 
-from ..models import State, Dye
+from ..models import Dye, State
 from ..tasks import calc_fret
 
 
@@ -12,7 +13,7 @@ def fret_chart(request):
     """ renders html for protein spectra page  """
     template = "fret.html"
 
-    if request.is_ajax():
+    if is_ajax(request):
         L = cache.get("forster_list")
         if not L:
             job = cache.get("calc_fret_job")

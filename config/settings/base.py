@@ -63,6 +63,7 @@ THIRD_PARTY_APPS = [
     "reversion_compare",
     "avatar",
     "mptt",
+    "crispy_bootstrap4",
 ]
 
 # Apps specific for this project go here.

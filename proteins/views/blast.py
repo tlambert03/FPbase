@@ -1,12 +1,15 @@
-from django.shortcuts import render
 from django.http import JsonResponse
-from ..util.blast import blast
+from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
+
+from fpbase.util import is_ajax
+
+from ..util.blast import blast
 
 
 @ensure_csrf_cookie
 def blast_view(request):
-    if request.is_ajax():
+    if is_ajax(request):
         seq = request.POST.get("query")
         binary = request.POST.get("binary", "blastp")
         assert binary in ("blastx", "blastp")

@@ -147,7 +147,7 @@
     {% endblock body %}
 
       <!-- place project specific Javascript -->
-      {% webpack_static 'vendor.js' %}
+      <script src="{% webpack_static 'vendor.js' %}"></script>
       {% custom_static 'main' 'js' %}
       <script>
         FPBASE.initAutocomplete();

@@ -51,3 +51,7 @@ def show_queries():
     logger = logging.getLogger("django.db.backends")
     logger.setLevel(logging.DEBUG)
     logger.addHandler(logging.StreamHandler())
+
+def is_ajax(request):
+    # https://stackoverflow.com/a/70419609
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
