@@ -162,7 +162,7 @@ module.exports = {
     chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js",
   },
   resolve: {
-    extensions: [".js", ".jsx"],
+    extensions: [".webpack.js", ".web.js", ".mjs", ".js", ".jsx", ".json"],
     alias: {
       jquery: "jquery/src/jquery",
     },

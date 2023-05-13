@@ -1,11 +1,12 @@
+from os.path import splitext
+
 from django import template
 from django.conf import settings
-from django.template.loader import render_to_string
 from django.contrib.staticfiles.storage import staticfiles_storage
-from webpack_loader.templatetags.webpack_loader import render_bundle
-from webpack_loader.utils import get_files, get_static
+from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
-from os.path import splitext
+from webpack_loader.templatetags.webpack_loader import render_bundle
+from webpack_loader.utils import _get_bundle, get_static
 
 register = template.Library()
 
@@ -21,14 +22,14 @@ def webp_picture(name, classed="", alt=""):
     )
 
 
-@register.simple_tag
-def custom_static(bundle_name, extension=None, config="DEFAULT", attrs=""):
+@register.simple_tag(takes_context=True)
+def custom_static(context, bundle_name, extension=None, config="DEFAULT", attrs=""):
     if settings.DEBUG:
         return render_bundle(
-            bundle_name, extension=extension, config=config, attrs=attrs
+            context, bundle_name, extension=extension, config=config, attrs=attrs
         )
 
-    bundle = get_files(bundle_name, extension, config)
+    bundle = _get_bundle(bundle_name, extension, config)
     tags = []
     for chunk in bundle:
         if chunk["name"].endswith((".js", ".js.gz")):
