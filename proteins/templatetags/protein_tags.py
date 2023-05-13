@@ -3,7 +3,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.contrib.staticfiles.storage import staticfiles_storage
 from webpack_loader.templatetags.webpack_loader import render_bundle
-from webpack_loader.utils import _get_bundle, get_static
+from webpack_loader.utils import get_files, get_static
 from django.utils.safestring import mark_safe
 from os.path import splitext
 
@@ -28,7 +28,7 @@ def custom_static(bundle_name, extension=None, config="DEFAULT", attrs=""):
             bundle_name, extension=extension, config=config, attrs=attrs
         )
 
-    bundle = _get_bundle(bundle_name, extension, config)
+    bundle = get_files(bundle_name, extension, config)
     tags = []
     for chunk in bundle:
         if chunk["name"].endswith((".js", ".js.gz")):

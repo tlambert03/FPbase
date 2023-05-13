@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.conf.urls import include, url
+from django.urls import include, path, re_path
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
@@ -35,92 +35,92 @@ sitemaps = {
 }
 
 urlpatterns = [
-    url(r"^$", fpbase.views.HomeView.as_view(), name="home"),
-    url(
-        r"^about/$",
+    path("", fpbase.views.HomeView.as_view(), name="home"),
+    path(
+        "about/",
         TemplateView.as_view(template_name="pages/about.html"),
         name="about",
     ),
-    # url(r'^faq/$', TemplateView.as_view(template_name='pages/faq.html'), name='faq'),
-    url(
-        r"^help/$",
+    # path('faq/', TemplateView.as_view(template_name='pages/faq.html'), name='faq'),
+    path(
+        "help/",
         RedirectView.as_view(url="https://help.fpbase.org", query_string=True),
         name="help",
     ),
-    url(r"^cite/$", TemplateView.as_view(template_name="pages/cite.html"), name="cite"),
-    url(
-        r"^terms/$",
+    path("cite/", TemplateView.as_view(template_name="pages/cite.html"), name="cite"),
+    path(
+        "terms/",
         TemplateView.as_view(template_name="pages/terms.html"),
         name="terms",
     ),
-    url(
-        r"^privacy/$",
+    path(
+        "privacy/",
         TemplateView.as_view(template_name="pages/terms.html"),
         name="privacy",
     ),
-    url(
-        r"^contributing/$",
+    path(
+        "contributing/",
         TemplateView.as_view(template_name="pages/contributing.html"),
         name="contributing",
     ),
-    url(
-        r"^schema/$",
+    path(
+        "schema/",
         RedirectView.as_view(url="https://help.fpbase.org/schema/schema"),
         name="schema",
     ),
-    url(
-        r"^bleaching/$",
+    path(
+        "bleaching/",
         TemplateView.as_view(template_name="pages/bleaching.html"),
         name="bleaching",
     ),
-    # url(r'^mutations/$', TemplateView.as_view(template_name='pages/mutations.html'), name='mutations'),
-    url(
+    # path('mutations/', TemplateView.as_view(template_name='pages/mutations.html'), name='mutations'),
+    re_path(
         r"^robots\.txt$",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
         name="robots",
     ),
-    url(
+    re_path(
         r"^sitemap\.xml$",
         sitemap,
         {"sitemaps": sitemaps},
         name="django.contrib.sitemaps.views.sitemap",
     ),
-    url(
+    re_path(
         r"^googleaecf5301782589e7\.html$",
         TemplateView.as_view(template_name="googleaecf5301782589e7.html"),
         name="verification",
     ),
-    url(r"^contact/$", fpbase.views.ContactView.as_view(), name="contact"),
-    url(
-        r"^thanks/$",
+    path("contact/", fpbase.views.ContactView.as_view(), name="contact"),
+    path(
+        "thanks/",
         TemplateView.as_view(template_name="pages/thanks.html"),
         name="thanks",
     ),
-    url(r"^beta/$", TemplateView.as_view(template_name="pages/beta.html"), name="beta"),
+    path("beta/", TemplateView.as_view(template_name="pages/beta.html"), name="beta"),
     # Django Admin, use {% url 'admin:index' %}
-    url(settings.ADMIN_URL, admin.site.urls),
+    re_path(settings.ADMIN_URL, admin.site.urls),
     # User management
-    url(r"^users/", include("fpbase.users.urls", namespace="users")),
-    url(r"^accounts/", include("allauth.urls")),
-    url(r"^api/", include("proteins.api.urls", namespace="api")),
-    # url(r'^api/$', TemplateView.as_view(template_name='pages/api.html'), name='api'),
+    path("users/", include("fpbase.users.urls", namespace="users")),
+    path("accounts/", include("allauth.urls")),
+    path("api/", include("proteins.api.urls", namespace="api")),
+    # path('api/', TemplateView.as_view(template_name='pages/api.html'), name='api'),
     # Your stuff: custom urls includes go here
     # api-auth for DRF
-    url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    url(r"^api-docs/", include_docs_urls(title="FPbase API docs")),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    re_path(r"^api-docs/", include_docs_urls(title="FPbase API docs")),
     # custom apps
-    url(r"^", include("proteins.urls")),  # NOTE: without $
-    url(r"^reference/", include("references.urls")),  # NOTE: without $
-    url(
-        r"^references/$",
+    path("", include("proteins.urls")),  # NOTE: without $
+    path("reference/", include("references.urls")),  # NOTE: without $
+    path(
+        "references/",
         cache_page(60 * 30)(ReferenceListView.as_view()),
         name="reference-list",
     ),
-    url(r"^fav/", include("favit.urls")),
-    url(r"^avatar/", include("avatar.urls")),
-    url(r"^test500/", fpbase.views.test500),
-    url(r"^graphql/$", csrf_exempt(GraphQLView.as_view(graphiql=True))),
-    url(r"^graphql/batch/$", csrf_exempt(GraphQLView.as_view(batch=True))),
+    path("fav/", include("favit.urls")),
+    path("avatar/", include("avatar.urls")),
+    re_path(r"^test500/", fpbase.views.test500),
+    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    path("graphql/batch/", csrf_exempt(GraphQLView.as_view(batch=True))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler500 = "fpbase.views.server_error"
@@ -130,29 +130,29 @@ if settings.DEBUG:
     # these url in browser to see how these error pages look like.
 
     urlpatterns += [
-        url(
-            r"^400/$",
+        path(
+            "400/",
             default_views.bad_request,
             kwargs={"exception": Exception("Bad Request!")},
         ),
-        url(
-            r"^403/$",
+        path(
+            "403/",
             default_views.permission_denied,
             kwargs={"exception": Exception("Permission Denied")},
         ),
-        url(
-            r"^404/$",
+        path(
+            "404/",
             default_views.page_not_found,
             kwargs={"exception": Exception("Page not Found")},
         ),
-        url(r"^500/$", fpbase.views.server_error),
-        url(r"^test/$", fpbase.views.testview),
-        url(
-            r"^autocomplete/$",
+        path("500/", fpbase.views.server_error),
+        path("test/", fpbase.views.testview),
+        path(
+            "autocomplete/",
             TemplateView.as_view(template_name="pages/test_autocomplete.html"),
         ),
     ]
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [url(r"^__debug__/", include(debug_toolbar.urls))] + urlpatterns
+        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns

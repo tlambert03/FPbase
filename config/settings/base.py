@@ -131,6 +131,8 @@ DEFAULT_FROM_EMAIL = "FPbase <info@mg.fpbase.org>"
 DATABASES = {"default": env.db("DATABASE_URL", default="postgres:///fpbase")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
+# https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # GENERAL CONFIGURATION
 # ------------------------------------------------------------------------------

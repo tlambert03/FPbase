@@ -187,7 +187,7 @@ class SequenceField(models.CharField):
 
 
 class Protein(Authorable, StatusModel, TimeStampedModel):
-    """ Protein class to store individual proteins, each with a unique AA sequence and name  """
+    """Protein class to store individual proteins, each with a unique AA sequence and name"""
 
     STATUS = Choices("pending", "approved", "hidden")
 
@@ -517,7 +517,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             )
         return spectra_fig(spectra, fmt, output, title=title, info=info, **kwargs)
 
-    def set_default_state(self):
+    def set_default_state(self) -> bool:
         # FIXME: should allow control of default states in form
         # if only 1 state, make it the default state
         if not self.default_state or self.default_state.is_dark:
@@ -528,6 +528,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 self.default_state = (
                     self.states.exclude(is_dark=True).order_by("-em_max").first()
                 )
+            return True
+        return False
 
     def clean(self):
         errors = {}
@@ -556,7 +558,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-
         # if the IPG ID has changed... refetch the sequence
         # if self.ipg_id != self.__original_ipg_id:
         #    s = fetch_ipg_sequence(uid=self.ipg_id)
@@ -564,9 +565,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
         self.slug = slugify(self.name)
         self.base_name = self._base_name
-        self.set_default_state()
-
         super().save(*args, **kwargs)
+        if self.set_default_state():
+            super().save()
         # self.__original_ipg_id = self.ipg_id
 
     # Meta

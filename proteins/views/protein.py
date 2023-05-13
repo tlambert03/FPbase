@@ -30,7 +30,6 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, base
 from reversion.models import Revision, Version
-from reversion.views import _RollBackRevisionView
 
 from fpbase.util import uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
@@ -52,6 +51,11 @@ from ..forms import (
 from ..models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
 
 logger = logging.getLogger(__name__)
+
+
+class _RollBackRevisionView(Exception):
+    def __init__(self, response):
+        self.response = response
 
 
 def check_switch_type(object, request):
@@ -98,7 +102,7 @@ def formset_changes(formset):
 
 
 def get_form_changes(*forms):
-    """ accepts a list of forms or formsets and returns a list of all the fields
+    """accepts a list of forms or formsets and returns a list of all the fields
     that were added, deleted, or changed"""
 
     changes = []
@@ -111,7 +115,7 @@ def get_form_changes(*forms):
 
 
 class ProteinDetailView(DetailView):
-    """ renders html for single protein page  """
+    """renders html for single protein page"""
 
     queryset = (
         Protein.objects.annotate(has_spectra=Count("states__spectra"))
@@ -373,7 +377,7 @@ class ProteinCreateUpdateMixin:
 
 # https://medium.com/@adandan01/django-inline-formsets-example-mybook-420cc4b6225d
 class ProteinCreateView(ProteinCreateUpdateMixin, CreateView):
-    """ renders html for protein submission page """
+    """renders html for protein submission page"""
 
     model = Protein
     form_class = ProteinForm
@@ -400,7 +404,7 @@ class ProteinCreateView(ProteinCreateUpdateMixin, CreateView):
 
 
 class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
-    """ renders html for protein submission page """
+    """renders html for protein submission page"""
 
     model = Protein
     form_class = ProteinForm
@@ -519,7 +523,7 @@ def spectra_image(request, slug, **kwargs):
 @cache_page(60 * 10)
 @csrf_protect
 def protein_table(request):
-    """ renders html for protein table page  """
+    """renders html for protein table page"""
     return render(
         request,
         "table.html",
@@ -531,7 +535,6 @@ def protein_table(request):
 
 
 class ComparisonView(base.TemplateView):
-
     template_name = "compare.html"
 
     def get_context_data(self, **kwargs):
@@ -601,7 +604,7 @@ class ComparisonView(base.TemplateView):
 
 
 def protein_tree(request, organism):
-    """ renders html for protein table page  """
+    """renders html for protein table page"""
     _, tree = Protein.objects.filter(parent_organism=organism).to_tree()
     return render(
         request, "tree.html", {"tree": tree.replace("\n", ""), "request": request}
@@ -866,7 +869,6 @@ def protein_bleach_formsets(request, slug):
         if formset.is_valid():
             with transaction.atomic():
                 with reversion.create_revision():
-
                     saved = formset.save(commit=False)
                     for s in saved:
                         if not s.created_by:
@@ -944,13 +946,13 @@ def bleach_comparison(request, pk=None):
 
 
 class OrganismListView(ListView):
-    """ renders html for single reference page  """
+    """renders html for single reference page"""
 
     queryset = Organism.objects.annotate(num_prot=Count("proteins"))
 
 
 class OrganismDetailView(DetailView):
-    """ renders html for single reference page  """
+    """renders html for single reference page"""
 
     queryset = Organism.objects.all().prefetch_related("proteins__states")
 

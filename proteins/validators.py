@@ -5,7 +5,7 @@ from django.core.validators import RegexValidator
 import ast
 import re
 
-from Bio import Alphabet, Seq, Data
+from Bio import Seq, Data
 from .fields import Spectrum
 from fpseq.mutations import Mutation
 
@@ -16,6 +16,9 @@ validate_uniprot = RegexValidator(
     r"[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2}",
     "Not a valid UniProt Accession",
 )
+
+UNAMBIGUOUS_DNA_LETTERS = Seq.Seq("GATC")
+IUPAC_PROTEIN_LETTERS = Seq.Seq("ACDEFGHIKLMNPQRSTVWY")
 
 
 def validate_mutationset(mutset):
@@ -45,32 +48,22 @@ def validate_mutation(code):
 
 
 def cdna_sequence_validator(seq):
-    badletters = []
-    for letter in seq:
-        if letter not in Alphabet.IUPAC.unambiguous_dna.letters:
-            badletters.append(letter)
+    badletters = [letter for letter in seq if letter not in UNAMBIGUOUS_DNA_LETTERS]
     if len(badletters):
-        raise ValidationError(
-            "Invalid DNA letters: {}".format("".join(set(badletters)))
-        )
+        raise ValidationError(f'Invalid DNA letters: {"".join(set(badletters))}')
     try:
-        Seq.Seq(seq, Alphabet.IUPAC.unambiguous_dna).translate()
+        Seq.Seq(seq, UNAMBIGUOUS_DNA_LETTERS).translate()
     except Data.CodonTable.TranslationError as e:
-        raise ValidationError(e)
+        raise ValidationError(e) from e
 
 
 def protein_sequence_validator(seq):
     seq = "".join(str(seq).split()).upper()  # remove whitespace
-    badletters = []
-    for letter in seq:
-        if letter not in Alphabet.IUPAC.protein.letters:
-            badletters.append(letter)
+    badletters = [letter for letter in seq if letter not in IUPAC_PROTEIN_LETTERS]
     if len(badletters):
         badletters = set(badletters)
         raise ValidationError(
-            "Invalid letter(s) found in amino acid sequence: {}".format(
-                "".join(badletters)
-            )
+            f'Invalid letter(s) found in amino acid sequence: {"".join(badletters)}'
         )
 
 
