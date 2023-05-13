@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load webpack_static from webpack_loader %}
+{% load render_bundle from webpack_loader %}
 {% load custom_static webp_picture from protein_tags %}
 
 <!DOCTYPE html>
@@ -47,16 +48,13 @@
     {% endblock twitter_card %}
 
     <link rel="shortcut icon" href="{% webpack_static 'images/favicon.ico' %}">
-    <link rel="stylesheet" href="{% webpack_static 'vendor.css' %}">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
 
-    
-    {% custom_static 'main' 'css' %}
-
+    {% render_bundle 'main' 'css' %}
 
       <script>
         window.FPBASE = window.FPBASE || {};
@@ -144,8 +142,7 @@
     {% endblock body %}
 
       <!-- place project specific Javascript -->
-      <script src="{% webpack_static 'vendor.js' %}"></script>
-      {% custom_static 'main' 'js' %}
+      {% render_bundle 'main' 'js' %}
       <script>
         FPBASE.initAutocomplete();
       </script>
