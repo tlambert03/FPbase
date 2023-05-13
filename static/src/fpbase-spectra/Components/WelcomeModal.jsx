@@ -66,8 +66,6 @@ const useStyles = makeStyles(theme => ({
 
 const WelcomeModal = React.memo(function WelcomeModal({
   open,
-  checked,
-  handleChange,
   close,
   isNew,
   ownerInfo,
@@ -192,20 +190,6 @@ const WelcomeModal = React.memo(function WelcomeModal({
         </div>
       </DialogContent>
       <DialogActions>
-        <FormGroup row>
-          <FormControlLabel
-            style={{ paddingTop: 8 }}
-            control={(
-              <Checkbox
-                checked={checked}
-                color="primary"
-                onChange={handleChange}
-                value="checked"
-              />
-)}
-            label="Don't show this on load"
-          />
-        </FormGroup>
         <Button style={{ marginRight: 10 }} onClick={close} color="primary">
           Close
         </Button>
