@@ -83,17 +83,10 @@ X_FRAME_OPTIONS = "DENY"
 # ------------------------------------------------------------------------------
 # Hosts/domain names that are valid for this site
 # See https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env.list(
-    "DJANGO_ALLOWED_HOSTS",
-    default=[
-        "fpbase.org",
-    ],
-)
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["fpbase.org"])
 # END SITE CONFIGURATION
 
-INSTALLED_APPS += [
-    "gunicorn",
-]
+INSTALLED_APPS += ["gunicorn"]
 
 
 # STORAGE CONFIGURATION
@@ -210,9 +203,7 @@ sentry_sdk.init(
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
-    "root": {
-        "level": "WARNING",
-    },
+    "root": {"level": "WARNING"},
     "formatters": {
         "verbose": {
             "format": "%(levelname)s %(asctime)s %(module)s "
@@ -229,23 +220,17 @@ LOGGING = {
     "loggers": {
         "django.db.backends": {
             "level": "ERROR",
-            "handlers": [
-                "console",
-            ],
+            "handlers": ["console"],
             "propagate": False,
         },
         "sentry.errors": {
             "level": "DEBUG",
-            "handlers": [
-                "console",
-            ],
+            "handlers": ["console"],
             "propagate": False,
         },
         "django.security.DisallowedHost": {
             "level": "ERROR",
-            "handlers": [
-                "console",
-            ],
+            "handlers": ["console"],
             "propagate": False,
         },
     },
