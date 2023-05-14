@@ -1,7 +1,7 @@
 import graphene
 from django.core.cache import cache
 from graphene_django.filter import DjangoFilterConnectionField
-from graphql import GraphQLError
+from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
 
 from .. import models
 from ..filters import ProteinFilter
@@ -32,9 +32,14 @@ def get_cached_spectrum(id, timeout=60 * 60 * 24):
     return spectrum
 
 
-def get_requested_fields(info):
-    selections = info.field_asts[0].selection_set.selections
-    return [f.name.value for f in selections]
+def get_requested_fields(info: GraphQLResolveInfo) -> set[str]:
+    if not info.field_nodes or not (selection_set := info.field_nodes[0].selection_set):
+        return set()
+    return {
+        node.name.value
+        for node in selection_set.selections
+        if isinstance(node, FieldNode)
+    }
 
 
 class Query(graphene.ObjectType):
