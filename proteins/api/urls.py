@@ -11,7 +11,7 @@ urlpatterns = [
     path("spectrum/", views.SpectrumList.as_view(), name="get-spectrum"),
     path("spectrum/<int:pk>/", views.SpectrumDetail.as_view()),
     path("proteins/", views.ProteinListAPIView.as_view(), name="protein-api"),
-    path("proteins2/", views.ProteinListAPIView2.as_view(), name="protein-api2"),
+    # path("proteins2/", views.ProteinListAPIView2.as_view(), name="protein-api2"),
     path(
         "proteins/spectra/",
         views.ProteinSpectraListAPIView.as_view(),
