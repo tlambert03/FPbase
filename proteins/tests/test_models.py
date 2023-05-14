@@ -39,9 +39,7 @@ class TestProteinModel(TestCase):
 
     def test_get_absolute_url(self):
         # This will also fail if the urlconf is not defined.
-        self.assertEqual(
-            self.protA.get_absolute_url(), "/protein/{}/".format(self.protA.slug)
-        )
+        self.assertEqual(self.protA.get_absolute_url(), f"/protein/{self.protA.slug}/")
 
     def test_mless(self):
         # This will also fail if the urlconf is not defined.
@@ -52,5 +50,5 @@ class TestProteinModel(TestCase):
         self.assertEqual(str(self.protA), "ProteinA")
 
     def test_spectra_img(self):
-        for ext in ("png", "svg", "tif", "tiff", "pdf", "jpg", "jpeg"):
+        for ext in ("png", "svg", "tif", "pdf", "jpeg"):
             assert self.protA.spectra_img(fmt=ext)

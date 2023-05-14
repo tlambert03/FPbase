@@ -21,8 +21,6 @@ djangorestframework==3.14.0  # https://github.com/encode/django-rest-framework
 # DRF-spectacular for api documentation
 drf-spectacular==0.26.2  # https://github.com/tfranzel/drf-spectacular
 djangorestframework-csv==2.1.1
-drf-tweaks==0.9.5
-markdown==3.4.3
 
 # MY STUFF
 django-recaptcha==3.0.0  # https://github.com/praekelt/django-recaptcha
