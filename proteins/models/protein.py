@@ -509,12 +509,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             title = self.name
         info = ""
         if self.default_state:
-            info += "Ex/Em λ: {}/{}".format(
-                self.default_state.ex_max, self.default_state.em_max
-            )
-            info += "\nEC: {}   QY: {}".format(
-                self.default_state.ext_coeff, self.default_state.qy
-            )
+            info += f"Ex/Em λ: {self.default_state.ex_max}/{self.default_state.em_max}"
+            info += f"\nEC: {self.default_state.ext_coeff}  QY: {self.default_state.qy}"
         return spectra_fig(spectra, fmt, output, title=title, info=info, **kwargs)
 
     def set_default_state(self) -> bool:
