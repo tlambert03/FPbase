@@ -34,7 +34,7 @@ const SingleValue = ({ children, data, ...props }) => {
         data: { spectrum },
       } = await client.query({
         query: GET_SPECTRUM,
-        variables: { id },
+        variables: { id: +id },
       })
       if (spectrum.owner) {
         const { qy, extCoeff } = spectrum.owner
@@ -128,7 +128,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
               .map(({ id }) => id),
           remove: value && value.spectra.map(({ id }) => id),
           selector: {
-            id: selector.id,
+            id: +selector.id,
             owner: newOwner,
             category: ownerInfo[newOwner] && ownerInfo[newOwner].category,
           },

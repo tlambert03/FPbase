@@ -120,15 +120,15 @@ LOGGING = {
     "loggers": {
         "django": {
             "handlers": ["console", "file"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "DEBUG"),
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
         },
         "django.template": {"handlers": ["file"], "level": "INFO", "propagate": True,},
         "django.utils": {"handlers": ["file"], "level": "INFO", "propagate": True,},
-        "proteins": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
-        "fpbase": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
+        # "proteins": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
+        # "fpbase": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
         "django.template": {"handlers": ["file"], "level": "INFO", "propagate": True,},
         "django.utils": {"handlers": ["file"], "level": "INFO", "propagate": True,},
-        "proteins": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
-        "fpbase": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
+        # "proteins": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
+        # "fpbase": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
     },
 }
