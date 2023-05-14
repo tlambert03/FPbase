@@ -1,35 +1,35 @@
-import React, { useEffect, useRef } from "react"
-import { useMutation, useQuery } from "@apollo/react-hooks"
-import { provideAxis } from "react-jsx-highcharts"
-import Input from "@material-ui/core/Input"
-import gql from "graphql-tag"
-import { Tooltip } from "@material-ui/core"
-import { withStyles } from "@material-ui/core/styles"
+import React, { useEffect, useRef } from 'react'
+import { useMutation, useQuery } from '@apollo/react-hooks'
+import { provideAxis } from 'react-jsx-highcharts'
+import Input from '@material-ui/core/Input'
+import gql from 'graphql-tag'
+import { Tooltip } from '@material-ui/core'
+import { withStyles } from '@material-ui/core/styles'
 
-const LightTooltip = withStyles(theme => ({
+const LightTooltip = withStyles((theme) => ({
   tooltip: {
     backgroundColor: theme.palette.common.white,
-    color: "rgba(0, 0, 0, 0.87)",
+    color: 'rgba(0, 0, 0, 0.87)',
     boxShadow: theme.shadows[1],
     fontSize: 12,
-    margin: "0 13px 7px",
+    margin: '0 13px 7px',
   },
 }))(Tooltip)
 
 const CLASSES = {
   minInput: {
-    fontWeight: "bold",
-    fontSize: "0.75rem",
+    fontWeight: 'bold',
+    fontSize: '0.75rem',
     width: 30,
-    color: "#444",
-    position: "absolute",
+    color: '#444',
+    position: 'absolute',
   },
   maxInput: {
-    position: "absolute",
-    fontWeight: "bold",
-    fontSize: "0.75rem",
+    position: 'absolute',
+    fontWeight: 'bold',
+    fontSize: '0.75rem',
     width: 30,
-    color: "#444",
+    color: '#444',
   },
 }
 
@@ -88,20 +88,20 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
     function positionInputs() {
       if (axis.object.labelGroup && minNode.current) {
         let leftPad = -5
-        if (axis.object.chart.get("yAx1")) {
-          leftPad += +axis.object.chart.get("yAx1").axisTitleMargin
+        if (axis.object.chart.get('yAx1')) {
+          leftPad += +axis.object.chart.get('yAx1').axisTitleMargin
         }
         let rightPad = 0
-        if (axis.object.chart.get("yAx2")) {
-          rightPad += +axis.object.chart.get("yAx2").axisTitleMargin
+        if (axis.object.chart.get('yAx2')) {
+          rightPad += +axis.object.chart.get('yAx2').axisTitleMargin
         }
         minNode.current.parentElement.style.left = `${leftPad}px`
         maxNode.current.parentElement.style.right = `${rightPad}px`
         axis.object.labelGroup.element.childNodes.forEach(
-          node => (node.style.display = "block")
+          (node) => (node.style.display = 'block')
         )
         const { min: exMin, max: exMax } = axis.getExtremes()
-        axis.object.labelGroup.element.childNodes.forEach(node => {
+        axis.object.labelGroup.element.childNodes.forEach((node) => {
           if (
             Math.min(
               Math.abs(node.textContent - exMin),
@@ -109,19 +109,19 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
             ) <
             0.43 * axis.object.tickInterval
           ) {
-            node.style.display = "none"
+            node.style.display = 'none'
           }
         })
       }
     }
 
     const Highcharts = getHighcharts()
-    Highcharts.addEvent(axis.object.chart, "redraw", positionInputs)
-    Highcharts.addEvent(axis.object, "afterSetExtremes", handleAfterSetExtremes)
+    Highcharts.addEvent(axis.object.chart, 'redraw', positionInputs)
+    Highcharts.addEvent(axis.object, 'afterSetExtremes', handleAfterSetExtremes)
 
     Highcharts.addEvent(
       axis.object.chart,
-      "redraw",
+      'redraw',
       handleAfterSetExtremes
       // debounce(handleAfterSetExtremes, 200)
     )
@@ -130,7 +130,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
     return () => {
       Highcharts.removeEvent(
         getAxis().object,
-        "afterSetExtremes",
+        'afterSetExtremes',
         handleAfterSetExtremes
         // debounce(handleAfterSetExtremes, 200)
       )
@@ -144,15 +144,15 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
     ]
     axis.setExtremes(...extremes)
   }
-  const handleKeyPress = e => {
-    if (e.key === "Enter") {
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
       updateRange()
       e.target.select()
     } else {
-      if (e.target.name === "min") {
+      if (e.target.name === 'min') {
         minNode.current.value = e.target.value
       }
-      if (e.target.name === "max") {
+      if (e.target.name === 'max') {
         maxNode.current.value = e.target.value
       }
     }
@@ -160,24 +160,24 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
 
   const extremes = axis.getExtremes()
   const minColor = !extremes.userMin
-    ? "444"
+    ? '444'
     : extremes.dataMin < extremes.min
-    ? "#B1191E"
-    : "#5F67CE"
+    ? '#B1191E'
+    : '#5F67CE'
   const maxColor = !extremes.userMax
-    ? "444"
+    ? '444'
     : extremes.dataMax > extremes.max
-    ? "#B1191E"
-    : "#5F67CE"
+    ? '#B1191E'
+    : '#5F67CE'
 
   return (
     <div
       className="x-range-pickers"
       style={{
         height: 0,
-        position: "relative",
+        position: 'relative',
         bottom: 38,
-        display: visible ? "block" : "none",
+        display: visible ? 'block' : 'none',
       }}
     >
       <LightTooltip
@@ -188,16 +188,16 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
         <Input
           name="min"
           type="text"
-          placeholder={`${extremes.dataMin || ""}`}
-          value={Math.round(min) || ""}
+          placeholder={`${extremes.dataMin || ''}`}
+          value={Math.round(min) || ''}
           inputRef={minNode}
-          onChange={e =>
+          onChange={(e) =>
             mutateExtremes({ variables: { extremes: [e.target.value, max] } })
           }
           onKeyPress={handleKeyPress}
           onBlur={updateRange}
           style={{ ...CLASSES.minInput, color: minColor }}
-          inputProps={{ style: { textAlign: "center" } }}
+          inputProps={{ style: { textAlign: 'center' } }}
         />
       </LightTooltip>
       <LightTooltip
@@ -208,16 +208,16 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
         <Input
           name="max"
           type="text"
-          placeholder={`${extremes.dataMax || ""}`}
-          value={Math.round(max) || ""}
+          placeholder={`${extremes.dataMax || ''}`}
+          value={Math.round(max) || ''}
           inputRef={maxNode}
-          onChange={e =>
+          onChange={(e) =>
             mutateExtremes({ variables: { extremes: [min, e.target.value] } })
           }
           onKeyPress={handleKeyPress}
           onBlur={updateRange}
           style={{ ...CLASSES.maxInput, color: maxColor }}
-          inputProps={{ style: { textAlign: "center" } }}
+          inputProps={{ style: { textAlign: 'center' } }}
         />
       </LightTooltip>
     </div>

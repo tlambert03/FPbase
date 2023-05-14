@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from "react"
-import PropTypes from "prop-types"
-import Modal from "@material-ui/core/Modal"
-import Typography from "@material-ui/core/Typography"
-import { makeStyles } from "@material-ui/core/styles"
-import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
-import { components } from "react-select"
-import Checkbox from "@material-ui/core/Checkbox"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
-import gql from "graphql-tag"
-import { useCachedFetch } from "../useCachedQuery"
+import React, { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
+import Modal from '@material-ui/core/Modal'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
+import { useMutation, useQuery, useApolloClient } from '@apollo/react-hooks'
+import { components } from 'react-select'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import gql from 'graphql-tag'
+import { useCachedFetch } from '../useCachedQuery'
 import {
   UPDATE_ACTIVE_SPECTRA,
   GET_OWNER_OPTIONS,
   GET_OPTICAL_CONFIG,
-} from "../client/queries"
-import MuiReactSelect from "./MuiReactSelect"
+} from '../client/queries'
+import MuiReactSelect from './MuiReactSelect'
 
-const OptionWithBlurb = props => {
+const OptionWithBlurb = (props) => {
   const myProps = { ...props }
 
   myProps.children = (
     <>
       {myProps.children}
-      <span style={{ fontSize: "0.69rem", color: "#666" }}>
+      <span style={{ fontSize: '0.69rem', color: '#666' }}>
         <br />
         {myProps.data.comments}
       </span>
@@ -47,37 +47,37 @@ function getModalStyle() {
   }
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   paper: {
-    position: "absolute",
-    maxWidth: "620px",
-    width: "620px",
+    position: 'absolute',
+    maxWidth: '620px',
+    width: '620px',
     backgroundColor: theme.palette.background.paper,
     boxShadow: theme.shadows[5],
-    padding: "5px 30px 15px",
-    outline: "none",
-    [theme.breakpoints.down("sm")]: {
-      width: "80%",
+    padding: '5px 30px 15px',
+    outline: 'none',
+    [theme.breakpoints.down('sm')]: {
+      width: '80%',
     },
-    [theme.breakpoints.down("xs")]: {
-      width: "84%",
-      padding: "5px 22px 15px",
-      fontSize: "small",
+    [theme.breakpoints.down('xs')]: {
+      width: '84%',
+      padding: '5px 22px 15px',
+      fontSize: 'small',
     },
   },
   title: {
-    color: "black",
+    color: 'black',
     marginTop: 29,
     marginBotton: 5,
-    [theme.breakpoints.down("xs")]: {
-      fontSize: "1.2rem",
+    [theme.breakpoints.down('xs')]: {
+      fontSize: '1.2rem',
     },
   },
 }))
 
 const filterOption = ({ label }, query) => {
   if (!query) return true
-  const words = query.toLowerCase().split(" ")
+  const words = query.toLowerCase().split(' ')
   const opt = label.toLowerCase()
   return words.reduce((acc, cur) => acc && opt.includes(cur), true)
 }
@@ -92,8 +92,8 @@ const SearchModal = React.memo(function SearchModal({
 
   const [ocOptions, setOcOptions] = useState([])
   const stash = useCachedFetch(
-    "/api/proteins/ocinfo/",
-    "_FPbaseOCStash",
+    '/api/proteins/ocinfo/',
+    '_FPbaseOCStash',
     10 * 60
   )
   // const stash = useCachedQuery(OPTICAL_CONFIG_LIST, "_FPbaseOCStash", 5 * 60)
@@ -111,21 +111,21 @@ const SearchModal = React.memo(function SearchModal({
   }, [stash])
 
   useEffect(() => {
-    const handleKeyDown = event => {
+    const handleKeyDown = (event) => {
       // don't do anything if we're on an input
       if (
         document.activeElement &&
-        document.activeElement.tagName.toUpperCase() === "INPUT"
+        document.activeElement.tagName.toUpperCase() === 'INPUT'
       ) {
         return
       }
       switch (event.code) {
         // case "KeyL":
-        case "Space":
+        case 'Space':
           event.preventDefault()
           setOpen(true)
           break
-        case "Escape":
+        case 'Escape':
           event.preventDefault()
           setOpen(false)
           break
@@ -134,9 +134,9 @@ const SearchModal = React.memo(function SearchModal({
       }
     }
 
-    document.addEventListener("keydown", handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.removeEventListener("keydown", handleKeyDown)
+      document.removeEventListener('keydown', handleKeyDown)
     }
   }, [setOpen])
 
@@ -146,7 +146,7 @@ const SearchModal = React.memo(function SearchModal({
     data: { excludeSubtypes },
   } = useQuery(GET_OWNER_OPTIONS)
 
-  const handleChange = event => {
+  const handleChange = (event) => {
     const spectra =
       event &&
       event.spectra
@@ -177,7 +177,7 @@ const SearchModal = React.memo(function SearchModal({
 
     clearForm({
       variables: {
-        leave: preserveFluors ? ["P", "D"] : [],
+        leave: preserveFluors ? ['P', 'D'] : [],
         appendSpectra: spectra,
       },
     })
@@ -215,9 +215,9 @@ const SearchModal = React.memo(function SearchModal({
         />
         <p
           style={{
-            fontSize: "smaller",
-            color: "#666",
-            fontStyle: "italic",
+            fontSize: 'smaller',
+            color: '#666',
+            fontStyle: 'italic',
             marginTop: 8,
             marginBottom: 1,
           }}
@@ -227,26 +227,25 @@ const SearchModal = React.memo(function SearchModal({
           that config.
         </p>
         <FormControlLabel
-          control={(
+          control={
             <Checkbox
               onChange={() => setPreserveFluors(!preserveFluors)}
               checked={preserveFluors}
               value="preserveFluors"
             />
-          )}
+          }
           label={
-            <span style={{ fontSize: "small" }}>Preserve fluorophores</span>
+            <span style={{ fontSize: 'small' }}>Preserve fluorophores</span>
           }
         />
         <p
           style={{
             marginTop: 8,
-            fontSize: "small",
-            textAlign: "center",
+            fontSize: 'small',
+            textAlign: 'center',
           }}
         >
-          Spectra missing?
-          {" "}
+          Spectra missing?{' '}
           <a href="/spectra/submit/" target="_blank">
             Submit a spectrum
           </a>

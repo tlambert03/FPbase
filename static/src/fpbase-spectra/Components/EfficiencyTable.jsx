@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from "react"
-import { makeStyles } from "@material-ui/core/styles"
-import { Typography } from "@material-ui/core"
-import MaterialTable from "material-table"
-import Export from "@material-ui/icons/SaveAlt"
-import FirstPage from "@material-ui/icons/FirstPage"
-import PreviousPage from "@material-ui/icons/ChevronLeft"
-import NextPage from "@material-ui/icons/ChevronRight"
-import LastPage from "@material-ui/icons/LastPage"
-import Search from "@material-ui/icons/Search"
-import ResetSearch from "@material-ui/icons/Clear"
-import Filter from "@material-ui/icons/FilterList"
-import Shuffle from "@material-ui/icons/Shuffle"
-import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
-import Button from "@material-ui/core/Button"
-import gql from "graphql-tag"
-import { trapz } from "../util"
-import useSpectralData from "./useSpectraData"
-import { GET_ACTIVE_OVERLAPS } from "../client/queries"
+import React, { useState, useEffect } from 'react'
+import { makeStyles } from '@material-ui/core/styles'
+import { Typography } from '@material-ui/core'
+import MaterialTable from 'material-table'
+import Export from '@material-ui/icons/SaveAlt'
+import FirstPage from '@material-ui/icons/FirstPage'
+import PreviousPage from '@material-ui/icons/ChevronLeft'
+import NextPage from '@material-ui/icons/ChevronRight'
+import LastPage from '@material-ui/icons/LastPage'
+import Search from '@material-ui/icons/Search'
+import ResetSearch from '@material-ui/icons/Clear'
+import Filter from '@material-ui/icons/FilterList'
+import Shuffle from '@material-ui/icons/Shuffle'
+import { useMutation, useQuery, useApolloClient } from '@apollo/react-hooks'
+import Button from '@material-ui/core/Button'
+import gql from 'graphql-tag'
+import { trapz } from '../util'
+import useSpectralData from './useSpectraData'
+import { GET_ACTIVE_OVERLAPS } from '../client/queries'
 
 class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(error) {
@@ -47,16 +47,16 @@ const TABLE_OPTIONS = {
   paging: false,
   exportButton: true,
   exportAllData: true,
-  padding: "dense",
+  padding: 'dense',
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   table: {
-    marginTop: "10px",
+    marginTop: '10px',
     minWidth: 650,
   },
   description: {
-    padding: "8px 20px",
+    padding: '8px 20px',
   },
 }))
 
@@ -90,18 +90,18 @@ function spectraProduct(ar1, ar2) {
 
 function getOverlap(...args) {
   const idString = args
-    .map(arg => arg.customId || arg.id)
+    .map((arg) => arg.customId || arg.id)
     .sort(numStringSort)
-    .join("_")
+    .join('_')
 
-  const ownerName = args.map(({ owner }) => owner.name).join(" & ")
+  const ownerName = args.map(({ owner }) => owner.name).join(' & ')
   const ownerID = args
     .map(({ owner }) => owner.id)
     .sort(numStringSort)
-    .join("_")
+    .join('_')
   const qy = args.reduce((acc, next) => next.owner.qy || acc, null)
   const slug = args.reduce(
-    (acc, next) => (["P", "D"].includes(next.category) ? next.owner.slug : acc),
+    (acc, next) => (['P', 'D'].includes(next.category) ? next.owner.slug : acc),
     null
   )
 
@@ -111,9 +111,9 @@ function getOverlap(...args) {
       data: product,
       area: trapz(product),
       id: idString,
-      category: "O",
-      subtype: "O",
-      color: "#000000",
+      category: 'O',
+      subtype: 'O',
+      color: '#000000',
       owner: { id: ownerID, name: ownerName, qy, slug },
     }
   }
@@ -136,29 +136,29 @@ const EfficiencyTable = ({ initialTranspose }) => {
   useEffect(() => {
     async function updateTableData() {
       const filters = spectraData.filter(
-        ({ category, subtype }) => category === "F" && subtype !== "BX"
+        ({ category, subtype }) => category === 'F' && subtype !== 'BX'
       )
-      const emSpectra = spectraData.filter(({ subtype }) => subtype === "EM")
+      const emSpectra = spectraData.filter(({ subtype }) => subtype === 'EM')
 
       // untransposed columns represent different fluors
       let colItems = emSpectra
       let rowItems = filters
-      let newHeaders = [{ title: "Filter", field: "field" }]
+      let newHeaders = [{ title: 'Filter', field: 'field' }]
       const newRows = []
       if (transposed) {
         // columns represent different filters
         colItems = filters
         rowItems = emSpectra
-        newHeaders = [{ title: "Fluorophore", field: "field" }]
+        newHeaders = [{ title: 'Fluorophore', field: 'field' }]
       }
 
       colItems.forEach(({ owner }) => {
         newHeaders.push({
           title: owner.name,
           field: owner.id,
-          type: "numeric",
-          cellStyle: { fontSize: "1rem" },
-          render: rowData => {
+          type: 'numeric',
+          cellStyle: { fontSize: '1rem' },
+          render: (rowData) => {
             const overlapID = rowData[`${owner.id}_overlapID`]
             return (
               <OverlapToggle id={overlapID}>{rowData[owner.id]}</OverlapToggle>
@@ -167,9 +167,9 @@ const EfficiencyTable = ({ initialTranspose }) => {
         })
       })
 
-      rowItems.forEach(rowItem => {
+      rowItems.forEach((rowItem) => {
         const row = { field: rowItem.owner.name }
-        colItems.forEach(colItem => {
+        colItems.forEach((colItem) => {
           const overlap = getOverlap(rowItem, colItem)
           const fluor = transposed ? rowItem : colItem
           row[colItem.owner.id] = ((100 * overlap.area) / fluor.area).toFixed(1)
@@ -208,9 +208,9 @@ const EfficiencyTable = ({ initialTranspose }) => {
           actions={[
             {
               icon: Shuffle,
-              tooltip: "Transpose",
+              tooltip: 'Transpose',
               isFreeAction: true,
-              onClick: () => setTransposed(transposed => !transposed),
+              onClick: () => setTransposed((transposed) => !transposed),
             },
           ]}
         />
@@ -235,11 +235,11 @@ const OverlapToggle = ({ children, id, isActive }) => {
     }
   `)
 
-  const handleClick = event => {
-    const elem = event.target.closest("button")
+  const handleClick = (event) => {
+    const elem = event.target.closest('button')
     const checked = !elem.checked
     const variables = {}
-    variables[checked ? "add" : "remove"] = [id]
+    variables[checked ? 'add' : 'remove'] = [id]
     setOverlaps({ variables })
     setActive(checked)
   }
@@ -250,9 +250,9 @@ const OverlapToggle = ({ children, id, isActive }) => {
       onClick={handleClick}
       value={id}
       checked={active}
-      variant={active ? "contained" : "outlined"}
+      variant={active ? 'contained' : 'outlined'}
       color={
-        +children > 50 ? "primary" : +children > 5 ? "default" : "secondary"
+        +children > 50 ? 'primary' : +children > 5 ? 'default' : 'secondary'
       }
     >
       {children}

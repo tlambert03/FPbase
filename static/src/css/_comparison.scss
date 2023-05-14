@@ -1,22 +1,21 @@
-
 $comparison-width: 275px;
 
-#comparison-slider{
+#comparison-slider {
   //@include media-breakpoint-down(sm) { display: none;}
   position: fixed;
   background: rgba(0, 0, 0, 0.85);
-  color: #EEE;
+  color: #eee;
   width: $comparison-width;
   right: -$comparison-width;
   height: 100%;
   z-index: 100;
   transition: right 0.3s ease-in-out;
 
-  &.hover-effect{
+  &.hover-effect {
     right: 0px;
   }
 
-  #comparison-toggle{
+  #comparison-toggle {
     background: rgba(0, 0, 0, 0.7);
     position: absolute;
     right: $comparison-width - 26px;
@@ -30,22 +29,22 @@ $comparison-width: 275px;
 
   #comparison-content {
     position: absolute;
-    overflow-y:scroll;
-    overflow-x:hidden;
+    overflow-y: scroll;
+    overflow-x: hidden;
     top: 0;
     bottom: 0;
     width: 290px;
 
-     .add-protein{
-        text-align: center;
-        border-top: 1px solid black;
-        padding: 15px;
-        button {
-          color: white;
-        }
-     }
+    .add-protein {
+      text-align: center;
+      border-top: 1px solid black;
+      padding: 15px;
+      button {
+        color: white;
+      }
+    }
 
-     h3{
+    h3 {
       line-height: 56px;
       text-align: center;
       font-weight: 600;
@@ -53,16 +52,16 @@ $comparison-width: 275px;
       margin-bottom: 0;
       color: #eee;
       background: rgba(0, 0, 0, 0.4);
-     }
-     ul{
-       list-style:none;
-       margin: 0;
-       padding-left: 0;
-       li {
+    }
+    ul {
+      list-style: none;
+      margin: 0;
+      padding-left: 0;
+      li {
         position: relative;
         border-top: 1px solid gray;
         padding: 13px 20px 13px 22px;
-        &:last-child{
+        &:last-child {
           border-bottom: 1px solid gray;
         }
 
@@ -71,7 +70,7 @@ $comparison-width: 275px;
           font-size: 1.1rem;
           margin-left: 35px;
           color: white;
-          opacity: .85;
+          opacity: 0.85;
           font-weight: 500;
           &:hover {
             opacity: 1;
@@ -84,11 +83,11 @@ $comparison-width: 275px;
           margin-bottom: 0px;
           font-size: 0.8rem;
         }
-        button.remove-protein{
+        button.remove-protein {
           font-size: 1.8rem;
           position: absolute;
           top: 0.1rem;
-          background:transparent;
+          background: transparent;
           color: white;
           cursor: pointer;
           border: none;
@@ -100,7 +99,7 @@ $comparison-width: 275px;
             font-weight: 600;
           }
         }
-        img.spectrum-svg{
+        img.spectrum-svg {
           position: absolute;
           bottom: -1px;
           left: 0;
@@ -108,11 +107,11 @@ $comparison-width: 275px;
           width: 100%;
           z-index: -1;
         }
-       }
-     }
+      }
+    }
   }
 
-  #compare-link{
+  #compare-link {
     font-size: 1.2rem;
     padding-top: 1rem;
     padding-bottom: 2rem;
@@ -122,7 +121,7 @@ $comparison-width: 275px;
       color: white;
       opacity: 0.7;
       transition: 0.2s;
-      &:hover{
+      &:hover {
         opacity: 1;
         text-decoration: none;
         // &:after{
@@ -146,11 +145,9 @@ $comparison-width: 275px;
       border: none;
       box-shadow: none !important;
       font-size: 0.85rem;
-      &:hover{
+      &:hover {
         opacity: 1;
       }
     }
   }
-
-
 }

@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from "react"
-import { makeStyles } from "@material-ui/core/styles"
-import Paper from "@material-ui/core/Paper"
-import Tabs from "@material-ui/core/Tabs"
-import Tab from "@material-ui/core/Tab"
-import BlastReportDescription from "./ReportDescription.jsx"
-import BlastReportAlignments from "./ReportAlignments.jsx"
-import Snackbar from "@material-ui/core/Snackbar"
-import IconButton from "@material-ui/core/IconButton"
-import CloseIcon from "@material-ui/icons/Close"
-import { Typography } from "@material-ui/core"
+import React, { useState, useEffect } from 'react'
+import { makeStyles } from '@material-ui/core/styles'
+import Paper from '@material-ui/core/Paper'
+import Tabs from '@material-ui/core/Tabs'
+import Tab from '@material-ui/core/Tab'
+import BlastReportDescription from './ReportDescription.jsx'
+import BlastReportAlignments from './ReportAlignments.jsx'
+import Snackbar from '@material-ui/core/Snackbar'
+import IconButton from '@material-ui/core/IconButton'
+import CloseIcon from '@material-ui/icons/Close'
+import { Typography } from '@material-ui/core'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   paperRoot: {
-    width: "100%",
-    marginTop: "23px",
-    overflowX: "auto",
-    position: "sticky",
-    top: "0px",
-    zIndex: "1000"
+    width: '100%',
+    marginTop: '23px',
+    overflowX: 'auto',
+    position: 'sticky',
+    top: '0px',
+    zIndex: '1000',
   },
   close: {
-    padding: theme.spacing(0.5)
-  }
+    padding: theme.spacing(0.5),
+  },
 }))
 
 const NoHitsMessage = ({ open, handleClose }) => {
@@ -31,14 +31,14 @@ const NoHitsMessage = ({ open, handleClose }) => {
     <div>
       <Snackbar
         anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left"
+          vertical: 'bottom',
+          horizontal: 'left',
         }}
         open={open}
         autoHideDuration={20000}
         onClose={handleClose}
         ContentProps={{
-          "aria-describedby": "message-id"
+          'aria-describedby': 'message-id',
         }}
         message={
           <span id="message-id">
@@ -63,7 +63,7 @@ const NoHitsMessage = ({ open, handleClose }) => {
             onClick={handleClose}
           >
             <CloseIcon />
-          </IconButton>
+          </IconButton>,
         ]}
       />
     </div>
@@ -80,9 +80,9 @@ function BlastReport({ report }) {
 
   useEffect(() => {
     if (algnItem !== null && tab === 1) {
-      $("html, body").animate(
+      $('html, body').animate(
         {
-          scrollTop: $("#dln_" + algnItem).offset().top - 60
+          scrollTop: $('#dln_' + algnItem).offset().top - 60,
         },
         300
       )
@@ -93,14 +93,14 @@ function BlastReport({ report }) {
   function handleItemClick(event) {
     event.preventDefault()
     setTab(1)
-    setAlgnItem(event.target.getAttribute("href"))
+    setAlgnItem(event.target.getAttribute('href'))
   }
 
   const classes = useStyles()
 
   const [open, setOpen] = React.useState(true)
   function closeSnackbar(event, reason) {
-    if (reason === "clickaway") {
+    if (reason === 'clickaway') {
       return
     }
     setOpen(false)

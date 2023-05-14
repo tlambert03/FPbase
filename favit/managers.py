@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
+from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.apps import apps
 
 
 def _get_content_type_and_obj(obj, model=None):
@@ -89,9 +88,7 @@ class FavoriteManager(models.Manager):
 
         content_type, obj = _get_content_type_and_obj(obj, model)
 
-        qs = self.get_query_set().filter(
-            target_content_type=content_type, target_object_id=obj.pk
-        )
+        qs = self.get_query_set().filter(target_content_type=content_type, target_object_id=obj.pk)
 
         return qs.order_by("-timestamp")
 
@@ -115,9 +112,7 @@ class FavoriteManager(models.Manager):
             return None
 
         try:
-            return self.get_query_set().get(
-                user=user, target_content_type=content_type, target_object_id=obj.id
-            )
+            return self.get_query_set().get(user=user, target_content_type=content_type, target_object_id=obj.id)
         except self.model.DoesNotExist:
             return None
 
@@ -127,7 +122,7 @@ class FavoriteManager(models.Manager):
         """
 
         content_type, content_object = _get_content_type_and_obj(obj, model)
-        fav = super(FavoriteManager, self).create(
+        fav = super().create(
             user=user,
             target_content_type=content_type,
             target_object_id=content_object.pk,

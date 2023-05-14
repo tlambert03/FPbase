@@ -1,6 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
-from proteins.models import Protein, Organism, Microscope, ProteinCollection
+
+from proteins.models import Microscope, Organism, Protein, ProteinCollection
 from references.models import Author, Reference
 
 

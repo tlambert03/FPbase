@@ -1,7 +1,7 @@
-import React from "react"
-import Cookies from "js-cookie"
-import Form from "react-bootstrap/Form"
-import Button from "react-bootstrap/Button"
+import React from 'react'
+import Cookies from 'js-cookie'
+import Form from 'react-bootstrap/Form'
+import Button from 'react-bootstrap/Button'
 
 function InputForm({ onSubmit }) {
   function handleSubmit(e) {
@@ -10,11 +10,11 @@ function InputForm({ onSubmit }) {
   }
 
   return (
-    <Form onSubmit={e => handleSubmit(e)}>
+    <Form onSubmit={(e) => handleSubmit(e)}>
       <input
         type="hidden"
         name="csrfmiddlewaretoken"
-        value={Cookies.get("csrftoken")}
+        value={Cookies.get('csrftoken')}
       />
       <Form.Group controlId="queryInput">
         <Form.Label>Enter Query</Form.Label>

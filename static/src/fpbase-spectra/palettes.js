@@ -1,31 +1,31 @@
 export default {
   wavelength: {
-    name: "By Wavelength",
+    name: 'By Wavelength',
     // this is the default palette, and uses colors based on wavelength from the database
     hexlist: null,
   },
   rainbow: {
-    name: "Rainbow (Paul Tol)",
+    name: 'Rainbow (Paul Tol)',
     hexlist: [
-      "#1965B0",
-      "#DC050C",
+      '#1965B0',
+      '#DC050C',
       // "#F7F056", // COLOR 18
-      "#F7CB45", // COLOR 19
-      "#4EB265",
-      "#7BAFDE",
-      "#CAE0AB",
-      "#882E72",
-      "#EE8026",
-      "#72190E",
-      "#F4A736",
-      "#5289c7",
-      "#D1BBD7",
-      "#90C987",
-      "#AE76A3",
-      "#F6C141",
-      "#BA8DB4",
-      "#994F88",
-      "#A5170E",
+      '#F7CB45', // COLOR 19
+      '#4EB265',
+      '#7BAFDE',
+      '#CAE0AB',
+      '#882E72',
+      '#EE8026',
+      '#72190E',
+      '#F4A736',
+      '#5289c7',
+      '#D1BBD7',
+      '#90C987',
+      '#AE76A3',
+      '#F6C141',
+      '#BA8DB4',
+      '#994F88',
+      '#A5170E',
     ],
   },
   // tol_muted: {
@@ -41,19 +41,19 @@ export default {
   //     '#666666']
   // },
   tol_contrast: {
-    name: "High Contrast (Paul Tol; 4 color)",
-    hexlist: ["#004488", "#DDAA33", "#BB5566", "#000000"],
+    name: 'High Contrast (Paul Tol; 4 color)',
+    hexlist: ['#004488', '#DDAA33', '#BB5566', '#000000'],
   },
   tol_vibrant: {
-    name: "Vibrant (Paul Tol)",
+    name: 'Vibrant (Paul Tol)',
     hexlist: [
-      "#0077BB",
-      "#EE7733",
-      "#33BBEE",
-      "#CC3311",
-      "#009988",
-      "#EE3377",
-      "#AAAAAA",
+      '#0077BB',
+      '#EE7733',
+      '#33BBEE',
+      '#CC3311',
+      '#009988',
+      '#EE3377',
+      '#AAAAAA',
     ],
   },
   // tol_light: {
@@ -63,16 +63,16 @@ export default {
   //     '#44BB99', '#DDDDDD']
   // },
   okabe_ito: {
-    name: "Okabe Ito",
+    name: 'Okabe Ito',
     hexlist: [
-      "#E69F00",
-      "#56B4E9",
-      "#009E73",
-      "#F0E442",
-      "#0072B2",
-      "#D55E00",
-      "#CC79A7",
-      "#000000",
+      '#E69F00',
+      '#56B4E9',
+      '#009E73',
+      '#F0E442',
+      '#0072B2',
+      '#D55E00',
+      '#CC79A7',
+      '#000000',
     ],
   },
 }

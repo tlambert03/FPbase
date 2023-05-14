@@ -11,7 +11,7 @@ register = template.Library()
 @register.simple_tag
 def webp_picture(name, classed="", alt=""):
     webpname = f"{splitext(name)[0]}.webp"
-    return mark_safe(  # noqa: S308
+    return mark_safe(
         f'<picture><source srcset="{get_static(webpname)}" type="image/webp">'
         f'<img src="{get_static(name)}" class="{classed}" alt="{alt}"></picture>'
     )

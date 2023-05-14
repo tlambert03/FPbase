@@ -1,99 +1,92 @@
-
 $chart-theme: desaturate(darken($secondary, 5%), 15%);
 
-
 .d3-container {
-	max-width: 1200px;
-	@include media-breakpoint-up(md){
+  max-width: 1200px;
+  @include media-breakpoint-up(md) {
     padding-left: 2rem;
-  	padding-right: 4rem;
+    padding-right: 4rem;
   }
-  margin:auto;
+  margin: auto;
 }
-
 
 #graph {
   height: 400px;
-  @include media-breakpoint-up(md){height: 700px;}
+  @include media-breakpoint-up(md) {
+    height: 700px;
+  }
   width: 100%;
 }
 
 /* Graph Styles */
-.FP, .PSFP
-{
-	shape-rendering: geometricPrecision;
-	text-rendering: optimizeLegibility;
-	opacity: 0.7;
+.FP,
+.PSFP {
+  shape-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
+  opacity: 0.7;
 }
 
-text.FP
-{
-	font-size: 12px;
-	font-weight: bold;
-	opacity: 1;
-	fill: #000000;
-	pointer-events: none;
+text.FP {
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 1;
+  fill: #000000;
+  pointer-events: none;
 }
 
-.PSFP
-{
-	stroke-width: 1.5px;
-}\
-line.PSFP
-{
-	stroke-width: 1px;
+.PSFP {
+  stroke-width: 1.5px;
 }
-.PSFP.ps
-{
-	stroke-dasharray: 3,2; /*make photoswitchable proteins dashed */
+\ line.PSFP {
+  stroke-width: 1px;
+}
+.PSFP.ps {
+  stroke-dasharray: 3, 2; /*make photoswitchable proteins dashed */
 }
 
-.label
-{
-  &.y{
+.label {
+  &.y {
     transform: rotate(-90deg) translate(0 -0.9rem);
   }
-	stroke-width:0.2;
-	font-size: 1rem;
-  @include media-breakpoint-down(xs){
+  stroke-width: 0.2;
+  font-size: 1rem;
+  @include media-breakpoint-down(xs) {
     font-size: 1.5rem;
-    &.y{
+    &.y {
       transform: rotate(-90deg) translate(0 0.5rem);
     }
   }
-  @include media-breakpoint-down(xs){font-size: 1.8rem;}
-	text-rendering: optimizeLegibility;
+  @include media-breakpoint-down(xs) {
+    font-size: 1.8rem;
+  }
+  text-rendering: optimizeLegibility;
 }
-.axis text
-{
-	stroke-width:0.2px;
-	font-size: 1rem;
-	text-rendering: optimizeLegibility;
+.axis text {
+  stroke-width: 0.2px;
+  font-size: 1rem;
+  text-rendering: optimizeLegibility;
 }
 .axis path,
 .axis line {
-	fill: none;
-	stroke: $gray-800;
-	shape-rendering: geometricPrecision;
+  fill: none;
+  stroke: $gray-800;
+  shape-rendering: geometricPrecision;
 }
-.tick
-{
-	stroke: black;
+.tick {
+  stroke: black;
 }
-.pane
-{
-	fill: none;
-	pointer-events: all;
-	cursor: default;
+.pane {
+  fill: none;
+  pointer-events: all;
+  cursor: default;
 }
 
 rect,
 circle {
-	cursor: pointer;  /* this is to make the circles appear "clickable" upon hover */
+  cursor: pointer; /* this is to make the circles appear "clickable" upon hover */
 }
 
 #tooltip {
-  z-index:  10;
+  z-index: 10;
   position: absolute;
   width: 150px;
   height: auto;
@@ -119,50 +112,47 @@ circle {
   }
 }
 
-
 /* Content */
 
-
-
-
 .hidden {
-        display: none;
+  display: none;
 }
 
 #Yradio {
-	position: relative;
+  position: relative;
 }
 
-.noUi-slider{
+.noUi-slider {
   margin: 3rem 1rem 0.3rem;
-  .noUi-connect{
-    background-color: desaturate(lighten($chart-theme, 5%),5%);
+  .noUi-connect {
+    background-color: desaturate(lighten($chart-theme, 5%), 5%);
   }
   .noUi-tooltip {
-  /*  position: relative;*/
+    /*  position: relative;*/
     font-size: 0.75rem;
     background: white;
     padding: 0.1rem 0.4rem;
-    @include media-breakpoint-down(lg){
+    @include media-breakpoint-down(lg) {
       font-size: 0.75rem;
     }
-    @include media-breakpoint-down(md){
+    @include media-breakpoint-down(md) {
       font-size: 0.6rem;
     }
-    @include media-breakpoint-down(sm){
+    @include media-breakpoint-down(sm) {
       font-size: 0.8rem;
     }
-    &:after{  // adds arrows
+    &:after {
+      // adds arrows
       top: 100%;
       left: 50%;
       border: solid transparent;
-      content: " ";
+      content: ' ';
       height: 0;
       width: 0;
       position: absolute;
       pointer-events: none;
       border-color: rgba($chart-theme, 0);
-      border-top-color: desaturate(lighten($chart-theme, 10%),5%);
+      border-top-color: desaturate(lighten($chart-theme, 10%), 5%);
       border-width: 4px;
       margin-left: -4px;
     }
@@ -170,21 +160,22 @@ circle {
   .noUi-handle:focus {
     outline: none;
   }
-  .noUi-slider-label{
+  .noUi-slider-label {
     width: 100%;
     text-align: center;
     display: inline;
     position: absolute;
-    bottom:10px;
+    bottom: 10px;
     font-size: 0.7rem;
     font-weight: 500;
     color: $gray-700;
   }
 }
 
-
 .chartaxis-options {
-  h2, h3, h4 {
+  h2,
+  h3,
+  h4 {
     margin-top: 1rem;
     font-weight: 700;
     font-size: 1rem;
@@ -196,16 +187,16 @@ circle {
     -webkit-box-shadow: none !important;
     -moz-box-shadow: none !important;
     box-shadow: none !important;
-    margin:0;
+    margin: 0;
     font-size: 0.9rem;
     font-weight: 500;
-    @include media-breakpoint-down(lg){
+    @include media-breakpoint-down(lg) {
       font-size: 0.75rem;
     }
-    @include media-breakpoint-down(md){
+    @include media-breakpoint-down(md) {
       font-size: 0.6rem;
     }
-    @include media-breakpoint-down(sm){
+    @include media-breakpoint-down(sm) {
       font-size: 0.8rem;
     }
     @include button-variant($chart-theme, $chart-theme);

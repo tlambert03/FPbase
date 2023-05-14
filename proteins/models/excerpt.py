@@ -1,19 +1,18 @@
 from django.db import models
 from django.db.models import Q
-from references.models import Reference
-from model_utils.models import TimeStampedModel, StatusModel
 from model_utils import Choices
 from model_utils.managers import QueryManager
+from model_utils.models import StatusModel, TimeStampedModel
+
+from references.models import Reference
+
 from .mixins import Authorable
 
 
 class Excerpt(Authorable, TimeStampedModel, StatusModel):
-
     STATUS = Choices("approved", "flagged", "rejected")
 
-    content = models.TextField(
-        max_length=1200, help_text="Brief excerpt describing this protein"
-    )
+    content = models.TextField(max_length=1200, help_text="Brief excerpt describing this protein")
     proteins = models.ManyToManyField("Protein", blank=True, related_name="excerpts")
     reference = models.ForeignKey(
         Reference,
@@ -31,7 +30,7 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
 
     def __str__(self):
         ref = self.reference.citation if self.reference else ""
-        return "{}: {}...".format(ref, self.content[:30])
+        return f"{ref}: {self.content[:30]}..."
 
     def get_absolute_url(self):
         return self.reference.get_absolute_url()

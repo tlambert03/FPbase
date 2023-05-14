@@ -1,20 +1,20 @@
-import React, { useEffect, memo, useState } from "react"
-import Box from "@material-ui/core/Box"
+import React, { useEffect, memo, useState } from 'react'
+import Box from '@material-ui/core/Box'
 
-import { useApolloClient } from "@apollo/react-hooks"
-import Typography from "@material-ui/core/Typography"
-import { makeStyles } from "@material-ui/core/styles"
-import Checkbox from "@material-ui/core/Checkbox"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
-import RadioButtonUnchecked from "@material-ui/icons/RadioButtonUnchecked"
-import RadioButtonChecked from "@material-ui/icons/RadioButtonChecked"
-import InputSlider from "./InputSlider"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useApolloClient } from '@apollo/react-hooks'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
+import Checkbox from '@material-ui/core/Checkbox'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import RadioButtonUnchecked from '@material-ui/icons/RadioButtonUnchecked'
+import RadioButtonChecked from '@material-ui/icons/RadioButtonChecked'
+import InputSlider from './InputSlider'
+import { UPDATE_ACTIVE_SPECTRA } from '../client/queries'
 
 const useStyles = makeStyles({
   label: {
-    fontSize: "small",
-    color: "#444",
+    fontSize: 'small',
+    color: '#444',
   },
 })
 
@@ -27,7 +27,7 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
 }) {
   const classes = useStyles()
 
-  const [laserID, _wave] = id.split("_")
+  const [laserID, _wave] = id.split('_')
   const [wave, setWave] = useState(_wave || 488)
 
   const client = useApolloClient()
@@ -56,15 +56,15 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
   return (
     <div
       style={{
-        padding: "10px 10px 0px 10px",
-        border: "1px solid #ccc",
+        padding: '10px 10px 0px 10px',
+        border: '1px solid #ccc',
         borderRadius: 4,
       }}
     >
       <Box display="flex" flexWrap="wrap">
-        <Typography style={{ margin: "8px 10px 3px" }}>Laser</Typography>
+        <Typography style={{ margin: '8px 10px 3px' }}>Laser</Typography>
         <Box flexGrow={2}>
-          <div style={{ margin: "0 12px", minWidth: 200 }}>
+          <div style={{ margin: '0 12px', minWidth: 200 }}>
             <Typography className={classes.label}>Wavelength</Typography>
             <InputSlider
               value={wave}
@@ -77,13 +77,13 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
         <Box>
           <FormControlLabel
             value="normalize"
-            label={(
+            label={
               <Typography className={classes.label}>
                 Norm em. to this
               </Typography>
-)}
+            }
             labelPlacement="end"
-            control={(
+            control={
               <Checkbox
                 icon={<RadioButtonUnchecked fontSize="small" />}
                 checkedIcon={<RadioButtonChecked fontSize="small" />}
@@ -92,7 +92,7 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
                 checked={id.startsWith(normID)}
                 onChange={handleNormCheck}
               />
-)}
+            }
           />
         </Box>
       </Box>

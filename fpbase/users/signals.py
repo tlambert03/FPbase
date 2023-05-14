@@ -1,6 +1,6 @@
-from django.dispatch import receiver
 from allauth.account.signals import user_signed_up
 from django.core.mail import mail_admins
+from django.dispatch import receiver
 
 
 @receiver(user_signed_up)

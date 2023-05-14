@@ -1,25 +1,25 @@
-import React, { memo, useEffect, useState } from "react"
-import { Series } from "react-jsx-highcharts"
-import { useApolloClient } from "@apollo/react-hooks"
-import { List } from "immutable"
-import { GET_SPECTRUM } from "../../client/queries"
-import PALETTES from "../../palettes"
+import React, { memo, useEffect, useState } from 'react'
+import { Series } from 'react-jsx-highcharts'
+import { useApolloClient } from '@apollo/react-hooks'
+import { List } from 'immutable'
+import { GET_SPECTRUM } from '../../client/queries'
+import PALETTES from '../../palettes'
 
-const OD = num => (num <= 0 ? 10 : -Math.log10(num))
+const OD = (num) => (num <= 0 ? 10 : -Math.log10(num))
 
 const hex2rgba = (hex, alpha = 1) => {
-  const [r, g, b] = hex.match(/\w\w/g).map(x => parseInt(x, 16))
+  const [r, g, b] = hex.match(/\w\w/g).map((x) => parseInt(x, 16))
   return `rgba(${r},${g},${b},${alpha})`
 }
 
 const CROSS_HATCH = {
   pattern: {
     path: {
-      d: ["M 5,5 L 10,10", "M 5,5 L 0,10", "M 5,5 L 10,0", "M 5,5 L 0,0"],
+      d: ['M 5,5 L 10,10', 'M 5,5 L 0,10', 'M 5,5 L 10,0', 'M 5,5 L 0,0'],
     },
     width: 10,
     height: 10,
-    color: "#ddd",
+    color: '#ddd',
     opacity: 0.4,
   },
 }
@@ -27,7 +27,7 @@ const CROSS_HATCH = {
 const VERT_LINES = {
   pattern: {
     path: {
-      d: ["M 2,10 L 2,0"],
+      d: ['M 2,10 L 2,0'],
     },
     width: 3,
     height: 10,
@@ -72,8 +72,8 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
         const ownerSpectra = ownerInfo[spectrum.owner.slug].spectra
         if (ownerSpectra) {
           const exSpectrum =
-            ownerSpectra.find(i => i.subtype === "EX") ||
-            ownerSpectra.find(i => i.subtype === "AB")
+            ownerSpectra.find((i) => i.subtype === 'EX') ||
+            ownerSpectra.find((i) => i.subtype === 'AB')
           if (exSpectrum) {
             const {
               data: {
@@ -93,7 +93,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
       }
     }
 
-    if ((spectrum.subtype === "EM" || spectrum.subtype === "O") && exNorm) {
+    if ((spectrum.subtype === 'EM' || spectrum.subtype === 'O') && exNorm) {
       getExData()
     } else {
       setSerie(List([...spectrum.data]))
@@ -126,12 +126,12 @@ const SpectrumSeries = memo(function SpectrumSeries({
   let serie = useExNormedData({ exNorm, spectrum, ownerInfo })
   if (!spectrum) return null
   const willScaleEC = Boolean(
-    (spectrum.subtype === "EX" || spectrum.subtype === "AB") &&
+    (spectrum.subtype === 'EX' || spectrum.subtype === 'AB') &&
       scaleEC &&
       spectrum.owner.extCoeff
   )
   const willScaleQY = Boolean(
-    (spectrum.subtype === "EM" || spectrum.subtype === "O") &&
+    (spectrum.subtype === 'EM' || spectrum.subtype === 'O') &&
       scaleQY &&
       spectrum.owner.qy
   )
@@ -149,33 +149,33 @@ const SpectrumSeries = memo(function SpectrumSeries({
   }
 
   let name = `${spectrum.owner.name}`
-  if (["EX", "EM", "A_2P", "2P", "AB"].includes(spectrum.subtype)) {
-    name += ` ${spectrum.subtype.replace("A_", "")}`
+  if (['EX', 'EM', 'A_2P', '2P', 'AB'].includes(spectrum.subtype)) {
+    name += ` ${spectrum.subtype.replace('A_', '')}`
   }
-  let dashStyle = "Solid"
-  if (["EX", "AB", "A_2P", "2P"].includes(spectrum.subtype)) {
-    dashStyle = "ShortDash"
+  let dashStyle = 'Solid'
+  if (['EX', 'AB', 'A_2P', '2P'].includes(spectrum.subtype)) {
+    dashStyle = 'ShortDash'
   }
   let myColor = spectrum.color
-  if (palette !== "wavelength" && palette in PALETTES) {
+  if (palette !== 'wavelength' && palette in PALETTES) {
     const { hexlist } = PALETTES[palette]
     myColor = hexlist[ownerIndex % hexlist.length]
   }
   let color = hex2rgba(myColor, 0.9)
   let fillColor = hex2rgba(myColor, 0.5)
   let lineWidth = areaFill ? 0.5 : 1.8
-  let type = areaFill ? "areaspline" : "spline"
-  if (spectrum.category === "C") {
+  let type = areaFill ? 'areaspline' : 'spline'
+  if (spectrum.category === 'C') {
     fillColor = CROSS_HATCH
   }
-  if (spectrum.category === "L") {
+  if (spectrum.category === 'L') {
     fillColor = { ...VERT_LINES }
     lineWidth = areaFill ? 1 : 1.8
   }
-  if (["BS", "LP"].includes(spectrum.subtype)) {
+  if (['BS', 'LP'].includes(spectrum.subtype)) {
     lineWidth = 1.8
-    type = "spline"
-    color = "#999"
+    type = 'spline'
+    color = '#999'
   }
 
   return (

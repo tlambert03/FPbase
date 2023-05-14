@@ -23,7 +23,7 @@ if READ_DOT_ENV_FILE:
     # that is to say variables from the .env files will only be used if not defined
     # as environment variables.
     env_file = str(ROOT_DIR.path(".env"))
-    print("Loading : {}".format(env_file))
+    print(f"Loading : {env_file}")
     env.read_env(env_file)
     print("The .env file has been loaded. See base.py for more information")
 
@@ -109,9 +109,7 @@ FIXTURE_DIRS = (str(APPS_DIR.path("fixtures")),)
 
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
-EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
-)
+EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -119,7 +117,7 @@ EMAIL_BACKEND = env(
 ADMINS = [("Talley Lambert", "talley.lambert+fpbase@gmail.com")]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#managers
-MANAGERS = ADMINS + [("Anna Jost", "anna_jost@hms.harvard.edu")]
+MANAGERS = [*ADMINS, ("Anna Jost", "anna_jost@hms.harvard.edu")]
 
 EMAIL_SUBJECT_PREFIX = "[FPbase] "
 SERVER_EMAIL = "FPbase <info@mg.fpbase.org>"
@@ -257,9 +255,7 @@ PASSWORD_HASHERS = [
 # ------------------------------------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -350,9 +346,7 @@ RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_V3_PRIVATE_KEY", default="")
 GOOGLE_API_PRIVATE_KEY = env("GOOGLE_API_PRIVATE_KEY", default="").replace("#", "\n")
 GOOGLE_API_CLIENT_EMAIL = env("GOOGLE_API_CLIENT_EMAIL", default=None)
 
-ALGOLIA_SUFFIX = (
-    "dev" if (DEBUG or ("staging" in env("SENTRY_PROJECT", default=""))) else "prod"
-)
+ALGOLIA_SUFFIX = "dev" if (DEBUG or ("staging" in env("SENTRY_PROJECT", default=""))) else "prod"
 ALGOLIA_PUBLIC_KEY = "421b453d4f93e332ebd0c7f3ace29476"
 ALGOLIA = {
     "APPLICATION_ID": "9WAWQMVNTB",
@@ -374,7 +368,7 @@ GRAPHENE = {"SCHEMA": "fpbase.schema.schema"}
 # CORS
 # -------
 
-MIDDLEWARE = ["corsheaders.middleware.CorsMiddleware"] + MIDDLEWARE
+MIDDLEWARE = ["corsheaders.middleware.CorsMiddleware", *MIDDLEWARE]
 INSTALLED_APPS += ["corsheaders"]
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8000",

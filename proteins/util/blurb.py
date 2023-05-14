@@ -9,9 +9,9 @@ def long_blurb(self, withbright=False, withbleach=False):
         " " + self.color.lower() if self.color else "",
     )
     if self.primary_reference:
-        blurb += " published in {}".format(self.primary_reference.year)
+        blurb += f" published in {self.primary_reference.year}"
     if self.parent_organism:
-        blurb += ", derived from {}. ".format(self.parent_organism)
+        blurb += f", derived from {self.parent_organism}. "
     else:
         blurb += ".  "
 
@@ -29,9 +29,7 @@ def long_blurb(self, withbright=False, withbleach=False):
             elif self.default_state.local_brightness < 0.5:
                 bright = "much dimmer than"
         if bright:
-            blurb += "It is {} other proteins in the database with similar emission spectra".format(
-                bright
-            )
+            blurb += f"It is {bright} other proteins in the database with similar emission spectra"
 
         bleach = None
         if withbleach:
@@ -57,7 +55,7 @@ def long_blurb(self, withbright=False, withbleach=False):
                     join = " and"
             else:
                 join = "It"
-            blurb += "{} has {} photostability.  ".format(join, bleach)
+            blurb += f"{join} has {bleach} photostability.  "
         elif bright or bleach:
             blurb += ".  "
 
@@ -73,9 +71,7 @@ def long_blurb(self, withbright=False, withbleach=False):
             elif M >= 90:
                 mature = ""
         if mature:
-            blurb += "It is reported to be a {} {}".format(
-                mature, self.get_agg_display().lower() or "protein"
-            )
+            blurb += "It is reported to be a {} {}".format(mature, self.get_agg_display().lower() or "protein")
 
         acid = None
         A = self.default_state.pka
@@ -93,15 +89,13 @@ def long_blurb(self, withbright=False, withbleach=False):
                 blurb += " with "
             else:
                 blurb += "It has "
-            blurb += "{} acid sensitivity.".format(acid)
+            blurb += f"{acid} acid sensitivity."
         if mature and not (acid or A):
             blurb += "."
     else:
         if self.get_agg_display():
-            blurb += "It is reported to be a {}.".format(self.get_agg_display().lower())
+            blurb += f"It is reported to be a {self.get_agg_display().lower()}."
     if self.cofactor:
-        blurb += " It requires the cofactor {} for fluorescence.".format(
-            self.get_cofactor_display().lower()
-        )
+        blurb += f" It requires the cofactor {self.get_cofactor_display().lower()} for fluorescence."
 
     return blurb.strip()

@@ -1,25 +1,25 @@
-import React, { useEffect } from "react"
-import Box from "@material-ui/core/Box"
-import ToggleButton from "@material-ui/lab/ToggleButton"
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
-import { useApolloClient } from "@apollo/react-hooks"
-import Typography from "@material-ui/core/Typography"
-import { makeStyles } from "@material-ui/core/styles"
-import InputSlider from "./InputSlider"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import React, { useEffect } from 'react'
+import Box from '@material-ui/core/Box'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import { useApolloClient } from '@apollo/react-hooks'
+import Typography from '@material-ui/core/Typography'
+import { makeStyles } from '@material-ui/core/styles'
+import InputSlider from './InputSlider'
+import { UPDATE_ACTIVE_SPECTRA } from '../client/queries'
 
 export const useStyles = makeStyles({
   label: {
-    fontSize: "small",
-    color: "#444",
+    fontSize: 'small',
+    color: '#444',
   },
 })
 
 const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
   const classes = useStyles()
 
-  const [filterID, _type, _center, _width, _trans] = id.split("_")
-  const [type, setType] = React.useState((_type || "").toUpperCase() || "BP")
+  const [filterID, _type, _center, _width, _trans] = id.split('_')
+  const [type, setType] = React.useState((_type || '').toUpperCase() || 'BP')
   const [center, setCenter] = React.useState(_center || 525)
   const [width, setWidth] = React.useState(_width || 50)
   const [trans, setTrans] = React.useState(_trans || 90)
@@ -44,13 +44,13 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
   return (
     <div
       style={{
-        padding: "10px 10px 0px 10px",
-        border: "1px solid #ccc",
+        padding: '10px 10px 0px 10px',
+        border: '1px solid #ccc',
         borderRadius: 4,
       }}
     >
       <Box display="flex" flexWrap="wrap">
-        <Typography style={{ margin: "8px 10px 3px" }}>
+        <Typography style={{ margin: '8px 10px 3px' }}>
           Custom Filter Type
         </Typography>
         <ToggleButtonGroup
@@ -66,9 +66,9 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
         </ToggleButtonGroup>
 
         <Box flexGrow={2}>
-          <div style={{ margin: "0 12px", minWidth: 180 }}>
+          <div style={{ margin: '0 12px', minWidth: 180 }}>
             <Typography className={classes.label}>
-              {type === "BP" ? "Center Wavelength" : "Edge"}
+              {type === 'BP' ? 'Center Wavelength' : 'Edge'}
             </Typography>
             <InputSlider
               value={center}
@@ -78,11 +78,11 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
             />
           </div>
         </Box>
-        {type === "BP" && (
+        {type === 'BP' && (
           <Box flexGrow={1}>
             <div
               style={{
-                margin: "0 10px",
+                margin: '0 10px',
                 minWidth: 150,
               }}
             >
@@ -101,7 +101,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
         <Box flexGrow={1}>
           <div
             style={{
-              margin: "0 10px",
+              margin: '0 10px',
               minWidth: 160,
             }}
           >

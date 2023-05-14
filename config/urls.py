@@ -1,29 +1,27 @@
 from django.conf import settings
-from django.urls import include, path, re_path
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.views.generic import TemplateView
-from django.views.generic.base import RedirectView
+from django.contrib.sitemaps.views import sitemap
+from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.decorators.cache import cache_page
-from django.contrib.sitemaps.views import sitemap
-from rest_framework.documentation import include_docs_urls
-from fpbase.sitemaps import (
-    ProteinSitemap,
-    OrganismsSitemap,
-    StaticSitemap,
-    AuthorsSitemap,
-    MicroscopeSitemap,
-    ProteinCollectionSitemap,
-    ReferencesSitemap,
-)
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from graphene_django.views import GraphQLView
 
 import fpbase.views
+from fpbase.sitemaps import (
+    AuthorsSitemap,
+    MicroscopeSitemap,
+    OrganismsSitemap,
+    ProteinCollectionSitemap,
+    ProteinSitemap,
+    ReferencesSitemap,
+    StaticSitemap,
+)
 from references.views import ReferenceListView
-from django.views.decorators.csrf import csrf_exempt
-from graphene_django.views import GraphQLView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-
 
 sitemaps = {
     "static": StaticSitemap(),
@@ -35,7 +33,7 @@ sitemaps = {
     "collections": ProteinCollectionSitemap(),
 }
 
-urlpatterns = [
+urlpatterns = [  # noqa: RUF005
     path("", fpbase.views.HomeView.as_view(), name="home"),
     path(
         "about/",
@@ -103,23 +101,19 @@ urlpatterns = [
     # User management
     path("users/", include("fpbase.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
-    
     # API base url
     # path("api/", include("proteins.api.urls", namespace="api")),
     # path('api/', TemplateView.as_view(template_name='pages/api.html'), name='api'),
-    
     path("api/", include("config.api_router")),
     # api-auth for DRF
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     # re_path(r"^api-docs/", include_docs_urls(title="FPbase API docs")),
-    
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
-    
     # custom apps
     path("", include("proteins.urls")),  # NOTE: without $
     path("reference/", include("references.urls")),  # NOTE: without $
@@ -167,4 +161,4 @@ if settings.DEBUG:
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+        urlpatterns = [path("__debug__/", include(debug_toolbar.urls)), *urlpatterns]

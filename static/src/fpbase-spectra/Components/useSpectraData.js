@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react"
-import { useApolloClient, useQuery } from "@apollo/react-hooks"
-import update from "immutability-helper"
-import gql from "graphql-tag"
-import { GET_SPECTRUM } from "../client/queries"
-import COLORS from "../../js/spectra/colors"
+import { useEffect, useState } from 'react'
+import { useApolloClient, useQuery } from '@apollo/react-hooks'
+import update from 'immutability-helper'
+import gql from 'graphql-tag'
+import { GET_SPECTRUM } from '../client/queries'
+import COLORS from '../../js/spectra/colors'
 
 const rangexy = (start, end) =>
   Array.from({ length: end - start }, (v, k) => k + start)
 
 // $cl1_wave
-const customLaserSpectrum = _id => {
-  let [id, wave] = _id.split("_")
+const customLaserSpectrum = (_id) => {
+  let [id, wave] = _id.split('_')
 
   wave = +wave
   const data = [
@@ -24,42 +24,42 @@ const customLaserSpectrum = _id => {
       spectrum: {
         id: id,
         customId: _id,
-        subtype: "PD",
+        subtype: 'PD',
         owner: { name, id: _id },
-        category: "L",
+        category: 'L',
         data,
-        color: wave in COLORS ? COLORS[wave] : "#999999",
+        color: wave in COLORS ? COLORS[wave] : '#999999',
       },
     },
   })
 }
 
 // $cf1_type_center_width_trans
-const customFilterSpectrum = _id => {
-  let [id, subtype, center, width, trans] = _id.split("_")
+const customFilterSpectrum = (_id) => {
+  let [id, subtype, center, width, trans] = _id.split('_')
 
   subtype = subtype.toUpperCase()
   trans = +trans / 100 || 0.9
   const data = []
   let name = `Custom `
   switch (subtype) {
-    case "BP": {
+    case 'BP': {
       const min = Math.round(+center - width / 2)
       const max = Math.round(+center + width / 2)
       data.push([min - 1, 0])
-      rangexy(min, max + 1).forEach(x => data.push([x, +trans]))
+      rangexy(min, max + 1).forEach((x) => data.push([x, +trans]))
       data.push([max + 1, 0])
       name += ` ${center}/${width} bp`
       break
     }
-    case "LP":
-      rangexy(300, center).forEach(x => data.push([x, 0]))
-      rangexy(+center + 1, 1000).forEach(x => data.push([x, +trans]))
+    case 'LP':
+      rangexy(300, center).forEach((x) => data.push([x, 0]))
+      rangexy(+center + 1, 1000).forEach((x) => data.push([x, +trans]))
       name += ` ${center}lp`
       break
-    case "SP":
-      rangexy(300, center).forEach(x => data.push([x, +trans]))
-      rangexy(+center + 1, 1000).forEach(x => data.push([x, 0]))
+    case 'SP':
+      rangexy(300, center).forEach((x) => data.push([x, +trans]))
+      rangexy(+center + 1, 1000).forEach((x) => data.push([x, 0]))
       name += ` ${center}sp`
       break
     default:
@@ -75,9 +75,9 @@ const customFilterSpectrum = _id => {
         customId: _id,
         subtype,
         owner: { name, id: _id },
-        category: "F",
+        category: 'F',
         data,
-        color: +center in COLORS ? COLORS[+center] : "#999999",
+        color: +center in COLORS ? COLORS[+center] : '#999999',
       },
     },
   }
@@ -108,10 +108,10 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
   useEffect(() => {
     function idToData(id) {
       // cast id to integer
-      if (id.startsWith("$cf")) {
+      if (id.startsWith('$cf')) {
         return customFilterSpectrum(id)
       }
-      if (id.startsWith("$cl")) {
+      if (id.startsWith('$cl')) {
         return customLaserSpectrum(id)
       }
       return client.query({ query: GET_SPECTRUM, variables: { id: +id } })
@@ -129,19 +129,19 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
       }, [])
 
       // find new activeSpectra that aren't in current Data
-      const currentIDs = currentData.map(item => item.customId || item.id)
+      const currentIDs = currentData.map((item) => item.customId || item.id)
       const newSpectra = activeSpectra.filter(
-        id => id && !currentIDs.includes(id)
+        (id) => id && !currentIDs.includes(id)
       )
-      let newData = await Promise.all(newSpectra.map(id => idToData(id)))
-      newData = newData.map(item => item.data.spectrum).filter(i => i)
+      let newData = await Promise.all(newSpectra.map((id) => idToData(id)))
+      newData = newData.map((item) => item.data.spectrum).filter((i) => i)
       // find new overlaps that aren't in current Data
       const newOverlaps = activeOverlaps.filter(
-        id => id && !currentIDs.includes(id)
+        (id) => id && !currentIDs.includes(id)
       )
       const newOverlapData = newOverlaps
-        .map(id => window.OverlapCache[id] || id)
-        .filter(i => i)
+        .map((id) => window.OverlapCache[id] || id)
+        .filter((i) => i)
 
       if (deadSpectra.length || newData.length || newOverlapData.length) {
         setCurrentData(

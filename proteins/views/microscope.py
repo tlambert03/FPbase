@@ -65,16 +65,12 @@ def update_scope_report(request):
             except Exception:
                 active = None
             if active:
-                for worker, jobs in active.items():
+                for _worker, jobs in active.items():
                     for job in jobs:
-                        if job["name"].endswith("calculate_scope_report") and (
-                            scope_id in job["args"]
-                        ):
+                        if job["name"].endswith("calculate_scope_report") and (scope_id in job["args"]):
                             return JsonResponse({"status": 200, "job": job["id"]})
                     if len(jobs) >= 4:
-                        return JsonResponse(
-                            {"status": 200, "job": None, "waiting": True}
-                        )
+                        return JsonResponse({"status": 200, "job": None, "waiting": True})
             job_id = calculate_scope_report.delay(scope_id, outdated_ids=outdated).id
             return JsonResponse({"status": 200, "job": job_id})
     elif request.POST.get("action") == "check":
@@ -163,9 +159,7 @@ def scope_report_json(request, pk):
                 "brightness": item["brightness"] or None,
                 "shape": "circle" if item["type"] == "p" else "square",
                 "url": microscope.get_absolute_url()
-                + "?c={}&p={}".format(
-                    quote(item["oc__name"]), quote(item["fluor_slug"])
-                ),
+                + "?c={}&p={}".format(quote(item["oc__name"]), quote(item["fluor_slug"])),
             }
         )
 
@@ -232,20 +226,14 @@ class ScopeReportView(DetailView):
         return HttpResponseNotAllowed([])
 
     def get_context_data(self, **kwargs):
-        context = super(ScopeReportView, self).get_context_data(**kwargs)
-        probe_count = (
-            State.objects.with_spectra().count() + Dye.objects.with_spectra().count()
-        )
+        context = super().get_context_data(**kwargs)
+        probe_count = State.objects.with_spectra().count() + Dye.objects.with_spectra().count()
         ids = self.object.optical_configs.all().values_list("id", flat=True)
         effs = OcFluorEff.objects.filter(oc__in=ids)
         context["outdated"] = list(effs.outdated().values_list("id", flat=True))
-        context["needs_update"] = bool(context["outdated"]) or (
-            probe_count * len(ids) > effs.count()
-        )
+        context["needs_update"] = bool(context["outdated"]) or (probe_count * len(ids) > effs.count())
         cols = (
-            ProteinCollection.objects.filter(
-                Q(private=False) | Q(owner_id=self.request.user.id)
-            )
+            ProteinCollection.objects.filter(Q(private=False) | Q(owner_id=self.request.user.id))
             .exclude(proteins=None)
             .annotate(uuids=ArrayAgg("proteins__uuid"))
             .order_by(Lower("name"))
@@ -275,13 +263,7 @@ class MicroscopeCreateUpdateMixin:
             return self.render_to_response(context)
 
         # enforce at least one valid optical config
-        ocform_has_forms = any(
-            [
-                f.cleaned_data.get("name")
-                for f in ocformset.forms
-                if not f.cleaned_data.get("DELETE")
-            ]
-        )
+        ocform_has_forms = any(f.cleaned_data.get("name") for f in ocformset.forms if not f.cleaned_data.get("DELETE"))
         if not (ocform_has_forms or form.cleaned_data.get("optical_configs")):
             messages.add_message(
                 self.request,
@@ -304,7 +286,7 @@ class MicroscopeCreateUpdateMixin:
 
 
 class MicroscopeCreateView(MicroscopeCreateUpdateMixin, OwnableObject, CreateView):
-    """ renders html for microscope creation page """
+    """renders html for microscope creation page"""
 
     model = Microscope
     form_class = MicroscopeForm
@@ -328,9 +310,7 @@ class MicroscopeCreateView(MicroscopeCreateUpdateMixin, OwnableObject, CreateVie
                         "User: {}\nMicroscope: {}\n{}".format(
                             self.request.user.username,
                             self.object,
-                            self.request.build_absolute_uri(
-                                self.object.get_absolute_url()
-                            ),
+                            self.request.build_absolute_uri(self.object.get_absolute_url()),
                         ),
                         fail_silently=True,
                     )
@@ -347,9 +327,7 @@ class MicroscopeCreateView(MicroscopeCreateUpdateMixin, OwnableObject, CreateVie
         return data
 
 
-class MicroscopeUpdateView(
-    SuccessMessageMixin, MicroscopeCreateUpdateMixin, OwnableObject, UpdateView
-):
+class MicroscopeUpdateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin, OwnableObject, UpdateView):
     model = Microscope
     form_class = MicroscopeForm
     success_message = "Update successful!"
@@ -366,18 +344,14 @@ class MicroscopeUpdateView(
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         if self.request.POST:
-            data["optical_configs"] = OpticalConfigFormSet(
-                self.request.POST, instance=self.object
-            )
+            data["optical_configs"] = OpticalConfigFormSet(self.request.POST, instance=self.object)
         else:
-            data["optical_configs"] = OpticalConfigFormSet(
-                instance=self.object, queryset=OpticalConfig.objects.all()
-            )
+            data["optical_configs"] = OpticalConfigFormSet(instance=self.object, queryset=OpticalConfig.objects.all())
         return data
 
 
 class MicroscopeDetailView(DetailView):
-    """ renders html for microscope detail/spectrum page """
+    """renders html for microscope detail/spectrum page"""
 
     queryset = Microscope.objects.all().prefetch_related(
         "optical_configs__filterplacement_set__filter",
@@ -398,10 +372,10 @@ class MicroscopeDetailView(DetailView):
                 .get()
             )
             return scope
-        except Microscope.MultipleObjectsReturned:
-            raise Http404("Multiple microscopes found matching this query")
-        except Microscope.DoesNotExist:
-            raise Http404("No microscope found matching this query")
+        except Microscope.MultipleObjectsReturned as e:
+            raise Http404("Multiple microscopes found matching this query") from e
+        except Microscope.DoesNotExist as e:
+            raise Http404("No microscope found matching this query") from e
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -415,14 +389,9 @@ class MicroscopeDetailView(DetailView):
         ):
             data["lights"] = Light.objects.all()
         if self.object.collection:
-            proteins = self.object.collection.proteins.with_spectra().prefetch_related(
-                "states"
-            )
+            proteins = self.object.collection.proteins.with_spectra().prefetch_related("states")
             data["probeslugs"] = [
-                {"slug": s.slug, "name": str(s)}
-                for p in proteins
-                for s in p.states.all()
-                if s.spectra
+                {"slug": s.slug, "name": str(s)} for p in proteins for s in p.states.all() if s.spectra
             ]
         else:
             data["probeslugs"] = Spectrum.objects.fluorlist()
@@ -459,9 +428,7 @@ class MicroscopeList(ListView):
 
     def get_queryset(self):
         # get all collections for current user and all other non-private collections
-        qs = Microscope.objects.annotate(nocs=Count("optical_configs")).filter(
-            nocs__gt=1
-        )
+        qs = Microscope.objects.annotate(nocs=Count("optical_configs")).filter(nocs__gt=1)
         if self.request.user.is_authenticated:
             qs = qs | Microscope.objects.filter(owner=self.request.user)
         if "owner" in self.kwargs:
@@ -479,9 +446,7 @@ class MicroscopeList(ListView):
             context["owner"] = owner
         context["example_list"] = Microscope.objects.filter(id__in=self.example_ids)
         if self.request.user.is_authenticated:
-            context["managing"] = Microscope.objects.filter(
-                managers__contains=[self.request.user.email]
-            )
+            context["managing"] = Microscope.objects.filter(managers__contains=[self.request.user.email])
         return context
 
 
@@ -495,9 +460,7 @@ class MicroscopeDeleteView(DeleteView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        redirect_url = reverse_lazy(
-            "proteins:microscopes", kwargs={"owner": self.request.user}
-        )
+        redirect_url = reverse_lazy("proteins:microscopes", kwargs={"owner": self.request.user})
         try:
             # check that this is an internal redirection
             resolve(redirect_url)

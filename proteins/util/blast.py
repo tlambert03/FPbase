@@ -1,9 +1,10 @@
-import sys
-from ..models import Protein
-from subprocess import run
-import os
-import tempfile
 import json
+import os
+import sys
+import tempfile
+from subprocess import run
+
+from ..models import Protein
 
 
 def serialize_alignment(alignment):
@@ -58,9 +59,7 @@ def make_blastdb(fpath="blastdb/FPbase_blastdb.fsa"):
     run(cmd)
 
 
-def blast(
-    seq, binary="blastp", db="blastdb/FPbase_blastdb.fsa", max_hits=30, fmt=15, **kwargs
-):
+def blast(seq, binary="blastp", db="blastdb/FPbase_blastdb.fsa", max_hits=30, fmt=15, **kwargs):
     assert binary in ("blastp", "blastx"), "Unrecognized blast binary"
     if not (os.path.isfile(db) and (len(os.listdir(os.path.dirname(db))) > 5)):
         make_blastdb(db)

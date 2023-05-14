@@ -1,16 +1,16 @@
-import React from "react"
-import Slider from "@material-ui/core/Slider"
-import Grid from "@material-ui/core/Grid"
-import Input from "@material-ui/core/Input"
-import { makeStyles } from "@material-ui/core/styles"
+import React from 'react'
+import Slider from '@material-ui/core/Slider'
+import Grid from '@material-ui/core/Grid'
+import Input from '@material-ui/core/Input'
+import { makeStyles } from '@material-ui/core/styles'
 
 export const useStyles = makeStyles({
   root: {
-    width: "100%",
+    width: '100%',
   },
   input: {
     width: 42,
-    position: "relative",
+    position: 'relative',
     top: -18,
   },
 })
@@ -20,8 +20,8 @@ const InputSlider = ({ value, setValue, min, max, step }) => {
   const handleSliderChange = (event, newValue) => {
     setValue(newValue)
   }
-  const handleInputChange = event => {
-    setValue(event.target.value === "" ? "" : Number(event.target.value))
+  const handleInputChange = (event) => {
+    setValue(event.target.value === '' ? '' : Number(event.target.value))
   }
   const handleBlur = () => {
     if (value < min) {
@@ -54,8 +54,8 @@ const InputSlider = ({ value, setValue, min, max, step }) => {
               step,
               min,
               max,
-              type: "number",
-              "aria-labelledby": "input-slider",
+              type: 'number',
+              'aria-labelledby': 'input-slider',
             }}
           />
         </Grid>

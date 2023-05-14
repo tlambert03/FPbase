@@ -1,11 +1,11 @@
-import React from "react"
-import Table from "@material-ui/core/Table"
-import TableBody from "@material-ui/core/TableBody"
-import TableCell from "@material-ui/core/TableCell"
-import TableHead from "@material-ui/core/TableHead"
-import TableRow from "@material-ui/core/TableRow"
-import Paper from "@material-ui/core/Paper"
-import { makeStyles } from "@material-ui/core/styles"
+import React from 'react'
+import Table from '@material-ui/core/Table'
+import TableBody from '@material-ui/core/TableBody'
+import TableCell from '@material-ui/core/TableCell'
+import TableHead from '@material-ui/core/TableHead'
+import TableRow from '@material-ui/core/TableRow'
+import Paper from '@material-ui/core/Paper'
+import { makeStyles } from '@material-ui/core/styles'
 
 function fpbaseLink(accession) {
   return (
@@ -15,11 +15,11 @@ function fpbaseLink(accession) {
   )
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   table: {
-    marginTop: "10px",
-    minWidth: 650
-  }
+    marginTop: '10px',
+    minWidth: 650,
+  },
 }))
 
 function BlastReportDescription({ report, onClick }) {
@@ -33,13 +33,13 @@ function BlastReportDescription({ report, onClick }) {
       len: elem.len,
       gaps: elem.hsps[0].gaps,
       identity: elem.hsps[0].identity,
-      align_len: elem.hsps[0].align_len
+      align_len: elem.hsps[0].align_len,
     }
   })
 
   const classes = useStyles()
   return (
-    <Paper style={{ overflowX: "scroll" }}>
+    <Paper style={{ overflowX: 'scroll' }}>
       <Table className={classes.table} size="small">
         <TableHead>
           <TableRow>
@@ -52,7 +52,7 @@ function BlastReportDescription({ report, onClick }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map(row => (
+          {rows.map((row) => (
             <TableRow key={row.key}>
               <TableCell align="left">
                 <a

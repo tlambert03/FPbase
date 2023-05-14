@@ -1,8 +1,8 @@
-import { useEffect } from "react"
-import { useMutation } from "@apollo/react-hooks"
-import gql from "graphql-tag"
+import { useEffect } from 'react'
+import { useMutation } from '@apollo/react-hooks'
+import gql from 'graphql-tag'
 
-const toggleMut = param => gql`
+const toggleMut = (param) => gql`
 mutation Toggle${param} {
   toggle${param} @client
 }
@@ -15,55 +15,55 @@ const CYCLE_PALLETE = gql`
 `
 
 const useKeyboardShortcuts = () => {
-  const [toggleY] = useMutation(toggleMut("YAxis"))
-  const [toggleX] = useMutation(toggleMut("XAxis"))
-  const [toggleGrid] = useMutation(toggleMut("Grid"))
-  const [toggleScaleEC] = useMutation(toggleMut("ScaleEC"))
-  const [toggleScaleQY] = useMutation(toggleMut("ScaleQY"))
-  const [toggleShareTooltip] = useMutation(toggleMut("ShareTooltip"))
-  const [toggleAreaFill] = useMutation(toggleMut("AreaFill"))
+  const [toggleY] = useMutation(toggleMut('YAxis'))
+  const [toggleX] = useMutation(toggleMut('XAxis'))
+  const [toggleGrid] = useMutation(toggleMut('Grid'))
+  const [toggleScaleEC] = useMutation(toggleMut('ScaleEC'))
+  const [toggleScaleQY] = useMutation(toggleMut('ScaleQY'))
+  const [toggleShareTooltip] = useMutation(toggleMut('ShareTooltip'))
+  const [toggleAreaFill] = useMutation(toggleMut('AreaFill'))
   const [cyclePalette] = useMutation(CYCLE_PALLETE)
 
   useEffect(() => {
-    const handleKeyDown = event => {
+    const handleKeyDown = (event) => {
       // don't do anything if we're on an input
       if (
         document.activeElement &&
-        document.activeElement.tagName.toUpperCase() === "INPUT"
+        document.activeElement.tagName.toUpperCase() === 'INPUT'
       ) {
         return
       }
       switch (event.code) {
-        case "KeyX":
+        case 'KeyX':
           event.preventDefault()
           toggleX()
           break
-        case "KeyY":
+        case 'KeyY':
           event.preventDefault()
           toggleY()
           break
-        case "KeyG":
+        case 'KeyG':
           event.preventDefault()
           toggleGrid()
           break
-        case "KeyE":
+        case 'KeyE':
           event.preventDefault()
           toggleScaleEC()
           break
-        case "KeyQ":
+        case 'KeyQ':
           event.preventDefault()
           toggleScaleQY()
           break
-        case "KeyA":
-        case "KeyF":
+        case 'KeyA':
+        case 'KeyF':
           event.preventDefault()
           toggleAreaFill()
           break
-        case "KeyT":
+        case 'KeyT':
           event.preventDefault()
           toggleShareTooltip()
           break
-        case "KeyC":
+        case 'KeyC':
           event.preventDefault()
           cyclePalette()
           break
@@ -72,9 +72,9 @@ const useKeyboardShortcuts = () => {
       }
     }
 
-    document.addEventListener("keydown", handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.removeEventListener("keydown", handleKeyDown)
+      document.removeEventListener('keydown', handleKeyDown)
     }
   }, [
     toggleAreaFill,

@@ -1,11 +1,11 @@
-import React, { useRef } from "react"
-import "./index.css"
-import { ApolloProvider } from "@apollo/react-hooks"
-import App from "./App"
-import { SpectraViewerContainer } from "./Components/SpectraViewer"
+import React, { useRef } from 'react'
+import './index.css'
+import { ApolloProvider } from '@apollo/react-hooks'
+import App from './App'
+import { SpectraViewerContainer } from './Components/SpectraViewer'
 // import { ApolloProvider } from "@apollo/react-hooks"
-import initializeClient from "./client/client"
-import { defaults } from "./client/resolvers"
+import initializeClient from './client/client'
+import { defaults } from './client/resolvers'
 
 /* eslint-disable */
 // if (process.env.NODE_ENV === 'development') {
@@ -28,7 +28,7 @@ const AppWrapper = ({ uri }) => {
 }
 
 AppWrapper.defaultProps = {
-  uri: "/graphql/",
+  uri: '/graphql/',
 }
 
 export default AppWrapper
@@ -44,7 +44,7 @@ const SimpleSpectraViewer = ({ uri, ids, overlaps, options, hidden }) => {
 }
 
 SimpleSpectraViewer.defaultProps = {
-  uri: "/graphql/",
+  uri: '/graphql/',
 }
 
 const Inner = ({ ids = [], overlaps = [], options, hidden = [] }) => {

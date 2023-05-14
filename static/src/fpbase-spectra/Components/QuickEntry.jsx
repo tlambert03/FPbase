@@ -1,7 +1,7 @@
-import React, { useState } from "react"
-import IconButton from "@material-ui/core/IconButton"
-import SearchIcon from "@material-ui/icons/Search"
-import SearchModal from "./SearchModal"
+import React, { useState } from 'react'
+import IconButton from '@material-ui/core/IconButton'
+import SearchIcon from '@material-ui/icons/Search'
+import SearchModal from './SearchModal'
 
 const QuickEntry = ({ options, clearForm }) => {
   const [searchOpen, setSearchOpen] = useState(false)

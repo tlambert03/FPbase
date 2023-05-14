@@ -1,7 +1,7 @@
 sudo: true
 language: python
 python:
-  - "3.8"
+  - '3.8'
 services: postgresql
 # addons:
 #   postgresql: "10"
@@ -11,12 +11,12 @@ services: postgresql
 #     - postgresql-client-10
 env:
   global:
-#  - PGPORT=5433
-  - DJANGO_SETTINGS_MODULE=config.settings.test
+    #  - PGPORT=5433
+    - DJANGO_SETTINGS_MODULE=config.settings.test
 
 before_install:
   - createdb fpbase
-#  - sudo psql -U postgres -c 'create database fpbase;'
+  #  - sudo psql -U postgres -c 'create database fpbase;'
   - sudo apt-get update -qq
   - sudo apt-get install -qq build-essential gettext python-dev zlib1g-dev libpq-dev xvfb
   - sudo apt-get install -qq libtiff5-dev libjpeg8-dev libfreetype6-dev liblcms2-dev libwebp-dev

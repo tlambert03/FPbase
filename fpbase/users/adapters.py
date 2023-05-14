@@ -1,10 +1,10 @@
-from django.conf import settings
+import dns.exception
+import dns.resolver
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from django.utils.translation import gettext_lazy as _
 from django import forms
-import dns.resolver
-import dns.exception
+from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -15,10 +15,8 @@ class AccountAdapter(DefaultAccountAdapter):
         domain = email.split("@")[-1]
         try:
             dns.resolver.query(domain, "MX")
-        except dns.exception.DNSException:
-            raise forms.ValidationError(
-                _(u"The domain %s could not be found.") % domain
-            )
+        except dns.exception.DNSException as e:
+            raise forms.ValidationError(_("The domain %s could not be found.") % domain) from e
         return email
 
 

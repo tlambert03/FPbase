@@ -1,33 +1,33 @@
-import React, { useEffect, useCallback } from "react"
-import PropTypes from "prop-types"
-import Box from "@material-ui/core/Box"
-import { useQuery, useMutation, useApolloClient } from "@apollo/react-hooks"
-import { components } from "react-select"
-import update from "immutability-helper"
-import gql from "graphql-tag"
-import { GET_OWNER_OPTIONS, GET_SPECTRUM } from "../client/queries"
-import SubtypeSelector from "./SubtypeSelector"
-import SortableWindowedSelect from "./SortableWindowedSelect"
-import ProductLink from "./ProductLink"
+import React, { useEffect, useCallback } from 'react'
+import PropTypes from 'prop-types'
+import Box from '@material-ui/core/Box'
+import { useQuery, useMutation, useApolloClient } from '@apollo/react-hooks'
+import { components } from 'react-select'
+import update from 'immutability-helper'
+import gql from 'graphql-tag'
+import { GET_OWNER_OPTIONS, GET_SPECTRUM } from '../client/queries'
+import SubtypeSelector from './SubtypeSelector'
+import SortableWindowedSelect from './SortableWindowedSelect'
+import ProductLink from './ProductLink'
 
-import theme from "./theme"
+import theme from './theme'
 
 const customStyles = {
-  menu: provided => ({
+  menu: (provided) => ({
     ...provided,
-    zIndex: "10000",
+    zIndex: '10000',
   }),
   singleValue: (provided, state) => ({
     ...provided,
-    [theme.breakpoints.down("xs")]: {
-      fontSize: "0.88rem",
+    [theme.breakpoints.down('xs')]: {
+      fontSize: '0.88rem',
     },
   }),
 }
 
 const SingleValue = ({ children, data, ...props }) => {
   const client = useApolloClient()
-  const [extra, setExtra] = React.useState("")
+  const [extra, setExtra] = React.useState('')
   useEffect(() => {
     async function fetchQeEc(id) {
       const {
@@ -39,36 +39,35 @@ const SingleValue = ({ children, data, ...props }) => {
       if (spectrum.owner) {
         const { qy, extCoeff } = spectrum.owner
         if (qy || extCoeff) {
-          let val = "("
+          let val = '('
           if (qy) {
             val += `QY: ${qy}`
-            if (extCoeff) val += " / "
+            if (extCoeff) val += ' / '
           }
           if (extCoeff) val += `EC: ${extCoeff.toLocaleString()}`
-          val += ")"
+          val += ')'
           setExtra(val)
         } else {
-          setExtra("")
+          setExtra('')
         }
       }
     }
-    if (data.category === "P" || data.category === "D") {
+    if (data.category === 'P' || data.category === 'D') {
       fetchQeEc(data.spectra[0].id)
     }
   }, [client, children, data.spectra, data.category])
 
   return (
     <components.SingleValue {...props}>
-      {children}
-      {" "}
+      {children}{' '}
       <span
         style={{
-          fontSize: "0.76rem",
-          color: "#a9a9a9",
+          fontSize: '0.76rem',
+          color: '#a9a9a9',
           fontWeight: 600,
           marginLeft: 5,
           bottom: 1,
-          position: "relative",
+          position: 'relative',
         }}
       >
         {extra}
@@ -111,7 +110,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   const [comboMutate] = useMutation(COMBO_MUTATE)
   // when the spectrum selector changes
   const handleOwnerChange = useCallback(
-    newValue => {
+    (newValue) => {
       // if it's the same as the previous value do nothing
       if (value === newValue) return
       // setValue(newValue)
@@ -143,7 +142,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   const [myOptions, setMyOptions] = React.useState(options)
 
   useEffect(() => {
-    const otherOwners = allOwners.filter(i => i !== selector.owner)
+    const otherOwners = allOwners.filter((i) => i !== selector.owner)
     if (!otherOwners) return
     let newOptions = myOptions
     options.forEach((option, index) => {
@@ -187,7 +186,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
       {subtypes.length > 0 && (
         <SubtypeSelector
           subtypes={subtypes}
-          skip={value && !["P", "D"].includes(value.category)}
+          skip={value && !['P', 'D'].includes(value.category)}
         />
       )}
       <ProductLink current={value} />

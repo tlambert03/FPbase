@@ -459,8 +459,8 @@ table.spectra-form {
     }
   }
   tr.emission-row {
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
+    input[type='number']::-webkit-inner-spin-button,
+    input[type='number']::-webkit-outer-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
@@ -714,7 +714,7 @@ $switch-thumb-bg: $white !default;
 $switch-thumb-border-radius: 50% !default;
 $switch-thumb-padding: 2px !default;
 $switch-focus-box-shadow: 0 0 0 $input-btn-focus-width
-  rgba(map-get($theme-colors, "primary"), 0.25);
+  rgba(map-get($theme-colors, 'primary'), 0.25);
 $switch-transition: 0.2s all !default;
 
 .switch {
@@ -753,7 +753,7 @@ $switch-transition: 0.2s all !default;
 
     + label::before,
     + label::after {
-      content: "";
+      content: '';
       position: absolute;
       top: 0;
       left: 0;

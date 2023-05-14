@@ -206,7 +206,7 @@ $bs-height-xs: floor($btn-line-height + $btn-padding-x-sm * 2);
 }
 
 .btn-twitter {
-  @include btn-social(#1DA1F2, #fff);
+  @include btn-social(#1da1f2, #fff);
 }
 
 .btn-vimeo {
@@ -222,15 +222,15 @@ $bs-height-xs: floor($btn-line-height + $btn-padding-x-sm * 2);
 }
 
 .btn-stripe {
-  @include btn-social(#1275FF);
+  @include btn-social(#1275ff);
 }
 
 .btn-amazon {
-  @include btn-social(#FF9900, #232F3E);
+  @include btn-social(#ff9900, #232f3e);
 }
 
 .btn-patreon {
-  @include btn-social(#F96854, #052D49);
+  @include btn-social(#f96854, #052d49);
 }
 
 .btn-untappd {
@@ -242,5 +242,5 @@ $bs-height-xs: floor($btn-line-height + $btn-padding-x-sm * 2);
 }
 
 .btn-whatsapp {
-  @include btn-social(#25D366, #fff);
+  @include btn-social(#25d366, #fff);
 }

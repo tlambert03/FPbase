@@ -1,31 +1,31 @@
-import React from "react"
-import Typography from "@material-ui/core/Typography"
-import NoSsr from "@material-ui/core/NoSsr"
-import TextField from "@material-ui/core/TextField"
-import Paper from "@material-ui/core/Paper"
-import PropTypes from "prop-types"
-import { makeStyles, useTheme } from "@material-ui/core/styles"
-import "regenerator-runtime" // why do I need this?!?
-import Select from "react-select"
-import SortableWindowedSelect from "./SortableWindowedSelect"
+import React from 'react'
+import Typography from '@material-ui/core/Typography'
+import NoSsr from '@material-ui/core/NoSsr'
+import TextField from '@material-ui/core/TextField'
+import Paper from '@material-ui/core/Paper'
+import PropTypes from 'prop-types'
+import { makeStyles, useTheme } from '@material-ui/core/styles'
+import 'regenerator-runtime' // why do I need this?!?
+import Select from 'react-select'
+import SortableWindowedSelect from './SortableWindowedSelect'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
   input: {
-    display: "flex",
+    display: 'flex',
     padding: 0,
-    height: "auto",
+    height: 'auto',
     paddingBottom: 4,
-    fontSize: "1.2rem",
+    fontSize: '1.2rem',
   },
   valueContainer: {
-    display: "flex",
-    flexWrap: "wrap",
+    display: 'flex',
+    flexWrap: 'wrap',
     flex: 1,
-    alignItems: "center",
-    overflow: "hidden",
+    alignItems: 'center',
+    overflow: 'hidden',
   },
   noOptionsMessage: {
     padding: theme.spacing(1, 2),
@@ -34,13 +34,13 @@ const useStyles = makeStyles(theme => ({
     fontSize: 16,
   },
   placeholder: {
-    position: "absolute",
+    position: 'absolute',
     left: 4,
     bottom: 7,
-    fontSize: "1.2rem",
+    fontSize: '1.2rem',
   },
   paper: {
-    position: "absolute",
+    position: 'absolute',
     zIndex: 1,
     marginTop: theme.spacing(1),
     left: 0,
@@ -165,11 +165,11 @@ function MuiReactSelect({ paginate, components, ...otherprops }) {
   const theme = useTheme()
 
   const selectStyles = {
-    input: base => ({
+    input: (base) => ({
       ...base,
       color: theme.palette.text.primary,
-      "& input": {
-        font: "inherit",
+      '& input': {
+        font: 'inherit',
       },
     }),
   }

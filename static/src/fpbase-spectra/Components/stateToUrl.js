@@ -1,8 +1,8 @@
-import qs from "qs"
+import qs from 'qs'
 
 function stateToUrl(activeSpectra, chartOptions, exNorm) {
   const qstrings = []
-  if (activeSpectra) qstrings.push(`s=${activeSpectra.join(",")}`)
+  if (activeSpectra) qstrings.push(`s=${activeSpectra.join(',')}`)
   if (chartOptions) {
     const opts = { ...chartOptions }
     delete opts.__typename
@@ -10,8 +10,8 @@ function stateToUrl(activeSpectra, chartOptions, exNorm) {
     if (xMin) opts.xMin = xMin
     if (xMax) opts.xMax = xMax
     delete opts.extremes
-    Object.keys(opts).forEach(key => {
-      if (typeof opts[key] === "boolean") {
+    Object.keys(opts).forEach((key) => {
+      if (typeof opts[key] === 'boolean') {
         opts[key] = Number(opts[key])
       }
     })
@@ -21,7 +21,7 @@ function stateToUrl(activeSpectra, chartOptions, exNorm) {
     qstrings.push(qs.stringify({ normWave: exNorm[0], normID: exNorm[1] }))
   }
   const { origin, pathname } = window.location
-  return qstrings.length ? `${origin + pathname}?${qstrings.join("&")}` : ""
+  return qstrings.length ? `${origin + pathname}?${qstrings.join('&')}` : ''
 }
 
 export default stateToUrl

@@ -1,4 +1,4 @@
-import { library, dom } from "@fortawesome/fontawesome-svg-core";
+import { library, dom } from '@fortawesome/fontawesome-svg-core'
 import {
   faBan,
   faBars,
@@ -39,17 +39,17 @@ import {
   faTimesCircle,
   faTrashAlt,
   faUpload,
-  faWrench
-} from "@fortawesome/free-solid-svg-icons"; // ES Module "as" syntax
+  faWrench,
+} from '@fortawesome/free-solid-svg-icons' // ES Module "as" syntax
 import {
   faHeart as farHeart,
   faEye as farEye,
   faFlag as farFlag,
   faSun as farSun,
   faKeyboard,
-  faCircle
-} from "@fortawesome/free-regular-svg-icons";
-import { faTwitter, faGoogle } from "@fortawesome/free-brands-svg-icons";
+  faCircle,
+} from '@fortawesome/free-regular-svg-icons'
+import { faTwitter, faGoogle } from '@fortawesome/free-brands-svg-icons'
 
 library.add(
   faAdjust,
@@ -101,8 +101,8 @@ library.add(
   farSun,
   faTwitter,
   faGoogle
-);
+)
 
 // Replace any existing <i> tags with <svg> and set up a MutationObserver to
 // continue doing this as the DOM changes.
-dom.watch();
+dom.watch()

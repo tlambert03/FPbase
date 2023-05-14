@@ -9,7 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 def get_service(
     api_name="analytics",
     api_version="v3",
-    scopes=["https://www.googleapis.com/auth/analytics.readonly"],
+    scopes="",
 ):
     """Get a service that communicates to a Google API.
     Returns:
@@ -31,6 +31,7 @@ def get_service(
             + "626427424458-compute%40developer.gserviceaccount.com"
         ),
     }
+    scopes = scopes or ["https://www.googleapis.com/auth/analytics.readonly"]
     cred = ServiceAccountCredentials.from_json_keyfile_dict(keyfile_dict, scopes=scopes)
 
     # Build the service object.
@@ -48,21 +49,14 @@ def get_first_profile_id(service):
         account = accounts.get("items")[0].get("id")
 
         # Get a list of all the properties for the first account.
-        properties = (
-            service.management().webproperties().list(accountId=account).execute()
-        )
+        properties = service.management().webproperties().list(accountId=account).execute()
 
         if properties.get("items"):
             # Get the first property id.
             property = properties.get("items")[0].get("id")
 
             # Get a list of all views (profiles) for the first property.
-            profiles = (
-                service.management()
-                .profiles()
-                .list(accountId=account, webPropertyId=property)
-                .execute()
-            )
+            profiles = service.management().profiles().list(accountId=account, webPropertyId=property).execute()
 
             if profiles.get("items"):
                 # return the first view (profile) id.
@@ -112,7 +106,7 @@ def ga_popular_proteins(service=None, profile_id=None, days=30, max_results=None
         (r[0].replace("/protein/", "").split("/")[0], r[1], r[2])
         for r in analytics_data["rows"]
         if r[0].startswith("/protein")
-        and not any([x in r[0] for x in ("bleach", "update")])
+        and not any(x in r[0] for x in ("bleach", "update"))
         and "not found" not in r[1]
         and " :: " in r[1]
     ]

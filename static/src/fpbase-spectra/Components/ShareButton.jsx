@@ -1,59 +1,59 @@
-import React, { useEffect, useState } from "react"
-import Menu from "@material-ui/core/Menu"
-import MenuItem from "@material-ui/core/MenuItem"
-import ListItemIcon from "@material-ui/core/ListItemIcon"
-import ListItemText from "@material-ui/core/ListItemText"
-import DownloadIcon from "@material-ui/icons/GetApp"
-import ChartIcon from "@material-ui/icons/InsertChart"
-import PrintIcon from "@material-ui/icons/Print"
-import LinkIcon from "@material-ui/icons/Link"
-import CloseIcon from "@material-ui/icons/Close"
-import Divider from "@material-ui/core/Divider"
-import ShareIcon from "@material-ui/icons/Share"
-import { useQuery } from "@apollo/react-hooks"
-import TextField from "@material-ui/core/TextField"
-import Tooltip from "@material-ui/core/Tooltip"
-import InputAdornment from "@material-ui/core/InputAdornment"
-import IconButton from "@material-ui/core/IconButton"
-import Highcharts from "highcharts"
-import Dialog from "@material-ui/core/Dialog"
-import DialogTitle from "@material-ui/core/DialogTitle"
-import DialogContent from "@material-ui/core/DialogContent"
-import DialogActions from "@material-ui/core/DialogActions"
-import { faEnvelope, faCopy } from "@fortawesome/free-solid-svg-icons"
-import { faTwitter } from "@fortawesome/free-brands-svg-icons"
-import ClipboardJS from "clipboard"
-import { makeStyles } from "@material-ui/core/styles"
-import Zoom from "@material-ui/core/Zoom"
-import { FAIcon } from "./FaIcon"
-import stateToUrl from "./stateToUrl"
+import React, { useEffect, useState } from 'react'
+import Menu from '@material-ui/core/Menu'
+import MenuItem from '@material-ui/core/MenuItem'
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemText from '@material-ui/core/ListItemText'
+import DownloadIcon from '@material-ui/icons/GetApp'
+import ChartIcon from '@material-ui/icons/InsertChart'
+import PrintIcon from '@material-ui/icons/Print'
+import LinkIcon from '@material-ui/icons/Link'
+import CloseIcon from '@material-ui/icons/Close'
+import Divider from '@material-ui/core/Divider'
+import ShareIcon from '@material-ui/icons/Share'
+import { useQuery } from '@apollo/react-hooks'
+import TextField from '@material-ui/core/TextField'
+import Tooltip from '@material-ui/core/Tooltip'
+import InputAdornment from '@material-ui/core/InputAdornment'
+import IconButton from '@material-ui/core/IconButton'
+import Highcharts from 'highcharts'
+import Dialog from '@material-ui/core/Dialog'
+import DialogTitle from '@material-ui/core/DialogTitle'
+import DialogContent from '@material-ui/core/DialogContent'
+import DialogActions from '@material-ui/core/DialogActions'
+import { faEnvelope, faCopy } from '@fortawesome/free-solid-svg-icons'
+import { faTwitter } from '@fortawesome/free-brands-svg-icons'
+import ClipboardJS from 'clipboard'
+import { makeStyles } from '@material-ui/core/styles'
+import Zoom from '@material-ui/core/Zoom'
+import { FAIcon } from './FaIcon'
+import stateToUrl from './stateToUrl'
 import {
   GET_ACTIVE_SPECTRA,
   GET_CHART_OPTIONS,
   GET_EX_NORM,
-} from "../client/queries"
+} from '../client/queries'
 
-window.twttr = (function(d, s, id) {
+window.twttr = (function (d, s, id) {
   const fjs = d.getElementsByTagName(s)[0]
   const t = window.twttr || {}
   if (d.getElementById(id)) return t
   const js = d.createElement(s)
   js.id = id
-  js.src = "https://platform.twitter.com/widgets.js"
+  js.src = 'https://platform.twitter.com/widgets.js'
   fjs.parentNode.insertBefore(js, fjs)
 
   t._e = []
-  t.ready = function(f) {
+  t.ready = function (f) {
     t._e.push(f)
   }
 
   return t
-})(document, "script", "twitter-wjs")
+})(document, 'script', 'twitter-wjs')
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   textField: {
     flexBasis: 200,
-    width: "98%",
+    width: '98%',
     margin: theme.spacing(1),
   },
   listIcon: {
@@ -62,7 +62,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 function ShareLinkAlert({ open, setOpen }) {
-  const [qString, setQString] = useState("")
+  const [qString, setQString] = useState('')
   const classes = useStyles()
 
   const {
@@ -99,12 +99,12 @@ function ShareLinkAlert({ open, setOpen }) {
   }
 
   useEffect(() => {
-    const cp = new ClipboardJS("#copy-button", {
-      target: function(trigger) {
-        return document.getElementById("qString-input")
+    const cp = new ClipboardJS('#copy-button', {
+      target: function (trigger) {
+        return document.getElementById('qString-input')
       },
     })
-    cp.on("success", handleTooltipOpen)
+    cp.on('success', handleTooltipOpen)
     return () => {
       cp.destroy()
     }
@@ -134,7 +134,7 @@ function ShareLinkAlert({ open, setOpen }) {
             fullWidth
             readOnly
             InputProps={{
-              style: { color: "#669" },
+              style: { color: '#669' },
               endAdornment: (
                 <InputAdornment position="end">
                   <Tooltip
@@ -165,7 +165,7 @@ function ShareLinkAlert({ open, setOpen }) {
             color="primary"
             href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qString.replace(
               /&/g,
-              "%26"
+              '%26'
             )}`}
           >
             <FAIcon icon={faEnvelope} style={{}} />
@@ -174,7 +174,7 @@ function ShareLinkAlert({ open, setOpen }) {
             color="primary"
             href={`http://twitter.com/intent/tweet?url=${qString.replace(
               /&/g,
-              "%26"
+              '%26'
             )}&text=Check out these spectra at FPbase%0D%0A&via=FPbase`}
             title="Tweet"
             target="_blank"
@@ -205,12 +205,12 @@ const ShareButton = () => {
   }
 
   function exportChart(format) {
-    if (format === "csv") {
+    if (format === 'csv') {
       chart.downloadCSV()
     } else {
       chart.exportChart({
         type: format,
-        filename: "FPbaseSpectra",
+        filename: 'FPbaseSpectra',
       })
     }
     setAnchorEl(null)
@@ -248,7 +248,7 @@ const ShareButton = () => {
       >
         {hasSeries ? (
           <div>
-            <MenuItem onClick={() => exportChart("image/svg+xml")}>
+            <MenuItem onClick={() => exportChart('image/svg+xml')}>
               <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
@@ -257,20 +257,20 @@ const ShareButton = () => {
                 style={{ paddingRight: 20 }}
               />
             </MenuItem>
-            <MenuItem onClick={() => exportChart("image/png")}>
+            <MenuItem onClick={() => exportChart('image/png')}>
               <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
               <ListItemText primary="Download chart as PNG" />
             </MenuItem>
-            <MenuItem onClick={() => exportChart("application/pdf")}>
+            <MenuItem onClick={() => exportChart('application/pdf')}>
               <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
               <ListItemText primary="Download chart as PDF" />
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => exportChart("csv")}>
+            <MenuItem onClick={() => exportChart('csv')}>
               <ListItemIcon className={classes.listIcon}>
                 <ChartIcon />
               </ListItemIcon>

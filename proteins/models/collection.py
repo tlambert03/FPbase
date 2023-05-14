@@ -1,8 +1,8 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
-from django.contrib.postgres.fields import ArrayField
 
 User = get_user_model()
 
@@ -23,9 +23,7 @@ class OwnedCollection(TimeStampedModel):
         allowed = self.managers
         if self.owner:
             allowed += [self.owner.email]
-        allowed += list(
-            User.objects.filter(is_superuser=True).values_list("email", flat=True)
-        )
+        allowed += list(User.objects.filter(is_superuser=True).values_list("email", flat=True))
         try:
             return request.user.email in allowed
         except Exception:
@@ -43,8 +41,7 @@ class ProteinCollection(OwnedCollection):
     private = models.BooleanField(
         default=False,
         verbose_name="Private Collection",
-        help_text="Private collections can not be seen "
-        "by or shared with other users",
+        help_text="Private collections can not be seen " "by or shared with other users",
     )
 
     def get_absolute_url(self):
@@ -55,9 +52,7 @@ class ProteinCollection(OwnedCollection):
 
 
 class FluorophoreCollection(ProteinCollection):
-    dyes = models.ManyToManyField(
-        "Dye", blank=True, related_name="collection_memberships"
-    )
+    dyes = models.ManyToManyField("Dye", blank=True, related_name="collection_memberships")
 
     def get_absolute_url(self):
         return reverse("proteins:fluor-collection-detail", args=[self.id])

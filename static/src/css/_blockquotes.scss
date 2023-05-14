@@ -4,10 +4,8 @@
 // http://www.pawanmall.net
 */
 
-
-
 blockquote {
-  display:block;
+  display: block;
   background: #fff;
   padding: 18px 20px 8px 50px;
   margin: 0 0 1rem;
@@ -27,24 +25,24 @@ blockquote {
   border-right-style: solid;
   border-right-width: 2px;
 
-  &::before{
-    content: "\201C"; /*Unicode for Left Double Quote*/
+  &::before {
+    content: '\201C'; /*Unicode for Left Double Quote*/
 
     /*Font*/
     font-family: Georgia, serif;
     font-size: 50px;
     font-weight: bold;
-    color: #CCC;
+    color: #ccc;
 
     /*Positioning*/
     position: absolute;
     left: 10px;
-    top:5px;
+    top: 5px;
   }
 
-  & ::after{
+  & ::after {
     /*Reset to make sure*/
-    content: "";
+    content: '';
   }
 
   p {
@@ -52,7 +50,8 @@ blockquote {
     font-size: 0.95rem;
   }
 
-  h3, h4 {
+  h3,
+  h4 {
     font-variant: small-caps;
     font-size: 1rem;
   }
@@ -63,42 +62,45 @@ blockquote {
     padding-top: 0;
   }
 
-  &.mint{
+  &.mint {
     border-left-color: #46cfb0;
     border-right-color: #34bc9d;
-    h3, h4 {
-      color:#34bc9d;
+    h3,
+    h4 {
+      color: #34bc9d;
     }
   }
-  &.gray{
+  &.gray {
     border-left-color: #ccd1d8;
     border-right-color: #aab2bc;
-    h3, h4 {
-      color:#8E8E8E;
+    h3,
+    h4 {
+      color: #8e8e8e;
     }
   }
-  &.primary{
+  &.primary {
     border-left-color: $primary;
     border-right-color: darken($primary, 5);
-    h3, h4 {
+    h3,
+    h4 {
       color: $primary;
     }
   }
 
   a {
-    &:hover{
+    &:hover {
       text-decoration: none;
-      h3, h4 {
+      h3,
+      h4 {
         color: $primary;
       }
     }
   }
 }
 
-
-a.object-flag{
+a.object-flag {
   opacity: 0.3;
-  &:hover{
+  &:hover {
     opacity: 1;
   }
   &:focus {
@@ -116,8 +118,8 @@ a.object-flag{
   }
 }
 
-.flagicon{
+.flagicon {
   color: $danger;
-  margin-left:10px;
+  margin-left: 10px;
   font-size: 1.1rem;
 }

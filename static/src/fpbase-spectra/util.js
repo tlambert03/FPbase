@@ -91,7 +91,7 @@ const setStorageWithTimeStamp = (cacheKey, value) => {
 const debounce = (fn, time) => {
   let timeout
 
-  return function(...args) {
+  return function (...args) {
     const functionCall = () => fn.apply(this, args)
 
     clearTimeout(timeout)
@@ -134,8 +134,8 @@ function reshapeSpectraInfo(arr) {
 }
 
 function decoder(str, _, charset) {
-  const strWithoutPlus = str.replace(/\+/g, " ")
-  if (charset === "iso-8859-1") {
+  const strWithoutPlus = str.replace(/\+/g, ' ')
+  if (charset === 'iso-8859-1') {
     // unescape never throws, no try...catch needed:
     return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape)
   }
@@ -165,21 +165,21 @@ function decoder(str, _, charset) {
 
 function isTouchDevice() {
   try {
-    const prefixes = " -webkit- -moz- -o- -ms- ".split(" ")
+    const prefixes = ' -webkit- -moz- -o- -ms- '.split(' ')
 
-    const mq = function(query) {
+    const mq = function (query) {
       return window.matchMedia(query).matches
     }
 
     if (
-      "ontouchstart" in window ||
-      (typeof window.DocumentTouch !== "undefined" &&
+      'ontouchstart' in window ||
+      (typeof window.DocumentTouch !== 'undefined' &&
         document instanceof window.DocumentTouch)
     ) {
       return true
     }
 
-    return mq(["(", prefixes.join("touch-enabled),("), "heartz", ")"].join(""))
+    return mq(['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join(''))
   } catch (e) {
     // console.error("(Touch detect failed)", e)
     return false

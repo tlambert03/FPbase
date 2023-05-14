@@ -1,13 +1,13 @@
-import React, { useState } from "react"
-import InputForm from "./InputForm.jsx"
-import BlastReport from "./ReportView.jsx"
-import Form from "react-bootstrap/Form"
-import Row from "react-bootstrap/Row"
-import Col from "react-bootstrap/Col"
-import $ from "jquery"
+import React, { useState } from 'react'
+import InputForm from './InputForm.jsx'
+import BlastReport from './ReportView.jsx'
+import Form from 'react-bootstrap/Form'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
+import $ from 'jquery'
 
 function ReportSelect({ reports, binary, index, onChange }) {
-  const unit = binary === "blastp" ? "aa" : "nt"
+  const unit = binary === 'blastp' ? 'aa' : 'nt'
 
   function handleChange(event) {
     onChange(event.target.value)
@@ -21,7 +21,7 @@ function ReportSelect({ reports, binary, index, onChange }) {
           sm={3}
           md={2}
           className="font-weight-bold"
-          style={{ color: "#5b616b" }}
+          style={{ color: '#5b616b' }}
         >
           Results for:
         </Form.Label>
@@ -29,9 +29,7 @@ function ReportSelect({ reports, binary, index, onChange }) {
           <Form.Control as="select" onChange={handleChange} value={index}>
             {reports.map((item, i) => (
               <option key={i} value={i}>
-                {`${item.report.results.search.query_id}: ${
-                  item.report.results.search.query_title
-                } (${item.report.results.search.query_len}${unit})`}
+                {`${item.report.results.search.query_id}: ${item.report.results.search.query_title} (${item.report.results.search.query_len}${unit})`}
               </option>
             ))}
           </Form.Control>
@@ -43,7 +41,7 @@ function ReportSelect({ reports, binary, index, onChange }) {
 
 function App() {
   const [results, setResults] = useState([])
-  const [binary, setBinary] = useState("blastp")
+  const [binary, setBinary] = useState('blastp')
   const [reportIndex, setReportIndex] = useState(0)
   const notDNA = new RegExp(/[^(A|T|C|G)]/g)
 
@@ -52,19 +50,19 @@ function App() {
 
     const seqLetters = $(target)[0][1]
       .value.toUpperCase()
-      .replace(/^>.*$/gm, "")
-      .replace(/(?:\r\n|\r|\n)/g, "")
+      .replace(/^>.*$/gm, '')
+      .replace(/(?:\r\n|\r|\n)/g, '')
 
-    const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
+    const bin = notDNA.test(seqLetters) ? 'blastp' : 'blastx'
     setBinary(bin)
 
-    $.post("", $(target).serialize() + "&binary=" + bin, data => {
+    $.post('', $(target).serialize() + '&binary=' + bin, (data) => {
       if (data.status === 200) {
         setResults(data.blastResult)
       } else if (data.status === 500) {
         console.error(data.error)
         alert(
-          "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
+          'There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format'
         )
       }
     })
@@ -92,8 +90,8 @@ function App() {
             Version: {results[0].report.version}
             <br />
             FPbase Sequence Database (
-            {results[0].report.results.search.stat.db_num} sequences,{" "}
-            {results[0].report.results.search.stat.db_len.toLocaleString("en")}{" "}
+            {results[0].report.results.search.stat.db_num} sequences,{' '}
+            {results[0].report.results.search.stat.db_len.toLocaleString('en')}{' '}
             total letters)
             <br />
             Matrix: {results[0].report.params.matrix}

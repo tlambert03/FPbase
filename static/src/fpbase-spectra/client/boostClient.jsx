@@ -1,17 +1,17 @@
-import ApolloClient, { InMemoryCache } from "apollo-boost"
-import { persistCache } from "apollo-cache-persist"
-import { defaults, resolvers } from "./resolvers"
-import { typeDefs } from "./schema"
+import ApolloClient, { InMemoryCache } from 'apollo-boost'
+import { persistCache } from 'apollo-cache-persist'
+import { defaults, resolvers } from './resolvers'
+import { typeDefs } from './schema'
 
 const cache = new InMemoryCache()
 const client = new ApolloClient({
   cache: cache,
-  uri: "http://localhost:8000/graphql/",
+  uri: 'http://localhost:8000/graphql/',
   clientState: {
     defaults,
     typeDefs,
-    resolvers
-  }
+    resolvers,
+  },
 })
 window.client = client
 
@@ -19,7 +19,7 @@ window.client = client
 const setupLocalStorage = async () => {
   await persistCache({
     cache,
-    storage: window.sessionStorage
+    storage: window.sessionStorage,
   })
 }
 setupLocalStorage()

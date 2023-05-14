@@ -1,17 +1,18 @@
-from django.contrib.postgres.search import TrigramSimilarity
-from django.shortcuts import render, redirect
-from django.db.models import Count, Prefetch, Q
-from ..filters import ProteinFilter
-from ..models import Protein, State, Organism
-from references.models import Reference, Author
-
-
 import json
+
+from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models import Count, Prefetch, Q
+from django.shortcuts import redirect, render
+
 from proteins.util.helpers import getprot
+from references.models import Author, Reference
+
+from ..filters import ProteinFilter
+from ..models import Organism, Protein, State
 
 
 def protein_search(request):
-    """ renders html for protein search page  """
+    """renders html for protein search page"""
 
     if request.GET:
         if set(request.GET.keys()) == {"q"}:
@@ -33,11 +34,7 @@ def protein_search(request):
             except Protein.DoesNotExist:
                 pass
             try:
-                page = (
-                    Author.objects.filter(family__iexact=query)
-                    .annotate(nr=Count("publications"))
-                    .order_by("-nr")
-                )
+                page = Author.objects.filter(family__iexact=query).annotate(nr=Count("publications")).order_by("-nr")
                 if page:
                     return redirect(page.first())
             except Author.DoesNotExist:
@@ -64,9 +61,7 @@ def protein_search(request):
             del request.GET["q"]
             return redirect("/search/?name__iexact=" + query)
 
-        stateprefetch = Prefetch(
-            "states", queryset=State.objects.order_by("-is_dark", "em_max")
-        )
+        stateprefetch = Prefetch("states", queryset=State.objects.order_by("-is_dark", "em_max"))
         f = ProteinFilter(
             request.GET,
             queryset=Protein.visible.annotate(nstates=Count("states"))

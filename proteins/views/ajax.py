@@ -20,9 +20,7 @@ from ..models import Fluorophore, Lineage, Organism, Protein, Spectrum, State
 def serialize_comparison(request):
     info = []
     slugs = request.session.get("comparison", [])
-    for prot in Protein.objects.filter(slug__in=slugs).prefetch_related(
-        "default_state"
-    ):
+    for prot in Protein.objects.filter(slug__in=slugs).prefetch_related("default_state"):
         d = {"name": prot.name, "slug": prot.slug}
         if prot.default_state:
             d.update(
@@ -53,9 +51,7 @@ def update_comparison(request):
     elif request.POST.get("operation") == "clear":
         current.clear()
     request.session["comparison"] = list(current)
-    return JsonResponse(
-        {"status": 200, "comparison_set": serialize_comparison(request)}
-    )
+    return JsonResponse({"status": 200, "comparison_set": serialize_comparison(request)})
 
 
 @login_required
@@ -157,9 +153,7 @@ def validate_proteinname(request):
     name = request.POST.get("name", None)
     slug = request.POST.get("slug", None)
     try:
-        prot = Protein.objects.get(
-            slug=slugify(name.replace(" ", "").replace("monomeric", "m"))
-        )
+        prot = Protein.objects.get(slug=slugify(name.replace(" ", "").replace("monomeric", "m")))
         if slug and prot.slug == slug:
             data = {"is_taken": False}
         else:
@@ -223,9 +217,7 @@ def get_lineage(request, slug=None, org=None):
     else:
         ids = Lineage.objects.all().values_list("id", flat=True)
     # cache upfront everything we're going to need
-    stateprefetch = Prefetch(
-        "protein__states", queryset=State.objects.order_by("-is_dark", "em_max")
-    )
+    stateprefetch = Prefetch("protein__states", queryset=State.objects.order_by("-is_dark", "em_max"))
     root_nodes = (
         Lineage.objects.filter(id__in=ids)
         .select_related("protein", "reference", "protein__default_state")

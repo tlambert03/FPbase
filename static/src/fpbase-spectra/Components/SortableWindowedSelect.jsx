@@ -1,20 +1,20 @@
-import React, { useEffect } from "react"
-import Select, { components } from "react-select"
-import { WindowedMenuList } from "react-windowed-select"
-import PropTypes from "prop-types"
-import { categoryIcon } from "./FaIcon"
+import React, { useEffect } from 'react'
+import Select, { components } from 'react-select'
+import { WindowedMenuList } from 'react-windowed-select'
+import PropTypes from 'prop-types'
+import { categoryIcon } from './FaIcon'
 
 const filterOptions = (query, label) => {
-  const words = query.toLowerCase().split(" ")
+  const words = query.toLowerCase().split(' ')
   const opts = label.toLowerCase()
   return words.reduce((acc, cur) => acc && opts.includes(cur), true)
 }
 
-const querySorter = query => {
+const querySorter = (query) => {
   const lowerquery = query.trimRight().toLowerCase()
   return function sortOptions(a, b) {
-    const alabel = a.label.replace(/^m/, "").toLowerCase()
-    const blabel = b.label.replace(/^m/, "").toLowerCase()
+    const alabel = a.label.replace(/^m/, '').toLowerCase()
+    const blabel = b.label.replace(/^m/, '').toLowerCase()
     if (alabel.startsWith(lowerquery)) {
       if (blabel.startsWith(lowerquery)) {
         return alabel < blabel ? -1 : 1
@@ -26,12 +26,12 @@ const querySorter = query => {
   }
 }
 
-const OptionWithIcon = props => {
+const OptionWithIcon = (props) => {
   const myProps = { ...props }
 
   myProps.children = (
     <>
-      {categoryIcon(myProps.data.category, "#aaa")}
+      {categoryIcon(myProps.data.category, '#aaa')}
       {myProps.children}
     </>
   )
@@ -55,7 +55,7 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
   ...otherprops
 }) {
   const [dynamicOptions, setOptions] = React.useState(options)
-  const [inputValue, setInputValue] = React.useState("")
+  const [inputValue, setInputValue] = React.useState('')
 
   useEffect(() => {
     setOptions(options)
@@ -64,17 +64,18 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
   // blur the select element when the escape key is pressed
   const selectRef = React.useRef()
   useEffect(() => {
-    const blurme = e => (e.code === "Escape" ? selectRef.current.blur() : null)
-    document.addEventListener("keydown", blurme)
+    const blurme = (e) =>
+      e.code === 'Escape' ? selectRef.current.blur() : null
+    document.addEventListener('keydown', blurme)
     return () => {
-      document.removeEventListener("keydown", blurme)
+      document.removeEventListener('keydown', blurme)
     }
   }, [])
 
   const handleInputChange = React.useCallback(
     (query, { action }) => {
       setInputValue(query)
-      if (action === "input-change") {
+      if (action === 'input-change') {
         if (query) {
           const newOpts = (options || [])
             .filter(({ label }) => filterOptions(query, label))
@@ -83,7 +84,7 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
         } else {
           setOptions(options)
         }
-      } else if (action === "menu-close") {
+      } else if (action === 'menu-close') {
         setOptions(options)
       }
     },

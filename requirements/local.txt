@@ -37,4 +37,3 @@ pdbpp==0.10.3
 
 django-debug-toolbar==4.0.0  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==3.2.1  # https://github.com/django-extensions/django-extensions
-

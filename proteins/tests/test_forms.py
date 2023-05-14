@@ -1,7 +1,7 @@
 from test_plus.test import TestCase
 
+from ..forms import CollectionForm, ProteinForm, StateForm
 from ..models import Protein, State
-from ..forms import ProteinForm, StateForm, CollectionForm
 
 
 class TestProteinForm(TestCase):
@@ -107,9 +107,7 @@ class TestStateForm(TestCase):
         State.objects.get_or_create(protein=self.t)
 
     def test_clean_state_success(self):
-        form = StateForm(
-            {"name": "default", "ex_max": "488", "em_max": "525", "protein": self.t.id}
-        )
+        form = StateForm({"name": "default", "ex_max": "488", "em_max": "525", "protein": self.t.id})
         valid = form.is_valid()
         self.assertTrue(valid, "Form is not valid")
         self.assertEqual("default", form.cleaned_data["name"])

@@ -13,9 +13,9 @@
   $yiq: (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
 
   @if ($yiq >= 150) {
-    @return "#111";
+    @return '#111';
   } @else {
-    @return "#fff";
+    @return '#fff';
   }
 }
 
@@ -31,10 +31,10 @@ $s2bs-border-radius-base: $border-radius !default;
 $s2bs-border-radius-large: $border-radius-lg !default;
 $s2bs-border-radius-small: $border-radius-sm !default;
 $s2bs-btn-default-bg: $input-group-addon-bg !default; // or $gray-200
-$s2bs-btn-default-border: theme-color("secondary") !default;
+$s2bs-btn-default-border: theme-color('secondary') !default;
 $s2bs-btn-default-color: bs4-color-yiq($s2bs-btn-default-bg) !default;
-$s2bs-caret-width-base: .25rem !default; // 4px
-$s2bs-caret-width-large: .3125rem !default; // 5px
+$s2bs-caret-width-base: 0.25rem !default; // 4px
+$s2bs-caret-width-large: 0.3125rem !default; // 5px
 
 $s2bs-cursor-disabled: not-allowed !default;
 $s2bs-dropdown-header-color: $dropdown-header-color !default;
@@ -49,7 +49,7 @@ $s2bs-font-size-small: $font-size-sm !default;
 $s2bs-padding-base-horizontal: $input-btn-padding-x !default;
 $s2bs-padding-large-horizontal: $input-btn-padding-x-lg !default;
 $s2bs-padding-small-horizontal: $input-btn-padding-x-sm !default;
-$s2bs-padding-base-vertical: $input-btn-padding-y  !default;
+$s2bs-padding-base-vertical: $input-btn-padding-y !default;
 $s2bs-padding-large-vertical: $input-btn-padding-y-lg !default;
 $s2bs-padding-small-vertical: $input-btn-padding-y-sm !default;
 $s2bs-line-height-base: $input-btn-line-height !default;
@@ -62,10 +62,19 @@ $s2bs-input-color-placeholder: $input-placeholder-color !default;
 $s2bs-input-border: $input-border-color !default;
 $s2bs-input-border-focus: $input-focus-border-color !default;
 $s2bs-input-border-radius: $input-border-radius !default;
-$s2bs-input-height-base: calc(#{$input-btn-padding-y * 2 + $input-btn-line-height * $font-size-base} + #{$border-width * 2}) !default;
-$s2bs-input-height-large: calc(#{$input-btn-padding-y-lg * 2 + $input-btn-line-height * $font-size-lg} + #{$border-width * 2}) !default;
-$s2bs-input-height-small: calc(#{$input-btn-padding-y-sm * 2 + $input-btn-line-height * $font-size-sm} + #{$border-width * 2}) !default;
-$s2bs-state-warning-text: theme-color("warning") !default;
+$s2bs-input-height-base: calc(
+  #{$input-btn-padding-y * 2 + $input-btn-line-height * $font-size-base} + #{$border-width *
+    2}
+) !default;
+$s2bs-input-height-large: calc(
+  #{$input-btn-padding-y-lg * 2 + $input-btn-line-height * $font-size-lg} + #{$border-width *
+    2}
+) !default;
+$s2bs-input-height-small: calc(
+  #{$input-btn-padding-y-sm * 2 + $input-btn-line-height * $font-size-sm} + #{$border-width *
+    2}
+) !default;
+$s2bs-state-warning-text: theme-color('warning') !default;
 $s2bs-state-danger-text: $form-feedback-invalid-color !default;
 $s2bs-state-success-text: $form-feedback-valid-color !default;
 
@@ -73,8 +82,8 @@ $s2bs-state-success-text: $form-feedback-valid-color !default;
 // -------------------------
 
 $s2bs-dropdown-arrow-color: $s2bs-input-color-placeholder !default;
-$s2bs-dropdown-box-shadow: 0 6px 12px rgba(0,0,0,.175) !default;
-$s2bs-dropdown-box-shadow-above: 0px -3px 12px rgba(0,0,0,.175) !default;
+$s2bs-dropdown-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175) !default;
+$s2bs-dropdown-box-shadow-above: 0px -3px 12px rgba(0, 0, 0, 0.175) !default;
 $s2bs-clear-selection-color: $s2bs-dropdown-arrow-color !default;
 $s2bs-clear-selection-hover-color: $s2bs-btn-default-color !default;
 $s2bs-remove-choice-color: $s2bs-input-color-placeholder !default;
@@ -107,7 +116,9 @@ $s2bs-form-control-transition: $input-transition !default;
 // @see https://getbootstrap.com/docs/4.0/components/forms/#validation
 // @see https://github.com/twbs/bootstrap-sass/blob/master/assets/stylesheets/bootstrap/_forms.scss#L388
 @mixin validation-state-focus($color) {
-  $shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 6px lighten($color, 20%);
+  $shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.075),
+    0 0 6px lighten($color, 20%);
 
   .select2-dropdown,
   .select2-selection {
@@ -120,7 +131,7 @@ $s2bs-form-control-transition: $input-transition !default;
     border-color: darken($color, 10%);
 
     &:focus {
-      box-shadow: 0 0 0 .2rem rgba($color,.25);
+      box-shadow: 0 0 0 0.2rem rgba($color, 0.25);
     }
   }
 
@@ -141,21 +152,16 @@ $s2bs-form-control-transition: $input-transition !default;
      */
 
     .select2-selection__arrow b {
-      border-color: transparent transparent $s2bs-dropdown-arrow-color transparent;
-      border-width: 0 $s2bs-caret-width-large $s2bs-caret-width-large $s2bs-caret-width-large;
+      border-color: transparent transparent $s2bs-dropdown-arrow-color
+        transparent;
+      border-width: 0 $s2bs-caret-width-large $s2bs-caret-width-large
+        $s2bs-caret-width-large;
     }
   }
 }
 
-
-
-
-
 .select2-container--bootstrap {
   display: block;
-
-
-
 
   /*------------------------------------*\
       #COMMON STYLES
@@ -169,8 +175,6 @@ $s2bs-form-control-transition: $input-transition !default;
       @include border-radius($s2bs-border-radius-base);
     }
   }
-
-
 
   /**
    * Search field in the Select2 dropdown.
@@ -224,7 +228,7 @@ $s2bs-form-control-transition: $input-transition !default;
   .select2-results__option {
     padding: $s2bs-padding-base-vertical $s2bs-padding-base-horizontal;
 
-    &[role=group] {
+    &[role='group'] {
       padding: 0;
     }
 
@@ -234,7 +238,7 @@ $s2bs-form-control-transition: $input-transition !default;
      * @see https://select2.github.io/examples.html#disabled-results
      */
 
-    &[aria-disabled=true] {
+    &[aria-disabled='true'] {
       color: $s2bs-dropdown-link-disabled-color;
       cursor: $s2bs-cursor-disabled;
     }
@@ -243,7 +247,7 @@ $s2bs-form-control-transition: $input-transition !default;
      * Hover state.
      */
 
-    &[aria-selected=true] {
+    &[aria-selected='true'] {
       background-color: $s2bs-dropdown-link-hover-bg;
       color: $s2bs-dropdown-link-hover-color;
     }
@@ -266,23 +270,23 @@ $s2bs-form-control-transition: $input-transition !default;
 
       .select2-results__option {
         margin-left: -$s2bs-padding-base-horizontal;
-        padding-left: $s2bs-padding-base-horizontal*2;
+        padding-left: $s2bs-padding-base-horizontal * 2;
 
         .select2-results__option {
-          margin-left: -$s2bs-padding-base-horizontal*2;
-          padding-left: $s2bs-padding-base-horizontal*3;
+          margin-left: -$s2bs-padding-base-horizontal * 2;
+          padding-left: $s2bs-padding-base-horizontal * 3;
 
           .select2-results__option {
-            margin-left: -$s2bs-padding-base-horizontal*3;
-            padding-left: $s2bs-padding-base-horizontal*4;
+            margin-left: -$s2bs-padding-base-horizontal * 3;
+            padding-left: $s2bs-padding-base-horizontal * 4;
 
             .select2-results__option {
-              margin-left: -$s2bs-padding-base-horizontal*4;
-              padding-left: $s2bs-padding-base-horizontal*5;
+              margin-left: -$s2bs-padding-base-horizontal * 4;
+              padding-left: $s2bs-padding-base-horizontal * 5;
 
               .select2-results__option {
-                margin-left: -$s2bs-padding-base-horizontal*5;
-                padding-left: $s2bs-padding-base-horizontal*6;
+                margin-left: -$s2bs-padding-base-horizontal * 5;
+                padding-left: $s2bs-padding-base-horizontal * 6;
               }
             }
           }
@@ -294,7 +298,8 @@ $s2bs-form-control-transition: $input-transition !default;
   .select2-results__group {
     color: $s2bs-dropdown-header-color;
     display: block;
-    padding: $s2bs-dropdown-header-padding-vertical $s2bs-padding-base-horizontal;
+    padding: $s2bs-dropdown-header-padding-vertical
+      $s2bs-padding-base-horizontal;
     font-size: $s2bs-dropdown-header-font-size;
     line-height: $s2bs-line-height-base;
     white-space: nowrap;
@@ -306,7 +311,8 @@ $s2bs-form-control-transition: $input-transition !default;
       border-color: $s2bs-input-border-focus;
 
       @if $s2bs-enable-shadows {
-        box-shadow: $s2bs-form-control-box-shadow, $s2bs-form-control-focus-box-shadow;
+        box-shadow: $s2bs-form-control-box-shadow,
+          $s2bs-form-control-focus-box-shadow;
       } @else {
         box-shadow: $s2bs-form-control-focus-box-shadow;
       }
@@ -319,8 +325,10 @@ $s2bs-form-control-transition: $input-transition !default;
      */
 
     .select2-selection .select2-selection__arrow b {
-      border-color: transparent transparent $s2bs-dropdown-arrow-color transparent;
-      border-width: 0 $s2bs-caret-width-base $s2bs-caret-width-base $s2bs-caret-width-base;
+      border-color: transparent transparent $s2bs-dropdown-arrow-color
+        transparent;
+      border-width: 0 $s2bs-caret-width-base $s2bs-caret-width-base
+        $s2bs-caret-width-base;
     }
 
     /**
@@ -389,10 +397,6 @@ $s2bs-form-control-transition: $input-transition !default;
     }
   }
 
-
-
-
-
   /*------------------------------------*\
       #DROPDOWN
   \*------------------------------------*/
@@ -422,10 +426,6 @@ $s2bs-form-control-transition: $input-transition !default;
     overflow-y: auto;
   }
 
-
-
-
-
   /*------------------------------------*\
       #SINGLE SELECT2
   \*------------------------------------*/
@@ -433,7 +433,9 @@ $s2bs-form-control-transition: $input-transition !default;
   .select2-selection--single {
     height: $s2bs-input-height-base;
     line-height: $s2bs-line-height-base;
-    padding: $s2bs-padding-base-vertical ($s2bs-padding-base-horizontal + $s2bs-caret-width-base*3) $s2bs-padding-base-vertical $s2bs-padding-base-horizontal;
+    padding: $s2bs-padding-base-vertical
+      ($s2bs-padding-base-horizontal + $s2bs-caret-width-base * 3)
+      $s2bs-padding-base-vertical $s2bs-padding-base-horizontal;
 
     /**
      * Adjust the single Select2's dropdown arrow button appearance.
@@ -447,9 +449,11 @@ $s2bs-form-control-transition: $input-transition !default;
       width: $s2bs-caret-width-base;
 
       b {
-        border-color: $s2bs-dropdown-arrow-color transparent transparent transparent;
+        border-color: $s2bs-dropdown-arrow-color transparent transparent
+          transparent;
         border-style: solid;
-        border-width: $s2bs-caret-width-base $s2bs-caret-width-base 0 $s2bs-caret-width-base;
+        border-width: $s2bs-caret-width-base $s2bs-caret-width-base 0
+          $s2bs-caret-width-base;
         height: 0;
         left: 0;
         margin-left: -$s2bs-caret-width-base;
@@ -469,10 +473,6 @@ $s2bs-form-control-transition: $input-transition !default;
       color: $s2bs-input-color-placeholder;
     }
   }
-
-
-
-
 
   /*------------------------------------*\
     #MULTIPLE SELECT2
@@ -513,7 +513,8 @@ $s2bs-form-control-transition: $input-transition !default;
       border-radius: $s2bs-selection-choice-border-radius;
       cursor: default;
       float: left;
-      margin: calc(#{$s2bs-padding-base-vertical} - 1px) 0 0 $s2bs-padding-base-horizontal/2;
+      margin: calc(#{$s2bs-padding-base-vertical} - 1px) 0 0
+        $s2bs-padding-base-horizontal/2;
       padding: 0 $s2bs-padding-base-vertical;
     }
 
@@ -553,10 +554,6 @@ $s2bs-form-control-transition: $input-transition !default;
     }
   }
 
-
-
-
-
   /**
    * Address Bootstrap control sizing classes
    *
@@ -574,7 +571,9 @@ $s2bs-form-control-transition: $input-transition !default;
     font-size: $s2bs-font-size-small;
     height: $s2bs-input-height-small;
     line-height: $s2bs-line-height-small;
-    padding: $s2bs-padding-small-vertical $s2bs-padding-small-horizontal + $s2bs-caret-width-base*3 $s2bs-padding-small-vertical $s2bs-padding-small-horizontal;
+    padding: $s2bs-padding-small-vertical $s2bs-padding-small-horizontal +
+      $s2bs-caret-width-base * 3 $s2bs-padding-small-vertical
+      $s2bs-padding-small-horizontal;
 
     /* 2 */
     .select2-selection__arrow b {
@@ -591,7 +590,8 @@ $s2bs-form-control-transition: $input-transition !default;
     .select2-selection__choice {
       font-size: $s2bs-font-size-small;
       line-height: $s2bs-line-height-small;
-      margin: calc(#{$s2bs-padding-small-vertical} - 1px) 0 0 $s2bs-padding-small-horizontal/2;
+      margin: calc(#{$s2bs-padding-small-vertical} - 1px) 0 0
+        $s2bs-padding-small-horizontal/2;
       padding: 0 $s2bs-padding-small-vertical;
     }
 
@@ -614,14 +614,17 @@ $s2bs-form-control-transition: $input-transition !default;
     font-size: $s2bs-font-size-large;
     height: $s2bs-input-height-large;
     line-height: $s2bs-line-height-large;
-    padding: $s2bs-padding-large-vertical $s2bs-padding-large-horizontal + $s2bs-caret-width-large*3 $s2bs-padding-large-vertical $s2bs-padding-large-horizontal;
+    padding: $s2bs-padding-large-vertical $s2bs-padding-large-horizontal +
+      $s2bs-caret-width-large * 3 $s2bs-padding-large-vertical
+      $s2bs-padding-large-horizontal;
 
     /* 1 */
     .select2-selection__arrow {
       width: $s2bs-caret-width-large;
 
       b {
-        border-width: $s2bs-caret-width-large $s2bs-caret-width-large 0 $s2bs-caret-width-large;
+        border-width: $s2bs-caret-width-large $s2bs-caret-width-large 0
+          $s2bs-caret-width-large;
         margin-left: -$s2bs-caret-width-large;
         margin-left: -$s2bs-padding-large-vertical;
         margin-top: -$s2bs-caret-width-large/2;
@@ -639,7 +642,8 @@ $s2bs-form-control-transition: $input-transition !default;
       font-size: $s2bs-font-size-large;
       line-height: $s2bs-line-height-large;
       border-radius: $s2bs-selection-choice-border-radius;
-      margin: calc(#{$s2bs-padding-large-vertical} - 1px) 0 0 $s2bs-padding-large-horizontal/2;
+      margin: calc(#{$s2bs-padding-large-vertical} - 1px) 0 0
+        $s2bs-padding-large-horizontal/2;
       padding: 0 $s2bs-padding-large-vertical;
     }
 
@@ -665,16 +669,11 @@ $s2bs-form-control-transition: $input-transition !default;
     }
   }
 
-
-
-
-
   /*------------------------------------*\
     #RTL SUPPORT
   \*------------------------------------*/
 
-  &[dir="rtl"] {
-
+  &[dir='rtl'] {
     /**
      * Single Select2
      *
@@ -683,7 +682,7 @@ $s2bs-form-control-transition: $input-transition !default;
      */
 
     .select2-selection--single {
-      padding-left: $s2bs-padding-base-horizontal + $s2bs-caret-width-base*3;
+      padding-left: $s2bs-padding-base-horizontal + $s2bs-caret-width-base * 3;
       padding-right: $s2bs-padding-base-horizontal;
 
       .select2-selection__rendered {
@@ -729,16 +728,12 @@ $s2bs-form-control-transition: $input-transition !default;
     }
   }
 
-  .select2-dropdown[dir="rtl"] {
+  .select2-dropdown[dir='rtl'] {
     .select2-results__options {
       text-align: right;
     }
   }
 }
-
-
-
-
 
 /*------------------------------------*\
   #ADDITIONAL GOODIES
@@ -789,18 +784,36 @@ $s2bs-form-control-transition: $input-transition !default;
  */
 
 .input-group > .select2-hidden-accessible {
-  &:first-child + .select2-container--bootstrap > .selection > .select2-selection,
-  &:first-child + .select2-container--bootstrap > .selection > .select2-selection.form-control {
+  &:first-child
+    + .select2-container--bootstrap
+    > .selection
+    > .select2-selection,
+  &:first-child
+    + .select2-container--bootstrap
+    > .selection
+    > .select2-selection.form-control {
     @include border-right-radius(0);
   }
 
-  &:not(:first-child) + .select2-container--bootstrap:not(:last-child) > .selection > .select2-selection,
-  &:not(:first-child) + .select2-container--bootstrap:not(:last-child) > .selection > .select2-selection.form-control {
+  &:not(:first-child)
+    + .select2-container--bootstrap:not(:last-child)
+    > .selection
+    > .select2-selection,
+  &:not(:first-child)
+    + .select2-container--bootstrap:not(:last-child)
+    > .selection
+    > .select2-selection.form-control {
     border-radius: 0;
   }
 
-  &:not(:first-child):not(:last-child) + .select2-container--bootstrap:last-child > .selection > .select2-selection,
-  &:not(:first-child):not(:last-child) + .select2-container--bootstrap:last-child > .selection > .select2-selection.form-control {
+  &:not(:first-child):not(:last-child)
+    + .select2-container--bootstrap:last-child
+    > .selection
+    > .select2-selection,
+  &:not(:first-child):not(:last-child)
+    + .select2-container--bootstrap:last-child
+    > .selection
+    > .select2-selection.form-control {
     @include border-left-radius(0);
   }
 }

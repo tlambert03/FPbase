@@ -1,13 +1,13 @@
-import React, { useMemo, useCallback } from "react"
+import React, { useMemo, useCallback } from 'react'
 
-import { reshapeSpectraInfo } from "./util"
-import { SpectraViewerContainer } from "./Components/SpectraViewer"
-import OwnersContainer from "./Components/OwnersContainer"
-import WelcomeModal from "./Components/WelcomeModal"
-import { useCachedFetch } from "./useCachedQuery"
-import MyAppBar from "./Components/MyAppBar"
-import "./polyfills"
-import useKeyboardShortcuts from "./Components/useKeyboardShortcuts"
+import { reshapeSpectraInfo } from './util'
+import { SpectraViewerContainer } from './Components/SpectraViewer'
+import OwnersContainer from './Components/OwnersContainer'
+import WelcomeModal from './Components/WelcomeModal'
+import { useCachedFetch } from './useCachedQuery'
+import MyAppBar from './Components/MyAppBar'
+import './polyfills'
+import useKeyboardShortcuts from './Components/useKeyboardShortcuts'
 
 const daysSinceLaunch = Math.round(
   (new Date(2019, 6, 1) - Date.now()) / (1000 * 60 * 60 * 24)
@@ -16,8 +16,8 @@ const daysSinceLaunch = Math.round(
 const EMPTY = { ownerInfo: {}, spectraInfo: {} }
 const App = () => {
   const stash = useCachedFetch(
-    "/api/proteins/spectraslugs/",
-    "_FPbaseSpectraStash",
+    '/api/proteins/spectraslugs/',
+    '_FPbaseSpectraStash',
     60 * 10
   )
   // const stash = useCachedQuery(SPECTRA_LIST, "_FPbaseSpectraStash", 5 * 60)

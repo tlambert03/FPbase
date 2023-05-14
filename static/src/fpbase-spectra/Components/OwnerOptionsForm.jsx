@@ -1,10 +1,10 @@
-import React from "react"
-import gql from "graphql-tag"
-import { useQuery, useMutation } from "@apollo/react-hooks"
-import ToggleButton from "@material-ui/lab/ToggleButton"
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
-import { Box } from "@material-ui/core"
-import { GET_OWNER_OPTIONS } from "../client/queries"
+import React from 'react'
+import gql from 'graphql-tag'
+import { useQuery, useMutation } from '@apollo/react-hooks'
+import ToggleButton from '@material-ui/lab/ToggleButton'
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup'
+import { Box } from '@material-ui/core'
+import { GET_OWNER_OPTIONS } from '../client/queries'
 
 const MUTATE_OWNER_OPTIONS = gql`
   mutation SetExcludeSubtypes($subtypes: [String]) {
@@ -29,8 +29,8 @@ const OwnerOptionsForm = () => {
         size="small"
         onChange={handleChange}
       >
-        {["AB", "EX", "EM", "2P"].map(st => (
-          <ToggleButton key={st} value={st} style={{ height: "38px" }}>
+        {['AB', 'EX', 'EM', '2P'].map((st) => (
+          <ToggleButton key={st} value={st} style={{ height: '38px' }}>
             {st}
           </ToggleButton>
         ))}
@@ -38,9 +38,9 @@ const OwnerOptionsForm = () => {
       <p
         style={{
           marginTop: 6,
-          fontSize: "small",
-          fontStyle: "italic",
-          color: "#999",
+          fontSize: 'small',
+          fontStyle: 'italic',
+          color: '#999',
         }}
       >
         spectrum types selected here will NOT be added by default when adding a

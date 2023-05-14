@@ -1,10 +1,10 @@
+from ..models import Organism, Protein
 from .entrez import get_gb_info
 from .uniprot import get_uniprot_info
-from ..models import Protein, Organism
 
 
-class ChangeSet(object):
-    """ Set of changes to make to a protein instance """
+class ChangeSet:
+    """Set of changes to make to a protein instance"""
 
     def __init__(self, obj):
         self.obj = obj
@@ -12,35 +12,31 @@ class ChangeSet(object):
         self.changes = {}
 
     def __str__(self):
-        s = "{} ChangeSet:\n".format(str(self.obj))
+        s = f"{self.obj!s} ChangeSet:\n"
         for k, v in self.changes.items():
             if getattr(self.obj, k):
-                s += "\tCHANGE: {} from {} -> {}\n".format(k, getattr(self.obj, k), v)
+                s += f"\tCHANGE: {k} from {getattr(self.obj, k)} -> {v}\n"
             else:
-                s += "\tSET: {} -> {}\n".format(k, v)
+                s += f"\tSET: {k} -> {v}\n"
         return s
 
     def __repr__(self):
-        return "<{} ChangeSet>".format(self.obj)
+        return f"<{self.obj} ChangeSet>"
 
     def __bool__(self):
         return bool(self.changes)
 
     def __add__(self, change):
         # where change is a tuple (attr, newval)
-        if not (isinstance(change, (tuple, list)) and len(change) == 2):
+        if not (isinstance(change, tuple | list) and len(change) == 2):
             raise NotImplementedError("ChangeSet add epects a 2-tuple")
 
         attr, value = change
         if not hasattr(self.obj, attr):
-            raise ValueError(
-                "Object {} does not have attribute {}".format(self.obj, attr)
-            )
+            raise ValueError(f"Object {self.obj} does not have attribute {attr}")
         if attr in self.changes:
             if not value == self.changes[attr]:
-                raise ValueError(
-                    "Changeset received conflicting changes for field {}".format(attr)
-                )
+                raise ValueError(f"Changeset received conflicting changes for field {attr}")
         else:
             self.changes[attr] = value
         return self
@@ -65,25 +61,15 @@ def compare_info(gb_info, up_info):
     mismatch = []
     if gb_info.get("gb_prot", False) and up_info.get("genbank", False):
         if gb_info["gb_prot"] not in up_info["genbank"]:
-            mismatch.append(
-                "genbank mismatch gb_info: {}, uniprot: {}".format(
-                    gb_info["gb_prot"], up_info["genbank"]
-                )
-            )
+            mismatch.append("genbank mismatch gb_info: {}, uniprot: {}".format(gb_info["gb_prot"], up_info["genbank"]))
     if gb_info.get("uniprots", False) and up_info.get("uniprot", False):
         if up_info["uniprot"] not in gb_info["uniprots"]:
             mismatch.append(
-                "uniprot mismatch uniprot: {}, gb_info: {}".format(
-                    up_info["uniprot"], gb_info["uniprots"]
-                )
+                "uniprot mismatch uniprot: {}, gb_info: {}".format(up_info["uniprot"], gb_info["uniprots"])
             )
     if gb_info.get("seq", False) and up_info.get("seq", False):
         if not gb_info["seq"] == up_info["seq"]:
-            mismatch.append(
-                "sequence mismatch gb_info:\n{}\n\nuniprot:\n{}".format(
-                    gb_info["seq"], up_info["seq"]
-                )
-            )
+            mismatch.append("sequence mismatch gb_info:\n{}\n\nuniprot:\n{}".format(gb_info["seq"], up_info["seq"]))
     return mismatch
 
 

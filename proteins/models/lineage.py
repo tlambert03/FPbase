@@ -7,44 +7,36 @@ from mptt.models import MPTTModel, TreeForeignKey
 from fpseq.mutations import MutationSet
 from references.models import Reference
 
-from .protein import Protein
 from ..models.mixins import Authorable
 from ..util.maintain import validate_node
+from .protein import Protein
 
 
 def parse_mutation(mut_string):
     try:
         return MutationSet(mut_string)
     except ValueError as e:
-        raise ValidationError(_("Invalid input for MutationSet: {}".format(e)))
+        raise ValidationError(_(f"Invalid input for MutationSet: {e}")) from e
 
 
 class MutationSetField(models.CharField):
     description = _("String representing a protein mutation (up to %(max_length)s)")
 
     def from_db_value(self, value, expression, connection):
-        if value is None:
-            return value
-        return parse_mutation(value)
+        return value if value is None else parse_mutation(value)
 
     def to_python(self, value):
         if isinstance(value, MutationSet):
             return value
-        if value is None:
-            return value
-        return parse_mutation(value)
+        return value if value is None else parse_mutation(value)
 
     def get_prep_value(self, value):
         return str(value) if value else ""
 
 
 class Lineage(MPTTModel, TimeStampedModel, Authorable):
-    protein = models.OneToOneField(
-        "Protein", on_delete=models.CASCADE, related_name="lineage"
-    )
-    parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
-    )
+    protein = models.OneToOneField("Protein", on_delete=models.CASCADE, related_name="lineage")
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
     reference = models.ForeignKey(
         Reference,
         on_delete=models.CASCADE,
@@ -88,25 +80,20 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
             if not isinstance(root, Protein):
                 raise ValueError("root argument must be a protein instance")
         else:
-            if self.root_node:
-                root = self.root_node.protein
-            else:
-                root = self.get_root().protein
+            root = self.root_node.protein if self.root_node else self.get_root().protein
         if not isinstance(self.mutation, MutationSet):
             self.mutation = parse_mutation(self.mutation)
         return self.mutation.relative_to_root(self.parent.protein.seq, root.seq)
 
     def __repr__(self):
-        return "<Lineage: {}>".format(self)
+        return f"<Lineage: {self}>"
 
     def __str__(self):
         return str(self.protein)
 
     def clean(self):
-        E = {}
         errors = validate_node(self)
-        for error in errors:
-            E["mutation"] = ValidationError(error)
+        E = {"mutation": ValidationError(error) for error in errors}
         if E:
             raise ValidationError(E)
 
@@ -117,10 +104,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
                 if not isinstance(root, Protein):
                     root = self.get_root().protein
                 if root.seq:
-                    ms = self.parent.protein.seq.mutations_to(
-                        self.protein.seq, reference=root.seq
-                    )
-                    return ms
+                    return self.parent.protein.seq.mutations_to(self.protein.seq, reference=root.seq)
             else:
                 ms = self.parent.protein.seq.mutations_to(self.protein.seq)
         return ms
