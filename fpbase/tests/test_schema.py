@@ -75,6 +75,7 @@ fragment FluorophoreParts on FluorophoreInterface {
 
 class SpectraQueriesTestCase(GraphQLTestCase):
     GRAPHQL_SCHEMA = schema
+    GRAPHQL_URL = "/graphql/"  # default is '/graphql' ... which gives a redirect
 
     def setUp(self):
         self.microscope = models.Microscope.objects.create()
@@ -102,10 +103,9 @@ class SpectraQueriesTestCase(GraphQLTestCase):
                 body["variables"]["input"] = input_data
             else:
                 body["variables"] = {"input": input_data}
-        resp = self._client.post(
+        return self._client.post(
             self.GRAPHQL_URL, json.dumps(body), content_type="application/json"
         )
-        return resp
 
     def test_optical_configs(self):
         response = self.query(
