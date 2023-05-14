@@ -51,6 +51,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     "crispy_forms",  # Form layouts
+    # "crispy_bootstrap4",
     "allauth",  # registration
     "allauth.account",  # registration
     "allauth.socialaccount",  # registration
@@ -64,7 +65,6 @@ THIRD_PARTY_APPS = [
     "reversion_compare",
     "avatar",
     "mptt",
-    "crispy_bootstrap4",
 ]
 
 # Apps specific for this project go here.
@@ -191,7 +191,9 @@ TEMPLATES = [
 ]
 
 # See: http://django-crispy-forms.readthedocs.io/en/latest/install.html#template-packs
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
 
 # STATIC FILE CONFIGURATION
 # ------------------------------------------------------------------------------
