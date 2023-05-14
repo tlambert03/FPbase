@@ -24,10 +24,10 @@ def webp_picture(name, classed="", alt=""):
 
 @register.simple_tag(takes_context=True)
 def custom_static(context, bundle_name, extension=None, config="DEFAULT", attrs=""):
-    if settings.DEBUG:
-        return render_bundle(
-            context, bundle_name, extension=extension, config=config, attrs=attrs
-        )
+    # if settings.DEBUG:
+    return render_bundle(
+        context, bundle_name, extension=extension, config=config, attrs=attrs
+    )
 
     bundle = _get_bundle(bundle_name, extension, config)
     tags = []
