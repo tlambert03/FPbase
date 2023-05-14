@@ -80,16 +80,14 @@ class SpectraQueriesTestCase(GraphQLTestCase):
     def setUp(self):
         self.microscope = models.Microscope.objects.create()
         self.protein = models.Protein.objects.create(name="test")
-        self.optical_config = models.OpticalConfig.objects.create(
-            microscope=self.microscope
-        )
-        self.dye = models.Dye.objects.create()
-        self.spectrum = models.Spectrum.objects.create(
+        self.optical_config = models.OpticalConfig.objects.create(microscope=self.microscope)
+        self.dye = models.Dye.objects.get_or_create(name="test-dye")[0]
+        self.spectrum = models.Spectrum.objects.get_or_create(
             category=models.Spectrum.DYE,
             subtype=models.Spectrum.EM,
             owner_dye=self.dye,
             data=[[0, 1], [1, 1]],
-        )
+        )[0]
 
     def query(self, query, op_name=None, input_data=None, variables=None):
         body = {"query": query}
@@ -103,9 +101,7 @@ class SpectraQueriesTestCase(GraphQLTestCase):
                 body["variables"]["input"] = input_data
             else:
                 body["variables"] = {"input": input_data}
-        return self.client.post(
-            self.GRAPHQL_URL, json.dumps(body), content_type="application/json"
-        )
+        return self.client.post(self.GRAPHQL_URL, json.dumps(body), content_type="application/json")
 
     def test_optical_configs(self):
         response = self.query(
@@ -132,18 +128,14 @@ class SpectraQueriesTestCase(GraphQLTestCase):
         response = self.query(OPTICAL_CONFIG, variables={"id": self.optical_config.id})
         content = json.loads(response.content)
         self.assertResponseNoErrors(response)
-        self.assertEqual(
-            content["data"]["opticalConfig"]["microscope"]["id"], self.microscope.id
-        )
+        self.assertEqual(content["data"]["opticalConfig"]["microscope"]["id"], self.microscope.id)
 
     def test_optical_config_breaks(self):
         response = self.query(OPTICAL_CONFIG, variables={"id": 99999})
         self.assertResponseHasErrors(response)
 
     def test_spectrum(self):
-        response = self.query(
-            SPECTRUM, op_name="Spectrum", variables={"id": self.spectrum.id}
-        )
+        response = self.query(SPECTRUM, op_name="Spectrum", variables={"id": self.spectrum.id})
         self.assertResponseNoErrors(response)
         content = json.loads(response.content)
         self.assertEqual(content["data"]["spectrum"]["owner"]["id"], str(self.dye.id))
@@ -171,7 +163,9 @@ class SpectraQueriesTestCase(GraphQLTestCase):
         )
         self.assertResponseNoErrors(response)
         content = json.loads(response.content)
-        self.assertEqual(content["data"]["spectra"][0]["id"], str(self.dye.id))
+        last_spectrum = content["data"]["spectra"][-1]
+        self.assertEqual(last_spectrum["id"], str(self.spectrum.id))
+        self.assertEqual(last_spectrum["owner"]["name"], self.dye.name)
 
     def test_protein(self):
         response = self.query(
