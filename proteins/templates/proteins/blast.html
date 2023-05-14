@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load webpack_static from webpack_loader %}
-{% load custom_static from protein_tags %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}FPbase Fluorescent Protein Sequence BLAST{% endblock %}
 {% block meta-description %}Search the database at FPbase for fluorescent protein sequences similar to a query amino acid or nucleotide sequence.{% endblock %}
@@ -26,6 +26,6 @@
 </p>
 
 <div id="blast-app" class="mt-3"></div>
-{% custom_static 'blast' %}
+{% render_bundle 'blast' %}
 
 {% endblock content %}

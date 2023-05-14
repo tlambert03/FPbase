@@ -6,6 +6,8 @@ from fpbase.util import is_ajax
 
 from ..util.blast import blast
 
+FileNotFoundError
+
 
 @ensure_csrf_cookie
 def blast_view(request):
@@ -15,8 +17,9 @@ def blast_view(request):
         assert binary in ("blastx", "blastp")
         if seq:
             try:
-                return JsonResponse({"status": 200, "blastResult": blast(seq, binary)})
-            except Exception:
-                return JsonResponse({"status": 500})
+                result = blast(seq, binary)
+                return JsonResponse({"status": 200, "blastResult": result})
+            except Exception as e:
+                return JsonResponse({"status": 500, "error": f'BLAST error: {e}'})
         return JsonResponse({"status": 204, "blastResult": []})
     return render(request, "proteins/blast.html")

@@ -62,6 +62,7 @@ function App() {
       if (data.status === 200) {
         setResults(data.blastResult)
       } else if (data.status === 500) {
+        console.error(data.error)
         alert(
           "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
         )
