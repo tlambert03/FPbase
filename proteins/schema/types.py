@@ -1,3 +1,4 @@
+from attr import field
 import graphene
 import graphene_django_optimizer as gdo
 from django.db.models import Prefetch
@@ -47,6 +48,7 @@ class Organism(gdo.OptimizedDjangoObjectType):
 
     class Meta:
         model = models.Organism
+        fields = "__all__"
 
     @gdo.resolver_hints(select_related=("proteins"), only=("proteins"))
     def resolve_proteins(self, info):
@@ -56,6 +58,7 @@ class Organism(gdo.OptimizedDjangoObjectType):
 class OSERMeasurement(gdo.OptimizedDjangoObjectType):
     class Meta:
         model = models.OSERMeasurement
+        fields = "__all__"
 
 
 class StateTransition(gdo.OptimizedDjangoObjectType):
@@ -64,6 +67,7 @@ class StateTransition(gdo.OptimizedDjangoObjectType):
 
     class Meta:
         model = models.StateTransition
+        fields = "__all__"
 
     @gdo.resolver_hints(select_related=("from_state"), only=("from_state"))
     def resolve_fromState(self, info):
@@ -86,18 +90,7 @@ class Protein(gdo.OptimizedDjangoObjectType):
 
     class Meta:
         model = models.Protein
-        exclude = (
-            "id",
-            "status",
-            "status_changed",
-            "uuid",
-            "base_name",
-            "switch_type",
-            "agg",
-            "cofactor",
-            "oser",
-            "transitions",
-        )
+        exclude = ("status", "status_changed", "uuid", "base_name", "switch_type")
 
     @gdo.resolver_hints(
         prefetch_related=lambda info: Prefetch(
@@ -157,24 +150,28 @@ class Camera(DjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface,)
         model = models.Camera
+        fields = "__all__"
 
 
 class Dye(DjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.Dye
+        fields = "__all__"
 
 
 class Filter(DjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface,)
         model = models.Filter
+        fields = "__all__"
 
 
 class Light(DjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface,)
         model = models.Light
+        fields = "__all__"
 
 
 class State(gdo.OptimizedDjangoObjectType):
@@ -183,6 +180,7 @@ class State(gdo.OptimizedDjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.State
+        fields = "__all__"
 
     @gdo.resolver_hints(select_related=("protein",), only=("protein",))
     def resolve_protein(self, info, **kwargs):
@@ -218,6 +216,7 @@ class SpectrumOwnerUnion(graphene.Union):
 class Spectrum(gdo.OptimizedDjangoObjectType):
     class Meta:
         model = models.Spectrum
+        fields = "__all__"
 
     owner = graphene.Field(SpectrumOwnerInterface)
     color = graphene.String()
@@ -291,6 +290,7 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
 
     class Meta:
         model = models.FilterPlacement
+        fields = "__all__"
 
     @gdo.resolver_hints(select_related=("filter__spectrum",), only=("filter__name",))
     def resolve_spectrum(self, info):
@@ -313,7 +313,7 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
 class Microscope(DjangoObjectType):
     class Meta:
         model = models.Microscope
-        only_fields = (
+        fields = (
             "id",
             "name",
             "description",
@@ -330,7 +330,7 @@ class OpticalConfig(gdo.OptimizedDjangoObjectType):
 
     class Meta:
         model = models.OpticalConfig
-        only_fields = (
+        fields = (
             "id",
             "name",
             "description",

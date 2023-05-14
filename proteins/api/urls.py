@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path
 from django.views.generic import TemplateView
 
 from . import views
@@ -24,11 +24,11 @@ urlpatterns = [
     ),
     path("proteins/states/", views.StatesListAPIView.as_view(), name="states-api"),
     # /proteins/:slug/
-    re_path(
-        r"^(?P<slug>[-\w]+)/$",
-        views.ProteinRetrieveAPIView.as_view(),
-        name="protein-api",
-    ),
+    # re_path(
+    #     r"^(?P<slug>[-\w]+)/$",
+    #     views.ProteinRetrieveAPIView.as_view(),
+    #     name="protein-api",
+    # ),
     # non-normal endpoints
     path("proteins/spectraslugs/", views.spectraslugs, name="spectra-slugs"),
     path("proteins/ocinfo/", views.ocinfo, name="ocinfo"),

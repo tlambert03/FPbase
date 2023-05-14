@@ -103,7 +103,7 @@ class SpectraQueriesTestCase(GraphQLTestCase):
                 body["variables"]["input"] = input_data
             else:
                 body["variables"] = {"input": input_data}
-        return self._client.post(
+        return self.client.post(
             self.GRAPHQL_URL, json.dumps(body), content_type="application/json"
         )
 

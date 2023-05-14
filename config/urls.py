@@ -22,6 +22,7 @@ import fpbase.views
 from references.views import ReferenceListView
 from django.views.decorators.csrf import csrf_exempt
 from graphene_django.views import GraphQLView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 sitemaps = {
@@ -102,12 +103,23 @@ urlpatterns = [
     # User management
     path("users/", include("fpbase.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
-    path("api/", include("proteins.api.urls", namespace="api")),
+    
+    # API base url
+    # path("api/", include("proteins.api.urls", namespace="api")),
     # path('api/', TemplateView.as_view(template_name='pages/api.html'), name='api'),
-    # Your stuff: custom urls includes go here
+    
+    path("api/", include("config.api_router")),
     # api-auth for DRF
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    re_path(r"^api-docs/", include_docs_urls(title="FPbase API docs")),
+    # re_path(r"^api-docs/", include_docs_urls(title="FPbase API docs")),
+    
+    path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+    path(
+        "api/docs/",
+        SpectacularSwaggerView.as_view(url_name="api-schema"),
+        name="api-docs",
+    ),
+    
     # custom apps
     path("", include("proteins.urls")),  # NOTE: without $
     path("reference/", include("references.urls")),  # NOTE: without $

@@ -46,6 +46,7 @@ DJANGO_APPS = [
     "django.contrib.admin",
     # DRF
     "rest_framework",
+    "drf_spectacular",
 ]
 
 THIRD_PARTY_APPS = [
@@ -149,8 +150,6 @@ LANGUAGE_CODE = "en-us"
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#use-l10n
-USE_L10N = True
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
@@ -291,6 +290,27 @@ LOGIN_URL = "account_login"
 
 # SLUGLIFIER
 AUTOSLUG_SLUGIFY_FUNCTION = "slugify.slugify"
+
+# django-rest-framework
+# -------------------------------------------------------------------------------
+# django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# By Default swagger ui is available only to admin user(s). You can change permission classes to change that
+# See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "fpbase API",
+    "DESCRIPTION": "Documentation of API endpoints of fpbase",
+    "VERSION": "1.0.0",
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+}
 
 # django-compressor
 # ------------------------------------------------------------------------------
