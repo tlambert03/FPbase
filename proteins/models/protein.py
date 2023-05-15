@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import io
 import json
@@ -7,6 +8,7 @@ import sys
 from random import choices
 from subprocess import PIPE, run
 
+import pytz
 from Bio import Entrez
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -62,10 +64,8 @@ def findname(name):
         # {'name__icontains': name.strip('1')},
     ]
     for query in queries:
-        try:
+        with contextlib.suppress(Exception):
             return Protein.objects.get(**query)
-        except Exception:
-            pass
     return None
 
 
@@ -79,7 +79,7 @@ class ProteinQuerySet(models.QuerySet):
         binary = "bin/muscle_" + ("osx" if sys.platform == "darwin" else "nix")
         cmd = [binary]
         # faster
-        cmd += ["-maxiters", "2", "-diags", "-quiet", "-" + output]
+        cmd += ["-maxiters", "2", "-diags", "-quiet", f"-{output}"]
         # make tree
         cmd += ["-cluster", "neighborjoining", "-tree2", "tree.phy"]
         result = run(cmd, input=fasta.read(), stdout=PIPE, encoding="ascii")
@@ -92,10 +92,8 @@ class ProteinQuerySet(models.QuerySet):
 class ProteinManager(models.Manager):
     def deep_get(self, name):
         slug = slugify(name)
-        try:
+        with contextlib.suppress(Protein.DoesNotExist):
             return self.get(slug=slug)
-        except Protein.DoesNotExist:
-            pass
         aliases_lower = Func(Func(F("aliases"), function="unnest"), function="LOWER")
         remove_space = Func(aliases_lower, Value(" "), Value("-"), function="replace")
         final = Func(remove_space, Value("."), Value(""), function="replace")
@@ -164,21 +162,15 @@ class SequenceField(models.CharField):
         return name, path, args, kwargs
 
     def from_db_value(self, value, expression, connection):
-        if not value:
-            return None
-        return FPSeq(value)
+        return FPSeq(value) if value else None
 
     def to_python(self, value):
         if isinstance(value, FPSeq):
             return value
-        if not value:
-            return None
-        return FPSeq(value)
+        return FPSeq(value) if value else None
 
     def get_prep_value(self, value):
-        if not value:
-            return None
-        return str(value)
+        return str(value) if value else None
 
 
 class Protein(Authorable, StatusModel, TimeStampedModel):
@@ -360,8 +352,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         try:
             root = self.lineage.get_root()
             if root.protein.seq and self.seq:
-                muts = root.protein.seq.mutations_to(self.seq)
-                return muts
+                return root.protein.seq.mutations_to(self.seq)
         except ObjectDoesNotExist:
             return None
 
@@ -408,8 +399,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             for i, _hex in enumerate(stops):
                 if _hex == "#000":
                     sub = 18
-                bgs.append("{} {}%".format(_hex, (i + 1) * stepsize - sub))
-            return "linear-gradient(90deg, {})".format(", ".join(bgs))
+                bgs.append(f"{_hex} {(i + 1) * stepsize - sub}%")
+            return f'linear-gradient(90deg, {", ".join(bgs)})'
         elif self.default_state:
             return self.default_state.emhex
         else:
@@ -417,19 +408,17 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     @property
     def em_svg(self):
-        if self.states.count() > 1:
-            stops = [st.emhex for st in self.states.all()]
-            stepsize = int(100 / (len(stops) + 1))
-            svgdef = "linear:"
-            for i, color in enumerate(stops):
-                perc = (i + 1) * stepsize
-                if color == "#000":
-                    perc *= 0.2
-                svgdef += f'<stop offset="{perc}%" style="stop-color:{color};" />'
-            return svgdef
-        if self.default_state:
-            return self.default_state.emhex
-        return "?"
+        if self.states.count() <= 1:
+            return self.default_state.emhex if self.default_state else "?"
+        stops = [st.emhex for st in self.states.all()]
+        stepsize = int(100 / (len(stops) + 1))
+        svgdef = "linear:"
+        for i, color in enumerate(stops):
+            perc = (i + 1.0) * stepsize
+            if color == "#000":
+                perc *= 0.2
+            svgdef += f'<stop offset="{perc}%" style="stop-color:{color};" />'
+        return svgdef
 
     @property
     def color(self):
@@ -451,22 +440,15 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def mutations_to(self, other, **kwargs):
         if isinstance(other, Protein):
             other = other.seq
-        if not (self.seq and other):
-            return None
-        return self.seq.mutations_to(other, **kwargs)
+        return self.seq.mutations_to(other, **kwargs) if self.seq and other else None
 
     def mutations_from(self, other, **kwargs):
         if isinstance(other, Protein):
             other = other.seq
-        if not (self.seq and other):
-            return None
-        return other.seq.mutations_to(self.seq, **kwargs)
+        return other.seq.mutations_to(self.seq, **kwargs) if (self.seq and other) else None
 
     def has_spectra(self):
-        for state in self.states.all():
-            if state.has_spectra():
-                return True
-        return False
+        return any(state.has_spectra() for state in self.states.all())
 
     def has_bleach_measurements(self):
         return self.states.filter(bleach_measurements__isnull=False).exists()
@@ -511,7 +493,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             for item in self.pdb:
                 if Protein.objects.exclude(id=self.id).filter(pdb__contains=[item]).exists():
                     p = Protein.objects.filter(pdb__contains=[item]).first()
-                    errors.update({"pdb": f"PDB ID {item} is already in use by protein {p.name}"})
+                    errors["pdb"] = f"PDB ID {item} is already in use by protein {p.name}"
 
         if errors:
             raise ValidationError(errors)
@@ -559,11 +541,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return [i for i in tags if i]
 
     def date_published(self, norm=False):
-        d = None
-        if self.primary_reference:
-            d = self.primary_reference.date
+        d = self.primary_reference.date if self.primary_reference else None
         if norm:
-            return (d.year - 1992) / (datetime.datetime.now().year - 1992) if d else 0
+            return (d.year - 1992) / (datetime.datetime.now(pytz.utc).year - 1992) if d else 0
         return datetime.datetime.combine(d, datetime.datetime.min.time()) if d else None
 
     def n_faves(self, norm=False):
@@ -572,10 +552,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             from collections import Counter
 
             mx = Counter(Favorite.objects.for_model(Protein).values_list("target_object_id", flat=True)).most_common(1)
-            if mx:
-                mx = mx[0][1]
-            else:
-                mx = 1
+            mx = mx[0][1] if mx else 1
             return nf / mx
         return nf
 
@@ -586,10 +563,14 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         from proteins.extrest.ga import cached_ga_popular
 
         hits = cached_ga_popular()[period]
-        for slug, _name, rating in hits:
-            if slug == self.slug:
-                return rating / max(list(zip(*hits))[2]) if norm else rating
-        return 0
+        return next(
+            (
+                rating / max(list(zip(*hits))[2]) if norm else rating
+                for slug, _name, rating in hits
+                if slug == self.slug
+            ),
+            0,
+        )
 
     def switchType(self):
         return self.get_switch_type_display()
@@ -638,7 +619,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     def local_brightness(self):
         if self.states.exists():
-            return max([s.local_brightness for s in self.states.all()])
+            return max(s.local_brightness for s in self.states.all())
 
     def first_author(self):
         if self.primary_reference and self.primary_reference.first_author:

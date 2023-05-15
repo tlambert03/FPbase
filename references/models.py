@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytz
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import (
@@ -54,7 +55,7 @@ class Author(TimeStampedModel):
         return f"Author(family='{self.family}', given='{self.given}'')"
 
     def __str__(self):
-        return self.family + " " + self.initials
+        return f"{self.family} {self.initials}"
 
     class Meta:
         unique_together = (("family", "initials"),)
@@ -82,7 +83,7 @@ class Reference(TimeStampedModel):
             MinLengthValidator(4),
             MaxLengthValidator(4),
             MinValueValidator(1960),
-            MaxValueValidator(datetime.now().year + 1),
+            MaxValueValidator(datetime.now(pytz.utc).year + 1),
         ],
         help_text="YYYY",
     )
