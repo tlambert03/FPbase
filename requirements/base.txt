@@ -8,7 +8,7 @@ redis==4.5.4  # https://github.com/antirez/redis
 
 # Django
 # ------------------------------------------------------------------------------
-django==4.2  # https://www.djangoproject.com/
+django==4.2.1  # https://www.djangoproject.com/
 django-environ==0.10.0  # https://github.com/joke2k/django-environ
 django-model-utils==4.3.1  # https://github.com/jazzband/django-model-utils
 django-allauth==0.54.0  # https://github.com/pennersr/django-allauth
@@ -39,7 +39,7 @@ django-reversion-compare==0.16.1
 tablib==3.4.0
 scipy==1.10.1
 dnspython==2.3.0  #
-django-anymail==9.1  # https://github.com/anymail/django-anymail
+django-anymail==10.0  # https://github.com/anymail/django-anymail
 django-autocomplete-light==3.9.4  # https://github.com/yourlabs/django-autocomplete-light
 django-avatar==7.1.1
 
@@ -57,4 +57,4 @@ graphene==3.2.2  # https://github.com/graphql-python/graphene
 graphene-django==3.0.2  # https://github.com/graphql-python/graphene-django
 graphene-django-optimizer==0.9.1  # https://github.com/tfoxy/graphene-django-optimizer
 django-graphql-jwt==0.3.4
-django-cors-headers==3.14.0
+django-cors-headers==4.0.0
