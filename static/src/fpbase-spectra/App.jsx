@@ -26,15 +26,7 @@ const App = () => {
   }, [stash])
   window.ownerInfo = ownerInfo
   window.spectraInfo = spectraInfo
-  const storageKey = "_hideFPbaseSpectraWelcome"
-  const hide = localStorage.getItem(storageKey) === "true"
-  const [checked, setChecked] = React.useState(hide)
-  const [helpOpen, setHelpOpen] = React.useState(!hide)
-
-  const handleChange = useCallback(e => {
-    localStorage.setItem(storageKey, e.target.checked)
-    setChecked(e.target.checked)
-  }, [])
+  const [helpOpen, setHelpOpen] = React.useState(false)
 
   const options = useMemo(() => Object.values(ownerInfo || {}), [ownerInfo])
   const openHelp = useCallback(() => setHelpOpen(true), [setHelpOpen])
@@ -48,9 +40,7 @@ const App = () => {
       <MyAppBar spectraOptions={options} openHelp={openHelp} />
       <WelcomeModal
         open={helpOpen}
-        checked={checked}
         close={closeHelp}
-        handleChange={handleChange}
         isNew={daysSinceLaunch < 120}
         ownerInfo={ownerInfo}
       />

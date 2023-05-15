@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load webpack_static from webpack_loader %}
-{% load custom_static from protein_tags %}
+{% load render_bundle from webpack_loader %}
 
 <html lang="en">
   <head>
@@ -18,8 +18,7 @@
   <meta name="author" content="Talley Lambert">
   <meta name="copyright" content="Talley Lambert" />
 
-  {% custom_static 'vendor' 'css' %}
-  {% custom_static 'main' 'css' %}
+  {% render_bundle 'main' %}
   <link href="{% webpack_static 'css/style.min.css' %}" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
@@ -34,8 +33,8 @@
     {% include 'proteins/_microscope_include.html' with embeddable=False %}
   </div>
 
-  {% custom_static 'vendor' 'js' %}
-  {% custom_static 'embedscope' 'js' %}
+  <script src="{% webpack_static 'vendor.js' %}"></script>
+  {% render_bundle 'embedscope' 'js' %}
 
   <script>$('#efflink a').attr('target', '_blank').append('<i class="small ml-2 fas fa-external-link-alt"></i>');</script>
 

@@ -46,10 +46,12 @@ DJANGO_APPS = [
     "django.contrib.admin",
     # DRF
     "rest_framework",
+    "drf_spectacular",
 ]
 
 THIRD_PARTY_APPS = [
     "crispy_forms",  # Form layouts
+    # "crispy_bootstrap4",
     "allauth",  # registration
     "allauth.account",  # registration
     "allauth.socialaccount",  # registration
@@ -131,6 +133,8 @@ DEFAULT_FROM_EMAIL = "FPbase <info@mg.fpbase.org>"
 DATABASES = {"default": env.db("DATABASE_URL", default="postgres:///fpbase")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
+# https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # GENERAL CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -146,8 +150,6 @@ LANGUAGE_CODE = "en-us"
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#use-l10n
-USE_L10N = True
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
@@ -189,7 +191,9 @@ TEMPLATES = [
 ]
 
 # See: http://django-crispy-forms.readthedocs.io/en/latest/install.html#template-packs
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
 
 # STATIC FILE CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -289,6 +293,27 @@ LOGIN_URL = "account_login"
 # SLUGLIFIER
 AUTOSLUG_SLUGIFY_FUNCTION = "slugify.slugify"
 
+# django-rest-framework
+# -------------------------------------------------------------------------------
+# django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# By Default swagger ui is available only to admin user(s). You can change permission classes to change that
+# See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "fpbase API",
+    "DESCRIPTION": "Documentation of API endpoints of fpbase",
+    "VERSION": "1.0.0",
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+}
+
 # django-compressor
 # ------------------------------------------------------------------------------
 # INSTALLED_APPS += ['compressor']
@@ -318,9 +343,9 @@ AVATAR_MAX_AVATARS_PER_USER = 8
 MODERATION_MODERATORS = ("talley.lambert+fpbase@gmail.com",)
 
 # v3 API for django-recaptcha
-RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_V2_PUBLIC_KEY", default="")
-RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_V2_PRIVATE_KEY", default="")
-NOCAPTCHA = True
+RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_V3_PUBLIC_KEY", default="")
+RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_V3_PRIVATE_KEY", default="")
+# NOCAPTCHA = True
 
 GOOGLE_API_PRIVATE_KEY = env("GOOGLE_API_PRIVATE_KEY", default="").replace("#", "\n")
 GOOGLE_API_CLIENT_EMAIL = env("GOOGLE_API_CLIENT_EMAIL", default=None)

@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load webpack_static from webpack_loader %}
-{% load custom_static webp_picture from protein_tags %}
+{% load render_bundle from webpack_loader %}
+{% load webp_picture from protein_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -53,9 +54,7 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
 
-    {% custom_static 'vendor' 'css' %}
-    {% custom_static 'main' 'css' %}
-
+    {% render_bundle 'main' 'css' %}
 
       <script>
         window.FPBASE = window.FPBASE || {};
@@ -123,10 +122,7 @@
     <footer class="footer container-fluid pl-0">
       <div class="container">
         <div class="row">
-          <div class="col-1 pl-0">
-            {% include '_twittershare.html' %}<br>
-          </div>
-          <div class="col-11 text-right">
+          <div class="col-12 text-right">
 
             <p>©FPbase, <span id='curyear'>2018</span>
               <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" id="licenselink">
@@ -146,8 +142,7 @@
     {% endblock body %}
 
       <!-- place project specific Javascript -->
-      {% custom_static 'vendor' 'js' %}
-      {% custom_static 'main' 'js' %}
+      {% render_bundle 'main' 'js' %}
       <script>
         FPBASE.initAutocomplete();
       </script>

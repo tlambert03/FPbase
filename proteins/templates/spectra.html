@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load favit_tags %}
 {% load webpack_static from webpack_loader %}
-{% load custom_static from protein_tags %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}FPbase Fluorescence Spectra Viewer{% endblock %}
 {% block meta-description %}An interactive fluorescence spectra viewer to evaluate the spectral properties of fluorescent proteins, organic dyes, filters, and detectors. Calculate collection efficiency or bleedthrough probabilities in your microscope and explore combinations of filters and dyes.{% endblock %}
@@ -19,7 +19,7 @@
 {% block content %}
 <h1 style="text-align: center; font-size: 1.3rem; font-weight: 600; color: #999; height: 0; visibility: hidden">FPbase Spectra Viewer</h1>
 <div id="spectra-viewer">{% include "proteins/_loading_logo.html" %}</div>
-{% custom_static 'spectraViewer' %}
+{% render_bundle 'spectraViewer' %}
 {% endblock content %}
 
 {% block footer %}

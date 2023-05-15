@@ -2,7 +2,7 @@ import django_filters
 from django_filters import rest_framework as filters
 from django import forms
 from .models import Protein, State, Spectrum, Organism
-from Bio import Seq, Alphabet
+from Bio import Seq
 from .validators import cdna_sequence_validator
 
 
@@ -265,5 +265,4 @@ class ProteinFilter(filters.FilterSet):
         return queryset.filter(id__in=ids)
 
     def translate_cdna(self, queryset, name, value):
-        coding_dna = Seq.Seq(value, Alphabet.IUPAC.unambiguous_dna)
-        return queryset.filter(seq__icontains=coding_dna.translate())
+        return queryset.filter(seq__icontains=Seq.translate(value))

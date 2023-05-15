@@ -10,7 +10,7 @@ from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.views.generic import CreateView
 
-from fpbase.util import uncache_protein_page
+from fpbase.util import is_ajax, uncache_protein_page
 
 from ..forms import SpectrumForm
 from ..models import Filter, Protein, Spectrum, State
@@ -24,7 +24,7 @@ def protein_spectra(request, slug=None):
     """ renders html for protein spectra page  """
     template = "spectra.html"
 
-    if request.is_ajax() and slug is not None:
+    if is_ajax(request) and slug is not None:
         """ slug represents the slug of the OWNER of the spectra...
         for instance, a protein state.
         function returns an array containing ALL of the spectra

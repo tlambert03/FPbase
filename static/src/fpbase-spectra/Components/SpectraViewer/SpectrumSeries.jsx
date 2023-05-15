@@ -81,7 +81,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
               },
             } = await client.query({
               query: GET_SPECTRUM,
-              variables: { id: exSpectrum.id },
+              variables: { id: +exSpectrum.id },
             })
             const exEfficiency = exData.find(([x]) => x === exNorm)
             if (exEfficiency) {

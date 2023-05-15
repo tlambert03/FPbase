@@ -12,7 +12,7 @@
     you can <a href="{% url "proteins:submit-spectra" %}">add spectra to the database here</a>.</p>
 <form action="{% url 'contact' %}" method="post">
     {% csrf_token %}
-    {{ form|crispy }}
+    {% crispy form %}
     <input type="submit" class="btn btn-primary" value="Submit" />
 </form>
 

@@ -1,6 +1,7 @@
-from ..models import Protein, State, StateTransition, Spectrum
 from rest_framework import serializers
-from drf_tweaks.serializers import ModelSerializer
+
+from ..models import Protein, Spectrum, State, StateTransition
+from ._tweaks import ModelSerializer
 
 
 class SpectrumSerializer(serializers.ModelSerializer):

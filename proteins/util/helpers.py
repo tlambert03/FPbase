@@ -505,7 +505,7 @@ def spectra_fig(
 
     if not output:
         output = io.BytesIO()
-    canvas.print_figure(output, format=format, transparent=True)
+    canvas.print_figure(output, format=format)
     return output
 
 

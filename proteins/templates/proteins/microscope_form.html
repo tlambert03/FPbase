@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% load custom_static from protein_tags %}
+{% load webpack_static from webpack_loader %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}{% if object %}{{object}} Microscope{% else %}Create a Microscope{% endif %} on FPbase{% endblock %}
 {% block meta-description %}Create and save your own microscope configuration (filters, light sources, detectors) and
@@ -10,7 +11,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 {% block container-class %}container microscope-form{% endblock container-class %}
 
 {% block content %}
-{% custom_static 'vendor' 'js' %}
+<script src="{% webpack_static 'vendor.js' %}"></script>
 <script type="text/javascript">
   {% if object %}
   var confirmError = false; 
@@ -19,7 +20,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
   {% endif %}
   var formErrors = '{{ form.errors|safe }}';
 </script>
-{% custom_static 'microscopeForm' %}  
+{% render_bundle 'microscopeForm' %}  
 
 {% if object %}
 <h2>Update microscope: {{object}}</h2>

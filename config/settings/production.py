@@ -83,12 +83,10 @@ X_FRAME_OPTIONS = "DENY"
 # ------------------------------------------------------------------------------
 # Hosts/domain names that are valid for this site
 # See https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["fpbase.org",],)
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["fpbase.org"])
 # END SITE CONFIGURATION
 
-INSTALLED_APPS += [
-    "gunicorn",
-]
+INSTALLED_APPS += ["gunicorn"]
 
 
 # STORAGE CONFIGURATION
@@ -113,14 +111,20 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 # URL that handles the media served from MEDIA_ROOT, used for managing
 # stored files.
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
 AWS_DEFAULT_ACL = None
 AWS_IS_GZIPPED = True
 
 # Static Assets
 # ------------------------
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 WHITENOISE_MAX_AGE = 600
 
 # EMAIL
@@ -199,7 +203,7 @@ sentry_sdk.init(
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
-    "root": {"level": "WARNING",},
+    "root": {"level": "WARNING"},
     "formatters": {
         "verbose": {
             "format": "%(levelname)s %(asctime)s %(module)s "
@@ -216,17 +220,17 @@ LOGGING = {
     "loggers": {
         "django.db.backends": {
             "level": "ERROR",
-            "handlers": ["console",],
+            "handlers": ["console"],
             "propagate": False,
         },
         "sentry.errors": {
             "level": "DEBUG",
-            "handlers": ["console",],
+            "handlers": ["console"],
             "propagate": False,
         },
         "django.security.DisallowedHost": {
             "level": "ERROR",
-            "handlers": ["console",],
+            "handlers": ["console"],
             "propagate": False,
         },
     },
@@ -240,3 +244,10 @@ ADMIN_URL = env("DJANGO_ADMIN_URL", default="admin/")
 # ------------------------------------------------------------------------------
 
 GA_TRACKING_ID = env("GA_TRACKING_ID", default="")
+
+# django-rest-framework
+# -------------------------------------------------------------------------------
+# Tools that generate code samples can use SERVERS to point to the correct domain
+SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
+    {"url": "https://fpbase.org", "description": "Production server"},
+]

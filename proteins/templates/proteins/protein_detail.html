@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n favit_tags %}
-{% load flag_object custom_static from protein_tags %}
+{% load flag_object from protein_tags %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}{{ protein.name|safe  }} :: Fluorescent Protein Database {% endblock %}
 {% block meta-description %}{{ protein.description }}{% endblock %}
@@ -483,11 +484,11 @@
   <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
 
   {% if protein.has_spectra %}
-  {% custom_static 'simpleSpectraViewer' %}
+  {% render_bundle 'simpleSpectraViewer' %}
   {% endif %}
 
   {% if protein.pdb %}
-    {% custom_static 'litemol' attrs='defer' %}
+    {% render_bundle 'litemol' attrs='defer' %}
     <script type="text/javascript">
     $(window).on('load', function() {
       initPDB({{protein.pdb|safe}});

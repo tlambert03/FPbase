@@ -10,11 +10,13 @@ const rangexy = (start, end) =>
 
 // $cl1_wave
 const customLaserSpectrum = _id => {
-  const [id, wave] = _id.split("_")
+  let [id, wave] = _id.split("_")
+
+  wave = +wave
   const data = [
-    [+wave - 1, 0],
-    [+wave, 1],
-    [+wave + 1, 0],
+    [wave - 1, 0],
+    [wave, 1],
+    [wave + 1, 0],
   ]
   const name = `${wave} laser`
   return Promise.resolve({
@@ -26,7 +28,7 @@ const customLaserSpectrum = _id => {
         owner: { name, id: _id },
         category: "L",
         data,
-        color: +wave in COLORS ? COLORS[+wave] : "#999999",
+        color: wave in COLORS ? COLORS[wave] : "#999999",
       },
     },
   })
@@ -35,6 +37,7 @@ const customLaserSpectrum = _id => {
 // $cf1_type_center_width_trans
 const customFilterSpectrum = _id => {
   let [id, subtype, center, width, trans] = _id.split("_")
+
   subtype = subtype.toUpperCase()
   trans = +trans / 100 || 0.9
   const data = []
@@ -104,13 +107,14 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
   }
   useEffect(() => {
     function idToData(id) {
+      // cast id to integer
       if (id.startsWith("$cf")) {
         return customFilterSpectrum(id)
       }
       if (id.startsWith("$cl")) {
         return customLaserSpectrum(id)
       }
-      return client.query({ query: GET_SPECTRUM, variables: { id } })
+      return client.query({ query: GET_SPECTRUM, variables: { id: +id } })
     }
 
     async function updateData() {
@@ -135,9 +139,8 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
       const newOverlaps = activeOverlaps.filter(
         id => id && !currentIDs.includes(id)
       )
-
       const newOverlapData = newOverlaps
-        .map(id => window.OverlapCache[id])
+        .map(id => window.OverlapCache[id] || id)
         .filter(i => i)
 
       if (deadSpectra.length || newData.length || newOverlapData.length) {

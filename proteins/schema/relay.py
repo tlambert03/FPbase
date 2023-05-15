@@ -8,3 +8,4 @@ class ProteinNode(Protein):
     class Meta:
         model = models.Protein
         interfaces = (graphene.relay.Node,)
+        fields = "__all__"

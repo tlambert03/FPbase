@@ -1,19 +1,20 @@
-from django.views.generic import DetailView
-from django.http import HttpResponseNotAllowed
-from django.utils.text import slugify
-from django.db.models import Prefetch
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
-from django.http import JsonResponse
-from django.core.mail import mail_managers
-from django.views.decorators.cache import cache_page
-from fpbase.util import uncache_protein_page
-from collections import defaultdict
-from proteins.util.maintain import validate_node
 import html
+from collections import defaultdict
 
-from ..models import Protein, Organism, Spectrum, Fluorophore, Lineage, State
 import reversion
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.core.mail import mail_managers
+from django.db.models import Prefetch
+from django.http import HttpResponseNotAllowed, JsonResponse
+from django.utils.text import slugify
+from django.views.decorators.cache import cache_page
+from django.views.generic import DetailView
+
+from fpbase.util import is_ajax, uncache_protein_page
+from proteins.util.maintain import validate_node
+
+from ..models import Fluorophore, Lineage, Organism, Protein, Spectrum, State
 
 
 def serialize_comparison(request):
@@ -39,7 +40,7 @@ def serialize_comparison(request):
 
 
 def update_comparison(request):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
     current = set(request.session.get("comparison", []))
     if request.POST.get("operation") == "add":
@@ -59,7 +60,7 @@ def update_comparison(request):
 
 @login_required
 def add_organism(request):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
     try:
         tax_id = request.POST.get("taxonomy_id", None)
@@ -94,7 +95,7 @@ def add_organism(request):
 
 @staff_member_required
 def approve_protein(request, slug=None):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
 
     try:
@@ -125,7 +126,7 @@ def approve_protein(request, slug=None):
 
 
 def similar_spectrum_owners(request):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
 
     name = request.POST.get("owner", None)
@@ -150,7 +151,7 @@ def similar_spectrum_owners(request):
 
 
 def validate_proteinname(request):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
 
     name = request.POST.get("name", None)
@@ -207,7 +208,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
 
 @cache_page(60 * 5)
 def get_lineage(request, slug=None, org=None):
-    # if not request.is_ajax():
+    # if not is_ajax(request):
     #     return HttpResponseNotAllowed([])
     if org:
         _ids = list(Lineage.objects.filter(protein__parent_organism=org, parent=None))

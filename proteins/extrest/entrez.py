@@ -1,7 +1,5 @@
 import xml.etree.ElementTree as ET
 from Bio import Entrez, SeqIO
-from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
 from references.helpers import pmid2doi
 from django.core.cache import cache
 import re
@@ -21,10 +19,6 @@ gbnucrx = re.compile(r"^([A-Za-z]{2}\d{6}\.?\d?)|([A-Za-z]{1}\d{5}\.?\d?)")
 # refseq accession
 refseqrx = re.compile("(NC|AC|NG|NT|NW|NZ|NM|NR|XM|XR|NP|AP|XP|YP|ZP)_[0-9]+")
 
-
-def translate(seq):
-    coding_dna = Seq(seq, generic_dna)
-    return coding_dna.translate()._data
 
 
 def get_taxonomy_id(term, autochoose=False):

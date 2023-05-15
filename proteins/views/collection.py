@@ -21,6 +21,8 @@ from django.views.generic import (
     UpdateView,
 )
 
+from fpbase.util import is_ajax
+
 from ..forms import CollectionForm
 from ..models import ProteinCollection
 from .mixins import OwnableObject
@@ -36,8 +38,8 @@ def serialized_proteins_response(queryset, format="json", filename="FPbase_prote
 
         response = JsonResponse(serializer.data, safe=False)
     elif format == "csv":
-        from rest_framework_csv.renderers import CSVStreamingRenderer as rend
         from django.http import StreamingHttpResponse
+        from rest_framework_csv.renderers import CSVStreamingRenderer as rend
 
         response = StreamingHttpResponse(
             rend().render(serializer.data), content_type="text/csv"
@@ -106,7 +108,7 @@ class CollectionDetail(DetailView):
 
 @login_required
 def collection_remove(request):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
     try:
         protein = int(request.POST["target_protein"])
@@ -125,7 +127,7 @@ def collection_remove(request):
 
 @login_required
 def add_to_collection(request):
-    if not request.is_ajax():
+    if not is_ajax(request):
         return HttpResponseNotAllowed([])
 
     if request.method == "GET":
