@@ -4,7 +4,6 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-
     help = "Cache Forster distance calculations across database"
 
     def handle(self, *app_labels, **options):

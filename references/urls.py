@@ -16,7 +16,5 @@ urlpatterns = [
     ),
     re_path(r"^author/(?P<pk>[-\w]+)/$", AuthorDetailView.as_view(), name="author-detail"),
     re_path(r"^ajax/add_excerpt/(?P<pk>[-\w]+)$", add_excerpt, name="add_excerpt"),
-    re_path(
-        r"^(?P<pk>[-\w\/\.]+)/$", ReferenceDetailView.as_view(), name="reference-detail"
-    ),
+    re_path(r"^(?P<pk>[-\w\/\.]+)/$", ReferenceDetailView.as_view(), name="reference-detail"),
 ]

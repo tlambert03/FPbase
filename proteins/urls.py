@@ -287,9 +287,7 @@ urlpatterns = [
         name="collection-remove",
     ),
     path("ajax/flag_object/", views.flag_object, name="flag_object"),
-    path(
-        "ajax/add_to_collection/", views.add_to_collection, name="add_to_collection"
-    ),
+    path("ajax/add_to_collection/", views.add_to_collection, name="add_to_collection"),
     path("ajax/comparison/", views.update_comparison, name="update-comparison"),
     re_path(r"^ajax/lineage/(?P<slug>[-\w]+)/$", views.get_lineage, name="get-lineage"),
     path("ajax/lineage/", views.get_lineage, name="get-lineage"),

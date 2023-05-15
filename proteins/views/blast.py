@@ -20,6 +20,6 @@ def blast_view(request):
                 result = blast(seq, binary)
                 return JsonResponse({"status": 200, "blastResult": result})
             except Exception as e:
-                return JsonResponse({"status": 500, "error": f'BLAST error: {e}'})
+                return JsonResponse({"status": 500, "error": f"BLAST error: {e}"})
         return JsonResponse({"status": 204, "blastResult": []})
     return render(request, "proteins/blast.html")

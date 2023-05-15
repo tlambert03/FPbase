@@ -8,7 +8,7 @@ TOOL_ENDPOINT = "/uploadlists/"
 
 
 def get_uniprot_info(unip_id):
-    """ Get sequence, accessions, genbank matches, and references from Uniprot"""
+    """Get sequence, accessions, genbank matches, and references from Uniprot"""
     try:
         validate_uniprot(unip_id)
     except Exception:

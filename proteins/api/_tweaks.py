@@ -102,20 +102,12 @@ class SerializerCustomizationMixin:
         for key, field in self.fields.items():
             if hasattr(field, "error_messages"):
                 field_name = str(get_field_name(key, field))
-                custom_required_message = self.custom_required_errors.get(
-                    key, self.required_error
-                )
+                custom_required_message = self.custom_required_errors.get(key, self.required_error)
                 if custom_required_message:
-                    field.error_messages["required"] = custom_required_message.format(
-                        fieldname=field_name
-                    )
-                custom_blank_message = self.custom_blank_errors.get(
-                    key, self.blank_error
-                )
+                    field.error_messages["required"] = custom_required_message.format(fieldname=field_name)
+                custom_blank_message = self.custom_blank_errors.get(key, self.blank_error)
                 if custom_blank_message:
-                    field.error_messages["blank"] = custom_blank_message.format(
-                        fieldname=field_name
-                    )
+                    field.error_messages["blank"] = custom_blank_message.format(fieldname=field_name)
 
     # required fields override
     required_fields = []
@@ -149,10 +141,7 @@ class SerializerCustomizationMixin:
         fields = set()
         if fields_name in self.context:
             fields = set(self.context[fields_name])
-        elif (
-            "request" in self.context
-            and fields_name in self.context["request"].query_params
-        ):
+        elif "request" in self.context and fields_name in self.context["request"].query_params:
             fields = set(self.context["request"].query_params[fields_name].split(","))
         return self.add_main_fields_names_from_nested(fields)
 
@@ -167,9 +156,7 @@ class SerializerCustomizationMixin:
             return getattr(self.Meta, "on_demand_fields", set())
         return set()
 
-    def check_if_needs_serialization(
-        self, field_name, fields, include_fields, on_demand_fields
-    ):
+    def check_if_needs_serialization(self, field_name, fields, include_fields, on_demand_fields):
         # sourcery skip: merge-duplicate-blocks
         if fields:
             # if fields are defined for a given level, we ignore "include_fields"
@@ -197,9 +184,7 @@ class SerializerCustomizationMixin:
 
         for field in fields:
             # ++ change to the original code from DRF
-            if not self.check_if_needs_serialization(
-                field.field_name, only_fields, include_fields, on_demand_fields
-            ):
+            if not self.check_if_needs_serialization(field.field_name, only_fields, include_fields, on_demand_fields):
                 continue
             # -- change
 
@@ -208,9 +193,7 @@ class SerializerCustomizationMixin:
             except SkipField:
                 continue
 
-            check_for_none = (
-                attribute.pk if isinstance(attribute, PKOnlyObject) else attribute
-            )
+            check_for_none = attribute.pk if isinstance(attribute, PKOnlyObject) else attribute
             if check_for_none is None:
                 ret[field.field_name] = None
             else:
@@ -223,9 +206,7 @@ class SerializerCustomizationMixin:
     # one-step validation
     def to_internal_value(self: serializers.Serializer, data):
         if not isinstance(data, dict):
-            message = self.error_messages["invalid"].format(
-                datatype=type(data).__name__
-            )
+            message = self.error_messages["invalid"].format(datatype=type(data).__name__)
             raise ValidationError({api_settings.NON_FIELD_ERRORS_KEY: [message]})
 
         ret = {}

@@ -73,9 +73,7 @@ def findname(name):
 class ProteinQuerySet(models.QuerySet):
     def fasta(self):
         seqs = self.exclude(seq__isnull=True).values("uuid", "name", "seq")
-        return io.StringIO(
-            "\n".join([">{uuid} {name}\n{seq}".format(**s) for s in seqs])
-        )
+        return io.StringIO("\n".join([">{uuid} {name}\n{seq}".format(**s) for s in seqs]))
 
     def to_tree(self, output="clw"):
         fasta = self.fasta()
@@ -142,9 +140,7 @@ class ProteinManager(models.Manager):
         qs = self.get_queryset().filter(states__spectra__isnull=False).distinct()
         if not twoponly:
             # hacky way to remove 2p only spectra
-            qs = qs.annotate(stypes=Count("states__spectra__subtype")).filter(
-                stypes__gt=1
-            )
+            qs = qs.annotate(stypes=Count("states__spectra__subtype")).filter(stypes__gt=1)
         return qs
 
     def find_similar(self, name, similarity=0.2):
@@ -244,18 +240,12 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         db_index=True,
         verbose_name="FPbase ID",
     )
-    name = models.CharField(
-        max_length=128, help_text="Name of the fluorescent protein", db_index=True
-    )
-    slug = models.SlugField(
-        max_length=64, unique=True, help_text="URL slug for the protein"
-    )  # for generating urls
+    name = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
+    slug = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name = models.CharField(max_length=128)  # easily searchable "family" name
     aliases = ArrayField(models.CharField(max_length=200), blank=True, null=True)
     chromophore = models.CharField(max_length=5, null=True, blank=True)
-    seq_validated = models.BooleanField(
-        default=False, help_text="Sequence has been validated by a moderator"
-    )
+    seq_validated = models.BooleanField(default=False, help_text="Sequence has been validated by a moderator")
     # seq must be nullable because of uniqueness contraints
     seq = SequenceField(
         unique=True,
@@ -300,9 +290,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         verbose_name="IPG ID",
         help_text="Identical Protein Group ID at Pubmed",
     )  # identical protein group uid
-    mw = models.FloatField(
-        null=True, blank=True, help_text="Molecular Weight"
-    )  # molecular weight
+    mw = models.FloatField(null=True, blank=True, help_text="Molecular Weight")  # molecular weight
     agg = models.CharField(
         max_length=2,
         choices=AGG_CHOICES,
@@ -310,9 +298,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         verbose_name="Oligomerization",
         help_text="Oligomerization tendency",
     )
-    oser = models.FloatField(
-        null=True, blank=True, help_text="OSER score"
-    )  # molecular weight
+    oser = models.FloatField(null=True, blank=True, help_text="OSER score")  # molecular weight
     switch_type = models.CharField(
         max_length=2,
         choices=SWITCHING_CHOICES,
@@ -321,9 +307,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         verbose_name="Switching Type",
         help_text="Photoswitching type (basic if none)",
     )
-    blurb = models.TextField(
-        max_length=512, blank=True, help_text="Brief descriptive blurb"
-    )
+    blurb = models.TextField(max_length=512, blank=True, help_text="Brief descriptive blurb")
     cofactor = models.CharField(
         max_length=2,
         choices=COFACTOR_CHOICES,
@@ -404,9 +388,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             return self
         try:
             return (
-                Version.objects.get_for_object(self)
-                .filter(serialized_data__contains='"status": "approved"')
-                .first()
+                Version.objects.get_for_object(self).filter(serialized_data__contains='"status": "approved"').first()
             )
         except Exception:
             return None
@@ -444,9 +426,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 perc = (i + 1) * stepsize
                 if color == "#000":
                     perc *= 0.2
-                svgdef += '<stop offset="{}%" style="stop-color:{};" />'.format(
-                    perc, color
-                )
+                svgdef += '<stop offset="{}%" style="stop-color:{};" />'.format(perc, color)
             return svgdef
         if self.default_state:
             return self.default_state.emhex
@@ -455,9 +435,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     @property
     def color(self):
         try:
-            return get_color_group(
-                self.default_state.ex_max, self.default_state.em_max
-            )[0]
+            return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]
         except Exception:
             return ""
 
@@ -501,9 +479,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return json.dumps(spectra)
 
     def spectra_img(self, fmt="svg", output=None, **kwargs):
-        spectra = list(
-            Spectrum.objects.filter(owner_state__protein=self).exclude(subtype="2p")
-        )
+        spectra = list(Spectrum.objects.filter(owner_state__protein=self).exclude(subtype="2p"))
         title = self.name if kwargs.pop("title", False) else None
         if kwargs.get("twitter", False):
             title = self.name
@@ -521,9 +497,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 self.default_state = self.states.first()
             # otherwise use farthest red non-dark state
             elif self.states.count() > 1:
-                self.default_state = (
-                    self.states.exclude(is_dark=True).order_by("-em_max").first()
-                )
+                self.default_state = self.states.exclude(is_dark=True).order_by("-em_max").first()
             return True
         return False
 
@@ -536,19 +510,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         if self.pdb:
             self.pdb = list(set(self.pdb))
             for item in self.pdb:
-                if (
-                    Protein.objects.exclude(id=self.id)
-                    .filter(pdb__contains=[item])
-                    .exists()
-                ):
+                if Protein.objects.exclude(id=self.id).filter(pdb__contains=[item]).exists():
                     p = Protein.objects.filter(pdb__contains=[item]).first()
-                    errors.update(
-                        {
-                            "pdb": "PDB ID {} is already in use by protein {}".format(
-                                item, p.name
-                            )
-                        }
-                    )
+                    errors.update({"pdb": "PDB ID {} is already in use by protein {}".format(item, p.name)})
 
         if errors:
             raise ValidationError(errors)
@@ -604,17 +568,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return datetime.datetime.combine(d, datetime.datetime.min.time()) if d else None
 
     def n_faves(self, norm=False):
-        nf = (
-            Favorite.objects.for_model(Protein).filter(target_object_id=self.id).count()
-        )
+        nf = Favorite.objects.for_model(Protein).filter(target_object_id=self.id).count()
         if norm:
             from collections import Counter
 
-            mx = Counter(
-                Favorite.objects.for_model(Protein).values_list(
-                    "target_object_id", flat=True
-                )
-            ).most_common(1)
+            mx = Counter(Favorite.objects.for_model(Protein).values_list("target_object_id", flat=True)).most_common(1)
             if mx:
                 mx = mx[0][1]
             else:
@@ -676,9 +634,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def rank(self):
         # max rank is 1
         return (
-            0.5 * self.date_published(norm=True)
-            + 0.6 * self.ga_views(norm=True)
-            + 1.0 * self.n_faves(norm=True)
+            0.5 * self.date_published(norm=True) + 0.6 * self.ga_views(norm=True) + 1.0 * self.n_faves(norm=True)
         ) / 2.5
 
     def local_brightness(self):

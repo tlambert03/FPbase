@@ -45,7 +45,6 @@ def add_or_remove(request):
 
 @login_required
 def remove(request):
-
     if not is_ajax(request):
         return HttpResponseNotAllowed([])
 

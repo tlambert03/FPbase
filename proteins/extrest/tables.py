@@ -112,7 +112,6 @@ class HTMLTableParser:
         # Find number of rows and columns
         # we also find the column titles if we can
         for row in table.find_all("tr"):
-
             # Determine the number of rows in the table
             td_tags = row.find_all("td")
             if len(td_tags) > 0:

@@ -6,7 +6,6 @@ from django.contrib.auth.signals import user_logged_in
 
 
 class User(AbstractUser):
-
     # # AbstractUser Fields
     # username = models.CharField
     # first_name = models.CharField

@@ -8,7 +8,7 @@ Entrez.email = "talley_lambert@hms.harvard.edu"
 
 
 class Organism(Authorable, TimeStampedModel):
-    """ A class for the parental organism (species) from which the protein has been engineered  """
+    """A class for the parental organism (species) from which the protein has been engineered"""
 
     # Attributes
     id = models.PositiveIntegerField(
@@ -25,16 +25,14 @@ class Organism(Authorable, TimeStampedModel):
         return self.scientific_name
 
     class Meta:
-        verbose_name = u"Organism"
+        verbose_name = "Organism"
         ordering = ["scientific_name"]
 
     def get_absolute_url(self):
         return reverse("proteins:organism-detail", args=[self.pk])
 
     def save(self, *args, **kwargs):
-        pubmed_record = Entrez.read(
-            Entrez.esummary(db="taxonomy", id=self.id, retmode="xml")
-        )
+        pubmed_record = Entrez.read(Entrez.esummary(db="taxonomy", id=self.id, retmode="xml"))
         self.scientific_name = pubmed_record[0]["ScientificName"]
         self.division = pubmed_record[0]["Division"]
         self.common_name = pubmed_record[0]["CommonName"]

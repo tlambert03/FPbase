@@ -41,12 +41,8 @@ def serialized_proteins_response(queryset, format="json", filename="FPbase_prote
         from django.http import StreamingHttpResponse
         from rest_framework_csv.renderers import CSVStreamingRenderer as rend
 
-        response = StreamingHttpResponse(
-            rend().render(serializer.data), content_type="text/csv"
-        )
-        response["Content-Disposition"] = 'attachment; filename="{}.csv"'.format(
-            filename
-        )
+        response = StreamingHttpResponse(rend().render(serializer.data), content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="{}.csv"'.format(filename)
     return response
 
 
@@ -79,9 +75,7 @@ class CollectionDetail(DetailView):
         format = request.GET.get("format", "").lower()
         if format in ("json", "csv"):
             col = self.get_object()
-            return serialized_proteins_response(
-                col.proteins.all(), format, filename=slugify(col.name)
-            )
+            return serialized_proteins_response(col.proteins.all(), format, filename=slugify(col.name))
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -100,9 +94,7 @@ class CollectionDetail(DetailView):
     def render_to_response(self, *args, **kwargs):
         if not self.request.user.is_superuser:
             if self.object.private and (self.object.owner != self.request.user):
-                return render(
-                    self.request, "proteins/private_collection.html", {"foo": "bar"}
-                )
+                return render(self.request, "proteins/private_collection.html", {"foo": "bar"})
         return super().render_to_response(*args, **kwargs)
 
 
@@ -132,12 +124,8 @@ def add_to_collection(request):
 
     if request.method == "GET":
         qs = ProteinCollection.objects.filter(owner=request.user)
-        widget = forms.Select(
-            attrs={"class": "form-control custom-select", "id": "collectionSelect"}
-        )
-        choicefield = forms.ChoiceField(
-            choices=qs.values_list("id", "name"), widget=widget
-        )
+        widget = forms.Select(attrs={"class": "form-control custom-select", "id": "collectionSelect"})
+        choicefield = forms.ChoiceField(choices=qs.values_list("id", "name"), widget=widget)
 
         members = []
         if request.GET.get("id"):
@@ -155,9 +143,7 @@ def add_to_collection(request):
 
     elif request.method == "POST":
         try:
-            collection = ProteinCollection.objects.get(
-                id=request.POST.get("collectionChoice")
-            )
+            collection = ProteinCollection.objects.get(id=request.POST.get("collectionChoice"))
             collection.proteins.add(int(request.POST.get("protein")))
             status = "success"
         except Exception:
@@ -182,9 +168,7 @@ class CollectionCreateView(OwnableObject, CreateView):
         # be used to make a new collection
         elif self.request.POST.get("dupcollection", False):
             id = self.request.POST.get("dupcollection")
-            kwargs["proteins"] = [
-                p.id for p in ProteinCollection.objects.get(id=id).proteins.all()
-            ]
+            kwargs["proteins"] = [p.id for p in ProteinCollection.objects.get(id=id).proteins.all()]
         return kwargs
 
     def form_valid(self, form):
@@ -204,9 +188,7 @@ class CollectionCreateView(OwnableObject, CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def get_success_url(self):
-        redirect_url = self.request.POST.get("next") or self.request.GET.get(
-            "next", None
-        )
+        redirect_url = self.request.POST.get("next") or self.request.GET.get("next", None)
         try:
             # check that this is an internal redirection
             resolve(redirect_url)
@@ -241,9 +223,7 @@ class CollectionDeleteView(DeleteView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        redirect_url = reverse_lazy(
-            "proteins:collections", kwargs={"owner": self.request.user}
-        )
+        redirect_url = reverse_lazy("proteins:collections", kwargs={"owner": self.request.user})
         try:
             # check that this is an internal redirection
             resolve(redirect_url)

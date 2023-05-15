@@ -88,7 +88,7 @@ def check_semrock_for_part(part):
 
 
 def fetch_chroma_part(part):
-    """ Retrieve ASCII spectra for a chroma part number
+    """Retrieve ASCII spectra for a chroma part number
 
     part is a string:
     'ET525/50m' or 'et525-50m'
@@ -123,11 +123,7 @@ def fetch_chroma_part(part):
         if parser.url:
             return fetch_chroma_url(parser.url)
         else:
-            raise ValueError(
-                "Found Chroma part {}, but could not find file to download".format(
-                    slugify(part)
-                )
-            )
+            raise ValueError("Found Chroma part {}, but could not find file to download".format(slugify(part)))
     else:
         raise ValueError("Could not retrieve Chroma part: {}".format(slugify(part)))
 
@@ -137,12 +133,12 @@ def normalize_semrock_part(part):
 
 
 def fetch_semrock_part(part):
-    """ Retrieve ASCII spectra for a semrock part number
+    """Retrieve ASCII spectra for a semrock part number
 
-    part is a string:
-   'FF01-571/72' or  'FF01-571/72-25' (-25) will be clipped
-    must resolve to a url such as:
-    https://www.semrock.com/_ProductData/Spectra/FF01-571_72_Spectrum.txt
+     part is a string:
+    'FF01-571/72' or  'FF01-571/72-25' (-25) will be clipped
+     must resolve to a url such as:
+     https://www.semrock.com/_ProductData/Spectra/FF01-571_72_Spectrum.txt
     """
     response = requests.get("https://www.semrock.com/FilterDetails.aspx?id=" + part)
     if not response.status_code == 200:
@@ -150,9 +146,7 @@ def fetch_semrock_part(part):
 
     try:
         url = "https://www.semrock.com" + (
-            str(response.content)
-            .split('" title="Click to Download ASCII')[0]
-            .split('href="')[-1]
+            str(response.content).split('" title="Click to Download ASCII')[0].split('href="')[-1]
         )
     except Exception:
         raise ValueError("Could not parse page for semrock part: {}".format(part))
@@ -191,7 +185,7 @@ def read_csv_text(text) -> pd.DataFrame:
 
 
 def text_to_spectra(text, wavecol=0):
-    """ Convert text string into spectral data
+    """Convert text string into spectral data
 
     Args:
         text (str): string containing csv (usually) data

@@ -27,9 +27,7 @@ class TestUserURLs(TestCase):
 
     def test_detail_reverse(self):
         """users:detail should reverse to /users/testuser/."""
-        self.assertEqual(
-            reverse("users:detail", kwargs={"username": "testuser"}), "/users/testuser/"
-        )
+        self.assertEqual(reverse("users:detail", kwargs={"username": "testuser"}), "/users/testuser/")
 
     def test_detail_resolve(self):
         """/users/testuser/ should resolve to users:detail."""

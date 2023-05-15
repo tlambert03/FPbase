@@ -109,9 +109,7 @@ FIXTURE_DIRS = (str(APPS_DIR.path("fixtures")),)
 
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
-EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
-)
+EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -257,9 +255,7 @@ PASSWORD_HASHERS = [
 # ------------------------------------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -350,9 +346,7 @@ RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_V3_PRIVATE_KEY", default="")
 GOOGLE_API_PRIVATE_KEY = env("GOOGLE_API_PRIVATE_KEY", default="").replace("#", "\n")
 GOOGLE_API_CLIENT_EMAIL = env("GOOGLE_API_CLIENT_EMAIL", default=None)
 
-ALGOLIA_SUFFIX = (
-    "dev" if (DEBUG or ("staging" in env("SENTRY_PROJECT", default=""))) else "prod"
-)
+ALGOLIA_SUFFIX = "dev" if (DEBUG or ("staging" in env("SENTRY_PROJECT", default=""))) else "prod"
 ALGOLIA_PUBLIC_KEY = "421b453d4f93e332ebd0c7f3ace29476"
 ALGOLIA = {
     "APPLICATION_ID": "9WAWQMVNTB",

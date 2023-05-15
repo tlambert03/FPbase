@@ -52,13 +52,9 @@ def check_existence(form, fieldname, value):
         query = Protein.objects.filter(slug=slug)
         query = query | Protein.objects.filter(name__iexact=value)
         query = query | Protein.objects.filter(name__iexact=value.replace(" ", ""))
-        query = query | Protein.objects.filter(
-            name__iexact=value.replace(" ", "").replace("monomeric", "m")
-        )
+        query = query | Protein.objects.filter(name__iexact=value.replace(" ", "").replace("monomeric", "m"))
     else:
-        query = Protein.objects.filter(**{fieldname: value}).exclude(
-            id=form.instance.id
-        )
+        query = Protein.objects.filter(**{fieldname: value}).exclude(id=form.instance.id)
 
     if query.exists():
         prot = query.first()
@@ -103,14 +99,10 @@ class SelectAddWidget(forms.widgets.Select):
 
 
 class ProteinForm(forms.ModelForm):
-    """Form class for user-facing protein creation/submission form """
+    """Form class for user-facing protein creation/submission form"""
 
-    reference_doi = DOIField(
-        required=False, help_text="e.g. 10.1038/nmeth.2413", label="Reference DOI"
-    )
-    seq = SequenceField(
-        required=False, help_text="Amino acid sequence", label="Sequence"
-    )
+    reference_doi = DOIField(required=False, help_text="e.g. 10.1038/nmeth.2413", label="Reference DOI")
+    seq = SequenceField(required=False, help_text="Amino acid sequence", label="Sequence")
     # reference_pmid = forms.CharField(max_length=24, label='Reference Pubmed ID',
     #     required=False, help_text='e.g. 23524392 (must provide either DOI or PMID)')
 
@@ -201,9 +193,7 @@ class ProteinForm(forms.ModelForm):
     def clean_seq(self):
         seq = self.cleaned_data["seq"]
         if set(seq) == set("ACTG"):
-            raise forms.ValidationError(
-                "Please enter an amino acid sequence... not a DNA sequence."
-            )
+            raise forms.ValidationError("Please enter an amino acid sequence... not a DNA sequence.")
         self.cleaned_data["seq"] = "".join(seq.split()).upper()
         return check_existence(self, "seq", self.cleaned_data["seq"])
 
@@ -339,9 +329,7 @@ class BaseStateFormSet(forms.BaseInlineFormSet):
                 continue
             name = form.cleaned_data.get("name")
             if name in names:
-                raise forms.ValidationError(
-                    "Different states must have distinct names."
-                )
+                raise forms.ValidationError("Different states must have distinct names.")
             names.append(name)
 
 
@@ -372,13 +360,10 @@ class StateTransitionForm(forms.ModelForm):
         )
 
 
-StateTransitionFormSet = inlineformset_factory(
-    Protein, StateTransition, form=StateTransitionForm, extra=1
-)
+StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=StateTransitionForm, extra=1)
 
 
 class LineageForm(forms.ModelForm):
-
     parent = forms.ModelChoiceField(
         help_text="Direct evolutionary ancestor (must have ancestor of its own to appear)",
         required=False,
@@ -408,10 +393,7 @@ class LineageForm(forms.ModelForm):
         parent = self.cleaned_data.get("parent")
         mutation = self.cleaned_data.get("mutation")
         if (parent and not mutation) or (mutation and not parent):
-            raise forms.ValidationError(
-                "Both parent and mutation are "
-                "required when providing lineage information"
-            )
+            raise forms.ValidationError("Both parent and mutation are " "required when providing lineage information")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -434,9 +416,7 @@ class LineageForm(forms.ModelForm):
         )
 
 
-LineageFormSet = inlineformset_factory(
-    Protein, Lineage, form=LineageForm, extra=1, can_delete=False
-)
+LineageFormSet = inlineformset_factory(Protein, Lineage, form=LineageForm, extra=1, can_delete=False)
 
 
 class CollectionForm(forms.ModelForm):
@@ -470,9 +450,7 @@ class CollectionForm(forms.ModelForm):
 
 
 class BleachMeasurementForm(forms.ModelForm):
-    reference_doi = DOIField(
-        required=False, help_text="e.g. 10.1038/nmeth.2413", label="Reference DOI"
-    )
+    reference_doi = DOIField(required=False, help_text="e.g. 10.1038/nmeth.2413", label="Reference DOI")
 
     class Meta:
         model = BleachMeasurement
@@ -569,9 +547,7 @@ class protBleachItem(forms.ModelForm):
 
 
 class BleachComparisonForm(forms.ModelForm):
-    reference_doi = DOIField(
-        required=True, help_text="e.g. 10.1038/nmeth.2413", label="Reference DOI"
-    )
+    reference_doi = DOIField(required=True, help_text="e.g. 10.1038/nmeth.2413", label="Reference DOI")
 
     class Meta:
         model = BleachMeasurement

@@ -29,9 +29,7 @@ def long_blurb(self, withbright=False, withbleach=False):
             elif self.default_state.local_brightness < 0.5:
                 bright = "much dimmer than"
         if bright:
-            blurb += "It is {} other proteins in the database with similar emission spectra".format(
-                bright
-            )
+            blurb += "It is {} other proteins in the database with similar emission spectra".format(bright)
 
         bleach = None
         if withbleach:
@@ -73,9 +71,7 @@ def long_blurb(self, withbright=False, withbleach=False):
             elif M >= 90:
                 mature = ""
         if mature:
-            blurb += "It is reported to be a {} {}".format(
-                mature, self.get_agg_display().lower() or "protein"
-            )
+            blurb += "It is reported to be a {} {}".format(mature, self.get_agg_display().lower() or "protein")
 
         acid = None
         A = self.default_state.pka
@@ -100,8 +96,6 @@ def long_blurb(self, withbright=False, withbleach=False):
         if self.get_agg_display():
             blurb += "It is reported to be a {}.".format(self.get_agg_display().lower())
     if self.cofactor:
-        blurb += " It requires the cofactor {} for fluorescence.".format(
-            self.get_cofactor_display().lower()
-        )
+        blurb += " It requires the cofactor {} for fluorescence.".format(self.get_cofactor_display().lower())
 
     return blurb.strip()

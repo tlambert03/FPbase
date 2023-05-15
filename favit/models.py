@@ -10,8 +10,7 @@ from .managers import FavoriteManager
 
 
 class Favorite(models.Model):
-    """
-    """
+    """ """
 
     user = models.ForeignKey(
         getattr(settings, "AUTH_USER_MODEL", "auth.User"),
@@ -33,4 +32,4 @@ class Favorite(models.Model):
         verbose_name_plural = _("favorites")
 
     def __unicode__(self):
-        return u"{} favorited {}".format(self.user, self.target)
+        return "{} favorited {}".format(self.user, self.target)

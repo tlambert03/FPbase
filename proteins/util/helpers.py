@@ -152,11 +152,7 @@ def shortuuid(padding=None):
 
 def zip_wave_data(waves, data, minmax=None):
     minmax = minmax or (150, 1800)
-    return [
-        list(i)
-        for i in zip(waves, data)
-        if (minmax[0] <= i[0] <= minmax[1]) and not isnan(i[1])
-    ]
+    return [list(i) for i in zip(waves, data) if (minmax[0] <= i[0] <= minmax[1]) and not isnan(i[1])]
 
 
 def wave_to_hex(wavelength, gamma=1):
@@ -317,10 +313,7 @@ def calculate_spectral_overlap(donor, acceptor):
 
     A = accEx.wave_value_pairs()
     D = donEm.wave_value_pairs()
-    overlap = [
-        (pow(wave, 4) * A[wave] * accEC * D[wave] / donCum)
-        for wave in range(startingwave, endingwave + 1)
-    ]
+    overlap = [(pow(wave, 4) * A[wave] * accEC * D[wave] / donCum) for wave in range(startingwave, endingwave + 1)]
 
     return sum(overlap)
 
@@ -368,26 +361,19 @@ def forster_list():
                             "donor": "<a href='{}'>{}{}</a>".format(
                                 donor.get_absolute_url(),
                                 donor.name,
-                                "<sub>{}</sub>".format(donor.cofactor.upper())
-                                if donor.cofactor
-                                else "",
+                                "<sub>{}</sub>".format(donor.cofactor.upper()) if donor.cofactor else "",
                             ),
                             "acceptor": "<a href='{}'>{}{}</a>".format(
                                 acceptor.get_absolute_url(),
                                 acceptor.name,
-                                "<sub>{}</sub>".format(acceptor.cofactor.upper())
-                                if acceptor.cofactor
-                                else "",
+                                "<sub>{}</sub>".format(acceptor.cofactor.upper()) if acceptor.cofactor else "",
                             ),
                             "donorPeak": donor.default_state.ex_max,
                             "acceptorPeak": acceptor.default_state.ex_max,
-                            "emdist": acceptor.default_state.em_max
-                            - donor.default_state.em_max,
+                            "emdist": acceptor.default_state.em_max - donor.default_state.em_max,
                             "donorQY": donor.default_state.qy,
                             "acceptorQY": acceptor.default_state.qy,
-                            "acceptorEC": "{:,}".format(
-                                acceptor.default_state.ext_coeff
-                            ),
+                            "acceptorEC": "{:,}".format(acceptor.default_state.ext_coeff),
                             "overlap": round(overlap, 2),
                             "forster": round(r0.real, 2),
                             "forsterQYA": round(r0.real * acceptor.default_state.qy, 2),
@@ -411,7 +397,7 @@ def spectra_fig(
     title=False,
     info=None,
     figsize=(12, 3),
-    **kwargs
+    **kwargs,
 ):
     if not spectra:
         return None
@@ -420,9 +406,7 @@ def spectra_fig(
     colr = kwargs.pop("color", None)
     twitter = kwargs.pop("twitter", 0)
 
-    logger.debug(
-        "spectra_fig called on {}".format(",".join([str(spec.id) for spec in spectra]))
-    )
+    logger.debug("spectra_fig called on {}".format(",".join([str(spec.id) for spec in spectra])))
     if twitter:
         xlabels = False
         transparent = False
@@ -441,13 +425,7 @@ def spectra_fig(
         color = spec.color() if not colr else colr
         if fill:
             alpha = 0.5 if not alph else float(alph)
-            ax.fill_between(
-                *list(zip(*spec.data)),
-                color=color,
-                alpha=alpha,
-                url="http://google.com=",
-                **kwargs
-            )
+            ax.fill_between(*list(zip(*spec.data)), color=color, alpha=alpha, url="http://google.com=", **kwargs)
         else:
             alpha = 1 if not alph else float(alph)
             ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)
@@ -510,18 +488,14 @@ def spectra_fig(
 
 
 def wipe_bad_uuids():
-    """ get rid of old uuids in version histories """
+    """get rid of old uuids in version histories"""
     from reversion.models import Version
     import json
 
     for version in Version.objects.all():
         data = json.loads(version.serialized_data)
         for item in data:
-            if (
-                "fields" in item
-                and "uuid" in item["fields"]
-                and len(item["fields"]["uuid"]) > 5
-            ):
+            if "fields" in item and "uuid" in item["fields"] and len(item["fields"]["uuid"]) > 5:
                 item["fields"]["uuid"] = "-----"
         version.serialized_data = json.dumps(data)
         version.save()

@@ -25,9 +25,7 @@ class Author(TimeStampedModel):
 
     @property
     def protein_contributions(self):
-        return set(
-            [p for ref in self.publications.all() for p in ref.primary_proteins.all()]
-        )
+        return set([p for ref in self.publications.all() for p in ref.primary_proteins.all()])
 
     @property
     def first_authorships(self):
@@ -35,11 +33,7 @@ class Author(TimeStampedModel):
 
     @property
     def last_authorships(self):
-        return [
-            p.reference
-            for p in self.referenceauthor_set.all()
-            if p.author_idx == p.author_count - 1
-        ]
+        return [p.reference for p in self.referenceauthor_set.all() if p.author_idx == p.author_count - 1]
 
     def save(self, *args, **kwargs):
         self.initials = name_to_initials(self.initials)
@@ -72,9 +66,7 @@ class Reference(TimeStampedModel):
         verbose_name="DOI",
         validators=[validate_doi],
     )
-    pmid = models.CharField(
-        max_length=15, unique=True, null=True, blank=True, verbose_name="Pubmed ID"
-    )
+    pmid = models.CharField(max_length=15, unique=True, null=True, blank=True, verbose_name="Pubmed ID")
     title = models.CharField(max_length=512, blank=True)
     journal = models.CharField(max_length=512, blank=True)
     pages = models.CharField(max_length=20, blank=True)
@@ -93,9 +85,7 @@ class Reference(TimeStampedModel):
         help_text="YYYY",
     )
     authors = models.ManyToManyField("Author", through="ReferenceAuthor")
-    summary = models.CharField(
-        max_length=512, blank=True, help_text="Brief summary of findings"
-    )
+    summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
 
     created_by = models.ForeignKey(
         User,
@@ -185,9 +175,7 @@ class Reference(TimeStampedModel):
         if not skipdoi:
             ReferenceAuthor.objects.filter(reference_id=self.id).delete()
             for idx, author in enumerate(authorlist):
-                authmemb = ReferenceAuthor(
-                    reference=self, author=author, author_idx=idx
-                )
+                authmemb = ReferenceAuthor(reference=self, author=author, author_idx=idx)
                 authmemb.save()
 
     def prot_secondary(self):
@@ -213,9 +201,7 @@ class ReferenceAuthor(models.Model):
         return self.reference.authors.count()
 
     def __str__(self):
-        return "<AuthorMembership: {} in doi: {}>".format(
-            self.author, self.reference.doi
-        )
+        return "<AuthorMembership: {} in doi: {}>".format(self.author, self.reference.doi)
 
     class Meta:
         ordering = ["author_idx"]

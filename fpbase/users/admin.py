@@ -16,7 +16,6 @@ class MyUserChangeForm(UserChangeForm):
 
 
 class MyUserCreationForm(UserCreationForm):
-
     error_message = UserCreationForm.error_messages.update(
         {"duplicate_username": "This username has already been taken."}
     )
@@ -129,14 +128,8 @@ class MyUserAdmin(AuthUserAdmin):
         return (
             super(MyUserAdmin, self)
             .get_queryset(request)
-            .prefetch_related(
-                "socialaccount_set", "proteincollections", "emailaddress_set"
-            )
-            .annotate(
-                verified=Exists(
-                    EmailAddress.objects.filter(user_id=OuterRef("id"), verified=True)
-                )
-            )
+            .prefetch_related("socialaccount_set", "proteincollections", "emailaddress_set")
+            .annotate(verified=Exists(EmailAddress.objects.filter(user_id=OuterRef("id"), verified=True)))
             .annotate(
                 _collections=Count("proteincollections"),
                 _microscopes=Count("microscopes"),

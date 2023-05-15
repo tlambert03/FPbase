@@ -64,11 +64,7 @@ class ProteinListAPIView2(ListAPIView):
 
 
 class ProteinListAPIView(ListAPIView):
-    queryset = (
-        Protein.objects.all()
-        .prefetch_related("states", "transitions")
-        .select_related("default_state")
-    )
+    queryset = Protein.objects.all().prefetch_related("states", "transitions").select_related("default_state")
     permission_classes = (AllowAny,)
     serializer_class = ProteinSerializer
     lookup_field = "slug"  # Don't use Protein.id!

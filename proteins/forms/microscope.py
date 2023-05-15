@@ -50,7 +50,6 @@ class FilterPromise(object):
 
 
 class MicroscopeForm(forms.ModelForm):
-
     light_source = forms.ModelMultipleChoiceField(
         label="Light Source(s)",
         queryset=Light.objects.all(),
@@ -77,9 +76,7 @@ class MicroscopeForm(forms.ModelForm):
     optical_configs = forms.CharField(
         label="Optical Configurations",
         required=False,
-        widget=forms.Textarea(
-            attrs={"rows": 6, "cols": 40, "class": "textarea form-control"}
-        ),
+        widget=forms.Textarea(attrs={"rows": 6, "cols": 40, "class": "textarea form-control"}),
         help_text=("See extended help below"),
     )
 
@@ -112,18 +109,10 @@ class MicroscopeForm(forms.ModelForm):
             "collection": "Only show fluorophores from a custom collection (leave blank to allow all proteins)",
         }
         widgets = {
-            "name": forms.widgets.TextInput(
-                attrs={"class": "textinput textInput form-control"}
-            ),
-            "description": forms.widgets.TextInput(
-                attrs={"class": "textinput textInput form-control"}
-            ),
-            "detector": forms.widgets.Select(
-                attrs={"class": "selectmultiple form-control"}
-            ),
-            "light_source": forms.widgets.Select(
-                attrs={"class": "selectmultiple form-control"}
-            ),
+            "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "description": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "detector": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),
+            "light_source": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),
         }
 
     def create_oc(self, name, filters):
@@ -131,9 +120,7 @@ class MicroscopeForm(forms.ModelForm):
             bs_em_reflect = not bool(filters.pop())
         else:
             bs_em_reflect = False
-        oc = OpticalConfig.objects.create(
-            name=name, owner=self.user, microscope=self.instance
-        )
+        oc = OpticalConfig.objects.create(name=name, owner=self.user, microscope=self.instance)
 
         _paths = [FilterPlacement.EX, FilterPlacement.BS, FilterPlacement.EM]
 
@@ -179,15 +166,9 @@ class MicroscopeForm(forms.ModelForm):
                 newoc.save()
                 self.instance.optical_configs.add(newoc)
         if self.cleaned_data["light_source"].count() > 1:
-            [
-                self.instance.extra_lights.add(i)
-                for i in self.cleaned_data["light_source"].all()
-            ]
+            [self.instance.extra_lights.add(i) for i in self.cleaned_data["light_source"].all()]
         if self.cleaned_data["detector"].count() > 1:
-            [
-                self.instance.extra_cameras.add(i)
-                for i in self.cleaned_data["detector"].all()
-            ]
+            [self.instance.extra_cameras.add(i) for i in self.cleaned_data["detector"].all()]
         if not self.instance.owner:
             self.instance.owner = self.user
         if commit:
@@ -222,8 +203,7 @@ class MicroscopeForm(forms.ModelForm):
             else:
                 self.add_error(
                     "optical_configs",
-                    "Filter not found in database or at Chroma/Semrock: "
-                    "{}".format(fname),
+                    "Filter not found in database or at Chroma/Semrock: " "{}".format(fname),
                 )
                 return None
 
@@ -261,33 +241,21 @@ class MicroscopeForm(forms.ModelForm):
                 if not line:
                     continue
                 try:
-                    if (line.index("{") < line.index(",")) or (
-                        line.index("}") < line.index(",")
-                    ):
+                    if (line.index("{") < line.index(",")) or (line.index("}") < line.index(",")):
                         self.add_error(
                             "optical_configs",
-                            "No curly braces allowed in name (line #{})".format(
-                                linenum + 1
-                            ),
+                            "No curly braces allowed in name (line #{})".format(linenum + 1),
                         )
                         continue
                 except Exception:
                     pass
                 _out = []
                 if brackets.search(line):
-                    _splt = [
-                        i.strip() for i in re.split(r"({[^}]*})", line) if i.strip()
-                    ]
+                    _splt = [i.strip() for i in re.split(r"({[^}]*})", line) if i.strip()]
                     splt = []
                     for item in _splt:
                         if brackets.search(item):
-                            splt.append(
-                                [
-                                    n.strip()
-                                    for n in brackets.sub("", item).split(",")
-                                    if n.strip()
-                                ]
-                            )
+                            splt.append([n.strip() for n in brackets.sub("", item).split(",") if n.strip()])
                         else:
                             if item.endswith(","):
                                 item = item[:-1]
@@ -355,7 +323,6 @@ class MultipleFilterField(forms.ModelMultipleChoiceField):
 
 
 class OpticalConfigForm(forms.ModelForm):
-
     ex_filters = MultipleFilterField("Excitation Filter(s)")
     em_filters = MultipleFilterField("Emission Filter(s)")
     ref_em_filters = MultipleFilterField("Advanced: Reflective Emission Filter(s)")
@@ -400,9 +367,7 @@ class OpticalConfigForm(forms.ModelForm):
         if self.initial:
             if self.cleaned_data["invert_bs"] != self.initial.get("invert_bs"):
                 for filt in self.cleaned_data["bs_filters"]:
-                    for fp in oc.filterplacement_set.filter(
-                        filter=filt, path=FilterPlacement.BS
-                    ):
+                    for fp in oc.filterplacement_set.filter(filter=filt, path=FilterPlacement.BS):
                         fp.reflects = self.cleaned_data["invert_bs"]
                         fp.save()
         oc.save()
@@ -417,21 +382,11 @@ class OpticalConfigForm(forms.ModelForm):
             "comments": "When present, comments will appear below the selected optical configuration",
         }
         widgets = {
-            "name": forms.widgets.TextInput(
-                attrs={"class": "textinput textInput form-control"}
-            ),
-            "camera": forms.widgets.Select(
-                attrs={"class": "form-control custom-select"}
-            ),
-            "light": forms.widgets.Select(
-                attrs={"class": "form-control custom-select"}
-            ),
-            "laser": forms.widgets.NumberInput(
-                attrs={"class": "numberinput form-control"}
-            ),
-            "comments": forms.widgets.TextInput(
-                attrs={"class": "textinput textInput form-control"}
-            ),
+            "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "camera": forms.widgets.Select(attrs={"class": "form-control custom-select"}),
+            "light": forms.widgets.Select(attrs={"class": "form-control custom-select"}),
+            "laser": forms.widgets.NumberInput(attrs={"class": "numberinput form-control"}),
+            "comments": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
         }
 
     def is_valid(self):

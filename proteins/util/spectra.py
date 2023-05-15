@@ -95,7 +95,6 @@ def interp2int(x, y, s=1):
 
 
 if __name__ == "__main__":
-
     import json
     import subprocess
     import sys

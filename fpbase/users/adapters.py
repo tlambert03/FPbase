@@ -16,9 +16,7 @@ class AccountAdapter(DefaultAccountAdapter):
         try:
             dns.resolver.query(domain, "MX")
         except dns.exception.DNSException:
-            raise forms.ValidationError(
-                _(u"The domain %s could not be found.") % domain
-            )
+            raise forms.ValidationError(_("The domain %s could not be found.") % domain)
         return email
 
 

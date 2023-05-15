@@ -98,9 +98,7 @@ class SkbSequence(object):
 
             s = np.frombuffer(sequence, dtype=np.uint8)
             if isinstance(sequence, np.generic) and len(s) != 1:
-                raise TypeError(
-                    "Can cannot create a sequence with %r" % type(sequence).__name__
-                )
+                raise TypeError("Can cannot create a sequence with %r" % type(sequence).__name__)
 
             sequence = s
             self._owns_bytes = True
@@ -129,9 +127,7 @@ class SkbSequence(object):
             raise TypeError("Cannot cast %r as %r." % (cls.__name__, target.__name__))
 
     def __repr__(self):
-        return (
-            "Protein\n" + "-" * 54 + "\n" + "\n".join(chunk_string(str(self), 10, 55))
-        )
+        return "Protein\n" + "-" * 54 + "\n" + "\n".join(chunk_string(str(self), 10, 55))
 
     def __str__(self):
         return self._bytes.tobytes().decode("ascii")
@@ -140,8 +136,7 @@ class SkbSequence(object):
         if isinstance(other, SkbSequence):
             if type(other) != type(self):
                 raise TypeError(
-                    f"Cannot use {self.__class__.__name__} and "
-                    f"{other.__class__.__name__} together with `{method}`"
+                    f"Cannot use {self.__class__.__name__} and " f"{other.__class__.__name__} together with `{method}`"
                 )
             else:
                 return other
@@ -197,9 +192,7 @@ class SkbSequence(object):
                     # fall through to ndarray slicing below
                     indexable = np.asarray(indexable)
                 else:
-                    seq = np.concatenate(
-                        list(_slices_from_iter(self._bytes, indexable))
-                    )
+                    seq = np.concatenate(list(_slices_from_iter(self._bytes, indexable)))
                     # index = _as_slice_if_single_index(indexable)
 
                     # positional_metadata = None
@@ -217,15 +210,9 @@ class SkbSequence(object):
                     # positional_metadata=positional_metadata)
 
         elif isinstance(indexable, (str, bool)):
-            raise IndexError(
-                "Cannot index with %s type: %r" % (type(indexable).__name__, indexable)
-            )
+            raise IndexError("Cannot index with %s type: %r" % (type(indexable).__name__, indexable))
 
-        if (
-            isinstance(indexable, np.ndarray)
-            and indexable.dtype == bool
-            and len(indexable) != len(self)
-        ):
+        if isinstance(indexable, np.ndarray) and indexable.dtype == bool and len(indexable) != len(self):
             raise IndexError(
                 "An boolean vector index must be the same length"
                 " as the sequence (%d, not %d)." % (len(self), len(indexable))
@@ -282,8 +269,7 @@ class SkbSequence(object):
     def _validate(self):
         """https://github.com/biocore/scikit-bio/blob/0.5.4/skbio/sequence/_grammared_sequence.py#L340"""
         invalid_characters = (
-            np.bincount(self._bytes, minlength=self._number_of_extended_ascii_codes)
-            * self._validation_mask
+            np.bincount(self._bytes, minlength=self._number_of_extended_ascii_codes) * self._validation_mask
         )
         if np.any(invalid_characters):
             bad = list(np.where(invalid_characters > 0)[0].astype(np.uint8).view("|S1"))
@@ -294,18 +280,14 @@ class SkbSequence(object):
                 "characters not in the sequence's alphabet."
                 % (
                     "s" if len(bad) > 1 else "",
-                    [str(b.tostring().decode("ascii")) for b in bad]
-                    if len(bad) > 1
-                    else bad[0],
+                    [str(b.tostring().decode("ascii")) for b in bad] if len(bad) > 1 else bad[0],
                     list(self.alphabet),
                 )
             )
 
     @classproperty
     def alphabet(cls):
-        return (
-            cls.degenerate_chars | cls.definite_chars | cls.gap_chars | cls.stop_chars
-        )
+        return cls.degenerate_chars | cls.definite_chars | cls.gap_chars | cls.stop_chars
 
     @classproperty
     def degenerate_map(cls):
@@ -379,8 +361,6 @@ def _slices_from_iter(array, indexables):
         elif _is_single_index(i):
             i = _single_index_to_slice(i)
         else:
-            raise IndexError(
-                "Cannot slice sequence from iterable " "containing %r." % i
-            )
+            raise IndexError("Cannot slice sequence from iterable " "containing %r." % i)
 
         yield array[i]

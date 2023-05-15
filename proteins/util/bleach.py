@@ -18,7 +18,7 @@ def timeconst_to_decay(timeconst):
 
 
 def decay_to_timeconst(decay):
-    """convert exponential decay to time constant """
+    """convert exponential decay to time constant"""
     return 1 / decay
 
 

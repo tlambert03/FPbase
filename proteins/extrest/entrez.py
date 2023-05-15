@@ -20,7 +20,6 @@ gbnucrx = re.compile(r"^([A-Za-z]{2}\d{6}\.?\d?)|([A-Za-z]{1}\d{5}\.?\d?)")
 refseqrx = re.compile("(NC|AC|NG|NT|NW|NZ|NM|NR|XM|XR|NP|AP|XP|YP|ZP)_[0-9]+")
 
 
-
 def get_taxonomy_id(term, autochoose=False):
     record = Entrez.read(Entrez.esearch(db="taxonomy", term=term))
     if "ErrorList" in record and "PhraseNotFound" in record["ErrorList"]:
@@ -29,9 +28,7 @@ def get_taxonomy_id(term, autochoose=False):
             if autochoose:
                 response = "y"
             else:
-                response = input(
-                    'By "{}", did you mean "{}"? (y/n): '.format(term, spell_cor)
-                )
+                response = input('By "{}", did you mean "{}"? (y/n): '.format(term, spell_cor))
             if response.lower() == "y":
                 record = Entrez.read(Entrez.esearch(db="taxonomy", term=spell_cor))
     if record["Count"] == "1":
@@ -73,11 +70,7 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=
             print("No results at IPG for: {}".format(protein_name))
         return 0
     else:
-        print(
-            "cowardly refusing to fetch squence with {} records at IPG".format(
-                record["Count"]
-            )
-        )
+        print("cowardly refusing to fetch squence with {} records at IPG".format(record["Count"]))
         if give_options:
             print("{:>4}{:<11}{:<30}{:<5}".format("", "ID", "NAME", "#PROT"))
             idlist = []
@@ -87,11 +80,7 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=
                 docsum = root.find("DocumentSummarySet").find("DocumentSummary")
                 prot_count = int(docsum.find("ProteinCount").text)
                 name = docsum.find("Title").text
-                print(
-                    "{:>2}. {:<11}{:<30}{:<5}".format(
-                        i + 1, ipg_uid, name[:28], prot_count
-                    )
-                )
+                print("{:>2}. {:<11}{:<30}{:<5}".format(i + 1, ipg_uid, name[:28], prot_count))
                 idlist.append((ipg_uid, prot_count))
             sorted_by_count = sorted(idlist, key=lambda tup: tup[1])
             sorted_by_count.reverse()
@@ -99,15 +88,9 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=
             print("diff=", diff)
             if (autochoose >= 0) and (diff >= autochoose):
                 outID = sorted_by_count[0][0]
-                print(
-                    "Autochoosing id {} with {} proteins:".format(
-                        outID, sorted_by_count[0][1]
-                    )
-                )
+                print("Autochoosing id {} with {} proteins:".format(outID, sorted_by_count[0][1]))
             else:
-                rownum = input(
-                    "Enter the row number you want to lookup, or press enter to cancel: "
-                )
+                rownum = input("Enter the row number you want to lookup, or press enter to cancel: ")
                 try:
                     rownum = int(rownum) - 1
                     outID = idlist[rownum][0]
@@ -145,9 +128,7 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
     assert len(record) == 1, "More than one record returned from protein database"
     record = record[0]
     prot_seq = record["GBSeq_sequence"].upper()
-    assert len(prot_seq) == int(
-        seq_len
-    ), "Protein database sequence different length {} than IPG database{}".format(
+    assert len(prot_seq) == int(seq_len), "Protein database sequence different length {} than IPG database{}".format(
         len(prot_seq), int(seq_len)
     )
     return (ipg_uid, prot_seq)
@@ -174,16 +155,14 @@ def check_accession_type(gbid):
 def get_cached_gbseqs(gbids, max_age=60 * 60 * 24):
     gbseqs = cache.get("gbseqs", {})
     now = time.time()
-    tofetch = [
-        id for id in gbids if not ((id in gbseqs) and (gbseqs[id][1] - now < max_age))
-    ]
+    tofetch = [id for id in gbids if not ((id in gbseqs) and (gbseqs[id][1] - now < max_age))]
     gbseqs.update({k: (v, now) for k, v in fetch_gb_seqs(tofetch).items()})
     cache.set("gbseqs", gbseqs, 60 * 60 * 24)
     return gbseqs
 
 
 def fetch_gb_seqs(gbids):
-    """ Retrieve protein sequence for multiple genbank IDs, (regardless of accession type)"""
+    """Retrieve protein sequence for multiple genbank IDs, (regardless of accession type)"""
     prots = []
     nucs = []
     for id in gbids:
@@ -197,45 +176,29 @@ def fetch_gb_seqs(gbids):
             logger.error("Could not determine accession type for {}".format(id))
     records = {}
     if len(nucs):
-        with Entrez.efetch(
-            db="nuccore", id=nucs, rettype="fasta", retmode="text"
-        ) as handle:
+        with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
             records.update(
-                {
-                    l.id.split(".")[0]: l.translate().seq._data.strip("*")
-                    for l in SeqIO.parse(handle, "fasta")
-                }
+                {l.id.split(".")[0]: l.translate().seq._data.strip("*") for l in SeqIO.parse(handle, "fasta")}
             )
     if len(prots):
-        with Entrez.efetch(
-            db="protein", id=prots, rettype="fasta", retmode="text"
-        ) as handle:
-            records.update(
-                {
-                    l.id.split(".")[0]: l.seq._data.strip("*")
-                    for l in SeqIO.parse(handle, "fasta")
-                }
-            )
+        with Entrez.efetch(db="protein", id=prots, rettype="fasta", retmode="text") as handle:
+            records.update({l.id.split(".")[0]: l.seq._data.strip("*") for l in SeqIO.parse(handle, "fasta")})
     return records
 
 
 def get_gb_seq(gbid):
-    """ Retrieve protein sequence for genbank ID, (regardless of accession type)"""
+    """Retrieve protein sequence for genbank ID, (regardless of accession type)"""
     database = check_accession_type(gbid)
     if not database:
         return None
 
     if database == "protein":
-        with Entrez.efetch(
-            db=database, id=gbid, rettype="fasta", retmode="text"
-        ) as handle:
+        with Entrez.efetch(db=database, id=gbid, rettype="fasta", retmode="text") as handle:
             record = SeqIO.read(handle, "fasta")
         if hasattr(record, "_seq"):
             return record._seq._data
     else:
-        with Entrez.efetch(
-            db=database, id=gbid, rettype="gb", retmode="text"
-        ) as handle:
+        with Entrez.efetch(db=database, id=gbid, rettype="gb", retmode="text") as handle:
             record = SeqIO.read(handle, "genbank")
         D = parse_gbnuc_record(record)
         return D.get("seq", None)
@@ -245,7 +208,7 @@ def get_gb_seq(gbid):
 # ## MAIN FUNCTION ##
 # use this to get lots of other info based on a genbank ID
 def get_gb_info(gbid):
-    """ return dict of info for a given genbank id"""
+    """return dict of info for a given genbank id"""
 
     database = check_accession_type(gbid)
     if not database:
@@ -270,9 +233,7 @@ def get_gb_info(gbid):
         if D.get("gb_prot"):
             from .uniprot import map_retrieve
 
-            upids = (
-                map_retrieve(D.get("gb_prot"), source_fmt="EMBL").strip().split("\n")
-            )
+            upids = map_retrieve(D.get("gb_prot"), source_fmt="EMBL").strip().split("\n")
             D["uniprots"] = [i for i in upids if i]
         return D
     else:
@@ -298,11 +259,7 @@ def parse_gbnuc_record(record):
     if annotations:
         refs = annotations.get("references")
         if refs:
-            D["pmids"] = [
-                getattr(r, "pubmed_id", None)
-                for r in refs
-                if getattr(r, "pubmed_id", False)
-            ]
+            D["pmids"] = [getattr(r, "pubmed_id", None) for r in refs if getattr(r, "pubmed_id", False)]
         D["organism"] = annotations.get("organism", None)
         nuc = annotations.get("accessions", [])
         if len(nuc):
@@ -350,11 +307,7 @@ def parse_gbprot_record(record):
     if annotations:
         refs = annotations.get("references")
         if refs:
-            D["pmids"] = [
-                getattr(r, "pubmed_id", None)
-                for r in refs
-                if getattr(r, "pubmed_id", False)
-            ]
+            D["pmids"] = [getattr(r, "pubmed_id", None) for r in refs if getattr(r, "pubmed_id", False)]
         D["organism"] = annotations.get("organism", None)
         acc = annotations.get("accessions", [])
         if len(acc):

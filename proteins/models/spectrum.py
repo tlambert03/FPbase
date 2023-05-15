@@ -79,26 +79,18 @@ class SpectrumManager(models.Manager):
         L = (
             self.get_queryset()
             .exclude(owner_state=None)
-            .values_list(
-                "owner_state__slug", "owner_state__protein__name", "owner_state__name"
-            )
+            .values_list("owner_state__slug", "owner_state__protein__name", "owner_state__name")
             .distinct()
         )
-        return [
-            (slug, prot if state == "default" else "{} ({})".format(prot, state))
-            for slug, prot, state in L
-        ]
+        return [(slug, prot if state == "default" else "{} ({})".format(prot, state)) for slug, prot, state in L]
 
     def dye_slugs(self):
         return (
-            self.get_queryset()
-            .filter(category=self.DYE)
-            .values_list("owner_dye__slug", "owner_dye__name")
-            .distinct()
+            self.get_queryset().filter(category=self.DYE).values_list("owner_dye__slug", "owner_dye__name").distinct()
         )
 
     def sluglist(self):
-        """ probably using this one going forward for spectra page"""
+        """probably using this one going forward for spectra page"""
 
         owners = ["state", "dye", "filter", "light", "camera"]
         vals = [
@@ -178,9 +170,7 @@ class SpectrumManager(models.Manager):
             distinct += ["owner_dye__slug"]
         Q = (
             self.get_queryset()
-            .filter(
-                models.Q(category=Spectrum.DYE) | models.Q(category=Spectrum.PROTEIN)
-            )
+            .filter(models.Q(category=Spectrum.DYE) | models.Q(category=Spectrum.PROTEIN))
             .values(*vallist)
             .distinct(*distinct)
         )
@@ -237,9 +227,7 @@ class SpectrumManager(models.Manager):
         qs_list = []
         for ownerclass in A:
             for s in (
-                Spectrum.objects.annotate(
-                    similarity=TrigramSimilarity(ownerclass, query)
-                )
+                Spectrum.objects.annotate(similarity=TrigramSimilarity(ownerclass, query))
                 .filter(similarity__gt=threshold)
                 .order_by("-similarity", ownerclass)
                 .distinct("similarity", ownerclass)
@@ -293,22 +281,16 @@ class SpectrumData(ArrayField):
                     # TODO:  better choice of interpolation
                     raw_value = [list(i) for i in zip(*interp_linear(*zip(*raw_value)))]
                 except ValueError as e:
-                    raise ValidationError(
-                        "could not properly interpolate data: {}".format(e)
-                    )
+                    raise ValidationError("could not properly interpolate data: {}".format(e))
         return raw_value
 
     def validate(self, value, model_instance):
         super().validate(value, model_instance)
         for elem in value:
             if not len(elem) == 2:
-                raise ValidationError(
-                    "All elements in Spectrum list must have two items"
-                )
+                raise ValidationError("All elements in Spectrum list must have two items")
             if not all(isinstance(n, (int, float)) for n in elem):
-                raise ValidationError(
-                    "All items in Spectrum list elements must be numbers"
-                )
+                raise ValidationError("All items in Spectrum list elements must be numbers")
 
 
 class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
@@ -362,28 +344,20 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     }
 
     data = SpectrumData()
-    category = models.CharField(
-        max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True
-    )
+    category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True)
     subtype = models.CharField(
         max_length=2,
         choices=SUBTYPE_CHOICES,
         verbose_name="Spectrum Subtype",
         db_index=True,
     )
-    ph = models.FloatField(
-        null=True, blank=True, verbose_name="pH"
-    )  # pH of measurement
+    ph = models.FloatField(null=True, blank=True, verbose_name="pH")  # pH of measurement
     solvent = models.CharField(max_length=128, blank=True)
 
     # I was swayed to avoid Generic Foreign Keys by this article
     # https://lukeplant.me.uk/blog/posts/avoid-django-genericforeignkey/
-    owner_state = models.ForeignKey(
-        "State", null=True, blank=True, on_delete=models.CASCADE, related_name="spectra"
-    )
-    owner_dye = models.ForeignKey(
-        "Dye", null=True, blank=True, on_delete=models.CASCADE, related_name="spectra"
-    )
+    owner_state = models.ForeignKey("State", null=True, blank=True, on_delete=models.CASCADE, related_name="spectra")
+    owner_dye = models.ForeignKey("Dye", null=True, blank=True, on_delete=models.CASCADE, related_name="spectra")
     owner_filter = models.OneToOneField(
         "Filter",
         null=True,
@@ -412,9 +386,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         on_delete=models.SET_NULL,
         related_name="spectra",
     )
-    source = models.CharField(
-        max_length=128, blank=True, help_text="Source of the spectra data"
-    )
+    source = models.CharField(max_length=128, blank=True, help_text="Source of the spectra data")
 
     objects = SpectrumManager()
     fluorophores = QueryManager(models.Q(category=DYE) | models.Q(category=PROTEIN))
@@ -429,9 +401,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
 
     def __str__(self):
         if self.owner_state:
-            return "{} {}".format(
-                self.owner_state if self.owner_state else "unowned", self.subtype
-            )
+            return "{} {}".format(self.owner_state if self.owner_state else "unowned", self.subtype)
         else:
             return self.name
 
@@ -474,9 +444,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
                     {
                         "subtype": "{} spectrum subtype must be{} {}".format(
                             self.get_category_display(),
-                            ""
-                            if len(self.category_subtypes[self.category]) > 1
-                            else "  one of:",
+                            "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
                             " ".join(self.category_subtypes[self.category]),
                         )
                     }
@@ -489,9 +457,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             if self.category == self.PROTEIN:
                 self._norm2one()
             elif (max(self.y) > 1.5) or (max(self.y) < 0.1):
-                if self.category in (self.FILTER, self.CAMERA) and (
-                    10 < max(self.y) < 101
-                ):
+                if self.category in (self.FILTER, self.CAMERA) and (10 < max(self.y) < 101):
                     # assume 100% scale
                     self.change_y([round(yy / 100, 4) for yy in self.y])
                 else:
@@ -534,11 +500,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     def peak_wave(self):
         try:
             if self.min_wave < 300:
-                return self.x[
-                    self.y.index(
-                        max([i for n, i in enumerate(self.y) if self.x[n] > 300])
-                    )
-                ]
+                return self.x[self.y.index(max([i for n, i in enumerate(self.y) if self.x[n] > 300]))]
             else:
                 try:
                     # first look for the value 1
@@ -583,9 +545,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
     def width(self, height=0.5):
         try:
             upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
-            downindex = len(self.y) - next(
-                x[0] for x in enumerate(reversed(self.y)) if x[1] > height
-            )
+            downindex = len(self.y) - next(x[0] for x in enumerate(reversed(self.y)) if x[1] > height)
             return (self.x[upindex], self.x[downindex])
         except Exception:
             return False
@@ -618,9 +578,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             elif self.subtype == self.EM:
                 D.update({"scalar": self.owner.qy, "em_max": self.owner.em_max})
             elif self.subtype == self.TWOP:
-                D.update(
-                    {"scalar": self.owner.twop_peakGM, "twop_qy": self.owner.twop_qy}
-                )
+                D.update({"scalar": self.owner.twop_peakGM, "twop_qy": self.owner.twop_qy})
         return D
 
     def d3data(self):
@@ -693,9 +651,7 @@ class Filter(SpectrumOwner, Product):
         blank=True,
         validators=[MinValueValidator(300), MaxValueValidator(1600)],
     )
-    tavg = models.FloatField(
-        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(1)]
-    )
+    tavg = models.FloatField(blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(1)])
     aoi = models.PositiveSmallIntegerField(
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]
     )

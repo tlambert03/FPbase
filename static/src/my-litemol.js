@@ -52,7 +52,7 @@ function loadChemInfo(pdbid) {
     `https://www.ncbi.nlm.nih.gov/pubmed/${e.rcsb_primary_citation.pdbx_database_id_PubMed}`
   )
   $("#chem-id").html(
-    `<a target="_blank" rel="noopener" class="text-secondary" 
+    `<a target="_blank" rel="noopener" class="text-secondary"
     href="https://www.rcsb.org/ligand/${e.chromophore.id}">${e.chromophore.id}</a>`
   )
   $("#chem-form").html(e.chromophore.formula)

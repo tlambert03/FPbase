@@ -181,9 +181,5 @@ class ReferenceAdmin(CompareVersionAdmin):
         obj.save(skipdoi=not form.cleaned_data["refetch_info_on_save"])
 
     def get_queryset(self, request):
-        queryset = (
-            super()
-            .get_queryset(request)
-            .prefetch_related("authors", "primary_proteins")
-        )
+        queryset = super().get_queryset(request).prefetch_related("authors", "primary_proteins")
         return queryset

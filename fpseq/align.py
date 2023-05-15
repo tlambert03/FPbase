@@ -8,7 +8,7 @@ from .util import chunked_lines
 
 
 def align_seqs(query, target, gop=5, gep=1, band_size=0):
-    """ basic parasail global alignment of two sequences
+    """basic parasail global alignment of two sequences
     result is wrapped in ParasailAlignment Class"""
     query = str(query)
     target = str(target)
@@ -20,8 +20,8 @@ def align_seqs(query, target, gop=5, gep=1, band_size=0):
 
 
 def parental_numbering(aseq1, aseq2):
-    """ given two ALIGNED sequences, return a 'position list' for the second
-    sequence based on the parental sequence """
+    """given two ALIGNED sequences, return a 'position list' for the second
+    sequence based on the parental sequence"""
     idx = 1
     numlist = []
     insertchars = "abcdefghijklmnopqrstuvwxyz"
@@ -41,7 +41,7 @@ def parental_numbering(aseq1, aseq2):
 
 
 class ParasailAlignment:
-    """ Convenience class to wrap the results of a parasail alignment """
+    """Convenience class to wrap the results of a parasail alignment"""
 
     def __init__(self, result):
         self.cigar = result.cigar.decode
@@ -81,14 +81,7 @@ class ParasailAlignment:
         out = []
         for t, q in zip(a, b):
             out.append(q)
-            out.append(
-                "".join(
-                    [
-                        "*" if x != y else (" " if x == " " else "|")
-                        for x, y in zip(t, q)
-                    ]
-                )
-            )
+            out.append("".join(["*" if x != y else (" " if x == " " else "|") for x, y in zip(t, q)]))
             out.append(t + "\n")
         return "\n".join(out)
 
@@ -102,9 +95,7 @@ class ParasailAlignment:
         seq1, seq2 = self
         mutstring = "/".join(_get_aligned_muts(seq1, seq2))
         if reference is not None:
-            return MutationSet(
-                mutstring, parental_numbering(*align_seqs(reference, seq1))
-            )
+            return MutationSet(mutstring, parental_numbering(*align_seqs(reference, seq1)))
         return MutationSet(mutstring)
 
     def print_alignment(self, max_length=80):

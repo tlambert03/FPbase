@@ -103,9 +103,7 @@ def importCSV(file=None):
 
             # add bleach numbers
             if get_nonan(prot, "bleach"):
-                BleachMeasurement.objects.update_or_create(
-                    rate=get_nonan(prot, "bleach"), state=s
-                )
+                BleachMeasurement.objects.update_or_create(rate=get_nonan(prot, "bleach"), state=s)
         else:
             print("{} already in database...".format(prot.Name))
             p = Protein.objects.get(slug=slugify(prot.Name))
@@ -146,9 +144,7 @@ def linkstates(df):
 
 def importPSFPs(file=None):
     if file is None:
-        url = (
-            "https://raw.githubusercontent.com/kthorn/FPvisualization/master/PSFPs.csv"
-        )
+        url = "https://raw.githubusercontent.com/kthorn/FPvisualization/master/PSFPs.csv"
         df = pd.read_csv(url)
     else:
         df = pd.read_csv(file)
@@ -160,16 +156,13 @@ def importPSFPs(file=None):
     rf = 0
     for i, prot in df.iterrows():
         try:
-
             p, created = Protein.objects.get_or_create(
                 slug=slugify(prot.Name),
                 defaults={
                     "name": prot.Name,
                     "created_by": SUPERUSER,
                     "switch_type": prot.type,
-                    "agg": aggLookup[prot.Aggregation]
-                    if get_nonan(prot, "Aggregation")
-                    else None,
+                    "agg": aggLookup[prot.Aggregation] if get_nonan(prot, "Aggregation") else None,
                 },
             )
             if created:
@@ -213,9 +206,7 @@ def importPSFPs(file=None):
                 p.save()
 
             if get_nonan(prot, "bleach"):
-                BleachMeasurement.objects.update_or_create(
-                    rate=get_nonan(prot, "bleach"), state=state
-                )
+                BleachMeasurement.objects.update_or_create(rate=get_nonan(prot, "bleach"), state=state)
             if created:
                 print("STATE CREATED  : {}".format(prot.state))
                 st += 1
@@ -232,7 +223,6 @@ def importPSFPs(file=None):
 
 def importSeqs(file=None):
     if file is None:
-
         basedir = os.path.dirname(os.path.dirname(__file__))
         url = os.path.join(basedir, "_data/FPseqs.csv")
         df = pd.read_csv(url)
@@ -265,9 +255,7 @@ def importSeqs(file=None):
     print("{} Sequences added; {} References imported".format(sq, rf))
 
 
-def create_collection(
-    name="FPvis Collection", desc="Proteins selected by Kurt Thorn at fpvis.org"
-):
+def create_collection(name="FPvis Collection", desc="Proteins selected by Kurt Thorn at fpvis.org"):
     url = "https://raw.githubusercontent.com/FPvisualization/fpvisualization.github.io/master/FPs.csv"
     df = pd.read_csv(url)
     col = ProteinCollection.objects.create(name=name, description=desc, owner=SUPERUSER)
@@ -306,9 +294,7 @@ def import_thermo():
         if not f.endswith(".csv"):
             continue
         name = f.strip(".csv")
-        objs, errs = import_csv_spectra(
-            os.path.join(d, f), categories=Spectrum.DYE, owner=name
-        )
+        objs, errs = import_csv_spectra(os.path.join(d, f), categories=Spectrum.DYE, owner=name)
         if len(objs):
             owner = objs[0].owner
             for spect in objs:
@@ -398,24 +384,12 @@ def import_oser(file=None):
                     OSERMeasurement.objects.create(
                         protein=prot,
                         reference=ref,
-                        percent=float(row.get("percent"))
-                        if row.get("percent", False)
-                        else None,
-                        percent_stddev=float(row.get("percent_stddev"))
-                        if row.get("percent_stddev", False)
-                        else None,
-                        percent_ncells=int(row.get("percent_ncells"))
-                        if row.get("percent_ncells", False)
-                        else None,
-                        oserne=float(row.get("oserne"))
-                        if row.get("oserne", False)
-                        else None,
-                        oserne_stddev=float(row.get("oserne_stddev"))
-                        if row.get("oserne_stddev", False)
-                        else None,
-                        oserne_ncells=int(row.get("oserne_ncells"))
-                        if row.get("oserne_ncells", False)
-                        else None,
+                        percent=float(row.get("percent")) if row.get("percent", False) else None,
+                        percent_stddev=float(row.get("percent_stddev")) if row.get("percent_stddev", False) else None,
+                        percent_ncells=int(row.get("percent_ncells")) if row.get("percent_ncells", False) else None,
+                        oserne=float(row.get("oserne")) if row.get("oserne", False) else None,
+                        oserne_stddev=float(row.get("oserne_stddev")) if row.get("oserne_stddev", False) else None,
+                        oserne_ncells=int(row.get("oserne_ncells")) if row.get("oserne_ncells", False) else None,
                         celltype=row.get("celltype", None),
                     )
                 except Exception as e:
@@ -559,17 +533,13 @@ def import_fpd(file=None, overwrite=True):
                 row["pdb"] = []
 
             if row.get("aliases", False):
-                row["aliases"] = [
-                    i.strip() for i in row["aliases"].split(",") if i.strip()
-                ]
+                row["aliases"] = [i.strip() for i in row["aliases"].split(",") if i.strip()]
             else:
                 row["aliases"] = []
 
             org = None
             if row.get("parent_organism"):
-                org, ocreated = Organism.objects.get_or_create(
-                    id=row["parent_organism"]
-                )
+                org, ocreated = Organism.objects.get_or_create(id=row["parent_organism"])
                 if ocreated:
                     print("created organism {}".format(org))
             row["parent_organism"] = org.pk if org else None
@@ -586,11 +556,7 @@ def import_fpd(file=None, overwrite=True):
                     p2 = Protein.objects.get(seq=row.get("seq"))
                     if p2 != p:
                         row["seq"] = None
-                        errors.append(
-                            "cannot assign {} sequence, {} already has it".format(
-                                row.get("name"), p2.name
-                            )
-                        )
+                        errors.append("cannot assign {} sequence, {} already has it".format(row.get("name"), p2.name))
             elif row.get("seq") and Protein.objects.filter(seq=row.get("seq")).exists():
                 p = Protein.objects.get(seq=row.get("seq"))
             elif Protein.objects.filter(genbank=row["genbank"]).exists():
@@ -616,11 +582,7 @@ def import_fpd(file=None, overwrite=True):
                         row["uniprot"] = p.uniprot
 
                 if not p.name == row.get("name", None):
-                    print(
-                        'Protein "{}" already has the same sequence as {}... skipping'.format(
-                            p.name, row["name"]
-                        )
-                    )
+                    print('Protein "{}" already has the same sequence as {}... skipping'.format(p.name, row["name"]))
                     continue
                     # namemismatch = True
                     # errors.append('same sequence name mismatch between {} and {}'.format(p.name, row.get('name')))
@@ -649,9 +611,7 @@ def import_fpd(file=None, overwrite=True):
                             print("created Reference {}".format(ref))
             else:
                 errors.append(
-                    "name: {}, row: {}, {}".format(
-                        data.dict[rownum]["name"], rownum, pform.errors.as_text()
-                    )
+                    "name: {}, row: {}, {}".format(data.dict[rownum]["name"], rownum, pform.errors.as_text())
                 )
 
             # if we still don't have a protein instance, just move on
@@ -668,9 +628,7 @@ def import_fpd(file=None, overwrite=True):
                         vals = parensplit(row[col])
                         for i, v in enumerate(vals):
                             try:
-                                states[i][col] = (
-                                    float(v) if col in ("qy", "pka") else int(v)
-                                )
+                                states[i][col] = float(v) if col in ("qy", "pka") else int(v)
                             except Exception:
                                 states[i][col] = None
                     else:
@@ -691,9 +649,7 @@ def import_fpd(file=None, overwrite=True):
 
             sinstances = []
             for snum, state in enumerate(states):
-                if not state.get("is_dark", 0) and not (
-                    state.get("ex_max", 0) and state.get("em_max", 0)
-                ):
+                if not state.get("is_dark", 0) and not (state.get("ex_max", 0) and state.get("em_max", 0)):
                     continue
                 try:
                     if State.objects.filter(
@@ -713,9 +669,7 @@ def import_fpd(file=None, overwrite=True):
                     sinstances.append(sform.save())
                 else:
                     errors.append(
-                        "name: {}, state: {}, {}".format(
-                            data.dict[rownum]["name"], snum, sform.errors.as_text()
-                        )
+                        "name: {}, state: {}, {}".format(data.dict[rownum]["name"], snum, sform.errors.as_text())
                     )
 
             if switch and len(sinstances) > 1:
@@ -727,17 +681,13 @@ def import_fpd(file=None, overwrite=True):
                         transwave=transwave if transwave else None,
                     )
                     if switch == "ps":
-                        StateTransition.objects.create(
-                            protein=p, from_state=sinstances[1], to_state=sinstances[0]
-                        )
+                        StateTransition.objects.create(protein=p, from_state=sinstances[1], to_state=sinstances[0])
                 except Exception:
                     print("failed to link states {} > {} ".format())
 
             if row["bleach"]:
                 state = sinstances[-1] if len(sinstances) else None
-                bm = BleachMeasurement(
-                    rate=float(row["bleach"]), reference=ref, state=state
-                )
+                bm = BleachMeasurement(rate=float(row["bleach"]), reference=ref, state=state)
                 bm.save()
 
             p = pform.save() if overwrite else pform.save_new_only()  # register states
@@ -776,9 +726,7 @@ def importMutations():
             except Exception:
                 print(i, n)
                 print("Failed:              ", name)
-            mutOut.append(
-                (name, parent, "/".join(mut), row["seq"], row["reference_doi"])
-            )
+            mutOut.append((name, parent, "/".join(mut), row["seq"], row["reference_doi"]))
 
 
 def import_organisms():
@@ -1065,9 +1013,7 @@ def import_lumencor():
             owner = objs[0].owner
             owner.manufacturer = "lumencor"
             owner.part = slugify(name)
-            owner.url = (
-                "http://lumencor.com/products/filters-for-spectra-x-light-engines/"
-            )
+            owner.url = "http://lumencor.com/products/filters-for-spectra-x-light-engines/"
             owner.created_by = User.objects.first()
             owner.save()
 
@@ -1135,9 +1081,7 @@ def get_gb_data(file):
     q = ("DEFINITION", "ACCESSION", "VERSION", "KEYWORDS", "SOURCE")
     pat = ""
     for i in range(len(q) - 1):
-        pat += r"(?=.*{} (?P<{}>.+){})?".format(
-            q[i], q[i].lower().replace(" ", ""), q[i + 1]
-        )
+        pat += r"(?=.*{} (?P<{}>.+){})?".format(q[i], q[i].lower().replace(" ", ""), q[i + 1])
     pat += r"(?=.*COMMENT (?P<comment>.+)FEAT)?"
     pat += r"(?=.*PUBMED\s+(?P<pub>.+)REF)?"
     pat += r'(?=.*/translation="(?P<seq>.+)")?'

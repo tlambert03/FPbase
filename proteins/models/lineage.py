@@ -39,12 +39,8 @@ class MutationSetField(models.CharField):
 
 
 class Lineage(MPTTModel, TimeStampedModel, Authorable):
-    protein = models.OneToOneField(
-        "Protein", on_delete=models.CASCADE, related_name="lineage"
-    )
-    parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
-    )
+    protein = models.OneToOneField("Protein", on_delete=models.CASCADE, related_name="lineage")
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
     reference = models.ForeignKey(
         Reference,
         on_delete=models.CASCADE,
@@ -117,9 +113,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
                 if not isinstance(root, Protein):
                     root = self.get_root().protein
                 if root.seq:
-                    ms = self.parent.protein.seq.mutations_to(
-                        self.protein.seq, reference=root.seq
-                    )
+                    ms = self.parent.protein.seq.mutations_to(self.protein.seq, reference=root.seq)
                     return ms
             else:
                 ms = self.parent.protein.seq.mutations_to(self.protein.seq)

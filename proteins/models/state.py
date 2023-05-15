@@ -216,7 +216,7 @@ class State(Fluorophore):
     objects = FluorophoreManager()
 
     class Meta:
-        verbose_name = u"State"
+        verbose_name = "State"
         unique_together = (("protein", "ex_max", "em_max", "ext_coeff", "qy"),)
 
     def __str__(self):
@@ -232,14 +232,10 @@ class State(Fluorophore):
 
     @property
     def local_brightness(self):
-        """ brightness relative to spectral neighbors.  1 = average """
+        """brightness relative to spectral neighbors.  1 = average"""
         if not (self.em_max and self.brightness):
             return 1
-        B = (
-            State.objects.exclude(id=self.id)
-            .filter(em_max__around=self.em_max)
-            .aggregate(Avg("brightness"))
-        )
+        B = State.objects.exclude(id=self.id).filter(em_max__around=self.em_max).aggregate(Avg("brightness"))
         try:
             v = round(self.brightness / B["brightness__avg"], 4)
         except TypeError:

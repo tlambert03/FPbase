@@ -39,25 +39,11 @@ class StateTransition(Authorable, TimeStampedModel):
     def clean(self):
         errors = {}
         if self.from_state.protein != self.protein:
-            errors.update(
-                {
-                    "from_state": '"From" state must belong to protein {}'.format(
-                        self.protein.name
-                    )
-                }
-            )
+            errors.update({"from_state": '"From" state must belong to protein {}'.format(self.protein.name)})
         if self.to_state.protein != self.protein:
-            errors.update(
-                {
-                    "to_state": '"To" state must belong to protein {}'.format(
-                        self.protein.name
-                    )
-                }
-            )
+            errors.update({"to_state": '"To" state must belong to protein {}'.format(self.protein.name)})
         if errors:
             raise ValidationError(errors)
 
     def __str__(self):
-        return "{} {} -{}-> {}".format(
-            self.protein.name, self.from_state.name, self.trans_wave, self.to_state.name
-        )
+        return "{} {} -{}-> {}".format(self.protein.name, self.from_state.name, self.trans_wave, self.to_state.name)

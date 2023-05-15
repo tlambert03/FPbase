@@ -13,7 +13,7 @@ from .models import Author, Reference
 
 
 class AuthorDetailView(DetailView):
-    """ renders html for single author page  """
+    """renders html for single author page"""
 
     queryset = Author.objects.all().prefetch_related(
         "publications", "publications__authors", "publications__primary_proteins"
@@ -21,15 +21,13 @@ class AuthorDetailView(DetailView):
 
 
 class ReferenceListView(ListView):
-    """ renders html for single reference page  """
+    """renders html for single reference page"""
 
-    queryset = Reference.objects.all().prefetch_related(
-        "authors", "proteins", "primary_proteins"
-    )
+    queryset = Reference.objects.all().prefetch_related("authors", "proteins", "primary_proteins")
 
 
 class ReferenceDetailView(DetailView):
-    """ renders html for single reference page  """
+    """renders html for single reference page"""
 
     queryset = Reference.objects.all().prefetch_related("authors")
 
@@ -85,9 +83,7 @@ def add_excerpt(request, pk=None):
             content = request.POST.get("excerpt_content")
             if content:
                 # P.references.add(ref)
-                Excerpt.objects.create(
-                    reference=ref, content=strip_tags(content), created_by=request.user
-                )
+                Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
                 if not request.user.is_staff:
                     msg = "User: {}\nReference: {}, {}\nExcerpt: {}\n{}".format(
                         request.user.username,

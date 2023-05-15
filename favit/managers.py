@@ -89,9 +89,7 @@ class FavoriteManager(models.Manager):
 
         content_type, obj = _get_content_type_and_obj(obj, model)
 
-        qs = self.get_query_set().filter(
-            target_content_type=content_type, target_object_id=obj.pk
-        )
+        qs = self.get_query_set().filter(target_content_type=content_type, target_object_id=obj.pk)
 
         return qs.order_by("-timestamp")
 
@@ -115,9 +113,7 @@ class FavoriteManager(models.Manager):
             return None
 
         try:
-            return self.get_query_set().get(
-                user=user, target_content_type=content_type, target_object_id=obj.id
-            )
+            return self.get_query_set().get(user=user, target_content_type=content_type, target_object_id=obj.id)
         except self.model.DoesNotExist:
             return None
 

@@ -601,7 +601,7 @@ var __createPromise = function (__promise) {
           The primary way of interacting with a promise is through its `then` method,
           which registers callbacks to receive either a promise's eventual value or the
           reason why the promise cannot be fulfilled.
-    
+
           ```js
           findUser().then(function(user){
             // user is available
@@ -609,14 +609,14 @@ var __createPromise = function (__promise) {
             // user is unavailable, and you are given the reason why
           });
           ```
-    
+
           Chaining
           --------
-    
+
           The return value of `then` is itself a promise.  This second, 'downstream'
           promise is resolved with the return value of the first promise's fulfillment
           or rejection handler, or rejected if the handler throws an exception.
-    
+
           ```js
           findUser().then(function (user) {
             return user.name;
@@ -626,7 +626,7 @@ var __createPromise = function (__promise) {
             // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
             // will be `'default name'`
           });
-    
+
           findUser().then(function (user) {
             throw new Error('Found user, but still unhappy');
           }, function (reason) {
@@ -639,7 +639,7 @@ var __createPromise = function (__promise) {
           });
           ```
           If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
-    
+
           ```js
           findUser().then(function (user) {
             throw new PedagogicalException('Upstream error');
@@ -651,15 +651,15 @@ var __createPromise = function (__promise) {
             // The `PedgagocialException` is propagated all the way down to here
           });
           ```
-    
+
           Assimilation
           ------------
-    
+
           Sometimes the value you want to propagate to a downstream promise can only be
           retrieved asynchronously. This can be achieved by returning a promise in the
           fulfillment or rejection handler. The downstream promise will then be pending
           until the returned promise is settled. This is called *assimilation*.
-    
+
           ```js
           findUser().then(function (user) {
             return findCommentsByAuthor(user);
@@ -667,9 +667,9 @@ var __createPromise = function (__promise) {
             // The user's comments are now available
           });
           ```
-    
+
           If the assimliated promise rejects, then the downstream promise will also reject.
-    
+
           ```js
           findUser().then(function (user) {
             return findCommentsByAuthor(user);
@@ -679,15 +679,15 @@ var __createPromise = function (__promise) {
             // If `findCommentsByAuthor` rejects, we'll have the reason here
           });
           ```
-    
+
           Simple Example
           --------------
-    
+
           Synchronous Example
-    
+
           ```javascript
           var result;
-    
+
           try {
             result = findResult();
             // success
@@ -695,9 +695,9 @@ var __createPromise = function (__promise) {
             // failure
           }
           ```
-    
+
           Errback Example
-    
+
           ```js
           findResult(function(result, err){
             if (err) {
@@ -707,9 +707,9 @@ var __createPromise = function (__promise) {
             }
           });
           ```
-    
+
           Promise Example;
-    
+
           ```javascript
           findResult().then(function(result){
             // success
@@ -717,15 +717,15 @@ var __createPromise = function (__promise) {
             // failure
           });
           ```
-    
+
           Advanced Example
           --------------
-    
+
           Synchronous Example
-    
+
           ```javascript
           var author, books;
-    
+
           try {
             author = findAuthor();
             books  = findBooksByAuthor(author);
@@ -734,19 +734,19 @@ var __createPromise = function (__promise) {
             // failure
           }
           ```
-    
+
           Errback Example
-    
+
           ```js
-    
+
           function foundBooks(books) {
-    
+
           }
-    
+
           function failure(reason) {
-    
+
           }
-    
+
           findAuthor(function(author, err){
             if (err) {
               failure(err);
@@ -771,9 +771,9 @@ var __createPromise = function (__promise) {
             }
           });
           ```
-    
+
           Promise Example;
-    
+
           ```javascript
           findAuthor().
             then(findBooksByAuthor).
@@ -783,7 +783,7 @@ var __createPromise = function (__promise) {
             // something went wrong
           });
           ```
-    
+
           @method then
           @param {Function} onFulfilled
           @param {Function} onRejected
@@ -795,25 +795,25 @@ var __createPromise = function (__promise) {
         /**
           `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
           as the catch block of a try/catch statement.
-    
+
           ```js
           function findAuthor(){
             throw new Error('couldn't find that author');
           }
-    
+
           // synchronous
           try {
             findAuthor();
           } catch(reason) {
             // something went wrong
           }
-    
+
           // async with promises
           findAuthor().catch(function(reason){
             // something went wrong
           });
           ```
-    
+
           @method catch
           @param {Function} onRejection
           Useful for tooling.
@@ -958,8 +958,8 @@ var __createPromise = function (__promise) {
     // }
 
     lib$es6$promise$polyfill$$default();
-    
-    __promise.ES6Promise = lib$es6$promise$umd$$ES6Promise    
+
+    __promise.ES6Promise = lib$es6$promise$umd$$ES6Promise
 };
 
 var __LiteMolPromise;
@@ -993,7 +993,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 implied. See the License for the specific language governing permissions
 and limitations under the License.
- * 
+ *
  */
 
 var __LiteMolRxTemp = {};
@@ -6316,7 +6316,7 @@ var __LiteMolRxTemp = {};
      * var res = source.shareReplay(3, 500);
      * var res = source.shareReplay(3, 500, scheduler);
      *
-  
+
      * @param bufferSize [Optional] Maximum element count of the replay buffer.
      * @param window [Optional] Maximum time length of the replay buffer.
      * @param scheduler [Optional] Scheduler where connected observers within the selector function will be invoked on.
@@ -8055,7 +8055,7 @@ var __LiteMolRxTemp = {};
 
         return Pauser;
     }(Subject));
-    
+
     __LMtarget.Rx = Rx;
 
     // All code before this point will be filtered from stack traces.
@@ -9635,7 +9635,7 @@ var CIFTools;
                 // This approach to binary parsing wastes a bit of memory to trade for speed compared to:
                 //
                 //   let value = buffer.subarray(offset, offset + length); //new Uint8Array(buffer.buffer, offset, length);
-                // 
+                //
                 // It turns out that using the view created by subarray probably uses DataView
                 // in the background, which causes the element access to be several times slower
                 // than creating the new byte array.
@@ -10955,7 +10955,7 @@ var CIFTools;
                     if (index === void 0) {
                         // increment the length
                         accLength += s.length;
-                        // store the string and index                   
+                        // store the string and index
                         index = strings.length;
                         strings[index] = s;
                         map[s] = index;
@@ -12923,7 +12923,7 @@ THREE.Vector3.prototype = {
 		return this;
 
 	},
-	
+
 	subScalar: function ( s ) {
 
 		this.x -= s;
@@ -13564,7 +13564,7 @@ THREE.Vector3.prototype = {
 	},
 
 	setFromMatrixColumn: function ( index, matrix ) {
-		
+
 		var offset = index * 4;
 
 		var me = matrix.elements;
@@ -15745,17 +15745,17 @@ THREE.Matrix4.prototype = {
 	},
 
 	extractBasis: function ( xAxis, yAxis, zAxis ) {
- 
+
 		var te = this.elements;
- 
+
 		xAxis.set( te[ 0 ], te[ 1 ], te[ 2 ] );
 		yAxis.set( te[ 4 ], te[ 5 ], te[ 6 ] );
 		zAxis.set( te[ 8 ], te[ 9 ], te[ 10 ] );
- 
+
 		return this;
- 		
+
 	},
- 
+
 	makeBasis: function ( xAxis, yAxis, zAxis ) {
 
 		this.set(
@@ -16906,7 +16906,7 @@ THREE.Ray.prototype = {
 			// in order to always return an intersect point that is in front of the ray.
 			if ( t0 < 0 ) return this.at( t1, optionalTarget );
 
-			// else t0 is in front of the ray, so return the first collision point scaled by t0 
+			// else t0 is in front of the ray, so return the first collision point scaled by t0
 			return this.at( t0, optionalTarget );
 
 		}
@@ -22055,7 +22055,7 @@ THREE.Light = function ( color ) {
 	THREE.Object3D.call( this );
 
 	this.type = 'Light';
-	
+
 	this.color = new THREE.Color( color );
 
 };
@@ -22995,7 +22995,7 @@ THREE.ImageLoader.prototype = {
 			THREE.Cache.add( url, this );
 
 			if ( onLoad ) onLoad( this );
-			
+
 			scope.manager.itemEnd( url );
 
 		}, false );
@@ -25509,7 +25509,7 @@ THREE.MeshFaceMaterial = function ( materials ) {
 	this.uuid = THREE.Math.generateUUID();
 
 	this.type = 'MeshFaceMaterial';
-	
+
 	this.materials = materials instanceof Array ? materials : [];
 
 };
@@ -25969,7 +25969,7 @@ THREE.TextureIdCount = 0;
 THREE.CubeTexture = function ( images, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy ) {
 
 	mapping = mapping !== undefined ? mapping : THREE.CubeReflectionMapping;
-	
+
 	THREE.Texture.call( this, images, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy );
 
 	this.images = images;
@@ -26482,7 +26482,7 @@ THREE.Mesh = function ( geometry, material ) {
 	THREE.Object3D.call( this );
 
 	this.type = 'Mesh';
-	
+
 	this.geometry = geometry !== undefined ? geometry : new THREE.Geometry();
 	this.material = material !== undefined ? material : new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff } );
 
@@ -26974,7 +26974,7 @@ THREE.Skeleton.prototype.pose = function () {
 THREE.Skeleton.prototype.update = ( function () {
 
 	var offsetMatrix = new THREE.Matrix4();
-	
+
 	return function () {
 
 		// flatten bone matrices to array
@@ -26995,7 +26995,7 @@ THREE.Skeleton.prototype.update = ( function () {
 			this.boneTexture.needsUpdate = true;
 
 		}
-		
+
 	};
 
 } )();
@@ -33471,7 +33471,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 			if ( material instanceof THREE.MeshPhongMaterial ||
 				 material instanceof THREE.MeshLambertMaterial ||
 				 material.lights ) {
-                
+
 				if ( _lightsNeedUpdate ) {
 
 					refreshLights = true;
@@ -35853,7 +35853,7 @@ THREE.WebGLShader = ( function () {
 
 	return function ( gl, type, string ) {
 
-		var shader = gl.createShader( type ); 
+		var shader = gl.createShader( type );
 
 		gl.shaderSource( shader, string );
 		gl.compileShader( shader );
@@ -38079,7 +38079,7 @@ THREE.FontUtils = {
 
 THREE.FontUtils.generateShapes = function ( text, parameters ) {
 
-	// Parameters 
+	// Parameters
 
 	parameters = parameters || {};
 
@@ -38857,7 +38857,7 @@ THREE.CurvePath = function () {
 
 	this.curves = [];
 	this.bends = [];
-	
+
 	this.autoClose = false; // Automatically closes the path
 };
 
@@ -38882,11 +38882,11 @@ THREE.CurvePath.prototype.closePath = function() {
 	// Add a line curve if start and end of lines are not connected
 	var startPoint = this.curves[0].getPoint(0);
 	var endPoint = this.curves[this.curves.length - 1].getPoint(1);
-	
+
 	if (! startPoint.equals(endPoint)) {
 		this.curves.push( new THREE.LineCurve(endPoint, startPoint) );
 	}
-	
+
 };
 
 // To get accurate point with reference to
@@ -39234,7 +39234,7 @@ THREE.Gyroscope.prototype.updateMatrixWorld = ( function () {
 		}
 
 	};
-	
+
 }() );
 
 // File:src/extras/core/Path.js
@@ -39617,7 +39617,7 @@ THREE.Path.prototype.getPoints = function( divisions, closedPath ) {
 			//console.log(points);
 
 			break;
-		  
+
 		case THREE.PathActions.ELLIPSE:
 
 			var aX = args[ 0 ], aY = args[ 1 ],
@@ -39820,7 +39820,7 @@ THREE.Path.prototype.toShapes = function( isCCW, noHoles ) {
 	holesFirst = isCCW ? ! holesFirst : holesFirst;
 
 	// console.log("Holes first", holesFirst);
-	
+
 	var betterShapeHoles = [];
 	var newShapes = [];
 	var newShapeHoles = [];
@@ -39846,7 +39846,7 @@ THREE.Path.prototype.toShapes = function( isCCW, noHoles ) {
 			newShapes[mainIdx] = { s: new THREE.Shape(), p: tmpPoints };
 			newShapes[mainIdx].s.actions = tmpPath.actions;
 			newShapes[mainIdx].s.curves = tmpPath.curves;
-			
+
 			if ( holesFirst )	mainIdx ++;
 			newShapeHoles[mainIdx] = [];
 
@@ -40702,7 +40702,7 @@ THREE.EllipseCurve.prototype.getPoint = function ( t ) {
 		angle = this.aStartAngle + t * deltaAngle;
 
 	}
-	
+
 	var vector = new THREE.Vector2();
 
 	vector.x = this.aX + this.xRadius * Math.cos( angle );
@@ -42411,14 +42411,14 @@ THREE.ExtrudeGeometry.prototype.addShape = function ( shape, options ) {
 	function getBevelVec( inPt, inPrev, inNext ) {
 
 		var EPSILON = 0.0000000001;
-		
+
 		// computes for inPt the corresponding point inPt' on a new contour
 		//   shiftet by 1 unit (length of normalized vector) to the left
 		// if we walk along contour clockwise, this new contour is outside the old one
 		//
 		// inPt' is the intersection of the two lines parallel to the two
 		//  adjacent edges of inPt at a distance of 1 unit on the left side.
-		
+
 		var v_trans_x, v_trans_y, shrink_by = 1;		// resulting translation vector for inPt
 
 		// good reading for geometry algorithms (here: line-line intersection)
@@ -42426,38 +42426,38 @@ THREE.ExtrudeGeometry.prototype.addShape = function ( shape, options ) {
 
 		var v_prev_x = inPt.x - inPrev.x, v_prev_y = inPt.y - inPrev.y;
 		var v_next_x = inNext.x - inPt.x, v_next_y = inNext.y - inPt.y;
-		
+
 		var v_prev_lensq = ( v_prev_x * v_prev_x + v_prev_y * v_prev_y );
-		
+
 		// check for colinear edges
 		var colinear0 = ( v_prev_x * v_next_y - v_prev_y * v_next_x );
-		
+
 		if ( Math.abs( colinear0 ) > EPSILON ) {		// not colinear
-			
+
 			// length of vectors for normalizing
-	
+
 			var v_prev_len = Math.sqrt( v_prev_lensq );
 			var v_next_len = Math.sqrt( v_next_x * v_next_x + v_next_y * v_next_y );
-			
+
 			// shift adjacent points by unit vectors to the left
-	
+
 			var ptPrevShift_x = ( inPrev.x - v_prev_y / v_prev_len );
 			var ptPrevShift_y = ( inPrev.y + v_prev_x / v_prev_len );
-			
+
 			var ptNextShift_x = ( inNext.x - v_next_y / v_next_len );
 			var ptNextShift_y = ( inNext.y + v_next_x / v_next_len );
-	
+
 			// scaling factor for v_prev to intersection point
-	
+
 			var sf = (  ( ptNextShift_x - ptPrevShift_x ) * v_next_y -
 						( ptNextShift_y - ptPrevShift_y ) * v_next_x    ) /
 					  ( v_prev_x * v_next_y - v_prev_y * v_next_x );
-	
+
 			// vector from inPt to intersection point
-	
+
 			v_trans_x = ( ptPrevShift_x + v_prev_x * sf - inPt.x );
 			v_trans_y = ( ptPrevShift_y + v_prev_y * sf - inPt.y );
-	
+
 			// Don't normalize!, otherwise sharp corners become ugly
 			//  but prevent crazy spikes
 			var v_trans_lensq = ( v_trans_x * v_trans_x + v_trans_y * v_trans_y )
@@ -42466,7 +42466,7 @@ THREE.ExtrudeGeometry.prototype.addShape = function ( shape, options ) {
 			} else {
 				shrink_by = Math.sqrt( v_trans_lensq / 2 );
 			}
-			
+
 		} else {		// handle special case of colinear edges
 
 			var direction_eq = false;		// assumes: opposite
@@ -43030,7 +43030,7 @@ THREE.ShapeGeometry.prototype.addShape = function ( shape, options ) {
  * @author bhouston / http://exocortex.com
  */
 
-// points - to create a closed torus, one must use a set of points 
+// points - to create a closed torus, one must use a set of points
 //    like so: [ a, b, c, d, a ], see first is the same as last.
 // segments - the number of circumference segments to create
 // phiStart - the starting radian
@@ -43364,7 +43364,7 @@ THREE.SphereGeometry = function ( radius, widthSegments, heightSegments, phiStar
 		phiStart: phiStart,
 		phiLength: phiLength,
 		thetaStart: thetaStart,
-		thetaLength: thetaLength 
+		thetaLength: thetaLength
 	};
 
 	radius = radius || 50;
@@ -43638,7 +43638,7 @@ THREE.TorusKnotGeometry = function ( radius, tube, radialSegments, tubularSegmen
 	p = p || 2;
 	q = q || 3;
 	heightScale = heightScale || 1;
-	
+
 	var grid = new Array( radialSegments );
 	var tang = new THREE.Vector3();
 	var n = new THREE.Vector3();
@@ -44900,7 +44900,7 @@ THREE.CameraHelper.prototype.constructor = THREE.CameraHelper;
 THREE.CameraHelper.prototype.update = function () {
 
 	var geometry, pointMap;
-	
+
 	var vector = new THREE.Vector3();
 	var camera = new THREE.Camera();
 
@@ -46344,7 +46344,7 @@ return THREE;
  */
 
 
-/* 
+/*
 
 BSD License
 
@@ -51515,7 +51515,7 @@ var __LiteMolZlib = {};
         var b, a, c, d, e, f, g, k = 0; g = this.a; b = vb; switch (b) { case vb: a = Math.LOG2E * Math.log(32768) - 8; break; default: q(Error("invalid compression method")) } c = a << 4 | b; g[k++] = c; switch (b) { case vb: switch (this.k) { case W.NONE: e = 0; break; case W.v: e = 1; break; case W.o: e = 2; break; default: q(Error("unsupported compression type")) } break; default: q(Error("invalid compression method")) } d = e << 6 | 0; g[k++] = d | 31 - (256 * c + d) % 31; f = tb(this.input); this.K.b = k; g = this.K.g(); k = g.length; B && (g = new Uint8Array(g.buffer), g.length <=
         k + 4 && (this.a = new Uint8Array(g.length + 4), this.a.set(g), g = this.a), g = g.subarray(0, k + 4)); g[k++] = f >> 24 & 255; g[k++] = f >> 16 & 255; g[k++] = f >> 8 & 255; g[k++] = f & 255; return g
     }; function xb(b, a) { var c, d, e, f; if (Object.keys) c = Object.keys(a); else for (d in c = [], e = 0, a) c[e++] = d; e = 0; for (f = c.length; e < f; ++e) d = c[e], A(b + "." + d, a[d]) }; A("Zlib.Inflate", ub); A("Zlib.Inflate.prototype.decompress", ub.prototype.h); xb("Zlib.Inflate.BufferType", { ADAPTIVE: Ya.N, BLOCK: Ya.O }); A("Zlib.Deflate", wb); A("Zlib.Deflate.compress", function (b, a) { return (new wb(b, a)).g() }); A("Zlib.Deflate.prototype.compress", wb.prototype.g); xb("Zlib.Deflate.CompressionType", { NONE: W.NONE, FIXED: W.v, DYNAMIC: W.o });
-}).call(__LiteMolZlib); 
+}).call(__LiteMolZlib);
 var LiteMolZlib = __LiteMolZlib.Zlib;
 
 
@@ -51671,14 +51671,14 @@ SOFTWARE.
 
 */
 /******/ (function(modules) { // webpackBootstrap
-/******/  var __self = {};				
+/******/  var __self = {};
 /******/ 	var parentHotUpdateCallback = __self["webpackHotUpdate"];
-/******/ 	__self["webpackHotUpdate"] = 
+/******/ 	__self["webpackHotUpdate"] =
 /******/ 	function webpackHotUpdateCallback(chunkId, moreModules) { // eslint-disable-line no-unused-vars
 /******/ 		hotAddUpdateChunk(chunkId, moreModules);
 /******/ 		if(parentHotUpdateCallback) parentHotUpdateCallback(chunkId, moreModules);
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotDownloadUpdateChunk(chunkId) { // eslint-disable-line no-unused-vars
 /******/ 		var head = document.getElementsByTagName("head")[0];
 /******/ 		var script = document.createElement("script");
@@ -51687,7 +51687,7 @@ SOFTWARE.
 /******/ 		script.src = __webpack_require__.p + "" + chunkId + "." + hotCurrentHash + ".hot-update.js";
 /******/ 		head.appendChild(script);
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotDownloadManifest(callback) { // eslint-disable-line no-unused-vars
 /******/ 		if(typeof XMLHttpRequest === "undefined")
 /******/ 			return callback(new Error("No browser support"));
@@ -51724,8 +51724,8 @@ SOFTWARE.
 /******/ 		};
 /******/ 	}
 
-/******/ 	
-/******/ 	
+/******/
+/******/
 /******/ 	// Copied from https://github.com/facebook/react/blob/bef45b0/src/shared/utils/canDefineProperty.js
 /******/ 	var canDefineProperty = false;
 /******/ 	try {
@@ -51736,12 +51736,12 @@ SOFTWARE.
 /******/ 	} catch(x) {
 /******/ 		// IE will fail on defineProperty
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	var hotCurrentHash = "cac23860c44b0ba80f83"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
-/******/ 	
+/******/
 /******/ 	function hotCreateRequire(moduleId) { // eslint-disable-line no-unused-vars
 /******/ 		var me = installedModules[moduleId];
 /******/ 		if(!me) return __webpack_require__;
@@ -51779,7 +51779,7 @@ SOFTWARE.
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		function ensure(chunkId, callback) {
 /******/ 			if(hotStatus === "ready")
 /******/ 				hotSetStatus("prepare");
@@ -51790,7 +51790,7 @@ SOFTWARE.
 /******/ 				} finally {
 /******/ 					finishChunkLoading();
 /******/ 				}
-/******/ 	
+/******/
 /******/ 				function finishChunkLoading() {
 /******/ 					hotChunksLoading--;
 /******/ 					if(hotStatus === "prepare") {
@@ -51814,7 +51814,7 @@ SOFTWARE.
 /******/ 		}
 /******/ 		return fn;
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotCreateModule(moduleId) { // eslint-disable-line no-unused-vars
 /******/ 		var hot = {
 /******/ 			// private stuff
@@ -51823,7 +51823,7 @@ SOFTWARE.
 /******/ 			_selfAccepted: false,
 /******/ 			_selfDeclined: false,
 /******/ 			_disposeHandlers: [],
-/******/ 	
+/******/
 /******/ 			// Module API
 /******/ 			active: true,
 /******/ 			accept: function(dep, callback) {
@@ -51856,7 +51856,7 @@ SOFTWARE.
 /******/ 				var idx = hot._disposeHandlers.indexOf(callback);
 /******/ 				if(idx >= 0) hot._disposeHandlers.splice(idx, 1);
 /******/ 			},
-/******/ 	
+/******/
 /******/ 			// Management API
 /******/ 			check: hotCheck,
 /******/ 			apply: hotApply,
@@ -51871,22 +51871,22 @@ SOFTWARE.
 /******/ 				var idx = hotStatusHandlers.indexOf(l);
 /******/ 				if(idx >= 0) hotStatusHandlers.splice(idx, 1);
 /******/ 			},
-/******/ 	
+/******/
 /******/ 			//inherit from previous dispose call
 /******/ 			data: hotCurrentModuleData[moduleId]
 /******/ 		};
 /******/ 		return hot;
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	var hotStatusHandlers = [];
 /******/ 	var hotStatus = "idle";
-/******/ 	
+/******/
 /******/ 	function hotSetStatus(newStatus) {
 /******/ 		hotStatus = newStatus;
 /******/ 		for(var i = 0; i < hotStatusHandlers.length; i++)
 /******/ 			hotStatusHandlers[i].call(null, newStatus);
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	// while downloading
 /******/ 	var hotWaitingFiles = 0;
 /******/ 	var hotChunksLoading = 0;
@@ -51894,15 +51894,15 @@ SOFTWARE.
 /******/ 	var hotRequestedFilesMap = {};
 /******/ 	var hotAvailibleFilesMap = {};
 /******/ 	var hotCallback;
-/******/ 	
+/******/
 /******/ 	// The update info
 /******/ 	var hotUpdate, hotUpdateNewHash;
-/******/ 	
+/******/
 /******/ 	function toModuleId(id) {
 /******/ 		var isNumber = (+id) + "" === id;
 /******/ 		return isNumber ? +id : id;
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotCheck(apply, callback) {
 /******/ 		if(hotStatus !== "idle") throw new Error("check() is only allowed in idle status");
 /******/ 		if(typeof apply === "function") {
@@ -51922,14 +51922,14 @@ SOFTWARE.
 /******/ 				callback(null, null);
 /******/ 				return;
 /******/ 			}
-/******/ 	
+/******/
 /******/ 			hotRequestedFilesMap = {};
 /******/ 			hotAvailibleFilesMap = {};
 /******/ 			hotWaitingFilesMap = {};
 /******/ 			for(var i = 0; i < update.c.length; i++)
 /******/ 				hotAvailibleFilesMap[update.c[i]] = true;
 /******/ 			hotUpdateNewHash = update.h;
-/******/ 	
+/******/
 /******/ 			hotSetStatus("prepare");
 /******/ 			hotCallback = callback;
 /******/ 			hotUpdate = {};
@@ -51943,7 +51943,7 @@ SOFTWARE.
 /******/ 			}
 /******/ 		});
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotAddUpdateChunk(chunkId, moreModules) { // eslint-disable-line no-unused-vars
 /******/ 		if(!hotAvailibleFilesMap[chunkId] || !hotRequestedFilesMap[chunkId])
 /******/ 			return;
@@ -51957,7 +51957,7 @@ SOFTWARE.
 /******/ 			hotUpdateDownloaded();
 /******/ 		}
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotEnsureUpdateChunk(chunkId) {
 /******/ 		if(!hotAvailibleFilesMap[chunkId]) {
 /******/ 			hotWaitingFilesMap[chunkId] = true;
@@ -51967,7 +51967,7 @@ SOFTWARE.
 /******/ 			hotDownloadUpdateChunk(chunkId);
 /******/ 		}
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotUpdateDownloaded() {
 /******/ 		hotSetStatus("ready");
 /******/ 		var callback = hotCallback;
@@ -51985,7 +51985,7 @@ SOFTWARE.
 /******/ 			callback(null, outdatedModules);
 /******/ 		}
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	function hotApply(options, callback) {
 /******/ 		if(hotStatus !== "ready") throw new Error("apply() is only allowed in ready status");
 /******/ 		if(typeof options === "function") {
@@ -52001,11 +52001,11 @@ SOFTWARE.
 /******/ 				if(err) throw err;
 /******/ 			};
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		function getAffectedStuff(module) {
 /******/ 			var outdatedModules = [module];
 /******/ 			var outdatedDependencies = {};
-/******/ 	
+/******/
 /******/ 			var queue = outdatedModules.slice();
 /******/ 			while(queue.length > 0) {
 /******/ 				var moduleId = queue.pop();
@@ -52036,10 +52036,10 @@ SOFTWARE.
 /******/ 					queue.push(parentId);
 /******/ 				}
 /******/ 			}
-/******/ 	
+/******/
 /******/ 			return [outdatedModules, outdatedDependencies];
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		function addAllToSet(a, b) {
 /******/ 			for(var i = 0; i < b.length; i++) {
 /******/ 				var item = b[i];
@@ -52047,7 +52047,7 @@ SOFTWARE.
 /******/ 					a.push(item);
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// at begin all updates modules are outdated
 /******/ 		// the "outdated" status can propagate to parents if they don't accept the children
 /******/ 		var outdatedDependencies = {};
@@ -52078,7 +52078,7 @@ SOFTWARE.
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Store self accepted outdated modules to require them later by the module system
 /******/ 		var outdatedSelfAcceptedModules = [];
 /******/ 		for(var i = 0; i < outdatedModules.length; i++) {
@@ -52089,7 +52089,7 @@ SOFTWARE.
 /******/ 					errorHandler: installedModules[moduleId].hot._selfAccepted
 /******/ 				});
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Now in "dispose" phase
 /******/ 		hotSetStatus("dispose");
 /******/ 		var queue = outdatedModules.slice();
@@ -52097,9 +52097,9 @@ SOFTWARE.
 /******/ 			var moduleId = queue.pop();
 /******/ 			var module = installedModules[moduleId];
 /******/ 			if(!module) continue;
-/******/ 	
+/******/
 /******/ 			var data = {};
-/******/ 	
+/******/
 /******/ 			// Call dispose handlers
 /******/ 			var disposeHandlers = module.hot._disposeHandlers;
 /******/ 			for(var j = 0; j < disposeHandlers.length; j++) {
@@ -52107,13 +52107,13 @@ SOFTWARE.
 /******/ 				cb(data);
 /******/ 			}
 /******/ 			hotCurrentModuleData[moduleId] = data;
-/******/ 	
+/******/
 /******/ 			// disable module (this disables requires from this module)
 /******/ 			module.hot.active = false;
-/******/ 	
+/******/
 /******/ 			// remove module from cache
 /******/ 			delete installedModules[moduleId];
-/******/ 	
+/******/
 /******/ 			// remove "parents" references from all children
 /******/ 			for(var j = 0; j < module.children.length; j++) {
 /******/ 				var child = installedModules[module.children[j]];
@@ -52124,7 +52124,7 @@ SOFTWARE.
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// remove outdated dependency from module children
 /******/ 		for(var moduleId in outdatedDependencies) {
 /******/ 			if(Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)) {
@@ -52137,19 +52137,19 @@ SOFTWARE.
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Not in "apply" phase
 /******/ 		hotSetStatus("apply");
-/******/ 	
+/******/
 /******/ 		hotCurrentHash = hotUpdateNewHash;
-/******/ 	
+/******/
 /******/ 		// insert new code
 /******/ 		for(var moduleId in appliedUpdate) {
 /******/ 			if(Object.prototype.hasOwnProperty.call(appliedUpdate, moduleId)) {
 /******/ 				modules[moduleId] = appliedUpdate[moduleId];
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// call accept handlers
 /******/ 		var error = null;
 /******/ 		for(var moduleId in outdatedDependencies) {
@@ -52174,7 +52174,7 @@ SOFTWARE.
 /******/ 				}
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// Load self accepted modules
 /******/ 		for(var i = 0; i < outdatedSelfAcceptedModules.length; i++) {
 /******/ 			var item = outdatedSelfAcceptedModules[i];
@@ -52194,13 +52194,13 @@ SOFTWARE.
 /******/ 					error = err;
 /******/ 			}
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		// handle errors in accept handlers and self accepted module load
 /******/ 		if(error) {
 /******/ 			hotSetStatus("fail");
 /******/ 			return callback(error);
 /******/ 		}
-/******/ 	
+/******/
 /******/ 		hotSetStatus("idle");
 /******/ 		callback(null, outdatedModules);
 /******/ 	}
@@ -52582,7 +52582,7 @@ SOFTWARE.
 	;(function(isNode) {
 
 		/**
-		 * Merge one or more objects 
+		 * Merge one or more objects
 		 * @param bool? clone
 		 * @param mixed,... arguments
 		 * @return object
@@ -52595,7 +52595,7 @@ SOFTWARE.
 		}, publicName = 'merge';
 
 		/**
-		 * Merge two or more objects recursively 
+		 * Merge two or more objects recursively
 		 * @param bool? clone
 		 * @param mixed,... arguments
 		 * @return object
@@ -53088,7 +53088,7 @@ SOFTWARE.
 	 *
 	 * @providesModule shallowEqual
 	 * @typechecks
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -58161,7 +58161,7 @@ var LiteMol;
                                 case 'metalc':
                                     bondType = 6 /* Metallic */;
                                     break;
-                                //case 'mismat': bondType = Structure.BondType.Single; break; 
+                                //case 'mismat': bondType = Structure.BondType.Single; break;
                                 case 'saltbr':
                                     bondType = 7 /* Ion */;
                                     break;
@@ -58463,8 +58463,8 @@ var LiteMol;
                             //34 - 40       Real(7.2)      alpha (degrees)
                             //41 - 47       Real(7.2)      beta (degrees)
                             //48 - 54       Real(7.2)      gamma (degrees)
-                            //56 - 66       LString        Space group       
-                            //67 - 70       Integer        Z value           
+                            //56 - 66       LString        Space group
+                            //67 - 70       Integer        Z value
                             var data = [
                                 "_cell.entry_id           '" + id + "'",
                                 "_cell.length_a           " + this.getValue(6, 9),
@@ -58551,39 +58551,39 @@ var LiteMol;
                         };
                         ModelData.prototype.writeCifTokens = function (modelToken, cifTokens, helpers) {
                             var columnIndices = {
-                                //COLUMNS        DATA TYPE       CONTENTS                            
+                                //COLUMNS        DATA TYPE       CONTENTS
                                 //--------------------------------------------------------------------------------
-                                // 1 -  6        Record name     "ATOM  "                                          
+                                // 1 -  6        Record name     "ATOM  "
                                 RECORD: 0,
-                                // 7 - 11        Integer         Atom serial number.                   
+                                // 7 - 11        Integer         Atom serial number.
                                 SERIAL: 1,
-                                //13 - 16        Atom            Atom name.          
+                                //13 - 16        Atom            Atom name.
                                 ATOM_NAME: 2,
-                                //17             Character       Alternate location indicator. 
+                                //17             Character       Alternate location indicator.
                                 ALT_LOC: 3,
-                                //18 - 20        Residue name    Residue name.       
+                                //18 - 20        Residue name    Residue name.
                                 RES_NAME: 4,
-                                //22             Character       Chain identifier.         
+                                //22             Character       Chain identifier.
                                 CHAIN_ID: 5,
-                                //23 - 26        Integer         Residue sequence number.              
+                                //23 - 26        Integer         Residue sequence number.
                                 RES_SEQN: 6,
-                                //27             AChar           Code for insertion of residues.       
+                                //27             AChar           Code for insertion of residues.
                                 INS_CODE: 7,
-                                //31 - 38        Real(8.3)       Orthogonal coordinates for X in Angstroms.   
+                                //31 - 38        Real(8.3)       Orthogonal coordinates for X in Angstroms.
                                 X: 8,
-                                //39 - 46        Real(8.3)       Orthogonal coordinates for Y in Angstroms.                            
+                                //39 - 46        Real(8.3)       Orthogonal coordinates for Y in Angstroms.
                                 Y: 9,
-                                //47 - 54        Real(8.3)       Orthogonal coordinates for Z in Angstroms.        
+                                //47 - 54        Real(8.3)       Orthogonal coordinates for Z in Angstroms.
                                 Z: 10,
-                                //55 - 60        Real(6.2)       Occupancy.       
+                                //55 - 60        Real(6.2)       Occupancy.
                                 OCCUPANCY: 11,
-                                //61 - 66        Real(6.2)       Temperature factor (Default = 0.0).                   
+                                //61 - 66        Real(6.2)       Temperature factor (Default = 0.0).
                                 TEMP_FACTOR: 12,
-                                //73 - 76        LString(4)      Segment identifier, left-justified.   
+                                //73 - 76        LString(4)      Segment identifier, left-justified.
                                 // ignored
-                                //77 - 78        LString(2)      Element symbol, right-justified.   
+                                //77 - 78        LString(2)      Element symbol, right-justified.
                                 ELEMENT: 13
-                                //79 - 80        LString(2)      Charge on the atom.      
+                                //79 - 80        LString(2)      Charge on the atom.
                                 // ignored
                             };
                             var columnCount = 14;
@@ -58639,7 +58639,7 @@ var LiteMol;
                                 this.writeToken(o + columnIndices.CHAIN_ID, cifTokens);
                                 //_atom_site.auth_atom_id
                                 this.writeToken(o + columnIndices.ATOM_NAME, cifTokens);
-                                //_atom_site.pdbx_PDB_model_num 
+                                //_atom_site.pdbx_PDB_model_num
                                 this.writeRange(modelToken, cifTokens);
                             }
                         };
@@ -58764,60 +58764,60 @@ var LiteMol;
                             // invalid atom record
                             if (length < 60)
                                 return false;
-                            //COLUMNS        DATA TYPE       CONTENTS                            
+                            //COLUMNS        DATA TYPE       CONTENTS
                             //--------------------------------------------------------------------------------
-                            // 1 -  6        Record name     "ATOM  "                                            
+                            // 1 -  6        Record name     "ATOM  "
                             this.trim(start, start + 6);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            // 7 - 11        Integer         Atom serial number.                   
+                            // 7 - 11        Integer         Atom serial number.
                             start = startPos + 6;
                             this.trim(start, start + 5);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            //13 - 16        Atom            Atom name.          
+                            //13 - 16        Atom            Atom name.
                             start = startPos + 12;
                             this.trim(start, start + 4);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            //17             Character       Alternate location indicator. 
+                            //17             Character       Alternate location indicator.
                             if (this.data.charCodeAt(startPos + 16) === 32) { // ' '
                                 Formats.TokenIndexBuilder.addToken(tokens, 0, 0);
                             }
                             else {
                                 Formats.TokenIndexBuilder.addToken(tokens, startPos + 16, startPos + 17);
                             }
-                            //18 - 20        Residue name    Residue name.       
+                            //18 - 20        Residue name    Residue name.
                             start = startPos + 17;
                             this.trim(start, start + 3);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            //22             Character       Chain identifier.         
+                            //22             Character       Chain identifier.
                             Formats.TokenIndexBuilder.addToken(tokens, startPos + 21, startPos + 22);
-                            //23 - 26        Integer         Residue sequence number.              
+                            //23 - 26        Integer         Residue sequence number.
                             start = startPos + 22;
                             this.trim(start, start + 4);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            //27             AChar           Code for insertion of residues.      
+                            //27             AChar           Code for insertion of residues.
                             if (this.data.charCodeAt(startPos + 26) === 32) { // ' '
                                 Formats.TokenIndexBuilder.addToken(tokens, 0, 0);
                             }
                             else {
                                 Formats.TokenIndexBuilder.addToken(tokens, startPos + 26, startPos + 27);
                             }
-                            //31 - 38        Real(8.3)       Orthogonal coordinates for X in Angstroms.   
+                            //31 - 38        Real(8.3)       Orthogonal coordinates for X in Angstroms.
                             start = startPos + 30;
                             this.trim(start, start + 8);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            //39 - 46        Real(8.3)       Orthogonal coordinates for Y in Angstroms.                            
+                            //39 - 46        Real(8.3)       Orthogonal coordinates for Y in Angstroms.
                             start = startPos + 38;
                             this.trim(start, start + 8);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            //47 - 54        Real(8.3)       Orthogonal coordinates for Z in Angstroms.        
+                            //47 - 54        Real(8.3)       Orthogonal coordinates for Z in Angstroms.
                             start = startPos + 46;
                             this.trim(start, start + 8);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            //55 - 60        Real(6.2)       Occupancy.       
+                            //55 - 60        Real(6.2)       Occupancy.
                             start = startPos + 54;
                             this.trim(start, start + 6);
                             Formats.TokenIndexBuilder.addToken(tokens, this.trimmedToken.start, this.trimmedToken.end);
-                            //61 - 66        Real(6.2)       Temperature factor (Default = 0.0).                   
+                            //61 - 66        Real(6.2)       Temperature factor (Default = 0.0).
                             if (length >= 66) {
                                 start = startPos + 60;
                                 this.trim(start, start + 6);
@@ -58826,9 +58826,9 @@ var LiteMol;
                             else {
                                 Formats.TokenIndexBuilder.addToken(tokens, 0, 0);
                             }
-                            //73 - 76        LString(4)      Segment identifier, left-justified.   
+                            //73 - 76        LString(4)      Segment identifier, left-justified.
                             // ignored
-                            //77 - 78        LString(2)      Element symbol, right-justified.   
+                            //77 - 78        LString(2)      Element symbol, right-justified.
                             if (length >= 78) {
                                 start = startPos + 76;
                                 this.trim(start, start + 2);
@@ -58842,7 +58842,7 @@ var LiteMol;
                             else {
                                 Formats.TokenIndexBuilder.addToken(tokens, startPos + 12, startPos + 13);
                             }
-                            //79 - 80        LString(2)      Charge on the atom.      
+                            //79 - 80        LString(2)      Charge on the atom.
                             // ignored
                             return true;
                         };
@@ -58868,7 +58868,7 @@ var LiteMol;
                             while (tokenizer.position < length) {
                                 var cont = true;
                                 switch (data.charCodeAt(tokenizer.position)) {
-                                    case 65: // A 
+                                    case 65: // A
                                         if (tokenizer.startsWith(tokenizer.position, "ATOM")) {
                                             if (!modelAtomTokens) {
                                                 modelAtomTokens = Formats.TokenIndexBuilder.create(4096);
@@ -58886,7 +58886,7 @@ var LiteMol;
                                             cryst = new PDB.CrystStructureInfo(data.substring(start, end));
                                         }
                                         break;
-                                    case 69: // E 
+                                    case 69: // E
                                         if (tokenizer.startsWith(tokenizer.position, "ENDMDL") && atomCount > 0) {
                                             if (models.length === 0) {
                                                 modelIdToken = { start: data.length + 3, end: data.length + 4 };
@@ -58906,7 +58906,7 @@ var LiteMol;
                                             }
                                         }
                                         break;
-                                    case 72: // H 
+                                    case 72: // H
                                         if (tokenizer.startsWith(tokenizer.position, "HETATM")) {
                                             if (!modelAtomTokens) {
                                                 modelAtomTokens = Formats.TokenIndexBuilder.create(4096);
@@ -59821,7 +59821,7 @@ var LiteMol;
                     }
                     Matrix4.clone = clone;
                     function invert(out, a) {
-                        var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3], a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7], a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11], a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32, 
+                        var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3], a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7], a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11], a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15], b00 = a00 * a11 - a01 * a10, b01 = a00 * a12 - a02 * a10, b02 = a00 * a13 - a03 * a10, b03 = a01 * a12 - a02 * a11, b04 = a01 * a13 - a03 * a11, b05 = a02 * a13 - a03 * a12, b06 = a20 * a31 - a21 * a30, b07 = a20 * a32 - a22 * a30, b08 = a20 * a33 - a23 * a30, b09 = a21 * a32 - a22 * a31, b10 = a21 * a33 - a23 * a31, b11 = a22 * a33 - a23 * a32,
                         // Calculate the determinant
                         det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
                         if (!det) {
@@ -61648,7 +61648,7 @@ var LiteMol;
                         this.atomIndices = inputParameters.atomIndices;
                         // make the atoms artificially bigger for low resolution surfaces
                         if (this.parameters.density >= 0.99) {
-                            // so that the number is float and not int32 internally 
+                            // so that the number is float and not int32 internally
                             this.vdwScaleFactor = 1.000000001;
                         }
                         else {
@@ -61851,8 +61851,8 @@ var LiteMol;
                                     smoothing = (parameters.parameters && parameters.parameters.smoothingIterations) || 1;
                                     smoothingVertexWeight = 1.0;
                                     // low density results in very low detail and large distance between vertices.
-                                    // Applying uniform laplacian smmoth to such surfaces makes the surface a lot smaller 
-                                    // in each iteration. 
+                                    // Applying uniform laplacian smmoth to such surfaces makes the surface a lot smaller
+                                    // in each iteration.
                                     // To reduce this behaviour, the weight of the "central" vertex is increased
                                     // for low desities to better preserve the shape of the surface.
                                     if (parameters.parameters && parameters.parameters.density < 1) {
@@ -66039,7 +66039,7 @@ var LiteMol;
                 return p;
             }
             function fromHsl(h, s, l) {
-                //http://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion            
+                //http://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
                 var r, g, b;
                 if (s == 0) {
                     r = g = b = l; // achromatic
@@ -66055,7 +66055,7 @@ var LiteMol;
             }
             Color.fromHsl = fromHsl;
             function fromHsv(h, s, v) {
-                //http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/          
+                //http://schinckel.net/2012/01/10/hsv-to-rgb-in-javascript/
                 var rgb, i, data = [];
                 if (s === 0) {
                     rgb = [v, v, v];
@@ -66503,7 +66503,7 @@ var LiteMol;
                     "	else { diffuseColor = vec4(selectionColor, opacity); }",
                     Visualization.THREE.ShaderChunk["logdepthbuf_fragment"],
                     Visualization.THREE.ShaderChunk["map_fragment"],
-                    //THREE.ShaderChunk["color_fragment"], 
+                    //THREE.ShaderChunk["color_fragment"],
                     Visualization.THREE.ShaderChunk["alphamap_fragment"],
                     Visualization.THREE.ShaderChunk["alphatest_fragment"],
                     Visualization.THREE.ShaderChunk["specularmap_fragment"],
@@ -66768,7 +66768,7 @@ var LiteMol;
                     mouseOut: function () { return _this.mouseOut(); }
                 };
                 element.addEventListener('mousewheel', events.wheel);
-                element.addEventListener('DOMMouseScroll', events.wheel); // firefox   
+                element.addEventListener('DOMMouseScroll', events.wheel); // firefox
                 element.addEventListener('mousemove', events.mouseMove);
                 element.addEventListener('mouseout', events.mouseOut);
                 element.addEventListener('touchstart', events.touchStart, false);
@@ -67040,12 +67040,12 @@ var LiteMol;
                     // if (dist + this.focusRadius - this.fogDelta < 1) {
                     //     this.fogDelta = dist + this.focusRadius - 1;
                     // }
-                    //   let dist = 0;              
+                    //   let dist = 0;
                     // let fogNear = dist + this.focusRadius - this.fogDelta - this.camera.near;
                     // let fogFar = dist + 2 * this.focusRadius - this.fogDelta - this.camera.near;
                     var fogNear = this.targetDistance - this.camera.near + 1 * this.focusRadius - this.nearPlaneDelta;
                     var fogFar = this.targetDistance - this.camera.near + 2 * this.focusRadius - this.nearPlaneDelta;
-                    //console.log(fogNear, fogFar); 
+                    //console.log(fogNear, fogFar);
                     this.fog.near = Math.max(fogNear, 0.1);
                     this.fog.far = Math.max(fogFar, 0.2);
                 }
@@ -67249,7 +67249,7 @@ var LiteMol;
                 this.renderer.clear();
                 this.needsRender();
                 this.renderState.animationFrame = requestAnimationFrame(this.renderFunc);
-                // sometimes, the renderer DOM element does not initially have the correct size. 
+                // sometimes, the renderer DOM element does not initially have the correct size.
                 // This will hopefully fix the issue in most cases.
                 this.initialResizeTimeout = setTimeout(function () {
                     _this.initialResizeTimeout = void 0;
@@ -69368,7 +69368,7 @@ var LiteMol;
                         }
                         xShift += outline;
                         yShift += outline;
-                        // background            
+                        // background
                         i = iCharAll * 2 * 4;
                         inputMapping[i + 0] = -lineHeight / 6 - xShift - margin; // top left
                         inputMapping[i + 1] = lineHeight - yShift + margin;
@@ -70418,7 +70418,7 @@ var LiteMol;
                                     }
                                 }
                                 //state.uPositions[0] = state.uPositions[6] - dx;
-                                //state.uPositions[9] = state.uPositions[6] - dx;                
+                                //state.uPositions[9] = state.uPositions[6] - dx;
                                 //console.log(state.uPositions, state.vPositions);
                             }
                         };
@@ -75436,7 +75436,7 @@ var LiteMol;
             //     if (e.tree.context.currentEntity === e) {
             //         Event.Entity.CurrentChanged.dispatch(e.tree.context, e);
             //     }
-            // } 
+            // }
             function updateVisibilityState(entity) {
                 if (!entity)
                     return;
@@ -77822,7 +77822,7 @@ var LiteMol;
                             var c = manager.getController(t, e);
                             if (c)
                                 transforms.push(c);
-                            //this.setParams(c);                
+                            //this.setParams(c);
                         }
                         this.setState({ update: update, transforms: transforms });
                     };
@@ -78401,7 +78401,7 @@ var LiteMol;
                 this.dispatcher = new Bootstrap.Service.Dispatcher();
                 this.logger = new Bootstrap.Service.Logger(this);
                 this.performance = new LiteMol.Core.Utils.PerformanceMonitor();
-                this.scene = void 0; // injected by the Viewport component.        
+                this.scene = void 0; // injected by the Viewport component.
                 this.tree = Bootstrap.Tree.create(this, Bootstrap.Entity.Root.create(Bootstrap.Entity.RootTransform, { label: 'Root Entity' }));
                 this.currentEntity = void 0;
                 this.transforms = new Bootstrap.TransformManager(this);
@@ -78727,10 +78727,10 @@ var LiteMol;
                     Plugin.React.createElement("span", { className: "lm-icon lm-icon-" + (props.isOn ? 'ok' : 'cross') }),
                     props.isOn ? Plugin.React.createElement("b", null, props.on) : (props.off ? props.off : props.on))); };
             // <Controls.Button onClick={() => props.action() }
-            //         style={props.isOn ? 'success' : 'default' } asBlock={true} disabled={!props.isOn} icon={props.isOn ? 'ok' : 'cross'} 
+            //         style={props.isOn ? 'success' : 'default' } asBlock={true} disabled={!props.isOn} icon={props.isOn ? 'ok' : 'cross'}
             //             customClass='lm-commit-button'>
             //             {props.isOn ? props.on : (props.off ? props.off : props.on) }
-            //         </Controls.Button>  
+            //         </Controls.Button>
             Controls.Toggle = function (props) { return Plugin.React.createElement("div", { className: 'lm-control-row lm-toggle-button', title: props.title },
                 Plugin.React.createElement("span", null, props.label),
                 Plugin.React.createElement("div", null,
@@ -78940,10 +78940,10 @@ var LiteMol;
              * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
              * copies of the Software, and to permit persons to whom the Software is
              * furnished to do so, subject to the following conditions:
-        
+
              * The above copyright notice and this permission notice shall be included in
              * all copies or substantial portions of the Software.
-        
+
              * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
              * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
              * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -79277,7 +79277,7 @@ var LiteMol;
                             return true;
                     }
                     return false;
-                    // return this.state.bounds.some((x, i) => e.target 
+                    // return this.state.bounds.some((x, i) => e.target
                     // (
                     //     //this.handleElements[i] && e.target === ReactDOM.findDOMNode(this.handleElements[i])
                     // ));
@@ -80336,7 +80336,7 @@ var LiteMol;
                                 .filter(function (c, n) { return !isBallsAndSticks ? n !== 'Bond' : true; })
                                 .map(function (c, n) { return Plugin.React.createElement(Plugin.Controls.ToggleColorPicker, { key: n, label: n, color: c, onChange: function (c) { return _this.controller.updateThemeColor(n, c); } }); }).toArray();
                             controls.push(Plugin.React.createElement(Transform.TransparencyControl, { definition: theme.transparency, onChange: function (d) { return _this.controller.updateThemeTransparency(d); } }));
-                            // controls.push(<Controls.Toggle 
+                            // controls.push(<Controls.Toggle
                             //         onChange={v => this.controller.updateStyleTheme({ wireframe: v }) } value={theme.wireframe} label='Wireframe' />);
                             return controls;
                         };
@@ -80704,7 +80704,7 @@ var LiteMol;
                         //    tasks.push(<span><TaskState key={-1} info={{ message: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Ut te', name: 'occaecat ', abort: () => {} }} /><br/></span>)
                         //    tasks.push(<br/>)
                         //    tasks.push(<TaskState key={-2} info={{ message: 'uam metus. Duis risus. F', name: 'dsads' }} />)
-                        //   tasks.push(<TaskState key={-3} info={{ message: 'm dapibus fermentum ipsum. Lorem ipsum dolor', name: 'bibendum ', abort: () => {} }} />)          
+                        //   tasks.push(<TaskState key={-3} info={{ message: 'm dapibus fermentum ipsum. Lorem ipsum dolor', name: 'bibendum ', abort: () => {} }} />)
                         return Plugin.React.createElement("div", { className: 'lm-overlay' },
                             Plugin.React.createElement("div", { className: 'lm-overlay-background' }),
                             Plugin.React.createElement("div", { className: 'lm-overlay-content-wrap' },
@@ -80865,7 +80865,7 @@ var LiteMol;
                         var _this = this;
                         this.ctx = this.props.node.tree.context;
                         var node = this.node;
-                        //this.state.version = node.version;                            
+                        //this.state.version = node.version;
                         this.subscribe(LiteMol.Bootstrap.Event.Tree.NodeUpdated.getStream(this.ctx), function (e) {
                             if (e.data === node) {
                                 if (node.version !== _this.renderedVersion)
@@ -81004,7 +81004,7 @@ var LiteMol;
                         var _this = this;
                         var node = this.controller.context.tree.root;
                         var ctx = node.tree.context;
-                        //this.state.version = node.version;                            
+                        //this.state.version = node.version;
                         this.subscribe(LiteMol.Bootstrap.Event.Tree.NodeUpdated.getStream(ctx), function (e) {
                             if (e.data === node) {
                                 if (node.version !== _this.renderedVersion)
@@ -81102,7 +81102,7 @@ var LiteMol;
                                 Plugin.React.createElement("div", null,
                                     Plugin.React.createElement("span", null, this.controller.appName)));
                         }
-                        //<div>{this.controller.appVersion}</div> 
+                        //<div>{this.controller.appVersion}</div>
                         var entity = this.state.current;
                         return Plugin.React.createElement("div", { className: 'lm-entity-info', title: entity.props.label + " " + (entity.props.description ? entity.props.description : '') },
                             Plugin.React.createElement("div", null,
@@ -81111,7 +81111,7 @@ var LiteMol;
                                     entity.props.label,
                                     Plugin.React.createElement("span", null, entity.props.description)),
                                 entity.parent === entity && !entity.children.length ? void 0 : Plugin.React.createElement(Entity.Remove, { entity: entity, onRemove: function () { return _this.forceUpdate(); } })));
-                        //<div>{entity.props.label}<span>{entity.props.description}</span></div>             
+                        //<div>{entity.props.label}<span>{entity.props.description}</span></div>
                     };
                     return CurrentEntityControl;
                 }(Views.View));
@@ -81749,4 +81749,3 @@ if (typeof module === 'object' && typeof module.exports === 'object') {
   var __target = !!window ? window : this;
   __target.LiteMol = __LiteMol_Plugin();
 }
-

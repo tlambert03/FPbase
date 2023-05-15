@@ -35,18 +35,12 @@ def get_cached_spectrum(id, timeout=60 * 60 * 24):
 def get_requested_fields(info: GraphQLResolveInfo) -> set[str]:
     if not info.field_nodes or not (selection_set := info.field_nodes[0].selection_set):
         return set()
-    return {
-        node.name.value
-        for node in selection_set.selections
-        if isinstance(node, FieldNode)
-    }
+    return {node.name.value for node in selection_set.selections if isinstance(node, FieldNode)}
 
 
 class Query(graphene.ObjectType):
     # this relay query delivers filterable paginated results
-    all_proteins = DjangoFilterConnectionField(
-        relay.ProteinNode, filterset_class=ProteinFilter
-    )
+    all_proteins = DjangoFilterConnectionField(relay.ProteinNode, filterset_class=ProteinFilter)
 
     microscopes = graphene.List(types.Microscope)
     microscope = graphene.Field(types.Microscope, id=graphene.String())
@@ -58,14 +52,10 @@ class Query(graphene.ObjectType):
         _id = kwargs.get("id")
         if _id is not None:
             try:
-                obj = gdo.query(
-                    models.Microscope.objects.filter(id__istartswith=_id), info
-                )
+                obj = gdo.query(models.Microscope.objects.filter(id__istartswith=_id), info)
                 return obj.get()
             except models.Microscope.MultipleObjectsReturned as e:
-                raise GraphQLError(
-                    f'Multiple microscopes found starting with "{_id}"'
-                ) from e
+                raise GraphQLError(f'Multiple microscopes found starting with "{_id}"') from e
             except models.Microscope.DoesNotExist:
                 return None
         return None

@@ -119,9 +119,7 @@ class ProteinDetailView(DetailView):
 
     queryset = (
         Protein.objects.annotate(has_spectra=Count("states__spectra"))
-        .prefetch_related(
-            "states", "excerpts__reference", "oser_measurements__reference"
-        )
+        .prefetch_related("states", "excerpts__reference", "oser_measurements__reference")
         .select_related("primary_reference")
     )
 
@@ -179,12 +177,8 @@ class ProteinDetailView(DetailView):
             return super().get(request, *args, **kwargs)
         except Http404:
             name = slugify(self.kwargs.get(self.slug_url_kwarg))
-            aliases_lower = Func(
-                Func(F("aliases"), function="unnest"), function="LOWER"
-            )
-            remove_space = Func(
-                aliases_lower, Value(" "), Value("-"), function="replace"
-            )
+            aliases_lower = Func(Func(F("aliases"), function="unnest"), function="LOWER")
+            remove_space = Func(aliases_lower, Value(" "), Value("-"), function="replace")
             final = Func(remove_space, Value("."), Value(""), function="replace")
             D = dict(Protein.objects.annotate(aka=final).values_list("aka", "id"))
             if name in D:
@@ -192,9 +186,7 @@ class ProteinDetailView(DetailView):
                 messages.add_message(
                     self.request,
                     messages.INFO,
-                    "The URL {} was not found.  You have been forwarded here".format(
-                        self.request.get_full_path()
-                    ),
+                    "The URL {} was not found.  You have been forwarded here".format(self.request.get_full_path()),
                 )
                 return HttpResponseRedirect(obj.get_absolute_url())
             raise
@@ -205,33 +197,19 @@ class ProteinDetailView(DetailView):
             data["last_approved"] = self.object.last_approved_version()
 
         similar = Protein.visible.filter(name__iexact="m" + self.object.name)
-        similar = similar | Protein.visible.filter(
-            name__iexact="monomeric" + self.object.name
-        )
-        similar = similar | Protein.visible.filter(
-            name__iexact=self.object.name.lstrip("m")
-        )
-        similar = similar | Protein.visible.filter(
-            name__iexact=self.object.name.lstrip("monomeric")
-        )
-        similar = similar | Protein.visible.filter(
-            name__iexact=self.object.name.lower().lstrip("td")
-        )
+        similar = similar | Protein.visible.filter(name__iexact="monomeric" + self.object.name)
+        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip("m"))
+        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip("monomeric"))
+        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip("td"))
         similar = similar | Protein.visible.filter(name__iexact="td" + self.object.name)
         data["similar"] = similar.exclude(id=self.object.id)
-        spectra = [
-            sp for state in self.object.states.all() for sp in state.spectra.all()
-        ]
+        spectra = [sp for state in self.object.states.all() for sp in state.spectra.all()]
 
         data["spectra_ids"] = ",".join([str(sp.id) for sp in spectra])
-        data["hidden_spectra"] = ",".join(
-            [str(sp.id) for sp in spectra if sp.subtype in ("2p")]
-        )
+        data["hidden_spectra"] = ",".join([str(sp.id) for sp in spectra if sp.subtype in ("2p")])
 
         # put links in excerpts
-        data["excerpts"] = link_excerpts(
-            self.object.excerpts.all(), self.object.name, self.object.aliases
-        )
+        data["excerpts"] = link_excerpts(self.object.excerpts.all(), self.object.name, self.object.aliases)
         return data
 
 
@@ -316,10 +294,7 @@ class ProteinCreateUpdateMixin:
                     for lin in lineage.save(commit=False):
                         # if the form has been cleared and there are no children,
                         # let's clean up a little
-                        if (
-                            not (lin.mutation and lin.parent)
-                            and not lin.children.exists()
-                        ):
+                        if not (lin.mutation and lin.parent) and not lin.children.exists():
                             lin.delete()
                         else:
                             if not lin.created_by:
@@ -332,14 +307,10 @@ class ProteinCreateUpdateMixin:
 
                     if hasattr(self.object, "lineage"):
                         if not self.object.seq:
-                            seq = self.object.lineage.parent.protein.seq.mutate(
-                                self.object.lineage.mutation
-                            )
+                            seq = self.object.lineage.parent.protein.seq.mutate(self.object.lineage.mutation)
                             self.object.seq = str(seq)
                         if not self.object.parent_organism:
-                            self.object.parent_organism = (
-                                self.object.lineage.root_node.protein.parent_organism
-                            )
+                            self.object.parent_organism = self.object.lineage.root_node.protein.parent_organism
 
                     comment = "{} {} form.".format(self.object, self.get_form_type())
                     chg_string = "\n".join(get_form_changes(form, states, lineage))
@@ -350,9 +321,7 @@ class ProteinCreateUpdateMixin:
                             self.request.user.username,
                             self.object,
                             chg_string,
-                            self.request.build_absolute_uri(
-                                self.object.get_absolute_url()
-                            ),
+                            self.request.build_absolute_uri(self.object.get_absolute_url()),
                         )
                         mail_managers(comment, msg, fail_silently=True)
                     # else:
@@ -456,21 +425,15 @@ class ActivityView(ListView):
     template_name = "proteins/activity.html"
     stateprefetch = Prefetch(
         "states",
-        queryset=State.objects.prefetch_related("spectra").order_by(
-            "-is_dark", "em_max"
-        ),
+        queryset=State.objects.prefetch_related("spectra").order_by("-is_dark", "em_max"),
     )
-    queryset = Protein.visible.prefetch_related(
-        stateprefetch, "primary_reference"
-    ).order_by("-created")[:18]
+    queryset = Protein.visible.prefetch_related(stateprefetch, "primary_reference").order_by("-created")[:18]
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         stateprefetch = Prefetch(
             "states",
-            queryset=State.objects.prefetch_related("spectra").order_by(
-                "-is_dark", "em_max"
-            ),
+            queryset=State.objects.prefetch_related("spectra").order_by("-is_dark", "em_max"),
         )
         data["proteins_by_date"] = (
             Protein.visible.annotate(nstates=Count("states"))
@@ -484,9 +447,7 @@ class ActivityView(ListView):
 
 @cache_page(60 * 120)
 def spectra_image(request, slug, **kwargs):
-    protein = get_object_or_404(
-        Protein.objects.select_related("default_state"), slug=slug
-    )
+    protein = get_object_or_404(Protein.objects.select_related("default_state"), slug=slug)
     try:
         D = {}
         for k, v in request.GET.dict().items():
@@ -509,9 +470,7 @@ def spectra_image(request, slug, **kwargs):
         byt = protein.spectra_img(fmt, output=io.BytesIO(), **D)
     except Exception as e:
         logger.error(e)
-        return HttpResponseBadRequest(
-            "failed to parse url parameters as JSON: {}".format(e)
-        )
+        return HttpResponseBadRequest("failed to parse url parameters as JSON: {}".format(e))
     if byt:
         byt.seek(0)
         if fmt == "svg":
@@ -543,11 +502,7 @@ class ComparisonView(base.TemplateView):
             # the page was requested with slugs in the URL, maintain that order
             ids = kwargs.get("proteins", "").split(",")
             p = Case(*[When(slug=slug, then=pos) for pos, slug in enumerate(ids)])
-            prots = (
-                Protein.objects.filter(slug__in=ids)
-                .prefetch_related("states__spectra")
-                .order_by(p)
-            )
+            prots = Protein.objects.filter(slug__in=ids).prefetch_related("states__spectra").order_by(p)
         else:
             # try to use chronological order
             ids = self.request.session.get("comparison", [])
@@ -575,11 +530,7 @@ class ComparisonView(base.TemplateView):
                         head = prots[0].name
                     elif i % 2 == 0:
                         head = prots[1].name
-                    out.append(
-                        "{:<18.16}{}".format(
-                            head if len(head) < 17 else head[:13] + "...", row
-                        )
-                    )
+                    out.append("{:<18.16}{}".format(head if len(head) < 17 else head[:13] + "...", row))
                 out.append("\n")
                 context["alignment"] = "\n".join(out)
                 context["mutations"] = str(seqA.seq.mutations_to(seqB.seq))
@@ -596,9 +547,7 @@ class ComparisonView(base.TemplateView):
             for state in prot.states.all():
                 spectra.extend(state.spectra.all())
         context["spectra_ids"] = ",".join([str(sp.id) for sp in spectra])
-        context["hidden_spectra"] = ",".join(
-            [str(sp.id) for sp in spectra if sp.subtype in ("2p")]
-        )
+        context["hidden_spectra"] = ",".join([str(sp.id) for sp in spectra if sp.subtype in ("2p")])
 
         return context
 
@@ -606,9 +555,7 @@ class ComparisonView(base.TemplateView):
 def protein_tree(request, organism):
     """renders html for protein table page"""
     _, tree = Protein.objects.filter(parent_organism=organism).to_tree()
-    return render(
-        request, "tree.html", {"tree": tree.replace("\n", ""), "request": request}
-    )
+    return render(request, "tree.html", {"tree": tree.replace("\n", ""), "request": request})
 
 
 def problems_gaps(request):
@@ -625,9 +572,7 @@ def problems_gaps(request):
                 .distinct("protein")
                 .values("protein__name", "protein__slug")
             ),
-            "nolineage": Protein.objects.filter(lineage=None)
-            .annotate(ns=Count("states__spectra"))
-            .order_by("-ns"),
+            "nolineage": Protein.objects.filter(lineage=None).annotate(ns=Count("states__spectra")).order_by("-ns"),
             "request": request,
         },
     )
@@ -638,10 +583,7 @@ def problems_inconsistencies(request):
 
     titles = reduce(
         operator.or_,
-        (
-            Q(primary_reference__title__icontains=item)
-            for item in ["activat", "switch", "convert", "dark", "revers"]
-        ),
+        (Q(primary_reference__title__icontains=item) for item in ["activat", "switch", "convert", "dark", "revers"]),
     )
     names = reduce(
         operator.or_,
@@ -652,11 +594,7 @@ def problems_inconsistencies(request):
     switchers = switchers.annotate(ns=Count("states")).filter(ns=1)
 
     GB_mismatch = []
-    with_genbank = (
-        Protein.objects.exclude(genbank=None)
-        .exclude(seq=None)
-        .values("slug", "name", "genbank", "seq")
-    )
+    with_genbank = Protein.objects.exclude(genbank=None).exclude(seq=None).values("slug", "name", "genbank", "seq")
     gbseqs = get_cached_gbseqs([g["genbank"] for g in with_genbank])
     for item in with_genbank:
         if item["genbank"] in gbseqs:
@@ -688,13 +626,9 @@ def problems_inconsistencies(request):
         request,
         "problems_inconsistencies.html",
         {
-            "histags": Protein.objects.filter(seq__icontains="HHHHH").values(
-                "name", "slug"
-            ),
+            "histags": Protein.objects.filter(seq__icontains="HHHHH").values("name", "slug"),
             "linprobs": [(node.protein, v) for node, v in check_lineages()[0].items()],
-            "nomet": Protein.objects.exclude(seq__isnull=True).exclude(
-                seq__istartswith="M"
-            ),
+            "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith="M"),
             "bad_switch": bad_switch,
             "switchers": switchers,
             "request": request,
@@ -741,9 +675,7 @@ def add_protein_excerpt(request, slug=None):
             if content:
                 ref, created = Reference.objects.get_or_create(doi=doi)
                 P.references.add(ref)
-                excerpt = Excerpt.objects.create(
-                    reference=ref, content=strip_tags(content), created_by=request.user
-                )
+                excerpt = Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
                 excerpt.proteins.add(P)
                 if not request.user.is_staff:
                     msg = "User: {}\nProtein: {}\nReference: {}, {}\nExcerpt: {}\n{}".format(
@@ -783,18 +715,12 @@ def revert_revision(request, rev=None):
 
     with transaction.atomic():
         revision.revert(delete=True)
-        proteins = {
-            v.object
-            for v in revision.version_set.all()
-            if v.object._meta.model_name == "protein"
-        }
+        proteins = {v.object for v in revision.version_set.all() if v.object._meta.model_name == "protein"}
         if len(proteins) == 1:
             P = proteins.pop()
             with reversion.create_revision():
                 reversion.set_user(request.user)
-                reversion.set_comment(
-                    "Reverted to revision dated {}".format(revision.date_created)
-                )
+                reversion.set_comment("Reverted to revision dated {}".format(revision.date_created))
                 P.save()
                 try:
                     uncache_protein_page(P.slug, request)
@@ -823,9 +749,7 @@ def update_transitions(request, slug=None):
                         obj.status = "pending"
                         mail_managers(
                             "Transition updated",
-                            "User: {}\nProtein: {}\n\n{}".format(
-                                request.user.username, obj, chg_string
-                            ),
+                            "User: {}\nProtein: {}\n\n{}".format(request.user.username, obj, chg_string),
                             fail_silently=True,
                         )
                     obj.save()
@@ -838,34 +762,24 @@ def update_transitions(request, slug=None):
                     check_switch_type(obj, request)
             return HttpResponse(status=200)
         else:
-            response = render(
-                request, template_name, {"transition_form": formset}, status=422
-            )
+            response = render(request, template_name, {"transition_form": formset}, status=422)
             return response
     else:
         formset = StateTransitionFormSet(instance=obj)
-        formset.form.base_fields["from_state"].queryset = State.objects.filter(
-            protein=obj
-        )
-        formset.form.base_fields["to_state"].queryset = State.objects.filter(
-            protein=obj
-        )
+        formset.form.base_fields["from_state"].queryset = State.objects.filter(protein=obj)
+        formset.form.base_fields["to_state"].queryset = State.objects.filter(protein=obj)
         return render(request, template_name, {"transition_form": formset})
 
 
 @login_required
 def protein_bleach_formsets(request, slug):
     template_name = "proteins/protein_bleach_form.html"
-    BleachMeasurementFormSet = modelformset_factory(
-        BleachMeasurement, BleachMeasurementForm, extra=1, can_delete=True
-    )
+    BleachMeasurementFormSet = modelformset_factory(BleachMeasurement, BleachMeasurementForm, extra=1, can_delete=True)
     protein = get_object_or_404(Protein, slug=slug)
     qs = BleachMeasurement.objects.filter(state__protein=protein)
     if request.method == "POST":
         formset = BleachMeasurementFormSet(request.POST, queryset=qs)
-        formset.form.base_fields["state"].queryset = State.objects.filter(
-            protein__slug=slug
-        )
+        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)
         if formset.is_valid():
             with transaction.atomic():
                 with reversion.create_revision():
@@ -904,14 +818,10 @@ def protein_bleach_formsets(request, slug):
                         logger.error("failed to uncache protein: {}".format(e))
             return HttpResponseRedirect(protein.get_absolute_url())
         else:
-            return render(
-                request, template_name, {"formset": formset, "protein": protein}
-            )
+            return render(request, template_name, {"formset": formset, "protein": protein})
     else:
         formset = BleachMeasurementFormSet(queryset=qs)
-        formset.form.base_fields["state"].queryset = State.objects.filter(
-            protein__slug=slug
-        )
+        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)
     return render(request, template_name, {"formset": formset, "protein": protein})
 
 
@@ -923,9 +833,7 @@ def bleach_comparison(request, pk=None):
         bcf = BleachComparisonForm(request.POST)
         if formset.is_valid() and bcf.is_valid():
             D = bcf.cleaned_data
-            D["reference"], _ = Reference.objects.get_or_create(
-                doi=D.pop("reference_doi")
-            )
+            D["reference"], _ = Reference.objects.get_or_create(doi=D.pop("reference_doi"))
             for form in formset.forms:
                 if form.has_changed():
                     D["state"] = form.cleaned_data["state"]

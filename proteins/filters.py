@@ -13,12 +13,8 @@ class SpectrumFilter(filters.FilterSet):
 
 
 class StateFilter(filters.FilterSet):
-    ex_spectra = django_filters.BooleanFilter(
-        field_name="ex_spectra", lookup_expr="isnull"
-    )
-    em_spectra = django_filters.BooleanFilter(
-        field_name="em_spectra", lookup_expr="isnull"
-    )
+    ex_spectra = django_filters.BooleanFilter(field_name="ex_spectra", lookup_expr="isnull")
+    em_spectra = django_filters.BooleanFilter(field_name="em_spectra", lookup_expr="isnull")
     spectral_brightness = django_filters.NumberFilter(
         field_name="spectral_brightness",
         method="get_specbright",
@@ -68,22 +64,12 @@ class StateFilter(filters.FilterSet):
 
 class ProteinFilterForm(forms.Form):
     def clean_seq__cdna_contains(self):
-        seq = (
-            self.cleaned_data["seq__cdna_contains"]
-            .replace(" ", "")
-            .replace("\n", "")
-            .upper()
-        )
+        seq = self.cleaned_data["seq__cdna_contains"].replace(" ", "").replace("\n", "").upper()
         cdna_sequence_validator(seq)
         return seq
 
     def clean_seq__icontains(self):
-        seq = (
-            self.cleaned_data["seq__icontains"]
-            .replace(" ", "")
-            .replace("\n", "")
-            .upper()
-        )
+        seq = self.cleaned_data["seq__icontains"].replace(" ", "").replace("\n", "").upper()
         return seq
 
 
@@ -120,12 +106,8 @@ class ProteinFilter(filters.FilterSet):
     name__icontains = django_filters.CharFilter(
         field_name="name", method="name_or_alias_icontains", lookup_expr="icontains"
     )
-    switch_type__ne = django_filters.ChoiceFilter(
-        choices=Protein.SWITCHING_CHOICES, method="switch_type__notequal"
-    )
-    cofactor__ne = django_filters.ChoiceFilter(
-        choices=Protein.COFACTOR_CHOICES, method="cofactor__notequal"
-    )
+    switch_type__ne = django_filters.ChoiceFilter(choices=Protein.SWITCHING_CHOICES, method="switch_type__notequal")
+    cofactor__ne = django_filters.ChoiceFilter(choices=Protein.COFACTOR_CHOICES, method="cofactor__notequal")
     parent_organism__ne = django_filters.ModelChoiceFilter(
         queryset=Organism.objects.all(), method="parent_organism__notequal"
     )
@@ -215,9 +197,7 @@ class ProteinFilter(filters.FilterSet):
         }
 
     def name_or_alias_icontains(self, queryset, name, value):
-        return queryset.filter(name__icontains=value) | queryset.filter(
-            aliases__icontains=value
-        )
+        return queryset.filter(name__icontains=value) | queryset.filter(aliases__icontains=value)
 
     def switch_type__notequal(self, queryset, name, value):
         return queryset.exclude(switch_type=value)
@@ -239,29 +219,17 @@ class ProteinFilter(filters.FilterSet):
 
     def get_specbright(self, queryset, name, value):
         qsALL = list(queryset.all())
-        ids = [
-            P.id
-            for P in qsALL
-            if P.default_state and P.default_state.local_brightness == value
-        ]
+        ids = [P.id for P in qsALL if P.default_state and P.default_state.local_brightness == value]
         return queryset.filter(id__in=ids)
 
     def get_specbright_lt(self, queryset, name, value):
         qsALL = list(queryset.all())
-        ids = [
-            P.id
-            for P in qsALL
-            if P.default_state and P.default_state.local_brightness < value
-        ]
+        ids = [P.id for P in qsALL if P.default_state and P.default_state.local_brightness < value]
         return queryset.filter(id__in=ids)
 
     def get_specbright_gt(self, queryset, name, value):
         qsALL = list(queryset.all())
-        ids = [
-            P.id
-            for P in qsALL
-            if P.default_state and P.default_state.local_brightness > value
-        ]
+        ids = [P.id for P in qsALL if P.default_state and P.default_state.local_brightness > value]
         return queryset.filter(id__in=ids)
 
     def translate_cdna(self, queryset, name, value):

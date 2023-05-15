@@ -3,7 +3,6 @@ from subprocess import run
 
 
 class Command(BaseCommand):
-
     help = "wipe local database and pull from Heroku"
 
     def handle(self, *app_labels, **options):

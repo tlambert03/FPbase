@@ -4,9 +4,7 @@ from django.urls import reverse
 from django.utils.cache import get_cache_key
 
 
-def get_view_cache_key(
-    view_name, args=None, namespace=None, key_prefix=None, request=None
-):
+def get_view_cache_key(view_name, args=None, namespace=None, key_prefix=None, request=None):
     """
     This function allows you to invalidate any view-level cache.
     view_name: view function you wish to invalidate or it's named url pattern

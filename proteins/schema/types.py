@@ -27,9 +27,7 @@ def nullable_enum_from_field(_model, _field):
                 return named_choices_descriptions[self.name]
 
         enum = graphene.Enum(name, list(named_choices), type=EnumWithDescriptionsType)
-        converted = enum(
-            description=field.help_text, required=not (field.null or field.blank)
-        )
+        converted = enum(description=field.help_text, required=not (field.null or field.blank))
     else:
         raise NotImplementedError("Field does NOT have choices")
     return converted
@@ -118,9 +116,7 @@ class Protein(gdo.OptimizedDjangoObjectType):
     def resolve_parentOrganism(self, info):
         return self.parent_organism
 
-    @gdo.resolver_hints(
-        select_related=("primary_reference"), only=("primary_reference")
-    )
+    @gdo.resolver_hints(select_related=("primary_reference"), only=("primary_reference"))
     def resolve_primaryReference(self, info):
         return self.primary_reference
 
@@ -300,9 +296,7 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
     def resolve_name(self, info):
         return self.filter.name
 
-    @gdo.resolver_hints(
-        select_related=("filter__spectrum",), only=("filter__spectrum__id",)
-    )
+    @gdo.resolver_hints(select_related=("filter__spectrum",), only=("filter__spectrum__id",))
     def resolve_spectrumId(self, info):
         return self.filter.spectrum.id
 

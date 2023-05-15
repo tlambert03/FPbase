@@ -8,12 +8,9 @@ from .mixins import Authorable
 
 
 class Excerpt(Authorable, TimeStampedModel, StatusModel):
-
     STATUS = Choices("approved", "flagged", "rejected")
 
-    content = models.TextField(
-        max_length=1200, help_text="Brief excerpt describing this protein"
-    )
+    content = models.TextField(max_length=1200, help_text="Brief excerpt describing this protein")
     proteins = models.ManyToManyField("Protein", blank=True, related_name="excerpts")
     reference = models.ForeignKey(
         Reference,

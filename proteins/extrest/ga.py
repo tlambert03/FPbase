@@ -48,21 +48,14 @@ def get_first_profile_id(service):
         account = accounts.get("items")[0].get("id")
 
         # Get a list of all the properties for the first account.
-        properties = (
-            service.management().webproperties().list(accountId=account).execute()
-        )
+        properties = service.management().webproperties().list(accountId=account).execute()
 
         if properties.get("items"):
             # Get the first property id.
             property = properties.get("items")[0].get("id")
 
             # Get a list of all views (profiles) for the first property.
-            profiles = (
-                service.management()
-                .profiles()
-                .list(accountId=account, webPropertyId=property)
-                .execute()
-            )
+            profiles = service.management().profiles().list(accountId=account, webPropertyId=property).execute()
 
             if profiles.get("items"):
                 # return the first view (profile) id.

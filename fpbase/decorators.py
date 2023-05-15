@@ -43,11 +43,8 @@ def login_required_message_and_redirect(
     login_url=None,
     message=default_message,
 ):
-
     if function:
-        return login_required_message(
-            login_required(function, redirect_field_name, login_url), message
-        )
+        return login_required_message(login_required(function, redirect_field_name, login_url), message)
 
     return lambda deferred_function: login_required_message_and_redirect(
         deferred_function, redirect_field_name, login_url, message

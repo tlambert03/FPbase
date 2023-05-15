@@ -674,12 +674,8 @@ class LineageAdminForm(forms.ModelForm):
         fields = ("protein", "parent", "mutation", "root_node", "rootmut")
         readonly_fields = "root_node"
 
-    parent = forms.ModelChoiceField(
-        required=False, queryset=Lineage.objects.prefetch_related("protein").all()
-    )
-    root_node = forms.ModelChoiceField(
-        queryset=Lineage.objects.prefetch_related("protein").all()
-    )
+    parent = forms.ModelChoiceField(required=False, queryset=Lineage.objects.prefetch_related("protein").all())
+    root_node = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related("protein").all())
 
 
 @admin.register(Excerpt)
@@ -741,9 +737,7 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
         ),
     ]
 
-    formfield_overrides = {
-        MutationSetField: {"widget": TextInput(attrs={"size": "100%"})}
-    }
+    formfield_overrides = {MutationSetField: {"widget": TextInput(attrs={"size": "100%"})}}
 
     max_length = 25
 

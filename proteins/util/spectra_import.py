@@ -18,9 +18,7 @@ def get_stype(header):
 
 
 # FIXME: I kind of hate this function...
-def import_spectral_data(
-    waves, data, headers=None, categories=[], stypes=[], owner=None, minmax=None
-):
+def import_spectral_data(waves, data, headers=None, categories=[], stypes=[], owner=None, minmax=None):
     """
     Take a vector of waves and a matrix of data, and import into database
 
@@ -29,20 +27,14 @@ def import_spectral_data(
     data columns (not including waves) in the file
     """
     if isinstance(categories, (list, tuple)) and len(categories):
-        assert len(categories) == len(
-            data
-        ), "provided category list not the same length as data"
+        assert len(categories) == len(data), "provided category list not the same length as data"
     elif isinstance(categories, str):
         categories = [categories] * len(data)
     else:
-        raise ValueError(
-            "Must provide category, or list of categories with same length as data"
-        )
+        raise ValueError("Must provide category, or list of categories with same length as data")
 
     if isinstance(stypes, (list, tuple)) and len(stypes):
-        assert len(stypes) == len(
-            data
-        ), "provided subtypes list not the same length as data"
+        assert len(stypes) == len(data), "provided subtypes list not the same length as data"
     elif isinstance(stypes, str):
         stypes = [stypes] * len(data)
     else:

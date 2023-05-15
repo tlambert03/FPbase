@@ -4,7 +4,7 @@ from ..models import Protein, Organism
 
 
 class ChangeSet(object):
-    """ Set of changes to make to a protein instance """
+    """Set of changes to make to a protein instance"""
 
     def __init__(self, obj):
         self.obj = obj
@@ -33,14 +33,10 @@ class ChangeSet(object):
 
         attr, value = change
         if not hasattr(self.obj, attr):
-            raise ValueError(
-                "Object {} does not have attribute {}".format(self.obj, attr)
-            )
+            raise ValueError("Object {} does not have attribute {}".format(self.obj, attr))
         if attr in self.changes:
             if not value == self.changes[attr]:
-                raise ValueError(
-                    "Changeset received conflicting changes for field {}".format(attr)
-                )
+                raise ValueError("Changeset received conflicting changes for field {}".format(attr))
         else:
             self.changes[attr] = value
         return self
@@ -65,25 +61,15 @@ def compare_info(gb_info, up_info):
     mismatch = []
     if gb_info.get("gb_prot", False) and up_info.get("genbank", False):
         if gb_info["gb_prot"] not in up_info["genbank"]:
-            mismatch.append(
-                "genbank mismatch gb_info: {}, uniprot: {}".format(
-                    gb_info["gb_prot"], up_info["genbank"]
-                )
-            )
+            mismatch.append("genbank mismatch gb_info: {}, uniprot: {}".format(gb_info["gb_prot"], up_info["genbank"]))
     if gb_info.get("uniprots", False) and up_info.get("uniprot", False):
         if up_info["uniprot"] not in gb_info["uniprots"]:
             mismatch.append(
-                "uniprot mismatch uniprot: {}, gb_info: {}".format(
-                    up_info["uniprot"], gb_info["uniprots"]
-                )
+                "uniprot mismatch uniprot: {}, gb_info: {}".format(up_info["uniprot"], gb_info["uniprots"])
             )
     if gb_info.get("seq", False) and up_info.get("seq", False):
         if not gb_info["seq"] == up_info["seq"]:
-            mismatch.append(
-                "sequence mismatch gb_info:\n{}\n\nuniprot:\n{}".format(
-                    gb_info["seq"], up_info["seq"]
-                )
-            )
+            mismatch.append("sequence mismatch gb_info:\n{}\n\nuniprot:\n{}".format(gb_info["seq"], up_info["seq"]))
     return mismatch
 
 

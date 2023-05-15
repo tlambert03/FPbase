@@ -10,7 +10,7 @@ from ..tasks import calc_fret
 
 
 def fret_chart(request):
-    """ renders html for protein spectra page  """
+    """renders html for protein spectra page"""
     template = "fret.html"
 
     if is_ajax(request):
@@ -33,9 +33,7 @@ def fret_chart(request):
         State.objects.exclude(ext_coeff=None)
         .exclude(qy=None)
         .filter(spectra__subtype__in=("ex", "ab"))
-        .values(
-            "slug", "name", "protein__name", "spectra__category", "spectra__subtype"
-        )
+        .values("slug", "name", "protein__name", "spectra__category", "spectra__subtype")
     )
 
     slugs = [
@@ -43,16 +41,13 @@ def fret_chart(request):
             "slug": x["slug"],
             "category": x["spectra__category"],
             "subtype": x["spectra__subtype"],
-            "name": x["protein__name"]
-            + (f" ({x['name']})" if x["name"] != "default" else ""),
+            "name": x["protein__name"] + (f" ({x['name']})" if x["name"] != "default" else ""),
         }
         for x in slugs
     ]
 
     good_dyes = (
-        Dye.objects.exclude(ext_coeff=None)
-        .exclude(qy=None)
-        .filter(spectra__subtype__in=("ex", "ab"))
+        Dye.objects.exclude(ext_coeff=None).exclude(qy=None).filter(spectra__subtype__in=("ex", "ab"))
     ).values("slug", "name", "spectra__category", "spectra__subtype")
 
     slugs += [

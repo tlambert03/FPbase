@@ -83,9 +83,7 @@ def old_object(ver):
 
 
 def get_history(obj, ignoreKeys=[]):
-    rev_ids = sorted(
-        Version.objects.get_for_object(obj).values_list("revision__id", flat=True)
-    )
+    rev_ids = sorted(Version.objects.get_for_object(obj).values_list("revision__id", flat=True))
 
     revisions = list(
         Revision.objects.filter(id__in=rev_ids)
@@ -101,18 +99,14 @@ def get_history(obj, ignoreKeys=[]):
             object_repr = (v.object_id, v.content_type_id)
             object_versions[object_repr].append(v)
             object_revisions[object_repr].append(rev)
-            object_reprs[object_repr] = "{} {}".format(
-                v.content_type.name, v.object_repr
-            )
+            object_reprs[object_repr] = "{} {}".format(v.content_type.name, v.object_repr)
 
     changes = OrderedDict([(rev, defaultdict(list)) for rev in revisions[1:]])
     # changes[revisions[0]] = {"initial revision"
     for object_repr, versions in object_versions.items():
         rep = object_reprs[object_repr]
         for n in range(len(versions) - 1):
-            diffs = dictdiff(
-                versions[n].field_dict, versions[n + 1].field_dict, ignoreKeys
-            )
+            diffs = dictdiff(versions[n].field_dict, versions[n + 1].field_dict, ignoreKeys)
             if diffs:
                 revision = versions[n + 1].revision
                 for field, actions in diffs.items():
