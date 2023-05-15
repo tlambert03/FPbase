@@ -17,7 +17,7 @@ from model_utils.models import TimeStampedModel
 from references.models import Reference
 
 from ..util.helpers import wave_to_hex
-from ..util.spectra import interp_linear, interp_univar, norm2one, norm_2P, step_size
+from ..util.spectra import interp_linear, interp_univar, norm2one, norm2P, step_size
 from .mixins import AdminURLMixin, Authorable, Product
 
 
@@ -418,7 +418,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
 
     def _norm2one(self):
         if self.subtype == self.TWOP:
-            y, self._peakval2p, maxi = norm_2P(self.y)
+            y, self._peakval2p, maxi = norm2P(self.y)
             self._peakwave2p = self.x[maxi]
             self.change_y(y)
         else:
