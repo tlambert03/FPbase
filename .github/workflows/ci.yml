@@ -7,10 +7,10 @@ env:
 
 on:
   pull_request:
-    branches: ['master', 'main']
+    branches: ['develop', 'main']
 
   push:
-    branches: ['master', 'main']
+    branches: ['develop', 'main']
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
