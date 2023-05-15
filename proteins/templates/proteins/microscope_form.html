@@ -14,13 +14,13 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 <script src="{% webpack_static 'vendor.js' %}"></script>
 <script type="text/javascript">
   {% if object %}
-  var confirmError = false;
+  var confirmError = false; 
   {% else %}
-  var confirmError = true;
+  var confirmError = true; 
   {% endif %}
   var formErrors = '{{ form.errors|safe }}';
 </script>
-{% render_bundle 'microscopeForm' %}
+{% render_bundle 'microscopeForm' %}  
 
 {% if object %}
 <h2>Update microscope: {{object}}</h2>
@@ -260,3 +260,4 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 
 
 {% endblock content %}
+
