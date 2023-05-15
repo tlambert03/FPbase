@@ -1,29 +1,27 @@
 from django.conf import settings
-from django.urls import include, path, re_path
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.views.generic import TemplateView
-from django.views.generic.base import RedirectView
+from django.contrib.sitemaps.views import sitemap
+from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.decorators.cache import cache_page
-from django.contrib.sitemaps.views import sitemap
-from rest_framework.documentation import include_docs_urls
-from fpbase.sitemaps import (
-    ProteinSitemap,
-    OrganismsSitemap,
-    StaticSitemap,
-    AuthorsSitemap,
-    MicroscopeSitemap,
-    ProteinCollectionSitemap,
-    ReferencesSitemap,
-)
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from graphene_django.views import GraphQLView
 
 import fpbase.views
+from fpbase.sitemaps import (
+    AuthorsSitemap,
+    MicroscopeSitemap,
+    OrganismsSitemap,
+    ProteinCollectionSitemap,
+    ProteinSitemap,
+    ReferencesSitemap,
+    StaticSitemap,
+)
 from references.views import ReferenceListView
-from django.views.decorators.csrf import csrf_exempt
-from graphene_django.views import GraphQLView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-
 
 sitemaps = {
     "static": StaticSitemap(),
@@ -163,4 +161,4 @@ if settings.DEBUG:
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+        urlpatterns = [path("__debug__/", include(debug_toolbar.urls)), *urlpatterns]

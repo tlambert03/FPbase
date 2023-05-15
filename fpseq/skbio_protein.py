@@ -32,8 +32,10 @@
 # ----------------------------------------------------------------------------
 
 
-import numpy as np
 import numbers
+
+import numpy as np
+
 from .util import chunk_string
 
 
@@ -46,7 +48,7 @@ class classproperty(property):
     def __init__(self, func):
         name = func.__name__
         doc = func.__doc__
-        super(classproperty, self).__init__(classmethod(func))
+        super().__init__(classmethod(func))
         self.__name__ = name
         self.__doc__ = doc
 
@@ -57,7 +59,7 @@ class classproperty(property):
         raise AttributeError("can't set attribute")
 
 
-class SkbSequence(object):
+class SkbSequence:
     """trying not to import the full scikit-bio package... this is a minimal
     rebuild of the Scikit-Bio Grammared Sequence Class.  Please see sci-kit
     bio package for full Sequence class and documentation!!
@@ -124,7 +126,7 @@ class SkbSequence(object):
     @classmethod
     def _assert_can_cast_to(cls, target):
         if not (issubclass(cls, target) or issubclass(target, cls)):
-            raise TypeError("Cannot cast %r as %r." % (cls.__name__, target.__name__))
+            raise TypeError(f"Cannot cast {cls.__name__!r} as {target.__name__!r}.")
 
     def __repr__(self):
         return "Protein\n" + "-" * 54 + "\n" + "\n".join(chunk_string(str(self), 10, 55))
@@ -209,8 +211,8 @@ class SkbSequence(object):
                     # metadata=metadata,
                     # positional_metadata=positional_metadata)
 
-        elif isinstance(indexable, (str, bool)):
-            raise IndexError("Cannot index with %s type: %r" % (type(indexable).__name__, indexable))
+        elif isinstance(indexable, str | bool):
+            raise IndexError(f"Cannot index with {type(indexable).__name__} type: {indexable!r}")
 
         if isinstance(indexable, np.ndarray) and indexable.dtype == bool and len(indexable) != len(self):
             raise IndexError(
@@ -274,11 +276,10 @@ class SkbSequence(object):
         if np.any(invalid_characters):
             bad = list(np.where(invalid_characters > 0)[0].astype(np.uint8).view("|S1"))
             raise ValueError(
-                "Invalid character%s in sequence: %r. \n"
-                "Valid characters: %r\n"
+                "Invalid character{} in sequence: {!r}. \n"
+                "Valid characters: {!r}\n"
                 "Note: Use `lowercase` if your sequence contains lowercase "
-                "characters not in the sequence's alphabet."
-                % (
+                "characters not in the sequence's alphabet.".format(
                     "s" if len(bad) > 1 else "",
                     [str(b.tostring().decode("ascii")) for b in bad] if len(bad) > 1 else bad[0],
                     list(self.alphabet),

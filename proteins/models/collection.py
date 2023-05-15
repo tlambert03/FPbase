@@ -1,8 +1,8 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
-from django.contrib.postgres.fields import ArrayField
 
 User = get_user_model()
 

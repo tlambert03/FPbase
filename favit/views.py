@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
@@ -38,7 +37,7 @@ def add_or_remove(request):
             import logging
 
             logger = logging.getLogger(__name__)
-            logger.error("failed to uncache protein: {}".format(e))
+            logger.error(f"failed to uncache protein: {e}")
 
     return JsonResponse(response)
 

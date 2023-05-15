@@ -42,7 +42,7 @@ from proteins.util.maintain import validate_node
 #     model = Mutation
 
 
-class SpectrumOwner(object):
+class SpectrumOwner:
     list_display = ("__str__", "spectra", "created_by", "created")
     list_select_related = ("created_by",)
     list_filter = ("created", "manufacturer")
@@ -50,12 +50,12 @@ class SpectrumOwner(object):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.readonly_fields = self.readonly_fields + ("spectra",)
+        self.readonly_fields = (*self.readonly_fields, "spectra")
 
     def spectra(self, obj):
         def _makelink(sp):
             url = reverse("admin:proteins_spectrum_change", args=(sp.pk,))
-            return '<a href="{}">{}</a>'.format(url, sp.get_subtype_display())
+            return f'<a href="{url}">{sp.get_subtype_display()}</a>'
 
         links = []
         if isinstance(obj, Fluorophore):
@@ -146,7 +146,7 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
         links = []
         for bm in obj.bleach_measurements.all():
             url = reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,))
-            link = '<a href="{}">{}</a>'.format(url, bm)
+            link = f'<a href="{url}">{bm}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
@@ -194,7 +194,7 @@ class FilterAdmin(SpectrumOwner, VersionAdmin):
     def configs(self, obj):
         def _makelink(oc):
             url = reverse("admin:proteins_opticalconfig_change", args=(oc.pk,))
-            return '<a href="{}">{}</a>'.format(url, oc)
+            return f'<a href="{url}">{oc}</a>'
 
         links = []
         [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
@@ -263,10 +263,10 @@ class SpectrumAdmin(VersionAdmin):
 
     def owner(self, obj):
         url = reverse(
-            "admin:proteins_{}_change".format(obj.owner._meta.model.__name__.lower()),
+            f"admin:proteins_{obj.owner._meta.model.__name__.lower()}_change",
             args=(obj.owner.pk,),
         )
-        link = '<a href="{}">{}</a>'.format(url, obj.owner)
+        link = f'<a href="{url}">{obj.owner}</a>'
         return mark_safe(link)
 
     owner.short_description = "Owner"
@@ -342,7 +342,7 @@ class StateAdmin(CompareVersionAdmin):
 
     def protein_link(self, obj):
         url = reverse("admin:proteins_protein_change", args=([obj.protein.pk]))
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.protein))
+        return mark_safe(f'<a href="{url}">{obj.protein}</a>')
 
     protein_link.short_description = "Protein"
 
@@ -576,7 +576,7 @@ class OpticalConfigAdmin(admin.ModelAdmin):
     def owner_link(self, obj):
         if obj.microscope and obj.microscope.owner:
             url = reverse("admin:users_user_change", args=([obj.microscope.owner.pk]))
-            return mark_safe('<a href="{}">{}</a>'.format(url, obj.microscope.owner))
+            return mark_safe(f'<a href="{url}">{obj.microscope.owner}</a>')
 
     owner_link.short_description = "Owner"
 
@@ -608,7 +608,7 @@ class MicroscopeAdmin(admin.ModelAdmin):
     def owner_link(self, obj):
         if obj.owner:
             url = reverse("admin:users_user_change", args=([obj.owner.pk]))
-            return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
+            return mark_safe(f'<a href="{url}">{obj.owner}</a>')
 
     owner_link.short_description = "Owner"
 
@@ -620,7 +620,7 @@ class MicroscopeAdmin(admin.ModelAdmin):
     def configs(self, obj):
         def _makelink(oc):
             url = reverse("admin:proteins_opticalconfig_change", args=(oc.pk,))
-            return '<a href="{}">{}</a>'.format(url, oc)
+            return f'<a href="{url}">{oc}</a>'
 
         links = []
         [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
@@ -654,7 +654,7 @@ class ProteinCollectionAdmin(admin.ModelAdmin):
 
     def owner_link(self, obj):
         url = reverse("admin:users_user_change", args=([obj.owner.pk]))
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
+        return mark_safe(f'<a href="{url}">{obj.owner}</a>')
 
     owner_link.short_description = "Owner"
 

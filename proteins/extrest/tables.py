@@ -1,8 +1,9 @@
-from bs4 import BeautifulSoup
+import re
+
+import pandas as pd
 import requests
 import tablib  # TODO: convert to pandas
-import re
-import pandas as pd
+from bs4 import BeautifulSoup
 
 
 def interpret_heading(head_str):
@@ -15,7 +16,7 @@ def interpret_heading(head_str):
         "maturation": r"matur",
         "brightness": r"bright",
         "lifetime": r"lifetime",
-        "ext_coeff": r"(M[-−]1\s*cm[−-]1|ɛ|ε|extinction|^ec\s)",
+        "ext_coeff": r"(M[--]1\s*cm[--]1|ɛ|ε|extinction|^ec\s)",
         "QY": r"(^qy|quantum|ϕ)",
         "pka": r"pka",
         "agg": r"oligomer",
@@ -70,7 +71,7 @@ def fetch_doi_content(doi):
 def text2tables(text):
     soup = BeautifulSoup(text, "lxml")
     tables = soup.find_all("table")
-    print("found {} tables".format(len(tables)))
+    print(f"found {len(tables)} tables")
     return tables
 
 
@@ -82,7 +83,7 @@ def response2table2(response):
 def pmcid2tables(pmcid):
     response = fetch_pmc_content(pmcid)
     if not response.status_code == 200:
-        print("Bad response: {}".format(response.status_code))
+        print(f"Bad response: {response.status_code}")
         return None
     return response2table2(response)
 
@@ -90,7 +91,7 @@ def pmcid2tables(pmcid):
 def doi2tables(doi):
     response = fetch_doi_content(doi)
     if not response.status_code == 200:
-        print("Bad response: {}".format(response.status_code))
+        print(f"Bad response: {response.status_code}")
         return None
     return response2table2(response)
 

@@ -1,12 +1,11 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-
-from references.models import Reference, Author
-from references.forms import ReferenceForm
 from reversion_compare.admin import CompareVersionAdmin
 
-from proteins.models import Protein, Excerpt
+from proteins.models import Excerpt, Protein
+from references.forms import ReferenceForm
+from references.models import Author, Reference
 
 
 @admin.register(Author)
@@ -25,7 +24,7 @@ class AuthorAdmin(admin.ModelAdmin):
         links = []
         for ref in refs:
             url = reverse("admin:references_reference_change", args=(ref.pk,))
-            link = '<a href="{}">{}</a>'.format(url, ref)
+            link = f'<a href="{url}">{ref}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
@@ -34,7 +33,7 @@ class AuthorAdmin(admin.ModelAdmin):
         links = []
         for prot in proteins:
             url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = '<a href="{}">{}</a>'.format(url, prot)
+            link = f'<a href="{url}">{prot}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
@@ -137,7 +136,7 @@ class ReferenceAdmin(CompareVersionAdmin):
         links = []
         for author in authors:
             url = reverse("admin:references_author_change", args=(author.pk,))
-            link = '<a href="{}">{}</a>'.format(url, author)
+            link = f'<a href="{url}">{author}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
@@ -146,7 +145,7 @@ class ReferenceAdmin(CompareVersionAdmin):
         links = []
         for prot in proteins:
             url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = '<a href="{}">{}</a>'.format(url, prot)
+            link = f'<a href="{url}">{prot}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
@@ -156,7 +155,7 @@ class ReferenceAdmin(CompareVersionAdmin):
         links = []
         for prot in proteins:
             url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = '<a href="{}">{}</a>'.format(url, prot)
+            link = f'<a href="{url}">{prot}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
@@ -164,7 +163,7 @@ class ReferenceAdmin(CompareVersionAdmin):
         links = []
         for bm in obj.bleach_measurements.all():
             url = reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,))
-            link = '<a href="{}">{}</a>'.format(url, bm)
+            link = f'<a href="{url}">{bm}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 

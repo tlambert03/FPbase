@@ -70,9 +70,9 @@ def importCSV(file=None):
     ps = 0
     st = 0
     rf = 0
-    for i, prot in df.iterrows():
+    for _i, prot in df.iterrows():
         if not Protein.objects.filter(slug=slugify(prot.Name)).exists():
-            print("importing {}...".format(prot.Name))
+            print(f"importing {prot.Name}...")
             p = Protein(
                 name=prot.Name,
                 created_by=SUPERUSER,
@@ -105,7 +105,7 @@ def importCSV(file=None):
             if get_nonan(prot, "bleach"):
                 BleachMeasurement.objects.update_or_create(rate=get_nonan(prot, "bleach"), state=s)
         else:
-            print("{} already in database...".format(prot.Name))
+            print(f"{prot.Name} already in database...")
             p = Protein.objects.get(slug=slugify(prot.Name))
 
         try:
@@ -117,9 +117,9 @@ def importCSV(file=None):
                 rf += add_ref_to_prot(p, doi)
         except Exception as e:
             # traceback.print_exc()
-            print("error importing reference: {}".format(e))
+            print(f"error importing reference: {e}")
 
-    print("{} Proteins, {} States, and {} References imported".format(ps, st, rf))
+    print(f"{ps} Proteins, {st} States, and {rf} References imported")
 
 
 def linkstates(df):
@@ -127,7 +127,7 @@ def linkstates(df):
     linksdf = pd.read_csv(linksurl)
     q = df.set_index("UID").to_dict()
 
-    for i, link in linksdf.iterrows():
+    for _i, link in linksdf.iterrows():
         p = Protein.objects.get(slug=slugify(q["Name"][link.state1]))
         fromState = p.states.get(name=q["state"][link.state1])
         toState = p.states.get(name=q["state"][link.state2])
@@ -139,7 +139,7 @@ def linkstates(df):
             to_state=toState,
         )
         if created:
-            print("created: {}".format(t))
+            print(f"created: {t}")
 
 
 def importPSFPs(file=None):
@@ -154,7 +154,7 @@ def importPSFPs(file=None):
     ps = 0
     st = 0
     rf = 0
-    for i, prot in df.iterrows():
+    for _i, prot in df.iterrows():
         try:
             p, created = Protein.objects.get_or_create(
                 slug=slugify(prot.Name),
@@ -166,17 +166,17 @@ def importPSFPs(file=None):
                 },
             )
             if created:
-                print("PROTEIN CREATED: {}".format(prot.Name))
+                print(f"PROTEIN CREATED: {prot.Name}")
                 ps += 1
             else:
-                print("Protein Found  : {}".format(prot.Name))
+                print(f"Protein Found  : {prot.Name}")
 
             if not pd.isna(prot.DOI) and prot.DOI.startswith("10"):
                 try:
                     rf += add_ref_to_prot(p, prot.DOI)
                 except Exception as e:
                     # traceback.print_exc()
-                    print("Error importing reference: {}".format(e))
+                    print(f"Error importing reference: {e}")
 
             state, created = p.states.get_or_create(
                 name=prot.state,
@@ -208,16 +208,16 @@ def importPSFPs(file=None):
             if get_nonan(prot, "bleach"):
                 BleachMeasurement.objects.update_or_create(rate=get_nonan(prot, "bleach"), state=state)
             if created:
-                print("STATE CREATED  : {}".format(prot.state))
+                print(f"STATE CREATED  : {prot.state}")
                 st += 1
             else:
-                print("State Found    : {}".format(prot.state))
+                print(f"State Found    : {prot.state}")
 
         except Exception as e:
             traceback.print_exc()
-            print("failed to import {}: {}".format(prot.Name, e))
+            print(f"failed to import {prot.Name}: {e}")
 
-    print("{} Proteins, {} States, and {} References imported".format(ps, st, rf))
+    print(f"{ps} Proteins, {st} States, and {rf} References imported")
     linkstates(df)
 
 
@@ -231,28 +231,28 @@ def importSeqs(file=None):
 
     rf = 0
     sq = 0
-    for i, prot in df.iterrows():
+    for _i, prot in df.iterrows():
         if Protein.objects.filter(name__icontains=prot.Name).count() == 1:
             p = Protein.objects.get(name__icontains=prot.Name)
             if p.seq is None:
                 p.seq = prot.AminoAcidSequence
                 p.save()
-                print("Added sequence to {}".format(prot.Name))
+                print(f"Added sequence to {prot.Name}")
                 sq += 1
             else:
                 seq = prot.AminoAcidSequence.upper()
                 seq = "".join(seq.split())
                 if p.seq.upper() != seq:
-                    print("Non-matching sequence found for {}!".format(prot.Name))
+                    print(f"Non-matching sequence found for {prot.Name}!")
             try:
                 if "dx.doi" in prot.Source:
                     doi = re.sub(r"^https?://(dx\.)?doi.org/", "", prot.Source)
                     rf += add_ref_to_prot(p, doi)
             except Exception as e:
                 # traceback.print_exc()
-                print("Error importing reference: {}".format(e))
+                print(f"Error importing reference: {e}")
 
-    print("{} Sequences added; {} References imported".format(sq, rf))
+    print(f"{sq} Sequences added; {rf} References imported")
 
 
 def create_collection(name="FPvis Collection", desc="Proteins selected by Kurt Thorn at fpvis.org"):
@@ -265,7 +265,7 @@ def create_collection(name="FPvis Collection", desc="Proteins selected by Kurt T
             p = Protein.objects.get(name=n)
             col.proteins.add(p)
         except Exception:
-            print("{} failed".format(n))
+            print(f"{n} failed")
             pass
 
 
@@ -281,8 +281,8 @@ def import_csv_spectra(file, **kwargs):
 
     """
     if not os.path.isfile(file):
-        raise FileNotFoundError("Cannot find file: {}".format(file))
-    with open(file, "r") as f:
+        raise FileNotFoundError(f"Cannot find file: {file}")
+    with open(file) as f:
         text = f.read()
     waves, data, headers = text_to_spectra(text)
     return import_spectral_data(waves, data, headers, **kwargs)
@@ -317,8 +317,9 @@ def import_thermo():
 
 
 def import_atto():
-    from proteins.forms import SpectrumForm
     from django.core.files import File
+
+    from proteins.forms import SpectrumForm
 
     d = os.path.join(BASEDIR, "_data/ATTO")
     props = pd.DataFrame.from_csv(os.path.join(BASEDIR, "_data/ATTO/_attoprops.csv"))
@@ -454,8 +455,8 @@ def import2P():
             infile = os.path.join(d, f)
 
             if not os.path.isfile(infile):
-                raise FileNotFoundError("Cannot find file: {}".format(infile))
-            with open(infile, "r") as f:
+                raise FileNotFoundError(f"Cannot find file: {infile}")
+            with open(infile) as f:
                 text = f.read()
 
             x, y, headers = text_to_spectra(text)
@@ -479,9 +480,9 @@ def import2P():
                 ref, created = Reference.objects.get_or_create(doi="10.1038/nmeth.1596")
                 P.references.add(ref)
                 P.save()
-                print("Successfuly import 2P spectrum for {}".format(P.name))
+                print(f"Successfuly import 2P spectrum for {P.name}")
             else:
-                print("error on {}".format(P.name))
+                print(f"error on {P.name}")
                 print(sf.errors.as_text())
 
 
@@ -541,7 +542,7 @@ def import_fpd(file=None, overwrite=True):
             if row.get("parent_organism"):
                 org, ocreated = Organism.objects.get_or_create(id=row["parent_organism"])
                 if ocreated:
-                    print("created organism {}".format(org))
+                    print(f"created organism {org}")
             row["parent_organism"] = org.pk if org else None
 
             # look for photoswitching in naming
@@ -598,7 +599,7 @@ def import_fpd(file=None, overwrite=True):
                 if pform.cleaned_data.get("reference_doi"):
                     ref, created = Reference.objects.get_or_create(doi=doi)
                     if created:
-                        print("created Reference {}".format(ref))
+                        print(f"created Reference {ref}")
                     ref.proteins.add(p)
                     if not p.primary_reference:
                         p.primary_reference = ref
@@ -608,7 +609,7 @@ def import_fpd(file=None, overwrite=True):
                         ref, created = Reference.objects.get_or_create(doi=doi.strip())
                         ref.proteins.add(p)
                         if created:
-                            print("created Reference {}".format(ref))
+                            print(f"created Reference {ref}")
             else:
                 errors.append(
                     "name: {}, row: {}, {}".format(data.dict[rownum]["name"], rownum, pform.errors.as_text())
@@ -659,7 +660,7 @@ def import_fpd(file=None, overwrite=True):
                         ext_coeff=state["ext_coeff"],
                         qy=state["qy"],
                     ).count():
-                        print("skipping already imported state on {}".format(p.name))
+                        print(f"skipping already imported state on {p.name}")
                         continue
                 except Exception:
                     pass
@@ -730,7 +731,7 @@ def importMutations():
 
 
 def import_organisms():
-    with open("_data/species.json", "r") as f:
+    with open("_data/species.json") as f:
         D = json.load(f)
     for k in D.keys():
         o = Organism(id=k)
@@ -959,7 +960,7 @@ def import_chroma():
         try:
             import_chroma_spectra(p)
         except Exception as e:
-            print("Could not import chroma part {} ({})".format(p, e))
+            print(f"Could not import chroma part {p} ({e})")
 
 
 def import_lights():
@@ -1076,7 +1077,7 @@ def snapgene_import():
 
 
 def get_gb_data(file):
-    with open(file, "r") as handle:
+    with open(file) as handle:
         text = handle.read()
     q = ("DEFINITION", "ACCESSION", "VERSION", "KEYWORDS", "SOURCE")
     pat = ""
@@ -1095,8 +1096,8 @@ def get_gb_data(file):
 
 
 def import_tree(filepath=None):
+    from proteins.models import Lineage, Protein, Reference
     from proteins.validators import validate_mutationset
-    from proteins.models import Protein, Reference, Lineage
 
     if not filepath:
         filepath = os.path.join(BASEDIR, "_data/Lineage.xlsx")
@@ -1106,8 +1107,8 @@ def import_tree(filepath=None):
 
     nonames = []
     for (
-        rownum,
-        (doi, author, year, name, parnt, mutation, aliases, note),
+        _rownum,
+        (doi, _author, _year, name, parnt, _mutation, aliases, _note),
     ) in data.iterrows():
         if name:
             try:
@@ -1174,8 +1175,8 @@ def import_tree(filepath=None):
     while count > 0:
         count = 0
         for (
-            rownum,
-            (doi, author, year, prot, parnt, mutation, alias, note),
+            _rownum,
+            (doi, _author, _year, prot, parnt, mutation, _alias, _note),
         ) in data.iterrows():
             prot = prot.strip()
             validate_mutationset(mutation)
@@ -1184,7 +1185,7 @@ def import_tree(filepath=None):
             try:
                 child = getprot(prot)
             except Protein.DoesNotExist:
-                print('Could not find child "{}"'.format(prot))
+                print(f'Could not find child "{prot}"')
                 continue
             parent = None
             try:
@@ -1211,7 +1212,7 @@ def import_tree(filepath=None):
                     mutation=mutation,
                     created_by=SUPERUSER,
                 )
-                print("Created {} -> {}".format(L.parent, L.protein))
+                print(f"Created {L.parent} -> {L.protein}")
                 count += 1
             elif child and not Lineage.objects.filter(protein=child).exists():
                 # create a root node
@@ -1223,7 +1224,7 @@ def import_tree(filepath=None):
                     created_by=SUPERUSER,
                 )
 
-                print("Created root: {}".format(L.protein))
+                print(f"Created root: {L.protein}")
                 count += 1
             # except IntegrityError as e:
             #     # already created this one...
@@ -1244,7 +1245,7 @@ def import_tree(filepath=None):
             #     raise
 
     # add missing parent orgs:
-    for name, doi, parnt, alias in nonames:
+    for name, doi, parnt, _alias in nonames:
         if Lineage.objects.filter(protein__name=name).exists:
             L = Lineage.objects.get(protein__name=name)
             root = L.get_root()

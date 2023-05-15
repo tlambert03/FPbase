@@ -1,5 +1,6 @@
-from . import Mutation, mutate_sequence
 import pytest
+
+from . import Mutation, mutate_sequence
 
 
 class TestMutations:

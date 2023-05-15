@@ -1,20 +1,19 @@
-import re
+import contextlib
 import io
+import logging
+import os
+import re
+from collections import Counter, OrderedDict
 from math import isnan
+from uuid import uuid4
 
 import matplotlib.ticker as ticker
-from uuid import uuid4
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from django.utils.text import slugify
-import logging
-from collections import Counter, OrderedDict
 from django.core.cache import cache
-from django.utils.safestring import mark_safe
 from django.urls import reverse
-import contextlib
-import os
-
+from django.utils.safestring import mark_safe
+from django.utils.text import slugify
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 logger = logging.getLogger(__name__)
 
@@ -51,15 +50,15 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
             if name == obj_name or (aliases and name in aliases):
                 excerpt.content = mark_safe(
                     re.sub(
-                        r"(?<=[\s(])(?<!>){}(?!.\d)(?!<)".format(name),
-                        "<strong>{}</strong>".format(name),
+                        rf"(?<=[\s(])(?<!>){name}(?!.\d)(?!<)",
+                        f"<strong>{name}</strong>",
                         excerpt.content,
                     )
                 )
             else:
                 excerpt.content = mark_safe(
                     re.sub(
-                        r"(?<=[\s(])(?<!>){}(?!.\d)(?!<)".format(name),
+                        rf"(?<=[\s(])(?<!>){name}(?!.\d)(?!<)",
                         '<a href="{}" class="text-info">{}</a>'.format(
                             reverse("proteins:protein-detail", args=[slug_dict[name]]),
                             name,
@@ -71,8 +70,8 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
 
 
 def most_favorited(max_results=20):
-    from proteins.models import Protein
     from favit.models import Favorite
+    from proteins.models import Protein
 
     qs = Favorite.objects.for_model(Protein)
     fave_counts = Counter(qs.values_list("target_object_id", flat=True))
@@ -207,7 +206,7 @@ def wave_to_hex(wavelength, gamma=1):
     R *= 255
     G *= 255
     B *= 255
-    return "#%02x%02x%02x" % (int(R), int(G), int(B))
+    return f"#{int(R):02x}{int(G):02x}{int(B):02x}"
 
 
 # def wave_to_hex(wave):
@@ -361,19 +360,19 @@ def forster_list():
                             "donor": "<a href='{}'>{}{}</a>".format(
                                 donor.get_absolute_url(),
                                 donor.name,
-                                "<sub>{}</sub>".format(donor.cofactor.upper()) if donor.cofactor else "",
+                                f"<sub>{donor.cofactor.upper()}</sub>" if donor.cofactor else "",
                             ),
                             "acceptor": "<a href='{}'>{}{}</a>".format(
                                 acceptor.get_absolute_url(),
                                 acceptor.name,
-                                "<sub>{}</sub>".format(acceptor.cofactor.upper()) if acceptor.cofactor else "",
+                                f"<sub>{acceptor.cofactor.upper()}</sub>" if acceptor.cofactor else "",
                             ),
                             "donorPeak": donor.default_state.ex_max,
                             "acceptorPeak": acceptor.default_state.ex_max,
                             "emdist": acceptor.default_state.em_max - donor.default_state.em_max,
                             "donorQY": donor.default_state.qy,
                             "acceptorQY": acceptor.default_state.qy,
-                            "acceptorEC": "{:,}".format(acceptor.default_state.ext_coeff),
+                            "acceptorEC": f"{acceptor.default_state.ext_coeff:,}",
                             "overlap": round(overlap, 2),
                             "forster": round(r0.real, 2),
                             "forsterQYA": round(r0.real * acceptor.default_state.qy, 2),
@@ -381,7 +380,7 @@ def forster_list():
                     )
             except Exception:
                 continue
-    return list(reversed(sorted(out, key=lambda x: x["forster"])))
+    return sorted(out, key=lambda x: x["forster"], reverse=True)
 
 
 def spectra_fig(
@@ -489,8 +488,9 @@ def spectra_fig(
 
 def wipe_bad_uuids():
     """get rid of old uuids in version histories"""
-    from reversion.models import Version
     import json
+
+    from reversion.models import Version
 
     for version in Version.objects.all():
         data = json.loads(version.serialized_data)

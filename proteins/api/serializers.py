@@ -84,7 +84,7 @@ class ProteinSpectraSerializer(ModelSerializer):
             if spectrum["ex_spectrum"]:
                 representation["spectra"].append(
                     {
-                        "state": spectrum["name"] + str("_ex"),
+                        "state": spectrum["name"] + "_ex",
                         "ec": spectrum["ext_coeff"],
                         "max": spectrum["ex_max"],
                         "data": spectrum["ex_spectrum"],
@@ -93,7 +93,7 @@ class ProteinSpectraSerializer(ModelSerializer):
             if spectrum["em_spectrum"]:
                 representation["spectra"].append(
                     {
-                        "state": spectrum["name"] + str("_em"),
+                        "state": spectrum["name"] + "_em",
                         "qy": spectrum["qy"],
                         "max": spectrum["em_max"],
                         "data": spectrum["em_spectrum"],

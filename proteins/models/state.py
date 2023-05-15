@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -222,7 +221,7 @@ class State(Fluorophore):
     def __str__(self):
         if self.name in (self.DEFAULT_NAME, "default"):
             return str(self.protein.name)
-        return "{} ({})".format(self.protein.name, self.name)
+        return f"{self.protein.name} ({self.name})"
 
     def get_absolute_url(self):
         return self.protein.get_absolute_url()

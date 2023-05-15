@@ -1,9 +1,10 @@
-from django.contrib.auth.models import User
 from django import forms
-from references.models import Reference, Author
+from django.contrib.auth.models import User
+
+from references.models import Author, Reference
 
 
-class UserMixin(object):
+class UserMixin:
     def clean_user(self):
         if not self.cleaned_data["added_by"]:
             return User()

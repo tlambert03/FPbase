@@ -42,7 +42,7 @@ def serialized_proteins_response(queryset, format="json", filename="FPbase_prote
         from rest_framework_csv.renderers import CSVStreamingRenderer as rend
 
         response = StreamingHttpResponse(rend().render(serializer.data), content_type="text/csv")
-        response["Content-Disposition"] = 'attachment; filename="{}.csv"'.format(filename)
+        response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
     return response
 
 

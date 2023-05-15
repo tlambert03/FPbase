@@ -1,6 +1,8 @@
+from collections import OrderedDict, defaultdict
+
+from reversion.models import Revision, Version
 from reversion.revisions import transaction
-from reversion.models import Version, Revision
-from collections import defaultdict, OrderedDict
+
 from references.models import Reference
 
 
@@ -93,13 +95,13 @@ def get_history(obj, ignoreKeys=[]):
 
     object_versions = defaultdict(list)
     object_revisions = defaultdict(list)
-    object_reprs = dict()
+    object_reprs = {}
     for rev in revisions:
         for v in rev.version_set.all():
             object_repr = (v.object_id, v.content_type_id)
             object_versions[object_repr].append(v)
             object_revisions[object_repr].append(rev)
-            object_reprs[object_repr] = "{} {}".format(v.content_type.name, v.object_repr)
+            object_reprs[object_repr] = f"{v.content_type.name} {v.object_repr}"
 
     changes = OrderedDict([(rev, defaultdict(list)) for rev in revisions[1:]])
     # changes[revisions[0]] = {"initial revision"
@@ -128,7 +130,7 @@ def get_history(obj, ignoreKeys=[]):
         if min([r.id for r in revs]) > min(rev_ids):
             changes[revs[0]][rep].append(("added", None, None))
 
-    for c, v in changes.items():
+    for _c, v in changes.items():
         v.default_factory = None
 
     return changes

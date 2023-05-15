@@ -35,7 +35,7 @@ class SpectrumOwner(Authorable, TimeStampedModel):
         return self.name
 
     def __repr__(self):
-        return "<{}: {}>".format(self.__class__.__name__, self.slug)
+        return f"<{self.__class__.__name__}: {self.slug}>"
 
     def save(self, *args, **kwargs):
         self.slug = self.makeslug()
@@ -82,7 +82,7 @@ class SpectrumManager(models.Manager):
             .values_list("owner_state__slug", "owner_state__protein__name", "owner_state__name")
             .distinct()
         )
-        return [(slug, prot if state == "default" else "{} ({})".format(prot, state)) for slug, prot, state in L]
+        return [(slug, prot if state == "default" else f"{prot} ({state})") for slug, prot, state in L]
 
     def dye_slugs(self):
         return (
@@ -106,7 +106,7 @@ class SpectrumManager(models.Manager):
         ]
         for suffix in ["slug", "id", "name"]:
             for owner in owners:
-                vals.append("owner_{}__{}".format(owner, suffix))
+                vals.append(f"owner_{owner}__{suffix}")
         Q = self.get_queryset().values(*vals)
 
         out = []
@@ -144,7 +144,7 @@ class SpectrumManager(models.Manager):
             if not name:
                 prot = v["owner_state__protein__name"]
                 state = v["owner_state__name"]
-                name = prot if state == "default" else "{} ({})".format(prot, state)
+                name = prot if state == "default" else f"{prot} ({state})"
             out.append(
                 {
                     "id": v["id"],
@@ -182,7 +182,7 @@ class SpectrumManager(models.Manager):
             if not name:
                 prot = v["owner_state__protein__name"]
                 state = v["owner_state__name"]
-                name = prot if state == "default" else "{} ({})".format(prot, state)
+                name = prot if state == "default" else f"{prot} ({state})"
             out.append(
                 {
                     "category": v["category"],
@@ -281,7 +281,7 @@ class SpectrumData(ArrayField):
                     # TODO:  better choice of interpolation
                     raw_value = [list(i) for i in zip(*interp_linear(*zip(*raw_value)))]
                 except ValueError as e:
-                    raise ValidationError("could not properly interpolate data: {}".format(e))
+                    raise ValidationError(f"could not properly interpolate data: {e}")
         return raw_value
 
     def validate(self, value, model_instance):
@@ -289,7 +289,7 @@ class SpectrumData(ArrayField):
         for elem in value:
             if not len(elem) == 2:
                 raise ValidationError("All elements in Spectrum list must have two items")
-            if not all(isinstance(n, (int, float)) for n in elem):
+            if not all(isinstance(n, int | float) for n in elem):
                 raise ValidationError("All items in Spectrum list elements must be numbers")
 
 
@@ -486,11 +486,11 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         # this method allows the protein name to have changed in the meantime
         if self.owner_state:
             if self.owner_state.name == "default":
-                return "{} {}".format(self.owner_state.protein, self.subtype)
+                return f"{self.owner_state.protein} {self.subtype}"
             else:
-                return "{} {}".format(self.owner_state, self.subtype)
+                return f"{self.owner_state} {self.subtype}"
         elif self.owner_dye:
-            return "{} {}".format(self.owner, self.subtype)
+            return f"{self.owner} {self.subtype}"
         elif self.owner_filter:
             return str(self.owner)
         else:
@@ -564,7 +564,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             "color": self.color(),
             "area": False if self.subtype in (self.LP, self.BS) else True,
             "url": self.owner.get_absolute_url(),
-            "classed": "category-{} subtype-{}".format(self.category, self.subtype),
+            "classed": f"category-{self.category} subtype-{self.subtype}",
         }
 
         if self.category == self.CAMERA:
@@ -626,7 +626,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             self.data[i][1] = value[i]
 
     def get_absolute_url(self):
-        return reverse("proteins:spectra") + "?s={}".format(self.id)
+        return reverse("proteins:spectra") + f"?s={self.id}"
 
 
 class Filter(SpectrumOwner, Product):

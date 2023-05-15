@@ -1,11 +1,13 @@
-import xml.etree.ElementTree as ET
-from Bio import Entrez, SeqIO
-from references.helpers import pmid2doi
-from django.core.cache import cache
-import re
-import time
 import json
 import logging
+import re
+import time
+import xml.etree.ElementTree as ET
+
+from Bio import Entrez, SeqIO
+from django.core.cache import cache
+
+from references.helpers import pmid2doi
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ def get_taxonomy_id(term, autochoose=False):
             if autochoose:
                 response = "y"
             else:
-                response = input('By "{}", did you mean "{}"? (y/n): '.format(term, spell_cor))
+                response = input(f'By "{term}", did you mean "{spell_cor}"? (y/n): ')
             if response.lower() == "y":
                 record = Entrez.read(Entrez.esearch(db="taxonomy", term=spell_cor))
     if record["Count"] == "1":
@@ -67,7 +69,7 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=
                     uid = get_ipgid_by_name(name, recurse=False)
                     if uid:
                         return uid
-            print("No results at IPG for: {}".format(protein_name))
+            print(f"No results at IPG for: {protein_name}")
         return 0
     else:
         print("cowardly refusing to fetch squence with {} records at IPG".format(record["Count"]))
@@ -80,7 +82,7 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=
                 docsum = root.find("DocumentSummarySet").find("DocumentSummary")
                 prot_count = int(docsum.find("ProteinCount").text)
                 name = docsum.find("Title").text
-                print("{:>2}. {:<11}{:<30}{:<5}".format(i + 1, ipg_uid, name[:28], prot_count))
+                print(f"{i + 1:>2}. {ipg_uid:<11}{name[:28]:<30}{prot_count:<5}")
                 idlist.append((ipg_uid, prot_count))
             sorted_by_count = sorted(idlist, key=lambda tup: tup[1])
             sorted_by_count.reverse()
@@ -88,7 +90,7 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=
             print("diff=", diff)
             if (autochoose >= 0) and (diff >= autochoose):
                 outID = sorted_by_count[0][0]
-                print("Autochoosing id {} with {} proteins:".format(outID, sorted_by_count[0][1]))
+                print(f"Autochoosing id {outID} with {sorted_by_count[0][1]} proteins:")
             else:
                 rownum = input("Enter the row number you want to lookup, or press enter to cancel: ")
                 try:
@@ -118,7 +120,7 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
     except AttributeError:
         return None
 
-    print("Found protein with ID {}: {}".format(ipg_uid, prot_name))
+    print(f"Found protein with ID {ipg_uid}: {prot_name}")
     # prot_count = docsum.find('ProteinCount').text
     # assert prot_count == '1', 'Non-unique result returned'
     seq_len = docsum.find("Slen").text
@@ -173,7 +175,7 @@ def fetch_gb_seqs(gbids):
             nucs.append(id)
         else:
             prots.append(id)
-            logger.error("Could not determine accession type for {}".format(id))
+            logger.error(f"Could not determine accession type for {id}")
     records = {}
     if len(nucs):
         with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:

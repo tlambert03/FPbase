@@ -6,8 +6,8 @@ from django.db import models
 from django.db.models import F, Max, OuterRef, Q, Subquery
 from model_utils.models import TimeStampedModel
 
-from .state import Dye, State
 from ..util.efficiency import oc_efficiency_report
+from .state import Dye, State
 
 
 class OcFluorEffQuerySet(models.QuerySet):
@@ -81,4 +81,4 @@ class OcFluorEff(TimeStampedModel):
         super().save(*args, **kwargs)
 
     def __repr__(self):
-        return "<OcFluorEff: {} with {}>".format(self.oc.name, self.fluor.slug)
+        return f"<OcFluorEff: {self.oc.name} with {self.fluor.slug}>"

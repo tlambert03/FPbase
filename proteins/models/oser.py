@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from model_utils.models import TimeStampedModel
+
 from references.models import Reference
+
 from .mixins import Authorable
 
 
@@ -73,7 +74,7 @@ class OSERMeasurement(Authorable, TimeStampedModel):
     )
 
     def __str__(self):
-        return "OSER: {} in {}".format(self.protein, self.reference.citation)
+        return f"OSER: {self.protein} in {self.reference.citation}"
 
     class Meta:
         unique_together = (("protein", "reference"),)

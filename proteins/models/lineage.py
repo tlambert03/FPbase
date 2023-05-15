@@ -7,16 +7,16 @@ from mptt.models import MPTTModel, TreeForeignKey
 from fpseq.mutations import MutationSet
 from references.models import Reference
 
-from .protein import Protein
 from ..models.mixins import Authorable
 from ..util.maintain import validate_node
+from .protein import Protein
 
 
 def parse_mutation(mut_string):
     try:
         return MutationSet(mut_string)
     except ValueError as e:
-        raise ValidationError(_("Invalid input for MutationSet: {}".format(e)))
+        raise ValidationError(_(f"Invalid input for MutationSet: {e}"))
 
 
 class MutationSetField(models.CharField):
@@ -93,7 +93,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         return self.mutation.relative_to_root(self.parent.protein.seq, root.seq)
 
     def __repr__(self):
-        return "<Lineage: {}>".format(self)
+        return f"<Lineage: {self}>"
 
     def __str__(self):
         return str(self.protein)

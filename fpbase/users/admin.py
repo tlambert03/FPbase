@@ -1,13 +1,14 @@
+from allauth.account.models import EmailAddress
+from avatar.templatetags.avatar_tags import avatar_url
 from django import forms
-from django.urls import reverse
-from django.utils.safestring import mark_safe
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.db.models import Count, Exists, OuterRef
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+
 from .models import User
-from avatar.templatetags.avatar_tags import avatar_url
-from allauth.account.models import EmailAddress
 
 
 class MyUserChangeForm(UserChangeForm):
@@ -37,11 +38,9 @@ class MyUserAdmin(AuthUserAdmin):
     form = MyUserChangeForm
     add_form = MyUserCreationForm
     fieldsets = (
-        (
-            "User Profile",
-            {"fields": ("avatar", "name", "verified", "microscopes", "collections")},
-        ),
-    ) + AuthUserAdmin.fieldsets
+        ("User Profile", {"fields": ("avatar", "name", "verified", "microscopes", "collections")}),
+        *AuthUserAdmin.fieldsets,
+    )
     list_display = (
         "username",
         "email",
@@ -71,7 +70,7 @@ class MyUserAdmin(AuthUserAdmin):
     _last_login.admin_order_field = "last_login"
 
     def avatar(self, obj):
-        url = '<img src="{}" />'.format(avatar_url(obj))
+        url = f'<img src="{avatar_url(obj)}" />'
         return mark_safe(url)
 
     avatar.allow_tags = True
@@ -84,7 +83,7 @@ class MyUserAdmin(AuthUserAdmin):
     def microscopes(self, obj):
         def _makelink(m):
             url = reverse("admin:proteins_microscope_change", args=(m.pk,))
-            return '<a href="{}">{}</a>'.format(url, m.name)
+            return f'<a href="{url}">{m.name}</a>'
 
         links = [_makelink(m) for m in obj.microscopes.all()]
         return mark_safe(", ".join(links))
@@ -94,7 +93,7 @@ class MyUserAdmin(AuthUserAdmin):
     def collections(self, obj):
         def _makelink(m):
             url = reverse("proteins:collection-detail", args=(m.pk,))
-            return '<a href="{}">{}</a>'.format(url, m.name)
+            return f'<a href="{url}">{m.name}</a>'
 
         links = [_makelink(m) for m in obj.proteincollections.all()]
         return mark_safe(", ".join(links))
@@ -126,7 +125,7 @@ class MyUserAdmin(AuthUserAdmin):
 
     def get_queryset(self, request):
         return (
-            super(MyUserAdmin, self)
+            super()
             .get_queryset(request)
             .prefetch_related("socialaccount_set", "proteincollections", "emailaddress_set")
             .annotate(verified=Exists(EmailAddress.objects.filter(user_id=OuterRef("id"), verified=True)))

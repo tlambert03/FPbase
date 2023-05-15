@@ -65,7 +65,7 @@ def update_scope_report(request):
             except Exception:
                 active = None
             if active:
-                for worker, jobs in active.items():
+                for _worker, jobs in active.items():
                     for job in jobs:
                         if job["name"].endswith("calculate_scope_report") and (scope_id in job["args"]):
                             return JsonResponse({"status": 200, "job": job["id"]})
@@ -226,7 +226,7 @@ class ScopeReportView(DetailView):
         return HttpResponseNotAllowed([])
 
     def get_context_data(self, **kwargs):
-        context = super(ScopeReportView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         probe_count = State.objects.with_spectra().count() + Dye.objects.with_spectra().count()
         ids = self.object.optical_configs.all().values_list("id", flat=True)
         effs = OcFluorEff.objects.filter(oc__in=ids)
@@ -263,9 +263,7 @@ class MicroscopeCreateUpdateMixin:
             return self.render_to_response(context)
 
         # enforce at least one valid optical config
-        ocform_has_forms = any(
-            [f.cleaned_data.get("name") for f in ocformset.forms if not f.cleaned_data.get("DELETE")]
-        )
+        ocform_has_forms = any(f.cleaned_data.get("name") for f in ocformset.forms if not f.cleaned_data.get("DELETE"))
         if not (ocform_has_forms or form.cleaned_data.get("optical_configs")):
             messages.add_message(
                 self.request,

@@ -123,9 +123,9 @@ def fetch_chroma_part(part):
         if parser.url:
             return fetch_chroma_url(parser.url)
         else:
-            raise ValueError("Found Chroma part {}, but could not find file to download".format(slugify(part)))
+            raise ValueError(f"Found Chroma part {slugify(part)}, but could not find file to download")
     else:
-        raise ValueError("Could not retrieve Chroma part: {}".format(slugify(part)))
+        raise ValueError(f"Could not retrieve Chroma part: {slugify(part)}")
 
 
 def normalize_semrock_part(part):
@@ -142,18 +142,18 @@ def fetch_semrock_part(part):
     """
     response = requests.get("https://www.semrock.com/FilterDetails.aspx?id=" + part)
     if not response.status_code == 200:
-        raise ValueError("Semrock part not valid for URL: {}".format(part))
+        raise ValueError(f"Semrock part not valid for URL: {part}")
 
     try:
         url = "https://www.semrock.com" + (
             str(response.content).split('" title="Click to Download ASCII')[0].split('href="')[-1]
         )
     except Exception:
-        raise ValueError("Could not parse page for semrock part: {}".format(part))
+        raise ValueError(f"Could not parse page for semrock part: {part}")
 
     response = requests.get(url)
     if response.status_code != 200:
-        raise ValueError("Could not retrieve data for Semrock part: {}".format(part))
+        raise ValueError(f"Could not retrieve data for Semrock part: {part}")
 
     T = response.text
     if T.startswith("Typical") and "Data format" in T:
@@ -161,7 +161,7 @@ def fetch_semrock_part(part):
         T = "".join(T.split("\n")[1:])
         T = T.split("---")[0]
         T = T.strip("\r").replace("\r", "\n")
-        if len(set([len(x.split("\t")) for x in T.split("\n")])) > 1:
+        if len({len(x.split("\t")) for x in T.split("\n")}) > 1:
             return "\n".join([x for x in T.split("\n") if len(x.split("\t")) == 2])
     return T
 
@@ -171,10 +171,10 @@ def all_numbers(df):
 
 
 def read_csv_text(text) -> pd.DataFrame:
-    fmt = dict(sep=";", thousands=".", decimal=",")
+    fmt = {"sep": ";", "thousands": ".", "decimal": ","}
     df = pd.read_csv(StringIO(text), **fmt)
     if df.ndim != 2 or df.shape[1] < 2 or not all_numbers(df):
-        fmt = dict(sep=",", thousands=",", decimal=".")
+        fmt = {"sep": ",", "thousands": ",", "decimal": "."}
         df = pd.read_csv(StringIO(text), **fmt)
     if df.ndim != 2 or df.shape[1] < 2 or not all_numbers(df):
         raise ValueError("Could not parse text as valid spectra csv.")
@@ -220,7 +220,7 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
         elif "sp" in part.lower():
             kwargs["stypes"] = "sp"
         if "stypes" not in kwargs:
-            raise ValueError("Could not guess filter type for part {}".format(part))
+            raise ValueError(f"Could not guess filter type for part {part}")
     elif url:
         if "owner" not in kwargs:
             raise ValueError('must provide argument "owner" when importing from url')
@@ -262,7 +262,7 @@ def import_semrock_spectra(part=None, **kwargs):
         #     if int(w2) > int(w1):  # likely a dichroic
         #         kwargs['stypes'] = 'bs'
         if "stypes" not in kwargs:
-            raise ValueError("Could not guess filter type for part {}".format(part))
+            raise ValueError(f"Could not guess filter type for part {part}")
     else:
         ValueError("did not receive appropriate input to import_semrock_spectra")
     waves, data, headers = text_to_spectra(text)

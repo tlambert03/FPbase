@@ -7,7 +7,7 @@ def check_offset(protname):
     ms = MutationSet(prot.lineage.mutation)
     offset = ms.detect_offset(prot.lineage.parent.protein.seq)
     if offset:
-        print("{}:\t{} -> {}".format(protname, ms, ms.shift(offset)))
+        print(f"{protname}:\t{ms} -> {ms.shift(offset)}")
 
 
 def add_missing_seqs():
@@ -18,7 +18,7 @@ def add_missing_seqs():
             seq, _ = node.parent.protein.seq.mutate(node.mutation, correct_offset=True)
             node.protein.seq = seq
             node.protein.save()
-            print("saved seq for {}".format(node.protein))
+            print(f"saved seq for {node.protein}")
 
 
 def check_node_sequence_mutation_consistent(node, correct_offset=False):
@@ -91,14 +91,14 @@ def validate_node(node):
                 errors.append(
                     f"{node.parent.protein} + {node.mutation} does not match "
                     + f"the current {node.protein} sequence (Δ: {ms})"
-                )  # noqa
+                )
     except Mutation.SequenceMismatch as e:
         errors.append(str(e).replace("parent", node.parent.protein.name))
     return errors
 
 
 def check_lineages(qs=None, correct_offset=False):
-    errors = dict()
+    errors = {}
     good = set()
 
     if not qs:

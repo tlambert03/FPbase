@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """vendored from drf-tweaks to avoid the other dependencies it brings in"""
-from __future__ import unicode_literals
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
@@ -11,7 +9,7 @@ from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 
 
-class ContextPassing(object):
+class ContextPassing:
     @classmethod
     def filter_fields(cls, field_name, fields):
         filtered_fields = set()
@@ -92,7 +90,7 @@ class SerializerCustomizationMixin:
     custom_required_errors = custom_blank_errors = {}
 
     def __init__(self, *args, **kwargs):
-        super(SerializerCustomizationMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.change_required_message()
 
     def change_required_message(self):
@@ -113,7 +111,7 @@ class SerializerCustomizationMixin:
     required_fields = []
 
     def get_fields(self):
-        fields = super(SerializerCustomizationMixin, self).get_fields()
+        fields = super().get_fields()
 
         for f in self.required_fields:
             fields[f].required = True

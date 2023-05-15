@@ -1,9 +1,9 @@
+from ..models import Organism, Protein
 from .entrez import get_gb_info
 from .uniprot import get_uniprot_info
-from ..models import Protein, Organism
 
 
-class ChangeSet(object):
+class ChangeSet:
     """Set of changes to make to a protein instance"""
 
     def __init__(self, obj):
@@ -12,31 +12,31 @@ class ChangeSet(object):
         self.changes = {}
 
     def __str__(self):
-        s = "{} ChangeSet:\n".format(str(self.obj))
+        s = f"{self.obj!s} ChangeSet:\n"
         for k, v in self.changes.items():
             if getattr(self.obj, k):
-                s += "\tCHANGE: {} from {} -> {}\n".format(k, getattr(self.obj, k), v)
+                s += f"\tCHANGE: {k} from {getattr(self.obj, k)} -> {v}\n"
             else:
-                s += "\tSET: {} -> {}\n".format(k, v)
+                s += f"\tSET: {k} -> {v}\n"
         return s
 
     def __repr__(self):
-        return "<{} ChangeSet>".format(self.obj)
+        return f"<{self.obj} ChangeSet>"
 
     def __bool__(self):
         return bool(self.changes)
 
     def __add__(self, change):
         # where change is a tuple (attr, newval)
-        if not (isinstance(change, (tuple, list)) and len(change) == 2):
+        if not (isinstance(change, tuple | list) and len(change) == 2):
             raise NotImplementedError("ChangeSet add epects a 2-tuple")
 
         attr, value = change
         if not hasattr(self.obj, attr):
-            raise ValueError("Object {} does not have attribute {}".format(self.obj, attr))
+            raise ValueError(f"Object {self.obj} does not have attribute {attr}")
         if attr in self.changes:
             if not value == self.changes[attr]:
-                raise ValueError("Changeset received conflicting changes for field {}".format(attr))
+                raise ValueError(f"Changeset received conflicting changes for field {attr}")
         else:
             self.changes[attr] = value
         return self

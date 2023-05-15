@@ -1,5 +1,5 @@
 try:
-    from parasail import nw_banded, nw_trace_scan_sat, blosum62
+    from parasail import blosum62, nw_banded, nw_trace_scan_sat
 except ImportError:
     import warnings
 
@@ -90,7 +90,7 @@ class ParasailAlignment:
         yield self.aligned_target_sequence()
 
     def as_mutations(self, reference=None):
-        from .mutations import _get_aligned_muts, MutationSet
+        from .mutations import MutationSet, _get_aligned_muts
 
         seq1, seq2 = self
         mutstring = "/".join(_get_aligned_muts(seq1, seq2))

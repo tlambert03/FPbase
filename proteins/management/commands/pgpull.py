@@ -1,5 +1,6 @@
-from django.core.management.base import BaseCommand
 from subprocess import run
+
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):

@@ -66,8 +66,8 @@ def check_switch_type(object, request):
         msg = (
             "<i class='fa fa-exclamation-circle mr-2'></i><strong>Warning:</strong> "
             + "Based on the number of states and transitions currently assigned "
-            + "to this protein, it appears to be a {} protein; ".format(disp)
-            + "however, it has been assigned a switching type of {}. ".format(actual)
+            + f"to this protein, it appears to be a {disp} protein; "
+            + f"however, it has been assigned a switching type of {actual}. "
             + "Please confirm that the switch type, states, and transitions are correct."
         )
         messages.add_message(request, messages.WARNING, msg)
@@ -80,7 +80,7 @@ def form_changes(form, pre=""):
     for field_name in form.changed_data:
         old = form.initial.get(field_name)
         new = form.cleaned_data.get(field_name)
-        chg = pre + "{}: {} -> {}".format(form.fields.get(field_name).label, old, new)
+        chg = pre + f"{form.fields.get(field_name).label}: {old} -> {new}"
         changes.append(chg)
     return changes
 
@@ -91,10 +91,10 @@ def formset_changes(formset):
     changes = []
     model = formset.model.__name__
     for obj in formset.deleted_objects:
-        changes.append("Deleted {} {}".format(model, obj))
+        changes.append(f"Deleted {model} {obj}")
     for obj in formset.new_objects:
-        changes.append("Created {} {}".format(model, obj))
-    for obj, fields in formset.changed_objects:
+        changes.append(f"Created {model} {obj}")
+    for obj, _fields in formset.changed_objects:
         form = next(_form for _form in formset.forms if _form.instance == obj)
         frm_chg = form_changes(form)
         changes.append("Changed {} {}: ({})".format(model, obj, "; ".join(frm_chg)))
@@ -186,7 +186,7 @@ class ProteinDetailView(DetailView):
                 messages.add_message(
                     self.request,
                     messages.INFO,
-                    "The URL {} was not found.  You have been forwarded here".format(self.request.get_full_path()),
+                    f"The URL {self.request.get_full_path()} was not found.  You have been forwarded here",
                 )
                 return HttpResponseRedirect(obj.get_absolute_url())
             raise
@@ -312,7 +312,7 @@ class ProteinCreateUpdateMixin:
                         if not self.object.parent_organism:
                             self.object.parent_organism = self.object.lineage.root_node.protein.parent_organism
 
-                    comment = "{} {} form.".format(self.object, self.get_form_type())
+                    comment = f"{self.object} {self.get_form_type()} form."
                     chg_string = "\n".join(get_form_changes(form, states, lineage))
 
                     if not self.request.user.is_staff:
@@ -333,7 +333,7 @@ class ProteinCreateUpdateMixin:
                     try:
                         uncache_protein_page(self.object.slug, self.request)
                     except Exception as e:
-                        logger.error("failed to uncache protein: {}".format(e))
+                        logger.error(f"failed to uncache protein: {e}")
 
                     check_switch_type(self.object, self.request)
 
@@ -470,7 +470,7 @@ def spectra_image(request, slug, **kwargs):
         byt = protein.spectra_img(fmt, output=io.BytesIO(), **D)
     except Exception as e:
         logger.error(e)
-        return HttpResponseBadRequest("failed to parse url parameters as JSON: {}".format(e))
+        return HttpResponseBadRequest(f"failed to parse url parameters as JSON: {e}")
     if byt:
         byt.seek(0)
         if fmt == "svg":
@@ -541,7 +541,7 @@ class ComparisonView(base.TemplateView):
         refs = Reference.objects.filter(primary_proteins__in=prots)
         refs = refs | Reference.objects.filter(proteins__in=prots)
         refs = refs.distinct("id").order_by("id")
-        context["references"] = sorted([r for r in refs], key=lambda x: x.year)
+        context["references"] = sorted(refs, key=lambda x: x.year)
         spectra = []
         for prot in prots:
             for state in prot.states.all():
@@ -656,11 +656,11 @@ def add_reference(request, slug=None):
                 mail_managers("Reference Added", msg, fail_silently=True)
             P.save()
             reversion.set_user(request.user)
-            reversion.set_comment("Added Reference: {}".format(ref))
+            reversion.set_comment(f"Added Reference: {ref}")
             try:
                 uncache_protein_page(slug, request)
             except Exception as e:
-                logger.error("failed to uncache protein: {}".format(e))
+                logger.error(f"failed to uncache protein: {e}")
         return JsonResponse({"status": "success"})
     except Exception as e:
         return JsonResponse({"status": "failed", "msg": e})
@@ -689,11 +689,11 @@ def add_protein_excerpt(request, slug=None):
                     mail_managers("Excerpt Added", msg, fail_silently=True)
                 P.save()
                 reversion.set_user(request.user)
-                reversion.set_comment("Added Excerpt from {}".format(ref))
+                reversion.set_comment(f"Added Excerpt from {ref}")
                 try:
                     uncache_protein_page(slug, request)
                 except Exception as e:
-                    logger.error("failed to uncache protein: {}".format(e))
+                    logger.error(f"failed to uncache protein: {e}")
         return JsonResponse({"status": "success"})
     except Exception as e:
         return JsonResponse({"status": "failed", "msg": e})
@@ -720,7 +720,7 @@ def revert_revision(request, rev=None):
             P = proteins.pop()
             with reversion.create_revision():
                 reversion.set_user(request.user)
-                reversion.set_comment("Reverted to revision dated {}".format(revision.date_created))
+                reversion.set_comment(f"Reverted to revision dated {revision.date_created}")
                 P.save()
                 try:
                     uncache_protein_page(P.slug, request)
@@ -749,7 +749,7 @@ def update_transitions(request, slug=None):
                         obj.status = "pending"
                         mail_managers(
                             "Transition updated",
-                            "User: {}\nProtein: {}\n\n{}".format(request.user.username, obj, chg_string),
+                            f"User: {request.user.username}\nProtein: {obj}\n\n{chg_string}",
                             fail_silently=True,
                         )
                     obj.save()
@@ -758,7 +758,7 @@ def update_transitions(request, slug=None):
                     try:
                         uncache_protein_page(slug, request)
                     except Exception as e:
-                        logger.error("failed to uncache protein: {}".format(e))
+                        logger.error(f"failed to uncache protein: {e}")
                     check_switch_type(obj, request)
             return HttpResponse(status=200)
         else:
@@ -815,7 +815,7 @@ def protein_bleach_formsets(request, slug):
                     try:
                         uncache_protein_page(slug, request)
                     except Exception as e:
-                        logger.error("failed to uncache protein: {}".format(e))
+                        logger.error(f"failed to uncache protein: {e}")
             return HttpResponseRedirect(protein.get_absolute_url())
         else:
             return render(request, template_name, {"formset": formset, "protein": protein})
@@ -901,10 +901,10 @@ def flag_object(request):
             try:
                 uncache_protein_page(obj.protein.slug, request)
             except Exception as e:
-                logger.error("failed to uncache protein: {}".format(e))
+                logger.error(f"failed to uncache protein: {e}")
 
             mail_admins(
-                "%s %s" % (model_type, status),
+                f"{model_type} {status}",
                 "User: {}\nObject: {}\nID: {}\n{}".format(
                     request.user.username,
                     obj,

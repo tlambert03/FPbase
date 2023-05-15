@@ -1,7 +1,6 @@
-import unicodedata
 import re
+import unicodedata
 from textwrap import wrap
-
 
 AA_WEIGHTS = {
     "A": 89.0932,

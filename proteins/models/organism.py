@@ -1,7 +1,8 @@
+from Bio import Entrez
 from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
-from Bio import Entrez
+
 from .mixins import Authorable
 
 Entrez.email = "talley_lambert@hms.harvard.edu"

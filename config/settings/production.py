@@ -31,7 +31,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Use Whitenoise to serve static files
 # See: https://whitenoise.readthedocs.io/
-MIDDLEWARE = ["whitenoise.middleware.WhiteNoiseMiddleware"] + MIDDLEWARE
+MIDDLEWARE = ["whitenoise.middleware.WhiteNoiseMiddleware", *MIDDLEWARE]
 
 
 # opbeat integration
@@ -102,7 +102,7 @@ AWS_QUERYSTRING_AUTH = False
 # AWS cache settings, don't change unless you know what you're doing:
 _AWS_EXPIRY = 60 * 60 * 24 * 7
 AWS_S3_OBJECT_PARAMETERS = {
-    "CacheControl": f"max-age={_AWS_EXPIRY}, s-maxage={_AWS_EXPIRY}, must-revalidate",  # noqa
+    "CacheControl": f"max-age={_AWS_EXPIRY}, s-maxage={_AWS_EXPIRY}, must-revalidate",
 }
 
 # URL that handles the media served from MEDIA_ROOT, used for managing
@@ -161,13 +161,13 @@ TEMPLATES[0]["OPTIONS"]["loaders"] = [
 # Use the Heroku-style specification
 # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
 DATABASES["default"] = env.db("DATABASE_URL")
-DATABASES["default"]["ATOMIC_REQUESTS"] = True  # noqa F405
+DATABASES["default"]["ATOMIC_REQUESTS"] = True  # F405
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 
 # CACHING
 # ------------------------------------------------------------------------------
 
-REDIS_LOCATION = "{0}/{1}".format(env("REDIS_URL", default="redis://127.0.0.1:6379"), 0)
+REDIS_LOCATION = "{}/{}".format(env("REDIS_URL", default="redis://127.0.0.1:6379"), 0)
 # Heroku URL does not pass the DB number, so we parse it in
 CACHES = {
     "default": {
@@ -239,6 +239,6 @@ GA_TRACKING_ID = env("GA_TRACKING_ID", default="")
 # django-rest-framework
 # -------------------------------------------------------------------------------
 # Tools that generate code samples can use SERVERS to point to the correct domain
-SPECTACULAR_SETTINGS["SERVERS"] = [  # noqa: F405
+SPECTACULAR_SETTINGS["SERVERS"] = [
     {"url": "https://fpbase.org", "description": "Production server"},
 ]

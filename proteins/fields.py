@@ -1,6 +1,8 @@
-from django.db.models import Lookup, fields, TextField
-from django.core.exceptions import ValidationError
 import json
+
+from django.core.exceptions import ValidationError
+from django.db.models import Lookup, TextField, fields
+
 from .util.helpers import wave_to_hex
 
 
@@ -11,7 +13,7 @@ class Around(Lookup):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params + lhs_params + rhs_params
-        return "%s > %s - 21 AND %s < %s + 21" % (lhs, rhs, lhs, rhs), params
+        return f"{lhs} > {rhs} - 21 AND {lhs} < {rhs} + 21", params
 
 
 fields.PositiveSmallIntegerField.register_lookup(Around)
@@ -24,7 +26,7 @@ class NotEqual(Lookup):
         lhs, lhs_params = self.process_lhs(compiler, connection)
         rhs, rhs_params = self.process_rhs(compiler, connection)
         params = lhs_params + rhs_params
-        return "%s <> %s" % (lhs, rhs), params
+        return f"{lhs} <> {rhs}", params
 
 
 fields.CharField.register_lookup(NotEqual)
@@ -36,7 +38,7 @@ fields.CharField.register_lookup(NotEqual)
 ########################################################################
 
 
-class Spectrum(object):
+class Spectrum:
     """Python class for spectra as a list of lists"""
 
     def __init__(self, data=None):
@@ -48,7 +50,7 @@ class Spectrum(object):
             for elem in data:
                 if not len(elem) == 2:
                     raise TypeError("All elements in Spectrum list must have two items")
-                if not all(isinstance(n, (int, float)) for n in elem):
+                if not all(isinstance(n, int | float) for n in elem):
                     raise TypeError("All items in Spectrum list elements must be numbers")
         self.data = data
 

@@ -1,18 +1,20 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime
-from django.db import models
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import (
-    MinValueValidator,
+    MaxLengthValidator,
     MaxValueValidator,
     MinLengthValidator,
-    MaxLengthValidator,
+    MinValueValidator,
 )
-from model_utils.models import TimeStampedModel
-from .helpers import doi_lookup, name_to_initials
-from proteins.validators import validate_doi
+from django.db import models
 from django.urls import reverse
+from model_utils.models import TimeStampedModel
+
+from proteins.validators import validate_doi
+
+from .helpers import doi_lookup, name_to_initials
 
 User = get_user_model()
 
@@ -25,7 +27,7 @@ class Author(TimeStampedModel):
 
     @property
     def protein_contributions(self):
-        return set([p for ref in self.publications.all() for p in ref.primary_proteins.all()])
+        return {p for ref in self.publications.all() for p in ref.primary_proteins.all()}
 
     @property
     def first_authorships(self):
@@ -44,12 +46,12 @@ class Author(TimeStampedModel):
 
     def full_name(self):
         if self.given:
-            return "{} {}".format(self.given, self.family).title()
+            return f"{self.given} {self.family}".title()
         else:
-            return "{} {}".format(self.initials, self.family).title()
+            return f"{self.initials} {self.family}".title()
 
     def __repr__(self):
-        return "Author(family='{}', given='{}'')".format(self.family, self.given)
+        return f"Author(family='{self.family}', given='{self.given}'')"
 
     def __str__(self):
         return self.family + " " + self.initials
@@ -123,32 +125,32 @@ class Reference(TimeStampedModel):
         try:
             if len(authorlist) == 0:
                 if self.title:
-                    return "{}...".format(self.title[:30])
+                    return f"{self.title[:30]}..."
                 else:
-                    return "{}".format(self.doi)
+                    return f"{self.doi}"
             elif len(authorlist) > 2:
                 middle = " et al. "
             elif len(authorlist) == 2:
                 secondauthor = authorlist[1].family
-                middle = " & {} ".format(secondauthor)
+                middle = f" & {secondauthor} "
             else:
                 middle = " "
             self.firstauthor = authorlist[0].family
-            return "{}{}({})".format(self.firstauthor, middle, self.year)
+            return f"{self.firstauthor}{middle}({self.year})"
         except ObjectDoesNotExist:
-            return "doi: {}".format(self.doi)
+            return f"doi: {self.doi}"
 
     def get_absolute_url(self):
         return reverse("references:reference-detail", args=[self.id])
 
     def __repr__(self):
-        return "Reference(doi={})".format(self.doi)
+        return f"Reference(doi={self.doi})"
 
     def __str__(self):
         try:
             return self.citation
         except Exception:
-            return super(Reference, self).__str__()
+            return super().__str__()
 
     def clean(self):
         if self.doi:
@@ -201,7 +203,7 @@ class ReferenceAuthor(models.Model):
         return self.reference.authors.count()
 
     def __str__(self):
-        return "<AuthorMembership: {} in doi: {}>".format(self.author, self.reference.doi)
+        return f"<AuthorMembership: {self.author} in doi: {self.reference.doi}>"
 
     class Meta:
         ordering = ["author_idx"]

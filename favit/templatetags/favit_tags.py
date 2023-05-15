@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 from django import template
-from django.template.loader import render_to_string
 from django.contrib.contenttypes.models import ContentType
+from django.template.loader import render_to_string
 
 from ..models import Favorite
-
 
 register = template.Library()
 

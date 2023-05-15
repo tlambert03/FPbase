@@ -105,7 +105,7 @@ def ga_popular_proteins(service=None, profile_id=None, days=30, max_results=None
         (r[0].replace("/protein/", "").split("/")[0], r[1], r[2])
         for r in analytics_data["rows"]
         if r[0].startswith("/protein")
-        and not any([x in r[0] for x in ("bleach", "update")])
+        and not any(x in r[0] for x in ("bleach", "update"))
         and "not found" not in r[1]
         and " :: " in r[1]
     ]

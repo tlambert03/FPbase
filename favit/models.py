@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
-
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from .managers import FavoriteManager
@@ -32,4 +30,4 @@ class Favorite(models.Model):
         verbose_name_plural = _("favorites")
 
     def __unicode__(self):
-        return "{} favorited {}".format(self.user, self.target)
+        return f"{self.user} favorited {self.target}"

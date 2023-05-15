@@ -1,7 +1,7 @@
 from test_plus.test import TestCase
 
+from ..forms import CollectionForm, ProteinForm, StateForm
 from ..models import Protein, State
-from ..forms import ProteinForm, StateForm, CollectionForm
 
 
 class TestProteinForm(TestCase):

@@ -1,10 +1,10 @@
-from django.conf import settings
+import dns.exception
+import dns.resolver
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from django.utils.translation import gettext_lazy as _
 from django import forms
-import dns.resolver
-import dns.exception
+from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 
 
 class AccountAdapter(DefaultAccountAdapter):

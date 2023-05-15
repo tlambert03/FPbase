@@ -1,28 +1,30 @@
 import re
+
+from dal import autocomplete
 from django import forms
-from ..util.importers import (
-    check_chroma_for_part,
-    check_semrock_for_part,
-    add_filter_to_database,
-)
+from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.forms.models import inlineformset_factory
+
 from ..models import (
-    Light,
     Camera,
-    Microscope,
     Filter,
-    OpticalConfig,
     FilterPlacement,
+    Light,
+    Microscope,
+    OpticalConfig,
     ProteinCollection,
 )
-from dal import autocomplete
-from django.forms.models import inlineformset_factory
-from django.contrib.auth import get_user_model
+from ..util.importers import (
+    add_filter_to_database,
+    check_chroma_for_part,
+    check_semrock_for_part,
+)
 
 User = get_user_model()
 
 
-class FilterPromise(object):
+class FilterPromise:
     def __init__(self, part):
         self.part = part
 
@@ -143,7 +145,7 @@ class MicroscopeForm(forms.ModelForm):
         for i, fnames in enumerate(filters):
             if not fnames:
                 continue
-            if not isinstance(fnames, (tuple, list)):
+            if not isinstance(fnames, tuple | list):
                 fnames = [fnames]
             for _f in fnames:
                 _assign_filt(_f, i)
@@ -183,7 +185,7 @@ class MicroscopeForm(forms.ModelForm):
             except User.DoesNotExist:
                 self.add_error(
                     "managers",
-                    'There is no FPbase user with the email "{}"'.format(email),
+                    f'There is no FPbase user with the email "{email}"',
                 )
         return emails
 
@@ -244,7 +246,7 @@ class MicroscopeForm(forms.ModelForm):
                     if (line.index("{") < line.index(",")) or (line.index("}") < line.index(",")):
                         self.add_error(
                             "optical_configs",
-                            "No curly braces allowed in name (line #{})".format(linenum + 1),
+                            f"No curly braces allowed in name (line #{linenum + 1})",
                         )
                         continue
                 except Exception:
@@ -264,7 +266,7 @@ class MicroscopeForm(forms.ModelForm):
                             splt.extend([n.strip() for n in item.split(",")])
                 else:
                     splt = [i.strip() for i in line.split(",")]
-                if not len(splt) in (4, 5):
+                if len(splt) not in (4, 5):
                     self.add_error(
                         "optical_configs",
                         "Lines must have 4 or 5 comma-separated fields but this one "
@@ -300,7 +302,7 @@ class MicroscopeForm(forms.ModelForm):
             except Exception:
                 self.add_error(
                     "optical_configs",
-                    "Uknown error parsing line #{}: {}".format(linenum + 1, line),
+                    f"Uknown error parsing line #{linenum + 1}: {line}",
                 )
         return cleaned
 
@@ -395,7 +397,7 @@ class OpticalConfigForm(forms.ModelForm):
         else:
             self._isvalid = super().is_valid()
             if not self._isvalid:
-                for field, error in self.errors.items():
+                for field, _error in self.errors.items():
                     if field in self.fields:
                         self.fields[field].widget.attrs["class"] += " is-invalid"
         return self._isvalid

@@ -1,8 +1,8 @@
-import requests
-import json
 import datetime
+import json
 import re
 
+import requests
 from Bio import Entrez
 from habanero import Crossref
 
@@ -23,7 +23,7 @@ def pmc_converter(id, to="pmid"):
         'all'   :   get full dict
     """
     many = False
-    if isinstance(id, (list, tuple, set)):
+    if isinstance(id, list | tuple | set):
         if len(id) > 200:
             out = []
             ids = [i for i in id if i]  # convert to list and remove null
@@ -81,7 +81,7 @@ def crossref(doi):
     response = cr.works(ids=doi)
     # habanero returns a list if doi is a list of len > 1
     # otherwise a single dict
-    if isinstance(doi, (list, tuple, set)) and len(doi) > 1:
+    if isinstance(doi, list | tuple | set) and len(doi) > 1:
         D = [parse_crossref(i) for i in response]
         return {x.pop("doi"): x for x in D}
     else:

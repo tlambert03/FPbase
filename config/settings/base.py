@@ -23,7 +23,7 @@ if READ_DOT_ENV_FILE:
     # that is to say variables from the .env files will only be used if not defined
     # as environment variables.
     env_file = str(ROOT_DIR.path(".env"))
-    print("Loading : {}".format(env_file))
+    print(f"Loading : {env_file}")
     env.read_env(env_file)
     print("The .env file has been loaded. See base.py for more information")
 
@@ -117,7 +117,7 @@ EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.s
 ADMINS = [("Talley Lambert", "talley.lambert+fpbase@gmail.com")]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#managers
-MANAGERS = ADMINS + [("Anna Jost", "anna_jost@hms.harvard.edu")]
+MANAGERS = [*ADMINS, ("Anna Jost", "anna_jost@hms.harvard.edu")]
 
 EMAIL_SUBJECT_PREFIX = "[FPbase] "
 SERVER_EMAIL = "FPbase <info@mg.fpbase.org>"
@@ -368,7 +368,7 @@ GRAPHENE = {"SCHEMA": "fpbase.schema.schema"}
 # CORS
 # -------
 
-MIDDLEWARE = ["corsheaders.middleware.CorsMiddleware"] + MIDDLEWARE
+MIDDLEWARE = ["corsheaders.middleware.CorsMiddleware", *MIDDLEWARE]
 INSTALLED_APPS += ["corsheaders"]
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8000",

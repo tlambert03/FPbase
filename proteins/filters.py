@@ -1,8 +1,9 @@
 import django_filters
-from django_filters import rest_framework as filters
-from django import forms
-from .models import Protein, State, Spectrum, Organism
 from Bio import Seq
+from django import forms
+from django_filters import rest_framework as filters
+
+from .models import Organism, Protein, Spectrum, State
 from .validators import cdna_sequence_validator
 
 

@@ -1,9 +1,10 @@
-import sys
-from ..models import Protein
-from subprocess import run
-import os
-import tempfile
 import json
+import os
+import sys
+import tempfile
+from subprocess import run
+
+from ..models import Protein
 
 
 def serialize_alignment(alignment):

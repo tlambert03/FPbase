@@ -45,7 +45,7 @@ def query(queryset, info, **options):
     return QueryOptimizer(info, **options).optimize(queryset)
 
 
-class QueryOptimizer(object):
+class QueryOptimizer:
     """
     Automatically optimize queries.
     """
@@ -79,7 +79,7 @@ class QueryOptimizer(object):
             return schema.graphql_schema
 
     def _get_possible_types(self, graphql_type):
-        if isinstance(graphql_type, (GraphQLInterfaceType, GraphQLUnionType)):
+        if isinstance(graphql_type, GraphQLInterfaceType | GraphQLUnionType):
             graphql_schema = self._get_graphql_schema(self.root_info.schema)
             return graphql_schema.get_possible_types(graphql_type)
         else:
@@ -285,7 +285,7 @@ class QueryOptimizer(object):
                 # Some resolvers have the partial function as the second
                 # argument.
                 for arg in resolver_fn.args:
-                    if isinstance(arg, (str, functools.partial)):
+                    if isinstance(arg, str | functools.partial):
                         break
                 else:
                     # No suitable instances found, default to first arg

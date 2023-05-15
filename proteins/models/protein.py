@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import io
 import json
@@ -84,7 +83,7 @@ class ProteinQuerySet(models.QuerySet):
         # make tree
         cmd += ["-cluster", "neighborjoining", "-tree2", "tree.phy"]
         result = run(cmd, input=fasta.read(), stdout=PIPE, encoding="ascii")
-        with open("tree.phy", "r") as handle:
+        with open("tree.phy") as handle:
             newick = handle.read().replace("\n", "")
         os.remove("tree.phy")
         return result.stdout, newick
@@ -426,7 +425,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 perc = (i + 1) * stepsize
                 if color == "#000":
                     perc *= 0.2
-                svgdef += '<stop offset="{}%" style="stop-color:{};" />'.format(perc, color)
+                svgdef += f'<stop offset="{perc}%" style="stop-color:{color};" />'
             return svgdef
         if self.default_state:
             return self.default_state.emhex
@@ -512,7 +511,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             for item in self.pdb:
                 if Protein.objects.exclude(id=self.id).filter(pdb__contains=[item]).exists():
                     p = Protein.objects.filter(pdb__contains=[item]).first()
-                    errors.update({"pdb": "PDB ID {} is already in use by protein {}".format(item, p.name)})
+                    errors.update({"pdb": f"PDB ID {item} is already in use by protein {p.name}"})
 
         if errors:
             raise ValidationError(errors)
@@ -587,7 +586,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         from proteins.extrest.ga import cached_ga_popular
 
         hits = cached_ga_popular()[period]
-        for slug, name, rating in hits:
+        for slug, _name, rating in hits:
             if slug == self.slug:
                 return rating / max(list(zip(*hits))[2]) if norm else rating
         return 0

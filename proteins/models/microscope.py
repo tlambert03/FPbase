@@ -53,7 +53,7 @@ class Microscope(OwnedCollection):
 
     @classmethod
     def from_oclist(cls, name, oclist):
-        if not isinstance(oclist, (list, tuple)):
+        if not isinstance(oclist, list | tuple):
             raise ValueError("oclist argument must be list or tuple")
         microscope = cls(name=name)
         microscope.save()
@@ -357,7 +357,7 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
             continue
         if isinstance(fnames, str):
             fnames = [fnames]
-        elif isinstance(fnames, (tuple, list)):
+        elif isinstance(fnames, tuple | list):
             pass
         else:
             raise ValueError("value must be string, list, or tuple: %s" % fnames)

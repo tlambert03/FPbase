@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from model_utils.models import TimeStampedModel
+
 from references.models import Reference
+
 from .mixins import Authorable
 
 
@@ -107,6 +108,6 @@ class BleachMeasurement(Authorable, TimeStampedModel):
     def __str__(self):
         return "{}: {}{}".format(
             self.state,
-            "{} s".format(self.rate) if self.rate else "",
+            f"{self.rate} s" if self.rate else "",
             str(" " + self.get_modality_display()) if self.modality else "",
         )

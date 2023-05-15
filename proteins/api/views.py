@@ -14,8 +14,8 @@ from rest_framework_csv import renderers as r
 
 from ..filters import ProteinFilter, SpectrumFilter, StateFilter
 from ..models import Protein, State
-from ..models.spectrum import Spectrum, get_cached_spectra_info
 from ..models.microscope import get_cached_optical_configs
+from ..models.spectrum import Spectrum, get_cached_spectra_info
 from .serializers import (
     BasicProteinSerializer,
     ProteinSerializer,
@@ -56,7 +56,7 @@ class ProteinListAPIView2(ListAPIView):
     lookup_field = "slug"  # Don't use Protein.id!
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProteinFilter
-    renderer_classes = [r.CSVRenderer] + api_settings.DEFAULT_RENDERER_CLASSES
+    renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]
 
     @method_decorator(cache_page(60 * 10))
     def dispatch(self, *args, **kwargs):
@@ -70,7 +70,7 @@ class ProteinListAPIView(ListAPIView):
     lookup_field = "slug"  # Don't use Protein.id!
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProteinFilter
-    renderer_classes = [r.CSVRenderer] + api_settings.DEFAULT_RENDERER_CLASSES
+    renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]
 
     @method_decorator(cache_page(60 * 10))
     def dispatch(self, *args, **kwargs):
@@ -106,7 +106,7 @@ class StatesListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = StateSerializer
     lookup_field = "slug"  # Don't use State.id!
-    renderer_classes = [r.CSVRenderer] + api_settings.DEFAULT_RENDERER_CLASSES
+    renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = StateFilter
 

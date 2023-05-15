@@ -1,8 +1,9 @@
 import json
-from .skbio_protein import SkbSequence
-from .util import protein_weight, slugify
+
 from .align import align_seqs, parental_numbering
 from .mutations import get_mutations, mutate_sequence
+from .skbio_protein import SkbSequence
+from .util import protein_weight, slugify
 
 try:
     import requests
@@ -29,7 +30,7 @@ def generate_labels(seq, mods=None, zeroindex=1):
 
 
 def from_fpbase(slug):
-    url = "https://www.fpbase.org/api/{}/?format=json".format(slugify(slug))
+    url = f"https://www.fpbase.org/api/{slugify(slug)}/?format=json"
     response = requests.get(url)
     return FPSeq(json.loads(response.content).get("seq"))
 

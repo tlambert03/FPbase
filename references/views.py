@@ -94,7 +94,7 @@ def add_excerpt(request, pk=None):
                     )
                     mail_managers("Excerpt Added", msg, fail_silently=True)
                 reversion.set_user(request.user)
-                reversion.set_comment("Excerpt from {} added".format(ref))
+                reversion.set_comment(f"Excerpt from {ref} added")
         return JsonResponse({"status": "success"})
     except Exception as e:
         return JsonResponse({"status": "failed", "msg": e})

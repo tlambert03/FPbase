@@ -1,4 +1,3 @@
-from attr import field
 import graphene
 import graphene_django_optimizer as gdo
 from django.db.models import Prefetch
@@ -16,12 +15,12 @@ def nullable_enum_from_field(_model, _field):
     choices = getattr(field, "choices", None)
     if choices:
         meta = field.model._meta
-        name = to_camel_case("my{}_{}".format(meta.object_name, field.name))
+        name = to_camel_case(f"my{meta.object_name}_{field.name}")
         choices = list(get_choices(choices))
         named_choices = [(c[0], c[1]) for c in choices]
         named_choices_descriptions = {c[0]: c[2] for c in choices}
 
-        class EnumWithDescriptionsType(object):
+        class EnumWithDescriptionsType:
             @property
             def description(self):
                 return named_choices_descriptions[self.name]
