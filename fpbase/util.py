@@ -53,4 +53,4 @@ def show_queries():
 
 def is_ajax(request):
     # https://stackoverflow.com/a/70419609
-    return request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"

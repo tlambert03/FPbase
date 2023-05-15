@@ -19,6 +19,7 @@ class AuthorAdmin(admin.ModelAdmin):
     def num_refs(self, obj):
         return mark_safe(obj.publications.all().count())
 
+    @admin.display(description="References")
     def ref_links(self, obj):
         refs = obj.publications.all()
         links = []
@@ -28,6 +29,7 @@ class AuthorAdmin(admin.ModelAdmin):
             links.append(link)
         return mark_safe(", ".join(links))
 
+    @admin.display(description="Proteins")
     def protein_links(self, obj):
         proteins = obj.protein_contributions
         links = []
@@ -36,9 +38,6 @@ class AuthorAdmin(admin.ModelAdmin):
             link = f'<a href="{url}">{prot}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
-
-    ref_links.short_description = "References"
-    protein_links.short_description = "Proteins"
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request).prefetch_related("publications")
@@ -131,6 +130,7 @@ class ReferenceAdmin(CompareVersionAdmin):
         "updated_by",
     )
 
+    @admin.display(description="Authors")
     def author_links(self, obj):
         authors = obj.authors.all()
         links = []
@@ -140,6 +140,7 @@ class ReferenceAdmin(CompareVersionAdmin):
             links.append(link)
         return mark_safe(", ".join(links))
 
+    @admin.display(description="Primary Proteins")
     def protein_links(self, obj):
         proteins = obj.primary_proteins.all()
         links = []
@@ -149,6 +150,7 @@ class ReferenceAdmin(CompareVersionAdmin):
             links.append(link)
         return mark_safe(", ".join(links))
 
+    @admin.display(description="Secondary Proteins")
     def secondary_proteins(self, obj):
         primary = obj.primary_proteins.all()
         proteins = obj.proteins.exclude(id__in=primary)
@@ -159,6 +161,7 @@ class ReferenceAdmin(CompareVersionAdmin):
             links.append(link)
         return mark_safe(", ".join(links))
 
+    @admin.display(description="BleachMeasurements")
     def bleach_links(self, obj):
         links = []
         for bm in obj.bleach_measurements.all():
@@ -166,12 +169,6 @@ class ReferenceAdmin(CompareVersionAdmin):
             link = f'<a href="{url}">{bm}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
-
-    bleach_links.short_description = "BleachMeasurements"
-
-    author_links.short_description = "Authors"
-    protein_links.short_description = "Primary Proteins"
-    secondary_proteins.short_description = "Secondary Proteins"
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
