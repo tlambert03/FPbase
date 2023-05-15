@@ -1,3 +1,4 @@
+from attr import field
 import graphene
 import graphene_django_optimizer as gdo
 from django.db.models import Prefetch
