@@ -1,10 +1,10 @@
 from django.core.cache import cache
-from proteins.util.helpers import forster_list
 from django.core.management.base import BaseCommand
+
+from proteins.util.helpers import forster_list
 
 
 class Command(BaseCommand):
-
     help = "Cache Forster distance calculations across database"
 
     def handle(self, *app_labels, **options):

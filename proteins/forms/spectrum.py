@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Layout, Submit, Field
+from crispy_forms.layout import Div, Field, Layout, Submit
 from dal import autocomplete
 from django import forms
 from django.apps import apps
@@ -46,9 +46,7 @@ class SpectrumForm(forms.ModelForm):
     )
     owner = forms.CharField(
         max_length=100,
-        label=mark_safe(
-            '<span class="owner-type">Owner</span> Name<span class="asteriskField">*</span>'
-        ),
+        label=mark_safe('<span class="owner-type">Owner</span> Name<span class="asteriskField">*</span>'),
         required=False,
         help_text="Name of protein, dye, filter, etc...",
     )
@@ -106,9 +104,7 @@ class SpectrumForm(forms.ModelForm):
             "owner_state",
             "owner",
         )
-        widgets = {
-            "data": forms.Textarea(attrs={"class": "vLargeTextField", "rows": 2})
-        }
+        widgets = {"data": forms.Textarea(attrs={"class": "vLargeTextField", "rows": 2})}
 
     def clean(self):
         cleaned_data = super().clean()
@@ -127,9 +123,7 @@ class SpectrumForm(forms.ModelForm):
         if cat != Spectrum.PROTEIN:
             owner_model = apps.get_model("proteins", self.lookup[cat][1])
             owner_name = self.cleaned_data.get("owner")
-            owner_obj, c = owner_model.objects.get_or_create(
-                name=owner_name, defaults={"created_by": self.user}
-            )
+            owner_obj, c = owner_model.objects.get_or_create(name=owner_name, defaults={"created_by": self.user})
             if not c:
                 owner_obj.update_by = self.user
                 owner_obj.save()
@@ -148,13 +142,9 @@ class SpectrumForm(forms.ModelForm):
                         filetext += chunk
                 x, y, headers = text_to_spectra(filetext)
                 if not len(y):
-                    self.add_error(
-                        "file", "Did not find a data column in the provided file"
-                    )
+                    self.add_error("file", "Did not find a data column in the provided file")
                 if not len(x):
-                    self.add_error(
-                        "file", "Could not parse wavelengths from first column"
-                    )
+                    self.add_error("file", "Could not parse wavelengths from first column")
             except Exception:
                 self.add_error(
                     "file",
@@ -174,15 +164,10 @@ class SpectrumForm(forms.ModelForm):
                 self.add_error(
                     "owner_state",
                     forms.ValidationError(
-                        "%(owner)s already has a{} %(stype)s spectrum".format(
-                            "n" if stype != Spectrum.TWOP else ""
-                        ),
+                        "%(owner)s already has a{} %(stype)s spectrum".format("n" if stype != Spectrum.TWOP else ""),
                         params={
                             "owner": owner_state,
-                            "stype": owner_state.spectra.filter(subtype=stype)
-                            .first()
-                            .get_subtype_display()
-                            .lower(),
+                            "stype": owner_state.spectra.filter(subtype=stype).first().get_subtype_display().lower(),
                         },
                         code="owner_exists",
                     ),
@@ -202,22 +187,20 @@ class SpectrumForm(forms.ModelForm):
             obj = mod.objects.get(slug=slugify(owner))
         except ObjectDoesNotExist:
             return owner
-        except KeyError:
+        except KeyError as e:
             # this might be repetitive... since a missing category will already
             # throw an error prior to this point
             if not cat:
-                raise forms.ValidationError("Category not provided")
+                raise forms.ValidationError("Category not provided") from e
             else:
-                raise forms.ValidationError("Category not recognized")
+                raise forms.ValidationError("Category not recognized") from e
         else:
             # object exists... check if it has this type of spectrum
             exists = False
             if isinstance(obj, Fluorophore):
                 if obj.spectra.filter(subtype=stype).exists():
                     exists = True
-                    stype = (
-                        obj.spectra.filter(subtype=stype).first().get_subtype_display()
-                    )
+                    stype = obj.spectra.filter(subtype=stype).first().get_subtype_display()
             elif hasattr(obj, "spectrum") and obj.spectrum:
                 exists = True
                 stype = obj.spectrum.get_subtype_display()

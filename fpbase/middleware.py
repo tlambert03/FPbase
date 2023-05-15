@@ -1,13 +1,14 @@
-from django.shortcuts import redirect
-from django.core.exceptions import MiddlewareNotUsed
-from django.conf import settings
 import logging
+
+from django.conf import settings
+from django.core.exceptions import MiddlewareNotUsed
+from django.shortcuts import redirect
 
 logger = logging.getLogger(__name__)
 
 
 # https://github.com/etianen/django-herokuapp/blob/master/herokuapp/middleware.py
-class CanonicalDomainMiddleware(object):
+class CanonicalDomainMiddleware:
 
     """Middleware that redirects to a canonical domain."""
 
@@ -30,8 +31,6 @@ class CanonicalDomainMiddleware(object):
         canonical_hostname = settings.CANONICAL_URL.split("://", 1)[1]
         if hostname != canonical_hostname:
             canonical_url = settings.CANONICAL_URL + request.get_full_path()
-            logger.debug(
-                "REDIRECTING {} to {}".format(request.get_host(), canonical_url)
-            )
+            logger.debug(f"REDIRECTING {request.get_host()} to {canonical_url}")
             return redirect(canonical_url, permanent=True)
         return self.get_response(request)

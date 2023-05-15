@@ -191,7 +191,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
     return (
       <span className={`tab-header ${populated ? " populated" : ""}`}>
         <span className={classes.bigShow}>
-          {label} 
+          {label}
           {' '}
           {populated ? " ✶" : ""}
         </span>

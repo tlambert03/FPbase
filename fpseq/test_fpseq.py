@@ -1,5 +1,6 @@
-from . import Mutation, mutate_sequence
 import pytest
+
+from . import Mutation, mutate_sequence
 
 
 class TestMutations:
@@ -62,7 +63,5 @@ class TestMutations:
             "PVMQKKTKGWEPNTEMMYPADGGLRGYTHMALKVDGGGHLSCSFVTTYRSKKTVGNIKMPGIHAVDH"
             "RLERLEESDNEMFVVQREHAVAKFAGLGGGMDELYK"
         )
-        result = mutate_sequence(
-            mruby, "N2_S3delinsVSKGEE/L15M/I102V/A119V/A131P/*228MextDELYK"
-        )
+        result = mutate_sequence(mruby, "N2_S3delinsVSKGEE/L15M/I102V/A119V/A131P/*228MextDELYK")
         assert result == mruby2

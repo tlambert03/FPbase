@@ -1,5 +1,7 @@
-import requests
 from xml.dom import minidom
+
+import requests
+
 from proteins.validators import validate_uniprot
 
 BASE = "http://www.uniprot.org"
@@ -8,11 +10,11 @@ TOOL_ENDPOINT = "/uploadlists/"
 
 
 def get_uniprot_info(unip_id):
-    """ Get sequence, accessions, genbank matches, and references from Uniprot"""
+    """Get sequence, accessions, genbank matches, and references from Uniprot"""
     try:
         validate_uniprot(unip_id)
     except Exception:
-        print("ERROR, invalid uniprot ID: {}".format(unip_id))
+        print(f"ERROR, invalid uniprot ID: {unip_id}")
         return {}
     D = parse_uniprot_record(get_uniprot_record(unip_id))
     D["uniprot"] = unip_id

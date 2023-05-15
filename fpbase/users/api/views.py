@@ -16,7 +16,7 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
     lookup_field = "username"
 
     def get_queryset(self, *args, **kwargs):
-        assert isinstance(self.request.user.id, int)  # noqa S101 # for mypy
+        assert isinstance(self.request.user.id, int)  # S101 # for mypy
         return self.queryset.filter(id=self.request.user.id)
 
     @action(detail=False)

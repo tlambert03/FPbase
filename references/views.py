@@ -13,7 +13,7 @@ from .models import Author, Reference
 
 
 class AuthorDetailView(DetailView):
-    """ renders html for single author page  """
+    """renders html for single author page"""
 
     queryset = Author.objects.all().prefetch_related(
         "publications", "publications__authors", "publications__primary_proteins"
@@ -21,15 +21,13 @@ class AuthorDetailView(DetailView):
 
 
 class ReferenceListView(ListView):
-    """ renders html for single reference page  """
+    """renders html for single reference page"""
 
-    queryset = Reference.objects.all().prefetch_related(
-        "authors", "proteins", "primary_proteins"
-    )
+    queryset = Reference.objects.all().prefetch_related("authors", "proteins", "primary_proteins")
 
 
 class ReferenceDetailView(DetailView):
-    """ renders html for single reference page  """
+    """renders html for single reference page"""
 
     queryset = Reference.objects.all().prefetch_related("authors")
 
@@ -44,8 +42,8 @@ class ReferenceDetailView(DetailView):
                 doi = self.kwargs.get(self.pk_url_kwarg)
                 queryset = queryset.filter(doi=doi.lower())
                 obj = queryset.get()
-            except queryset.model.DoesNotExist:
-                raise Http404("No reference found matching this query")
+            except queryset.model.DoesNotExist as e:
+                raise Http404("No reference found matching this query") from e
             return obj
 
     def get_context_data(self, **kwargs):
@@ -85,9 +83,7 @@ def add_excerpt(request, pk=None):
             content = request.POST.get("excerpt_content")
             if content:
                 # P.references.add(ref)
-                Excerpt.objects.create(
-                    reference=ref, content=strip_tags(content), created_by=request.user
-                )
+                Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
                 if not request.user.is_staff:
                     msg = "User: {}\nReference: {}, {}\nExcerpt: {}\n{}".format(
                         request.user.username,
@@ -98,7 +94,7 @@ def add_excerpt(request, pk=None):
                     )
                     mail_managers("Excerpt Added", msg, fail_silently=True)
                 reversion.set_user(request.user)
-                reversion.set_comment("Excerpt from {} added".format(ref))
+                reversion.set_comment(f"Excerpt from {ref} added")
         return JsonResponse({"status": "success"})
     except Exception as e:
         return JsonResponse({"status": "failed", "msg": e})

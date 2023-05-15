@@ -42,7 +42,7 @@ from proteins.util.maintain import validate_node
 #     model = Mutation
 
 
-class SpectrumOwner(object):
+class SpectrumOwner:
     list_display = ("__str__", "spectra", "created_by", "created")
     list_select_related = ("created_by",)
     list_filter = ("created", "manufacturer")
@@ -50,12 +50,13 @@ class SpectrumOwner(object):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.readonly_fields = self.readonly_fields + ("spectra",)
+        self.readonly_fields = (*self.readonly_fields, "spectra")
 
+    @admin.display(description="spectra")
     def spectra(self, obj):
         def _makelink(sp):
             url = reverse("admin:proteins_spectrum_change", args=(sp.pk,))
-            return '<a href="{}">{}</a>'.format(url, sp.get_subtype_display())
+            return f'<a href="{url}">{sp.get_subtype_display()}</a>'
 
         links = []
         if isinstance(obj, Fluorophore):
@@ -63,8 +64,6 @@ class SpectrumOwner(object):
         else:
             links.append(_makelink(obj.spectrum))
         return mark_safe(", ".join(links))
-
-    spectra.short_description = "spectra"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -142,15 +141,14 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
         "updated_by",
     )
 
+    @admin.display(description="BleachMeasurements")
     def bleach_links(self, obj):
         links = []
         for bm in obj.bleach_measurements.all():
             url = reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,))
-            link = '<a href="{}">{}</a>'.format(url, bm)
+            link = f'<a href="{url}">{bm}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
-
-    bleach_links.short_description = "BleachMeasurements"
 
 
 class LineageInline(admin.TabularInline):
@@ -191,16 +189,15 @@ class FilterAdmin(SpectrumOwner, VersionAdmin):
     ordering = ("-created",)
     readonly_fields = ("configs",)
 
+    @admin.display(description="OC Memberships")
     def configs(self, obj):
         def _makelink(oc):
             url = reverse("admin:proteins_opticalconfig_change", args=(oc.pk,))
-            return '<a href="{}">{}</a>'.format(url, oc)
+            return f'<a href="{url}">{oc}</a>'
 
         links = []
         [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
         return mark_safe(", ".join(links))
-
-    configs.short_description = "OC Memberships"
 
 
 @admin.register(Camera)
@@ -261,15 +258,14 @@ class SpectrumAdmin(VersionAdmin):
         ]
         return fields
 
+    @admin.display(description="Owner")
     def owner(self, obj):
         url = reverse(
-            "admin:proteins_{}_change".format(obj.owner._meta.model.__name__.lower()),
+            f"admin:proteins_{obj.owner._meta.model.__name__.lower()}_change",
             args=(obj.owner.pk,),
         )
-        link = '<a href="{}">{}</a>'.format(url, obj.owner)
+        link = f'<a href="{url}">{obj.owner}</a>'
         return mark_safe(link)
-
-    owner.short_description = "Owner"
 
     # def get_queryset(self, request):
     #     qs = super().get_queryset(request)
@@ -340,11 +336,10 @@ class StateAdmin(CompareVersionAdmin):
         ),
     ]
 
+    @admin.display(description="Protein")
     def protein_link(self, obj):
         url = reverse("admin:proteins_protein_change", args=([obj.protein.pk]))
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.protein))
-
-    protein_link.short_description = "Protein"
+        return mark_safe(f'<a href="{url}">{obj.protein}</a>')
 
 
 class StateTransitionAdmin(VersionAdmin):
@@ -462,12 +457,10 @@ class OrganismAdmin(CompareVersionAdmin):
         obj.save()
 
 
+@admin.action(description="Mark selected proteins as approved")
 def make_approved(modeladmin, request, queryset):
     # note, this will fail if the list is ordered by numproteins
     queryset.update(status=Protein.STATUS.approved)
-
-
-make_approved.short_description = "Mark selected proteins as approved"
 
 
 @admin.register(Protein)
@@ -573,12 +566,11 @@ class OpticalConfigAdmin(admin.ModelAdmin):
     list_display = ("__str__", "microscope", "owner_link", "created")
     fields = (("name", "microscope"), ("laser", "light"), ("camera", "owner"))
 
+    @admin.display(description="Owner")
     def owner_link(self, obj):
         if obj.microscope and obj.microscope.owner:
             url = reverse("admin:users_user_change", args=([obj.microscope.owner.pk]))
-            return mark_safe('<a href="{}">{}</a>'.format(url, obj.microscope.owner))
-
-    owner_link.short_description = "Owner"
+            return mark_safe(f'<a href="{url}">{obj.microscope.owner}</a>')
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -605,40 +597,35 @@ class MicroscopeAdmin(admin.ModelAdmin):
     list_filter = ("created",)
     ordering = ("-modified",)
 
+    @admin.display(description="Owner")
     def owner_link(self, obj):
         if obj.owner:
             url = reverse("admin:users_user_change", args=([obj.owner.pk]))
-            return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
+            return mark_safe(f'<a href="{url}">{obj.owner}</a>')
 
-    owner_link.short_description = "Owner"
-
+    @admin.display(ordering="oc_count")
     def OCs(self, obj):
         return obj.optical_configs.count()
 
-    OCs.admin_order_field = "oc_count"
-
+    @admin.display(description="Optical Configs")
     def configs(self, obj):
         def _makelink(oc):
             url = reverse("admin:proteins_opticalconfig_change", args=(oc.pk,))
-            return '<a href="{}">{}</a>'.format(url, oc)
+            return f'<a href="{url}">{oc}</a>'
 
         links = []
         [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
         return mark_safe(", ".join(links))
-
-    configs.short_description = "Optical Configs"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request).annotate(oc_count=Count("optical_configs"))
         return qs.prefetch_related("optical_configs")
 
 
+@admin.action(description="Mark selected collections as private")
 def make_private(modeladmin, request, queryset):
     # note, this will fail if the list is ordered by numproteins
     queryset.update(private=True)
-
-
-make_private.short_description = "Mark selected collections as private"
 
 
 @admin.register(ProteinCollection)
@@ -652,16 +639,14 @@ class ProteinCollectionAdmin(admin.ModelAdmin):
     search_fields = ("name", "proteins__name")
     actions = [make_private]
 
+    @admin.display(description="Owner")
     def owner_link(self, obj):
         url = reverse("admin:users_user_change", args=([obj.owner.pk]))
-        return mark_safe('<a href="{}">{}</a>'.format(url, obj.owner))
+        return mark_safe(f'<a href="{url}">{obj.owner}</a>')
 
-    owner_link.short_description = "Owner"
-
+    @admin.display(ordering="proteins_count")
     def numproteins(self, obj):
         return obj.proteins.count()
-
-    numproteins.admin_order_field = "proteins_count"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request).annotate(proteins_count=Count("proteins"))
@@ -674,12 +659,8 @@ class LineageAdminForm(forms.ModelForm):
         fields = ("protein", "parent", "mutation", "root_node", "rootmut")
         readonly_fields = "root_node"
 
-    parent = forms.ModelChoiceField(
-        required=False, queryset=Lineage.objects.prefetch_related("protein").all()
-    )
-    root_node = forms.ModelChoiceField(
-        queryset=Lineage.objects.prefetch_related("protein").all()
-    )
+    parent = forms.ModelChoiceField(required=False, queryset=Lineage.objects.prefetch_related("protein").all())
+    root_node = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related("protein").all())
 
 
 @admin.register(Excerpt)
@@ -741,26 +722,23 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
         ),
     ]
 
-    formfield_overrides = {
-        MutationSetField: {"widget": TextInput(attrs={"size": "100%"})}
-    }
+    formfield_overrides = {MutationSetField: {"widget": TextInput(attrs={"size": "100%"})}}
 
     max_length = 25
 
+    @admin.display(description="Mutation from parent")
     def mutation_ellipsis(self, obj):
         if len(str(obj.mutation)) > self.max_length:
             return "%s..." % str(obj.mutation)[: self.max_length]
         return str(obj.mutation)
 
-    mutation_ellipsis.short_description = "Mutation from parent"
-
+    @admin.display(description="Mutation from root")
     def rootmut_ellipsis(self, obj):
         if len(str(obj.rootmut)) > self.max_length:
             return "%s..." % str(obj.rootmut)[: self.max_length]
         return str(obj.rootmut)
 
-    rootmut_ellipsis.short_description = "Mutation from root"
-
+    @admin.display(description="OK?")
     def status(self, obj):
         if obj.parent and obj.parent.protein.seq and obj.protein.seq:
             try:
@@ -770,8 +748,6 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
             except Exception:
                 return mark_safe("❌")
         return ""
-
-    status.short_description = "OK?"
 
     def errors(self, obj):
         errors = validate_node(obj)

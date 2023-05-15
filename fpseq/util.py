@@ -1,7 +1,6 @@
-import unicodedata
 import re
+import unicodedata
 from textwrap import wrap
-
 
 AA_WEIGHTS = {
     "A": 89.0932,
@@ -63,12 +62,12 @@ letters_1to3 = {v: k for k, v in letters_3to1.items()}
 
 
 def seq1(seq):
-    """Convert protein sequence from three-letter to one-letter code. """
+    """Convert protein sequence from three-letter to one-letter code."""
     return "".join(letters_3to1.get(aa) for aa in seq)
 
 
 def seq3(seq):
-    """Convert protein sequence from one-letter to three-letter code. """
+    """Convert protein sequence from one-letter to three-letter code."""
     return "".join(letters_1to3.get(aa) for aa in seq)
 
 
@@ -76,7 +75,7 @@ def protein_weight(seq):
     try:
         return sum(AA_WEIGHTS[x] for x in seq) - (len(seq) - 1) * WATER
     except KeyError as e:
-        raise ValueError("%s is not a valid unambiguous amino acid letter" % e)
+        raise ValueError("%s is not a valid unambiguous amino acid letter" % e) from e
 
 
 def slugify(value, allow_unicode=False):
@@ -89,11 +88,7 @@ def slugify(value, allow_unicode=False):
     if allow_unicode:
         value = unicodedata.normalize("NFKC", value)
     else:
-        value = (
-            unicodedata.normalize("NFKD", value)
-            .encode("ascii", "ignore")
-            .decode("ascii")
-        )
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     value = re.sub(r"[^\w\s-]", "", value).strip().lower()
     return re.sub(r"[-\s]+", "-", value)
 

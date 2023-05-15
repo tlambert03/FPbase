@@ -1,6 +1,9 @@
+import contextlib
+from collections import OrderedDict, defaultdict
+
+from reversion.models import Revision, Version
 from reversion.revisions import transaction
-from reversion.models import Version, Revision
-from collections import defaultdict, OrderedDict
+
 from references.models import Reference
 
 
@@ -21,7 +24,7 @@ def listdiff(a, b):
     return d or None
 
 
-def dictdiff(a, b, ignoreKeys=[]):
+def dictdiff(a, b, ignoreKeys=()):
     if not (isinstance(a, dict) and isinstance(b, dict)):
         if isinstance(a, list) and isinstance(b, list):
             return listdiff(a, b)
@@ -82,10 +85,8 @@ def old_object(ver):
         return ex.object
 
 
-def get_history(obj, ignoreKeys=[]):
-    rev_ids = sorted(
-        Version.objects.get_for_object(obj).values_list("revision__id", flat=True)
-    )
+def get_history(obj, ignoreKeys=()):
+    rev_ids = sorted(Version.objects.get_for_object(obj).values_list("revision__id", flat=True))
 
     revisions = list(
         Revision.objects.filter(id__in=rev_ids)
@@ -95,24 +96,20 @@ def get_history(obj, ignoreKeys=[]):
 
     object_versions = defaultdict(list)
     object_revisions = defaultdict(list)
-    object_reprs = dict()
+    object_reprs = {}
     for rev in revisions:
         for v in rev.version_set.all():
             object_repr = (v.object_id, v.content_type_id)
             object_versions[object_repr].append(v)
             object_revisions[object_repr].append(rev)
-            object_reprs[object_repr] = "{} {}".format(
-                v.content_type.name, v.object_repr
-            )
+            object_reprs[object_repr] = f"{v.content_type.name} {v.object_repr}"
 
     changes = OrderedDict([(rev, defaultdict(list)) for rev in revisions[1:]])
     # changes[revisions[0]] = {"initial revision"
     for object_repr, versions in object_versions.items():
         rep = object_reprs[object_repr]
         for n in range(len(versions) - 1):
-            diffs = dictdiff(
-                versions[n].field_dict, versions[n + 1].field_dict, ignoreKeys
-            )
+            diffs = dictdiff(versions[n].field_dict, versions[n + 1].field_dict, ignoreKeys)
             if diffs:
                 revision = versions[n + 1].revision
                 for field, actions in diffs.items():
@@ -120,21 +117,19 @@ def get_history(obj, ignoreKeys=[]):
                         if field == "references":
                             _result = []
                             for ref_id in result.split(", "):
-                                try:
+                                with contextlib.suppress(Reference.DoesNotExist):
                                     ref = Reference.objects.get(id=ref_id)
                                     _result.append(ref.citation)
-                                except Reference.DoesNotExist:
-                                    pass
                             result = ", ".join(_result)
                         changes[revision][rep].append((action, field, result))
         revs = object_revisions[object_repr]
-        if max([r.id for r in revs]) < max(rev_ids):
-            del_at = next(i for i in revisions if i.id > max([r.id for r in revs]))
+        if max(r.id for r in revs) < max(rev_ids):
+            del_at = next(i for i in revisions if i.id > max(r.id for r in revs))
             changes[del_at][rep].append(("removed", None, None))
-        if min([r.id for r in revs]) > min(rev_ids):
+        if min(r.id for r in revs) > min(rev_ids):
             changes[revs[0]][rep].append(("added", None, None))
 
-    for c, v in changes.items():
+    for _c, v in changes.items():
         v.default_factory = None
 
     return changes

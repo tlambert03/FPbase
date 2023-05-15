@@ -75,4 +75,3 @@ If you have data that you would like to contribute to the database, please do *n
 [<img src="static/src/images/gitbook_avatar-rectangle.png" width="200">](https://www.gitbook.com/)
 
 [<img src="static/src/images/Browserstack-logo@2x.png" width="250">](https://www.browserstack.com)
-

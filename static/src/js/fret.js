@@ -481,4 +481,3 @@ export default function initFRET() {
     }
   });
 }
-

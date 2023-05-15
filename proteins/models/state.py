@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -216,13 +215,13 @@ class State(Fluorophore):
     objects = FluorophoreManager()
 
     class Meta:
-        verbose_name = u"State"
+        verbose_name = "State"
         unique_together = (("protein", "ex_max", "em_max", "ext_coeff", "qy"),)
 
     def __str__(self):
         if self.name in (self.DEFAULT_NAME, "default"):
             return str(self.protein.name)
-        return "{} ({})".format(self.protein.name, self.name)
+        return f"{self.protein.name} ({self.name})"
 
     def get_absolute_url(self):
         return self.protein.get_absolute_url()
@@ -232,14 +231,10 @@ class State(Fluorophore):
 
     @property
     def local_brightness(self):
-        """ brightness relative to spectral neighbors.  1 = average """
+        """brightness relative to spectral neighbors.  1 = average"""
         if not (self.em_max and self.brightness):
             return 1
-        B = (
-            State.objects.exclude(id=self.id)
-            .filter(em_max__around=self.em_max)
-            .aggregate(Avg("brightness"))
-        )
+        B = State.objects.exclude(id=self.id).filter(em_max__around=self.em_max).aggregate(Avg("brightness"))
         try:
             v = round(self.brightness / B["brightness__avg"], 4)
         except TypeError:

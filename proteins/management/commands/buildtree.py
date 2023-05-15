@@ -7,7 +7,6 @@ from proteins.models import Protein
 
 
 class Command(BaseCommand):
-
     help = "Cache Forster distance calculations across database"
 
     def handle(self, *app_labels, **options):

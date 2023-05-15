@@ -1,6 +1,7 @@
 from celery import shared_task
-from .util.helpers import forster_list
 from sentry_sdk import capture_exception
+
+from .util.helpers import forster_list
 
 
 @shared_task
@@ -10,7 +11,7 @@ def calc_fret():
 
 @shared_task(bind=True)
 def calculate_scope_report(self, scope_id, outdated_ids=None, fluor_collection=None):
-    from proteins.models import Microscope, State, Dye, OcFluorEff
+    from proteins.models import Dye, Microscope, OcFluorEff, State
 
     if not fluor_collection:
         fluor_collection = list(State.objects.with_spectra())

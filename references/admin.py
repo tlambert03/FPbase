@@ -1,12 +1,11 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-
-from references.models import Reference, Author
-from references.forms import ReferenceForm
 from reversion_compare.admin import CompareVersionAdmin
 
-from proteins.models import Protein, Excerpt
+from proteins.models import Excerpt, Protein
+from references.forms import ReferenceForm
+from references.models import Author, Reference
 
 
 @admin.register(Author)
@@ -20,26 +19,25 @@ class AuthorAdmin(admin.ModelAdmin):
     def num_refs(self, obj):
         return mark_safe(obj.publications.all().count())
 
+    @admin.display(description="References")
     def ref_links(self, obj):
         refs = obj.publications.all()
         links = []
         for ref in refs:
             url = reverse("admin:references_reference_change", args=(ref.pk,))
-            link = '<a href="{}">{}</a>'.format(url, ref)
+            link = f'<a href="{url}">{ref}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
+    @admin.display(description="Proteins")
     def protein_links(self, obj):
         proteins = obj.protein_contributions
         links = []
         for prot in proteins:
             url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = '<a href="{}">{}</a>'.format(url, prot)
+            link = f'<a href="{url}">{prot}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
-
-    ref_links.short_description = "References"
-    protein_links.short_description = "Proteins"
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request).prefetch_related("publications")
@@ -132,47 +130,45 @@ class ReferenceAdmin(CompareVersionAdmin):
         "updated_by",
     )
 
+    @admin.display(description="Authors")
     def author_links(self, obj):
         authors = obj.authors.all()
         links = []
         for author in authors:
             url = reverse("admin:references_author_change", args=(author.pk,))
-            link = '<a href="{}">{}</a>'.format(url, author)
+            link = f'<a href="{url}">{author}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
+    @admin.display(description="Primary Proteins")
     def protein_links(self, obj):
         proteins = obj.primary_proteins.all()
         links = []
         for prot in proteins:
             url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = '<a href="{}">{}</a>'.format(url, prot)
+            link = f'<a href="{url}">{prot}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
+    @admin.display(description="Secondary Proteins")
     def secondary_proteins(self, obj):
         primary = obj.primary_proteins.all()
         proteins = obj.proteins.exclude(id__in=primary)
         links = []
         for prot in proteins:
             url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = '<a href="{}">{}</a>'.format(url, prot)
+            link = f'<a href="{url}">{prot}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
 
+    @admin.display(description="BleachMeasurements")
     def bleach_links(self, obj):
         links = []
         for bm in obj.bleach_measurements.all():
             url = reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,))
-            link = '<a href="{}">{}</a>'.format(url, bm)
+            link = f'<a href="{url}">{bm}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
-
-    bleach_links.short_description = "BleachMeasurements"
-
-    author_links.short_description = "Authors"
-    protein_links.short_description = "Primary Proteins"
-    secondary_proteins.short_description = "Secondary Proteins"
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:
@@ -181,9 +177,5 @@ class ReferenceAdmin(CompareVersionAdmin):
         obj.save(skipdoi=not form.cleaned_data["refetch_info_on_save"])
 
     def get_queryset(self, request):
-        queryset = (
-            super()
-            .get_queryset(request)
-            .prefetch_related("authors", "primary_proteins")
-        )
+        queryset = super().get_queryset(request).prefetch_related("authors", "primary_proteins")
         return queryset

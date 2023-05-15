@@ -25,9 +25,7 @@ CRISPY_FAIL_SILENTLY = not DEBUG
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 # Note: This random key only used for development and testing, not on live site.
-SECRET_KEY = env(
-    "DJANGO_SECRET_KEY", default="w)CU)uzJ<JMlkGTrfz?:)W>]EG!PFngIvQZq#9.r=sfHUmCPIe"
-)
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="w)CU)uzJ<JMlkGTrfz?:)W>]EG!PFngIvQZq#9.r=sfHUmCPIe")
 
 # Mail settings
 # ------------------------------------------------------------------------------
@@ -35,9 +33,7 @@ SECRET_KEY = env(
 EMAIL_PORT = 1025
 
 EMAIL_HOST = "localhost"
-EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
-)
+EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
 
 if env("MAILGUN_API_KEY", default=False) and env("MAILGUN_DOMAIN", default=False):
     INSTALLED_APPS += [
@@ -80,7 +76,9 @@ INTERNAL_IPS = [
 ]
 
 DEBUG_TOOLBAR_CONFIG = {
-    "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel",],
+    "DISABLE_PANELS": [
+        "debug_toolbar.panels.redirects.RedirectsPanel",
+    ],
     "SHOW_TEMPLATE_CONTEXT": True,
 }
 
@@ -110,7 +108,10 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {
-        "console": {"class": "logging.StreamHandler", "level": "DEBUG",},
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "DEBUG",
+        },
         "file": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
@@ -122,12 +123,16 @@ LOGGING = {
             "handlers": ["console", "file"],
             "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
         },
-        "django.template": {"handlers": ["file"], "level": "INFO", "propagate": True,},
-        "django.utils": {"handlers": ["file"], "level": "INFO", "propagate": True,},
-        # "proteins": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
-        # "fpbase": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
-        "django.template": {"handlers": ["file"], "level": "INFO", "propagate": True,},
-        "django.utils": {"handlers": ["file"], "level": "INFO", "propagate": True,},
+        "django.template": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "django.utils": {
+            "handlers": ["file"],
+            "level": "INFO",
+            "propagate": True,
+        },
         # "proteins": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
         # "fpbase": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
     },

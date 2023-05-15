@@ -1,17 +1,15 @@
-import requests
-import json
 import datetime
+import json
 import re
 
+import requests
 from Bio import Entrez
 from habanero import Crossref
 
 Entrez.email = "talley.lambert+fpbase@gmail.com"
 email = Entrez.email
 ID_CONVERT_URL = (
-    "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?tool=FPbase&email="
-    + email
-    + "&ids=%s&format=json"
+    "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?tool=FPbase&email=" + email + "&ids=%s&format=json"
 )
 
 
@@ -25,7 +23,7 @@ def pmc_converter(id, to="pmid"):
         'all'   :   get full dict
     """
     many = False
-    if isinstance(id, (list, tuple, set)):
+    if isinstance(id, list | tuple | set):
         if len(id) > 200:
             out = []
             ids = [i for i in id if i]  # convert to list and remove null
@@ -68,9 +66,9 @@ def parse_crossref(doidict):
         "doi": doidict.get("DOI", None),
     }
     out["title"] = out["title"][0] if len(out["title"]) else None
-    dp = doidict.get(
-        "published-online", doidict.get("published-print", doidict.get("issued", {}))
-    ).get("date-parts", [None])[0]
+    dp = doidict.get("published-online", doidict.get("published-print", doidict.get("issued", {}))).get(
+        "date-parts", [None]
+    )[0]
     dp.append(1) if dp and len(dp) == 1 else None
     dp.append(1) if dp and len(dp) == 2 else None
     out["date"] = datetime.date(*dp) if dp and all(dp) else None
@@ -83,7 +81,7 @@ def crossref(doi):
     response = cr.works(ids=doi)
     # habanero returns a list if doi is a list of len > 1
     # otherwise a single dict
-    if isinstance(doi, (list, tuple, set)) and len(doi) > 1:
+    if isinstance(doi, list | tuple | set) and len(doi) > 1:
         D = [parse_crossref(i) for i in response]
         return {x.pop("doi"): x for x in D}
     else:
@@ -112,14 +110,10 @@ def get_pmid_info(pmid):
         pubmed_record = pubmed_record[0]
         date = None
         try:
-            date = datetime.datetime.strptime(
-                pubmed_record["PubDate"], "%Y %b %d"
-            ).date()
+            date = datetime.datetime.strptime(pubmed_record["PubDate"], "%Y %b %d").date()
         except Exception:
             try:
-                date = datetime.datetime.strptime(
-                    pubmed_record["EPubDate"], "%Y %b %d"
-                ).date()
+                date = datetime.datetime.strptime(pubmed_record["EPubDate"], "%Y %b %d").date()
             except Exception:
                 pass
         return {
@@ -135,12 +129,11 @@ def get_pmid_info(pmid):
         }
 
 
-def merge_info(dict1, dict2, exclude=[]):
-    """ existings values in dict2 will overwrite dict1 """
+def merge_info(dict1, dict2, exclude=()):
+    """existings values in dict2 will overwrite dict1"""
     for key in dict1.keys():
-        if key in dict2 and dict2[key]:
-            if key not in exclude:
-                dict1[key] = dict2[key]
+        if key in dict2 and dict2[key] and key not in exclude:
+            dict1[key] = dict2[key]
     return dict1
 
 

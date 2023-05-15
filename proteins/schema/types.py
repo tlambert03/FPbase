@@ -1,4 +1,3 @@
-from attr import field
 import graphene
 import graphene_django_optimizer as gdo
 from django.db.models import Prefetch
@@ -16,20 +15,18 @@ def nullable_enum_from_field(_model, _field):
     choices = getattr(field, "choices", None)
     if choices:
         meta = field.model._meta
-        name = to_camel_case("my{}_{}".format(meta.object_name, field.name))
+        name = to_camel_case(f"my{meta.object_name}_{field.name}")
         choices = list(get_choices(choices))
         named_choices = [(c[0], c[1]) for c in choices]
         named_choices_descriptions = {c[0]: c[2] for c in choices}
 
-        class EnumWithDescriptionsType(object):
+        class EnumWithDescriptionsType:
             @property
             def description(self):
                 return named_choices_descriptions[self.name]
 
         enum = graphene.Enum(name, list(named_choices), type=EnumWithDescriptionsType)
-        converted = enum(
-            description=field.help_text, required=not (field.null or field.blank)
-        )
+        converted = enum(description=field.help_text, required=not (field.null or field.blank))
     else:
         raise NotImplementedError("Field does NOT have choices")
     return converted
@@ -118,9 +115,7 @@ class Protein(gdo.OptimizedDjangoObjectType):
     def resolve_parentOrganism(self, info):
         return self.parent_organism
 
-    @gdo.resolver_hints(
-        select_related=("primary_reference"), only=("primary_reference")
-    )
+    @gdo.resolver_hints(select_related=("primary_reference"), only=("primary_reference"))
     def resolve_primaryReference(self, info):
         return self.primary_reference
 
@@ -300,9 +295,7 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
     def resolve_name(self, info):
         return self.filter.name
 
-    @gdo.resolver_hints(
-        select_related=("filter__spectrum",), only=("filter__spectrum__id",)
-    )
+    @gdo.resolver_hints(select_related=("filter__spectrum",), only=("filter__spectrum__id",))
     def resolve_spectrumId(self, info):
         return self.filter.spectrum.id
 

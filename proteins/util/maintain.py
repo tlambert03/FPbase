@@ -7,7 +7,7 @@ def check_offset(protname):
     ms = MutationSet(prot.lineage.mutation)
     offset = ms.detect_offset(prot.lineage.parent.protein.seq)
     if offset:
-        print("{}:\t{} -> {}".format(protname, ms, ms.shift(offset)))
+        print(f"{protname}:\t{ms} -> {ms.shift(offset)}")
 
 
 def add_missing_seqs():
@@ -18,7 +18,7 @@ def add_missing_seqs():
             seq, _ = node.parent.protein.seq.mutate(node.mutation, correct_offset=True)
             node.protein.seq = seq
             node.protein.save()
-            print("saved seq for {}".format(node.protein))
+            print(f"saved seq for {node.protein}")
 
 
 def check_node_sequence_mutation_consistent(node, correct_offset=False):
@@ -35,7 +35,7 @@ def check_node_sequence_mutation_consistent(node, correct_offset=False):
 
 
 def suggested_switch_type(protein):
-    """ return the "apparent" switch type based on states and transitions
+    """return the "apparent" switch type based on states and transitions
     for best performance, pre-annotate the protein with ndark and nfrom:
 
         .annotate(ndark=Count('states', filter=Q(states__is_dark=True)))
@@ -73,7 +73,7 @@ def suggested_switch_type(protein):
 
 
 def validate_switch_type(protein):
-    """ returns False if the protein has an unusual switch type
+    """returns False if the protein has an unusual switch type
     for its states & transitions.
     """
     return protein.switch_type == suggested_switch_type(protein)
@@ -91,14 +91,14 @@ def validate_node(node):
                 errors.append(
                     f"{node.parent.protein} + {node.mutation} does not match "
                     + f"the current {node.protein} sequence (Δ: {ms})"
-                )  # noqa
+                )
     except Mutation.SequenceMismatch as e:
         errors.append(str(e).replace("parent", node.parent.protein.name))
     return errors
 
 
 def check_lineages(qs=None, correct_offset=False):
-    errors = dict()
+    errors = {}
     good = set()
 
     if not qs:
@@ -106,9 +106,7 @@ def check_lineages(qs=None, correct_offset=False):
 
         qs = Lineage.objects.all()
 
-    for node in list(
-        qs.prefetch_related("protein", "parent__protein", "root_node__protein")
-    ):
+    for node in list(qs.prefetch_related("protein", "parent__protein", "root_node__protein")):
         err = validate_node(node)
         if err:
             errors[node] = err

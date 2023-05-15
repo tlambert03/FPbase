@@ -1,9 +1,9 @@
-from django.core.management.base import BaseCommand
 from subprocess import run
+
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-
     help = "wipe local database and pull from Heroku"
 
     def handle(self, *app_labels, **options):

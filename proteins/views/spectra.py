@@ -21,11 +21,11 @@ from ..util.spectra import spectra2csv
 # @cache_page(60 * 10)
 # @vary_on_cookie
 def protein_spectra(request, slug=None):
-    """ renders html for protein spectra page  """
+    """renders html for protein spectra page"""
     template = "spectra.html"
 
     if is_ajax(request) and slug is not None:
-        """ slug represents the slug of the OWNER of the spectra...
+        """slug represents the slug of the OWNER of the spectra...
         for instance, a protein state.
         function returns an array containing ALL of the spectra
         belonging to that owner
@@ -76,9 +76,7 @@ class SpectrumCreateView(CreateView):
                     required=True,
                     label="Protein (state)",
                     empty_label=None,
-                    queryset=State.objects.filter(protein=self.protein).select_related(
-                        "protein"
-                    ),
+                    queryset=State.objects.filter(protein=self.protein).select_related("protein"),
                 )
                 form.fields["category"].disabled = True
             except Exception:

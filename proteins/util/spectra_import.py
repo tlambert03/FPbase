@@ -1,7 +1,8 @@
 import numpy as np
+from django.contrib.auth import get_user_model
+
 from ..forms import SpectrumForm
 from .helpers import zip_wave_data
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -18,9 +19,7 @@ def get_stype(header):
 
 
 # FIXME: I kind of hate this function...
-def import_spectral_data(
-    waves, data, headers=None, categories=[], stypes=[], owner=None, minmax=None
-):
+def import_spectral_data(waves, data, headers=None, categories=(), stypes=(), owner=None, minmax=None):
     """
     Take a vector of waves and a matrix of data, and import into database
 
@@ -28,21 +27,15 @@ def import_spectral_data(
     they can also be a list of strings with the same length as the number of
     data columns (not including waves) in the file
     """
-    if isinstance(categories, (list, tuple)) and len(categories):
-        assert len(categories) == len(
-            data
-        ), "provided category list not the same length as data"
+    if isinstance(categories, list | tuple) and len(categories):
+        assert len(categories) == len(data), "provided category list not the same length as data"
     elif isinstance(categories, str):
         categories = [categories] * len(data)
     else:
-        raise ValueError(
-            "Must provide category, or list of categories with same length as data"
-        )
+        raise ValueError("Must provide category, or list of categories with same length as data")
 
-    if isinstance(stypes, (list, tuple)) and len(stypes):
-        assert len(stypes) == len(
-            data
-        ), "provided subtypes list not the same length as data"
+    if isinstance(stypes, list | tuple) and len(stypes):
+        assert len(stypes) == len(data), "provided subtypes list not the same length as data"
     elif isinstance(stypes, str):
         stypes = [stypes] * len(data)
     else:
@@ -55,7 +48,7 @@ def import_spectral_data(
     errors = []
     for datum, header, cat, stype in zip(data, headers, categories, stypes):
         if not (any(datum)) or all(np.isnan(datum)):
-            print("skipping col {} ... no data".format(header))
+            print(f"skipping col {header} ... no data")
             continue
 
         if not stype:
@@ -82,7 +75,7 @@ def import_spectral_data(
             newob.owner.created_by = User.objects.first()
             newob.owner.save()
             newObjects.append(newob)
-            print("Successfully imported {}, {}, {}".format(iowner, cat, stype))
+            print(f"Successfully imported {iowner}, {cat}, {stype}")
         else:
             errors.append((iowner, sf.errors))
 
