@@ -1,4 +1,6 @@
+import contextlib
 import html
+import logging
 from collections import defaultdict
 
 import reversion
@@ -95,30 +97,24 @@ def approve_protein(request, slug=None):
         return HttpResponseNotAllowed([])
 
     try:
-        P = Protein.objects.get(slug=slug)
-        if not P.status == "pending":
+        p = Protein.objects.get(slug=slug)
+        if p.status != "pending":
             return JsonResponse({})
 
         # get rid of previous unapproved version
-        try:
-            if P.versions.first().field_dict["status"] == "pending":
-                P.versions.first().delete()
-        except Exception:
-            pass
-
+        with contextlib.suppress(Exception):
+            if p.versions.first().field_dict["status"] == "pending":
+                p.versions.first().delete()
         with reversion.create_revision():
             reversion.set_user(request.user)
-            reversion.set_comment("%s approved current version" % request.user)
-            P.status = "approved"
-            P.save()
-            try:
-                uncache_protein_page(P.slug, request)
-            except Exception:
-                pass
-
+            reversion.set_comment(f"{request.user} approved current version")
+            p.status = "approved"
+            p.save()
+            with contextlib.suppress(Exception):
+                uncache_protein_page(p.slug, request)
         return JsonResponse({})
-    except Exception:
-        pass
+    except Exception as e:
+        logging.error(e)
 
 
 def similar_spectrum_owners(request):
@@ -175,7 +171,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
 
     result = {
         "name": html.unescape(node.protein.name),
-        "mut": node.rootmut if node.rootmut else str(node.mutation),
+        "mut": node.rootmut or str(node.mutation),
         # 'mut': node.display_mutation(maxwidth=10) or "null",
         "url": node.protein.get_absolute_url(),
         "bg": node.protein.em_svg,
@@ -225,23 +221,23 @@ def get_lineage(request, slug=None, org=None):
         .get_cached_trees()
     )
 
-    D = {"name": "fakeroot", "children": [], "widths": defaultdict(int)}
+    d = {"name": "fakeroot", "children": [], "widths": defaultdict(int)}
     for n in sorted(root_nodes, key=lambda x: x.protein.name.lower()):
-        result, D["widths"] = recursive_node_to_dict(
+        result, d["widths"] = recursive_node_to_dict(
             n,
-            D["widths"],
+            d["widths"],
             n.protein,
             request.GET.get("validate", "").lower() in ("1", "true"),
         )
         if "children" in result:
-            D["children"].append(result)
-    D["max_width"] = max(D["widths"].values())
-    D["max_depth"] = max(D["widths"])
-    D["tot_nodes"] = sum(D["widths"].values())
+            d["children"].append(result)
+    d["max_width"] = max(d["widths"].values())
+    d["max_depth"] = max(d["widths"])
+    d["tot_nodes"] = sum(d["widths"].values())
 
     # data['tree'] = json.dumps(D)
 
-    return JsonResponse(D)
+    return JsonResponse(d)
 
 
 class Widget(DetailView):

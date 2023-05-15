@@ -1,3 +1,4 @@
+import contextlib
 import json
 
 # from django.views.decorators.cache import cache_page
@@ -54,12 +55,11 @@ class SpectrumCreateView(CreateView):
     def get_initial(self):
         init = super().get_initial()
         if self.kwargs.get("slug", False):
-            try:
+            with contextlib.suppress(Exception):
                 self.protein = Protein.objects.get(slug=self.kwargs.get("slug"))
                 init["owner_state"] = self.protein.default_state
                 init["category"] = Spectrum.PROTEIN
-            except Exception:
-                pass
+
         return init
 
     def get_form_kwargs(self):
@@ -87,13 +87,12 @@ class SpectrumCreateView(CreateView):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
         i = super().form_valid(form)
-        try:
+        with contextlib.suppress(Exception):
             uncache_protein_page(self.object.owner_state.protein.slug, self.request)
-        except Exception:
-            pass
+
         if not self.request.user.is_staff:
             EmailMessage(
-                "[FPbase] Spectrum submitted: %s" % form.cleaned_data["owner"],
+                f'[FPbase] Spectrum submitted: {form.cleaned_data["owner"]}',
                 self.request.build_absolute_uri(form.instance.get_admin_url()),
                 to=[a[1] for a in settings.ADMINS],
                 headers={"X-Mailgun-Track": "no"},
@@ -122,24 +121,22 @@ def spectra_csv(request):
 
 def filter_import(request, brand):
     part = request.POST["part"]
-    newObjects = []
+    new_objects = []
     errors = []
     response = {"status": 0}
 
-    try:
-        Filter.objects.get(slug=slugify(brand + " " + part))
-        response["message"] = "%s is already in the database" % part
+    with contextlib.suppress(Filter.DoesNotExist):
+        Filter.objects.get(slug=slugify(f"{brand} {part}"))
+        response["message"] = f"{part} is already in the database"
         return JsonResponse(response)
-    except Filter.DoesNotExist:
-        pass
 
     try:
-        newObjects, errors = add_filter_to_database(brand, part, request.user)
+        new_objects, errors = add_filter_to_database(brand, part, request.user)
     except Exception as e:
         response["message"] = str(e)
 
-    if newObjects:
-        spectrum = newObjects[0]
+    if new_objects:
+        spectrum = new_objects[0]
         response = {
             "status": 1,
             "objects": spectrum.name,
@@ -153,9 +150,7 @@ def filter_import(request, brand):
             ),
         }
     elif errors:
-        try:
+        with contextlib.suppress(Exception):
             if errors[0][1].as_data()["owner"][0].code == "owner_exists":
-                response["message"] = "%s already appears to be imported" % part
-        except Exception:
-            pass
+                response["message"] = f"{part} already appears to be imported"
     return JsonResponse(response)

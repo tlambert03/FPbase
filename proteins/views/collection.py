@@ -1,3 +1,4 @@
+import contextlib
 import json
 
 from django import forms
@@ -29,20 +30,18 @@ from .mixins import OwnableObject
 
 
 def serialized_proteins_response(queryset, format="json", filename="FPbase_proteins"):
-    from proteins.api.serializers import ProteinSerializer as PS
+    from proteins.api.serializers import ProteinSerializer
 
-    PS.Meta.on_demand_fields = ()
-    serializer = PS(queryset, many=True)
-    if format == "json":
-        from rest_framework.renderers import JSONRenderer as rend
-
-        response = JsonResponse(serializer.data, safe=False)
-    elif format == "csv":
+    ProteinSerializer.Meta.on_demand_fields = ()
+    serializer = ProteinSerializer(queryset, many=True)
+    if format == "csv":
         from django.http import StreamingHttpResponse
-        from rest_framework_csv.renderers import CSVStreamingRenderer as rend
+        from rest_framework_csv.renderers import CSVStreamingRenderer
 
-        response = StreamingHttpResponse(rend().render(serializer.data), content_type="text/csv")
+        response = StreamingHttpResponse(CSVStreamingRenderer().render(serializer.data), content_type="text/csv")
         response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
+    elif format == "json":
+        response = JsonResponse(serializer.data, safe=False)
     return response
 
 
@@ -72,10 +71,10 @@ class CollectionDetail(DetailView):
     )
 
     def get(self, request, *args, **kwargs):
-        format = request.GET.get("format", "").lower()
-        if format in ("json", "csv"):
+        fmt = request.GET.get("format", "").lower()
+        if fmt in ("json", "csv"):
             col = self.get_object()
-            return serialized_proteins_response(col.proteins.all(), format, filename=slugify(col.name))
+            return serialized_proteins_response(col.proteins.all(), fmt, filename=slugify(col.name))
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -86,15 +85,14 @@ class CollectionDetail(DetailView):
         _ids = []
         for prot in self.object.proteins.all():
             for state in prot.states.all():
-                for sp in state.spectra.all():
-                    _ids.append(sp.id)
+                _ids.extend(sp.id for sp in state.spectra.all())
+
         context["spectra_ids"] = ",".join([str(i) for i in _ids])
         return context
 
     def render_to_response(self, *args, **kwargs):
-        if not self.request.user.is_superuser:
-            if self.object.private and (self.object.owner != self.request.user):
-                return render(self.request, "proteins/private_collection.html", {"foo": "bar"})
+        if not self.request.user.is_superuser and self.object.private and (self.object.owner != self.request.user):
+            return render(self.request, "proteins/private_collection.html", {"foo": "bar"})
         return super().render_to_response(*args, **kwargs)
 
 
@@ -110,11 +108,10 @@ def collection_remove(request):
 
     col = get_object_or_404(ProteinCollection, id=collection)
 
-    if not col.owner == request.user:
+    if col.owner != request.user:
         return HttpResponseNotAllowed([])
     col.proteins.remove(protein)
-    response = {"status": "deleted"}
-    return JsonResponse(response)
+    return JsonResponse({"status": "deleted"})
 
 
 @login_required
@@ -129,12 +126,9 @@ def add_to_collection(request):
 
         members = []
         if request.GET.get("id"):
-            try:
+            with contextlib.suppress(Exception):
                 qs = qs.filter(proteins=int(request.GET.get("id")))
                 members = [(item.name, item.get_absolute_url()) for item in qs]
-            except Exception:
-                pass
-
         response = {
             "widget": choicefield.widget.render("collectionChoice", ""),
             "members": json.dumps(members),
@@ -178,11 +172,8 @@ class CollectionCreateView(OwnableObject, CreateView):
         if not self.request.user.is_staff:
             mail_admins(
                 "Collection Created",
-                "User: {}\nCollection: {}\n{}".format(
-                    self.request.user.username,
-                    self.object,
-                    self.request.build_absolute_uri(self.object.get_absolute_url()),
-                ),
+                f"User: {self.request.user.username}\nCollection: {self.object}\n"
+                f"{self.request.build_absolute_uri(self.object.get_absolute_url())}",
                 fail_silently=True,
             )
         return HttpResponseRedirect(self.get_success_url())
@@ -218,7 +209,7 @@ class CollectionDeleteView(DeleteView):
     success_url = reverse_lazy("proteins:collections")
 
     def dispatch(self, request, *args, **kwargs):
-        if not self.get_object().owner == self.request.user:
+        if self.get_object().owner != self.request.user:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 

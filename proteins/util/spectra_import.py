@@ -44,7 +44,7 @@ def import_spectral_data(waves, data, headers=None, categories=(), stypes=(), ow
     if not headers:
         headers = [None] * len(data)
 
-    newObjects = []
+    new_objects = []
     errors = []
     for datum, header, cat, stype in zip(data, headers, categories, stypes):
         if not (any(datum)) or all(np.isnan(datum)):
@@ -58,10 +58,10 @@ def import_spectral_data(waves, data, headers=None, categories=(), stypes=(), ow
         if not iowner:
             iowner = header.split(" (")[0]
 
-        D = zip_wave_data(waves, datum, minmax)
+        d = zip_wave_data(waves, datum, minmax)
         sf = SpectrumForm(
             {
-                "data": D,
+                "data": d,
                 "category": cat,
                 "subtype": stype,
                 "owner": iowner,
@@ -74,9 +74,9 @@ def import_spectral_data(waves, data, headers=None, categories=(), stypes=(), ow
             newob.save()
             newob.owner.created_by = User.objects.first()
             newob.owner.save()
-            newObjects.append(newob)
+            new_objects.append(newob)
             print(f"Successfully imported {iowner}, {cat}, {stype}")
         else:
             errors.append((iowner, sf.errors))
 
-    return newObjects, errors
+    return new_objects, errors

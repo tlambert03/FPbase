@@ -1,3 +1,4 @@
+import contextlib
 import os
 import re
 from io import StringIO
@@ -38,18 +39,16 @@ def add_filter_to_database(brand, part, user=None):
     else:
         raise ValueError("unknown brand")
 
-    try:
+    with contextlib.suppress(Filter.DoesNotExist):
         f = Filter.objects.get(slug=slugify(brand + " " + part))
         return [f.spectrum], []
-    except Filter.DoesNotExist:
-        pass
 
-    newObjects, errors = importer(part=part)
-    if newObjects and user:
-        for spectrum in newObjects:
+    new_objects, errors = importer(part=part)
+    if new_objects and user:
+        for spectrum in new_objects:
             spectrum.owner.created_by = user
             spectrum.owner.save()
-    return newObjects, errors
+    return new_objects, errors
 
 
 def fetch_chroma_url(url):
@@ -76,15 +75,15 @@ def fetch_chroma_url(url):
 
 def check_chroma_for_part(part):
     part = part.replace("/", "-")
-    chromaURL = "https://www.chroma.com/products/parts/"
-    return requests.head(chromaURL + slugify(part))
+    chroma_url = "https://www.chroma.com/products/parts/"
+    return requests.head(chroma_url + slugify(part))
 
 
 def check_semrock_for_part(part):
     part = normalize_semrock_part(part)
     part = part.replace("/", "_").upper()
-    semrockURL = "https://www.semrock.com/_ProductData/Spectra/"
-    return requests.head(semrockURL + slugify(part) + "_Spectrum.txt")
+    semrock_url = "https://www.semrock.com/_ProductData/Spectra/"
+    return requests.head(semrock_url + slugify(part) + "_Spectrum.txt")
 
 
 def fetch_chroma_part(part):
@@ -115,17 +114,17 @@ def fetch_chroma_part(part):
                             self.ready = 2
 
     part = part.replace("/", "-")
-    chromaURL = "https://www.chroma.com/products/parts/"
-    response = requests.get(chromaURL + slugify(part))
-    if response.status_code == 200:
-        parser = ChromaParser()
-        parser.feed(response.text)
-        if parser.url:
-            return fetch_chroma_url(parser.url)
-        else:
-            raise ValueError(f"Found Chroma part {slugify(part)}, but could not find file to download")
-    else:
+    chroma_url = "https://www.chroma.com/products/parts/"
+    response = requests.get(chroma_url + slugify(part))
+    if response.status_code != 200:
         raise ValueError(f"Could not retrieve Chroma part: {slugify(part)}")
+
+    parser = ChromaParser()
+    parser.feed(response.text)
+    if parser.url:
+        return fetch_chroma_url(parser.url)
+    else:
+        raise ValueError(f"Found Chroma part {slugify(part)}, but could not find file to download")
 
 
 def normalize_semrock_part(part):
@@ -155,15 +154,15 @@ def fetch_semrock_part(part):
     if response.status_code != 200:
         raise ValueError(f"Could not retrieve data for Semrock part: {part}")
 
-    T = response.text
-    if T.startswith("Typical") and "Data format" in T:
-        T = T.split("Data format")[1]
-        T = "".join(T.split("\n")[1:])
-        T = T.split("---")[0]
-        T = T.strip("\r").replace("\r", "\n")
-        if len({len(x.split("\t")) for x in T.split("\n")}) > 1:
-            return "\n".join([x for x in T.split("\n") if len(x.split("\t")) == 2])
-    return T
+    txt = response.text
+    if txt.startswith("Typical") and "Data format" in txt:
+        txt = txt.split("Data format")[1]
+        txt = "".join(txt.split("\n")[1:])
+        txt = txt.split("---")[0]
+        txt = txt.strip("\r").replace("\r", "\n")
+        if len({len(x.split("\t")) for x in txt.split("\n")}) > 1:
+            return "\n".join([x for x in txt.split("\n") if len(x.split("\t")) == 2])
+    return txt
 
 
 def all_numbers(df):
@@ -269,15 +268,15 @@ def import_semrock_spectra(part=None, **kwargs):
 
     kwargs["categories"] = "f"
 
-    newObjects, errors = import_spectral_data(waves, data, headers, **kwargs)
-    for obj in newObjects:
+    new_objects, errors = import_spectral_data(waves, data, headers, **kwargs)
+    for obj in new_objects:
         obj.source = "Semrock website"
         obj.save()
         obj.owner.manufacturer = "Semrock"
         obj.owner.part = part
         obj.owner.save()
 
-    return newObjects, errors
+    return new_objects, errors
 
 
 #########################

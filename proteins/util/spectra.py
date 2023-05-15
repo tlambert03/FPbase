@@ -15,10 +15,10 @@ def is_monotonic(array):
 
 
 def make_monotonic(x, y):
-    X, Y = list(zip(*sorted(zip(x, y))))
-    X, xind = np.unique(X, return_index=True)
-    Y = np.array(Y)[xind]
-    return X, Y
+    x, y = list(zip(*sorted(zip(x, y))))
+    x, xind = np.unique(x, return_index=True)
+    y = np.array(y)[xind]
+    return x, y
 
 
 def interp_linear(x, y, s=1, savgol=False):
@@ -38,8 +38,8 @@ def interp_univar(x, y, s=1, savgol=False):
         x, y = make_monotonic(x, y)
     """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
-    F = interpolate.InterpolatedUnivariateSpline(x, y)
-    ynew = F(xnew)
+    f = interpolate.InterpolatedUnivariateSpline(x, y)
+    ynew = f(xnew)
     if savgol:
         ynew = norm2one(savgol_filter(ynew, 15, 2))
     return xnew, ynew
@@ -69,8 +69,8 @@ def norm2P(y):
 
 
 def spectra2csv(spectralist, filename="fpbase_spectra.csv"):
-    globalmin = int(min([sp.min_wave for sp in spectralist]))
-    globalmax = int(max([sp.max_wave for sp in spectralist]))
+    globalmin = int(min(sp.min_wave for sp in spectralist))
+    globalmax = int(max(sp.max_wave for sp in spectralist))
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     writer = csv.writer(response)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
             spectra = json.dumps(spectra)
         return spectra
 
-    def setClipboardData(data):
+    def set_clipboard_data(data):
         data = json.dumps(data, separators=(",", ":"))
         p = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
         p.stdin.write(bytes(data.strip('"'), "utf-8"))
@@ -126,5 +126,5 @@ if __name__ == "__main__":
     with open(infile) as f:
         waves, outdata, headers = text_to_spectra(f.read())
     out = [[float(n) for n in a] for a in zip(waves, outdata[0])]
-    setClipboardData(out)
+    set_clipboard_data(out)
     print("data copied to clipboard")

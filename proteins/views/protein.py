@@ -1,3 +1,4 @@
+import contextlib
 import io
 import logging
 import operator
@@ -60,7 +61,7 @@ class _RollBackRevisionView(Exception):
 
 def check_switch_type(object, request):
     suggested = suggested_switch_type(object)
-    if suggested and not object.switch_type == suggested:
+    if suggested and object.switch_type != suggested:
         disp = dict(Protein.SWITCHING_CHOICES).get(suggested).lower()
         actual = object.get_switch_type_display().lower()
         msg = (
@@ -80,7 +81,7 @@ def form_changes(form, pre=""):
     for field_name in form.changed_data:
         old = form.initial.get(field_name)
         new = form.cleaned_data.get(field_name)
-        chg = pre + f"{form.fields.get(field_name).label}: {old} -> {new}"
+        chg = f"{pre}{form.fields.get(field_name).label}: {old} -> {new}"
         changes.append(chg)
     return changes
 
@@ -88,16 +89,14 @@ def form_changes(form, pre=""):
 def formset_changes(formset):
     if not formset.has_changed():
         return []
-    changes = []
+
     model = formset.model.__name__
-    for obj in formset.deleted_objects:
-        changes.append(f"Deleted {model} {obj}")
-    for obj in formset.new_objects:
-        changes.append(f"Created {model} {obj}")
+    changes = [f"Deleted {model} {obj}" for obj in formset.deleted_objects]
+    changes.extend(f"Created {model} {obj}" for obj in formset.new_objects)
     for obj, _fields in formset.changed_objects:
         form = next(_form for _form in formset.forms if _form.instance == obj)
         frm_chg = form_changes(form)
-        changes.append("Changed {} {}: ({})".format(model, obj, "; ".join(frm_chg)))
+        changes.append(f'Changed {model} {obj}: ({"; ".join(frm_chg)})')
     return changes
 
 
@@ -179,9 +178,9 @@ class ProteinDetailView(DetailView):
             aliases_lower = Func(Func(F("aliases"), function="unnest"), function="LOWER")
             remove_space = Func(aliases_lower, Value(" "), Value("-"), function="replace")
             final = Func(remove_space, Value("."), Value(""), function="replace")
-            D = dict(Protein.objects.annotate(aka=final).values_list("aka", "id"))
-            if name in D:
-                obj = Protein.objects.get(id=D[name])
+            d = dict(Protein.objects.annotate(aka=final).values_list("aka", "id"))
+            if name in d:
+                obj = Protein.objects.get(id=d[name])
                 messages.add_message(
                     self.request,
                     messages.INFO,
@@ -253,7 +252,7 @@ class ProteinCreateUpdateMixin:
                     par = lform.cleaned_data.get("parent")
                     if par and mut:
                         seq = par.protein.seq.mutate(mut)
-                        try:
+                        with contextlib.suppress(Protein.DoesNotExist):
                             prot = Protein.objects.get(seq__iexact=str(seq))
                             msg = mark_safe(
                                 f'<a href="{prot.get_absolute_url()}" style="text-decoration: '
@@ -263,8 +262,6 @@ class ProteinCreateUpdateMixin:
                             lform.add_error(None, msg)
                             context.update({"states": states, "lineage": lineage})
                             return self.render_to_response(context)
-                        except Protein.DoesNotExist:
-                            pass
 
             with transaction.atomic():
                 with reversion.create_revision():
@@ -446,25 +443,24 @@ class ActivityView(ListView):
 def spectra_image(request, slug, **kwargs):
     protein = get_object_or_404(Protein.objects.select_related("default_state"), slug=slug)
     try:
-        D = {}
+        d = {}
         for k, v in request.GET.dict().items():
             if k == "xlim":
                 tmp = [int(x) for x in v.split(",")][:2]
                 if len(tmp) == 1:
                     tmp.append(750)
-                D[k] = tmp
+                d[k] = tmp
+            elif v.lower() in ("false", "no"):
+                d[k] = False
+            elif v.lower() in ("true", "yes"):
+                d[k] = True
             else:
-                if v.lower() in ("false", "no"):
-                    D[k] = False
-                elif v.lower() in ("true", "yes"):
-                    D[k] = True
-                else:
-                    D[k] = int(v) if v.isdigit() else v
+                d[k] = int(v) if v.isdigit() else v
     except Exception:
         return HttpResponseBadRequest("failed to parse url parameters as JSON")
     try:
         fmt = kwargs.get("extension", "png")
-        byt = protein.spectra_img(fmt, output=io.BytesIO(), **D)
+        byt = protein.spectra_img(fmt, output=io.BytesIO(), **d)
     except Exception as e:
         logger.error(e)
         return HttpResponseBadRequest(f"failed to parse url parameters as JSON: {e}")
@@ -516,10 +512,10 @@ class ComparisonView(base.TemplateView):
                 alignment = alignment.replace(f"{p.uuid:16}", f"{p.name[:16]:16}")
             context["alignment"] = alignment
         elif prots_with_seqs.count() == 2:
-            seqA = prots_with_seqs[0]
-            seqB = prots_with_seqs[1]
-            if seqA.seq and seqB.seq:
-                algn = seqA.seq.align_to(seqB.seq)
+            seq_a = prots_with_seqs[0]
+            seq_b = prots_with_seqs[1]
+            if seq_a.seq and seq_b.seq:
+                algn = seq_a.seq.align_to(seq_b.seq)
                 out = []
                 for i, row in enumerate(str(algn).splitlines()):
                     head = ""
@@ -530,7 +526,7 @@ class ComparisonView(base.TemplateView):
                     out.append("{:<18.16}{}".format(head if len(head) < 17 else head[:13] + "...", row))
                 out.append("\n")
                 context["alignment"] = "\n".join(out)
-                context["mutations"] = str(seqA.seq.mutations_to(seqB.seq))
+                context["mutations"] = str(seq_a.seq.mutations_to(seq_b.seq))
         else:
             context["alignment"] = None
         prots = list(prots)
@@ -590,7 +586,7 @@ def problems_inconsistencies(request):
     switchers = switchers | Protein.objects.filter(names)
     switchers = switchers.annotate(ns=Count("states")).filter(ns=1)
 
-    GB_mismatch = []
+    gb_mismatch = []
     with_genbank = Protein.objects.exclude(genbank=None).exclude(seq=None).values("slug", "name", "genbank", "seq")
     gbseqs = get_cached_gbseqs([g["genbank"] for g in with_genbank])
     for item in with_genbank:
@@ -598,23 +594,22 @@ def problems_inconsistencies(request):
             gbseq = gbseqs.get(item["genbank"])[0]
             ourseq = item["seq"]
             if ourseq != gbseq:
-                GB_mismatch.append(
+                gb_mismatch.append(
                     (
                         item["name"],
                         item["slug"],
                         item["genbank"],
                         str(ourseq.mutations_to(gbseq)),
-                        item["seq"],
+                        ourseq,
                     )
                 )
-
-    P = list(
+    p = list(
         Protein.objects.annotate(ndark=Count("states", filter=Q(states__is_dark=True)))
         .annotate(nfrom=Count("transitions__from_state", distinct=True))
         .prefetch_related("states", "transitions")
     )
     bad_switch = []
-    for prot in P:
+    for prot in p:
         suggestion = suggested_switch_type(prot)
         if (prot.switch_type or suggestion) and (prot.switch_type != suggestion):
             bad_switch.append((prot, dict(Protein.SWITCHING_CHOICES).get(suggestion)))
@@ -629,7 +624,7 @@ def problems_inconsistencies(request):
             "bad_switch": bad_switch,
             "switchers": switchers,
             "request": request,
-            "mismatch": GB_mismatch,
+            "mismatch": gb_mismatch,
         },
     )
 
@@ -638,20 +633,17 @@ def add_reference(request, slug=None):
     try:
         with reversion.create_revision():
             doi = request.POST.get("reference_doi").lower()
-            P = Protein.objects.get(slug=slug)
+            p = Protein.objects.get(slug=slug)
             ref, created = Reference.objects.get_or_create(doi=doi)
-            P.references.add(ref)
+            p.references.add(ref)
             if not request.user.is_staff:
-                P.status = "pending"
-                msg = "User: {}\nProtein: {}\nReference: {}. {}\n\n{}".format(
-                    request.user.username,
-                    P,
-                    ref,
-                    ref.title,
-                    request.build_absolute_uri(P.get_absolute_url()),
+                p.status = "pending"
+                msg = (
+                    f"User: {request.user.username}\nProtein: {p}\nReference: {ref}. {ref.title}\n\n"
+                    f"{request.build_absolute_uri(p.get_absolute_url())}"
                 )
                 mail_managers("Reference Added", msg, fail_silently=True)
-            P.save()
+            p.save()
             reversion.set_user(request.user)
             reversion.set_comment(f"Added Reference: {ref}")
             try:
@@ -667,24 +659,20 @@ def add_protein_excerpt(request, slug=None):
     try:
         with reversion.create_revision():
             doi = request.POST.get("excerpt_doi").lower()
-            P = Protein.objects.get(slug=slug)
+            p = Protein.objects.get(slug=slug)
             content = request.POST.get("excerpt_content")
             if content:
                 ref, created = Reference.objects.get_or_create(doi=doi)
-                P.references.add(ref)
+                p.references.add(ref)
                 excerpt = Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
-                excerpt.proteins.add(P)
+                excerpt.proteins.add(p)
                 if not request.user.is_staff:
-                    msg = "User: {}\nProtein: {}\nReference: {}, {}\nExcerpt: {}\n{}".format(
-                        request.user.username,
-                        P,
-                        ref,
-                        ref.title,
-                        strip_tags(content),
-                        request.build_absolute_uri(P.get_absolute_url()),
+                    msg = (
+                        f"User: {request.user.username}\nProtein: {p}\nReference: {ref}, {ref.title}\nExcerpt: "
+                        f"{strip_tags(content)}\n{request.build_absolute_uri(p.get_absolute_url())}"
                     )
                     mail_managers("Excerpt Added", msg, fail_silently=True)
-                P.save()
+                p.save()
                 reversion.set_user(request.user)
                 reversion.set_comment(f"Added Excerpt from {ref}")
                 try:
@@ -698,12 +686,10 @@ def add_protein_excerpt(request, slug=None):
 
 @staff_member_required
 def revert_version(request, ver=None):
-    try:
+    with contextlib.suppress(Exception):
         version = Version.objects.get(id=ver)
         version.revision.revert(delete=True)
         return JsonResponse({})
-    except Exception:
-        pass
 
 
 @staff_member_required
@@ -714,15 +700,13 @@ def revert_revision(request, rev=None):
         revision.revert(delete=True)
         proteins = {v.object for v in revision.version_set.all() if v.object._meta.model_name == "protein"}
         if len(proteins) == 1:
-            P = proteins.pop()
+            p = proteins.pop()
             with reversion.create_revision():
                 reversion.set_user(request.user)
                 reversion.set_comment(f"Reverted to revision dated {revision.date_created}")
-                P.save()
-                try:
-                    uncache_protein_page(P.slug, request)
-                except Exception:
-                    pass
+                p.save()
+                with contextlib.suppress(Exception):
+                    uncache_protein_page(p.slug, request)
 
     return JsonResponse({"status": 200})
 
@@ -733,34 +717,30 @@ def update_transitions(request, slug=None):
     obj = Protein.objects.get(slug=slug)
     if request.method == "POST":
         formset = StateTransitionFormSet(request.POST, instance=obj)
-        if formset.is_valid():
-            with transaction.atomic():
-                with reversion.create_revision():
-                    formset.save()
-                    chg_string = "\n".join(get_form_changes(formset))
+        if not formset.is_valid():
+            return render(request, template_name, {"transition_form": formset}, status=422)
 
-                    if request.user.is_staff:
-                        pass
-                        # obj.status = 'approved'
-                    else:
-                        obj.status = "pending"
-                        mail_managers(
-                            "Transition updated",
-                            f"User: {request.user.username}\nProtein: {obj}\n\n{chg_string}",
-                            fail_silently=True,
-                        )
-                    obj.save()
-                    reversion.set_user(request.user)
-                    reversion.set_comment(chg_string)
-                    try:
-                        uncache_protein_page(slug, request)
-                    except Exception as e:
-                        logger.error(f"failed to uncache protein: {e}")
-                    check_switch_type(obj, request)
-            return HttpResponse(status=200)
-        else:
-            response = render(request, template_name, {"transition_form": formset}, status=422)
-            return response
+        with transaction.atomic():
+            with reversion.create_revision():
+                formset.save()
+                chg_string = "\n".join(get_form_changes(formset))
+
+                if not request.user.is_staff:
+                    obj.status = "pending"
+                    mail_managers(
+                        "Transition updated",
+                        f"User: {request.user.username}\nProtein: {obj}\n\n{chg_string}",
+                        fail_silently=True,
+                    )
+                obj.save()
+                reversion.set_user(request.user)
+                reversion.set_comment(chg_string)
+                try:
+                    uncache_protein_page(slug, request)
+                except Exception as e:
+                    logger.error(f"failed to uncache protein: {e}")
+                check_switch_type(obj, request)
+        return HttpResponse(status=200)
     else:
         formset = StateTransitionFormSet(instance=obj)
         formset.form.base_fields["from_state"].queryset = State.objects.filter(protein=obj)
@@ -777,45 +757,41 @@ def protein_bleach_formsets(request, slug):
     if request.method == "POST":
         formset = BleachMeasurementFormSet(request.POST, queryset=qs)
         formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)
-        if formset.is_valid():
-            with transaction.atomic():
-                with reversion.create_revision():
-                    saved = formset.save(commit=False)
-                    for s in saved:
-                        if not s.created_by:
-                            s.created_by = request.user
-                        s.updated_by = request.user
-                        s.save()
-                    for s in formset.deleted_objects:
-                        s.delete()
-
-                    chg_string = "\n".join(get_form_changes(formset))
-
-                    if not request.user.is_staff:
-                        protein.status = "pending"
-                        mail_managers(
-                            "BleachMeasurement Added",
-                            "User: {}\nProtein: {}\n{}\n\n{}".format(
-                                request.user.username,
-                                protein,
-                                chg_string,
-                                request.build_absolute_uri(protein.get_absolute_url()),
-                            ),
-                            fail_silently=True,
-                        )
-                    # else:
-                    #     protein.status = 'approved'
-
-                    protein.save()
-                    reversion.set_user(request.user)
-                    reversion.set_comment(chg_string)
-                    try:
-                        uncache_protein_page(slug, request)
-                    except Exception as e:
-                        logger.error(f"failed to uncache protein: {e}")
-            return HttpResponseRedirect(protein.get_absolute_url())
-        else:
+        if not formset.is_valid():
             return render(request, template_name, {"formset": formset, "protein": protein})
+
+        with transaction.atomic():
+            with reversion.create_revision():
+                saved = formset.save(commit=False)
+                for s in saved:
+                    if not s.created_by:
+                        s.created_by = request.user
+                    s.updated_by = request.user
+                    s.save()
+                for s in formset.deleted_objects:
+                    s.delete()
+
+                chg_string = "\n".join(get_form_changes(formset))
+
+                if not request.user.is_staff:
+                    protein.status = "pending"
+                    mail_managers(
+                        "BleachMeasurement Added",
+                        f"User: {request.user.username}\nProtein: {protein}\n{chg_string}\n\n"
+                        f"{request.build_absolute_uri(protein.get_absolute_url())}",
+                        fail_silently=True,
+                    )
+                # else:
+                #     protein.status = 'approved'
+
+                protein.save()
+                reversion.set_user(request.user)
+                reversion.set_comment(chg_string)
+                try:
+                    uncache_protein_page(slug, request)
+                except Exception as e:
+                    logger.error(f"failed to uncache protein: {e}")
+        return HttpResponseRedirect(protein.get_absolute_url())
     else:
         formset = BleachMeasurementFormSet(queryset=qs)
         formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)
@@ -828,17 +804,16 @@ def bleach_comparison(request, pk=None):
     if request.method == "POST":
         formset = bleach_items_formset(request.POST)
         bcf = BleachComparisonForm(request.POST)
-        if formset.is_valid() and bcf.is_valid():
-            D = bcf.cleaned_data
-            D["reference"], _ = Reference.objects.get_or_create(doi=D.pop("reference_doi"))
-            for form in formset.forms:
-                if form.has_changed():
-                    D["state"] = form.cleaned_data["state"]
-                    D["rate"] = form.cleaned_data["rate"]
-                    BleachMeasurement.objects.create(**D)
-            return redirect(D["reference"])
-        else:
+        if not formset.is_valid() or not bcf.is_valid():
             return render(request, template_name, {"formset": formset, "mainform": bcf})
+        d = bcf.cleaned_data
+        d["reference"], _ = Reference.objects.get_or_create(doi=d.pop("reference_doi"))
+        for form in formset.forms:
+            if form.has_changed():
+                d["state"] = form.cleaned_data["state"]
+                d["rate"] = form.cleaned_data["rate"]
+                BleachMeasurement.objects.create(**d)
+        return redirect(d["reference"])
     else:
         formset = bleach_items_formset()
         if pk:
@@ -880,9 +855,9 @@ def flag_object(request):
         return HttpResponseNotAllowed([])
     try:
         model_type = request.POST["target_model"]
-        id = request.POST["target_id"]
+        id_ = request.POST["target_id"]
         model = apps.get_model(model_type)
-        obj = get_object_or_404(model, id=id)
+        obj = get_object_or_404(model, id=id_)
 
         status = None
         if request.POST["flagged"] == "1":
@@ -902,12 +877,8 @@ def flag_object(request):
 
             mail_admins(
                 f"{model_type} {status}",
-                "User: {}\nObject: {}\nID: {}\n{}".format(
-                    request.user.username,
-                    obj,
-                    obj.pk,
-                    request.build_absolute_uri(obj.get_absolute_url()),
-                ),
+                f"User: {request.user.username}\nObject: {obj}\nID: {obj.pk}\n"
+                f"{request.build_absolute_uri(obj.get_absolute_url())}",
                 fail_silently=True,
             )
 

@@ -14,20 +14,20 @@ def fret_chart(request):
     template = "fret.html"
 
     if is_ajax(request):
-        L = cache.get("forster_list")
-        if not L:
+        forster_list = cache.get("forster_list")
+        if not forster_list:
             job = cache.get("calc_fret_job")
             if cache.get("calc_fret_job"):
                 result = app.AsyncResult(job)
                 if result.ready():
-                    L = result.get()
-                    cache.set("forster_list", L, 60 * 60 * 24)
+                    forster_list = result.get()
+                    cache.set("forster_list", forster_list, 60 * 60 * 24)
                     cache.delete("calc_fret_job")
             else:
                 job = calc_fret.delay()
                 if job:
                     cache.set("calc_fret_job", job.id)
-        return JsonResponse({"data": L})
+        return JsonResponse({"data": forster_list})
 
     slugs = (
         State.objects.exclude(ext_coeff=None)

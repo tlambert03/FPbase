@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import json
 import re
@@ -82,8 +83,7 @@ def crossref(doi):
     # habanero returns a list if doi is a list of len > 1
     # otherwise a single dict
     if isinstance(doi, list | tuple | set) and len(doi) > 1:
-        D = [parse_crossref(i) for i in response]
-        return {x.pop("doi"): x for x in D}
+        return {x.pop("doi"): x for x in (parse_crossref(i) for i in response)}
     else:
         return parse_crossref(response)
 
@@ -112,10 +112,8 @@ def get_pmid_info(pmid):
         try:
             date = datetime.datetime.strptime(pubmed_record["PubDate"], "%Y %b %d").date()
         except Exception:
-            try:
+            with contextlib.suppress(Exception):
                 date = datetime.datetime.strptime(pubmed_record["EPubDate"], "%Y %b %d").date()
-            except Exception:
-                pass
         return {
             "doi": pubmed_record.get("DOI", None),
             "title": pubmed_record.get("Title", ""),
