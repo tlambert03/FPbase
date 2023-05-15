@@ -151,8 +151,8 @@ class SpectrumField(TextField):
         try:
             obj = json.loads(value)
             return Spectrum(obj)
-        except Exception:
-            raise ValidationError("Invalid input for a Spectrum instance")
+        except Exception as e:
+            raise ValidationError("Invalid input for a Spectrum instance") from e
 
     def get_prep_value(self, value):
         if value is None:

@@ -372,10 +372,10 @@ class MicroscopeDetailView(DetailView):
                 .get()
             )
             return scope
-        except Microscope.MultipleObjectsReturned:
-            raise Http404("Multiple microscopes found matching this query")
-        except Microscope.DoesNotExist:
-            raise Http404("No microscope found matching this query")
+        except Microscope.MultipleObjectsReturned as e:
+            raise Http404("Multiple microscopes found matching this query") from e
+        except Microscope.DoesNotExist as e:
+            raise Http404("No microscope found matching this query") from e
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)

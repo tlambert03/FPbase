@@ -1,3 +1,4 @@
+import contextlib
 from collections import OrderedDict, defaultdict
 
 from reversion.models import Revision, Version
@@ -23,7 +24,7 @@ def listdiff(a, b):
     return d or None
 
 
-def dictdiff(a, b, ignoreKeys=[]):
+def dictdiff(a, b, ignoreKeys=()):
     if not (isinstance(a, dict) and isinstance(b, dict)):
         if isinstance(a, list) and isinstance(b, list):
             return listdiff(a, b)
@@ -84,7 +85,7 @@ def old_object(ver):
         return ex.object
 
 
-def get_history(obj, ignoreKeys=[]):
+def get_history(obj, ignoreKeys=()):
     rev_ids = sorted(Version.objects.get_for_object(obj).values_list("revision__id", flat=True))
 
     revisions = list(
@@ -116,18 +117,16 @@ def get_history(obj, ignoreKeys=[]):
                         if field == "references":
                             _result = []
                             for ref_id in result.split(", "):
-                                try:
+                                with contextlib.suppress(Reference.DoesNotExist):
                                     ref = Reference.objects.get(id=ref_id)
                                     _result.append(ref.citation)
-                                except Reference.DoesNotExist:
-                                    pass
                             result = ", ".join(_result)
                         changes[revision][rep].append((action, field, result))
         revs = object_revisions[object_repr]
-        if max([r.id for r in revs]) < max(rev_ids):
-            del_at = next(i for i in revisions if i.id > max([r.id for r in revs]))
+        if max(r.id for r in revs) < max(rev_ids):
+            del_at = next(i for i in revisions if i.id > max(r.id for r in revs))
             changes[del_at][rep].append(("removed", None, None))
-        if min([r.id for r in revs]) > min(rev_ids):
+        if min(r.id for r in revs) > min(rev_ids):
             changes[revs[0]][rep].append(("added", None, None))
 
     for _c, v in changes.items():

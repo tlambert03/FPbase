@@ -39,7 +39,7 @@ def validate_mutation(code):
         if str(m) != code:
             raise ValueError(f"Parsed mutation ({m}) different than input ({code})")
     except ValueError as e:
-        raise ValidationError("Invalid mutation: %s" % e)
+        raise ValidationError(f"Invalid mutation: {e}") from e
 
 
 def cdna_sequence_validator(seq):
@@ -67,14 +67,14 @@ def validate_spectrum(value):
         return
     try:
         obj = ast.literal_eval(value)
-    except Exception:
-        raise ValidationError("Invalid input for a Spectrum instance")
+    except Exception as e:
+        raise ValidationError("Invalid input for a Spectrum instance") from e
     if not isinstance(obj, list):  # must be a list
         raise ValidationError("Spectrum object must be of type List")
     if not all(isinstance(elem, list | tuple) for elem in obj):  # must be list of lists
         raise ValidationError("Spectrum object must be a list of lists or tuples")
     for elem in obj:
-        if not len(elem) == 2:
+        if len(elem) != 2:
             raise ValidationError("All elements in Spectrum list must have two items")
         if not all(isinstance(n, int | float) for n in elem):
             raise ValidationError("All items in Spectrum list elements must be numbers")

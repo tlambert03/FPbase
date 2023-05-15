@@ -38,14 +38,14 @@ def create_slug_dict():
     return OrderedDict(sorted(slugs.items(), key=lambda x: len(x[0]), reverse=True))
 
 
-def link_excerpts(excerpts_qs, obj_name=None, aliases=[]):
+def link_excerpts(excerpts_qs, obj_name=None, aliases=()):
     if not excerpts_qs:
         return None
     excerpt_list = list(excerpts_qs)
     slug_dict = cache.get_or_set("slug_dict", create_slug_dict, 60)
     for excerpt in excerpt_list:
-        for name in slug_dict:
-            if not len(name) > 1:
+        for name in slug_dict or {}:
+            if len(name) <= 1:
                 continue
             if name == obj_name or (aliases and name in aliases):
                 excerpt.content = mark_safe(
@@ -247,10 +247,8 @@ def get_color_group(ex_max, em_max):
 def mless(name):
     if re.search("^m[A-Z]", name):
         return name.lstrip("m")
-    if name.startswith("monomeric"):
-        name = name.lstrip("monomeric")
-    if name.startswith("Monomeric"):
-        name = name.lstrip("Monomeric")
+    if name.lower().startswith("monomeric"):
+        name = name[9:]
     return name.lstrip(" ")
 
 
@@ -272,8 +270,10 @@ def get_base_name(name):
     if re.match("[Tt][Dd][A-Z]", name):
         name = name[2:]
 
-    name = name.lstrip("Monomeric")
-    name = name.lstrip("Tag")
+    if name.lower().startswith("monomeric"):
+        name = name[9:]
+    if name.lower().startswith("tag"):
+        name = name[3:]
 
     # remove E at beginning (if second letter is caps)
     if re.match("E[A-Z]", name):
@@ -342,7 +342,7 @@ def forster_list():
     withSpectra = []
     for p in qs:
         try:
-            p.default_state.em_spectrum.data
+            _ = p.default_state.em_spectrum.data
         except Exception:
             continue
         withSpectra.append(p)

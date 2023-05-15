@@ -262,8 +262,8 @@ class SpectrumData(ArrayField):
         if isinstance(value, str):
             try:
                 return ast.literal_eval(value)
-            except Exception:
-                raise ValidationError("Invalid input for spectrum data")
+            except Exception as e:
+                raise ValidationError("Invalid input for spectrum data") from e
 
     def value_to_string(self, obj):
         return json.dumps(self.value_from_object(obj))
@@ -275,19 +275,18 @@ class SpectrumData(ArrayField):
         step = step_size(raw_value)
         if step > 10 and len(raw_value) < 10:
             raise ValidationError("insufficient data")
-        else:
-            if step != 1:
-                try:
-                    # TODO:  better choice of interpolation
-                    raw_value = [list(i) for i in zip(*interp_linear(*zip(*raw_value)))]
-                except ValueError as e:
-                    raise ValidationError(f"could not properly interpolate data: {e}")
+        if step != 1:
+            try:
+                # TODO:  better choice of interpolation
+                raw_value = [list(i) for i in zip(*interp_linear(*zip(*raw_value)))]
+            except ValueError as e:
+                raise ValidationError(f"could not properly interpolate data: {e}") from e
         return raw_value
 
     def validate(self, value, model_instance):
         super().validate(value, model_instance)
         for elem in value:
-            if not len(elem) == 2:
+            if len(elem) != 2:
                 raise ValidationError("All elements in Spectrum list must have two items")
             if not all(isinstance(n, int | float) for n in elem):
                 raise ValidationError("All items in Spectrum list elements must be numbers")

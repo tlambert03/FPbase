@@ -1,4 +1,5 @@
-"""
+"""Mutations module
+
 mutation strings attempt to follow HGVS-nomenclature
 http://varnomen.hgvs.org/recommendations/protein/
 but for now, the assumption is generally for single-letter AA codes
@@ -28,7 +29,6 @@ examples (converted to single letter codes):
 full string:
     'S65T/C76del/C76_G79del/K23_L24insRSG/C76delinsRRGY/C76_G78delinsRRGY/*315TextAKGT/M1_L2insVKSGEE'
 """
-
 import re
 import warnings
 
@@ -62,6 +62,9 @@ def parse_mutstring(string):
     return [Mutation(*mut) for mut in mutpattern.findall(str(string))]
 
 
+DEFAULT_ALPHABET = "".join(SkbSequence.definite_chars.union("X*"))
+
+
 class Mutation:
     """Basic mutation object to represent a single mutation operation"""
 
@@ -80,7 +83,7 @@ class Mutation:
         start_label=None,
         stop_label=None,
         idx0=1,
-        alphabet="".join(SkbSequence.definite_chars.union("X*")),
+        alphabet=DEFAULT_ALPHABET,
     ):
         """
         start_char: single letter amino acid code for start position (e.g. A)
@@ -103,8 +106,8 @@ class Mutation:
         self.start_char = start_char
         try:
             self.start_idx = int(start_idx)
-        except ValueError:
-            raise ValueError("Mutation must have integer start index")
+        except ValueError as e:
+            raise ValueError("Mutation must have integer start index") from e
 
         if alphabet and stop_char and stop_char not in alphabet:
             raise ValueError(f"Invalid Amino Acid code: {stop_char}")
@@ -386,7 +389,8 @@ class MutationSet:
                         warnings.warn(
                             "An offset of {} amino acids was detected"
                             " between the sequence and the mutation "
-                            "set, and automatically corrected".format(offset)
+                            "set, and automatically corrected".format(offset),
+                            stacklevel=2,
                         )
                         shift -= offset
                     else:
@@ -526,8 +530,8 @@ class MutationSet:
         elif isinstance(other, set | list | tuple):
             try:
                 otherm = MutationSet(other).muts
-            except Exception:
-                raise ValueError(f"Could not compare MutationSet object with other: {other}")
+            except Exception as e:
+                raise ValueError(f"Could not compare MutationSet object with other: {other}") from e
         if not otherm:
             raise ValueError(f"operation not valid between type MutationSet and {type(other)}")
         else:

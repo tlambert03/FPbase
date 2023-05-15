@@ -198,12 +198,12 @@ class ReferenceAuthor(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     author_idx = models.PositiveSmallIntegerField()
 
-    @property
-    def author_count(self):
-        return self.reference.authors.count()
+    class Meta:
+        ordering = ["author_idx"]
 
     def __str__(self):
         return f"<AuthorMembership: {self.author} in doi: {self.reference.doi}>"
 
-    class Meta:
-        ordering = ["author_idx"]
+    @property
+    def author_count(self):
+        return self.reference.authors.count()

@@ -64,8 +64,8 @@ def fetch_chroma_url(url):
 
     try:
         urlv(url)
-    except Exception:
-        raise ValueError("invalid url for Chroma download")
+    except Exception as e:
+        raise ValueError("invalid url for Chroma download") from e
 
     response = requests.get(url)
     if response.status_code == 200:
@@ -141,15 +141,15 @@ def fetch_semrock_part(part):
      https://www.semrock.com/_ProductData/Spectra/FF01-571_72_Spectrum.txt
     """
     response = requests.get("https://www.semrock.com/FilterDetails.aspx?id=" + part)
-    if not response.status_code == 200:
+    if response.status_code != 200:
         raise ValueError(f"Semrock part not valid for URL: {part}")
 
     try:
         url = "https://www.semrock.com" + (
             str(response.content).split('" title="Click to Download ASCII')[0].split('href="')[-1]
         )
-    except Exception:
-        raise ValueError(f"Could not parse page for semrock part: {part}")
+    except Exception as e:
+        raise ValueError(f"Could not parse page for semrock part: {part}") from e
 
     response = requests.get(url)
     if response.status_code != 200:

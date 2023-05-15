@@ -187,13 +187,13 @@ class SpectrumForm(forms.ModelForm):
             obj = mod.objects.get(slug=slugify(owner))
         except ObjectDoesNotExist:
             return owner
-        except KeyError:
+        except KeyError as e:
             # this might be repetitive... since a missing category will already
             # throw an error prior to this point
             if not cat:
-                raise forms.ValidationError("Category not provided")
+                raise forms.ValidationError("Category not provided") from e
             else:
-                raise forms.ValidationError("Category not recognized")
+                raise forms.ValidationError("Category not recognized") from e
         else:
             # object exists... check if it has this type of spectrum
             exists = False

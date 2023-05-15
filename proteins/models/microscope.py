@@ -272,17 +272,16 @@ class OpticalConfig(OwnedCollection):
 
     def __repr__(self):
         fltrs = sorted_ex2em(self.filters.all())
-        return "<{}: {}>".format(self.__class__.__name__, ", ".join([f.name for f in fltrs]))
+        return f'<{self.__class__.__name__}: {", ".join([f.name for f in fltrs])}>'
 
     def __str__(self):
         return super().__str__() or self.__repr__().lstrip("<").rstrip(">")
 
     def get_absolute_url(self):
-        url = "{}?c={}".format(
+        return "{}?c={}".format(
             reverse("proteins:microscope-detail", args=[self.microscope.id]),
             urllib.parse.quote(self.name),
         )
-        return url
 
 
 class FilterPlacement(models.Model):
@@ -299,12 +298,11 @@ class FilterPlacement(models.Model):
     # when path == BS, reflects refers to the emission path
     reflects = models.BooleanField(default=False, help_text="Filter reflects emission (if BS or EM filter)")
 
+    def __str__(self):
+        return self.__repr__().lstrip("<").rstrip(">")
+
     def __repr__(self):
-        return "<{} Filter: {}{}>".format(
-            self.path.title(),
-            self.filter.name,
-            " (reflecting)" if self.reflects else "",
-        )
+        return f'<{self.path.title()} Filter: {self.filter.name}{" (reflecting)" if self.reflects else ""}>'
 
 
 def quick_OC(name, filternames, scope, bs_ex_reflect=True):

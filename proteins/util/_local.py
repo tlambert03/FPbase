@@ -684,7 +684,7 @@ def import_fpd(file=None, overwrite=True):
                     if switch == "ps":
                         StateTransition.objects.create(protein=p, from_state=sinstances[1], to_state=sinstances[0])
                 except Exception:
-                    print("failed to link states {} > {} ".format())
+                    print("failed to link states")
 
             if row["bleach"]:
                 state = sinstances[-1] if len(sinstances) else None
@@ -989,7 +989,9 @@ def import_lumencor():
         if objs:
             owner = objs[0].owner
             owner.manufacturer = "lumencor"
-            owner.part = slugify(f.strip(".txt"))
+            if f.endswith(".txt"):
+                f = f[-4:]
+            owner.part = slugify(f)
             if "spectrax" in f.lower():
                 owner.url = "http://lumencor.com/products/spectra-x-light-engine/"
             owner.created_by = User.objects.first()
@@ -999,7 +1001,7 @@ def import_lumencor():
     for f in os.listdir(D):
         if not f.endswith(".txt"):
             continue
-        name = f.strip(".txt")
+        name = f[-4:]
         name = name[:3] + "/" + name[-2:] + "x"
         ownername = "Lumencor " + name
         objs, errs = import_csv_spectra(
@@ -1245,7 +1247,7 @@ def import_tree(filepath=None):
             #     raise
 
     # add missing parent orgs:
-    for name, doi, parnt, _alias in nonames:
+    for name, _, _, _ in nonames:
         if Lineage.objects.filter(protein__name=name).exists:
             L = Lineage.objects.get(protein__name=name)
             root = L.get_root()

@@ -243,7 +243,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     slug = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name = models.CharField(max_length=128)  # easily searchable "family" name
     aliases = ArrayField(models.CharField(max_length=200), blank=True, null=True)
-    chromophore = models.CharField(max_length=5, null=True, blank=True)
+    chromophore = models.CharField(max_length=5, blank=True)
     seq_validated = models.BooleanField(default=False, help_text="Sequence has been validated by a moderator")
     # seq must be nullable because of uniqueness contraints
     seq = SequenceField(
@@ -533,7 +533,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     class Meta:
         ordering = ["name"]
 
-    def history(self, ignoreKeys=[]):
+    def history(self, ignoreKeys=()):
         from proteins.util.history import get_history
 
         return get_history(self, ignoreKeys)

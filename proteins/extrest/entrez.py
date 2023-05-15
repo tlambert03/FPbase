@@ -157,7 +157,7 @@ def check_accession_type(gbid):
 def get_cached_gbseqs(gbids, max_age=60 * 60 * 24):
     gbseqs = cache.get("gbseqs", {})
     now = time.time()
-    tofetch = [id for id in gbids if not ((id in gbseqs) and (gbseqs[id][1] - now < max_age))]
+    tofetch = [id for id in gbids if id not in gbseqs or gbseqs[id][1] - now >= max_age]
     gbseqs.update({k: (v, now) for k, v in fetch_gb_seqs(tofetch).items()})
     cache.set("gbseqs", gbseqs, 60 * 60 * 24)
     return gbseqs
@@ -180,11 +180,11 @@ def fetch_gb_seqs(gbids):
     if len(nucs):
         with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
             records.update(
-                {l.id.split(".")[0]: l.translate().seq._data.strip("*") for l in SeqIO.parse(handle, "fasta")}
+                {x.id.split(".")[0]: x.translate().seq._data.strip("*") for x in SeqIO.parse(handle, "fasta")}
             )
     if len(prots):
         with Entrez.efetch(db="protein", id=prots, rettype="fasta", retmode="text") as handle:
-            records.update({l.id.split(".")[0]: l.seq._data.strip("*") for l in SeqIO.parse(handle, "fasta")})
+            records.update({x.id.split(".")[0]: x.seq._data.strip("*") for x in SeqIO.parse(handle, "fasta")})
     return records
 
 

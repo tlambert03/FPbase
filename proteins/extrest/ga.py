@@ -9,7 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 def get_service(
     api_name="analytics",
     api_version="v3",
-    scopes=["https://www.googleapis.com/auth/analytics.readonly"],
+    scopes="",
 ):
     """Get a service that communicates to a Google API.
     Returns:
@@ -31,6 +31,7 @@ def get_service(
             + "626427424458-compute%40developer.gserviceaccount.com"
         ),
     }
+    scopes = scopes or ["https://www.googleapis.com/auth/analytics.readonly"]
     cred = ServiceAccountCredentials.from_json_keyfile_dict(keyfile_dict, scopes=scopes)
 
     # Build the service object.

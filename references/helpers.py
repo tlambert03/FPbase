@@ -129,12 +129,11 @@ def get_pmid_info(pmid):
         }
 
 
-def merge_info(dict1, dict2, exclude=[]):
+def merge_info(dict1, dict2, exclude=()):
     """existings values in dict2 will overwrite dict1"""
     for key in dict1.keys():
-        if key in dict2 and dict2[key]:
-            if key not in exclude:
-                dict1[key] = dict2[key]
+        if key in dict2 and dict2[key] and key not in exclude:
+            dict1[key] = dict2[key]
     return dict1
 
 

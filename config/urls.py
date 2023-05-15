@@ -33,7 +33,7 @@ sitemaps = {
     "collections": ProteinCollectionSitemap(),
 }
 
-urlpatterns = [
+urlpatterns = [  # noqa: RUF005
     path("", fpbase.views.HomeView.as_view(), name="home"),
     path(
         "about/",

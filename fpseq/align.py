@@ -3,7 +3,7 @@ try:
 except ImportError:
     import warnings
 
-    warnings.warn("ERROR!!! could not import parasail... will not be able to align")
+    warnings.warn("ERROR!!! could not import parasail... will not be able to align", stacklevel=2)
 from .util import chunked_lines
 
 

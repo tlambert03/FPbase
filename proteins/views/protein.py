@@ -151,11 +151,10 @@ class ProteinDetailView(DetailView):
         except Protein.DoesNotExist:
             try:
                 obj = queryset.get(uuid=self.kwargs.get("slug", "").upper())
-            except Protein.DoesNotExist:
-                raise Http404("No protein found matching this query")
-        if obj.status == "hidden":
-            if not (obj.created_by == self.request.user or self.request.user.is_staff):
-                raise Http404("No protein found matching this query")
+            except Protein.DoesNotExist as e:
+                raise Http404("No protein found matching this query") from e
+        if obj.status == "hidden" and obj.created_by != self.request.user and not self.request.user.is_staff:
+            raise Http404("No protein found matching this query")
         return obj
 
     def get(self, request, *args, **kwargs):
@@ -193,15 +192,14 @@ class ProteinDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        if not self.object.status == "approved":
+        if self.object.status != "approved":
             data["last_approved"] = self.object.last_approved_version()
 
-        similar = Protein.visible.filter(name__iexact="m" + self.object.name)
-        similar = similar | Protein.visible.filter(name__iexact="monomeric" + self.object.name)
+        similar = Protein.visible.filter(name__iexact=f"m{self.object.name}")
+        similar = similar | Protein.visible.filter(name__iexact=f"monomeric{self.object.name}")
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip("m"))
-        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip("monomeric"))
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip("td"))
-        similar = similar | Protein.visible.filter(name__iexact="td" + self.object.name)
+        similar = similar | Protein.visible.filter(name__iexact=f"td{self.object.name}")
         data["similar"] = similar.exclude(id=self.object.id)
         spectra = [sp for state in self.object.states.all() for sp in state.spectra.all()]
 
@@ -397,11 +395,10 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
         except Protein.DoesNotExist:
             try:
                 obj = queryset.get(uuid=self.kwargs.get("slug", "").upper())
-            except Protein.DoesNotExist:
-                raise Http404("No protein found matching this query")
-        if obj.status == "hidden":
-            if not (obj.created_by == self.request.user or self.request.user.is_staff):
-                raise Http404("No protein found matching this query")
+            except Protein.DoesNotExist as e:
+                raise Http404("No protein found matching this query") from e
+        if obj.status == "hidden" and obj.created_by != self.request.user and not self.request.user.is_staff:
+            raise Http404("No protein found matching this query")
         return obj
 
     def get_context_data(self, **kwargs):

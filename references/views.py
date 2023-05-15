@@ -42,8 +42,8 @@ class ReferenceDetailView(DetailView):
                 doi = self.kwargs.get(self.pk_url_kwarg)
                 queryset = queryset.filter(doi=doi.lower())
                 obj = queryset.get()
-            except queryset.model.DoesNotExist:
-                raise Http404("No reference found matching this query")
+            except queryset.model.DoesNotExist as e:
+                raise Http404("No reference found matching this query") from e
             return obj
 
     def get_context_data(self, **kwargs):
