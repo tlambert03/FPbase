@@ -43,15 +43,13 @@ body {
 
 </style>
 <label id="show-length">
-  <input type="checkbox"> Show branch length
+    <input type="checkbox">
+    Show branch length
 </label>
-
 <!-- Copyright 2011 Jason Davies https://github.com/jasondavies/newick.js -->
 <script>function parseNewick(a){for(var e=[],r={},s=a.split(/\s*(;|\(|\)|,|:)\s*/),t=0;t<s.length;t++){var n=s[t];switch(n){case"(":var c={};r.branchset=[c],e.push(r),r=c;break;case",":var c={};e[e.length-1].branchset.push(c),r=c;break;case")":r=e.pop();break;case":":break;default:var h=s[t-1];")"==h||"("==h||","==h?r.name=n:":"==h&&(r.length=parseFloat(n))}}return r}</script>
-
 <!-- Copyright 2016 Mike Bostock https://d3js.org -->
 <script src="https://d3js.org/d3.v4.min.js"></script>
-
 <script type="text/javascript">var tree ='{{tree|safe}}';</script>
 <script>
 

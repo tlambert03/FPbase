@@ -1,9 +1,6 @@
 {% extends "base.html" %}
-
-
 {% block extrahead %}
-
-<style type="text/css">
+    <style type="text/css">
 .node circle, .node circle //{
   stroke: #b4462
   stroke-width: 1px;
@@ -34,23 +31,21 @@ ul {
   list-style-type: none;
 }
 
-</style>
+    </style>
 {% endblock extrahead %}
-
 {% block content %}
-
-    <div><svg id="app"></svg></div>
-
+    <div>
+        <svg id="app">
+        </svg>
+    </div>
 {% endblock content %}
-
 {% block javascript %}
-
-<script type="text/javascript">
+    <script type="text/javascript">
   function getData(){
     return {{tree|safe}};
   };
-</script>
-<script type="text/javascript">
+    </script>
+    <script type="text/javascript">
 (function() {
   d3.svg.transform = function(chain) {
     var transforms = [];
@@ -206,6 +201,5 @@ function update(data, horizontal) {
 
   }
 
-</script>
-
+    </script>
 {% endblock javascript %}
