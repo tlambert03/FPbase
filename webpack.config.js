@@ -1,16 +1,16 @@
 const path = require("path")
 const webpack = require("webpack")
 const autoprefixer = require("autoprefixer")
-const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
+// const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
 const BundleTracker = require("webpack-bundle-tracker")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 const CopyWebpackPlugin = require("copy-webpack-plugin")
 const ImageminWebpackPlugin = require("imagemin-webpack-plugin").default
 const ImageminWebP = require("imagemin-webp")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
-const SentryCliPlugin = require("@sentry/webpack-plugin")
-const TerserJSPlugin = require("terser-webpack-plugin")
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
+const SentryWebpackPlugin = require("@sentry/webpack-plugin")
+const TerserPlugin = require("terser-webpack-plugin")
 const CSSnano = require("cssnano")
 
 const devMode = process.env.NODE_ENV !== "production"
@@ -76,10 +76,10 @@ const plugins = [
     filename: "[name].[contenthash].css",
     chunkFilename: "[id].[chunkhash].css",
   }),
-  new BundleAnalyzerPlugin({
-    analyzerMode: "static",
-    openAnalyzer: false,
-  }),
+  // new BundleAnalyzerPlugin({
+  //   analyzerMode: "static",
+  //   openAnalyzer: false,
+  // }),
   new CleanWebpackPlugin(),
   new CopyWebpackPlugin([
     {
@@ -130,7 +130,7 @@ if (devMode) {
 
   if (process.env.SENTRY_AUTH_TOKEN && !process.env.CI) {
     plugins.push(
-      new SentryCliPlugin({
+      new SentryWebpackPlugin({
         include: "static/",
         release: process.env.SOURCE_VERSION,
         ignore: [
@@ -185,17 +185,9 @@ module.exports = {
   },
   plugins,
   optimization: {
-    // minimizer: [
-    //   new UglifyJsPlugin({
-    //     cache: true,
-    //     parallel: true,
-    //     sourceMap: true // set to true if you want JS source maps
-    //   }),
-    //   new OptimizeCSSAssetsPlugin({})
-    // ],
     minimizer: [
-      new TerserJSPlugin({ cache: true, parallel: true, sourceMap: true }),
-      new OptimizeCSSAssetsPlugin({}),
+      new TerserPlugin({ cache: true, parallel: true, sourceMap: true }),
+      new CssMinimizerPlugin(),
     ],
     splitChunks: {
       cacheGroups: {
