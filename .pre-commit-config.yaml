@@ -27,11 +27,16 @@ repos:
   #       args: ['--tab-width', '2', '--single-quote']
   #       exclude: '.*/templates/ .*\.min\.js$'
 
+  - repo: https://github.com/Riverside-Healthcare/djLint
+    rev: v1.27.2
+    hooks:
+      - id: djlint-django
+
   - repo: https://github.com/adamchainz/django-upgrade
     rev: '1.13.0'
     hooks:
       - id: django-upgrade
-        args: ['--target-version', '4.1']
+        args: ['--target-version', '4.2']
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: 'v0.0.267'

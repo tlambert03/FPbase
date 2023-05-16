@@ -83,3 +83,5 @@ ignore_errors = true
 
 [tool.django-stubs]
 django_settings_module = "config.settings.test"
+
+[tool.djlint]
