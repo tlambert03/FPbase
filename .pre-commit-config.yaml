@@ -27,10 +27,10 @@ repos:
   #       args: ['--tab-width', '2', '--single-quote']
   #       exclude: '.*/templates/ .*\.min\.js$'
 
-  - repo: https://github.com/Riverside-Healthcare/djLint
-    rev: v1.27.2
-    hooks:
-      - id: djlint-django
+  # - repo: https://github.com/Riverside-Healthcare/djLint
+  #   rev: v1.27.2
+  #   hooks:
+  #     - id: djlint-django
 
   - repo: https://github.com/adamchainz/django-upgrade
     rev: '1.13.0'
