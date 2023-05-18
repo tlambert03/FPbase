@@ -89,6 +89,7 @@ dev = [
 server = {cmd = "python manage.py runserver", help = "Run django server"}
 pgpull = {cmd = "python manage.py pgpull", help = "Sync database"}
 migrate = {cmd = "python manage.py migrate", help = "Migrate database"}
+lint = {cmd = "pre-commit run -a", help = "Lint code"}
 
 
 # ==== pytest ====
