@@ -5,7 +5,6 @@ name = "FPbase"
 version = "0.1.0"
 description = "The Fluorescent Protein Database"
 authors = [{ name = "Talley Lambert", email = "talley.lambert@gmail.com" }]
-requires-python = "==3.11.3"
 license = { text = "GPL-3.0" }
 dependencies = [
     "pytz==2023.3",
