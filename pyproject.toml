@@ -3,6 +3,7 @@
 # See https://www.python.org/dev/peps/pep-0621/
 name = "FPbase"
 version = "0.1.0"
+requires-python = "==3.11.3"
 description = "The Fluorescent Protein Database"
 authors = [{ name = "Talley Lambert", email = "talley.lambert@gmail.com" }]
 license = { text = "GPL-3.0" }
