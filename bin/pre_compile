@@ -21,6 +21,9 @@ fi
 
 
 log "Install PDM"
+
+apt-get update | indent
+apt install -y python3.10-venv | indent
 curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 - | indent
 
 log "Add PDM to the PATH"
