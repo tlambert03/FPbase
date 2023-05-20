@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function log() {
+    echo "-----> $*"
+}
+
+function indent() {
+    sed -e 's/^/       /'
+}
+
+export BUILD_DIR="$1"
+export ENV_DIR="$3"
+
+BUILDPACK_VARIABLES="DISABLE_PDM_CREATE_RUNTIME_FILE PYTHON_RUNTIME_VERSION"
+
+shopt -s nullglob
+
+for env_file in "$ENV_DIR"/PDM_* ; do
+    export "$(basename "$env_file")=$(cat "$env_file" 2>/dev/null)"
+done
+
+for env_file in $BUILDPACK_VARIABLES ; do
+    [ -f "$ENV_DIR/$env_file" ] && export "$(basename "$env_file")=$(cat "$ENV_DIR/$env_file" 2>/dev/null)"
+done
+
+if [ -z "${PDM_VERSION:-}" ] ; then
+    log "No PDM version specified in PDM_VERSION config var. Defaulting to main branch."
+else
+    log "Using PDM version from PDM_VERSION config var: $PDM_VERSION"
+fi
+
+log "Generating requirements.txt with PDM"
+
+log "Install PDM"
+curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 - | indent
+
+log "Add PDM to the PATH"
+export PATH="/app/.local/bin:$PATH"
+
+
+REQUIREMENTS_FILE="requirements.txt"
+
+log "Export $REQUIREMENTS_FILE from PDM"
+
+cd "$BUILD_DIR"
+
+# pip can't handle vcs & editable dependencies when requiring hashes (https://github.com/pypa/pip/issues/4995)
+EXPORT_PARAMETERS=(--without-hashes --verbose)
+
+if [ "${PDM_EXPORT_DEV_REQUIREMENTS:-0}" != "0" ] ; then
+    log "Enable exporting dev requirements to $REQUIREMENTS_FILE"
+    EXPORT_PARAMETERS+=(--dev)
+fi
+
+pdm export -f requirements -o $REQUIREMENTS_FILE "${EXPORT_PARAMETERS[@]}" | indent
+
+RUNTIME_FILE="runtime.txt"
+
+log "Export Python version from PDM to Heroku $RUNTIME_FILE file"
+
+if [ "${DISABLE_PDM_CREATE_RUNTIME_FILE:-0}" != "0" ] ; then
+    log "Skip generation of $RUNTIME_FILE file from pyproject.toml"
+    exit 0
+fi
+
+if [ -z "${PYTHON_RUNTIME_VERSION:-}" ] ; then
+    log "Read Python version from pyproject.toml"
+    PYTHON_RUNTIME_VERSION="$(awk -F ' = ' '/requires-python/ { gsub(/"/, "", $2); sub(/^[=<>]*/, "", $2); print $2 }' pyproject.toml)"
+else
+    log "Force Python version to $PYTHON_RUNTIME_VERSION, because PYTHON_RUNTIME_VERSION is set!"
+fi
+
+# Version is only valid if exact interpreter version is specified
+#
+# ^3.8 -> not valid
+# 3.8 -> not valid
+# 3.8.1 -> valid
+# ==3.8.1 -> valid
+
+if [[ "$PYTHON_RUNTIME_VERSION" =~ ^(==)?[2-9](\.[0-9]+){2}$ ]] ; then
+    PYTHON_RUNTIME_VERSION=${PYTHON_RUNTIME_VERSION#"=="}
+    log "Write $PYTHON_RUNTIME_VERSION into $RUNTIME_FILE"
+    if [ -f "$RUNTIME_FILE" ] ; then
+        log "$RUNTIME_FILE found, will be overwritten!" >&2
+    fi
+    echo "python-$PYTHON_RUNTIME_VERSION" > "$RUNTIME_FILE"
+else
+    log "$PYTHON_RUNTIME_VERSION is not valid, please specify an exact Python version (e.g. 3.8.1 or ==3.8.1) in your pyproject.toml" >&2
+    exit 1
+fi
