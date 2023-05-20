@@ -10,20 +10,8 @@ function indent() {
     sed -e 's/^/       /'
 }
 
-export BUILD_DIR="$1"
-export ENV_DIR="$3"
-
-BUILDPACK_VARIABLES="DISABLE_PDM_CREATE_RUNTIME_FILE PYTHON_RUNTIME_VERSION"
 
 shopt -s nullglob
-
-for env_file in "$ENV_DIR"/PDM_* ; do
-    export "$(basename "$env_file")=$(cat "$env_file" 2>/dev/null)"
-done
-
-for env_file in $BUILDPACK_VARIABLES ; do
-    [ -f "$ENV_DIR/$env_file" ] && export "$(basename "$env_file")=$(cat "$ENV_DIR/$env_file" 2>/dev/null)"
-done
 
 if [ -z "${PDM_VERSION:-}" ] ; then
     log "No PDM version specified in PDM_VERSION config var. Defaulting to main branch."
@@ -31,7 +19,6 @@ else
     log "Using PDM version from PDM_VERSION config var: $PDM_VERSION"
 fi
 
-log "Generating requirements.txt with PDM"
 
 log "Install PDM"
 curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 - | indent
@@ -42,9 +29,8 @@ export PATH="/app/.local/bin:$PATH"
 
 REQUIREMENTS_FILE="requirements.txt"
 
-log "Export $REQUIREMENTS_FILE from PDM"
+log "Exporting $REQUIREMENTS_FILE from PDM"
 
-cd "$BUILD_DIR"
 
 # pip can't handle vcs & editable dependencies when requiring hashes (https://github.com/pypa/pip/issues/4995)
 EXPORT_PARAMETERS=(--without-hashes --verbose)
