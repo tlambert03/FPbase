@@ -1,0 +1,2 @@
+# this is just to support heroku/python buildpack
+# will be overwritten by pre_compile
