@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Array of files/directories to delete
+files=(
+    "node_modules"
+    "static/extra_images"
+    "static/src"
+)
+
+for file in "${files[@]}"; do
+  [[ -z "${file}" ]] && continue
+
+  if [[ -f "${file}" ]]; then
+    echo "Removing file ${file}"
+    rm -f "${file}"
+  elif [[ -d "${file}" ]]; then
+    echo "Removing directory ${file}"
+    rm -rf "${file}"
+  else
+    echo "Location ${file} not found - ignoring"
+  fi
+done
