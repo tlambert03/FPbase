@@ -27,7 +27,7 @@ flake8-black==0.3.6
 coverage==7.2.5  # https://github.com/nedbat/coveragepy
 black==23.3.0  # https://github.com/ambv/black
 pylint-django==2.5.3  # https://github.com/PyCQA/pylint-django
-pre-commit==3.3.1  # https://github.com/pre-commit/pre-commit
+pre-commit==3.3.2  # https://github.com/pre-commit/pre-commit
 mypy==1.2.0  # https://github.com/python/mypy
 django-stubs==4.2.0  # https://github.com/typeddjango/django-stubs
 djangorestframework-stubs==3.14.0  # https://github.com/typeddjango/djangorestframework-stubs
