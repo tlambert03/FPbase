@@ -4,11 +4,10 @@ const autoprefixer = require("autoprefixer")
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
 const BundleTracker = require("webpack-bundle-tracker")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
-const CopyWebpackPlugin = require("copy-webpack-plugin")
-const ImageminWebpackPlugin = require("imagemin-webpack-plugin").default
-const ImageminWebP = require("imagemin-webp")
+const CopyPlugin = require("copy-webpack-plugin")
+const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin")
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const SentryCliPlugin = require("@sentry/webpack-plugin")
 const TerserJSPlugin = require("terser-webpack-plugin")
 const CSSnano = require("cssnano")
@@ -58,8 +57,9 @@ const jsRule = {
 }
 
 const assetRule = {
-  test: /.(jpg|png|woff(2)?|eot|ttf|svg)$/,
+  test: /.(jpe?g|png|woff(2)?|eot|ttf|svg)$/,
   loader: "file-loader",
+  type: "asset",
 }
 
 const plugins = [
@@ -67,56 +67,39 @@ const plugins = [
   new webpack.ProvidePlugin({
     $: "jquery",
     jQuery: "jquery",
+    process: "process/browser",
   }),
-  new webpack.IgnorePlugin(/vertx/),
+  // new webpack.IgnorePlugin(/vertx/),
   new BundleTracker({
-    filename: "./webpack-stats.json",
+    filename: "webpack-stats.json",
   }),
   new MiniCssExtractPlugin({
     filename: "[name].[contenthash].css",
     chunkFilename: "[id].[chunkhash].css",
   }),
-  new BundleAnalyzerPlugin({
-    analyzerMode: "static",
-    openAnalyzer: false,
-  }),
+  // new BundleAnalyzerPlugin({
+  //   analyzerMode: "static",
+  //   openAnalyzer: false,
+  // }),
   new CleanWebpackPlugin(),
-  new CopyWebpackPlugin([
-    {
-      from: "./static/src/images/**/*",
-      to: path.resolve("./static/dist/images/[name].webp"),
-      toType: "template",
-    },
-  ]),
-  new CopyWebpackPlugin([
-    {
-      from: "./static/src/js/sentry.*.js",
-      to: path.resolve("./static/dist/sentry.js"),
-    },
-  ]),
-  new ImageminWebpackPlugin({
-    test: /\.(webp)$/i,
-    plugins: [
-      ImageminWebP({
-        quality: 90,
-        sharpness: 1,
-      }),
+  new CopyPlugin({
+    patterns: [
+      {
+        from: "./static/src/images/**/*",
+        to({ context, absoluteFilename }) {
+          return path.resolve("./static/dist/images/[name][ext]")
+        },
+      },
+      {
+        from: "./static/src/js/sentry.*.js",
+        to: path.resolve("./static/dist/sentry.js"),
+      },
     ],
   }),
-  new CopyWebpackPlugin([
-    {
-      from: "./static/src/images/**/*",
-      to: path.resolve("./static/dist/images/[name].[ext]"),
-      toType: "template",
-    },
-  ]),
 ]
 
 if (devMode) {
   plugins.push(new webpack.HotModuleReplacementPlugin())
-}
-
-if (devMode) {
   styleRule.use = ["css-hot-loader", ...styleRule.use]
 } else {
   plugins.push(
@@ -156,7 +139,7 @@ module.exports = {
   },
   output: {
     path: path.resolve("./static/dist/"),
-    filename: devMode ? "[name].js" : "[name].[hash].js",
+    filename: devMode ? "[name].js" : "[name].[contenthash].js",
     publicPath: hotReload ? "http://localhost:8080/static/" : "/static/",
     // publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
     chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js",
@@ -166,36 +149,49 @@ module.exports = {
     alias: {
       jquery: "jquery/src/jquery",
     },
+    fallback: {
+      "url": require.resolve("url/"),
+    },
   },
-  devtool: devMode ? "cheap-module-eval-source-map" : "source-map",
+  devtool: devMode ? "eval-cheap-module-source-map" : "source-map",
   devServer: {
-    hot: true,
-    overlay: true,
-    quiet: false,
     port: 8080,
     headers: {
       "Access-Control-Allow-Origin": "*",
     },
   },
   module: {
-    rules: [jsRule, styleRule, assetRule],
+    rules: [
+      { test: /\.m?js$/, resolve: { fullySpecified: false }, include: /node_modules/ },
+      jsRule,
+      styleRule,
+      assetRule,
+    ],
   },
   externals: {
     Sentry: "Sentry",
   },
   plugins,
   optimization: {
-    // minimizer: [
-    //   new UglifyJsPlugin({
-    //     cache: true,
-    //     parallel: true,
-    //     sourceMap: true // set to true if you want JS source maps
-    //   }),
-    //   new OptimizeCSSAssetsPlugin({})
-    // ],
     minimizer: [
       new TerserJSPlugin({ cache: true, parallel: true, sourceMap: true }),
-      new OptimizeCSSAssetsPlugin({}),
+      new CssMinimizerPlugin(),
+      new ImageMinimizerPlugin({
+        minimizer: {
+          implementation: ImageMinimizerPlugin.sharpMinify,
+          options: {
+            encodeOptions: {
+              webp: {
+                // https://sharp.pixelplumbing.com/api-output#webp
+                quality: 90,
+                sharpness: 1,
+              },
+              png: {},
+              gif: {},
+            },
+          },
+        },
+      }),
     ],
     splitChunks: {
       cacheGroups: {

@@ -20,12 +20,12 @@
     "@fortawesome/free-brands-svg-icons": "~5.15.4",
     "@fortawesome/free-regular-svg-icons": "~5.15.4",
     "@fortawesome/free-solid-svg-icons": "~5.15.4",
-    "@material-ui/core": "~4.8.1",
-    "@material-ui/icons": "~4.5.1",
-    "@material-ui/lab": "~4.11.3-deprecations.1",
-    "@material-ui/styles": "~4.7.1",
+    "@material-ui/core": "~4.12.4",
+    "@material-ui/icons": "~4.11.3",
+    "@material-ui/lab": "~4.0.0-alpha.61",
+    "@material-ui/styles": "~4.11.5",
     "@popperjs/core": "~2.4.0",
-    "@sentry/browser": "~5.30.0",
+    "@sentry/browser": "~7.54.0",
     "algoliasearch": "~3.35.1",
     "apollo-cache-inmemory": "~1.6.6",
     "apollo-cache-persist": "~0.1.1",
@@ -49,6 +49,7 @@
     "memoize-one": "~5.2.1",
     "nouislider": "~14.7.0",
     "nvd3": "~1.8.6",
+    "process": "^0.11.10",
     "progressbar.js": "~1.1.0",
     "prop-types": "~15.7.2",
     "qs": "~6.9.1",
@@ -63,15 +64,17 @@
     "select2": "~4.0.13",
     "select2-theme-bootstrap4": "~0.2.0-beta.6",
     "terser-webpack-plugin": "~3.1.0",
-    "unfetch": "~4.2.0"
+    "unfetch": "~4.2.0",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "@babel/core": "~7.7.7",
     "@babel/plugin-syntax-dynamic-import": "~7.7.4",
     "@babel/preset-env": "~7.7.7",
     "@babel/preset-react": "~7.7.4",
-    "@sentry/cli": "~1.75.2",
+    "@sentry/cli": "^2.18.1",
     "@sentry/webpack-plugin": "~1.20.1",
+    "@types/react": "^16.14.42",
     "@welldone-software/why-did-you-render": "~6.2.3",
     "autoprefixer": "~9.8.8",
     "babel-eslint": "~10.0.3",
@@ -79,43 +82,30 @@
     "babel-plugin-transform-imports": "~2.0.0",
     "bootstrap": "~4.6.2",
     "clean-webpack-plugin": "~3.0.0",
-    "copy-webpack-plugin": "~5.1.2",
+    "copy-webpack-plugin": "^11.0.0",
     "css-hot-loader": "~1.4.4",
     "css-loader": "~3.6.0",
+    "css-minimizer-webpack-plugin": "^5.0.0",
     "cssnano": "~4.1.11",
-    "eslint": "~6.8.0",
-    "eslint-config-airbnb": "~18.2.1",
-    "eslint-config-prettier": "~6.15.0",
-    "eslint-plugin-import": "~2.19.1",
-    "eslint-plugin-jsx-a11y": "~6.2.3",
-    "eslint-plugin-prettier": "~3.4.1",
-    "eslint-plugin-react": "~7.17.0",
-    "eslint-plugin-react-hooks": "~1.7.0",
     "file-loader": "~5.1.0",
-    "imagemin-webp": "~5.1.0",
-    "imagemin-webpack-plugin": "~2.4.2",
-    "mini-css-extract-plugin": "~0.9.0",
-    "node-sass": "~4.14.1",
-    "npm": "~6.14.18",
-    "optimize-css-assets-webpack-plugin": "~5.0.8",
+    "image-minimizer-webpack-plugin": "^3.8.2",
+    "mini-css-extract-plugin": "^2.7.6",
+    "node-sass": "~9.0.0",
     "postcss-loader": "~3.0.0",
     "prettier": "~1.19.1",
-    "sass-loader": "~8.0.2",
-    "stylelint": "~13.13.1",
-    "stylelint-config-standard": "~19.0.0",
-    "stylelint-scss": "~3.21.0",
-    "webpack": "~4.46.0",
-    "webpack-bundle-analyzer": "~3.9.0",
-    "webpack-bundle-tracker": "~1.8.1",
-    "webpack-cli": "~3.3.12",
-    "webpack-dev-server": "~3.11.3"
+    "sass-loader": "~13.3.1",
+    "sharp": "^0.32.1",
+    "webpack": "~5.85.0",
+    "webpack-bundle-analyzer": "~4.9.0",
+    "webpack-bundle-tracker": "2.0.0",
+    "webpack-cli": "~5.1.1",
+    "webpack-dev-server": "~4.15.0"
   },
   "engines": {
-    "node": "12.x",
-    "npm": "6.14.x"
+    "node": "18.x"
   },
   "scripts": {
-    "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
+    "start": "NODE_ENV=development HOT_RELOAD=1 webpack-dev-server --mode development",
     "build": "NODE_ENV=production webpack --mode production",
     "heroku-postbuild": "NODE_ENV=production webpack --mode production"
   },
@@ -123,7 +113,6 @@
     "production": [
       "last 1 version",
       "> 0.2% in my stats",
-      "maintained node versions",
       "not dead",
       "not op_mini all"
     ],
@@ -136,17 +125,5 @@
   "prettier": {
     "semi": false,
     "trailingComma": "es5"
-  },
-  "lint-staged": {
-    "*.{js,jsx}": [
-      "prettier --write",
-      "eslint --fix",
-      "git add"
-    ],
-    "*.py": [
-      "black --exclude \"/migrations/\"",
-      "flake8 --ignore=W503,I100,I101,I201,I202 --exclude=config/settings/*",
-      "git add"
-    ]
   }
 }
