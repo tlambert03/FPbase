@@ -4,7 +4,7 @@ Pillow==9.5.0  # https://github.com/python-pillow/Pillow
 rcssmin==1.1.1  # https://github.com/ndparker/rcssmin
 argon2-cffi==21.3.0  # https://github.com/hynek/argon2_cffi
 whitenoise[brotli]==6.4.0  # https://github.com/evansd/whitenoise
-redis==4.5.4  # https://github.com/antirez/redis
+redis==4.5.5  # https://github.com/antirez/redis
 psycopg2==2.9.6  # https://github.com/psycopg/psycopg2
 
 # Django
