@@ -4,7 +4,7 @@ Pillow==9.5.0  # https://github.com/python-pillow/Pillow
 rcssmin==1.1.1  # https://github.com/ndparker/rcssmin
 argon2-cffi==21.3.0  # https://github.com/hynek/argon2_cffi
 whitenoise[brotli]==6.4.0  # https://github.com/evansd/whitenoise
-redis==4.5.4  # https://github.com/antirez/redis
+redis==4.5.5  # https://github.com/antirez/redis
 psycopg2==2.9.6  # https://github.com/psycopg/psycopg2
 
 # Django
@@ -40,13 +40,13 @@ tablib==3.4.0
 scipy==1.10.1
 dnspython==2.3.0
 django-anymail==10.0  # https://github.com/anymail/django-anymail
-django-autocomplete-light==3.9.4  # https://github.com/yourlabs/django-autocomplete-light
+django-autocomplete-light==3.9.7  # https://github.com/yourlabs/django-autocomplete-light
 django-avatar==7.1.1
 
 numpy==1.24.3
 matplotlib==3.7.1
 django-mptt==0.14.0  # https://github.com/django-mptt/django-mptt
-django-webpack-loader==1.8.1
+django-webpack-loader==2.0.0
 
 google-api-python-client==2.86.0
 oauth2client==4.1.3
@@ -54,7 +54,7 @@ algoliasearch_django==3.0.0
 
 celery[redis]==5.2.7  # https://github.com/celery/celery
 graphene==3.2.2  # https://github.com/graphql-python/graphene
-graphene-django==3.0.2  # https://github.com/graphql-python/graphene-django
+graphene-django==3.1.1  # https://github.com/graphql-python/graphene-django
 graphene-django-optimizer==0.9.1  # https://github.com/tfoxy/graphene-django-optimizer
 django-graphql-jwt==0.3.4
 django-cors-headers==4.0.0
