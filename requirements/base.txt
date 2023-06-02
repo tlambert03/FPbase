@@ -46,7 +46,7 @@ django-avatar==7.1.1
 numpy==1.24.3
 matplotlib==3.7.1
 django-mptt==0.14.0  # https://github.com/django-mptt/django-mptt
-django-webpack-loader==1.8.1
+django-webpack-loader==2.0.0
 
 google-api-python-client==2.86.0
 oauth2client==4.1.3
