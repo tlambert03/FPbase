@@ -1,4 +1,4 @@
-[![Logo](static/src/images/logo_green_wide@1x.gif)](https://www.fpbase.org)
+[![Logo](nonweb_images/logo_green_wide@1x.gif)](https://www.fpbase.org)
 
 # FPbase: The Fluorescent Protein Database
 
@@ -83,11 +83,8 @@ width="170">](https://www.algolia.com/)
 [<img src="static/src/images/sentry-logo-black.svg"
 width="200">](https://sentry.io/)
 
-[<img src="static/src/images/TravisCI-Full-Color.png"
-width="190">](https://travis-ci.org/)
-
-[<img src="static/src/images/gitbook_avatar-rectangle.png"
+[<img src="nonweb_images/gitbook_avatar-rectangle.png"
 width="200">](https://www.gitbook.com/)
 
-[<img src="static/src/images/Browserstack-logo@2x.png"
+[<img src="nonweb_images/Browserstack-logo@2x.png"
 width="250">](https://www.browserstack.com)
