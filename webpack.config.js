@@ -21,9 +21,7 @@ const styleRule = {
     MiniCssExtractPlugin.loader,
     {
       loader: "css-loader",
-      options: {
-        sourceMap: true,
-      },
+      options: { sourceMap: true },
     },
     {
       loader: "postcss-loader",
@@ -177,26 +175,7 @@ module.exports = {
   },
   plugins,
   optimization: {
-    minimizer: [
-      new TerserJSPlugin({ cache: true, parallel: true, sourceMap: true }),
-      new CssMinimizerPlugin(),
-      // new ImageMinimizerPlugin({
-      //   minimizer: {
-      //     implementation: ImageMinimizerPlugin.sharpMinify,
-      //     options: {
-      //       encodeOptions: {
-      //         webp: {
-      //           // https://sharp.pixelplumbing.com/api-output#webp
-      //           quality: 90,
-      //           sharpness: 1,
-      //         },
-      //         png: {},
-      //         gif: {},
-      //       },
-      //     },
-      //   },
-      // }),
-    ],
+    minimizer: [new TerserJSPlugin(), new CssMinimizerPlugin()],
     splitChunks: {
       cacheGroups: {
         commons: {
