@@ -1,7 +1,6 @@
 const path = require("path")
 const webpack = require("webpack")
-const autoprefixer = require("autoprefixer")
-const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
+// const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
 const BundleTracker = require("webpack-bundle-tracker")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
@@ -10,7 +9,6 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const SentryCliPlugin = require("@sentry/webpack-plugin")
 const TerserJSPlugin = require("terser-webpack-plugin")
-const CSSnano = require("cssnano")
 
 const devMode = process.env.NODE_ENV !== "production"
 const hotReload = process.env.HOT_RELOAD === "1"
@@ -26,7 +24,9 @@ const styleRule = {
     {
       loader: "postcss-loader",
       options: {
-        plugins: () => [autoprefixer(), CSSnano],
+        postcssOptions: {
+          plugins: ["autoprefixer", "cssnano"]
+        }
       },
     },
     "sass-loader",
@@ -97,8 +97,6 @@ const plugins = [
 ]
 
 if (devMode) {
-  plugins.push(new webpack.HotModuleReplacementPlugin())
-  styleRule.use = ["css-hot-loader", ...styleRule.use]
 } else {
   plugins.push(
     new webpack.EnvironmentPlugin({
