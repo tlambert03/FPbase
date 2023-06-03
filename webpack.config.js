@@ -5,7 +5,7 @@ const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
 const BundleTracker = require("webpack-bundle-tracker")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
-const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin")
+// const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const SentryCliPlugin = require("@sentry/webpack-plugin")
@@ -150,7 +150,7 @@ module.exports = {
       jquery: "jquery/src/jquery",
     },
     fallback: {
-      "url": require.resolve("url/"),
+      url: require.resolve("url/"),
     },
   },
   devtool: devMode ? "eval-cheap-module-source-map" : "source-map",
@@ -162,7 +162,11 @@ module.exports = {
   },
   module: {
     rules: [
-      { test: /\.m?js$/, resolve: { fullySpecified: false }, include: /node_modules/ },
+      {
+        test: /\.m?js$/,
+        resolve: { fullySpecified: false },
+        include: /node_modules/,
+      },
       jsRule,
       styleRule,
       assetRule,
@@ -176,22 +180,22 @@ module.exports = {
     minimizer: [
       new TerserJSPlugin({ cache: true, parallel: true, sourceMap: true }),
       new CssMinimizerPlugin(),
-      new ImageMinimizerPlugin({
-        minimizer: {
-          implementation: ImageMinimizerPlugin.sharpMinify,
-          options: {
-            encodeOptions: {
-              webp: {
-                // https://sharp.pixelplumbing.com/api-output#webp
-                quality: 90,
-                sharpness: 1,
-              },
-              png: {},
-              gif: {},
-            },
-          },
-        },
-      }),
+      // new ImageMinimizerPlugin({
+      //   minimizer: {
+      //     implementation: ImageMinimizerPlugin.sharpMinify,
+      //     options: {
+      //       encodeOptions: {
+      //         webp: {
+      //           // https://sharp.pixelplumbing.com/api-output#webp
+      //           quality: 90,
+      //           sharpness: 1,
+      //         },
+      //         png: {},
+      //         gif: {},
+      //       },
+      //     },
+      //   },
+      // }),
     ],
     splitChunks: {
       cacheGroups: {
