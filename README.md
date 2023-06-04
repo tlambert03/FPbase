@@ -80,7 +80,7 @@ If you have data that you would like to contribute to the database, please do
 [<img src="static/src/images/logo-algolia-nebula-blue-full.svg"
 width="170">](https://www.algolia.com/)
 
-[<img src="static/src/images/sentry-logo-black.svg"
+[<img src="nonweb_images/sentry-logo-black.svg"
 width="200">](https://sentry.io/)
 
 [<img src="nonweb_images/gitbook_avatar-rectangle.png"
