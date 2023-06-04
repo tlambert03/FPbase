@@ -7,7 +7,7 @@ const CopyPlugin = require("copy-webpack-plugin")
 // const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
-const SentryCliPlugin = require("@sentry/webpack-plugin")
+const { sentryWebpackPlugin } = require("@sentry/webpack-plugin")
 const TerserJSPlugin = require("terser-webpack-plugin")
 
 const devMode = process.env.NODE_ENV !== "production"
@@ -25,8 +25,8 @@ const styleRule = {
       loader: "postcss-loader",
       options: {
         postcssOptions: {
-          plugins: ["autoprefixer", "cssnano"]
-        }
+          plugins: ["autoprefixer", "cssnano"],
+        },
       },
     },
     "sass-loader",
@@ -109,14 +109,19 @@ if (devMode) {
 
   if (process.env.SENTRY_AUTH_TOKEN && !process.env.CI) {
     plugins.push(
-      new SentryCliPlugin({
-        include: "static/",
+      sentryWebpackPlugin({
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+        org: process.env.SENTRY_ORG,
+        project: process.env.SENTRY_PROJECT,
+        sourcemaps: {
+          paths: "static/",
+          ignore: [
+            "node_modules",
+            "webpack.config.js",
+            "static/src/js/pdb/LiteMol-plugin.js",
+          ],
+        },
         release: process.env.SOURCE_VERSION,
-        ignore: [
-          "node_modules",
-          "webpack.config.js",
-          "static/src/js/pdb/LiteMol-plugin.js",
-        ],
       })
     )
   }
