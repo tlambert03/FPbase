@@ -8,7 +8,8 @@ import {
   Credits,
   Legend,
   Tooltip,
-  provideAxis,
+  useAxis,
+  useHighcharts,
   Chart /* etc... */,
   XAxis,
 } from "react-jsx-highcharts"
@@ -105,7 +106,7 @@ const BaseSpectraViewerContainer = React.memo(
       normWave = undefined
     } else {
       chartOptions = data.chartOptions
-      ;[normWave] = data.exNorm
+        ;[normWave] = data.exNorm
     }
 
     const yAxis = update(_yAxis, {
@@ -284,23 +285,24 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   )
 })
 
-const MyCredits = provideAxis(function MyCredits({
-  getAxis,
-  getHighcharts,
+const MyCredits = function MyCredits({
   hide,
 }) {
+  const hChart = useHighcharts()
+  const axis = useAxis('xAxis')
   useEffect(() => {
-    const axis = getAxis()
+    if (!axis) {
+      return
+    }
     function shiftCredits() {
       const yShift = axis.object.chart.get("xAxis").axisTitleMargin
       axis.object.chart.credits.update({
         position: { y: -25 - yShift, x: -25 - axis.object.axisTitleMargin },
       })
     }
-    const hChart = getHighcharts()
     hChart.addEvent(axis.object.chart, "redraw", shiftCredits)
     shiftCredits()
-  }, []) // eslint-disable-line
+  }, [axis]) // eslint-disable-line
 
   return (
     <Credits
@@ -311,7 +313,7 @@ const MyCredits = provideAxis(function MyCredits({
       fpbase.org
     </Credits>
   )
-})
+}
 
 export const XAxisWithRange = memo(function XAxisWithRange({
   options,
