@@ -1,30 +1,30 @@
 import React, { useEffect, useState } from "react"
-import Menu from "@material-ui/core/Menu"
-import MenuItem from "@material-ui/core/MenuItem"
-import ListItemIcon from "@material-ui/core/ListItemIcon"
-import ListItemText from "@material-ui/core/ListItemText"
-import DownloadIcon from "@material-ui/icons/GetApp"
-import ChartIcon from "@material-ui/icons/InsertChart"
-import PrintIcon from "@material-ui/icons/Print"
-import LinkIcon from "@material-ui/icons/Link"
-import CloseIcon from "@material-ui/icons/Close"
-import Divider from "@material-ui/core/Divider"
-import ShareIcon from "@material-ui/icons/Share"
-import { useQuery } from "@apollo/react-hooks"
-import TextField from "@material-ui/core/TextField"
-import Tooltip from "@material-ui/core/Tooltip"
-import InputAdornment from "@material-ui/core/InputAdornment"
-import IconButton from "@material-ui/core/IconButton"
+import Menu from "@mui/material/Menu"
+import MenuItem from "@mui/material/MenuItem"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import ListItemText from "@mui/material/ListItemText"
+import DownloadIcon from "@mui/icons-material/GetApp"
+import ChartIcon from "@mui/icons-material/InsertChart"
+import PrintIcon from "@mui/icons-material/Print"
+import LinkIcon from "@mui/icons-material/Link"
+import CloseIcon from "@mui/icons-material/Close"
+import Divider from "@mui/material/Divider"
+import ShareIcon from "@mui/icons-material/Share"
+import { useQuery } from "@apollo/client"
+import TextField from "@mui/material/TextField"
+import Tooltip from "@mui/material/Tooltip"
+import InputAdornment from "@mui/material/InputAdornment"
+import IconButton from "@mui/material/IconButton"
 import Highcharts from "highcharts"
-import Dialog from "@material-ui/core/Dialog"
-import DialogTitle from "@material-ui/core/DialogTitle"
-import DialogContent from "@material-ui/core/DialogContent"
-import DialogActions from "@material-ui/core/DialogActions"
+import Dialog from "@mui/material/Dialog"
+import DialogTitle from "@mui/material/DialogTitle"
+import DialogContent from "@mui/material/DialogContent"
+import DialogActions from "@mui/material/DialogActions"
 import { faEnvelope, faCopy } from "@fortawesome/free-solid-svg-icons"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons"
 import ClipboardJS from "clipboard"
-import { makeStyles } from "@material-ui/core/styles"
-import Zoom from "@material-ui/core/Zoom"
+import makeStyles from '@mui/styles/makeStyles';
+import Zoom from "@mui/material/Zoom"
 import { FAIcon } from "./FaIcon"
 import stateToUrl from "./stateToUrl"
 import {
@@ -151,7 +151,7 @@ function ShareLinkAlert({ open, setOpen }) {
                       edge="end"
                       id="copy-button"
                       aria-label="Toggle password visibility"
-                    >
+                      size="large">
                       <FAIcon icon={faCopy} style={{}} />
                     </IconButton>
                   </Tooltip>
@@ -167,7 +167,7 @@ function ShareLinkAlert({ open, setOpen }) {
               /&/g,
               "%26"
             )}`}
-          >
+            size="large">
             <FAIcon icon={faEnvelope} style={{}} />
           </IconButton>
           <IconButton
@@ -178,16 +178,16 @@ function ShareLinkAlert({ open, setOpen }) {
             )}&text=Check out these spectra at FPbase%0D%0A&via=FPbase`}
             title="Tweet"
             target="_blank"
-          >
+            size="large">
             <FAIcon icon={faTwitter} style={{}} />
           </IconButton>
-          <IconButton onClick={() => setOpen(false)} color="primary" autoFocus>
+          <IconButton onClick={() => setOpen(false)} color="primary" autoFocus size="large">
             <CloseIcon />
           </IconButton>
         </DialogActions>
       </Dialog>
     </div>
-  )
+  );
 }
 
 const ShareButton = () => {
@@ -236,7 +236,7 @@ const ShareButton = () => {
         aria-haspopup="true"
         onClick={handleShareClick}
         tabIndex={-1}
-      >
+        size="large">
         <ShareIcon />
       </IconButton>
       <Menu
@@ -299,7 +299,7 @@ const ShareButton = () => {
         )}
       </Menu>
     </div>
-  )
+  );
 }
 
 export default ShareButton

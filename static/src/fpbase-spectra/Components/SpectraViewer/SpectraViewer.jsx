@@ -1,5 +1,5 @@
 import React, { useEffect, memo } from "react"
-import { useQuery } from "@apollo/react-hooks"
+import { useQuery } from "@apollo/client"
 import Highcharts from "highcharts"
 import {
   withHighcharts,

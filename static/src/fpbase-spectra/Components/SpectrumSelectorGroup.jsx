@@ -1,10 +1,10 @@
 import React, { useMemo, useCallback } from "react"
-import Box from "@material-ui/core/Box"
-import IconButton from "@material-ui/core/IconButton"
-import DeleteIcon from "@material-ui/icons/Delete"
-import { makeStyles } from "@material-ui/core/styles"
-import Typography from "@material-ui/core/Typography"
-import { useMutation } from "@apollo/react-hooks"
+import Box from "@mui/material/Box"
+import IconButton from "@mui/material/IconButton"
+import DeleteIcon from "@mui/icons-material/Delete"
+import makeStyles from '@mui/styles/makeStyles';
+import Typography from "@mui/material/Typography"
+import { useMutation } from "@apollo/client"
 import { categoryIcon } from "./FaIcon"
 import SpectrumSelector from "./SpectrumSelector"
 import { UPDATE_ACTIVE_SPECTRA, REMOVE_SELECTOR } from "../client/queries"
@@ -19,7 +19,7 @@ export const useStyles = makeStyles(theme => ({
     padding: "6px 6px",
     marginRight: 2,
     marginLeft: 2,
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('sm')]: {
       display: "none",
     },
     "&:hover": {
@@ -100,66 +100,64 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
     [ownerInfo, removeLoading, removeSelector, updateSpectra]
   )
 
-  return (
-    <>
-      {mySelectors.map(selector => (
-        <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
-          {!category &&
-            selector.category !== lastCategory &&
-            ((lastCategory = selector.category) && (
-              <Typography variant="h6" className={classes.categoryHeader}>
-                {categoryNames[selector.category]}
-              </Typography>
-            ))}
-          <Box display="flex" alignItems="center" className={classes.root}>
-            {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
-              style: {
-                position: "relative",
-                left: category === "L" ? 4 : 2,
-                height: "1.3rem",
-                marginRight: 10,
-              },
-            })}
-            <Box flexGrow={1}>
-              <SpectrumSelector
-                key={selector.id}
-                // this line restricts the options to similar categories
-                options={categoryOptions}
-                allOwners={allOwners}
-                showCategoryIcon={showCategoryIcon}
-                selector={selector}
-                ownerInfo={ownerInfo}
-              />
-            </Box>
-            {selector.owner ? (
-              <Box>
-                <IconButton
-                  aria-label="Delete"
-                  color="secondary"
-                  className={classes.deleteButton}
-                  tabIndex={-1}
-                  onClick={() => removeRow(selector)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            ) : (
-              <></>
-            )}
+  return <>
+    {mySelectors.map(selector => (
+      <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
+        {!category &&
+          selector.category !== lastCategory &&
+          ((lastCategory = selector.category) && (
+            <Typography variant="h6" className={classes.categoryHeader}>
+              {categoryNames[selector.category]}
+            </Typography>
+          ))}
+        <Box display="flex" alignItems="center" className={classes.root}>
+          {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
+            style: {
+              position: "relative",
+              left: category === "L" ? 4 : 2,
+              height: "1.3rem",
+              marginRight: 10,
+            },
+          })}
+          <Box flexGrow={1}>
+            <SpectrumSelector
+              key={selector.id}
+              // this line restricts the options to similar categories
+              options={categoryOptions}
+              allOwners={allOwners}
+              showCategoryIcon={showCategoryIcon}
+              selector={selector}
+              ownerInfo={ownerInfo}
+            />
           </Box>
-        </div>
-      ))}
-      {/* <Button
-        variant="contained"
-        color="primary"
-        className={classes.addButton}
-        onClick={() => addRow(category || null)}
-      >
-        <AddIcon />
-        {`Add ${hint}`}
-      </Button> */}
-    </>
-  )
+          {selector.owner ? (
+            <Box>
+              <IconButton
+                aria-label="Delete"
+                color="secondary"
+                className={classes.deleteButton}
+                tabIndex={-1}
+                onClick={() => removeRow(selector)}
+                size="large">
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          ) : (
+            <></>
+          )}
+        </Box>
+      </div>
+    ))}
+    {/* <Button
+      variant="contained"
+      color="primary"
+      className={classes.addButton}
+      onClick={() => addRow(category || null)}
+    >
+      <AddIcon />
+      {`Add ${hint}`}
+    </Button> */}
+  </>;
 })
 
 SpectrumSelectorGroup.defaultProps = {

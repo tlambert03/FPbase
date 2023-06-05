@@ -1,38 +1,35 @@
-import { ApolloClient } from "apollo-client"
-import {
-  InMemoryCache,
-  IntrospectionFragmentMatcher,
-} from "apollo-cache-inmemory"
-import { HttpLink } from "apollo-link-http"
-import { onError } from "apollo-link-error"
-import { ApolloLink } from "apollo-link"
-import { persistCache } from "apollo-cache-persist"
+import { ApolloClient, HttpLink, ApolloLink, InMemoryCache } from '@apollo/client'
+
+import { onError } from "@apollo/client/link/error";
+import { persistCache } from "apollo3-cache-persist"
 import qs from "qs"
 import { defaults, resolvers, validSpectraIds } from "./resolvers"
 import typeDefs from "./schema"
 
-import introspectionQueryResultData from "../fragmentTypes.json"
 import { decoder } from "../util"
 import { GET_CHART_OPTIONS } from "./queries"
 import "unfetch/polyfill/index"
 import PALETTES from "../palettes"
 
 function intializeClient({ uri, storage }) {
-  const fragmentMatcher = new IntrospectionFragmentMatcher({
-    introspectionQueryResultData,
-  })
+  // const fragmentMatcher = new IntrospectionFragmentMatcher({
+  //   introspectionQueryResultData,
+  // })
 
-  const cache = new InMemoryCache({ fragmentMatcher })
+  const cache = new InMemoryCache({ })
 
   const link = ApolloLink.from([
     onError(({ graphQLErrors, networkError }) => {
-      if (graphQLErrors)
+      if (graphQLErrors) {
         graphQLErrors.map(({ message, locations, path }) =>
           console.log(
             `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
           )
         )
-      if (networkError) console.log(`[Network error]: ${networkError}`)
+      }
+      if (networkError) {
+        console.log(`[Network error]: ${networkError}`)
+      }
     }),
     new HttpLink({
       uri: uri || "https://www.fpbase.org/graphql/",

@@ -1,9 +1,8 @@
 import React, { useRef } from "react"
 import "./index.css"
-import { ApolloProvider } from "@apollo/react-hooks"
+import { ApolloProvider } from '@apollo/client'
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
-// import { ApolloProvider } from "@apollo/react-hooks"
 import initializeClient from "./client/client"
 import { defaults } from "./client/resolvers"
 

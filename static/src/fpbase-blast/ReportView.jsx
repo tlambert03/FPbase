@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react"
-import { makeStyles } from "@material-ui/core/styles"
-import Paper from "@material-ui/core/Paper"
-import Tabs from "@material-ui/core/Tabs"
-import Tab from "@material-ui/core/Tab"
+import makeStyles from '@mui/styles/makeStyles';
+import {
+  Paper,
+  Tabs,
+  Tab,
+  Snackbar,
+  IconButton,
+  Typography,
+} from "@mui/material";
+
 import BlastReportDescription from "./ReportDescription.jsx"
 import BlastReportAlignments from "./ReportAlignments.jsx"
-import Snackbar from "@material-ui/core/Snackbar"
-import IconButton from "@material-ui/core/IconButton"
-import CloseIcon from "@material-ui/icons/Close"
-import { Typography } from "@material-ui/core"
+import CloseIcon from "@mui/icons-material/Close"
 
 const useStyles = makeStyles(theme => ({
   paperRoot: {
@@ -61,13 +64,13 @@ const NoHitsMessage = ({ open, handleClose }) => {
             color="inherit"
             className={classes.close}
             onClick={handleClose}
-          >
+            size="large">
             <CloseIcon />
           </IconButton>
         ]}
       />
     </div>
-  )
+  );
 }
 
 function BlastReport({ report }) {

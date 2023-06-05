@@ -23,7 +23,7 @@ const querySorter = query => {
     }
     if (blabel.startsWith(lowerquery)) return 1
     return alabel < blabel ? -1 : 1
-  }
+  };
 }
 
 const OptionWithIcon = props => {

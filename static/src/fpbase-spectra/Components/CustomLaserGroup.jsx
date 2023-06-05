@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react"
-import Box from "@material-ui/core/Box"
-import IconButton from "@material-ui/core/IconButton"
-import Button from "@material-ui/core/Button"
-import AddIcon from "@material-ui/icons/Add"
-import DeleteIcon from "@material-ui/icons/Delete"
-import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
+import Box from "@mui/material/Box"
+import IconButton from "@mui/material/IconButton"
+import Button from "@mui/material/Button"
+import AddIcon from "@mui/icons-material/Add"
+import DeleteIcon from "@mui/icons-material/Delete"
+import { useMutation, useQuery, useApolloClient } from "@apollo/client"
 import { categoryIcon } from "./FaIcon"
 import CustomLaserCreator from "./CustomLaserCreator"
 import {
@@ -106,7 +106,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({
                   marginRight: 2,
                   marginLeft: 2,
                 }}
-              >
+                size="large">
                 <DeleteIcon />
               </IconButton>
             </Box>
@@ -123,7 +123,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({
         {`Add Laser`}
       </Button>
     </div>
-  )
+  );
 })
 
 export default CustomLaserGroup

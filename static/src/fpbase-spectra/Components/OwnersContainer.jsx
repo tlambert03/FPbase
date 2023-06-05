@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react"
-import Tabs from "@material-ui/core/Tabs"
-import Tab from "@material-ui/core/Tab"
-import { makeStyles } from "@material-ui/core/styles"
+import Tabs from "@mui/material/Tabs"
+import Tab from "@mui/material/Tab"
+import makeStyles from '@mui/styles/makeStyles';
 import { RingLoader } from "react-spinners"
 import { css } from "@emotion/core"
-import { Typography } from "@material-ui/core"
-import { useQuery, useApolloClient } from "@apollo/react-hooks"
+import { Typography } from "@mui/material"
+import { useQuery, useApolloClient } from "@apollo/client"
 import gql from "graphql-tag"
 import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 import CustomFilterGroup from "./CustomFilterGroup"
@@ -39,7 +39,7 @@ const useStyles = makeStyles(theme => ({
     minHeight: 40,
     minWidth: 72,
     // lineHeight: 0,
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('md')]: {
       fontSize: "0.7rem",
       paddingLeft: 5,
       paddingRight: 5,
@@ -62,7 +62,7 @@ const useStyles = makeStyles(theme => ({
     },
   },
   bigShow: {
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down('lg')]: {
       display: "none",
     },
     [theme.breakpoints.up("md")]: {
@@ -70,12 +70,12 @@ const useStyles = makeStyles(theme => ({
     },
   },
   bigHide: {
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down('lg')]: {
       display: "block",
       marginRight: 13,
       marginLeft: 13,
     },
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('md')]: {
       display: "block",
     },
     [theme.breakpoints.up("md")]: {
@@ -216,9 +216,9 @@ const OwnersContainer = React.memo(function OwnersContainer({
         textColor="primary"
         centered={!ISTOUCH}
         variant={ISTOUCH ? "scrollable" : "standard"}
-        scrollButtons="on"
+        scrollButtons
         className={classes.tabHeader}
-      >
+        allowScrollButtonsMobile>
         <Tab
           tabIndex={-1}
           className={classes.tabLabel}
@@ -343,7 +343,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
         </div>
       )}
     </div>
-  )
+  );
 })
 
 export default OwnersContainer

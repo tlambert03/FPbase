@@ -1,17 +1,17 @@
 import React, { memo } from "react"
-import { makeStyles } from "@material-ui/core/styles"
-import AppBar from "@material-ui/core/AppBar"
-import Toolbar from "@material-ui/core/Toolbar"
-import Tooltip from "@material-ui/core/Tooltip"
-import Fab from "@material-ui/core/Fab"
-import HelpIcon from "@material-ui/icons/Help"
-import AddIcon from "@material-ui/icons/Add"
+import makeStyles from '@mui/styles/makeStyles';
+import AppBar from "@mui/material/AppBar"
+import Toolbar from "@mui/material/Toolbar"
+import Tooltip from "@mui/material/Tooltip"
+import Fab from "@mui/material/Fab"
+import HelpIcon from "@mui/icons-material/Help"
+import AddIcon from "@mui/icons-material/Add"
 
-import { useMutation, useQuery } from "@apollo/react-hooks"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
-import Switch from "@material-ui/core/Switch"
+import { useMutation, useQuery } from "@apollo/client"
+import FormControlLabel from "@mui/material/FormControlLabel"
+import Switch from "@mui/material/Switch"
 import gql from "graphql-tag"
-import { IconButton } from "@material-ui/core"
+import { IconButton } from "@mui/material"
 import ShareButton from "./ShareButton"
 import SettingsDrawer from "./SettingsDrawer"
 import { GET_CHART_OPTIONS } from "../client/queries"
@@ -42,7 +42,7 @@ export const useStyles = makeStyles(theme => ({
     margin: "0 auto",
   },
   spaceBar: {
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down('lg')]: {
       display: "none",
     },
     color: "rgba(255,255,255,0.2)",
@@ -79,56 +79,54 @@ const MyAppBar = memo(function MyAppBar({
     }
   `)
 
-  return (
-    <>
-      <AppBar position="fixed" className={classes.appBar}>
-        <Toolbar>
-          <SettingsDrawer />
-          <IconButton color="inherit" onClick={openHelp}>
-            <HelpIcon />
-          </IconButton>
-          <Tooltip
-            title="Click [or spacebar] for Quick Entry"
-            enterDelay={700}
-            leaveDelay={200}
+  return <>
+    <AppBar position="fixed" className={classes.appBar}>
+      <Toolbar>
+        <SettingsDrawer />
+        <IconButton color="inherit" onClick={openHelp} size="large">
+          <HelpIcon />
+        </IconButton>
+        <Tooltip
+          title="Click [or spacebar] for Quick Entry"
+          enterDelay={700}
+          leaveDelay={200}
+        >
+          <Fab
+            tabIndex={-1}
+            onClick={handleClick}
+            aria-label="Add"
+            className={classes.fabButton}
           >
-            <Fab
+            <AddIcon />
+          </Fab>
+        </Tooltip>
+        <div className={classes.spaceBar}>spacebar</div>
+        <div className={classes.grow} />
+        <FormControlLabel
+          labelPlacement="start"
+          control={(
+            <Switch
               tabIndex={-1}
-              onClick={handleClick}
-              aria-label="Add"
-              className={classes.fabButton}
-            >
-              <AddIcon />
-            </Fab>
-          </Tooltip>
-          <div className={classes.spaceBar}>spacebar</div>
-          <div className={classes.grow} />
-          <FormControlLabel
-            labelPlacement="start"
-            control={(
-              <Switch
-                tabIndex={-1}
-                checked={logScale}
-                onChange={toggleLogScale}
-                color="default"
-              />
+              checked={logScale}
+              onChange={toggleLogScale}
+              color="default"
+            />
 )}
-            label="OD"
-            className={classes.odToggle}
-          />
-          <ShareButton />
-        </Toolbar>
-      </AppBar>
-      {spectraOptions.length > 0 && (
-        <SearchModal
-          options={spectraOptions}
-          open={searchOpen}
-          clearForm={clearForm}
-          setOpen={setSearchOpen}
+          label="OD"
+          className={classes.odToggle}
         />
-      )}
-    </>
-  )
+        <ShareButton />
+      </Toolbar>
+    </AppBar>
+    {spectraOptions.length > 0 && (
+      <SearchModal
+        options={spectraOptions}
+        open={searchOpen}
+        clearForm={clearForm}
+        setOpen={setSearchOpen}
+      />
+    )}
+  </>;
 })
 
 export default MyAppBar

@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { useMutation, useQuery } from "@apollo/react-hooks"
+import { useMutation, useQuery } from "@apollo/client"
 import {
   GET_ACTIVE_SPECTRA,
   GET_SELECTORS,

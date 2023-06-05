@@ -1,28 +1,14 @@
 import React from "react"
-import Typography from "@material-ui/core/Typography"
-import { makeStyles } from "@material-ui/core/styles"
-import Checkbox from "@material-ui/core/Checkbox"
-import FormGroup from "@material-ui/core/FormGroup"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
-import Button from "@material-ui/core/Button"
-import Icon from "@material-ui/core/Icon"
-import SearchIcon from "@material-ui/icons/Search"
-import ChartIcon from "@material-ui/icons/InsertChart"
-import FileIcon from "@material-ui/icons/GetApp"
-import SettingsIcon from "@material-ui/icons/Settings"
-import CachedIcon from "@material-ui/icons/Cached"
-import ShareIcon from "@material-ui/icons/Share"
-import Dialog from "@material-ui/core/Dialog"
-import DialogActions from "@material-ui/core/DialogActions"
-import DialogContent from "@material-ui/core/DialogContent"
-import DialogTitle from "@material-ui/core/DialogTitle"
+import makeStyles from '@mui/styles/makeStyles';
+import { Dialog, DialogActions, DialogContent, DialogTitle, Typography, Button, Icon } from "@mui/material"
+import * as icons from "@mui/icons-material"
 
 const useStyles = makeStyles(theme => ({
   root: {
     width: "100%",
     "& .MuiPaper-root ": {
       margin: 48,
-      [theme.breakpoints.down("xs")]: {
+      [theme.breakpoints.down('sm')]: {
         margin: 22,
         maxHeight: "calc(100% - 44px)",
       },
@@ -35,7 +21,7 @@ const useStyles = makeStyles(theme => ({
       color: "#666",
       marginLeft: "2.2rem",
       marginBottom: 10,
-      [theme.breakpoints.down("xs")]: {
+      [theme.breakpoints.down('sm')]: {
         marginLeft: ".4rem",
       },
     },
@@ -105,7 +91,7 @@ const WelcomeModal = React.memo(function WelcomeModal({
       <DialogContent dividers>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
-            <SearchIcon />
+            <icons.Search />
           </Icon>
           Quick Entry
         </Typography>
@@ -129,7 +115,7 @@ const WelcomeModal = React.memo(function WelcomeModal({
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
-            <FileIcon />
+            <icons.Share />
           </Icon>
           Export &amp; Sharing
         </Typography>
@@ -138,12 +124,12 @@ const WelcomeModal = React.memo(function WelcomeModal({
           format. Or download all of the current data as CSV format. You may
           also save your chart as a URL for sharing or later recall. All in the
           the share icon (&nbsp;
-          <ShareIcon />
+          <icons.Share />
           &nbsp;) at the bottom right.
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
-            <ChartIcon />
+            <icons.BarChart />
           </Icon>
           Improved Charts
         </Typography>
@@ -153,7 +139,7 @@ const WelcomeModal = React.memo(function WelcomeModal({
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
-            <SettingsIcon />
+            <icons.Settings />
           </Icon>
           Configurable
         </Typography>
@@ -171,7 +157,7 @@ const WelcomeModal = React.memo(function WelcomeModal({
         </Typography>
         <Typography variant="h6" gutterBottom>
           <Icon className={classes.headerIcon}>
-            <CachedIcon />
+            <icons.Cached />
           </Icon>
           State Recovery
         </Typography>
@@ -181,10 +167,8 @@ const WelcomeModal = React.memo(function WelcomeModal({
         <div style={{ textAlign: "center" }}>
           <Button
             variant="contained"
-            color="default"
             href="https://help.fpbase.org/tools/spectra-viewer"
-            className={classes.docsButton}
-          >
+            className={classes.docsButton}>
             full documentation
           </Button>
         </div>
@@ -195,7 +179,7 @@ const WelcomeModal = React.memo(function WelcomeModal({
         </Button>
       </DialogActions>
     </Dialog>
-  )
+  );
 })
 
 WelcomeModal.defaultProps = {

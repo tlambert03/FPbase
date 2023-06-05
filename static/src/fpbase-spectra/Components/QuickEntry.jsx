@@ -1,6 +1,6 @@
 import React, { useState } from "react"
-import IconButton from "@material-ui/core/IconButton"
-import SearchIcon from "@material-ui/icons/Search"
+import IconButton from "@mui/material/IconButton"
+import SearchIcon from "@mui/icons-material/Search"
 import SearchModal from "./SearchModal"
 
 const QuickEntry = ({ options, clearForm }) => {
@@ -10,7 +10,7 @@ const QuickEntry = ({ options, clearForm }) => {
 
   return (
     <div>
-      <IconButton onClick={handleClick}>
+      <IconButton onClick={handleClick} size="large">
         <SearchIcon />
       </IconButton>
       <SearchModal
@@ -20,7 +20,7 @@ const QuickEntry = ({ options, clearForm }) => {
         setOpen={setSearchOpen}
       />
     </div>
-  )
+  );
 }
 
 export default QuickEntry

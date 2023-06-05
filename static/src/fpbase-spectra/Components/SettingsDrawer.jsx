@@ -1,12 +1,12 @@
 import React, { useEffect } from "react"
-import IconButton from "@material-ui/core/IconButton"
-import SettingsIcon from "@material-ui/icons/Settings"
-import SwipeableDrawer from "@material-ui/core/SwipeableDrawer"
-import Button from "@material-ui/core/Button"
-import CloseIcon from "@material-ui/icons/Close"
-import DeleteIcon from "@material-ui/icons/Cached"
-import { makeStyles } from "@material-ui/core/styles"
-import { useMutation } from "@apollo/react-hooks"
+import IconButton from "@mui/material/IconButton"
+import SettingsIcon from "@mui/icons-material/Settings"
+import SwipeableDrawer from "@mui/material/SwipeableDrawer"
+import Button from "@mui/material/Button"
+import CloseIcon from "@mui/icons-material/Close"
+import DeleteIcon from "@mui/icons-material/Cached"
+import makeStyles from '@mui/styles/makeStyles';
+import { useMutation } from "@apollo/client"
 import gql from "graphql-tag"
 import ChartOptionsForm from "./SpectraViewer/ChartOptionsForm"
 import OwnerOptionsForm from "./OwnerOptionsForm"
@@ -16,7 +16,7 @@ export const useStyles = makeStyles(theme => ({
     width: "auto",
     padding: 30,
     paddingBottom: 20,
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down('lg')]: {
       paddingTop: 20,
     },
   },
@@ -69,7 +69,7 @@ const SettingsDrawer = () => {
         edge="start"
         color="inherit"
         aria-label="Open drawer"
-      >
+        size="large">
         <SettingsIcon />
       </IconButton>
       <SwipeableDrawer
@@ -102,7 +102,7 @@ const SettingsDrawer = () => {
         </div>
       </SwipeableDrawer>
     </div>
-  )
+  );
 }
 
 export default SettingsDrawer

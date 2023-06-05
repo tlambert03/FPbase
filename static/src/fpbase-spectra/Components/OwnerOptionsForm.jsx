@@ -1,9 +1,9 @@
 import React from "react"
 import gql from "graphql-tag"
-import { useQuery, useMutation } from "@apollo/react-hooks"
-import ToggleButton from "@material-ui/lab/ToggleButton"
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
-import { Box } from "@material-ui/core"
+import { useQuery, useMutation } from "@apollo/client"
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import { Box } from "@mui/material"
 import { GET_OWNER_OPTIONS } from "../client/queries"
 
 const MUTATE_OWNER_OPTIONS = gql`

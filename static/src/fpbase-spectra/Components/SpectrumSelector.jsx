@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from "react"
 import PropTypes from "prop-types"
-import Box from "@material-ui/core/Box"
-import { useQuery, useMutation, useApolloClient } from "@apollo/react-hooks"
+import Box from "@mui/material/Box"
+import { useQuery, useMutation, useApolloClient } from "@apollo/client"
 import { components } from "react-select"
 import update from "immutability-helper"
 import gql from "graphql-tag"
@@ -19,7 +19,7 @@ const customStyles = {
   }),
   singleValue: (provided, state) => ({
     ...provided,
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('sm')]: {
       fontSize: "0.88rem",
     },
   }),

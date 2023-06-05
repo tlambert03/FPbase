@@ -1,4 +1,3 @@
-import "core-js/stable/"
 import "./js/detect-touch"
 import { createElement } from "react"
 import { render } from "react-dom"

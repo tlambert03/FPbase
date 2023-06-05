@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react"
 import PropTypes from "prop-types"
-import Modal from "@material-ui/core/Modal"
-import Typography from "@material-ui/core/Typography"
-import { makeStyles } from "@material-ui/core/styles"
-import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
+import Modal from "@mui/material/Modal"
+import Typography from "@mui/material/Typography"
+import makeStyles from '@mui/styles/makeStyles';
+import { useMutation, useQuery, useApolloClient } from "@apollo/client"
 import { components } from "react-select"
-import Checkbox from "@material-ui/core/Checkbox"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
+import Checkbox from "@mui/material/Checkbox"
+import FormControlLabel from "@mui/material/FormControlLabel"
 import gql from "graphql-tag"
 import { useCachedFetch } from "../useCachedQuery"
 import {
@@ -56,10 +56,10 @@ const useStyles = makeStyles(theme => ({
     boxShadow: theme.shadows[5],
     padding: "5px 30px 15px",
     outline: "none",
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down('lg')]: {
       width: "80%",
     },
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('md')]: {
       width: "84%",
       padding: "5px 22px 15px",
       fontSize: "small",
@@ -69,7 +69,7 @@ const useStyles = makeStyles(theme => ({
     color: "black",
     marginTop: 29,
     marginBotton: 5,
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('md')]: {
       fontSize: "1.2rem",
     },
   },

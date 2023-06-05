@@ -1,9 +1,10 @@
 import React from "react"
-import Box from "@material-ui/core/Box"
-import ToggleButton from "@material-ui/lab/ToggleButton"
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
-import { makeStyles, Typography } from "@material-ui/core"
-import { useMutation } from "@apollo/react-hooks"
+import Box from "@mui/material/Box"
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import { Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { useMutation } from "@apollo/client"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const useStyles = makeStyles(theme => ({
@@ -15,7 +16,7 @@ const useStyles = makeStyles(theme => ({
   },
   toggleButtonGroup: {
     marginLeft: "5px",
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('sm')]: {
       display: "none",
     },
   },
@@ -67,7 +68,7 @@ const SubtypeToggle = ({ subtypes }) => {
         </ToggleButtonGroup>
       </Box>
     </div>
-  )
+  );
 }
 
 export default SubtypeToggle
