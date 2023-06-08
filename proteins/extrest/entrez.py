@@ -180,11 +180,11 @@ def fetch_gb_seqs(gbids):
     if len(nucs):
         with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
             records.update(
-                {x.id.split(".")[0]: x.translate().seq._data.strip("*") for x in SeqIO.parse(handle, "fasta")}
+                {x.id.split(".")[0]: str(x.translate().seq).strip("*") for x in SeqIO.parse(handle, "fasta")}
             )
     if len(prots):
         with Entrez.efetch(db="protein", id=prots, rettype="fasta", retmode="text") as handle:
-            records.update({x.id.split(".")[0]: x.seq._data.strip("*") for x in SeqIO.parse(handle, "fasta")})
+            records.update({x.id.split(".")[0]: str(x.seq).strip("*") for x in SeqIO.parse(handle, "fasta")})
     return records
 
 
@@ -197,13 +197,12 @@ def get_gb_seq(gbid):
     if database == "protein":
         with Entrez.efetch(db=database, id=gbid, rettype="fasta", retmode="text") as handle:
             record = SeqIO.read(handle, "fasta")
-        if hasattr(record, "_seq"):
-            return record._seq._data
+        if hasattr(record, "seq"):
+            return str(record.seq)
     else:
         with Entrez.efetch(db=database, id=gbid, rettype="gb", retmode="text") as handle:
             record = SeqIO.read(handle, "genbank")
-        D = parse_gbnuc_record(record)
-        return D.get("seq", None)
+        return parse_gbnuc_record(record).get("seq", None)
     return None
 
 
