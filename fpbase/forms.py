@@ -37,5 +37,5 @@ class ContactForm(forms.Form):
 
 
 class CustomSignupForm(SignupForm):
-    captcha = ReCaptchaField(label="")
+    captcha = ReCaptchaField(label="", widget=ReCaptchaV3(attrs={"required_score": 0.85}))
     field_order = ["username", "email", "password1", "password2", "captcha"]
