@@ -176,10 +176,19 @@ class ProteinDetailView(DetailView):
         try:
             return super().get(request, *args, **kwargs)
         except Http404:
+            from django.contrib.postgres.fields import ArrayField
+            from django.db import models
+
             name = slugify(self.kwargs.get(self.slug_url_kwarg))
             aliases_lower = Func(Func(F("aliases"), function="unnest"), function="LOWER")
             remove_space = Func(aliases_lower, Value(" "), Value("-"), function="replace")
-            final = Func(remove_space, Value("."), Value(""), function="replace")
+            final = Func(
+                remove_space,
+                Value("."),
+                Value(""),
+                function="replace",
+                output_field=ArrayField(models.CharField(max_length=200)),
+            )
             d = dict(Protein.objects.annotate(aka=final).values_list("aka", "id"))
             if name in d:
                 obj = Protein.objects.get(id=d[name])

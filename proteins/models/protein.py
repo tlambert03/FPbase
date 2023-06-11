@@ -173,6 +173,13 @@ class SequenceField(models.CharField):
         return str(value) if value else None
 
 
+# this is a hack to allow for reversions of proteins to work with Null chromophores
+# this makes sure that a None value is converted to an empty string
+class _NonNullChar(models.CharField):
+    def to_python(self, value):
+        return "" if value is None else super().to_python(value)
+
+
 class Protein(Authorable, StatusModel, TimeStampedModel):
     """Protein class to store individual proteins, each with a unique AA sequence and name"""
 
@@ -235,7 +242,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     slug = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
     base_name = models.CharField(max_length=128)  # easily searchable "family" name
     aliases = ArrayField(models.CharField(max_length=200), blank=True, null=True)
-    chromophore = models.CharField(max_length=5, blank=True, default="")
+    chromophore = _NonNullChar(max_length=5, blank=True, default="")
     seq_validated = models.BooleanField(default=False, help_text="Sequence has been validated by a moderator")
     # seq must be nullable because of uniqueness contraints
     seq = SequenceField(
