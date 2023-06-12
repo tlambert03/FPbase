@@ -5,7 +5,6 @@ import TextField from "@material-ui/core/TextField"
 import Paper from "@material-ui/core/Paper"
 import PropTypes from "prop-types"
 import { makeStyles, useTheme } from "@material-ui/core/styles"
-import "regenerator-runtime" // why do I need this?!?
 import Select from "react-select"
 import SortableWindowedSelect from "./SortableWindowedSelect"
 

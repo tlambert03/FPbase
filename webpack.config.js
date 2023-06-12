@@ -149,6 +149,7 @@ module.exports = {
     extensions: [".webpack.js", ".web.js", ".mjs", ".js", ".jsx", ".json"],
     alias: {
       jquery: "jquery/src/jquery",
+      "@fpbase/spectra": path.resolve(__dirname, "./packages/spectra/src/index.jsx"),
     },
     fallback: {
       url: require.resolve("url/"),

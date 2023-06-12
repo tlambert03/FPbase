@@ -3,7 +3,7 @@ import "core-js/stable/"
 import "./js/detect-touch"
 import { createElement } from "react"
 import { render } from "react-dom"
-import { SimpleSpectraViewer } from "./fpbase-spectra"
+import { SimpleSpectraViewer } from "@fpbase/spectra"
 
 const elem = document.getElementById("spectra-viewer")
 
