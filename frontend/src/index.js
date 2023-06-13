@@ -1,3 +1,4 @@
+import "regenerator-runtime/runtime"
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 import "nouislider/distribute/nouislider.min.css"

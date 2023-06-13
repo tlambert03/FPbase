@@ -25,6 +25,7 @@
     "progressbar.js": "^1.1.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
+    "regenerator-runtime": "^0.13.5",
     "select2": "^4.0.13",
     "select2-theme-bootstrap4": "^0.2.0-beta.6",
     "url": "^0.11.0",
