@@ -11,7 +11,7 @@ from ..models import Protein
 
 ROOT = Path(__file__).parent.parent.parent
 BIN_DIR = ROOT / "bin"
-BLAST_DB = str(ROOT / "blastdb" / "FPbase_blastdb.fsa")
+BLAST_DB = "blastdb/FPbase_blastdb.fsa"
 BIN_SUFFIX = "osx" if sys.platform == "darwin" else "nix"
 
 
