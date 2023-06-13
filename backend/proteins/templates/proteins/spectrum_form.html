@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags static %}
+
+{% block title %}Submit a Spectrum to FPbase{% endblock %}
+{% block meta-description %}Help us build the best open spectra viewer by submitting spectral data to FPbase.{% endblock %}
+
+{% block content %}
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+
+  {% if protein %}
+    <h2>Add a new spectrum for {{ protein }}</h2>
+  {% else %}
+    <h2>Add a new spectrum to the database</h2>
+  {% endif %}
+  <p>The easiest way to format spectra for upload is to create a two-column CSV or TSV file, where the first column contains the wavelength and the second column contains the spectrum values (ex/em/transmission, etc).  Any additional columns will be ignored.  <a href='https://automeris.io/WebPlotDigitizer/'>WebPlotDigitizer</a> can be used to extract a CSV file of spectral data from an image or PDF that can be imported here.</p>
+
+  <p>Data may also be entered below as a (python style) list: <code>[[wavelength, value], [wavelength, value], ...]</code></p>
+
+  {% if not protein %}
+  <div class="alert alert-info alert-dismissible fade show mt-4" role="alert">
+    <div class='h5 text-info'><i class="fas fa-info-circle mr-2 "></i> <strong>Guidelines</strong></div>
+    <p><small>Please note: there are currently no "private" spectra collections on FPbase, so all spectra are visible to everyone.  Therefore, please observe the following guidelines when uploading spectra:</small>
+      <ul>
+        <li><strong>Use good naming conventions</strong>:  Be specific and include manufacturer and part numbers where applicable.  For filters, this may include the bandcenter and wavelength range.  Do <em>not</em> name filters after a fluorophore they are often used with.
+          <ul style='font-style: italic'>
+            <li>Bad: FITC em</li>
+            <li>Good: Chroma ET525/50m</li>
+          </ul>
+        </li>
+        <li><strong>Avoid duplicates:</strong> Please try to verify that the spectrum is not already in the database.  After entering the name, you will be alerted if there is a pre-existing spectrum with a similar name (underscoring the importance of good naming convention).</li>
+        <li><strong>You cannot (yet) delete/edit:</strong> So double check before you upload.  But don't worry!  If you make a mistake and need something deleted or renamed, just contact <a href="{% url 'contact' %}">contact us!</a>.</li>
+      </ul>
+    </p>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  {% endif %}
+
+  {% crispy form %}
+
+  <p class='mt-3 small'>
+    <em>If you are adding different spectra for the same item (e.g. ex/em spectra for a dye or protein) you must choose the same "Dye/Protein Name" both times.  Currently, this must be done sequentially (submit the form and come back and submit again for the other spectrum).  If you run into difficulties importing spectra, please <a href="{% url 'contact' %}">let us know!</a></em>
+  </p>
+
+{% endblock content %}
+
+
+{% block javascript %}
+
+<script>
+
+  var valid_opts = {
+    d: ['ex', 'ab', 'em', '2p'],
+    p: ['ex', 'ab', 'em', '2p'],
+    l: ['pd'],
+    f: ['bp', 'bx', 'bm', 'sp', 'lp', 'bs'],
+    c: ['qe'],
+    '': [],
+  };
+
+
+  $(function(){
+
+    $("#id_category").change(function() {
+        $("#id_subtype option").each(function(i){
+          $(this).hide()
+        })
+        var vopts = valid_opts[$(this).val()];
+        $(vopts).each(function (i, v) {
+          $("#id_subtype option[value='" + v + "']").show();
+        })
+        if (vopts.length == 1){
+          $("#id_subtype").val(vopts[0]).change();
+        } else {
+          $("#id_subtype").val('').change();
+        }
+    }).change();
+
+    $("#spectrum-submit-form #id_category").change(function(){
+      ownname = 'Owner'
+      if (this.value){
+        ownname = $(this).find("option:selected").text()
+      }
+
+      $("#spectrum-submit-form .owner-type").text(ownname)
+      if (this.value === 'p'){
+        $(".protein-owner").show()
+        $(".protein-owner select").prop('required',true);
+        $(".non-protein-owner").hide()
+        $(".non-protein-owner input").prop('required',false);
+      }
+      else {
+        $(".protein-owner").hide()
+        $(".protein-owner select").prop('required',false);
+        $(".non-protein-owner").show()
+        $(".non-protein-owner input").prop('required',true);
+      }
+    }).change();
+
+  });
+
+</script>
+
+{% endblock javascript %}

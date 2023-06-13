@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{% block head_title %}{% endblock head_title %}{% endblock title %}
+
+{% block messages %}
+  {% if messages %}
+      {% for message in messages %}
+          <div class="row">
+            <div class="col-md-10 offset-md-1 text-center">
+              <div class="alert alert-info {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
+            </div>
+          </div>
+      {% endfor %}
+  {% endif %}
+{% endblock messages %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-6 offset-lg-3 col-md-8 offset-md-2">
+    {% block inner %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{
+  "parser": "babel-eslint",
+  "extends": [
+    "airbnb",
+    "prettier",
+    "plugin:react/recommended",
+    "plugin:jsx-a11y/recommended"
+  ],
+  "plugins": ["prettier", "react", "react-hooks", "jsx-a11y"],
+  "env": {
+    "browser": true,
+    "jest": true
+  },
+  "rules": {
+    "semi": ["error", "never"],
+    "no-nested-ternary": 0,
+    "no-shadow": 1,
+    "func-names": 0,
+    "object-shorthand": 0,
+    "no-return-assign": [2, "except-parens"],
+    "no-unused-expressions": [
+      2,
+      { "allowShortCircuit": true, "allowTernary": true }
+    ],
+    "no-plusplus": [0, { "allowForLoopAfterthoughts": true }], // allow ++ in for loop expression
+    "no-underscore-dangle": 0,
+    "no-param-reassign": [2, { "props": false }],
+    "no-unused-vars": [2, { "args": "none" }], // don't check function arguments
+    "prefer-const": [
+      "error",
+      {
+        "destructuring": "all",
+        "ignoreReadBeforeAssign": false
+      }
+    ],
+    "react/destructuring-assignment": 0,
+    "react/prop-types": 0,
+    "react/forbid-prop-types": 0,
+    "react/require-default-props": 0,
+    "react/display-name": 0,
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "react/jsx-props-no-spreading": "off"
+  }
+}

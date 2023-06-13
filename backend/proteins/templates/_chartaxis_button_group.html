@@ -1,0 +1,19 @@
+<div class="chartaxis-options">
+  <h4> {{ axis|upper }} Axis </h2>
+  <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons" id="{{ axis|upper }}radio">
+    <label class='btn btn-secondary {% if axis == "X" %} active {% endif %}'>
+      <input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}em_max" value="ex_max" {% if axis == "X" %} checked {% endif %}>Excitation &lambda;
+    </label>
+    <label class='btn btn-secondary {% if axis == "Y" %} active {% endif %}'>
+      <input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}ex_max" value="em_max" {% if axis == "Y" %} checked {% endif %}>Emission &lambda;
+    </label>
+    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}stokes" value="stokes">Stokes Shift</label>
+    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}ext_coeff" value="ext_coeff">EC</label>
+    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}qy" value="qy">QY</label>
+    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}brightness" value="brightness">Brightness</label>
+    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}pka" value="pka">pKa</label>
+    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}bleach" value="bleach">Stability</label>
+    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}maturation" value="maturation">Maturation</label>
+    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}lifetime" value="lifetime">Lifetime</label>
+  </div>
+</div>

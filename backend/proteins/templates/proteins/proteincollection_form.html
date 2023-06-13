@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% if colname %}
+    <h2>Name your duplicate of {{colname}} </h2>
+{% else %}
+	<h2>Create a New Collection</h2>
+{% endif %}
+
+
+<form method="post">
+{% csrf_token %}
+{{ form | crispy }}
+{%for p in form.proteins %}
+	<input type="hidden" name="protein" value="{{ p }}">
+{%endfor%}
+<input type="submit" class='btn btn-primary mb-4' value="Submit"/>
+</form>
+
+{% endblock content %}

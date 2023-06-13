@@ -1,0 +1,52 @@
+{% load i18n %}
+
+<div class="modal fade" id="excerptModal" tabindex="-1" role="dialog" aria-labelledby="excerptModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="excerptModalLongTitle"><strong>Add an excerpt</strong></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% if user.is_authenticated %}
+      <form id="excerptModalForm" data-action-url="{% url 'proteins:add_protein_excerpt' slug=protein.slug %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p>Add a brief excerpt from a publication that discusses {{ protein.name }}. The excerpt might summarize the rationale for the protein, or capture a property or performance characteristic of the protein that does not easily fit into one of the existing fields.  Keep the message of each excerpt focused; you may add multiple excerpts for a given publication if necessary.</p>
+
+          <div id="div_id_excerpt_content" class="form-group">
+            <label for="id_excerpt_content" class="form-control-label">Excerpt content</label>
+            <textarea class="form-control" name="excerpt_content" id="id_excerpt_content" rows="3" required="true"></textarea>
+            <small class='text-muted'>Please note: inaccurate or inappropriate excerpts will be removed.</small>
+          </div>
+
+          <div id="div_id_excerpt_doi" class="form-group">
+            <label for="id_excerpt_doi" class="form-control-label">Excerpt DOI</label>
+            <div class="">
+              <input type="text" name="excerpt_doi" maxlength="100" class="textinput textInput form-control" required="" id="id_excerpt_doi" pattern="10.\d{4,9}/[-._;()/:a-zA-Z0-9]+" oninvalid="setCustomValidity('Not a valid DOI string')" oninput="setCustomValidity('')">
+            </div>
+            <small id="hint_id_excerpt_doi" class="text-muted">e.g. 10.1038/nmeth.2413</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Add excerpt</button>
+        </div>
+      </form>
+      {% else %}
+      <div class="modal-body">
+        <div>
+          <p>You must be logged in to add excerpts to FPbase</p>
+          <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">
+            <button type="submit" class="btn btn-primary">{% trans "sign in" %}</button>
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

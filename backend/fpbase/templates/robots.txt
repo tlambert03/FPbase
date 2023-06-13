@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /protein/*/update
+Disallow: /protein/*/bleach

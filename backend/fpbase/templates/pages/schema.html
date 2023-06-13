@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load webp_picture from protein_tags %}
+
+{% block title %}FPbase Database Design{% endblock %}
+{% block meta-description %}The FPbase database schema is designed to capture and categorize the important characteristics of fluorescent proteins for storage in a relational database.{% endblock %}
+
+{% block content %}
+<h1><strong>FP</strong>base Database Schema</h1>
+<a class="navbar-brand" href="{% url 'home' %}" style='fill:red;'>
+{% include "_logo.html" %}
+</a>
+
+<p>FPbase is a database designed specifically for fluorescent proteins.  The goal is to come up with a single database design that can categorize the majority of the many subtle properties that fluorescent proteins can possess.  This site is designed by microscopists, so currently the emphasis is on properties that affect the <em>usage</em> of fluorescent proteins.  If you have suggestions for ways to extend the database model to incorporate additional properties (<em>e.g.</em> protein structure, etc...), feel free to <a href="{% url 'contact' %}">contact us</a>.  A graphical representation of the current database schema is shown below, followed by a definition of terms and relationships.</p>
+
+
+<h5 class='text-center mt-4'><strong>FPbase Database Schema</strong></h5>
+{% webp_picture 'images/schema_fig.png' 'img-fluid mb-5' 'FPbase database schema' %}
+
+<div class='description-list'>
+  <hr>
+
+  <h3 class='strong mb-3'>Protein</h3>
+  <dl class="row">
+    <dt class="col-sm-3">Name</dt>
+    <dd class="col-sm-9">The name of the fluorescent protein.</dd>
+    <dt class="col-sm-3">Sequence</dt>
+    <dd class="col-sm-9">Amino acid sequence.  Preferably, an IPG ID will be provided, which can be used to fetch the amino acid sequence from NCBI.</dd>
+    <dt class="col-sm-3">IPG ID</dt>
+    <dd class="col-sm-9">The <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/" rel="noopener" target="_blank">NCBI Identical protein group</a> database is a non-redundant collection of protein records where each group represents a unique amino acid sequence.  This is preferable to <code>protein</code> or <code>nucleotide</code> accession numbers, since a single fluorescent protein can have multiple accession numbers in those databases.</dd>
+    <dt class="col-sm-3">Oligomerization</dt>
+    <dd class="col-sm-9">The dimerization tendency of the fluorescent protein (monomer, dimer, etc...).  Note, many proteins are monomers at low concentrations but dimerize as the concentration increases, so a single classification is unlikely to be a complete characterization of the protein.</dd>
+    <dt class="col-sm-3">States</dt>
+    <dd class="col-sm-9">All proteins – even basic constitutively fluorescent proteins – have one or more states.  States represent a collection of attributes related to the fluorescent properties of the protein, such as emission spectra, and characteristcs that affect brightness.  See more in the State object below.</dd>
+    <dt class="col-sm-3">Transitions</dt>
+    <dd class="col-sm-9">Proteins can have zero or more (often light-induced) transitions between different fluorescent or non-fluorescent states.  See the Transition object below</dd>
+    <dt class="col-sm-3">Switch Type</dt>
+      <dd class="col-sm-9">
+        Each protein is classified <em>automatically</em> based on their states and transitions into one of the following categories:
+        <dl class="row mt-4 mb-3">
+          <dt class="col-sm-4">Basic</dt>
+          <dd class="col-sm-8">Single constitutively fluorescent state.</dd>
+          <dt class="col-sm-4">Photoactivatable</dt>
+          <dd class="col-sm-8">One transition, from dark state to fluorescent state.</dd>
+          <dt class="col-sm-4">Photoconvertible</dt>
+          <dd class="col-sm-8">One transition, from one fluorescent state to another.</dd>
+          <dt class="col-sm-4">Photoswitchable</dt>
+          <dd class="col-sm-8">Multiple transition, between multiple fluorescent or dark states.</dd>
+        </dl>
+        The automatic classification of proteins prevents inconsistencies in the database between a manually assigned switch-type and the state-collection of the protein.  However, it also leads to the possibility of a miscategorized protein (if an actual photoconvertible protein was not given all of the states and transitions required).  We hope that maintenance (and user feedback) will allow this model to work, but may change in the future.
+      </dd>
+      <dt class="col-sm-3">Parental Organism</dt>
+      <dd class="col-sm-9">A reference to an Organism ID, described below.</dd>
+      <dt class="col-sm-3">FRET Partner</dt>
+      <dd class="col-sm-9">FRET characteristics between two proteins is captured in the FRET Pair object, described below.</dd>
+      <dt class="col-sm-3">Primary Reference</dt>
+      <dd class="col-sm-9">Preferably, this will be the publication that originally introduced the protein, though in cases where such a reference cannot be located, the first reference or book chapter that mentions the protein can be used.</dd>
+      <dt class="col-sm-3">Secondary Reference</dt>
+      <dd class="col-sm-9">Any paper that provides additional characterization or testing of a given protein makes for an ideal additional reference to link to the protein.</dd>
+  </dl>
+
+  <hr>
+
+  <h3 class='strong mb-3'>State</h3>
+  <dl class="row">
+    <dt class="col-sm-3">Name</dt>
+    <dd class="col-sm-9">The name of the state (such as "default", "dark", "red"...).</dd>
+    <dt class="col-sm-3">Excitation Max</dt>
+    <dd class="col-sm-9">The excitation maximum of the state in nanometers.</dd>
+    <dt class="col-sm-3">Emission Max</dt>
+    <dd class="col-sm-9">The emission maximum of the state in nanometers.</dd>
+    <dt class="col-sm-3">Excitation Spectrum</dt>
+    <dd class="col-sm-9">Excitation spectrum of the state, stored as a list of (wavelength, efficiency) tuples.</dd>
+    <dt class="col-sm-3">Emission Spectrum</dt>
+    <dd class="col-sm-9">Emission spectrum of the state, stored as a list of (wavelength, efficiency) tuples.</dd>
+    <dt class="col-sm-3">Exctinction Coefficient</dt>
+    <dd class="col-sm-9">The <a href="https://en.wikipedia.org/wiki/Molar_attenuation_coefficient" rel="noopener" target="_blank">molar extinction coefficient</a> of the state is a measure of how strongly the protein absorbs light at a given wavelength.</dd>
+    <dt class="col-sm-3">Quantum Yield</dt>
+    <dd class="col-sm-9">Quantum yield represents the ratio of photons emitted to photons absorbed.  It is the likelihood that, once excited by a photon, the state will emit a photon.</dd>
+    <dt class="col-sm-3">Brightness</dt>
+    <dd class="col-sm-9">Brightness is not stored directly in the database, but rather is calculated as the product of Exctinction Coefficient and Quantum Yield</dd>
+    <dt class="col-sm-3">pKa</dt>
+    <dd class="col-sm-9">pKa is a measure of the acid sensitivity of a fluorescent protein.  It is the pH at which fluorescence intensity drops to 50% of its maximum value.</dd>
+    <dt class="col-sm-3">Maturation</dt>
+    <dd class="col-sm-9">Maturation is the time (min) required (due to protein folding and chromophore maturation) for fluorescence to obtain half-maximal value.</dd>
+    <dt class="col-sm-3">Lifetime</dt>
+    <dd class="col-sm-9">The average amount of time (ns) after photon absorption that it takes the fluorophore to relax to the ground state is referred to as the fluorescence lifetime.</dd>
+    <dt class="col-sm-3">Bleach Measurement</dt>
+    <dd class="col-sm-9">Measurements of photostability and photobleaching are tremendously error-prone, and depend heavily on the specifics of the experiment.  We have chosen not to give a single "photostability" metric to each state, but rather allow each state to have one or more <em>bleach measurements</em>, described below</dd>
+    <dt class="col-sm-3">Environmental Requirements</dt>
+    <dd class="col-sm-9">This field is reserved for proteins that can have multiple states, not necessarily through photoactivation or switching, but through environmental factors such as pH or calcium.</dd>
+  </dl>
+
+  <hr>
+
+  <h3 class='strong mb-3'>Transition</h3>
+  <dl class="row">
+    <dt class="col-sm-3">From (State)</dt>
+    <dd class="col-sm-9">The initial state required for this transition to occur</dd>
+    <dt class="col-sm-3">To (State)</dt>
+    <dd class="col-sm-9">The resulting state, after transition has occured</dd>
+    <dt class="col-sm-3">Transition Wavelength</dt>
+    <dd class="col-sm-9">The wavelength of light that drives this particular state transition</dd>
+  </dl>
+
+  <hr>
+
+  <h3 class='strong mb-3'>Bleach Measurement</h3>
+  <p>We believe that reported measurements of photostability often lack sufficient information for making comparisons across experiments.  The goal of the bleach measurement object in the database is to encapsulate more information about a bleaching measurment.  We hope to add a bleach-measurement protocol in the future with the hopes of potentially to collect user-contributed data, with a common baseline for comparison.  Of course, <a href="{% url 'contact' %}">suggestions</a> are always welcome!</p>
+  <dl class="row">
+    <dt class="col-sm-3">Imaging Modality</dt>
+    <dd class="col-sm-9">Type of microscope or other equipment used for this measurement (e.g. widefield or confocal microscopy, protein solution in cuvette, etc...)</dd>
+    <dt class="col-sm-3">Illumination Power</dt>
+    <dd class="col-sm-9">The illumination power used in the bleach measurement.  See Illumination units for complete discussion.</dd>
+    <dt class="col-sm-3">Illumination Units</dt>
+    <dd class="col-sm-9">The illumination power units reported.  We believe that illumination power should always be reported in units of energy-per-unit-area (e.g. W/cm2, a.k.a intensity).  Photobleaching characteristics are famously complicated and non-linear, and likely vary as the illumination intensity brings the fluorophore population closer to ground state depletion.  By knowing the local intensity of illumination, we can make a more-informed calculation about the potential for ground-state depletion.  Unfortunately, illumination power is often reported only in units of energy (W, or J/s).  Without knowing more about the area over which that energy was distributed, we can say nothing about the local intensity that the fluorophore experienced.  This makes it much harder to compare bleaching measurements.  (For instance, 1mW focused into a diffraction limited spot on a point-scanning confocal will bleach an FP in a much shorter period of time than 1mW spread over a large field of view with a low-magnfication objective.)</dd>
+    <dt class="col-sm-3">Bleaching Half-life</dt>
+    <dd class="col-sm-9">The duration of time (not frames) required to reach half the intitial fluorescence intensity.</dd>
+    <dt class="col-sm-3">Fusion Protein</dt>
+    <dd class="col-sm-9">If applicable, the protein to which the fluorescent protein was fused when the measurement was made.  Bleaching characteristics can often be affected by local environment (such as an FP integrated into tightly folded histones vs soluble fluorescent protein)</dd>
+    <dt class="col-sm-3">Reference</dt>
+    <dd class="col-sm-9">The reference ID for the publication that reported this measurement.</dd>
+  </dl>
+
+  <hr>
+
+  <h3 class='strong mb-3'>FRET Pair</h3>
+  <dl class="row">
+    <dt class="col-sm-3">Donor</dt>
+    <dd class="col-sm-9">The ID of the protein in the database that acts as the donor in this fret pair</dd>
+    <dt class="col-sm-3">Acceptor</dt>
+    <dd class="col-sm-9">The ID of the protein in the database that acts as the acceptor in this fret pair</dd>
+    <dt class="col-sm-3">Förster Radius</dt>
+    <dd class="col-sm-9">The Förster radius is the distance at which half of the excitation energy of donor is transferred to the acceptor chromophore.  Larger distances represent more efficient FRET pairings.  With complete spectral information for the donor and acceptor, along with donor QY, we can calculate/predict FRET properties of a protein pair.</dd>
+  </dl>
+
+  <hr>
+
+  <h3 class='strong mb-3'>Organism</h3>
+  <dl class="row">
+    <dt class="col-sm-3">Taxonomy ID</dt>
+    <dd class="col-sm-9">The parental organism from which a fluorescent protein was derived is stored in the database as an <a href"https://www.ncbi.nlm.nih.gov/taxonomy" rel="noopener" target="_blank">NCBI Taxonomy</a> ID.  All other properties (genus, species, etc...) will be pulled from NCBI.</dd>
+  </dl>
+
+  <hr>
+
+  <h3 class='strong mb-3'>Reference</h3>
+  <dl class="row">
+    <dt class="col-sm-3">DOI</dt>
+    <dd class="col-sm-9">The digitial object identifier (DOI) is a persistent identifier used to uniquely identify objects such as referenes.  In FPbase, all references must have a DOI, which will be used to retrieve additional reference properties (title, journal, authors, etc...).  </dd>
+  </dl>
+
+</div>
+{% endblock content %}

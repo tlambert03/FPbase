@@ -1,0 +1,154 @@
+
+{% if  ocform.non_field_errors %}
+  {% for error in ocform.non_field_errors %}
+  <div class="row mb-3 ml-1 text-danger help-block font-weight-bold small">{{error}}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="row">
+  <div class="col-lg-3 col-md-6">
+    <div class="form-group">
+        <div id="div_id_optical_configs-{{ formnum }}-name" class="input-group input-group-sm">
+          <div class="input-group-prepend">
+            <span class="input-group-text bg-muted font-weight-bold" id="inputGroup-sizing-sm">{{ ocform.name.label }}</span>
+          </div>
+          {{ocform.name}}
+        </div>
+        {% if  ocform.name.errors %}
+          {% for error in ocform.name.errors %}
+          <p id="error_{{ forloop.counter0 }}_id_optical_configs-{{ formnum }}-name" class="mb-0 text-danger help-block small font-weight-bold">{{error}}</p>
+          {% endfor %}
+        {% endif %}
+        {% if ocform.name.help_text %}
+        <small id="hint_id_optical_configs-{{ formnum }}-name" class="form-text text-muted">{{ ocform.name.help_text | safe }}</small>
+        {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-3 col-md-6">
+    <div class="form-group">
+        <div id="div_id_optical_configs-{{ formnum }}-light" class="input-group input-group-sm">
+          <div class="input-group-prepend">
+            <span class="input-group-text bg-muted font-weight-bold" id="inputGroup-sizing-sm">{{ ocform.light.label }}</span>
+          </div>
+          {{ocform.light}}
+        </div>
+        {% if  ocform.light.errors %}
+          {% for error in ocform.light.errors %}
+          <p id="error_{{ forloop.counter0 }}_id_optical_configs-{{ formnum }}-light" class="mb-0 text-danger help-block small font-weight-bold">{{error}}</p>
+          {% endfor %}
+        {% endif %}
+        {% if ocform.light.help_text %}
+        <small id="hint_id_optical_configs-{{ formnum }}-light" class="form-text text-muted">{{ ocform.light.help_text | safe }}</small>
+        {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-2 col-md-6">
+    <div class="form-group">
+        <div id="div_id_optical_configs-{{ formnum }}-laser" class="input-group input-group-sm">
+          <div class="input-group-prepend">
+            <span class="input-group-text bg-muted font-weight-bold" id="inputGroup-sizing-sm">{{ ocform.laser.label }}</span>
+          </div>
+          {{ocform.laser}}
+        </div>
+        {% if  ocform.laser.errors %}
+          {% for error in ocform.laser.errors %}
+          <p id="error_{{ forloop.counter0 }}_id_optical_configs-{{ formnum }}-laser" class="mb-0 text-danger help-block small font-weight-bold">{{error}}</p>
+          {% endfor %}
+        {% endif %}
+        {% if ocform.laser.help_text %}
+        <small id="hint_id_optical_configs-{{ formnum }}-laser" class="form-text text-muted">{{ ocform.laser.help_text | safe }}</small>
+        {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4 col-md-6">
+    <div class="form-group">
+        <div id="div_id_optical_configs-{{ formnum }}-camera" class="input-group input-group-sm">
+          <div class="input-group-prepend">
+            <span class="input-group-text bg-muted font-weight-bold" id="inputGroup-sizing-sm">{{ ocform.camera.label }}</span>
+          </div>
+          {{ocform.camera}}
+        </div>
+        {% if  ocform.camera.errors %}
+          {% for error in ocform.camera.errors %}
+          <p id="error_{{ forloop.counter0 }}_id_optical_configs-{{ formnum }}-camera" class="mb-0 text-danger help-block small font-weight-bold">{{error}}</p>
+          {% endfor %}
+        {% endif %}
+        {% if ocform.camera.help_text %}
+        <small id="hint_id_optical_configs-{{ formnum }}-camera" class="form-text text-muted">{{ ocform.camera.help_text | safe }}</small>
+        {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<div class="row">
+  <div class="col-lg-4 col-md-6 oc-filter-group">
+    <div id="div_id_optical_configs-{{ formnum }}-ex_filters" class="form-group">
+      <label for="id_form-{{ formnum }}-ex_filters" class="col-form-label">
+        <small><strong>{{ ocform.ex_filters.label }}</strong></small>
+      </label>
+      <div class="">
+        {{ocform.ex_filters}}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 col-md-6 oc-filter-group">
+    <div id="div_id_optical_configs-{{ formnum }}-bs_filters" class="form-group">
+      <label for="id_form-{{ formnum }}-bs_filters" class="col-form-label">
+        <small><strong>{{ ocform.bs_filters.label }}</strong></small>
+      </label>
+      <div class="custom-control custom-checkbox mr-sm-1 d-inline ml-4">
+        {{ ocform.invert_bs }}
+        <label class="custom-control-label small" for="id_optical_configs-{{formnum}}-invert_bs" style='padding-top:2px;'>reflects em.</label>
+      </div>
+      <div class="">
+        {{ocform.bs_filters}}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4 col-md-6 oc-filter-group">
+    <div id="div_id_optical_configs-{{ formnum }}-em_filters" class="form-group">
+      <label for="id_form-{{ formnum }}-em_filters" class="col-form-label">
+        <small><strong>{{ ocform.em_filters.label }}</strong></small>
+      </label>
+      <div class="">
+        {{ocform.em_filters}}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="row">
+  <div class="col-lg-8 col-md-6">
+    <div class="form-group">
+      <label for="id_optical_configs-{{ formnum }}-comments"><small><strong>{{ ocform.comments.label }}</strong></small></label>
+      {{ocform.comments}}
+      {% if  ocform.comments.errors %}
+        {% for error in ocform.comments.errors %}
+        <p id="error_{{ forloop.counter0 }}_id_optical_configs-{{ formnum }}-comments" class="mb-0 text-danger help-block small font-weight-bold">{{error}}</p>
+        {% endfor %}
+      {% endif %}
+      {% if ocform.comments.help_text %}
+      <small id="hint_id_optical_configs-{{ formnum }}-comments" class="form-text text-muted">{{ ocform.comments.help_text | safe }}</small>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4 col-md-6 oc-filter-group">
+    <div id="div_id_optical_configs-{{ formnum }}-ref_em_filters" class="form-group">
+      <label for="id_form-{{ formnum }}-ref_em_filters" class="col-form-label">
+        <small class='text-muted'><strong>{{ ocform.ref_em_filters.label }}</strong></small>
+      </label>
+      <div class="">
+        {{ocform.ref_em_filters}}
+      </div>
+    </div>
+  </div>
+
+
+</div>

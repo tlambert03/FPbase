@@ -1,0 +1,94 @@
+<script type="application/ld+json">
+{
+  "@context":"http://schema.org/",
+  "@type":"Dataset",
+  "name":"{{ protein.name | safe }}",
+  "description":"{{ protein.description | safe }}",
+  "url":"https://www.fpbase.org{{protein.get_absolute_url}}",
+  "license":"https://creativecommons.org/licenses/by-sa/4.0/",
+  {% if protein.has_spectra %}"image":"https://www.fpbase.org/spectra_img/{{protein.slug}}.svg",{% endif %}
+  "keywords":[
+     "FLUORESCENT PROTEIN",
+     "FLUORESCENT PROTEINS > SPECTRA",
+     "FLUORESCENT PROTEINS > PROPERTIES",
+     "FLUORESCENT PROTEINS > SEQUENCE",
+     "FLUORESCENCE"
+  ],
+  "variableMeasured": [
+
+    {
+      "@type": "PropertyValue",
+      "name": "Excitation Maximum",
+      "value": {{  protein.default_state.ex_max|default:"null" }},
+      "unitCode": "C45"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Emission Maximum",
+      "value": {{  protein.default_state.em_max|default:"null" }},
+      "unitCode": "C45"
+    },
+    {
+      "@type": "PropertyValue",
+      "sameAs": "https://en.wikipedia.org/wiki/Molar_attenuation_coefficient",
+      "name": "Extinction Coefficient",
+      "value": {{  protein.default_state.ext_coeff|default:'null' }},
+      "unitText": "M-1 cm-1"
+    },
+    {
+      "@type": "PropertyValue",
+      "sameAs": "https://en.wikipedia.org/wiki/Quantum_yield",
+      "name": "Quantum Yield",
+      "value": {{  protein.default_state.qy|default:"null" }}
+    },
+    {
+      "@type": "PropertyValue",
+      "sameAs": "https://en.wikipedia.org/wiki/Fluorescence#Lifetime",
+      "name": "Fluorescence Lifetime",
+      "value": {{ protein.default_state.lifetime|default:'null' }},
+      "unitText": "ns"
+    },
+    {
+      "@type": "PropertyValue",
+      "sameAs": "https://en.wikipedia.org/wiki/Protein_primary_structure",
+      "name": "Amino Acid Sequence",
+      "value": "{{ protein.seq }}"
+    },
+    {
+      "@type": "PropertyValue",
+      "sameAs": "https://en.wikipedia.org/wiki/Acid_dissociation_constant",
+      "name": "Acid dissociation constant",
+      "value": {{ protein.default_state.pka|default:'null'}},
+      "unitText": "pKA"
+    },
+    {
+      "@type": "PropertyValue",
+      "sameAs": "https://en.wikipedia.org/wiki/Molecular_mass",
+      "name": "Molecular Weight",
+      "value": {{ protein.seq.weight|floatformat:"1" }},
+      "unitText": "kDa"
+    },
+    {
+      "@type": "PropertyValue",
+      "name": "Oligomerization",
+      "value": "{{protein.get_agg_display|default:'null'}}"
+    }
+  ],
+  "includedInDataCatalog":{
+     "@type":"DataCatalog",
+     "name":"fpbase.org"
+  },
+  "distribution":[
+     {
+        "@type":"DataDownload",
+        "encodingFormat":"JSON",
+        "contentUrl":"https://www.fpbase.org/api/proteins/?name__iexact={{protein.slug}}&format=json"
+     },
+     {
+        "@type":"DataDownload",
+        "encodingFormat":"CSV",
+        "contentUrl":"https://www.fpbase.org/api/proteins/?name__iexact={{protein.slug}}&format=csv"
+     }
+  ]
+};
+</script>

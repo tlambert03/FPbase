@@ -1,0 +1,65 @@
+<table class="table table-striped flip-scroll">
+	<thead>
+		<tr class="table-header">
+			{% if protein.states.count > 1 %}<th>State</th>{% endif %}
+			<th>t<sub>1/2</sub> (s)</th>
+			<th>Power</th>
+			<th>Light</th>
+			<th>Mode</th>
+			<th>In Cell</th>
+			<th>Fusion</th>
+			<th>˚C</th>
+			<th>Reference</th>
+
+		</tr>
+	</thead>
+	<tbody>
+		{% for state in protein.states.all  %}
+			{% for measurement in state.bleach_measurements.all  %}
+				<tr class="data">
+					{% if protein.states.count > 1 %}<td>{{state.name}}</td>{% endif %}
+					<td>{{measurement.rate}}</td>
+					<td>
+					{% if measurement.power > 0 %}{{measurement.power}}{% if measurement.units %} ({{measurement.units}}){% endif %}{% elif measurement.power < 0 %}<span class='text-muted'>NR</span>{% endif %}
+					</td>
+					<td>{{measurement.get_light_display}}</td>
+					<td>{{measurement.get_modality_display}}</td>
+					<td class='text-muted small'>
+					{% if measurement.in_cell == 0 %}
+						<i class="fas fa-times">
+					{% elif measurement.in_cell == 1 %}
+
+						{% if measurement.cell_type %}
+							{{measurement.cell_type}}
+						{% else %}
+							<i class="fas fa-check">
+						{% endif %}
+
+					{% else %}
+          			&nbsp;
+					{% endif %}
+					</td>
+					<td>{{measurement.fusion}}</td>
+					<td>{{measurement.temp | default:''}}</td>
+					<td class='small'>
+						{% if measurement.reference %}
+							<a href="{{measurement.reference.get_absolute_url}}">{{measurement.reference}}</a>
+							<a href="https://doi.org/{{ measurement.reference.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt text-info"></i></a>
+						{% endif %}
+					</td>
+				</tr>
+			{% endfor %}
+		{% endfor %}
+	</tbody>
+</table>
+
+<div class="align-self-end mt-0 mb-2 clearfix">
+  <a href="{% url 'bleaching' %}" class='float-left small text-muted mt-1 mb-2 ml-2'>A caution on interpretation of photostability measurements</small></a>
+	<a href="{% url 'proteins:protein-bleach-form' slug=protein.slug %}" class='text-info'>
+		<div class="">
+        <small class="d-none d-sm-inline float-right mt-1">Add photostability info</small>
+				<button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none"><i class="fas fa-clock mr-2"></i>Add photostability info</button>
+		</div>
+
+	</a>
+</div>

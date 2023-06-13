@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% load webpack_static from webpack_loader %}
+
+{% block extrahead %}
+<link href="{% webpack_static 'css/phylotree.css' %}" rel="stylesheet">
+ <style>
+
+     .fa-rotate-45 {
+       -webkit-transform: rotate(45deg);
+       -moz-transform: rotate(45deg);
+       -ms-transform: rotate(45deg);
+       -o-transform: rotate(45deg);
+       transform: rotate(45deg);
+     }
+
+     .fa-rotate-135 {
+       -webkit-transform: rotate(135deg);
+       -moz-transform: rotate(135deg);
+       -ms-transform: rotate(135deg);
+       -o-transform: rotate(135deg);
+       transform: rotate(135deg);
+     }
+
+     [id$='phylotree_context_menu'] {
+      padding: 0.8rem;
+      text-size: 0.5rem;
+     }
+
+     [id$='phylotree_context_menu']:hover {
+      cursor: pointer;
+     }
+
+     .svg-container {
+         display: inline-block;
+         position: relative;
+         width: 100%;
+         padding-bottom: 100%;
+         vertical-align: top;
+         overflow: hidden;
+     }
+     .svg-content {
+         display: inline-block;
+         position: absolute;
+         top: 0;
+         left: 0;
+     }
+</style>
+{% endblock extrahead %}
+{% block title %}FPbase Fluorescent Protein Tree{% endblock %}
+{% block meta-description %}{% endblock %}
+
+
+{% block container-class %}{% endblock %}
+
+{% block content %}
+
+<div class='container' style="overflow: hidden;">
+  <div class="btn-toolbar mb-2" role="toolbar">
+      <div class="btn-group">
+        <button type="button" class="btn btn-secondary px-3" data-direction='vertical' data-amount='2' title="Expand vertical spacing">
+          <i class="fas fa-long-arrow-alt-down"></i>
+        </button>
+        <button type="button" class="btn btn-secondary px-3" data-direction='vertical' data-amount='-2' title="Compress vertical spacing">
+          <i class="fas fa-long-arrow-alt-up"></i>
+        </button>
+        <button type="button" class="btn btn-secondary px-3" data-direction='horizontal' data-amount='4' title="Expand horizonal spacing">
+          <i class="fas fa-long-arrow-alt-right"></i>
+        </button>
+        <button type="button" class="btn btn-secondary px-3" data-direction='horizontal' data-amount='-4' title="Compress horizonal spacing">
+          <i class="fas fa-long-arrow-alt-left"></i>
+        </button>
+        <button type="button" class="btn btn-secondary px-3" id="sort_ascending" title="Sort deepest clades to the bototm">
+          <i class="fas fa-sort-amount-up"></i>
+        </button>
+        <button type="button" class="btn btn-secondary px-3" id="sort_descending" title="Sort deepsest clades to the top">
+          <i class="fas fa-sort-amount-down"></i>
+        </button>
+        <button type="button" class="btn btn-secondary px-3" id="sort_original" title="Restore original order">
+          <i class="fa fa-sort"></i>
+        </button>
+      </div>
+
+  <!--   <div class="btn-group btn-group-toggle ml-3" data-toggle="buttons">
+      <label class="btn btn-secondary active">
+        <input type="radio" name="options" class="phylotree-layout-mode" data-mode="linear" autocomplete="off" checked title="Layout left-to-right"> Linear
+      </label>
+      <label class="btn btn-secondary">
+        <input type="radio" name="options" class="phylotree-layout-mode" data-mode="radial" autocomplete="off" title="Layout radially"> Radial
+      </label>
+    </div> -->
+
+
+      <div class="btn-group btn-group-toggle ml-3" data-toggle="buttons">
+        <label class="btn btn-secondary active">
+          <input type="radio" class="phylotree-align-toggler" data-align="left" name="options-align" autocomplete="off" checked title="Align tips labels to branches">
+          <i class="fa fa-align-left"></i>
+          </input>
+        </label>
+        <label class="btn btn-secondary">
+          <input type="radio" class="phylotree-align-toggler" data-align="right" name="options-align" autocomplete="off" title="Align tips labels to the edge of the plot">
+                <i class="fa fa-align-right"></i>
+                </input>
+        </label>
+      </div>
+
+  </div>
+  <div>
+  <svg id="tree_display" width="100%">
+  </div>
+</div>
+{% endblock %}
+
+
+{% block javascript %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js" charset="utf-8"></script>
+<script type='text/javascript' src="{% webpack_static 'js/phylotree.js' %}"></script>
+<script type="text/javascript">var newick ='{{tree|safe}}';</script>
+<script type="text/javascript">
+
+function protein_link(node) {
+  return "Go to protein page";
+}
+
+function go_to_protein_page(node) {
+  window.location.href = "/protein/" + node.name
+}
+
+  tree = d3.layout.phylotree()
+  .svg(d3.select("#tree_display"))
+  .options({
+    //'left-right-spacing': 'fit-to-size', // fit to given size top-to-bottom
+    //'top-bottom-spacing': 'fit-to-size', // fit to given size left-to-right
+    'min-radius': 50,
+    'max-radius': 250,
+    //'zoom': false,
+  })
+
+
+  tree(newick).layout().spacing_y(44, true);
+
+  tree.get_nodes().forEach(function(tree_node) {
+    d3.layout.phylotree.add_custom_menu(tree_node, // add to this node
+      protein_link, // display this text for the menu
+      function() {
+        go_to_protein_page(tree_node);
+      },
+      // on-click callback include a reference to tree_node via transitive closure
+      d3.layout.phylotree.is_leafnode // condition on when to display the menu
+      // a function that takes node as an argument
+    );
+  });
+
+
+  $(window).resize(function() {
+      if(this.resizeTO) clearTimeout(this.resizeTO);
+      this.resizeTO = setTimeout(function() {
+          $(this).trigger('resizeEnd');
+      }, 500);
+  });
+
+  $(window).bind('resizeEnd', function() {
+      var height = $("#mapContainer").width()/2;
+      $("#mapContainer svg").css("height", height);
+      draw(height);
+  });
+
+
+$("#display_tree").on ("click", function (e) {
+    tree.options ({'branches' : 'straight'}, true);
+});
+
+$("#mp_label").on ("click", function (e) {
+    tree.max_parsimony (true);
+});
+
+$ ("[data-direction]").on ("click", function (e) {
+    var which_function = $(this).data ("direction") == 'vertical' ? tree.spacing_x : tree.spacing_y;
+    which_function (which_function () + (+ $(this).data ("amount"))).update();
+});
+
+
+$(".phylotree-layout-mode").on ("change", function (e) {
+    if ($(this).is(':checked')) {
+        if (tree.radial () != ($(this).data ("mode") == "radial")) {
+            tree.radial (!tree.radial ()).placenodes().update ();
+        }
+    }
+});
+
+
+$(".phylotree-align-toggler").on ("change", function (e) {
+    if ($(this).is(':checked')) {
+        if (tree.align_tips ($(this).data ("align") == "right")) {
+            tree.placenodes().update ();
+        }
+    }
+});
+
+
+
+function sort_nodes (asc) {
+    tree.traverse_and_compute (function (n) {
+            var d = 1;
+            if (n.children && n.children.length) {
+                d += d3.max (n.children, function (d) { return d["count_depth"];});
+            }
+            n["count_depth"] = d;
+        });
+        tree.resort_children (function (a,b) {
+            return (a["count_depth"] - b["count_depth"]) * (asc ? 1 : -1);
+        });
+}
+
+$("#sort_original").on ("click", function (e) {
+    tree.resort_children (function (a,b) {
+        return a["original_child_order"] - b["original_child_order"];
+    });
+});
+
+$("#sort_ascending").on ("click", function (e) {
+    sort_nodes (true);
+});
+
+$("#sort_descending").on ("click", function (e) {
+    sort_nodes (false);
+});
+
+$("#and_label").on ("click", function (e) {
+    tree.internal_label (function (d) { return d.reduce (function (prev, curr) { return curr[current_selection_name] && prev; }, true)}, true);
+});
+
+$("#or_label").on ("click", function (e) {
+    tree.internal_label (function (d) { return d.reduce (function (prev, curr) { return curr[current_selection_name] || prev; }, false)}, true);
+});
+
+</script>
+{% endblock %}

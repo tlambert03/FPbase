@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load flag_object from protein_tags %}
+
+{% block title %}{{ reference.citation  }} :: Fluorescent Protein Database {% endblock %}
+{% block meta-description %}Fluorescent proteins introduced or referenced by {{ reference.citation  }}: {{reference.title}}.  Including: {% for protein in reference.primary_proteins.all %}{{ protein.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endblock %}
+
+{% block content %}
+
+	<div class="primary-ref references">
+		{% include "_reference.html" with ref=reference %}
+	</div>
+
+  {% if  reference.primary_proteins.count %}
+	<ol class='protein-list'>
+		<h5>Primary Proteins: </h5>
+		{% for protein in reference.primary_proteins.all %}
+			<li><a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a></li>
+		{% endfor %}
+	</ol>
+  {% endif %}
+
+	{% if reference.protein_secondary_reference.count > 0 %}
+	    <ol class='protein-list'>
+	    	<h5>Secondary Proteins:</h5>
+	    	{% for protein in reference.protein_secondary_reference.all %}
+	    		<li class='mr-1'><a href="{{ protein.get_absolute_url }}">{{ protein.name }}{% if not forloop.last %},{% endif %}</a></li>
+	    	{% endfor %}
+	    </ol>
+	{% endif %}
+
+
+{% if reference.bleach_measurements.count %}
+
+<h4 class='mt-4'>Bleach Measurements</h4>
+  <table class="table table-striped mt-4 flip-scroll">
+    <thead>
+      <tr class="table-header">
+        <th>Protein (state)</th>
+        <th>t<sub>1/2</sub> (s)</th>
+        <th>Power</th>
+        <th>Light</th>
+        <th>Mode</th>
+        <th>In Cell</th>
+        <th>Fusion</th>
+        <th>˚C</th>
+
+      </tr>
+    </thead>
+    <tbody>
+        {% for measurement in reference.bleach_measurements.all  %}
+          <tr class="data">
+            <td><a href="{{measurement.state.protein.get_absolute_url}}">{{measurement.state}}</a></td>
+            <td>{{measurement.rate}}</td>
+            <td>
+            {% if measurement.power > 0 %}{{measurement.power}}{% if measurement.units %} <span class='small'>{{measurement.units}}</span>{% endif %}{% elif measurement.power < 0 %}<span class='text-muted'>NR</span>{% endif %}
+            </td>
+            <td>{{measurement.get_light_display}}</td>
+            <td>{{measurement.get_modality_display}}</td>
+            <td class='text-muted small'>{% if measurement.in_cell == 0 %}
+              <i class="fas fa-times">
+            {% elif measurement.in_cell == 1 %}
+              <i class="fas fa-check">
+            {% else %}
+            {% endif %}</td>
+            <td>{{measurement.fusion}}</td>
+            <td>{{measurement.temp | default:''}}</td>
+          </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="align-self-end mt-0 mb-2 clearfix">
+    <a href="{% url 'bleaching' %}" class='float-left small text-muted mt-1 mb-2 ml-2'>A caution on interpretation of photostability measurements</small></a>
+    <a href="{% url 'proteins:bleach-comparison' pk=reference.pk %}" class='text-info'>
+      <div class="">
+          <small class="d-none d-sm-inline float-right mt-1">Add photostability measurements</small>
+          <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none"><i class="fas fa-clock mr-2"></i>Add photostability measurements</button>
+      </div>
+    </a>
+  </div>
+{% else %}
+      <a href="{% url 'proteins:bleach-comparison' pk=reference.pk %}" class='text-info'>
+        <div class="mt-4">
+            <small class="d-none d-sm-inline mt-1">Add photostability measurements</small>
+            <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none"><i class="fas fa-clock mr-2"></i>Add photostability measurements</button>
+        </div>
+      </a>
+{% endif %}
+
+
+
+
+
+{% if reference.oser_measurements.count %}
+<div class="attributes mt-4">
+  <h4>OSER Measurements</h4>
+    <table class="table table-striped flip-scroll">
+      <thead>
+        <tr class="table-header">
+          <th>Protein</th>
+          <th>&percnt; Normal Cells</th>
+          <th>OSER/NE ratio</th>
+          <th>Cell Type</th>
+          <th>Temp (˚C)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for oserm in reference.oser_measurements.all  %}
+          <tr>
+            <td><a href="{{oserm.protein.get_absolute_url}}">{{oserm.protein}}</a></td>
+            <td>{{oserm.percent|default:'-'}} {% if oserm.percent_stddev %} ± {{oserm.percent_stddev}}{% endif %}
+            {% if oserm.percent_ncells %} <span class='small text-muted'>({{oserm.percent_ncells}} cells)</span>{% endif %}</td>
+            <td>{{oserm.oserne|default:'-'}} {% if oserm.oserne_stddev %} ± {{oserm.oserne_stddev}}{% endif %}
+            {% if oserm.oserne_ncells %} <span class='small text-muted'>({{oserm.oserne_ncells}} cells)</span>{% endif %}</td>
+            <td>{{oserm.celltype|default:'-'}}</td>
+            <td>{{oserm.temp|default:'-'}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+
+<div class="excerpts mt-3">
+  <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
+  {% if excerpts %}
+    {% for excerpt in excerpts %}
+      {% if excerpt.status != 'rejected' %}
+      <blockquote class="gray">
+        <div class='flag'>
+          {% flag_object excerpt %}
+        </div>
+        <p class='excerpt-content'>{{excerpt.content}}</p>
+      </blockquote>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+
+    <p class='text-muted'>No excerpts have been added from this reference.<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
+
+  {% endif %}
+  <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i></i>Add an excerpt</button></a>
+</div>
+
+{% endblock content %}
+
+
+{% block modal %}
+
+<div class="modal modal-center fade" id="excerptModal" tabindex="-1" role="dialog" aria-labelledby="excerptModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="excerptModalLongTitle"><strong>Add an excerpt from {{reference.citation}}</strong></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% if user.is_authenticated %}
+      <form id="excerptModalForm" data-action-url="{% url 'references:add_excerpt' pk=reference.pk %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p>The excerpt might summarize the rationale for the a protein introduced in the paper, or capture a property or performance characteristic of the protein that does not easily fit into one of the existing fields.  Keep the message of each excerpt focused; you may add multiple excerpts for a given publication if necessary.<br><br><strong>Note: if the excerpt applies specifically to an individual protein, please enter the excerpt on that protein page instead.</strong></p>
+
+          <div id="div_id_excerpt_content" class="form-group">
+            <label for="id_excerpt_content" class="form-control-label">Excerpt content</label>
+            <textarea class="form-control" name="excerpt_content" id="id_excerpt_content" rows="3" required="true"></textarea>
+            <small class='text-muted'>Please note: inaccurate or inappropriate excerpts will be removed.</small>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Add excerpt</button>
+        </div>
+      </form>
+      {% else %}
+      <div class="modal-body">
+        <div>
+          <p>You must be logged in to add excerpts to FPbase</p>
+          <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">
+            <button type="submit" class="btn btn-primary">sign in</button>
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock modal %}
+
+{% block extrafooter %}
+    {% if request.user.is_staff %}
+      {% load admin_urls %}
+      <a href="{% url 'admin:references_reference_change' reference.id %}">{{ reference}} on admin</a><br>
+    {% endif %}
+{% endblock extrafooter %}
+
+
+{% block javascript %}
+
+    <script type="text/javascript">
+      window.CSRF_TOKEN = "{{ csrf_token }}";
+      $(document).on('show.bs.modal', '#excerptModal', function () {
+          $('#excerptModal').css('z-index', 1200);
+      });
+
+      $(document).on('hidden.bs.modal', 'excerptModal', function () {
+          $('#excerptModal').css('z-index', 1039);
+      });
+    </script>
+{% endblock javascript %}

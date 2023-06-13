@@ -1,0 +1,49 @@
+{% load humanize %}
+
+{% if protein.states.count %}
+	<table class="table table-striped flip-scroll states-table">
+		<thead>
+			<tr class="table-header">
+				{% if protein.states.count > 1 %}<th>State</th>{% endif %}
+				<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#ex-max"><abbr title="Excitation Maximum">Ex &lambda;</abbr></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#em-max"><abbr title="Emission Maximum">Em &lambda;</abbr></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#extinction-coefficient"><abbr title="Extinction Coefficient">EC</abbr> <span class='small'>(M<sup>-1</sup> cm<sup>-1</sup>)</span></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#quantum-yield"><abbr title="Quantum Yield">QY</abbr></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#brightness">Brightness</a></th>
+{# 	  		<th>Stability</a></th> #}
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#pka">pKa</a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#maturation">Maturation <span class='small'>(min)</span></a></th>
+	  		<th><a class="help-link" target="_blank" href="{{ HELP_URL }}glossary#lifetime">Lifetime <span class='small'>(ns)</span></a></th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for state in protein.states.all %}
+			<tr >
+				{% if protein.states.count > 1 %}
+				<td>{{ state.name }}</td>
+				{% endif %}
+				<td>{{ state.ex_max | default:"&nbsp;" }}</td>
+	  			<td>{{ state.em_max | default:"&nbsp;"}}</td>
+	  			<td>{% if state.ext_coeff %}{{ state.ext_coeff|intcomma }}{% endif%}</td>
+	  			<td>{{ state.qy | default:"&nbsp;"}}</td>
+	  			<td>{{ state.brightness | default:"&nbsp;"}}</td>
+{# 	  			<td>{{ state.bleach_measurements.all.0.rate | default:"&nbsp;"}}</td> #}
+	  			<td>{{ state.pka | default:"&nbsp;"}}</td>
+	  			<td>{{ state.maturation | default:"&nbsp;"}}</td>
+	  			<td>{{ state.lifetime | default:"&nbsp;"}}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+
+	<div class="align-self-end text-sm-right mt-1">
+		<a href="{% url 'proteins:update' slug=protein.slug %}" class='text-info'>
+			<small class="d-none d-sm-inline">Edit States&sol;Attributes</small>
+			<button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none"><i class="fas fa-sun mr-2"></i>Edit States&sol;Attributes</button>
+		</a>
+	</div>
+
+
+{% else %}
+	<p>This protein does not yet have any fluorescent states assigned. <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>Submit a change.</a></p>
+{% endif %}

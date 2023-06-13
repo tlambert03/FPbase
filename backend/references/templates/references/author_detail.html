@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+
+{% block title %}{{ author.full_name }} :: Fluorescent Protein Database {% endblock %}
+{% block meta-description %}References and fluorescent proteins attributed to {{ author.full_name }} at FPbase: the Fluorescent Protein Database.  Including: {% for ref in author.publications.all %}{% for protein in ref.primary_proteins.all %}{{ protein.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if not forloop.last %}, {% endif %}{% endfor %}.{% endblock %}
+
+
+{% block content %}
+
+    <div class="alert alert-dismissible alert-info small">
+      Please note: due to the ambiguity of author names, it is extremely hard to be confident about authorships.  There may be errors in the names or attributions of these author pages.  Please check the actual publication pages for more accurate information.
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+	<div class="author-detail">
+		<h1>{{ author.full_name }}</h1>
+
+    <ol class="pl-4">
+      {% for ref in author.publications.all %}
+
+        <li class="mt-2">
+          {% include "_reference.html" %}
+
+          <ol class='protein-list'>
+            <h5>Primary Proteins: </h5>
+            {% for protein in ref.primary_proteins.all %}
+              <li><a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a></li>
+            {% endfor %}
+          </ol>
+
+          {% if ref.protein_secondary_reference.exists %}
+              <ol class='protein-list'>
+                <h5>Additional Proteins:</h5>
+                {% for protein in ref.protein_secondary_reference.all %}
+                  <li><a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a></li>
+                {% endfor %}
+              </ol>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+
+	</div>
+
+{% endblock content %}
+
+
+{% block extrafooter %}
+    {% if request.user.is_staff %}
+      {% load admin_urls %}
+      <a href="{% url 'admin:references_author_change' author.id %}">{{ author}} on admin</a><br>
+    {% endif %}
+{% endblock extrafooter %}

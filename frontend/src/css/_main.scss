@@ -1,0 +1,341 @@
+body {
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  padding-bottom: 2rem;
+  &.home-body {
+    padding-bottom: 0;
+  }
+}
+
+footer {
+  font-size: 0.8rem;
+  margin-top: 3.2rem;
+  padding-top: 1.8rem;
+  padding-bottom: 0rem;
+  background: $footer-background;
+  color: $footer-color;
+  box-shadow: 0px 700px 0px 700px $footer-background;
+  a {
+    color: $footer-color;
+    &:hover {
+      color: lighten($footer-color, 5);
+    }
+  }
+  #licenselink {
+    img {
+      opacity: 0.6;
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
+}
+
+button:focus {
+  outline: none !important;
+}
+
+.home-body .twitter-share-wrapper {
+  position: absolute;
+  z-index: 10;
+  bottom: 15px;
+  left: 15px;
+}
+
+.footer .twitter-share-wrapper {
+  position: relative;
+  z-index: 10;
+  top: -13px;
+  left: 15px;
+}
+
+a.twitter-share-button {
+  position: relative;
+  top: 14px;
+  left: -4px;
+  .fa-twitter {
+    color: rgba(white, 0.7);
+    &:hover {
+      color: rgba(white, 0.9);
+    }
+  }
+}
+
+// for definition lists, like on the schema page
+.description-list {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    &.strong {
+      font-weight: 600;
+      color: $primary;
+      margin-top: 1.5rem;
+    }
+  }
+  //@include media-breakpoint-down(xs) { font-size: 0.9rem;}
+  dd {
+    dt {
+      color: darken($primary, 15%);
+      @include media-breakpoint-up(xs) {
+        font-size: 0.85rem;
+      }
+      @include media-breakpoint-up(sm) {
+        font-size: 1rem;
+      }
+    }
+  }
+}
+
+.btn.active,
+.btn:active {
+  box-shadow: 0px 1px 5px rgba($info, 0.8) !important;
+}
+
+@include media-breakpoint-down(xs) {
+  .btn-block-xs {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .btn-block-sm {
+    display: block;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+.modal-lg {
+  max-width: 85%;
+  .container {
+    padding: 0 2.5rem 0 2rem;
+  }
+  @include media-breakpoint-down(xs) {
+    max-width: 100%;
+  }
+}
+
+.example-like-button {
+  padding: 0;
+  svg {
+    color: $yellow;
+    &:hover {
+      color: orange;
+      box-shadow: none !important;
+    }
+  }
+}
+
+.like_buttons {
+  padding-left: 1rem;
+  @include media-breakpoint-down(xs) {
+    padding-left: 0rem;
+  }
+  div {
+    display: inline;
+  }
+  a,
+  a.active {
+    color: $yellow;
+    font-size: 1.4rem;
+    padding: 0;
+    box-shadow: none !important;
+    &:hover {
+      color: orange;
+    }
+  }
+
+  .favit {
+    // fix slight shift when clicking icon
+    svg[data-prefix="fas"] {
+      margin-right: 0.1rem;
+    }
+    .favorite,
+    .favorite:active {
+      box-shadow: none !important;
+      @include media-breakpoint-up(sm) {
+        padding: 0;
+      }
+    }
+    .badge {
+      position: relative;
+      bottom: -0.7rem;
+      right: 0.7rem;
+      font-size: 0.4rem;
+      background: rgba($warning, 0.6);
+      color: $gray-700;
+    }
+  }
+
+  a.btn.favorite,
+  a.btn.favorite.active,
+  a.btn.favorite:focus {
+    @include media-breakpoint-down(xs) {
+      display: block;
+      padding-top: 0.5rem;
+    }
+  }
+}
+
+.tooltip {
+  .tooltip-inner {
+    color: $tooltip-text;
+    background-color: $tooltip-color;
+  }
+  &.bs-tooltip-top .arrow:before {
+    border-top-color: $tooltip-color !important;
+  }
+  &.bs-tooltip-right .arrow:before {
+    border-right-color: $tooltip-color !important;
+  }
+  &.bs-tooltip-left .arrow:before {
+    border-left-color: $tooltip-color !important;
+  }
+  &.bs-tooltip-bottom .arrow:before {
+    border-bottom-color: $tooltip-color !important;
+  }
+}
+
+html.fa-events-icons-loading .brand,
+html.fa-events-typefaces-orbitron-loading .brand {
+  visibility: hidden;
+}
+
+.fontawesome-i2svg-pending body {
+  display: none;
+}
+
+a:focus {
+  outline: none;
+}
+
+.btn-circle {
+  width: 1.3rem;
+  height: 1.3rem;
+  text-align: center;
+  padding: 0;
+  padding-left: 0.5px;
+  font-size: 0.65rem;
+  line-height: 1.42;
+  border-radius: 15px;
+}
+
+#fretInfoModal {
+  .modal-body {
+    @include media-breakpoint-up(sm) {
+      padding-right: 10%;
+    }
+  }
+  @include media-breakpoint-up(sm) {
+    dt {
+      text-align: right;
+    }
+  }
+  dd {
+    margin-bottom: 1.2rem;
+  }
+}
+
+.reftable-wrapper {
+  margin: 10px 0px;
+  @include media-breakpoint-up(sm) {
+    margin: 10px 10px;
+  }
+  @include media-breakpoint-up(md) {
+    margin: 10px 30px;
+  }
+  @include media-breakpoint-up(lg) {
+    margin: 10px 40px;
+  }
+}
+
+#referenceTable {
+  thead {
+    font-weight: bold;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  tbody {
+    font-size: 0.85rem;
+    .doi {
+      font-size: 0.7rem;
+    }
+    td,
+    tr {
+      padding: 8px 8px;
+    }
+    a {
+      color: darken($primary, 7);
+      &:hover {
+        color: darken($primary, 20);
+      }
+    }
+  }
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+  cursor: not-allowed;
+}
+
+select[readonly].select2-hidden-accessible + .select2-container {
+  pointer-events: none;
+  touch-action: none;
+
+  .select2-selection {
+    background: #e9ecef;
+    box-shadow: none;
+  }
+
+  .select2-selection__arrow,
+  .select2-selection__clear {
+    display: none;
+  }
+}
+
+.small-sm {
+  @include media-breakpoint-down(sm) {
+    font-size: small !important;
+  }
+}
+
+a.help-link {
+  abbr {
+    text-decoration: none;
+  }
+  color: inherit;
+  &:hover {
+    text-decoration: none;
+    cursor: help;
+    text-shadow: 0px 0px 1px #cce;
+  }
+}
+
+// for Blast App styles
+pre .mismatch {
+  color: firebrick;
+  background-color: yellow;
+  font-weight: bold;
+}
+
+.highcharts-contextmenu {
+  hr {
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+}
+
+.kbd {
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.1em 0.5em;
+  margin: 0 0.2em;
+  box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2), 0 0 0 2px #fff inset;
+  background-color: #f7f7f7;
+}

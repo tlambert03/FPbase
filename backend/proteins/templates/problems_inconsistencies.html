@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}FPbase :: Possible data inconsistencies{% endblock title %}
+{% block meta-description %}For those looking to improve the data in FPbase, this page list potentital inconsistencies and problems with the data in the database.{% endblock %}
+
+{% block content %}
+
+<h2 class="strong">Possible database inconsistencies</h2>
+
+<p>This page lists potential inconsistencies in the database, uncovered by automated data-validation routines.  These may be mismatch between the format of the data and the FPbase "convention", inconsistencies with external databases (such as GenBank), or inconsistencies between different fields in the database that capture similar information (switch type and transitions, or lineage mutations and sequence).  Not all items are necessarily problematic, but this is a good place to begin looking for things to clean up.  If you'd rather fill in missing information in the database, <a href="{%url 'proteins:problems-gaps' %}">start here</a>.</p>
+
+<h4 class='font-weight-bold'>Lineage Problems</h4>
+<p class='text-muted'>Either a mutation string problem, misalignment, or doesn't yield the child sequence.</p>
+<div>
+  <ul class="row">
+    {% for prot, prob in linprobs %}
+      <li class="col-12"><a href="{{prot.get_absolute_url}}">{{prot|safe}}</a>: {{prob.0}}</li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+
+<h4 class='font-weight-bold'>Sequences that do not match GenBank</h4>
+<p class='text-muted'>These sequences do not exactly match the sequence for the corresponding genbank ID.  Sometimes this is just because the genbank sequence has slight N/C terminal differences, or perhaps a His tag.  Sometimes it indicates a problem with our sequence, and sometimes Genbank is wrong!  The gray text shows the mutation from the FPbase sequence to the Genbank sequence.  N- and C- terminal mismatches are less of a concern than internal single point mutations.  If you uncover an inconsistency in the literature (e.g. between the paper and the GenBank sequence) please <a href="{% url 'contact' %}">let us know!</a></p>
+<div>
+  <ul class="row">
+    {% for name, slug, genbank, muts, seq in mismatch  %}
+      <li class="col-12 col-lg-6"><a href="{% url 'proteins:protein-detail' slug %}">{{name|safe}}</a>: <span class='text-muted small'> (<a href="https://www.ncbi.nlm.nih.gov/protein/{{ genbank }}" target="_blank" class="text-info" rel="noopener">{{ genbank}}</a>){{muts|slice:":28" }}</span></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>Sequences that do not start with methionine</h4>
+<p class='text-muted'>Everything should start with Met.  Cross check sequences with original publication and clean up.</p>
+<div>
+  <ul class="row">
+    {% for p in nomet %}
+      <li class="col-12 col-md-6 small"><a href="{{p.get_absolute_url}}">{{p|safe}}</a>: <span class='text-muted'>{{ p.seq|slice:":15" }}...</span></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>Sequences containing His tag</h4>
+<p class='text-muted'>Usually, these sequences were pulled from PDB.  Cross-check with originally publication, and remove His tag and any C- N- terminal linkers</p>
+<div>
+  <ul class="row">
+    {% for p in histags  %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+
+<h4 class='font-weight-bold'>Proteins whose states/transitions are inconsistent with their switch type</h4>
+<p class='text-muted'>This may indicate a mis-categorized switch type, or it may indicated that the states and transitions of the protein are not yet completed or accurate.  See the <a href="https://help.fpbase.org/glossary#switch-type">documentation</a> for a review on how FPbase categorizes switching types.</p>
+<div>
+  <ul class="row">
+    {% for prot, suggestion in bad_switch %}
+      <li class="col-12 col-md-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a>: <span class='text-muted'>Is <span class='text-dark'>{{ prot.get_switch_type_display }}</span>, looks like <span class='text-dark'>{{suggestion}}</span>. </span></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+
+<h4 class='font-weight-bold'>Possibly miscategorized as "basic"</h4>
+<p class='text-muted'>Proteins whose names (or publication titles) suggest that they may be switchable/convertable, but have only a single fluorescent state.</p>
+<div>
+  <ul class="row">
+    {% for prot in switchers %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+
+
+{% endblock %}

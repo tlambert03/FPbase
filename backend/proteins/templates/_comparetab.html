@@ -1,0 +1,24 @@
+<div id="comparison-slider">
+  <div id="comparison-toggle">compare</div>
+  <div id="comparison-content">
+
+    <h3>Comparison List</h3>
+
+  {% if protein.slug %}
+  <div class="add-protein">
+  <button class="btn btn-secondary comparison-btn" data-action-url="{% url 'proteins:update-comparison' %}" data-object="{{protein.slug}}" data-op="add">Add {{protein}}</button>
+  </div>
+  {% endif %}
+
+  <ul class="comparison-list">
+  </ul>
+
+  <div id="compare-link">
+    <a href="{% url 'proteins:compare' %}">show comparison</a>
+    <div class='msg'></div>
+    <button class="btn btn-outline hidden comparison-btn" data-action-url="{% url 'proteins:update-comparison' %}" id="clearbutton" data-op="clear">clear selection</button>
+  </div>
+
+  <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+</div>
+</div>

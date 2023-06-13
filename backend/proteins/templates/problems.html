@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Help Improve FPbase!{% endblock title %}
+{% block meta-description %}This page shows tips on where to start if you'd like to help improve the data at FPbase.  These pages list potential inconsistencies or gaps in the databse that have been flagged during automated data-validation routines.{% endblock %}
+
+{% block content %}
+<h2 class="strong">Fixing Problems in FPbase</h2>
+
+<p>We're glad you'd like to help improve FPbase!  In addition to submitting new information, and manually checking errors across the proteins on the site, you can also come here for tips on where to start.  These pages list potential inconsistencies or gaps in the databse that have been flagged during automated data-validation routines.</p>
+
+<div class="row">
+  <div class="col-sm-6 mt-2">
+    <div class="card card-inverse bg-primary text-white">
+      <div class="card-body">
+        <h2 class="card-title text-white text-center" style="font-weight: 300;">Missing Information</h2>
+        <p class="card-text">Help complete the FPbase by filling in obvious gaps and holes in the database.</p>
+        <a href="{%url 'proteins:problems-gaps' %}" class="btn btn-light btn-block">Fill the gaps!</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 mt-2">
+    <div class="card card-inverse bg-primary text-white">
+      <div class="card-body">
+        <h2 class="card-title text-white text-center" style="font-weight: 300;">Inconsistent Data</h2>
+        <p class="card-text">Help improve data quality in the FPbase by checking potential issues flagged during data validation.</p>
+        <a href="{%url 'proteins:problems-inconsistencies' %}" class="btn btn-light btn-block">Fix inconsistencies!</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}

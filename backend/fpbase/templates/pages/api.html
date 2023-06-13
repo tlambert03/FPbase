@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}FPbase REST API{% endblock %}
+{% block meta-description %}FPbase supports a REST API to search and retrieve protein attributes in JSON or CSV format.{% endblock %}
+
+{% block content %}
+<h1 class='mb-4'><strong>FP</strong>base REST API</h1>
+
+<p><em>FPbase supports a REST API to search and retrieve protein attributes in JSON or CSV format.  This is still a work in development and is subject to change.  This page details how to use the current API.</em></p>
+
+<h3><strong>Basics</strong></h3>
+
+<p>A simple way to learn about the API is to build a search using the <a href='{% url "proteins:search" %}'>advanced search query builder</a>, and look at the resulting parameters in the URL.  Any URL generated with the query builder can be directly used in the API, simply be replacing <code>/search/</code> in the URL with <code>/api/proteins/</code>.  For instance, a query built on the advanced search builder with the following filters:</p>
+
+
+<p><table class="table table-bordered">
+	<tr>
+		<td>Name</td>
+		<td>contains</td>
+		<td>green</td>
+	</tr>
+	<tr>
+		<td>Quantum Yield</td>
+		<td>is greater than or equal to</td>
+		<td>0.7</td>
+	</tr>
+</table></p>
+
+<p>would generate the following url: <br>
+<a href='https://www.fpbase.org/search/?name__icontains=green&default_state__qy__gte=0.7'><code>https://www.fpbase.org/search/?name__icontains=green&amp;default_state__qy__gte=0.7</code></a></p>
+
+<p>By replacing <code>/search/</code> in the URL with <code>/api/proteins/</code>:<br>
+<a href='https://www.fpbase.org/api/proteins/?name__icontains=green&amp;default_state__qy__gte=0.7'><code>https://www.fpbase.org/api/proteins/?name__icontains=green&amp;default_state__qy__gte=0.7</code></a><br><br>
+you will now be searching using the protein api.  To retrieve the results in JSON or CSV format, add <code>&amp;format=json</code> (or <code>format=csv</code>) to the URL:<br>
+<a href='https://www.fpbase.org/api/proteins/?name__icontains=green&default_state__qy__gte=0.7&format=json'><code>https://www.fpbase.org/api/proteins/?name__icontains=green&amp;default_state__qy__gte=0.7&amp;format=json</code></a><br></p>
+
+<h3><strong>Entry points</strong></h3>
+
+<dl class="row">
+	<dt class="col-sm-4"><code>{% url 'api:protein-api' %}</code></dt>
+	<dd class="col-sm-8">Main protein list api</dd>
+	<dt class="col-sm-4"><code>{% url 'api:basic-protein-api' %}</code></dt>
+	<dd class="col-sm-8">Dedicated api for 'basic' (non-switchable) proteins that delivers a flat dictionary of attributes (default state is assumed)</dd>
+
+	<dt class="col-sm-4"><code>{% url 'api:spectra-api' %}</code></dt>
+	<dd class="col-sm-8">Retrieve protein spectra</dd>
+</dl>
+
+
+<h3><strong>Searchable Fields</strong></h3>
+
+The following field name and lookups can be used.  Fieldnames and lookups must be separated by a double-underscore "<code>__</code>".  For example: <code>name__icontains</code>.  See below for an explanation of each lookup operator.
+<p><table class="table table-bordered small" style='font-family: monospace,monospace; line-height: 0.8rem;'>
+	<tr>
+		<th>field</th>
+		<th>available lookups</th>
+	</tr>
+
+	<tr>
+		<td>name</td>
+		<td>icontains, iendswith, istartswith, iexact, </td>
+	</tr>
+	<tr>
+		<td>seq</td>
+		<td>icontains, iendswith, istartswith, cdna_contains</td>
+	</tr>
+	<tr>
+		<td>default_state__ex_max</td>
+		<td>around, range, lte, gte, exact</td>
+	</tr>
+	<tr>
+		<td>default_state__em_max</td>
+		<td>around, range, lte, gte, exact</td>
+	</tr>
+	<tr>
+		<td>default_state__lifetime</td>
+		<td>gte,  lte, range, exact</td>
+	</tr>
+	<tr>
+		<td>default_state__maturation</td>
+		<td>gte,  lte, range, exact</td>
+	</tr>
+	<tr>
+		<td>default_state__ext_coeff</td>
+		<td>gte,  lte, range, exact</td>
+	</tr>
+	<tr>
+		<td>default_state__qy</td>
+		<td>gte,  lte, range, exact</td>
+	</tr>
+	<tr>
+		<td>default_state__brightness</td>
+		<td>gte,  lte, range, exact</td>
+	</tr>
+	<tr>
+		<td>default_state__pka</td>
+		<td>gte,  lte, range, exact</td>
+	</tr>
+	<tr>
+		<td>default_state__bleach_measurements__rate</td>
+		<td>gte,  lte, range, exact</td>
+	</tr>
+	<tr>
+		<td>agg</td>
+		<td>exact</td>
+	</tr>
+	<tr>
+		<td>genbank</td>
+		<td>iexact</td>
+	</tr>
+	<tr>
+		<td>pdb</td>
+		<td>contains</td>
+	</tr>
+	<tr>
+		<td>uniprot</td>
+		<td>iexact</td>
+	</tr>
+	<tr>
+		<td>status</td>
+		<td>exact</td>
+	</tr>
+	<tr>
+		<td>switch_type</td>
+		<td>exact, ne</td>
+	</tr>
+	<tr>
+		<td>parent_organism</td>
+		<td>exact</td>
+	</tr>
+	<tr>
+		<td>primary_reference__year</td>
+		<td>gte, gt, lt, lte, range, exact</td>
+	</tr>
+	<tr>
+		<td>spectral_brightness</td>
+		<td>gt, lt</td>
+	</tr>
+</table></p>
+
+<h5><strong><code>default_state__ </code>?</strong></h5>
+
+<p>You will notice that many of the fields describing fluorescence attributes (ex/em max, qy, ext_coeff) must be preceeded by <code>default_state__</code>.  This is because some proteins can have multiple states.  Currently, the API only searches the default state for a given protein (but it still must be specified in the query).</p>
+
+<h5><strong>Lookup Operators</strong></h5>
+
+Here is a description for each of the lookup operators listed in the previous table.
+
+<p><table class="table table-bordered small" style='font-family: monospace,monospace; line-height: 0.8rem;'>
+
+	<tr>
+		<td>lt</td>
+		<td>is less than</td></tr>
+	<tr>
+		<td>gt</td>
+		<td>is greater than</td></tr>
+	<tr>
+		<td>lte</td>
+		<td>is less than or equal to</td></tr>
+	<tr>
+		<td>gte</td>
+		<td>is greater than or equal to</td></tr>
+	<tr>
+		<td>around</td>
+		<td>is around</td></tr>
+	<tr>
+		<td>exact</td>
+		<td>is (case sensitive)</td></tr>
+	<tr>
+		<td>ne</td>
+		<td>is not</td></tr>
+	<tr>
+		<td>iexact</td>
+		<td>is (case insensitive)</td></tr>
+	<tr>
+		<td>range</td>
+		<td>is between (specified as two comma-separated values)</td></tr>
+	<tr>
+		<td>contains</td>
+		<td>contains (case sensitive)</td></tr>
+	<tr>
+		<td>icontains</td>
+		<td>contains (case insensitive)</td></tr>
+	<tr>
+		<td>iendswith</td>
+		<td>ends with (case insensitive)</td></tr>
+	<tr>
+		<td>istartswith</td>
+		<td>starts with (case insensitive)</td></tr>
+	<tr>
+		<td>cdna_contains</td>
+		<td>search yields proteins whose amino acid sequence contains the translated version of this DNA sequence</td></tr>
+
+</table></p>
+
+{% endblock content %}

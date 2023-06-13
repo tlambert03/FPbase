@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Contributing to FPbase{% endblock %}
+{% block meta-description %}FPbase encourages user contributions.  Please read this page before submitting data to FPbase.{% endblock %}
+
+{% block content %}
+<h1 class='mb-4'>Contributing to FPbase</h1>
+
+<h3 class="mt-4"><strong>Contributing</strong></h3>
+
+<p>If you would like to help expand and improve the database, please consider contributing to FPbase.  In order to make any changes to the database, you must first <a href="{% url 'account_signup' %}">create an account</a>.</p>
+<p><em><strong class='text-info'>Please be considerate when contributing; only submit information that can be independently verified with an accompanying reference</strong></em>.  Users who repeatedly contribute erroneous or unverifiable information will lose contribution priviledges.
+</p>
+
+<p>There are a few ways to contribute to FPbase:</p>
+<ol>
+	<li>
+		<strong>Submit a new protein</strong><br>
+		<p>Use the <a href="{% url 'proteins:submit' %}">Protein Submission Form</a> to create a new record for a protein that is not currently in the database.  Please <a href="{% url 'proteins:search' %}">search</a> for the protein and common aliases first to confirm that it does not already exits.  If you attempt to add a protein that already exists in the database, a validation error will appear and provide a link to the currently existing protein.  All new submissions must be accompanied by a DOI for the publication that introduced the protein.  If you would like to submit information about unpublished proteins, please <a href="{% url 'contact' %}">contact us</a>.</p>
+	</li>
+	<li>
+		<strong>Update existing protein information</strong><br>
+		<p>If a protein record is lacking information, or if you feel that the information is inaccurate, you can submit an update.  Towards the bottom of every protein page, you will find a <a href="#" class='text-secondary'>Submit a change</a> link that will bring you to the update page for that particular protein.  If you know the <em>slug</em> for protein you may also go directly to the update form for that protein at <code>/protein/[slug]/update/</code>, for example: <a href="{% url 'proteins:update' slug='mneongreen' %}">{% url 'proteins:update' slug='mneongreen' %}</a></p>
+	</li>
+	<li>
+		<strong>Add references to existing proteins</strong><br>
+		<p>In the references section of each protein page, there is a <a href="#" class='text-info' ><button class='btn btn-sm btn-secondary mr-1 ml-1'><i class="fas fa-book mr-2"></i>Add a reference</button></a> button that will allow you to add additional references.  This is an excellent place to track publications that may not have introduced the fluorescent protein, but have performed additional characterization of it</p>
+	</li>
+	<li>
+		<strong>Create Public Collections</strong><br>
+		<p>Logged-in users can <a href="{% url 'proteins:newcollection' %}">create collections of fluorescent proteins</a> for private use or for sharing publicly.  You may view your own collections in your profile, or <a href='{% url 'proteins:collections' %}'>view all public collections</a> created on FPbase.  On each protein page, you can click the book icon (<a class="btn example-like-button"><i class="fas fa-book"></i></a>) to add the current protein to one of your collections.</p>
+	</li>
+</ol>
+
+<p>For more technical information about the structure of the FPbase database, please refer to the <a href="{% url 'schema' %}">database schema</a> page.</p>
+
+<h3 class="mt-4"><strong>Moderation</strong></h3>
+
+{% include 'pages/_moderation.html' %}
+
+{% endblock content %}

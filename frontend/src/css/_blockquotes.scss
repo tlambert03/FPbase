@@ -1,0 +1,123 @@
+/*
+// 12 - CSS3 Blockquote Effects Demo
+// Made with ❤ by @Pawan_Mall
+// http://www.pawanmall.net
+*/
+
+
+
+blockquote {
+  display:block;
+  background: #fff;
+  padding: 18px 20px 8px 50px;
+  margin: 0 0 1rem;
+  position: relative;
+
+  line-height: 1.2;
+  color: #555;
+
+  /*Box Shadow - (Optional)*/
+  -moz-box-shadow: 2px 2px 15px #ccc;
+  -webkit-box-shadow: 2px 2px 15px #ccc;
+  box-shadow: 2px 2px 15px #ccc;
+
+  /*Borders - (Optional)*/
+  border-left-style: solid;
+  border-left-width: 15px;
+  border-right-style: solid;
+  border-right-width: 2px;
+
+  &::before{
+    content: "\201C"; /*Unicode for Left Double Quote*/
+
+    /*Font*/
+    font-family: Georgia, serif;
+    font-size: 50px;
+    font-weight: bold;
+    color: #CCC;
+
+    /*Positioning*/
+    position: absolute;
+    left: 10px;
+    top:5px;
+  }
+
+  & ::after{
+    /*Reset to make sure*/
+    content: "";
+  }
+
+  p {
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+  }
+
+  h3, h4 {
+    font-variant: small-caps;
+    font-size: 1rem;
+  }
+
+  .flag {
+    float: right;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  &.mint{
+    border-left-color: #46cfb0;
+    border-right-color: #34bc9d;
+    h3, h4 {
+      color:#34bc9d;
+    }
+  }
+  &.gray{
+    border-left-color: #ccd1d8;
+    border-right-color: #aab2bc;
+    h3, h4 {
+      color:#8E8E8E;
+    }
+  }
+  &.primary{
+    border-left-color: $primary;
+    border-right-color: darken($primary, 5);
+    h3, h4 {
+      color: $primary;
+    }
+  }
+
+  a {
+    &:hover{
+      text-decoration: none;
+      h3, h4 {
+        color: $primary;
+      }
+    }
+  }
+}
+
+
+a.object-flag{
+  opacity: 0.3;
+  &:hover{
+    opacity: 1;
+  }
+  &:focus {
+    box-shadow: none;
+  }
+  &:active {
+    box-shadow: none;
+    drop-shadow: none;
+    outline: 0;
+  }
+  &:active:focus {
+    box-shadow: none;
+    drop-shadow: none;
+    outline: 0;
+  }
+}
+
+.flagicon{
+  color: $danger;
+  margin-left:10px;
+  font-size: 1.1rem;
+}

@@ -1,0 +1,18 @@
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-112673074-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ ga_tracking_id }}');
+  gtag('config', 'G-C8W3G31KL6');
+  {% if request.user.is_authenticated %}gtag('set', {'user_id': '{{ request.user.id }}'}){% endif %};
+  var trackOutboundLink = function(url) {
+    gtag('event', 'click', {
+      'event_category': 'outbound',
+      'event_label': url,
+      'transport_type': 'beacon',
+      'event_callback': function(){document.location = url;}
+    });
+  };
+</script>

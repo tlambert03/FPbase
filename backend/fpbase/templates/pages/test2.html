@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+
+{% block extrahead %}
+
+<style type="text/css">
+.node circle, .node circle //{
+  stroke: #b4462
+  stroke-width: 1px;
+  opacity: 0.9;
+}
+circle, rect, //circle {
+    cursor: poiner
+}
+
+.node circle:hover, .node circle://hover {
+  opacity 1
+}
+
+
+.node text {
+  font: 12px Avenir;
+  font-weight: 500;
+  color: white;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1px;
+}
+
+ul {
+  list-style-type: none;
+}
+
+</style>
+{% endblock extrahead %}
+
+{% block content %}
+
+    <div><svg id="app"></svg></div>
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script type="text/javascript">
+  function getData(){
+    return {{tree|safe}};
+  };
+</script>
+<script type="text/javascript">
+(function() {
+  d3.svg.transform = function(chain) {
+    var transforms = [];
+    if (chain !== undefined) { transforms.push(chain) }
+
+    function push(kind, args) {
+      var n = args.length;
+
+      transforms.push(function() {
+        return kind + '(' + (n == 1 && typeof args[0] == 'function'
+            ? args[0].apply(this, arr(arguments)) : args) + ')';
+      });
+    };
+
+    function arr(args) {
+      return Array.prototype.slice.call(args);
+    }
+
+    var my = function() {
+      var that = this,
+          args = arr(arguments);
+
+      return transforms.map(function(f) {
+        return f.apply(that, args);
+      }).join(' ');
+    };
+
+    ['translate', 'rotate', 'scale', 'matrix', 'skewX', 'skewY'].forEach(function(t) {
+      my[t] = function() {
+        push(t, arr(arguments));
+        return my;
+      };
+    });
+
+    return my;
+  };
+})();
+
+const margin = {top: 50, right: 30, bottom: 20, left: 30};
+const width = 800 - margin.right - margin.left;
+const height = 300 - margin.top - margin.bottom;
+
+let i = 0;
+
+svgDomNode = '#app'
+
+// Cleans up the SVG on re-render
+d3.select(svgDomNode).selectAll('*').remove();
+
+function sep(a, b) {
+  return (a.parent == b.parent ? 1 : 2);
+}
+
+// Creates a new tree layout with the default settings:
+// the default sort order is null;
+// the default children accessor assumes each input data
+// is an object with a children array;
+// the default separation function uses one node width
+// for siblings, and two node widths for non-siblings;
+// the default size is 1×1.
+let tree = d3.layout.tree()
+  .size([height, width])
+  .separation(sep);
+
+let diagonalV = d3.svg.diagonal()
+  .projection(function(d) { return [d.x, d.y]; });
+
+let diagonalH = d3.svg.diagonal()
+  .projection(function(d) { return [d.y, d.x]; });
+
+let svg = d3.select(svgDomNode)
+  .attr('width', width + margin.right + margin.left)
+  .attr('height', height + margin.top + margin.bottom)
+  .append('g')
+  .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+update(getData());
+
+
+function update(data, horizontal) {
+  horizontal = horizontal || false;
+
+  let nodes = tree.nodes(data).reverse();
+  let links = tree.links(nodes);
+
+  // gives the y dimension
+  // nodes.forEach(function(d) {
+  //   d.y = d.depth * 70;
+  // });
+
+  let node = svg.selectAll('g.node')
+    .data(nodes, function(d) {
+      return d.id || (d.id = ++i);
+    });
+
+  let link = svg.selectAll('path.link')
+    .data(links, function(d) {
+      return d.target.id;
+    }).enter().append('g')
+
+  link.append('path')
+    .attr('class', 'link')
+    .attr('d', horizontal ? diagonalV : diagonalH);
+
+  //link
+  //  .append('text')
+  //  .attr('font-family', 'Arial, Helvetica, sans-serif')
+  //  .attr('fill', 'Black')
+  //  .style('font', 'normal 9px Arial')
+  //  .attr('transform', function(d) {
+  //    return d3.svg
+  //      .transform()
+  //      .translate((d.source.y + d.target.y) / 2, -5 + (d.source.x + d.target.x) / 2)
+  //      .rotate(-35)
+  //      .translate(
+  //        -d3.select(this).attr('width') / 2,
+  //        -d3.select(this).attr('height') / 2
+  //      )();
+  //  })
+  //  .attr('dy', '.35em')
+  //  .attr('text-anchor', 'middle')
+  //  .text(function(d) {
+  //    return d.target.mut;
+  //  });
+
+  let nodeEnter = node.enter().append('g')
+    .attr('class', 'node')
+
+  if (horizontal) {
+    nodeEnter.attr('transform', function(d) {
+      return 'translate(' + d.x + ',' + d.y + ')';
+    });
+  } else {
+    nodeEnter.attr('transform', function(d) {
+      return 'translate(' + d.y + ',' + d.x + ')';
+    });
+  }
+
+  //nodeEnter.append('circle')
+  //  .attr('r', 15)
+  nodeEnter.append('circle')
+    //.attr('rx', 25
+    .attr('r', 15)
+    .attr('fill', function(d){ return (d.bg == '#222' ? "#777" : d.bg); });
+
+
+  nodeEnter.append('text')
+    .attr('y', function(d) { return -23; })
+    .attr('dy', '.2em')
+    .attr('text-anchor', 'middle')
+    .html(function(d) { return '<a href="' + d.url + '">' + d.name + '</a>'; })
+    .style('fill-opacity', 1);
+
+  }
+
+</script>
+
+{% endblock javascript %}

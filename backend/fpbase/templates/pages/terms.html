@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>FPbase License, Policies, and Disclaimers</h2>
+
+<h4 id="policy"><strong>Policy</strong></h4>
+<p>The data contained in the FPbase are free of all copyright restrictions and made fully and freely available for both non-commercial and commercial use. Users of the data should attribute the original authors of the corresponding data (referenced on the corresponding protein page). By using the materials available in the FPbase archive, the user agrees to abide by the following conditions:
+
+<ul>
+  <li>The user assumes all responsibility for insuring that intellectual property claims associated with any data  deposited in FPbase are honored. It should be understood that FPbase data do not contain any information on intellectual property claims.</li>
+  <li>FPbase does not endorse or recommend any commercial products, processes, or services. Any opinion, findings, and conclusions expressed in FPbase by the authors/contributors do not necessarily reflect the views of FPbase.</li>
+  <li>The data in FPbase are provided on an "as is" basis. FPbase, its authors, and their institutions cannot be held liable to any party for direct, indirect, special, incidental, or consequential damages, including lost profits, arising from the use of FPbase materials.</li>
+  <li>Resources on this site are provided without warranty of any kind, either expressed or implied. This includes but is not limited to merchantability or fitness for a particular purpose. FPbase and its authors make no representation that these resources will not infringe any patent or other proprietary right.</li>
+  <li>Some FPbase pages may provide links to other Internet sites for the convenience of users. FPbase is not responsible for the availability or content of these external sites, nor does FPbase endorse, warrant, or guarantee the products, services, or information described or offered at these other Internet sites. Users cannot assume that the external sites will abide by the same Privacy Policy to which FPbase adheres. It is the responsibility of the user to examine the copyright and licensing restrictions of linked pages and to secure all necessary permissions.</li>
+</ul>
+
+</p>
+
+<h4 id="disclaimer"><strong>Disclaimer</strong></h4>
+
+<p>All information on FPbase is provided for research, educational and informational purposes only.  We make no warranties regarding the correctness of the data, and disclaim liability for damages resulting from its use. We cannot provide unrestricted permission regarding the use of the data, as some data may be covered by patents or other rights.</p>
+
+<h4 id="privacy"><strong>Requests for removal</strong></h4>
+
+<p>If you believe that any of the content posted to FPbase infringes on a copyright that you own, please contact us to request removal.</p>
+
+<h4 id="privacy"><strong>Privacy</strong></h4>
+
+<p>Browsing information on the FPbase website and retrieval of records using the REST API does not require login or the collection of any personally identifiable information.  Contributing and editing data on FPbase requires the creation of a user account.  When you sign up for an FPbase account, we ask you for personal information (such as your name, email address, account password). This information is stored on secure servers. We do not share server log or FPbase account information with third parties for marketing or other purposes.</p>
+
+<h5 id="analytics"><strong>Analytics</strong></h5>
+<p>FPbase uses <a href='https://analytics.google.com/'>Google Analytics</a> to track website usage statistics in order to identify performance bottlenecks and areas of the website in need of improvement.  This may include information such as</p>
+<ul>
+  <li>Your IP address and the domain you use to access the internet</li>
+  <li>The date and time of your visit</li>
+  <li>The pages and documents you viewed on our website</li>
+  <li>The URL of the website you visited prior to ours</li>
+  <li>The words you searched for on our website</li>
+  <li>The type and version of your Web browser and operating system</li>
+  <li>Your location at the time of your visit,</li>
+</ul>  <p>You may use <a href="https://tools.google.com/dlpage/gaoptout">use Google's browser plugin to opt out of Google Analytics tracking.</a></p>
+
+<h5 id="logging"><strong>Error Logging</strong></h5>
+
+<p>In order to improve FPbase, we collect server-side error logs and information through third party services (such as <a href="https://sentry.io/privacy/" target="_blank" rel="noopener">Sentry.io</a>). This data may include information such as your device IP address, browser, the time and date, and other statistics describing the nature of the error.</p>
+
+<h4 id="license"><strong>License</strong></h4>
+
+<p class='mt-3'><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" class="float-left pt-2 pr-4"/></a><span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">FPbase</span> is created by <a xmlns:cc="http://creativecommons.org/ns#" href="https://github.com/tlambert03" property="cc:attributionName" rel="cc:attributionURL">Talley Lambert</a> and is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.  Source code is available at <a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/tlambert03/FPbase" rel="dct:source">GitHub</a>.</p>
+
+<p class='mt-2'> <img src='https://upload.wikimedia.org/wikipedia/commons/f/f8/License_icon-mit-88x31-2.svg' class="float-left pt-2 pr-4"/>The interactive visualization of fluorescent proteins is modified from the <a href="https://github.com/FPvisualization/fpvisualization.github.io">FPvisualization repository on GitHub</a>, developed by <a href='https://github.com/tlambert03'>Talley Lambert</a> and <a href='https://github.com/kthorn'>Kurt Thorn</a> and licensed under the <a rel="license" href="https://github.com/FPvisualization/fpvisualization.github.io/blob/master/LICENSE">MIT license</a>.</p>
+
+
+{% endblock content %}
+
+{% block javascript %}
+
+{% if 'privacy' in request.path %}
+    <script type="text/javascript">
+      $('html,body').animate({scrollTop: $('#privacy').offset().top}, 300);
+    </script>
+{% endif %}
+
+{% endblock javascript %}

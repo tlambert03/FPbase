@@ -1,0 +1,237 @@
+// single protein pages
+// ------------------------
+
+.fpbase-id {
+  @include media-breakpoint-up(md){
+    font-size:1.1rem !important;
+    float:right;
+    position: relative;
+    top:4px;
+  }
+}
+
+.protein {
+	font-size: 0.9rem;
+
+	.name {
+		padding-top: 1.5rem;
+		padding-bottom: 1rem;
+		color: lighten($primary,10%);
+		text-align: center;
+		word-wrap: break-word;
+		@include media-breakpoint-down(md){ font-size: 3rem;}
+		@include media-breakpoint-down(sm){ font-size: 2.4rem;}
+	}
+
+	h3{
+    color: lighten($primary,10%);
+		font-weight: 400;
+    font-size: 1.3rem;
+    padding-top: 1rem;
+	}
+
+  h4{
+    color: $gray-700;
+    font-size: 1.0rem;
+  }
+
+ 	.aliases {
+ 		font-family: Raleway, sans-serif;
+ 		color: $gray-500;
+ 		font-size: 1.4rem;
+ 		font-weight: 600;
+ 		padding-top: 0;
+ 		margin-top: 0;
+ 	}
+
+  .protein-blurb {
+  	font-style:italic;
+  	color: $gray-600;
+  	font-weight: 400;
+  	margin-top: 1rem;
+  	margin-bottom: 1rem;
+  	padding-bottom:0;
+  }
+
+
+	.attributes {
+
+		.table {
+		margin-bottom: 0;
+		font-weight: 200;
+		}
+
+		.table-header th{
+		background-color: $secondary;
+		border-color: rgba($white, 0.05);
+		color: white;
+		text-align: center;
+		// 	line-height: 2em;
+		}
+		td{
+		// 	line-height: 2em;
+		text-align: center;
+		}
+	}
+
+	.sequence {
+		word-wrap: break-word;
+	}
+}
+
+.protein_results ul {
+//padding-left: 0;
+}
+
+.protein_result_item {
+	&:hover{
+		text-decoration: none;
+	}
+	div {
+		&:hover{
+			opacity: 1;
+			box-shadow: inset 0rem 0rem 3rem rgba($black,0.1);
+		}
+		opacity: 0.75;
+	    text-align: center;
+	    color: black;
+	    border-radius: .4rem;
+	    margin: .2rem 0;
+	    padding: 0.6rem 0.6rem;
+	    height:90%;
+	    h4{
+	    	font-weight: 500;
+	    	font-size: 1rem;
+	    	color: black;
+	    	margin: 0;
+	    	word-wrap: break-word;
+	    }
+	}
+}
+
+
+.aminosequence{
+	//
+	//border: 1px dashed $gray-400;
+	box-shadow: inset 0 0 2rem $gray-300;
+	border-radius: 5px;
+	font-size: 1.2rem;
+	font-family: monospace;
+	color: $gray-700;
+	padding: 1rem;
+	.formatted_aminosquence {
+		padding: 0;
+		margin: 0;
+		position: relative;
+		left: 2.7rem;
+		margin-right: 2rem;
+	}
+	.sequence_count {
+		float: left;
+		text-align: right;
+		color: red;
+		position: absolute;
+		margin: 0;
+		padding: 0;
+	}
+}
+
+.flip-scroll {
+  table {
+    margin-bottom: 0rem !important;
+  }
+
+  @include media-breakpoint-down(sm) {
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-spacing: 0;
+      display: block;
+      position: relative;
+      width: 100%;
+    }
+    thead {
+      display: block;
+      float: left;
+      tr {
+        display: block;
+      }
+    }
+    tbody {
+      display: block;
+      width: auto;
+      max-width: 60vw;
+      position: relative;
+      overflow-x: auto;
+      white-space: nowrap;
+      tr {
+        display: inline-block;
+        vertical-align: top;
+      }
+    }
+    th {
+      text-align: left;
+      display: block;
+      text-align: right !important;
+      background-color: white !important;
+      color: black !important;
+      &:after{
+        content: ':'
+      };
+      border-bottom: 0 !important;
+      border-left: 0 !important;
+    }
+    th, td {
+      margin: 0;
+      vertical-align: top;
+      line-height: 1.1rem;
+
+    }
+
+    td {
+      display: block;
+      min-height: 1.25em;
+      text-align: left;
+      border-left: 0 ;
+      border-right: 0;
+      border-bottom: 0;
+      line-height: 1.1rem;
+      margin-left: 0.3rem;
+      //height: 37px;
+      empty-cells: show;
+
+      &:empty{
+        &:after{
+          content: "\00a0\00a0";
+        }
+      }
+    }
+
+    .cf:after {
+      visibility: hidden;
+      display: block;
+      font-size: 0;
+      content: " ";
+      clear: both;
+      height: 0;
+    }
+    * html .cf {
+      zoom: 1;
+    }
+    *:first-child+html .cf {
+      zoom: 1;
+    }
+
+    tbody tr { border-left: 0px solid #babcbf; }
+    th:last-child,
+    td:last-child { border-bottom: 0px solid #babcbf; }
+  }
+}
+
+
+#seq-badge {
+  color: $secondary;
+  font-size: 1.25rem;
+  margin-left: 0.5rem;
+}

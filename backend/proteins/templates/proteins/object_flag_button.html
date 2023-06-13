@@ -1,0 +1,17 @@
+{% if status == 'flagged' %}
+
+{% if request.user.is_staff %}
+<a class="btn btn-sm object-flag" style="padding: 0; margin: 0" href='' data-action-url="{% url 'proteins:flag_object' %}" data-id="{{ target_id }}" data-model="{{ target_model }}" data-toggle="tooltip" data-placement="top" data-flagged="1" title="Admin: unflag">
+  <i class="fas fa-flag mt-1 flagicon"></i>
+</a>
+{% else %}
+<i class="fas fa-flag mt-1 flagicon" data-toggle="tooltip" data-placement="top" title="This excerpt has been flagged for review"></i>
+{% endif %}
+
+{% elif userauth %}
+<a class="btn btn-sm object-flag" style="padding: 0; margin: 0" href='' data-action-url="{% url 'proteins:flag_object' %}" data-id="{{ target_id }}" data-model="{{ target_model }}" data-toggle="tooltip" data-placement="top" data-flagged="0" title="Flag this excerpt for review">
+  <i class="far fa-flag flagicon"></i>
+</a>
+
+
+{% endif %}

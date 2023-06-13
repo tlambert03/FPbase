@@ -1,0 +1,45 @@
+{% load i18n %}
+
+<div class="modal fade" id="referenceModal" tabindex="-1" role="dialog" aria-labelledby="referenceModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="referenceModalLongTitle"><strong>Add a reference</strong></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% if user.is_authenticated %}
+      <form id="refModalForm" data-action-url="{% url 'proteins:add_protein_reference' slug=protein.slug %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p>Add a publication that references {{ protein.name }}. It does not need to be the paper that introduced the protein, but it should further characterize the properties or performance of the protein specifically. (Please do not add a paper that simply mentions the protein in the methods, if the performance of the protein is not discussed anywhere in the paper).</p>
+          <div id="div_id_reference_doi" class="form-group">
+            <label for="id_reference_doi" class="form-control-label">Reference DOI</label>
+            <div class="">
+              <input type="text" name="reference_doi" maxlength="100" class="textinput textInput form-control" required="" id="id_reference_doi" pattern="10.\d{4,9}/[-._;()/:a-zA-Z0-9]+" oninvalid="setCustomValidity('Not a valid DOI string')" oninput="setCustomValidity('')">
+            </div>
+            <small id="hint_id_reference_doi" class="text-muted">e.g. 10.1038/nmeth.2413</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Add reference</button>
+        </div>
+      </form>
+      {% else %}
+      <div class="modal-body">
+        <div>
+          <p>You must be logged in to add references to FPbase</p>
+          <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">
+            <button type="submit" class="btn btn-primary">{% trans "sign in" %}</button>
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

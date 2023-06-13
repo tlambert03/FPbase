@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+
+{% block title %}FPbase :: Table of Fluorescent Protein Properties{% endblock %}
+{% block meta-description %}A comprehensive, sortable, searchable table of all the fluorescent proteins in the fluorescent protein database.{% endblock %}
+
+{% block extrahead %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/fc-3.3.0/datatables.min.css"/>
+{% endblock extrahead %}
+
+{% block container-class %}tablecontainer container-fluid{% endblock %}
+
+{% block bodyopen %}
+    {% include '_comparetab.html' %}
+{% endblock bodyopen %}
+
+{% block content %}
+
+<h2 class="text-center">Fluorescent Protein Table</h2>
+
+  <div class="mb-3">
+    <p class="small mb-2 mt-3 container">This is a comprehensive table of all proteins in the database. You may sort by clicking the column headers (multi-sort by shift-clicking the headers), or search any column by typing in the search field.
+    <em><strong>Tip:</strong> click the <button class="btn btn-outline-info btn-circle"><i class="fas fa-plus"></i></button> button to add a protein to the comparison slider on right.</em>
+    </p>
+  </div>
+	<form class='form-inline mb-3'>
+  	<div class="form-group mt-1 mr-3">
+  	  <label for="switch_filter" class='pr-2'>Switch Type: </label>
+  	  <select class="form-control form-control-sm table-filter custom-select" id='switch_filter' data-col='switch_type'>
+  	  	<option value=''>All</option>
+  	  	{% for choice in proteins.0.SWITCHING_CHOICES %}
+  	    <option value='{{ choice.0 }}'>{{ choice.1 }}</option>
+  	    {% endfor %}
+  	  </select>
+  	</div>
+  	<div class="form-group mt-1">
+  	  <label for="agg_filter" class='pr-2'>Oligomerization Type: </label>
+  	  <select class="form-control form-control-sm table-filter custom-select" id='agg_filter' data-col='agg_type'>
+  	  	<option value=''>All</option>
+  	  	{% for choice in proteins.0.AGG_CHOICES %}
+  	    <option value='{{ choice.0 }}'>{{ choice.1 }}</option>
+  	    {% endfor %}
+  	  </select>
+  	</div>
+  </form>
+
+  {% include '_proteintable.html' with comparison=1 showbleach=0 %}
+
+
+{% endblock %}
+
+{% block javascript %}
+
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/fc-3.3.0/datatables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.20/sorting/absolute.js"></script>
+
+<script>
+  $(function() {
+    var numbersType = $.fn.dataTable.absoluteOrderNumber(
+      [{ value: '', position: 'bottom' }, { value: '-', position: 'bottom' }]
+    );
+    var stringsType = $.fn.dataTable.absoluteOrder(
+      [{ value: '', position: 'bottom' }, { value: '-', position: 'bottom' }]
+    );
+
+    var buttonCommon = {
+        init: function(api, node, config) {
+           $(node).removeClass('btn-secondary')
+        },
+        className: 'btn-sm btn-primary',
+        exportOptions: {
+            columns: [ 0,1,2,3,4,5,6,7,8,9,10,11,12,13],
+            format: {
+                header: function( data, column, node) {
+                  switch(column) {
+                      case 1: return 'Ex max (nm)';
+                      case 2: return 'Em max (nm)';
+                      case 3: return 'Stokes Shift (nm)';
+                      case 4: return 'Extinction Coefficient';
+                      case 5: return 'Quantum Yield';
+                      case 6: return 'Brightness';
+                      case 7: return 'pKa';
+                      case 8: return 'Oligomerization';
+                      case 9: return 'Maturation (min)';
+                      case 10: return 'Lifetime (ns)';
+                      case 11: return 'Molecular Weight (kDa)';
+                      default: return data;
+                  }
+                },
+                body: function ( data, row, column, node ) {
+                  switch (column) {
+                    case 0:
+                      return node.childNodes[1].innerHTML.replace(/\s/g,'').replace('<small>', ' ').replace('</small>', '');
+                    case 4:
+                      return data.replace (/,/g, "");
+                    case 13:
+                      try {
+                        return JSON.parse(data.replace(/'/g, '"')).join(', ');
+                      } catch(e) {
+                        return ''
+                      }
+                    default:
+                      return data;
+                  }
+                }
+            }
+        }
+    };
+
+    window.table = $('#proteinTable').DataTable({
+      scrollX: '100%',
+      //scrollY: 600,
+      fixedColumns: true,
+      pageLength: 20,
+      //autoWidth: false,
+      lengthMenu: [ [10, 20, 50, 100, -1], [10, 20, 50, 100,"All"] ],
+      order: [[ 6, 'desc' ]],
+      columnDefs: [
+        { type: numbersType, targets: [1,2,3,4,5,6,7,9,10,11,12] },
+        { type: stringsType, targets: [8]}
+      ],
+      dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+           "<'row'<'col-sm-12'tr>>" +
+           "<'row mt-2 small text-small'<'col-sm-12 col-md-3 d-none d-md-block'B><'col-xs-12 col-sm-5 col-md-4'i><'col-xs-12 col-sm-7 col-md-5'p>>",
+      buttons: [
+          $.extend( true, {}, buttonCommon, {
+              extend: 'copyHtml5'
+          } ),
+          $.extend( true, {}, buttonCommon, {
+              extend: 'excelHtml5'
+          } ),
+          $.extend( true, {}, buttonCommon, {
+              extend: 'csvHtml5'
+          } )
+      ]
+    });
+
+    $('.table-filter').change(function(){
+      var searchval = this.value;
+      if (searchval != ''){
+        searchval = '^' + this.value +'$';
+      }
+      searchcol = $(this).attr('data-col')
+      $('#proteinTable').DataTable().column('.' + searchcol).search(searchval, true, false).draw();
+    });
+
+    if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)){
+      setTimeout(window.table.draw, 50)
+    }
+  });
+</script>
+{% endblock javascript %}

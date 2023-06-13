@@ -26,7 +26,7 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/)
 3. Install python requirements for local development
 
     ```bash
-    pip install -r requirements/local.txt
+    pip install -r backend/requirements/local.txt
     ```
 
 4. Install [Node.js](https://nodejs.org/en/) & npm  (homebrew: `brew install node`)
@@ -41,14 +41,14 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/)
 
     ```bash
     createdb fpbase
-    python manage.py migrate
+    python backend/manage.py migrate
     ```
 
 8. start dev servers:
 
     ```bash
     npm run start
-    python manage.py runserver
+    python backend/manage.py runserver
     ```
 
 ### How to cite FPbase

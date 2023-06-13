@@ -1,0 +1,180 @@
+
+.tablecontainer{
+  padding: 5px;
+  @include media-breakpoint-up(sm){
+    padding: 15px;
+  }
+  @include media-breakpoint-up(lg){
+    padding: 25px;
+  }
+	@include media-breakpoint-up(xl){
+		max-width: 1400px;
+		margin: auto;
+	}
+	//@include media-breakpoint-down(md){max-width: map-get($container-max-widths, md);}
+}
+
+.DTFC_LeftBodyWrapper {
+  //border-bottom: 1px solid black;
+  @include media-breakpoint-down(xs){
+    border-right: 1px solid #eee;
+  }
+}
+
+.DTFC_LeftBodyLiner table.DTFC_Cloned thead th{
+  &.sorting, &.sorting_desc, &.sorting_asc {
+    &::before, &::after {
+      display: none;
+    }
+  }
+}
+
+
+.dataTable {
+  &.table-sm{
+    font-size: 0.75rem;
+    th {
+      font-weight: 500;
+      &.sorting, &.sorting_desc, &.sorting_asc {
+        &::after, &::before{
+          font-size: .70rem;
+          top: 8px !important;
+        }
+        &::after{
+          right: 0.22rem;
+        }
+      }
+    }
+  }
+}
+
+// #proteinTable_wrapper {
+//   margin-left: 1.2rem;
+//   margin-right: 1.2rem;
+// }
+
+// #proteinTable {
+// 	table-layout: fixed;
+// 	margin-top: 1rem;
+// 	font-weight: 500;
+// 	width:100%;
+// 	td {vertical-align: middle;}
+// 	td.protein{
+// 		font-weight: 600;
+// 		font-size: 1rem;
+// 		a{
+// 			word-wrap: break-word;
+// 		}
+// 	}
+//   th {
+//     font-size:0.7rem;
+//   }
+// 	@include media-breakpoint-down(xl) {
+// 		.protein{ width: 120px; }
+// 		font-size: 0.8rem;
+// 		td.protein a{ font-size: 0.9rem; }
+// 		td {padding-top: 0.6rem; padding-bottom: 0.5rem;}
+// 	}
+// 	@include media-breakpoint-down(lg) {
+// 		.protein{ width: 110px; }
+// 		font-size: 0.75rem;
+// 		td.protein a{ font-size: 0.8rem; }
+// 		td {padding-top: 0.5rem; padding-bottom: 0.4rem;}
+// 	}
+// 	@include media-breakpoint-down(md) {
+// 		.protein{ width: 100px; }
+// 		font-weight: 600;
+// 		font-size: 0.7rem;
+// 		td {padding-top: 0.4rem;
+// 			padding-bottom: 0.3rem;}
+// 		th {font-weight: 800;}
+// 		td.protein a{font-size: 0.8rem;}
+// 	}
+// 	@include media-breakpoint-down(sm) {
+// 		table-layout: auto;
+// 		font-weight: 600;
+// 		font-size: 0.6rem;
+// 		td.protein a{font-size: 0.7rem;}
+// 	}
+// }
+
+// .dataTables_paginate{
+//   float: right;
+// }
+// .dataTables_length{
+// 	&>label{
+// 		display: inline-flex;
+// 		select {
+// 			margin: 0 0.3rem;
+// 		}
+// 	}
+// }
+
+// .dataTables_filter{
+// 	@extend .dataTables_length;
+//   text-align: right;
+//   input {
+//     margin-left: 0.5rem;
+//   }
+// }
+
+
+.flip-scroll {
+  td, th {
+    @include media-breakpoint-up(md) { padding-top: 0.35rem; padding-bottom: 0.35rem;}
+  }
+  @include media-breakpoint-down(md) {
+    thead {
+      padding-left: 1rem;
+    }
+  }
+}
+
+#fret_report_wrapper {
+  label {
+    display: inline-flex !important;
+    select, input {
+      margin-left: .8rem;
+      margin-right: .8rem;
+      margin-top: -3px;
+    }
+    input {
+      margin-right: 0rem;
+    }
+  }
+
+  #fret_report_info {
+    font-size: 0.7rem;
+  }
+
+
+  .table tbody td {
+    vertical-align: middle;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .paginate_button {
+    font-size: 0.7rem;
+  }
+  thead th { white-space: nowrap !important; }
+
+}
+
+#fret_report{
+  .load-button {
+    opacity: 0.7;
+    &:hover {
+      opacity: 1;
+    }
+  }
+  width: 100% !important;
+  tbody{ font-size: 0.8rem; }
+  thead, tfoot{
+    th {
+      text-align: center;
+    }
+    font-size: 0.8rem;
+  }
+
+}

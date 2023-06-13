@@ -1,0 +1,119 @@
+{% load i18n %}
+
+<p class='small text-muted'>Dynamically generated spectral images in a variety of formats can be downloaded or embedded elsewhere.  This form assists in building the url parameters to retrieve the spectral image that you want.</p>
+<div class="container text-center mb-4 px-0">
+  <img src="" width="100%" id="activeImg" class='img-fluid mb-2 mt-2'>
+  <span class="small text-muted" style="word-wrap: break-word;"><i class="fas fa-share mr-2"></i>Image link: <a href="#" id="linktext" class="text-secondary" style="text-decoration: none"></a></span>
+</div>
+
+<form id="spectra_url_form">
+  <div class="row">
+    <div class="col-12 col-md-6">
+      <div class="input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+          <label class="input-group-text" for="proteinSlug">Protein</label>
+        </div>
+        <select class="custom-select" id="proteinSlug">
+          {% if protein %}
+            <option value='{{protein.slug}}'>{{protein.name|safe}}</option>
+          {% else %}
+            <option value='egfp'>EGFP</option>
+          {% endif %}
+        </select>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+          <label class="input-group-text" for="fileTypeSelect">Image Format</label>
+        </div>
+        <select class="custom-select custom-select-sm" id="fileTypeSelect">
+          <option value='svg'>SVG</option>
+          <option value='png'>PNG</option>
+          <option value='jpg'>JPG</option>
+          <option value='pdf'>PDF</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="showName">
+        <label class="custom-control-label" for="showName">Show Name</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="xAxis" checked>
+        <label class="custom-control-label" for="xAxis">Show X Labels</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="yAxis">
+        <label class="custom-control-label" for="yAxis">Show Y Labels</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="grid">
+        <label class="custom-control-label" for="grid">Show Grid</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="areaFill" checked>
+        <label class="custom-control-label" for="areaFill">Fill Area Under Curve</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="custom-control custom-checkbox">
+        <input type="checkbox" class="custom-control-input" id="transCheck" checked>
+        <label class="custom-control-label" for="transCheck">Transparent Background</label>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-3">
+    <div class="col-12 col-md-4 order-1 col-lg-3 col-xl-2">
+      <div class="input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text">Min &lambda;</span>
+        </div>
+        <input class="form-control min-range wave-range" type="number" value="350" step="10" min="200" max="1600" id="minXRange">
+        <div class="input-group-append">
+          <span class="input-group-text">nm</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4 order-2 order-md-3 order-lg-2 col-lg-3 col-xl-2">
+      <div class="input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text">Max &lambda;</span>
+        </div>
+        <input class="form-control max-range wave-range" type="number" value="750" step="10" min="200" max="1600" id="maxXRange">
+        <div class="input-group-append">
+          <span class="input-group-text">nm</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-8 order-3 order-md-2 order-lg-3 col-lg-3 col-xl-4">
+      <div class="input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text">Opacity</span>
+        </div>
+        <input type="range" class="custom-range form-control" min=".05" max="1" step="0.05" value="0.5" id="opacitySlider">
+      </div>
+    </div>
+    <div class="col-12 col-md-8 order-4 col-lg-3 col-xl-4">
+      <div class="input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+          <span class="input-group-text">Line Width</span>
+        </div>
+        <input type="range" class="custom-range form-control" value="1" min="0" max="8" step="1" id="lineWidthSlider">
+      </div>
+    </div>
+  </div>
+</form>
+
+<p class='small text-muted font-italic text-center'>If you have matplotlib experience, you may also try any of the kwargs parameters for <a rel="nofollow" href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html">pyplot.plot</a> or <a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.fill_between.html" rel="nofollow">pyplot.fill_between</a> (for area plots).</p>
