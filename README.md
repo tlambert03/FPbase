@@ -77,7 +77,7 @@ If you have data that you would like to contribute to the database, please do
 
 <br/>
 
-[<img src="static/src/images/logo-algolia-nebula-blue-full.svg"
+[<img src="frontend/src/images/logo-algolia-nebula-blue-full.svg"
 width="170">](https://www.algolia.com/)
 
 [<img src="_resources/sentry-logo-black.svg"

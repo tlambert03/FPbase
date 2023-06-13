@@ -114,11 +114,11 @@ if (devMode) {
         org: process.env.SENTRY_ORG,
         project: process.env.SENTRY_PROJECT,
         sourcemaps: {
-          paths: "static/",
+          paths: "src/",
           ignore: [
             "node_modules",
             "webpack.config.js",
-            "static/src/js/pdb/LiteMol-plugin.js",
+            "src/js/pdb/LiteMol-plugin.js",
           ],
         },
         release: process.env.SOURCE_VERSION,
@@ -142,7 +142,6 @@ module.exports = {
     path: path.resolve("./dist/"),
     filename: devMode ? "[name].js" : "[name].[contenthash].js",
     publicPath: hotReload ? "http://localhost:8080/static/" : "/static/",
-    // publicPath: hotReload ? 'http://10.0.2.2:8080/static/' : '/static/',
     chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js",
   },
   resolve: {
