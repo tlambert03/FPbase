@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load webpack_static from webpack_loader %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<h1>Ooops!!! 500</h1>
+<h3>Looks like something went wrong :(</h3>
+<p>We track these errors automatically, but if the problem persists feel free to <a href="{% url 'contact' %}">contact us</a>.</p>
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script src="{% webpack_static 'sentry.js' %}"></script>
+
+{% if sentry_event_id %}
+<script>
+  Sentry.init({ dsn: '{{ sentry_dsn }}' });
+  Sentry.showReportDialog({
+    eventId: '{{ sentry_event_id }}',
+    user: window.FPBASE.user
+  });
+</script>
+{% endif %}
+
+{% endblock %}

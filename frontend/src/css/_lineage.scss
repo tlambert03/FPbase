@@ -1,0 +1,47 @@
+.node {
+  circle {
+    cursor: pointer;
+    stroke: #222;
+  }
+
+  text {
+    font-size: 0.73rem;
+  }
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 2px;
+}
+
+.tooltip {
+  &.lineage-tooltip, &.report-tooltip{
+    background: #252525;
+    color: #d8d8d8;
+    text-align: center;
+  }
+}
+
+#mutation-search-input::-webkit-search-cancel-button {
+    -webkit-appearance: searchfield-cancel-button;
+}
+
+.lineage-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  svg {
+    width: 100%;
+  }
+}
+
+.top-scroll-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  height: 20px;
+  .top-scroll-div {
+    height: 20px;
+  }
+}

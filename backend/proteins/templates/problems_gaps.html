@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}FPbase :: Missing Data{% endblock title %}
+{% block meta-description %}For those looking to improve FPbase, this page lists gaps and holes in the database, and other opportunities to help expand the databse.{% endblock %}
+
+{% block content %}
+<h2 class="strong">Data gaps in FPbase</h2>
+
+<p class="text-muted">This page list gaps and holes in the database.  This is a good place to start if you'd like to help expand the information in FPbase.  If you'd rather fix inconsistencies in the database, <a href="{%url 'proteins:problems-inconsistencies' %}">start here</a>.</p>
+
+<h4 class='font-weight-bold'>Sequences missing</h4>
+<p>Try to find both the sequence as it was published in the original publication, and potentially also one or more external accession IDs to which we can compare the sequence.</p>
+<div>
+  <ul class="row">
+    {% for p in noseqs  %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>No Fluorescent States</h4>
+<p>What good is a fluorescent protein without fluorescence?!  Nothing has been entered about the fluorescent properties of these proteins.  They will not be shown in color in many places on the website.  Even just entering excitation minimum and maximum is better than nothing.</p>
+
+<div>
+  <ul class="row">
+    {% for p in nostates  %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>Only 2P Spectra</h4>
+<p>Having only 2P spectra looks strange in some places on the site.  Better to find the 1P spectra for these as well.</p>
+<div>
+  <ul class="row">
+    {% for p in only2p  %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.protein__slug %}">{{p.protein__name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>Parental organism missing</h4>
+<p>Go to the original publication and try to figure out which organism it comes from.  Note: it is sometimes easier to simply add lineage information... which will then populate the parent organism with the same organism as the parent protein (and fix two problems at one time!)</p>
+<div>
+  <ul class="row">
+    {% for p in noparent %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+<h4 class='font-weight-bold'>No Lineage</h4>
+<p>No lineage information (parent protein and mutations) has been entered for the following proteins.  Lineage trees will not show up on these pages.</p>
+<div>
+  <ul class="row">
+    {% for prot in nolineage %}
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a></li>
+    {% empty %}
+      <p>None!  🎉🍾🏆</p>
+    {% endfor %}
+  </ul>
+</div>
+
+{% endblock content %}

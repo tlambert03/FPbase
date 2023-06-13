@@ -1,0 +1,21 @@
+mutations.html notes
+
+how is this stored in the database?
+===================================
+every node in the lineage has a parent and mutation...
+the mutation is stored as a mutation string *with positions relative to the parent*
+technically this is duplicated information, since the sequences are also stored in the database... but it allows for parallel confirmation/checking
+
+neutral mutations
+=================
+certain mutations like Q80R and H231L are sometimes added for sequence/mutation consistency, even if they are not "central" to the phenotype.  The Q80R mutation is particularly variable among reported sequences for a given protein.
+
+
+termini
+=======
+sometimes termini are represented in a lineage mutation, even if it wasn't mentioned in the paper
+
+
+Lineage errs on the side of "order of discovery/development" ... so some mutations may be found in parallel trees, particularly the early avGFP mutants, where the same mutations were often being discovered in parallel across labs.
+
+also... currently proteins can only have one parent.  So proteins that borrow mutations from multiple ancestors are not shown well

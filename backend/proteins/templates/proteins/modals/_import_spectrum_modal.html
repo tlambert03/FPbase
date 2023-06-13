@@ -1,0 +1,62 @@
+{% load i18n %}
+
+<div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="filterImportTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="filterImportTitle"><strong>Import Commercial Filters</strong></h4>
+        <button type="button" class="close importerClose" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% if user.is_authenticated %}
+        <div class="modal-body">
+
+          <h5 class='mt-2'><strong>Chroma filter import</strong></h5>
+            <form id="chromaImportForm" data-action-url="{% url 'proteins:filter_import' brand='chroma' %}" data-brand='chroma'>
+              {% csrf_token %}
+              <div class="input-group">
+                <input id="chromaInput" type="text" class="form-control" name="part" placeholder="Chroma Part Number">
+                <span class="input-group-btn input-group-append">
+                  <button type="submit" class="btn btn-info">Fetch</button>
+                </span>
+              </div>
+              <div id="chromaHelp" class="form-text small text-muted">e.g. ET525/50m</div>
+
+            </form>
+
+          <h5 class='mt-4'><strong>Semrock filter import</strong></h5>
+            <form id="semrockImportForm" data-action-url="{% url 'proteins:filter_import' brand='semrock' %}" data-brand='semrock'>
+              {% csrf_token %}
+            <div class="input-group">
+              <input id="semrockInput" type="text" class="form-control" name="part" placeholder="Semrock Part Number">
+              <span class="input-group-btn input-group-append">
+                <button type="submit" class="btn btn-info">Fetch</button>
+              </span>
+            </div>
+            <div id="semrockHelp" class="form-text small text-muted">e.g. FF03-525/50</div>
+            </form>
+            <p class='mt-4 small font-italic text-muted'>Any generic spectra can also be submitted <a href="{% url 'proteins:submit-spectra' %}">here</a></p>
+        </div>
+        <div class="modal-footer">
+          <i id="footerSpinner" class="fas fa-spinner fa-spin hidden" style='font-size: 1.5rem; margin-right:1rem'></i>
+          <i id="footerSuccess" class="fas fa-check hidden text-success" style='font-size: 1.5rem; margin-right:1rem'></i>
+          <i id="footerFail" class="fas fa-exclamation-circle hidden text-danger" style='font-size: 1.5rem; margin-right:1rem'></i>
+          <button type="button" class="btn btn-secondary importerClose" data-dismiss="modal">Close</button>
+        </div>
+      {% else %}
+      <div class="modal-body">
+        <div>
+          <p>You must be logged in to add spectra to FPbase</p>
+          <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">
+            <button type="submit" class="btn btn-primary">{% trans "sign in" %}</button>
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="importerClose" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

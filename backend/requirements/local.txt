@@ -1,0 +1,40 @@
+-r ./base.txt
+
+Werkzeug[watchdog]==2.3.4  # https://github.com/pallets/werkzeug
+ipdb==0.13.13  # https://github.com/gotcha/ipdb
+watchfiles==0.19.0  # https://github.com/samuelcolvin/watchfiles
+# psycopg is in base.txt and it's easy to compile on macos
+# psycopg2-binary==2.9.6  # https://github.com/psycopg/psycopg2
+
+# Testing
+# ------------------------------------------------------------------------------
+pytest==7.3.1  # https://github.com/pytest-dev/pytest
+pytest-sugar==0.9.7  # https://github.com/Frozenball/pytest-sugar
+pytest-cov==4.0.0
+
+factory-boy==3.2.1  # https://github.com/FactoryBoy/factory_boy
+django-test-plus==2.2.1  # https://github.com/revsys/django-test-plus
+django-coverage-plugin==3.0.0  # https://github.com/nedbat/django_coverage_plugin
+pytest-django==4.5.2  # https://github.com/pytest-dev/pytest-django
+selenium==4.9.1
+
+# Code quality
+# ------------------------------------------------------------------------------
+flake8==6.0.0  # https://github.com/PyCQA/flake8
+flake8-black==0.3.6
+# flake8-bugbear==19.3.0
+# flake8-import-order==0.18.1
+coverage==7.2.5  # https://github.com/nedbat/coveragepy
+black==23.3.0  # https://github.com/ambv/black
+pylint-django==2.5.3  # https://github.com/PyCQA/pylint-django
+pre-commit==3.3.2  # https://github.com/pre-commit/pre-commit
+mypy==1.2.0  # https://github.com/python/mypy
+django-stubs==4.2.0  # https://github.com/typeddjango/django-stubs
+djangorestframework-stubs==3.14.0  # https://github.com/typeddjango/djangorestframework-stubs
+pdbpp==0.10.3
+
+# Django
+# ------------------------------------------------------------------------------
+
+django-debug-toolbar==4.0.0  # https://github.com/jazzband/django-debug-toolbar
+django-extensions==3.2.1  # https://github.com/django-extensions/django-extensions

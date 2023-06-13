@@ -1,0 +1,5 @@
+<div class="reference">
+	<p><a class="text-primary" href="{{ ref.get_absolute_url }}">{{ ref.citation }}</a> {{ ref.title }}. <em>{{ ref.journal }}.</em><a href="https://doi.org/{{ ref.doi }}" target="_blank"><i class="fas fa-external-link-alt mr-1 ml-2"></i>Journal</a>
+		{% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank"><i class="fas fa-external-link-alt mr-1"></i>Pubmed</a>{% endif %}
+  </p>
+</div>

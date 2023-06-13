@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}FPbase: The Fluorescent Protein Database Beta explanation {% endblock %}
+{% block meta-description %}FPbase is currently in beta.  What does that mean?{% endblock %}
+
+{% block content %}
+<h1>Measuring Fluorescent Protein Photobleaching</h1>
+
+<p>Photobleaching is the irreversible destruction of a fluorophore under the influence of light. FPbase catalogs efforts that have been made to quantify the photostability of various fluorescent proteins.  Typically, these report the time that it takes for the emission intensity of a fluorescent protein to reach half of its initial value, or it may be reported as an decay constant when the bleaching curve can be approximated by an mono-exponential decay equation.  In almost every case, making comparisons of these measurements across proteins is <em>hard</em>... and <strong>making comparisons across different papers is likely impossible.</strong></p>
+
+<h4 class='pb-3 mt-4' style='font-weight: 400'>Comparing photostability measurements is <em>really</em> hard!</h4>
+
+<p>The rate of photobleaching is directly proportional to the local flux of photons incident upon the fluorophore.  This is the single hardest parameter to standardize across labs performing photostability measurements.  Simply measuring average <em>power</em> (mW) with a power meter is not enough, as every objective lens focuses light in a different fashion, resulting in different light <em>intensity</em> (mW/cm<sup>2</sup>) at the sample.  So as a bare minimum, photostability measurements should report local light intensity (not power) in the area of the sample being measured, and two studies of photobleaching using different light intensities cannot be directly compared.
+
+<p>To make matters more complicated, the relationship between photobleaching rate and excitation intensity is not linear (<a href="https://dx.doi.org/10.1038/nmeth.3891">Cranfill et al. 2016</a>), and there is some evidence that the temporal illumination sequence (e.g. constant illumination vs pulsed illumination) may influence bleaching kinetics at extremely high light intensities approaching ground state depletion (e.g. <a href="https://dx.doi.org/10.1038/nmeth986">Donnert et al. 2007</a>).  So one cannot easily extrapolate the results from one bleaching measurement to predict the bleaching rate that would be observed at a different light intensity or illumination sequence.</p>
+
+
+<h4 class='pb-3 mt-4' style='font-weight: 400'>Even if you compare bleaching on the same microscope...</h4>
+The center wavelength and bandwidth of the illumination light determines the probability of light absorption by the fluorophore, so even if you use the same illumination power and filter set when comparing the bleaching rate of two "red" proteins, a protein that is more efficiently excited will go through more rounds of excitation &amp; emission.  If all you are looking at is the normalized decay of fluorescence intensity, it will <em>appear</em> that the better-excited protein was bleaching faster (even if there was in fact no difference in the average number of photons emitted per molecule before photobleaching, a.k.a the "quantum yield of photobleaching").  For instance, if you compared the bleaching rate of <a href"{% url 'proteins:spectra' %}?s=mruby_default,mcherry_default">mCherry and mRuby</a> using a 560nm laser, mRuby would be "penalized" for being excited with ~100% efficiency compared to mCherry at ~63%.  If measurements are performed with different filter arrangements (even at the same light intensity), it becomes extremely hard to compare results.</p>
+
+<p class='text-muted'>Sidenote: if what you want to measure is the rate of photobleaching, the emission filter doesn't actually matter that much, as it does not affect the probability of excitation.  It must simply be sufficient to collect a decent number of emission photons to make an intensity measurement with good SNR.</p>
+
+
+<h4 class='pb-3 mt-4' style='font-weight: 400'>A single number rarely captures it all...</h4>
+
+<p>Many studies of photobleaching model the decay as a single exponential, and report a single number (usually the half-life or rate constant) of the exponential decay (indeed, this is the number that FPbase shows for bleaching measurements).  While this would be appropriate for a homogenous FP population exhibiting a purely mono-exponential decay, this is frequently not the case (see, for instance, compare the bleaching curves of mEmerald to mCherry: <a href="https://dx.doi.org/10.1038/nmeth819">Shaner et al. 2005</a>, Supp Fig 1). </p>
+
+<h4 class='pb-3 mt-4' style='font-weight: 400'>Do it yourself!</h4>
+
+<p>For all of these reasons, usually the most insightful photobleaching comparisons come from relative measurements within a single paper comparing multiple fluorescent proteins on a single microscope/instrument, with the same light intensity and temporal illumination sequence, where the FPs are fused to the same protein (or soluble) at similar expression levels, in the same cellular environment, at the same temperature. (Even then, don't forget that the efficiency of excitation will change the apparent rate of photobleaching)!  The best advice when choosing a protein for your study is almost always to perform the comparison yourself, under conditions that closely mirror your experimental conditions (i.e. same fusion protein, temperature, temporal light dose, and imaging modality).</p>
+
+<h4 class='pb-3 mt-4' style='font-weight: 400'>Recommended reading</h4>
+
+<p>(don't miss the discussions in the supplements of these papers as well)</p>
+<ul>
+  <li>
+    <a href="https://dx.doi.org/10.1038/nmeth819">Shaner et al. 2005</a>
+  </li>
+  <li>
+    <a href="https://dx.doi.org/10.1038/nmeth.1209">Shaner et al. 2008</a>
+  </li>
+  <li>
+    <a href="https://dx.doi.org/10.1038/nmeth.3891">Cranfill et al. 2016</a>
+  </li>
+
+</ul>
+
+{% endblock content %}

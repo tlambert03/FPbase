@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Fluorescent Protein References{% endblock %}
+{% block meta-description %}A list of all publications referenced at FPbase, the Fluorescent Protein Database{% endblock %}
+
+
+{% block twitter_title %}Fluorescent Protein References at FPbase{% endblock twitter_title %}
+{% block twitter_description %}A list of all publications referenced at FPbase, the Fluorescent Protein Database{% endblock twitter_description %}
+
+
+{% block extrahead %}
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css"/>
+<style>
+  .table-header {
+    white-space: nowrap;
+  }
+</style>
+{% endblock extrahead %}
+
+{% block container-class %}container-fluid referencelist{% endblock %}
+
+{% block content %}
+
+<div class='reftable-wrapper'>
+  <h2 class='text-center'>FPbase Reference List</h2>
+  <div class="mb-3">
+    <p class="small mb-2 mt-3">This is a table of all articles referenced on at least one page at FPbase.  Use the search field to search for any text in the table, including protein name, author name, journal name, publication year, or title contents.  1˚ proteins are intended to be proteins that were introduced by that reference, whereas 2˚ proteins were further characterized by that reference.  Click on any title, author, or protein, to see more info for that item at FPbase, or click on the "Link" <i class="fa fa-external-link-alt mx-1"></i> button to go to the publisher's website. </p>
+  </div>
+
+  <table class="table table-striped mt-4" id="referenceTable" style="width: 100%;">
+    <thead>
+      <tr class="table-header">
+        <td>Link</td>
+        <td>Year</td>
+        <td>Journal</td>
+        <td>Title</td>
+        <td>Authors</td>
+        <td>1˚ Proteins</td>
+        <td>2˚ Proteins</td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ref in reference_list  %}
+        <tr>
+          <td class='text-center'><a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt text-secondary font-weight-bold"></i></a></td>
+          <td class='text-center'>{{ref.year}}</td>
+          <td>{{ ref.journal }}</td>
+          <td><a href="{{ ref.get_absolute_url }}">{{ ref.title }}</a></td>
+          <td class='authorlist'>
+            {% for author in ref.authors.all %}
+              <a href="{{ author.get_absolute_url }}">{{ author|title }}</a>{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {% for protein in ref.primary_proteins.all %}
+              <a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a>{% if not forloop.last %},{% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            {% for protein in ref.proteins.all %}
+              {% if protein not in ref.primary_proteins.all %}
+                <a href="{{ protein.get_absolute_url }}">{{ protein.name }}</a>{% if not forloop.last %},{% endif %}
+              {% endif %}
+            {% endfor %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+{% endblock content %}
+
+
+{% block javascript %}
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
+<script>
+  $(function() {
+    $('#referenceTable').DataTable({
+      "pageLength": 50,
+      "scrollX": true,
+      "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100,"All"] ],
+      "order": [[ 1, 'desc' ]],
+      "columnDefs": [ {
+        "targets": [0, -1],
+        "orderable": false
+      } ]
+    });
+
+
+  });
+</script>
+{% endblock javascript %}

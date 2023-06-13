@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ microscope.name }} on FPbase{% endblock %}
+{% block meta-description %}A collection of spectra representing the microscope {{microscope.name}} on FPbase.{% endblock %}
+
+{% block twitter_title %}FPbase microscope: {{ microscope.name }}{% endblock twitter_title %}
+{% block twitter_description %}A custom collection of spectra representing the microscope {{microscope.name}} on FPbase.{% endblock twitter_description %}
+
+{% block container-class %}container-fluid spectrumpage microscopepage{% endblock %}
+
+{% block content %}
+
+<h2 class='text-center'>{{microscope}}</h2>
+
+{% include 'proteins/_microscope_include.html' with embeddable=True %}
+
+{% endblock content %}
+
+{% block extrafooter %}
+    {% if request.user.is_staff %}
+      {% load admin_urls %}
+      <a href="{% url 'admin:proteins_microscope_change' microscope.id %}">{{ microscope.name }} on admin</a><br>
+    {% endif %}
+{% endblock extrafooter %}
+
+
+{% block javascript %}
+
+<script type="text/javascript">var scopespectra = {{ scopespectra|safe }};</script>
+
+{% endblock javascript %}

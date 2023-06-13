@@ -1,0 +1,105 @@
+{% load humanize %}
+{% comment %}
+	variables:
+		showbleach [Bool]: whether to show the bleach column,
+		removebutton [Bool]: whether to include the remove button column
+		proteins [List, Queryset]: List or queryset of proteins to show in the table
+    comparison [Bool]: whether to show comparison button
+{% endcomment %}
+
+
+<table class="table table-sm table-striped {{classes}}" id="{{ id|default:'proteinTable' }}" style="width:100%">
+	<thead>
+		<tr class="table-header">
+			{% if removebutton %}<th class='remove-button'>Remove</th>{% endif %}
+			<th class="protein">Name</th>
+			<th>&lambda;<sub>ex</sub></th>
+  			<th>&lambda;<sub>em</sub></th>
+        <th><span class="d-none d-md-inline">Stokes</span><span class="d-block d-md-none">&lambda;<sub>&Delta;</sub></span></th>
+  			<th>EC</th>
+  			<th>QY</th>
+  			<th>Bright<span class="d-none d-lg-inline">ness</span></th>
+  			<!-- <th data-sortable="true" >&#1642;EGFP</th> -->
+  			{% if showbleach %}<th>Bleach</th>{% endif %}
+  			<th>pKa</th>
+  			<th class='agg_type'>Agg<span class="d-none d-xl-inline">regation</span></th>
+  			<th>Mat<span class="d-none d-xl-inline">uration</span></th>
+  			<th><span class="d-none d-xl-inline">Lifetime</span><span class="d-block d-xl-none">&tau;</span></th>
+        <th>kDa</th>
+  			<th class='hidden switch_type'>Switch Type</th>
+        <td class='hidden'>Aliases</td>
+        {% if comparison %}
+        <th><span class="d-none d-lg-inline">Compare</span><span class="d-block d-lg-none"><i class="fas fa-plus ml-1"></i></span></th>{% endif %}
+		</tr>
+	</thead>
+	<tbody>
+		{% for protein in proteins  %}
+			{% for state in protein.states.all %}
+				{% if not state.is_dark %}
+					<tr class="data">
+						{% if removebutton %}
+						{% load protein_tags %}
+							<td class="remove-button">{% collection_remove_button protein %}</td>
+						{% endif %}
+						<td class="protein">
+							<a href="{{ protein.get_absolute_url }}">
+								{{ protein | safe }}
+								{% if not 'default' in state.name %} <small>({{ state.name }})</small>{% endif %}
+							</a>
+						</td>
+						<td class="numeric exmax" style="opacity: 0.7;background: {{state.exhex}}; color:{% if  state.ex_max > 477 and state.ex_max < 590 %}#000{% else %}#eee{% endif %}">{{ state.ex_max | default_if_none:"" }}</td>
+						<td class="numeric" style="opacity: 0.7;background: {{state.emhex}};color:{% if  state.em_max > 477 and state.em_max < 590 %}#000{% else %}#eee{% endif %}">{{ state.em_max | default_if_none:"" }}</td>
+						<td class="numeric pl-2">{{ state.stokes | default:"" }}</td>
+						<td class="numeric">{% if state.ext_coeff %}{{ state.ext_coeff|intcomma}}{%else%}-{%endif%}</td>
+						<td class="numeric">{{ state.qy | default_if_none:"" }}</td>
+						<td class="numeric">{{ state.brightness | default:"" }}</td>
+						<!-- <td class="numeric">{{ state.bright_rel_egfp | default:"-" }}</td> -->
+						{% if showbleach %}<td class="numeric">{{ state.bleach_measurements.all.0.rate | default_if_none:"" }}</td>{% endif %}
+						<td class="numeric">{{ state.pka | default_if_none:"" }}</td>
+						<td class="numeric">{{ protein.agg | default_if_none:"" }} </td>
+						<td class="numeric">{{ state.maturation | default_if_none:"" }}</td>
+						<td class="numeric">{{ state.lifetime | default_if_none:"" }}</td>
+            <td class="numeric weight">{{ protein.seq.weight|floatformat:2 }}</td>
+						<td class='hidden'>{{ state.protein.switch_type }}</td>
+            <td class='hidden'>{{ state.protein.aliases }}</td>
+            {% if comparison %}
+            <td class="text-center">
+              <button class="btn btn-sm btn-outline-info btn-circle comparison-btn" data-flash='1' data-action-url="{% url 'proteins:update-comparison' %}" data-object='{{protein.slug}}' data-op='add'><i class="fas fa-plus"></i></button>
+            </td>
+            {% endif %}
+					</tr>
+				{% endif %}
+      {% empty %}
+                <tr class="data">
+                  {% if removebutton %}
+                  {% load protein_tags %}
+                    <td class="remove-button">{% collection_remove_button protein %}</td>
+                  {% endif %}
+                  <td class="protein">
+                    <a href="{{ protein.get_absolute_url }}">{{ protein | safe }}</a>
+                  </td>
+                  <td class="numeric exmax"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <!-- <td class="numeric">{{ state.bright_rel_egfp | default:"-" }}</td> -->
+                  {% if showbleach %}<td class="numeric"></td>{% endif %}
+                  <td class="numeric"></td>
+                  <td class="numeric">{% if protein.agg %}{{ protein.agg }}{%else%}-{%endif%}</td>
+                  <td class="numeric"></td>
+                  <td class="numeric"></td>
+                  <td class="numeric weight">{{ protein.seq.weight|floatformat:2 }}</td>
+                  <td class='hidden'>{{ protein.switch_type }}</td>
+                  <td class='hidden'>{{ state.protein.aliases }}</td>
+                  {% if comparison %}
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-info btn-circle comparison-btn" data-flash='1' data-action-url="{% url 'proteins:update-comparison' %}" data-object='{{protein.slug}}' data-op='add'><i class="fas fa-plus"></i></button>
+                  </td>
+                  {% endif %}
+                </tr>
+			{% endfor %}
+		{% endfor %}
+	</tbody>
+</table>

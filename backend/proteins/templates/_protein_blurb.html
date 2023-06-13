@@ -1,0 +1,65 @@
+{% if protein.default_state or protein.primary_reference %}
+
+	<div class='protein-blurb'>{{ protein.name | safe }} is a {{ protein.get_switch_type_display | lower }} {{ protein.color | lower }} fluorescent protein{% if protein.primary_reference %} published in {{ protein.primary_reference.year }}{% endif %}.
+
+	{% if protein.default_state.brightness %}
+		It is
+		{% if protein.default_state.local_brightness > 1.5 %}
+		much brighter than
+		{% elif protein.default_state.local_brightness > 1.1 %}
+		slightly brighter than
+		{% elif protein.default_state.local_brightness > 0.9 %}
+		of average brightness compared to
+		{% elif protein.default_state.local_brightness > 0.5 %}
+		slightly dimmer than
+		{% elif protein.default_state.local_brightness <= 0.5 %}
+		much dimmer than
+		{% endif %}
+		other {{ protein.color | lower }} proteins in the database
+	{% endif %}
+
+	{% if protein.default_state.bleach %}
+		{% if protein.default_state.brightness %}and{% else %}It{% endif %}
+		{% if protein.default_state.bleach > 300 %}
+		has excellent photostability
+		{% elif protein.default_state.bleach > 200 %}
+		has very good photostability
+		{% elif protein.default_state.bleach > 100 %}
+		has decent photostability
+		{% elif protein.default_state.bleach > 50 %}
+		has relatively poor photostability
+		{% elif protein.default_state.bleach < 50 %}
+		has very poor photostability
+		{% endif%}.
+	{% endif%}
+
+	{% if protein.default_state.maturation and protein.default_state and protein.agg %}
+		It is reported to be a
+		{% if protein.default_state.maturation <= 15 %}
+		very rapidly-maturing
+		{% elif protein.default_state.maturation < 45 %}
+		rapidly-maturing
+		{% elif protein.default_state.maturation < 70 %}
+		somewhat slowly-maturing
+		{% elif protein.default_state.maturation < 100 %}
+		slowly-maturing
+		{% elif protein.default_state.maturation >= 100 %}
+		very slowly-maturing
+		{% endif%}
+
+		{{ protein.get_agg_display | lower }}
+
+		{% if protein.default_state.pka > 6 %}
+		with high acid sensitivity.
+		{% elif protein.default_state.pka > 5 %}
+		with moderate acid sensitivity.
+		{% elif protein.default_state.pka >= 4 %}
+		with low acid sensitivity.
+		{% elif protein.default_state.pka < 4 %}
+		with very low acid sensitivity.
+		{% endif %}
+	{% endif %}
+
+	</div>
+
+{% endif %}

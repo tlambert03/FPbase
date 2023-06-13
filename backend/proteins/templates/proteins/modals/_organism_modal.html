@@ -1,0 +1,45 @@
+{% load i18n %}
+
+<div class="modal modal-center fade" id="organismModal" tabindex="-1" role="dialog" aria-labelledby="organismModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="organismModalLongTitle"><strong>Add an Organism</strong></h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% if user.is_authenticated %}
+      <form id="taxonomyModalForm" data-action-url="{% url 'proteins:add_taxonomy' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p>Enter the <a href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI Taxonomy ID</a> for the organism you would like to add.</p>
+          <div id="div_id_taxonomy_id" class="form-group">
+            <label for="id_taxonomy_id" class="form-control-label">Taxonomy ID</label>
+            <div class="">
+              <input type="number" name="taxonomy_id" min="1" max="9999999" class="textinput textInput form-control" id="id_taxonomy_id" required>
+            </div>
+            <small id="hint_id_taxonomy_id" class="text-muted">e.g. 6100</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Add Organism</button>
+        </div>
+      </form>
+      {% else %}
+      <div class="modal-body">
+        <div>
+          <p>You must be logged in to add references to FPbase</p>
+          <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}?next={% firstof request.path '/' %}">
+            <button type="submit" class="btn btn-primary">{% trans "sign in" %}</button>
+          </a>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

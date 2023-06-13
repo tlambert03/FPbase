@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load avatar_tags %}
+
+{% block title %}User: {{ object.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="row">
+    <div class="col-sm-12">
+
+      <div class='mb-2'>{% avatar user %}</div>
+      <ul class="list-unstyled">
+        <li>Username: {{ object.username }}</li>
+        <li>Name: {{ object.name | default:'' }} <a class=" ml-2 text-muted small" href="{% url 'users:update' %}" role="button">change</a></li>
+        <li>Email: {{ object.email | default:'' }} <a class=" ml-2 text-muted small" href="{% url 'account_email' %}" role="button">change</a></li>
+      </ul>
+    </div>
+  </div>
+
+{% if object == request.user %}
+<!-- Action buttons -->
+<div class="row">
+
+  <div class="col-sm-12">
+    <a class="btn btn-primary btn-sm mt-1" href="{% url 'account_change_password' %}" role="button">Change password</a>
+    <a class="btn btn-primary btn-sm mt-1" href="{% url 'socialaccount_connections' %}" role="button">Manage Social Logins</a>
+    <a class="btn btn-primary btn-sm mt-1" href="{% url 'avatar_change' %}" role="button">Change your avatar</a>
+    <!-- Your Stuff: Custom user template urls -->
+  </div>
+
+</div>
+
+<h3 class='mt-3'>My Favorite Proteins</h3>
+{% include "_favorite_proteins.html" with user=object %}
+
+<h3 class='mt-3'>My Collections</h3>
+<ul>
+  {% for collection in object.collections.all %}
+    <li><a href="{{ collection.get_absolute_url }}">{{ collection }}</a></li>
+  {% empty %}
+    <p>You have not created any collections.</p>
+  {% endfor %}
+</ul>
+<a href="{% url 'proteins:newcollection' %}"><button class='btn btn-primary btn-sm'>Create collection</button></a>
+<p class='mt-4'><em>Your can view and share your public collections with others at <a href="{% url 'proteins:collections' owner=object %}">{{ request.META.HTTP_HOST }}{% url 'proteins:collections' owner=object %}</a></p></em>
+
+<h3 class='mt-3'>My Microscopes</h3>
+<ul>
+  {% for microscope in object.microscopes.all %}
+    <li><a href="{{ microscope.get_absolute_url }}">{{ microscope }}</a></li>
+  {% empty %}
+    <p>You have not created any microscopes.</p>
+  {% endfor %}
+</ul>
+<a href="{% url 'proteins:newmicroscope' %}"><button class='btn btn-primary btn-sm'>Create microscope</button></a>
+<p class='mt-4'><em>Your can view and share your microscopes with others at <a href="{% url 'proteins:microscopes' owner=object %}">{{ request.META.HTTP_HOST }}{% url 'proteins:microscopes' owner=object %}</a></p></em>
+
+{% endif %}
+
+
+</div>
+{% endblock content %}
+
+
+{% block javascript %}
+
+  <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+
+{% endblock javascript%}

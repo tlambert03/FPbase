@@ -1,0 +1,22 @@
+{
+  "__schema": {
+    "types": [
+      {
+        "kind": "INTERFACE",
+        "name": "SpectrumOwnerInterface",
+        "possibleTypes": [
+          { "name": "State" },
+          { "name": "Dye" },
+          { "name": "Filter" },
+          { "name": "Light" },
+          { "name": "Camera" }
+        ]
+      },
+      {
+        "kind": "INTERFACE",
+        "name": "FluorophoreInterface",
+        "possibleTypes": [{ "name": "State" }, { "name": "Dye" }]
+      }
+    ]
+  }
+}

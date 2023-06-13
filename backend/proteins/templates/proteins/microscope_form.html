@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% load webpack_static from webpack_loader %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}{% if object %}{{object}} Microscope{% else %}Create a Microscope{% endif %} on FPbase{% endblock %}
+{% block meta-description %}Create and save your own microscope configuration (filters, light sources, detectors) and
+get a custom spectra viewer that you can use to explore the fluorophore spectra in the FPbase database.{% endblock %}
+
+{% load crispy_forms_tags static %}
+
+{% block container-class %}container microscope-form{% endblock container-class %}
+
+{% block content %}
+<script src="{% webpack_static 'vendor.js' %}"></script>
+<script type="text/javascript">
+  {% if object %}
+  var confirmError = false;
+  {% else %}
+  var confirmError = true;
+  {% endif %}
+  var formErrors = '{{ form.errors|safe }}';
+</script>
+{% render_bundle 'microscopeForm' %}
+
+{% if object %}
+<h2>Update microscope: {{object}}</h2>
+{% else %}
+<h2>Create a New Microscope</h2>
+{% endif %}
+
+<div class="alert alert-info pb-0" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  <p><i class="fas fa-info-circle mr-2 "></i>For more information on {% if object %}updating{%else%}creating{%endif%}
+    microscope pages, see the <a class="alert-link"
+      href="https://help.fpbase.org/tools/microscopes/create-microscope">documentation</a></p>
+</div>
+
+{% if not object %}
+<p class="small text-muted">With this form, you can specify all of the optical configurations (laser, light, filter,
+  &amp;
+  camera arrangements) in your microscope or imaging system. You will then have a spectra viewer tailored to your
+  microscope that you can use and share with others. Enter the components of each optical configuration below, or, to
+  quickly enter many configurations, try the "Add Configs in Bulk" tab.</p>
+{% endif %}
+
+
+
+<form id="microscopeform" action="" method="post">
+  {% csrf_token %}
+  <input type="hidden" name="slug" id="id_slug" value='{{ microscope.slug }}'>
+  <div class='row'>
+    <div class='col'>
+      {{ form.name|as_crispy_field }}
+      {{ form.description|as_crispy_field }}
+    </div>
+  </div>
+  <div class='row'>
+    <div class="col-12 col-md-6">
+      {{ form.collection|as_crispy_field }}
+    </div>
+    <div class="col-12 col-md-6">
+      {{ form.managers|as_crispy_field }}
+    </div>
+  </div>
+
+  <div class='row'>
+    <div class="col">
+      <p class='text-muted small font-italic'>Remember that you can always submit spectra for any filter, light source,
+        camera, protein or dye that are not already in the database with the <a
+          href="{% url 'proteins:submit-spectra' %}">spectrum submission form</a>. (Though Chroma and Semrock filter
+        part numbers entered in the bulk config tab below will be automatically imported if possible)</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <ul class="nav nav-tabs card-header-tabs" id="microscopeFormTabs">
+        <li class="nav-item">
+          <a class="nav-link active" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc"
+            aria-selected="false">{% if object %}Update {% else %}Add {%endif%} Optical Configs</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add
+            Configs in Bulk</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id="extra-tab" data-toggle="tab" href="#extra" aria-controls="extra"
+            aria-selected="true">Extra Components</a>
+        </li>
+      </ul>
+    </div>
+    <div class="card-body">
+      <div class="tab-content" id="formTabsContent">
+        <div class="tab-pane fade " id="bulk" role="tabpanel" aria-labelledby="bulk-tab">
+
+          <div class="row">
+            <div class="col-sm-6 col-xs-12">
+              {{ form.light_source|as_crispy_field }}
+            </div>
+            <div class="col-sm-6 col-xs-12">
+              {{ form.detector|as_crispy_field }}
+            </div>
+          </div>
+
+          {{ form.optical_configs|as_crispy_field }}
+
+          <div class="alert alert-info alert-dismissible mb-0" role="alert">
+            <div class="alert-icon" style="font-size: 1.6rem"><span
+                class="fas fa-question-circle float-left mr-3 mt-2"></span></div>
+            <h4 class="alert-heading mb-3 mt-2"><strong>Adding Optical Configurations in Bulk</strong></h4>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <p style="font-size: 0.9rem;">
+              The following are examples of valid configurations:
+              <br><strong>
+                <code>Widefield Green, FF01-466/40, FF495-Di03, FF03-525/50</code><br>
+                <code>Dual-FRET, ET430/24x, 69008bs, ET535/30m</code><br>
+                <code>Yokogawa 488nm, 488, Di01-T405/488/568/647, ET525/50m, false</code><br>
+                <code>TIRF 647nm, 647, ZT405/488/561/647rpc, {ZET405/488/561/647m, ET700/75m}</code></strong>
+            </p>
+            <p style="font-size: 0.9rem;">Optical configurations represent a set of filters in your microscope, (usually
+              for a specific channel or wavelength). Add all of your configurations in the box above, with each one on a
+              separate line, using the following 4 or 5 field comma-separated format:
+              <br>
+              <br>
+              <code><strong>Config Name, Laser OR Excitation Filter(s), Dichroic(s), Emission Filter(s)</strong> [,
+                Dichroic reflects excitation?]</code>
+            </p>
+            <div class="container mt-4 mb-2">
+              <dl class="row">
+                <dt class="col-sm-3">Config Name</dt>
+                <dd class="col-sm-9">Any string to describe the configuration (If you need curly brackets {} or commas in
+                  names, you can use the other tab to add that item individually, or omit brackets during creation
+                  and edit the name later).</dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-3">Lasers</dt>
+                <dd class="col-sm-9">Specify laser wavelenghts as integer values.</dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-3">Filters</dt>
+                <dd class="col-sm-9">Filters can be specified as any Chroma or Semrock part number, or a name of any
+                  filter in the FPbase spectra database.</dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-3">Multiple Filters</dt>
+                <dd class="col-sm-9">You may specify multiple filters for a given path by enclosing them in curly brackets {}.
+                </dd>
+              </dl>
+              <dl class="row">
+                <dt class="col-sm-3">Dichroic Orientation</dt>
+                <dd class="col-sm-9">An optional fifth item (true or false) specifies whether the dichroic reflects the
+                  excitation light. It is true by default. For inverted systems (such as a Yokogawa spinning disk), set
+                  this to false.</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade show active" id="itemizedoc" role="tabpanel" aria-labelledby="itemizedoc-tab">
+
+          <p class="small text-muted"><em>Filter fields are searchable, just start typing. Dichroic filters are assumed
+              to be in both the excitation and emission paths, and reflect excitation light (transmit emission) by
+              default unless the "reflects em" button is checked. If you have a more complicated light path than this
+              form will allow (e.g multiple beam splitters in the emission path with some reflecting and some
+              transmitting), feel free to <a href="{% url 'contact' %}">contact us</a> with your light path for help.
+            </em></p>
+          <div class="dynamic-oc-forms">
+            {{ optical_configs.management_form }}
+            {% for ocform in optical_configs.forms %}
+
+            {% if forloop.first %}
+            {{ocform.media}}
+            {% endif %}
+
+            {% for hidden in ocform.hidden_fields %} {{ hidden }} {% endfor %}
+            <div class="row formset_div {% if ocform.errors %}border border-danger{% endif %}">
+              <div class='col config-col'>
+                {% if ocform.instance.pk %}{{ ocform.DELETE }}{% endif %}
+                {% with formnum=forloop.counter0 %}
+                {% include 'proteins/forms/_oc_inline.html' %}
+                {% endwith %}
+
+              </div>
+            </div>
+            {% endfor %}
+            <a href="#" class='text-primary' data-toggle="modal" data-target="#importModal"><button
+                class='btn btn-sm btn-danger mb-1'><i class="fas fa-download mr-2"></i>Import Commercial
+                Filter</button></a>
+          </div>
+
+        </div>
+
+        <div class="tab-pane fade" id="extra" role="tabpanel" aria-labelledby="extra-tab">
+
+          <p class="small text-muted"><em>Components added in this tab will be available in the spectra viewer, but not
+              attached to any specific optical config.</em></p>
+
+          <div class="row">
+            <div class="col-sm-6 col-lg-4 col-xs-12">
+              {{ form.extra_lights|as_crispy_field }}
+            </div>
+            <div class="col-sm-6 col-lg-4 col-xs-12">
+              {{ form.extra_cameras|as_crispy_field }}
+            </div>
+            <div class="col-sm-6 col-lg-4 col-xs-12">
+              {{ form.extra_lasers|as_crispy_field }}
+            </div>
+          </div>
+
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+
+  {% if object %}
+  <a href="{{ object.get_absolute_url }}"><button type="button" class="btn btn-danger mt-2"
+      aria-label="back to microscope">
+      Cancel Edits
+    </button></a>
+  {% endif %}
+  <input type="submit" class="btn btn-primary mb-2 mt-3" value="Submit" />
+  <div class="text-primary ml-3 hidden" id="spinner" style="top: 5px; position: relative;">
+    <i class="fas fa-cog fa-spin mr-2"
+      style="font-size: 1.7rem; top: 6px; position: relative;"></i>{% if object %}Updating{% else %}Building{% endif %}
+    your configuration...
+  </div>
+</form>
+
+
+<!-- Modal -->
+<div class="modal fade modal-center" id="sureModal" tabindex="-1" role="dialog" aria-labelledby="sureModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sureModalLabel" style='font-weight: 300'>Are you sure?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        You have at least one configuration with more than one dichroic and/or excitation filter. This is a bit unusual
+        for a single channel optical configuration. Is that really what you wanted?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="nosave">No, Keep Editing</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" id="save">Yes, Save it!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+{% include 'proteins/modals/_import_spectrum_modal.html' with user=user %}
+
+
+{% endblock content %}

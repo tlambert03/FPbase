@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}FPbase Collection: {{ object.name }}{% endblock %}
+{% block meta-description %}A custom fluorescent protein collection on FPbase: {{object.description}}{% endblock %}
+
+
+{% block content %}
+
+<div class="clearfix">
+    <h1>{{ object.name }}</h1>
+
+    {% if object.owner.id == request.user.id %}
+        <a href="{% url 'proteins:updatecollection' object.id %}"><button class='btn btn-primary btn-sm'>Edit Collection Details</button></a>
+        <a href="{% url 'proteins:deletecollection' object.id %}"><button class='btn btn-primary btn-sm'>Delete Collection</button></a>
+    {% endif %}
+
+    <p class='mb-1'>{{ object.proteins.count }} proteins <br><em>Created by: </em>{% if object.owner.id == request.user.id %}You{% else %}{{ object.owner }}{% endif %}<br><em>Last Modified: </em>{{ object.modified|date:"M j, Y" }}<br>
+    {% if object.private %}Private{% else %}Public{% endif %} Collection<br><br>
+    <a href="?format=json"><button class='btn btn-info btn-sm mb-2'>Download as JSON</button></a>
+    <a href="?format=csv"><button class='btn btn-info btn-sm mb-2'>Download as CSV</button></a>
+    <a href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}"><button class='btn btn-info btn-sm mb-2'>Download available spectra as CSV</button></a>
+
+    </p>
+
+    {% if object.description %}
+        <div class="alert alert-info" role="alert">
+            {{object.description}}
+        </div>
+    {% endif %}
+
+    {% if object.proteins.count %}
+
+    <div class="row">
+        <form action='{% url 'proteins:newcollection' %}' method='post' class='col'>
+            {% csrf_token %}
+            <input type="hidden" name="dupcollection" value="{{ object.id }}">
+            <input type="hidden" name="colname" value="{{ object.name }}">
+            <button class='btn btn-warning btn-sm' type='submit'>Duplicate collection</button>
+        </form>
+
+        <div class='col mb-3'>
+          <div class="btn-group float-sm-right pt-2 pt-sm-0 displaybuttons btn-group-toggle" data-toggle="buttons" >
+            <label class="btn btn-info btn-sm btn-secondary">
+              <input type="radio" name="display" id="lbutton" autocomplete="off" value='l'><i class="fas fa-th"></i> display lozenges
+            </label>
+            <label class="btn btn-info btn-sm btn-secondary active">
+              <input type="radio" name="display" id="tbutton" autocomplete="off" checked value='t'><i class="fas fa-table"></i> display table
+            </label>
+          </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    </div>
+
+    <div class="protein_results pl-0 pr-0">
+        {% if object.proteins.count %}
+            <div id="ldisplay" class="{% if request.GET.display == 't' or not request.GET.display %}hidden{% endif %}">
+            {% with proteins=object.proteins.all %}
+                {% include '_proteinlozenges.html' %}
+            {% endwith %}
+            </div>
+            <div id="tdisplay" {% if request.GET.display == 'l' %}class="hidden"{% endif %}>
+            {% with proteins=object.proteins.all removebutton=isowner %}
+              <div class="table-responsive">
+                {% include '_proteintable.html' %}
+              </div>
+            {% endwith %}
+            </div>
+        {% else %}
+            <p>There are no proteins in this collection yet.{% if object.owner.id == request.user.id %}You can add proteins to a collection by clicking the "book" icon at the top right of any protein page.  Search for proteins <a href="{% url 'proteins:search' %}">here</a> or browse the <a href="{% url 'proteins:table' %}">table</a>{% endif %}</p>
+        {% endif %}
+    </div>
+    {{proteins}}
+
+
+
+
+{% endblock content %}
+
+{% block javascript %}
+<script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+
+
+<script type="text/javascript">
+    $(function(){
+
+        $('.displaybuttons input').change(function(){
+            var display_type = $(this).val()
+            $("#" +  display_type + "display").show()
+            $("#" +  display_type + "display").siblings('div').hide()
+        })
+    });
+
+</script>
+
+{% endblock javascript %}

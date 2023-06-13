@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+<h2>This collection is not public</h2>
+
+{% if request.user.is_authenticated %}
+    See <a href="{% url 'proteins:collections' owner=request.user %}">your collections</a>
+{% else %}
+    <a href="{% url 'account_login' %}?next={% firstof request.path '/' %}">Sign in</a> to see your own collections
+{% endif %}
+
+{% endblock content %}

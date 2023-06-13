@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}FPbase: The Fluorescent Protein Database Beta explanation {% endblock %}
+{% block meta-description %}FPbase is currently in beta.  What does that mean?{% endblock %}
+
+{% block content %}
+<h1 class='mb-4'><strong>FP</strong>base beta</h1>
+
+<h3 class='pb-3'>Thank you for using FPbase!</h3>
+
+<p>FPbase was released as a public beta in February of 2018.  In collating data from multiple sources, we did extensive intial data-checking, but there are almost certainly some errors remaining in the database, and it is far from complete or comprehensive.  If you see something that you know is wrong, or a glaring omission, we would very much appreciate it if you would create create an account and submit a correction or addition to the database.  In most cases, the primary reference listed for the protein is a good place to start.  (In rare cases, the reference listed as primary is still not the appropriate primary reference... you can change that too!)</p>
+
+<p>Also note, it is extremely common to find different attributes reported for the same protein in different references.  For now, we are generally using what the initial publication reported.  I haven't yet decided how to handle multiple conflicting measurements of the same protein.  Feel free to contact me with ideas.</p>
+
+<p>Furthermore, while I did my best to squash whatever bugs i could, I am certain that more will pop up as people begin to use the site.  We use automatic error logging and notifications, so if you get a server (500) error when using the site, rest assured that we've been notified and will try to fix it soon.</p>
+
+<h3>User accounts</h3>
+
+<p>During the beta, we may need to make some modifications to the database that will require users to reset their passwords, or re-link their social accounts.</p>
+
+{% endblock content %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load render_bundle from webpack_loader %}
+{% block title %}{% endblock %}
+{% block meta-description %}{% endblock %}
+
+{% block container-class %}container protein{% endblock %}
+
+{% block bodyopen %}
+    {% include '_comparetab.html' %}
+{% endblock bodyopen %}
+
+{% block content %}
+
+{% if proteins %}
+    <h3 class='mb-3 d-inline'>Comparing: </h3>
+    {% for protein in proteins  %}
+    <a class="text-muted" href="{{protein.get_absolute_url}}">{{protein.name}}</a>{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+
+
+    <p style="word-wrap: break-word">
+    <small><i class="fas fa-share-square mr-2"></i>You can share this comparison at: <a href="{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}">{{ request.META.HTTP_HOST }}{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}</a></small></p>
+
+      {% if spectra_ids %}
+        <div class="spectra mt-3">
+          <div id="spectra-viewer" data-spectra='[{{spectra_ids}}]' data-hidden='[{{hidden_spectra}}]'
+            data-options='{"height": 0.65, "simpleMode": true}'>
+          </div>
+        </div>
+      {% endif %}
+
+    <h3 class='mb-3'>Attribute Comparison</h3>
+    <div class='mb-3'>
+            {% with removebutton=False %}
+              <div class="table-responsive">
+                {% include '_proteintable.html' %}
+              </div>
+            {% endwith %}
+    </div>
+
+
+    <h3 class='mb-3'>Sequence Comparison</h3>
+    <div class="text-center">
+      {% if alignment %}
+        <pre>{{alignment | safe}}</pre>
+        {% if mutations %}
+            <p style="word-wrap: break-word; margin-bottom:0; margin-top: 0"><strong>Mutations: </strong>{{mutations}}</p>
+            <small class='font-italic small text-muted mb-3'>Note: exact amino acid positions in mutations is still experimental and may be inaccurate/relative</small>
+        {% endif %}
+      {% else %}
+        <p>Sequence information not available for at least two proteins...</p>
+    {% endif %}
+    {% for protein in proteins %}
+      {% if not protein.seq %}
+      <div>
+          <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary small'>Add sequence for {{protein.name|safe}}</a><br>
+      </div>
+      {% endif %}
+    {% endfor %}
+    </div>
+
+
+    {% if references %}
+    <div class="additional-ref references">
+      <h3>References</h3>
+      <ol>
+        {% for ref in references %}
+          <li>{% include "_reference_small.html" %}</li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    {% endif %}
+
+{% else %}
+  <h2>Nothing to compare!</h2>
+  <p>You can use this page to compare protein properties and sequences in one of two ways:</p>
+  <ol>
+    <li>On any protein page, hover over the "compare" tab on the right side of the window, and click the button to add that given protein to the comparison list.  Alternatively, you can add multiple proteins from the <a href="{% url "proteins:table" %}">protein table</a>. Once you have added multiple items to the list, click the "show comparison" button to return to this page.</li>
+    <li class='mt-2'>You may also directly add comma-separated protein "slugs" to the url.  (You can find the slug for a protein in the url of the main protein page). For instance: to compare mScarlet, mScarlet-I, and mCherry:  <a href="{% url 'proteins:compare' %}mscarlet,mscarlet-i,mcherry/"> {{ request.META.HTTP_HOST }}{% url 'proteins:compare' %}mscarlet,mscarlet-i,mcherry/</a></li>
+  </ol>
+
+{% endif %}
+
+
+{% endblock	%}
+
+
+{% block javascript %}
+  {% if spectra_ids %}
+  {% render_bundle 'simpleSpectraViewer' %}
+  {% endif %}
+{% endblock javascript %}

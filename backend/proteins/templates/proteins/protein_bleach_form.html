@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags static %}
+
+{% block content %}
+<h2>Update {{protein.name}} Bleach Measurements</h2>
+
+<p>Note: If you are entering a bleach measurement from a reference that compared multiple proteins in a single experiment, it is easier to use the form from that specific reference page instead.  Click on the title of a reference towards the bottom of any protein page, or search for the reference in the <a href="{% url 'reference-list' %}">references table</a></p>
+<form id="bleachform" action="" method="post">
+	{% csrf_token %}
+	<input type="hidden" name="slug" id="id_slug" value='{{ protein.slug }}'>
+
+	{{ formset.management_form|crispy }}
+	{% for form in formset %}
+	    {% for hidden in form.hidden_fields %}
+	        {{ hidden }}
+	    {% endfor %}
+		<div class="row formset_div">
+			<div class='col bleach-col'>
+				{% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+				{% crispy form form.helper %}
+			</div>
+	    </div>
+	{% endfor %}  <!-- end formset loop  -->
+
+
+	<input type="submit" class='btn btn-primary mb-4' value="Submit" />
+	<a href="{{ protein.get_absolute_url }}"><input type="button" class='btn btn-danger mb-4' value="Cancel" /></a>
+
+</form>
+
+{% endblock content %}
+
+
+{% block javascript %}
+
+	<script type="text/javascript">
+	$(function () {
+
+		var deleteclass = 'bleach-delete-button'
+
+		$('.formset_div').formset({
+			addText: 'Add Bleach Measurement',
+			addCssClass: 'btn btn-info mb-4',
+			deleteCssClass: deleteclass + '',
+			deleteText: '&times;',
+			processHidden: true,
+			prefix: 'form',
+		});
+
+		// if this is an update view without post data, remove the last (empty) state
+		{% if protein and formset.management_form.initial.TOTAL_FORMS > 1 %}
+			{% if not request.POST %}
+			$('.dynamic-form').last().find('.' + deleteclass).click()
+			{% endif %}
+		{% endif %}
+
+	});
+
+	</script>
+
+{% endblock javascript%}

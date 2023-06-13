@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static i18n favit_tags %}
+
+{% block title %}{{ object }} in the Fluorescent Protein Database {% endblock %}
+{% block meta-description %}Fluorescent proteins derived from {{ object.scientific_name }} at FPbase{% endblock %}
+
+{% block content %}
+
+			<h1 class="name text-center mb-4">{{ object }}</h1>
+
+			<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View on Pubmed Taxonomy Browser</a>
+
+			<div class="row mt-2">
+				<dt class="col-sm-3">scientific_name</dt>
+				<dd class="col-sm-9"><em>{{ object.scientific_name }}</em></dd>
+				<dt class="col-sm-3">division</dt>
+				<dd class="col-sm-9"><em>{{ object.division }}</em></dd>
+				{% if object.common_name %}
+				    <dt class="col-sm-3">common_name</dt>
+				    <dd class="col-sm-9"><em>{{ object.common_name | default:''}}</em></dd>
+				{% endif %}
+			</div>
+
+      <a href="{% url 'proteins:organism-list' %}" class='text-info'>See other organisms in the database</a>
+
+      <div class="lineage mb-0" data-slug='{{protein.slug}}'></div>
+
+      <h5 class='pt-3'><strong>Proteins derived from {{ object }}</strong></h5>
+			{% with proteins=object.proteins.all removebutton=False %}
+        <div class="table-responsive mt-2">
+			    {% include '_proteintable.html' %}
+        </div>
+			{% endwith %}
+
+{% endblock content %}
+
+{% block javascript %}
+
+<script>
+
+$('.lineage').each(function(i, el){
+  $.getJSON("{% url 'proteins:get-org-lineage' object.pk %}", function(data){
+    if(!$.isEmptyObject(data)){
+      $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
+      var chart = window.FPBASE.LineageChart({
+        withToolbar: true,
+        withSearch: true,
+        withTopScroll: true,
+      }).data(data);
+      d3.select(el).call(chart);
+      chart.duration(100);
+    }
+  })
+});
+
+
+</script>
+
+
+{% endblock javascript %}

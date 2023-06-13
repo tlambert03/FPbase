@@ -1,0 +1,21 @@
+
+<p>While we would like for FPbase to eventually be a comprehensive resource for information about fluorescent proteins, we also put a very strong emphasis on the quality and reliability of the data.  As such, we aim to moderate all data that is submitted to FPbase.  Currently, user-submitted data will be visible on the website immediately, but protein pages that have unmoderated data will be marked as such with the following alert:</p>
+
+<div class="alert alert-info clearfix" role="alert">
+    <div class="d-inline-block align-middle">
+    	<strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>This protein has unmoderated changes.
+	       <a href="#" class="alert-link">Click here</a> to view the last moderated version of this protein
+    </div>
+</div>
+
+<h5 class="mt-4"><strong>Version History</strong></h5>
+
+<p>When a change is made to the database, the revision changeset is logged and revertible (by a moderator) for a certain period of time.  If the protein has a previously moderated version, you may click on the link to view the previous verision.  When viewing an older revision of a protein page, the following alert will be visible at the top of the page:</p>
+
+<div class="alert alert-warning clearfix" role="alert">
+	<strong><i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i></strong>You are viewing an older revision of this protein, from <code>[date]</code>.  <a href="#" class="alert-link">Click here</a> to view the current version.
+</div>
+
+
+<h5 class="mt-4"><strong>Want to Help?</strong></h5>
+<p>We have implemented a number of server-side data-integrity checks to help reduce the amount of inaccurate or inconsistent information in the database, but manual curation is still required in many cases.  <em>If you believe you would make a good moderator and would like to help the project grow, please <a href="{% url 'contact' %}">contact us</a></em>.  Alternatively, simply adding data to the database is a great way to help the project, and we greatly appreciate it!</p>

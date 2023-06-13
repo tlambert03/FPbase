@@ -1,0 +1,91 @@
+
+
+
+@import "_options.scss";  // custom bootstrap overrides
+
+
+@import "_variables.scss"; // my overrides
+@import "../../node_modules/bootstrap/scss/bootstrap.scss";
+
+// project specific CSS goes here
+
+@import "_main.scss";
+@import "_home.scss";
+@import "_nav.scss";
+@import "_protein.scss";
+@import "_reference.scss";
+@import "_spectra.scss";
+@import "_table.scss";
+@import "_ichart.scss";
+@import "_forms.scss";
+@import "_social.scss";
+@import "_spectra.scss";
+@import "_blockquotes.scss";
+@import "_litemol.scss";
+@import "_favit.scss";
+@import "_lineage.scss";
+@import "_scope_report.scss";
+@import "_comparison.scss";
+@import "_algoliasearch.scss";
+
+////////////////////////////////
+    //Django Toolbar//
+////////////////////////////////
+
+// Display django-debug-toolbar.
+// See https://github.com/django-debug-toolbar/django-debug-toolbar/issues/742
+// and https://github.com/pydanny/cookiecutter-django/issues/317
+
+[hidden][style="display: block;"] {
+  display: block !important;
+}
+
+.modal-open .modal.modal-center {
+    display: flex!important;
+    align-items: center!important;
+    .modal-dialog {
+        flex-grow: 1;
+    }
+}
+
+.btn-xs {
+  @include button-size(.15rem, .45rem, ($font-size-base * .70), 1.1rem, $btn-border-radius-sm);
+}
+
+.btn-group-xs > .btn { @extend .btn-xs; }
+
+
+i {border: none}
+
+
+////////////////////////////////
+    //Variables//
+////////////////////////////////
+
+// Alert colors
+
+$white: #fff;
+$mint-green: #d6e9c6;
+$black: #000;
+$pink: #f2dede;
+$dark-pink: #eed3d7;
+$red: #b94a48;
+
+////////////////////////////////
+    //Alerts//
+////////////////////////////////
+
+// bootstrap alert CSS, translated to the django-standard levels of
+// debug, info, success, warning, error
+
+.alert-debug {
+  background-color: $white;
+  border-color: $mint-green;
+  color: $black;
+}
+
+.alert-error {
+  background-color: $pink;
+  border-color: $dark-pink;
+  color: $red;
+}

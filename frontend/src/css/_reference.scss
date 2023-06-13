@@ -1,0 +1,60 @@
+.reference {
+	h4 {
+    margin-bottom: 3px;
+    line-height: 1.3rem;
+		a {
+			color: $gray-800;
+			font-weight: 400;
+			font-size: 1.05rem;
+		}
+
+	}
+	.authorlist {
+		a {
+			color: $gray-600;
+		}
+	}
+	p {
+		margin: 3px 0;
+		padding:0 inherit;
+		font-size: .8em;
+		a {
+			color: $info;
+		}
+	}
+  @include media-breakpoint-down(sm) {
+    h4 a { font-size: 0.9rem; }
+  }
+}
+
+.additional-ref{
+  @include media-breakpoint-down(sm) {
+    ol {
+      padding: 0 0.5rem 0 1.3rem;
+    }
+  }
+}
+
+
+.author-detail{
+	h4, h5{
+		display: inline;
+	}
+}
+
+.protein-list {
+	margin-bottom: 0.2rem;
+	list-style: none;
+	display: block;
+	h5 {
+		display: inline;
+		color: $gray-600;
+		font-weight: 300;
+		font-size: 1rem;
+		margin-right: 1.5rem;
+	}
+	li {
+		margin-right: 1.4rem;
+		display: inline;
+	}
+}

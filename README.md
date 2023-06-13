@@ -1,4 +1,4 @@
-[![Logo](nonweb_images/logo_green_wide@1x.gif)](https://www.fpbase.org)
+[![Logo](_resources/logo_green_wide@1x.gif)](https://www.fpbase.org)
 
 # FPbase: The Fluorescent Protein Database
 
@@ -26,7 +26,7 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/)
 3. Install python requirements for local development
 
     ```bash
-    pip install -r requirements/local.txt
+    pip install -r backend/requirements/local.txt
     ```
 
 4. Install [Node.js](https://nodejs.org/en/) & npm  (homebrew: `brew install node`)
@@ -41,14 +41,14 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/)
 
     ```bash
     createdb fpbase
-    python manage.py migrate
+    python backend/manage.py migrate
     ```
 
 8. start dev servers:
 
     ```bash
     npm run start
-    python manage.py runserver
+    python backend/manage.py runserver
     ```
 
 ### How to cite FPbase
@@ -77,14 +77,14 @@ If you have data that you would like to contribute to the database, please do
 
 <br/>
 
-[<img src="static/src/images/logo-algolia-nebula-blue-full.svg"
+[<img src="frontend/src/images/logo-algolia-nebula-blue-full.svg"
 width="170">](https://www.algolia.com/)
 
-[<img src="nonweb_images/sentry-logo-black.svg"
+[<img src="_resources/sentry-logo-black.svg"
 width="200">](https://sentry.io/)
 
-[<img src="nonweb_images/gitbook_avatar-rectangle.png"
+[<img src="_resources/gitbook_avatar-rectangle.png"
 width="200">](https://www.gitbook.com/)
 
-[<img src="nonweb_images/Browserstack-logo@2x.png"
+[<img src="_resources/Browserstack-logo@2x.png"
 width="250">](https://www.browserstack.com)

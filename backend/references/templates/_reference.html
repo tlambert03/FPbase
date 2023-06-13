@@ -1,0 +1,12 @@
+<div class="reference">
+	<h4><a href="{{ ref.get_absolute_url }}">{{ ref.title }}</a></h4>
+	<p class='authorlist'>
+		{% for author in ref.get_authors %}
+			<a href="{{ author.get_absolute_url }}">{{ author|title }}</a>{% if not forloop.last %},{% endif %}
+		{% endfor %}
+	</p>
+	<p class='reference-details'>
+		({{ ref.year }}). <em>{{ ref.journal }}, {{ ref.volume }}</em>{% if ref.issue %}({{ ref.issue }}) {% endif %}, {{ ref.pages }}. doi: {{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2 ml-1"></i>Article</a>
+		{% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt mr-2"></i>Pubmed</a>{% endif %}
+	</p>
+</div>

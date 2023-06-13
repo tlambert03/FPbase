@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>@fpbase/spectra</title>
+	</head>
+	<body>
+		<div id="spectra-viewer"></div>
+	</body>
+	<script type="module">
+		import App from "./src/index.jsx";
+		import * as React from "react";
+		import { render } from "react-dom";
+
+		render(
+			React.createElement(App, { uri: "/graphql/" }, null),
+			document.getElementById("spectra-viewer")
+		)
+	</script>
+</html>

@@ -1,0 +1,90 @@
+{
+  "name": "fpbase",
+  "author": {
+    "name": "Talley Lambert",
+    "email": "talley.lambert@gmail.com",
+    "url": "http://talleylambert.com/"
+  },
+  "description": "The fluorescent protein database",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.3.0",
+    "@fortawesome/free-brands-svg-icons": "^5.15.4",
+    "@fortawesome/free-regular-svg-icons": "^5.15.4",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@popperjs/core": "^2.4.0",
+    "@sentry/browser": "^7.54.0",
+    "algoliasearch": "^3.35.1",
+    "autocomplete.js": "^0.36.0",
+    "d3": "3.5.17",
+    "jquery": "^3.7.0",
+    "nouislider": "^14.7.0",
+    "nvd3": "^1.8.6",
+    "process": "^0.11.10",
+    "progressbar.js": "^1.1.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "regenerator-runtime": "^0.13.5",
+    "select2": "^4.0.13",
+    "select2-theme-bootstrap4": "^0.2.0-beta.6",
+    "url": "^0.11.0",
+    "@fpbase/spectra": "workspace:*",
+    "@fpbase/blast": "workspace:*"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.7",
+    "@babel/plugin-syntax-dynamic-import": "^7.7.4",
+    "@babel/preset-env": "^7.7.7",
+    "@babel/preset-react": "^7.7.4",
+    "@sentry/cli": "^2.18.1",
+    "@sentry/webpack-plugin": "^2.2.0",
+    "@types/react": "^16.14.42",
+    "@welldone-software/why-did-you-render": "^6.2.3",
+    "autoprefixer": "^10.4.14",
+    "babel-eslint": "^10.0.3",
+    "babel-loader": "^9.1.2",
+    "babel-plugin-transform-imports": "^2.0.0",
+    "bootstrap": "^4.6.2",
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.8.1",
+    "css-minimizer-webpack-plugin": "^5.0.0",
+    "cssnano": "^6.0.1",
+    "file-loader": "^6.2.0",
+    "mini-css-extract-plugin": "^2.7.6",
+    "postcss-loader": "^7.3.2",
+    "prettier": "^2.8.8",
+    "sass": "^1.62.1",
+    "sass-loader": "^13.3.1",
+    "terser-webpack-plugin": "^5.3.9",
+    "webpack": "^5.85.0",
+    "webpack-bundle-analyzer": "^4.9.0",
+    "webpack-bundle-tracker": "2.0.0",
+    "webpack-cli": "^5.1.1",
+    "webpack-dev-server": "^4.15.0"
+  },
+
+  "scripts": {
+    "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
+    "build": "NODE_ENV=production webpack --mode production",
+    "clean": "pnpm exec -- rm -rf dist"
+  },
+  "browserslist": {
+    "production": [
+      "last 1 version",
+      "> 0.2% in my stats",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "prettier": {
+    "semi": false,
+    "trailingComma": "es5"
+  }
+}

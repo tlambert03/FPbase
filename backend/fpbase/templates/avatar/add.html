@@ -1,0 +1,14 @@
+{% extends "avatar/base.html" %}
+{% load i18n avatar_tags crispy_forms_tags %}
+
+{% block content %}
+    <p>{% trans "Your current avatar: " %}</p>
+    {% avatar user %}
+    {% if not avatars %}
+        <p>{% trans "You haven't uploaded an avatar yet. Please upload one now." %}</p>
+    {% endif %}
+    <form enctype="multipart/form-data" method="POST" action="{% url 'avatar_add' %}">
+        {{ upload_avatar_form | crispy }}
+        <p>{% csrf_token %}<input class='btn btn-primary' type="submit" value="{% trans "Upload New Image" %}" /></p>
+    </form>
+{% endblock %}

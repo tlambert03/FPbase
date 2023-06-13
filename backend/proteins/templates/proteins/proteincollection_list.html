@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}FPbase Users Fluorescent Protein Collections{% endblock %}
+{% block meta-description %}View all of the custom-created collections of fluorescent proteins by users at FPbase, the fluorescent protein database.{% endblock %}
+
+
+{% comment %}
+    if the "owner" variable is set, we are viewing the collections a specific user, otherwise it is all user protein collections
+{% endcomment %}
+
+{% block content %}
+
+	{% if not owner %}
+	<h1 class='mb-4'>Protein Collections</h1>
+	<p>Protein collections are user-selected sets of proteins that fit criteria that are important to that user.  For instance, you might create a collection to store the fluorescent proteins you have available as plasmids in your lab freezer, or a set of proteins that you think represent the best currently available proteins for your application.  Collections can be shared publicly (or kept private).  Collections can be created based on complicated <a href="{% url "proteins:search" %}">search queries</a>, manually by adding proteins from the respective protein pages, or they can be duplicated from existing collections and modified to suit your needs.  Lastly, collections can be easily downloaded in CSV or JSON format. <br><a href="{% url 'proteins:newcollection' %}"><button class='btn btn-primary btn-sm mt-3'>Create a collection</button></a></p>
+	{% endif %}
+
+	{% if request.user.username == owner %}
+		<h1 class='mb-4'>Your Protein Collections</h1>
+	{% else %}
+		{% if owner %}
+			<h1 class='mb-4'>Protein collections created by {{owner}}</h1>
+		{% else %}
+			<h3>Public Collections</h3>
+		{% endif %}
+	{% endif %}
+
+	<ul class='mb-5'>
+		{% for object in object_list %}
+			{% if request.user.id == object.owner.id %}
+			<li><strong><a href="{{ object.get_absolute_url }}">{{object}}</a>, Created by you {% if object.private %}(Private){% endif %}- {{ object.created|date:"M j, Y" }} </em></strong></li>
+			{% else %}
+			<li><a href="{{ object.get_absolute_url }}">{{object}}</a>, <em>Created by {{ object.owner }} - {{ object.created|date:"M j, Y" }} </em></li>
+			{% endif %}
+		{% empty %}
+			{% if owner %}
+			    <p>{% if request.user.username == owner %}You do not have any collections.{% else %}User {{owner}} does not have any public collections.{%endif%}</p>
+			{% else%}
+				<p>There are currently no public protein collections to show.</p>
+			{% endif %}
+		{% endfor %}
+	</ul>
+
+
+	{% if request.user.username == owner %}
+	<a href="{% url 'proteins:newcollection' %}"><button class='btn btn-primary btn-sm'>Create collection</button></a>
+	{% elif request.user.is_authenticated  %}
+	<small style='color: gray'><em>Note: bolded collections are owned by you, and only visible to others if the collection is public.</em></small>
+	{% endif %}
+{% endblock content %}

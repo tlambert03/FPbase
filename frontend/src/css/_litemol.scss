@@ -1,0 +1,105 @@
+.lm-plugin {
+  z-index: 10;
+  background: white !important;
+
+  .lm-plugin-content.lm-layout-expanded{
+    z-index: 100000 !important;
+  }
+
+  .lm-highlight-info {
+    background: rgba(255,255,255,0.9) !important;
+    color: #777 !important;
+    padding: 5px !important;
+  }
+
+  .lm-viewport .lm-btn-link {
+    background: rgba(255,255,255,0.7) !important;
+  }
+
+  .lm-viewport-controls{
+    opacity: 0.35;
+    transition: opacity .3s ease-in-out;
+    -moz-transition: opacity .3s ease-in-out;
+    -webkit-transition: opacity .3s ease-in-out;
+    &:hover {
+      opacity: .9;
+    }
+  }
+
+  .lm-viewport-controls-buttons .lm-btn-link, .lm-viewport-controls-buttons .lm-btn-link-toggle-on {
+    color: #637ca0 !important;
+    &:hover {
+      color: #86F !important;
+    }
+  }
+
+  // button[title="Screenshot"] {
+  //   display: none !important;
+  // }
+
+  .lm-task-state {
+    div {
+      //display: none;
+      background: white !important;
+      color: #555 !important;
+    }
+    button {
+      background: white !important;
+      color: $danger;
+    }
+  }
+
+  .lm-overlay {
+    display: none;
+  }
+
+  .lm-logo-image {
+    background: #AAA;
+  }
+
+.lm-layout-standard-outside {
+  .lm-layout-left, .lm-layout-right {
+    bottom: -330px !important;
+    height: 330px !important;
+    @include media-breakpoint-up(md){
+      bottom: 0 !important;
+      height: 100% !important;
+    }
+    .lm-layout-scrollable {
+      top: 0px !important;
+    }
+  }
+  .lm-layout-right {
+    right: 0 !important;
+    @include media-breakpoint-up(md){
+      right: -100% !important;
+    }
+  }
+  .lm-layout-left {
+    left: 0 !important;
+    @include media-breakpoint-up(md){
+      left: 100% !important;
+    }
+  }
+}
+
+.lm-toast-container .lm-toast-entry {
+    background: rgba(255,255,255, 0.5) !important;
+    color: #333 !important;
+    border: none !important;
+    font-size: 0.8rem;
+    .lm-toast-title {
+      background: rgba(245,245,245, 0.5) !important;
+      font-weight: 700;
+      &::after {
+        content: ' loaded: ' !important;
+      }
+    }
+  }
+}
+
+#chem-title {
+  color: #666;
+  font-size: 1rem;
+  font-weight: 400;
+}
