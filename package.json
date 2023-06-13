@@ -9,6 +9,10 @@
   "devDependencies": {
     "concurrently": "^8.2.0"
   },
+  "workspaces": [
+    "packages/*",
+    "frontend"
+  ],
   "engines": {
     "node": "18.x"
   }
