@@ -68,6 +68,9 @@ importers:
       react-dom:
         specifier: ^16.14.0
         version: 16.14.0(react@16.14.0)
+      regenerator-runtime:
+        specifier: ^0.13.5
+        version: 0.13.11
       select2:
         specifier: ^4.0.13
         version: 4.0.13
@@ -292,6 +295,9 @@ importers:
       react-windowed-select:
         specifier: ^2.0.5
         version: 2.0.5(react-dom@16.14.0)(react@16.14.0)
+      regenerator-runtime:
+        specifier: ^0.13.5
+        version: 0.13.11
       unfetch:
         specifier: ^4.2.0
         version: 4.2.0
