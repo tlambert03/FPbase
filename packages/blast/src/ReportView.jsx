@@ -9,6 +9,7 @@ import Snackbar from "@material-ui/core/Snackbar"
 import IconButton from "@material-ui/core/IconButton"
 import CloseIcon from "@material-ui/icons/Close"
 import { Typography } from "@material-ui/core"
+import $ from "jquery"
 
 const useStyles = makeStyles(theme => ({
   paperRoot: {
@@ -80,12 +81,12 @@ function BlastReport({ report }) {
 
   useEffect(() => {
     if (algnItem !== null && tab === 1) {
-      // $("html, body").animate(
-      //   {
-      //     scrollTop: $("#dln_" + algnItem).offset().top - 60
-      //   },
-      //   300
-      // )
+      $("html, body").animate(
+        {
+          scrollTop: $("#dln_" + algnItem).offset().top - 60
+        },
+        300
+      )
       setAlgnItem(null)
     }
   }, [algnItem, tab])

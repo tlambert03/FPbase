@@ -4,7 +4,7 @@ import BlastReport from "./ReportView.jsx"
 import Form from "react-bootstrap/Form"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
-// import $ from "jquery"
+import $ from "jquery"
 
 function ReportSelect({ reports, binary, index, onChange }) {
   const unit = binary === "blastp" ? "aa" : "nt"
@@ -50,24 +50,24 @@ function App() {
   function handleSubmit(target) {
     setReportIndex(0)
 
-    // const seqLetters = $(target)[0][1]
-    //   .value.toUpperCase()
-    //   .replace(/^>.*$/gm, "")
-    //   .replace(/(?:\r\n|\r|\n)/g, "")
+    const seqLetters = $(target)[0][1]
+      .value.toUpperCase()
+      .replace(/^>.*$/gm, "")
+      .replace(/(?:\r\n|\r|\n)/g, "")
 
-    // const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
-    // setBinary(bin)
+    const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
+    setBinary(bin)
 
-    // $.post("", $(target).serialize() + "&binary=" + bin, data => {
-    //   if (data.status === 200) {
-    //     setResults(data.blastResult)
-    //   } else if (data.status === 500) {
-    //     console.error(data.error)
-    //     alert(
-    //       "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
-    //     )
-    //   }
-    // })
+    $.post("", $(target).serialize() + "&binary=" + bin, data => {
+      if (data.status === 200) {
+        setResults(data.blastResult)
+      } else if (data.status === 500) {
+        console.error(data.error)
+        alert(
+          "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
+        )
+      }
+    })
   }
 
   function handleChangeReport(index) {

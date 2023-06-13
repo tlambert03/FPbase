@@ -4,9 +4,7 @@
   "description": "fpbase spectra viewer",
   "main": "src/App.jsx",
   "scripts": {
-    "ebuild": "esbuild --bundle --format=esm --outdir=dist src/App.jsx",
-    "dev": "vite",
-    "build": "vite build"
+    "dev": "vite"
   },
   "author": "Talley Lambert",
   "license": "ISC",

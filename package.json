@@ -1,12 +1,15 @@
 {
-    "name": "fpbase",
-    "version": "1.0.0",
-    "scripts": {
-      "start": "pnpm --stream -r start",
-      "start:dev": "pnpm --stream -r run start:dev",
-      "clean": "pnpm -r run clean"
-    },
-    "keywords": [],
-    "author": "talley.lambert@gmail.com",
-    "license": "GPL-3"
+  "name": "fpbase",
+  "private": true,
+  "scripts": {
+    "start": "concurrently --kill-others \"pnpm --stream -r start\" \"python backend/manage.py runserver\"",
+    "build": "pnpm -r --parallel build",
+    "start:dev": "pnpm --stream -r run start:dev",
+    "clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules && pnpm -r run clean"
+  },
+  "author": "talley.lambert@gmail.com",
+  "license": "GPL-3",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
   }
+}

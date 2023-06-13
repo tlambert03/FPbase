@@ -1,4 +1,4 @@
-[![Logo](nonweb_images/logo_green_wide@1x.gif)](https://www.fpbase.org)
+[![Logo](_resources/logo_green_wide@1x.gif)](https://www.fpbase.org)
 
 # FPbase: The Fluorescent Protein Database
 
@@ -80,11 +80,11 @@ If you have data that you would like to contribute to the database, please do
 [<img src="static/src/images/logo-algolia-nebula-blue-full.svg"
 width="170">](https://www.algolia.com/)
 
-[<img src="nonweb_images/sentry-logo-black.svg"
+[<img src="_resources/sentry-logo-black.svg"
 width="200">](https://sentry.io/)
 
-[<img src="nonweb_images/gitbook_avatar-rectangle.png"
+[<img src="_resources/gitbook_avatar-rectangle.png"
 width="200">](https://www.gitbook.com/)
 
-[<img src="nonweb_images/Browserstack-logo@2x.png"
+[<img src="_resources/Browserstack-logo@2x.png"
 width="250">](https://www.browserstack.com)
