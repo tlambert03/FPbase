@@ -1,6 +1,7 @@
 import "./css/litemol/LiteMol-plugin-blue.css"
 import $ from "jquery"
-import LiteMol from "./js/pdb/LiteMol-plugin"
+// import LiteMol from "./js/pdb/LiteMol-plugin"
+import "./js/pdb/LiteMol-plugin"
 
 const pdbInfo = {}
 

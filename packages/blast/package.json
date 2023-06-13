@@ -2,7 +2,7 @@
   "name": "@fpbase/blast",
   "version": "1.0.0",
   "description": "fpbase blast app",
-  "main": "src/App.jsx",
+  "main": "src/index.js",
   "scripts": {
     "dev": "vite"
   },

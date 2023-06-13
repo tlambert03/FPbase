@@ -1,0 +1,42 @@
+import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react"
+
+export default defineConfig({
+  root: "./src",
+  base: "/static/",
+  server: {
+    host: "localhost",
+    port: 3000,
+    open: false,
+    watch: {
+      usePolling: true,
+      disableGlobbing: false,
+    },
+  },
+  resolve: {
+    extensions: [".js", ".jsx", ".json"],
+  },
+  build: {
+    // Relative to the root
+    outDir: "../dist",
+    assetsDir: "",
+    manifest: true,
+    emptyOutDir: true,
+    target: "es2015",
+    plugins: [react()],
+    rollupOptions: {
+      input: {
+        main: "./src/index.js",
+        embedscope: "./src/embedscope.js",
+        litemol: "./src/my-litemol.js",
+        spectraViewer: "./src/spectra-viewer.js",
+        simpleSpectraViewer: "./src/simple-spectra-viewer.js",
+        microscopeForm: "./src/microscope-form.js",
+        blast: "./src/blast-app.js",
+      },
+      output: {
+        chunkFileNames: undefined,
+      },
+    },
+  },
+})

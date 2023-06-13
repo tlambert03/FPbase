@@ -1,19 +1,19 @@
-from os.path import splitext
-
 from django import template
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
-from webpack_loader.utils import get_static
+from django_vite.templatetags.django_vite import DjangoViteAssetLoader
 
 register = template.Library()
 
 
 @register.simple_tag
 def webp_picture(name, classed="", alt=""):
-    webpname = f"{splitext(name)[0]}.webp"
+    loader = DjangoViteAssetLoader.instance()
+    url = loader.generate_vite_asset_url(name)
+    weburl = url.rsplit(".", 1)[0] + ".webp"
     return mark_safe(
-        f'<picture><source srcset="{get_static(webpname)}" type="image/webp">'
-        f'<img src="{get_static(name)}" class="{classed}" alt="{alt}"></picture>'
+        f'<picture><source srcset="{weburl}" type="image/webp">'
+        f'<img src="{url}" class="{classed}" alt="{alt}"></picture>'
     )
 
 

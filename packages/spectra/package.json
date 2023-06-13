@@ -2,7 +2,7 @@
   "name": "@fpbase/spectra",
   "version": "1.0.0",
   "description": "fpbase spectra viewer",
-  "main": "src/App.jsx",
+  "main": "src/index.jsx",
   "scripts": {
     "dev": "vite"
   },
