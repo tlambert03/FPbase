@@ -5,11 +5,6 @@
     "email": "talley.lambert@gmail.com",
     "url": "http://talleylambert.com/"
   },
-  "license": "gpl-3.0",
-  "repository": {
-    "type": "git",
-    "url": "git://https://github.com/tlambert03/FPbase.git"
-  },
   "description": "The fluorescent protein database",
   "version": "0.1.0",
   "private": true,
@@ -68,13 +63,10 @@
     "webpack-cli": "^5.1.1",
     "webpack-dev-server": "^4.15.0"
   },
-  "engines": {
-    "node": "18.x"
-  },
+
   "scripts": {
     "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
     "build": "NODE_ENV=production webpack --mode production",
-    "heroku-postbuild": "NODE_ENV=production webpack --mode production",
     "clean": "pnpm exec -- rm -rf dist"
   },
   "browserslist": {

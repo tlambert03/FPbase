@@ -1,15 +1,15 @@
 {
-  "name": "fpbase",
-  "private": true,
   "scripts": {
     "start": "concurrently --kill-others \"pnpm --stream -r start\" \"python backend/manage.py runserver\"",
     "build": "pnpm -r --parallel build",
+    "heroku-postbuild": "pnpm --filter fpbase build",
     "start:dev": "pnpm --stream -r run start:dev",
     "clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules && pnpm -r run clean"
   },
-  "author": "talley.lambert@gmail.com",
-  "license": "GPL-3",
   "devDependencies": {
     "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
