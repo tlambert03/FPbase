@@ -380,5 +380,5 @@ webpack-stats.json
 
 /dump.rdb
 
-blastdb/*
+blastdb/
 .pdm-python
