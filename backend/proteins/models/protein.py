@@ -71,7 +71,9 @@ def findname(name):
 
 class ProteinQuerySet(models.QuerySet):
     def fasta(self):
-        seqs = self.exclude(seq__isnull=True).values("uuid", "name", "seq")
+        seqs = list(self.exclude(seq__isnull=True).values("uuid", "name", "seq"))
+        for s in seqs:
+            s["name"] = s["name"].replace("a", "-alpha").replace("β", "-beta")
         return io.StringIO("\n".join([">{uuid} {name}\n{seq}".format(**s) for s in seqs]))
 
     def to_tree(self, output="clw"):

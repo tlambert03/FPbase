@@ -1,10 +1,18 @@
+import contextlib
 import json
 import os
 import sys
 import tempfile
+from pathlib import Path
+from shutil import copyfileobj
 from subprocess import run
 
 from ..models import Protein
+
+ROOT = Path(__file__).parent.parent.parent
+BIN_DIR = ROOT / "bin"
+BLAST_DB = str(ROOT / "blastdb" / "FPbase_blastdb.fsa")
+BIN_SUFFIX = "osx" if sys.platform == "darwin" else "nix"
 
 
 def serialize_alignment(alignment):
@@ -23,29 +31,26 @@ def serialize_record(record):
     return out
 
 
-def write_fasta(fpath="blastdb/FPbase_blastdb.fsa"):
+def write_fasta(fpath=BLAST_DB):
     """Writes all FPsequences to fasta file in default storage location"""
-    from shutil import copyfileobj
 
     os.makedirs(os.path.dirname(fpath), exist_ok=True)
 
     with open(fpath, "w") as fd:
-        try:
+        with contextlib.suppress(Exception):
             # for some reason, first write usually throws an exception
             fd.write("")
-        except Exception:
-            pass
         fasta = Protein.objects.all().fasta()
         fasta.seek(0)
         copyfileobj(fasta, fd)
         return fd.name
 
 
-def make_blastdb(fpath="blastdb/FPbase_blastdb.fsa"):
-    binary = "bin/makeblastdb_" + ("osx" if sys.platform == "darwin" else "nix")
+def make_blastdb(fpath=BLAST_DB):
+    binary = BIN_DIR / f"makeblastdb_{BIN_SUFFIX}"
     fasta_name = write_fasta(fpath)
     cmd = [
-        binary,
+        str(binary),
         "-in",
         fasta_name,
         "-parse_seqids",
@@ -59,11 +64,12 @@ def make_blastdb(fpath="blastdb/FPbase_blastdb.fsa"):
     run(cmd)
 
 
-def blast(seq, binary="blastp", db="blastdb/FPbase_blastdb.fsa", max_hits=30, fmt=15, **kwargs):
+def blast(seq, binary="blastp", db=BLAST_DB, max_hits=30, fmt=15, **kwargs):
     assert binary in ("blastp", "blastx"), "Unrecognized blast binary"
-    if not (os.path.isfile(db) and (len(os.listdir(os.path.dirname(db))) > 5)):
+    if not os.path.isfile(db) or len(os.listdir(os.path.dirname(db))) <= 5:
         make_blastdb(db)
-    binary = f"bin/{binary}_" + ("osx" if sys.platform == "darwin" else "nix")
+
+    binary = BIN_DIR / f"{binary}_{BIN_SUFFIX}"
     max_hits = kwargs.pop("max_target_seqs", max_hits)
     fmt = kwargs.pop("outfmt", fmt)
     with tempfile.NamedTemporaryFile(suffix=".fsa") as tmp:
@@ -72,7 +78,7 @@ def blast(seq, binary="blastp", db="blastdb/FPbase_blastdb.fsa", max_hits=30, fm
         tmp.write(seq.encode())
         tmp.seek(0)
         cmd = [
-            binary,
+            str(binary),
             "-query",
             tmp.name,
             "-outfmt",
@@ -87,15 +93,19 @@ def blast(seq, binary="blastp", db="blastdb/FPbase_blastdb.fsa", max_hits=30, fm
         for key, value in kwargs.items():
             cmd.extend([f"-{key}", str(value)])
         with tempfile.NamedTemporaryFile(suffix=".txt") as outfile:
-            cmd.extend(["-out", outfile.name])
-            run(cmd)
-            if fmt == 5:
-                from Bio.Blast import NCBIXML
+            return _extracted_from_blast_(cmd, outfile, fmt)
 
-                records = NCBIXML.parse(outfile.file)
-                return [serialize_record(r) for r in records]
-            if fmt == 15:
-                out = outfile.file.read().decode()
-                return json.loads(out).get("BlastOutput2")
-            else:
-                return outfile.file.read().decode()
+
+# TODO Rename this here and in `blast`
+def _extracted_from_blast_(cmd, outfile, fmt):
+    cmd.extend(["-out", outfile.name])
+    run(cmd)
+    if fmt == 5:
+        from Bio.Blast import NCBIXML
+
+        records = NCBIXML.parse(outfile.file)
+        return [serialize_record(r) for r in records]
+    if fmt != 15:
+        return outfile.file.read().decode()
+    out = outfile.file.read().decode()
+    return json.loads(out).get("BlastOutput2")
