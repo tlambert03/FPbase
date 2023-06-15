@@ -20,7 +20,6 @@
     "algoliasearch": "^3.35.1",
     "autocomplete.js": "^0.36.0",
     "d3": "3.5.17",
-    "jquery": "^3.7.0",
     "nouislider": "^14.7.0",
     "nvd3": "^1.8.6",
     "process": "^0.11.10",
@@ -28,7 +27,6 @@
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "regenerator-runtime": "^0.13.5",
-    "select2": "^4.0.13",
     "select2-theme-bootstrap4": "^0.2.0-beta.6",
     "url": "^0.11.0"
   },

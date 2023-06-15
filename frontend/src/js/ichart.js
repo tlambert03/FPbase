@@ -1,6 +1,5 @@
 import noUiSlider from "nouislider"
 import d3 from "d3"
-import $ from "jquery"
 
 export default function FPPropChart() {
   const margin = { top: 20, right: 30, bottom: 20, left: 68 }

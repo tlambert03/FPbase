@@ -4,7 +4,6 @@ import BlastReport from "./ReportView.jsx"
 import Form from "react-bootstrap/Form"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
-import $ from "jquery"
 
 function ReportSelect({ reports, binary, index, onChange }) {
   const unit = binary === "blastp" ? "aa" : "nt"

@@ -1,4 +1,3 @@
-import $ from "jquery"
 
 function checkObject(val, prop, str) {
   var propDict = {

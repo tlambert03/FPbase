@@ -1,4 +1,3 @@
-import $ from "jquery"
 import "./js/detect-touch"
 import { createElement } from "react"
 import { render } from "react-dom"

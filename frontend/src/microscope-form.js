@@ -1,4 +1,3 @@
-import $ from "jquery"
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 import "select2/dist/js/select2.full"

@@ -1,5 +1,4 @@
 import ProgressBar from "progressbar.js"
-import $ from "jquery"
 import nv from "nvd3"
 import "../css/nv.d3.css"
 import d3 from "d3"

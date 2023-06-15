@@ -1,7 +1,6 @@
 import d3 from "d3"
 import nv from "nvd3"
 import "../css/nv.d3.css"
-import $ from "jquery"
 
 export default function initFRET() {
   var chart;
