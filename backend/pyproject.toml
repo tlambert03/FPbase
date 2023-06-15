@@ -6,7 +6,7 @@ python_files = ["tests.py", "test_*.py"]
 norecursedirs = ["node_modules"]
 filterwarnings = [
     "error",
-    "ignore:SelectableGroups dict interface is deprecated::kombu",
+    "ignore:SelectableGroups dict interface is deprecated::",
     "ignore:The DEFAULT_FILE_STORAGE setting is deprecated::",
     "ignore:django.core.files.storage.get_storage_class is deprecated::",
     "ignore::DeprecationWarning:pkg_resources",
