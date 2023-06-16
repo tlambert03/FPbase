@@ -9,6 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
+from proteins.factories import ProteinFactory
 from proteins.models.protein import Protein
 from proteins.util.blast import MAKEBLASTDB
 
@@ -35,14 +36,20 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     def setUp(self) -> None:
         self.browser.get_log("browser")  # clear prior logs
-        self.p1, _ = Protein.objects.get_or_create(name="mySpecialProtein", seq=SEQ)
+        self.p1, _ = ProteinFactory.get_or_create(seq=SEQ)
 
-    def _load_reverse(self, url_name):
-        self.browser.get(self.live_server_url + reverse(url_name))
+    def _load_reverse(self, url_name, **kwargs):
+        self.browser.get(self.live_server_url + reverse(url_name, **kwargs))
 
-    def test_1spectra(self):
+    def test_spectra(self):
         self._load_reverse("proteins:spectra")
         assert self.browser.get_log("browser") == []
+
+    @pytest.mark.skip(reason="need fake spectra data for this to work")
+    def test_spectra_img(self):
+        for ext in [".svg", ".png", ".pdf", ".jpg", ".jpeg"]:
+            self._load_reverse("proteins:spectra-img", args=(self.p1.slug, ext))
+            assert self.browser.get_log("browser") == []
 
     def test_microscopes(self):
         self._load_reverse("proteins:microscopes")
@@ -81,6 +88,32 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     def test_fret(self):
         self._load_reverse("proteins:fret")
+        assert self.browser.get_log("browser") == []
+
+    def test_collections(self):
+        self._load_reverse("proteins:collections")
+        assert self.browser.get_log("browser") == []
+
+    @pytest.mark.ignore_template_errors
+    def test_table(self):
+        self._load_reverse("proteins:table")
+        assert self.browser.get_log("browser") == []
+
+    @pytest.mark.ignore_template_errors
+    def test_chart(self):
+        self._load_reverse("proteins:chart")
+        assert self.browser.get_log("browser") == []
+
+    def test_problems(self):
+        self._load_reverse("proteins:problems")
+        assert self.browser.get_log("browser") == []
+
+    def test_problems_inconsistencies(self):
+        self._load_reverse("proteins:problems-inconsistencies")
+        assert self.browser.get_log("browser") == []
+
+    def test_problems_gaps(self):
+        self._load_reverse("proteins:problems-gaps")
         assert self.browser.get_log("browser") == []
 
     def test_search(self):
