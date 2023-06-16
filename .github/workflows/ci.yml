@@ -85,3 +85,6 @@ jobs:
           chromedriver --url-base=/wd/hub &
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
           pytest --color=yes -v --cov --cov-report=xml --cov-report=term-missing
+
+      - name: coverage
+        uses: codecov/codecov-action@v2
