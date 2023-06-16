@@ -5,7 +5,12 @@ import pytest
 
 
 def pytest_addoption(parser):
-    parser.addoption("--skip-build", action="store_true", default=False, help="skip building frontend")
+    parser.addoption(
+        "--skip-build",
+        action="store_true",
+        default=False,
+        help="skip building frontend",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -17,6 +22,10 @@ def uses_frontend(request):
 
 @pytest.fixture()
 def use_real_webpack_loader(monkeypatch):
-    from django.conf import settings
+    from webpack_loader import config, loader, utils
 
-    monkeypatch.delitem(settings.WEBPACK_LOADER["DEFAULT"], "LOADER_CLASS")
+    monkeypatch.setattr(
+        utils,
+        "get_loader",
+        lambda config_name: loader.WebpackLoader(config_name, config.load_config(config_name)),
+    )
