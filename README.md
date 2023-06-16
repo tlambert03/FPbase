@@ -4,14 +4,16 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![CI](https://github.com/tlambert03/FPbase/actions/workflows/ci.yml/badge.svg)](https://github.com/tlambert03/FPbase/actions/workflows/ci.yml)
+[![Cov](https://codecov.io/gh/tlambert03/FPbase/branch/main/graph/badge.svg)](https://codecov.io/gh/tlambert03/FPbase)
 [![DOI](https://zenodo.org/badge/DOI/10.1038/s41592-019-0352-8.svg)](https://doi.org/10.1038/s41592-019-0352-8)
 
-<https://www.fpbase.org>
+Source code for <https://www.fpbase.org>
 
 Documentation and info on using the site: <https://help.fpbase.org>.
 
 See also: [Using FPbase: The Fluorescent Protein
-Database](https://pubmed.ncbi.nlm.nih.gov/36107335/)
+Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
+2023;2564:1-45. doi: 10.1007/978-1-0716-2667-2_1
 
 ## Installation for local development
 
