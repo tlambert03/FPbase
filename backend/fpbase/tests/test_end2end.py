@@ -1,15 +1,21 @@
+import os
+from pathlib import Path
+
 import pytest
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.wait import WebDriverWait
 
 from proteins.models.protein import Protein
+from proteins.util.blast import MAKEBLASTDB
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
 cDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
+HAVE_BLAST_BIN = Path(MAKEBLASTDB).exists()
 
 
 @pytest.mark.usefixtures("uses_frontend", "use_real_webpack_loader")
@@ -28,6 +34,7 @@ class TestPagesRender(StaticLiveServerTestCase):
         return super().tearDownClass()
 
     def setUp(self) -> None:
+        self.browser.get_log("browser")  # clear prior logs
         self.p1, _ = Protein.objects.get_or_create(name="mySpecialProtein", seq=SEQ)
 
     def _load_reverse(self, url_name):
@@ -47,13 +54,27 @@ class TestPagesRender(StaticLiveServerTestCase):
         text_input = self.browser.find_element(value="queryInput")
         assert text_input.is_displayed()
         text_input.send_keys(SEQ[5:20].replace("LDG", "LG"))
+
+        if not HAVE_BLAST_BIN and not os.environ.get("CI"):
+            pytest.xfail(f"{MAKEBLASTDB} binary not found")
+            return
+
         submit = self.browser.find_element(by="css selector", value='button[type="submit"]')
         submit.click()
+
         # wait for the results to load
-        self.browser.implicitly_wait(1)
+        try:
+            r1 = WebDriverWait(self.browser, timeout=2).until(
+                lambda d: d.find_element(by="xpath", value="//table/tbody/tr[1]/td[1]/a")
+            )
+        except Exception as e:
+            msg = f"Results failed to load: {e.msg}"
+            logs = self.browser.get_log("browser")
+            for log in logs:
+                msg += f"\n{log['message']}"
+            raise AssertionError(msg) from None
 
         # assert a table is displayed with the first row containing the protein
-        r1 = self.browser.find_element(by="xpath", value="//table/tbody/tr[1]/td[1]/a")
         assert r1.text == self.p1.name
         # it should link to the alignment table
         r1.click()

@@ -13,6 +13,7 @@ ROOT = Path(__file__).parent.parent.parent
 BIN_DIR = ROOT / "bin"
 BLAST_DB = "blastdb/FPbase_blastdb.fsa"
 BIN_SUFFIX = "osx" if sys.platform == "darwin" else "nix"
+MAKEBLASTDB = str(BIN_DIR / f"makeblastdb_{BIN_SUFFIX}")
 
 
 def serialize_alignment(alignment):
@@ -47,11 +48,9 @@ def write_fasta(fpath):
 
 
 def make_blastdb(fpath: str | None = None):
-    fpath = fpath or BLAST_DB
-    binary = BIN_DIR / f"makeblastdb_{BIN_SUFFIX}"
-    fasta_name = write_fasta(fpath)
+    fasta_name = write_fasta(fpath or BLAST_DB)
     cmd = [
-        str(binary),
+        MAKEBLASTDB,
         "-in",
         fasta_name,
         "-parse_seqids",

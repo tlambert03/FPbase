@@ -1,4 +1,5 @@
-import logging
+import json
+import os
 import subprocess
 from typing import TYPE_CHECKING
 
@@ -7,10 +8,12 @@ import pytest
 if TYPE_CHECKING:
     from _pytest.tmpdir import TempPathFactory
 
+REBUILD_ASSETS = "--rebuild-assets"
+
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--skip-build",
+        REBUILD_ASSETS,
         action="store_true",
         default=False,
         help="skip building frontend",
@@ -19,8 +22,17 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def uses_frontend(request):
-    if not request.config.getoption("--skip-build"):
-        logging.info("Building frontend...")
+    from django.conf import settings
+
+    stats_file = settings.WEBPACK_LOADER["DEFAULT"].get("STATS_FILE")
+    if os.path.exists(stats_file):
+        with open(stats_file, encoding="utf-8") as f:
+            assets = json.load(f)
+        assets_ready = assets.get("status") == "done"
+    else:
+        assets_ready = False
+
+    if not assets_ready or request.config.getoption(REBUILD_ASSETS):
         subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
 
 
