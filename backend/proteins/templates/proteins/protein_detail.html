@@ -170,7 +170,7 @@
               {% else %}
               <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary'>&lt;add one&gt;</a>
               {% endif %}</td>
-            <td>{{ protein.seq.weight|floatformat:"1" }} {% if protein.seq %} kDa{% else %}-{% endif %}</td>
+            <td>{% if protein.seq %}{{ protein.seq.weight|floatformat:"1" }} kDa{% else %}-{% endif %}</td>
             <td>{{protein.get_cofactor_display|default:'-' }}</td>
           </tr>
 
