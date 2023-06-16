@@ -75,6 +75,11 @@ jobs:
           python -m pip install -r backend/requirements/local.txt
           pnpm install
 
+      - name: setup-chromedriver
+        uses: nanasess/setup-chromedriver@v2.0.0
+
       - name: Test with pytest
         run: pytest --color=yes -v --cov --cov-report=xml --cov-report=term-missing
         working-directory: backend
+        env:
+          DISPLAY: ":99"
