@@ -1,4 +1,6 @@
 import os
+import shutil
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -23,20 +25,26 @@ HAVE_BLAST_BIN = Path(MAKEBLASTDB).exists()
 class TestPagesRender(StaticLiveServerTestCase):
     browser: webdriver.Chrome
     p1: Protein
+    download_dir: str
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.browser = webdriver.Chrome()
+        cls.download_dir = tempfile.mkdtemp()
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option("prefs", {"download.default_directory": cls.download_dir})
+
+        cls.browser = webdriver.Chrome(options=options)
         return super().setUpClass()
 
     @classmethod
     def tearDownClass(cls):
         cls.browser.quit()
+        shutil.rmtree(cls.download_dir)
         return super().tearDownClass()
 
     def setUp(self) -> None:
         self.browser.get_log("browser")  # clear prior logs
-        self.p1, _ = ProteinFactory.get_or_create(seq=SEQ)
+        self.p1 = ProteinFactory(name="knownSequence", seq=SEQ)
 
     def _load_reverse(self, url_name, **kwargs):
         self.browser.get(self.live_server_url + reverse(url_name, **kwargs))
@@ -45,11 +53,18 @@ class TestPagesRender(StaticLiveServerTestCase):
         self._load_reverse("proteins:spectra")
         assert self.browser.get_log("browser") == []
 
-    @pytest.mark.skip(reason="need fake spectra data for this to work")
     def test_spectra_img(self):
+        _url = "proteins:spectra-img"
         for ext in [".svg", ".png", ".pdf", ".jpg", ".jpeg"]:
-            self._load_reverse("proteins:spectra-img", args=(self.p1.slug, ext))
-            assert self.browser.get_log("browser") == []
+            self._load_reverse(_url, args=(self.p1.slug, ext))
+            logs = self.browser.get_log("browser")
+            assert not [lg for lg in logs if "favicon" not in lg["message"]]
+
+        # test passing matplotlib kwargs
+        rev = reverse(_url, args=(self.p1.slug, ".svg"))
+        rev = f"{rev}?xlim=350,700&alpha=0.2&grid=true"
+        self.browser.get(self.live_server_url + rev)
+        assert not self.browser.get_log("browser")
 
     def test_microscopes(self):
         self._load_reverse("proteins:microscopes")
@@ -87,7 +102,34 @@ class TestPagesRender(StaticLiveServerTestCase):
         r1.click()
 
     def test_fret(self):
+        donor = ProteinFactory(name="donor", agg="m", default_state__ex_max=488, default_state__em_max=525)
+        acceptor = ProteinFactory(
+            name="acceptor",
+            agg="m",
+            default_state__ex_max=525,
+            default_state__em_max=550,
+        )
         self._load_reverse("proteins:fret")
+        self.browser.implicitly_wait(2)
+
+        elem = self.browser.find_element(value="select2-donor-select-container")
+        elem.click()
+        self.browser.switch_to.active_element.send_keys("don")
+        self.browser.switch_to.active_element.send_keys(Keys.ENTER)
+
+        elem = self.browser.find_element(value="select2-acceptor-select-container")
+        elem.click()
+        self.browser.switch_to.active_element.send_keys("acc")
+        self.browser.switch_to.active_element.send_keys(Keys.ENTER)
+
+        elem = self.browser.find_element(value="QYD")
+        assert float(elem.text) == donor.default_state.qy
+
+        elem = self.browser.find_element(value="QYA")
+        assert float(elem.text) == acceptor.default_state.qy
+
+        elem = self.browser.find_element(value="overlapIntgrl")
+        assert float(elem.text) > 1
         assert self.browser.get_log("browser") == []
 
     def test_collections(self):
@@ -101,7 +143,8 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     @pytest.mark.ignore_template_errors
     def test_chart(self):
-        self._load_reverse("proteins:chart")
+        ProteinFactory.create_batch(8)
+        self._load_reverse("proteins:ichart")
         assert self.browser.get_log("browser") == []
 
     def test_problems(self):
@@ -117,6 +160,8 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert self.browser.get_log("browser") == []
 
     def test_search(self):
+        self.p1 = ProteinFactory(name="knownSequence", seq=SEQ)
+
         self._load_reverse("proteins:search")
         assert self.browser.get_log("browser") == []
 
