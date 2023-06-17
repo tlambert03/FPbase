@@ -138,13 +138,21 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     @pytest.mark.ignore_template_errors
     def test_table(self):
+        ProteinFactory.create_batch(10)
         self._load_reverse("proteins:table")
         assert self.browser.get_log("browser") == []
 
     @pytest.mark.ignore_template_errors
     def test_chart(self):
-        ProteinFactory.create_batch(8)
+        ProteinFactory.create_batch(6)
         self._load_reverse("proteins:ichart")
+        assert self.browser.get_log("browser") == []
+
+        elem = self.browser.find_element(by="xpath", value="//label[input[@id='Xqy']]")
+        elem.click()
+
+        elem = self.browser.find_element(by="xpath", value="//label[input[@id='Yext_coeff']]")
+        elem.click()
         assert self.browser.get_log("browser") == []
 
     def test_problems(self):
