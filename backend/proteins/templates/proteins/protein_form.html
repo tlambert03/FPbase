@@ -31,7 +31,7 @@
 	<div>
 	    <form id="proteinform" action="" method="post" data-validate-proteinname-url="{% url 'proteins:validate_proteinname' %}">
 	    	{% csrf_token %}
-	    	<input type="hidden" name="slug" id="id_slug" value='{{ protein.slug }}'>
+	    	<input type="hidden" name="slug" id="id_slug" value='{% if protein.slug %}{{ protein.slug }}{% endif %}'>
 	        <div class='row'>
 	        	<div class='col'>
 	        		{% crispy form %}

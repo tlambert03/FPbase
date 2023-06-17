@@ -13,6 +13,7 @@ ROOT = Path(__file__).parent.parent.parent
 BIN_DIR = ROOT / "bin"
 BLAST_DB = "blastdb/FPbase_blastdb.fsa"
 BIN_SUFFIX = "osx" if sys.platform == "darwin" else "nix"
+MAKEBLASTDB = str(BIN_DIR / f"makeblastdb_{BIN_SUFFIX}")
 
 
 def serialize_alignment(alignment):
@@ -31,7 +32,7 @@ def serialize_record(record):
     return out
 
 
-def write_fasta(fpath=BLAST_DB):
+def write_fasta(fpath):
     """Writes all FPsequences to fasta file in default storage location"""
 
     os.makedirs(os.path.dirname(fpath), exist_ok=True)
@@ -46,11 +47,10 @@ def write_fasta(fpath=BLAST_DB):
         return fd.name
 
 
-def make_blastdb(fpath=BLAST_DB):
-    binary = BIN_DIR / f"makeblastdb_{BIN_SUFFIX}"
-    fasta_name = write_fasta(fpath)
+def make_blastdb(fpath: str | None = None):
+    fasta_name = write_fasta(fpath or BLAST_DB)
     cmd = [
-        str(binary),
+        MAKEBLASTDB,
         "-in",
         fasta_name,
         "-parse_seqids",
@@ -64,7 +64,9 @@ def make_blastdb(fpath=BLAST_DB):
     run(cmd)
 
 
-def blast(seq, binary="blastp", db=BLAST_DB, max_hits=30, fmt=15, **kwargs):
+def blast(seq, binary="blastp", db: str | None = None, max_hits=30, fmt=15, **kwargs):
+    db = db or BLAST_DB
+
     assert binary in ("blastp", "blastx"), "Unrecognized blast binary"
     if not os.path.isfile(db) or len(os.listdir(os.path.dirname(db))) <= 5:
         make_blastdb(db)
