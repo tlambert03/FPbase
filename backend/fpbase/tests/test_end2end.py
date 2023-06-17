@@ -140,6 +140,10 @@ class TestPagesRender(StaticLiveServerTestCase):
     def test_table(self):
         ProteinFactory.create_batch(10)
         self._load_reverse("proteins:table")
+        # TODO: the table isn't actually being drawn yet on selenium
+        # table = WebDriverWait(self.browser, timeout=6).until(
+        # lambda d: d.find_element(value="proteinTable_wrapper")
+        # )
         assert self.browser.get_log("browser") == []
 
     @pytest.mark.ignore_template_errors

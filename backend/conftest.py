@@ -28,7 +28,7 @@ def uses_frontend(request):
     if os.path.exists(stats_file):
         with open(stats_file, encoding="utf-8") as f:
             assets = json.load(f)
-        assets_ready = assets.get("status") == "done"
+        assets_ready = assets.get("status") == "done" and assets.get("chunks")
     else:
         assets_ready = False
 
