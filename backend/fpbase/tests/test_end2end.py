@@ -205,3 +205,17 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert self.browser.find_element(by="xpath", value="//h1").text == self.p1.name
         shown_seq = self.browser.find_element(by="class name", value="formatted_aminosquence").text
         assert shown_seq.replace(" ", "") == SEQ
+
+    @pytest.mark.ignore_template_errors
+    def test_compare(self):
+        p2 = ProteinFactory(seq=SEQ.replace("ELDG", "ETTG"))
+
+        self._load_reverse("proteins:compare")
+        assert self.browser.get_log("browser") == []
+
+        prots = ",".join([self.p1.slug, p2.slug])
+        self._load_reverse("proteins:compare", args=(prots,))
+
+        muts = self.browser.find_element(by="xpath", value='//p[strong[text()="Mutations: "]]')
+        assert muts.text == "Mutations: L19T/D20T"  # (the two T mutations we did above)
+        assert self.browser.get_log("browser") == []
