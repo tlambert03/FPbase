@@ -74,7 +74,14 @@
         <select class="custom-select" id="config-select">
           <option value="">-----</option>
           {% for config in microscope.optical_configs.all %}
-          <option value='{{config.name}}' data-filters='[{% for fp in config.filterplacement_set.all %}[{{fp.filter.id}}, "{{fp.path}}", {{fp.reflects|lower}}]{% if not forloop.last %},{% endif %}{% endfor %}]' data-laser='{{config.laser|default_if_none:''}}' data-light='{{config.light.id}}' data-camera='{{config.camera.id}}' data-comments='{{config.comments}}' >{{config}}</option>
+            <option
+                value='{{config.name}}'
+                data-filters='[{% for fp in config.filterplacement_set.all %}[{{fp.filter.id}}, "{{fp.path}}", {{fp.reflects|lower}}]{% if not forloop.last %},{% endif %}{% endfor %}]'
+                data-laser="{{config.laser|default_if_none:''}}"
+                data-light='{% if config.light %}{{config.light.id}}{% endif %}'
+                data-camera='{% if config.camera %}{{config.camera.id}}{% endif %}'
+                data-comments='{{config.comments}}' >{{config}}
+            </option>
           {% endfor %}
         </select>
       </div>

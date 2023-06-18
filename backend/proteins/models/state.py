@@ -227,7 +227,7 @@ class State(Fluorophore):
         return self.protein.get_absolute_url()
 
     def makeslug(self):
-        return self.protein.slug + "_" + slugify(self.name)
+        return f"{self.protein.slug}_{slugify(self.name)}"
 
     @property
     def local_brightness(self):

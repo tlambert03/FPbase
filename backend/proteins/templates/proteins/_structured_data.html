@@ -15,7 +15,7 @@
      "FLUORESCENCE"
   ],
   "variableMeasured": [
-
+    {% if protein.default_state %}
     {
       "@type": "PropertyValue",
       "name": "Excitation Maximum",
@@ -50,16 +50,18 @@
     },
     {
       "@type": "PropertyValue",
-      "sameAs": "https://en.wikipedia.org/wiki/Protein_primary_structure",
-      "name": "Amino Acid Sequence",
-      "value": "{{ protein.seq }}"
-    },
-    {
-      "@type": "PropertyValue",
       "sameAs": "https://en.wikipedia.org/wiki/Acid_dissociation_constant",
       "name": "Acid dissociation constant",
       "value": {{ protein.default_state.pka|default:'null'}},
       "unitText": "pKA"
+    },
+    {% endif %}
+    {% if protein.seq %}
+    {
+      "@type": "PropertyValue",
+      "sameAs": "https://en.wikipedia.org/wiki/Protein_primary_structure",
+      "name": "Amino Acid Sequence",
+      "value": "{{ protein.seq }}"
     },
     {
       "@type": "PropertyValue",
@@ -68,6 +70,7 @@
       "value": {{ protein.seq.weight|floatformat:"1" }},
       "unitText": "kDa"
     },
+    {% endif %}
     {
       "@type": "PropertyValue",
       "name": "Oligomerization",
