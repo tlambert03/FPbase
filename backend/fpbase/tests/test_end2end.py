@@ -88,6 +88,7 @@ class TestPagesRender(StaticLiveServerTestCase):
 
         # FIXME: there are some console errors on CI that need to be fixed
         # http://localhost:33339/protein/knownsequence/ - OTS parsing error: invalid sfntVersion: 1702391919'
+        self.browser.get_log("browser")  # clear prior logs
 
     def _interact_scope(self, scope):
         self.browser.find_element(value="select2-fluor-select-container").click()
