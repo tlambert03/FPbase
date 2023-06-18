@@ -5,10 +5,7 @@
 
 import noUiSlider from "nouislider"
 import "../css/nv.d3.css"
-
-;
-
-(function() {
+;(function () {
   if (!$(".microscope-wrapper #spectra svg").length) {
     return
   }
@@ -16,7 +13,7 @@ import "../css/nv.d3.css"
   // Safari 3.0+ "[object HTMLElementConstructor]"
   const isSafari =
     /constructor/i.test(window.HTMLElement) ||
-    (function(p) {
+    (function (p) {
       return p.toString() === "[object SafariRemoteNotification]"
     })(
       !window.safari ||
@@ -24,7 +21,7 @@ import "../css/nv.d3.css"
     )
 
   if (!String.prototype.endsWith) {
-    String.prototype.endsWith = function(search, this_len) {
+    String.prototype.endsWith = function (search, this_len) {
       if (typeof this_len === "undefined" || this_len > this.length) {
         this_len = this.length
       }
@@ -112,14 +109,13 @@ import "../css/nv.d3.css"
     },
     exEffBroadband: {
       type: "checkbox",
-      msg:
-        '"Broadband" excitation efficiency mode <a href="https://help.fpbase.org/tools/microscopes/efficiency#broadband" target="_blank"><i class="fa fa-question-circle text-muted"></i></a>',
+      msg: '"Broadband" excitation efficiency mode <a href="https://help.fpbase.org/tools/microscopes/efficiency#broadband" target="_blank"><i class="fa fa-question-circle text-muted"></i></a>',
     },
   }
 
-  const mobilecheck = function() {
+  const mobilecheck = function () {
     let check = false
-    ;(function(a) {
+    ;(function (a) {
       if (
         /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(
           a
@@ -133,7 +129,7 @@ import "../css/nv.d3.css"
     return check
   }
 
-  const chartOptions = function() {
+  const chartOptions = function () {
     return {
       focusEnable: options.focusEnable,
       focusShowAxisX: false,
@@ -163,7 +159,7 @@ import "../css/nv.d3.css"
     // download if not already downloaded
     if (!(slug in localData)) {
       $.getJSON(`/spectra/${slug}`)
-        .done(function(d) {
+        .done(function (d) {
           for (let n = 0; n < d.spectra.length; n++) {
             d.spectra[n] = padDataLimits(d.spectra[n])
             d.spectra[n].exNormed = 1
@@ -185,7 +181,7 @@ import "../css/nv.d3.css"
           localData[slug] = d.spectra
           dfd.resolve(localData[slug])
         })
-        .fail(function(d) {
+        .fail(function (d) {
           dfd.reject(d.status)
         })
     } else {
@@ -207,7 +203,7 @@ import "../css/nv.d3.css"
 
   function dataHasKey(key) {
     return (
-      $.grep(data, function(obj) {
+      $.grep(data, function (obj) {
         return obj.key == key
       }).length > 0
     )
@@ -215,7 +211,7 @@ import "../css/nv.d3.css"
 
   function dataHasSlug(slug) {
     return (
-      $.grep(data, function(obj) {
+      $.grep(data, function (obj) {
         return obj.slug == slug
       }).length > 0
     )
@@ -223,7 +219,7 @@ import "../css/nv.d3.css"
 
   function dataItemMatching(filter, d) {
     d = d || data
-    return d.filter(function(item) {
+    return d.filter(function (item) {
       for (const key in filter) {
         if (typeof item[key] === "undefined" || item[key] != filter[key])
           return false
@@ -247,7 +243,7 @@ import "../css/nv.d3.css"
       const slugs = concatslug.split("/")
       slugs.shift() // get rid of "merged"
       if (concatslug.endsWith("normed")) slugs.pop()
-      const asyncFunction = function(s, onfinished) {
+      const asyncFunction = function (s, onfinished) {
         if (s.startsWith("laser")) {
           if (localData.hasOwnProperty(s)) {
             sp.push.apply(sp, localData[s])
@@ -262,7 +258,7 @@ import "../css/nv.d3.css"
             sp.push.apply(sp, localData[s])
             onfinished()
           } else {
-            getData(s).then(function() {
+            getData(s).then(function () {
               sp.push.apply(sp, localData[s])
               onfinished()
             })
@@ -270,15 +266,15 @@ import "../css/nv.d3.css"
         }
       }
       let itemsProcessed = 0
-      slugs.forEach(function(s, ind, array) {
-        asyncFunction(s, function() {
+      slugs.forEach(function (s, ind, array) {
+        asyncFunction(s, function () {
           itemsProcessed += 1
           if (itemsProcessed === array.length) {
             const names = slugs
-              .map(function(o) {
+              .map(function (o) {
                 return localData[o][0].key
               })
-              .reduce(function(a, b) {
+              .reduce(function (a, b) {
                 return `${a}+${b}`
               })
             let combined = combineSpectra(sp)
@@ -317,7 +313,7 @@ import "../css/nv.d3.css"
   function pushData(item) {
     if (options.precision > 1) {
       const newitem = { ...item }
-      newitem.values = newitem.values.filter(function(d) {
+      newitem.values = newitem.values.filter(function (d) {
         return d.x % options.precision === 0
       })
       data.push(newitem)
@@ -327,7 +323,7 @@ import "../css/nv.d3.css"
   }
 
   function addMerged(comboslug) {
-    return mergeSpectra(comboslug).then(function(d) {
+    return mergeSpectra(comboslug).then(function (d) {
       pushData(d[0])
     })
   }
@@ -337,20 +333,20 @@ import "../css/nv.d3.css"
     subtype = subtype || false
 
     return getData(slug)
-      .then(function(d) {
+      .then(function (d) {
         for (let i = 0; i < d.length; i++) {
           if ((!subtype | (d[i].type == subtype)) & !dataHasKey(d[i].key)) {
             pushData(JSON.parse(JSON.stringify(d[i]))) // make a copy of the object
           }
         }
       })
-      .fail(function(d) {
+      .fail(function (d) {
         console.log(`item not found: ${slug}`)
       })
   }
 
   function removeSubtypes(subtype) {
-    const ix = $.map(data, function(obj, index) {
+    const ix = $.map(data, function (obj, index) {
       if (obj.type == subtype) {
         return index
       }
@@ -363,7 +359,7 @@ import "../css/nv.d3.css"
     // rather than the whole slug family
     subtype = subtype || false
 
-    const ix = $.map(data, function(obj, index) {
+    const ix = $.map(data, function (obj, index) {
       if (obj.slug == slug) {
         if (!subtype | (obj.type == subtype)) {
           return index
@@ -426,7 +422,7 @@ import "../css/nv.d3.css"
     const maxScalar =
       Math.max.apply(
         null,
-        data.map(function(e) {
+        data.map(function (e) {
           return e.scalar || 0
         })
       ) || 1
@@ -497,7 +493,7 @@ import "../css/nv.d3.css"
           const currentScalar = data[n].exNormed
           if (currentScalar != targetScalar) {
             var S = targetScalar / currentScalar
-            data[n].values = data[n].values.map(function(item) {
+            data[n].values = data[n].values.map(function (item) {
               return { x: item.x, y: item.y * S }
             })
             data[n].exNormed = targetScalar
@@ -507,7 +503,7 @@ import "../css/nv.d3.css"
     } else {
       for (var n = 0; n < data.length; n++) {
         if (data[n].type == "em" && data[n].exNormed != 1) {
-          data[n].values = data[n].values.map(function(item) {
+          data[n].values = data[n].values.map(function (item) {
             return { x: item.x, y: item.y / data[n].exNormed }
           })
           data[n].exNormed = 1
@@ -550,7 +546,7 @@ import "../css/nv.d3.css"
     )
     const definitions = search.split("&")
 
-    definitions.forEach(function(val, key) {
+    definitions.forEach(function (val, key) {
       const parts = val.split("=", 2)
       params[parts[0]] = parts[1]
     })
@@ -558,13 +554,10 @@ import "../css/nv.d3.css"
     return prop && prop in params ? params[prop] : params
   }
 
-  $(".2pcheck").change(function(e) {
+  $(".2pcheck").change(function (e) {
     // when the ex/em/2p checkbox is checked,
     // enable/disable the corresponding item in the data
-    const slug = $(this)
-      .closest(".row")
-      .find("select")
-      .val()
+    const slug = $(this).closest(".row").find("select").val()
     const type = $(this).val()
     for (let i = 0; i < data.length; i++) {
       if (data[i].slug == slug && data[i].type == type) {
@@ -572,7 +565,7 @@ import "../css/nv.d3.css"
       }
       if (type == CONST.stype.twop && localData[slug]) {
         const pos = localData[slug]
-          .map(function(e) {
+          .map(function (e) {
             return e.type
           })
           .indexOf("2p")
@@ -591,35 +584,24 @@ import "../css/nv.d3.css"
     }
     if ("p" in urlParams) {
       // $("#fluor-select").val(urlParams.p).trigger('change.select2');
-      $("#fluor-select")
-        .val(urlParams.p)
-        .change()
+      $("#fluor-select").val(urlParams.p).change()
     }
     if ("c" in urlParams) {
-      $("#config-select option").each(function() {
+      $("#config-select option").each(function () {
         if (this.value == urlParams.c) {
-          $(this)
-            .val(urlParams.c)
-            .prop("selected", true)
-            .change()
+          $(this).val(urlParams.c).prop("selected", true).change()
         }
       })
     } else if ("f" in urlParams) {
-      $.each(urlParams.f.split(","), function(index, val) {
+      $.each(urlParams.f.split(","), function (index, val) {
         if (val.endsWith("!")) {
           val = val.slice(0, -1)
-          $(`#${val}`)
-            .closest("li")
-            .find(".invswitch")
-            .prop("checked", true)
+          $(`#${val}`).closest("li").find(".invswitch").prop("checked", true)
         }
         $(`#${val}`).prop("checked", true)
       })
     } else {
-      $("#config-select option")
-        .eq(1)
-        .prop("selected", true)
-        .change()
+      $("#config-select option").eq(1).prop("selected", true).change()
     }
 
     if ("sticky" in urlParams) {
@@ -634,7 +616,7 @@ import "../css/nv.d3.css"
     setTimeout(updateChart, 300)
   }
 
-  $(function() {
+  $(function () {
     $("#y-zoom-slider").hide()
     // $('[data-toggle="popover"]').popover()
 
@@ -644,7 +626,7 @@ import "../css/nv.d3.css"
       options.calcEff = !(urlParams.eff == "false")
     }
 
-    $.each(userOptions, function(key, value) {
+    $.each(userOptions, function (key, value) {
       let divClasses =
         value.type === "checkbox" ? "custom-control custom-checkbox" : ""
       divClasses += " mb-1 pb-1"
@@ -663,7 +645,7 @@ import "../css/nv.d3.css"
               width: value.type === "number" ? "50px" : "",
             })
               .attr("id", `${key}_input`)
-              .change(function() {
+              .change(function () {
                 if (value.type == "checkbox") {
                   options[key] = this.checked
                   localStorage.setItem(`microscope_${key}`, this.checked)
@@ -713,104 +695,107 @@ import "../css/nv.d3.css"
       )
     })
 
-    // initialize chart
-    nv.addGraph(
-      function() {
-        chart = nv.models.lineChart().options(chartOptions())
-        chart.lines.duration(0)
-        chart.brushExtent(options.startingBrush)
-        chart.interactiveLayer.tooltip.valueFormatter(function(d, i) {
-          if (d) {
-            return `${Math.round(d * 1000) / 10}%`
-          }
-          return "--"
-        })
-
-        // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly
-        // return themselves, not the parent chart, so need to chain separately
-
-        // chart.xAxis.axisLabel('Wavelength (nm)');
-
-        chart.yAxis
-          .axisLabel("Normalized Ex/Em/Transmission")
-          .tickFormat(d3.format("1%"))
-          .axisLabelDistance(25)
-
-        svg.datum(data).call(chart)
-
-        chart.focus.dispatch.on("brush", function() {
-          updateGlobalGradient()
-        })
-
-        chart.dispatch.on("stateChange", function(e) {
-          chart.update()
-        })
-
-        try {
-          const slider = document.getElementById("y-zoom-slider")
-
-          if (slider) {
-            noUiSlider.create(slider, {
-              start: [1], // 4 handles, starting at...
-              behaviour: "tap-drag", // Move handle on tap, bar is draggable
-              orientation: "vertical",
-              direction: "rtl",
-              range: { min: 0.1, max: 1 },
-              format: {
-                to: function(value) {
-                  return Math.round(value * 100) / 100
-                },
-                from: function(value) {
-                  return value
-                },
-              },
-            })
-
-            // update filter settings when user changes slider
-            slider.noUiSlider.on("update", function() {
-              const m = chart.yDomain()[0]
-              chart.yDomain([m, slider.noUiSlider.get()])
-              chart.update()
-            })
-          }
-        } catch (error) {
-          console.error(error)
-        }
-      },
-      function() {
-        resizeYSlider()
-        $(window).resize(function() {
-          if ($(document).width() < 576) {
-            chart.legend.maxKeyLength(14)
-          }
-          chart.update()
-          resizeYSlider()
-        })
-
-        $(".resetXdomain").click(function() {
+    // // import nv from "nvd3"
+    import("nvd3").then((nv) => {
+      // initialize chart
+      nv.addGraph(
+        function () {
+          chart = nv.models.lineChart().options(chartOptions())
+          chart.lines.duration(0)
           chart.brushExtent(options.startingBrush)
-          refreshChart()
-        })
-        $(".scale-btns input").change(function() {
-          setYscale(this.value)
-        })
+          chart.interactiveLayer.tooltip.valueFormatter(function (d, i) {
+            if (d) {
+              return `${Math.round(d * 1000) / 10}%`
+            }
+            return "--"
+          })
 
-        $("#undo-scaling").click(function() {
-          unscale_all()
-        })
-        $(window).on("load", function() {
-          chart.update()
-        })
+          // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly
+          // return themselves, not the parent chart, so need to chain separately
 
-        setup_from_url(urlParams)
+          // chart.xAxis.axisLabel('Wavelength (nm)');
 
-        if (!options.showArea) {
-          setTimeout(function() {
-            $(".nv-groups").addClass("area-hidden")
-          }, 100)
+          chart.yAxis
+            .axisLabel("Normalized Ex/Em/Transmission")
+            .tickFormat(d3.format("1%"))
+            .axisLabelDistance(25)
+
+          svg.datum(data).call(chart)
+
+          chart.focus.dispatch.on("brush", function () {
+            updateGlobalGradient()
+          })
+
+          chart.dispatch.on("stateChange", function (e) {
+            chart.update()
+          })
+
+          try {
+            const slider = document.getElementById("y-zoom-slider")
+
+            if (slider) {
+              noUiSlider.create(slider, {
+                start: [1], // 4 handles, starting at...
+                behaviour: "tap-drag", // Move handle on tap, bar is draggable
+                orientation: "vertical",
+                direction: "rtl",
+                range: { min: 0.1, max: 1 },
+                format: {
+                  to: function (value) {
+                    return Math.round(value * 100) / 100
+                  },
+                  from: function (value) {
+                    return value
+                  },
+                },
+              })
+
+              // update filter settings when user changes slider
+              slider.noUiSlider.on("update", function () {
+                const m = chart.yDomain()[0]
+                chart.yDomain([m, slider.noUiSlider.get()])
+                chart.update()
+              })
+            }
+          } catch (error) {
+            console.error(error)
+          }
+        },
+        function () {
+          resizeYSlider()
+          $(window).resize(function () {
+            if ($(document).width() < 576) {
+              chart.legend.maxKeyLength(14)
+            }
+            chart.update()
+            resizeYSlider()
+          })
+
+          $(".resetXdomain").click(function () {
+            chart.brushExtent(options.startingBrush)
+            refreshChart()
+          })
+          $(".scale-btns input").change(function () {
+            setYscale(this.value)
+          })
+
+          $("#undo-scaling").click(function () {
+            unscale_all()
+          })
+          $(window).on("load", function () {
+            chart.update()
+          })
+
+          setup_from_url(urlParams)
+
+          if (!options.showArea) {
+            setTimeout(function () {
+              $(".nv-groups").addClass("area-hidden")
+            }, 100)
+          }
         }
-      }
-    )
+      )
+    })
 
     $("#fluor-select").select2(
       {
@@ -827,35 +812,31 @@ import "../css/nv.d3.css"
       }
     }
 
-    $("#scale-camera").change(function() {
+    $("#scale-camera").change(function () {
       updateEfficiency()
       refreshChart()
     })
 
     $(
       ".invswitch, .filter-selector, .fluor-selector, #light-select, #camera-select, scaleToEC_input, scaleToQY_input, #merge-light-exfilter"
-    ).change(function() {
+    ).change(function () {
       if (options.oneAtaTime && !$(this).hasClass("invswitch")) {
-        $(this)
-          .closest(".card")
-          .find("input")
-          .not(this)
-          .prop("checked", false)
+        $(this).closest(".card").find("input").not(this).prop("checked", false)
       }
       updateChart()
     })
 
-    $(".filter-selector, .invswitch").change(function() {
+    $(".filter-selector, .invswitch").change(function () {
       $("#config-select").val("")
     })
 
-    $("#config-select").change(function() {
-      $(".filter-selector:checked").each(function() {
+    $("#config-select").change(function () {
+      $(".filter-selector:checked").each(function () {
         $(this).prop("checked", false)
       })
 
       const selected = $(this).find(":selected")
-      $.each(selected.data("filters"), function(i, d) {
+      $.each(selected.data("filters"), function (i, d) {
         $(`#invswitch-filter-${d[0]}`).prop("checked", d[2])
         $(`#filter-${d[1]}-${d[0]}`).prop("checked", true)
       })
@@ -882,7 +863,7 @@ import "../css/nv.d3.css"
       updateChart()
     })
 
-    $(".switchmodal").click(function(e) {
+    $(".switchmodal").click(function (e) {
       e.preventDefault()
       $("#settingsModal").modal("hide")
       $("#embedModal").modal("show")
@@ -914,16 +895,13 @@ import "../css/nv.d3.css"
   // / Form Events
 
   let focusedItem
-  $("body").on("focus", ".fluor-selector, .select2", function(event) {
+  $("body").on("focus", ".fluor-selector, .select2", function (event) {
     // Store the current value on focus and on change
-    focusedItem = $(this)
-      .closest(".row")
-      .find(".fluor-selector")
-      .val()
+    focusedItem = $(this).closest(".row").find(".fluor-selector").val()
   })
 
   // main function when fluor-selector has been changed
-  $("body").on("change", ".fluor-selector", function(event) {
+  $("body").on("change", ".fluor-selector", function (event) {
     const selector = this
     const slug = $(this).val()
     const row = $(this).closest(".row")
@@ -936,15 +914,9 @@ import "../css/nv.d3.css"
           .replace(" ex", "")} is already selected.`
       )
       if (focusedItem) {
-        row
-          .find(".fluor-selector")
-          .val(focusedItem)
-          .change()
+        row.find(".fluor-selector").val(focusedItem).change()
       } else {
-        row
-          .find(".fluor-selector")
-          .val(0)
-          .change()
+        row.find(".fluor-selector").val(0).change()
       }
 
       return
@@ -952,14 +924,12 @@ import "../css/nv.d3.css"
 
     // Remove the previous item fom the list
     removeItem(focusedItem)
-    $(selector)
-      .siblings(".item-link")
-      .remove()
+    $(selector).siblings(".item-link").remove()
 
     // Add the new item to the data (unless it's blank)
     // then update the chart
     if (slug != null && slug != 0) {
-      addItem(slug).then(function() {
+      addItem(slug).then(function () {
         if (localData[slug][0].url) {
           $(selector)
             .parent()
@@ -984,7 +954,7 @@ import "../css/nv.d3.css"
         // if the slug has a two-2 item...
         if (
           localData[slug]
-            .map(function(e) {
+            .map(function (e) {
               return e.type
             })
             .indexOf(CONST.stype.twop) > -1
@@ -1013,7 +983,7 @@ import "../css/nv.d3.css"
     focusedItem = slug
   })
 
-  $("body").on("click", ".remove-row", function(e) {
+  $("body").on("click", ".remove-row", function (e) {
     const row = $(this).closest(".row")
     let rowslug = row.find("select").val()
     if (rowslug == "custom_bp" || rowslug == "custom_laser") {
@@ -1514,12 +1484,12 @@ import "../css/nv.d3.css"
     const right = Math.min(ar1[ar1.length - 1].x, ar2[ar2.length - 1].x)
 
     const a1 = ar1.slice(
-      ar1.findIndex(i => i.x === left),
-      ar1.findIndex(i => i.x === right)
+      ar1.findIndex((i) => i.x === left),
+      ar1.findIndex((i) => i.x === right)
     )
     const a2 = ar2.slice(
-      ar2.findIndex(i => i.x === left),
-      ar2.findIndex(i => i.x === right)
+      ar2.findIndex((i) => i.x === left),
+      ar2.findIndex((i) => i.x === right)
     )
     for (let i = 0; i < a1.length; i++) {
       output.push({ x: a1[i].x, y: a1[i].y * a2[i].y })
@@ -1567,7 +1537,7 @@ import "../css/nv.d3.css"
       maxY ||
       Math.max.apply(
         Math,
-        specvals.map(function(a) {
+        specvals.map(function (a) {
           return a.y
         })
       )
@@ -1578,7 +1548,7 @@ import "../css/nv.d3.css"
   }
 
   function combineSpectra(pathlist) {
-    return pathlist.reduce(function(acc, cur) {
+    return pathlist.reduce(function (acc, cur) {
       if (acc) {
         return spectral_product(acc, cur.values)
       }
@@ -1591,8 +1561,8 @@ import "../css/nv.d3.css"
     const empath = []
     const expath = []
     const bspath = $(".bs-filter:checked")
-      .map(function() {
-        return data.find(d => d.slug === this.value)
+      .map(function () {
+        return data.find((d) => d.slug === this.value)
       })
       .get()
 
@@ -1606,15 +1576,15 @@ import "../css/nv.d3.css"
     empath.push.apply(
       empath,
       $(".em-filter:checked")
-        .map(function() {
-          return data.find(d => d.slug === this.value)
+        .map(function () {
+          return data.find((d) => d.slug === this.value)
         })
         .get()
     )
     if ($("#scale-camera").prop("checked")) {
       if ($("#camera-select :selected").val()) {
         empath.push(
-          data.find(d => d.slug === $("#camera-select :selected").val())
+          data.find((d) => d.slug === $("#camera-select :selected").val())
         )
       }
     }
@@ -1623,7 +1593,7 @@ import "../css/nv.d3.css"
       $("#merge-light-exfilter").prop("checked") &&
       $("#light-select :selected").val() !== ""
     ) {
-      const d = data.find(d => d.slug.indexOf("merged") >= 0)
+      const d = data.find((d) => d.slug.indexOf("merged") >= 0)
       if (d) {
         expath.push(d)
       }
@@ -1631,14 +1601,14 @@ import "../css/nv.d3.css"
       expath.push.apply(
         expath,
         $(".ex-filter:checked")
-          .map(function() {
-            return data.find(d => d.slug === this.value)
+          .map(function () {
+            return data.find((d) => d.slug === this.value)
           })
           .get()
       )
       if ($("#light-select :selected").val()) {
         expath.push(
-          data.find(d => d.slug === $("#light-select :selected").val())
+          data.find((d) => d.slug === $("#light-select :selected").val())
         )
       }
     }
@@ -1679,21 +1649,21 @@ import "../css/nv.d3.css"
     }
   }
 
-  d3.selection.prototype.moveToFront = function() {
-    return this.each(function() {
+  d3.selection.prototype.moveToFront = function () {
+    return this.each(function () {
       this.parentNode.appendChild(this)
     })
   }
 
-  d3.selection.prototype.moveToBack = function() {
-    return this.each(function() {
+  d3.selection.prototype.moveToBack = function () {
+    return this.each(function () {
       const { firstChild } = this.parentNode
       if (firstChild) {
         this.parentNode.insertBefore(this, firstChild)
       }
     })
   }
-  Array.prototype.clean = function(deleteValue) {
+  Array.prototype.clean = function (deleteValue) {
     for (let i = 0; i < this.length; i++) {
       if (this[i] == deleteValue) {
         this.splice(i, 1)
@@ -1717,16 +1687,14 @@ import "../css/nv.d3.css"
     for (_i = 0, _len = elements.length; _i < _len; _i++) {
       el = elements[_i]
       _results.push(
-        (function(el) {
+        (function (el) {
           let resizeText
           let _results1
-          resizeText = function() {
+          resizeText = function () {
             let elNewFontSize
-            elNewFontSize = `${parseInt(
-              $(el)
-                .css("font-size")
-                .slice(0, -2)
-            ) - 0.5}px`
+            elNewFontSize = `${
+              parseInt($(el).css("font-size").slice(0, -2)) - 0.5
+            }px`
             return $(el).css("font-size", elNewFontSize)
           }
           _results1 = []
@@ -1751,16 +1719,16 @@ import "../css/nv.d3.css"
     ) {
       list = selected
         .not("#light-select :selected, .ex-filter:checked")
-        .map(function() {
+        .map(function () {
           return $(this).val()
         })
       let _concat = "merged/"
       _concat += $("#light-select :selected, .ex-filter:checked")
-        .map(function(i, o) {
+        .map(function (i, o) {
           return o.value
         })
         .get()
-        .reduce(function(a, b) {
+        .reduce(function (a, b) {
           return `${a}/${b}`
         })
       if (options.normMergedEx) {
@@ -1768,7 +1736,7 @@ import "../css/nv.d3.css"
       }
       list.push(_concat)
     } else {
-      list = selected.map(function() {
+      list = selected.map(function () {
         return $(this).val()
       })
     }
@@ -1801,7 +1769,7 @@ import "../css/nv.d3.css"
 
   function invertInverted() {
     const inverted = $(".invswitch:checked")
-      .map(function() {
+      .map(function () {
         return $(this).val()
       })
       .get()
@@ -1822,7 +1790,7 @@ import "../css/nv.d3.css"
   function updateChart() {
     const deferreds = updateData()
     if (deferreds) {
-      $.when.apply($, deferreds).then(function() {
+      $.when.apply($, deferreds).then(function () {
         invertInverted()
         updateEfficiency()
         refreshChart()
@@ -1846,7 +1814,7 @@ import "../css/nv.d3.css"
     if (L.data("type") === "laser") {
       const Lwave = +L.val().replace("laser-", "")
       try {
-        var emeff = a.emvalues.filter(function(d) {
+        var emeff = a.emvalues.filter(function (d) {
           return d.x === Lwave || d.x === Lwave + 1
         })[0].y
       } catch (e) {
@@ -1856,7 +1824,7 @@ import "../css/nv.d3.css"
       try {
         if ($("#scale-camera").prop("checked")) {
           var cameff = dataItemMatching({ category: "c" })[0].values.filter(
-            function(d) {
+            function (d) {
               return d.x === Lwave || d.x === Lwave + 1
             }
           )[0].y
@@ -1910,16 +1878,16 @@ import "../css/nv.d3.css"
     }
   }
 
-  $(window).on("load", function() {
-    setTimeout(function() {
+  $(window).on("load", function () {
+    setTimeout(function () {
       autoSizeText()
       chart && chart.update()
       if ($(document).width() < 576) {
         chart.legend.maxKeyLength(15)
       }
 
-      $(".filter-label").each(function(i) {
-        this.innerHTML = this.innerHTML.replace(/^\s*\w+/, function(x) {
+      $(".filter-label").each(function (i) {
+        this.innerHTML = this.innerHTML.replace(/^\s*\w+/, function (x) {
           const f = x.trim().toLowerCase()
           if (
             f === "chroma" ||
@@ -1937,7 +1905,7 @@ import "../css/nv.d3.css"
 
   if ($(".microscope-wrapper").length) {
     const topofDiv = $(".microscope-wrapper").offset().top
-    $(window).scroll(function() {
+    $(window).scroll(function () {
       if (options.stickySpectra) {
         if ($(window).scrollTop() > topofDiv) {
           $(".microscope-wrapper").addClass("shadowed")
@@ -1948,7 +1916,7 @@ import "../css/nv.d3.css"
     })
   }
 
-  $("#stickyPin").click(function() {
+  $("#stickyPin").click(function () {
     $(".pin-wrapper").toggleClass("rotate-90")
     if ($(".pin-wrapper").hasClass("rotate-90")) {
       options.stickySpectra = false
@@ -1967,14 +1935,9 @@ import "../css/nv.d3.css"
       params.push(`c=${encodeURIComponent($("#config-select").val())}`)
     } else {
       const filters = $(".filter-selector:checked")
-        .map(function(i, d) {
+        .map(function (i, d) {
           let v = $(d).prop("id")
-          if (
-            $(this)
-              .closest("li")
-              .find(".invswitch")
-              .prop("checked")
-          ) {
+          if ($(this).closest("li").find(".invswitch").prop("checked")) {
             v += "!"
           }
           return encodeURIComponent(v)
@@ -2051,13 +2014,13 @@ import "../css/nv.d3.css"
     return succeed
   }
 
-  $("#copyButton").click(function() {
+  $("#copyButton").click(function () {
     $("#shareLink").prop("disabled", false)
     copyToClipboard(document.getElementById("shareLink"))
     $("#shareLink").prop("disabled", true)
   })
 
-  $("#share-button").click(function() {
+  $("#share-button").click(function () {
     const link = build_current_uri()
     $("#shareLink").val(link)
     $("#mailLink").attr(

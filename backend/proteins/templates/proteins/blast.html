@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 
 {% block title %}FPbase Fluorescent Protein Sequence BLAST{% endblock %}
 {% block meta-description %}Search the database at FPbase for fluorescent protein sequences similar to a query amino acid or nucleotide sequence.{% endblock %}
@@ -8,7 +7,7 @@
 {% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
 {% block twitter_title %}FPbase Fluorescent Protein Sequence BLAST{% endblock twitter_title %}
 {% block twitter_description %}Search the database at FPbase for fluorescent protein sequences similar to a query amino acid or nucleotide sequence.{% endblock twitter_description %}
-{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% webpack_static 'images/blast_twitter_card.png' %}{% endblock twitter_image %}
+{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% vite_asset_url 'images/blast_twitter_card.png' %}{% endblock twitter_image %}
 
 
 {% block content %}
@@ -26,6 +25,6 @@
 </p>
 
 <div id="blast-app" class="mt-3"></div>
-{% render_bundle 'blast' %}
+{% vite_asset 'blast-app' %}
 
 {% endblock content %}

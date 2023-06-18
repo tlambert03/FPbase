@@ -4,7 +4,6 @@ import "nouislider/distribute/nouislider.min.css"
 import "./css/style.scss"
 import "./css/nv.d3.css"
 
-import "bootstrap"
 
 import "./js/my-fontawesome.js"
 

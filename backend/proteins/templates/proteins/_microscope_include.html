@@ -1,5 +1,9 @@
-{% load webpack_static from webpack_loader %}
+{% load django_vite %}
 {% load webp_picture from protein_tags %}
+
+{% block extrahead %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha512-oJp0DdQuQQrRsKVly+Ww6fAN1GwJN7d1bi8UubpEbzDUh84WrJ2CFPBnT4LqBCcfqTcHR5OGXFFhaPe3g1/bzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock extrahead %}
 
 {% if object.description %}
 <div class="container font-italic text-muted text-center">
@@ -388,10 +392,10 @@
         <p>Excitation efficiency is the percentage of light incident upon the sample that can be absorbed by the fluorophore.  It is calculated as the area under the curve for the combined light + excitation filters (and dichroics) + fluorophore excitation spectra, divided by the area under the curve of the light + excitation filters alone.  For example, a (narrow band) laser at the peak absorption wavelength of a fluorophore would have near 100% efficiency;  but a very broadband excitation spectrum, even if it overlaps the peak absorption wavelength, can have relatively poor excitation efficiency if it contains excess off-peak energy.  Even though the 460/80x filter shown in the first image below covers much of the EGFP excitation spectrum, it has lower excitation efficiency (58%, represented by the area with diagonal lines) than a 488nm laser right at the peak excitation wavelength of EGFP (99.8% efficiency):</p>
         <div class="row mb-3 mt-2">
           <div class='col-12 col-md-6'>
-            <img src="{% webpack_static 'images/bad_ex_efficiency.gif' %}" class="img-fluid mx-auto d-block mb-2" alt='poor excitation efficiency'>
+            <img src="{% vite_asset_url 'images/bad_ex_efficiency.gif' %}" class="img-fluid mx-auto d-block mb-2" alt='poor excitation efficiency'>
           </div>
           <div class='col-12 col-md-6'>
-            <img src="{% webpack_static 'images/good_ex_efficiency.gif' %}" class="img-fluid mx-auto d-block mb-2" alt='poor excitation efficiency'>
+            <img src="{% vite_asset_url 'images/good_ex_efficiency.gif' %}" class="img-fluid mx-auto d-block mb-2" alt='poor excitation efficiency'>
           </div>
         </div>
         <p><strong>Caution!</strong><br>One potentially confusing thing is that we cannot make any assumptions about the power of the light source (it is assumed to be "as high as you need it").  So, for example, a laser at peak absorption wavelength will <em>still</em> have excellent excitation efficiency even if a poorly matched excitation filter is added to the light path (since one could theoretically just turn up the laser infinitely).</p>

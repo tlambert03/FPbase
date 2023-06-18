@@ -1,4 +1,5 @@
-$(function() {
+$(window).on('load', function() {
+
     $("#protein-image .no-glow").fadeOut(2200)
     $("#protein-image .glow").fadeIn(2200)
 

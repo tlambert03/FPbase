@@ -14,5 +14,5 @@ export default defineConfig({
     },
     rollupOptions: { external }
   },
-  plugins: [react()],
+  // plugins: [react()],
 })

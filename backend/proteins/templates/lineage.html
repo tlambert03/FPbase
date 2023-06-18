@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
+{% load django_vite %}
 
 {% block extrahead %}
-    <link rel="preload" href="{% webpack_static 'images/GFP_spinner.gif' %}" as="image">
+    <link rel="preload" href="{% vite_asset_url 'images/GFP_spinner.gif' %}" as="image">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha512-oJp0DdQuQQrRsKVly+Ww6fAN1GwJN7d1bi8UubpEbzDUh84WrJ2CFPBnT4LqBCcfqTcHR5OGXFFhaPe3g1/bzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock extrahead %}
 
 {% block title %}Fluorescent Protein Lineages at FPbase{% endblock %}
@@ -11,7 +12,7 @@
 {% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
 {% block twitter_title %}Fluorescent Protein Lineages at FPbase{% endblock twitter_title %}
 {% block twitter_description %}An interactive fluorescent protein lineage viewer. Explore mutations and directed evolution of hundreds of fluorescent proteins.{% endblock twitter_description %}
-{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% webpack_static 'images/lineage_twitter_card.png' %}{% endblock twitter_image %}
+{% block twitter_image %}{% vite_asset_url 'images/lineage_twitter_card.png' %}{% endblock twitter_image %}
 
 {% block content %}
 
@@ -32,7 +33,7 @@
 
 
 $('.lineage').each(function(i, el){
-  $(el).html('<p>loading lineage info... <img src="' + '{% webpack_static 'images/GFP_spinner.gif' %}' + '">');
+  $(el).html('<p>loading lineage info... <img src="' + '{% vite_asset_url 'images/GFP_spinner.gif' %}' + '">');
   $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
     $(el).empty();
     var chart = window.FPBASE.LineageChart({

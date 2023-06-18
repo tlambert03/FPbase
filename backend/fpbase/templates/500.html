@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
+{% load django_vite %}
 
 {% block title %}Server Error{% endblock %}
 
@@ -12,7 +12,7 @@
 
 {% block javascript %}
 
-<script src="{% webpack_static 'sentry.js' %}"></script>
+{% vite_asset 'sentry.js' %}
 
 {% if sentry_event_id %}
 <script>

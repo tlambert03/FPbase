@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://www.ebi.ac.uk">
 {% endif %}
   <link rel="prefetch" href='https://fpbase.s3.amazonaws.com/snapgene.xml'>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha512-oJp0DdQuQQrRsKVly+Ww6fAN1GwJN7d1bi8UubpEbzDUh84WrJ2CFPBnT4LqBCcfqTcHR5OGXFFhaPe3g1/bzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock extrahead %}
 
 
@@ -484,11 +484,11 @@
   <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
 
   {% if protein.has_spectra %}
-  {% vite_asset 'src/spectra-viewer.js' %}
+  {% vite_asset 'simple-spectra-viewer.js' %}
   {% endif %}
 
   {% if protein.pdb %}
-    {% vite_asset 'src/my-litemol.js' attrs='defer' %}
+    {% vite_asset 'my-litemol.js' attrs='defer' %}
     <script type="text/javascript">
     $(window).on('load', function() {
       initPDB({{protein.pdb|safe}});
