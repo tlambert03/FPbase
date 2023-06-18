@@ -1,5 +1,3 @@
-import d3 from "d3"
-import nv from "nvd3"
 import "../css/nv.d3.css"
 
 export default function initFRET() {

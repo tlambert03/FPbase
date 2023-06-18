@@ -15,34 +15,34 @@ import "./js/favit.js"
 import "./js/jquery.formset.js"
 import "./js/onload.js"
 import "./js/microscope.js"
-// import "./js/scope_report.js"
+import "./js/scope_report.js"
 
-// import FPPropChart from "./js/ichart.js"
-// import initAutocomplete from "./js/algolia.js"
-// import LineageChart from "./js/lineage.js"
-// import initFRET from "./js/fret.js"
+import FPPropChart from "./js/ichart.js"
+import initAutocomplete from "./js/algolia.js"
+import LineageChart from "./js/lineage.js"
+import initFRET from "./js/fret.js"
 
-// window.FPBASE = window.FPBASE || {}
+window.FPBASE = window.FPBASE || {}
 
-// if (process.env.NODE_ENV === "production" && Boolean(process.env.SENTRY_DSN)) {
-//   import("@sentry/browser").then(Sentry => {
-//     window.Sentry = Sentry
-//     Sentry.init({
-//       dsn: process.env.SENTRY_DSN,
-//       release: process.env.SOURCE_VERSION
-//     })
-//     if (window.FPBASE.user !== undefined) {
-//       Sentry.configureScope(scope => {
-//         scope.setUser(window.FPBASE.user)
-//       })
-//     }
-//   })
-// }
+if (process.env.NODE_ENV === "production" && Boolean(process.env.SENTRY_DSN)) {
+  import("@sentry/browser").then(Sentry => {
+    window.Sentry = Sentry
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      release: process.env.SOURCE_VERSION
+    })
+    if (window.FPBASE.user !== undefined) {
+      Sentry.configureScope(scope => {
+        scope.setUser(window.FPBASE.user)
+      })
+    }
+  })
+}
 
-// window.FPBASE = {
-//   ...window.FPBASE,
-//   initAutocomplete,
-//   FPPropChart,
-//   LineageChart,
-//   initFRET
-// }
+window.FPBASE = {
+  ...window.FPBASE,
+  initAutocomplete,
+  FPPropChart,
+  LineageChart,
+  initFRET
+}

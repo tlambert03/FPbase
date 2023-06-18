@@ -36,6 +36,17 @@ def uses_frontend(request):
         subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
 
 
+@pytest.fixture()
+def use_real_webpack_loader(monkeypatch):
+    from webpack_loader import config, loader, utils
+
+    monkeypatch.setattr(
+        utils,
+        "get_loader",
+        lambda config_name: loader.WebpackLoader(config_name, config.load_config(config_name)),
+    )
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _mock_blast_db(tmp_path_factory: "TempPathFactory"):
     from proteins.util import blast
@@ -47,14 +58,3 @@ def _mock_blast_db(tmp_path_factory: "TempPathFactory"):
         yield
     finally:
         blast.BLAST_DB = prev
-
-
-@pytest.fixture()
-def use_real_webpack_loader(monkeypatch):
-    from webpack_loader import config, loader, utils
-
-    monkeypatch.setattr(
-        utils,
-        "get_loader",
-        lambda config_name: loader.WebpackLoader(config_name, config.load_config(config_name)),
-    )

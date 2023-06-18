@@ -16,6 +16,9 @@ export default defineConfig({
   resolve: {
     extensions: [".js", ".jsx", ".json"],
   },
+  optimizeDeps: {
+    exclude: ["regenerator-runtime/runtime", "bootstrap"],
+  },
   build: {
     // Relative to the root
     outDir: "../dist",
@@ -23,7 +26,13 @@ export default defineConfig({
     manifest: true,
     emptyOutDir: true,
     target: "es2015",
-    plugins: [react()],
+
+    plugins: [
+      // with this plugin I get this problem:
+      // https://stackoverflow.com/questions/75883720/504-outdated-optimize-dep-while-using-react-vite
+      // react(),
+    ],
+
     rollupOptions: {
       input: {
         main: "./src/index.js",

@@ -1,7 +1,4 @@
 import ProgressBar from "progressbar.js"
-import nv from "nvd3"
-import "../css/nv.d3.css"
-import d3 from "d3"
 
 function compare(a, b) {
   if (a.key < b.key) return 1
@@ -10,10 +7,7 @@ function compare(a, b) {
 }
 
 function titleCase(str) {
-  str = str
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .split(" ")
+  str = str.replace(/_/g, " ").toLowerCase().split(" ")
   for (var i = 0; i < str.length; i++) {
     str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1)
   }
@@ -32,7 +26,7 @@ function slugify(text) {
 }
 
 $.fn.extend({
-  scopeReport: function(config) {
+  scopeReport: function (config) {
     var CSRF_TOKEN = config.csrfToken
     var SCOPE_ID = config.scopeID
     var SCOPE_URL = config.scopeURL
@@ -50,7 +44,7 @@ $.fn.extend({
     var dt
 
     function updateData() {
-      $.get(window.location + "json/", function(d) {
+      $.get(window.location + "json/", function (d) {
         $("#update-alert").show()
         if (!(d.report && d.report.length)) {
           $("#status").html(
@@ -65,11 +59,7 @@ $.fn.extend({
         FLUORS = d.fluors
         REPORT = d.report
         $("#report_chart").height(750)
-        chartData
-          .datum(REPORT)
-          .transition()
-          .duration(300)
-          .call(chart)
+        chartData.datum(REPORT).transition().duration(300).call(chart)
         $("#status").hide()
         $(".needs-data").show()
 
@@ -80,18 +70,18 @@ $.fn.extend({
             title: "EC",
             class: "col_ext_coeff",
             visible:
-              localStorage.getItem(SCOPE_ID + "ext_coeff_checkbox") === "true"
+              localStorage.getItem(SCOPE_ID + "ext_coeff_checkbox") === "true",
           },
           {
             title: "QY",
             class: "col_qy",
-            visible: localStorage.getItem(SCOPE_ID + "qy_checkbox") === "true"
+            visible: localStorage.getItem(SCOPE_ID + "qy_checkbox") === "true",
           },
           { title: "Ex Max", class: "col_ex_max", visible: false },
           { title: "Em Max", class: "col_em_max", visible: false },
           { title: "Agg", class: "col_agg", visible: false },
           { title: "Switch Type", class: "col_switch_type", visible: false },
-          { title: "UUID", class: "col_uuid", visible: false }
+          { title: "UUID", class: "col_uuid", visible: false },
         ]
         var ocNames = []
         var fluorData = {}
@@ -111,7 +101,7 @@ $.fn.extend({
             colTitles.push({
               title: thisOC + " " + titleCase(colHeaders[x]),
               class: cls,
-              visible: vis
+              visible: vis,
             })
           }
 
@@ -168,7 +158,7 @@ $.fn.extend({
             FLUORS[fluor]["em_max"],
             FLUORS[fluor]["agg"],
             FLUORS[fluor]["switch_type"],
-            FLUORS[fluor]["uuid"]
+            FLUORS[fluor]["uuid"],
           ]
           for (var o = 0; o < ocNames.length; o++) {
             if (fluorData[fluor].hasOwnProperty(ocNames[o])) {
@@ -192,13 +182,13 @@ $.fn.extend({
                 type: "checkbox",
                 id: slugify(ocNames[o]) + "_checkbox",
                 value: slugify(ocNames[o]),
-                checked: ischecked
+                checked: ischecked,
               })
             )
             .append(
               $("<label>", {
                 class: "custom-control-label",
-                for: slugify(ocNames[o]) + "_checkbox"
+                for: slugify(ocNames[o]) + "_checkbox",
               }).text(ocNames[o])
             )
 
@@ -206,13 +196,13 @@ $.fn.extend({
         }
 
         var buttonCommon = {
-          init: function(api, node, config) {
+          init: function (api, node, config) {
             $(node).removeClass("btn-secondary")
           },
           className: "btn-sm btn-primary",
           exportOptions: {
             format: {
-              body: function(data, row, column, node) {
+              body: function (data, row, column, node) {
                 switch (column) {
                   case 0:
                     if (data.startsWith("<a")) {
@@ -225,12 +215,12 @@ $.fn.extend({
                     }
                     return data
                 }
-              }
-            }
-          }
+              },
+            },
+          },
         }
 
-        colTitles = colTitles.map(function(d) {
+        colTitles = colTitles.map(function (d) {
           d.orderSequence = ["desc", "asc"]
           return d
         })
@@ -247,32 +237,32 @@ $.fn.extend({
             "<'row mt-2 small text-small'<'col-sm-12 col-md-3 d-none d-md-block'B><'col-xs-12 col-sm-5 col-md-4'i><'col-xs-12 col-sm-7 col-md-5'p>>",
           buttons: [
             $.extend(true, {}, buttonCommon, {
-              extend: "copyHtml5"
+              extend: "copyHtml5",
             }),
             $.extend(true, {}, buttonCommon, {
-              extend: "excelHtml5"
+              extend: "excelHtml5",
             }),
             $.extend(true, {}, buttonCommon, {
-              extend: "csvHtml5"
+              extend: "csvHtml5",
             }),
             {
               text: "JSON",
               className: "btn-sm btn-primary json-button",
-              action: function(e, dt, node, config) {
+              action: function (e, dt, node, config) {
                 $.fn.dataTable.fileSave(
                   new Blob([JSON.stringify(d.report)]),
                   "report_" + SCOPE_ID + ".json"
                 )
-              }
-            }
-          ]
+              },
+            },
+          ],
         })
 
         dt.clear()
         dt.rows.add(dataRows)
         dt.draw()
 
-        $("#report_table_filter input").on("keyup", function() {
+        $("#report_table_filter input").on("keyup", function () {
           var rx = this.value.replace(/,\s*$/g, "").replace(/,\s*/g, "|.*")
           try {
             //var regex = new RegExp(rx)
@@ -293,7 +283,7 @@ $.fn.extend({
         color: "#74779B",
         trailColor: "#ddd",
         trailWidth: 1,
-        svgStyle: { width: "100%", height: "100%" }
+        svgStyle: { width: "100%", height: "100%" },
       })
     }
 
@@ -316,13 +306,13 @@ $.fn.extend({
           data: {
             action: "check",
             job_id: JOB_ID,
-            csrfmiddlewaretoken: CSRF_TOKEN
+            csrfmiddlewaretoken: CSRF_TOKEN,
           },
           dataType: "json",
-          success: function(data) {
+          success: function (data) {
             if (data.ready || data.info === undefined || data.info === null) {
               // job went to completion
-              line.animate(1, { duration: 200 }, function() {
+              line.animate(1, { duration: 200 }, function () {
                 $("#update-alert").fadeOut()
               })
               reset_button()
@@ -337,18 +327,18 @@ $.fn.extend({
               LAST_TIME = Date.now()
 
               line.animate(Math.min(nextPosition / data.info.total, 1), {
-                duration: nextCheck
+                duration: nextCheck,
               })
 
               setTimeout(check_status, nextCheck)
               //window.CHECKER = setInterval(check_status, interval);
             }
-          }
+          },
         })
       }
     }
 
-    $("#request-report").click(function(e) {
+    $("#request-report").click(function (e) {
       $("#request-report").attr("disabled", true)
       $("#request-report").val("Running")
 
@@ -365,10 +355,10 @@ $.fn.extend({
           scope_id: SCOPE_ID,
           csrfmiddlewaretoken: CSRF_TOKEN,
           job_id: JOB_ID,
-          outdated: JSON.stringify(OUTDATED)
+          outdated: JSON.stringify(OUTDATED),
         },
         dataType: "json",
-        success: function(data) {
+        success: function (data) {
           if (data.canceled) {
             line.animate(0, { duration: 200 })
             JOB_ID = null
@@ -389,7 +379,7 @@ $.fn.extend({
             setTimeout(check_status, 250, interval - 250)
           }
         },
-        error: function(req, status, err) {
+        error: function (req, status, err) {
           $("#alert-msg").text(
             "Sorry!  There was an unexpected error on the server.  Please try again in a few minutes, or contact us if the problem persists."
           )
@@ -397,7 +387,7 @@ $.fn.extend({
           $("#update-alert").addClass("alert-danger")
           $("#request-report").val("Error!")
           $("#request-report").addClass("btn-danger")
-          setTimeout(function() {
+          setTimeout(function () {
             reset_button()
             $("#request-report").attr("disabled", false)
             $("#alert-msg").text("try again?...")
@@ -405,28 +395,28 @@ $.fn.extend({
             $("#update-alert").addClass("alert-info")
             $("#request-report").removeClass("btn-danger")
           }, 20000)
-        }
+        },
       })
     })
 
-    $(document).ready(function() {
+    $(document).ready(function () {
       // create the chart
-      nv.addGraph(function() {
+      nv.addGraph(function () {
         chart = nv.models
           .scatterChart()
-          .x(function(d) {
+          .x(function (d) {
             if (d.ex_eff && d.ex_eff !== null) {
               return d.ex_eff
             }
             return 0
           })
-          .y(function(d) {
+          .y(function (d) {
             if (d.em_eff && d.em_eff !== null) {
               return d.em_eff
             }
             return 0
           })
-          .pointSize(function(d) {
+          .pointSize(function (d) {
             return Math.max(1, +d.brightness * 2)
           })
           .pointRange([10, 400])
@@ -446,13 +436,9 @@ $.fn.extend({
           .axisLabel("Collection Efficiency")
 
         chartData = d3.select("#report_chart svg")
-        chartData
-          .datum([])
-          .transition()
-          .duration(300)
-          .call(chart)
+        chartData.datum([]).transition().duration(300).call(chart)
         nv.utils.windowResize(chart.update)
-        chart.tooltip.contentGenerator(function(key, x, y, e, graph) {
+        chart.tooltip.contentGenerator(function (key, x, y, e, graph) {
           return (
             '<div class="report-tooltip" style="margin-top:' +
             window.scrollY +
@@ -477,7 +463,7 @@ $.fn.extend({
             "</div>"
           )
         })
-        chart.scatter.dispatch.on("elementClick", function(event) {
+        chart.scatter.dispatch.on("elementClick", function (event) {
           //location.href = event.point.url;
           window.open(event.point.url)
         })
@@ -485,7 +471,7 @@ $.fn.extend({
       })
       updateData()
 
-      $("body").on("click", "input.toggle-vis, input.meas-vis", function(e) {
+      $("body").on("click", "input.toggle-vis, input.meas-vis", function (e) {
         localStorage.setItem(
           SCOPE_ID + $(this).attr("id"),
           $(this).prop("checked")
@@ -500,21 +486,21 @@ $.fn.extend({
           let included
           if ($(this).hasClass("toggle-vis")) {
             included = $("input.meas-vis:checkbox:checked")
-              .map(function(x, d) {
+              .map(function (x, d) {
                 return ".col_" + d.value
               })
               .toArray()
               .join(", ")
           } else {
             included = $("input.toggle-vis:checkbox:checked")
-              .map(function(x, d) {
+              .map(function (x, d) {
                 return ".col_" + d.value
               })
               .toArray()
               .join(", ")
           }
           included = dt.columns(included)[0]
-          columns = columns.filter(function(elem) {
+          columns = columns.filter(function (elem) {
             return included.includes(elem)
           })
           dt.columns(columns).visible($(this).prop("checked"))
@@ -523,7 +509,7 @@ $.fn.extend({
         }
       })
 
-      $(".table-filter").change(function() {
+      $(".table-filter").change(function () {
         var uuids = $("#probe_filter option:selected").data("ids")
 
         // filter the table
@@ -542,7 +528,7 @@ $.fn.extend({
 
         // filter the chart
         var newReport = []
-        const filterfunc = d =>
+        const filterfunc = (d) =>
           ($("#probe_filter").val() === "" ||
             (FLUORS[d.fluor_slug].type === "p" &&
               uuids.includes(FLUORS[d.fluor_slug].uuid))) &&
@@ -567,7 +553,7 @@ $.fn.extend({
         ["ex_eff", "Ex Eff"],
         ["ex_eff_broad", "Ex Eff (Broadband)"],
         ["em_eff", "Em Eff"],
-        ["brightness", "Brightness"]
+        ["brightness", "Brightness"],
       ]
       for (var o = 0; o < measbuttons.length; o++) {
         var id = measbuttons[o][0] + "_checkbox"
@@ -577,7 +563,7 @@ $.fn.extend({
           [
             "ex_eff_checkbox",
             "em_eff_checkbox",
-            "brightness_checkbox"
+            "brightness_checkbox",
           ].includes(id)
         ) {
           ischecked = true
@@ -592,7 +578,7 @@ $.fn.extend({
               type: "checkbox",
               id: id,
               value: measbuttons[o][0],
-              checked: ischecked
+              checked: ischecked,
             })
           )
           .append(
@@ -603,5 +589,5 @@ $.fn.extend({
         el.appendTo($("#meas-toggles"))
       }
     })
-  }
+  },
 })
