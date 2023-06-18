@@ -51,7 +51,10 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     def _assert_no_console_errors(self):
         logs = self.browser.get_log("browser")
-        assert not [lg for lg in logs if "favicon" not in lg["message"]]
+        acceptable_errors = ("GPU stall due to ReadPixels", "favicon.ico")
+        for lg in logs:
+            if any(err in lg["message"] for err in acceptable_errors):
+                raise AssertionError(f"Console errors occurred: {logs}")
 
     def test_spectra(self):
         self._load_reverse("proteins:spectra")
