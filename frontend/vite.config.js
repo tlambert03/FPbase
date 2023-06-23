@@ -19,6 +19,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["regenerator-runtime/runtime", "bootstrap"],
   },
+  define: {
+    "process.env.RESET_APP_DATA_TIMER": false
+  },
   build: {
     // Relative to the root
     outDir: "../dist",
@@ -27,10 +30,12 @@ export default defineConfig({
     emptyOutDir: true,
     target: "es2015",
 
+    // NOTE: perhaps add images to manifest in build script... or add plugin
+  // on_build_end
     plugins: [
       // with this plugin I get this problem:
       // https://stackoverflow.com/questions/75883720/504-outdated-optimize-dep-while-using-react-vite
-      // react(),
+      react(),
     ],
 
     rollupOptions: {

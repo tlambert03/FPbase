@@ -31,7 +31,6 @@
 
 <script>
 
-
 $('.lineage').each(function(i, el){
   $(el).html('<p>loading lineage info... <img src="' + '{% vite_asset_url 'images/GFP_spinner.gif' %}' + '">');
   $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
