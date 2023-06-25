@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
-{% load django_vite %}
+{% load static %}
 
 {% block title %}FPbase: Advanced Fluorescent Protein Search{% endblock %}
 {% block meta-description %}Build complex queries to search for fluorescent proteins in FPbase using multiple filters.{% endblock %}
@@ -12,7 +12,7 @@
 
 
 {% block extrahead %}
-    <link rel="preload" href="{% vite_asset_url 'images/GFP_spinner.gif' %}" as="image">
+    <link rel="preload" href="{% static 'images/GFP_spinner.gif' %}" as="image">
 {% endblock extrahead %}
 
 
@@ -28,7 +28,7 @@
 </div>
 
 <form action="" method="get" class="mb-2">
-    <div id="query_builder">Building form... <img width=60 src="{% vite_asset_url 'images/GFP_spinner.gif' %}"></i></div>
+    <div id="query_builder">Building form... <img width=60 src="{% static 'images/GFP_spinner.gif' %}"></i></div>
     <div class='clearfix button-row'>
     <button type="submit" class="btn btn-sm btn-primary form-group"><i class="fas fa-search"></i> Search</button>
     <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn"><i class="fas fa-filter"></i> Add Filter</button>

@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load static %}
-{% load django_vite %}
 
 {% block title %}FPbase efficiency report for {{object}}{% endblock %}
 {% block meta-description %}Graphical and tabular representation of excitation and collection efficiency for each optical configuration on the scope, with each fluorophore in the database {% endblock %}
@@ -8,7 +7,7 @@
 {% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
 {% block twitter_title %}FPbase efficiency report for {{object}}{% endblock twitter_title %}
 {% block twitter_description %}Excitation and collection efficiency calculated for every fluorophore in the database with each optical configuration on this microscop.{% endblock twitter_description %}
-{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% vite_asset_url 'images/twitter_card_report.png' %}{% endblock twitter_image %}
+{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% static 'images/twitter_card_report.png' %}{% endblock twitter_image %}
 
 
 {% block extrahead %}
@@ -47,7 +46,7 @@ container-fluid
     </div>
   </div>
   {% endif %}
-  <p id="status">loading scope report... <img src="{% vite_asset_url 'images/GFP_spinner.gif' %}"></p>
+  <p id="status">loading scope report... <img src="{% static 'images/GFP_spinner.gif' %}"></p>
   <div id="report_chart" class="mb-4">
     <span class="float-right needs-data hidden small text-info mr-5">&darr; click or double-click to hide/show configs</span>
     <svg></svg>

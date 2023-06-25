@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load django_vite %}
 {% load webp_picture from protein_tags %}
+{% load static %}
+
 {% block meta-description %}FPbase is a moderated, user-editable fluorescent protein database designed by microscopists.  Search, share, and organize information about fluorescent proteins and their characteristics.{% endblock %}
 
 
@@ -9,6 +11,7 @@
   .cover-wrapper {
     background: no-repeat center center;
     background-image: url("{% vite_asset_url 'images/blurry_egfp.png' %}");
+    background-image: url("{% static 'images/blurry_egfp.png' %}");
   }
 </style>
 

@@ -31,11 +31,18 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
     pip install -r backend/requirements/local.txt
     ```
 
-4. Install [Node.js](https://nodejs.org/en/) & npm  (homebrew: `brew install node`)
+> **Note** Make sure that you have `postgres` installed globally on macOS (homebrew: `brew install postgres`)
+
+4. Install [Node.js](https://nodejs.org/en/) & [pnpm](https://pnpm.js.org/en/) (homebrew: `brew install node`)
+
+    ```bash
+    npm i -g pnpm
+    ```
+
 5. Install frontend requirements
 
     ```bash
-    npm install
+    pnpm install
     ```
 
 6. Install a local postgreSQL database (for mac: [postgres.app](https://postgresapp.com/))

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load django_vite %}
+{% load static %}
 
 {% block title %}Interactive Fluorescent Protein Property Visualization{% endblock %}
 {% block meta-description %}Plot a variety of fluorescent protein properties in different ways.  Interactively change the axes of the graph and filter proteins based on certain characteristics.{% endblock %}
@@ -7,11 +8,7 @@
 {% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
 {% block twitter_title %}FPbase Fluorescent Protein Property Visualization{% endblock twitter_title %}
 {% block twitter_description %}Plot a variety of fluorescent protein properties in different ways.  Interactively change the axes of the graph and filter proteins based on certain characteristics.{% endblock twitter_description %}
-{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% vite_asset_url 'images/ichart_twitter_card.png' %}{% endblock twitter_image %}
-
-{% block extrahead %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha512-oJp0DdQuQQrRsKVly+Ww6fAN1GwJN7d1bi8UubpEbzDUh84WrJ2CFPBnT4LqBCcfqTcHR5OGXFFhaPe3g1/bzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-{% endblock extrahead %}
+{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% static 'images/ichart_twitter_card.png' %}{% endblock twitter_image %}
 
 
 {% block container-class %}container-fluid{% endblock %}
@@ -34,7 +31,7 @@
       <div id="graph" class="svg-container mt-6">
         <div class="loadinggif ml-3">
           loading data...
-          <img src="{% vite_asset_url 'images/GFP_spinner.gif' %}" class="pt-4 mb-4">
+          <img src="{% static 'images/GFP_spinner.gif' %}" class="pt-4 mb-4">
         </div>
       </div>
 			<form class='form-inline'>
