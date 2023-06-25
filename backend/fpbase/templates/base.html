@@ -1,5 +1,5 @@
 {% load i18n %}
-{% load webpack_static from webpack_loader %}
+{% load static %}
 {% load render_bundle from webpack_loader %}
 {% load webp_picture from protein_tags %}
 
@@ -21,7 +21,7 @@
       "@context": "http://schema.org",
       "@type": "Organization",
       "url": "https://www.fpbase.org",
-      "logo": "https://www.fpbase.org{% webpack_static 'images/circle_logo_full.png' %}",
+      "logo": "https://www.fpbase.org{% static 'images/circle_logo_full.png' %}",
       "potentialAction": {
         "@type": "SearchAction",
         "target": "https://www.fpbase.org/search?q={search_term_string}",
@@ -44,10 +44,10 @@
       <meta property="og:url" content="{{ABSOLUTE_ROOT_URL}}{{ request.get_full_path }}">
       <meta property="og:title" content="{% block twitter_title %}FPbase: The Fluorescent Protein Database{% endblock twitter_title %}">
       <meta property="og:description" content="{% block twitter_description %}FPbase is a free and open-source, community-editable database for fluorescent proteins and their properties.{% endblock twitter_description %}">
-      <meta property="og:image" content="{% block twitter_image %}https://www.fpbase.org{% webpack_static 'images/square_logo_white_on_green.gif' %}{% endblock twitter_image %}">
+      <meta property="og:image" content="{% block twitter_image %}https://www.fpbase.org{% static 'images/square_logo_white_on_green.gif' %}{% endblock twitter_image %}">
     {% endblock twitter_card %}
 
-    <link rel="shortcut icon" href="{% webpack_static 'images/favicon.ico' %}">
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -58,7 +58,7 @@
 
       <script>
         window.FPBASE = window.FPBASE || {};
-        window.FPBASE.imageDir = "{% webpack_static 'images/' %}";
+        window.FPBASE.imageDir = "{% static 'images/' %}";
         window.FPBASE.ALGOLIA = {
           'appID': '{{ algolia_app_id }}',
           'publicKey': '{{ algolia_public_key }}',

@@ -1,10 +1,8 @@
 const path = require("path")
 const webpack = require("webpack")
-// const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
 const BundleTracker = require("webpack-bundle-tracker")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
-// const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const { sentryWebpackPlugin } = require("@sentry/webpack-plugin")
@@ -75,19 +73,9 @@ const plugins = [
     filename: "[name].[contenthash].css",
     chunkFilename: "[id].[chunkhash].css",
   }),
-  // new BundleAnalyzerPlugin({
-  //   analyzerMode: "static",
-  //   openAnalyzer: false,
-  // }),
   new CleanWebpackPlugin(),
   new CopyPlugin({
     patterns: [
-      {
-        from: "./src/images/**/*",
-        to({ context, absoluteFilename }) {
-          return path.resolve("./dist/images/[name][ext]")
-        },
-      },
       {
         from: "./src/js/sentry.*.js",
         to: path.resolve("./dist/sentry.js"),

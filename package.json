@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "concurrently --kill-others \"pnpm --stream -r start\" \"python backend/manage.py runserver\"",
+    "start": "pnpm --stream -r start",
     "build": "pnpm -r --parallel build",
     "heroku-postbuild": "pnpm --filter fpbase build",
     "start:dev": "pnpm --stream -r run start:dev",
