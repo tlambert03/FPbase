@@ -12,11 +12,9 @@
 
 {% block javascript %}
 
-{% vite_asset 'sentry.js' %}
-
 {% if sentry_event_id %}
 <script>
-  Sentry.init({ dsn: '{{ sentry_dsn }}' });
+  Sentry.init();
   Sentry.showReportDialog({
     eventId: '{{ sentry_event_id }}',
     user: window.FPBASE.user

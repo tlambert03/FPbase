@@ -1,5 +1,4 @@
 import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
 
 export default defineConfig({
   root: "./src",
@@ -12,6 +11,10 @@ export default defineConfig({
       usePolling: true,
       disableGlobbing: false,
     },
+    proxy: {
+      "/graphql": "http://127.0.0.1:8000",
+      "/api": "http://127.0.0.1:8000",
+    },
   },
   resolve: {
     extensions: [".js", ".jsx", ".json"],
@@ -20,7 +23,7 @@ export default defineConfig({
     exclude: ["regenerator-runtime/runtime", "bootstrap"],
   },
   define: {
-    "process.env.RESET_APP_DATA_TIMER": false
+    "process.env.RESET_APP_DATA_TIMER": false,
   },
   build: {
     // Relative to the root
@@ -29,15 +32,6 @@ export default defineConfig({
     manifest: true,
     emptyOutDir: true,
     target: "es2015",
-
-    // NOTE: perhaps add images to manifest in build script... or add plugin
-  // on_build_end
-    plugins: [
-      // with this plugin I get this problem:
-      // https://stackoverflow.com/questions/75883720/504-outdated-optimize-dep-while-using-react-vite
-      react(),
-    ],
-
     rollupOptions: {
       input: {
         main: "./src/index.js",
