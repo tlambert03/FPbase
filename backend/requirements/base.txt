@@ -28,7 +28,7 @@ django-recaptcha==3.0.0  # https://github.com/praekelt/django-recaptcha
 sentry-sdk==1.21.1  # https://github.com/getsentry/sentry-python/
 
 biopython==1.81
-pandas==2.0.1
+pandas==2.0.3
 parasail==1.3.4
 
 habanero==1.2.3
