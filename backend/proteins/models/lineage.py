@@ -93,9 +93,8 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
 
     def clean(self):
         errors = validate_node(self)
-        E = {"mutation": ValidationError(error) for error in errors}
-        if E:
-            raise ValidationError(E)
+        if errors:
+            raise ValidationError({"mutation": ValidationError(errors[0])})
 
     def derive_mutation(self, root=None):
         ms = None

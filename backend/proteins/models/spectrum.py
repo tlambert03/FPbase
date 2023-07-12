@@ -525,7 +525,7 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
             s.add(self.x[i + 1] - self.x[i])
         if len(s) > 1:  # multiple step sizes
             return False
-        return list(s)[0]
+        return next(iter(s))
 
     def scaled_data(self, scale):
         return [[n[0], n[1] * scale] for n in self.data]
