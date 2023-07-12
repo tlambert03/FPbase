@@ -1,5 +1,10 @@
+from typing import TYPE_CHECKING
+
 from fpseq.mutations import Mutation, MutationSet
 from proteins.util.helpers import getprot
+
+if TYPE_CHECKING:
+    from proteins.models import Lineage
 
 
 def check_offset(protname):
@@ -79,7 +84,7 @@ def validate_switch_type(protein):
     return protein.switch_type == suggested_switch_type(protein)
 
 
-def validate_node(node):
+def validate_node(node: "Lineage") -> list[str]:
     if not node.mutation:
         return []
     errors = []
