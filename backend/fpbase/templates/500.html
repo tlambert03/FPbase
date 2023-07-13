@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
+{% load django_vite %}
 
 {% block title %}Server Error{% endblock %}
 
@@ -12,11 +12,9 @@
 
 {% block javascript %}
 
-<script src="{% webpack_static 'sentry.js' %}"></script>
-
 {% if sentry_event_id %}
 <script>
-  Sentry.init({ dsn: '{{ sentry_dsn }}' });
+  Sentry.init();
   Sentry.showReportDialog({
     eventId: '{{ sentry_event_id }}',
     user: window.FPBASE.user

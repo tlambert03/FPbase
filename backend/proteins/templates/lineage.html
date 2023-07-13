@@ -1,8 +1,10 @@
 {% extends "base.html" %}
+{% load django_vite %}
 {% load static %}
 
 {% block extrahead %}
     <link rel="preload" href="{% static 'images/GFP_spinner.gif' %}" as="image">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha512-oJp0DdQuQQrRsKVly+Ww6fAN1GwJN7d1bi8UubpEbzDUh84WrJ2CFPBnT4LqBCcfqTcHR5OGXFFhaPe3g1/bzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 {% endblock extrahead %}
 
 {% block title %}Fluorescent Protein Lineages at FPbase{% endblock %}
@@ -29,7 +31,6 @@
 {% block javascript %}
 
 <script>
-
 
 $('.lineage').each(function(i, el){
   $(el).html('<p>loading lineage info... <img src="' + '{% static 'images/GFP_spinner.gif' %}' + '">');

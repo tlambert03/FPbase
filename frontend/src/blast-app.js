@@ -1,5 +1,5 @@
-import React from "react"
+import { createElement } from "react"
 import { render } from "react-dom"
 import App from "@fpbase/blast"
 
-render(<App />, document.getElementById("blast-app"))
+render(createElement(App, null, null), document.getElementById("blast-app"))

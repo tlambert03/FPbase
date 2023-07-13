@@ -1,5 +1,3 @@
-import d3 from "d3"
-import $ from "jquery"
 
 function n_sibs(node) {
   return node.parent ? node.parent.children.length - 1 : 0

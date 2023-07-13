@@ -3,20 +3,9 @@ import "./index.css"
 import { ApolloProvider } from "@apollo/react-hooks"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
-// import { ApolloProvider } from "@apollo/react-hooks"
 import initializeClient from "./client/client"
 import { defaults } from "./client/resolvers"
 
-/* eslint-disable */
-// if (process.env.NODE_ENV === 'development') {
-//   const whyDidYouRender = require('@welldone-software/why-did-you-render');
-//   whyDidYouRender(React, {
-//     trackAllPureComponents: true,
-//     logOnDifferentValues: true,
-//     collapseGroups: true,
-//   })
-// }
-/* eslint-enable */
 
 const AppWrapper = ({ uri }) => {
   const client = useRef(initializeClient({ uri }))

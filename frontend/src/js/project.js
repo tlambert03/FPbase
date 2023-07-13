@@ -1,4 +1,3 @@
-import $ from "jquery"
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
 window.mobilecheck = function() {

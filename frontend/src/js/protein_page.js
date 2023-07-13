@@ -1,5 +1,3 @@
-import $ from "jquery"
-
 window.initSnapGene = function(protein, selection) {
   const snaptemplate =
     "https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/"

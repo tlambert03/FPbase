@@ -1,5 +1,10 @@
+{% load django_vite %}
 {% load static %}
 {% load webp_picture from protein_tags %}
+
+{% block extrahead %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha512-oJp0DdQuQQrRsKVly+Ww6fAN1GwJN7d1bi8UubpEbzDUh84WrJ2CFPBnT4LqBCcfqTcHR5OGXFFhaPe3g1/bzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock extrahead %}
 
 {% if object.description %}
 <div class="container font-italic text-muted text-center">

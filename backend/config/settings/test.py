@@ -4,8 +4,6 @@ Test settings for FPbase project.
 - Used to run tests fast on the continuous integration server and locally
 """
 
-from webpack_loader.loader import FakeWebpackLoader
-
 from .base import *  # noqa
 
 # DEBUG
@@ -63,11 +61,3 @@ TEMPLATES[0]["OPTIONS"]["loaders"] = [
         ],
     ],
 ]
-
-
-class MockWebpackLoader(FakeWebpackLoader):
-    def get_assets(self):
-        return {}
-
-
-WEBPACK_LOADER["DEFAULT"]["LOADER_CLASS"] = "config.settings.test.MockWebpackLoader"

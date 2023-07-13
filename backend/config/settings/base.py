@@ -204,7 +204,7 @@ STATIC_ROOT = str(ROOT_DIR / "staticfiles")
 STATIC_URL = "/static/"
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(ROOT_DIR.parent / "frontend" / "dist")]
+STATICFILES_DIRS = []
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
@@ -212,18 +212,12 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
-INSTALLED_APPS.append("webpack_loader")
-
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": not DEBUG,
-        "BUNDLE_DIR_NAME": "/",
-        "STATS_FILE": str(ROOT_DIR.parent / "frontend" / "dist" / "webpack-stats.json"),
-        "POLL_INTERVAL": 0.1,
-        "TIMEOUT": None,
-        "IGNORE": [r".*\.hot-update.js", r".+\.map"],
-    }
-}
+INSTALLED_APPS.append("django_vite")
+# Where vite assets are built to.
+DJANGO_VITE_ASSETS_PATH = str(ROOT_DIR.parent / "frontend" / "dist")
+STATICFILES_DIRS.append(DJANGO_VITE_ASSETS_PATH)
+# If use HMR or not.
+DJANGO_VITE_DEV_MODE = DEBUG
 
 
 # MEDIA CONFIGURATION

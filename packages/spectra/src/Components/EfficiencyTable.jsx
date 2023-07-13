@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { makeStyles } from "@material-ui/core/styles"
 import { Typography } from "@material-ui/core"
-import MaterialTable from "material-table"
+// import MaterialTable from "material-table"
 import Export from "@material-ui/icons/SaveAlt"
 import FirstPage from "@material-ui/icons/FirstPage"
 import PreviousPage from "@material-ui/icons/ChevronLeft"
@@ -199,7 +199,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
   return (
     <div className="efficiency-table">
       <ErrorBoundary>
-        <MaterialTable
+        {/* <MaterialTable
           columns={headers}
           data={rows}
           options={TABLE_OPTIONS}
@@ -213,7 +213,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
               onClick: () => setTransposed(transposed => !transposed),
             },
           ]}
-        />
+        /> */}
       </ErrorBoundary>
     </div>
   )

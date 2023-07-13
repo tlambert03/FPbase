@@ -1,4 +1,3 @@
-import $ from "jquery"
 
 function checkObject(val, prop, str) {
   var propDict = {
@@ -177,7 +176,6 @@ function highlightRefHits(high) {
 export default async function initAutocomplete() {
   const [{ default: algoliasearch }] = await Promise.all([
     import("algoliasearch"),
-    import("autocomplete.js/dist/autocomplete.jquery.js")
   ])
 
   var algoliaClient = algoliasearch(
