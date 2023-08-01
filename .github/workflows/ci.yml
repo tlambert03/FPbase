@@ -76,7 +76,7 @@ jobs:
           pnpm install
 
       - name: setup-chromedriver
-        uses: nanasess/setup-chromedriver@v2.0.0
+        uses: nanasess/setup-chromedriver@v2.1.1
 
       - name: Test with pytest
         working-directory: backend
