@@ -33,7 +33,14 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
     # in which case you should pip install psycopg2-binary instead
     ```
 
-4. Install [Node.js](https://nodejs.org/en/) & pnpm  (homebrew: `brew install node pnpm`)
+> **Note** Make sure that you have `postgres` installed globally on macOS (homebrew: `brew install postgres`)
+
+4. Install [Node.js](https://nodejs.org/en/) & [pnpm](https://pnpm.js.org/en/) (homebrew: `brew install node`)
+
+    ```bash
+    npm i -g pnpm
+    ```
+
 5. Install frontend requirements
 
     ```bash

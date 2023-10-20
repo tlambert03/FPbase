@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
+{% load static %}
 
 {% block extrahead %}
-    <link rel="preload" href="{% webpack_static 'images/GFP_spinner.gif' %}" as="image">
+    <link rel="preload" href="{% static 'images/GFP_spinner.gif' %}" as="image">
 {% endblock extrahead %}
 
 {% block title %}Fluorescent Protein Lineages at FPbase{% endblock %}
@@ -11,7 +11,7 @@
 {% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
 {% block twitter_title %}Fluorescent Protein Lineages at FPbase{% endblock twitter_title %}
 {% block twitter_description %}An interactive fluorescent protein lineage viewer. Explore mutations and directed evolution of hundreds of fluorescent proteins.{% endblock twitter_description %}
-{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% webpack_static 'images/lineage_twitter_card.png' %}{% endblock twitter_image %}
+{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% static 'images/lineage_twitter_card.png' %}{% endblock twitter_image %}
 
 {% block content %}
 
@@ -32,7 +32,7 @@
 
 
 $('.lineage').each(function(i, el){
-  $(el).html('<p>loading lineage info... <img src="' + '{% webpack_static 'images/GFP_spinner.gif' %}' + '">');
+  $(el).html('<p>loading lineage info... <img src="' + '{% static 'images/GFP_spinner.gif' %}' + '">');
   $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
     $(el).empty();
     var chart = window.FPBASE.LineageChart({

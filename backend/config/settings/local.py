@@ -111,29 +111,34 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "level": "DEBUG",
-        },
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.FileHandler",
-            "filename": "/Users/talley/Desktop/debug.log",
-        },
+        }
     },
     "loggers": {
         "django": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
             "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
         },
-        "django.template": {
-            "handlers": ["file"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        "django.utils": {
-            "handlers": ["file"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        # "proteins": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
-        # "fpbase": {"handlers": ["console"], "level": "DEBUG", "propagate": True,},
     },
 }
+
+if os.getenv("DESKTOP_LOG"):
+    LOGGING["handlers"]["file"] = {
+        "level": "DEBUG",
+        "class": "logging.FileHandler",
+        "filename": str(Path.home() / "Desktop/fpbase.log"),
+    }
+    LOGGING["loggers"].update(
+        {
+            "django.template": {
+                "handlers": ["file"],
+                "level": "INFO",
+                "propagate": True,
+            },
+            "django.utils": {
+                "handlers": ["file"],
+                "level": "INFO",
+                "propagate": True,
+            },
+        }
+    )
+    LOGGING["loggers"]["django"]["handlers"].append("file")

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load webp_picture from protein_tags %}
-{% load webpack_static from webpack_loader %}
+{% load static %}
 
 {% block title %}About FPbase: The Fluorescent Protein Database {% endblock %}
 {% block meta-description %}FPbase is a free and open-source, web-based, community-editable database for fluorescent proteins and their properties.  It accepts user contributions but is also moderated.{% endblock %}
 
 {% block content %}
-<h1 class='mb-4'><strong>FP</strong>base <img class='float-right' style="opacity: 0.9;" src="{% webpack_static 'images/GFP_spinner.gif' %}" class="pt-4 mb-4"></h1>
+<h1 class='mb-4'><strong>FP</strong>base <img class='float-right' style="opacity: 0.9;" src="{% static 'images/GFP_spinner.gif' %}" class="pt-4 mb-4"></h1>
 
 <h3><strong>A fluorescent protein database</strong></h3>
 

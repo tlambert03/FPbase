@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
+{% load static %}
 {% load render_bundle from webpack_loader %}
 
 {% block title %}FPbase Fluorescent Protein Sequence BLAST{% endblock %}
@@ -8,7 +8,7 @@
 {% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
 {% block twitter_title %}FPbase Fluorescent Protein Sequence BLAST{% endblock twitter_title %}
 {% block twitter_description %}Search the database at FPbase for fluorescent protein sequences similar to a query amino acid or nucleotide sequence.{% endblock twitter_description %}
-{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% webpack_static 'images/blast_twitter_card.png' %}{% endblock twitter_image %}
+{% block twitter_image %}{{ABSOLUTE_ROOT_URL}}{% static 'images/blast_twitter_card.png' %}{% endblock twitter_image %}
 
 
 {% block content %}
