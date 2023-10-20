@@ -24,11 +24,13 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
     cd FPbase
     ```
 
-2. Create/activate environment with pipenv/virtualenv/conda
+2. Create/activate environment **using python 3.11** with pipenv/virtualenv/conda
 3. Install python requirements for local development
 
     ```bash
     pip install -r backend/requirements/local.txt
+    # note: on mac silicon, you might have difficulty compiling psycopg2
+    # in which case you should pip install psycopg2-binary instead
     ```
 
 > **Note** Make sure that you have `postgres` installed globally on macOS (homebrew: `brew install postgres`)
