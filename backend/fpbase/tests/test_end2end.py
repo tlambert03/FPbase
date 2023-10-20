@@ -126,6 +126,7 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert float(elem.text) == donor.default_state.qy
 
         elem = self.browser.find_element(value="QYA")
+        WebDriverWait(self.browser, 1.5).until(lambda d: bool(elem.text))
         assert float(elem.text) == acceptor.default_state.qy
 
         elem = self.browser.find_element(value="overlapIntgrl")
