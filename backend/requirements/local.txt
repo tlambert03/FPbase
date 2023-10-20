@@ -10,7 +10,7 @@ watchfiles==0.19.0          # https://github.com/samuelcolvin/watchfiles
 pytest
 pytest-sugar
 pytest-cov
-factory-boy             # https://github.com/FactoryBoy/factory_boy
+factory-boy==3.2.0      # https://github.com/FactoryBoy/factory_boy
 django-test-plus        # https://github.com/revsys/django-test-plus
 django-coverage-plugin  # https://github.com/nedbat/django_coverage_plugin
 pytest-django           # https://github.com/pytest-dev/pytest-django

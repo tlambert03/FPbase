@@ -13,6 +13,7 @@ filterwarnings = [
     "ignore:django.core.files.storage.get_storage_class is deprecated::",
     "ignore::DeprecationWarning:pkg_resources",
     "ignore::ResourceWarning",
+    "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
 ]
 
 
