@@ -146,7 +146,7 @@ class SkbSequence:
         return SkbSequence(other)
 
     def _munge_to_bytestring(self, other, method):
-        if type(other) is bytes:
+        if isinstance(other, bytes):
             return other
         elif isinstance(other, str):
             return other.encode("ascii")
