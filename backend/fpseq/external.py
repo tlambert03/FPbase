@@ -6,8 +6,8 @@ import requests
 def genbank_seq(accession):
     response = requests.get(
         "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
-        "efetch.fcgi?db=protein&id={}&rettype=fasta&"
-        "retmode=text".format(accession)
+        f"efetch.fcgi?db=protein&id={accession}&rettype=fasta&"
+        "retmode=text"
     )
     if response:
         return "".join([x.decode() for x in response.content.splitlines()[1:]])
