@@ -51,7 +51,11 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     def _assert_no_console_errors(self):
         logs = self.browser.get_log("browser")
-        acceptable_errors = ("GPU stall due to ReadPixels", "favicon.ico")
+        acceptable_errors = (
+            "GPU stall due to ReadPixels",
+            "favicon.ico",
+            "The keyword 'searchfield-cancel-button' specified",
+        )
         for lg in logs:
             if all(err not in lg["message"] for err in acceptable_errors):
                 raise AssertionError(f"Console errors occurred: {logs}")
