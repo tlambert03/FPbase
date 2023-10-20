@@ -205,7 +205,7 @@ class MicroscopeForm(forms.ModelForm):
             else:
                 self.add_error(
                     "optical_configs",
-                    "Filter not found in database or at Chroma/Semrock: " "{}".format(fname),
+                    "Filter not found in database or at Chroma/Semrock: " f"{fname}",
                 )
                 return None
 
@@ -269,8 +269,7 @@ class MicroscopeForm(forms.ModelForm):
                 if len(splt) not in (4, 5):
                     self.add_error(
                         "optical_configs",
-                        "Lines must have 4 or 5 comma-separated fields but this one "
-                        "has {}: {}".format(len(splt), line),
+                        "Lines must have 4 or 5 comma-separated fields but this one " f"has {len(splt)}: {line}",
                     )
                 for n, f in enumerate(splt):
                     if n == 0:
