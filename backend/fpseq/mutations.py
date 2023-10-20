@@ -387,9 +387,9 @@ class MutationSet:
                 if offset:
                     if correct_offset:
                         warnings.warn(
-                            "An offset of {} amino acids was detected"
+                            f"An offset of {offset} amino acids was detected"
                             " between the sequence and the mutation "
-                            "set, and automatically corrected".format(offset),
+                            "set, and automatically corrected",
                             stacklevel=2,
                         )
                         shift -= offset
