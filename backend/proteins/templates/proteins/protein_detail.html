@@ -409,6 +409,7 @@
       <ul>
       {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank" rel="noopener">BioNumbers</a> for {{ protein.name }}</li> #}
         <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name | safe}}</li>
+        <li>Search <a href="https://knowledge.brc.riken.jp/resource/dna/list?query={{ protein.name | urlencode }}" target="_blank" rel="noopener">RIKEN BRC</a> for {{ protein.name | safe}}</li>
       </ul>
     </div>
 
