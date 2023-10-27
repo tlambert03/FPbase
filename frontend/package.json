@@ -38,7 +38,7 @@
     "@babel/preset-env": "^7.7.7",
     "@babel/preset-react": "^7.7.4",
     "@sentry/cli": "^2.21.2",
-    "@sentry/webpack-plugin": "^2.2.0",
+    "@sentry/webpack-plugin": "^2.9.0",
     "@types/react": "^16.14.42",
     "@welldone-software/why-did-you-render": "^6.2.3",
     "autoprefixer": "^10.4.14",
