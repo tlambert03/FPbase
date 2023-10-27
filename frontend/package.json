@@ -13,6 +13,8 @@
     "@fortawesome/free-brands-svg-icons": "^5.15.4",
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fpbase/blast": "workspace:*",
+    "@fpbase/spectra": "workspace:*",
     "@popperjs/core": "^2.4.0",
     "@sentry/browser": "^7.54.0",
     "algoliasearch": "^3.35.1",
@@ -28,16 +30,14 @@
     "regenerator-runtime": "^0.13.5",
     "select2": "^4.0.13",
     "select2-theme-bootstrap4": "^0.2.0-beta.6",
-    "url": "^0.11.0",
-    "@fpbase/spectra": "workspace:*",
-    "@fpbase/blast": "workspace:*"
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.7",
     "@babel/plugin-syntax-dynamic-import": "^7.7.4",
     "@babel/preset-env": "^7.7.7",
     "@babel/preset-react": "^7.7.4",
-    "@sentry/cli": "^2.18.1",
+    "@sentry/cli": "^2.21.2",
     "@sentry/webpack-plugin": "^2.2.0",
     "@types/react": "^16.14.42",
     "@welldone-software/why-did-you-render": "^6.2.3",
@@ -64,7 +64,6 @@
     "webpack-cli": "^5.1.1",
     "webpack-dev-server": "^4.15.0"
   },
-
   "scripts": {
     "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
     "build": "NODE_ENV=production webpack --mode production",

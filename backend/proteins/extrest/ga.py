@@ -2,14 +2,14 @@ import datetime
 
 from django.conf import settings
 from django.core.cache import cache
+from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-from oauth2client.service_account import ServiceAccountCredentials
 
 
 def get_service(
     api_name="analytics",
     api_version="v3",
-    scopes="",
+    scopes=None,
 ):
     """Get a service that communicates to a Google API.
     Returns:
@@ -19,7 +19,7 @@ def get_service(
     keyfile_dict = {
         "type": "service_account",
         "project_id": "fp-base",
-        "private_key_id": "0bc1b9014c85ef3799680c4aa1095b57437c2eb4",
+        "private_key_id": settings.GOOGLE_API_PRIVATE_KEY_ID,
         "private_key": settings.GOOGLE_API_PRIVATE_KEY,
         "client_email": settings.GOOGLE_API_CLIENT_EMAIL,
         "client_id": "",
@@ -27,13 +27,12 @@ def get_service(
         "token_uri": "https://oauth2.googleapis.com/token",
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
         "client_x509_cert_url": (
-            "https://www.googleapis.com/robot/v1/metadata/x509/"
-            + "626427424458-compute%40developer.gserviceaccount.com"
+            "https://www.googleapis.com/robot/v1/metadata/x509/" + settings.GOOGLE_API_CLIENT_EMAIL.replace("@", "%40")
         ),
+        "universe_domain": "googleapis.com",
     }
     scopes = scopes or ["https://www.googleapis.com/auth/analytics.readonly"]
-    cred = ServiceAccountCredentials.from_json_keyfile_dict(keyfile_dict, scopes=scopes)
-
+    cred = Credentials.from_service_account_info(keyfile_dict, scopes=scopes)
     # Build the service object.
     return build(api_name, api_version, credentials=cred)
 
@@ -104,7 +103,7 @@ def ga_popular_proteins(service=None, profile_id=None, days=30, max_results=None
     analytics_data = data_query.execute()
     f = [
         (r[0].replace("/protein/", "").split("/")[0], r[1], r[2])
-        for r in analytics_data["rows"]
+        for r in analytics_data.get("rows", ())
         if r[0].startswith("/protein")
         and not any(x in r[0] for x in ("bleach", "update"))
         and "not found" not in r[1]
