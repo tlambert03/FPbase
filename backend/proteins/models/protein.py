@@ -571,15 +571,18 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def ga_views(self, period="month", norm=False):
         from proteins.extrest.ga import cached_ga_popular
 
-        hits = cached_ga_popular()[period]
-        return next(
-            (
-                rating / max(list(zip(*hits))[2]) if norm else rating
-                for slug, _name, rating in hits
-                if slug == self.slug
-            ),
-            0,
-        )
+        try:
+            hits = cached_ga_popular()[period]
+            return next(
+                (
+                    rating / max(list(zip(*hits))[2]) if norm else rating
+                    for slug, _name, rating in hits
+                    if slug == self.slug
+                ),
+                0,
+            )
+        except Exception:
+            return 0
 
     def switchType(self):
         return self.get_switch_type_display()
