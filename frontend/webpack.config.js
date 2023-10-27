@@ -5,7 +5,7 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
-const { sentryWebpackPlugin } = require("@sentry/webpack-plugin")
+// const { sentryWebpackPlugin } = require("@sentry/webpack-plugin")
 const TerserJSPlugin = require("terser-webpack-plugin")
 
 const devMode = process.env.NODE_ENV !== "production"
@@ -95,24 +95,24 @@ if (devMode) {
     })
   )
 
-  if (process.env.SENTRY_AUTH_TOKEN && !process.env.CI) {
-    plugins.push(
-      sentryWebpackPlugin({
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-        org: process.env.SENTRY_ORG,
-        project: process.env.SENTRY_PROJECT,
-        sourcemaps: {
-          paths: "src/",
-          ignore: [
-            "node_modules",
-            "webpack.config.js",
-            "src/js/pdb/LiteMol-plugin.js",
-          ],
-        },
-        release: process.env.SOURCE_VERSION,
-      })
-    )
-  }
+  // if (process.env.SENTRY_AUTH_TOKEN && !process.env.CI) {
+  //   plugins.push(
+  //     sentryWebpackPlugin({
+  //       authToken: process.env.SENTRY_AUTH_TOKEN,
+  //       org: process.env.SENTRY_ORG,
+  //       project: process.env.SENTRY_PROJECT,
+  //       sourcemaps: {
+  //         paths: "src/",
+  //         ignore: [
+  //           "node_modules",
+  //           "webpack.config.js",
+  //           "src/js/pdb/LiteMol-plugin.js",
+  //         ],
+  //       },
+  //       release: process.env.SOURCE_VERSION,
+  //     })
+  //   )
+  // }
 }
 
 module.exports = {
