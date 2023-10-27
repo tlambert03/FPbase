@@ -1,0 +1,18 @@
+# we rarely want coverage to fail the checks
+coverage:
+  status:
+    # Configuration for PRs
+    patch:
+      default:
+        target: auto
+        threshold: 5%
+        only_pulls: true
+    # Configuration for the main branch
+    project:
+      default:
+        branches: 
+          - main
+        target: auto
+        threshold: 100%  # Set to 100% to ensure it never fails on the main branch
+        if_not_found: success  # If coverage report is not found, mark it as successful
+        only_pulls: false  # This ensures the project coverage doesn't fail on PRs
