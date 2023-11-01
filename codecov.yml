@@ -10,7 +10,7 @@ coverage:
     # Configuration for the main branch
     project:
       default:
-        branches: 
+        branches:
           - main
         target: auto
         threshold: 100%  # Set to 100% to ensure it never fails on the main branch
