@@ -20,7 +20,7 @@ django-crispy-forms==1.13.0  # https://github.com/django-crispy-forms/django-cri
 # Django REST Framework
 djangorestframework==3.14.0  # https://github.com/encode/django-rest-framework
 # DRF-spectacular for api documentation
-drf-spectacular==0.26.3  # https://github.com/tfranzel/drf-spectacular
+drf-spectacular==0.26.5  # https://github.com/tfranzel/drf-spectacular
 djangorestframework-csv==2.1.1
 
 # MY STUFF
