@@ -36,4 +36,14 @@
   <script>$('#efflink a').attr('target', '_blank').append('<i class="small ml-2 fas fa-external-link-alt"></i>');</script>
 
 </body>
+<script type="text/javascript">
+  var scopespectra = {{ scopespectra|safe }};
+  var scopecfg = {
+    calcEff: {{ microscope.cfg_calc_efficiency|yesno:"true,false" }},
+    minwave: {{ microscope.cfg_min_wave }},
+    maxwave: {{ microscope.cfg_max_wave }},
+    focusEnable: {{ microscope.cfg_enable_pan_zoom|yesno:"true,false" }},
+    showArea: {{ microscope.cfg_fill_area|yesno:"true,false" }},
+  }
+</script>
 </html>
