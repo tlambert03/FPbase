@@ -24,8 +24,8 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
     cd FPbase
     ```
 
-2. Create/activate environment **using python 3.11** with pipenv/virtualenv/conda
-3. Install python requirements for local development
+1. Create/activate environment **using python 3.11** with pipenv/virtualenv/conda
+1. Install python requirements for local development
 
     ```bash
     pip install -r backend/requirements/local.txt
@@ -33,29 +33,36 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
     # in which case you should pip install psycopg2-binary instead
     ```
 
-> **Note** Make sure that you have `postgres` installed globally on macOS (homebrew: `brew install postgres`)
+1. Make sure that you have `postgres` installed.
 
-4. Install [Node.js](https://nodejs.org/en/) & [pnpm](https://pnpm.js.org/en/) (homebrew: `brew install node`)
+   On macOS, with homebrew:
+
+   ```sh
+   brew install postgresql@15
+   brew services start postgresql@15
+   ```
+
+1. Install [Node.js](https://nodejs.org/en/) & [pnpm](https://pnpm.js.org/en/) (homebrew: `brew install node`)
 
     ```bash
     npm i -g pnpm
     ```
 
-5. Install frontend requirements
+1. Install frontend requirements
 
     ```bash
     pnpm install
     ```
 
-6. Install a local postgreSQL database (for mac: [postgres.app](https://postgresapp.com/))
-7. Create database, and apply migrations
+1. Install a local postgreSQL database (for mac: [postgres.app](https://postgresapp.com/))
+1. Create database, and apply migrations
 
     ```bash
     createdb fpbase
     python backend/manage.py migrate
     ```
 
-8. start dev servers:
+1. start dev servers:
 
     ```bash
     npm run start
