@@ -48,6 +48,29 @@ class Microscope(OwnedCollection):
         on_delete=models.CASCADE,
     )
 
+    cfg_calc_efficiency = models.BooleanField(
+        default=True,
+        help_text="Calculate efficiency on update.",
+    )
+    cfg_fill_area = models.BooleanField(
+        default=True,
+        help_text="Fill area under spectra.",
+    )
+    cfg_min_wave = models.PositiveSmallIntegerField(
+        default=350,
+        validators=[MinValueValidator(300), MaxValueValidator(1199)],
+        help_text="Minimum wavelength to display on page load.",
+    )
+    cfg_max_wave = models.PositiveSmallIntegerField(
+        default=800,
+        validators=[MinValueValidator(300), MaxValueValidator(1199)],
+        help_text="Maximum wavelength to display on page load.",
+    )
+    cfg_enable_pan_zoom = models.BooleanField(
+        default=True,
+        help_text="Enable pan and zoom on spectra plot.",
+    )
+
     class Meta:
         ordering = ["created"]
 
