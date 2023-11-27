@@ -35,6 +35,10 @@ import d3 from "d3"
     }
   }
 
+  const urlSegments = window.location.pathname.split('/');
+  const ScopeID = urlSegments[urlSegments.length - 2]; // The segment before the last '/'
+  const KeyPrefix = `microscope_${ScopeID}`;
+
   let chart
   const CONST = {
     category: {
@@ -62,8 +66,8 @@ import d3 from "d3"
   let data = []
   const localData = {}
   const options = {
-    showArea: localStorage.getItem("microscope_showArea") !== "false",
-    stickySpectra: localStorage.getItem("microscope_stickySpectra"),
+    showArea: localStorage.getItem(`${KeyPrefix}_showArea`) !== "false",
+    stickySpectra: localStorage.getItem(`${KeyPrefix}_stickySpectra`),
     minwave: 350,
     maxwave: 800,
     startingBrush: [350, 800],
@@ -71,18 +75,19 @@ import d3 from "d3"
     exNormWave: undefined,
     scale: "linear",
     hide2p: true,
-    normMergedEx: localStorage.getItem("microscope_normMergedEx") !== "false",
+    normMergedEx: localStorage.getItem(`${KeyPrefix}_normMergedEx`) !== "false",
     normMergedScalar: 1,
-    focusEnable: localStorage.getItem("microscope_focusEnable") !== "false",
+    focusEnable: localStorage.getItem(`${KeyPrefix}_focusEnable`) !== "false",
     //    scaleToEC: false,
-    scaleToQY: localStorage.getItem("microscope_scaleToQY") === "true",
-    oneAtaTime: localStorage.getItem("microscope_oneAtaTime") !== "false",
+    scaleToQY: localStorage.getItem(`${KeyPrefix}_scaleToQY`) === "true",
+    oneAtaTime: localStorage.getItem(`${KeyPrefix}_oneAtaTime`) !== "false",
     precision:
-      localStorage.getItem("microscope_precision") || (isSafari ? 2 : 1),
-    interpolate: localStorage.getItem("microscope_interpolate") === "true",
-    calcEff: localStorage.getItem("microscope_calcEff") !== "false",
+      localStorage.getItem(`${KeyPrefix}_precision`) || (isSafari ? 2 : 1),
+    interpolate: localStorage.getItem(`${KeyPrefix}_interpolate`) === "true",
+    // modified later at page load
+    calcEff: true,
     exEffBroadband:
-      localStorage.getItem("microscope_exEffBroadband") === "true",
+      localStorage.getItem(`${KeyPrefix}_exEffBroadband`) === "true",
   }
   const userOptions = {
     calcEff: {
@@ -637,12 +642,38 @@ import d3 from "d3"
     setTimeout(updateChart, 300)
   }
 
+  // on page load, setup the chart
   $(function() {
     $("#y-zoom-slider").hide()
     // $('[data-toggle="popover"]').popover()
 
     const urlParams = getUrlParams()
     options.precision = urlParams.precision || options.precision
+
+    // Set options first from database (populated in microscope_detail.html)
+    if (typeof scopecfg !== "undefined") {
+      options.calcEff = scopecfg.calcEff;
+      options.minwave = scopecfg.minwave;
+      options.maxwave = scopecfg.maxwave;
+      options.focusEnable = scopecfg.focusEnable;
+      options.showArea = scopecfg.showArea;
+    }
+    // But allow localStorage to override them
+
+    if (`${KeyPrefix}_calcEff` in localStorage) {
+      options.calcEff = localStorage.getItem(`${KeyPrefix}_calcEff`) !== "false";
+    }
+    if (`${KeyPrefix}_minwave` in localStorage) {
+      options.minwave = localStorage.getItem(`${KeyPrefix}_minwave`);
+    }
+    if (`${KeyPrefix}_maxwave` in localStorage) {
+      options.maxwave = localStorage.getItem(`${KeyPrefix}_maxwave`);
+    }
+    if (`${KeyPrefix}_focusEnable` in localStorage) {
+      options.focusEnable = localStorage.getItem(`${KeyPrefix}_focusEnable`) !== "false";
+    }
+
+    // Then, finally, allow URL params to override them
     if (urlParams.eff !== undefined) {
       options.calcEff = !(urlParams.eff == "false")
     }
@@ -669,14 +700,14 @@ import d3 from "d3"
               .change(function() {
                 if (value.type == "checkbox") {
                   options[key] = this.checked
-                  localStorage.setItem(`microscope_${key}`, this.checked)
+                  localStorage.setItem(`${KeyPrefix}_${key}`, this.checked)
                 } else {
                   const val = Math.min(
                     Math.max(this.value, value.min),
                     value.max
                   )
                   options[key] = val
-                  localStorage.setItem(`microscope_${key}`, val)
+                  localStorage.setItem(`${KeyPrefix}_${key}`, val)
                 }
 
                 if (key === "showArea") {
@@ -1961,7 +1992,7 @@ import d3 from "d3"
       options.stickySpectra = true
       $(".microscope-wrapper").addClass("sticky")
     }
-    localStorage.setItem("microscope_stickySpectra", options.stickySpectra)
+    localStorage.setItem(`${KeyPrefix}_stickySpectra`, options.stickySpectra)
   })
 
   function build_current_uri() {
