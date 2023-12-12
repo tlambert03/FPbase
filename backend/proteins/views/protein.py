@@ -163,7 +163,7 @@ def maxmind_reader() -> "maxminddb.Reader | None":
 def get_country_code(request) -> str:
     # Definitely should be used inside a try/exc block
     if reader := maxmind_reader():
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        x_forwarded_for = request.headers.get("x-forwarded-for")
         if x_forwarded_for:
             ip = x_forwarded_for.split(",")[0]
         else:
