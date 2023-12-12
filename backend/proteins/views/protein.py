@@ -2,7 +2,8 @@ import contextlib
 import io
 import logging
 import operator
-from typing import cast
+from functools import lru_cache
+from typing import TYPE_CHECKING, cast
 
 import django.forms
 import reversion
@@ -52,6 +53,9 @@ from ..forms import (
     bleach_items_formset,
 )
 from ..models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
+
+if TYPE_CHECKING:
+    import maxminddb
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +117,60 @@ def get_form_changes(*forms):
 class _RollBackRevisionView(Exception):
     def __init__(self, response):
         self.response = response
+
+
+@lru_cache
+def maxmind_db() -> str:
+    """Create and return a temporary file containing the MaxMind database.
+
+    The file should persist for the lifetime of the process.
+    """
+    import io
+    import tarfile
+    import tempfile
+
+    import requests
+    from django.conf import settings
+
+    url = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key={}&suffix=tar.gz"
+    url = url.format(settings.MAXMIND_API_KEY)
+    response = requests.get(url)
+    response.raise_for_status()
+    with tarfile.open(fileobj=io.BytesIO(response.content), mode="r:gz") as tar:
+        for member in tar.getmembers():
+            if member.name.endswith(".mmdb"):
+                mmdb_file = tar.extractfile(member)
+                if mmdb_file is not None:
+                    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mmdb")
+                    tmp.write(mmdb_file.read())
+                    tmp.close()
+                    return tmp.name
+    return ""
+
+
+@lru_cache
+def maxmind_reader() -> "maxminddb.Reader | None":
+    from maxminddb import open_database
+
+    try:
+        if db := maxmind_db():
+            return open_database(db)
+    except Exception:
+        pass
+    return None
+
+
+def get_country_code(request) -> str:
+    # Definitely should be used inside a try/exc block
+    if reader := maxmind_reader():
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+        response = reader.get(ip)
+        return response["country"]["iso_code"]  # type: ignore
+    return ""
 
 
 class ProteinDetailView(DetailView):
@@ -218,6 +276,13 @@ class ProteinDetailView(DetailView):
 
         # put links in excerpts
         data["excerpts"] = link_excerpts(self.object.excerpts.all(), self.object.name, self.object.aliases)
+
+        # Add country code to context
+        try:
+            data["country_code"] = get_country_code(self.request)
+        except Exception:
+            data["country_code"] = ""
+
         return data
 
 

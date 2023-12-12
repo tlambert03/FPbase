@@ -402,14 +402,15 @@
 		</div>
 
 
-
-
     <div class="external-resources">
       <h3>External Resources</h3>
       <ul>
       {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank" rel="noopener">BioNumbers</a> for {{ protein.name }}</li> #}
         <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name | safe}}</li>
         <li>Search <a href="https://knowledge.brc.riken.jp/resource/dna/list?query={{ protein.name | urlencode }}" target="_blank" rel="noopener">RIKEN BRC</a> for {{ protein.name | safe}}</li>
+        {% if country_code == 'CN' %}
+          <li>Search <a href="https://wekwikgene.wllsb.edu.cn/plasmids?search={{ protein.name | urlencode }}" target="_blank" rel="noopener">WeKwikGene</a> for {{ protein.name | safe}}</li>
+        {% endif %}
       </ul>
     </div>
 

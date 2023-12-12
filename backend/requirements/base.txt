@@ -58,3 +58,5 @@ graphene-django==3.1.1  # https://github.com/graphql-python/graphene-django
 graphene-django-optimizer==0.9.1  # https://github.com/tfoxy/graphene-django-optimizer
 django-graphql-jwt==0.3.4
 django-cors-headers==4.2.0
+
+maxminddb==2.5.1  # geolocation
