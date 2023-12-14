@@ -81,6 +81,9 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
                 raise ValueError("root argument must be a protein instance")
         else:
             root = self.root_node.protein if self.root_node else self.get_root().protein
+        # if the parent is the root, just return the mutation
+        if self.root_node.protein == self.parent.protein:
+            return str(self.mutation)
         if not isinstance(self.mutation, MutationSet):
             self.mutation = parse_mutation(self.mutation)
         return self.mutation.relative_to_root(self.parent.protein.seq, root.seq)

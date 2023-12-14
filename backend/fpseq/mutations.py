@@ -207,6 +207,9 @@ class Mutation:
             if self.start_idx != len(seq) - idx0 + 2:
                 raise ValueError("Extension start char not consistent")
             return
+        # if we're inserting at the very beginning, we don't need to check
+        if startpos < 0:
+            return
         if self.start_char and seq[startpos] != self.start_char:
             beg = startpos - 3
             beg2 = startpos + 1
@@ -383,6 +386,7 @@ class MutationSet:
             try:
                 mut._assert_position_consistency(seq, shift)
             except Mutation.SequenceMismatch as e:
+                breakpoint()
                 offset = self.detect_offset(seq)
                 if offset:
                     if correct_offset:
