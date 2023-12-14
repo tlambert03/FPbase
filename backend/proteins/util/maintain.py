@@ -101,7 +101,7 @@ def validate_node(node: "Lineage") -> list[str]:
     except Mutation.SequenceMismatch as e:
         errors.append(str(e).replace("parent", node.parent.protein.name))
     # except Exception as e:
-        # errors.append(str(e))
+    # errors.append(str(e))
     return errors
 
 
