@@ -386,7 +386,6 @@ class MutationSet:
             try:
                 mut._assert_position_consistency(seq, shift)
             except Mutation.SequenceMismatch as e:
-                breakpoint()
                 offset = self.detect_offset(seq)
                 if offset:
                     if correct_offset:

@@ -28,7 +28,7 @@ def add_missing_seqs():
 
 
 def check_node_sequence_mutation_consistent(node, correct_offset=False):
-    parent = cast('FPSeq', node.parent.protein.seq)
+    parent = cast("FPSeq", node.parent.protein.seq)
     if correct_offset:
         seq, _ = parent.mutate(node.mutation, correct_offset=True)
     else:
