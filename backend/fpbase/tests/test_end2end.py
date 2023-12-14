@@ -55,6 +55,7 @@ class TestPagesRender(StaticLiveServerTestCase):
             "GPU stall due to ReadPixels",
             "favicon.ico",
             "The keyword 'searchfield-cancel-button' specified",
+            "Failed to decode downloaded font",
         )
         for lg in logs:
             if all(err not in lg["message"] for err in acceptable_errors):

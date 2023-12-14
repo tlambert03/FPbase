@@ -82,7 +82,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         else:
             root = self.root_node.protein if self.root_node else self.get_root().protein
         # if the parent is the root, just return the mutation
-        if self.root_node.protein == self.parent.protein:
+        if root == self.parent.protein:
             return str(self.mutation)
         if not isinstance(self.mutation, MutationSet):
             self.mutation = parse_mutation(self.mutation)
