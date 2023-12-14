@@ -30,9 +30,9 @@ def generate_labels(seq, mods=None, zeroindex=1):
 
 
 def from_fpbase(slug):
-    url = f"https://www.fpbase.org/api/{slugify(slug)}/?format=json"
+    url = f"https://www.fpbase.org/api/proteins/?slug={slugify(slug)}&format=json"
     response = requests.get(url)
-    return FPSeq(json.loads(response.content).get("seq"))
+    return FPSeq(json.loads(response.content)[0].get("seq"))
 
 
 class FPSeq(SkbSequence):
