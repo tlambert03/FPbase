@@ -1,9 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from fpseq.mutations import Mutation, MutationSet
 from proteins.util.helpers import getprot
 
 if TYPE_CHECKING:
+    from fpseq import FPSeq
     from proteins.models import Lineage
 
 
@@ -27,7 +28,7 @@ def add_missing_seqs():
 
 
 def check_node_sequence_mutation_consistent(node, correct_offset=False):
-    parent = node.parent.protein.seq
+    parent = cast("FPSeq", node.parent.protein.seq)
     if correct_offset:
         seq, _ = parent.mutate(node.mutation, correct_offset=True)
     else:
@@ -99,6 +100,8 @@ def validate_node(node: "Lineage") -> list[str]:
                 )
     except Mutation.SequenceMismatch as e:
         errors.append(str(e).replace("parent", node.parent.protein.name))
+    # except Exception as e:
+    # errors.append(str(e))
     return errors
 
 
