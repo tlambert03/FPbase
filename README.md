@@ -95,7 +95,7 @@ If you have data that you would like to contribute to the database, please do
 
 <br/>
 
-[<img src="frontend/src/images/logo-algolia-nebula-blue-full.svg"
+[<img src="backend/proteins/static/images/logo-algolia-nebula-blue-full.svg"
 width="170">](https://www.algolia.com/)
 
 [<img src="_resources/sentry-logo-black.svg"
@@ -103,6 +103,3 @@ width="200">](https://sentry.io/)
 
 [<img src="_resources/gitbook_avatar-rectangle.png"
 width="200">](https://www.gitbook.com/)
-
-[<img src="_resources/Browserstack-logo@2x.png"
-width="250">](https://www.browserstack.com)
