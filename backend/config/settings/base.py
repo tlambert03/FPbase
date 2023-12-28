@@ -87,6 +87,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "fpbase.middleware.BlackListMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -380,3 +381,5 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
     "http://localhost:3000",
 ]
+
+BLOCKED_IPS = env.list("IP_BLACKLIST", default=[])
