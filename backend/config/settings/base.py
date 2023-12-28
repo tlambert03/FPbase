@@ -92,6 +92,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "fpbase.middleware.BlackListMiddleware",
     "fpbase.middleware.CanonicalDomainMiddleware",
 ]
 
@@ -380,3 +381,5 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
     "http://localhost:3000",
 ]
+
+BLOCKED_IPS = env.list("IP_BLACKLIST", default=[])
