@@ -37,7 +37,7 @@ django-reversion==5.0.4
 django-reversion-compare==0.16.2
 
 tablib==3.4.0
-scipy==1.11.3
+scipy==1.11.4
 dnspython==2.3.0
 django-anymail==10.0  # https://github.com/anymail/django-anymail
 django-autocomplete-light==3.9.7  # https://github.com/yourlabs/django-autocomplete-light
