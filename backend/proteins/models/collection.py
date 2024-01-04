@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.urls import reverse
+from django.utils.timezone import now
 from model_utils.models import TimeStampedModel
 
 User = get_user_model()
@@ -18,6 +19,18 @@ class OwnedCollection(TimeStampedModel):
         on_delete=models.SET_NULL,
     )
     managers = ArrayField(models.EmailField(), default=list, blank=True)
+
+    def duplicate(self, *, name=None, description=None, owner=None, managers=None) -> "OwnedCollection":
+        """Create a duplicate of this collection, optionally with a new owner"""
+        self.pk = None
+        self.owner = owner
+        self.name = name or self.name
+        self.description = description or self.description
+        self.managers = managers or []
+        self.modified = now()
+        self.created = now()
+        self.save()
+        return self
 
     def has_change_permission(self, request, obj=None):
         allowed = self.managers

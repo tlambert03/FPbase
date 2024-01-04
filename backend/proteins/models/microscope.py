@@ -1,4 +1,5 @@
 import json
+from typing import TYPE_CHECKING
 import urllib.parse
 
 from django.contrib.postgres.fields import ArrayField
@@ -24,6 +25,9 @@ class Microscope(OwnedCollection):
         configs: optical configs in the collection
                  (all spectra will be added to spectra)
     """
+
+    if TYPE_CHECKING:
+        optical_configs: models.QuerySet["OpticalConfig"]
 
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
     extra_lights = models.ManyToManyField("Light", blank=True, related_name="microscopes")
@@ -74,6 +78,17 @@ class Microscope(OwnedCollection):
     class Meta:
         ordering = ["created"]
 
+    def duplicate(self, name=None, description=None, owner=None, managers=None):
+        configs = list(self.optical_configs.all())
+        self.id = None
+        new = super().duplicate(name=name, description=description, owner=owner, managers=managers)
+        for oc in configs:
+            oc.pk = None
+            oc.microscope = new
+            oc.owner = new.owner
+            oc.save()
+        return new
+
     @classmethod
     def from_oclist(cls, name, oclist):
         if not isinstance(oclist, list | tuple):
@@ -88,32 +103,30 @@ class Microscope(OwnedCollection):
         return microscope
 
     @cached_property
-    def has_inverted_bs(self):
+    def has_inverted_bs(self) -> bool:
         return self.optical_configs.filter(
             filterplacement__path=FilterPlacement.BS, filterplacement__reflects=True
         ).exists()
 
     @cached_property
-    def has_reflective_emfilters(self):
+    def has_reflective_emfilters(self) -> bool:
         return self.optical_configs.filter(
             filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True
         ).exists()
 
-    def inverted_bs_set(self):
+    def inverted_bs_set(self) -> set[str]:
         return {i.filter.slug for oc in self.optical_configs.all() for i in oc.inverted_bs.all()}
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse("proteins:microscope-detail", args=[self.id])
 
     @cached_property
     def lights(self):
-        oclights = Light.objects.filter(id__in=self.optical_configs.values("light"))
-        return oclights
+        return Light.objects.filter(id__in=self.optical_configs.values("light"))
 
     @cached_property
     def cameras(self):
-        occams = Camera.objects.filter(id__in=self.optical_configs.values("camera"))
-        return occams
+        return Camera.objects.filter(id__in=self.optical_configs.values("camera"))
 
     @cached_property
     def lasers(self):
