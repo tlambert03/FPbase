@@ -21,9 +21,8 @@ from ..util.spectra import spectra2csv
 
 # @cache_page(60 * 10)
 # @vary_on_cookie
-def protein_spectra(request, slug=None):
+def protein_spectra(request, slug=None, graph_only=False):
     """renders html for protein spectra page"""
-    template = "spectra.html"
 
     if is_ajax(request) and slug is not None:
         """slug represents the slug of the OWNER of the spectra...
@@ -36,13 +35,8 @@ def protein_spectra(request, slug=None):
             return JsonResponse({"spectra": [s.d3dict() for s in owner]})
         raise Http404
 
-    # spectra = Spectrum.objects.owner_slugs()
-    # spectra = Spectrum.objects.sluglist()
-
+    template = "spectra_graph.html" if graph_only else "spectra.html"
     return render(request, template)
-    # return render(request, template, {
-    #     'spectra_options': json.dumps(spectra)}
-    # )
 
 
 class SpectrumCreateView(CreateView):
