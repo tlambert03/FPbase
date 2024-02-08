@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-{% load static %} {% load render_bundle from webpack_loader %}
-
+{% load static %}
+{% load render_bundle from webpack_loader %}
 <html lang="en">
   <head>
-    {% block ga %} {% if not debug %} {% include "_ga.html" with
-    ga_tracking_id=ga_tracking_id %} {% endif %} {% endblock ga %}
+    {% block ga %}
+      {% if not debug %}
+        {% include "_ga.html" with ga_tracking_id=ga_tracking_id %}
+      {% endif %}
+    {% endblock ga %}
     <meta charset="utf-8" />
     <meta http-equiv="Content-Language" content="en" />
-    <meta http-equiv="x-ua-compatible" content="ie=edge" />
     <title>FPbase Fluorescence Spectra Graph</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
@@ -16,42 +18,9 @@
     />
     <meta name="author" content="Talley Lambert" />
     <meta name="copyright" content="Talley Lambert" />
-
-    {% render_bundle 'main' %}
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css"
-      integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0="
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.1/css/select2.min.css"
-      rel="stylesheet"
-    />
-
-    <style>
-      #logolink {
-        opacity: 0.6;
-        width: 160px;
-      }
-      #logolink:hover {
-        opacity: 1;
-      }
-      #logolink a:hover {
-        text-decoration: none;
-      }
-    </style>
   </head>
   <body>
-    <div class="spectra mt-3">
+    <div class="spectra mt-3" style="padding: 0 6px">
       <div id="spectra-viewer"></div>
     </div>
   </body>
