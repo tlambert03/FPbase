@@ -72,7 +72,7 @@ urlpatterns = [
     ),
     re_path(r"^spectra/(?P<slug>[-\w]+)", views.protein_spectra, name="spectra"),
     path("spectra/", views.protein_spectra, name="spectra"),
-    path("spectra-graph/", views.protein_spectra_graph, name="spectra–graph"),
+    path("spectra-graph/", views.protein_spectra_graph, name="spectra_graph"),
     re_path(r"^spectra_csv/", views.spectra_csv, name="spectra_csv"),
     re_path(
         r"^spectra_img/(?P<slug>[-\w]+)(\.(?P<extension>(png)|(svg)|(tif?f)|(pdf)|(jpe?g))?)?$",
