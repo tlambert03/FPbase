@@ -26,6 +26,7 @@ export const defaults = {
     shareTooltip: true,
     areaFill: true,
     palette: "wavelength",
+    zoomType: "x",
     extremes: [undefined, undefined],
     __typename: "chartOptions",
   },
