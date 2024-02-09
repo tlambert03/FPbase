@@ -38,6 +38,13 @@ export function parseURL(data) {
     if (key === "palette" && url[key] in PALETTES) {
       data.chartOptions.palette = url[key];
     }
+    if (key === "zoomType") {
+      if (["x", "y", "xy"].includes(url[key])) {
+        data.chartOptions.zoomType = url[key];
+      } else {
+        data.chartOptions.zoomType = null;
+      }
+    }
     if (key === "xMin") extremes[0] = +url[key];
     if (key === "xMax") extremes[1] = +url[key];
     if (key === "normWave") exNorm[0] = url[key];

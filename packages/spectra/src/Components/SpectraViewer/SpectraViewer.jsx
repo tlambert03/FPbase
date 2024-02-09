@@ -105,7 +105,7 @@ const BaseSpectraViewerContainer = React.memo(
       normWave = undefined
     } else {
       chartOptions = data.chartOptions
-      ;[normWave] = data.exNorm
+        ;[normWave] = data.exNorm
     }
 
     const yAxis = update(_yAxis, {
@@ -152,6 +152,13 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
 }) {
   const windowWidth = useWindowWidth()
   let height = calcHeight(windowWidth) * (chartOptions.height || 1)
+  let showPickers = numSpectra > 0 && !chartOptions.simpleMode
+  if (chartOptions.zoomType !== undefined) {
+    _chart.zoomType = chartOptions.zoomType
+    showPickers = chartOptions.zoomType !== null
+    // convert to no-op function
+    xAxis.events.afterSetExtremes = () => {}
+  }
 
   const hChart = Highcharts.charts[0]
   let legendHeight
@@ -273,7 +280,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
 
         <XAxisWithRange
           options={xAxis}
-          showPickers={numSpectra > 0 && !chartOptions.simpleMode}
+          showPickers={showPickers}
         />
         <MyCredits
           axisId="yAx2"
