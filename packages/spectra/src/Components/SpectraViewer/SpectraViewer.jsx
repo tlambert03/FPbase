@@ -158,6 +158,8 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
     showPickers = chartOptions.zoomType !== null
     // convert to no-op function
     xAxis.events.afterSetExtremes = () => {}
+    xAxis.min = chartOptions.extremes[0]
+    xAxis.max = chartOptions.extremes[1]
   }
 
   const hChart = Highcharts.charts[0]
