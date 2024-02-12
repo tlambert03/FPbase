@@ -151,17 +151,22 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   hidden,
 }) {
   const windowWidth = useWindowWidth()
+  const numSpectra = data.length
+  const owners = [...new Set(data.map(item => item.owner.slug))]
+  const exData = data.filter(i => i.subtype === "EX" || i.subtype === "AB")
+  const nonExData = data.filter(i => i.subtype !== "EX" && i.subtype !== "AB")
+
   let height = calcHeight(windowWidth) * (chartOptions.height || 1)
   let showPickers = numSpectra > 0 && !chartOptions.simpleMode
   if (chartOptions.zoomType !== undefined) {
     _chart.zoomType = chartOptions.zoomType
     showPickers = chartOptions.zoomType !== null
     // convert to no-op function
-    xAxis.events.afterSetExtremes = () => {}
+    xAxis.events.afterSetExtremes = () => { }
     xAxis.min = chartOptions.extremes[0]
     xAxis.max = chartOptions.extremes[1]
   }
-
+  console.log(showPickers)
   const hChart = Highcharts.charts[0]
   let legendHeight
   if (hChart) {
@@ -169,10 +174,6 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
     height += legendHeight
   }
 
-  const owners = [...new Set(data.map(item => item.owner.slug))]
-  const numSpectra = data.length
-  const exData = data.filter(i => i.subtype === "EX" || i.subtype === "AB")
-  const nonExData = data.filter(i => i.subtype !== "EX" && i.subtype !== "AB")
   return (
     <div
       className="spectra-viewer"
