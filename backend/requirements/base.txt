@@ -43,7 +43,7 @@ django-anymail==10.0  # https://github.com/anymail/django-anymail
 django-autocomplete-light==3.9.7  # https://github.com/yourlabs/django-autocomplete-light
 django-avatar==7.1.1
 
-numpy==1.26.0
+numpy==1.26.3
 matplotlib==3.7.1
 django-mptt==0.14.0  # https://github.com/django-mptt/django-mptt
 django-webpack-loader==2.0.1
