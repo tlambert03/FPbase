@@ -41,7 +41,7 @@ scipy==1.11.4
 dnspython==2.3.0
 django-anymail==10.0  # https://github.com/anymail/django-anymail
 django-autocomplete-light==3.9.7  # https://github.com/yourlabs/django-autocomplete-light
-django-avatar==7.1.1
+django-avatar==8.0.0
 
 numpy==1.26.3
 matplotlib==3.7.1
