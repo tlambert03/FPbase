@@ -20,9 +20,9 @@ class SpectrumFormField(forms.CharField):
 
     def __init__(self, *args, **kwargs):
         if "help_text" not in kwargs:
-            kwargs[
-                "help_text"
-            ] = "List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]. File data takes precedence."
+            kwargs["help_text"] = (
+                "List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]. File data takes precedence."
+            )
         super().__init__(*args, **kwargs)
 
 

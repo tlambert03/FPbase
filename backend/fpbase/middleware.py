@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 # https://github.com/etianen/django-herokuapp/blob/master/herokuapp/middleware.py
 class CanonicalDomainMiddleware:
-
     """Middleware that redirects to a canonical domain."""
 
     def __init__(self, get_response):
