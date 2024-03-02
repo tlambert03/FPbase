@@ -9,6 +9,7 @@ from django.core.mail import EmailMessage
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import CreateView
 
 from fpbase.util import is_ajax, uncache_protein_page
@@ -36,13 +37,16 @@ def protein_spectra(request, slug=None):
             return JsonResponse({"spectra": [s.d3dict() for s in owner]})
         raise Http404
 
-    # spectra = Spectrum.objects.owner_slugs()
-    # spectra = Spectrum.objects.sluglist()
-
     return render(request, template)
-    # return render(request, template, {
-    #     'spectra_options': json.dumps(spectra)}
-    # )
+
+
+@xframe_options_exempt
+def protein_spectra_graph(request, slug=None):
+    """Simple variant of protein_spectra only returns the graph.
+
+    Used for embedding in iframes.
+    """
+    return render(request, "spectra_graph.html")
 
 
 class SpectrumCreateView(CreateView):

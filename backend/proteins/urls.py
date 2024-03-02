@@ -19,22 +19,26 @@ urlpatterns = [
     re_path(r"^blast/", views.blast_view, name="blast"),
     re_path(
         r"^submit/",
-        login_required(
-            views.ProteinCreateView.as_view(),
-            message="You must be logged in to submit a new protein",
-        )
-        if CONTRIBS_OPEN
-        else disabled,
+        (
+            login_required(
+                views.ProteinCreateView.as_view(),
+                message="You must be logged in to submit a new protein",
+            )
+            if CONTRIBS_OPEN
+            else disabled
+        ),
         name="submit",
     ),
     re_path(
         r"^protein/(?P<slug>[-\w]+)/update/",
-        login_required(
-            views.ProteinUpdateView.as_view(),
-            message="You must be logged in to update protein information",
-        )
-        if CONTRIBS_OPEN
-        else disabled,
+        (
+            login_required(
+                views.ProteinUpdateView.as_view(),
+                message="You must be logged in to update protein information",
+            )
+            if CONTRIBS_OPEN
+            else disabled
+        ),
         name="update",
     ),
     re_path(r"^table/", views.protein_table, name="table"),
@@ -52,26 +56,31 @@ urlpatterns = [
     ),
     path(
         "spectra/submit/",
-        login_required(
-            views.SpectrumCreateView.as_view(),
-            message="You must be logged in to submit a new spectrum",
-        )
-        if CONTRIBS_OPEN
-        else disabled,
+        (
+            login_required(
+                views.SpectrumCreateView.as_view(),
+                message="You must be logged in to submit a new spectrum",
+            )
+            if CONTRIBS_OPEN
+            else disabled
+        ),
         name="submit-spectra",
     ),
     re_path(
         r"^spectra/submit/(?P<slug>[-\w]+)/$",
-        login_required(
-            views.SpectrumCreateView.as_view(),
-            message="You must be logged in to submit a new spectrum",
-        )
-        if CONTRIBS_OPEN
-        else disabled,
+        (
+            login_required(
+                views.SpectrumCreateView.as_view(),
+                message="You must be logged in to submit a new spectrum",
+            )
+            if CONTRIBS_OPEN
+            else disabled
+        ),
         name="submit-spectra",
     ),
     re_path(r"^spectra/(?P<slug>[-\w]+)", views.protein_spectra, name="spectra"),
     path("spectra/", views.protein_spectra, name="spectra"),
+    path("spectra-graph/", views.protein_spectra_graph, name="spectra_graph"),
     re_path(r"^spectra_csv/", views.spectra_csv, name="spectra_csv"),
     re_path(
         r"^spectra_img/(?P<slug>[-\w]+)(\.(?P<extension>(png)|(svg)|(tif?f)|(pdf)|(jpe?g))?)?$",

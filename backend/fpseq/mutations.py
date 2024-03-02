@@ -29,6 +29,7 @@ examples (converted to single letter codes):
 full string:
     'S65T/C76del/C76_G79del/K23_L24insRSG/C76delinsRRGY/C76_G78delinsRRGY/*315TextAKGT/M1_L2insVKSGEE'
 """
+
 import re
 import warnings
 

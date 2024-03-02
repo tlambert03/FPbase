@@ -135,7 +135,7 @@ INSTALLED_APPS += [
 ]
 ANYMAIL = {
     "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
-    "MAILGUN_SENDER_DOMAIN": env("MAILGUN_DOMAIN")
+    "MAILGUN_SENDER_DOMAIN": env("MAILGUN_DOMAIN"),
     # "SENDGRID_API_KEY": env('SENDGRID_API_KEY'),
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"

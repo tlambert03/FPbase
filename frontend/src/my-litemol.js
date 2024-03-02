@@ -2,9 +2,14 @@ import "./css/litemol/LiteMol-plugin-blue.css"
 import $ from "jquery"
 import LiteMol from "./js/pdb/LiteMol-plugin"
 
+// populated by downloadPDBMeta.success
 const pdbInfo = {}
 
 async function loadSmiles(pdbid) {
+  let chromophore = pdbInfo[pdbid].chromophore
+  if (!chromophore) {
+    return
+  }
   const _id = pdbInfo[pdbid].chromophore.id
   const url = `https://cdn.rcsb.org/images/ccd/unlabeled/${_id[0]}/${_id}.svg`
   $("#smilesDrawing div").html(
@@ -15,19 +20,19 @@ async function loadSmiles(pdbid) {
 }
 
 function getPDBbinary(id) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     $.get(`https://files.rcsb.org/download/${id}.cif`)
-      .done(response => {
+      .done((response) => {
         resolve(response)
       })
       .fail((xhr, status, error) => {
         $.get(
           `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`
         )
-          .done(response => {
+          .done((response) => {
             resolve(response)
           })
-          .fail(_xhr =>
+          .fail((_xhr) =>
             reject(
               new Error({
                 status: _xhr.status,
@@ -51,11 +56,15 @@ function loadChemInfo(pdbid) {
     "href",
     `https://www.ncbi.nlm.nih.gov/pubmed/${e.rcsb_primary_citation.pdbx_database_id_PubMed}`
   )
-  $("#chem-id").html(
-    `<a target="_blank" rel="noopener" class="text-secondary"
-    href="https://www.rcsb.org/ligand/${e.chromophore.id}">${e.chromophore.id}</a>`
-  )
-  $("#chem-form").html(e.chromophore.formula)
+  if (e.chromophore !== undefined) {
+    $("#chem-id").html(
+      `<a target="_blank" rel="noopener" class="text-secondary"
+      href="https://www.rcsb.org/ligand/${e.chromophore.id}">${e.chromophore.id}</a>`
+    )
+    $("#chem-form").html(e.chromophore.formula)
+  } else {
+    $("#chem-id").html("")
+  }
 }
 
 function initLiteMol(selection, changer) {
@@ -88,19 +97,19 @@ function initLiteMol(selection, changer) {
     })
 
     const dataCache = {}
-    changer.change(function() {
+    changer.change(function () {
       const id = this.value
       if (!Object.prototype.hasOwnProperty.call(dataCache, "id")) {
         dataCache[id] = getPDBbinary(id)
       }
       plugin.clear()
       dataCache[id].then(
-        data =>
+        (data) =>
           plugin.loadMolecule({
             data,
             id,
           }),
-        reason => {
+        (reason) => {
           $(selection).html(
             '<span class="text-danger muted">failed to retrieve molecular structure</span>'
           )
@@ -108,7 +117,7 @@ function initLiteMol(selection, changer) {
       )
     })
 
-    $("body").on("click", function(e) {
+    $("body").on("click", function (e) {
       if ($(".lm-layout-right").length) {
         if ($(e.target).closest("#litemol-viewer").length === 0) {
           plugin.setLayoutState({
@@ -124,7 +133,7 @@ function initLiteMol(selection, changer) {
   }
 
   changer
-    .change(function() {
+    .change(function () {
       // var id = this.value
       $("#pdb-out-link").attr(
         "href",
@@ -191,35 +200,52 @@ function downloadPDBMeta(pdbIds) {
           }
         }`,
       }),
-      success: function({ data }) {
-        data.entries.forEach(entry => {
+      success: function ({ data }) {
+        data.entries.forEach((entry) => {
           pdbInfo[entry.entry.id] = entry
-          let chromo =
-            entry.polymer_entities[0].chem_comp_nstd_monomers ||
-            entry.nonpolymer_entities[0].nonpolymer_comp
+          let chromo = null
+
+          if (entry.polymer_entities && entry.polymer_entities.length > 0) {
+            chromo = entry.polymer_entities[0].chem_comp_nstd_monomers
+          } else if (
+            entry.nonpolymer_entities &&
+            entry.nonpolymer_entities.length > 0
+          ) {
+            chromo = entry.nonpolymer_entities[0].nonpolymer_comp
+          }
+
           if (Array.isArray(chromo)) {
             chromo = chromo.reduce((a, b) =>
               a.chem_comp.formula_weight > b.chem_comp.formula_weight ? a : b
             )
           }
-          pdbInfo[entry.entry.id].chromophore = { ...chromo.chem_comp }
-          // eslint-disable-next-line prefer-destructuring
-          pdbInfo[entry.entry.id].resolution =
-            entry.rcsb_entry_info.resolution_combined[0]
+
+          if (chromo && chromo.chem_comp) {
+            pdbInfo[entry.entry.id].chromophore = { ...chromo.chem_comp }
+          }
+
+          if (
+            entry.rcsb_entry_info &&
+            entry.rcsb_entry_info.resolution_combined &&
+            entry.rcsb_entry_info.resolution_combined.length > 0
+          ) {
+            pdbInfo[entry.entry.id].resolution =
+              entry.rcsb_entry_info.resolution_combined[0]
+          }
         })
       },
     })
   )
 }
 
-const getPDBinfo = function(pdbIds) {
+const getPDBinfo = function (pdbIds) {
   downloadPDBMeta(`["${pdbIds.join('","')}"]`)
     .done(() => {
       const select = $("#pdb_select")
       pdbIds.sort((a, b) =>
         pdbInfo[a].resolution > pdbInfo[b].resolution ? 1 : -1
       )
-      pdbIds.forEach(id => {
+      pdbIds.forEach((id) => {
         select.append(
           $("<option>", {
             value: id,
@@ -229,17 +255,15 @@ const getPDBinfo = function(pdbIds) {
 
       initLiteMol("#litemol-viewer", select)
     })
-    .fail(function() {
+    .fail(function () {
       let html =
         '<div><p><small class="text-muted">Failed to retrieve metadata from PDB!</small></p>'
       html += "Please look for these IDs at RSCB PDB: &nbsp;"
-      pdbIds.forEach(_id => {
+      pdbIds.forEach((_id) => {
         html += `<a href="https://www.rcsb.org/structure/${_id}">${_id}</a>, `
       })
       html += "</div>"
-      $("#protein-structure")
-        .html(html)
-        .removeClass("row")
+      $("#protein-structure").html(html).removeClass("row")
     })
 }
 

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% load static %}
+{% load render_bundle from webpack_loader %}
+<html lang="en">
+  <head>
+    {% block ga %}
+      {% if not debug %}
+        {% include "_ga.html" with ga_tracking_id=ga_tracking_id %}
+      {% endif %}
+    {% endblock ga %}
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>FPbase Fluorescence Spectra Graph</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Simple FPbase Fluorescence Spectra Graph"
+    />
+    <meta name="author" content="Talley Lambert" />
+    <meta name="copyright" content="Talley Lambert" />
+  </head>
+  <body>
+    <div class="spectra mt-3" style="padding: 0 6px">
+      <div id="spectra-viewer"></div>
+    </div>
+  </body>
+  {% render_bundle 'simpleSpectraViewer' %}
+</html>
