@@ -13,12 +13,11 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
 from proteins.models.protein import Protein
-from proteins.util.blast import MAKEBLASTDB
+from proteins.util.blast import _get_binary
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
 cDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
-HAVE_BLAST_BIN = Path(MAKEBLASTDB).exists()
 
 
 @pytest.mark.usefixtures("uses_frontend", "use_real_webpack_loader")
@@ -112,8 +111,8 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert text_input.is_displayed()
         text_input.send_keys(SEQ[5:20].replace("LDG", "LG"))
 
-        if not HAVE_BLAST_BIN and not os.environ.get("CI"):
-            pytest.xfail(f"{MAKEBLASTDB} binary not found")
+        if not _get_binary("makeblastdb") and not os.environ.get("CI"):
+            pytest.xfail("makeblastdb binary not found")
             return
 
         submit = self.browser.find_element(by="css selector", value='button[type="submit"]')
