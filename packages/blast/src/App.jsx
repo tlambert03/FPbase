@@ -47,10 +47,11 @@ function App() {
   const [reportIndex, setReportIndex] = useState(0)
   const notDNA = new RegExp(/[^(A|T|C|G)]/g)
 
-  function handleSubmit(target) {
+  function handleSubmit(e) {
+    e.preventDefault()
     setReportIndex(0)
 
-    const seqLetters = $(target)[0][1]
+    const seqLetters = $(e.target)[0][1]
       .value.toUpperCase()
       .replace(/^>.*$/gm, "")
       .replace(/(?:\r\n|\r|\n)/g, "")
@@ -58,7 +59,7 @@ function App() {
     const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
     setBinary(bin)
 
-    $.post("", $(target).serialize() + "&binary=" + bin, data => {
+    $.post("", $(e.target).serialize() + "&binary=" + bin, data => {
       if (data.status === 200) {
         setResults(data.blastResult)
       } else if (data.status === 500) {
@@ -74,9 +75,11 @@ function App() {
     setReportIndex(index)
   }
 
+  const initialValue = new URLSearchParams(window.location.search).get('query');
+
   return (
     <div>
-      <InputForm onSubmit={handleSubmit} />
+      <InputForm handleSubmit={handleSubmit} initialValue={initialValue} />
       {results.length > 1 ? (
         <ReportSelect
           reports={results}

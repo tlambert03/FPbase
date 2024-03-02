@@ -26,9 +26,14 @@ if READ_DOT_ENV_FILE:
     # that is to say variables from the .env files will only be used if not defined
     # as environment variables.
     env_file = str(ROOT_DIR / ".env")
-    print(f"Loading : {env_file}")
-    env.read_env(env_file)
-    print("The .env file has been loaded. See base.py for more information")
+    if Path(env_file).exists():
+        print(f"Loading : {env_file}")
+        env.read_env(env_file)
+        print("The .env file has been loaded. See base.py for more information")
+    else:
+        print(f"Could not find {env_file}.")
+    if "amazonaws.com" in env("DATABASE_URL", default=""):
+        print("\n##################\nWARNING: Using AWS database\n##################\n")
 
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------

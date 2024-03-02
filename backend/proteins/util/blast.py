@@ -1,8 +1,10 @@
 import contextlib
 import json
 import os
+import shutil
 import sys
 import tempfile
+from functools import cache
 from pathlib import Path
 from shutil import copyfileobj
 from subprocess import run
@@ -13,7 +15,19 @@ ROOT = Path(__file__).parent.parent.parent
 BIN_DIR = ROOT / "bin"
 BLAST_DB = "blastdb/FPbase_blastdb.fsa"
 BIN_SUFFIX = "osx" if sys.platform == "darwin" else "nix"
-MAKEBLASTDB = str(BIN_DIR / f"makeblastdb_{BIN_SUFFIX}")
+
+
+@cache
+def _get_binary(binary: str) -> str:
+    """Get the path to a binary, or raise an error if it's not found"""
+    local_version = BIN_DIR / f"{binary}_{BIN_SUFFIX}"
+    if local_version.exists():
+        return str(local_version)
+
+    fallback = shutil.which(binary)
+    if fallback:
+        return fallback
+    raise FileNotFoundError(f"{binary} program not found")
 
 
 def serialize_alignment(alignment):
@@ -50,7 +64,7 @@ def write_fasta(fpath):
 def make_blastdb(fpath: str | None = None):
     fasta_name = write_fasta(fpath or BLAST_DB)
     cmd = [
-        MAKEBLASTDB,
+        _get_binary("makeblastdb"),
         "-in",
         fasta_name,
         "-parse_seqids",
@@ -68,10 +82,10 @@ def blast(seq, binary="blastp", db: str | None = None, max_hits=30, fmt=15, **kw
     db = db or BLAST_DB
 
     assert binary in ("blastp", "blastx"), "Unrecognized blast binary"
+    binary = _get_binary(binary)
     if not os.path.isfile(db) or len(os.listdir(os.path.dirname(db))) <= 5:
         make_blastdb(db)
 
-    binary = BIN_DIR / f"{binary}_{BIN_SUFFIX}"
     max_hits = kwargs.pop("max_target_seqs", max_hits)
     fmt = kwargs.pop("outfmt", fmt)
     with tempfile.NamedTemporaryFile(suffix=".fsa") as tmp:
@@ -80,7 +94,7 @@ def blast(seq, binary="blastp", db: str | None = None, max_hits=30, fmt=15, **kw
         tmp.write(seq.encode())
         tmp.seek(0)
         cmd = [
-            str(binary),
+            binary,
             "-query",
             tmp.name,
             "-outfmt",
