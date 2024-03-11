@@ -51,7 +51,7 @@ jobs:
             backend/requirements/base.txt
             backend/requirements/local.txt
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v3
         name: Install pnpm
         with:
           version: latest
