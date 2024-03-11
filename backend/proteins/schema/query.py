@@ -1,5 +1,6 @@
 import graphene
 from django.core.cache import cache
+from django.utils.text import slugify
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
 
@@ -91,14 +92,25 @@ class Query(graphene.ObjectType):
         return None
 
     # spectra = graphene.List(Spectrum)
-    spectra = graphene.List(types.SpectrumInfo)
+    spectra = graphene.List(types.SpectrumInfo, subtype=graphene.String(), category=graphene.String())
     spectrum = graphene.Field(types.Spectrum, id=graphene.Int())
 
     def resolve_spectra(self, info, **kwargs):
         requested_fields = get_requested_fields(info)
+
+        fkwargs = {}
+        if subtype := kwargs.get("subtype"):
+            fkwargs["subtype"] = str(subtype).lower()
+        if cat := kwargs.get("category"):
+            fkwargs["category"] = str(cat).lower()
+
         if "owner" in requested_fields:
-            return models.Spectrum.objects.sluglist()
-        return models.Spectrum.objects.all().values(*requested_fields)
+            # owner is complicated ... need to do our own thing
+            return models.Spectrum.objects.sluglist(filters=fkwargs)
+        elif fkwargs:
+            return models.Spectrum.objects.filter(**fkwargs).values(*requested_fields)
+        else:
+            return models.Spectrum.objects.all().values(*requested_fields)
 
     def resolve_spectrum(self, info, **kwargs):
         _id = kwargs.get("id")
@@ -128,4 +140,20 @@ class Query(graphene.ObjectType):
         _id = kwargs.get("id")
         if _id is not None:
             return gdo.query(models.OpticalConfig.objects.filter(id=_id), info).get()
+        return None
+
+    dyes = graphene.List(types.Dye)
+    dye = graphene.Field(types.Dye, id=graphene.Int(), name=graphene.String())
+
+    def resolve_dyes(self, info, **kwargs):
+        return gdo.query(models.Dye.objects.all(), info)
+
+    def resolve_dye(self, info, **kwargs):
+        name = kwargs.get("name")
+        if name is not None:
+            slug = slugify(name)
+            return gdo.query(models.Dye.objects.filter(slug=slug), info).get()
+        _id = kwargs.get("id")
+        if _id is not None:
+            return gdo.query(models.Dye.objects.filter(id=_id), info).get()
         return None

@@ -89,7 +89,7 @@ class SpectrumManager(models.Manager):
             self.get_queryset().filter(category=self.DYE).values_list("owner_dye__slug", "owner_dye__name").distinct()
         )
 
-    def sluglist(self):
+    def sluglist(self, filters: dict | None = None):
         """probably using this one going forward for spectra page"""
 
         owners = ["state", "dye", "filter", "light", "camera"]
@@ -107,7 +107,10 @@ class SpectrumManager(models.Manager):
         for suffix in ["slug", "id", "name"]:
             for owner in owners:
                 vals.append(f"owner_{owner}__{suffix}")
-        Q = self.get_queryset().values(*vals)
+        Q = self.get_queryset()
+        if filters:
+            Q = Q.filter(**filters)
+        Q = Q.values(*vals)
 
         out = []
         for v in Q:
