@@ -60,11 +60,7 @@ def check_existence(form, fieldname, value):
         prot = query.first()
         raise forms.ValidationError(
             mark_safe(
-                '<a href="{}" style="text-decoration: underline;">{}</a> already has this {}'.format(
-                    prot.get_absolute_url(),
-                    prot.name,
-                    Protein._meta.get_field(fieldname).verbose_name.lower(),
-                )
+                f'<a href="{prot.get_absolute_url()}" style="text-decoration: underline;">{prot.name}</a> already has this {Protein._meta.get_field(fieldname).verbose_name.lower()}'
             )
         )
     return value
@@ -442,9 +438,7 @@ class CollectionForm(forms.ModelForm):
 
         raise forms.ValidationError(
             mark_safe(
-                'You already have a collection named <a href="{}" style="text-decoration: underline;">{}</a>'.format(
-                    col.get_absolute_url(), col.name
-                )
+                f'You already have a collection named <a href="{col.get_absolute_url()}" style="text-decoration: underline;">{col.name}</a>'
             )
         )
 

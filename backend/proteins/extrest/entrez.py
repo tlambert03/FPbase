@@ -130,9 +130,9 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
     assert len(record) == 1, "More than one record returned from protein database"
     record = record[0]
     prot_seq = record["GBSeq_sequence"].upper()
-    assert len(prot_seq) == int(seq_len), "Protein database sequence different length {} than IPG database{}".format(
-        len(prot_seq), int(seq_len)
-    )
+    assert len(prot_seq) == int(
+        seq_len
+    ), f"Protein database sequence different length {len(prot_seq)} than IPG database{int(seq_len)}"
     return (ipg_uid, prot_seq)
 
 

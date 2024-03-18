@@ -72,11 +72,7 @@ def add_organism(request):
             if not request.user.is_staff:
                 mail_managers(
                     "Organism Added",
-                    "User: {}\nOrganism: {}\n{}".format(
-                        request.user.username,
-                        org,
-                        request.build_absolute_uri(org.get_absolute_url()),
-                    ),
+                    f"User: {request.user.username}\nOrganism: {org}\n{request.build_absolute_uri(org.get_absolute_url())}",
                     fail_silently=True,
                 )
         return JsonResponse(
