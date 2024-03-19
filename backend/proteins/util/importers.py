@@ -144,8 +144,9 @@ def fetch_semrock_part(part):
         raise ValueError(f"Semrock part not valid for URL: {part}")
 
     try:
-        url = "https://www.semrock.com" + (
-            str(response.content).split('" title="Click to Download ASCII')[0].split('href="')[-1]
+        url = (
+            "https://www.semrock.com"
+            + (str(response.content).split('" title="Click to Download ASCII')[0].split('href="')[-1])
         )
     except Exception as e:
         raise ValueError(f"Could not parse page for semrock part: {part}") from e

@@ -8,7 +8,6 @@ import pandas as pd
 import requests
 import tablib
 from django.utils.text import slugify
-
 from fpbase.users.models import User
 from references.models import Reference
 
