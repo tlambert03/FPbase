@@ -11,7 +11,6 @@ from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import CreateView
-
 from fpbase.util import is_ajax, uncache_protein_page
 
 from ..forms import SpectrumForm

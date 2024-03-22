@@ -48,9 +48,7 @@ mutpattern = re.compile(
     (?P<operation>delins|del|ins|)?
     (?P<new_chars>[{0}*]+)?
     (?:ext(?P<ext>[{0}]+))?
-    (?:,|$|/|\s)""".format(
-        r"A-Z*", "{1}"
-    ),
+    (?:,|$|/|\s)""".format(r"A-Z*", "{1}"),
     re.X,
 )
 

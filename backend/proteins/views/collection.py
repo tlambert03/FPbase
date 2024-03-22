@@ -21,7 +21,6 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
-
 from fpbase.util import is_ajax
 
 from ..forms import CollectionForm

@@ -24,17 +24,13 @@ omit = ["*/migrations/*", "*/tests/*", "proteins/management/**"]
 # plugins = ["django_coverage_plugin"]
 
 
-# ==== black ====
-[tool.black]
-line-length = 119
-target-version = ['py311']
-
-
 # ==== ruff ====
 [tool.ruff]
+src = ["backend/"]
 line-length = 119
 target-version = "py311"
 exclude = ['*/migrations/*', '*/static/CACHE/*', '.venv']
+[tool.ruff.lint]
 select = [
     "F",   # Pyflakes
     "E",   # pycodestyle errors
@@ -52,15 +48,9 @@ ignore = [
     "S101",   # Use of assert detected.
     "RUF012", # Mutable class attributes should be annotated
 ]
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "config/settings/*" = ["F405"]
 
-[tool.isort]
-profile = "black"
-line_length = 119
-known_first_party = ["fpbase", "config"]
-skip = ["venv/"]
-skip_glob = ["**/migrations/*.py"]
 
 
 # ==== mypy ====

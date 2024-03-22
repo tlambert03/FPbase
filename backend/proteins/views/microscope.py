@@ -28,7 +28,6 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
-
 from fpbase.celery import app
 from fpbase.util import is_ajax
 
@@ -307,11 +306,8 @@ class MicroscopeCreateView(MicroscopeCreateUpdateMixin, OwnableObject, CreateVie
                 try:
                     mail_admins(
                         "Microscope Created",
-                        "User: {}\nMicroscope: {}\n{}".format(
-                            self.request.user.username,
-                            self.object,
-                            self.request.build_absolute_uri(self.object.get_absolute_url()),
-                        ),
+                        f"User: {self.request.user.username}\nMicroscope: {self.object}"
+                        f"\n{self.request.build_absolute_uri(self.object.get_absolute_url())}",
                         fail_silently=True,
                     )
                 except Exception:

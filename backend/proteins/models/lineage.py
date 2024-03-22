@@ -1,10 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from fpseq.mutations import MutationSet
 from model_utils.models import TimeStampedModel
 from mptt.models import MPTTModel, TreeForeignKey
-
-from fpseq.mutations import MutationSet
 from references.models import Reference
 
 from ..models.mixins import Authorable
