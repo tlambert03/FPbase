@@ -51,7 +51,6 @@ class TestPagesRender(StaticLiveServerTestCase):
         acceptable_errors = (
             "GPU stall due to ReadPixels",
             "favicon.ico",
-            "The keyword 'searchfield-cancel-button' specified",
             "Failed to decode downloaded font",
         )
         for lg in logs:
@@ -109,9 +108,12 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert text_input.is_displayed()
         text_input.send_keys(SEQ[5:20].replace("LDG", "LG"))
 
-        if not _get_binary("makeblastdb") and not os.environ.get("CI"):
-            pytest.xfail("makeblastdb binary not found")
-            return
+        try:
+            _get_binary("makeblastdb")
+        except Exception:
+            if not os.environ.get("CI"):
+                pytest.xfail("makeblastdb binary not found")
+                return
 
         submit = self.browser.find_element(by="css selector", value='button[type="submit"]')
         submit.click()
