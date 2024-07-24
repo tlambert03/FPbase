@@ -518,7 +518,7 @@ def spectra_image(request, slug, **kwargs):
         byt.seek(0)
         if fmt == "svg":
             fmt += "+xml"
-        return HttpResponse(byt, content_type="image/%s" % fmt)
+        return HttpResponse(byt, content_type=f"image/{fmt}")
     raise Http404()
 
 

@@ -96,7 +96,7 @@ class Fluorophore(SpectrumOwner):
     def abs_spectrum(self):
         spect = [f for f in self.spectra.all() if f.subtype == "ab"]
         if len(spect) > 1:
-            raise AssertionError("multiple ex spectra found for %s" % self)
+            raise AssertionError(f"multiple ex spectra found for {self}")
         if len(spect):
             return spect[0]
         return None
@@ -105,7 +105,7 @@ class Fluorophore(SpectrumOwner):
     def ex_spectrum(self):
         spect = [f for f in self.spectra.all() if f.subtype == "ex"]
         if len(spect) > 1:
-            raise AssertionError("multiple ex spectra found for %s" % self)
+            raise AssertionError(f"multiple ex spectra found for {self}")
         if len(spect):
             return spect[0]
         return self.abs_spectrum
@@ -114,7 +114,7 @@ class Fluorophore(SpectrumOwner):
     def em_spectrum(self):
         spect = [f for f in self.spectra.all() if f.subtype == "em"]
         if len(spect) > 1:
-            raise AssertionError("multiple em spectra found for %s" % self)
+            raise AssertionError(f"multiple em spectra found for {self}")
         if len(spect):
             return spect[0]
         return self.abs_spectrum
