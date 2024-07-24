@@ -14,6 +14,7 @@ filterwarnings = [
     "ignore::DeprecationWarning:pkg_resources",
     "ignore::ResourceWarning",
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
+    "ignore:Deprecated call to `pkg_resources",
 ]
 
 
@@ -50,7 +51,6 @@ ignore = [
 ]
 [tool.ruff.lint.per-file-ignores]
 "config/settings/*" = ["F405"]
-
 
 
 # ==== mypy ====
