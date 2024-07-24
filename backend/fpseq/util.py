@@ -75,7 +75,7 @@ def protein_weight(seq):
     try:
         return sum(AA_WEIGHTS[x] for x in seq) - (len(seq) - 1) * WATER
     except KeyError as e:
-        raise ValueError("%s is not a valid unambiguous amino acid letter" % e) from e
+        raise ValueError(f"{e} is not a valid unambiguous amino acid letter") from e
 
 
 def slugify(value, allow_unicode=False):
