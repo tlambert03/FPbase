@@ -33,18 +33,14 @@ repos:
   #     - id: djlint-django
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: '1.15.0'
+    rev: '1.16.0'
     hooks:
       - id: django-upgrade
         args: ['--target-version', '4.2']
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.1.13'
+    rev: 'v0.3.3'
     hooks:
       - id: ruff
         args: ['--fix']
-
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
-    hooks:
-      - id: black
+      - id: ruff-format

@@ -71,6 +71,7 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=()):
 
 def most_favorited(max_results=20):
     from favit.models import Favorite
+
     from proteins.models import Protein
 
     qs = Favorite.objects.for_model(Protein)

@@ -3,14 +3,10 @@ import Cookies from "js-cookie"
 import Form from "react-bootstrap/Form"
 import Button from "react-bootstrap/Button"
 
-function InputForm({ onSubmit }) {
-  function handleSubmit(e) {
-    e.preventDefault()
-    onSubmit(e.target)
-  }
+function InputForm({ handleSubmit, initialValue }) {
 
   return (
-    <Form onSubmit={e => handleSubmit(e)}>
+    <Form onSubmit={handleSubmit}>
       <input
         type="hidden"
         name="csrfmiddlewaretoken"
@@ -18,7 +14,7 @@ function InputForm({ onSubmit }) {
       />
       <Form.Group controlId="queryInput">
         <Form.Label>Enter Query</Form.Label>
-        <Form.Control required name="query" as="textarea" rows="4" />
+        <Form.Control required defaultValue={initialValue} name="query" as="textarea" rows="4" />
         <Form.Text className="text-muted">
           Single sequence or multiple sequences in FASTA format. Accepts either
           amino acid or nucleotide sequences, but all sequences in a query be of

@@ -4,10 +4,10 @@ from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
+from proteins.models import Protein, Spectrum
 from sentry_sdk import last_event_id
 
 from fpbase.forms import ContactForm
-from proteins.models import Protein, Spectrum
 
 
 class HomeView(TemplateView):

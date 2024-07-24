@@ -1,6 +1,7 @@
 """Vendoring until
 https://github.com/tfoxy/graphene-django-optimizer/pull/83/
 """
+
 import functools
 
 from django.core.exceptions import FieldDoesNotExist

@@ -29,6 +29,7 @@ examples (converted to single letter codes):
 full string:
     'S65T/C76del/C76_G79del/K23_L24insRSG/C76delinsRRGY/C76_G78delinsRRGY/*315TextAKGT/M1_L2insVKSGEE'
 """
+
 import re
 import warnings
 
@@ -47,9 +48,7 @@ mutpattern = re.compile(
     (?P<operation>delins|del|ins|)?
     (?P<new_chars>[{0}*]+)?
     (?:ext(?P<ext>[{0}]+))?
-    (?:,|$|/|\s)""".format(
-        r"A-Z*", "{1}"
-    ),
+    (?:,|$|/|\s)""".format(r"A-Z*", "{1}"),
     re.X,
 )
 

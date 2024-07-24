@@ -52,8 +52,8 @@ def norm2one(y):
 def step_size(lol):
     x, y = zip(*lol)
     s = set(np.subtract(x[1:], x[:-1]))
-    if len(s) > 1:  # multiple step sizes
-        return False
+    if len(s) != 1:  # multiple step sizes
+        return 0
     return s.pop()
 
 

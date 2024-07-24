@@ -5,6 +5,7 @@ import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 // import { ApolloProvider } from "@apollo/react-hooks"
 import initializeClient from "./client/client"
+import { parseURL } from "./client/client"
 import { defaults } from "./client/resolvers"
 
 /* eslint-disable */
@@ -47,17 +48,29 @@ SimpleSpectraViewer.defaultProps = {
   uri: "/graphql/",
 }
 
-const Inner = ({ ids = [], overlaps = [], options, hidden = [] }) => {
-  const provideOptions = Object.assign(defaults.chartOptions, options)
+const Inner = ({ ids, overlaps, options, hidden }) => {
+  // Normalize null values to empty arrays and options to an empty object if null
+  ids = Array.isArray(ids) ? ids : [];
+  overlaps = Array.isArray(overlaps) ? overlaps : [];
+  hidden = Array.isArray(hidden) ? hidden : [];
+  options = options || {};
+
+  if (ids.length === 0) {
+    const url_data = parseURL();
+    console.log(url_data);
+    ids = ids.length > 0 ? ids : url_data.activeSpectra || [];
+    options = Object.keys(options).length > 0 ? options : url_data.chartOptions || {};
+  }
 
   return (
     <SpectraViewerContainer
       provideSpectra={ids.map(String)}
       provideOverlaps={overlaps}
-      provideOptions={provideOptions}
+      provideOptions={{ ...defaults.chartOptions, ...options }}
       provideHidden={hidden.map(String)}
     />
-  )
-}
+  );
+};
+
 
 export { SimpleSpectraViewer }

@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
@@ -87,4 +87,4 @@ jobs:
           pytest --color=yes -v --cov --cov-report=xml --cov-report=term-missing
 
       - name: coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
