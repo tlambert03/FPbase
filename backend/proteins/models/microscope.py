@@ -381,7 +381,7 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
         elif isinstance(fnames, tuple | list):
             pass
         else:
-            raise ValueError("value must be string, list, or tuple: %s" % fnames)
+            raise ValueError(f"value must be string, list, or tuple: {fnames}")
 
         for fname in fnames:
             try:
@@ -390,11 +390,11 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
                 try:
                     _assign_filt(fname, i, True)
                 except ObjectDoesNotExist:
-                    print('Filter name "%s" returned multiple hits and exact match not found' % fname)
+                    print(f'Filter name "{fname}" returned multiple hits and exact match not found')
                     oc.delete()
                     return None
             except ObjectDoesNotExist:
-                print('Filter name "%s" not found' % fname)
+                print(f'Filter name "{fname}" not found')
                 oc.delete()
                 return None
     return oc

@@ -223,7 +223,7 @@ class MicroscopeForm(forms.ModelForm):
                 elif int(fname) < 300 or int(fname) > 1600:
                     self.add_error(
                         "optical_configs",
-                        "Laser wavelengths must be between 300-1600.  Got: %s" % fname,
+                        f"Laser wavelengths must be between 300-1600.  Got: {fname}",
                     )
                 else:
                     return int(fname)
@@ -276,7 +276,7 @@ class MicroscopeForm(forms.ModelForm):
                         if f in namestore:
                             self.add_error(
                                 "optical_configs",
-                                "Optical config with the name %s already exists." % f,
+                                f"Optical config with the name {f} already exists.",
                             )
                         else:
                             namestore.append(f)
@@ -290,7 +290,7 @@ class MicroscopeForm(forms.ModelForm):
                         except Exception:
                             self.add_error(
                                 "optical_configs",
-                                "Unable to parse Boolean in position 5: %s" % f,
+                                f"Unable to parse Boolean in position 5: {f}",
                             )
                     else:
                         if isinstance(f, list):
