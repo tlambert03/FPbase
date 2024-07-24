@@ -26,9 +26,14 @@ if READ_DOT_ENV_FILE:
     # that is to say variables from the .env files will only be used if not defined
     # as environment variables.
     env_file = str(ROOT_DIR / ".env")
-    print(f"Loading : {env_file}")
-    env.read_env(env_file)
-    print("The .env file has been loaded. See base.py for more information")
+    if Path(env_file).exists():
+        print(f"Loading : {env_file}")
+        env.read_env(env_file)
+        print("The .env file has been loaded. See base.py for more information")
+    else:
+        print(f"Could not find {env_file}.")
+    if "amazonaws.com" in env("DATABASE_URL", default=""):
+        print("\n##################\nWARNING: Using AWS database\n##################\n")
 
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -348,8 +353,8 @@ RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_V3_PRIVATE_KEY", default="")
 # NOCAPTCHA = True
 
 GOOGLE_API_PRIVATE_KEY = env("GOOGLE_API_PRIVATE_KEY", default="").replace("#", "\n")
-GOOGLE_API_CLIENT_EMAIL = env("GOOGLE_API_CLIENT_EMAIL", default=None)
-GOOGLE_API_PRIVATE_KEY_ID = env("GOOGLE_API_PRIVATE_KEY_ID", default=None)
+GOOGLE_API_CLIENT_EMAIL = env("GOOGLE_API_CLIENT_EMAIL", default="")
+GOOGLE_API_PRIVATE_KEY_ID = env("GOOGLE_API_PRIVATE_KEY_ID", default="")
 
 MAXMIND_API_KEY = env("MAXMIND_API_KEY", default="")
 

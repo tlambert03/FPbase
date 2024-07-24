@@ -1,7 +1,6 @@
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
-
 from fpbase.util import is_ajax, uncache_protein_page
 
 from .models import Favorite

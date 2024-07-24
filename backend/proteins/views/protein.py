@@ -32,16 +32,16 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, base
+from fpbase.util import is_ajax, uncache_protein_page
+from references.models import Reference  # breaks application modularity
 from reversion.models import Revision, Version
 
-from fpbase.util import is_ajax, uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
 from proteins.extrest.ga import cached_ga_popular
 from proteins.forms.forms import BaseStateFormSet
 from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
 from proteins.util.spectra import spectra2csv
-from references.models import Reference  # breaks application modularity
 
 from ..forms import (
     BleachComparisonForm,
@@ -481,7 +481,10 @@ class ActivityView(ListView):
             .prefetch_related(stateprefetch, "primary_reference")
             .order_by(F("primary_reference__date").desc(nulls_last=True))[:15]
         )
-        data["most_popular"] = {k: v[:12] for k, v in cached_ga_popular().items()}
+        try:
+            data["most_viewed"] = {k: v[:12] for k, v in cached_ga_popular().items()}
+        except Exception as e:
+            logger.error(e)
         data["most_favorited"] = most_favorited(max_results=18)
         return data
 

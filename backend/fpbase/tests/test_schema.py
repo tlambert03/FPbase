@@ -1,7 +1,6 @@
 import json
 
 from graphene_django.utils.testing import GraphQLTestCase
-
 from proteins import models
 
 from ..schema import schema

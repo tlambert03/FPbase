@@ -4,7 +4,6 @@ from django.core.mail import mail_managers
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.utils.html import strip_tags
 from django.views.generic import DetailView, ListView
-
 from fpbase.util import is_ajax
 from proteins.models import Excerpt
 from proteins.util.helpers import link_excerpts
@@ -85,12 +84,9 @@ def add_excerpt(request, pk=None):
                 # P.references.add(ref)
                 Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
                 if not request.user.is_staff:
-                    msg = "User: {}\nReference: {}, {}\nExcerpt: {}\n{}".format(
-                        request.user.username,
-                        ref,
-                        ref.title,
-                        strip_tags(content),
-                        request.build_absolute_uri(ref.get_absolute_url()),
+                    msg = (
+                        f"User: {request.user.username}\nReference: {ref}, {ref.title}"
+                        f"\nExcerpt: {strip_tags(content)}\n{request.build_absolute_uri(ref.get_absolute_url())}"
                     )
                     mail_managers("Excerpt Added", msg, fail_silently=True)
                 reversion.set_user(request.user)

@@ -23,11 +23,11 @@
   }
 }
 
-// FIXME: Non-standard CSS property
-// https://developer.mozilla.org/en-US/docs/Web/CSS/::-webkit-search-cancel-button
-#mutation-search-input::-webkit-search-cancel-button {
-    -webkit-appearance: searchfield-cancel-button;
-}
+// // FIXME: Non-standard CSS property
+// // https://developer.mozilla.org/en-US/docs/Web/CSS/::-webkit-search-cancel-button
+// #mutation-search-input::-webkit-search-cancel-button {
+//     -webkit-appearance: searchfield-cancel-button;
+// }
 
 .lineage-wrapper {
   max-width: 100%;

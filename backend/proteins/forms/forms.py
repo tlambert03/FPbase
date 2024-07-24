@@ -7,6 +7,7 @@ from django import forms
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
+from references.models import Reference  # breaks application modularity
 
 from proteins.models import (
     BleachMeasurement,
@@ -17,7 +18,6 @@ from proteins.models import (
     StateTransition,
 )
 from proteins.validators import protein_sequence_validator, validate_doi
-from references.models import Reference  # breaks application modularity
 
 
 def popover_html(label, content, side="right"):
@@ -60,11 +60,8 @@ def check_existence(form, fieldname, value):
         prot = query.first()
         raise forms.ValidationError(
             mark_safe(
-                '<a href="{}" style="text-decoration: underline;">{}</a> already has this {}'.format(
-                    prot.get_absolute_url(),
-                    prot.name,
-                    Protein._meta.get_field(fieldname).verbose_name.lower(),
-                )
+                f'<a href="{prot.get_absolute_url()}" style="text-decoration: underline;">'
+                f"{prot.name}</a> already has this {Protein._meta.get_field(fieldname).verbose_name.lower()}"
             )
         )
     return value
@@ -442,9 +439,8 @@ class CollectionForm(forms.ModelForm):
 
         raise forms.ValidationError(
             mark_safe(
-                'You already have a collection named <a href="{}" style="text-decoration: underline;">{}</a>'.format(
-                    col.get_absolute_url(), col.name
-                )
+                f'You already have a collection named <a href="{col.get_absolute_url()}" '
+                f'style="text-decoration: underline;">{col.name}</a>'
             )
         )
 

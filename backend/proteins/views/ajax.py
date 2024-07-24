@@ -12,8 +12,8 @@ from django.http import HttpResponseNotAllowed, JsonResponse
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django.views.generic import DetailView
-
 from fpbase.util import is_ajax, uncache_protein_page
+
 from proteins.util.maintain import validate_node
 
 from ..models import Fluorophore, Lineage, Organism, Protein, Spectrum, State
@@ -72,11 +72,8 @@ def add_organism(request):
             if not request.user.is_staff:
                 mail_managers(
                     "Organism Added",
-                    "User: {}\nOrganism: {}\n{}".format(
-                        request.user.username,
-                        org,
-                        request.build_absolute_uri(org.get_absolute_url()),
-                    ),
+                    f"User: {request.user.username}\nOrganism: {org}\n"
+                    f"{request.build_absolute_uri(org.get_absolute_url())}",
                     fail_silently=True,
                 )
         return JsonResponse(
