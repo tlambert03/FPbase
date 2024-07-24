@@ -481,7 +481,10 @@ class ActivityView(ListView):
             .prefetch_related(stateprefetch, "primary_reference")
             .order_by(F("primary_reference__date").desc(nulls_last=True))[:15]
         )
-        data["most_popular"] = {k: v[:12] for k, v in cached_ga_popular().items()}
+        try:
+            data["most_viewed"] = {k: v[:12] for k, v in cached_ga_popular().items()}
+        except Exception as e:
+            logger.error(e)
         data["most_favorited"] = most_favorited(max_results=18)
         return data
 
