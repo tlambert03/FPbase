@@ -5,7 +5,6 @@ import re
 from Bio import Data, Seq
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-
 from fpseq.mutations import Mutation
 
 from .fields import Spectrum

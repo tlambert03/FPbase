@@ -16,7 +16,9 @@
         <div class="focusnote">click and drag to zoom</div>
       </div>
       <div id="scope-settings-buttons">
+        {% if embeddable %}
         <span class='text-info' id="settings-button" data-toggle="tooltip" data-placement="right" title="Settings"><i class="fa fa-cog" data-toggle="modal" data-target="#settingsModal"></i></span>
+        {% endif %}
         <span class='text-info' id="share-button" data-toggle="tooltip" data-placement="right" title="Share current configuration" data-toggle="modal" data-target="#shareModal"><i class="fa fa-share-square"></i></span>
         <span class="pin-wrapper rotate-90" id="stickyPin" data-toggle="tooltip" data-placement="right" title="Keep spectra graph on top when scrolling"><span class="fas fa-thumbtack"></span></span>
       </div>
@@ -32,8 +34,9 @@
     </div>
   </div>
 </div>
-<div class="container">
-  <div class="row">
+<!-- ids class names are used for styling by iframe.  do not change -->
+<div class="container microscope-controls">
+  <div id="fluorophoreSelector" class="row">
     <div class="input-group mb-3 col-12 col-md-6">
       <div class="input-group-prepend">
         <label class="input-group-text text-white bg-info" for="inputGroupSelect01">Fluor<span class="d-none d-lg-inline">ophore</span></label>
@@ -65,7 +68,7 @@
       </div>
     </div>
   </div>
-  <div class="row">
+  <div id="configSelector", class="row">
     <div class="col-12">
       <div class="input-group mb-1">
         <div class="input-group-prepend">
@@ -88,7 +91,7 @@
       <small id="config_comments" class="form-text text-muted mt-0 pt-0 mb-3 text-right font-italic"></small>
     </div>
   </div>
-  <div class="row">
+  <div id="lightSourceDetectorsSelector" class="row">
     <div class="col-12 col-sm-6">
       <div class="input-group mb-3">
         <div class="input-group-prepend">
@@ -170,8 +173,8 @@
       </div>
     </div>
   </div>
-  <div class="row filters">
-    <div class="col-12 col-sm-6 col-md-4 order-sm-2 order-md-1 mb-3">
+  <div id="filterSelectors" class="row filters">
+    <div id="excitationFilterSelectors" class="col-12 col-sm-6 col-md-4 order-sm-2 order-md-1 mb-3">
       <div class="card">
         <div class="card-header text-white bg-info">
           Excitation Filters
@@ -194,7 +197,7 @@
         </div>
       </div>
     </div>
-    <div class="col-12 col-md-4 order-sm-1 order-md-2 mb-3">
+    <div id="dichroicFilterSelectors" class="col-12 col-md-4 order-sm-1 order-md-2 mb-3">
       <div class="card">
         <div class="card-header text-white bg-info">
           Dichroic<span class="d-inline d-md-none d-lg-inline"> Mirror</span>s
@@ -233,7 +236,7 @@
         </div>
       </div>
     </div>
-    <div class="col-12 col-sm-6 col-md-4 order-sm-3 order-md-3 mb-2">
+    <div id="emissionFilterSelectors" class="col-12 col-sm-6 col-md-4 order-sm-3 order-md-3 mb-2">
       <div class="card">
         <div class="card-header text-white bg-info">
           Emission Filters
@@ -298,7 +301,7 @@
     </div>
 {% endif %}
 
-<div class="text-center mt-2" id="efflink"><a class="btn btn-secondary" href="{% url 'proteins:microscope-report' object.id %}" role="button"><i class="fas fa-table mr-2"></i>Fluorophore Efficiency Report</a></div>
+<div id="efficiencyRow" class="text-center mt-2" id="efflink"><a class="btn btn-secondary" href="{% url 'proteins:microscope-report' object.id %}" role="button"><i class="fas fa-table mr-2"></i>Fluorophore Efficiency Report</a></div>
 
 <div class="hidden" id='linkSVG'><i class="fas fa-external-link-alt"></i></div>
 <svg height="8" width="8" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="crosshatch" patternUnits="userSpaceOnUse" width="8" height="8"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc4JyBoZWlnaHQ9JzgnPgogIDxyZWN0IHdpZHRoPSc4JyBoZWlnaHQ9JzgnIGZpbGw9JyNmZmYnLz4KICA8cGF0aCBkPSdNMCAwTDggOFpNOCAwTDAgOFonIHN0cm9rZS13aWR0aD0nMC41JyBzdHJva2U9JyNhYWEnLz4KPC9zdmc+Cg==" x="0" y="0" width="8" height="8"> </image> </pattern> </defs> </svg>

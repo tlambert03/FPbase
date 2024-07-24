@@ -286,9 +286,11 @@
             {% endif %}
         </div>
       </div>
-
+      {% if protein.seq %}
+      <div class="float-sm-right text-info"><a href="{% url 'proteins:blast' %}?query={{protein.seq}}">BLAST</a></div>
+      {% endif %}
       {% if protein.lineage and protein.lineage.parent %}
-          <p class="text-muted">{{protein.name | safe}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span><span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
+      <p class="text-muted">{{protein.name | safe}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span><span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
           {% if protein.lineage.root_node != protein.lineage.parent and protein.lineage.mutation != protein.lineage.rootmut %}<span class="small">
           amino acid numbers relative to <span class="mut-rel-parent hidden">{{protein.lineage.parent.protein}}</span><span class="mut-rel-root">{{protein.lineage.root_node}}</span>. <a href="" onclick="myFunction(event)" class="mut-rel-parent hidden text-secondary">show relative to {{protein.lineage.root_node}}</a><a href="" onclick="myFunction(event)" class="mut-rel-root text-secondary">show relative to {{protein.lineage.parent.protein}}</a></span>
           {% endif %}
@@ -310,16 +312,17 @@
               }
               x = document.getElementsByClassName(toshow);
               for (i = 0; i < x.length; i++) {
-                  x[i].classList.remove("hidden");
+                x[i].classList.remove("hidden");
               }
             }
           </script>
       {% endif %}
+
       {% if protein.seq %}
 
         <div class="mt-2">
           {% if protein.seq_comment %}
-            <p class='text-info small mb-1'><span class='font-weight-bold'>Note</span>: {{ protein.seq_comment | safe}}</p>
+          <p class='text-info small mb-1'><span class='font-weight-bold'>Note</span>: {{ protein.seq_comment | safe}}</p>
           {% endif %}
           <div class='aminosequence container'>{{ protein.seq }}</div>
         </div>
