@@ -86,7 +86,7 @@ class SkbSequence:
             else:
                 raise TypeError(
                     "Can only create sequence from numpy.ndarray of dtype "
-                    "np.uint8 or '|S1'. Invalid dtype: %s" % sequence.dtype
+                    f"np.uint8 or '|S1'. Invalid dtype: {sequence.dtype}"
                 )
         elif isinstance(sequence, SkbSequence):
             sequence._assert_can_cast_to(type(self))
@@ -100,7 +100,7 @@ class SkbSequence:
 
             s = np.frombuffer(sequence, dtype=np.uint8)
             if isinstance(sequence, np.generic) and len(s) != 1:
-                raise TypeError("Can cannot create a sequence with %r" % type(sequence).__name__)
+                raise TypeError(f"Can cannot create a sequence with {type(sequence).__name__!r}")
 
             sequence = s
             self._owns_bytes = True
@@ -136,7 +136,7 @@ class SkbSequence:
 
     def _munge_to_sequence(self, other, method):
         if isinstance(other, SkbSequence):
-            if type(other) != type(self):
+            if type(other) is not type(self):
                 raise TypeError(
                     f"Cannot use {self.__class__.__name__} and " f"{other.__class__.__name__} together with `{method}`"
                 )
@@ -362,6 +362,6 @@ def _slices_from_iter(array, indexables):
         elif _is_single_index(i):
             i = _single_index_to_slice(i)
         else:
-            raise IndexError("Cannot slice sequence from iterable " "containing %r." % i)
+            raise IndexError("Cannot slice sequence from iterable " f"containing {i!r}.")
 
         yield array[i]
