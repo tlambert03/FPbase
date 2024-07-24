@@ -729,13 +729,13 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
     @admin.display(description="Mutation from parent")
     def mutation_ellipsis(self, obj):
         if len(str(obj.mutation)) > self.max_length:
-            return "%s..." % str(obj.mutation)[: self.max_length]
+            return f"{str(obj.mutation)[: self.max_length]}..."
         return str(obj.mutation)
 
     @admin.display(description="Mutation from root")
     def rootmut_ellipsis(self, obj):
         if len(str(obj.rootmut)) > self.max_length:
-            return "%s..." % str(obj.rootmut)[: self.max_length]
+            return f"{str(obj.rootmut)[: self.max_length]}..."
         return str(obj.rootmut)
 
     @admin.display(description="OK?")
