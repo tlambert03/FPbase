@@ -1,5 +1,6 @@
 import ast
 import json
+import logging
 
 import numpy as np
 from django.contrib.postgres.fields import ArrayField
@@ -11,13 +12,16 @@ from django.db import models
 from django.forms import CharField, Textarea
 from django.urls import reverse
 from django.utils.text import slugify
+from model_utils import Choices
 from model_utils.managers import QueryManager
-from model_utils.models import TimeStampedModel
+from model_utils.models import StatusModel, TimeStampedModel
 from references.models import Reference
 
 from ..util.helpers import wave_to_hex
 from ..util.spectra import interp_linear, interp_univar, norm2one, norm2P, step_size
 from .mixins import AdminURLMixin, Authorable, Product
+
+logger = logging.getLogger(__name__)
 
 
 class SpectrumOwner(Authorable, TimeStampedModel):
@@ -74,6 +78,13 @@ def get_cached_spectra_info(timeout=60 * 60):
 
 
 class SpectrumManager(models.Manager):
+    def get_queryset(self):
+        # by default, only include approved spectra
+        return super().get_queryset().filter(status=Spectrum.STATUS.approved)
+
+    def all_objects(self):
+        return super().get_queryset()
+
     def state_slugs(self):
         L = (
             self.get_queryset()
@@ -294,7 +305,9 @@ class SpectrumData(ArrayField):
                 raise ValidationError("All items in Spectrum list elements must be numbers")
 
 
-class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
+class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
+    STATUS = Choices("approved", "pending", "rejected")
+
     DYE = "d"
     PROTEIN = "p"
     LIGHT = "l"
@@ -419,12 +432,15 @@ class Spectrum(Authorable, TimeStampedModel, AdminURLMixin):
         super().save(*args, **kwargs)
 
     def _norm2one(self):
-        if self.subtype == self.TWOP:
-            y, self._peakval2p, maxi = norm2P(self.y)
-            self._peakwave2p = self.x[maxi]
-            self.change_y(y)
-        else:
-            self.change_y(norm2one(self.y))
+        try:
+            if self.subtype == self.TWOP:
+                y, self._peakval2p, maxi = norm2P(self.y)
+                self._peakwave2p = self.x[maxi]
+                self.change_y(y)
+            else:
+                self.change_y(norm2one(self.y))
+        except Exception:
+            logger.exception("Error normalizing spectrum data")
 
     def _interpolated_data(self, method=None, **kwargs):
         if not method or method.lower() == "linear":

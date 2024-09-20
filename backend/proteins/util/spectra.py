@@ -63,6 +63,8 @@ def norm2P(y):
     localmax = argrelextrema(y, np.greater, order=100)
     # can't be within first 10 points
     localmax = [i for i in localmax[0] if i > 10]
+    if not localmax:
+        return y, 0, 0
     maxind = localmax[np.argmax(y[localmax])]
     maxy = y[maxind]
     return [round(max(yy / maxy, 0), 4) for yy in y], maxy, maxind

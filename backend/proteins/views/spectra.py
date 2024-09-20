@@ -1,5 +1,6 @@
 import contextlib
 import json
+from textwrap import dedent
 
 # from django.views.decorators.cache import cache_page
 # from django.views.decorators.vary import vary_on_cookie
@@ -9,6 +10,7 @@ from django.core.mail import EmailMessage
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
+from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import CreateView
 from fpbase.util import is_ajax, uncache_protein_page
@@ -48,12 +50,17 @@ def protein_spectra_graph(request, slug=None):
     return render(request, "spectra_graph.html")
 
 
+def spectrum_submitted(request):
+    context = {"spectrum_name": request.session.get("spectrum_name", "")}
+    return render(request, "spectrum_submitted.html", context)
+
+
 class SpectrumCreateView(CreateView):
     model = Spectrum
     form_class = SpectrumForm
 
     def get_success_url(self, **kwargs):
-        return self.object.owner.get_absolute_url()
+        return reverse_lazy("proteins:spectrum_submitted")
 
     def get_initial(self):
         init = super().get_initial()
@@ -74,7 +81,7 @@ class SpectrumCreateView(CreateView):
         form = super().get_form()
 
         if self.kwargs.get("slug", False):
-            try:
+            with contextlib.suppress(Exception):
                 form.fields["owner_state"] = forms.ModelChoiceField(
                     required=True,
                     label="Protein (state)",
@@ -82,25 +89,36 @@ class SpectrumCreateView(CreateView):
                     queryset=State.objects.filter(protein=self.protein).select_related("protein"),
                 )
                 form.fields["category"].disabled = True
-            except Exception:
-                pass
         return form
 
     def form_valid(self, form):
+        # Set the status to "pending" before saving the form
+        if not self.request.user.is_staff:
+            form.instance.status = Spectrum.STATUS.pending
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        i = super().form_valid(form)
+        response = super().form_valid(form)
         with contextlib.suppress(Exception):
             uncache_protein_page(self.object.owner_state.protein.slug, self.request)
 
         if not self.request.user.is_staff:
+            body = f"""
+            A new spectrum has been submitted to FPbase.
+
+            Admin URL: {self.request.build_absolute_uri(form.instance.get_admin_url())}
+            User: {self.request.user}
+            Data:
+
+            {form.cleaned_data}
+            """
             EmailMessage(
-                f'[FPbase] Spectrum submitted: {form.cleaned_data["owner"]}',
-                self.request.build_absolute_uri(form.instance.get_admin_url()),
+                subject=f'[FPbase] Spectrum needs validation: {form.cleaned_data["owner"]}',
+                body=dedent(body),
                 to=[a[1] for a in settings.ADMINS],
                 headers={"X-Mailgun-Track": "no"},
             ).send()
-        return i
+        self.request.session["spectrum_name"] = self.object.name
+        return response
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context

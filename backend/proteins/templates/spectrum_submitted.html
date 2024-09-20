@@ -1,0 +1,12 @@
+{% extends "base.html" %} {% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1>Thank you!</h1>
+      <p>The {{spectrum_name}} spectrum has been submitted successfully. A moderator will verify it soon.</p>
+      <p>If you don't see it within a couple days, please <a href="{% url 'contact' %}">contact us</a>.</p>
+      <p>If you like, you may <a href="{% url 'proteins:submit-spectra' %}">add another spectrum.</a></p>
+    </div>
+  </div>
+</div>
+{% endblock content %}

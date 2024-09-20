@@ -65,6 +65,7 @@ urlpatterns = [
         ),
         name="submit-spectra",
     ),
+    path("spectra/submitted/", views.spectrum_submitted, name="spectrum_submitted"),
     re_path(
         r"^spectra/submit/(?P<slug>[-\w]+)/$",
         (

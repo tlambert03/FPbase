@@ -160,14 +160,18 @@ class SpectrumForm(forms.ModelForm):
         owner_state = self.cleaned_data.get("owner_state")
         stype = self.cleaned_data.get("subtype")
         if self.cleaned_data.get("category") == Spectrum.PROTEIN:
-            if owner_state.spectra.filter(subtype=stype).exists():
+            spectra = Spectrum.objects.all_objects().filter(owner_state=owner_state, subtype=stype)
+            if spectra.exists():
+                first = spectra.first()
                 self.add_error(
                     "owner_state",
                     forms.ValidationError(
-                        "%(owner)s already has a{} %(stype)s spectrum".format("n" if stype != Spectrum.TWOP else ""),
+                        "%(owner)s already has a%(n)s %(stype)s spectrum %(status)s",
                         params={
                             "owner": owner_state,
-                            "stype": owner_state.spectra.filter(subtype=stype).first().get_subtype_display().lower(),
+                            "stype": first.get_subtype_display().lower(),
+                            "n": "n" if stype != Spectrum.TWOP else "",
+                            "status": " (pending)" if first.status == Spectrum.STATUS.pending else "",
                         },
                         code="owner_exists",
                     ),
