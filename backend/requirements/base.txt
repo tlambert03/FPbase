@@ -48,7 +48,7 @@ matplotlib==3.7.1
 django-mptt==0.14.0  # https://github.com/django-mptt/django-mptt
 django-webpack-loader==2.0.1
 
-google-auth==2.23.3
+google-auth==2.29.0
 google-analytics-data==0.18.9
 algoliasearch_django==3.0.0
 
