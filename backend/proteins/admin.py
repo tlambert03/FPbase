@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib import admin
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.forms import TextInput
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -56,7 +56,8 @@ class SpectrumOwner:
     def spectra(self, obj):
         def _makelink(sp):
             url = reverse("admin:proteins_spectrum_change", args=(sp.pk,))
-            return f'<a href="{url}">{sp.get_subtype_display()}</a>'
+            pending = " (pending)" if sp.status == Spectrum.STATUS.pending else ""
+            return f'<a href="{url}">{sp.get_subtype_display()}{pending}</a>'
 
         links = []
         if isinstance(obj, Fluorophore):
@@ -67,13 +68,13 @@ class SpectrumOwner:
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.prefetch_related("spectrum")
+        return qs.prefetch_related(Prefetch("spectrum", queryset=Spectrum.objects.all_objects()))
 
 
 class MultipleSpectraOwner(SpectrumOwner):
     def get_queryset(self, request):
         qs = super(SpectrumOwner, self).get_queryset(request)
-        return qs.prefetch_related("spectra")
+        return qs.prefetch_related(Prefetch("spectra", queryset=Spectrum.objects.all_objects()))
 
 
 class BleachInline(admin.TabularInline):
@@ -219,7 +220,7 @@ class SpectrumAdmin(VersionAdmin):
         "created_by",
     )
     list_display = ("__str__", "category", "subtype", "owner", "created_by")
-    list_filter = ("created", "category", "subtype")
+    list_filter = ("status", "created", "category", "subtype")
     readonly_fields = ("owner", "name", "created", "modified")
     search_fields = (
         "owner_state__protein__name",
@@ -253,6 +254,7 @@ class SpectrumAdmin(VersionAdmin):
             "solvent",
             "source",
             "reference",
+            "status",
             ("created", "created_by"),
             ("modified", "updated_by"),
         ]
@@ -267,9 +269,16 @@ class SpectrumAdmin(VersionAdmin):
         link = f'<a href="{url}">{obj.owner}</a>'
         return mark_safe(link)
 
-    # def get_queryset(self, request):
-    #     qs = super().get_queryset(request)
-    #     return qs.prefetch_related('owner_state__protein')
+    def get_queryset(self, request):
+        """
+        Return a QuerySet of all model instances that can be edited by the
+        admin site. This is used by changelist_view.
+        """
+        qs = Spectrum.objects.all_objects()
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
 
 
 @admin.register(OSERMeasurement)
@@ -458,7 +467,7 @@ class OrganismAdmin(CompareVersionAdmin):
 
 
 @admin.action(description="Mark selected proteins as approved")
-def make_approved(modeladmin, request, queryset):
+def approve_protein(modeladmin, request, queryset):
     # note, this will fail if the list is ordered by numproteins
     queryset.update(status=Protein.STATUS.approved)
 
@@ -487,7 +496,7 @@ class ProteinAdmin(CompareVersionAdmin):
     )
     prepopulated_fields = {"slug": ("name",)}
     inlines = (StateInline, StateTransitionInline, OSERInline, LineageInline)
-    actions = [make_approved]
+    actions = [approve_protein]
     fieldsets = [
         (
             None,
