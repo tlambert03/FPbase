@@ -390,7 +390,7 @@ class LineageForm(forms.ModelForm):
         parent = self.cleaned_data.get("parent")
         mutation = self.cleaned_data.get("mutation")
         if (parent and not mutation) or (mutation and not parent):
-            raise forms.ValidationError("Both parent and mutation are " "required when providing lineage information")
+            raise forms.ValidationError("Both parent and mutation are required when providing lineage information")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

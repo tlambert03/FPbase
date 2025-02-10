@@ -112,7 +112,7 @@ class SpectrumCreateView(CreateView):
             {form.cleaned_data}
             """
             EmailMessage(
-                subject=f'[FPbase] Spectrum needs validation: {form.cleaned_data["owner"]}',
+                subject=f"[FPbase] Spectrum needs validation: {form.cleaned_data['owner']}",
                 body=dedent(body),
                 to=[a[1] for a in settings.ADMINS],
                 headers={"X-Mailgun-Track": "no"},

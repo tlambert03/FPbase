@@ -97,7 +97,7 @@ def formset_changes(formset):
     for obj, _fields in formset.changed_objects:
         form = next(_form for _form in formset.forms if _form.instance == obj)
         frm_chg = form_changes(form)
-        changes.append(f'Changed {model} {obj}: ({"; ".join(frm_chg)})')
+        changes.append(f"Changed {model} {obj}: ({'; '.join(frm_chg)})")
     return changes
 
 

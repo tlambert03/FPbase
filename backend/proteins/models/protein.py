@@ -408,7 +408,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 if _hex == "#000":
                     sub = 18
                 bgs.append(f"{_hex} {(i + 1) * stepsize - sub}%")
-            return f'linear-gradient(90deg, {", ".join(bgs)})'
+            return f"linear-gradient(90deg, {', '.join(bgs)})"
         elif self.default_state:
             return self.default_state.emhex
         else:

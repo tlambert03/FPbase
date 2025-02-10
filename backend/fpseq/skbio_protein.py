@@ -138,7 +138,7 @@ class SkbSequence:
         if isinstance(other, SkbSequence):
             if type(other) is not type(self):
                 raise TypeError(
-                    f"Cannot use {self.__class__.__name__} and " f"{other.__class__.__name__} together with `{method}`"
+                    f"Cannot use {self.__class__.__name__} and {other.__class__.__name__} together with `{method}`"
                 )
             else:
                 return other
@@ -362,6 +362,6 @@ def _slices_from_iter(array, indexables):
         elif _is_single_index(i):
             i = _single_index_to_slice(i)
         else:
-            raise IndexError("Cannot slice sequence from iterable " f"containing {i!r}.")
+            raise IndexError(f"Cannot slice sequence from iterable containing {i!r}.")
 
         yield array[i]
