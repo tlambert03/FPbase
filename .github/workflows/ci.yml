@@ -36,6 +36,7 @@ jobs:
       # postgres://user:password@host:port/database
       DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"
       UV_FROZEN: 1
+      NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
