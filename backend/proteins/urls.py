@@ -2,6 +2,7 @@ from os import getenv
 
 from django.urls import path, re_path
 from django.views.generic import TemplateView
+
 from fpbase.decorators import login_required_message_and_redirect as login_required
 
 from . import views

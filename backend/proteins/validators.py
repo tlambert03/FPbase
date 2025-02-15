@@ -5,6 +5,7 @@ import re
 from Bio import Data, Seq
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+
 from fpseq.mutations import Mutation
 
 from .fields import Spectrum
@@ -44,7 +45,7 @@ def validate_mutation(code):
 def cdna_sequence_validator(seq):
     badletters = [letter for letter in seq if letter not in UNAMBIGUOUS_DNA_LETTERS]
     if len(badletters):
-        raise ValidationError(f'Invalid DNA letters: {"".join(set(badletters))}')
+        raise ValidationError(f"Invalid DNA letters: {''.join(set(badletters))}")
     try:
         Seq.Seq(seq, UNAMBIGUOUS_DNA_LETTERS).translate()
     except Data.CodonTable.TranslationError as e:
@@ -56,7 +57,7 @@ def protein_sequence_validator(seq):
     badletters = [letter for letter in seq if letter not in IUPAC_PROTEIN_LETTERS]
     if len(badletters):
         badletters = set(badletters)
-        raise ValidationError(f'Invalid letter(s) found in amino acid sequence: {"".join(badletters)}')
+        raise ValidationError(f"Invalid letter(s) found in amino acid sequence: {''.join(badletters)}")
 
 
 def validate_spectrum(value):

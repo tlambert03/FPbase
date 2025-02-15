@@ -12,6 +12,7 @@ from django.core.validators import (
 from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
+
 from proteins.validators import validate_doi
 
 from .helpers import doi_lookup, name_to_initials

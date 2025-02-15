@@ -3,9 +3,9 @@ import json
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Count, Prefetch, Q
 from django.shortcuts import redirect, render
-from references.models import Author, Reference
 
 from proteins.util.helpers import getprot
+from references.models import Author, Reference
 
 from ..filters import ProteinFilter
 from ..models import Organism, Protein, State

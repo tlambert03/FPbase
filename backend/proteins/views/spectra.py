@@ -13,6 +13,7 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import CreateView
+
 from fpbase.util import is_ajax, uncache_protein_page
 
 from ..forms import SpectrumForm
@@ -112,7 +113,7 @@ class SpectrumCreateView(CreateView):
             {form.cleaned_data}
             """
             EmailMessage(
-                subject=f'[FPbase] Spectrum needs validation: {form.cleaned_data["owner"]}',
+                subject=f"[FPbase] Spectrum needs validation: {form.cleaned_data['owner']}",
                 body=dedent(body),
                 to=[a[1] for a in settings.ADMINS],
                 headers={"X-Mailgun-Track": "no"},

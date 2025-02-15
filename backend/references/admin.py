@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from proteins.models import Excerpt, Protein
 from reversion_compare.admin import CompareVersionAdmin
 
+from proteins.models import Excerpt, Protein
 from references.forms import ReferenceForm
 from references.models import Author, Reference
 

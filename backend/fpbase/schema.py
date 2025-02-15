@@ -1,4 +1,5 @@
 import graphene
+
 import proteins.schema
 import references.schema
 

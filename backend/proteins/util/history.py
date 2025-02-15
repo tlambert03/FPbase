@@ -1,9 +1,10 @@
 import contextlib
 from collections import OrderedDict, defaultdict
 
-from references.models import Reference
 from reversion.models import Revision, Version
 from reversion.revisions import transaction
+
+from references.models import Reference
 
 
 def lists_are_different(a, b):

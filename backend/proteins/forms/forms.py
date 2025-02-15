@@ -7,7 +7,6 @@ from django import forms
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
-from references.models import Reference  # breaks application modularity
 
 from proteins.models import (
     BleachMeasurement,
@@ -18,6 +17,7 @@ from proteins.models import (
     StateTransition,
 )
 from proteins.validators import protein_sequence_validator, validate_doi
+from references.models import Reference  # breaks application modularity
 
 
 def popover_html(label, content, side="right"):
@@ -390,7 +390,7 @@ class LineageForm(forms.ModelForm):
         parent = self.cleaned_data.get("parent")
         mutation = self.cleaned_data.get("mutation")
         if (parent and not mutation) or (mutation and not parent):
-            raise forms.ValidationError("Both parent and mutation are " "required when providing lineage information")
+            raise forms.ValidationError("Both parent and mutation are required when providing lineage information")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -28,6 +28,7 @@ from django.views.generic import (
     ListView,
     UpdateView,
 )
+
 from fpbase.celery import app
 from fpbase.util import is_ajax
 
