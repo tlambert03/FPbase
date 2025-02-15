@@ -19,13 +19,14 @@ from django.db import models
 from django.db.models import Count, F, Func, Q, Value
 from django.urls import reverse
 from django.utils.text import slugify
-from favit.models import Favorite
-from fpseq import FPSeq
 from model_utils import Choices
 from model_utils.managers import QueryManager
 from model_utils.models import StatusModel, TimeStampedModel
-from references.models import Reference
 from reversion.models import Version
+
+from favit.models import Favorite
+from fpseq import FPSeq
+from references.models import Reference
 
 from .. import util
 from ..util.helpers import get_base_name, get_color_group, mless, spectra_fig
@@ -408,7 +409,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 if _hex == "#000":
                     sub = 18
                 bgs.append(f"{_hex} {(i + 1) * stepsize - sub}%")
-            return f'linear-gradient(90deg, {", ".join(bgs)})'
+            return f"linear-gradient(90deg, {', '.join(bgs)})"
         elif self.default_state:
             return self.default_state.emhex
         else:

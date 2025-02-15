@@ -41,7 +41,7 @@ class ProteinCollection(OwnedCollection):
     private = models.BooleanField(
         default=False,
         verbose_name="Private Collection",
-        help_text="Private collections can not be seen " "by or shared with other users",
+        help_text="Private collections can not be seen by or shared with other users",
     )
 
     def get_absolute_url(self):

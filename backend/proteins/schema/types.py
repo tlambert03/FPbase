@@ -4,6 +4,7 @@ from django.db.models import Prefetch
 from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectType
+
 from references.schema import Reference
 
 from .. import models

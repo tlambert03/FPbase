@@ -111,11 +111,11 @@ class SpectrumForm(forms.ModelForm):
         if not (cleaned_data.get("data") or self.files):
             self.add_error(
                 "data",
-                "Please either fill in the data field or " "select a file to upload.",
+                "Please either fill in the data field or select a file to upload.",
             )
             self.add_error(
                 "file",
-                "Please either fill in the data field or " "select a file to upload.",
+                "Please either fill in the data field or select a file to upload.",
             )
 
     def save(self, commit=True):

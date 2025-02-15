@@ -1,6 +1,7 @@
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import render
+
 from fpbase.celery import app
 from fpbase.util import is_ajax
 

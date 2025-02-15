@@ -5,13 +5,14 @@ import tempfile
 import pytest
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
-from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
-from proteins.models.protein import Protein
-from proteins.util.blast import _get_binary
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
+
+from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
+from proteins.models.protein import Protein
+from proteins.util.blast import _get_binary
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
@@ -48,13 +49,8 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     def _assert_no_console_errors(self):
         logs = self.browser.get_log("browser")
-        acceptable_errors = (
-            "GPU stall due to ReadPixels",
-            "favicon.ico",
-            "Failed to decode downloaded font",
-        )
         for lg in logs:
-            if all(err not in lg["message"] for err in acceptable_errors):
+            if lg["level"] == "SEVERE":
                 raise AssertionError(f"Console errors occurred: {logs}")
 
     def test_spectra(self):

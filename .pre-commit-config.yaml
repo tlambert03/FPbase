@@ -4,12 +4,12 @@ ci:
   skip: []
   submodules: false
 
-exclude: '^docs/|/migrations/'
-default_stages: [commit]
+exclude: "^docs/|/migrations/"
+default_stages: [pre-commit]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -19,6 +19,12 @@ repos:
       - id: debug-statements
       - id: check-docstring-first
       - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.6.0
+    hooks:
+      - id: uv-export
+        args: ["--group", "prod", "--no-dev", "--frozen", "--output-file=requirements.txt"]
 
   # - repo: https://github.com/pre-commit/mirrors-prettier
   #   rev: v3.0.0-alpha.9-for-vscode
@@ -33,14 +39,14 @@ repos:
   #     - id: djlint-django
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: '1.21.0'
+    rev: "1.23.1"
     hooks:
       - id: django-upgrade
-        args: ['--target-version', '4.2']
+        args: ["--target-version", "4.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.6.7'
+    rev: "v0.9.6"
     hooks:
       - id: ruff
-        args: ['--fix']
+        args: ["--fix", "--unsafe-fixes"]
       - id: ruff-format

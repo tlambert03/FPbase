@@ -295,7 +295,7 @@ class OpticalConfig(OwnedCollection):
 
     def __repr__(self):
         fltrs = sorted_ex2em(self.filters.all())
-        return f'<{self.__class__.__name__}: {", ".join([f.name for f in fltrs])}>'
+        return f"<{self.__class__.__name__}: {', '.join([f.name for f in fltrs])}>"
 
     def __str__(self):
         return super().__str__() or self.__repr__().lstrip("<").rstrip(">")
@@ -325,7 +325,7 @@ class FilterPlacement(models.Model):
         return self.__repr__().lstrip("<").rstrip(">")
 
     def __repr__(self):
-        return f'<{self.path.title()} Filter: {self.filter.name}{" (reflecting)" if self.reflects else ""}>'
+        return f"<{self.path.title()} Filter: {self.filter.name}{' (reflecting)' if self.reflects else ''}>"
 
 
 def quick_OC(name, filternames, scope, bs_ex_reflect=True):

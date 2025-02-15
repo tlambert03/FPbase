@@ -29,7 +29,7 @@ class ContactForm(forms.Form):
 
     def send_email(self):
         EmailMessage(
-            f'FPbase contact from {self.cleaned_data["name"]}',
+            f"FPbase contact from {self.cleaned_data['name']}",
             self.cleaned_data["message"],
             to=[a[1] for a in settings.ADMINS],
             headers={"Reply-To": self.friendly_email()},

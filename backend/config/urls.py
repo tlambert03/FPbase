@@ -1,4 +1,3 @@
-import fpbase.views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -10,6 +9,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from graphene_django.views import GraphQLView
+
+import fpbase.views
 from fpbase.sitemaps import (
     AuthorsSitemap,
     MicroscopeSitemap,
@@ -19,7 +21,6 @@ from fpbase.sitemaps import (
     ReferencesSitemap,
     StaticSitemap,
 )
-from graphene_django.views import GraphQLView
 from references.views import ReferenceListView
 
 sitemaps = {

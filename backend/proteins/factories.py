@@ -5,8 +5,8 @@ import factory
 import factory.fuzzy
 import numpy as np
 from django.utils.text import slugify
-from fpseq import FPSeq
 
+from fpseq import FPSeq
 from proteins.util.helpers import wave_to_hex
 
 from .models import Filter, FilterPlacement, Microscope, OpticalConfig, Protein, Spectrum, State

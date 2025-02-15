@@ -3,6 +3,7 @@ from django.db.models import Q
 from model_utils import Choices
 from model_utils.managers import QueryManager
 from model_utils.models import StatusModel, TimeStampedModel
+
 from references.models import Reference
 
 from .mixins import Authorable

@@ -205,7 +205,7 @@ class MicroscopeForm(forms.ModelForm):
             else:
                 self.add_error(
                     "optical_configs",
-                    "Filter not found in database or at Chroma/Semrock: " f"{fname}",
+                    f"Filter not found in database or at Chroma/Semrock: {fname}",
                 )
                 return None
 
@@ -217,8 +217,8 @@ class MicroscopeForm(forms.ModelForm):
                 if n in (2, 3):
                     self.add_error(
                         "optical_configs",
-                        'Laser line (integers) are only accepted in the second position (err: "%s" in position %d)'
-                        % (fname, n + 1),
+                        "Laser line (integers) are only accepted in the second "
+                        f'position (err: "{fname}" in position {n + 1})',
                     )
                 elif int(fname) < 300 or int(fname) > 1600:
                     self.add_error(
@@ -269,7 +269,7 @@ class MicroscopeForm(forms.ModelForm):
                 if len(splt) not in (4, 5):
                     self.add_error(
                         "optical_configs",
-                        "Lines must have 4 or 5 comma-separated fields but this one " f"has {len(splt)}: {line}",
+                        f"Lines must have 4 or 5 comma-separated fields but this one has {len(splt)}: {line}",
                     )
                 for n, f in enumerate(splt):
                     if n == 0:
