@@ -37,7 +37,11 @@ window.FPBASE = window.FPBASE || {}
         dsn: process.env.SENTRY_DSN,
         release: process.env.SOURCE_VERSION,
         environment: process.env.NODE_ENV,
-      });
+        // Session Replay
+        integrations: [Sentry.replayIntegration()],
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      })
 
       if (window.FPBASE.user) {
         Sentry.setUser(window.FPBASE.user);
