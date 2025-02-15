@@ -3,7 +3,7 @@ name = "fpbase.org"
 version = "1.2.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     'pytz>=2023.3.post1',
     'python-slugify>=8.0.1',
