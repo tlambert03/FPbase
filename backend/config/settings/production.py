@@ -12,7 +12,7 @@ Production settings for FPbase project.
 - Use opbeat for error reporting
 
 """
-
+import ssl
 from .base import *  # noqa
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -166,7 +166,6 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 
 # CACHING
 # ------------------------------------------------------------------------------
-import ssl
 
 REDIS_URL = env("REDIS_URL", default="redis://127.0.0.1:6379")
 REDIS_LOCATION = "{}/{}".format(REDIS_URL, 0)
