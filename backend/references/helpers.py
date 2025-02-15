@@ -1,6 +1,7 @@
 import contextlib
 import datetime
 import json
+import os
 import re
 
 import requests
@@ -8,6 +9,7 @@ from Bio import Entrez
 from habanero import Crossref
 
 Entrez.email = "talley.lambert+fpbase@gmail.com"
+Entrez.api_key = os.getenv("NCBI_API_KEY", None)
 email = Entrez.email
 ID_CONVERT_URL = (
     "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?tool=FPbase&email=" + email + "&ids=%s&format=json"
