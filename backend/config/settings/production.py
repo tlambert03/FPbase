@@ -12,11 +12,14 @@ Production settings for FPbase project.
 - Use opbeat for error reporting
 
 """
+
 import ssl
-from .base import *  # noqa
+
 import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.django import DjangoIntegration
+
+from .base import *  # noqa
 
 # SECRET CONFIGURATION
 # ------------------------------------------------------------------------------
