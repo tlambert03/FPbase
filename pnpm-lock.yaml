@@ -97,7 +97,7 @@ importers:
         specifier: ^2.21.2
         version: 2.41.1
       '@sentry/webpack-plugin':
-        specifier: ^2.9.0
+        specifier: ^2.23.0
         version: 2.23.0(webpack@5.98.0)
       '@types/react':
         specifier: ^16.14.42
@@ -148,11 +148,11 @@ importers:
         specifier: ^2.8.8
         version: 2.8.8
       sass:
-        specifier: ^1.62.1
-        version: 1.85.0
+        specifier: 1.62.0
+        version: 1.62.0
       sass-loader:
-        specifier: ^13.3.1
-        version: 13.3.3(sass@1.85.0)(webpack@5.98.0)
+        specifier: 13.3.3
+        version: 13.3.3(sass@1.62.0)(webpack@5.98.0)
       terser-webpack-plugin:
         specifier: ^5.3.9
         version: 5.3.11(webpack@5.98.0)
@@ -4059,6 +4059,11 @@ packages:
       sass-embedded:
         optional: true
 
+  sass@1.62.0:
+    resolution: {integrity: sha512-Q4USplo4pLYgCi+XlipZCWUQz5pkg/ruSSgJ0WRDSb/+3z9tXUOkQ7QPYn4XrhZKYAK4HlpaQecRwKLJX6+DBg==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+
   sass@1.85.0:
     resolution: {integrity: sha512-3ToiC1xZ1Y8aU7+CkgCI/tqyuPXEmYGJXO7H4uqp0xkLXUqp88rQQ4j1HmP37xSJLbCJPaIiv+cT1y+grssrww==}
     engines: {node: '>=14.0.0'}
@@ -6612,6 +6617,7 @@ snapshots:
   chokidar@4.0.3:
     dependencies:
       readdirp: 4.1.2
+    optional: true
 
   chrome-trace-event@1.0.4: {}
 
@@ -7479,7 +7485,8 @@ snapshots:
 
   immutable@4.3.7: {}
 
-  immutable@5.0.3: {}
+  immutable@5.0.3:
+    optional: true
 
   import-fresh@3.3.1:
     dependencies:
@@ -8525,7 +8532,8 @@ snapshots:
     dependencies:
       picomatch: 2.3.1
 
-  readdirp@4.1.2: {}
+  readdirp@4.1.2:
+    optional: true
 
   rechoir@0.8.0:
     dependencies:
@@ -8626,12 +8634,18 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  sass-loader@13.3.3(sass@1.85.0)(webpack@5.98.0):
+  sass-loader@13.3.3(sass@1.62.0)(webpack@5.98.0):
     dependencies:
       neo-async: 2.6.2
       webpack: 5.98.0(webpack-cli@5.1.4)
     optionalDependencies:
-      sass: 1.85.0
+      sass: 1.62.0
+
+  sass@1.62.0:
+    dependencies:
+      chokidar: 3.6.0
+      immutable: 4.3.7
+      source-map-js: 1.2.1
 
   sass@1.85.0:
     dependencies:
@@ -8640,6 +8654,7 @@ snapshots:
       source-map-js: 1.2.1
     optionalDependencies:
       '@parcel/watcher': 2.5.1
+    optional: true
 
   scheduler@0.19.1:
     dependencies:

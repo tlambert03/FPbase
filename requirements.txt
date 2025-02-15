@@ -333,9 +333,9 @@ django-reversion==5.0.10 \
 django-reversion-compare==0.16.2 \
     --hash=sha256:5629f226fc73bd7b95de47b2e21e2eba2fa39f004ba0fee6d460e96676c0dc9b \
     --hash=sha256:9d7d096534f5d0e49d7419a8a29b4517580e6a7855529e594d10bfb373f980ab
-django-storages==1.14.4 \
-    --hash=sha256:69aca94d26e6714d14ad63f33d13619e697508ee33ede184e462ed766dc2a73f \
-    --hash=sha256:d61930acb4a25e3aebebc6addaf946a3b1df31c803a6bf1af2f31c9047febaa3
+django-storages==1.14.5 \
+    --hash=sha256:5ce9c69426f24f379821fd688442314e4aa03de87ae43183c4e16915f4c165d4 \
+    --hash=sha256:ace80dbee311258453e30cd5cfd91096b834180ccf09bc1f4d2cb6d38d68571a
 django-webpack-loader==2.0.1 \
     --hash=sha256:0e8dfb2fcdb39dbfd01be7603c060132a4664f483811ce3c75f2d3c0d39ab762 \
     --hash=sha256:2704c5b0e699a9a3a70aa21b75825d8637cd0df8134c3308b5c2976ecc20b5f7
