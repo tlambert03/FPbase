@@ -169,7 +169,7 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 import ssl
 
 REDIS_URL = env("REDIS_URL", default="redis://127.0.0.1:6379")
-REDIS_LOCATION = "{}/{}".format(REDIS_URL, 0)
+REDIS_LOCATION = f"{REDIS_URL}/{0}"
 
 
 # Heroku URL does not pass the DB number, so we parse it in
@@ -180,23 +180,19 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "IGNORE_EXCEPTIONS": True,  # mimics memcache behavior.
-            "CONNECTION_POOL_KWARGS": {            
+            "CONNECTION_POOL_KWARGS": {
                 "ssl_cert_reqs": ssl.CERT_NONE,
-            }
+            },
             # http://niwinz.github.io/django-redis/latest/#_memcached_exceptions_behavior
         },
     }
 }
 
 # Update Celery settings to handle SSL
-if REDIS_URL.startswith('rediss://'):
-    CELERY_BROKER_USE_SSL = {
-        'ssl_cert_reqs': None
-    }
-    CELERY_REDIS_BACKEND_USE_SSL = {
-        'ssl_cert_reqs': None
-    }
-    
+if REDIS_URL.startswith("rediss://"):
+    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": None}
+    CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": None}
+
 # Sentry Configuration
 
 SENTRY_DSN = env("SENTRY_DSN")
