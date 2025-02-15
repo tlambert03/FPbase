@@ -20,7 +20,6 @@ jobs:
   # With no caching at all the entire ci process takes 4m 30s to complete!
   pytest:
     runs-on: ubuntu-latest
-
     services:
       redis:
         image: redis:6
@@ -32,24 +31,19 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: postgres
-
     env:
       CELERY_BROKER_URL: "redis://localhost:6379/0"
       # postgres://user:password@host:port/database
       DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"
-
+      UV_FROZEN: 1
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v1
         with:
-          python-version: "3.11.4"
-          cache: pip
-          cache-dependency-path: |
-            backend/requirements/base.txt
-            backend/requirements/local.txt
+          enable-cache: true
 
       - uses: pnpm/action-setup@v4
         name: Install pnpm
@@ -57,36 +51,28 @@ jobs:
           version: latest
           run_install: false
 
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-store-
+          node-version: 23
+          cache: 'pnpm'
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r backend/requirements/local.txt
-          pnpm install
+      - name: Install node Dependencies
+        run: pnpm install
 
       - name: setup-chromedriver
         uses: nanasess/setup-chromedriver@v2
         with:
           chromedriver-version: '133.0.6943.98'
 
-      - name: Test with pytest
-        working-directory: backend
+      - name: Configure headless display
         run: |
-          export DISPLAY=:99
-          chromedriver --url-base=/wd/hub &
-          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
-          pytest --color=yes -v --cov --cov-report=xml --cov-report=term-missing
+          echo "DISPLAY=:99.0" >> $GITHUB_ENV
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          sleep 3
+
+      - name: Test
+        run: uv run pytest --color=yes -v --cov --cov-report=xml --cov-report=term-missing
 
       - name: coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
