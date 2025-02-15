@@ -2,6 +2,8 @@ import os
 
 from celery import Celery
 
+import proteins.tasks  # noqa: F401
+
 if "DJANGO_SETTINGS_MODULE" not in os.environ:
     os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.local"
 
