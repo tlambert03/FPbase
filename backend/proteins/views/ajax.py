@@ -12,8 +12,8 @@ from django.http import HttpResponseNotAllowed, JsonResponse
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django.views.generic import DetailView
-from fpbase.util import is_ajax, uncache_protein_page
 
+from fpbase.util import is_ajax, uncache_protein_page
 from proteins.util.maintain import validate_node
 
 from ..models import Fluorophore, Lineage, Organism, Protein, Spectrum, State

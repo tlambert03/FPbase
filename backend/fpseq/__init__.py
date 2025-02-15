@@ -6,12 +6,12 @@ from .util import protein_weight
 
 __all__ = [
     "FPSeq",
-    "from_fpbase",
-    "SkbSequence",
-    "ParasailAlignment",
-    "align_seqs",
     "Mutation",
     "MutationSet",
+    "ParasailAlignment",
+    "SkbSequence",
+    "align_seqs",
+    "from_fpbase",
     "get_mutations",
     "mutate_sequence",
     "protein_weight",

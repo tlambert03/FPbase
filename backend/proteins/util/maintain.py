@@ -1,12 +1,10 @@
 from typing import TYPE_CHECKING, cast
 
 from fpseq.mutations import Mutation, MutationSet
-
 from proteins.util.helpers import getprot
 
 if TYPE_CHECKING:
     from fpseq import FPSeq
-
     from proteins.models import Lineage
 
 

@@ -15,6 +15,7 @@ from django.utils.text import slugify
 from model_utils import Choices
 from model_utils.managers import QueryManager
 from model_utils.models import StatusModel, TimeStampedModel
+
 from references.models import Reference
 
 from ..util.helpers import wave_to_hex
