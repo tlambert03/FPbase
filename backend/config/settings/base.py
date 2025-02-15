@@ -369,8 +369,11 @@ ALGOLIA = {
 if ALGOLIA["API_KEY"]:
     INSTALLED_APPS += ["algoliasearch_django"]
 
-CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost/")
-CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://localhost/")
+REDIS_URL = env("REDIS_URL", default="redis://localhost/")
+if REDIS_URL.startswith("rediss://"):
+    REDIS_URL += "?ssl_cert_reqs=none"
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 
 
 INSTALLED_APPS += ["graphene_django"]
