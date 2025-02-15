@@ -173,7 +173,6 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 REDIS_URL = env("REDIS_URL", default="redis://127.0.0.1:6379")
 REDIS_LOCATION = f"{REDIS_URL}/{0}"
 
-
 # Heroku URL does not pass the DB number, so we parse it in
 CACHES = {
     "default": {
@@ -191,9 +190,8 @@ CACHES = {
 }
 
 # Update Celery settings to handle SSL
-if REDIS_URL.startswith("rediss://"):
-    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": None}
-    CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": None}
+CELERY_BROKER_TRANSPORT_OPTIONS = {"ssl": {"ssl_cert_reqs": ssl.CERT_NONE}}
+CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 # Sentry Configuration
 
