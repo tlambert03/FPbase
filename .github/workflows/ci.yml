@@ -43,6 +43,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v1
         with:
+          version: 'latest'
           enable-cache: true
 
       - uses: pnpm/action-setup@v4
@@ -54,7 +55,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 23
+          node-version-file: package.json
           cache: 'pnpm'
 
       - name: Install node Dependencies
