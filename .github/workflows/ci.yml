@@ -43,7 +43,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v1
         with:
-          version: 'latest'
+          version: latest
           enable-cache: true
 
       - uses: pnpm/action-setup@v4
@@ -56,15 +56,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install node Dependencies
         run: pnpm install
 
+      - run: uv sync
+
       - name: setup-chromedriver
         uses: nanasess/setup-chromedriver@v2
-        with:
-          chromedriver-version: '133.0.6943.98'
 
       - name: Configure headless display
         run: |
