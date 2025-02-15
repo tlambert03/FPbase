@@ -77,6 +77,8 @@ jobs:
 
       - name: setup-chromedriver
         uses: nanasess/setup-chromedriver@v2
+        with:
+          chromedriver-version: '133.0.6943.98'
 
       - name: Test with pytest
         working-directory: backend
