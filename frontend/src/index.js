@@ -23,23 +23,32 @@ import FPPropChart from "./js/ichart.js"
 import initAutocomplete from "./js/algolia.js"
 import LineageChart from "./js/lineage.js"
 import initFRET from "./js/fret.js"
+import * as Sentry from "@sentry/browser";
 
 window.FPBASE = window.FPBASE || {}
 
-if (process.env.NODE_ENV === "production" && Boolean(process.env.SENTRY_DSN)) {
-  import("@sentry/browser").then(Sentry => {
-    window.Sentry = Sentry
-    Sentry.init({
-      dsn: process.env.SENTRY_DSN,
-      release: process.env.SOURCE_VERSION
-    })
-    if (window.FPBASE.user !== undefined) {
-      Sentry.configureScope(scope => {
-        scope.setUser(window.FPBASE.user)
-      })
+
+(async () => {
+  if (process.env.NODE_ENV === "production" && Boolean(process.env.SENTRY_DSN)) {
+    try {
+      await import("@sentry/browser");
+
+      Sentry.init({
+        dsn: process.env.SENTRY_DSN,
+        release: process.env.SOURCE_VERSION,
+        environment: process.env.NODE_ENV,
+      });
+
+      if (window.FPBASE.user) {
+        Sentry.setUser(window.FPBASE.user);
+      }
+
+      window.Sentry = Sentry;
+    } catch (error) {
+      console.error("Failed to initialize Sentry:", error);
     }
-  })
-}
+  }
+})();
 
 window.FPBASE = {
   ...window.FPBASE,

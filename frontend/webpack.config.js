@@ -5,8 +5,8 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
-// const { sentryWebpackPlugin } = require("@sentry/webpack-plugin")
 const TerserJSPlugin = require("terser-webpack-plugin")
+const { sentryWebpackPlugin } = require("@sentry/webpack-plugin")
 
 const devMode = process.env.NODE_ENV !== "production"
 const hotReload = process.env.HOT_RELOAD === "1"
@@ -74,45 +74,19 @@ const plugins = [
     chunkFilename: "[id].[chunkhash].css",
   }),
   new CleanWebpackPlugin(),
-  new CopyPlugin({
-    patterns: [
-      {
-        from: "./src/js/sentry.*.js",
-        to: path.resolve("./dist/sentry.js"),
-      },
-    ],
-  }),
 ]
 
-if (devMode) {
-} else {
+if (!devMode) {
   plugins.push(
-    new webpack.EnvironmentPlugin({
-      NODE_ENV: "development",
-      SOURCE_VERSION: false,
-      SENTRY_DSN: false,
-      SENTRY_AUTH_TOKEN: false,
+    sentryWebpackPlugin({
+      org: "talley-lambert",
+      project: "fpbase",
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      include: "./dist",
+      ignore: ["node_modules", "webpack.config.js"],
+      release: process.env.SOURCE_VERSION,
     })
   )
-
-  // if (process.env.SENTRY_AUTH_TOKEN && !process.env.CI) {
-  //   plugins.push(
-  //     sentryWebpackPlugin({
-  //       authToken: process.env.SENTRY_AUTH_TOKEN,
-  //       org: process.env.SENTRY_ORG,
-  //       project: process.env.SENTRY_PROJECT,
-  //       sourcemaps: {
-  //         paths: "src/",
-  //         ignore: [
-  //           "node_modules",
-  //           "webpack.config.js",
-  //           "src/js/pdb/LiteMol-plugin.js",
-  //         ],
-  //       },
-  //       release: process.env.SOURCE_VERSION,
-  //     })
-  //   )
-  // }
 }
 
 module.exports = {
@@ -136,8 +110,14 @@ module.exports = {
     extensions: [".webpack.js", ".web.js", ".mjs", ".js", ".jsx", ".json"],
     alias: {
       jquery: "jquery/src/jquery",
-      "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.jsx"),
-      "@fpbase/blast": path.resolve(__dirname, "../packages/blast/src/index.js"),
+      "@fpbase/spectra": path.resolve(
+        __dirname,
+        "../packages/spectra/src/index.jsx"
+      ),
+      "@fpbase/blast": path.resolve(
+        __dirname,
+        "../packages/blast/src/index.js"
+      ),
     },
     fallback: {
       url: require.resolve("url/"),
@@ -161,9 +141,6 @@ module.exports = {
       styleRule,
       assetRule,
     ],
-  },
-  externals: {
-    Sentry: "Sentry",
   },
   plugins,
   optimization: {
