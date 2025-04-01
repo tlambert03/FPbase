@@ -13,7 +13,7 @@ dependencies = [
     'whitenoise[brotli]==6.6.0',
     'redis==5.0.4',
     'psycopg2==2.9.9; platform_system == "Linux"',
-    'django<5',
+    'django<6',
     'django-environ==0.10.0',
     'django-model-utils==4.3.1',
     'django-allauth==0.54.0',
