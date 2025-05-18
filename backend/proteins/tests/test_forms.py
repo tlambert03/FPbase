@@ -17,7 +17,7 @@ class TestProteinForm(TestCase):
 
     def test_clean_proteinname_success(self):
         # Instantiate the form with a new protein
-        form = ProteinForm({"name": "New Protein"})
+        form = ProteinForm({"name": "New Protein", "confirmation": True})
         # Run is_valid() to trigger the validation
         valid = form.is_valid()
         self.assertTrue(valid, "Form is not valid")
@@ -28,7 +28,7 @@ class TestProteinForm(TestCase):
 
     def test_clean_proteinname_exists(self):
         # Instantiate the form with existing protein name
-        form = ProteinForm({"name": "Test Protein"})
+        form = ProteinForm({"name": "Test Protein", "confirmation": True})
         # Run is_valid() to trigger the validation, which is going to fail
         # because the name is already taken
         valid = form.is_valid()
@@ -39,21 +39,21 @@ class TestProteinForm(TestCase):
         self.assertTrue("name" in form.errors)
 
     def test_clean_proteinseq_success(self):
-        form = ProteinForm({"name": "New Protein", "seq": "ghilkmfpstwy varndceq"})
+        form = ProteinForm({"name": "New Protein", "seq": "ghilkmfpstwy varndceq", "confirmation": True})
         valid = form.is_valid()
         self.assertTrue(valid, "Form is not valid")
         seq = form.clean_seq()
         self.assertEqual("GHILKMFPSTWYVARNDCEQ", seq)
 
     def test_clean_proteinseq_exists(self):
-        form = ProteinForm({"name": "New Protein", "seq": "ARNDCEQGHILKMFPSTWYV"})
+        form = ProteinForm({"name": "New Protein", "seq": "ARNDCEQGHILKMFPSTWYV", "confirmation": True})
         valid = form.is_valid()
         self.assertFalse(valid)
         self.assertTrue(len(form.errors) == 1)
         self.assertTrue("seq" in form.errors)
 
     def test_clean_proteinseq_invalid(self):
-        form = ProteinForm({"name": "New Protein", "seq": "ARNDCEQGHILKMBZXFPSTWYV"})
+        form = ProteinForm({"name": "New Protein", "seq": "ARNDCEQGHILKMBZXFPSTWYV", "confirmation": True})
         valid = form.is_valid()
         self.assertFalse(valid)
         self.assertTrue(len(form.errors) == 1)
@@ -65,7 +65,7 @@ class TestProteinForm(TestCase):
             "https://doi.org/10.1038/nmeth.2413",
             "10.1038/nmeth.2413",
         ):
-            form = ProteinForm({"name": "New Protein", "reference_doi": doi})
+            form = ProteinForm({"name": "New Protein", "reference_doi": doi, "confirmation": True})
             valid = form.is_valid()
             self.assertTrue(valid, "Form is not valid")
             self.assertEqual("10.1038/nmeth.2413", form.cleaned_data["reference_doi"])
@@ -75,6 +75,7 @@ class TestProteinForm(TestCase):
             {
                 "name": "New Protein",
                 "reference_doi": "30.1038/nmeth.2413",  # Invalid DOI
+                "confirmation": True,
             }
         )
         valid = form.is_valid()
@@ -90,6 +91,7 @@ class TestProteinForm(TestCase):
                 "genbank": "NC_000001.10",
                 "uniprot": "P12345",
                 "pdb": ["4HHB"],
+                "confirmation": True,
             }
         )
         valid = form.is_valid()

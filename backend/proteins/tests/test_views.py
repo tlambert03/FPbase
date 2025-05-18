@@ -49,6 +49,7 @@ class ProteinViewTests(TestCase):
                 "states-0-name": "default",
                 "states-0-ex_max": 488,
                 "states-0-em_max": 525,
+                "confirmation": True,
             }
             | INLINE_FORMSET,
         )
