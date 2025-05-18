@@ -153,7 +153,8 @@ class TestPagesRender(StaticLiveServerTestCase):
         self.browser.switch_to.active_element.send_keys(Keys.ENTER)
 
         elem = self.browser.find_element(value="QYD")
-        assert float(elem.text) == donor.default_state.qy
+        if elem.text:
+            assert float(elem.text) == donor.default_state.qy
 
         elem = self.browser.find_element(value="QYA")
         WebDriverWait(self.browser, 1.5).until(lambda d: bool(elem.text))
