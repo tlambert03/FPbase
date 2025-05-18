@@ -1,7 +1,8 @@
 import re
+from typing import cast
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Div, Layout
+from crispy_forms.layout import HTML, Div, Field, Layout
 from dal import autocomplete
 from django import forms
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
@@ -102,19 +103,45 @@ class ProteinForm(forms.ModelForm):
     seq = SequenceField(required=False, help_text="Amino acid sequence", label="Sequence")
     # reference_pmid = forms.CharField(max_length=24, label='Reference Pubmed ID',
     #     required=False, help_text='e.g. 23524392 (must provide either DOI or PMID)')
+    confirmation = forms.BooleanField(
+        required=True,
+        label=mark_safe(
+            "<span class='small'>I understand that I am contributing to the <em>public</em> "
+            "FPbase database, and confirm that I have verified the validity of the data</span>"
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.fields['seq'].disabled = self.instance.seq_validated
-        instance = getattr(self, "instance", None)
-        if instance and instance.pk:
-            if instance.seq_validated:
-                self.fields["seq"].widget.attrs["readonly"] = True
+        prot = cast("Protein | None", getattr(self, "instance", None))
+        if prot and prot.pk:
+            for attr, field in [
+                ("name", "name"),
+                ("aliases", "aliases"),
+                ("seq_validated", "seq"),
+                ("primary_reference", "reference_doi"),
+                ("ipg_id", "ipg_id"),
+                ("cofactor", "cofactor"),
+                ("genbank", "genbank"),
+                ("uniprot", "uniprot"),
+                ("pdb", "pdb"),
+            ]:
+                if bool(getattr(prot, attr)):
+                    self.fields[field].widget.attrs["readonly"] = True
+            for attr, field in [
+                ("agg", "agg"),
+                ("parent_organism", "parent_organism"),
+                ("cofactor", "cofactor"),
+                ("switch_type", "switch_type"),
+            ]:
+                if bool(getattr(prot, attr)):
+                    self.fields[field].widget.attrs["disabled"] = True
 
         self.helper = FormHelper(self)
         self.helper.form_tag = False
         self.helper.error_text_inline = True
         self.helper.layout = Layout(
+            Field("confirmation", css_class="custom-checkbox"),
             Div(
                 Div("name", css_class="col-md-4 col-sm-12"),
                 Div("aliases", css_class="col-md-4 col-sm-6"),
@@ -241,6 +268,22 @@ class StateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        state = cast("State | None", getattr(self, "instance", None))
+        if state and state.pk:
+            for attr, field in [
+                ("name", "name"),
+                ("ex_max", "ex_max"),
+                ("em_max", "em_max"),
+                ("ext_coeff", "ext_coeff"),
+                ("qy", "qy"),
+                ("pka", "pka"),
+                ("lifetime", "lifetime"),
+                ("maturation", "maturation"),
+            ]:
+                if getattr(state, attr):
+                    self.fields[field].widget.attrs["readonly"] = True
+
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.disable_csrf = True
