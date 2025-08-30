@@ -1,6 +1,8 @@
 import ast
+import io
 import json
 import logging
+from typing import Any
 
 import numpy as np
 from django.contrib.postgres.fields import ArrayField
@@ -18,7 +20,7 @@ from model_utils.models import StatusModel, TimeStampedModel
 
 from references.models import Reference
 
-from ..util.helpers import wave_to_hex
+from ..util.helpers import spectra_fig, wave_to_hex
 from ..util.spectra import interp_linear, interp_univar, norm2one, norm2P, step_size
 from .mixins import AdminURLMixin, Authorable, Product
 
@@ -642,6 +644,13 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             raise ValueError("Error: array length must match existing data")
         for i in range(len(value)):
             self.data[i][1] = value[i]
+
+    def spectrum_img(self, fmt="svg", **kwargs: Any):
+        """Generate a static image of this spectrum using matplotlib."""
+
+        kwargs.setdefault("xlim", (self.min_wave - 10, self.max_wave + 10))
+        # Use the existing spectra_fig function with this single spectrum
+        return spectra_fig([self], fmt, **kwargs)
 
     def get_absolute_url(self):
         return reverse("proteins:spectra") + f"?s={self.id}"
