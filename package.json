@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "dev": "concurrently \"pnpm --stream -r start\" \"uv run backend/manage.py runserver\"",
     "start": "pnpm --stream -r start",
     "build": "pnpm -r --parallel build",
     "heroku-postbuild": "pnpm --filter fpbase build",

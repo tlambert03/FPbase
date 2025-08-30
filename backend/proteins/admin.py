@@ -1,3 +1,5 @@
+import io
+
 from django import forms
 from django.contrib import admin
 from django.db.models import Count, Prefetch
@@ -221,7 +223,7 @@ class SpectrumAdmin(VersionAdmin):
     )
     list_display = ("__str__", "category", "subtype", "owner", "created_by")
     list_filter = ("status", "created", "category", "subtype")
-    readonly_fields = ("owner", "name", "created", "modified")
+    readonly_fields = ("owner", "name", "created", "modified", "spectrum_preview")
     search_fields = (
         "owner_state__protein__name",
         "owner_filter__name",
@@ -250,6 +252,7 @@ class SpectrumAdmin(VersionAdmin):
             "category",
             "subtype",
             "data",
+            "spectrum_preview",
             "ph",
             "solvent",
             "source",
@@ -268,6 +271,24 @@ class SpectrumAdmin(VersionAdmin):
         )
         link = f'<a href="{url}">{obj.owner}</a>'
         return mark_safe(link)
+
+    @admin.display(description="Spectrum Preview")
+    def spectrum_preview(self, obj: Spectrum) -> str:
+        """Show a visual preview of the spectrum for pending spectra."""
+        if not obj.data:
+            return "N/A"
+
+        try:
+            # Generate the spectrum image as SVG
+            output = io.BytesIO()
+            obj.spectrum_img(fmt="svg", output=output, xlabels=True, ylabels=False, figsize=(9, 2))
+            output.seek(0)
+            svg_data = output.read().decode("utf-8")
+
+            # Return the SVG directly embedded in the admin
+            return mark_safe(f'<div style="max-width: 1200px; overflow: auto;">{svg_data}</div>')
+        except Exception as e:
+            return f"Error generating preview: {e!s}"
 
     def get_queryset(self, request):
         """
