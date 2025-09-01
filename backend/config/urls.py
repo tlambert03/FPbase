@@ -73,19 +73,19 @@ urlpatterns = [  # noqa: RUF005
         name="bleaching",
     ),
     # path('mutations/', TemplateView.as_view(template_name='pages/mutations.html'), name='mutations'),
-    re_path(
-        r"^robots\.txt$",
+    path(
+        "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
         name="robots",
     ),
-    re_path(
-        r"^sitemap\.xml$",
+    path(
+        "sitemap.xml",
         sitemap,
         {"sitemaps": sitemaps},
         name="django.contrib.sitemaps.views.sitemap",
     ),
-    re_path(
-        r"^googleaecf5301782589e7\.html$",
+    path(
+        "googleaecf5301782589e7.html",
         TemplateView.as_view(template_name="googleaecf5301782589e7.html"),
         name="verification",
     ),
