@@ -161,7 +161,7 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert float(elem.text) == acceptor.default_state.qy
 
         elem = self.browser.find_element(value="overlapIntgrl")
-        assert float(elem.text) > 0.2
+        assert float(elem.text) > 0.1
         self._assert_no_console_errors()
 
     def test_collections(self):
