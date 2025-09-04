@@ -55,6 +55,66 @@ class SpectrumOwner(Authorable, TimeStampedModel):
 
 class Camera(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
+    full_well_capacity = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Full well capacity in electrons"
+    )
+    pixel_size = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Pixel size in microns e.g. '6.5'.  (assumes square pixels)",
+        validators=[MinValueValidator(0.0001)],  # Must be > 0
+    )
+    pixels_width = models.PositiveIntegerField(null=True, blank=True)
+    pixels_height = models.PositiveIntegerField(null=True, blank=True)
+
+
+class CameraMode(models.Model):
+    """
+    An operating mode for a specific Camera.
+    Mode-dependent fields: read noise, dark current (temp), frame rate, etc.
+    """
+
+    camera = models.ForeignKey(Camera, on_delete=models.CASCADE, related_name="modes")
+    name = models.CharField(max_length=128, help_text="e.g. 'HCG 12-bit fast', 'LCG 16-bit slow', 'EM gain 300'")
+
+    # Typical toggles that affect performance
+    adc_bit_depth = models.PositiveIntegerField(null=True, blank=True, help_text="e.g. 12, 14, 16")
+    readout_rate_mhz = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Pixel clock / ADC rate (MHz) if applicable",
+    )
+
+    # Conditions
+    temperature_setpoint_c = models.FloatField(
+        null=True, blank=True, help_text="Cooling setpoint (°C). Dark current depends on this."
+    )
+
+    # Performance (mode-dependent)
+    dark_current = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Electrons/pixel/second at the stated temperature",
+    )
+    read_noise_median = models.FloatField(
+        null=True, blank=True, validators=[MinValueValidator(0)], help_text="e- median"
+    )
+    read_noise_rms = models.FloatField(null=True, blank=True, validators=[MinValueValidator(0)], help_text="e- RMS")
+    frame_rate = models.FloatField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text="Max full-chip FPS under this mode.",
+    )
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["camera", "name"], name="unique_camera_mode")]
+        indexes = [models.Index(fields=["camera", "name"])]
+
+    def __str__(self):
+        return f"{self.camera} - {self.name}"
 
 
 class Light(SpectrumOwner, Product):
