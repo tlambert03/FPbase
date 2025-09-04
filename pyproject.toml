@@ -15,7 +15,7 @@ dependencies = [
     'psycopg2==2.9.9; platform_system == "Linux"',
     'django<5',
     'django-environ==0.10.0',
-    'django-model-utils==4.3.1',
+    'django-model-utils==5.0.0',
     'django-allauth==0.54.0',
     'django-redis>=6.0.0',
     # NOTE: there's an issue with 1.14 and bootstrap4 forms not having form-control class
