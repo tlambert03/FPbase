@@ -276,7 +276,7 @@ class TestPagesRender(StaticLiveServerTestCase):
         # Wait for protein owner field to appear and select the test protein
         WebDriverWait(self.browser, 2).until(lambda d: d.find_element(by="id", value="id_owner_state").is_displayed())
         Select(self.browser.find_element(by="id", value="id_owner_state")).select_by_visible_text(
-            f"{self.p1.name} › default"
+            f"{self.p1.name} > default"
         )
 
         # Switch to manual data tab
@@ -285,7 +285,10 @@ class TestPagesRender(StaticLiveServerTestCase):
 
         # Enter spectrum data manually
         data_field = self.browser.find_element(by="id", value="id_data")
-        spectrum_data = "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+        spectrum_data = (
+            "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
+            "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+        )
         data_field.send_keys(spectrum_data)
 
         # Check confirmation checkbox
@@ -347,7 +350,7 @@ class TestPagesRender(StaticLiveServerTestCase):
         Select(self.browser.find_element(by="id", value="id_subtype")).select_by_value("ex")
         WebDriverWait(self.browser, 2).until(lambda d: d.find_element(by="id", value="id_owner_state").is_displayed())
         Select(self.browser.find_element(by="id", value="id_owner_state")).select_by_visible_text(
-            f"{self.p1.name} › default"
+            f"{self.p1.name} > default"
         )
 
         # Check confirmation
@@ -369,7 +372,8 @@ class TestPagesRender(StaticLiveServerTestCase):
         # Enter some manual data
         data_field = self.browser.find_element(by="id", value="id_data")
         data_field.send_keys(
-            "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+            "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], "
+            "[404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
         )
 
         # Switch back to file tab

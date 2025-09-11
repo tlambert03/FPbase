@@ -103,7 +103,10 @@ class SpectrumPreviewViewTests(TestCase):
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
             "owner_state": self.state.id,
-            "data": "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]",
+            "data": (
+                "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
+                "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+            ),
             "data_source": "manual",
             "confirmation": True,
         }
@@ -218,7 +221,10 @@ class SpectrumPreviewViewTests(TestCase):
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
             "owner_state": self.state.id,
-            "data": "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]",
+            "data": (
+                "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
+                "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+            ),
             "data_source": "manual",
             "confirmation": True,
         }

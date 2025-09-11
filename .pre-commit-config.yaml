@@ -45,8 +45,8 @@ repos:
         args: ["--target-version", "4.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.12.11"
+    rev: "v0.13.0"
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: ["--fix", "--unsafe-fixes"]
       - id: ruff-format

@@ -109,7 +109,7 @@ class TestProteinForm(TestCase):
 
 class TestStateForm(TestCase):
     def setUp(self):
-        self.t, c = Protein.objects.get_or_create(name="Test Protein")
+        self.t, _c = Protein.objects.get_or_create(name="Test Protein")
         State.objects.get_or_create(protein=self.t)
 
     def test_clean_state_success(self):
@@ -136,7 +136,7 @@ class TestStateForm(TestCase):
 
 class TestCollectionForm(TestCase):
     def setUp(self):
-        self.p, c = Protein.objects.get_or_create(name="Test Protein")
+        self.p, _c = Protein.objects.get_or_create(name="Test Protein")
         self.userA = self.make_user("userA", "userApassword")
         self.userB = self.make_user("userB", "userBpassword")
 
@@ -244,7 +244,10 @@ class TestSpectrumForm(TestCase):
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
             "owner_state": self.state.id,
-            "data": "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]",
+            "data": (
+                "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
+                "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+            ),
             "data_source": "manual",
             "confirmation": True,
         }
@@ -305,7 +308,10 @@ class TestSpectrumForm(TestCase):
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
             "owner_state": self.state.id,
-            "data": "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]",  # Valid manual data
+            "data": (  # Valid manual data
+                "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
+                "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+            ),
             "data_source": "manual",
             "confirmation": True,
         }

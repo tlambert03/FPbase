@@ -153,7 +153,7 @@ class SpectrumForm(forms.ModelForm):
                         filetext += chunk.decode("utf-8")
                     except AttributeError:
                         filetext += chunk
-                x, y, headers = text_to_spectra(filetext)
+                x, y, _headers = text_to_spectra(filetext)
                 if not len(y):
                     self.add_error("file", "Did not find a data column in the provided file")
                 if not len(x):
