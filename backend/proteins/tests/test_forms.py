@@ -1,9 +1,8 @@
-from io import BytesIO
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from test_plus.test import TestCase
 
-from ..forms import CollectionForm, ProteinForm, StateForm, SpectrumForm
+from ..forms import CollectionForm, ProteinForm, SpectrumForm, StateForm
 from ..models import Protein, Spectrum, State
 
 User = get_user_model()
@@ -271,10 +270,8 @@ class TestSpectrumForm(TestCase):
         """Test form validation with valid file upload and data_source=file"""
         # Create a mock CSV file with consecutive wavelengths for step size = 1
         file_content = b"400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
-        uploaded_file = SimpleUploadedFile(
-            "spectrum.csv", file_content, content_type="text/csv"
-        )
-        
+        uploaded_file = SimpleUploadedFile("spectrum.csv", file_content, content_type="text/csv")
+
         form_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
@@ -314,7 +311,7 @@ class TestSpectrumForm(TestCase):
         }
         # Simulate having no files but being in manual mode
         form = SpectrumForm(data=form_data, files=None, user=self.user)
-        
+
         # Manually add a file error to simulate the scenario
         form.full_clean()
         if form.is_valid():
@@ -327,10 +324,8 @@ class TestSpectrumForm(TestCase):
     def test_spectrum_form_tab_specific_validation_file(self):
         """Test that manual data errors are cleared when data_source=file"""
         file_content = b"400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
-        uploaded_file = SimpleUploadedFile(
-            "spectrum.csv", file_content, content_type="text/csv"
-        )
-        
+        uploaded_file = SimpleUploadedFile("spectrum.csv", file_content, content_type="text/csv")
+
         form_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
@@ -341,7 +336,7 @@ class TestSpectrumForm(TestCase):
         }
         files_data = {"file": uploaded_file}
         form = SpectrumForm(data=form_data, files=files_data, user=self.user)
-        
+
         # Manually add a data error to simulate the scenario
         form.full_clean()
         if form.is_valid():

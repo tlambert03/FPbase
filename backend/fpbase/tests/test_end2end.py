@@ -255,128 +255,132 @@ class TestPagesRender(StaticLiveServerTestCase):
     def test_spectrum_submission_preview_manual_data(self):
         """End-to-end test of spectrum submission with manual data preview"""
         from django.contrib.auth import get_user_model
+
         User = get_user_model()
-        
+
         # Create a test user and log in
-        user = User.objects.create_user(username="testuser", password="testpass", email="test@example.com")
+        User.objects.create_user(username="testuser", password="testpass", email="test@example.com")
         self.browser.get(self.live_server_url + "/accounts/login/")
         self.browser.find_element(by="name", value="username").send_keys("testuser")
         self.browser.find_element(by="name", value="password").send_keys("testpass")
         self.browser.find_element(by="css selector", value='button[type="submit"]').click()
-        
+
         # Navigate to spectrum submission page
         self._load_reverse("proteins:spectrum-submit")
         self._assert_no_console_errors()
-        
+
         # Fill out the basic form fields
         Select(self.browser.find_element(by="id", value="id_category")).select_by_value("p")
         Select(self.browser.find_element(by="id", value="id_subtype")).select_by_value("ex")
-        
+
         # Wait for protein owner field to appear and select the test protein
-        WebDriverWait(self.browser, 2).until(
-            lambda d: d.find_element(by="id", value="id_owner_state").is_displayed()
+        WebDriverWait(self.browser, 2).until(lambda d: d.find_element(by="id", value="id_owner_state").is_displayed())
+        Select(self.browser.find_element(by="id", value="id_owner_state")).select_by_visible_text(
+            f"{self.p1.name} › default"
         )
-        Select(self.browser.find_element(by="id", value="id_owner_state")).select_by_visible_text(f"{self.p1.name} › default")
-        
+
         # Switch to manual data tab
         manual_tab = self.browser.find_element(by="id", value="manual-tab")
         manual_tab.click()
-        
+
         # Enter spectrum data manually
         data_field = self.browser.find_element(by="id", value="id_data")
         spectrum_data = "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
         data_field.send_keys(spectrum_data)
-        
+
         # Check confirmation checkbox
         self.browser.find_element(by="id", value="id_confirmation").click()
-        
+
         # Submit for preview
         submit_button = self.browser.find_element(by="css selector", value='input[type="submit"]')
         assert "Preview" in submit_button.get_attribute("value")
         submit_button.click()
-        
+
         # Wait for preview to appear
         preview_section = WebDriverWait(self.browser, 10).until(
             lambda d: d.find_element(by="id", value="spectrum-preview-section")
         )
         assert preview_section.is_displayed()
-        
+
         # Verify preview content
         preview_chart = self.browser.find_element(by="id", value="spectrum-preview-chart")
         assert preview_chart.find_element(by="tag name", value="svg")  # Should contain SVG
-        
+
         # Check preview info
         data_points = self.browser.find_element(by="id", value="preview-data-points").text
         assert "10" in data_points  # Should show 10 data points
-        
+
         # Test "Edit Data" button
         edit_button = self.browser.find_element(by="xpath", value="//button[contains(text(), 'Edit Data')]")
         edit_button.click()
-        
+
         # Should switch back to manual tab and hide preview
         WebDriverWait(self.browser, 2).until(
             lambda d: not d.find_element(by="id", value="spectrum-preview-section").is_displayed()
         )
         assert self.browser.find_element(by="id", value="manual-tab").get_attribute("class").find("active") != -1
-        
+
         # Data should still be there
         data_field = self.browser.find_element(by="id", value="id_data")
         assert spectrum_data in data_field.get_attribute("value")
-        
+
         self._assert_no_console_errors()
 
     def test_spectrum_submission_tab_switching(self):
         """End-to-end test of tab switching behavior in spectrum submission"""
         from django.contrib.auth import get_user_model
+
         User = get_user_model()
-        
+
         # Create a test user and log in
-        user = User.objects.create_user(username="testuser2", password="testpass", email="test2@example.com")
+        User.objects.create_user(username="testuser2", password="testpass", email="test2@example.com")
         self.browser.get(self.live_server_url + "/accounts/login/")
         self.browser.find_element(by="name", value="username").send_keys("testuser2")
         self.browser.find_element(by="name", value="password").send_keys("testpass")
         self.browser.find_element(by="css selector", value='button[type="submit"]').click()
-        
+
         # Navigate to spectrum submission page
         self._load_reverse("proteins:spectrum-submit")
-        
+
         # Fill out basic fields
         Select(self.browser.find_element(by="id", value="id_category")).select_by_value("p")
         Select(self.browser.find_element(by="id", value="id_subtype")).select_by_value("ex")
-        WebDriverWait(self.browser, 2).until(
-            lambda d: d.find_element(by="id", value="id_owner_state").is_displayed()
+        WebDriverWait(self.browser, 2).until(lambda d: d.find_element(by="id", value="id_owner_state").is_displayed())
+        Select(self.browser.find_element(by="id", value="id_owner_state")).select_by_visible_text(
+            f"{self.p1.name} › default"
         )
-        Select(self.browser.find_element(by="id", value="id_owner_state")).select_by_visible_text(f"{self.p1.name} › default")
-        
+
         # Check confirmation
         self.browser.find_element(by="id", value="id_confirmation").click()
-        
+
         # Test tab switching behavior
         file_tab = self.browser.find_element(by="id", value="file-tab")
         manual_tab = self.browser.find_element(by="id", value="manual-tab")
-        
+
         # Start on file tab (default)
         assert "active" in file_tab.get_attribute("class")
-        
+
         # Switch to manual tab
         manual_tab.click()
         WebDriverWait(self.browser, 1).until(
             lambda d: "active" in d.find_element(by="id", value="manual-tab").get_attribute("class")
         )
-        
+
         # Enter some manual data
         data_field = self.browser.find_element(by="id", value="id_data")
-        data_field.send_keys("[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]")
-        
+        data_field.send_keys(
+            "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+        )
+
         # Switch back to file tab
         file_tab.click()
         WebDriverWait(self.browser, 1).until(
             lambda d: "active" in d.find_element(by="id", value="file-tab").get_attribute("class")
         )
-        
+
         # Submit button should update based on which tab is active and whether there's data
         submit_button = self.browser.find_element(by="css selector", value='input[type="submit"]')
         # On file tab with no file, should show "Submit" not "Preview"
         assert submit_button.get_attribute("value") in ["Submit", "Preview Spectrum"]
-        
+
         self._assert_no_console_errors()

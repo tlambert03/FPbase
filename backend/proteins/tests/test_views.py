@@ -1,5 +1,5 @@
 import json
-from io import BytesIO
+
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -98,7 +98,7 @@ class SpectrumPreviewViewTests(TestCase):
     def test_spectrum_preview_manual_data_success(self):
         """Test successful spectrum preview with manual data"""
         self.client.login(username="testuser", password="testpass")
-        
+
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
@@ -107,10 +107,10 @@ class SpectrumPreviewViewTests(TestCase):
             "data_source": "manual",
             "confirmation": True,
         }
-        
+
         response = self.client.post(self.preview_url, data=post_data)
         self.assertEqual(response.status_code, 200)
-        
+
         data = json.loads(response.content)
         self.assertTrue(data["success"])
         self.assertIn("preview", data)
@@ -122,13 +122,11 @@ class SpectrumPreviewViewTests(TestCase):
     def test_spectrum_preview_file_upload_success(self):
         """Test successful spectrum preview with file upload"""
         self.client.login(username="testuser", password="testpass")
-        
+
         # Create a mock CSV file with consecutive wavelengths
         file_content = b"400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
-        uploaded_file = SimpleUploadedFile(
-            "spectrum.csv", file_content, content_type="text/csv"
-        )
-        
+        uploaded_file = SimpleUploadedFile("spectrum.csv", file_content, content_type="text/csv")
+
         # Use multipart form data for file upload
         response = self.client.post(
             self.preview_url,
@@ -141,10 +139,10 @@ class SpectrumPreviewViewTests(TestCase):
                 "confirmation": True,
                 "file": uploaded_file,
             },
-            format="multipart"
+            format="multipart",
         )
         self.assertEqual(response.status_code, 200)
-        
+
         data = json.loads(response.content)
         self.assertTrue(data["success"])
         self.assertIn("preview", data)
@@ -154,7 +152,7 @@ class SpectrumPreviewViewTests(TestCase):
     def test_spectrum_preview_validation_failure_manual(self):
         """Test spectrum preview with invalid manual data"""
         self.client.login(username="testuser", password="testpass")
-        
+
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
@@ -163,10 +161,10 @@ class SpectrumPreviewViewTests(TestCase):
             "data_source": "manual",
             "confirmation": True,
         }
-        
+
         response = self.client.post(self.preview_url, data=post_data)
         self.assertEqual(response.status_code, 400)
-        
+
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Form validation failed. Please check your input data.")
         self.assertIn("form_errors", data)
@@ -175,7 +173,7 @@ class SpectrumPreviewViewTests(TestCase):
     def test_spectrum_preview_validation_failure_file(self):
         """Test spectrum preview with missing file upload"""
         self.client.login(username="testuser", password="testpass")
-        
+
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
@@ -184,10 +182,10 @@ class SpectrumPreviewViewTests(TestCase):
             "data_source": "file",
             "confirmation": True,
         }
-        
+
         response = self.client.post(self.preview_url, data=post_data)
         self.assertEqual(response.status_code, 400)
-        
+
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Form validation failed. Please check your input data.")
         self.assertIn("form_errors", data)
@@ -196,7 +194,7 @@ class SpectrumPreviewViewTests(TestCase):
     def test_spectrum_preview_invalid_spectrum_data(self):
         """Test spectrum preview with invalid spectrum data format"""
         self.client.login(username="testuser", password="testpass")
-        
+
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
@@ -205,10 +203,10 @@ class SpectrumPreviewViewTests(TestCase):
             "data_source": "manual",
             "confirmation": True,
         }
-        
+
         response = self.client.post(self.preview_url, data=post_data)
         self.assertEqual(response.status_code, 400)
-        
+
         data = json.loads(response.content)
         # Should be either form validation error or data processing error
         self.assertIn("error", data)
@@ -224,18 +222,18 @@ class SpectrumPreviewViewTests(TestCase):
             "data_source": "manual",
             "confirmation": True,
         }
-        
+
         response = self.client.post(self.preview_url, data=post_data)
         # Should fail with 500 error because anonymous user can't be assigned to created_by
         self.assertEqual(response.status_code, 500)
-        
+
         data = json.loads(response.content)
         self.assertIn("error", data)
 
     def test_spectrum_preview_data_source_defaults_to_file(self):
         """Test that data_source defaults to 'file' when not provided"""
         self.client.login(username="testuser", password="testpass")
-        
+
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
@@ -244,10 +242,10 @@ class SpectrumPreviewViewTests(TestCase):
             "confirmation": True,
             # No data_source provided
         }
-        
+
         response = self.client.post(self.preview_url, data=post_data)
         self.assertEqual(response.status_code, 400)
-        
+
         data = json.loads(response.content)
         self.assertIn("form_errors", data)
         # Should show file error since it defaults to file validation
