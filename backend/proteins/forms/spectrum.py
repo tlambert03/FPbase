@@ -108,15 +108,28 @@ class SpectrumForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if not (cleaned_data.get("data") or self.files):
-            self.add_error(
-                "data",
-                "Please either fill in the data field or select a file to upload.",
-            )
-            self.add_error(
-                "file",
-                "Please either fill in the data field or select a file to upload.",
-            )
+
+        # Check which data source was selected based on the form submission
+        # This is more reliable than checking self.files since form creation varies
+        data_source = "file"  # Default to file tab
+        if hasattr(self, "data") and self.data and hasattr(self.data, "get"):
+            data_source = self.data.get("data_source", "file")
+
+        # If we're in manual mode, clear any file-related errors
+        if data_source == "manual":
+            # Remove any file-related errors since manual tab was selected
+            if "file" in self.errors:
+                del self.errors["file"]
+            # Only validate manual data
+            if not cleaned_data.get("data"):
+                self.add_error("data", "Please enter valid spectrum data.")
+        else:
+            # File tab was selected - only validate file upload
+            if not (self.files and self.files.get("file")):
+                self.add_error("file", "Please select a file to upload.")
+            # Clear manual data errors since file tab was selected
+            if "data" in self.errors:
+                del self.errors["data"]
 
     def save(self, commit=True):
         cat = self.cleaned_data.get("category")
