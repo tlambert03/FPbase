@@ -1,6 +1,6 @@
 import json
-
 from typing import cast
+
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -72,7 +72,6 @@ class ProteinViewTests(TestCase):
         assert state.name == "default"
         assert state.ex_max == 488
         assert state.em_max == 525
-
 
 
 class SpectrumPreviewViewTests(TestCase):

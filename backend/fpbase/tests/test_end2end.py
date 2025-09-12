@@ -133,7 +133,7 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     def test_fret(self):
         donor = ProteinFactory(name="donor", agg="m", default_state__ex_max=488, default_state__em_max=525)
-        acceptor = ProteinFactory(
+        ProteinFactory(
             name="acceptor",
             agg="m",
             default_state__ex_max=525,
