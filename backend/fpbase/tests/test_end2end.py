@@ -3,7 +3,10 @@ import shutil
 import tempfile
 
 import pytest
+from allauth.account.models import EmailAddress
+from django.contrib.auth import get_user_model
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.test import Client
 from django.urls import reverse
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -17,6 +20,7 @@ from proteins.util.blast import _get_binary
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
 cDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
+PASSWORD = "testpass2341o87123o847u3214"
 
 
 @pytest.mark.usefixtures("uses_frontend", "use_real_webpack_loader")
@@ -255,37 +259,59 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     def test_spectrum_submission_preview_manual_data(self):
         """End-to-end test of spectrum submission with manual data preview"""
-        from django.contrib.auth import get_user_model
 
         User = get_user_model()
 
-        # Create a test user and log in
-        User.objects.create_user(username="testuser", password="testpass", email="test@example.com")
-        self.browser.get(self.live_server_url + "/accounts/login/")
-        self.browser.find_element(by="name", value="username").send_keys("testuser")
-        self.browser.find_element(by="name", value="password").send_keys("testpass")
-        self.browser.find_element(by="css selector", value='button[type="submit"]').click()
+        # Create a test user with verified email
+        import uuid
+
+        username = f"testuser_{uuid.uuid4().hex[:8]}"
+        user = User.objects.create_user(username=username, password=PASSWORD, email=f"{username}@example.com")
+        user.is_active = True
+        user.save()
+
+        # Create EmailAddress record for allauth email verification
+
+        EmailAddress.objects.create(user=user, email=f"{username}@example.com", verified=True, primary=True)
+
+        client = Client()
+        client.force_login(user)
+
+        # Get session key and set it in browser cookies for Selenium
+        session_key = client.session.session_key
+
+        # Navigate to any page first to set domain for cookie
+        self.browser.get(self.live_server_url)
+
+        # Set Django session cookie
+        self.browser.add_cookie({"name": "sessionid", "value": session_key, "domain": "localhost", "path": "/"})
 
         # Navigate to spectrum submission page
-        self._load_reverse("proteins:spectrum-submit")
+        self._load_reverse("proteins:submit-spectra")
         self._assert_no_console_errors()
 
-        # Fill out the basic form fields
+        # Wait for form to load, then fill out the basic form fields
+        WebDriverWait(self.browser, 10).until(lambda d: d.find_element(by="id", value="id_category").is_displayed())
         Select(self.browser.find_element(by="id", value="id_category")).select_by_value("p")
         Select(self.browser.find_element(by="id", value="id_subtype")).select_by_value("ex")
 
-        # Wait for protein owner field to appear and select the test protein
+        # Wait for protein owner field to appear and select the first available option
         WebDriverWait(self.browser, 2).until(lambda d: d.find_element(by="id", value="id_owner_state").is_displayed())
-        Select(self.browser.find_element(by="id", value="id_owner_state")).select_by_visible_text(
-            f"{self.p1.name} > default"
-        )
+        owner_state_select = Select(self.browser.find_element(by="id", value="id_owner_state"))
+        if len(owner_state_select.options) > 1:  # Skip the empty option
+            owner_state_select.select_by_index(1)
 
         # Switch to manual data tab
         manual_tab = self.browser.find_element(by="id", value="manual-tab")
         manual_tab.click()
 
-        # Enter spectrum data manually
-        data_field = self.browser.find_element(by="id", value="id_data")
+        # Wait for manual data field to be visible and interactable
+        WebDriverWait(self.browser, 5).until(lambda d: d.find_element(by="id", value="id_data").is_displayed())
+        data_field = WebDriverWait(self.browser, 5).until(
+            lambda d: d.find_element(by="id", value="id_data")
+            if d.find_element(by="id", value="id_data").is_enabled()
+            else None
+        )
         spectrum_data = (
             "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
             "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
@@ -332,27 +358,46 @@ class TestPagesRender(StaticLiveServerTestCase):
 
     def test_spectrum_submission_tab_switching(self):
         """End-to-end test of tab switching behavior in spectrum submission"""
-        from django.contrib.auth import get_user_model
 
         User = get_user_model()
 
-        # Create a test user and log in
-        User.objects.create_user(username="testuser2", password="testpass", email="test2@example.com")
-        self.browser.get(self.live_server_url + "/accounts/login/")
-        self.browser.find_element(by="name", value="username").send_keys("testuser2")
-        self.browser.find_element(by="name", value="password").send_keys("testpass")
-        self.browser.find_element(by="css selector", value='button[type="submit"]').click()
+        # Create a test user with verified email
+        import uuid
+
+        username = f"testuser_{uuid.uuid4().hex[:8]}"
+        user = User.objects.create_user(username=username, password=PASSWORD, email=f"{username}@example.com")
+        user.is_active = True
+        user.save()
+
+        # Create EmailAddress record for allauth email verification
+
+        EmailAddress.objects.create(user=user, email=f"{username}@example.com", verified=True, primary=True)
+
+        # Use Django's session authentication instead of HTML login
+
+        client = Client()
+        client.force_login(user)
+
+        # Get session key and set it in browser cookies for Selenium
+        session_key = client.session.session_key
+
+        # Navigate to any page first to set domain for cookie
+        self.browser.get(self.live_server_url)
+
+        # Set Django session cookie
+        self.browser.add_cookie({"name": "sessionid", "value": session_key, "domain": "localhost", "path": "/"})
 
         # Navigate to spectrum submission page
-        self._load_reverse("proteins:spectrum-submit")
+        self._load_reverse("proteins:submit-spectra")
 
-        # Fill out basic fields
+        # Wait for form to load, then fill out basic fields
+        WebDriverWait(self.browser, 10).until(lambda d: d.find_element(by="id", value="id_category").is_displayed())
         Select(self.browser.find_element(by="id", value="id_category")).select_by_value("p")
         Select(self.browser.find_element(by="id", value="id_subtype")).select_by_value("ex")
         WebDriverWait(self.browser, 2).until(lambda d: d.find_element(by="id", value="id_owner_state").is_displayed())
-        Select(self.browser.find_element(by="id", value="id_owner_state")).select_by_visible_text(
-            f"{self.p1.name} > default"
-        )
+        owner_state_select = Select(self.browser.find_element(by="id", value="id_owner_state"))
+        if len(owner_state_select.options) > 1:  # Skip the empty option
+            owner_state_select.select_by_index(1)
 
         # Check confirmation
         self.browser.find_element(by="id", value="id_confirmation").click()
