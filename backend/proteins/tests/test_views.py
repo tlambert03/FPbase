@@ -1,5 +1,6 @@
 import json
 
+from typing import cast
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -43,11 +44,12 @@ class ProteinViewTests(TestCase):
         response = self.client.get(reverse("proteins:submit"))
         self.assertEqual(response.status_code, 200)
 
-        assert Protein.objects.count() == 0
+        name = "Protein ERMCOFSD"
+        initial_count = Protein.objects.count()
         response = self.client.post(
             reverse("proteins:submit"),
             data={
-                "name": "Test Protein",
+                "name": name,
                 "reference_doi": "10.1038/nmeth.2413",
                 "states-0-name": "default",
                 "states-0-ex_max": 488,
@@ -56,9 +58,13 @@ class ProteinViewTests(TestCase):
             }
             | INLINE_FORMSET,
         )
-        assert Protein.objects.count() == 1
-        new_prot: Protein = Protein.objects.last()
-        assert new_prot.name == "Test Protein"
+        assert response.status_code == 302
+
+        assert Protein.objects.count() == initial_count + 1
+        new_prot = cast("Protein", Protein.objects.get(name=name))
+        assert response.url == new_prot.get_absolute_url()
+
+        assert new_prot.name == name
         assert new_prot.primary_reference
         assert new_prot.primary_reference.doi == "10.1038/nmeth.2413"
 
@@ -67,8 +73,6 @@ class ProteinViewTests(TestCase):
         assert state.ex_max == 488
         assert state.em_max == 525
 
-        assert response.status_code == 302
-        assert response.url == new_prot.get_absolute_url()
 
 
 class SpectrumPreviewViewTests(TestCase):
