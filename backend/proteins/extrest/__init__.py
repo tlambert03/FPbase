@@ -50,7 +50,7 @@ class ChangeSet:
         p = Protein.objects.get(id=self.id)  # in case it's changed
         for attr, newval in self.changes.items():
             if attr == "parent_organism" and isinstance(newval, int):
-                org, created = Organism.objects.get_or_create(id=newval)
+                org, _created = Organism.objects.get_or_create(id=newval)
                 p.parent_organism = org
             else:
                 setattr(p, attr, newval)
