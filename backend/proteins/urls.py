@@ -292,6 +292,11 @@ urlpatterns = [
         name="validate_spectrumownername",
     ),
     path(
+        "ajax/spectrum_preview/",
+        views.spectrum_preview,
+        name="spectrum_preview",
+    ),
+    path(
         "ajax/remove_from_collection/",
         views.collection_remove,
         name="collection-remove",
