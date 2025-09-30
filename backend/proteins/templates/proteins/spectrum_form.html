@@ -164,6 +164,12 @@
     // Move the fields into their respective tabs
     fileField.appendTo('#file-panel');
     dataField.appendTo('#manual-panel');
+
+    // Manually initialize Bootstrap tabs
+    $('#data-source-tabs a[data-toggle="tab"]').on('click', function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    });
   });
 
   var valid_opts = {
