@@ -4,12 +4,11 @@
 {% block title %}Submit a Spectrum to FPbase{% endblock %}
 {% block meta-description %}Help us build the best open spectra viewer by submitting spectral data to FPbase.{% endblock %}
 
-{% block content %}
-<script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
+{% block extrahead %}
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+{% endblock %}
 
+{% block content %}
   {% if protein %}
     <h2>Add a new spectrum for {{ protein }}</h2>
   {% else %}
@@ -43,46 +42,6 @@
 
   <!-- Use crispy form with JavaScript tabs overlay -->
   {% crispy form %}
-
-  <!-- Add tabs JavaScript overlay after form is rendered -->
-  <script type="text/javascript">
-  $(document).ready(function() {
-    // Find the file and data fields in the crispy form and wrap them with tabs
-    var fileField = $('#id_file').closest('.form-group');
-    var dataField = $('#id_data').closest('.form-group');
-
-    // Create the tabbed interface
-    var tabbedHtml =
-      '<div class="form-group mt-4">' +
-        '<label class="form-label"><strong>Spectrum Data Source</strong></label>' +
-        '<ul class="nav nav-tabs" id="data-source-tabs" role="tablist">' +
-          '<li class="nav-item" role="presentation">' +
-            '<a class="nav-link active" id="file-tab" data-toggle="tab" href="#file-panel" role="tab" aria-controls="file-panel" aria-selected="true">' +
-              '<i class="fas fa-upload mr-2"></i>Upload File' +
-            '</a>' +
-          '</li>' +
-          '<li class="nav-item" role="presentation">' +
-            '<a class="nav-link" id="manual-tab" data-toggle="tab" href="#manual-panel" role="tab" aria-controls="manual-panel" aria-selected="false">' +
-              '<i class="fas fa-edit mr-2"></i>Enter Data Manually' +
-            '</a>' +
-          '</li>' +
-        '</ul>' +
-        '<div class="tab-content border-left border-right border-bottom p-3" id="data-source-content">' +
-          '<div class="tab-pane fade show active" id="file-panel" role="tabpanel" aria-labelledby="file-tab">' +
-          '</div>' +
-          '<div class="tab-pane fade" id="manual-panel" role="tabpanel" aria-labelledby="manual-tab">' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-
-    // Insert the tabbed interface before the file field
-    fileField.before(tabbedHtml);
-
-    // Move the fields into their respective tabs
-    fileField.appendTo('#file-panel');
-    dataField.appendTo('#manual-panel');
-  });
-  </script>
 
   <!-- Spectrum Preview Section -->
   <div id="spectrum-preview-section" style="display: none;" class="mt-4">
@@ -142,6 +101,44 @@
 {% block javascript %}
 
 <script>
+
+  // Create tabs immediately when DOM is ready
+  $(document).ready(function() {
+    // Find the file and data fields in the crispy form and wrap them with tabs
+    var fileField = $('#id_file').closest('.form-group');
+    var dataField = $('#id_data').closest('.form-group');
+
+    // Create the tabbed interface
+    var tabbedHtml =
+      '<div class="form-group mt-4">' +
+        '<label class="form-label"><strong>Spectrum Data Source</strong></label>' +
+        '<ul class="nav nav-tabs" id="data-source-tabs" role="tablist">' +
+          '<li class="nav-item" role="presentation">' +
+            '<a class="nav-link active" id="file-tab" data-toggle="tab" href="#file-panel" role="tab" aria-controls="file-panel" aria-selected="true">' +
+              '<i class="fas fa-upload mr-2"></i>Upload File' +
+            '</a>' +
+          '</li>' +
+          '<li class="nav-item" role="presentation">' +
+            '<a class="nav-link" id="manual-tab" data-toggle="tab" href="#manual-panel" role="tab" aria-controls="manual-panel" aria-selected="false">' +
+              '<i class="fas fa-edit mr-2"></i>Enter Data Manually' +
+            '</a>' +
+          '</li>' +
+        '</ul>' +
+        '<div class="tab-content border-left border-right border-bottom p-3" id="data-source-content">' +
+          '<div class="tab-pane fade show active" id="file-panel" role="tabpanel" aria-labelledby="file-tab">' +
+          '</div>' +
+          '<div class="tab-pane fade" id="manual-panel" role="tabpanel" aria-labelledby="manual-tab">' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // Insert the tabbed interface before the file field
+    fileField.before(tabbedHtml);
+
+    // Move the fields into their respective tabs
+    fileField.appendTo('#file-panel');
+    dataField.appendTo('#manual-panel');
+  });
 
   var valid_opts = {
     d: ['ex', 'ab', 'em', '2p'],

@@ -144,7 +144,9 @@
       <!-- place project specific Javascript -->
       {% render_bundle 'main' 'js' %}
       <script>
-        FPBASE.initAutocomplete();
+        if (typeof FPBASE !== 'undefined' && FPBASE.initAutocomplete) {
+          FPBASE.initAutocomplete();
+        }
       </script>
 
 

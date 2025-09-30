@@ -326,11 +326,24 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert "Preview" in submit_button.get_attribute("value")
         submit_button.click()
 
-        # Wait for preview to appear
-        preview_section = WebDriverWait(self.browser, 10).until(
+        # Wait a moment for AJAX to start
+        import time
+
+        time.sleep(2)
+
+        # Check for any error alerts
+        error_alerts = self.browser.find_elements(by="css selector", value=".alert-danger")
+        if error_alerts:
+            for alert in error_alerts:
+                if alert.is_displayed():
+                    raise AssertionError(f"Error alert shown: {alert.text}")
+
+        # Wait for preview to appear (AJAX request may take some time)
+        WebDriverWait(self.browser, 15).until(
             lambda d: d.find_element(by="id", value="spectrum-preview-section")
+            if d.find_element(by="id", value="spectrum-preview-section").is_displayed()
+            else None
         )
-        assert preview_section.is_displayed()
 
         # Verify preview content
         preview_chart = self.browser.find_element(by="id", value="spectrum-preview-chart")
@@ -411,12 +424,19 @@ class TestPagesRender(StaticLiveServerTestCase):
 
         # Switch to manual tab
         manual_tab.click()
-        WebDriverWait(self.browser, 1).until(
+        WebDriverWait(self.browser, 2).until(
             lambda d: "active" in d.find_element(by="id", value="manual-tab").get_attribute("class")
         )
 
+        # Wait for data field to become visible and enabled after tab switch
+        data_field = WebDriverWait(self.browser, 3).until(
+            lambda d: d.find_element(by="id", value="id_data")
+            if d.find_element(by="id", value="id_data").is_displayed()
+            and d.find_element(by="id", value="id_data").is_enabled()
+            else None
+        )
+
         # Enter some manual data
-        data_field = self.browser.find_element(by="id", value="id_data")
         data_field.send_keys(
             "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], "
             "[404, 0.8], [405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
