@@ -45,7 +45,7 @@ dependencies = [
     'google-auth==2.29.0',
     'google-analytics-data==0.18.9',
     'algoliasearch_django==3.0.0',
-    'celery[redis]==5.2.7',
+    'celery[redis]==5.5.3',
     'graphene>=3.2.2',
     'graphene-django>=3.2.3',
     'graphene-django-optimizer==0.10.0',
