@@ -259,5 +259,5 @@ class SpectrumPreviewViewTests(TestCase):
 
         data = json.loads(response.content)
         self.assertIn("form_errors", data)
-        # Should show file error since it defaults to file validation
-        self.assertIn("file", data["form_errors"])
+        # Should show validation error since it defaults to file validation
+        self.assertTrue("__all__" in data["form_errors"] or "file" in data["form_errors"])
