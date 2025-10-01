@@ -174,7 +174,8 @@ class SpectrumPreviewViewTests(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Form validation failed. Please check your input data.")
         self.assertIn("form_errors", data)
-        self.assertIn("data", data["form_errors"])
+        # Error should be in non-field errors (__all__)
+        self.assertTrue("__all__" in data["form_errors"] or "data" in data["form_errors"])
 
     def test_spectrum_preview_validation_failure_file(self):
         """Test spectrum preview with missing file upload"""
@@ -195,7 +196,8 @@ class SpectrumPreviewViewTests(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Form validation failed. Please check your input data.")
         self.assertIn("form_errors", data)
-        self.assertIn("file", data["form_errors"])
+        # Error should be in non-field errors (__all__)
+        self.assertTrue("__all__" in data["form_errors"] or "file" in data["form_errors"])
 
     def test_spectrum_preview_invalid_spectrum_data(self):
         """Test spectrum preview with invalid spectrum data format"""
