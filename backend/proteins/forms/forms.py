@@ -542,7 +542,7 @@ class BleachMeasurementForm(forms.ModelForm):
         obj = super().save(commit=False)
         doi = self.cleaned_data.get("reference_doi")
         if doi:
-            ref, created = Reference.objects.get_or_create(doi=doi)
+            ref, _created = Reference.objects.get_or_create(doi=doi)
             obj.reference = ref
         if commit:
             obj.save()
@@ -635,7 +635,7 @@ class BleachComparisonForm(forms.ModelForm):
         obj = super().save(commit=False)
         doi = self.cleaned_data.get("reference_doi")
         if doi:
-            ref, created = Reference.objects.get_or_create(doi=doi)
+            ref, _created = Reference.objects.get_or_create(doi=doi)
             obj.reference = ref
         if commit:
             obj.save()

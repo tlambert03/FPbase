@@ -684,7 +684,7 @@ def add_reference(request, slug=None):
         with reversion.create_revision():
             doi = request.POST.get("reference_doi").lower()
             p = Protein.objects.get(slug=slug)
-            ref, created = Reference.objects.get_or_create(doi=doi)
+            ref, _created = Reference.objects.get_or_create(doi=doi)
             p.references.add(ref)
             if not request.user.is_staff:
                 p.status = "pending"
@@ -712,7 +712,7 @@ def add_protein_excerpt(request, slug=None):
             p = Protein.objects.get(slug=slug)
             content = request.POST.get("excerpt_content")
             if content:
-                ref, created = Reference.objects.get_or_create(doi=doi)
+                ref, _created = Reference.objects.get_or_create(doi=doi)
                 p.references.add(ref)
                 excerpt = Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
                 excerpt.proteins.add(p)
