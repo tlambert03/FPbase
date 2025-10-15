@@ -23,25 +23,15 @@ TEMPLATES[0]["OPTIONS"]["debug"] = True
 # Note: This key only used for development and testing.
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="CHANGEME!!!")
 
-# DATABASE
-# ------------------------------------------------------------------------------
 # Use DATABASE_URL if set (e.g., in CI), otherwise use local test database
-if os.getenv("DATABASE_URL"):
-    # In CI or when DATABASE_URL is explicitly set, use it
-    DATABASES = {"default": env.db("DATABASE_URL")}
-    DATABASES["default"]["ATOMIC_REQUESTS"] = True
-else:
-    # For local development, use a test-specific database with Unix socket
+# Always use local database unless DATABASE_URL is explicitly valid (not placeholder values)
+db_url = os.getenv("DATABASE_URL", "")
+if not db_url or "user:password" in db_url:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": "test_fpbase",
             "USER": os.getenv("USER", getpass.getuser()),
-            "PASSWORD": "",
-            "HOST": "",  # Empty string uses Unix socket
-            "PORT": "",
-            "ATOMIC_REQUESTS": True,
-            "TEST": {"NAME": "test_fpbase"},
+            "PORT": "5432",
         }
     }
 

@@ -1,7 +1,11 @@
+from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from test_plus.test import TestCase
 
-from ..forms import CollectionForm, ProteinForm, StateForm
-from ..models import Protein, State
+from ..forms import CollectionForm, ProteinForm, SpectrumForm, StateForm
+from ..models import Protein, Spectrum, State
+
+User = get_user_model()
 
 
 class TestProteinForm(TestCase):
@@ -217,3 +221,98 @@ class TestCollectionForm(TestCase):
         )
         valid = form4.is_valid()
         self.assertTrue(valid)
+
+
+class TestSpectrumForm(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.protein = Protein.objects.create(
+            name="Test Protein",
+            seq="ARNDCEQGHILKMFPSTWYV",
+            ipg_id="12345678",
+        )
+        self.state = State.objects.create(
+            name="default",
+            protein=self.protein,
+            ex_max=488,
+            em_max=525,
+        )
+
+    def test_spectrum_form_manual_data_valid(self):
+        """Test form validation with valid manual data and data_source=manual"""
+        form_data = {
+            "category": Spectrum.PROTEIN,
+            "subtype": Spectrum.EX,
+            "owner_state": self.state.id,
+            "data": (
+                "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
+                "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
+            ),
+            "data_source": "manual",
+            "confirmation": True,
+        }
+        form = SpectrumForm(data=form_data, files=None, user=self.user)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
+    def test_spectrum_form_manual_data_missing(self):
+        """Test form validation with missing manual data when data_source=manual"""
+        form_data = {
+            "category": Spectrum.PROTEIN,
+            "subtype": Spectrum.EX,
+            "owner_state": self.state.id,
+            "data": "",  # Empty manual data
+            "data_source": "manual",
+            "confirmation": True,
+        }
+        form = SpectrumForm(data=form_data, files=None, user=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertIn("Please enter valid spectrum data", str(form.errors["__all__"]))
+
+    def test_spectrum_form_file_data_valid(self):
+        """Test form validation with valid file upload and data_source=file"""
+        # Create a mock CSV file with consecutive wavelengths for step size = 1
+        file_content = b"400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
+        uploaded_file = SimpleUploadedFile("spectrum.csv", file_content, content_type="text/csv")
+
+        form_data = {
+            "category": Spectrum.PROTEIN,
+            "subtype": Spectrum.EX,
+            "owner_state": self.state.id,
+            "data": "",  # Empty manual data
+            "data_source": "file",
+            "confirmation": True,
+        }
+        files_data = {"file": uploaded_file}
+        form = SpectrumForm(data=form_data, files=files_data, user=self.user)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+
+    def test_spectrum_form_file_data_missing(self):
+        """Test form validation with missing file when data_source=file"""
+        form_data = {
+            "category": Spectrum.PROTEIN,
+            "subtype": Spectrum.EX,
+            "owner_state": self.state.id,
+            "data": "",
+            "data_source": "file",
+            "confirmation": True,
+        }
+        form = SpectrumForm(data=form_data, files={}, user=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertIn("Please select a file to upload", str(form.errors["__all__"]))
+
+    def test_spectrum_form_default_data_source(self):
+        """Test that form defaults to file validation when no data_source is provided"""
+        form_data = {
+            "category": Spectrum.PROTEIN,
+            "subtype": Spectrum.EX,
+            "owner_state": self.state.id,
+            "data": "",
+            "confirmation": True,
+            # No data_source provided - should default to "file"
+        }
+        form = SpectrumForm(data=form_data, files={}, user=self.user)
+        self.assertFalse(form.is_valid())
+        # Should show validation error since it defaults to file validation
+        self.assertIn("__all__", form.errors)
