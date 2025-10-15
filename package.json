@@ -1,10 +1,9 @@
 {
   "scripts": {
-    "dev": "concurrently \"pnpm --stream -r start\" \"uv run backend/manage.py runserver\"",
+    "dev": "concurrently -n webpack,django -c \"blue.bold,green.bold\" \"pnpm --stream -r start\" \"uv run backend/manage.py runserver\"",
     "start": "pnpm --stream -r start",
     "build": "pnpm -r --parallel build",
     "heroku-postbuild": "pnpm --filter fpbase build",
-    "start:dev": "pnpm --stream -r run start:dev",
     "clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules && pnpm -r run clean"
   },
   "devDependencies": {
