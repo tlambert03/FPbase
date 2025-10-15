@@ -934,14 +934,13 @@ import d3 from "d3"
       chart.yDomain([0.001, n])
       chart.yScale(d3.scale.log())
       chart.yAxis.tickValues([0.01, 0.033, 0.1, 0.33, 1])
-      refreshChart()
     } else {
       options.scale = "linear"
       chart.yDomain([0, n])
       chart.yScale(d3.scale.linear())
       chart.yAxis.tickValues(d3.range(0, 1, 0.2))
-      refreshChart()
     }
+    refreshChart()
     chart.lines.duration(0)
   }
 
