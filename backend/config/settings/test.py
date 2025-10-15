@@ -4,6 +4,9 @@ Test settings for FPbase project.
 - Used to run tests fast on the continuous integration server and locally
 """
 
+import getpass
+import os
+
 from webpack_loader.loader import FakeWebpackLoader
 
 from .base import *  # noqa
@@ -19,6 +22,24 @@ TEMPLATES[0]["OPTIONS"]["debug"] = True
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 # Note: This key only used for development and testing.
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="CHANGEME!!!")
+
+# DATABASE
+# ------------------------------------------------------------------------------
+# Override database settings for tests - use a test-specific database
+
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "test_fpbase",
+        "USER": os.getenv("USER", getpass.getuser()),
+        "PASSWORD": "",
+        "HOST": "",  # Empty string uses Unix socket
+        "PORT": "",
+        "ATOMIC_REQUESTS": True,
+        "TEST": {"NAME": "test_fpbase"},
+    }
+}
 
 # Mail settings
 # ------------------------------------------------------------------------------

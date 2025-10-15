@@ -99,6 +99,7 @@ filterwarnings = [
     "ignore::ResourceWarning",
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore:Deprecated call to `pkg_resources",
+    "ignore:Normally Django will use a connection to the:RuntimeWarning",
 ]
 
 
