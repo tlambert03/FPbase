@@ -21,10 +21,10 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.8.15
+    rev: 0.9.2
     hooks:
       - id: uv-export
-        args: ["--group", "prod", "--no-dev", "--frozen", "--output-file=requirements.txt"]
+        args: ["--group", "prod", "--no-dev", "--frozen", "--output-file=requirements.txt", "--quiet"]
 
   # - repo: https://github.com/pre-commit/mirrors-prettier
   #   rev: v3.0.0-alpha.9-for-vscode
@@ -39,13 +39,13 @@ repos:
   #     - id: djlint-django
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: "1.27.0"
+    rev: "1.29.0"
     hooks:
       - id: django-upgrade
         args: ["--target-version", "4.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.13.0"
+    rev: "v0.14.0"
     hooks:
       - id: ruff-check
         args: ["--fix", "--unsafe-fixes"]

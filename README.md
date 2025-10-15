@@ -65,9 +65,10 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
 1. start dev servers:
 
     ```bash
-    npm run start
-    python backend/manage.py runserver
+    pnpm dev
     ```
+
+    You should be able to access the site at <http://localhost:8000>.
 
 ### How to cite FPbase
 
