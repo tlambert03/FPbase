@@ -16,7 +16,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
 from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
-from proteins.models.protein import Protein
+from proteins.models import Protein, Spectrum
 from proteins.util.blast import _get_binary
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
@@ -256,7 +256,6 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert muts.text == "Mutations: L19T/D20T"  # (the two T mutations we did above)
         self._assert_no_console_errors()
 
-    @pytest.mark.skip(reason="Flaky in CI - AJAX preview timing issues. Backend tests cover functionality fully.")
     def test_spectrum_submission_preview_manual_data(self):
         """End-to-end test of spectrum submission with manual data preview"""
 
@@ -266,6 +265,12 @@ class TestPagesRender(StaticLiveServerTestCase):
         import uuid
 
         username = f"testuser_{uuid.uuid4().hex[:8]}"
+        # Use the existing knownSequence protein from setUp
+        # Delete any existing ex spectrum to ensure test can submit a new one
+        protein_name = self.p1.name
+
+        Spectrum.objects.filter(owner_state__protein=self.p1, subtype="ex").delete()
+
         user = User.objects.create_user(username=username, password=PASSWORD, email=f"{username}@example.com")
         user.is_active = True
         user.save()
@@ -295,11 +300,20 @@ class TestPagesRender(StaticLiveServerTestCase):
         Select(self.browser.find_element(by="id", value="id_category")).select_by_value("p")
         Select(self.browser.find_element(by="id", value="id_subtype")).select_by_value("ex")
 
-        # Wait for protein owner field to appear and select the first available option
-        WebDriverWait(self.browser, 2).until(lambda d: d.find_element(by="id", value="id_owner_state").is_displayed())
-        owner_state_select = Select(self.browser.find_element(by="id", value="id_owner_state"))
-        if len(owner_state_select.options) > 1:  # Skip the empty option
-            owner_state_select.select_by_index(1)
+        # Wait for protein owner field to appear (it's a Select2 autocomplete field)
+        # Find the Select2 container and click it to open the search
+        select2_container = WebDriverWait(self.browser, 10).until(
+            lambda d: d.find_element(by="css selector", value=".select2-selection")
+        )
+        select2_container.click()
+
+        # Type the protein name into the autocomplete search box and select it
+        self.browser.switch_to.active_element.send_keys(protein_name)
+        # Wait briefly for autocomplete results to load
+        WebDriverWait(self.browser, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".select2-results__option"))
+        )
+        self.browser.switch_to.active_element.send_keys(Keys.ENTER)
 
         # Switch to manual data tab
         manual_tab = self.browser.find_element(by="id", value="manual-tab")
@@ -353,8 +367,8 @@ class TestPagesRender(StaticLiveServerTestCase):
         data_points = self.browser.find_element(by="id", value="preview-data-points").text
         assert "10" in data_points  # Should show 10 data points
 
-        # Test "Edit Data" button
-        edit_button = self.browser.find_element(by="xpath", value="//button[contains(text(), 'Edit Data')]")
+        # Test "Edit Data" button - use onclick attribute for reliable selection
+        edit_button = self.browser.find_element(by="css selector", value="button[onclick='hidePreview()']")
         edit_button.click()
 
         # Should switch back to manual tab and hide preview
@@ -363,9 +377,13 @@ class TestPagesRender(StaticLiveServerTestCase):
         )
         assert self.browser.find_element(by="id", value="manual-tab").get_attribute("class").find("active") != -1
 
-        # Data should still be there
+        # Data should still be there (compare parsed JSON, not string formatting)
+        import json
+
         data_field = self.browser.find_element(by="id", value="id_data")
-        assert spectrum_data in data_field.get_attribute("value")
+        expected_data = json.loads(spectrum_data)
+        actual_data = json.loads(data_field.get_attribute("value"))
+        assert expected_data == actual_data
 
         self._assert_no_console_errors()
 
