@@ -105,7 +105,7 @@ class TestProteinForm(TestCase):
 
 class TestStateForm(TestCase):
     def setUp(self):
-        self.t, c = Protein.objects.get_or_create(name="Test Protein")
+        self.t, _c = Protein.objects.get_or_create(name="Test Protein")
         State.objects.get_or_create(protein=self.t)
 
     def test_clean_state_success(self):
@@ -132,7 +132,7 @@ class TestStateForm(TestCase):
 
 class TestCollectionForm(TestCase):
     def setUp(self):
-        self.p, c = Protein.objects.get_or_create(name="Test Protein")
+        self.p, _c = Protein.objects.get_or_create(name="Test Protein")
         self.userA = self.make_user("userA", "userApassword")
         self.userB = self.make_user("userB", "userBpassword")
 
