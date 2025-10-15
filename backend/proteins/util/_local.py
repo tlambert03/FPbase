@@ -459,7 +459,7 @@ def import2P():
             with open(infile) as f:
                 text = f.read()
 
-            x, y, headers = text_to_spectra(text)
+            x, y, _headers = text_to_spectra(text)
             D = zip_wave_data(x, y[0])
 
             sf = SpectrumForm(
@@ -477,7 +477,7 @@ def import2P():
                 P.default_state.save()
 
                 # add drobizhev reference
-                ref, created = Reference.objects.get_or_create(doi="10.1038/nmeth.1596")
+                ref, _created = Reference.objects.get_or_create(doi="10.1038/nmeth.1596")
                 P.references.add(ref)
                 P.save()
                 print(f"Successfuly import 2P spectrum for {P.name}")
@@ -965,7 +965,7 @@ def import_chroma():
 
 def import_lights():
     file = os.path.join(BASEDIR, "_data/broadband_light_spectra.csv")
-    objs, errs = import_csv_spectra(file, categories=Spectrum.LIGHT, stypes=Spectrum.PD)
+    objs, _errs = import_csv_spectra(file, categories=Spectrum.LIGHT, stypes=Spectrum.PD)
     for obj in objs:
         obj.owner.created_by = User.objects.first()
         obj.created_by = User.objects.first()

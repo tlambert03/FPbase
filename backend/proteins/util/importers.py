@@ -24,7 +24,7 @@ def reimport_filter_spectrum(obj):
         text = fetch_semrock_part(obj.part)
     elif obj.manufacturer.lower() == "chroma":
         text = fetch_chroma_part(obj.part)
-    waves, data, headers = text_to_spectra(text)
+    waves, data, _headers = text_to_spectra(text)
     D = zip_wave_data(waves, data[0])
     obj.spectrum.data = D
     obj.spectrum.save()
