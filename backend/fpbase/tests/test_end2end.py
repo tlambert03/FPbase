@@ -77,6 +77,10 @@ class TestPagesRender(StaticLiveServerTestCase):
         self._load_reverse("proteins:microscopes")
         self.browser.find_element(by="xpath", value=f'//a[text()="{m.name}"]').click()
         self._interact_scope(m)
+        # Wait for chart to finish rendering by checking for chart content
+        WebDriverWait(self.browser, 10).until(
+            lambda d: d.find_element(By.CSS_SELECTOR, "#spectra svg g.nv-wrap.nv-lineChart")
+        )
         self._assert_no_console_errors()
 
     def test_embedscope(self):
