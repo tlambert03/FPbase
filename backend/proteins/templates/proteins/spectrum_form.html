@@ -4,12 +4,11 @@
 {% block title %}Submit a Spectrum to FPbase{% endblock %}
 {% block meta-description %}Help us build the best open spectra viewer by submitting spectral data to FPbase.{% endblock %}
 
-{% block content %}
-<script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
+{% block extrahead %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+{% endblock %}
 
+{% block content %}
   {% if protein %}
     <h2>Add a new spectrum for {{ protein }}</h2>
   {% else %}
@@ -32,6 +31,7 @@
         </li>
         <li><strong>Avoid duplicates:</strong> Please try to verify that the spectrum is not already in the database.  After entering the name, you will be alerted if there is a pre-existing spectrum with a similar name (underscoring the importance of good naming convention).</li>
         <li><strong>You cannot (yet) delete/edit:</strong> So double check before you upload.  But don't worry!  If you make a mistake and need something deleted or renamed, just contact <a href="{% url 'contact' %}">contact us!</a>.</li>
+        <li><strong>Please do not upload artifical, generated, or "expected" spectra</strong>. This part of the database is intended only for <em>real</em> data.</li>
       </ul>
     </p>
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -40,7 +40,56 @@
   </div>
   {% endif %}
 
+  <!-- Use crispy form with JavaScript tabs overlay -->
   {% crispy form %}
+
+  <!-- Spectrum Preview Section -->
+  <div id="spectrum-preview-section" style="display: none;" class="mt-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-eye mr-2"></i>Spectrum Preview
+        </h5>
+      </div>
+      <div class="card-body">
+        <div id="spectrum-preview-message" class="alert alert-info mb-3"></div>
+
+        <!-- Spectrum visualization will be inserted here -->
+        <div id="spectrum-preview-chart" class="mb-3 text-center"></div>
+
+        <!-- Spectrum data summary -->
+        <div id="spectrum-preview-info" class="row">
+          <div class="col-md-4">
+            <strong>Peak Wavelength:</strong> <span id="preview-peak-wave"></span> nm
+          </div>
+          <div class="col-md-4">
+            <strong>Range:</strong> <span id="preview-wave-range"></span> nm
+          </div>
+          <div class="col-md-4">
+            <strong>Data Points:</strong> <span id="preview-data-points"></span>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <div class="alert alert-warning">
+            <strong><i class="fas fa-exclamation-triangle mr-2"></i>Please Review:</strong>
+            The spectrum data above shows how your spectrum will appear after processing.
+            If this doesn't look correct, please check your data or
+            <strong><a href="{% url 'contact' %}" target="_blank">contact us</a></strong> for assistance with data formatting.
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+          <button type="button" class="btn btn-secondary" onclick="hidePreview()">
+            <i class="fas fa-edit mr-2"></i>Edit Data
+          </button>
+          <button type="button" class="btn btn-success" onclick="submitFinalSpectrum()">
+            <i class="fas fa-check mr-2"></i>Looks Good - Submit Spectrum
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <p class='mt-3 small'>
     <em>If you are adding different spectra for the same item (e.g. ex/em spectra for a dye or protein) you must choose the same "Dye/Protein Name" both times.  Currently, this must be done sequentially (submit the form and come back and submit again for the other spectrum).  If you run into difficulties importing spectra, please <a href="{% url 'contact' %}">let us know!</a></em>
@@ -53,6 +102,76 @@
 
 <script>
 
+  // Configure jQuery to include CSRF token in AJAX requests
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  const csrftoken = getCookie('csrftoken');
+
+  $.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+      if (!(/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type)) && !this.crossDomain) {
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+      }
+    }
+  });
+
+  // Create tabs immediately when DOM is ready
+  $(document).ready(function() {
+    // Find the file and data fields in the crispy form and wrap them with tabs
+    var fileField = $('#id_file').closest('.form-group');
+    var dataField = $('#id_data').closest('.form-group');
+
+    // Create the tabbed interface
+    var tabbedHtml =
+      '<div class="form-group mt-4">' +
+        '<label class="form-label"><strong>Spectrum Data Source</strong></label>' +
+        '<ul class="nav nav-tabs" id="data-source-tabs" role="tablist">' +
+          '<li class="nav-item" role="presentation">' +
+            '<a class="nav-link active" id="file-tab" data-toggle="tab" href="#file-panel" role="tab" aria-controls="file-panel" aria-selected="true">' +
+              '<i class="fas fa-upload mr-2"></i>Upload File' +
+            '</a>' +
+          '</li>' +
+          '<li class="nav-item" role="presentation">' +
+            '<a class="nav-link" id="manual-tab" data-toggle="tab" href="#manual-panel" role="tab" aria-controls="manual-panel" aria-selected="false">' +
+              '<i class="fas fa-edit mr-2"></i>Enter Data Manually' +
+            '</a>' +
+          '</li>' +
+        '</ul>' +
+        '<div class="tab-content border-left border-right border-bottom p-3" id="data-source-content">' +
+          '<div class="tab-pane fade show active" id="file-panel" role="tabpanel" aria-labelledby="file-tab">' +
+          '</div>' +
+          '<div class="tab-pane fade" id="manual-panel" role="tabpanel" aria-labelledby="manual-tab">' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // Insert the tabbed interface before the file field
+    fileField.before(tabbedHtml);
+
+    // Move the fields into their respective tabs
+    fileField.appendTo('#file-panel');
+    dataField.appendTo('#manual-panel');
+
+    // Manually initialize Bootstrap tabs
+    $('#data-source-tabs a[data-toggle="tab"]').on('click', function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    });
+  });
+
   var valid_opts = {
     d: ['ex', 'ab', 'em', '2p'],
     p: ['ex', 'ab', 'em', '2p'],
@@ -62,45 +181,326 @@
     '': [],
   };
 
+  // Global variable to store current preview data
+  var currentPreviewData = null;
 
   $(function(){
 
+    // Single consolidated change handler for category selection
     $("#id_category").change(function() {
-        $("#id_subtype option").each(function(i){
-          $(this).hide()
-        })
-        var vopts = valid_opts[$(this).val()];
+        var categoryValue = $(this).val();
+
+        // Store all original options if not already stored
+        if (!window.originalSubtypeOptions) {
+          window.originalSubtypeOptions = {};
+          $("#id_subtype option").each(function(){
+            var val = $(this).val();
+            var text = $(this).text();
+            if (val) { // skip empty option
+              window.originalSubtypeOptions[val] = text;
+            }
+          });
+        }
+
+        // Clear current options (except empty option)
+        $("#id_subtype option[value!='']").remove();
+
+        var vopts = valid_opts[categoryValue] || [];
+
+        // Add valid options back
         $(vopts).each(function (i, v) {
-          $("#id_subtype option[value='" + v + "']").show();
-        })
+          if (window.originalSubtypeOptions[v]) {
+            $("#id_subtype").append(new Option(window.originalSubtypeOptions[v], v));
+          }
+        });
+
+        // Auto-select if only one option
         if (vopts.length == 1){
           $("#id_subtype").val(vopts[0]).change();
         } else {
           $("#id_subtype").val('').change();
         }
+
+        // Update owner type display
+        var ownname = 'Owner';
+        if (categoryValue){
+          ownname = $(this).find("option:selected").text();
+        }
+        $("#spectrum-submit-form .owner-type").text(ownname);
+
+        // Show/hide protein vs non-protein owner fields
+        if (categoryValue === 'p'){
+          $(".protein-owner").show();
+          $(".protein-owner select").prop('required',true);
+          $(".non-protein-owner").hide();
+          $(".non-protein-owner input").prop('required',false);
+        } else {
+          $(".protein-owner").hide();
+          $(".protein-owner select").prop('required',false);
+          $(".non-protein-owner").show();
+          $(".non-protein-owner input").prop('required',true);
+        }
+
+        // Show/hide pH and Solvent fields - only for biological spectrum types (Dye, Protein)
+        var showBioFields = (categoryValue === 'd' || categoryValue === 'p');
+        var phField = $("#id_ph").closest('.form-group');
+        var solventField = $("#id_solvent").closest('.form-group');
+
+        if (showBioFields) {
+          phField.show();
+          solventField.show();
+        } else {
+          phField.hide();
+          solventField.hide();
+          // Clear values when hiding to avoid confusion
+          $("#id_ph").val('');
+          $("#id_solvent").val('');
+        }
     }).change();
 
-    $("#spectrum-submit-form #id_category").change(function(){
-      ownname = 'Owner'
-      if (this.value){
-        ownname = $(this).find("option:selected").text()
+    // Intercept form submission to show preview first
+    $("#spectrum-submit-form").on('submit', function(e) {
+      e.preventDefault();
+      if ($("#spectrum-preview-section").is(':visible')) {
+        // If preview is already shown, submit the actual form
+        submitFinalSpectrum();
+      } else {
+        // Show preview first
+        showSpectrumPreview();
+      }
+    });
+
+    // Update submit button text based on whether we have data
+    $("#id_data, #id_file").on('change input', function() {
+      updateSubmitButton();
+    });
+
+    // Handle tab changes
+    $('#data-source-tabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+      updateSubmitButton();
+
+      // Clear alerts when switching tabs
+      $("#spectrum-submit-form .alert-info, #file-processed-indicator").remove();
+    });
+
+  });
+
+  function updateSubmitButton() {
+    var activeTab = $("#data-source-tabs .nav-link.active").attr("id");
+    var hasData = false;
+
+    if (activeTab === "file-tab") {
+      hasData = $("#id_file").val();
+    } else if (activeTab === "manual-tab") {
+      hasData = $("#id_data").val().trim();
+    }
+
+    var submitBtn = $("#spectrum-submit-form input[type='submit']");
+    submitBtn.val(hasData ? "Preview Spectrum" : "Submit");
+  }
+
+  function showSpectrumPreview() {
+    // Show loading state
+    var submitBtn = $("#spectrum-submit-form input[type='submit']");
+    var originalText = submitBtn.val();
+    submitBtn.prop('disabled', true).val('Processing...');
+
+    // Get form data
+    var formData = new FormData($("#spectrum-submit-form")[0]);
+
+    // Determine data source based on active tab
+    var activeTab = $("#data-source-tabs .nav-link.active").attr("id");
+    var hasFile = activeTab === "file-tab" && $("#id_file")[0].files.length > 0;
+    var hasManualData = activeTab === "manual-tab" && $("#id_data").val().trim();
+
+
+    // Set data source based on active tab - no ambiguity
+    if (activeTab === "manual-tab") {
+      // Manual data tab selected - tell server to use only manual data
+      formData.delete('file');  // Remove any uploaded files
+      formData.append('data_source', 'manual');
+    } else if (activeTab === "file-tab") {
+      // File upload tab selected - tell server to use only file data
+      formData.set('data', '');  // Clear manual data field
+      formData.append('data_source', 'file');
+    }
+
+    // Send AJAX request for preview
+    $.ajax({
+      url: "{% url 'proteins:spectrum_preview' %}",
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function(response) {
+        if (response.success) {
+          // Always update currentPreviewData with the latest preview
+          currentPreviewData = response.preview;
+          displaySpectrumPreview(response);
+        } else {
+          showError(response.error || 'Failed to generate preview', response.details, response.form_errors);
+        }
+      },
+      error: function(xhr) {
+        var response = JSON.parse(xhr.responseText || '{}');
+        var errorMsg = response.error || 'Failed to generate preview';
+        var details = response.details || '';
+        var formErrors = response.form_errors || {};
+
+        showError(errorMsg, details, formErrors);
+      },
+      complete: function() {
+        submitBtn.prop('disabled', false).val(originalText);
+      }
+    });
+  }
+
+  function displaySpectrumPreview(response) {
+    var preview = response.preview;
+
+    // Clear any previous validation error alerts since preview was successful
+    $('.alert-danger.alert-dismissible').alert('close');
+
+    // Update message based on whether file was processed
+    var message = response.message;
+    $("#spectrum-preview-message").text(message);
+
+    // Update info
+    $("#preview-peak-wave").text(preview.peak_wave || 'N/A');
+    $("#preview-wave-range").text(preview.min_wave + '-' + preview.max_wave);
+    $("#preview-data-points").text(preview.data_points);
+
+    // Display the SVG chart generated by backend with size constraints
+    $("#spectrum-preview-chart").html(preview.svg);
+
+    // Ensure SVG fits within container
+    $("#spectrum-preview-chart svg").css({
+      'max-width': '100%',
+      'height': 'auto',
+      'display': 'block',
+      'margin': '0 auto'
+    });
+
+    // If file was processed, add a visual indicator to the file field area
+    if (preview.file_was_processed) {
+      addFileProcessedIndicator();
+    }
+
+    // Show the preview section
+    $("#spectrum-preview-section").show();
+    $("#spectrum-submit-form").hide();
+
+    // Scroll to preview
+    $("#spectrum-preview-section")[0].scrollIntoView({behavior: 'smooth'});
+  }
+
+
+  function addFileProcessedIndicator() {
+    // Remove any existing indicators
+    $("#file-processed-indicator").remove();
+
+    // Add indicator after the file field
+    var indicator = '<div id="file-processed-indicator" class="mt-2 alert alert-success alert-sm">' +
+      '<i class="fas fa-check-circle mr-2"></i>' +
+      '<strong>File processed:</strong> Your uploaded file has been converted to spectrum data. ' +
+      'Click "Edit Data" below to see or modify the data points.' +
+      '</div>';
+    $("#id_file").closest('.form-group').after(indicator);
+  }
+
+  function hidePreview() {
+    if (currentPreviewData) {
+      // Switch to manual data tab
+      $("#manual-tab").tab('show');
+
+      // Clear the file input completely
+      var fileInput = $("#id_file");
+      var newFileInput = fileInput.clone();
+      fileInput.replaceWith(newFileInput);
+
+      // Populate the data field with the processed raw data
+      try {
+        var formattedData = JSON.stringify(currentPreviewData.raw_data);
+        $("#id_data").val(formattedData);
+      } catch (e) {
+        showError('Failed to load data for editing', 'There was an issue formatting the spectrum data');
+        return;
       }
 
-      $("#spectrum-submit-form .owner-type").text(ownname)
-      if (this.value === 'p'){
-        $(".protein-owner").show()
-        $(".protein-owner select").prop('required',true);
-        $(".non-protein-owner").hide()
-        $(".non-protein-owner input").prop('required',false);
-      }
-      else {
-        $(".protein-owner").hide()
-        $(".protein-owner select").prop('required',false);
-        $(".non-protein-owner").show()
-        $(".non-protein-owner input").prop('required',true);
-      }
-    }).change();
+      // Add a helpful notice in the manual tab
+      var notice = '<div class="alert alert-info alert-dismissible fade show mt-2" role="alert">' +
+        '<i class="fas fa-info-circle mr-2"></i>' +
+        '<strong>Data loaded for editing:</strong> The processed spectrum data has been loaded into the manual entry field. ' +
+        'You can now modify individual data points if needed.' +
+        '<button type="button" class="close" data-dismiss="alert">' +
+        '<span aria-hidden="true">&times;</span></button></div>';
 
+      // Remove any existing notices first
+      $("#spectrum-submit-form .alert-info, #file-processed-indicator").remove();
+
+      // Add the notice after the manual data panel
+      $("#manual-panel").after(notice);
+
+      // Update submit button text
+      updateSubmitButton();
+
+      // Focus on the data field
+      $("#id_data").focus();
+    }
+
+    $("#spectrum-preview-section").hide();
+    $("#spectrum-submit-form").show();
+    currentPreviewData = null;
+  }
+
+  function submitFinalSpectrum() {
+    if (!currentPreviewData) {
+      showError('No preview data available');
+      return;
+    }
+
+    // Add data_source parameter based on active tab before submission
+    var activeTab = $("#data-source-tabs .nav-link.active").attr("id");
+    var dataSource = activeTab === "manual-tab" ? "manual" : "file";
+
+    // Add hidden input to indicate data source for server validation
+    var dataSourceInput = $('<input type="hidden" name="data_source">').val(dataSource);
+    $("#spectrum-submit-form").append(dataSourceInput);
+
+    // Submit the original form using native method to avoid name conflict
+    var form = $("#spectrum-submit-form")[0];
+    HTMLFormElement.prototype.submit.call(form);
+  }
+
+  function showError(message, details, formErrors) {
+    var errorHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">';
+    errorHtml += '<strong><i class="fas fa-exclamation-triangle mr-2"></i>Error:</strong> ' + message;
+
+    if (details) {
+      errorHtml += '<br><small>' + details + '</small>';
+    }
+
+    if (formErrors && Object.keys(formErrors).length > 0) {
+      errorHtml += '<br><br><strong>Form Issues:</strong><ul>';
+      for (var field in formErrors) {
+        errorHtml += '<li><strong>' + field + ':</strong> ' + formErrors[field].join(', ') + '</li>';
+      }
+      errorHtml += '</ul>';
+    }
+
+    errorHtml += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">';
+    errorHtml += '<span aria-hidden="true">&times;</span></button></div>';
+
+    // Insert error message at the top of the form
+    $('#spectrum-submit-form').prepend(errorHtml);
+
+    // Also scroll to top to show the error
+    $('html, body').animate({scrollTop: $('#spectrum-submit-form').offset().top - 100}, 500);
+  }
+
+  // Initialize submit button text
+  $(document).ready(function() {
+    updateSubmitButton();
   });
 
 </script>

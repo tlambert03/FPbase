@@ -71,15 +71,10 @@
   },
   "browserslist": {
     "production": [
-      "last 1 version",
-      "> 0.2% in my stats",
-      "not dead",
-      "not op_mini all"
+      "defaults"
     ],
     "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
+      "last 1 version"
     ]
   },
   "prettier": {

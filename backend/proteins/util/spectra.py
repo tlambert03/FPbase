@@ -50,7 +50,7 @@ def norm2one(y):
 
 
 def step_size(lol):
-    x, y = zip(*lol)
+    x, _y = zip(*lol)
     s = set(np.subtract(x[1:], x[:-1]))
     if len(s) != 1:  # multiple step sizes
         return 0
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     from proteins.util.importers import text_to_spectra
 
     def file2spectra(file, dtype="", getcol=0):
-        waves, outdata, headers = text_to_spectra(file)
+        waves, outdata, _headers = text_to_spectra(file)
         x = waves
         y = outdata[getcol]
         spectra = [list(i) for i in zip(x, y)]

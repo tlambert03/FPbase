@@ -1,5 +1,8 @@
 import contextlib
+import io
 import json
+import logging
+import traceback
 from textwrap import dedent
 
 # from django.views.decorators.cache import cache_page
@@ -139,6 +142,141 @@ def spectra_csv(request):
         return HttpResponse("malformed spectra csv request")
     else:
         return HttpResponse("malformed spectra csv request")
+
+
+def spectrum_preview(request) -> JsonResponse:
+    """
+    AJAX endpoint to preview spectrum data with server-side normalization
+    before final submission.
+    """
+    logger = logging.getLogger(__name__)
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    try:
+        # Log the request for debugging
+        logger.info(f"Spectrum preview request from user: {request.user}")
+        # Determine data source based on explicit tab selection
+        data_source = request.POST.get("data_source", "file")  # Default to file tab
+        use_manual_data = data_source == "manual"
+        logger.info(f"Tab selection - data_source: {data_source}")
+
+        if use_manual_data:
+            # Manual data tab selected - ignore any files, only use manual data
+            logger.info("Using manual data entry (files ignored)")
+            manual_data = request.POST.get("data", "")
+            if manual_data:
+                logger.info(f"Manual data submitted: {manual_data[:100]}...")
+            form = SpectrumForm(request.POST, None, user=request.user)  # No files
+        else:
+            # File upload tab selected - ignore manual data, only use files
+            logger.info("Using file upload (manual data ignored)")
+            # Clear manual data to avoid any confusion
+            post_data = request.POST.copy()
+            post_data["data"] = ""
+            form = SpectrumForm(post_data, request.FILES, user=request.user)
+
+        if not form.is_valid():
+            logger.warning(f"Form validation failed: {form.errors}")
+            return JsonResponse(
+                {
+                    "error": "Form validation failed. Please check your input data.",
+                    "form_errors": dict(form.errors),
+                    "details": "See form_errors for specific field issues",
+                },
+                status=400,
+            )
+
+        # Create a temporary spectrum instance (don't save to DB)
+        temp_spectrum: Spectrum = form.save(commit=False)
+        temp_spectrum.created_by = request.user
+
+        # Track if we processed a file upload (only possible when file tab is active)
+        file_was_processed = not use_manual_data and bool(request.FILES)
+
+        # Run the normalization/cleaning process without saving
+        try:
+            logger.info("Running spectrum normalization...")
+            temp_spectrum.clean()  # This runs the normalization
+            logger.info("Spectrum normalization completed successfully")
+        except Exception as e:
+            logger.error(f"Data processing failed: {e}", exc_info=True)
+            return JsonResponse(
+                {
+                    "error": f"Data processing failed: {e!s}",
+                    "details": "The spectrum data could not be normalized. Please check your data format.",
+                },
+                status=400,
+            )
+
+        # Generate SVG image using existing matplotlib renderer
+        try:
+            logger.info("Generating SVG image...")
+            # Use custom parameters for preview: Y-axis labels, proper sizing for web display
+            svg_buffer = io.BytesIO()
+            temp_spectrum.spectrum_img(
+                fmt="svg",
+                output=svg_buffer,
+                ylabels=True,
+                figsize=(12, 4.5),  # Wider to accommodate Y-axis labels
+            )
+            svg_data = svg_buffer.getvalue().decode("utf-8")
+            logger.info("SVG generation completed successfully")
+        except Exception as e:
+            logger.error(f"SVG generation failed: {e}", exc_info=True)
+            return JsonResponse(
+                {
+                    "error": f"Chart generation failed: {e!s}",
+                    "details": "Could not generate spectrum visualization",
+                },
+                status=500,
+            )
+
+        # Generate preview data for display
+        try:
+            preview_data = {
+                "svg": svg_data,
+                "peak_wave": temp_spectrum.peak_wave,
+                "min_wave": temp_spectrum.min_wave,
+                "max_wave": temp_spectrum.max_wave,
+                "name": temp_spectrum.name,
+                "category": temp_spectrum.category,
+                "subtype": temp_spectrum.subtype,
+                "data_points": len(temp_spectrum.data),
+                "raw_data": temp_spectrum.data,  # Include raw data for editing
+                "file_was_processed": file_was_processed,  # Tell frontend if file was processed
+                "normalization_applied": True,  # We always normalize in clean()
+            }
+
+            logger.info("Spectrum preview generated successfully")
+            return JsonResponse(
+                {
+                    "success": True,
+                    "preview": preview_data,
+                    "message": f"{temp_spectrum.name!r} spectrum processed successfully.",
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Preview data generation failed: {e}", exc_info=True)
+            return JsonResponse(
+                {
+                    "error": f"Preview data generation failed: {e!s}",
+                    "details": "Could not extract spectrum properties",
+                },
+                status=500,
+            )
+
+    except Exception as e:
+        logger.error(f"Unexpected error in spectrum_preview: {e}", exc_info=True)
+        return JsonResponse(
+            {
+                "error": f"Unexpected server error: {e!s}",
+                "details": "An unexpected error occurred. Please try again or contact support.",
+                "traceback": traceback.format_exc() if request.user.is_staff else None,
+            },
+            status=500,
+        )
 
 
 def filter_import(request, brand):

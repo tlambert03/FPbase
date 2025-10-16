@@ -108,15 +108,21 @@ class SpectrumForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if not (cleaned_data.get("data") or self.files):
-            self.add_error(
-                "data",
-                "Please either fill in the data field or select a file to upload.",
-            )
-            self.add_error(
-                "file",
-                "Please either fill in the data field or select a file to upload.",
-            )
+
+        # Check which data source was selected based on form submission
+        data_source = self.data.get("data_source", "file") if self.data else "file"
+
+        # Validate based on the selected data source
+        if data_source == "manual":
+            # Manual data tab: require manual data, file is optional
+            if not cleaned_data.get("data"):
+                raise forms.ValidationError("Please enter valid spectrum data.")
+        else:
+            # File tab: require file upload, manual data is optional
+            if not self.files.get("file"):
+                raise forms.ValidationError("Please select a file to upload.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         cat = self.cleaned_data.get("category")
@@ -140,7 +146,7 @@ class SpectrumForm(forms.ModelForm):
                         filetext += chunk.decode("utf-8")
                     except AttributeError:
                         filetext += chunk
-                x, y, headers = text_to_spectra(filetext)
+                x, y, _headers = text_to_spectra(filetext)
                 if not len(y):
                     self.add_error("file", "Did not find a data column in the provided file")
                 if not len(x):

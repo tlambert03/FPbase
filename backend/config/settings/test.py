@@ -4,6 +4,9 @@ Test settings for FPbase project.
 - Used to run tests fast on the continuous integration server and locally
 """
 
+import getpass
+import os
+
 from webpack_loader.loader import FakeWebpackLoader
 
 from .base import *  # noqa
@@ -19,6 +22,18 @@ TEMPLATES[0]["OPTIONS"]["debug"] = True
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 # Note: This key only used for development and testing.
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="CHANGEME!!!")
+
+# Use DATABASE_URL if set (e.g., in CI), otherwise use local test database
+# Always use local database unless DATABASE_URL is explicitly valid (not placeholder values)
+db_url = os.getenv("DATABASE_URL", "")
+if not db_url or "user:password" in db_url:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "USER": os.getenv("USER", getpass.getuser()),
+            "PORT": "5432",
+        }
+    }
 
 # Mail settings
 # ------------------------------------------------------------------------------
