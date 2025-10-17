@@ -8,7 +8,6 @@ import sys
 from random import choices
 from subprocess import PIPE, run
 
-import pytz
 from Bio import Entrez
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -552,7 +551,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def date_published(self, norm=False):
         d = self.primary_reference.date if self.primary_reference else None
         if norm:
-            return (d.year - 1992) / (datetime.datetime.now(pytz.utc).year - 1992) if d else 0
+            return (d.year - 1992) / (datetime.datetime.now(datetime.UTC).year - 1992) if d else 0
         return datetime.datetime.combine(d, datetime.datetime.min.time()) if d else None
 
     def n_faves(self, norm=False):
