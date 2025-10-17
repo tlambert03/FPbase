@@ -17,7 +17,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # With no caching at all the entire ci process takes 4m 30s to complete!
   test:
     runs-on: ubuntu-latest
     services:
@@ -50,7 +49,6 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: latest
           run_install: false
 
       - name: Install Node.js

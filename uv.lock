@@ -1316,6 +1316,7 @@ dependencies = [
     { name = "django-redis" },
     { name = "django-reversion" },
     { name = "django-reversion-compare" },
+    { name = "django-storages", extra = ["boto3"] },
     { name = "django-webpack-loader" },
     { name = "djangorestframework" },
     { name = "djangorestframework-csv" },
@@ -1326,6 +1327,7 @@ dependencies = [
     { name = "graphene" },
     { name = "graphene-django" },
     { name = "graphene-django-optimizer" },
+    { name = "gunicorn" },
     { name = "habanero" },
     { name = "matplotlib" },
     { name = "maxminddb" },
@@ -1367,10 +1369,6 @@ dev = [
     { name = "watchfiles" },
     { name = "werkzeug", extra = ["watchdog"] },
 ]
-prod = [
-    { name = "django-storages", extra = ["boto3"] },
-    { name = "gunicorn" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -1394,6 +1392,7 @@ requires-dist = [
     { name = "django-redis", specifier = ">=6.0.0" },
     { name = "django-reversion", specifier = ">=6.0.0" },
     { name = "django-reversion-compare", specifier = ">=0.19.0" },
+    { name = "django-storages", extras = ["boto3"], specifier = ">=1.13.2" },
     { name = "django-webpack-loader", specifier = "==2.0.1" },
     { name = "djangorestframework", specifier = "==3.14.0" },
     { name = "djangorestframework-csv", specifier = "==2.1.1" },
@@ -1404,6 +1403,7 @@ requires-dist = [
     { name = "graphene", specifier = ">=3.2.2" },
     { name = "graphene-django", specifier = ">=3.2.3" },
     { name = "graphene-django-optimizer", specifier = "==0.10.0" },
+    { name = "gunicorn", specifier = ">=20.1.0" },
     { name = "habanero", specifier = "==1.2.3" },
     { name = "matplotlib", specifier = "==3.7.1" },
     { name = "maxminddb", specifier = "==2.5.1" },
@@ -1444,10 +1444,6 @@ dev = [
     { name = "selenium", specifier = ">=4.28.1" },
     { name = "watchfiles", specifier = ">=0.19.0" },
     { name = "werkzeug", extras = ["watchdog"], specifier = ">=2.3.4" },
-]
-prod = [
-    { name = "django-storages", extras = ["boto3"], specifier = ">=1.13.2" },
-    { name = "gunicorn", specifier = ">=20.1.0" },
 ]
 
 [[package]]
