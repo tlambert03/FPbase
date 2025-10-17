@@ -1209,7 +1209,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.0.3" },
     { name = "parasail", specifier = "==1.3.4" },
     { name = "pillow", specifier = ">=10.0.0" },
-    { name = "psycopg2", marker = "sys_platform == 'linux'", specifier = "==2.9.9" },
+    { name = "psycopg2", marker = "sys_platform == 'linux'", specifier = ">=2.9.9" },
     { name = "python-slugify", specifier = ">=8.0.1" },
     { name = "rcssmin", specifier = ">=1.1.1" },
     { name = "redis", specifier = "==5.0.4" },
@@ -2215,9 +2215,9 @@ wheels = [
 
 [[package]]
 name = "psycopg2"
-version = "2.9.9"
+version = "2.9.11"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c9/5e/dc6acaf46d78979d6b03458b7a1618a68e152a6776fce95daac5e0f0301b/psycopg2-2.9.9.tar.gz", hash = "sha256:d1454bde93fb1e224166811694d600e746430c006fbb031ea06ecc2ea41bf156", size = 384926, upload-time = "2023-10-03T12:48:53.323Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/89/8d/9d12bc8677c24dad342ec777529bce705b3e785fa05d85122b5502b9ab55/psycopg2-2.9.11.tar.gz", hash = "sha256:964d31caf728e217c697ff77ea69c2ba0865fa41ec20bb00f0977e62fdcc52e3", size = 379598, upload-time = "2025-10-10T11:14:46.075Z" }
 
 [[package]]
 name = "psycopg2-binary"
