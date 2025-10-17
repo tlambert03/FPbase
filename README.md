@@ -31,9 +31,7 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
 1. Install python requirements for local development
 
     ```bash
-    pip install -r backend/requirements/local.txt
-    # note: on mac silicon, you might have difficulty compiling psycopg2
-    # in which case you should pip install psycopg2-binary instead
+    uv sync
     ```
 
 1. Make sure that you have `postgres` installed.

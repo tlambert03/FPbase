@@ -27,7 +27,7 @@ FPbase is a Django/React monorepo for the Fluorescent Protein Database (fpbase.o
 ### Setup (from README.md)
 ```bash
 # Python 3.13 environment
-pip install -r backend/requirements/local.txt
+uv sync
 # PostgreSQL setup
 createdb fpbase
 python backend/manage.py migrate

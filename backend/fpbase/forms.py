@@ -1,6 +1,4 @@
 from allauth.account.forms import SignupForm
-from captcha.fields import ReCaptchaField
-from captcha.widgets import ReCaptchaV3
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django import forms
@@ -8,13 +6,15 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha.widgets import ReCaptchaV3
 
 
 class ContactForm(forms.Form):
     name = forms.CharField()
     email = forms.EmailField()
     message = forms.CharField(widget=forms.Textarea)
-    captcha = ReCaptchaField(label="", widget=ReCaptchaV3(attrs={"required_score": 0.85}))
+    captcha = ReCaptchaField(label="", widget=ReCaptchaV3(required_score=0.85))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,5 +39,5 @@ class ContactForm(forms.Form):
 class CustomSignupForm(SignupForm):
     # only if not in debug mode
     if not settings.DEBUG:
-        captcha = ReCaptchaField(label="", widget=ReCaptchaV3(attrs={"required_score": 0.85}))
+        captcha = ReCaptchaField(label="", widget=ReCaptchaV3(required_score=0.85))
     field_order = ["username", "email", "password1", "password2", "captcha"]

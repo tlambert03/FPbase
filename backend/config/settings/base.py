@@ -67,7 +67,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount.providers.twitter",
     # 'allauth.socialaccount.providers.facebook',
     #  'allauth.socialaccount.providers.linkedin_oauth2',
-    "captcha",
+    "django_recaptcha",
     "django_filters",
     "reversion",
     "reversion_compare",
