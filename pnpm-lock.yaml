@@ -204,7 +204,7 @@ importers:
     dependencies:
       '@apollo/react-hooks':
         specifier: ^3.1.5
-        version: 3.1.5(@types/react@16.14.62)(apollo-client@2.6.10(graphql@14.7.0))(apollo-utilities@1.3.4(graphql@14.7.0))(graphql@14.7.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 3.1.5(@types/react@16.14.62)(apollo-client@2.6.10(graphql@14.7.0))(apollo-utilities@1.3.4(graphql@14.7.0))(graphql@14.7.0)(react@16.14.0)
       '@emotion/core':
         specifier: ^10.3.1
         version: 10.3.1(react@16.14.0)
@@ -228,7 +228,7 @@ importers:
         version: 4.11.3(@material-ui/core@4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       '@material-ui/lab':
         specifier: ^4.0.0-alpha.61
-        version: 4.0.0-alpha.61(@material-ui/core@4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 4.0.0-alpha.61(@material-ui/core@4.12.4(@types/react@16.14.62)(react@16.14.0))(@types/react@16.14.62)(react@16.14.0)
       '@material-ui/styles':
         specifier: ^4.11.5
         version: 4.11.5(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
@@ -260,8 +260,8 @@ importers:
         specifier: ^2.10.1
         version: 2.12.6(graphql@14.7.0)
       highcharts:
-        specifier: ^7.2.2
-        version: 7.2.2
+        specifier: ^12.4.0
+        version: 12.4.0
       immutability-helper:
         specifier: ^3.0.1
         version: 3.1.1
@@ -270,7 +270,7 @@ importers:
         version: 4.3.7
       material-table:
         specifier: ^1.69.3
-        version: 1.69.3(@date-io/core@1.3.13)(@material-ui/core@4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 1.69.3(@date-io/core@1.3.13)(@material-ui/core@4.12.4(@types/react@16.14.62)(react@16.14.0))(react@16.14.0)
       progressbar.js:
         specifier: ^1.1.0
         version: 1.1.1
@@ -284,17 +284,17 @@ importers:
         specifier: ^16.14.0
         version: 16.14.0
       react-jsx-highcharts:
-        specifier: ^3.6.1
-        version: 3.6.1(highcharts@7.2.2)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        specifier: ^5.0.3
+        version: 5.0.3(highcharts@12.4.0)(react@16.14.0)
       react-select:
         specifier: ^3.2.0
-        version: 3.2.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 3.2.0(react@16.14.0)
       react-spinners:
         specifier: ^0.7.2
-        version: 0.7.2(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 0.7.2(react@16.14.0)
       react-windowed-select:
         specifier: ^2.0.5
-        version: 2.0.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+        version: 2.0.5(react@16.14.0)
       regenerator-runtime:
         specifier: ^0.13.5
         version: 0.13.11
@@ -2752,8 +2752,8 @@ packages:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
 
-  highcharts@7.2.2:
-    resolution: {integrity: sha512-jRKujQuPKHLgGQd2sByBI9K5m56CInm2augVZnBYqdmyoU88hcI62uuAXHvxC3FW8YY0FJ74A1uw6sxrcmcmvg==}
+  highcharts@12.4.0:
+    resolution: {integrity: sha512-o6UxxfChSUrvrZUbWrAuqL1HO/+exhAUPcZY6nnqLsadZQlnP16d082sg7DnXKZCk1gtfkyfkp6g3qkIZ9miZg==}
 
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
@@ -2831,9 +2831,6 @@ packages:
 
   immutability-helper@3.1.1:
     resolution: {integrity: sha512-Q0QaXjPjwIju/28TsugCHNEASwoCcJSyJV3uO1sOIQGI0jKgm9f41Lvz0DZj3n46cNCyAZTsEYoY4C2bVRUzyQ==}
-
-  immutable-is@3.7.6:
-    resolution: {integrity: sha512-2JkBvCkL4qHazL56nREPWEreNiDebMLzDsmoXPX+6kOcECPvfVTAuTvG0EcmNVEdF/D/8ycZ1GJpYR8LIJFqWg==}
 
   immutable@4.3.7:
     resolution: {integrity: sha512-1hqclzwYwjRDFLjcFxOM5AYkkG0rpFPpr1RLPMEuGczoS7YA8gLhy8SWXYRAA/XwfEHpfo3cw5JGioS32fnMRw==}
@@ -2914,9 +2911,6 @@ packages:
   is-glob@4.0.3:
     resolution: {integrity: sha512-xelSayHH36ZgE7ZWhli7pW34hNbNl8Ojv5KVmkJD4hBdD3th8Tfk9vYasLM+mXWOZhFkgZfxhLSnrwRr4elSSg==}
     engines: {node: '>=0.10.0'}
-
-  is-immutable@1.0.3:
-    resolution: {integrity: sha512-/poGo0rHQBegocfKxveQyzInr29BxHMHpRVLNcVPnqfZLQunYsJeZKpxaJd91/52IjWPrPKZfCpy9efhNkgBIQ==}
 
   is-in-browser@1.1.3:
     resolution: {integrity: sha512-FeXIBgG/CPGd/WUxuEyvgGTEfwiG9Z4EKGxjNMRqviiIIfsmgrpnHLffEDdwUHqNva1VEW91o3xBT/m8Elgl9g==}
@@ -3119,9 +3113,6 @@ packages:
     resolution: {integrity: sha512-gvVijfZvn7R+2qyPX8mAuKcFGDf6Nc61GdvGafQsHL0sBIxfKzA+usWn4GFC/bk+QdwPUD4kWFJLhElipq+0VA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  lodash-es@4.17.21:
-    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
-
   lodash.assign@4.2.0:
     resolution: {integrity: sha512-hFuH8TY+Yji7Eja3mGiuAxBqLagejScbG8GbG0j6o9vzn0YL14My+ktnqtZgFTosKymC9/44wP6s7xyuLfnClw==}
 
@@ -3240,13 +3231,6 @@ packages:
 
   min-document@2.19.0:
     resolution: {integrity: sha512-9Wy1B3m3f66bPPmU5hdA4DR4PB2OfDU/+GS3yAB7IQozE3tqXaVv2zOjgla7MEGSRv95+ILmOuvhLkOK6wJtCQ==}
-
-  mini-create-react-context@0.3.3:
-    resolution: {integrity: sha512-TtF6hZE59SGmS4U8529qB+jJFeW6asTLDIpPgvPLSCsooAwJS7QprHIFTqv9/Qh3NdLwQxFYgiHX5lqb6jqzPA==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-    peerDependencies:
-      prop-types: ^15.0.0
-      react: ^0.14.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
   mini-css-extract-plugin@2.9.2:
     resolution: {integrity: sha512-GJuACcS//jtq4kCtd5ii/M0SZf7OZRH+BxdqXZHaJfb8TJiVl+NgQRPwiYt2EuqeSkNydn/7vP+bcE27C5mb9w==}
@@ -3838,13 +3822,12 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react-jsx-highcharts@3.6.1:
-    resolution: {integrity: sha512-DWeTZL0P9CoLBRRY1Sr3LCLAZW4Bfn2wGX1KCaxW0n37JnpDCTFvV8JovL1J8ghUR5iW5IDyRfc4Ll9oxGd9VQ==}
+  react-jsx-highcharts@5.0.3:
+    resolution: {integrity: sha512-tvhuiODW20SpJf386Ebf/X6udf0no9FmxgC7kGO+jp+m7xkEuEGyO2qoqTCqs7oiZSmsaTTVM7BplP5OA/Tl5Q==}
     peerDependencies:
-      highcharts: ^5.0.0 || ^6.0.0 || ^7.0.0
-      prop-types: ^15.0.0
-      react: ^16.0.0
-      react-dom: ^16.0.0
+      highcharts: ^9.1.2 || ^10.0.0 || ^11.0.0 || ^12.0.1
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
 
   react-lifecycles-compat@3.0.4:
     resolution: {integrity: sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==}
@@ -4413,11 +4396,6 @@ packages:
   utrie@1.0.2:
     resolution: {integrity: sha512-1MLa5ouZiOmQzUbjbu9VmjLzn1QLXBhwpUa7kdLUQK+KQ5KA9I1vk5U4YHe/X2Ch7PYnJfWuWT+VbuxbGwljhw==}
 
-  uuid@3.4.0:
-    resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
-    hasBin: true
-
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
@@ -4640,7 +4618,7 @@ snapshots:
       ts-invariant: 0.4.4
       tslib: 1.14.1
 
-  '@apollo/react-hooks@3.1.5(@types/react@16.14.62)(apollo-client@2.6.10(graphql@14.7.0))(apollo-utilities@1.3.4(graphql@14.7.0))(graphql@14.7.0)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)':
+  '@apollo/react-hooks@3.1.5(@types/react@16.14.62)(apollo-client@2.6.10(graphql@14.7.0))(apollo-utilities@1.3.4(graphql@14.7.0))(graphql@14.7.0)(react@16.14.0)':
     dependencies:
       '@apollo/react-common': 3.1.4(@types/react@16.14.62)(apollo-client@2.6.10(graphql@14.7.0))(apollo-utilities@1.3.4(graphql@14.7.0))(graphql@14.7.0)(react@16.14.0)
       '@types/react': 16.14.62
@@ -4648,7 +4626,6 @@ snapshots:
       apollo-client: 2.6.10(graphql@14.7.0)
       graphql: 14.7.0
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
       ts-invariant: 0.4.4
       tslib: 1.14.1
     transitivePeerDependencies:
@@ -5622,7 +5599,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 16.14.62
 
-  '@material-ui/lab@4.0.0-alpha.61(@material-ui/core@4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)':
+  '@material-ui/lab@4.0.0-alpha.61(@material-ui/core@4.12.4(@types/react@16.14.62)(react@16.14.0))(@types/react@16.14.62)(react@16.14.0)':
     dependencies:
       '@babel/runtime': 7.26.9
       '@material-ui/core': 4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
@@ -5630,12 +5607,11 @@ snapshots:
       clsx: 1.2.1
       prop-types: 15.8.1
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
       react-is: 17.0.2
     optionalDependencies:
       '@types/react': 16.14.62
 
-  '@material-ui/pickers@3.2.2(@date-io/core@1.3.13)(@material-ui/core@4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(prop-types@15.6.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)':
+  '@material-ui/pickers@3.2.2(@date-io/core@1.3.13)(@material-ui/core@4.12.4(@types/react@16.14.62)(react@16.14.0))(prop-types@15.6.2)(react@16.14.0)':
     dependencies:
       '@babel/runtime': 7.26.9
       '@date-io/core': 1.3.13
@@ -5644,7 +5620,6 @@ snapshots:
       clsx: 1.2.1
       prop-types: 15.6.2
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
       react-transition-group: 4.4.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rifm: 0.7.0(react@16.14.0)
       tslib: 1.14.1
@@ -7392,7 +7367,7 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
-  highcharts@7.2.2: {}
+  highcharts@12.4.0: {}
 
   hoist-non-react-statics@3.3.2:
     dependencies:
@@ -7481,8 +7456,6 @@ snapshots:
 
   immutability-helper@3.1.1: {}
 
-  immutable-is@3.7.6: {}
-
   immutable@4.3.7: {}
 
   immutable@5.0.3:
@@ -7544,10 +7517,6 @@ snapshots:
   is-glob@4.0.3:
     dependencies:
       is-extglob: 2.1.1
-
-  is-immutable@1.0.3:
-    optionalDependencies:
-      immutable: 4.3.7
 
   is-in-browser@1.1.3: {}
 
@@ -7753,8 +7722,6 @@ snapshots:
     dependencies:
       p-locate: 6.0.0
 
-  lodash-es@4.17.21: {}
-
   lodash.assign@4.2.0: {}
 
   lodash.debounce@4.0.8: {}
@@ -7791,12 +7758,12 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  material-table@1.69.3(@date-io/core@1.3.13)(@material-ui/core@4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  material-table@1.69.3(@date-io/core@1.3.13)(@material-ui/core@4.12.4(@types/react@16.14.62)(react@16.14.0))(react@16.14.0):
     dependencies:
       '@date-io/core': 1.3.13
       '@date-io/date-fns': 1.1.0(date-fns@2.0.0-alpha.27)
       '@material-ui/core': 4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      '@material-ui/pickers': 3.2.2(@date-io/core@1.3.13)(@material-ui/core@4.12.4(@types/react@16.14.62)(react-dom@16.14.0(react@16.14.0))(react@16.14.0))(prop-types@15.6.2)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      '@material-ui/pickers': 3.2.2(@date-io/core@1.3.13)(@material-ui/core@4.12.4(@types/react@16.14.62)(react@16.14.0))(prop-types@15.6.2)(react@16.14.0)
       classnames: 2.2.6
       date-fns: 2.0.0-alpha.27
       debounce: 1.2.0
@@ -7806,8 +7773,7 @@ snapshots:
       jspdf-autotable: 3.5.9(jspdf@2.1.0)
       prop-types: 15.6.2
       react: 16.14.0
-      react-beautiful-dnd: 13.0.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react-dom: 16.14.0(react@16.14.0)
+      react-beautiful-dnd: 13.0.0(react@16.14.0)
       react-double-scrollbar: 0.0.15(react@16.14.0)
     transitivePeerDependencies:
       - react-native
@@ -7854,13 +7820,6 @@ snapshots:
   min-document@2.19.0:
     dependencies:
       dom-walk: 0.1.2
-
-  mini-create-react-context@0.3.3(prop-types@15.8.1)(react@16.14.0):
-    dependencies:
-      '@babel/runtime': 7.26.9
-      prop-types: 15.8.1
-      react: 16.14.0
-      tiny-warning: 1.0.3
 
   mini-css-extract-plugin@2.9.2(webpack@5.98.0):
     dependencies:
@@ -8340,15 +8299,14 @@ snapshots:
       iconv-lite: 0.4.24
       unpipe: 1.0.0
 
-  react-beautiful-dnd@13.0.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-beautiful-dnd@13.0.0(react@16.14.0):
     dependencies:
       '@babel/runtime': 7.26.9
       css-box-model: 1.2.1
       memoize-one: 5.2.1
       raf-schd: 4.0.3
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
-      react-redux: 7.2.9(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      react-redux: 7.2.9(react@16.14.0)
       redux: 4.2.1
       use-memo-one: 1.1.3(react@16.14.0)
     transitivePeerDependencies:
@@ -8402,17 +8360,11 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-jsx-highcharts@3.6.1(highcharts@7.2.2)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-jsx-highcharts@5.0.3(highcharts@12.4.0)(react@16.14.0):
     dependencies:
-      highcharts: 7.2.2
-      immutable-is: 3.7.6
-      is-immutable: 1.0.3
-      lodash-es: 4.17.21
-      mini-create-react-context: 0.3.3(prop-types@15.8.1)(react@16.14.0)
-      prop-types: 15.8.1
+      highcharts: 12.4.0
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
-      uuid: 3.4.0
+      uuid: 9.0.1
 
   react-lifecycles-compat@3.0.4: {}
 
@@ -8429,7 +8381,7 @@ snapshots:
       uncontrollable: 7.2.1(react@16.14.0)
       warning: 4.0.3
 
-  react-redux@7.2.9(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-redux@7.2.9(react@16.14.0):
     dependencies:
       '@babel/runtime': 7.26.9
       '@types/react-redux': 7.1.34
@@ -8438,12 +8390,10 @@ snapshots:
       prop-types: 15.8.1
       react: 16.14.0
       react-is: 17.0.2
-    optionalDependencies:
-      react-dom: 16.14.0(react@16.14.0)
 
   react-refresh@0.14.2: {}
 
-  react-select@3.1.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-select@3.1.0(react@16.14.0):
     dependencies:
       '@babel/runtime': 7.26.9
       '@emotion/cache': 10.0.29
@@ -8452,13 +8402,12 @@ snapshots:
       memoize-one: 5.2.1
       prop-types: 15.8.1
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
       react-input-autosize: 2.2.2(react@16.14.0)
       react-transition-group: 4.4.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
     transitivePeerDependencies:
       - supports-color
 
-  react-select@3.2.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-select@3.2.0(react@16.14.0):
     dependencies:
       '@babel/runtime': 7.26.9
       '@emotion/cache': 10.0.29
@@ -8467,17 +8416,15 @@ snapshots:
       memoize-one: 5.2.1
       prop-types: 15.8.1
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
       react-input-autosize: 3.0.0(react@16.14.0)
       react-transition-group: 4.4.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
     transitivePeerDependencies:
       - supports-color
 
-  react-spinners@0.7.2(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-spinners@0.7.2(react@16.14.0):
     dependencies:
       '@emotion/core': 10.3.1(react@16.14.0)
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -8490,19 +8437,17 @@ snapshots:
       react: 16.14.0
       react-dom: 16.14.0(react@16.14.0)
 
-  react-window@1.8.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-window@1.8.5(react@16.14.0):
     dependencies:
       '@babel/runtime': 7.26.9
       memoize-one: 5.2.1
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
 
-  react-windowed-select@2.0.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0):
+  react-windowed-select@2.0.5(react@16.14.0):
     dependencies:
       react: 16.14.0
-      react-dom: 16.14.0(react@16.14.0)
-      react-select: 3.1.0(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react-window: 1.8.5(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      react-select: 3.1.0(react@16.14.0)
+      react-window: 1.8.5(react@16.14.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -9019,8 +8964,6 @@ snapshots:
     dependencies:
       base64-arraybuffer: 1.0.2
     optional: true
-
-  uuid@3.4.0: {}
 
   uuid@8.3.2: {}
 

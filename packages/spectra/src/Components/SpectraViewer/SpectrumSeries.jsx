@@ -192,7 +192,7 @@ const SpectrumSeries = memo(function SpectrumSeries({
         dashStyle={dashStyle}
         lineWidth={lineWidth}
         className={`cat-${spectrum.category} subtype-${spectrum.subtype}`}
-        data={serie}
+        data={serie.toJS ? serie.toJS() : Array.from(serie)}
         threshold={logScale ? 10 : 0}
       />
     </ErrorBoundary>
