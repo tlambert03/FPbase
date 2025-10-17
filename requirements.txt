@@ -530,9 +530,9 @@ django-reversion==6.0.0 \
     # via
     #   django-reversion-compare
     #   fpbase-org
-django-reversion-compare==0.16.2 \
-    --hash=sha256:5629f226fc73bd7b95de47b2e21e2eba2fa39f004ba0fee6d460e96676c0dc9b \
-    --hash=sha256:9d7d096534f5d0e49d7419a8a29b4517580e6a7855529e594d10bfb373f980ab
+django-reversion-compare==0.19.0 \
+    --hash=sha256:970627a105ca85e5b9a4aa251affc237def8235456ca20818358cfb48ce8b146 \
+    --hash=sha256:9faa442e438a515ac6cdc84e38d3e6378cf72f5d979d5791fad2ca77e29902bc
     # via fpbase-org
 django-storages==1.14.6 \
     --hash=sha256:11b7b6200e1cb5ffcd9962bd3673a39c7d6a6109e8096f0e03d46fab3d3aabd9 \
@@ -823,6 +823,10 @@ kombu==5.5.4 \
     --hash=sha256:886600168275ebeada93b888e831352fe578168342f0d1d5833d88ba0d847363 \
     --hash=sha256:a12ed0557c238897d8e518f1d1fdf84bd1516c5e305af2dacd85c2015115feb8
     # via celery
+markdown-it-py==4.0.0 \
+    --hash=sha256:87327c59b172c5011896038353a81343b6754500a08cd7a4973bb48c6d578147 \
+    --hash=sha256:cb0a2b4aa34f932c007117b194e945bd74e0ec24133ceb5bac59009cda1cb9f3
+    # via rich
 matplotlib==3.7.1 \
     --hash=sha256:2bf092f9210e105f414a043b92af583c98f50050559616930d884387d0772aba \
     --hash=sha256:770a205966d641627fd5cf9d3cb4b6280a716522cd36b8b284a8eb1581310f61 \
@@ -851,6 +855,10 @@ maxminddb==2.5.1 \
     --hash=sha256:e09b295c401c104ae0e30f66c1a3f3c2aa4ba2cbe12a787576499356a5a4d6c1 \
     --hash=sha256:ef4d508c899ce0f37de731340759c68bfd1102a39a873675c71fae2c8d71ad97
     # via fpbase-org
+mdurl==0.1.2 \
+    --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8 \
+    --hash=sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba
+    # via markdown-it-py
 numpy==1.26.3 \
     --hash=sha256:12c70ac274b32bc00c7f61b515126c9205323703abb99cd41836e8125ea0043e \
     --hash=sha256:39763aee6dfdd4878032361b30b2b12593fb445ddb66bbac802e2113eb8a6ac4 \
@@ -1034,6 +1042,10 @@ pycparser==2.23 ; implementation_name != 'PyPy' \
     --hash=sha256:78816d4f24add8f10a06d6f05b4d424ad9e96cfebf68a4ddc99c65c0720d00c2 \
     --hash=sha256:e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934
     # via cffi
+pygments==2.19.2 \
+    --hash=sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887 \
+    --hash=sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b
+    # via rich
 pyjwt==2.10.1 \
     --hash=sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953 \
     --hash=sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb
@@ -1183,6 +1195,10 @@ requests-oauthlib==2.0.0 \
     --hash=sha256:7dd8a5c40426b779b0868c404bdef9768deccf22749cde15852df527e6269b36 \
     --hash=sha256:b3dffaebd884d8cd778494369603a9e7b58d29111bf6b41bdc2dcd87203af4e9
     # via django-allauth
+rich==14.2.0 \
+    --hash=sha256:73ff50c7c0c1c77c8243079283f4edb376f0f6442433aecb8ce7e6d0b92d1fe4 \
+    --hash=sha256:76bc51fe2e57d2b1be1f96c524b890b816e334ab4c1e45888799bfaab0021edd
+    # via django-reversion-compare
 rpds-py==0.27.1 \
     --hash=sha256:08f1e20bccf73b08d12d804d6e1c22ca5530e71659e6673bce31a6bb71c1e73f \
     --hash=sha256:0b08d152555acf1f455154d498ca855618c1378ec810646fcd7c76416ac6dc60 \

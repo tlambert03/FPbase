@@ -30,7 +30,7 @@ dependencies = [
     'habanero==1.2.3',
     'django-filter==23.3',
     'django-reversion>=6.0.0',
-    'django-reversion-compare==0.16.2',
+    'django-reversion-compare>=0.19.0',
     'tablib==3.4.0',
     'scipy==1.14.1',
     'dnspython>=2.6.1',
