@@ -50,7 +50,6 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: latest
           run_install: false
 
       - name: Install Node.js
@@ -62,7 +61,7 @@ jobs:
       - name: Install node Dependencies
         run: pnpm install
 
-      - run: uv sync
+      - run: uv sync --locked
 
       - name: setup-chromedriver
         uses: nanasess/setup-chromedriver@v2
