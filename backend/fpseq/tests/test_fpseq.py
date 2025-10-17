@@ -1,6 +1,6 @@
 import pytest
 
-from . import Mutation, mutate_sequence
+from fpseq import Mutation, mutate_sequence
 
 
 class TestMutations:
