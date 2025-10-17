@@ -1209,7 +1209,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.0.3" },
     { name = "parasail", specifier = "==1.3.4" },
     { name = "pillow", specifier = ">=10.0.0" },
-    { name = "psycopg2", marker = "sys_platform == 'linux'", specifier = ">=2.9.9" },
+    { name = "psycopg2", marker = "sys_platform == 'linux'", specifier = ">=2.9.11" },
     { name = "python-slugify", specifier = ">=8.0.1" },
     { name = "rcssmin", specifier = ">=1.1.1" },
     { name = "redis", specifier = "==5.0.4" },
