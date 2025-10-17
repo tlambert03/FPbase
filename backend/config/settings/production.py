@@ -196,13 +196,13 @@ CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 # Sentry Configuration
 
 SENTRY_DSN = env("SENTRY_DSN")
-SOURCE_VERSION = env("SOURCE_VERSION", default=None)
-print(f"SOURCE_VERSION = {SOURCE_VERSION}")
+HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
+print(f"HEROKU_SLUG_COMMIT = {HEROKU_SLUG_COMMIT}")
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[DjangoIntegration(), CeleryIntegration()],
     send_default_pii=True,
-    release=SOURCE_VERSION,
+    release=HEROKU_SLUG_COMMIT,
 )
 
 LOGGING = {

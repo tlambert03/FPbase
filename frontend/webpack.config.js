@@ -84,7 +84,7 @@ if (!devMode) {
       authToken: process.env.SENTRY_AUTH_TOKEN,
       include: "./dist",
       ignore: ["node_modules", "webpack.config.js"],
-      release: process.env.SOURCE_VERSION,
+      release: process.env.HEROKU_SLUG_COMMIT,
     })
   )
 }
