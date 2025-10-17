@@ -51,10 +51,10 @@ def _mock_blast_db(tmp_path_factory: "TempPathFactory"):
 
 @pytest.fixture()
 def use_real_webpack_loader(monkeypatch):
-    from webpack_loader import config, loader, utils
+    from webpack_loader import config, loaders, utils
 
     monkeypatch.setattr(
         utils,
         "get_loader",
-        lambda config_name: loader.WebpackLoader(config_name, config.load_config(config_name)),
+        lambda config_name: loaders.WebpackLoader(config_name, config.load_config(config_name)),
     )

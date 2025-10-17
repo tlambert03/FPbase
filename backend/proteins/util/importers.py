@@ -197,7 +197,7 @@ def text_to_spectra(text, wavecol=0):
             headers is 1D of length M, containing titles of data colums
     """
     df = read_csv_text(text)
-    waves = df.iloc[:, wavecol].to_numpy(dtype="f")
+    waves = df.iloc[:, wavecol].to_numpy(dtype="f").tolist()
     headers = [str(h) for i, h in enumerate(df.columns) if i != wavecol]
     outdata = df.drop(df.columns[wavecol], axis=1).to_numpy(dtype="f")
     return waves, outdata.T.tolist(), headers
