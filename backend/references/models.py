@@ -1,6 +1,5 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
-import pytz
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.validators import (
@@ -83,7 +82,7 @@ class Reference(TimeStampedModel):
             MinLengthValidator(4),
             MaxLengthValidator(4),
             MinValueValidator(1960),
-            MaxValueValidator(datetime.now(pytz.utc).year + 1),
+            MaxValueValidator(datetime.now(UTC).year + 1),
         ],
         help_text="YYYY",
     )
