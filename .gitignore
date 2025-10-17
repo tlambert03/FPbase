@@ -383,3 +383,4 @@ webpack-stats.json
 blastdb/
 backend/blastdb/
 .pdm-python
+SemrockSpectra/
