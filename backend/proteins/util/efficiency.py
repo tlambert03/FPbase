@@ -17,7 +17,7 @@ def spectral_product(arrlist):
         vals.append(
             [
                 w + minwave,
-                np.product([a[w + offsets[i]][1] for i, a in enumerate(arrlist)]),
+                np.prod([a[w + offsets[i]][1] for i, a in enumerate(arrlist)]),
             ]
         )
     return vals

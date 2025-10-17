@@ -3,68 +3,68 @@ name = "fpbase.org"
 version = "1.2.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
-    'python-slugify==8.0.1',
-    'Pillow>=10.0.0',
-    'rcssmin>=1.1.1',
-    'argon2-cffi==21.3.0',
-    'whitenoise[brotli]==6.6.0',
-    'redis==5.0.4',
-    'psycopg2==2.9.9; platform_system == "Linux"',
-    'django>=5.2,<5.3',
-    'django-environ==0.10.0',
-    'django-model-utils==5.0.0',
-    'django-allauth==0.54.0',
-    'django-redis>=6.0.0',
-    # NOTE: there's an issue with 1.14 and bootstrap4 forms not having form-control class
-    'django-crispy-forms==1.13.0',
-    'djangorestframework==3.14.0',
-    'drf-spectacular==0.26.3',
-    'djangorestframework-csv==2.1.1',
-    'django-recaptcha==3.0.0',
-    'sentry-sdk>=2.8',
-    'biopython==1.83',
-    'pandas==2.0.3',
-    'parasail==1.3.4',
-    'habanero==1.2.3',
-    'django-filter==23.3',
-    'django-reversion>=6.0.0',
-    'django-reversion-compare>=0.19.0',
-    'tablib==3.4.0',
-    'scipy==1.14.1',
-    'dnspython>=2.6.1',
-    'django-anymail==10.0',
-    'django-autocomplete-light==3.11.0',
-    'django-avatar>=8.0.1',
-    'numpy==1.26.3',
-    'matplotlib==3.7.1',
-    'django-mptt>=0.18.0',
-    'django-webpack-loader==2.0.1',
-    'google-auth==2.29.0',
-    'google-analytics-data==0.18.9',
-    'algoliasearch_django==3.0.0',
+    'algoliasearch_django>=3.0.0',
+    'argon2-cffi>=21.3.0',
+    'biopython>=1.83',
     'celery[redis]==5.5.3',
-    'graphene>=3.2.2',
-    'graphene-django>=3.2.3',
-    'graphene-django-optimizer==0.10.0',
+    'django-allauth==0.54.0',
+    'django-anymail==10.0',
+    'django-autocomplete-light>=3.11.0',
+    'django-avatar>=8.0.1',
+    'django-cors-headers>=4.2.0',
+    'django-crispy-forms==1.13.0',                 # NOTE: there's an issue with 1.14 and bootstrap4 forms not having form-control class
+    'django-environ>=0.10.0',
+    'django-filter>=23.3',
     'django-graphql-jwt==0.3.4',
-    'django-cors-headers==4.2.0',
-    'maxminddb==2.5.1',
+    'django-model-utils>=5.0.0',
+    'django-mptt>=0.18.0',
+    'django-recaptcha>=3.0.0',
+    'django-redis>=6.0.0',
+    'django-reversion-compare>=0.19.0',
+    'django-reversion>=6.0.0',
+    'django-webpack-loader>=2.0.1',
+    'django>=5.2,<5.3',
+    'djangorestframework-csv>=2.1.1',
+    'djangorestframework>=3.14.0',
+    'dnspython>=2.6.1',
+    'drf-spectacular>=0.26.3',
+    'google-analytics-data>=0.18.9',
+    'google-auth>=2.29.0',
+    'graphene-django-optimizer==0.10.0',
+    'graphene-django>=3.2.3',
+    'graphene>=3.2.2',
+    'habanero>=1.2.3',
+    'matplotlib>=3.7.1',
+    'maxminddb>=2.5.1',
+    'numpy>=1.26.3',
+    'pandas>=2.0.3',
+    'parasail==1.3.4',
+    'Pillow>=10.0.0',
+    'psycopg2>=2.9.11; platform_system == "Linux"',
+    'python-slugify>=8.0.1',
+    'rcssmin>=1.1.1',
+    'redis==5.0.4',
+    'scipy==1.14.1',
+    'sentry-sdk>=2.8',
+    'tablib>=3.4.0',
+    'whitenoise[brotli]==6.6.0',
+    "django-storages[boto3]>=1.13.2",
+    "gunicorn>=20.1.0",
 ]
 
 
 [dependency-groups]
-prod = ["gunicorn>=20.1.0", "django-storages[boto3]>=1.13.2"]
 dev = [
-    "psycopg2-binary>=2.9.6; platform_system == 'Darwin'",
+    "psycopg2-binary>=2.9.11; platform_system == 'Darwin'",
     "django-coverage-plugin>=3.1.0",
     "django-debug-toolbar>=4.2",
     "django-extensions>=3.2.3",
     "django-stubs>=5.1.3",
     "django-test-plus>=2.2.4",
     "djangorestframework-stubs>=3.15.2",
-    "factory-boy==3.2.0",
+    "factory-boy>=3.2.0",
     "mypy>=1.15.0",
     "pdbpp>=0.10.3",
     "pre-commit>=4.1.0",
@@ -87,7 +87,7 @@ DJANGO_SETTINGS_MODULE = "config.settings.test"
 FAIL_INVALID_TEMPLATE_VARS = true
 addopts = "--reuse-db --cov-config=pyproject.toml"
 python_files = ["tests.py", "test_*.py"]
-pythonpath = ["backend"]  # Add this line
+pythonpath = ["backend"]
 norecursedirs = ["node_modules"]
 filterwarnings = [
     "error",
@@ -99,6 +99,7 @@ filterwarnings = [
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore:Deprecated call to `pkg_resources",
     "ignore:Normally Django will use a connection to the:RuntimeWarning",
+    "ignore:.*_after_postgeneration will stop saving.*:DeprecationWarning:factory",
 ]
 
 
@@ -113,7 +114,7 @@ omit = ["*/migrations/*", "*/tests/*", "proteins/management/**"]
 [tool.ruff]
 src = ["backend/"]
 line-length = 119
-target-version = "py311"
+target-version = "py313"
 exclude = ['*/migrations/*', '*/static/CACHE/*', '.venv']
 [tool.ruff.lint]
 select = [
@@ -139,7 +140,7 @@ ignore = [
 
 # ==== mypy ====
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 check_untyped_defs = true
 ignore_missing_imports = true
 warn_unused_ignores = true

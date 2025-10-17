@@ -7,7 +7,7 @@ Test settings for FPbase project.
 import getpass
 import os
 
-from webpack_loader.loader import FakeWebpackLoader
+from webpack_loader.loaders import FakeWebpackLoader
 
 from .base import *  # noqa
 

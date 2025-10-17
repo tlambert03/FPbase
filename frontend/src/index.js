@@ -35,7 +35,7 @@ window.FPBASE = window.FPBASE || {}
 
       Sentry.init({
         dsn: process.env.SENTRY_DSN,
-        release: process.env.SOURCE_VERSION,
+        release: process.env.HEROKU_SLUG_COMMIT,
         environment: process.env.NODE_ENV,
         // Session Replay
         integrations: [Sentry.replayIntegration()],

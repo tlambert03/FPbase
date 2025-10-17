@@ -4,6 +4,7 @@
     "start": "pnpm --stream -r start",
     "build": "pnpm -r --parallel build",
     "heroku-postbuild": "CI=true pnpm --filter fpbase build",
+    "heroku-cleanup": "rm -rf node_modules _resources .github",
     "clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules && pnpm -r run clean"
   },
   "devDependencies": {
@@ -15,5 +16,6 @@
   ],
   "engines": {
     "node": "22.x"
-  }
+  },
+  "packageManager": "pnpm@10.18.3"
 }

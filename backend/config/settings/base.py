@@ -67,7 +67,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount.providers.twitter",
     # 'allauth.socialaccount.providers.facebook',
     #  'allauth.socialaccount.providers.linkedin_oauth2',
-    "captcha",
+    "django_recaptcha",
     "django_filters",
     "reversion",
     "reversion_compare",
@@ -341,6 +341,12 @@ AVATAR_CACHE_ENABLED = True
 AVATAR_GRAVATAR_DEFAULT = "identicon"
 AVATAR_CLEANUP_DELETED = True
 AVATAR_MAX_AVATARS_PER_USER = 8
+# Exclude LibRAvatarProvider to avoid 400 errors from libravatar.org
+AVATAR_PROVIDERS = (
+    "avatar.providers.PrimaryAvatarProvider",
+    "avatar.providers.GravatarAvatarProvider",
+    "avatar.providers.DefaultAvatarProvider",
+)
 
 # Your common stuff: Below this line define 3rd party library settings
 # ------------------------------------------------------------------------------
