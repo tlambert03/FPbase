@@ -61,7 +61,7 @@ jobs:
       - name: Install node Dependencies
         run: pnpm install
 
-      - run: uv sync --locked
+      - run: uv sync
 
       - name: setup-chromedriver
         uses: nanasess/setup-chromedriver@v2
