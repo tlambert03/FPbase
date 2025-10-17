@@ -57,7 +57,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "psycopg2-binary>=2.9.6; platform_system == 'Darwin'",
+    "psycopg2-binary>=2.9.11; platform_system == 'Darwin'",
     "django-coverage-plugin>=3.1.0",
     "django-debug-toolbar>=4.2",
     "django-extensions>=3.2.3",
