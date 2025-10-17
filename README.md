@@ -15,6 +15,9 @@ See also: [Using FPbase: The Fluorescent Protein
 Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
 2023;2564:1-45. doi: 10.1007/978-1-0716-2667-2_1
 
+> [!TIP]
+> If you're looking for the python API, see https://github.com/tlambert03/fpbasepy
+
 ## Installation for local development
 
 1. Clone repo and cd into directory
