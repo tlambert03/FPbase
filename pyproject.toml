@@ -87,7 +87,7 @@ DJANGO_SETTINGS_MODULE = "config.settings.test"
 FAIL_INVALID_TEMPLATE_VARS = true
 addopts = "--reuse-db --cov-config=pyproject.toml"
 python_files = ["tests.py", "test_*.py"]
-pythonpath = ["backend"] # Add this line
+pythonpath = ["backend"]
 norecursedirs = ["node_modules"]
 filterwarnings = [
     "error",
