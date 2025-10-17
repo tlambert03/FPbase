@@ -1071,11 +1071,6 @@ def snapgene_import():
                 continue
             if not p:
                 continue
-            if p.seq:
-                pass
-                # if not ParasailAlignment.from_seqs(seq, p.seq).mutations:
-                #    continue
-                # print(name, ParasailAlignment.from_seqs(seq, p.seq).mutations)
 
 
 def get_gb_data(file):
