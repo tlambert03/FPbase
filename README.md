@@ -27,7 +27,7 @@ Database](https://pubmed.ncbi.nlm.nih.gov/36107335/) (2023) *Methods Mol Biol* .
     cd FPbase
     ```
 
-1. Create/activate environment **using python 3.11** with pipenv/virtualenv/conda
+1. Create/activate environment **using python 3.13** with pipenv/virtualenv/conda
 1. Install python requirements for local development
 
     ```bash
