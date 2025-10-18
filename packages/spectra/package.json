@@ -4,7 +4,9 @@
   "description": "fpbase spectra viewer",
   "main": "src/App.jsx",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "test": "vitest",
+    "test:ci": "vitest run"
   },
   "author": "Talley Lambert",
   "license": "ISC",
@@ -43,9 +45,15 @@
     "unfetch": "^4.2.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^12.1.5",
+    "@testing-library/user-event": "^14.5.1",
     "@vitejs/plugin-react": "^4.0.0",
+    "@vitest/ui": "^1.0.4",
     "esbuild": "^0.18.1",
-    "vite": "^4.3.9"
+    "happy-dom": "^12.10.3",
+    "vite": "^4.3.9",
+    "vitest": "^1.0.4"
   },
   "peerDependencies": {
     "react": "^16.14.0"
