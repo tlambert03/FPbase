@@ -110,10 +110,10 @@ def mock_ncbi_api_calls(monkeypatch):
 
     def mock_entrez_esearch(db, term, **kwargs):
         """Mock Entrez.esearch to return a test record."""
-        from io import StringIO
+        from io import BytesIO
 
-        # Return XML that Bio.Entrez.read can parse
-        xml = """<?xml version="1.0" encoding="UTF-8"?>
+        # Return XML that Bio.Entrez.read can parse - must be binary
+        xml = b"""<?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE eSearchResult PUBLIC "-//NLM//DTD esearch 20060628//EN"
         "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20060628/esearch.dtd">
         <eSearchResult>
@@ -124,14 +124,14 @@ def mock_ncbi_api_calls(monkeypatch):
                 <Id>12345678</Id>
             </IdList>
         </eSearchResult>"""
-        return StringIO(xml)
+        return BytesIO(xml)
 
     def mock_entrez_esummary(db, id, retmode="xml", **kwargs):
         """Mock Entrez.esummary to return test data."""
-        from io import StringIO
+        from io import BytesIO
 
         if db == "pubmed":
-            xml = """<?xml version="1.0" encoding="UTF-8"?>
+            xml = b"""<?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN"
             "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20041029/esummary-v1.dtd">
             <eSummaryResult>
@@ -151,10 +151,26 @@ def mock_ncbi_api_calls(monkeypatch):
                     </Item>
                 </DocSum>
             </eSummaryResult>"""
+        elif db == "taxonomy":
+            # Mock taxonomy database responses for Organism model
+            xml = b"""<?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN"
+            "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20041029/esummary-v1.dtd">
+            <eSummaryResult>
+                <DocSum>
+                    <Id>9606</Id>
+                    <Item Name="Rank" Type="String">species</Item>
+                    <Item Name="Division" Type="String">hydrozoans</Item>
+                    <Item Name="ScientificName" Type="String">Aequorea victoria</Item>
+                    <Item Name="CommonName" Type="String">jellyfish</Item>
+                    <Item Name="Species" Type="String">victoria</Item>
+                    <Item Name="Genus" Type="String">Aequorea</Item>
+                </DocSum>
+            </eSummaryResult>"""
         else:
-            xml = """<?xml version="1.0" encoding="UTF-8"?>
+            xml = b"""<?xml version="1.0" encoding="UTF-8"?>
             <eSummaryResult><DocSum></DocSum></eSummaryResult>"""
-        return StringIO(xml)
+        return BytesIO(xml)
 
     # Apply the mocks
     monkeypatch.setattr("references.helpers.doi_lookup", mock_doi_lookup)
