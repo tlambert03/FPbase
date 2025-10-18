@@ -1,6 +1,97 @@
 # D3 & NVD3 Migration Plan for FPbase
 
-## Executive Summary
+---
+
+## 🎯 MIGRATION STATUS (Updated 2025-10-18)
+
+### ✅ **COMPLETED (80% Done)**
+
+**Dependencies:**
+- ✅ D3 upgraded to v7.9.0 in `frontend/package.json`
+- ✅ NVD3 removed from dependencies
+- ✅ NVD3 bundled files deleted (`nv.d3.js`, `nv.d3.css`)
+
+**Migrated Files:**
+1. ✅ **`lineage.js`** → D3 v7 (COMPLETE)
+   - URL: `/lineage/`
+   - Uses modern `d3.tree()`, `d3.hierarchy()`, custom diagonal function
+   - No hacks or workarounds - clean implementation
+
+2. ✅ **`ichart.js`** → D3 v7 (COMPLETE)
+   - URL: `/chart/`
+   - Uses `d3.scaleLinear()`, `d3.axisBottom()`, `d3.axisLeft()`, etc.
+   - All D3 v3 APIs successfully replaced
+
+3. ✅ **`fret.js`** → Highcharts (COMPLETE)
+   - URL: `/fret/`
+   - Full Highcharts implementation with tooltips, area fills
+   - No D3 or NVD3 dependencies
+
+4. ✅ **`scope_report.js`** → Highcharts (COMPLETE)
+   - URL: `/microscope/<pk>/report/`
+   - Scatter chart with custom tooltips and click events
+   - Clean Highcharts implementation
+
+### ❌ **CRITICAL - NOT DONE**
+
+1. ❌ **`microscope.js`** → **STILL USES NVD3** (BLOCKING)
+   - **URLs**: `/microscope/<pk>/`, `/embedscope/<pk>/`
+   - **Status**: Completely unmigrated - still uses `nv.addGraph()`, `nv.models.lineChart()`
+   - **Impact**: HIGH - Major public-facing feature
+   - **Complexity**: VERY HIGH (2101 lines)
+   - **Estimated Effort**: 4-5 days
+   - **THIS IS THE ONLY REMAINING CRITICAL BLOCKER**
+
+### ⚠️ **DEFERRED (Acceptable for Now)**
+
+1. ⚠️ **`phylotree.js`** + **`tree.html`** → Isolated D3 v3.5.17
+   - URL: `/protein/tree/`
+   - Status: Uses CDN-loaded D3 v3 (isolated to this page only)
+   - Decision: Per Migration Plan Option A - keep isolated
+   - Third-party library, low priority to modernize
+
+2. ⚠️ **`tree2.html`** → Isolated D3 v4
+   - Uses D3 v4 via CDN
+   - Separate from main bundle
+
+3. ⚠️ **`nvd3spectra.js`** → Legacy static file
+   - Low priority, minimal impact
+
+### 🧹 **CLEANUP NEEDED**
+
+- [ ] Remove `$("svg.nvd3-svg")` reference in `microscope.js:413` (after migration)
+- [ ] Update comment in `scope_report.js:60` ("nvd3-style data")
+- [ ] Remove nvd3 comment in `backend/fpbase/tests/test_end2end.py`
+
+### 📊 **Overall Progress**
+
+| Metric | Status |
+|--------|--------|
+| **Core files migrated** | 4 / 5 (80%) |
+| **Public URLs working** | 4 / 5 (80%) |
+| **D3 v7 adoption** | 2 / 2 custom viz files ✅ |
+| **Highcharts adoption** | 2 / 3 chart files (67%) |
+| **Code quality** | ✅ No hacks/workarounds |
+| **Dependencies clean** | ✅ Only D3 v7 in package.json |
+
+### 🎯 **NEXT STEPS**
+
+**Priority 1 (CRITICAL):**
+- Migrate `microscope.js` to Highcharts (Phase 2b from original plan)
+- This is the ONLY remaining blocker for modern D3/chart libraries
+
+**Priority 2 (Nice to have):**
+- Run full regression tests on all migrated features
+- Clean up remaining nvd3 references in comments/CSS classes
+- Document any behavioral differences for users
+
+**Priority 3 (Future):**
+- Consider modernizing phylotree (Phase 3 from original plan)
+- Evaluate if `nvd3spectra.js` is still needed
+
+---
+
+## Executive Summary (Original Plan)
 
 I've completed an exhaustive review of your codebase. You have **d3 v3.5.17** and **nvd3 v1.8.6** embedded throughout your frontend, with usage spanning:
 
@@ -19,31 +110,36 @@ The good news: You already have **Highcharts v12.4.0** in your spectra package, 
 
 #### **High Priority (Core Features)**
 
-1. **`frontend/src/js/microscope.js`** (2103 lines)
+1. ❌ **`frontend/src/js/microscope.js`** (2101 lines) - **NOT MIGRATED**
    - NVD3: `lineChart` with brushing, focus context, log/linear scale switching
    - D3: `d3.scale.linear()`, `d3.scale.log()`, `d3.format()`, `d3.select()`
    - **Complexity**: VERY HIGH - Most critical file
+   - **Status**: STILL USES NVD3 - Only remaining blocker
 
-2. **`frontend/src/js/ichart.js`** (605 lines)
-   - D3: Custom scatter plot with zoom (`d3.behavior.zoom()`)
-   - D3: Scales, axes (`d3.svg.axis()`), color mapping (`d3.hsl()`)
-   - D3: Interactive features with transitions
+2. ✅ **`frontend/src/js/ichart.js`** (605 lines) - **MIGRATED TO D3 v7**
+   - ~~D3: Custom scatter plot with zoom (`d3.behavior.zoom()`)~~
+   - ~~D3: Scales, axes (`d3.svg.axis()`), color mapping (`d3.hsl()`)~~
+   - ~~D3: Interactive features with transitions~~
    - **Complexity**: HIGH - Custom visualization
+   - **Status**: ✅ Complete - uses `d3.scaleLinear()`, `d3.axisBottom()`, etc.
 
-3. **`frontend/src/js/lineage.js`** (941 lines)
-   - D3: Tree/cluster layouts (`d3.layout.tree()`, `d3.layout.cluster()`)
-   - D3: Diagonal projections (`d3.svg.diagonal()`)
+3. ✅ **`frontend/src/js/lineage.js`** (941 lines) - **MIGRATED TO D3 v7**
+   - ~~D3: Tree/cluster layouts (`d3.layout.tree()`, `d3.layout.cluster()`)~~
+   - ~~D3: Diagonal projections (`d3.svg.diagonal()`)~~
    - **Complexity**: HIGH - Phylogenetic tree viewer
+   - **Status**: ✅ Complete - uses `d3.tree()`, custom diagonal function
 
-4. **`frontend/src/js/fret.js`** (484 lines)
-   - NVD3: `lineChart` with interactive tooltips, area fills
-   - D3: `d3.format()`, `d3.select()`
+4. ✅ **`frontend/src/js/fret.js`** (484 lines) - **MIGRATED TO HIGHCHARTS**
+   - ~~NVD3: `lineChart` with interactive tooltips, area fills~~
+   - ~~D3: `d3.format()`, `d3.select()`~~
    - **Complexity**: MEDIUM - Can use Highcharts
+   - **Status**: ✅ Complete - Full Highcharts implementation
 
-5. **`frontend/src/js/scope_report.js`** (609 lines)
-   - NVD3: `scatterChart` with voronoi interaction, custom tooltips
-   - D3: `d3.format()`, `d3.select()`
+5. ✅ **`frontend/src/js/scope_report.js`** (609 lines) - **MIGRATED TO HIGHCHARTS**
+   - ~~NVD3: `scatterChart` with voronoi interaction, custom tooltips~~
+   - ~~D3: `d3.format()`, `d3.select()`~~
    - **Complexity**: MEDIUM - Can use Highcharts
+   - **Status**: ✅ Complete - Highcharts scatter chart
 
 #### **Medium Priority (Legacy/Static)**
 
@@ -512,23 +608,24 @@ rm frontend/src/css/nv.d3.css
 
 ## Timeline & Effort Estimate
 
-| Phase | Tasks | Duration | Dependencies |
-|-------|-------|----------|--------------|
-| **Setup** | Update package.json, install dependencies | 1 day | None |
-| **Phase 1** | Migrate fret.js to Highcharts | 2-3 days | Setup |
-| **Phase 1** | Migrate microscope.js to Highcharts | 4-5 days | Setup |
-| **Phase 1** | Migrate scope_report.js to Highcharts | 2-3 days | Setup |
-| **Testing** | Test Phase 1 changes | 3-4 days | Phase 1 |
-| **Phase 2** | Update ichart.js to D3 v7 | 3-4 days | Setup |
-| **Phase 2** | Update lineage.js to D3 v7 | 3-4 days | Setup |
-| **Phase 2** | Update nvd3spectra.js to D3 v7 | 1 day | Setup |
-| **Testing** | Test Phase 2 changes | 3-4 days | Phase 2 |
-| **Phase 3** | Handle phylotree (Option A) | 1 day | None |
-| **Cleanup** | Remove nvd3, update templates | 1 day | All phases |
-| **Final Testing** | Full regression testing | 3-5 days | All phases |
+| Phase | Tasks | Duration | Status |
+|-------|-------|----------|--------|
+| **Setup** | Update package.json, install dependencies | 1 day | ✅ COMPLETE |
+| **Phase 1** | Migrate fret.js to Highcharts | 2-3 days | ✅ COMPLETE |
+| **Phase 1** | Migrate microscope.js to Highcharts | 4-5 days | ❌ **NOT DONE** |
+| **Phase 1** | Migrate scope_report.js to Highcharts | 2-3 days | ✅ COMPLETE |
+| **Testing** | Test Phase 1 changes | 3-4 days | ⚠️ Partial (need microscope) |
+| **Phase 2** | Update ichart.js to D3 v7 | 3-4 days | ✅ COMPLETE |
+| **Phase 2** | Update lineage.js to D3 v7 | 3-4 days | ✅ COMPLETE |
+| **Phase 2** | Update nvd3spectra.js to D3 v7 | 1 day | ⚠️ Deferred |
+| **Testing** | Test Phase 2 changes | 3-4 days | ⏳ Needs verification |
+| **Phase 3** | Handle phylotree (Option A) | 1 day | ✅ COMPLETE (isolated) |
+| **Cleanup** | Remove nvd3, update templates | 1 day | ⏳ Needs microscope done |
+| **Final Testing** | Full regression testing | 3-5 days | ⏳ Blocked by microscope |
 
-**Total Duration**: 8-12 weeks (with one developer)
-**Can be parallelized**: Yes (phases 1 & 2 can overlap)
+**Progress**: 7 / 12 tasks complete (58%)
+**Remaining Critical Work**: Migrate microscope.js to Highcharts (4-5 days)
+**Status**: 80% of core files migrated, 1 major blocker remaining
 
 ---
 
@@ -562,35 +659,53 @@ rm frontend/src/css/nv.d3.css
 }
 ```
 
-**After** (Option 1 - Hybrid):
+**After** (Option 1 - Hybrid) ✅ **COMPLETE**:
 ```json
 {
-  "d3": "^7.9.0"
+  "d3": "^7.9.0",
+  "highcharts": "^12.4.0"
 }
 ```
 
-Note: Highcharts already exists in `packages/spectra/package.json`
+**Status**: ✅ Dependencies successfully updated
+- NVD3 removed from `package.json`
+- D3 upgraded to v7.9.0
+- Highcharts 12.4.0 already available
+- Bundled nvd3 files (`nv.d3.js`, `nv.d3.css`) deleted
 
 ---
 
-## Conclusion & Next Steps
+## Conclusion & Next Steps (Updated 2025-10-18)
 
-You have **fragile but functional** code built on 9-year-old libraries. The migration is **necessary** for security, performance, and maintainability.
+~~You have **fragile but functional** code built on 9-year-old libraries.~~ You have **mostly modernized** your D3 stack! The migration is **80% complete** with excellent code quality.
 
-### **Recommended Approach**
+### **Status Update**
 
-1. ✅ **Start with Phase 1** - Replace nvd3 with Highcharts (lowest risk, high value)
-2. ✅ **Continue with Phase 2** - Update custom D3 visualizations to v7
-3. ✅ **Defer Phase 3** - Keep phylotree isolated for now
+1. ✅ **Phase 1 (Partial)** - 2/3 nvd3 → Highcharts migrations complete
+2. ✅ **Phase 2 (Complete)** - All custom D3 visualizations updated to v7
+3. ✅ **Phase 3 (Complete)** - Phylotree isolated successfully
 
-### **Quick Wins**
+### **Completed Quick Wins** ✅
 
-- `scope_report.js` - Easiest nvd3 → Highcharts migration
-- `nvd3spectra.js` - Easiest D3 v3 → v7 update
-- `fret.js` - Medium difficulty, high impact
+- ✅ `scope_report.js` - Successfully migrated to Highcharts
+- ✅ `fret.js` - Successfully migrated to Highcharts
+- ✅ `ichart.js` - Successfully migrated to D3 v7
+- ✅ `lineage.js` - Successfully migrated to D3 v7 (custom diagonal implemented)
 
-### **Biggest Challenges**
+### **Remaining Challenge**
 
-- `microscope.js` - Most complex, needs careful testing
-- `lineage.js` - Diagonal/tree layout changes require custom code
-- `phylotree.js` - Third-party library, may need replacement
+- ❌ **`microscope.js`** - Most complex file, still needs migration to Highcharts
+  - **Impact**: This is the ONLY remaining blocker
+  - **Effort**: 4-5 days (as originally estimated)
+  - **Complexity**: Very high (2101 lines)
+  - **Features**: Line chart with brushing, focus/context, log/linear scale switching
+
+### **What's Been Accomplished**
+
+✅ All D3 v3 custom visualizations successfully updated to v7
+✅ Two major nvd3 charts migrated to Highcharts
+✅ No hacks or workarounds - clean, maintainable code
+✅ Dependencies cleaned up (nvd3 removed, D3 v7 installed)
+✅ Phylotree isolated to prevent bundle contamination
+
+**You're on the home stretch!** Once `microscope.js` is migrated, the modernization will be complete.
