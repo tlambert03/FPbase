@@ -141,14 +141,14 @@ export default function LineageChart(conf) {
       event.preventDefault()
     })
 
-    if (withSearch && d3.select("#mutation-search-input")[0][0] == null) {
+    if (withSearch && d3.select("#mutation-search-input").node() == null) {
       createMutationSearch(selection)
     }
-    if (withToolbar && d3.select(".lineage-toolbar")[0][0] == null) {
+    if (withToolbar && d3.select(".lineage-toolbar").node() == null) {
       createToolBar(selection)
     }
 
-    if (withTopScroll && d3.select(".top-scroll-wrapper")[0][0] == null) {
+    if (withTopScroll && d3.select(".top-scroll-wrapper").node() == null) {
       selection
         .append("div")
         .attr("class", "top-scroll-wrapper")
@@ -157,8 +157,8 @@ export default function LineageChart(conf) {
     }
 
     if (
-      selection[0][0].classList.contains("lineage") &&
-      !d3.select(".lineage-wrapper")[0][0]
+      selection.node().classList.contains("lineage") &&
+      !d3.select(".lineage-wrapper").node()
     ) {
       selection = selection.append("div").attr("class", "lineage-wrapper")
     }
@@ -218,7 +218,10 @@ export default function LineageChart(conf) {
         neededWidth <= containerWidth ? "none" : "block"
       )
 
-      // Update the outer dimensions.
+      // Merge enter and update selections for svg
+      svg = svg.merge(svgEnter)
+
+      // Update the outer dimensions on the merged selection
       svg.attr("height", height).style("min-width", neededWidth)
 
       // Update the inner dimensions.
@@ -227,8 +230,9 @@ export default function LineageChart(conf) {
         .attr("width", width)
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
-      // assign parent, children, height, depth
-      var root = data
+      // D3 v7: Create hierarchy from data if not already a hierarchy
+      // Check if data is already a d3 hierarchy (has descendants method)
+      var root = data.descendants ? data : d3.hierarchy(data)
       root.x0 = height / 2 // left edge of the rectangle
       root.y0 = 0 // top edge of the triangle
 
@@ -236,13 +240,26 @@ export default function LineageChart(conf) {
 
       function update(source) {
         // Compute the new tree layout.
-        var nodes = tree.nodes(root).reverse(),
-          links = tree.links(nodes)
+        // D3 v7: tree() returns the hierarchy, then we get nodes and links
+        var hierarchy = tree(root)
+        var nodes = hierarchy.descendants().reverse()
+        var links = hierarchy.links()
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) {
           d.y = (d.depth - 1) * nodeWidth
         })
+
+        // Check for negative Y positions and shift if needed
+        // But exclude fakeroot from this calculation since it will be removed from display
+        var visibleNodes = nodes.filter(d => d.data.name !== "fakeroot")
+        var minY = d3.min(visibleNodes, d => d.y)
+        if (minY < 0) {
+          var yShift = -minY
+          nodes.forEach(function(d) {
+            d.y = d.y + yShift
+          })
+        }
 
         if (vertical) {
           nodes.forEach(function(d) {
@@ -250,6 +267,17 @@ export default function LineageChart(conf) {
             d.x = d.y
             d.y = f
           })
+        }
+
+        // Calculate actual height needed based on node positions
+        var minX = d3.min(nodes, d => d.x)
+        var maxX = d3.max(nodes, d => d.x)
+        var neededHeight = maxX - minX + margin.top + margin.bottom + 40 // extra padding
+
+        // Update SVG height if needed
+        if (neededHeight > height) {
+          height = neededHeight
+          svg.attr("height", height)
         }
 
         // Update the nodes…
@@ -264,11 +292,11 @@ export default function LineageChart(conf) {
           .attr("class", function(d) {
             return (
               "node" +
-              (d.hasOwnProperty("err") && d.err.length > 0 ? " has-err" : "")
+              (d.data.err && d.data.err.length > 0 ? " has-err" : "")
             )
           })
           .attr("id", function(d) {
-            return "node_" + d.slug
+            return "node_" + d.data.slug
           })
           .attr("transform", function(d) {
             return "translate(" + source.y0 + "," + source.x0 + ")"
@@ -278,23 +306,23 @@ export default function LineageChart(conf) {
         nodeEnter
           .append("a")
           .attr("xlink:href", function(d) {
-            return d.url
+            return d.data.url
           })
           .append("circle")
           .attr("r", 1e-6)
           .style("filter", "url(#shadow);")
           .style("fill", function(d) {
-            if (d.bg && d.bg.startsWith("linear:")) {
+            if (d.data.bg && d.data.bg.startsWith("linear:")) {
               svg
                 .select("defs")
                 .append("linearGradient")
                 // the 0 -> XX is a hack to fix a weird name-changing bug
-                .attr("id", d.slug.replace("0", "XX") + "_svggradient")
-                .html(d.bg.replace("linear:", ""))
+                .attr("id", d.data.slug.replace("0", "XX") + "_svggradient")
+                .html(d.data.bg.replace("linear:", ""))
             }
           })
           .on("mouseover", function(event, d) {
-            if (d.slug !== slug) {
+            if (d.data.slug !== slug) {
               d3.select(this)
                 .transition(150)
                 .attr("r", function(d) {
@@ -305,25 +333,25 @@ export default function LineageChart(conf) {
             const largeWindow = window.matchMedia("(min-width: 576px)").matches
             let dtext
             if (largeWindow) {
-              dtext = `<strong>${d.name}</strong><br><span>`
+              dtext = `<strong>${d.data.name}</strong><br><span>`
             } else {
-              dtext = `<strong><a href="${d.url}">${
-                d.name
+              dtext = `<strong><a href="${d.data.url}">${
+                d.data.name
               }</a></strong><br><span>`
             }
-            dtext += d.parent.name === "fakeroot" ? "" : d.parent.name
-            if (d.mut) {
-              let muts = d.mut.split("/")
+            dtext += d.parent ? (d.parent.data.name === "fakeroot" ? "" : d.parent.data.name) : ""
+            if (d.data.mut) {
+              let muts = d.data.mut.split("/")
               if (!show_inserts) {
-                muts = muts.filter(d => (d.includes("ins") ? "" : d3))
-                muts = muts.filter(d => (d.includes("ext") ? "" : d3))
+                muts = muts.filter(m => (m.includes("ins") ? "" : m))
+                muts = muts.filter(m => (m.includes("ext") ? "" : m))
               }
               if (!show_deletions) {
-                muts = muts.filter(d => (d.includes("del") ? "" : d3))
+                muts = muts.filter(m => (m.includes("del") ? "" : m))
               }
               dtext += ` &rarr; ${muts.join("/")}`
             }
-            dtext += d.ref ? `<br><em>${d.ref}</em>` : ""
+            dtext += d.data.ref ? `<br><em>${d.data.ref}</em>` : ""
             dtext += "</span>"
 
             tooltip.html(dtext)
@@ -379,7 +407,7 @@ export default function LineageChart(conf) {
               .duration(150)
               .style("opacity", largeWindow ? 0.9 : 1)
           })
-          .on("mouseout", function(d) {
+          .on("mouseout", function(event, d) {
             tooltip
               .transition()
               .duration(150)
@@ -388,13 +416,13 @@ export default function LineageChart(conf) {
               .duration(0)
               .style("left", -9999 + "px")
 
-            if (d.slug !== slug) {
+            if (d.data.slug !== slug) {
               d3.select(this)
                 .transition(150)
                 .attr("r", function(d) {
                   return d._children
                     ? defaultRadius / 2
-                    : d.slug === slug
+                    : d.data.slug === slug
                     ? slugRadius
                     : defaultRadius
                 })
@@ -419,19 +447,20 @@ export default function LineageChart(conf) {
             return text_position(d, slug, vertical)[2]
           })
           .text(function(d) {
-            var t = d.name
-            if (d.hasOwnProperty("err") && d.err.length > 0) {
-              t += ` ! (${d.err[0].replace("SequenceMismatch:  diff: ", "")})`
+            var t = d.data.name
+            if (d.data.err && d.data.err.length > 0) {
+              t += ` ! (${d.data.err[0].replace("SequenceMismatch:  diff: ", "")})`
             }
             return t
           })
           .attr("class", function(d) {
-            return d.slug === slug ? "font-weight-bold" : ""
+            return d.data.slug === slug ? "font-weight-bold" : ""
           })
           .style("fill-opacity", 1e-6)
 
-        // Transition nodes to their new position.
+        // Merge enter and update selections
         var nodeUpdate = node
+          .merge(nodeEnter)
           .transition()
           .duration(duration)
           .attr("transform", function(d) {
@@ -443,17 +472,17 @@ export default function LineageChart(conf) {
           .attr("r", function(d) {
             return d._children
               ? defaultRadius / 2
-              : d.slug === slug
+              : d.data.slug === slug
               ? slugRadius
               : defaultRadius
           })
           .style("fill", function(d) {
-            if (d.bg && d.bg.startsWith("linear:")) {
-              return "url(#" + d.slug.replace("0", "XX") + "_svggradient)"
-            } else if (d.bg === "?") {
+            if (d.data.bg && d.data.bg.startsWith("linear:")) {
+              return "url(#" + d.data.slug.replace("0", "XX") + "_svggradient)"
+            } else if (d.data.bg === "?") {
               return "url(#unknown_gradient)"
             }
-            return d.bg === "#222" ? "#888" : d.bg
+            return d.data.bg === "#222" ? "#888" : d.data.bg
           })
           .style("stroke-width", function(d) {
             return d._children ? defaultRadius / 2 + "px" : "1px"
@@ -468,7 +497,7 @@ export default function LineageChart(conf) {
               d.children &&
               d.children.length === 1 &&
               n_sibs(d) === 0 &&
-              d.name.length > 8 &&
+              d.data.name.length > 8 &&
               n_sibs(d.parent) === 0
             ) {
               return "rotate(-15) translate(2, -2)"
@@ -495,7 +524,7 @@ export default function LineageChart(conf) {
         })
 
         // Enter any new links at the parent's previous position.
-        link
+        var linkEnter = link
           .enter()
           .insert("path", "g")
           .attr("class", "link")
@@ -506,6 +535,7 @@ export default function LineageChart(conf) {
 
         // Transition links to their new position.
         link
+          .merge(linkEnter)
           .transition()
           .duration(duration)
           .attr("d", diagonal)
@@ -521,13 +551,14 @@ export default function LineageChart(conf) {
           })
           .remove()
 
-        //Option 1: remove node
-        node.each(function(d) {
-          if (d.name === "fakeroot") d3.select(this).remove()
+        // Remove fakeroot nodes and links
+        // Must operate on merged selection to catch both enter and update selections
+        node.merge(nodeEnter).each(function(d) {
+          if (d.data.name === "fakeroot") d3.select(this).remove()
         })
 
-        link.each(function(d) {
-          if (d.source.name === "fakeroot") d3.select(this).remove()
+        link.merge(linkEnter).each(function(d) {
+          if (d.source.data.name === "fakeroot") d3.select(this).remove()
         })
 
         // Stash the old positions for transition.
@@ -537,7 +568,7 @@ export default function LineageChart(conf) {
         })
 
         // toggle children on click
-        function click(d) {
+        function click(event, d) {
           if (d.children) {
             d._children = d.children
             d.children = null
@@ -597,13 +628,13 @@ export default function LineageChart(conf) {
               }
               if (any) {
                 return val.some(function(v) {
-                  return (relparent ? d.mut : d.rootmut).includes(v)
+                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
                 })
                   ? "url(#dropshadow)"
                   : null
               }
               return val.every(function(v) {
-                return (relparent ? d.mut : d.rootmut).includes(v)
+                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
               })
                 ? "url(#dropshadow)"
                 : null
@@ -614,13 +645,13 @@ export default function LineageChart(conf) {
               }
               if (any) {
                 return val.some(function(v) {
-                  return (relparent ? d.mut : d.rootmut).includes(v)
+                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
                 })
                   ? 1
                   : 0.3
               }
               return val.every(function(v) {
-                return (relparent ? d.mut : d.rootmut).includes(v)
+                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
               })
                 ? 1
                 : 0.3
@@ -632,13 +663,13 @@ export default function LineageChart(conf) {
               }
               if (any) {
                 return val.some(function(v) {
-                  return (relparent ? d.mut : d.rootmut).includes(v)
+                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
                 })
                   ? 1
                   : 0.3
               }
               return val.every(function(v) {
-                return (relparent ? d.mut : d.rootmut).includes(v)
+                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
               })
                 ? 1
                 : 0.3
@@ -649,13 +680,13 @@ export default function LineageChart(conf) {
               }
               if (any) {
                 return val.some(function(v) {
-                  return (relparent ? d.mut : d.rootmut).includes(v)
+                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
                 })
                   ? 500
                   : "inherit"
               }
               return val.every(function(v) {
-                return (relparent ? d.mut : d.rootmut).includes(v)
+                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
               })
                 ? 500
                 : "inherit"
@@ -754,40 +785,48 @@ export default function LineageChart(conf) {
   function createToolBar(selection) {
     var tbar = selection
       .append("div")
-      .attr({ class: "btn-toolbar lineage-toolbar", role: "toolbar" })
+      .attr("class", "btn-toolbar lineage-toolbar")
+      .attr("role", "toolbar")
       .style("opacity", 0.8)
     var grp1 = tbar
       .append("div")
-      .attr({ class: "btn-group btn-group-sm mr-2", role: "group" })
+      .attr("class", "btn-group btn-group-sm mr-2")
+      .attr("role", "group")
     grp1
       .append("button")
       .on("click", chart.scaleWidthDown)
-      .attr({ type: "button", class: "btn btn-outline-dark" })
+      .attr("type", "button")
+      .attr("class", "btn btn-outline-dark")
       .html("⇦")
     grp1
       .append("button")
       .on("click", chart.scaleWidthUp)
-      .attr({ type: "button", class: "btn btn-outline-dark" })
+      .attr("type", "button")
+      .attr("class", "btn btn-outline-dark")
       .html("⇨")
     grp1
       .append("button")
       .on("click", chart.scaleHeightDown)
-      .attr({ type: "button", class: "btn btn-outline-dark" })
+      .attr("type", "button")
+      .attr("class", "btn btn-outline-dark")
       .html("⇧")
     grp1
       .append("button")
       .on("click", chart.scaleHeightUp)
-      .attr({ type: "button", class: "btn btn-outline-dark" })
+      .attr("type", "button")
+      .attr("class", "btn btn-outline-dark")
       .html("⇩")
     var grp2 = tbar
       .append("div")
-      .attr({ class: "btn-group btn-group-sm mr-2", role: "group" })
+      .attr("class", "btn-group btn-group-sm mr-2")
+      .attr("role", "group")
     grp2
       .append("button")
       .on("click", function() {
         chart.tree("tree")
       })
-      .attr({ type: "button", class: "btn btn-outline-dark" })
+      .attr("type", "button")
+      .attr("class", "btn btn-outline-dark")
       .html("⚯")
       .style("width", "2rem")
     grp2
@@ -795,7 +834,8 @@ export default function LineageChart(conf) {
       .on("click", function() {
         chart.tree("cluster")
       })
-      .attr({ type: "button", class: "btn btn-outline-dark" })
+      .attr("type", "button")
+      .attr("class", "btn btn-outline-dark")
       .html("⚭")
       .style("width", "2rem")
   }
@@ -854,91 +894,83 @@ function createMutationSearch(selection) {
   var wrapperDiv = selection
     .append("div")
     .append("div")
-    .attr({ class: "row" })
+    .attr("class", "row")
   var searchDiv = wrapperDiv
     .append("div")
-    .attr({ class: "input-group col-12 col-lg-8 mb-2" })
+    .attr("class", "input-group col-12 col-lg-8 mb-2")
   searchDiv
     .append("div")
-    .attr({ class: "input-group-prepend" })
+    .attr("class", "input-group-prepend")
     .append("span")
-    .attr({ class: "input-group-text" })
+    .attr("class", "input-group-text")
     .text("Search")
 
-  searchDiv.append("input").attr({
-    type: "search",
-    class: "form-control",
-    name: "textInput",
-    placeholder: "Mutations (e.g. A206K) separated by spaces",
-    id: "mutation-search-input"
-  })
+  searchDiv.append("input")
+    .attr("type", "search")
+    .attr("class", "form-control")
+    .attr("name", "textInput")
+    .attr("placeholder", "Mutations (e.g. A206K) separated by spaces")
+    .attr("id", "mutation-search-input")
 
-  var btngroup = searchDiv.append("div").attr({ class: "input-group-append" })
+  var btngroup = searchDiv.append("div").attr("class", "input-group-append")
 
   var anyallgroup = btngroup
     .append("div")
-    .attr({ class: "btn-group-toggle btn-group", "data-toggle": "buttons" })
+    .attr("class", "btn-group-toggle btn-group")
+    .attr("data-toggle", "buttons")
 
   anyallgroup
     .append("label")
-    .attr({ class: "btn btn-outline-primary update-mutations mut-all active" })
+    .attr("class", "btn btn-outline-primary update-mutations mut-all active")
     .text("all")
     .append("input")
-    .attr({
-      type: "radio",
-      name: "anyall",
-      id: "alltoggle",
-      autocomplete: "off"
-    })
+    .attr("type", "radio")
+    .attr("name", "anyall")
+    .attr("id", "alltoggle")
+    .attr("autocomplete", "off")
 
   anyallgroup
     .append("label")
-    .attr({ class: "btn btn-outline-primary update-mutations mut-any" })
+    .attr("class", "btn btn-outline-primary update-mutations mut-any")
     .text("any")
     .append("input")
-    .attr({
-      type: "radio",
-      name: "anyall",
-      id: "anytoggle",
-      autocomplete: "off"
-    })
+    .attr("type", "radio")
+    .attr("name", "anyall")
+    .attr("id", "anytoggle")
+    .attr("autocomplete", "off")
 
   var rightdiv = wrapperDiv
     .append("div")
-    .attr({ class: "input-group col-12 col-lg-4 mb-2" })
+    .attr("class", "input-group col-12 col-lg-4 mb-2")
   rightdiv
     .append("div")
-    .attr({ class: "input-group-prepend" })
+    .attr("class", "input-group-prepend")
     .append("span")
-    .attr({ class: "input-group-text" })
+    .attr("class", "input-group-text")
     .text("Relative to")
 
-  var relativetogroup = rightdiv.append("div").attr({
-    class: "btn-group-toggle btn-group input-group-append",
-    "data-toggle": "buttons"
-  })
+  var relativetogroup = rightdiv.append("div")
+    .attr("class", "btn-group-toggle btn-group input-group-append")
+    .attr("data-toggle", "buttons")
 
   relativetogroup
     .append("label")
-    .attr({ class: "btn btn-outline-primary update-mutations mut-root active" })
+    .attr("class", "btn btn-outline-primary update-mutations mut-root active")
     .text("root")
     .append("input")
-    .attr({
-      type: "radio",
-      name: "parentroot",
-      id: "roottoggle",
-      autocomplete: "off"
-    })
+    .attr("type", "radio")
+    .attr("name", "parentroot")
+    .attr("id", "roottoggle")
+    .attr("autocomplete", "off")
 
   relativetogroup
     .append("label")
-    .attr({ class: "btn btn-outline-primary update-mutations mut-parent" })
+    .attr("class", "btn btn-outline-primary update-mutations mut-parent")
     .text("parent")
     .append("input")
-    .attr({
-      type: "radio",
-      name: "parentroot",
-      id: "parenttoggle",
-      autocomplete: "off"
-    })
+    .attr("type", "radio")
+    .attr("name", "parentroot")
+    .attr("id", "parenttoggle")
+    .attr("autocomplete", "off")
 }
+// Force rebuild
