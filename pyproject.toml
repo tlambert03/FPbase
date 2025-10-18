@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    'algoliasearch_django>=3.0.0',
+    'algoliasearch_django==3.0.0',
     'argon2-cffi>=21.3.0',
     'biopython>=1.83',
     'celery[redis]==5.5.3',
