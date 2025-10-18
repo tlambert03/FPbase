@@ -1,4 +1,4 @@
-import d3 from "d3"
+import * as d3 from "d3"
 import $ from "jquery"
 
 function n_sibs(node) {
@@ -103,7 +103,7 @@ export default function LineageChart(conf) {
     slug = config.slug || null,
     show_inserts = true,
     show_deletions = true,
-    tree = d3.layout.tree(),
+    tree = d3.tree(),
     withTopScroll = config.withTopScroll || false,
     withSearch = config.withSearch || false,
     withToolbar = config.withToolbar || false,
@@ -115,9 +115,13 @@ export default function LineageChart(conf) {
       floodColor: "#38e"
     }
 
-  var diagonal = d3.svg.diagonal().projection(function(d) {
-    return [d.y, d.x]
-  })
+  // Custom diagonal function for D3 v7 (replaces d3.svg.diagonal)
+  var diagonal = function(d) {
+    return `M${d.source.y},${d.source.x}
+            C${(d.source.y + d.target.y) / 2},${d.source.x}
+             ${(d.source.y + d.target.y) / 2},${d.target.x}
+             ${d.target.y},${d.target.x}`
+  }
 
   // Define the div for the tooltip
   var tooltip = d3
@@ -133,8 +137,8 @@ export default function LineageChart(conf) {
 
   function chart(selection) {
     sel = selection
-    selection.on("contextmenu", function() {
-      d3.event.preventDefault()
+    selection.on("contextmenu", function(event) {
+      event.preventDefault()
     })
 
     if (withSearch && d3.select("#mutation-search-input")[0][0] == null) {
@@ -289,7 +293,7 @@ export default function LineageChart(conf) {
                 .html(d.bg.replace("linear:", ""))
             }
           })
-          .on("mouseover", function(d) {
+          .on("mouseover", function(event, d) {
             if (d.slug !== slug) {
               d3.select(this)
                 .transition(150)
@@ -329,7 +333,7 @@ export default function LineageChart(conf) {
               tooltip
                 .style("width", _ttwidth + "px")
                 .style("position", "absolute")
-                .style("left", d3.event.pageX - _ttwidth / 2 + "px")
+                .style("left", event.pageX - _ttwidth / 2 + "px")
                 .style("border-radius", "8px")
                 .style("bottom", "inherit")
                 .style("padding", ".6rem 0.5rem")
@@ -338,7 +342,7 @@ export default function LineageChart(conf) {
                 .style("font-size", "0.75rem")
               tooltip.style(
                 "top",
-                d3.event.pageY - tooltip.node().clientHeight - 28 + "px"
+                event.pageY - tooltip.node().clientHeight - 28 + "px"
               )
             } else {
               tooltip
@@ -810,10 +814,10 @@ export default function LineageChart(conf) {
   chart.tree = function(value) {
     if (!arguments.length) return tree
     if (value === "cluster") {
-      tree = d3.layout.cluster()
+      tree = d3.cluster()
       chart(sel)
     } else {
-      tree = d3.layout.tree()
+      tree = d3.tree()
       chart(sel)
     }
     return chart

@@ -1,8 +1,7 @@
 import ProgressBar from "progressbar.js"
 import $ from "jquery"
-import nv from "nvd3"
-import "../css/nv.d3.css"
-import d3 from "d3"
+import Highcharts from "highcharts"
+import * as d3 from "d3"
 
 function compare(a, b) {
   if (a.key < b.key) return 1
@@ -47,8 +46,49 @@ $.fn.extend({
     var REPORT
 
     var chart
-    var chartData
     var dt
+
+    function updateChart(reportData) {
+      if (!reportData || !reportData.length) {
+        while(chart.series.length > 0) {
+          chart.series[0].remove(false);
+        }
+        chart.redraw();
+        return;
+      }
+
+      // Convert nvd3-style data to Highcharts format
+      var series = reportData.map(function(group) {
+        return {
+          name: group.key,
+          data: group.values.map(function(d) {
+            return {
+              x: (d.ex_eff && d.ex_eff !== null) ? d.ex_eff : 0,
+              y: (d.em_eff && d.em_eff !== null) ? d.em_eff : 0,
+              marker: {
+                radius: Math.max(1, +d.brightness * 2)
+              },
+              fluor: d.fluor,
+              fluor_slug: d.fluor_slug,
+              brightness: d.brightness,
+              url: d.url
+            };
+          })
+        };
+      });
+
+      // Remove existing series
+      while(chart.series.length > 0) {
+        chart.series[0].remove(false);
+      }
+
+      // Add new series
+      series.forEach(function(s) {
+        chart.addSeries(s, false);
+      });
+
+      chart.redraw();
+    }
 
     function updateData() {
       $.get(window.location + "json/", function(d) {
@@ -66,11 +106,9 @@ $.fn.extend({
         FLUORS = d.fluors
         REPORT = d.report
         $("#report_chart").height(750)
-        chartData
-          .datum(REPORT)
-          .transition()
-          .duration(300)
-          .call(chart)
+
+        updateChart(REPORT);
+
         $("#status").hide()
         $(".needs-data").show()
 
@@ -411,79 +449,102 @@ $.fn.extend({
     })
 
     $(document).ready(function() {
-      // create the chart
-      nv.addGraph(function() {
-        chart = nv.models
-          .scatterChart()
-          .x(function(d) {
-            if (d.ex_eff && d.ex_eff !== null) {
-              return d.ex_eff
+      // create the chart with Highcharts
+      chart = Highcharts.chart('report_chart', {
+        chart: {
+          type: 'scatter',
+          zoomType: 'xy'
+        },
+        title: { text: null },
+        xAxis: {
+          title: { text: 'Excitation Efficiency' },
+          labels: {
+            format: '{value:.2f}'
+          }
+        },
+        yAxis: {
+          title: { text: 'Collection Efficiency' },
+          labels: {
+            format: '{value:.2f}'
+          }
+        },
+        tooltip: {
+          useHTML: true,
+          formatter: function() {
+            var point = this.point;
+            return (
+              '<div class="report-tooltip"><p><strong>' +
+              point.fluor +
+              "</strong></p>" +
+              "<p>Ex Eff: " +
+              Math.round(1000 * point.x) / 10 +
+              " %</p>" +
+              "<p>Em Eff: " +
+              Math.round(1000 * point.y) / 10 +
+              " %</p>" +
+              "<p>Brightness: " +
+              (point.brightness || "-") +
+              "</p>" +
+              "<p>EC: " +
+              (FLUORS && FLUORS[point.fluor_slug] ? FLUORS[point.fluor_slug]["ext_coeff"] : "-") +
+              "</p>" +
+              "<p>QY: " +
+              (FLUORS && FLUORS[point.fluor_slug] ? FLUORS[point.fluor_slug]["qy"] : "-") +
+              "</p>" +
+              "</div>"
+            );
+          }
+        },
+        plotOptions: {
+          scatter: {
+            marker: {
+              radius: 5,
+              states: {
+                hover: {
+                  enabled: true,
+                  lineColor: 'rgb(100,100,100)'
+                }
+              }
+            },
+            states: {
+              hover: {
+                marker: {
+                  enabled: false
+                }
+              }
+            },
+            point: {
+              events: {
+                click: function() {
+                  if (this.url) {
+                    window.open(this.url);
+                  }
+                }
+              }
             }
-            return 0
-          })
-          .y(function(d) {
-            if (d.em_eff && d.em_eff !== null) {
-              return d.em_eff
-            }
-            return 0
-          })
-          .pointSize(function(d) {
-            return Math.max(1, +d.brightness * 2)
-          })
-          .pointRange([10, 400])
-          .pointDomain([1, 80])
-          //.showDistX(true)
-          //.showDistY(true)
-          //.yDomain([0, 1])
-          //.xDomain([0, 1])
-          .useVoronoi(true)
-          .noData("")
+          }
+        },
+        series: [],
+        lang: {
+          noData: ''
+        },
+        noData: {
+          style: {
+            fontWeight: 'bold',
+            fontSize: '15px',
+            color: '#303030'
+          }
+        },
+        credits: { enabled: false }
+      });
 
-        chart.xAxis
-          .tickFormat(d3.format(".02f"))
-          .axisLabel("Excitation Efficiency")
-        chart.yAxis
-          .tickFormat(d3.format(".02f"))
-          .axisLabel("Collection Efficiency")
+      // Add resize handler
+      $(window).on('resize', function() {
+        if (chart) {
+          chart.reflow();
+        }
+      });
 
-        chartData = d3.select("#report_chart svg")
-        chartData
-          .datum([])
-          .transition()
-          .duration(300)
-          .call(chart)
-        nv.utils.windowResize(chart.update)
-        chart.tooltip.contentGenerator(function(key, x, y, e, graph) {
-          return (
-            '<div class="report-tooltip" style="margin-top:' +
-            window.scrollY +
-            'px;"><p><strong>' +
-            key.point.fluor +
-            "</strong></p>" +
-            "<p>Ex Eff: " +
-            Math.round(1000 * key.point.x) / 10 +
-            " %</p>" +
-            "<p>Em Eff: " +
-            Math.round(1000 * key.point.y) / 10 +
-            " %</p>" +
-            "<p>Brightness: " +
-            (key.point.brightness || "-") +
-            "</p>" +
-            "<p>EC: " +
-            (FLUORS[key.point.fluor_slug]["ext_coeff"] || "-") +
-            "</p>" +
-            "<p>QY: " +
-            (FLUORS[key.point.fluor_slug]["qy"] || "-") +
-            "</p>" +
-            "</div>"
-          )
-        })
-        chart.scatter.dispatch.on("elementClick", function(event) {
-          //location.href = event.point.url;
-          window.open(event.point.url)
-        })
-        return chart
-      })
       updateData()
 
       $("body").on("click", "input.toggle-vis, input.meas-vis", function(e) {
@@ -557,8 +618,7 @@ $.fn.extend({
           newReport[i].values = newReport[i].values.filter(filterfunc)
         }
 
-        d3.select("#report_chart svg").datum(newReport)
-        chart.update()
+        updateChart(newReport);
       })
 
       $("#meas-toggles").empty()

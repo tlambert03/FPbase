@@ -5,9 +5,8 @@
 
 import noUiSlider from "nouislider"
 import $ from "jquery"
-import nv from "nvd3"
-import "../css/nv.d3.css"
-import d3 from "d3"
+import Highcharts from "highcharts"
+import * as d3 from "d3"
 
 ;
 
@@ -932,12 +931,12 @@ import d3 from "d3"
     if (type == "log") {
       options.scale = "log"
       chart.yDomain([0.001, n])
-      chart.yScale(d3.scale.log())
+      chart.yScale(d3.scaleLog())
       chart.yAxis.tickValues([0.01, 0.033, 0.1, 0.33, 1])
     } else {
       options.scale = "linear"
       chart.yDomain([0, n])
-      chart.yScale(d3.scale.linear())
+      chart.yScale(d3.scaleLinear())
       chart.yAxis.tickValues(d3.range(0, 1, 0.2))
     }
     refreshChart()
