@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 {% load render_bundle from webpack_loader %}
 
 <html lang="en">
@@ -18,8 +19,14 @@
   <meta name="copyright" content="Talley Lambert" />
 
   {% render_bundle 'main' %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha256-2K003H0jZA9S0f2CtcQ0zIYD65lfKdAA00qtDCPIMV0=" crossorigin="anonymous" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.1/css/select2.min.css" rel="stylesheet" />
+
+  <!-- Legacy d3 v3 + nvd3 + noUiSlider for microscope charts (isolated from main bundle) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js"></script>
 
   <style>#logolink {opacity: 0.6;}#logolink:hover {opacity: 1;}#logolink a:hover {text-decoration: none;}</style>
 </head>
@@ -45,4 +52,5 @@
     showArea: {{ microscope.cfg_fill_area|yesno:"true,false" }},
   }
 </script>
+<script src="{% static 'js/microscope.js' %}"></script>
 </html>

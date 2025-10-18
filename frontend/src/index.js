@@ -15,7 +15,7 @@ import "./js/protein_page.js"
 import "./js/favit.js"
 import "./js/jquery.formset.js"
 import "./js/onload.js"
-import "./js/microscope.js"
+// microscope.js loaded separately via CDN on microscope pages
 import "./js/scope_report.js"
 
 import FPPropChart from "./js/ichart.js"

@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
+{% block extrahead %}
+<!-- Legacy d3 v3 + nvd3 for microscope charts (isolated from main bundle) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" rel="stylesheet">
+{% endblock extrahead %}
+
 {% block title %}{{ microscope.name }} on FPbase{% endblock %}
 {% block meta-description %}A collection of spectra representing the microscope {{microscope.name}} on FPbase.{% endblock %}
 
@@ -26,6 +32,12 @@
 
 
 {% block javascript %}
+{{ block.super }}
+
+<!-- Legacy d3 v3 + nvd3 + noUiSlider for microscope charts (isolated from main bundle) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js"></script>
 
 <script type="text/javascript">
   var scopespectra = {{ scopespectra|safe }};
@@ -37,5 +49,6 @@
     showArea: {{ microscope.cfg_fill_area|yesno:"true,false" }},
   }
 </script>
+<script src="{% static 'js/microscope.js' %}"></script>
 
 {% endblock javascript %}
