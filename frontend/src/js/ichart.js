@@ -1,5 +1,5 @@
 import noUiSlider from "nouislider"
-import d3 from "d3"
+import * as d3 from "d3"
 import $ from "jquery"
 
 export default function FPPropChart() {
@@ -45,51 +45,44 @@ export default function FPPropChart() {
   }
 
   // Scales and axes
-  const xScale = d3.scale.linear().range([0, width])
+  const xScale = d3.scaleLinear().range([0, width])
+  const originalXScale = d3.scaleLinear().range([0, width])
 
-  const yScale = d3.scale.linear().range([height, 0])
+  const yScale = d3.scaleLinear().range([height, 0])
+  const originalYScale = d3.scaleLinear().range([height, 0])
 
   // This scale will set the saturation (gray to saturated color).  We will use it for mapping brightness.
-  const saturationScale = d3.scale
-    .linear()
+  const saturationScale = d3
+    .scaleLinear()
     .range([0, 1])
     .domain([0, 100])
 
   // This scale will set the hue.  We will use it for mapping emission wavelength.
-  const hueScale = d3.scale
-    .linear()
+  const hueScale = d3
+    .scaleLinear()
     .range([300, 300, 240, 0, 0])
     .domain([200, 405, 440, 650, 850])
 
   // X and Y axes
-  const xAxisBottom = d3.svg
-    .axis()
-    .scale(xScale)
+  const xAxisBottom = d3
+    .axisBottom(xScale)
     .tickSize(5)
-    .tickSubdivide(true)
-  const yAxisLeft = d3.svg
-    .axis()
-    .scale(yScale)
+
+  const yAxisLeft = d3
+    .axisLeft(yScale)
     .tickSize(5)
-    .orient("left")
-    .tickSubdivide(true)
 
   // top and right axes are identical but without tick labels
-  const xAxisTop = d3.svg
-    .axis()
-    .scale(xScale)
+  const xAxisTop = d3
+    .axisTop(xScale)
     .tickSize(5)
-    .orient("top")
-    .tickSubdivide(true)
     .tickFormat(function(d) {
       return ""
     })
-  const yAxisRight = d3.svg
-    .axis()
-    .scale(yScale)
+
+  const yAxisRight = d3
+    .axisRight(yScale)
     .tickSize(5)
-    .orient("right")
-    .tickSubdivide(true)
     .tickFormat(function(d) {
       return ""
     })
@@ -106,6 +99,9 @@ export default function FPPropChart() {
 
     // Otherwise, create the skeletal chart.
     const svgEnter = svg.enter().append("svg")
+      .attr("viewBox", "0 0 760 760")
+      .attr("id", "mainchart")
+      .attr("preserveAspectRatio", "xMinYMin meet")
     const gEnter = svgEnter.append("g")
 
     function drawGraph() {
@@ -148,7 +144,7 @@ export default function FPPropChart() {
       .attr("id", "mainchart")
       .attr("preserveAspectRatio", "xMinYMin meet")
 
-    svg = svg.select("g")
+    svg = svg.merge(svgEnter).select("g")
 
     gEnter
       .attr("transform", `translate(${margin.left},${margin.top})`)
@@ -202,12 +198,15 @@ export default function FPPropChart() {
       .attr("height", height)
 
     // enable zooming
-    const zoom = d3.behavior
+    const zoom = d3
       .zoom()
-      .x(xScale)
-      .y(yScale)
       .scaleExtent([1, 10])
-      .on("zoom", drawGraph)
+      .on("zoom", (event) => {
+        const transform = event.transform
+        xScale.domain(transform.rescaleX(originalXScale).domain())
+        yScale.domain(transform.rescaleY(originalYScale).domain())
+        drawGraph()
+      })
 
     gEnter
       .append("rect")
@@ -217,11 +216,11 @@ export default function FPPropChart() {
       .call(zoom)
 
     function addactions(sel) {
-      sel.on("click", function(e) {
-        window.location = e.url
+      sel.on("click", function(event, d) {
+        window.location = d.url
       })
       sel
-        .on("mouseover", function(d) {
+        .on("mouseover", function(event, d) {
           // Get this bar's x/y values, then augment for the tooltip
           if (d3.select(this).attr("cx")) {
             // if circle
@@ -243,8 +242,8 @@ export default function FPPropChart() {
               .attr("width", symbolsize * 2 * bigscale)
               .attr("height", symbolsize * 2 * bigscale)
           }
-          const ypos = d3.event.pageY - $("rect.pane").position().top
-          const xpos = d3.event.pageX - $("rect.pane").position().left
+          const ypos = event.pageY - $("rect.pane").position().top
+          const xpos = event.pageX - $("rect.pane").position().left
 
           const yPosition = $("rect.pane").position().top + 10
           let xPosition
@@ -314,7 +313,7 @@ export default function FPPropChart() {
         .attr("stroke", "#000")
         .attr("opacity", 0.7)
         .style("fill", function(d) {
-          return d3.hsl(hueScale(d.em_max), saturationScale(d.brightness), 0.5)
+          return d3.hsl(hueScale(d.em_max), saturationScale(d.brightness), 0.5).toString()
         })
       addactions(circle)
     }
@@ -328,7 +327,7 @@ export default function FPPropChart() {
         .attr("stroke", "#000")
         .attr("opacity", 0.7)
         .style("fill", function(d) {
-          return d3.hsl(hueScale(d.em_max), saturationScale(d.brightness), 0.5)
+          return d3.hsl(hueScale(d.em_max), saturationScale(d.brightness), 0.5).toString()
         })
       addactions(square)
     }
@@ -403,7 +402,9 @@ export default function FPPropChart() {
           }),
         ])
         .nice()
-      zoom.x(xScale)
+
+      // Update the original scale to match the new domain
+      originalXScale.domain(xScale.domain())
 
       yScale
         .domain([
@@ -415,7 +416,9 @@ export default function FPPropChart() {
           }),
         ])
         .nice()
-      zoom.y(yScale)
+
+      // Update the original scale to match the new domain
+      originalYScale.domain(yScale.domain())
 
       // relabel X and Y axes
       svg.select(".x.label").text(strings[xvar])
@@ -448,39 +451,42 @@ export default function FPPropChart() {
       // Remove old elements as needed.
       datagroup.exit().remove()
 
+      // Merge enter and update selections for positioning
+      const mergedgroup = datagroup.merge(entergroup)
+
       // move circles to their new positions (based on axes) with transition animation
-      datagroup.each(function(d, i) {
+      mergedgroup.each(function(d, i) {
         const current = d3.select(this)
         current
           .selectAll("circle.FP")
           .transition()
+          .duration(circleMoveDuration) // change this number to speed up or slow down the animation
           .attr("cx", function(d_) {
             return xScale(d_[xvar])
           })
           .attr("cy", function(d_) {
             return yScale(d_[yvar])
           })
-          .duration(circleMoveDuration) // change this number to speed up or slow down the animation
         current
           .selectAll("rect.FP")
           .transition()
+          .duration(circleMoveDuration) // change this number to speed up or slow down the animation
           .attr("x", function(d_) {
             return xScale(d_[xvar]) - symbolsize
           })
           .attr("y", function(d_) {
             return yScale(d_[yvar]) - symbolsize
           })
-          .duration(circleMoveDuration) // change this number to speed up or slow down the animation
         current
           .selectAll("text.FP")
           .transition()
+          .duration(circleMoveDuration) // change this number to speed up or slow down the animation
           .attr("x", function(d_) {
             return xScale(d_[xvar]) - symbolsize / 2
           })
           .attr("y", function(d_) {
             return yScale(d_[yvar]) + symbolsize / 2
           })
-          .duration(circleMoveDuration) // change this number to speed up or slow down the animation
       })
 
       // these two lines cause the transition animation on the axes... they are also cause
@@ -490,7 +496,7 @@ export default function FPPropChart() {
       svg.select(".y.axis.left").call(yAxisLeft)
     }
 
-    if (svgEnter[0][0]) {
+    if (!svgEnter.empty()) {
       // dynamically generate filter sliders based on "filters" object
       $.each(dataFilters, function(i, v) {
         if (i === "agg") {

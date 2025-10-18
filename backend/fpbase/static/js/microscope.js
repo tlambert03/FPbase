@@ -3,10 +3,9 @@
 // where a bad foundation just kept going.  the program works relatively well,
 // but it sure isn't pretty.
 
-import noUiSlider from "nouislider"
-import $ from "jquery"
-import Highcharts from "highcharts"
-import * as d3 from "d3"
+// NOTE: This file is loaded as a static script on microscope pages.
+// Dependencies (d3 v3, nvd3, jQuery, noUiSlider) are loaded via CDN and available as globals.
+// See microscope_detail.html and microscope_embed.html templates.
 
 ;
 
@@ -931,12 +930,12 @@ import * as d3 from "d3"
     if (type == "log") {
       options.scale = "log"
       chart.yDomain([0.001, n])
-      chart.yScale(d3.scaleLog())
+      chart.yScale(d3.scale.log())
       chart.yAxis.tickValues([0.01, 0.033, 0.1, 0.33, 1])
     } else {
       options.scale = "linear"
       chart.yDomain([0, n])
-      chart.yScale(d3.scaleLinear())
+      chart.yScale(d3.scale.linear())
       chart.yAxis.tickValues(d3.range(0, 1, 0.2))
     }
     refreshChart()

@@ -102,17 +102,28 @@
 {% block javascript %}
 <script>
 
-  d3.json("{% url 'api:basic-protein-api' %}", function(data){
-    if (data == null){
+  fetch("{% url 'api:basic-protein-api' %}", {
+    headers: {
+      'Accept': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(function(data){
+    if (data == null || !Array.isArray(data)){
       $('.loadinggif').hide();
       //$('#errorModal').modal()
       $('#errorModal').modal('show');
       return;
     }
 
+    // Data is already in the correct format from the basic API
     fpchart = window.FPBASE.FPPropChart().data(data);
     d3.select('#graph').call(fpchart);
     $('.loadinggif').hide();
+  }).catch(function(error){
+    console.error("Error loading data:", error);
+    $('.loadinggif').hide();
+    $('#errorModal').modal('show');
   });
 
 </script>

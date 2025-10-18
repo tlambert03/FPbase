@@ -1,13 +1,11 @@
-import d3 from "d3"
-import nv from "nvd3"
-import "../css/nv.d3.css"
+import * as d3 from "d3"
+import Highcharts from "highcharts"
 import $ from "jquery"
 
 export default function initFRET() {
   var chart;
   var data = [];
   var localData = {};
-  var svg = d3.select('#spectra svg');
   var donorEM;
   var acceptorEX;
   var options = {
@@ -23,54 +21,70 @@ export default function initFRET() {
     scaleToQY: false,
   };
 
-  //initialize chart
-  nv.addGraph(function() {
-    chart = nv.models.lineChart().options({
-      focusEnable: false,
-      focusShowAxisX: false,
-      noData: 'Choose an acceptor and donor below',
-      showLegend: true,
-      showXAxis: true,
-      showYAxis: true,
-      duration: 300,
-      useInteractiveGuideline: !window.mobilecheck(),
-      clipEdge: true,
-      margin: {
-        left: 40,
-        bottom: 55,
-      },
-      yDomain: [0, 1],
-      xDomain: [350, 750],
-      //forceY: [0,1.04],
-      forceX: [350, 750],
-    });
-    chart.lines.duration(0);
-    chart.brushExtent(options.startingBrush);
-    chart.interactiveLayer.tooltip.valueFormatter(function(d, i) {
-      if (d) {
-        return Math.round(d * 1000) / 10 + '%';
-      } else {
-        return '--';
+  //initialize chart with Highcharts
+  chart = Highcharts.chart('spectra', {
+    chart: {
+      type: 'line',
+      animation: { duration: 300 }
+    },
+    title: { text: null },
+    xAxis: {
+      title: { text: 'Wavelength (nm)' },
+      min: 350,
+      max: 750
+    },
+    yAxis: {
+      title: { text: 'Normalized Ex/Em/Transmission' },
+      min: 0,
+      max: 1,
+      labels: {
+        format: '{value:.0%}'
       }
-    });
+    },
+    tooltip: {
+      shared: !window.mobilecheck(),
+      valueDecimals: 1,
+      valueSuffix: '%',
+      valueFormatter: function(value) {
+        if (value !== null && value !== undefined) {
+          return Math.round(value * 1000) / 10 + '%';
+        } else {
+          return '--';
+        }
+      }
+    },
+    legend: {
+      enabled: true
+    },
+    plotOptions: {
+      line: {
+        animation: false,
+        marker: { enabled: false }
+      },
+      area: {
+        animation: false,
+        marker: { enabled: false }
+      }
+    },
+    series: [],
+    lang: {
+      noData: 'Choose an acceptor and donor below'
+    },
+    noData: {
+      style: {
+        fontWeight: 'bold',
+        fontSize: '15px',
+        color: '#303030'
+      }
+    },
+    credits: { enabled: false }
+  });
 
-    // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly
-    // return themselves, not the parent chart, so need to chain separately
-
-    chart.xAxis.axisLabel('Wavelength (nm)');
-
-    chart.yAxis
-      .axisLabel('Normalized Ex/Em/Transmission')
-      .tickFormat(d3.format('1%'))
-      .axisLabelDistance(25);
-    svg.datum(data).call(chart);
-    chart.dispatch.on('stateChange', function(e) {
-      chart.update();
-    });
-
-    nv.utils.windowResize(function() {
-      chart.update();
-    });
+  // Add resize handler
+  $(window).on('resize', function() {
+    if (chart) {
+      chart.reflow();
+    }
   });
 
   $('#donor-select').select2({
@@ -83,20 +97,6 @@ export default function initFRET() {
     containerCssClass: ':all:',
     width: 'auto',
   });
-
-  d3.selection.prototype.moveToFront = function() {
-    return this.each(function() {
-      this.parentNode.appendChild(this);
-    });
-  };
-  d3.selection.prototype.moveToBack = function() {
-    return this.each(function() {
-      var firstChild = this.parentNode.firstChild;
-      if (firstChild) {
-        this.parentNode.insertBefore(this, firstChild);
-      }
-    });
-  };
 
   function getData(slug) {
     var dfd = $.Deferred();
@@ -258,6 +258,31 @@ export default function initFRET() {
     $('#r0QYA').text(Math.round(r[1] * $('#QYA').text() * 1000) / 100);
   }
 
+  function updateChart() {
+    // Convert data to Highcharts format
+    var series = data.map(function(item) {
+      return {
+        name: item.key,
+        data: item.values.map(function(v) { return [v.x, v.y]; }),
+        type: item.area ? 'area' : 'line',
+        color: item.color && item.color.startsWith('url(') ? null : item.color,
+        fillOpacity: item.area ? 0.3 : 0,
+        className: item.classed,
+        zIndex: item.classed && item.classed.includes('fret-overlap') ? 10 :
+                item.classed && item.classed.includes('faded-fret') ? 1 : 5
+      };
+    });
+
+    // Update chart with new series
+    while(chart.series.length > 0) {
+      chart.series[0].remove(false);
+    }
+    series.forEach(function(s) {
+      chart.addSeries(s, false);
+    });
+    chart.redraw();
+  }
+
   // main function when data-selector has been changed
   $('.data-selector').change(function(event) {
     data.splice(0, 10);
@@ -269,14 +294,14 @@ export default function initFRET() {
       }
       if (donorslug) {
         donorEM = dataItemMatching({ slug: donorslug, type: 'em' })[0];
-        donorEM.classed += ' faded-fret';
+        donorEM.classed = (donorEM.classed || '') + ' faded-fret';
         $('#QYD').text(donorEM.scalar);
       } else {
         $('#QYD').text('');
       }
       if (acceptorslug) {
         acceptorEX = dataItemMatching({ slug: acceptorslug, type: 'ex' })[0];
-        acceptorEX.classed += ' faded-fret';
+        acceptorEX.classed = (acceptorEX.classed || '') + ' faded-fret';
         $('#ECA').text(acceptorEX.scalar.toLocaleString());
 
         var acceptorEM = dataItemMatching({ slug: acceptorslug, type: 'em' })[0]
@@ -289,7 +314,7 @@ export default function initFRET() {
           key: 'Overlap',
           values: spectral_product(donorEM.values, acceptorEX.values),
           area: true,
-          color: 'url(#diagonal-stripe-r)',
+          color: 'rgba(255, 100, 100, 0.5)',
           classed: 'fret-overlap',
           type: 'overlap',
         });
@@ -297,9 +322,7 @@ export default function initFRET() {
       } else {
         $('#overlapIntgrl, #r0').text('');
       }
-      chart.update();
-      d3.selectAll('.faded-fret').moveToBack();
-      d3.selectAll('.fret-overlap').moveToFront();
+      updateChart();
     });
   });
 

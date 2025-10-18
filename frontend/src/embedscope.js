@@ -1,11 +1,10 @@
 import "jquery"
 import "bootstrap"
 import "nouislider"
-import d3 from "d3"
-import "./js/nv.d3.js"
+import * as d3 from "d3"
 import "select2/dist/js/select2.full.js"
 import "./js/my-fontawesome.js"
-import "./js/microscope.js"
+// microscope.js loaded separately via CDN on microscope pages
 
 // allow parent to apply styles to iframe
 window.addEventListener("message", (event) => {
