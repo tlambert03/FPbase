@@ -60,6 +60,9 @@ jobs:
       - name: Install node Dependencies
         run: pnpm install
 
+      - name: Test spectra package
+        run: pnpm --filter @fpbase/spectra test:ci
+
       - run: uv sync
 
       - name: setup-chromedriver

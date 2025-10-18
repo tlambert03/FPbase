@@ -24,6 +24,8 @@ const DEFAULT_OPTIONS = {
   plotOptions: {
     series: {
       boostThreshold: 800,
+      findNearestPointBy: 'x',
+      stickyTracking: true,
       events: {
         mouseOver: function({ target: { xAxis } }, b) {
           const el = document.getElementById("zoom-info")
@@ -44,8 +46,9 @@ const DEFAULT_OPTIONS = {
   },
   boost: {
     useGPUTranslations: true,
-    seriesThreshold: 4,
+    seriesThreshold: 50,
     enabled: true,
+    allowForce: false,
     debug: {
       showSkipSummary: true,
       timeSeriesProcessing: true,
@@ -201,12 +204,12 @@ const DEFAULT_OPTIONS = {
         this.x
       }nm</td></tr>`
 
-      if (this.point) {
-        tooltipHtml += toolTipRow(this.point)
-      } else {
+      if (this.points && this.points.length > 0) {
         this.points.forEach(function(entry) {
           tooltipHtml += toolTipRow(entry)
         })
+      } else if (this.point) {
+        tooltipHtml += toolTipRow(this.point)
       }
 
       tooltipHtml += "</table>"
