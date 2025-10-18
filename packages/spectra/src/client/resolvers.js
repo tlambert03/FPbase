@@ -13,6 +13,9 @@ import PALETTES from "../palettes"
 
 const PALETTE_KEYS = Object.keys(PALETTES)
 
+// Mutex to prevent concurrent normalizeCurrent calls
+let normalizingPromise = null
+
 export const defaults = {
   activeSpectra: [],
   activeOverlaps: [],
@@ -248,28 +251,52 @@ export const resolvers = {
       await client.writeQuery({ query: GET_ACTIVE_OVERLAPS, data })
       return data
     },
-    normalizeCurrent: (_, args, { cache, client }) => {
-      const { activeSpectra, selectors: currentSelectors } = cache.readQuery({
-        query: gql`
-          {
-            activeSpectra @client
-            selectors @client
-          }
-        `,
-      })
-      const selectors = activeSpectraToSelectors(
-        activeSpectra,
-        currentSelectors,
-        window.spectraInfo,
-        window.ownerInfo
-      )
-      if (selectors.length > 0) {
-        client.mutate({
-          mutation: ADD_SELECTORS,
-          variables: { selectors },
-        })
+    normalizeCurrent: async (_, args, { cache, client }) => {
+      // Wait if another normalizeCurrent is already running (mutex)
+      if (normalizingPromise) {
+        await normalizingPromise;
       }
-      return [currentSelectors, selectors]
+
+      // Create a new promise for this call
+      const executeNormalize = async () => {
+        const { activeSpectra, selectors: currentSelectors } = cache.readQuery({
+          query: gql`
+            {
+              activeSpectra @client
+              selectors @client
+            }
+          `,
+        })
+
+        // Use window globals (safe because OwnersContainer checks they're populated before calling)
+        if (!window.ownerInfo || !window.spectraInfo) {
+          return [currentSelectors, []];
+        }
+
+        const selectors = activeSpectraToSelectors(
+          activeSpectra,
+          currentSelectors,
+          window.spectraInfo,
+          window.ownerInfo
+        )
+
+        if (selectors.length > 0) {
+          await client.mutate({
+            mutation: ADD_SELECTORS,
+            variables: { selectors },
+          })
+        }
+        return [currentSelectors, selectors]
+      };
+
+      // Set the promise and execute
+      normalizingPromise = executeNormalize();
+      try {
+        return await normalizingPromise;
+      } finally {
+        // Clear the promise when done
+        normalizingPromise = null;
+      }
     },
     addSelectors: (_, { selectors }, { cache, client }) => {
       const { selectors: currentSelectors } = cache.readQuery({

@@ -110,7 +110,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
   const [tab, setTab] = useState(0)
 
   const {
-    data: { activeSpectra, selectors },
+    data: { activeSpectra, selectors } = { activeSpectra: [], selectors: [] },
   } = useQuery(gql`
     {
       selectors @client
@@ -120,8 +120,16 @@ const OwnersContainer = React.memo(function OwnersContainer({
 
   const client = useApolloClient()
   useEffect(() => {
-    client.mutate({ mutation: NORMALIZE_CURRENT })
-  }, [activeSpectra, client]) //eslint-disable-line
+    // Only normalize when both ownerInfo and spectraInfo are populated
+    if (Object.keys(ownerInfo).length > 0 && Object.keys(spectraInfo).length > 0) {
+      // Double-check window globals are actually set (defensive)
+      if (!window.ownerInfo || !window.spectraInfo) {
+        window.ownerInfo = ownerInfo;
+        window.spectraInfo = spectraInfo;
+      }
+      client.mutate({ mutation: NORMALIZE_CURRENT })
+    }
+  }, [activeSpectra, ownerInfo, spectraInfo, client])
 
   const handleTabChange = (event, newValue) => {
     if (newValue !== tab) {

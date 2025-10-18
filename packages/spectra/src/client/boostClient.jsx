@@ -17,10 +17,19 @@ window.client = client
 
 // Populate from localstorage?
 const setupLocalStorage = async () => {
-  await persistCache({
-    cache,
-    storage: window.sessionStorage
-  })
+  try {
+    await persistCache({
+      cache,
+      storage: window.sessionStorage,
+      maxSize: 1048576, // 1MB limit to prevent quota exceeded errors
+    })
+    // After restoring from cache, reset selectors to empty
+    // They'll be regenerated from activeSpectra by NORMALIZE_CURRENT
+    cache.writeData({ data: { selectors: [] } });
+  } catch (error) {
+    // If persistence fails (quota exceeded, etc), just continue without it
+    console.warn('Cache persistence disabled:', error.message);
+  }
 }
 setupLocalStorage()
 
