@@ -201,8 +201,8 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
           <div className="sweet-loading">
             <BarLoader
               css={override}
-              sizeUnit="px"
-              size={100}
+              height={4}
+              width="100px"
               color="#ccc"
               loading
             />

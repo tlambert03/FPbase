@@ -3,6 +3,7 @@ import { makeStyles } from "@mui/styles"
 import { Typography, Box, IconButton } from "@mui/material"
 import { MaterialReactTable } from "material-react-table"
 import Shuffle from "@mui/icons-material/Shuffle"
+import SaveAlt from "@mui/icons-material/SaveAlt"
 import { useMutation, useQuery, useApolloClient } from "@apollo/client"
 import Button from "@mui/material/Button"
 import gql from "graphql-tag"
@@ -102,7 +103,10 @@ const EfficiencyTable = ({ initialTranspose }) => {
 
   useEffect(() => {
     return () => {
-      client.writeData({ data: { activeOverlaps: [] } })
+      client.writeQuery({
+        query: GET_ACTIVE_OVERLAPS,
+        data: { activeOverlaps: [] },
+      })
     }
   }, [client])
 
@@ -218,7 +222,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
               fontSize: '1rem',
             },
           }}
-          renderTopToolbarCustomActions={() => (
+          renderTopToolbarCustomActions={({ table }) => (
             <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center', p: 1 }}>
               <Typography variant="h6">Collection Efficiency (%)</Typography>
               <IconButton
@@ -226,6 +230,29 @@ const EfficiencyTable = ({ initialTranspose }) => {
                 title="Transpose"
               >
                 <Shuffle />
+              </IconButton>
+              <IconButton
+                onClick={() => {
+                  const csvContent = [
+                    // Header row
+                    columns.map(col => col.header).join(','),
+                    // Data rows
+                    ...rows.map(row =>
+                      columns.map(col => row[col.accessorKey] || '').join(',')
+                    )
+                  ].join('\n')
+
+                  const blob = new Blob([csvContent], { type: 'text/csv' })
+                  const url = window.URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = 'efficiency-table.csv'
+                  a.click()
+                  window.URL.revokeObjectURL(url)
+                }}
+                title="Export to CSV"
+              >
+                <SaveAlt />
               </IconButton>
             </Box>
           )}

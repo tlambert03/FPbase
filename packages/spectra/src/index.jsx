@@ -1,4 +1,4 @@
-import React, { useRef } from "react"
+import React, { useMemo } from "react"
 import "./index.css"
 import { ApolloProvider } from "@apollo/client"
 import { ThemeProvider, StyledEngineProvider } from "@mui/material/styles"
@@ -20,12 +20,12 @@ import theme from "./Components/theme"
 // }
 /* eslint-enable */
 
-const AppWrapper = ({ uri }) => {
-  const client = useRef(initializeClient({ uri }))
+const AppWrapper = ({ uri = "/graphql/" }) => {
+  const client = useMemo(() => initializeClient({ uri }), [uri])
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <ApolloProvider client={client.current}>
+        <ApolloProvider client={client}>
           <App />
         </ApolloProvider>
       </ThemeProvider>
@@ -33,28 +33,20 @@ const AppWrapper = ({ uri }) => {
   )
 }
 
-AppWrapper.defaultProps = {
-  uri: "/graphql/",
-}
-
 export default AppWrapper
 
-const SimpleSpectraViewer = ({ uri, ids, overlaps, options, hidden }) => {
-  const client = useRef(initializeClient({ uri }))
+const SimpleSpectraViewer = ({ uri = "/graphql/", ids, overlaps, options, hidden }) => {
+  const client = useMemo(() => initializeClient({ uri }), [uri])
 
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <ApolloProvider client={client.current}>
+        <ApolloProvider client={client}>
           <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
         </ApolloProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   )
-}
-
-SimpleSpectraViewer.defaultProps = {
-  uri: "/graphql/",
 }
 
 const Inner = ({ ids, overlaps, options, hidden }) => {

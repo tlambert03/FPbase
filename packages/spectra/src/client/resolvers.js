@@ -48,9 +48,17 @@ function toggleChartOption(cache, key) {
       }
     `,
   })
-  const data = { ...current }
-  data.chartOptions[key] = !current.chartOptions[key]
-  cache.writeData({ data })
+  const data = { chartOptions: { ...current.chartOptions, [key]: !current.chartOptions[key], __typename: "chartOptions" } }
+  cache.writeQuery({
+    query: gql`
+      {
+        chartOptions @client {
+          ${key}
+        }
+      }
+    `,
+    data,
+  })
   return data
 }
 
@@ -198,7 +206,10 @@ export const resolvers = {
       return _setPalette(newpalette, client)
     },
     setExcludeSubtypes: (_, { excludeSubtypes }, { cache }) => {
-      cache.writeData({ data: { excludeSubtypes } })
+      cache.writeQuery({
+        query: GET_OWNER_OPTIONS,
+        data: { excludeSubtypes },
+      })
     },
     setExNorm: async (_, { data }, { client }) => {
       await client.writeQuery({ query: GET_EX_NORM, data: { exNorm: data } })
@@ -352,11 +363,22 @@ export const resolvers = {
             leave.includes(window.spectraInfo[id].category)
         )
       }
-      cache.writeData({
+      // Write each field separately using writeQuery
+      cache.writeQuery({
+        query: GET_EX_NORM,
+        data: { exNorm: [null, null] },
+      })
+      cache.writeQuery({
+        query: GET_SELECTORS,
+        data: { selectors: [] },
+      })
+      cache.writeQuery({
+        query: GET_ACTIVE_OVERLAPS,
+        data: { activeOverlaps: [] },
+      })
+      cache.writeQuery({
+        query: GET_ACTIVE_SPECTRA,
         data: {
-          exNorm: [null, null],
-          selectors: [],
-          activeOverlaps: [],
           activeSpectra: [
             ...new Set([...keepSpectra, ...(appendSpectra || [])]),
           ],
