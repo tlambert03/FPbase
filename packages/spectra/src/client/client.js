@@ -1,12 +1,6 @@
-import { ApolloClient } from "apollo-client";
-import {
-  InMemoryCache,
-  IntrospectionFragmentMatcher,
-} from "apollo-cache-inmemory";
-import { HttpLink } from "apollo-link-http";
-import { onError } from "apollo-link-error";
-import { ApolloLink } from "apollo-link";
-import { persistCache } from "apollo-cache-persist";
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, from } from "@apollo/client";
+import { onError } from "@apollo/client/link/error";
+import { persistCache } from "apollo3-cache-persist";
 import qs from "qs";
 import { defaults, resolvers, validSpectraIds } from "./resolvers";
 import typeDefs from "./schema";
@@ -61,13 +55,11 @@ export function parseURL(data) {
 }
 
 function intializeClient({ uri, storage }) {
-  const fragmentMatcher = new IntrospectionFragmentMatcher({
-    introspectionQueryResultData,
+  const cache = new InMemoryCache({
+    possibleTypes: introspectionQueryResultData.possibleTypes,
   });
 
-  const cache = new InMemoryCache({ fragmentMatcher });
-
-  const link = ApolloLink.from([
+  const link = from([
     onError(({ graphQLErrors, networkError }) => {
       if (graphQLErrors)
         graphQLErrors.map(({ message, locations, path }) =>
@@ -92,7 +84,6 @@ function intializeClient({ uri, storage }) {
 
   // Populate from localstorage?
   const setupLocalStorage = async () => {
-    cache.writeData({ data: defaults });
     try {
       await persistCache({
         cache,
@@ -100,20 +91,52 @@ function intializeClient({ uri, storage }) {
         debounce: 400,
         maxSize: 1048576, // 1MB limit to prevent quota exceeded errors
       });
-      // After restoring from cache, reset selectors to empty
-      // They'll be regenerated from activeSpectra by NORMALIZE_CURRENT
-      cache.writeData({ data: { selectors: [] } });
     } catch (error) {
       // If persistence fails (quota exceeded, etc), just continue without it
       console.warn('Cache persistence disabled:', error.message);
     }
-    cache.writeData({ data: { activeOverlaps: [] } });
+
+    // After restoring from cache, ensure defaults are set if not present
+    try {
+      const cached = cache.readQuery({ query: GET_CHART_OPTIONS });
+      if (!cached || !cached.chartOptions) {
+        // No cached data, initialize with defaults
+        cache.writeQuery({
+          query: GET_CHART_OPTIONS,
+          data: {
+            chartOptions: defaults.chartOptions,
+          },
+        });
+      }
+    } catch (e) {
+      // Query failed (no data in cache), initialize with defaults
+      cache.writeQuery({
+        query: GET_CHART_OPTIONS,
+        data: {
+          chartOptions: defaults.chartOptions,
+        },
+      });
+    }
   };
 
   function _parseURL() {
-    let data = cache.readQuery({ query: GET_CHART_OPTIONS });
-    data = parseURL(data);
-    cache.writeData({ data });
+    try {
+      const cached = cache.readQuery({ query: GET_CHART_OPTIONS });
+      if (!cached) return;
+
+      // parseURL expects the full defaults structure, so we need to merge with defaults
+      const fullData = { ...defaults, ...cached };
+      const parsedData = parseURL(fullData);
+      // Write back only the chartOptions part
+      cache.writeQuery({
+        query: GET_CHART_OPTIONS,
+        data: {
+          chartOptions: parsedData.chartOptions,
+        },
+      });
+    } catch (error) {
+      console.warn('Failed to parse URL parameters:', error);
+    }
   }
 
   setupLocalStorage().then(_parseURL);

@@ -1,12 +1,13 @@
 import React, { useRef } from "react"
 import "./index.css"
-import { ApolloProvider } from "@apollo/react-hooks"
+import { ApolloProvider } from "@apollo/client"
+import { ThemeProvider, StyledEngineProvider } from "@mui/material/styles"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
-// import { ApolloProvider } from "@apollo/react-hooks"
 import initializeClient from "./client/client"
 import { parseURL } from "./client/client"
 import { defaults } from "./client/resolvers"
+import theme from "./Components/theme"
 
 /* eslint-disable */
 // if (process.env.NODE_ENV === 'development') {
@@ -22,9 +23,13 @@ import { defaults } from "./client/resolvers"
 const AppWrapper = ({ uri }) => {
   const client = useRef(initializeClient({ uri }))
   return (
-    <ApolloProvider client={client.current}>
-      <App />
-    </ApolloProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={theme}>
+        <ApolloProvider client={client.current}>
+          <App />
+        </ApolloProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   )
 }
 
@@ -38,9 +43,13 @@ const SimpleSpectraViewer = ({ uri, ids, overlaps, options, hidden }) => {
   const client = useRef(initializeClient({ uri }))
 
   return (
-    <ApolloProvider client={client.current}>
-      <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
-    </ApolloProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={theme}>
+        <ApolloProvider client={client.current}>
+          <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
+        </ApolloProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   )
 }
 

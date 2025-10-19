@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useApolloClient, useQuery } from "@apollo/react-hooks"
+import { useApolloClient, useQuery } from "@apollo/client"
 import update from "immutability-helper"
 import gql from "graphql-tag"
 import { GET_SPECTRUM } from "../client/queries"

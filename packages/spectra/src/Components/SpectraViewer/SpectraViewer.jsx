@@ -1,5 +1,5 @@
 import React, { useEffect, memo } from "react"
-import { useQuery } from "@apollo/react-hooks"
+import { useQuery } from "@apollo/client"
 import Highcharts from "highcharts"
 import {
   HighchartsProvider,
@@ -19,7 +19,7 @@ import "highcharts/modules/export-data"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/boost"
 import update from "immutability-helper"
-import { css } from "@emotion/core"
+import { css } from "@emotion/react"
 import { BarLoader } from "react-spinners"
 import gql from "graphql-tag"
 import XRangePickers from "./XRangePickers"
@@ -101,9 +101,12 @@ const BaseSpectraViewerContainer = React.memo(
     if (provideOptions) {
       chartOptions = provideOptions
       normWave = undefined
-    } else {
+    } else if (data?.chartOptions) {
       chartOptions = data.chartOptions
-        ;[normWave] = data.exNorm
+        ;[normWave] = data.exNorm || [null]
+    } else {
+      // Data not loaded yet, return null to avoid rendering errors
+      return null
     }
 
     const yAxis = update(_yAxis, {

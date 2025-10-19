@@ -1,11 +1,11 @@
 import React from "react"
 import PropTypes from "prop-types"
-import Box from "@material-ui/core/Box"
-import ToggleButton from "@material-ui/lab/ToggleButton"
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
-import { useQuery, useMutation } from "@apollo/react-hooks"
-import { makeStyles } from "@material-ui/core"
-import Visibility from "@material-ui/icons/Visibility"
+import Box from "@mui/material/Box"
+import ToggleButton from "@mui/material/ToggleButton"
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
+import { useQuery, useMutation } from "@apollo/client"
+import { makeStyles } from "@mui/styles"
+import Visibility from "@mui/icons-material/Visibility"
 import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const useStyles = makeStyles(theme => ({
