@@ -1,7 +1,6 @@
 import ProgressBar from "progressbar.js"
 import $ from "jquery"
 import Highcharts from "highcharts"
-import * as d3 from "d3"
 
 function compare(a, b) {
   if (a.key < b.key) return 1
