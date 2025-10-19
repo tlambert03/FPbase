@@ -278,9 +278,8 @@ const OverlapToggle = ({ children, id, isActive }) => {
     }
   `)
 
-  const handleClick = event => {
-    const elem = event.target.closest("button")
-    const checked = !elem.checked
+  const handleClick = () => {
+    const checked = !active
     const variables = {}
     variables[checked ? "add" : "remove"] = [id]
     setOverlaps({ variables })
