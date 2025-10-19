@@ -58,15 +58,31 @@ $.fn.extend({
       }
 
       // Convert nvd3-style data to Highcharts format
-      var series = reportData.map(function(group) {
+      var series = reportData.map(function(group, index) {
+        // Get the default Highcharts color for this series
+        var seriesColor = Highcharts.getOptions().colors[index % Highcharts.getOptions().colors.length];
+
         return {
           name: group.key,
           data: group.values.map(function(d) {
+            // Determine symbol shape: circles for proteins, squares for dyes
+            var isProtein = FLUORS && FLUORS[d.fluor_slug] && FLUORS[d.fluor_slug].type === 'p';
+            var symbol = isProtein ? 'circle' : 'square';
+
+            // Scale brightness with a cap to prevent huge symbols
+            // Use square root scaling to reduce the range
+            var radius = Math.max(2, Math.min(12, Math.sqrt(+d.brightness || 1) * 2));
+
+            // Convert color to rgba with opacity
+            var color = Highcharts.color(seriesColor).setOpacity(0.6).get('rgba');
+
             return {
               x: (d.ex_eff && d.ex_eff !== null) ? d.ex_eff : 0,
               y: (d.em_eff && d.em_eff !== null) ? d.em_eff : 0,
+              color: color,
               marker: {
-                radius: Math.max(1, +d.brightness * 2)
+                symbol: symbol,
+                radius: radius
               },
               fluor: d.fluor,
               fluor_slug: d.fluor_slug,
@@ -453,56 +469,115 @@ $.fn.extend({
       chart = Highcharts.chart('report_chart', {
         chart: {
           type: 'scatter',
-          zoomType: 'xy'
+          zoomType: 'xy',
         },
         title: { text: null },
+        legend: {
+          enabled: true,
+          align: 'center',
+          verticalAlign: 'top',
+          layout: 'horizontal',
+          itemStyle: {
+            fontSize: '12px'
+          }
+        },
         xAxis: {
           title: { text: 'Excitation Efficiency' },
           labels: {
             format: '{value:.2f}'
-          }
+          },
+          min: -0.02,
+          max: 1.0,
+          gridLineWidth: 1,
+          gridLineColor: '#e6e6e6',
+          lineWidth: 0,
+          tickColor: '#e6e6e6'
         },
         yAxis: {
           title: { text: 'Collection Efficiency' },
           labels: {
             format: '{value:.2f}'
-          }
+          },
+          gridLineWidth: 1,
+          gridLineColor: '#e6e6e6'
         },
         tooltip: {
           useHTML: true,
           formatter: function() {
-            var point = this.point;
-            return (
-              '<div class="report-tooltip"><p><strong>' +
-              point.fluor +
-              "</strong></p>" +
-              "<p>Ex Eff: " +
-              Math.round(1000 * point.x) / 10 +
-              " %</p>" +
-              "<p>Em Eff: " +
-              Math.round(1000 * point.y) / 10 +
-              " %</p>" +
-              "<p>Brightness: " +
-              (point.brightness || "-") +
-              "</p>" +
-              "<p>EC: " +
-              (FLUORS && FLUORS[point.fluor_slug] ? FLUORS[point.fluor_slug]["ext_coeff"] : "-") +
-              "</p>" +
-              "<p>QY: " +
-              (FLUORS && FLUORS[point.fluor_slug] ? FLUORS[point.fluor_slug]["qy"] : "-") +
-              "</p>" +
-              "</div>"
-            );
+            const point = this.point;
+            const fluor = FLUORS?.[point.fluor_slug];
+
+            const formatPercent = (value) => `${Math.round(value * 1000) / 10}%`;
+            const formatValue = (value) => value ?? "-";
+
+            const fields = [
+              { label: "Ex Eff", value: formatPercent(point.x) },
+              { label: "Em Eff", value: formatPercent(point.y) },
+              { label: "Brightness", value: formatValue(point.brightness) },
+              { label: "EC", value: formatValue(fluor?.ext_coeff) },
+              { label: "QY", value: formatValue(fluor?.qy) }
+            ];
+
+            const rows = fields.map(f => `<span>${f.label}: ${f.value}</span><br>`).join("");
+
+            return `<div><p><strong>${point.fluor}</strong></p>${rows}</div>`;
           }
         },
         plotOptions: {
+          legend: {
+            squareSymbol: true,
+            symbolRadius: 12,
+            symbolHeight: 12,
+            symbolWidth: 12
+          },
+          series: {
+            events: {
+              legendItemClick: function() {
+                var clickedSeries = this;
+                var chart = clickedSeries.chart;
+                var currentTime = new Date().getTime();
+
+                // Check for double-click (within 300ms)
+                if (clickedSeries._lastClickTime && (currentTime - clickedSeries._lastClickTime) < 300) {
+                  // Double-click: show only this series
+                  var anyOthersVisible = false;
+                  chart.series.forEach(function(series) {
+                    if (series !== clickedSeries && series.visible) {
+                      anyOthersVisible = true;
+                    }
+                  });
+
+                  if (anyOthersVisible) {
+                    // Hide all others, show only this one
+                    chart.series.forEach(function(series) {
+                      series.setVisible(series === clickedSeries, false);
+                    });
+                  } else {
+                    // All others are hidden, restore all
+                    chart.series.forEach(function(series) {
+                      series.setVisible(true, false);
+                    });
+                  }
+                  chart.redraw();
+                  clickedSeries._lastClickTime = null;
+                  return false; // Prevent default toggle
+                } else {
+                  // Single-click: allow default toggle behavior
+                  clickedSeries._lastClickTime = currentTime;
+                  return true; // Allow default toggle
+                }
+              }
+            }
+          },
           scatter: {
+            legendSymbol: 'rectangle',
             marker: {
               radius: 5,
+              lineWidth: .5,
+              lineColor: '#0000004d',
               states: {
                 hover: {
-                  enabled: true,
-                  lineColor: 'rgb(100,100,100)'
+                  enabled: true
                 }
               }
             },
