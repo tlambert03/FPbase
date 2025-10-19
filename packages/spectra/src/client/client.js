@@ -7,7 +7,14 @@ import typeDefs from "./schema";
 
 import introspectionQueryResultData from "../fragmentTypes.json";
 import { decoder } from "../util";
-import { GET_CHART_OPTIONS } from "./queries";
+import {
+  GET_CHART_OPTIONS,
+  GET_ACTIVE_SPECTRA,
+  GET_ACTIVE_OVERLAPS,
+  GET_OWNER_OPTIONS,
+  GET_EX_NORM,
+  GET_SELECTORS,
+} from "./queries";
 import "unfetch/polyfill/index";
 import PALETTES from "../palettes";
 
@@ -57,6 +64,21 @@ export function parseURL(data) {
 function intializeClient({ uri, storage }) {
   const cache = new InMemoryCache({
     possibleTypes: introspectionQueryResultData.possibleTypes,
+    // Disable freezing in development to prevent "read-only property" errors
+    // when components mutate arrays from cache
+    freezeResults: false,
+    typePolicies: {
+      Query: {
+        fields: {
+          chartOptions: {
+            merge(existing, incoming) {
+              // Merge chartOptions object properly
+              return { ...existing, ...incoming };
+            },
+          },
+        },
+      },
+    },
   });
 
   const link = from([
@@ -78,7 +100,7 @@ function intializeClient({ uri, storage }) {
   const client = new ApolloClient({
     link,
     cache,
-    typeDefs,
+    // typeDefs removed - not supported in Apollo Client v3
     resolvers,
   });
 
@@ -96,44 +118,62 @@ function intializeClient({ uri, storage }) {
       console.warn('Cache persistence disabled:', error.message);
     }
 
-    // After restoring from cache, ensure defaults are set if not present
-    try {
-      const cached = cache.readQuery({ query: GET_CHART_OPTIONS });
-      if (!cached || !cached.chartOptions) {
-        // No cached data, initialize with defaults
-        cache.writeQuery({
-          query: GET_CHART_OPTIONS,
-          data: {
-            chartOptions: defaults.chartOptions,
-          },
-        });
+    // Initialize all cache fields with defaults if not present
+    const initializeField = (query, data) => {
+      try {
+        const cached = cache.readQuery({ query });
+        if (!cached) {
+          cache.writeQuery({ query, data });
+        }
+      } catch (e) {
+        // Query failed (no data in cache), initialize with defaults
+        cache.writeQuery({ query, data });
       }
-    } catch (e) {
-      // Query failed (no data in cache), initialize with defaults
-      cache.writeQuery({
-        query: GET_CHART_OPTIONS,
-        data: {
-          chartOptions: defaults.chartOptions,
-        },
-      });
-    }
+    };
+
+    initializeField(GET_CHART_OPTIONS, { chartOptions: defaults.chartOptions });
+    initializeField(GET_ACTIVE_SPECTRA, { activeSpectra: defaults.activeSpectra });
+    initializeField(GET_ACTIVE_OVERLAPS, { activeOverlaps: defaults.activeOverlaps });
+    initializeField(GET_OWNER_OPTIONS, { excludeSubtypes: defaults.excludeSubtypes });
+    initializeField(GET_EX_NORM, { exNorm: defaults.exNorm });
+    initializeField(GET_SELECTORS, { selectors: defaults.selectors });
   };
 
   function _parseURL() {
     try {
-      const cached = cache.readQuery({ query: GET_CHART_OPTIONS });
-      if (!cached) return;
+      const chartOptions = cache.readQuery({ query: GET_CHART_OPTIONS });
+      const activeSpectraData = cache.readQuery({ query: GET_ACTIVE_SPECTRA });
+      const exNormData = cache.readQuery({ query: GET_EX_NORM });
 
-      // parseURL expects the full defaults structure, so we need to merge with defaults
-      const fullData = { ...defaults, ...cached };
+      // parseURL expects the full defaults structure
+      const fullData = {
+        ...defaults,
+        chartOptions: chartOptions?.chartOptions || defaults.chartOptions,
+        activeSpectra: activeSpectraData?.activeSpectra || defaults.activeSpectra,
+        exNorm: exNormData?.exNorm || defaults.exNorm,
+      };
+
       const parsedData = parseURL(fullData);
-      // Write back only the chartOptions part
-      cache.writeQuery({
-        query: GET_CHART_OPTIONS,
-        data: {
-          chartOptions: parsedData.chartOptions,
-        },
-      });
+
+      // Write back parsed data to cache
+      if (parsedData.chartOptions) {
+        cache.writeQuery({
+          query: GET_CHART_OPTIONS,
+          data: { chartOptions: parsedData.chartOptions },
+        });
+      }
+      if (parsedData.activeSpectra) {
+        cache.writeQuery({
+          query: GET_ACTIVE_SPECTRA,
+          data: { activeSpectra: parsedData.activeSpectra },
+        });
+      }
+      if (parsedData.exNorm) {
+        cache.writeQuery({
+          query: GET_EX_NORM,
+          data: { exNorm: parsedData.exNorm },
+        });
+      }
     } catch (error) {
       console.warn('Failed to parse URL parameters:', error);
     }

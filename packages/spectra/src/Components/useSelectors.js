@@ -9,12 +9,11 @@ import {
 // selectors is an array:
 // [{id: 1, owner: String (slug from the ownersInfo dict), category: String}]
 const useSelectors = ({ ownerInfo, spectraInfo }) => {
-  const {
-    data: { activeSpectra }
-  } = useQuery(GET_ACTIVE_SPECTRA)
-  const {
-    data: { selectors }
-  } = useQuery(GET_SELECTORS)
+  const { data: spectraData } = useQuery(GET_ACTIVE_SPECTRA)
+  const { data: selectorsData } = useQuery(GET_SELECTORS)
+
+  const activeSpectra = spectraData?.activeSpectra || []
+  const selectors = selectorsData?.selectors || []
 
   const [normalize, { loading: normLoading }] = useMutation(NORMALIZE_CURRENT)
   useEffect(() => {

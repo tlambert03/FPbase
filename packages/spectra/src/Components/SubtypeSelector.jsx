@@ -39,13 +39,16 @@ const SubtypeSelector = React.memo(function SubtypeSelector({
 }) {
   const classes = useStyles()
 
-  const {
-    data: { activeSpectra },
-  } = useQuery(GET_ACTIVE_SPECTRA)
-  subtypes.sort(subtypeSorter)
-  subtypes.forEach(subtype => {
-    subtype.active = activeSpectra.includes(subtype.id)
-  })
+  const { data } = useQuery(GET_ACTIVE_SPECTRA)
+  const activeSpectra = data?.activeSpectra || []
+
+  // Create a mutable copy and add active status
+  const sortedSubtypes = [...subtypes]
+    .sort(subtypeSorter)
+    .map(subtype => ({
+      ...subtype,
+      active: activeSpectra.includes(subtype.id)
+    }))
 
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const handleClick = e => {
@@ -61,11 +64,11 @@ const SubtypeSelector = React.memo(function SubtypeSelector({
   return (
     <Box>
       <ToggleButtonGroup
-        value={subtypes.filter(i => i.active).map(i => i.id)}
+        value={sortedSubtypes.filter(i => i.active).map(i => i.id)}
         size="small"
         className={classes.toggleButtonGroup}
       >
-        {subtypes.map(st => (
+        {sortedSubtypes.map(st => (
           <ToggleButton
             key={st.id}
             value={st.id}

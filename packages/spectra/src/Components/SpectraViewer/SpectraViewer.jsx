@@ -96,6 +96,10 @@ const BaseSpectraViewerContainer = React.memo(
       `,
       { skip: provideOptions }
     )
+
+    // Always call useSpectraData hook before any returns (Rules of Hooks)
+    const spectraldata = useSpectraData(provideSpectra, provideOverlaps)
+
     let chartOptions
     let normWave
     if (provideOptions) {
@@ -105,7 +109,7 @@ const BaseSpectraViewerContainer = React.memo(
       chartOptions = data.chartOptions
         ;[normWave] = data.exNorm || [null]
     } else {
-      // Data not loaded yet, return null to avoid rendering errors
+      // Data not loaded yet, return null after all hooks are called
       return null
     }
 
@@ -125,7 +129,6 @@ const BaseSpectraViewerContainer = React.memo(
       shared: { $set: chartOptions.shareTooltip },
     })
 
-    const spectraldata = useSpectraData(provideSpectra, provideOverlaps)
     return (
       <BaseSpectraViewer
         data={spectraldata}

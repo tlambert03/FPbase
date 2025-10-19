@@ -111,7 +111,7 @@ const validSpectraIds = spectra => spectra.filter(id => isValidId(id))
 export const resolvers = {
   Query: {
     overlap: async (_root, { ids }, { client }) => {
-      const idString = ids.sort((a, b) => a - b).join("_")
+      const idString = [...ids].sort((a, b) => a - b).join("_")
       const { data } = await client.query({
         query: batchSpectra(ids),
       })
@@ -215,7 +215,8 @@ export const resolvers = {
       return data
     },
     updateActiveSpectra: async (_, { add, remove }, { cache, client }) => {
-      let { activeSpectra } = cache.readQuery({ query: GET_ACTIVE_SPECTRA })
+      const result = cache.readQuery({ query: GET_ACTIVE_SPECTRA })
+      let activeSpectra = result?.activeSpectra || []
       activeSpectra = activeSpectra.filter(id => {
         if (id.startsWith("$cf") && remove) {
           const _id = id.split("_")[0]
@@ -240,7 +241,8 @@ export const resolvers = {
       return data
     },
     updateActiveOverlaps: async (_, { add, remove }, { cache, client }) => {
-      let { activeOverlaps } = cache.readQuery({ query: GET_ACTIVE_OVERLAPS })
+      const result = cache.readQuery({ query: GET_ACTIVE_OVERLAPS })
+      let activeOverlaps = result?.activeOverlaps || []
       activeOverlaps = activeOverlaps.filter(id => !(remove || []).includes(id))
       const toAdd = (add || []).filter(id => id)
       const data = {
@@ -340,7 +342,8 @@ export const resolvers = {
     },
     clearForm: async (_, args, { cache }) => {
       const { leave, appendSpectra } = args || {}
-      const { activeSpectra } = cache.readQuery({ query: GET_ACTIVE_SPECTRA })
+      const result = cache.readQuery({ query: GET_ACTIVE_SPECTRA })
+      const activeSpectra = result?.activeSpectra || []
       let keepSpectra = []
       if ((leave || []).length > 0) {
         keepSpectra = activeSpectra.filter(

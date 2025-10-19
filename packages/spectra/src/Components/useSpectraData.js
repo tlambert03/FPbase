@@ -102,8 +102,8 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
     activeSpectra = provideSpectra
     activeOverlaps = provideOverlaps
   } else {
-    activeSpectra = data.activeSpectra
-    activeOverlaps = data.activeOverlaps
+    activeSpectra = data?.activeSpectra || []
+    activeOverlaps = data?.activeOverlaps || []
   }
   useEffect(() => {
     function idToData(id) {

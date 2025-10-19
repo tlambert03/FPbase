@@ -173,9 +173,11 @@ const OwnersContainer = React.memo(function OwnersContainer({
     }
   }, [])
 
+  const sortedSelectors = useMemo(() => [...selectors].sort(selectorSorter), [selectors])
+
   const isPopulated = cat => {
     let populated =
-      selectors.filter(({ owner, category }) => category === cat && owner)
+      sortedSelectors.filter(({ owner, category }) => category === cat && owner)
         .length > 0
     if (cat === "F") {
       populated = populated || activeSpectra.some(s => s.startsWith("$cf"))
@@ -190,7 +192,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
     const _cats = cats ? cats.split("") : null
     let populated = false
     if (label === "All") {
-      populated = Boolean(selectors.filter(i => i.owner).length)
+      populated = Boolean(sortedSelectors.filter(i => i.owner).length)
     } else if (label !== "Efficiency") {
       if (activeSpectra.length > 0) {
         populated = _cats.some(c => isPopulated(c))
@@ -212,7 +214,6 @@ const OwnersContainer = React.memo(function OwnersContainer({
     )
   }
 
-  selectors.sort(selectorSorter)
   const options = useMemo(() => Object.values(ownerInfo), [ownerInfo])
 
   return (
@@ -274,7 +275,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
           {tab === 0 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={selectors}
+                selectors={sortedSelectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -288,7 +289,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
               </Typography>
 
               <SpectrumSelectorGroup
-                selectors={selectors}
+                selectors={sortedSelectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -300,7 +301,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
                 Dyes
               </Typography>
               <SpectrumSelectorGroup
-                selectors={selectors}
+                selectors={sortedSelectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -312,7 +313,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
           {tab === 2 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={selectors}
+                selectors={sortedSelectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -325,7 +326,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
           {tab === 3 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={selectors}
+                selectors={sortedSelectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -338,7 +339,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
           {tab === 4 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={selectors}
+                selectors={sortedSelectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}

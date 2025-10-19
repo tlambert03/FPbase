@@ -3,10 +3,9 @@ import { useQuery, useMutation } from "@apollo/client"
 import { GET_ACTIVE_SPECTRA, SET_ACTIVE_SPECTRA } from "../client/queries"
 
 const CurrentSpectraInput = () => {
-  const {
-    loading,
-    data: { activeSpectra },
-  } = useQuery(GET_ACTIVE_SPECTRA)
+  const { loading, data } = useQuery(GET_ACTIVE_SPECTRA)
+  const activeSpectra = data?.activeSpectra || []
+
   const [updateSpectra] = useMutation(SET_ACTIVE_SPECTRA)
   const [value, setValue] = useState("")
   useEffect(() => {
