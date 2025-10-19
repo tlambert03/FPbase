@@ -7,15 +7,28 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "algoliasearch-django"
-version = "4.0.0"
+name = "algoliasearch"
+version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c3/3a/68b9136bab8d04f837c5b1893be1de2d6403f9cb5f18961194a168e90917/algoliasearch-3.0.0.tar.gz", hash = "sha256:abd9316f81fec1e322db4faf183081383b334188ac8184baab36405533038cdd", size = 21671, upload-time = "2023-02-27T08:58:30.075Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ce/ca/7c96366ec182272091b422b91042ead48a2fd921808825406f45a2667e9a/algoliasearch-3.0.0-py2.py3-none-any.whl", hash = "sha256:e150a577435f5256a52e5f50c865138df2e434db640b9e71556e84c169a1da52", size = 33390, upload-time = "2023-02-27T08:58:28.003Z" },
+]
+
+[[package]]
+name = "algoliasearch-django"
+version = "3.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "algoliasearch" },
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f1/b6/30682918e1d7a82b4b5d1c1c257b80edf4165f7b49c01c2f7d63a10968c0/algoliasearch_django-4.0.0.tar.gz", hash = "sha256:c0acb8231163c16757d9e4c37a0ce882b89c4640a6dc836daaf479fd73c427b5", size = 26688, upload-time = "2025-01-06T08:56:59.916Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f4/2d/afab04cee45ab9cb52be683d7a99cd424b9b87facf6f9eed53522b34ace3/algoliasearch-django-3.0.0.tar.gz", hash = "sha256:b6ce1ae8c899503e8a4745fb8fd5b0b9babc79cc706f3bfa6ca8eeefc8d7f568", size = 26686, upload-time = "2023-04-28T07:10:02.158Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/7d/f6caf0d2ed954f6db40a1179be8cd7a5d03611aa6d6fb6056e1889714599/algoliasearch_django-4.0.0-py2.py3-none-any.whl", hash = "sha256:d160b86cd999607e9b3b0773a712e196e251af2b7dcb2480e40ef09440f3c80a", size = 18685, upload-time = "2025-01-06T08:56:57.255Z" },
+    { url = "https://files.pythonhosted.org/packages/05/11/53a8c84c18a9967f58ffe98ba0cbef879b75e851597ed868d1c7af25f7cb/algoliasearch_django-3.0.0-py2.py3-none-any.whl", hash = "sha256:500775887261b93e1fe3813983678d04b499d5d043c0f538009ca4a9a84585ef", size = 18811, upload-time = "2023-04-28T07:09:59.385Z" },
 ]
 
 [[package]]
@@ -1170,7 +1183,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "algoliasearch-django", specifier = ">=3.0.0" },
+    { name = "algoliasearch-django", specifier = "==3.0.0" },
     { name = "argon2-cffi", specifier = ">=21.3.0" },
     { name = "biopython", specifier = ">=1.83" },
     { name = "celery", extras = ["redis"], specifier = "==5.5.3" },
