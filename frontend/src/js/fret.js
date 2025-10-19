@@ -1,5 +1,6 @@
 import * as d3 from "d3"
 import Highcharts from "highcharts"
+import "highcharts/modules/pattern-fill"
 import $ from "jquery"
 
 export default function initFRET() {
@@ -25,21 +26,28 @@ export default function initFRET() {
   chart = Highcharts.chart('spectra', {
     chart: {
       type: 'line',
-      animation: { duration: 300 }
+      animation: { duration: 300 },
+      backgroundColor: '#ffffff',
+      height: 350
     },
     title: { text: null },
     xAxis: {
       title: { text: 'Wavelength (nm)' },
       min: 350,
-      max: 750
+      max: 750,
+      tickLength: 0,
+      gridLineWidth: 0
     },
     yAxis: {
-      title: { text: 'Normalized Ex/Em/Transmission' },
+      title: { text: null },  // Hide Y axis label
       min: 0,
       max: 1,
       labels: {
-        format: '{value:.0%}'
-      }
+        formatter: function() {
+          return Math.round(this.value * 100) + '%';
+        }
+      },
+      gridLineWidth: 0  // Remove horizontal grid lines
     },
     tooltip: {
       shared: !window.mobilecheck(),
@@ -54,16 +62,24 @@ export default function initFRET() {
       }
     },
     legend: {
-      enabled: true
+      enabled: true,
+      align: 'right',
+      verticalAlign: 'top',
+      layout: 'horizontal',
+      x: 0,
+      y: 0,
+      floating: false
     },
     plotOptions: {
       line: {
         animation: false,
-        marker: { enabled: false }
+        marker: { enabled: false },
+        lineWidth: 2
       },
       area: {
         animation: false,
-        marker: { enabled: false }
+        marker: { enabled: false },
+        lineWidth: 2
       }
     },
     series: [],
@@ -261,16 +277,51 @@ export default function initFRET() {
   function updateChart() {
     // Convert data to Highcharts format
     var series = data.map(function(item) {
-      return {
+      var isFadedFret = item.classed && item.classed.includes('faded-fret');
+      var isFretOverlap = item.classed && item.classed.includes('fret-overlap');
+
+      var seriesConfig = {
         name: item.key,
         data: item.values.map(function(v) { return [v.x, v.y]; }),
         type: item.area ? 'area' : 'line',
-        color: item.color && item.color.startsWith('url(') ? null : item.color,
-        fillOpacity: item.area ? 0.3 : 0,
         className: item.classed,
-        zIndex: item.classed && item.classed.includes('fret-overlap') ? 10 :
-                item.classed && item.classed.includes('faded-fret') ? 1 : 5
+        zIndex: isFretOverlap ? 10 : isFadedFret ? 1 : 5
       };
+
+      // Apply faded-fret styling
+      if (isFadedFret) {
+        seriesConfig.dashStyle = 'Dash';  // Highcharts dash style (5,5)
+        seriesConfig.lineColor = 'rgba(0, 0, 0, 0.2)';  // Gray dashed line
+        seriesConfig.lineWidth = 1.2;
+        if (item.area) {
+          seriesConfig.fillOpacity = 0.15;  // Keep original color but very transparent
+        }
+        // Keep the original item.color for the fill
+        if (item.color && typeof item.color === 'string' && !item.color.startsWith('url(')) {
+          seriesConfig.color = item.color;
+        }
+      } else {
+        // Non-faded items: no line, just filled area
+        seriesConfig.lineWidth = 0;
+      }
+
+      // Handle color - could be a string, object (pattern), or undefined
+      if (item.color && !isFadedFret) {
+        if (typeof item.color === 'string' && item.color.startsWith('url(')) {
+          // Skip old-style SVG pattern references
+          seriesConfig.color = null;
+        } else {
+          // Use the color directly (string or pattern object)
+          seriesConfig.color = item.color;
+        }
+      }
+
+      // Set fillOpacity for area charts (but not for pattern fills or faded-fret)
+      if (item.area && !isFadedFret && (!item.color || typeof item.color === 'string')) {
+        seriesConfig.fillOpacity = 0.5;
+      }
+
+      return seriesConfig;
     });
 
     // Update chart with new series
@@ -314,7 +365,19 @@ export default function initFRET() {
           key: 'Overlap',
           values: spectral_product(donorEM.values, acceptorEX.values),
           area: true,
-          color: 'rgba(255, 100, 100, 0.5)',
+          color: {
+            pattern: {
+              path: {
+                d: 'M -1 1 l 2 -2 M 0 10 l 10 -10 M 9 11 l 2 -2',
+                stroke: 'white',
+                strokeWidth: 3
+              },
+              width: 10,
+              height: 10,
+              backgroundColor: '#00000092',
+              opacity: 1
+            }
+          },
           classed: 'fret-overlap',
           type: 'overlap',
         });
