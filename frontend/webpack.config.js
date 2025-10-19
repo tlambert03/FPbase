@@ -74,6 +74,14 @@ const plugins = [
     chunkFilename: "[id].[chunkhash].css",
   }),
   new CleanWebpackPlugin(),
+  new CopyPlugin({
+    patterns: [
+      {
+        from: path.resolve(__dirname, "../backend/fpbase/static/js/microscope.js"),
+        to: "js/microscope.js",
+      },
+    ],
+  }),
 ]
 
 if (!devMode) {
@@ -128,6 +136,10 @@ module.exports = {
     port: 8080,
     headers: {
       "Access-Control-Allow-Origin": "*",
+    },
+    static: {
+      directory: path.resolve(__dirname, "../backend/fpbase/static"),
+      publicPath: "/",
     },
   },
   module: {

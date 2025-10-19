@@ -3,7 +3,6 @@ import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 import "nouislider/distribute/nouislider.min.css"
 import "./css/style.scss"
-import "./css/nv.d3.css"
 
 import "bootstrap"
 
@@ -16,7 +15,7 @@ import "./js/protein_page.js"
 import "./js/favit.js"
 import "./js/jquery.formset.js"
 import "./js/onload.js"
-import "./js/microscope.js"
+// microscope.js loaded separately via CDN on microscope pages
 import "./js/scope_report.js"
 
 import FPPropChart from "./js/ichart.js"
@@ -24,8 +23,10 @@ import initAutocomplete from "./js/algolia.js"
 import LineageChart from "./js/lineage.js"
 import initFRET from "./js/fret.js"
 import * as Sentry from "@sentry/browser";
+import * as d3 from "d3";
 
 window.FPBASE = window.FPBASE || {}
+window.d3 = d3;
 
 
 (async () => {
