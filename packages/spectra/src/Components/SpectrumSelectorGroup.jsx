@@ -44,9 +44,9 @@ export const useStyles = makeStyles(theme => ({
 const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   selectors,
   options,
-  category,
+  category = "",
   showCategoryIcon,
-  hint,
+  hint = "item",
   ownerInfo,
 }) {
   const classes = useStyles()
@@ -161,10 +161,5 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
     </>
   )
 })
-
-SpectrumSelectorGroup.defaultProps = {
-  hint: "item",
-  category: "",
-}
 
 export default SpectrumSelectorGroup

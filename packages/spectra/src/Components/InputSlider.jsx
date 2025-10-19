@@ -15,7 +15,7 @@ export const useStyles = makeStyles({
   },
 })
 
-const InputSlider = ({ value, setValue, min, max, step }) => {
+const InputSlider = ({ value, setValue, min = 300, max = 999, step = 1 }) => {
   const classes = useStyles()
   const handleSliderChange = (event, newValue) => {
     setValue(newValue)
@@ -62,12 +62,6 @@ const InputSlider = ({ value, setValue, min, max, step }) => {
       </Grid>
     </div>
   )
-}
-
-InputSlider.defaultProps = {
-  min: 300,
-  max: 999,
-  step: 1,
 }
 
 export default InputSlider

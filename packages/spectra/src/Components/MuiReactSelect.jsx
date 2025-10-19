@@ -161,7 +161,7 @@ const myComponents = {
   ValueContainer,
 }
 
-function MuiReactSelect({ paginate, components, ...otherprops }) {
+function MuiReactSelect({ paginate = true, components, ...otherprops }) {
   const classes = useStyles()
   const theme = useTheme()
 
@@ -196,10 +196,6 @@ function MuiReactSelect({ paginate, components, ...otherprops }) {
       </NoSsr>
     </div>
   )
-}
-
-MuiReactSelect.defaultProps = {
-  paginate: true,
 }
 
 export default MuiReactSelect

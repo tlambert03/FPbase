@@ -67,7 +67,7 @@ const useStyles = makeStyles(theme => ({
 const WelcomeModal = React.memo(function WelcomeModal({
   open,
   close,
-  isNew,
+  isNew = false,
   ownerInfo,
 }) {
   const classes = useStyles()
@@ -198,7 +198,4 @@ const WelcomeModal = React.memo(function WelcomeModal({
   )
 })
 
-WelcomeModal.defaultProps = {
-  isNew: false,
-}
 export default WelcomeModal
