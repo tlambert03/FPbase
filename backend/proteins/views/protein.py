@@ -595,12 +595,6 @@ class ComparisonView(base.TemplateView):
         return context
 
 
-def protein_tree(request, organism):
-    """renders html for protein table page"""
-    _, tree = Protein.objects.filter(parent_organism=organism).to_tree()
-    return render(request, "tree.html", {"tree": tree.replace("\n", ""), "request": request})
-
-
 def problems_gaps(request):
     return render(
         request,
