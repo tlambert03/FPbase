@@ -181,7 +181,7 @@ const WelcomeModal = React.memo(function WelcomeModal({
         <div style={{ textAlign: "center" }}>
           <Button
             variant="contained"
-            color="default"
+            color="inherit"
             href="https://help.fpbase.org/tools/spectra-viewer"
             className={classes.docsButton}
           >

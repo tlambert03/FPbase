@@ -88,7 +88,6 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
                 icon={<RadioButtonUnchecked fontSize="small" />}
                 checkedIcon={<RadioButtonChecked fontSize="small" />}
                 value="checkedI"
-                color="default"
                 checked={id.startsWith(normID)}
                 onChange={handleNormCheck}
               />

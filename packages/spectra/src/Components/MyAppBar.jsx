@@ -107,7 +107,6 @@ const MyAppBar = memo(function MyAppBar({
                 tabIndex={-1}
                 checked={logScale}
                 onChange={toggleLogScale}
-                color="default"
               />
 )}
             label="OD"
