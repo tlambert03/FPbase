@@ -1,15 +1,7 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { makeStyles } from "@mui/styles"
-import { Typography } from "@mui/material"
-import MaterialTable from "material-table"
-import Export from "@mui/icons-material/SaveAlt"
-import FirstPage from "@mui/icons-material/FirstPage"
-import PreviousPage from "@mui/icons-material/ChevronLeft"
-import NextPage from "@mui/icons-material/ChevronRight"
-import LastPage from "@mui/icons-material/LastPage"
-import Search from "@mui/icons-material/Search"
-import ResetSearch from "@mui/icons-material/Clear"
-import Filter from "@mui/icons-material/FilterList"
+import { Typography, Box, IconButton } from "@mui/material"
+import { MaterialReactTable } from "material-react-table"
 import Shuffle from "@mui/icons-material/Shuffle"
 import { useMutation, useQuery, useApolloClient } from "@apollo/client"
 import Button from "@mui/material/Button"
@@ -29,25 +21,6 @@ class ErrorBoundary extends React.Component {
     const { children } = this.props
     return children
   }
-}
-
-const TABLE_ICONS = {
-  Export,
-  FirstPage,
-  PreviousPage,
-  NextPage,
-  LastPage,
-  Search,
-  ResetSearch,
-  Filter,
-}
-
-const TABLE_OPTIONS = {
-  search: false,
-  paging: false,
-  exportButton: true,
-  exportAllData: true,
-  padding: "dense",
 }
 
 const useStyles = makeStyles(theme => ({
@@ -122,7 +95,7 @@ function getOverlap(...args) {
 
 const EfficiencyTable = ({ initialTranspose }) => {
   const [transposed, setTransposed] = useState(initialTranspose)
-  const [[rows, headers], setTableData] = useState([[], []])
+  const [rows, setRows] = useState([])
   const classes = useStyles()
   const spectraData = useSpectralData()
   const client = useApolloClient()
@@ -133,6 +106,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
     }
   }, [client])
 
+  // Generate table data
   useEffect(() => {
     async function updateTableData() {
       const filters = spectraData.filter(
@@ -143,32 +117,20 @@ const EfficiencyTable = ({ initialTranspose }) => {
       // untransposed columns represent different fluors
       let colItems = emSpectra
       let rowItems = filters
-      let newHeaders = [{ title: "Filter", field: "field" }]
       const newRows = []
       if (transposed) {
         // columns represent different filters
         colItems = filters
         rowItems = emSpectra
-        newHeaders = [{ title: "Fluorophore", field: "field" }]
       }
 
-      colItems.forEach(({ owner }) => {
-        newHeaders.push({
-          title: owner.name,
-          field: owner.id,
-          type: "numeric",
-          cellStyle: { fontSize: "1rem" },
-          render: rowData => {
-            const overlapID = rowData[`${owner.id}_overlapID`]
-            return (
-              <OverlapToggle id={overlapID}>{rowData[owner.id]}</OverlapToggle>
-            )
-          },
-        })
-      })
-
       rowItems.forEach(rowItem => {
-        const row = { field: rowItem.owner.name }
+        const row = {
+          field: rowItem.owner.name,
+          _colItems: colItems,
+          _rowItem: rowItem,
+          _transposed: transposed
+        }
         colItems.forEach(colItem => {
           const overlap = getOverlap(rowItem, colItem)
           const fluor = transposed ? rowItem : colItem
@@ -177,13 +139,50 @@ const EfficiencyTable = ({ initialTranspose }) => {
         })
         newRows.push(row)
       })
-      setTableData([newRows, newHeaders])
+      setRows(newRows)
     }
 
     updateTableData()
   }, [client, spectraData, transposed])
 
-  if (rows.length < 1 || headers.length < 2) {
+  // Generate columns using useMemo
+  const columns = useMemo(() => {
+    if (!rows.length) return []
+
+    const filters = spectraData.filter(
+      ({ category, subtype }) => category === "F" && subtype !== "BX"
+    )
+    const emSpectra = spectraData.filter(({ subtype }) => subtype === "EM")
+    const colItems = transposed ? filters : emSpectra
+
+    const cols = [
+      {
+        accessorKey: "field",
+        header: transposed ? "Fluorophore" : "Filter",
+        size: 150,
+      },
+    ]
+
+    colItems.forEach(({ owner }) => {
+      cols.push({
+        accessorKey: owner.id,
+        header: owner.name,
+        size: 100,
+        Cell: ({ row }) => {
+          const overlapID = row.original[`${owner.id}_overlapID`]
+          return (
+            <OverlapToggle id={overlapID}>
+              {row.original[owner.id]}
+            </OverlapToggle>
+          )
+        },
+      })
+    })
+
+    return cols
+  }, [spectraData, transposed, rows.length])
+
+  if (rows.length < 1 || columns.length < 2) {
     return (
       <div className={classes.description}>
         <Typography variant="h6">Efficiency Table</Typography>
@@ -197,25 +196,42 @@ const EfficiencyTable = ({ initialTranspose }) => {
   }
 
   return (
-    <div className="efficiency-table">
+    <Box className="efficiency-table">
       <ErrorBoundary>
-        <MaterialTable
-          columns={headers}
+        <MaterialReactTable
+          columns={columns}
           data={rows}
-          options={TABLE_OPTIONS}
-          icons={TABLE_ICONS}
-          title="Collection Efficiency (%)"
-          actions={[
-            {
-              icon: Shuffle,
-              tooltip: "Transpose",
-              isFreeAction: true,
-              onClick: () => setTransposed(transposed => !transposed),
+          enablePagination={false}
+          enableColumnActions={false}
+          enableTopToolbar={true}
+          enableBottomToolbar={false}
+          enableSorting={true}
+          enableFilters={false}
+          enableGlobalFilter={false}
+          muiTableProps={{
+            sx: {
+              tableLayout: 'auto',
             },
-          ]}
+          }}
+          muiTableBodyCellProps={{
+            sx: {
+              fontSize: '1rem',
+            },
+          }}
+          renderTopToolbarCustomActions={() => (
+            <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center', p: 1 }}>
+              <Typography variant="h6">Collection Efficiency (%)</Typography>
+              <IconButton
+                onClick={() => setTransposed(prev => !prev)}
+                title="Transpose"
+              >
+                <Shuffle />
+              </IconButton>
+            </Box>
+          )}
         />
       </ErrorBoundary>
-    </div>
+    </Box>
   )
 }
 

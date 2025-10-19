@@ -264,7 +264,6 @@ const OwnersContainer = React.memo(function OwnersContainer({
         <div className="sweet-loading">
           <RingLoader
             css={override}
-            sizeUnit="px"
             size={100}
             color="#ccc"
             loading
