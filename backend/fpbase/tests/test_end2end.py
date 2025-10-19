@@ -97,6 +97,10 @@ class TestPagesRender(StaticLiveServerTestCase):
         self.browser.get_log("browser")  # clear prior logs
 
     def _interact_scope(self, scope):
+        # Wait for select2 to initialize the fluor selector
+        WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.ID, "select2-fluor-select-container"))
+        )
         self.browser.find_element(value="select2-fluor-select-container").click()
         self.browser.switch_to.active_element.send_keys(self.p1.name[:5])
         self.browser.switch_to.active_element.send_keys(Keys.ENTER)
