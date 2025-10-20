@@ -9,14 +9,13 @@
   "author": "Talley Lambert",
   "license": "ISC",
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^5.16.10",
     "@mui/material": "^5.16.10",
     "@mui/styles": "^5.16.10",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "js-cookie": "^3.0.5",
     "jquery": "^3.7.0",
-    "react-bootstrap": "^2.10.6"
+    "js-cookie": "^3.0.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",

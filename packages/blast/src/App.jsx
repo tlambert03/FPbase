@@ -1,9 +1,7 @@
 import React, { useState } from "react"
 import InputForm from "./InputForm.jsx"
 import BlastReport from "./ReportView.jsx"
-import Form from "react-bootstrap/Form"
-import Row from "react-bootstrap/Row"
-import Col from "react-bootstrap/Col"
+import { Box, Grid, FormControl, InputLabel, Select, MenuItem, Typography } from "@mui/material"
 import $ from "jquery"
 
 function ReportSelect({ reports, binary, index, onChange }) {
@@ -14,30 +12,35 @@ function ReportSelect({ reports, binary, index, onChange }) {
   }
 
   return (
-    <Form>
-      <Form.Group as={Row} controlId="reportSelect" className="mt-4">
-        <Form.Label
-          column
-          sm={3}
-          md={2}
-          className="font-weight-bold"
-          style={{ color: "#5b616b" }}
-        >
-          Results for:
-        </Form.Label>
-        <Col sm={9} md={10}>
-          <Form.Control as="select" onChange={handleChange} value={index}>
-            {reports.map((item, i) => (
-              <option key={i} value={i}>
-                {`${item.report.results.search.query_id}: ${
-                  item.report.results.search.query_title
-                } (${item.report.results.search.query_len}${unit})`}
-              </option>
-            ))}
-          </Form.Control>
-        </Col>
-      </Form.Group>
-    </Form>
+    <Box sx={{ mt: 4 }}>
+      <Grid container spacing={2} alignItems="center">
+        <Grid item xs={12} sm={3} md={2}>
+          <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#5b616b' }}>
+            Results for:
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={9} md={10}>
+          <FormControl fullWidth>
+            <InputLabel id="report-select-label">Select Report</InputLabel>
+            <Select
+              labelId="report-select-label"
+              id="report-select"
+              value={index}
+              label="Select Report"
+              onChange={handleChange}
+            >
+              {reports.map((item, i) => (
+                <MenuItem key={i} value={i}>
+                  {`${item.report.results.search.query_id}: ${
+                    item.report.results.search.query_title
+                  } (${item.report.results.search.query_len}${unit})`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+    </Box>
   )
 }
 

@@ -384,3 +384,8 @@ blastdb/
 backend/blastdb/
 .pdm-python
 SemrockSpectra/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
