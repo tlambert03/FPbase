@@ -16,9 +16,8 @@ const useStyles = makeStyles(theme => ({
   },
   input: {
     display: "flex",
-    padding: 0,
+    padding: "0 4px 4px 4px",
     height: "auto",
-    paddingBottom: 4,
     fontSize: "1.2rem",
   },
   valueContainer: {
@@ -36,7 +35,7 @@ const useStyles = makeStyles(theme => ({
   },
   placeholder: {
     position: "absolute",
-    left: 4,
+    left: 8,
     bottom: 7,
     fontSize: "1.2rem",
   },
