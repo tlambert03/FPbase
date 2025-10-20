@@ -12,6 +12,7 @@ function InputForm({ handleSubmit, initialValue }) {
         value={Cookies.get("csrftoken")}
       />
       <TextField
+        id="queryInput"
         required
         fullWidth
         multiline
@@ -28,7 +29,7 @@ function InputForm({ handleSubmit, initialValue }) {
         the same type.
       </FormHelperText>
       <Button variant="contained" color="primary" type="submit">
-        Submit BLAST Query
+        Submit
       </Button>
     </Box>
   )
