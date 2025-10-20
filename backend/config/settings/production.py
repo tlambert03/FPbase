@@ -165,7 +165,8 @@ TEMPLATES[0]["OPTIONS"]["loaders"] = [
 # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
 DATABASES["default"] = env.db("DATABASE_URL")
 DATABASES["default"]["ATOMIC_REQUESTS"] = True  # F405
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
+# Set to 0 for Heroku to prevent memory buildup from connection pooling
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=0)
 
 # CACHING
 # ------------------------------------------------------------------------------
