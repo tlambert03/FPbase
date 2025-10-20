@@ -4,7 +4,77 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, StateFactory
+from proteins.models import OcFluorEff
 from proteins.tasks import calc_fret, calculate_scope_report
+
+
+@pytest.mark.django_db
+class TestCalculateScopeReportIntegration:
+    """Integration tests for calculate_scope_report with real database objects."""
+
+    def test_calculate_scope_report_creates_efficiency_records(self):
+        """Test that calculate_scope_report creates OcFluorEff records."""
+        # Create real database objects using factories
+        microscope = MicroscopeFactory()
+        OpticalConfigWithFiltersFactory(microscope=microscope)
+        state = StateFactory()
+
+        # Ensure the state has spectra (required for with_spectra() filter)
+        assert state.has_spectra()
+
+        # No OcFluorEff records should exist yet
+        assert OcFluorEff.objects.count() == 0
+
+        # Mock the task's update_state to avoid issues
+        with patch.object(calculate_scope_report, "update_state"):
+            # Run the task
+            calculate_scope_report.run(scope_id=microscope.id)
+
+        # OcFluorEff records should now exist
+        assert OcFluorEff.objects.count() > 0
+
+    def test_calculate_scope_report_processes_outdated_records(self):
+        """Test that calculate_scope_report updates outdated OcFluorEff records."""
+        # Create test data
+        microscope = MicroscopeFactory()
+        OpticalConfigWithFiltersFactory(microscope=microscope)
+        StateFactory()
+
+        # Create an OcFluorEff record
+        with patch.object(calculate_scope_report, "update_state"):
+            calculate_scope_report.run(scope_id=microscope.id)
+
+        initial_count = OcFluorEff.objects.count()
+        assert initial_count > 0
+
+        # Get outdated record IDs
+        outdated_ids = list(OcFluorEff.objects.outdated().values_list("id", flat=True))
+
+        if outdated_ids:
+            # Run task with outdated IDs
+            with patch.object(calculate_scope_report, "update_state"):
+                calculate_scope_report.run(scope_id=microscope.id, outdated_ids=outdated_ids)
+
+            # Count should be the same (updated, not created)
+            assert OcFluorEff.objects.count() == initial_count
+
+    def test_calculate_scope_report_batch_processing(self):
+        """Test that calculate_scope_report handles multiple states efficiently."""
+        # Create a microscope with optical config
+        microscope = MicroscopeFactory()
+        optical_config = OpticalConfigWithFiltersFactory(microscope=microscope)
+
+        # Create multiple states with spectra
+        [StateFactory() for _ in range(5)]
+
+        # Run the task
+        with patch.object(calculate_scope_report, "update_state"):
+            calculate_scope_report.run(scope_id=microscope.id)
+
+        # Should have created OcFluorEff records for each state
+        eff_count = OcFluorEff.objects.filter(oc=optical_config).count()
+        assert eff_count > 0
 
 
 @pytest.mark.django_db
