@@ -2,7 +2,6 @@ import contextlib
 import io
 import logging
 import operator
-from functools import lru_cache
 from typing import TYPE_CHECKING, cast
 
 import django.forms
@@ -119,19 +118,28 @@ class _RollBackRevisionView(Exception):
         self.response = response
 
 
-@lru_cache
 def maxmind_db() -> str:
     """Create and return a temporary file containing the MaxMind database.
 
-    The file should persist for the lifetime of the process.
+    Uses Django cache to store the database path across workers.
+    The file persists on disk but the path is cached for 24 hours.
     """
     import io
+    import os
     import tarfile
     import tempfile
 
     import requests
     from django.conf import settings
+    from django.core.cache import cache
 
+    # Try to get cached path first
+    cache_key = "maxmind_db_path"
+    cached_path = cache.get(cache_key)
+    if cached_path and os.path.exists(cached_path):
+        return cached_path
+
+    # Download and cache the database
     url = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key={}&suffix=tar.gz"
     url = url.format(settings.MAXMIND_API_KEY)
     response = requests.get(url)
@@ -144,17 +152,32 @@ def maxmind_db() -> str:
                     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mmdb")
                     tmp.write(mmdb_file.read())
                     tmp.close()
+                    # Cache the path for 24 hours
+                    cache.set(cache_key, tmp.name, 60 * 60 * 24)
                     return tmp.name
     return ""
 
 
-@lru_cache
 def maxmind_reader() -> "maxminddb.Reader | None":
+    """Get MaxMind database reader.
+
+    Uses Django cache to minimize memory usage. The reader is cached
+    for 1 hour to balance memory usage and performance.
+    """
+    from django.core.cache import cache
     from maxminddb import open_database
+
+    cache_key = "maxmind_reader"
+    reader = cache.get(cache_key)
+    if reader is not None:
+        return reader
 
     try:
         if db := maxmind_db():
-            return open_database(db)
+            reader = open_database(db)
+            # Cache reader for 1 hour
+            cache.set(cache_key, reader, 60 * 60)
+            return reader
     except Exception:
         pass
     return None
