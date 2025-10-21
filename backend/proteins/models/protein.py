@@ -163,12 +163,14 @@ class SequenceField(models.CharField):
         return name, path, args, kwargs
 
     def from_db_value(self, value, expression, connection):
-        return FPSeq(value) if value else None
+        # Skip validation for database values - they're already validated
+        return FPSeq(value, validate=False) if value else None
 
     def to_python(self, value):
         if isinstance(value, FPSeq):
             return value
-        return FPSeq(value) if value else None
+        # New values should still be validated
+        return FPSeq(value, validate=True) if value else None
 
     def get_prep_value(self, value):
         return str(value) if value else None

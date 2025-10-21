@@ -1,6 +1,7 @@
 import ast
 import json
 import logging
+from functools import cached_property
 from typing import Any
 
 import numpy as np
@@ -614,19 +615,15 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             output[elem[0]] = elem[1]
         return output
 
-    @property
+    @cached_property
     def x(self):
-        self._x = []
-        for i in self.data:
-            self._x.append(i[0])
-        return self._x
+        """Extract x values from data. Cached to avoid repeated allocations."""
+        return [i[0] for i in self.data]
 
-    @property
+    @cached_property
     def y(self):
-        self._y = []
-        for i in self.data:
-            self._y.append(i[1])
-        return self._y
+        """Extract y values from data. Cached to avoid repeated allocations."""
+        return [i[1] for i in self.data]
 
     # def change_x(self, value):
     #     if not isinstance(value, list):
