@@ -511,7 +511,8 @@
       $('.lineage').each(function(i, el) {
         var slug = $(el).data('slug') || '';
         $.getJSON('/ajax/lineage/' + slug + '/', function(data) {
-          if (!data.children.length > 0){
+          window._lastLineageData = data;
+          if (!data.children || data.children.length === 0){
             return
           }
           var linchart = window.FPBASE.LineageChart({slug: slug}).data(data);
@@ -519,8 +520,11 @@
           lineage.call(linchart);
           linchart.duration(200);
           if (slug && $('.lineage-wrapper')){
-            var slugpos = d3.select("#node_" + slug).datum().y;
-            $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
+            var node = d3.select("#node_" + slug);
+            if (!node.empty()) {
+              var slugpos = node.datum().y;
+              $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
+            }
           }
 
         });

@@ -11,35 +11,71 @@ def calc_fret():
 
 @shared_task(bind=True)
 def calculate_scope_report(self, scope_id, outdated_ids=None, fluor_collection=None):
+    import gc
+
     from proteins.models import Dye, Microscope, OcFluorEff, State
 
     if not fluor_collection:
-        fluor_collection = list(State.objects.with_spectra())
-        fluor_collection += list(Dye.objects.with_spectra())
+        # Use iterator to avoid loading all objects into memory at once
+        # Build list of IDs instead of full objects
+        state_ids = list(State.objects.with_spectra().values_list("id", flat=True))
+        dye_ids = list(Dye.objects.with_spectra().values_list("id", flat=True))
     m = Microscope.objects.get(id=scope_id)
     updated = []
     i = 0
     if outdated_ids:
         total = len(outdated_ids)
-        for x in OcFluorEff.objects.filter(id__in=outdated_ids).all():
-            i += 1
-            self.update_state(state="PROGRESS", meta={"current": i, "total": total})
-            x.save()
+        # Process in batches to control memory
+        batch_size = 50
+        for start in range(0, len(outdated_ids), batch_size):
+            batch_ids = outdated_ids[start : start + batch_size]
+            for x in OcFluorEff.objects.filter(id__in=batch_ids):
+                i += 1
+                self.update_state(state="PROGRESS", meta={"current": i, "total": total})
+                x.save()
+            # Force garbage collection after each batch
+            gc.collect()
         return
-    total = m.optical_configs.count() * len(fluor_collection)
+
+    # Process states and dyes separately in batches to reduce memory usage
+    oc_count = m.optical_configs.count()
+    total = oc_count * (len(state_ids) + len(dye_ids))
+
+    # Process states in batches
+    batch_size = 50
     for oc in m.optical_configs.all():
-        for f in set(fluor_collection):
-            i += 1
-            self.update_state(state="PROGRESS", meta={"current": i, "total": total})
-            try:
-                kwargs = {"oc": oc}
-                kwargs[f.__class__.__name__.lower()] = f
-                obj = OcFluorEff.objects.get(**kwargs)
-                if obj.outdated:
-                    obj.save()
-                    updated.append((oc, f))
-            except OcFluorEff.DoesNotExist:
+        # Process State objects in batches
+        for start in range(0, len(state_ids), batch_size):
+            batch_ids = state_ids[start : start + batch_size]
+            for state in State.objects.filter(id__in=batch_ids).iterator():
+                i += 1
+                self.update_state(state="PROGRESS", meta={"current": i, "total": total})
                 try:
-                    OcFluorEff.objects.create(oc=oc, fluor=f)
-                except Exception as e:
-                    capture_exception(e)
+                    obj = OcFluorEff.objects.get(oc=oc, state=state)
+                    if obj.outdated:
+                        obj.save()
+                        updated.append((oc, state))
+                except OcFluorEff.DoesNotExist:
+                    try:
+                        OcFluorEff.objects.create(oc=oc, fluor=state)
+                    except Exception as e:
+                        capture_exception(e)
+            gc.collect()
+
+        # Process Dye objects in batches
+        for start in range(0, len(dye_ids), batch_size):
+            batch_ids = dye_ids[start : start + batch_size]
+            for dye in Dye.objects.filter(id__in=batch_ids).iterator():
+                i += 1
+                self.update_state(state="PROGRESS", meta={"current": i, "total": total})
+                try:
+                    obj = OcFluorEff.objects.get(oc=oc, dye=dye)
+                    if obj.outdated:
+                        obj.save()
+                        updated.append((oc, dye))
+                except OcFluorEff.DoesNotExist:
+                    try:
+                        OcFluorEff.objects.create(oc=oc, fluor=dye)
+                    except Exception as e:
+                        capture_exception(e)
+            gc.collect()

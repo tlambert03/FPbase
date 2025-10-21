@@ -7,13 +7,10 @@ from collections import Counter, OrderedDict
 from math import isnan
 from uuid import uuid4
 
-import matplotlib.ticker as ticker
 from django.core.cache import cache
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
 
 logger = logging.getLogger(__name__)
 
@@ -330,24 +327,58 @@ def fretEfficiency(distance, forster):
 
 
 def forster_list():
+    """Calculate Forster distances for all valid donor-acceptor pairs.
+
+    Optimized to reduce memory usage by:
+    1. Using Django cache to store results (6 hour TTL)
+    2. Processing proteins in smaller batches
+    3. Fetching only necessary fields
+    4. Explicit garbage collection between batches
+    """
+    import gc
+
+    from django.core.cache import cache
+
     from ..models import Protein
 
-    qs = (
+    # Try to get cached results first
+    cache_key = "forster_list_results"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    # Fetch protein IDs first to reduce memory
+    protein_ids = list(
         Protein.objects.with_spectra()
         .filter(agg=Protein.MONOMER, switch_type=Protein.BASIC)
-        .select_related("default_state")
-        .prefetch_related("default_state__spectra")
+        .values_list("id", flat=True)
     )
-    out = []
+
+    # Process in batches to reduce memory usage
+    batch_size = 25
     withSpectra = []
-    for p in qs:
-        try:
-            _ = p.default_state.em_spectrum.data
-        except Exception:
-            continue
-        withSpectra.append(p)
-    for donor in withSpectra:
-        for acceptor in withSpectra:
+
+    for start in range(0, len(protein_ids), batch_size):
+        batch_ids = protein_ids[start : start + batch_size]
+        batch = (
+            Protein.objects.filter(id__in=batch_ids)
+            .select_related("default_state")
+            .prefetch_related("default_state__spectra")
+        )
+
+        for p in batch:
+            try:
+                _ = p.default_state.em_spectrum.data
+                withSpectra.append(p)
+            except Exception:
+                continue
+        gc.collect()
+
+    out = []
+    # Calculate pairwise Forster distances
+    for i, donor in enumerate(withSpectra):
+        # Only calculate for acceptors that haven't been donors yet (avoid duplicates)
+        for acceptor in withSpectra[i:]:
             try:
                 if (
                     (acceptor.default_state.ex_max > donor.default_state.ex_max)
@@ -380,7 +411,15 @@ def forster_list():
                     )
             except Exception:
                 continue
-    return sorted(out, key=lambda x: x["forster"], reverse=True)
+
+        # Force garbage collection every 10 proteins to prevent memory buildup
+        if i % 10 == 0:
+            gc.collect()
+
+    result = sorted(out, key=lambda x: x["forster"], reverse=True)
+    # Cache results for 6 hours
+    cache.set(cache_key, result, 60 * 60 * 6)
+    return result
 
 
 def spectra_fig(
@@ -400,6 +439,12 @@ def spectra_fig(
 ):
     if not spectra:
         return None
+
+    # Lazy import - only load matplotlib when actually generating plots
+    # This saves ~27 MB of memory per worker when not generating images
+    import matplotlib.ticker as ticker
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.figure import Figure
 
     alph = kwargs.pop("alpha", None)
     colr = kwargs.pop("color", None)

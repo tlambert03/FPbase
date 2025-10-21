@@ -2,20 +2,22 @@ import React, { useEffect, memo } from "react"
 import { useQuery } from "@apollo/react-hooks"
 import Highcharts from "highcharts"
 import {
-  withHighcharts,
+  HighchartsProvider,
   HighchartsChart,
   YAxis,
   Credits,
   Legend,
   Tooltip,
-  provideAxis,
   Chart /* etc... */,
   XAxis,
+  useAxis,
+  useHighcharts,
 } from "react-jsx-highcharts"
-import applyExporting from "highcharts/modules/exporting"
-import applyPatterns from "highcharts/modules/pattern-fill"
-import applyExportingData from "highcharts/modules/export-data"
-import addBoostModule from "highcharts/modules/boost"
+import "highcharts/modules/exporting"
+import "highcharts/modules/pattern-fill"
+import "highcharts/modules/export-data"
+import "highcharts/modules/accessibility"
+import "highcharts/modules/boost"
 import update from "immutability-helper"
 import { css } from "@emotion/core"
 import { BarLoader } from "react-spinners"
@@ -28,10 +30,6 @@ import NoData from "./NoData"
 import useWindowWidth from "../useWindowWidth"
 import useSpectraData from "../useSpectraData"
 
-applyExporting(Highcharts)
-applyExportingData(Highcharts)
-applyPatterns(Highcharts)
-addBoostModule(Highcharts)
 fixLogScale(Highcharts)
 
 const override = css`
@@ -166,7 +164,6 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
     xAxis.min = chartOptions.extremes[0]
     xAxis.max = chartOptions.extremes[1]
   }
-  console.log(showPickers)
   const hChart = Highcharts.charts[0]
   let legendHeight
   if (hChart) {
@@ -214,12 +211,12 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
         ecNorm={chartOptions.scaleEC}
         qyNorm={chartOptions.scaleQY}
       />
-      <HighchartsChart
-        plotOptions={_plotOptions}
-        navigation={_navigation}
-        exporting={_exporting}
-        boost={_boost}
-      >
+      <HighchartsProvider Highcharts={Highcharts}>
+        <HighchartsChart
+          plotOptions={_plotOptions}
+          navigation={_navigation}
+          exporting={_exporting}
+        >
         <Chart {..._chart} height={height} />
         <Legend {..._legend} />
         <Tooltip {...tooltip} />
@@ -279,38 +276,37 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
               {...chartOptions}
             />
           ))}
+          <MyCredits
+            hide={numSpectra < 1 || chartOptions.simpleMode}
+          />
         </YAxis>
 
         <XAxisWithRange
           options={xAxis}
           showPickers={showPickers}
         />
-        <MyCredits
-          axisId="yAx2"
-          hide={numSpectra < 1 || chartOptions.simpleMode}
-        />
       </HighchartsChart>
+      </HighchartsProvider>
     </div>
   )
 })
 
-const MyCredits = provideAxis(function MyCredits({
-  getAxis,
-  getHighcharts,
-  hide,
-}) {
+const MyCredits = function MyCredits({ hide }) {
+  const axis = useAxis()
+  const Highcharts = useHighcharts()
+
   useEffect(() => {
-    const axis = getAxis()
+    if (!axis || !axis.object || !Highcharts) return
+
     function shiftCredits() {
       const yShift = axis.object.chart.get("xAxis").axisTitleMargin
       axis.object.chart.credits.update({
         position: { y: -25 - yShift, x: -25 - axis.object.axisTitleMargin },
       })
     }
-    const hChart = getHighcharts()
-    hChart.addEvent(axis.object.chart, "redraw", shiftCredits)
+    Highcharts.addEvent(axis.object.chart, "redraw", shiftCredits)
     shiftCredits()
-  }, []) // eslint-disable-line
+  }, [axis, Highcharts])
 
   return (
     <Credits
@@ -321,24 +317,21 @@ const MyCredits = provideAxis(function MyCredits({
       fpbase.org
     </Credits>
   )
-})
+}
 
 export const XAxisWithRange = memo(function XAxisWithRange({
   options,
   showPickers,
 }) {
   return (
-    <>
-      <XAxis {...options} lineWidth={showPickers ? 1 : 0} id="xAxis">
-        <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
-      </XAxis>
+    <XAxis {...options} lineWidth={showPickers ? 1 : 0} id="xAxis">
+      <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
       {showPickers && (
         <XRangePickers
-          axisId="xAxis"
           visible={showPickers && options.labels.enabled}
         />
       )}
-    </>
+    </XAxis>
   )
 })
 
@@ -371,8 +364,5 @@ const ExNormNotice = memo(function ExNormNotice({
   )
 })
 
-export const SpectraViewerContainer = withHighcharts(
-  BaseSpectraViewerContainer,
-  Highcharts
-)
-export const SpectraViewer = withHighcharts(BaseSpectraViewer, Highcharts)
+export const SpectraViewerContainer = BaseSpectraViewerContainer
+export const SpectraViewer = BaseSpectraViewer

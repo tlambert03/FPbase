@@ -1,8 +1,6 @@
 import ProgressBar from "progressbar.js"
 import $ from "jquery"
-import nv from "nvd3"
-import "../css/nv.d3.css"
-import d3 from "d3"
+import Highcharts from "highcharts"
 
 function compare(a, b) {
   if (a.key < b.key) return 1
@@ -47,8 +45,65 @@ $.fn.extend({
     var REPORT
 
     var chart
-    var chartData
     var dt
+
+    function updateChart(reportData) {
+      if (!reportData || !reportData.length) {
+        while(chart.series.length > 0) {
+          chart.series[0].remove(false);
+        }
+        chart.redraw();
+        return;
+      }
+
+      // Convert nvd3-style data to Highcharts format
+      var series = reportData.map(function(group, index) {
+        // Get the default Highcharts color for this series
+        var seriesColor = Highcharts.getOptions().colors[index % Highcharts.getOptions().colors.length];
+
+        return {
+          name: group.key,
+          data: group.values.map(function(d) {
+            // Determine symbol shape: circles for proteins, squares for dyes
+            var isProtein = FLUORS && FLUORS[d.fluor_slug] && FLUORS[d.fluor_slug].type === 'p';
+            var symbol = isProtein ? 'circle' : 'square';
+
+            // Scale brightness with a cap to prevent huge symbols
+            // Use square root scaling to reduce the range
+            var radius = Math.max(2, Math.min(12, Math.sqrt(+d.brightness || 1) * 2));
+
+            // Convert color to rgba with opacity
+            var color = Highcharts.color(seriesColor).setOpacity(0.6).get('rgba');
+
+            return {
+              x: (d.ex_eff && d.ex_eff !== null) ? d.ex_eff : 0,
+              y: (d.em_eff && d.em_eff !== null) ? d.em_eff : 0,
+              color: color,
+              marker: {
+                symbol: symbol,
+                radius: radius
+              },
+              fluor: d.fluor,
+              fluor_slug: d.fluor_slug,
+              brightness: d.brightness,
+              url: d.url
+            };
+          })
+        };
+      });
+
+      // Remove existing series
+      while(chart.series.length > 0) {
+        chart.series[0].remove(false);
+      }
+
+      // Add new series
+      series.forEach(function(s) {
+        chart.addSeries(s, false);
+      });
+
+      chart.redraw();
+    }
 
     function updateData() {
       $.get(window.location + "json/", function(d) {
@@ -66,11 +121,9 @@ $.fn.extend({
         FLUORS = d.fluors
         REPORT = d.report
         $("#report_chart").height(750)
-        chartData
-          .datum(REPORT)
-          .transition()
-          .duration(300)
-          .call(chart)
+
+        updateChart(REPORT);
+
         $("#status").hide()
         $(".needs-data").show()
 
@@ -411,79 +464,161 @@ $.fn.extend({
     })
 
     $(document).ready(function() {
-      // create the chart
-      nv.addGraph(function() {
-        chart = nv.models
-          .scatterChart()
-          .x(function(d) {
-            if (d.ex_eff && d.ex_eff !== null) {
-              return d.ex_eff
-            }
-            return 0
-          })
-          .y(function(d) {
-            if (d.em_eff && d.em_eff !== null) {
-              return d.em_eff
-            }
-            return 0
-          })
-          .pointSize(function(d) {
-            return Math.max(1, +d.brightness * 2)
-          })
-          .pointRange([10, 400])
-          .pointDomain([1, 80])
-          //.showDistX(true)
-          //.showDistY(true)
-          //.yDomain([0, 1])
-          //.xDomain([0, 1])
-          .useVoronoi(true)
-          .noData("")
+      // create the chart with Highcharts
+      chart = Highcharts.chart('report_chart', {
+        chart: {
+          type: 'scatter',
+          zoomType: 'xy',
+        },
+        title: { text: null },
+        legend: {
+          enabled: true,
+          align: 'center',
+          verticalAlign: 'top',
+          layout: 'horizontal',
+          itemStyle: {
+            fontSize: '12px'
+          }
+        },
+        xAxis: {
+          title: { text: 'Excitation Efficiency' },
+          labels: {
+            format: '{value:.2f}'
+          },
+          min: -0.02,
+          max: 1.0,
+          gridLineWidth: 1,
+          gridLineColor: '#e6e6e6',
+          lineWidth: 0,
+          tickColor: '#e6e6e6'
+        },
+        yAxis: {
+          title: { text: 'Collection Efficiency' },
+          labels: {
+            format: '{value:.2f}'
+          },
+          gridLineWidth: 1,
+          gridLineColor: '#e6e6e6'
+        },
+        tooltip: {
+          useHTML: true,
+          formatter: function() {
+            const point = this.point;
+            const fluor = FLUORS?.[point.fluor_slug];
 
-        chart.xAxis
-          .tickFormat(d3.format(".02f"))
-          .axisLabel("Excitation Efficiency")
-        chart.yAxis
-          .tickFormat(d3.format(".02f"))
-          .axisLabel("Collection Efficiency")
+            const formatPercent = (value) => `${Math.round(value * 1000) / 10}%`;
+            const formatValue = (value) => value ?? "-";
 
-        chartData = d3.select("#report_chart svg")
-        chartData
-          .datum([])
-          .transition()
-          .duration(300)
-          .call(chart)
-        nv.utils.windowResize(chart.update)
-        chart.tooltip.contentGenerator(function(key, x, y, e, graph) {
-          return (
-            '<div class="report-tooltip" style="margin-top:' +
-            window.scrollY +
-            'px;"><p><strong>' +
-            key.point.fluor +
-            "</strong></p>" +
-            "<p>Ex Eff: " +
-            Math.round(1000 * key.point.x) / 10 +
-            " %</p>" +
-            "<p>Em Eff: " +
-            Math.round(1000 * key.point.y) / 10 +
-            " %</p>" +
-            "<p>Brightness: " +
-            (key.point.brightness || "-") +
-            "</p>" +
-            "<p>EC: " +
-            (FLUORS[key.point.fluor_slug]["ext_coeff"] || "-") +
-            "</p>" +
-            "<p>QY: " +
-            (FLUORS[key.point.fluor_slug]["qy"] || "-") +
-            "</p>" +
-            "</div>"
-          )
-        })
-        chart.scatter.dispatch.on("elementClick", function(event) {
-          //location.href = event.point.url;
-          window.open(event.point.url)
-        })
-        return chart
-      })
+            const fields = [
+              { label: "Ex Eff", value: formatPercent(point.x) },
+              { label: "Em Eff", value: formatPercent(point.y) },
+              { label: "Brightness", value: formatValue(point.brightness) },
+              { label: "EC", value: formatValue(fluor?.ext_coeff) },
+              { label: "QY", value: formatValue(fluor?.qy) }
+            ];
+
+            const rows = fields.map(f => `<span>${f.label}: ${f.value}</span><br>`).join("");
+
+            return `<div><p><strong>${point.fluor}</strong></p>${rows}</div>`;
+          }
+        },
+        plotOptions: {
+          legend: {
+            squareSymbol: true,
+            symbolRadius: 12,
+            symbolHeight: 12,
+            symbolWidth: 12
+          },
+          series: {
+            events: {
+              legendItemClick: function() {
+                var clickedSeries = this;
+                var chart = clickedSeries.chart;
+                var currentTime = new Date().getTime();
+
+                // Check for double-click (within 300ms)
+                if (clickedSeries._lastClickTime && (currentTime - clickedSeries._lastClickTime) < 300) {
+                  // Double-click: show only this series
+                  var anyOthersVisible = false;
+                  chart.series.forEach(function(series) {
+                    if (series !== clickedSeries && series.visible) {
+                      anyOthersVisible = true;
+                    }
+                  });
+
+                  if (anyOthersVisible) {
+                    // Hide all others, show only this one
+                    chart.series.forEach(function(series) {
+                      series.setVisible(series === clickedSeries, false);
+                    });
+                  } else {
+                    // All others are hidden, restore all
+                    chart.series.forEach(function(series) {
+                      series.setVisible(true, false);
+                    });
+                  }
+                  chart.redraw();
+                  clickedSeries._lastClickTime = null;
+                  return false; // Prevent default toggle
+                } else {
+                  // Single-click: allow default toggle behavior
+                  clickedSeries._lastClickTime = currentTime;
+                  return true; // Allow default toggle
+                }
+              }
+            }
+          },
+          scatter: {
+            legendSymbol: 'rectangle',
+            marker: {
+              radius: 5,
+              lineWidth: .5,
+              lineColor: '#0000004d',
+              states: {
+                hover: {
+                  enabled: true
+                }
+              }
+            },
+            states: {
+              hover: {
+                marker: {
+                  enabled: false
+                }
+              }
+            },
+            point: {
+              events: {
+                click: function() {
+                  if (this.url) {
+                    window.open(this.url);
+                  }
+                }
+              }
+            }
+          }
+        },
+        series: [],
+        lang: {
+          noData: ''
+        },
+        noData: {
+          style: {
+            fontWeight: 'bold',
+            fontSize: '15px',
+            color: '#303030'
+          }
+        },
+        credits: { enabled: false }
+      });
+
+      // Add resize handler
+      $(window).on('resize', function() {
+        if (chart) {
+          chart.reflow();
+        }
+      });
+
       updateData()
 
       $("body").on("click", "input.toggle-vis, input.meas-vis", function(e) {
@@ -557,8 +692,7 @@ $.fn.extend({
           newReport[i].values = newReport[i].values.filter(filterfunc)
         }
 
-        d3.select("#report_chart svg").datum(newReport)
-        chart.update()
+        updateChart(newReport);
       })
 
       $("#meas-toggles").empty()

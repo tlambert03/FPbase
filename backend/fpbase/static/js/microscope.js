@@ -3,11 +3,9 @@
 // where a bad foundation just kept going.  the program works relatively well,
 // but it sure isn't pretty.
 
-import noUiSlider from "nouislider"
-import $ from "jquery"
-import nv from "nvd3"
-import "../css/nv.d3.css"
-import d3 from "d3"
+// NOTE: This file is loaded as a static script on microscope pages.
+// Dependencies (d3 v3, nvd3, jQuery, noUiSlider) are loaded via CDN and available as globals.
+// See microscope_detail.html and microscope_embed.html templates.
 
 ;
 

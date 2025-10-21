@@ -42,7 +42,6 @@ urlpatterns = [
         name="update",
     ),
     re_path(r"^table/", views.protein_table, name="table"),
-    # url(r'^tree/(?P<organism>\d+)/$', views.protein_tree, name='tree'),
     path(
         "problems/",
         TemplateView.as_view(template_name="problems.html"),

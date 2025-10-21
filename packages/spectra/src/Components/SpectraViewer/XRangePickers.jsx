@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import { useMutation, useQuery } from "@apollo/react-hooks"
-import { provideAxis } from "react-jsx-highcharts"
+import { useAxis, useHighcharts } from "react-jsx-highcharts"
 import Input from "@material-ui/core/Input"
 import gql from "graphql-tag"
 import { Tooltip } from "@material-ui/core"
@@ -48,7 +48,9 @@ const GET_CHART_EXTREMES = gql`
 `
 
 let counter = 0
-const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
+const XRangePickers = ({ visible }) => {
+  const axis = useAxis()
+  const Highcharts = useHighcharts()
   const {
     data: {
       chartOptions: {
@@ -59,10 +61,10 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
   const [mutateExtremes] = useMutation(MUTATE_CHART_EXTREMES)
   const minNode = useRef()
   const maxNode = useRef()
-  const axis = getAxis()
   const forceUpdate = React.useState()[1]
 
   useEffect(() => {
+    if (!axis || !axis.object) return
     if (min || max) {
       axis.setExtremes(min && Math.round(min), max && Math.round(max))
       if (min && max) {
@@ -72,6 +74,8 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
   }, []) // eslint-disable-line
 
   useEffect(() => {
+    if (!axis || !axis.object || !Highcharts) return
+
     function handleAfterSetExtremes() {
       const e = axis.object.getExtremes()
       if (e) {
@@ -115,7 +119,6 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
       }
     }
 
-    const Highcharts = getHighcharts()
     Highcharts.addEvent(axis.object.chart, "redraw", positionInputs)
     Highcharts.addEvent(axis.object, "afterSetExtremes", handleAfterSetExtremes)
 
@@ -129,7 +132,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
     positionInputs()
     return () => {
       Highcharts.removeEvent(
-        getAxis().object,
+        axis.object,
         "afterSetExtremes",
         handleAfterSetExtremes
         // debounce(handleAfterSetExtremes, 200)
@@ -138,6 +141,7 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
   }, []) // eslint-disable-line
 
   const updateRange = () => {
+    if (!axis) return
     const extremes = [
       +minNode.current.value || null,
       +maxNode.current.value || null,
@@ -157,6 +161,8 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
       }
     }
   }
+
+  if (!axis) return null
 
   const extremes = axis.getExtremes()
   const minColor = !extremes.userMin
@@ -223,4 +229,4 @@ const XRangePickers = ({ getAxis, getHighcharts, visible }) => {
     </div>
   )
 }
-export default provideAxis(XRangePickers)
+export default XRangePickers
