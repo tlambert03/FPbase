@@ -7,7 +7,6 @@ import "./css/style.scss"
 import "bootstrap"
 
 import "select2/dist/js/select2.full.js"
-import "./js/my-fontawesome.js"
 
 import "./js/project.js"
 import "./js/search_logic.js"

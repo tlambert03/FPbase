@@ -3,7 +3,6 @@ import "bootstrap"
 import "nouislider"
 import * as d3 from "d3"
 import "select2/dist/js/select2.full.js"
-import "./js/my-fontawesome.js"
 // microscope.js loaded separately via CDN on microscope pages
 
 // allow parent to apply styles to iframe
