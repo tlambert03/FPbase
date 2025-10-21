@@ -790,21 +790,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-graphql-jwt"
-version = "0.3.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "graphene" },
-    { name = "graphene-django" },
-    { name = "pyjwt" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/8f/1bf2b7dc8b32b257e5d988820242562bda4318c00abed3d95fc37ca986ca/django-graphql-jwt-0.3.4.tar.gz", hash = "sha256:654808417a1fa97e4d489766b61046fa8006f58dfad1c44cc3a37a9e4929203b", size = 22786, upload-time = "2021-08-11T20:58:30.398Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/70/22/8004137d13fc1185c0174d8d47f3f8364750789a5c4b3c28b5ceda80ce27/django_graphql_jwt-0.3.4-py3-none-any.whl", hash = "sha256:fb20194bda649b2b1b49049ef84d0e957851df485fba7f1901aace54ca328063", size = 46111, upload-time = "2021-08-11T20:58:31.762Z" },
-]
-
-[[package]]
 name = "django-js-asset"
 version = "3.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1120,7 +1105,6 @@ dependencies = [
     { name = "django-crispy-forms" },
     { name = "django-environ" },
     { name = "django-filter" },
-    { name = "django-graphql-jwt" },
     { name = "django-model-utils" },
     { name = "django-mptt" },
     { name = "django-recaptcha" },
@@ -1196,7 +1180,6 @@ requires-dist = [
     { name = "django-crispy-forms", specifier = "==1.13.0" },
     { name = "django-environ", specifier = ">=0.10.0" },
     { name = "django-filter", specifier = ">=23.3" },
-    { name = "django-graphql-jwt", specifier = "==0.3.4" },
     { name = "django-model-utils", specifier = ">=5.0.0" },
     { name = "django-mptt", specifier = ">=0.18.0" },
     { name = "django-recaptcha", specifier = ">=3.0.0" },
@@ -1213,7 +1196,7 @@ requires-dist = [
     { name = "google-auth", specifier = ">=2.29.0" },
     { name = "graphene", specifier = ">=3.2.2" },
     { name = "graphene-django", specifier = ">=3.2.3" },
-    { name = "graphene-django-optimizer", specifier = "==0.10.0" },
+    { name = "graphene-django-optimizer", specifier = ">=0.10.0" },
     { name = "gunicorn", specifier = ">=20.1.0" },
     { name = "habanero", specifier = ">=1.2.3" },
     { name = "matplotlib", specifier = ">=3.7.1" },

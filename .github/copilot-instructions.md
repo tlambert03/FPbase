@@ -88,7 +88,6 @@ Core models in `models/`:
 ### GraphQL (`/graphql/`)
 - Schema defined in `fpbase/schema.py` (imports from `proteins.schema` and `references.schema`)
 - Uses `graphene-django` with `graphene-django-optimizer` for query optimization
-- Auth via `django-graphql-jwt`
 
 ## Frontend Integration
 
