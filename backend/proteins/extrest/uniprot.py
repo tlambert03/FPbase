@@ -1,7 +1,6 @@
 from xml.dom import minidom
 
-import requests
-
+from external_apis import sequences
 from proteins.validators import validate_uniprot
 
 BASE = "http://www.uniprot.org"
@@ -29,10 +28,10 @@ def get_uniprot_info(unip_id):
 
 
 def get_uniprot_record(id):
-    response = requests.get(BASE + KB_ENDPOINT + str(id) + ".xml")
-    if response.status_code == 200:
-        return response.content
-    else:
+    try:
+        xml_text = sequences.fetch_uniprot_xml(id)
+        return xml_text.encode("utf-8")  # Return bytes to match original behavior
+    except Exception:
         return None
 
 
@@ -70,15 +69,7 @@ def map_retrieve(ids2map, source_fmt="ACC+ID", target_fmt="ACC", output_fmt="lis
     mapped identifiers (str)
     """
     if hasattr(ids2map, "pop"):
-        ids2map = " ".join(ids2map)
-    payload = {
-        "from": source_fmt,
-        "to": target_fmt,
-        "format": output_fmt,
-        "query": ids2map,
-    }
-    response = requests.get(BASE + TOOL_ENDPOINT, params=payload)
-    if response.ok:
-        return response.text
+        ids2map = list(ids2map)
     else:
-        response.raise_for_status()
+        ids2map = [ids2map]
+    return sequences.map_uniprot_ids(ids2map, from_db=source_fmt, to_db=target_fmt)

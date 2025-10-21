@@ -1,19 +1,9 @@
 import contextlib
 import datetime
 import json
-import os
 import re
 
-import requests
-from Bio import Entrez
-from habanero import Crossref
-
-Entrez.email = "talley.lambert+fpbase@gmail.com"
-Entrez.api_key = os.getenv("NCBI_API_KEY", None)
-email = Entrez.email
-ID_CONVERT_URL = (
-    "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?tool=FPbase&email=" + email + "&ids=%s&format=json"
-)
+from external_apis import ncbi, references
 
 
 def pmc_converter(id, to="pmid"):
@@ -38,7 +28,8 @@ def pmc_converter(id, to="pmid"):
         else:
             id = ",".join(id)
             many = True
-    record = json.loads(requests.get(ID_CONVERT_URL % id).content).get("records", None)
+    result = ncbi.pmc_id_converter(id)
+    record = result.get("records", None)
     try:
         if to == "all":
             if many:
@@ -80,8 +71,7 @@ def parse_crossref(doidict):
 
 
 def crossref(doi):
-    cr = Crossref(mailto="talley.lambert+fpbase@gmail.org")
-    response = cr.works(ids=doi)
+    response = references.crossref_works(doi)
     # habanero returns a list if doi is a list of len > 1
     # otherwise a single dict
     if isinstance(doi, list | tuple | set) and len(doi) > 1:
@@ -91,7 +81,7 @@ def crossref(doi):
 
 
 def doi2pmid(doi):
-    pubmed_record = Entrez.read(Entrez.esearch(db="pubmed", term=doi))
+    pubmed_record = ncbi.entrez_read(ncbi.entrez_esearch(db="pubmed", term=doi))
     try:
         return pubmed_record.get("IdList")[0]
     except Exception:
@@ -99,7 +89,7 @@ def doi2pmid(doi):
 
 
 def pmid2doi(pmid):
-    pubmed_record = Entrez.read(Entrez.esummary(db="pubmed", id=pmid, retmode="xml"))
+    pubmed_record = ncbi.entrez_read(ncbi.entrez_esummary(db="pubmed", id=pmid, retmode="xml"))
     try:
         return pubmed_record[0].get("DOI")
     except Exception:
@@ -107,7 +97,7 @@ def pmid2doi(pmid):
 
 
 def get_pmid_info(pmid):
-    pubmed_record = Entrez.read(Entrez.esummary(db="pubmed", id=pmid, retmode="xml"))
+    pubmed_record = ncbi.entrez_read(ncbi.entrez_esummary(db="pubmed", id=pmid, retmode="xml"))
     if len(pubmed_record):
         pubmed_record = pubmed_record[0]
         date = None

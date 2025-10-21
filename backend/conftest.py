@@ -1,9 +1,13 @@
 import json
 import os
 import subprocess
+from io import BytesIO
 from typing import TYPE_CHECKING
 
 import pytest
+from django.conf import settings
+
+from proteins.util import blast
 
 if TYPE_CHECKING:
     from _pytest.tmpdir import TempPathFactory
@@ -22,8 +26,6 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def uses_frontend(request):
-    from django.conf import settings
-
     stats_file = settings.WEBPACK_LOADER["DEFAULT"].get("STATS_FILE")
     if os.path.exists(stats_file):
         with open(stats_file, encoding="utf-8") as f:
@@ -38,8 +40,6 @@ def uses_frontend(request):
 
 @pytest.fixture(scope="session", autouse=True)
 def _mock_blast_db(tmp_path_factory: "TempPathFactory"):
-    from proteins.util import blast
-
     root = tmp_path_factory.mktemp("blastdb")
 
     blast.BLAST_DB, prev = str(root / "TEST_blastdb.fsa"), blast.BLAST_DB
@@ -61,58 +61,15 @@ def use_real_webpack_loader(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def mock_ncbi_api_calls(monkeypatch):
-    """Mock NCBI API calls to avoid rate limiting during tests.
+def mock_external_apis(monkeypatch):
+    """Mock all external API calls to avoid rate limiting and network dependencies during tests.
 
-    This fixture automatically mocks external API calls to NCBI E-utilities
-    to prevent HTTP 429 rate limit errors during test runs.
+    This fixture mocks the centralized external_apis module, making it much easier
+    to maintain than mocking individual Bio.Entrez, habanero, and requests calls.
     """
-    from datetime import datetime
-
-    def mock_doi_lookup(doi):
-        """Mock doi_lookup to return realistic test data without API calls."""
-        return {
-            "title": f"Test Article for {doi}",
-            "journal": "Test Journal of Science",
-            "pages": "123-456",
-            "volume": "42",
-            "issue": "1",
-            "year": 2024,
-            "date": datetime(2024, 1, 1).date(),
-            "authors": [
-                {"family": "Smith", "given": "John A."},
-                {"family": "Doe", "given": "Jane B."},
-            ],
-            "pmid": "12345678",
-        }
-
-    def mock_get_pmid_info(pmid):
-        """Mock get_pmid_info to return realistic test data."""
-        return {
-            "doi": "10.1234/test.doi",
-            "title": f"Test Article for PMID {pmid}",
-            "journal": "Test Journal",
-            "pages": "123-456",
-            "volume": "42",
-            "issue": "1",
-            "year": "2024",
-            "authors": [{"family": "Smith", "given": "John A."}],
-            "date": datetime(2024, 1, 1).date(),
-        }
-
-    def mock_doi2pmid(doi):
-        """Mock doi2pmid to return a test PMID."""
-        return "12345678"
-
-    def mock_pmid2doi(pmid):
-        """Mock pmid2doi to return a test DOI."""
-        return "10.1234/test.doi"
-
+    # Mock NCBI API wrapper functions
     def mock_entrez_esearch(db, term, **kwargs):
-        """Mock Entrez.esearch to return a test record."""
-        from io import BytesIO
-
-        # Return XML that Bio.Entrez.read can parse - must be binary
+        """Mock NCBI esearch to return a test record handle."""
         xml = b"""<?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE eSearchResult PUBLIC "-//NLM//DTD esearch 20060628//EN"
         "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20060628/esearch.dtd">
@@ -127,9 +84,7 @@ def mock_ncbi_api_calls(monkeypatch):
         return BytesIO(xml)
 
     def mock_entrez_esummary(db, id, retmode="xml", **kwargs):
-        """Mock Entrez.esummary to return test data."""
-        from io import BytesIO
-
+        """Mock NCBI esummary to return test data."""
         if db == "pubmed":
             xml = b"""<?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN"
@@ -152,7 +107,6 @@ def mock_ncbi_api_calls(monkeypatch):
                 </DocSum>
             </eSummaryResult>"""
         elif db == "taxonomy":
-            # Mock taxonomy database responses for Organism model
             xml = b"""<?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN"
             "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20041029/esummary-v1.dtd">
@@ -172,40 +126,118 @@ def mock_ncbi_api_calls(monkeypatch):
             <eSummaryResult><DocSum></DocSum></eSummaryResult>"""
         return BytesIO(xml)
 
-    # Apply the mocks
-    monkeypatch.setattr("references.helpers.doi_lookup", mock_doi_lookup)
-    monkeypatch.setattr("references.helpers.get_pmid_info", mock_get_pmid_info)
-    monkeypatch.setattr("references.helpers.doi2pmid", mock_doi2pmid)
-    monkeypatch.setattr("references.helpers.pmid2doi", mock_pmid2doi)
+    def mock_entrez_efetch(db, id, rettype=None, retmode="text", **kwargs):
+        """Mock NCBI efetch to return test sequence data."""
+        return BytesIO(b">test\nMVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS")
 
-    def mock_genbank_seq(accession):
-        """Mock genbank_seq to return a test sequence."""
-        return "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
+    def mock_entrez_espell(db, term, **kwargs):
+        """Mock NCBI espell to return the same term."""
+        xml = b"""<?xml version="1.0" encoding="UTF-8"?>
+        <eSpellResult>
+            <Query>""" + term.encode() + b"""</Query>
+            <CorrectedQuery></CorrectedQuery>
+        </eSpellResult>"""
+        return BytesIO(xml)
 
-    def mock_uniprot_seq(accession):
-        """Mock uniprot_seq to return a test sequence."""
-        return "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
-
-    def mock_pdb_seq(accession):
-        """Mock pdb_seq to return a test sequence."""
-        return "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
-
-    # Apply the mocks
-    monkeypatch.setattr("references.helpers.doi_lookup", mock_doi_lookup)
-    monkeypatch.setattr("references.helpers.get_pmid_info", mock_get_pmid_info)
-    monkeypatch.setattr("references.helpers.doi2pmid", mock_doi2pmid)
-    monkeypatch.setattr("references.helpers.pmid2doi", mock_pmid2doi)
-
-    # Mock external sequence fetchers
-    monkeypatch.setattr("fpseq.external.genbank_seq", mock_genbank_seq)
-    monkeypatch.setattr("fpseq.external.uniprot_seq", mock_uniprot_seq)
-    monkeypatch.setattr("fpseq.external.pdb_seq", mock_pdb_seq)
-
-    # Mock Bio.Entrez functions
-    try:
+    def mock_entrez_read(handle):
+        """Mock Entrez.read - just pass through to Bio.Entrez.read."""
         from Bio import Entrez
 
-        monkeypatch.setattr(Entrez, "esearch", mock_entrez_esearch)
-        monkeypatch.setattr(Entrez, "esummary", mock_entrez_esummary)
-    except ImportError:
-        pass  # Bio not imported yet
+        return Entrez.read(handle)
+
+    def mock_pmc_id_converter(id, tool="FPbase", email=None):
+        """Mock PMC ID converter to return test data."""
+        return {
+            "records": [
+                {
+                    "pmid": "12345678",
+                    "pmcid": "PMC1234567",
+                    "doi": "10.1234/test.doi",
+                }
+            ]
+        }
+
+    # Mock Crossref API wrapper
+    def mock_crossref_works(doi, mailto="talley.lambert+fpbase@gmail.org"):
+        """Mock Crossref works API to return test publication data."""
+        return {
+            "message": {
+                "DOI": doi,
+                "title": [f"Test Article for {doi}"],
+                "container-title": ["Test Journal of Science"],
+                "page": "123-456",
+                "volume": "42",
+                "issue": "1",
+                "published-print": {"date-parts": [[2024, 1, 1]]},
+                "author": [
+                    {"family": "Smith", "given": "John A."},
+                    {"family": "Doe", "given": "Jane B."},
+                ],
+            }
+        }
+
+    # Mock sequence fetcher APIs
+    def mock_fetch_genbank_fasta(accession):
+        """Mock GenBank FASTA fetch."""
+        return ">test\nMVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
+
+    def mock_fetch_uniprot_fasta(accession):
+        """Mock UniProt FASTA fetch."""
+        return ">test\nMVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
+
+    def mock_fetch_pdb_sequence(accession):
+        """Mock PDB sequence fetch."""
+        return "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
+
+    def mock_fetch_uniprot_xml(uniprot_id):
+        """Mock UniProt XML fetch."""
+        return """<?xml version="1.0" encoding="UTF-8"?>
+        <uniprot>
+            <entry>
+                <accession>TEST123</accession>
+                <sequence>MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS</sequence>
+            </entry>
+        </uniprot>"""
+
+    def mock_map_uniprot_ids(ids, from_db, to_db):
+        """Mock UniProt ID mapping."""
+        return "\n".join([f"{id}\tTEST{i}" for i, id in enumerate(ids)])
+
+    # Apply all mocks to the centralized external_apis module
+    monkeypatch.setattr("external_apis.ncbi.entrez_esearch", mock_entrez_esearch)
+    monkeypatch.setattr("external_apis.ncbi.entrez_esummary", mock_entrez_esummary)
+    monkeypatch.setattr("external_apis.ncbi.entrez_efetch", mock_entrez_efetch)
+    monkeypatch.setattr("external_apis.ncbi.entrez_espell", mock_entrez_espell)
+    monkeypatch.setattr("external_apis.ncbi.entrez_read", mock_entrez_read)
+    monkeypatch.setattr("external_apis.ncbi.pmc_id_converter", mock_pmc_id_converter)
+    monkeypatch.setattr("external_apis.references.crossref_works", mock_crossref_works)
+    monkeypatch.setattr("external_apis.sequences.fetch_genbank_fasta", mock_fetch_genbank_fasta)
+    monkeypatch.setattr("external_apis.sequences.fetch_uniprot_fasta", mock_fetch_uniprot_fasta)
+    monkeypatch.setattr("external_apis.sequences.fetch_pdb_sequence", mock_fetch_pdb_sequence)
+    monkeypatch.setattr("external_apis.sequences.fetch_uniprot_xml", mock_fetch_uniprot_xml)
+    monkeypatch.setattr("external_apis.sequences.map_uniprot_ids", mock_map_uniprot_ids)
+
+    # Also mock references.models imports (used directly in some places)
+    monkeypatch.setattr("references.models.name_to_initials", lambda x: x[:2].upper())
+
+    # Mock Organism.save() to skip NCBI API calls
+    from proteins.models.organism import Organism
+
+    def mock_organism_save(self, *args, **kwargs):
+        # Set default values if not already set, skipping API call
+        if not self.scientific_name:
+            self.scientific_name = "Aequorea victoria"
+        if not self.division:
+            self.division = "hydrozoans"
+        if not self.common_name:
+            self.common_name = "jellyfish"
+        if not self.species:
+            self.species = "victoria"
+        if not self.genus:
+            self.genus = "Aequorea"
+        if not self.rank:
+            self.rank = "species"
+        # Call Django's Model.save() directly, skipping Organism's custom save
+        super(Organism, self).save(*args, **kwargs)
+
+    monkeypatch.setattr(Organism, "save", mock_organism_save)

@@ -1,11 +1,10 @@
-from Bio import Entrez
 from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
-from .mixins import Authorable
+from external_apis import ncbi
 
-Entrez.email = "talley_lambert@hms.harvard.edu"
+from .mixins import Authorable
 
 
 class Organism(Authorable, TimeStampedModel):
@@ -33,7 +32,7 @@ class Organism(Authorable, TimeStampedModel):
         return reverse("proteins:organism-detail", args=[self.pk])
 
     def save(self, *args, **kwargs):
-        pubmed_record = Entrez.read(Entrez.esummary(db="taxonomy", id=self.id, retmode="xml"))
+        pubmed_record = ncbi.entrez_read(ncbi.entrez_esummary(db="taxonomy", id=self.id, retmode="xml"))
         self.scientific_name = pubmed_record[0]["ScientificName"]
         self.division = pubmed_record[0]["Division"]
         self.common_name = pubmed_record[0]["CommonName"]

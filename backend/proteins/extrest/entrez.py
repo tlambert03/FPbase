@@ -4,14 +4,13 @@ import re
 import time
 import xml.etree.ElementTree as ET
 
-from Bio import Entrez, SeqIO
+from Bio import SeqIO
 from django.core.cache import cache
 
+from external_apis import ncbi
 from references.helpers import pmid2doi
 
 logger = logging.getLogger(__name__)
-
-Entrez.email = "talley_lambert@hms.harvard.edu"
 
 
 # genbank protein accession
@@ -23,7 +22,7 @@ refseqrx = re.compile("(NC|AC|NG|NT|NW|NZ|NM|NR|XM|XR|NP|AP|XP|YP|ZP)_[0-9]+")
 
 
 def get_taxonomy_id(term, autochoose=False):
-    record = Entrez.read(Entrez.esearch(db="taxonomy", term=term))
+    record = ncbi.entrez_read(ncbi.entrez_esearch(db="taxonomy", term=term))
     if "ErrorList" in record and "PhraseNotFound" in record["ErrorList"]:
         spell_cor = get_entrez_spelling(term)
         if spell_cor:
@@ -32,7 +31,7 @@ def get_taxonomy_id(term, autochoose=False):
             else:
                 response = input(f'By "{term}", did you mean "{spell_cor}"? (y/n): ')
             if response.lower() == "y":
-                record = Entrez.read(Entrez.esearch(db="taxonomy", term=spell_cor))
+                record = ncbi.entrez_read(ncbi.entrez_esearch(db="taxonomy", term=spell_cor))
     if record["Count"] == "1":
         return record["IdList"][0]
     elif int(record["Count"]) > 1:
@@ -41,7 +40,7 @@ def get_taxonomy_id(term, autochoose=False):
 
 
 def get_entrez_spelling(term, db="taxonomy"):
-    record = Entrez.read(Entrez.espell(db=db, term=term))
+    record = ncbi.entrez_read(ncbi.entrez_espell(db=db, term=term))
     if record.get("CorrectedQuery"):
         return record.get("CorrectedQuery")
     else:
@@ -53,8 +52,8 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=
     # the most abundant protein count over the second-most abundant
     # example: autochoose=0 -> always choose the highest count, even in a tie
     #          autochoose=1 -> only chose if the highest is at least 1 greater...
-    with Entrez.esearch(db="ipg", term=str(protein_name) + "[protein name]") as handle:
-        record = Entrez.read(handle)
+    with ncbi.entrez_esearch(db="ipg", term=str(protein_name) + "[protein name]") as handle:
+        record = ncbi.entrez_read(handle)
     if record["Count"] == "1":  # we got a unique hit
         return record["IdList"][0]
     elif record["Count"] == "0":
@@ -77,7 +76,7 @@ def get_ipgid_by_name(protein_name, give_options=True, recurse=True, autochoose=
             print("{:>4}{:<11}{:<30}{:<5}".format("", "ID", "NAME", "#PROT"))
             idlist = []
             for i, ipg_uid in enumerate(record["IdList"]):
-                with Entrez.esummary(db="ipg", id=ipg_uid) as handle:
+                with ncbi.entrez_esummary(db="ipg", id=ipg_uid) as handle:
                     root = ET.fromstring(handle.read())
                 docsum = root.find("DocumentSummarySet").find("DocumentSummary")
                 prot_count = int(docsum.find("ProteinCount").text)
@@ -113,7 +112,7 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
         ipg_uid = get_ipgid_by_name(protein_name)
 
     try:
-        with Entrez.esummary(db="ipg", id=ipg_uid) as handle:
+        with ncbi.entrez_esummary(db="ipg", id=ipg_uid) as handle:
             root = ET.fromstring(handle.read())
         docsum = root.find("DocumentSummarySet").find("DocumentSummary")
         prot_name = docsum.find("Title").text
@@ -125,8 +124,8 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
     # assert prot_count == '1', 'Non-unique result returned'
     seq_len = docsum.find("Slen").text
     accession = docsum.find("Accession").text
-    with Entrez.efetch(db="protein", id=accession, retmode="xml") as handle:
-        record = Entrez.read(handle)
+    with ncbi.entrez_efetch(db="protein", id=accession, retmode="xml") as handle:
+        record = ncbi.entrez_read(handle)
     assert len(record) == 1, "More than one record returned from protein database"
     record = record[0]
     prot_seq = record["GBSeq_sequence"].upper()
@@ -137,8 +136,8 @@ def fetch_ipg_sequence(protein_name=None, uid=None):
 
 
 def get_ipgid_from_gbid(gbid):
-    with Entrez.esearch(db="ipg", term=gbid) as handle:
-        record = Entrez.read(handle)
+    with ncbi.entrez_esearch(db="ipg", term=gbid) as handle:
+        record = ncbi.entrez_read(handle)
     if record["Count"] == "1":  # we got a unique hit
         return record["IdList"][0]
 
@@ -178,12 +177,12 @@ def fetch_gb_seqs(gbids):
             logger.error(f"Could not determine accession type for {id}")
     records = {}
     if len(nucs):
-        with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
+        with ncbi.entrez_efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
             records.update(
                 {x.id.split(".")[0]: str(x.translate().seq).strip("*") for x in SeqIO.parse(handle, "fasta")}
             )
     if len(prots):
-        with Entrez.efetch(db="protein", id=prots, rettype="fasta", retmode="text") as handle:
+        with ncbi.entrez_efetch(db="protein", id=prots, rettype="fasta", retmode="text") as handle:
             records.update({x.id.split(".")[0]: str(x.seq).strip("*") for x in SeqIO.parse(handle, "fasta")})
     return records
 
@@ -195,12 +194,12 @@ def get_gb_seq(gbid):
         return None
 
     if database == "protein":
-        with Entrez.efetch(db=database, id=gbid, rettype="fasta", retmode="text") as handle:
+        with ncbi.entrez_efetch(db=database, id=gbid, rettype="fasta", retmode="text") as handle:
             record = SeqIO.read(handle, "fasta")
         if hasattr(record, "seq"):
             return str(record.seq)
     else:
-        with Entrez.efetch(db=database, id=gbid, rettype="gb", retmode="text") as handle:
+        with ncbi.entrez_efetch(db=database, id=gbid, rettype="gb", retmode="text") as handle:
             record = SeqIO.read(handle, "genbank")
         return parse_gbnuc_record(record).get("seq", None)
     return None
@@ -215,7 +214,7 @@ def get_gb_info(gbid):
     if not database:
         return None
 
-    with Entrez.efetch(db=database, id=gbid, rettype="gb", retmode="text") as handle:
+    with ncbi.entrez_efetch(db=database, id=gbid, rettype="gb", retmode="text") as handle:
         record = SeqIO.read(handle, "genbank")
 
     if record:
@@ -329,7 +328,7 @@ def parse_gbprot_record(record):
 
 
 def get_otherid_from_ipgid(ipgid):
-    with Entrez.esummary(db="ipg", id=ipgid, retmode="json") as handle:
+    with ncbi.entrez_esummary(db="ipg", id=ipgid, retmode="json") as handle:
         record = json.loads(handle.read())
         try:
             return record["result"][ipgid]["accession"]

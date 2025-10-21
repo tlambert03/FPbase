@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import json
-import os
-
-import requests
+from external_apis import sequences
 
 
 def genbank_seq(accession: str) -> str | None:
@@ -19,18 +16,12 @@ def genbank_seq(accession: str) -> str | None:
     str | None
         Protein sequence, or None if not found
     """
-    api_key = os.getenv("NCBI_API_KEY", "")
-    url = (
-        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
-        f"efetch.fcgi?db=protein&id={accession}&rettype=fasta&retmode=text"
-    )
-    if api_key:
-        url += f"&api_key={api_key}"
-
-    response = requests.get(url)
-    if response:
-        return "".join([x.decode() for x in response.content.splitlines()[1:]])
-    return None
+    try:
+        fasta_text = sequences.fetch_genbank_fasta(accession)
+        # Parse FASTA: skip header line, join sequence lines
+        return "".join(fasta_text.splitlines()[1:])
+    except Exception:
+        return None
 
 
 def uniprot_seq(accession: str) -> str | None:
@@ -46,10 +37,12 @@ def uniprot_seq(accession: str) -> str | None:
     str | None
         Protein sequence, or None if not found
     """
-    response = requests.get(f"https://www.uniprot.org/uniprot/{accession}.fasta")
-    if response:
-        return "".join([x.decode() for x in response.content.splitlines()[1:]])
-    return None
+    try:
+        fasta_text = sequences.fetch_uniprot_fasta(accession)
+        # Parse FASTA: skip header line, join sequence lines
+        return "".join(fasta_text.splitlines()[1:])
+    except Exception:
+        return None
 
 
 def pdb_seq(accession: str) -> str | None:
@@ -65,12 +58,7 @@ def pdb_seq(accession: str) -> str | None:
     str | None
         Protein sequence, or None if not found
     """
-    response = requests.get(f"http://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/{accession}")
-    if response:
-        j = json.loads(response.text)
-        try:
-            j = j[accession.lower()]
-        except ValueError:
-            j = j[accession]
-        return j[0]["sequence"]
-    return None
+    try:
+        return sequences.fetch_pdb_sequence(accession)
+    except Exception:
+        return None
