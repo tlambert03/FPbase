@@ -45,7 +45,6 @@ dependencies = [
     'python-slugify>=8.0.1',
     'rcssmin>=1.1.1',
     'redis==5.0.4',
-    'scipy==1.14.1',
     'sentry-sdk>=2.8',
     'tablib>=3.4.0',
     'whitenoise[brotli]==6.6.0',
