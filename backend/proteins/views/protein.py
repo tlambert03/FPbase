@@ -201,7 +201,12 @@ class ProteinDetailView(DetailView):
 
     queryset = (
         Protein.objects.annotate(has_spectra=Count("states__spectra"))
-        .prefetch_related("states", "excerpts__reference", "oser_measurements__reference")
+        .prefetch_related(
+            "states__spectra",  # Prefetch spectra to avoid N+1 queries
+            "states",
+            "excerpts__reference",
+            "oser_measurements__reference",
+        )
         .select_related("primary_reference")
     )
 

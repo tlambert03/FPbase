@@ -7,13 +7,10 @@ from collections import Counter, OrderedDict
 from math import isnan
 from uuid import uuid4
 
-import matplotlib.ticker as ticker
 from django.core.cache import cache
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
 
 logger = logging.getLogger(__name__)
 
@@ -442,6 +439,12 @@ def spectra_fig(
 ):
     if not spectra:
         return None
+
+    # Lazy import - only load matplotlib when actually generating plots
+    # This saves ~27 MB of memory per worker when not generating images
+    import matplotlib.ticker as ticker
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+    from matplotlib.figure import Figure
 
     alph = kwargs.pop("alpha", None)
     colr = kwargs.pop("color", None)

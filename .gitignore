@@ -384,3 +384,8 @@ blastdb/
 backend/blastdb/
 .pdm-python
 SemrockSpectra/
+
+# Memray profiling outputs
+memray_*/
+*.bin
+test_fix*.bin

@@ -38,7 +38,21 @@ def from_fpbase(slug):
 class FPSeq(SkbSequence):
     def __init__(self, sequence, position_lables=None, **kwargs):
         super().__init__(sequence, **kwargs)
-        self._poslabels = generate_labels(str(self), position_lables)
+        # Store argument for lazy evaluation - don't generate labels until needed
+        self._position_labels_arg = position_lables
+        self._poslabels_cache = None
+
+    @property
+    def _poslabels(self):
+        """Lazy evaluation of position labels - only generate when accessed."""
+        if self._poslabels_cache is None:
+            self._poslabels_cache = generate_labels(str(self), self._position_labels_arg)
+        return self._poslabels_cache
+
+    @_poslabels.setter
+    def _poslabels(self, value):
+        """Allow setting if needed for compatibility."""
+        self._poslabels_cache = value
 
     @property
     def weight(self):
