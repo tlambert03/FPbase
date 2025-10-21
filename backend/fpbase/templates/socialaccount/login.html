@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Sign In" %}{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>
+            {% blocktrans with provider.name as provider_name %}
+                Connect {{ provider_name }}
+            {% endblocktrans %}
+        </h1>
+
+        <p>
+            {% blocktrans with provider.name as provider_name %}
+                You are about to connect a new third-party account from {{ provider_name }}.
+            {% endblocktrans %}
+        </p>
+
+    {% if process == "connect" %}
+        <p>
+            {% blocktrans %}
+                This will allow you to sign in using this third-party account.
+            {% endblocktrans %}
+        </p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">
+            {% if process == "connect" %}
+                {% trans "Continue" %}
+            {% else %}
+                {% trans "Sign In" %}
+            {% endif %}
+        </button>
+    </form>
+    </div>
+{% endblock %}
