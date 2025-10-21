@@ -1,12 +1,11 @@
+from __future__ import annotations
+
 import csv
 
 import numpy as np
 from django.http import HttpResponse
-from scipy import interpolate
-from scipy.signal import (
-    argrelextrema,  # savgol_filter
-    savgol_filter,
-)
+
+from . import _scipy as scipy
 
 
 def is_monotonic(array):
@@ -26,22 +25,21 @@ def interp_linear(x, y, s=1, savgol=False):
     if not is_monotonic(x):
         x, y = make_monotonic(x, y)
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
-    F = interpolate.interp1d(x, y)
-    ynew = F(xnew)
+    ynew = np.interp(xnew, x, y)
     if savgol:
-        ynew = savgol_filter(ynew, 9, 2)
+        ynew = scipy.signal.savgol_filter(ynew, 9, 2)
     return xnew, ynew
 
 
 def interp_univar(x, y, s=1, savgol=False):
+    """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
     if not is_monotonic(x):
         x, y = make_monotonic(x, y)
-    """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
-    f = interpolate.InterpolatedUnivariateSpline(x, y)
+    f = scipy.interpolate.InterpolatedUnivariateSpline(x, y)
     ynew = f(xnew)
     if savgol:
-        ynew = norm2one(savgol_filter(ynew, 15, 2))
+        ynew = norm2one(scipy.signal.savgol_filter(ynew, 15, 2))
     return xnew, ynew
 
 
@@ -60,7 +58,7 @@ def step_size(lol):
 def norm2P(y):
     """Normalize peak value of vector to one"""
     y = np.array(y)
-    localmax = argrelextrema(y, np.greater, order=100)
+    localmax = scipy.signal.argrelextrema(y, np.greater, order=100)
     # can't be within first 10 points
     localmax = [i for i in localmax[0] if i > 10]
     if not localmax:
@@ -92,10 +90,9 @@ def spectra2csv(spectralist, filename="fpbase_spectra.csv"):
 def interp2int(x, y, s=1):
     """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
     xnew = range(int(min(x)), int(max(x)))
-    # ynew = cubic_interp1d(xnew, x, y)  # if no scipy
-    tck = interpolate.splrep(x, y, s=s)
-    ynew = interpolate.splev(xnew, tck, der=0)
-    ynew = savgol_filter(ynew, 15, 2)
+    tck = scipy.interpolate.splrep(x, y, s=s)
+    ynew = scipy.interpolate.splev(xnew, tck, der=0)
+    ynew = scipy.signal.savgol_filter(ynew, 15, 2)
     return xnew, ynew
 
 
