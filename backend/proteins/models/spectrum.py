@@ -631,8 +631,8 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         if len(value) != len(self.data):
             raise ValueError("Error: array length must match existing data")
         # Clear cached property before modifying data
-        if 'x' in self.__dict__:
-            del self.__dict__['x']
+        if "x" in self.__dict__:
+            del self.__dict__["x"]
         for i in range(len(value)):
             self.data[i][0] = value[i]
 
@@ -642,8 +642,8 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         if len(value) != len(self.data):
             raise ValueError("Error: array length must match existing data")
         # Clear cached property before modifying data
-        if 'y' in self.__dict__:
-            del self.__dict__['y']
+        if "y" in self.__dict__:
+            del self.__dict__["y"]
         for i in range(len(value)):
             self.data[i][1] = value[i]
 
