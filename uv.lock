@@ -1143,7 +1143,6 @@ dependencies = [
     { name = "matplotlib" },
     { name = "maxminddb" },
     { name = "numpy" },
-    { name = "parasail" },
     { name = "pillow" },
     { name = "psycopg2", marker = "sys_platform == 'linux'" },
     { name = "python-slugify" },
@@ -1220,7 +1219,6 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.7.1" },
     { name = "maxminddb", specifier = ">=2.5.1" },
     { name = "numpy", specifier = ">=1.26.3" },
-    { name = "parasail", specifier = "==1.3.4" },
     { name = "pillow", specifier = ">=10.0.0" },
     { name = "psycopg2", marker = "sys_platform == 'linux'", specifier = ">=2.9.11" },
     { name = "python-slugify", specifier = ">=8.0.1" },
@@ -2051,22 +2049,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/a4/1e/1bac1a839d12e6a82ec6cb40cda2edde64a2013a66963293696bbf31fbbb/pandas-2.3.3-cp314-cp314t-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2e3ebdb170b5ef78f19bfb71b0dc5dc58775032361fa188e814959b74d726dd5", size = 12121582, upload-time = "2025-09-29T23:30:43.391Z" },
     { url = "https://files.pythonhosted.org/packages/44/91/483de934193e12a3b1d6ae7c8645d083ff88dec75f46e827562f1e4b4da6/pandas-2.3.3-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:d051c0e065b94b7a3cea50eb1ec32e912cd96dba41647eb24104b6c6c14c5788", size = 12699963, upload-time = "2025-09-29T23:31:10.009Z" },
     { url = "https://files.pythonhosted.org/packages/70/44/5191d2e4026f86a2a109053e194d3ba7a31a2d10a9c2348368c63ed4e85a/pandas-2.3.3-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:3869faf4bd07b3b66a9f462417d0ca3a9df29a9f6abd5d0d0dbab15dac7abe87", size = 13202175, upload-time = "2025-09-29T23:31:59.173Z" },
-]
-
-[[package]]
-name = "parasail"
-version = "1.3.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e7/ea/83b1f61fde88c164b7a0224f540d358177bc29cae2aae1d8873f42f10805/parasail-1.3.4.tar.gz", hash = "sha256:d6a7035dfae3ef5aafdd7e6915711214c22b572ea059fa69d9d7ecbfb9b61b0f", size = 83776, upload-time = "2023-02-17T16:06:24.385Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/d3/84a6ec349f180087f3feae55d45fd5e712af2393ca524d2151a4b44edcea/parasail-1.3.4-py2.py3-none-macosx_10_9_x86_64.whl", hash = "sha256:58bb1a981ccab67721f88da070e305d04e5e4e35aac51dadd278301e6c799c93", size = 3224951, upload-time = "2023-02-17T16:06:11.319Z" },
-    { url = "https://files.pythonhosted.org/packages/a8/52/4194bf768c150ffdd0c9ede809ec39cb1d71c86fabd4e81438b523d0b1cc/parasail-1.3.4-py2.py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ede927ccbd8cd4180c33c4c44af9d720aedb31d098b2a83cdc32ba0059d7ea59", size = 15590196, upload-time = "2023-02-17T16:06:14.461Z" },
-    { url = "https://files.pythonhosted.org/packages/f2/e8/8cbac2a5a4d4f2e8cf44982d895450fa7f53e9188559dad4ec34cedde3ed/parasail-1.3.4-py2.py3-none-musllinux_1_1_i686.whl", hash = "sha256:e58b2d3cf1dd3a4c399e835861fbfd8d725abf3f7de2bd21cdee1d36c65f5e12", size = 13291845, upload-time = "2023-02-17T16:06:17.807Z" },
-    { url = "https://files.pythonhosted.org/packages/bd/57/add3ce59f2b0a76e5fc2edfec6c73097c9922c48b5194c6c72150e4758aa/parasail-1.3.4-py2.py3-none-win32.whl", hash = "sha256:bccd9b561e87b345aa5676facfb2555da395dd56d202b293d1a6ee1488788257", size = 2240240, upload-time = "2023-02-17T16:06:20.742Z" },
-    { url = "https://files.pythonhosted.org/packages/7d/3d/3fb505271ca157798326c3f4c357ccde2c1c6f05f05400aa19e3e55bbd01/parasail-1.3.4-py2.py3-none-win_amd64.whl", hash = "sha256:25b8260b922933c8e7e8ce008ddcbbff4ef998b7d077169ed441d70ab7a78b5a", size = 2628558, upload-time = "2023-02-17T16:06:22.546Z" },
 ]
 
 [[package]]
