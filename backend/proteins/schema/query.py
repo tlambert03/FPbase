@@ -1,4 +1,5 @@
 import graphene
+import graphene_django_optimizer as gdo
 from django.core.cache import cache
 from django.utils.text import slugify
 from graphene_django.filter import DjangoFilterConnectionField
@@ -6,7 +7,6 @@ from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
 
 from .. import models
 from ..filters import ProteinFilter
-from . import _optimizer as gdo
 from . import relay, types
 
 
