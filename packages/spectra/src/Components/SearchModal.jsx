@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react"
 import PropTypes from "prop-types"
-import Modal from "@material-ui/core/Modal"
-import Typography from "@material-ui/core/Typography"
-import { makeStyles } from "@material-ui/core/styles"
-import { useMutation, useQuery, useApolloClient } from "@apollo/react-hooks"
+import Modal from "@mui/material/Modal"
+import Typography from "@mui/material/Typography"
+import { makeStyles } from "@mui/styles"
+import { useMutation, useQuery, useApolloClient } from "@apollo/client"
 import { components } from "react-select"
-import Checkbox from "@material-ui/core/Checkbox"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
+import Checkbox from "@mui/material/Checkbox"
+import FormControlLabel from "@mui/material/FormControlLabel"
 import gql from "graphql-tag"
 import { useCachedFetch } from "../useCachedQuery"
 import {
@@ -142,9 +142,8 @@ const SearchModal = React.memo(function SearchModal({
 
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
-  const {
-    data: { excludeSubtypes },
-  } = useQuery(GET_OWNER_OPTIONS)
+  const { data } = useQuery(GET_OWNER_OPTIONS)
+  const excludeSubtypes = data?.excludeSubtypes || []
 
   const handleChange = event => {
     const spectra =

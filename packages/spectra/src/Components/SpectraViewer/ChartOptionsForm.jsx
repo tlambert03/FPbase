@@ -1,10 +1,10 @@
 import React, { memo } from "react"
-import List from "@material-ui/core/List"
-import { useMutation, useQuery } from "@apollo/react-hooks"
+import List from "@mui/material/List"
+import { useMutation, useQuery } from "@apollo/client"
 import gql from "graphql-tag"
-import Grid from "@material-ui/core/Grid"
-import MenuItem from "@material-ui/core/MenuItem"
-import Select from "@material-ui/core/Select"
+import Grid from "@mui/material/Grid"
+import MenuItem from "@mui/material/MenuItem"
+import Select from "@mui/material/Select"
 import { GET_CHART_OPTIONS } from "../../client/queries"
 import ListCheckbox from "../ListCheckbox"
 import PALETTES from "../../palettes"
@@ -29,9 +29,10 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
   const [toggleShareTooltip] = useMutation(toggleMut("ShareTooltip"))
   const [toggleAreaFill] = useMutation(toggleMut("AreaFill"))
   const [mutatePalette] = useMutation(MUTATE_PALETTE)
-  const {
-    data: { chartOptions },
-  } = useQuery(GET_CHART_OPTIONS)
+  const { data } = useQuery(GET_CHART_OPTIONS)
+  const chartOptions = data?.chartOptions
+
+  if (!chartOptions) return null
 
   return (
     <List dense className="settings-list">

@@ -1,5 +1,6 @@
 import React from "react"
-import { render } from "react-dom"
+import { createRoot } from "react-dom/client"
 import App from "@fpbase/blast"
 
-render(<App />, document.getElementById("blast-app"))
+const root = createRoot(document.getElementById("blast-app"))
+root.render(<App />)

@@ -1,12 +1,13 @@
-import React, { useRef } from "react"
+import React, { useMemo } from "react"
 import "./index.css"
-import { ApolloProvider } from "@apollo/react-hooks"
+import { ApolloProvider } from "@apollo/client"
+import { ThemeProvider, StyledEngineProvider } from "@mui/material/styles"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
-// import { ApolloProvider } from "@apollo/react-hooks"
 import initializeClient from "./client/client"
 import { parseURL } from "./client/client"
 import { defaults } from "./client/resolvers"
+import theme from "./Components/theme"
 
 /* eslint-disable */
 // if (process.env.NODE_ENV === 'development') {
@@ -19,33 +20,33 @@ import { defaults } from "./client/resolvers"
 // }
 /* eslint-enable */
 
-const AppWrapper = ({ uri }) => {
-  const client = useRef(initializeClient({ uri }))
+const AppWrapper = ({ uri = "/graphql/" }) => {
+  const client = useMemo(() => initializeClient({ uri }), [uri])
   return (
-    <ApolloProvider client={client.current}>
-      <App />
-    </ApolloProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={theme}>
+        <ApolloProvider client={client}>
+          <App />
+        </ApolloProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   )
-}
-
-AppWrapper.defaultProps = {
-  uri: "/graphql/",
 }
 
 export default AppWrapper
 
-const SimpleSpectraViewer = ({ uri, ids, overlaps, options, hidden }) => {
-  const client = useRef(initializeClient({ uri }))
+const SimpleSpectraViewer = ({ uri = "/graphql/", ids, overlaps, options, hidden }) => {
+  const client = useMemo(() => initializeClient({ uri }), [uri])
 
   return (
-    <ApolloProvider client={client.current}>
-      <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
-    </ApolloProvider>
+    <StyledEngineProvider injectFirst>
+      <ThemeProvider theme={theme}>
+        <ApolloProvider client={client}>
+          <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
+        </ApolloProvider>
+      </ThemeProvider>
+    </StyledEngineProvider>
   )
-}
-
-SimpleSpectraViewer.defaultProps = {
-  uri: "/graphql/",
 }
 
 const Inner = ({ ids, overlaps, options, hidden }) => {

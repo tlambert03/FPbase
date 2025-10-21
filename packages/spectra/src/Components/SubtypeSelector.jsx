@@ -1,11 +1,11 @@
 import React from "react"
 import PropTypes from "prop-types"
-import Box from "@material-ui/core/Box"
-import ToggleButton from "@material-ui/lab/ToggleButton"
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup"
-import { useQuery, useMutation } from "@apollo/react-hooks"
-import { makeStyles } from "@material-ui/core"
-import Visibility from "@material-ui/icons/Visibility"
+import Box from "@mui/material/Box"
+import ToggleButton from "@mui/material/ToggleButton"
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
+import { useQuery, useMutation } from "@apollo/client"
+import { makeStyles } from "@mui/styles"
+import Visibility from "@mui/icons-material/Visibility"
 import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const useStyles = makeStyles(theme => ({
@@ -39,13 +39,16 @@ const SubtypeSelector = React.memo(function SubtypeSelector({
 }) {
   const classes = useStyles()
 
-  const {
-    data: { activeSpectra },
-  } = useQuery(GET_ACTIVE_SPECTRA)
-  subtypes.sort(subtypeSorter)
-  subtypes.forEach(subtype => {
-    subtype.active = activeSpectra.includes(subtype.id)
-  })
+  const { data } = useQuery(GET_ACTIVE_SPECTRA)
+  const activeSpectra = data?.activeSpectra || []
+
+  // Create a mutable copy and add active status
+  const sortedSubtypes = [...subtypes]
+    .sort(subtypeSorter)
+    .map(subtype => ({
+      ...subtype,
+      active: activeSpectra.includes(subtype.id)
+    }))
 
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const handleClick = e => {
@@ -61,11 +64,11 @@ const SubtypeSelector = React.memo(function SubtypeSelector({
   return (
     <Box>
       <ToggleButtonGroup
-        value={subtypes.filter(i => i.active).map(i => i.id)}
+        value={sortedSubtypes.filter(i => i.active).map(i => i.id)}
         size="small"
         className={classes.toggleButtonGroup}
       >
-        {subtypes.map(st => (
+        {sortedSubtypes.map(st => (
           <ToggleButton
             key={st.id}
             value={st.id}

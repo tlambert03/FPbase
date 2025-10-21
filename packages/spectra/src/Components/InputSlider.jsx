@@ -1,8 +1,8 @@
 import React from "react"
-import Slider from "@material-ui/core/Slider"
-import Grid from "@material-ui/core/Grid"
-import Input from "@material-ui/core/Input"
-import { makeStyles } from "@material-ui/core/styles"
+import Slider from "@mui/material/Slider"
+import Grid from "@mui/material/Grid"
+import Input from "@mui/material/Input"
+import { makeStyles } from "@mui/styles"
 
 export const useStyles = makeStyles({
   root: {
@@ -15,7 +15,7 @@ export const useStyles = makeStyles({
   },
 })
 
-const InputSlider = ({ value, setValue, min, max, step }) => {
+const InputSlider = ({ value, setValue, min = 300, max = 999, step = 1 }) => {
   const classes = useStyles()
   const handleSliderChange = (event, newValue) => {
     setValue(newValue)
@@ -62,12 +62,6 @@ const InputSlider = ({ value, setValue, min, max, step }) => {
       </Grid>
     </div>
   )
-}
-
-InputSlider.defaultProps = {
-  min: 300,
-  max: 999,
-  step: 1,
 }
 
 export default InputSlider

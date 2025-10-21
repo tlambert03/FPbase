@@ -45,7 +45,12 @@ const jsRule = {
             corejs: 3,
           },
         ],
-        "@babel/preset-react",
+        [
+          "@babel/preset-react",
+          {
+            runtime: "automatic",
+          },
+        ],
       ],
       plugins: ["@babel/plugin-syntax-dynamic-import"],
     },

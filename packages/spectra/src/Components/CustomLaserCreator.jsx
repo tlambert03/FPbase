@@ -1,13 +1,13 @@
 import React, { useEffect, memo, useState } from "react"
-import Box from "@material-ui/core/Box"
+import Box from "@mui/material/Box"
 
-import { useApolloClient } from "@apollo/react-hooks"
-import Typography from "@material-ui/core/Typography"
-import { makeStyles } from "@material-ui/core/styles"
-import Checkbox from "@material-ui/core/Checkbox"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
-import RadioButtonUnchecked from "@material-ui/icons/RadioButtonUnchecked"
-import RadioButtonChecked from "@material-ui/icons/RadioButtonChecked"
+import { useApolloClient } from "@apollo/client"
+import Typography from "@mui/material/Typography"
+import { makeStyles } from "@mui/styles"
+import Checkbox from "@mui/material/Checkbox"
+import FormControlLabel from "@mui/material/FormControlLabel"
+import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked"
+import RadioButtonChecked from "@mui/icons-material/RadioButtonChecked"
 import InputSlider from "./InputSlider"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
@@ -88,7 +88,6 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
                 icon={<RadioButtonUnchecked fontSize="small" />}
                 checkedIcon={<RadioButtonChecked fontSize="small" />}
                 value="checkedI"
-                color="default"
                 checked={id.startsWith(normID)}
                 onChange={handleNormCheck}
               />

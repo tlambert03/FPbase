@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useApolloClient, useQuery } from "@apollo/react-hooks"
+import { useApolloClient, useQuery } from "@apollo/client"
 import update from "immutability-helper"
 import gql from "graphql-tag"
 import { GET_SPECTRUM } from "../client/queries"
@@ -25,7 +25,7 @@ const customLaserSpectrum = (_id) => {
         id: id,
         customId: _id,
         subtype: "PD",
-        owner: { name, id: _id },
+        owner: { name, id: _id, slug: _id },
         category: "L",
         data,
         color: wave in COLORS ? COLORS[wave] : "#999999",
@@ -74,7 +74,7 @@ const customFilterSpectrum = (_id) => {
         id: id,
         customId: _id,
         subtype,
-        owner: { name, id: _id },
+        owner: { name, id: _id, slug: _id },
         category: "F",
         data,
         color: +center in COLORS ? COLORS[+center] : "#999999",
@@ -102,8 +102,8 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
     activeSpectra = provideSpectra
     activeOverlaps = provideOverlaps
   } else {
-    activeSpectra = data.activeSpectra
-    activeOverlaps = data.activeOverlaps
+    activeSpectra = data?.activeSpectra || []
+    activeOverlaps = data?.activeOverlaps || []
   }
   useEffect(() => {
     function idToData(id) {
@@ -140,7 +140,7 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
         (id) => id && !currentIDs.includes(id)
       )
       const newOverlapData = newOverlaps
-        .map((id) => window.OverlapCache[id] || id)
+        .map((id) => window.OverlapCache[id])
         .filter((i) => i)
 
       if (deadSpectra.length || newData.length || newOverlapData.length) {

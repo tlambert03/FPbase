@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from "react"
 import { Series } from "react-jsx-highcharts"
-import { useApolloClient } from "@apollo/react-hooks"
+import { useApolloClient } from "@apollo/client"
 import { List } from "immutable"
 import { GET_SPECTRUM } from "../../client/queries"
 import PALETTES from "../../palettes"

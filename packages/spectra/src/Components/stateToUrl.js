@@ -4,9 +4,9 @@ function stateToUrl(activeSpectra, chartOptions, exNorm) {
   const qstrings = []
   if (activeSpectra) qstrings.push(`s=${activeSpectra.join(",")}`)
   if (chartOptions) {
-    const opts = { ...chartOptions }
+    const opts = { ...chartOptions, extremes: chartOptions.extremes ? [...chartOptions.extremes] : undefined }
     delete opts.__typename
-    const [xMin, xMax] = opts.extremes
+    const [xMin, xMax] = opts.extremes || []
     if (xMin) opts.xMin = xMin
     if (xMax) opts.xMax = xMax
     delete opts.extremes
@@ -17,7 +17,7 @@ function stateToUrl(activeSpectra, chartOptions, exNorm) {
     })
     qstrings.push(qs.stringify(opts))
   }
-  if (exNorm[0] && exNorm[1]) {
+  if (exNorm && exNorm[0] && exNorm[1]) {
     qstrings.push(qs.stringify({ normWave: exNorm[0], normID: exNorm[1] }))
   }
   const { origin, pathname } = window.location

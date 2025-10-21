@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useApolloClient } from "@apollo/react-hooks"
+import { useApolloClient } from "@apollo/client"
 import { getStorageWithExpire, setStorageWithTimeStamp } from "./util"
 import "unfetch/polyfill/index"
 
