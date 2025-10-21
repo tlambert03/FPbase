@@ -1,17 +1,17 @@
 import React, { memo } from "react"
-import { makeStyles } from "@material-ui/core/styles"
-import AppBar from "@material-ui/core/AppBar"
-import Toolbar from "@material-ui/core/Toolbar"
-import Tooltip from "@material-ui/core/Tooltip"
-import Fab from "@material-ui/core/Fab"
-import HelpIcon from "@material-ui/icons/Help"
-import AddIcon from "@material-ui/icons/Add"
+import { makeStyles } from "@mui/styles"
+import AppBar from "@mui/material/AppBar"
+import Toolbar from "@mui/material/Toolbar"
+import Tooltip from "@mui/material/Tooltip"
+import Fab from "@mui/material/Fab"
+import HelpIcon from "@mui/icons-material/Help"
+import AddIcon from "@mui/icons-material/Add"
 
-import { useMutation, useQuery } from "@apollo/react-hooks"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
-import Switch from "@material-ui/core/Switch"
+import { useMutation, useQuery } from "@apollo/client"
+import FormControlLabel from "@mui/material/FormControlLabel"
+import Switch from "@mui/material/Switch"
 import gql from "graphql-tag"
-import { IconButton } from "@material-ui/core"
+import { IconButton } from "@mui/material"
 import ShareButton from "./ShareButton"
 import SettingsDrawer from "./SettingsDrawer"
 import { GET_CHART_OPTIONS } from "../client/queries"
@@ -68,11 +68,8 @@ const MyAppBar = memo(function MyAppBar({
   const [searchOpen, setSearchOpen] = React.useState(false)
   const handleClick = () => setSearchOpen(true)
 
-  const {
-    data: {
-      chartOptions: { logScale },
-    },
-  } = useQuery(GET_CHART_OPTIONS)
+  const { data } = useQuery(GET_CHART_OPTIONS)
+  const logScale = data?.chartOptions?.logScale || false
   const [toggleLogScale] = useMutation(gql`
     mutation ToggleLogScale {
       toggleLogScale @client
@@ -110,7 +107,6 @@ const MyAppBar = memo(function MyAppBar({
                 tabIndex={-1}
                 checked={logScale}
                 onChange={toggleLogScale}
-                color="default"
               />
 )}
             label="OD"

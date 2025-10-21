@@ -12,7 +12,7 @@ const mockApolloClient = {
   query: vi.fn(),
 }
 
-vi.mock('@apollo/react-hooks', () => ({
+vi.mock('@apollo/client', () => ({
   useApolloClient: () => mockApolloClient,
 }))
 

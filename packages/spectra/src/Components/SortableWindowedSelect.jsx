@@ -49,7 +49,7 @@ OptionWithIcon.propTypes = {
 const emptyFilter = () => true
 
 const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
-  showIcon,
+  showIcon = false,
   options,
   components,
   ...otherprops
@@ -125,10 +125,6 @@ SortableWindowedSelect.propTypes = {
   showIcon: PropTypes.bool,
   components: PropTypes.object,
   options: PropTypes.array,
-}
-
-SortableWindowedSelect.defaultProps = {
-  showIcon: false,
 }
 
 export default SortableWindowedSelect

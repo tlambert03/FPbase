@@ -1,5 +1,5 @@
 import React, { useEffect, memo } from "react"
-import { useQuery } from "@apollo/react-hooks"
+import { useQuery } from "@apollo/client"
 import Highcharts from "highcharts"
 import {
   HighchartsProvider,
@@ -19,7 +19,7 @@ import "highcharts/modules/export-data"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/boost"
 import update from "immutability-helper"
-import { css } from "@emotion/core"
+import { css } from "@emotion/react"
 import { BarLoader } from "react-spinners"
 import gql from "graphql-tag"
 import XRangePickers from "./XRangePickers"
@@ -96,14 +96,21 @@ const BaseSpectraViewerContainer = React.memo(
       `,
       { skip: provideOptions }
     )
+
+    // Always call useSpectraData hook before any returns (Rules of Hooks)
+    const spectraldata = useSpectraData(provideSpectra, provideOverlaps)
+
     let chartOptions
     let normWave
     if (provideOptions) {
       chartOptions = provideOptions
       normWave = undefined
-    } else {
+    } else if (data?.chartOptions) {
       chartOptions = data.chartOptions
-        ;[normWave] = data.exNorm
+        ;[normWave] = data.exNorm || [null]
+    } else {
+      // Data not loaded yet, return null after all hooks are called
+      return null
     }
 
     const yAxis = update(_yAxis, {
@@ -122,7 +129,6 @@ const BaseSpectraViewerContainer = React.memo(
       shared: { $set: chartOptions.shareTooltip },
     })
 
-    const spectraldata = useSpectraData(provideSpectra, provideOverlaps)
     return (
       <BaseSpectraViewer
         data={spectraldata}
@@ -195,8 +201,8 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
           <div className="sweet-loading">
             <BarLoader
               css={override}
-              sizeUnit="px"
-              size={100}
+              height={4}
+              width="100px"
               color="#ccc"
               loading
             />

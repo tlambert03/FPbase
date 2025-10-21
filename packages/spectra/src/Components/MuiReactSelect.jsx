@@ -1,10 +1,11 @@
 import React from "react"
-import Typography from "@material-ui/core/Typography"
-import NoSsr from "@material-ui/core/NoSsr"
-import TextField from "@material-ui/core/TextField"
-import Paper from "@material-ui/core/Paper"
+import Typography from "@mui/material/Typography"
+import NoSsr from "@mui/material/NoSsr"
+import TextField from "@mui/material/TextField"
+import Paper from "@mui/material/Paper"
 import PropTypes from "prop-types"
-import { makeStyles, useTheme } from "@material-ui/core/styles"
+import { makeStyles } from "@mui/styles"
+import { useTheme } from "@mui/material/styles"
 import "regenerator-runtime" // why do I need this?!?
 import Select from "react-select"
 import SortableWindowedSelect from "./SortableWindowedSelect"
@@ -15,9 +16,8 @@ const useStyles = makeStyles(theme => ({
   },
   input: {
     display: "flex",
-    padding: 0,
+    padding: "0 4px 4px 4px",
     height: "auto",
-    paddingBottom: 4,
     fontSize: "1.2rem",
   },
   valueContainer: {
@@ -35,7 +35,7 @@ const useStyles = makeStyles(theme => ({
   },
   placeholder: {
     position: "absolute",
-    left: 4,
+    left: 8,
     bottom: 7,
     fontSize: "1.2rem",
   },
@@ -160,7 +160,7 @@ const myComponents = {
   ValueContainer,
 }
 
-function MuiReactSelect({ paginate, components, ...otherprops }) {
+function MuiReactSelect({ paginate = true, components, ...otherprops }) {
   const classes = useStyles()
   const theme = useTheme()
 
@@ -195,10 +195,6 @@ function MuiReactSelect({ paginate, components, ...otherprops }) {
       </NoSsr>
     </div>
   )
-}
-
-MuiReactSelect.defaultProps = {
-  paginate: true,
 }
 
 export default MuiReactSelect

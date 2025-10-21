@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from "react"
-import { useMutation, useQuery } from "@apollo/react-hooks"
+import { useMutation, useQuery } from "@apollo/client"
 import { useAxis, useHighcharts } from "react-jsx-highcharts"
-import Input from "@material-ui/core/Input"
+import Input from "@mui/material/Input"
 import gql from "graphql-tag"
-import { Tooltip } from "@material-ui/core"
-import { withStyles } from "@material-ui/core/styles"
+import { Tooltip } from "@mui/material"
+import { withStyles } from "@mui/styles"
 
 const LightTooltip = withStyles(theme => ({
   tooltip: {

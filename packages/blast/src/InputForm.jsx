@@ -1,30 +1,37 @@
 import React from "react"
 import Cookies from "js-cookie"
-import Form from "react-bootstrap/Form"
-import Button from "react-bootstrap/Button"
+import { Box, TextField, Button, FormHelperText } from "@mui/material"
 
 function InputForm({ handleSubmit, initialValue }) {
 
   return (
-    <Form onSubmit={handleSubmit}>
+    <Box component="form" onSubmit={handleSubmit}>
       <input
         type="hidden"
         name="csrfmiddlewaretoken"
         value={Cookies.get("csrftoken")}
       />
-      <Form.Group controlId="queryInput">
-        <Form.Label>Enter Query</Form.Label>
-        <Form.Control required defaultValue={initialValue} name="query" as="textarea" rows="4" />
-        <Form.Text className="text-muted">
-          Single sequence or multiple sequences in FASTA format. Accepts either
-          amino acid or nucleotide sequences, but all sequences in a query be of
-          the same type.
-        </Form.Text>
-      </Form.Group>
-      <Button variant="secondary" type="submit">
+      <TextField
+        id="queryInput"
+        required
+        fullWidth
+        multiline
+        rows={4}
+        label="Enter Query"
+        name="query"
+        defaultValue={initialValue}
+        variant="outlined"
+        margin="normal"
+      />
+      <FormHelperText sx={{ mt: -1, mb: 2 }}>
+        Single sequence or multiple sequences in FASTA format. Accepts either
+        amino acid or nucleotide sequences, but all sequences in a query be of
+        the same type.
+      </FormHelperText>
+      <Button variant="contained" color="primary" type="submit">
         Submit
       </Button>
-    </Form>
+    </Box>
   )
 }
 

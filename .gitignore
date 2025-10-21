@@ -385,6 +385,10 @@ backend/blastdb/
 .pdm-python
 SemrockSpectra/
 
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
 # Memray profiling outputs
 memray_*/
 *.bin

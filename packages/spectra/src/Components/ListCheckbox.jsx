@@ -1,7 +1,7 @@
 import React, { memo } from "react"
-import Checkbox from "@material-ui/core/Checkbox"
-import MUIListItem from "@material-ui/core/ListItem"
-import FormControlLabel from "@material-ui/core/FormControlLabel"
+import Checkbox from "@mui/material/Checkbox"
+import MUIListItem from "@mui/material/ListItem"
+import FormControlLabel from "@mui/material/FormControlLabel"
 
 const ListCheckbox = memo(function ListCheckbox({
   onCheckItem,

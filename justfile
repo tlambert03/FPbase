@@ -3,3 +3,9 @@ pgpull:
     dropdb fpbase
     heroku  pg:pull DATABASE_URL fpbase --exclude-table-data='public.django_session;public.proteins_ocfluoreff' -a fpbase || true
     uv run backend/manage.py migrate
+
+frontend:
+    pnpm --stream -r start
+
+backend:
+    uv run backend/manage.py runserver

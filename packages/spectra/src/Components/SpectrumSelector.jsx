@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from "react"
 import PropTypes from "prop-types"
-import Box from "@material-ui/core/Box"
-import { useQuery, useMutation, useApolloClient } from "@apollo/react-hooks"
+import Box from "@mui/material/Box"
+import { useQuery, useMutation, useApolloClient } from "@apollo/client"
 import { components } from "react-select"
 import update from "immutability-helper"
 import gql from "graphql-tag"
@@ -101,9 +101,8 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   const subtypes = (value && value.spectra) || []
   // const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
-  const {
-    data: { excludeSubtypes },
-  } = useQuery(GET_OWNER_OPTIONS)
+  const { data } = useQuery(GET_OWNER_OPTIONS)
+  const excludeSubtypes = data?.excludeSubtypes || []
 
   // new Spectra get added in the handleOwnerChange handler in SpectrumSelector.jsx
   // const [updateSelector] = useMutation(UPDATE_SELECTOR)

@@ -57,7 +57,7 @@ class TestPagesRender(StaticLiveServerTestCase):
         logs = self.browser.get_log("browser")
         for lg in logs:
             if lg["level"] == "SEVERE":
-                raise AssertionError(f"Console errors occurred: {logs}")
+                raise AssertionError(f"Console errors occurred: {lg['message']}")
 
     def test_spectra(self):
         self._load_reverse("proteins:spectra")

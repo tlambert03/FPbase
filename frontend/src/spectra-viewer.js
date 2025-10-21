@@ -1,9 +1,7 @@
 import "./js/detect-touch"
 import { createElement } from "react"
-import { render } from "react-dom"
+import { createRoot } from "react-dom/client"
 import App from "@fpbase/spectra"
 
-render(
-  createElement(App, { uri: "/graphql/" }, null),
-  document.getElementById("spectra-viewer")
-)
+const root = createRoot(document.getElementById("spectra-viewer"))
+root.render(createElement(App, { uri: "/graphql/" }, null))
