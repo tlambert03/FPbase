@@ -58,6 +58,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    "scout_apm.django",  # APM monitoring
     "crispy_forms",  # Form layouts
     # "crispy_bootstrap4",
     "allauth",  # registration

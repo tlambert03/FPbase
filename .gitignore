@@ -389,3 +389,7 @@ SemrockSpectra/
 test-results/
 playwright-report/
 playwright/.cache/
+# Memray profiling outputs
+memray_*/
+*.bin
+test_fix*.bin
