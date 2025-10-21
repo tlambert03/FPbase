@@ -1,6 +1,5 @@
 import contextlib
 import datetime
-import json
 import re
 
 from external_apis import ncbi, references

@@ -67,6 +67,7 @@ def mock_external_apis(monkeypatch):
     This fixture mocks the centralized external_apis module, making it much easier
     to maintain than mocking individual Bio.Entrez, habanero, and requests calls.
     """
+
     # Mock NCBI API wrapper functions
     def mock_entrez_esearch(db, term, **kwargs):
         """Mock NCBI esearch to return a test record handle."""
@@ -132,11 +133,15 @@ def mock_external_apis(monkeypatch):
 
     def mock_entrez_espell(db, term, **kwargs):
         """Mock NCBI espell to return the same term."""
-        xml = b"""<?xml version="1.0" encoding="UTF-8"?>
+        xml = (
+            b"""<?xml version="1.0" encoding="UTF-8"?>
         <eSpellResult>
-            <Query>""" + term.encode() + b"""</Query>
+            <Query>"""
+            + term.encode()
+            + b"""</Query>
             <CorrectedQuery></CorrectedQuery>
         </eSpellResult>"""
+        )
         return BytesIO(xml)
 
     def mock_entrez_read(handle):

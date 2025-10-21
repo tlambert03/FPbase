@@ -87,7 +87,7 @@ def fetch_pdb_sequence(accession: str) -> str:
     data = response.json()
 
     # Extract the first chain's sequence
-    if accession in data and data[accession]:
+    if data.get(accession):
         for molecule in data[accession]:
             if "sequence" in molecule:
                 return molecule["sequence"]
