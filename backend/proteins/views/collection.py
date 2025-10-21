@@ -64,10 +64,9 @@ class CollectionList(ListView):
 
 class CollectionDetail(DetailView):
     queryset = ProteinCollection.objects.all().prefetch_related(
-        "proteins",
-        "proteins__states",
         "proteins__states__spectra",
-        "proteins__default_state",
+        "proteins__transitions",
+        "proteins__primary_reference",
     )
 
     def get(self, request, *args, **kwargs):

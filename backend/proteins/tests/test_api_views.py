@@ -32,7 +32,7 @@ class ProteinListAPIViewTests(TestCase):
         the query count should be constant (4-5 queries) regardless of protein count.
         """
         with CaptureQueriesContext(connection) as context:
-            response = self.client.get("/api/proteins/", HTTP_ACCEPT="application/json")
+            response = self.client.get("/api/proteins/", headers={"accept": "application/json"})
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -49,7 +49,7 @@ class ProteinListAPIViewTests(TestCase):
 
     def test_protein_list_api_returns_expected_fields(self):
         """Test that the API returns the expected fields for each protein."""
-        response = self.client.get("/api/proteins/", HTTP_ACCEPT="application/json")
+        response = self.client.get("/api/proteins/", headers={"accept": "application/json"})
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
