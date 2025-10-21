@@ -1196,7 +1196,7 @@ requires-dist = [
     { name = "google-auth", specifier = ">=2.29.0" },
     { name = "graphene", specifier = ">=3.2.2" },
     { name = "graphene-django", specifier = ">=3.2.3" },
-    { name = "graphene-django-optimizer", specifier = "==0.10.0" },
+    { name = "graphene-django-optimizer", specifier = ">=0.10.0" },
     { name = "gunicorn", specifier = ">=20.1.0" },
     { name = "habanero", specifier = ">=1.2.3" },
     { name = "matplotlib", specifier = ">=3.7.1" },
