@@ -1210,7 +1210,7 @@ requires-dist = [
     { name = "scout-apm", specifier = ">=3.4.0" },
     { name = "sentry-sdk", specifier = ">=2.8" },
     { name = "tablib", specifier = ">=3.4.0" },
-    { name = "whitenoise", extras = ["brotli"], specifier = "==6.11.0" },
+    { name = "whitenoise", extras = ["brotli"], specifier = ">=6.11.0" },
 ]
 
 [package.metadata.requires-dev]
