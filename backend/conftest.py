@@ -86,28 +86,6 @@ def mock_ncbi_api_calls(monkeypatch):
             "pmid": "12345678",
         }
 
-    def mock_get_pmid_info(pmid):
-        """Mock get_pmid_info to return realistic test data."""
-        return {
-            "doi": "10.1234/test.doi",
-            "title": f"Test Article for PMID {pmid}",
-            "journal": "Test Journal",
-            "pages": "123-456",
-            "volume": "42",
-            "issue": "1",
-            "year": "2024",
-            "authors": [{"family": "Smith", "given": "John A."}],
-            "date": datetime(2024, 1, 1).date(),
-        }
-
-    def mock_doi2pmid(doi):
-        """Mock doi2pmid to return a test PMID."""
-        return "12345678"
-
-    def mock_pmid2doi(pmid):
-        """Mock pmid2doi to return a test DOI."""
-        return "10.1234/test.doi"
-
     def mock_entrez_esearch(db, term, **kwargs):
         """Mock Entrez.esearch to return a test record."""
         from io import BytesIO
@@ -173,10 +151,6 @@ def mock_ncbi_api_calls(monkeypatch):
         return BytesIO(xml)
 
     # Apply the mocks
-    monkeypatch.setattr("references.helpers.doi_lookup", mock_doi_lookup)
-    monkeypatch.setattr("references.helpers.get_pmid_info", mock_get_pmid_info)
-    monkeypatch.setattr("references.helpers.doi2pmid", mock_doi2pmid)
-    monkeypatch.setattr("references.helpers.pmid2doi", mock_pmid2doi)
 
     def mock_genbank_seq(accession):
         """Mock genbank_seq to return a test sequence."""
@@ -189,12 +163,6 @@ def mock_ncbi_api_calls(monkeypatch):
     def mock_pdb_seq(accession):
         """Mock pdb_seq to return a test sequence."""
         return "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
-
-    # Apply the mocks
-    monkeypatch.setattr("references.helpers.doi_lookup", mock_doi_lookup)
-    monkeypatch.setattr("references.helpers.get_pmid_info", mock_get_pmid_info)
-    monkeypatch.setattr("references.helpers.doi2pmid", mock_doi2pmid)
-    monkeypatch.setattr("references.helpers.pmid2doi", mock_pmid2doi)
 
     # Mock external sequence fetchers
     monkeypatch.setattr("fpseq.external.genbank_seq", mock_genbank_seq)

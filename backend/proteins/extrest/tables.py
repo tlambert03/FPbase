@@ -151,13 +151,3 @@ class HTMLTableParser:
                 pass
 
         return df
-
-
-# dois = set([p.primary_reference.doi for p in Protein.objects.all() if p.primary_reference])
-# pmcids = [p for p in pmc_converter(dois, to='pmcid') if p]
-
-
-# class HMSProxy(EzProxy):
-#     def __init__(self, barcode, last_name):
-#         super().__init__("ezp-prod1.hul.harvard.edu")
-#         self.login(barcode, last_name)

@@ -8,8 +8,6 @@ import sys
 from random import choices
 from subprocess import PIPE, run
 
-from Bio import Entrez
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
@@ -29,14 +27,10 @@ from references.models import Reference
 
 from .. import util
 from ..util.helpers import get_base_name, get_color_group, mless, spectra_fig
-
-# from .extrest.entrez import fetch_ipg_sequence
 from ..validators import protein_sequence_validator, validate_uniprot
 from .collection import ProteinCollection
 from .mixins import Authorable
 from .spectrum import Spectrum
-
-Entrez.email = settings.ADMINS[0][1]
 
 User = get_user_model()
 
@@ -509,11 +503,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        # if the IPG ID has changed... refetch the sequence
-        # if self.ipg_id != self.__original_ipg_id:
-        #    s = fetch_ipg_sequence(uid=self.ipg_id)
-        #    self.seq = s[1] if s else None
-
         self.slug = slugify(self.name)
         self.base_name = self._base_name
         super().save(*args, **kwargs)
