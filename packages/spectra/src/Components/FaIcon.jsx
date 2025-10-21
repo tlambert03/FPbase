@@ -7,7 +7,7 @@ import {
   faAdjust,
   faLightbulb,
   faCamera,
-  faSlidersH,
+  faSliders,
   faBolt,
   faPercent,
 } from "@fortawesome/free-solid-svg-icons"
@@ -37,7 +37,7 @@ function categoryIcon(category, color = "#aaa", props) {
     F: faAdjust,
     L: faLightbulb,
     C: faCamera,
-    CF: faSlidersH,
+    CF: faSliders,
     CL: faBolt,
     "%": faPercent,
   }

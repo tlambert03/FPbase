@@ -9,10 +9,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.3.0",
-    "@fortawesome/free-brands-svg-icons": "^5.15.4",
-    "@fortawesome/free-regular-svg-icons": "^5.15.4",
-    "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "@fpbase/blast": "workspace:*",
     "@fpbase/spectra": "workspace:*",
     "@popperjs/core": "^2.4.0",
