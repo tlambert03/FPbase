@@ -52,3 +52,23 @@ class TestProteinModel(TestCase):
     def test_spectra_img(self):
         for ext in ("png", "svg", "tif", "pdf", "jpeg"):
             assert self.protA.spectra_img(fmt=ext)
+
+    def test_spectrum_y_cache_invalidation(self):
+        """Ensure cached y property is invalidated when change_y is called."""
+        spectrum = Spectrum.objects.first()
+        original_y = spectrum.y.copy()
+        new_y = [0.5, 0.5, 0.5]
+        spectrum.change_y(new_y)
+        # The cached property should be invalidated and return the new values
+        assert spectrum.y == new_y, f"Expected {new_y}, got {spectrum.y}"
+        assert spectrum.y != original_y
+
+    def test_spectrum_x_cache_invalidation(self):
+        """Ensure cached x property is invalidated when change_x is called."""
+        spectrum = Spectrum.objects.first()
+        original_x = spectrum.x.copy()
+        new_x = [500.0, 501.0, 502.0]
+        spectrum.change_x(new_x)
+        # The cached property should be invalidated and return the new values
+        assert spectrum.x == new_x, f"Expected {new_x}, got {spectrum.x}"
+        assert spectrum.x != original_x
