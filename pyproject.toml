@@ -17,7 +17,6 @@ dependencies = [
     'django-crispy-forms==1.13.0', # NOTE: there's an issue with 1.14 and bootstrap4 forms not having form-control class
     'django-environ>=0.10.0',
     'django-filter>=23.3',
-    'django-graphql-jwt==0.3.4',
     'django-model-utils>=5.0.0',
     'django-mptt>=0.18.0',
     'django-recaptcha>=3.0.0',
