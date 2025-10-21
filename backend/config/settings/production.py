@@ -206,6 +206,11 @@ sentry_sdk.init(
     release=HEROKU_SLUG_COMMIT,
 )
 
+# Scout APM Configuration
+# ------------------------------------------------------------------------------
+# SCOUT_MONITOR and SCOUT_KEY are automatically set by the Heroku addon
+SCOUT_NAME = "FPbase"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
