@@ -140,7 +140,6 @@ class TestAlignSeqs:
         for result in [result1, result2, result3]:
             assert len(result.aligned_query_sequence()) == len(result.aligned_target_sequence())
 
-    @pytest.mark.skip(reason="Banded alignment doesn't support traceback in current parasail implementation")
     def test_banded_alignment(self):
         """Test banded alignment."""
         # band_size > 0 should trigger banded alignment
