@@ -62,22 +62,15 @@ const useStyles = makeStyles(theme => ({
     },
   },
   bigShow: {
-    [theme.breakpoints.down("sm")]: {
-      display: "none",
-    },
+    display: "none",
     [theme.breakpoints.up("md")]: {
-      display: "block",
+      display: "inline",
     },
   },
   bigHide: {
-    [theme.breakpoints.down("sm")]: {
-      display: "block",
-      marginRight: 13,
-      marginLeft: 13,
-    },
-    [theme.breakpoints.down("xs")]: {
-      display: "block",
-    },
+    display: "inline-block",
+    marginRight: 13,
+    marginLeft: 13,
     [theme.breakpoints.up("md")]: {
       display: "none",
     },
@@ -206,9 +199,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
           {populated ? " ✶" : ""}
         </span>
         <span className={classes.bigHide}>
-          {categoryIcon(_cats && _cats[_cats.length - 1], "", {
-            style: { position: "relative", left: 0, height: "1.1rem" },
-          })}
+          {categoryIcon(_cats && _cats[_cats.length - 1], "")}
         </span>
       </span>
     )
