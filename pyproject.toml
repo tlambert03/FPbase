@@ -45,7 +45,7 @@ dependencies = [
     'redis==5.0.4',
     'sentry-sdk>=2.8',
     'tablib>=3.4.0',
-    'whitenoise[brotli]==6.6.0',
+    'whitenoise[brotli]==6.11.0',
     "django-storages[boto3]>=1.13.2",
     "gunicorn>=20.1.0",
     "scout-apm>=3.4.0",

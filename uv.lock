@@ -1210,7 +1210,7 @@ requires-dist = [
     { name = "scout-apm", specifier = ">=3.4.0" },
     { name = "sentry-sdk", specifier = ">=2.8" },
     { name = "tablib", specifier = ">=3.4.0" },
-    { name = "whitenoise", extras = ["brotli"], specifier = "==6.6.0" },
+    { name = "whitenoise", extras = ["brotli"], specifier = "==6.11.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3155,11 +3155,11 @@ watchdog = [
 
 [[package]]
 name = "whitenoise"
-version = "6.6.0"
+version = "6.11.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/16/e3/adddb43cf8eb924e18eca677d4e40d47348566224b724cb8d1eaf6a48d1b/whitenoise-6.6.0.tar.gz", hash = "sha256:8998f7370973447fac1e8ef6e8ded2c5209a7b1f67c1012866dbcd09681c3251", size = 25078, upload-time = "2023-10-11T09:40:59.593Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/15/95/8c81ec6b6ebcbf8aca2de7603070ccf37dbb873b03f20708e0f7c1664bc6/whitenoise-6.11.0.tar.gz", hash = "sha256:0f5bfce6061ae6611cd9396a8231e088722e4fc67bc13a111be74c738d99375f", size = 26432, upload-time = "2025-09-18T09:16:10.995Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/67/16/bb488ac8230f1bce94943b6654f2aad566d18aae575c8b6d8a99c78c489e/whitenoise-6.6.0-py3-none-any.whl", hash = "sha256:b1f9db9bf67dc183484d760b99f4080185633136a273a03f6436034a41064146", size = 19870, upload-time = "2023-10-11T09:40:57.977Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/e9/4366332f9295fe0647d7d3251ce18f5615fbcb12d02c79a26f8dba9221b3/whitenoise-6.11.0-py3-none-any.whl", hash = "sha256:b2aeb45950597236f53b5342b3121c5de69c8da0109362aee506ce88e022d258", size = 20197, upload-time = "2025-09-18T09:16:09.754Z" },
 ]
 
 [package.optional-dependencies]
