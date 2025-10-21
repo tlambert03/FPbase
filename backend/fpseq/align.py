@@ -320,7 +320,3 @@ class SequenceAlignment:
             Alignment result
         """
         return align_seqs(query, target, **kwargs)
-
-
-# Backwards compatibility alias
-ParasailAlignment = SequenceAlignment

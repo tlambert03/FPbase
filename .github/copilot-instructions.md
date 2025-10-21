@@ -10,7 +10,7 @@ FPbase is a Django/React monorepo for the Fluorescent Protein Database (fpbase.o
   - `fpbase/`: Core Django app with users, views, and utilities
   - `proteins/`: Main domain logic for proteins, spectra, microscopes, and optical configurations
   - `references/`: Publication and citation management
-  - `fpseq/`: Bioinformatics sequence alignment and analysis using Biopython and parasail
+  - `fpseq/`: Bioinformatics sequence alignment and analysis using Biopython
   - `favit/`: User favorites system
 - **`frontend/`**: Webpack-bundled assets integrated via `django-webpack-loader`
 - **`packages/`**: Standalone Vite apps (`blast/`, `spectra/`) embedded in Django templates
@@ -19,7 +19,7 @@ FPbase is a Django/React monorepo for the Fluorescent Protein Database (fpbase.o
 - **Backend**: Django 4.x, Django REST Framework, Graphene (GraphQL), Celery (Redis), PostgreSQL
 - **Frontend**: React 16, Material-UI, Webpack 5, Vite 4
 - **Search**: Algolia for protein/organism search
-- **Bioinformatics**: Biopython, parasail (sequence alignment), BLAST (local binaries in `backend/bin/`)
+- **Bioinformatics**: Biopython (sequence alignment), BLAST (local binaries in `backend/bin/`)
 - **Deployment**: Heroku, AWS S3 (media), Sentry (error tracking)
 
 ## Development Workflow
@@ -66,7 +66,7 @@ Core models in `models/`:
 
 ### Key Conventions
 1. **Sequence Analysis**: Use `fpseq.FPSeq` class (wrapper around Biopython) for protein sequences
-   - Alignment via `fpseq.align.align_seqs()` using parasail library
+   - Alignment via `fpseq.align.align_seqs()` using Biopython
    - Mutations tracked via `fpseq.mutations.get_mutations()`
 2. **Factories**: Use `factory_boy` for test fixtures (see `proteins/factories.py`, `references/factories.py`)
    - Example: `ProteinFactory`, `SpectrumFactory`, `OrganismFactory`
