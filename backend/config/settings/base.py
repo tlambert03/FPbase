@@ -65,9 +65,8 @@ THIRD_PARTY_APPS = [
     "allauth.account",  # registration
     "allauth.socialaccount",  # registration
     "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.orcid",
     "allauth.socialaccount.providers.twitter",
-    # 'allauth.socialaccount.providers.facebook',
-    #  'allauth.socialaccount.providers.linkedin_oauth2',
     "django_recaptcha",
     "django_filters",
     "reversion",
@@ -98,6 +97,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "fpbase.middleware.CanonicalDomainMiddleware",
@@ -279,8 +279,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Some really nice defaults
-ACCOUNT_AUTHENTICATION_METHOD = "username"
-ACCOUNT_EMAIL_REQUIRED = True
+# django-allauth 65+ uses new settings format
+ACCOUNT_LOGIN_METHODS = {"username"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)

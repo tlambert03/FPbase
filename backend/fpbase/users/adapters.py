@@ -22,4 +22,7 @@ class AccountAdapter(DefaultAccountAdapter):
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(self, request, sociallogin):
+        # Prevent new signups via Twitter/X (existing users can still log in)
+        if sociallogin.account.provider == "twitter":
+            return False
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
