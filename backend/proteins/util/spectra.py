@@ -87,15 +87,6 @@ def spectra2csv(spectralist, filename="fpbase_spectra.csv"):
     return response
 
 
-def interp2int(x, y, s=1):
-    """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
-    xnew = range(int(min(x)), int(max(x)))
-    tck = scipy.interpolate.splrep(x, y, s=s)
-    ynew = scipy.interpolate.splev(xnew, tck, der=0)
-    ynew = scipy.signal.savgol_filter(ynew, 15, 2)
-    return xnew, ynew
-
-
 if __name__ == "__main__":
     import json
     import subprocess

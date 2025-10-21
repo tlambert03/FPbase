@@ -239,61 +239,6 @@ class InterpolatedUnivariateSpline:
         return self._spline(xnew)
 
 
-def splrep(x: np.ndarray, y: np.ndarray, s: float = 0) -> tuple:
-    """
-    Compute a B-spline representation of a curve.
-
-    This is a simplified replacement for scipy.interpolate.splrep that
-    returns a spline object instead of (t, c, k) tuple.
-
-    Note: This function is only used in interp2int() which has no callers
-    in the production codebase.
-
-    Parameters
-    ----------
-    x : np.ndarray
-        Known x values
-    y : np.ndarray
-        Known y values
-    s : float, optional
-        Smoothing factor (ignored)
-
-    Returns
-    -------
-    tuple
-        Spline representation (opaque object for use with splev)
-    """
-    return _CubicSpline(x, y)
-
-
-def splev(xnew: np.ndarray | float, tck: _CubicSpline, der: int = 0) -> np.ndarray | float:
-    """
-    Evaluate a B-spline or its derivatives.
-
-    This is a simplified replacement for scipy.interpolate.splev.
-
-    Note: This function is only used in interp2int() which has no callers
-    in the production codebase.
-
-    Parameters
-    ----------
-    xnew : np.ndarray or float
-        Points at which to evaluate the spline
-    tck : _CubicSpline
-        Spline representation from splrep
-    der : int, optional
-        Order of derivative (only 0 is supported)
-
-    Returns
-    -------
-    np.ndarray or float
-        Interpolated values
-    """
-    if der != 0:
-        raise NotImplementedError("Only derivative order 0 is supported")
-    return tck(xnew)
-
-
 def interp1d(x: np.ndarray, y: np.ndarray, kind: str = "linear"):
     """
     Drop-in replacement for scipy.interpolate.interp1d.
@@ -336,8 +281,6 @@ class _InterpolateModule:
 
     interp1d = staticmethod(interp1d)
     InterpolatedUnivariateSpline = InterpolatedUnivariateSpline
-    splrep = staticmethod(splrep)
-    splev = staticmethod(splev)
 
 
 class _SignalModule:
