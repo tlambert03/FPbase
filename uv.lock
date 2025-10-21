@@ -878,6 +878,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-settings-holder"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5f/1d/810c15a408987262bf70fc1892d4d5c3b2c1ae62e8715b73592c8f46ed37/django_settings_holder-0.3.0.tar.gz", hash = "sha256:d41eb6d6023d61c08e395f2406fd6f047d1edff2f0346d04323f3681f12372ef", size = 8580, upload-time = "2025-04-27T13:15:42.069Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f5/e3/0759620f917f7f7585375c1edb2875ed6c95597cf6645c3f5a21e0d44046/django_settings_holder-0.3.0-py3-none-any.whl", hash = "sha256:97c69c47129fcd8be5fc351f80cf31c8f3f7ecaec418bc2c20200382a0be52c0", size = 8085, upload-time = "2025-04-27T13:15:40.817Z" },
+]
+
+[[package]]
 name = "django-storages"
 version = "1.14.6"
 source = { registry = "https://pypi.org/simple" }
@@ -1122,6 +1134,7 @@ dependencies = [
     { name = "graphene" },
     { name = "graphene-django" },
     { name = "graphene-django-optimizer" },
+    { name = "graphene-django-query-optimizer" },
     { name = "gunicorn" },
     { name = "habanero" },
     { name = "matplotlib" },
@@ -1197,6 +1210,7 @@ requires-dist = [
     { name = "graphene", specifier = ">=3.2.2" },
     { name = "graphene-django", specifier = ">=3.2.3" },
     { name = "graphene-django-optimizer", specifier = ">=0.10.0" },
+    { name = "graphene-django-query-optimizer", specifier = ">=0.10.15" },
     { name = "gunicorn", specifier = ">=20.1.0" },
     { name = "habanero", specifier = ">=1.2.3" },
     { name = "matplotlib", specifier = ">=3.7.1" },
@@ -1343,6 +1357,20 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/fa/6c/cd89093083debac1c8eba62f2f1daa55caeb3a27f0f908761a7e68e3ed2e/graphene-django-optimizer-0.10.0.tar.gz", hash = "sha256:5a5d9d1e1abda3571bdff77a71af5e71b994e5e9d97d17a576df89181284075d", size = 14681, upload-time = "2023-08-05T17:53:27.486Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1b/e3/2f0d01168d9c781d17c8f49a8ffe3d52a370382b9a5f4f4a756d86a46a01/graphene_django_optimizer-0.10.0-py2.py3-none-any.whl", hash = "sha256:5b81aaa114514c9a89d064aaaf09c8e00c27d1cf6f734993f0ea5afe776041b9", size = 10442, upload-time = "2023-08-05T17:53:25.936Z" },
+]
+
+[[package]]
+name = "graphene-django-query-optimizer"
+version = "0.10.15"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-settings-holder" },
+    { name = "graphene-django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c9/48/860e5d4f353a2a272137d7e26dca66403677b7070b2b2c3db0406558aabf/graphene_django_query_optimizer-0.10.15.tar.gz", hash = "sha256:f4cc39dda4aff72964117a8afb554352f7a3d7a0d9f1d43d1b09f675c007a07a", size = 27035, upload-time = "2025-09-29T14:17:07.775Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dd/8c/fcd12bf91cb78707f3c7b5ff6d8dbfbcdf8354d831d9865e81f9146df36b/graphene_django_query_optimizer-0.10.15-py3-none-any.whl", hash = "sha256:0217fc269580d8c8631d0c719b2a0d79f474f765b2466bebdceef7c62ff19d8c", size = 32368, upload-time = "2025-09-29T14:17:06.846Z" },
 ]
 
 [[package]]

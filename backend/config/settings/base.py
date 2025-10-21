@@ -386,6 +386,12 @@ CELERY_RESULT_BACKEND = REDIS_URL
 INSTALLED_APPS += ["graphene_django"]
 GRAPHENE = {"SCHEMA": "fpbase.schema.schema"}
 
+# GraphQL Query Optimizer
+# -----------------------
+GRAPHQL_QUERY_OPTIMIZER = {
+    "MAX_COMPLEXITY": 20,  # Increase from default 10 to handle deeply nested queries
+}
+
 # CORS
 # -------
 

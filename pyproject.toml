@@ -49,6 +49,7 @@ dependencies = [
     "django-storages[boto3]>=1.13.2",
     "gunicorn>=20.1.0",
     "scout-apm>=3.4.0",
+    "graphene-django-query-optimizer>=0.10.15",
 ]
 
 

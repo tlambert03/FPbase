@@ -1,9 +1,9 @@
 import graphene
-import graphene_django_optimizer as gdo
 from django.core.cache import cache
 from django.utils.text import slugify
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
+from query_optimizer import DjangoListField, optimize
 
 from .. import models
 from ..filters import ProteinFilter
@@ -47,13 +47,13 @@ class Query(graphene.ObjectType):
     microscope = graphene.Field(types.Microscope, id=graphene.String())
 
     def resolve_microscopes(self, info, **kwargs):
-        return gdo.query(models.Microscope.objects.all(), info)
+        return optimize(models.Microscope.objects.all(), info)
 
     def resolve_microscope(self, info, **kwargs):
         _id = kwargs.get("id")
         if _id is not None:
             try:
-                obj = gdo.query(models.Microscope.objects.filter(id__istartswith=_id), info)
+                obj = optimize(models.Microscope.objects.filter(id__istartswith=_id), info)
                 return obj.get()
             except models.Microscope.MultipleObjectsReturned as e:
                 raise GraphQLError(f'Multiple microscopes found starting with "{_id}"') from e
@@ -65,28 +65,25 @@ class Query(graphene.ObjectType):
     organism = graphene.Field(types.Organism, id=graphene.Int())
 
     def resolve_organisms(self, info, **kwargs):
-        return gdo.query(models.Organism.objects.all(), info)
+        return optimize(models.Organism.objects.all(), info)
 
     def resolve_organism(self, info, **kwargs):
         _id = kwargs.get("id")
         if _id is not None:
             try:
-                return gdo.query(models.Organism.objects.filter(id=_id), info).get()
+                return optimize(models.Organism.objects.filter(id=_id), info).get()
             except models.Organism.DoesNotExist:
                 return None
         return None
 
-    proteins = graphene.List(types.Protein)
+    proteins = DjangoListField(types.Protein)
     protein = graphene.Field(types.Protein, id=graphene.String())
-
-    def resolve_proteins(self, info, **kwargs):
-        return gdo.query(models.Protein.objects.all(), info)
 
     def resolve_protein(self, info, **kwargs):
         _id = kwargs.get("id")
         if _id is not None:
             try:
-                return gdo.query(models.Protein.objects.filter(uuid=_id), info).get()
+                return optimize(models.Protein.objects.filter(uuid=_id), info).get()
             except models.Spectrum.DoesNotExist:
                 return None
         return None
@@ -134,26 +131,26 @@ class Query(graphene.ObjectType):
 
     def resolve_opticalConfigs(self, info, **kwargs):
         # return models.OpticalConfig.objects.all().prefetch_related("microscope")
-        return gdo.query(models.OpticalConfig.objects.all(), info)
+        return optimize(models.OpticalConfig.objects.all(), info)
 
     def resolve_opticalConfig(self, info, **kwargs):
         _id = kwargs.get("id")
         if _id is not None:
-            return gdo.query(models.OpticalConfig.objects.filter(id=_id), info).get()
+            return optimize(models.OpticalConfig.objects.filter(id=_id), info).get()
         return None
 
     dyes = graphene.List(types.Dye)
     dye = graphene.Field(types.Dye, id=graphene.Int(), name=graphene.String())
 
     def resolve_dyes(self, info, **kwargs):
-        return gdo.query(models.Dye.objects.all(), info)
+        return optimize(models.Dye.objects.all(), info)
 
     def resolve_dye(self, info, **kwargs):
         name = kwargs.get("name")
         if name is not None:
             slug = slugify(name)
-            return gdo.query(models.Dye.objects.filter(slug=slug), info).get()
+            return optimize(models.Dye.objects.filter(slug=slug), info).get()
         _id = kwargs.get("id")
         if _id is not None:
-            return gdo.query(models.Dye.objects.filter(id=_id), info).get()
+            return optimize(models.Dye.objects.filter(id=_id), info).get()
         return None
