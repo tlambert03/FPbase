@@ -3,7 +3,6 @@ import os
 import re
 from io import StringIO
 
-import pandas as pd
 import requests
 from django.core.validators import URLValidator
 from django.template.defaultfilters import slugify
@@ -167,10 +166,21 @@ def fetch_semrock_part(part):
 
 
 def all_numbers(df):
+    # Lazy import - pandas only loaded when actually parsing CSV data
+    # This saves ~35 MB of memory per worker for typical page requests
+    import pandas as pd
+
     return all(pd.api.types.is_numeric_dtype(t) for t in df.dtypes)
 
 
-def read_csv_text(text) -> pd.DataFrame:
+def read_csv_text(text):
+    """Read CSV text and return DataFrame.
+
+    Lazy imports pandas to avoid loading 35 MB per worker unnecessarily.
+    This function is only called during spectrum import/admin operations.
+    """
+    import pandas as pd
+
     fmt = {"sep": ";", "thousands": ".", "decimal": ","}
     df = pd.read_csv(StringIO(text), **fmt)
     if df.ndim != 2 or df.shape[1] < 2 or not all_numbers(df):
