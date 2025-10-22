@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import {
   Box,
   Container,
-  Typography,
   CircularProgress,
   Alert,
   ThemeProvider,
@@ -97,27 +96,6 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="xl" sx={{ py: 3 }}>
-        <Typography
-          variant="h4"
-          component="h2"
-          align="center"
-          gutterBottom
-          sx={{ fontWeight: 600, mb: 2 }}
-        >
-          Fluorescent Protein Table
-        </Typography>
-
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          align="center"
-          sx={{ mb: 3, maxWidth: 800, mx: "auto" }}
-        >
-          A comprehensive table of all proteins in the database. Click column
-          headers to sort (shift-click for multi-sort). Use the filters below
-          to narrow your search.
-        </Typography>
-
         <TableControls
           proteins={proteins}
           filters={filters}

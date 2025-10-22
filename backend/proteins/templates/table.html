@@ -8,25 +8,31 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
 {% endblock extrahead %}
 
-{% block container-class %}container-fluid{% endblock %}
+{% block container-class %}tablecontainer container-fluid{% endblock %}
+
+{% block bodyopen %}
+    {% include '_comparetab.html' %}
+{% endblock bodyopen %}
 
 {% block content %}
 
-<div id="protein-table">
-  <div style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
-    <div style="text-align: center;">
-      <div style="font-size: 1.5rem; color: #666; margin-bottom: 1rem;">Loading protein table...</div>
-      <div class="spinner-border text-primary" role="status">
-        <span class="sr-only">Loading...</span>
-      </div>
-    </div>
-  </div>
+<h2 class="text-center">Fluorescent Protein Table</h2>
+
+<div class="mb-3">
+  <p class="small mb-2 mt-3 container">
+    This is a comprehensive table of all proteins in the database. You may sort by clicking the column headers (shift-click for multi-sort), or search any column by typing in the search field.
+    <em><strong>Tip:</strong> click the <i class="fas fa-plus-circle"></i> button to add a protein to the comparison tab on right.</em>
+  </p>
 </div>
+
+<div id="protein-table"></div>
 
 {% render_bundle 'proteinTable' %}
 
 {% endblock %}
 
 {% block javascript %}
-{# React app handles all interactivity #}
+<script type="text/javascript">
+  window.CSRF_TOKEN = "{{ csrf_token }}";
+</script>
 {% endblock javascript %}

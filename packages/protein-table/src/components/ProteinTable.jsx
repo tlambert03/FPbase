@@ -26,12 +26,13 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline"
 
 /**
  * Row vertical padding - controls table row height
  * 0.5 = compact, 0.75 = comfortable, 1 = spacious
  */
-const ROW_VERTICAL_PADDING = 0.6
+const ROW_VERTICAL_PADDING = 0.7
 
 /**
  * Glossary URL mapping for help links
@@ -274,6 +275,36 @@ function createColumns() {
       cell: ({ row }) => row.original.protein.year || "",
       size: 80,
       meta: { align: "center" },
+    },
+    {
+      id: "compare",
+      header: () => (
+        <Box sx={{ display: { xs: "none", lg: "block" } }}>
+          Compare
+        </Box>
+      ),
+      cell: ({ row }) => (
+        <IconButton
+          size="small"
+          className="comparison-btn"
+          data-flash="1"
+          data-action-url="/ajax/comparison/"
+          data-object={row.original.protein.slug}
+          data-op="add"
+          sx={{
+            color: "primary.main",
+            p: 0.5,
+            "&:hover": {
+              backgroundColor: alpha("#0066cc", 0.08),
+            },
+          }}
+        >
+          <AddCircleOutlineIcon sx={{ fontSize: "1rem" }} />
+        </IconButton>
+      ),
+      size: 50,
+      meta: { align: "center", noPadding: true },
+      enableSorting: false,
     },
   ]
 }
