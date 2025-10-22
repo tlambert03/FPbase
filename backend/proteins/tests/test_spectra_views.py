@@ -43,11 +43,6 @@ class SpectraCSVViewTests(TestCase):
         self.assertEqual(response["Content-Type"], "text/csv")
 
         query_count = len(context.captured_queries)
-
-        print(f"\n=== Query count: {query_count} ===")
-        for i, query in enumerate(context.captured_queries, 1):
-            print(f"{i}. {query['sql'][:150]}...")
-
         self.assertLessEqual(
             query_count,
             5,

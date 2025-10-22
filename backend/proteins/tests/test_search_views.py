@@ -51,11 +51,6 @@ class ProteinSearchViewTests(TestCase):
                         _ = list(state.spectra.all())
 
         query_count = len(context.captured_queries)
-
-        print(f"\n=== Query count: {query_count} ===")
-        for i, query in enumerate(context.captured_queries, 1):
-            print(f"{i}. {query['sql'][:150]}...")
-
         self.assertLessEqual(
             query_count,
             10,

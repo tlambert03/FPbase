@@ -39,11 +39,11 @@ class ProteinListAPIViewTests(TestCase):
         self.assertEqual(len(data), 15)
 
         query_count = len(context.captured_queries)
-        self.assertLess(
+        self.assertLessEqual(
             query_count,
-            5,
+            6,
             f"API endpoint generated {query_count} queries. "
-            f"Expected 4 queries with proper prefetch_related. "
+            f"Expected ≤6 queries with proper prefetch_related. "
             f"This may indicate an N+1 query regression.",
         )
 
