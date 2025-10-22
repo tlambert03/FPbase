@@ -16,7 +16,6 @@ Production settings for FPbase project.
 import ssl
 
 import sentry_sdk
-import structlog
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -199,7 +198,7 @@ CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 SENTRY_DSN = env("SENTRY_DSN")
 HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
-# Note: HEROKU_SLUG_COMMIT will be logged after LOGGING is configured
+print(f"HEROKU_SLUG_COMMIT = {HEROKU_SLUG_COMMIT}")
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[DjangoIntegration(), CeleryIntegration()],
@@ -212,87 +211,28 @@ sentry_sdk.init(
 # SCOUT_MONITOR and SCOUT_KEY are automatically set by the Heroku addon
 SCOUT_NAME = "FPbase"
 
-# Structlog Configuration
-# ------------------------------------------------------------------------------
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    cache_logger_on_first_use=True,
-)
-
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": False,  # Changed from True to preserve app loggers
+    "disable_existing_loggers": True,
+    "root": {"level": "WARNING"},
     "formatters": {
-        "json": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processors": [
-                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-                structlog.processors.JSONRenderer(),
-            ],
-            "foreign_pre_chain": [
-                # Process logs from standard library logging to add structlog context
-                structlog.contextvars.merge_contextvars,
-                structlog.stdlib.add_log_level,
-                structlog.stdlib.add_logger_name,
-                structlog.processors.TimeStamper(fmt="iso"),
-            ],
-        },
-    },
-    "filters": {
-        "skip_static_requests": {
-            "()": "django.utils.log.CallbackFilter",
-            "callback": lambda record: (
-                not hasattr(record, "args")
-                or not record.args
-                or not isinstance(record.args, tuple)
-                or not isinstance(record.args[0], str)
-                or not record.args[0].startswith(("GET /static/", "GET /media/"))
-            ),
-        },
+        "verbose": {"format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"},
     },
     "handlers": {
         "console": {
-            "level": "INFO",  # Changed from DEBUG
+            "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "formatter": "json",  # Use JSON for production
-            "filters": ["skip_static_requests"],
+            "formatter": "verbose",
         }
     },
-    "root": {
-        "level": "INFO",  # Changed from WARNING for better coverage
-        "handlers": ["console"],
-    },
     "loggers": {
-        "django": {
-            "level": "INFO",
-            "handlers": ["console"],
-            "propagate": False,
-        },
-        "django.server": {
-            "level": "INFO",
-            "handlers": ["console"],
-            "propagate": False,
-            "filters": ["skip_static_requests"],  # Filter Django dev server logs
-        },
         "django.db.backends": {
-            "level": "ERROR",  # Only log database errors
+            "level": "ERROR",
             "handlers": ["console"],
             "propagate": False,
         },
         "sentry.errors": {
-            "level": "WARNING",  # Changed from DEBUG
+            "level": "DEBUG",
             "handlers": ["console"],
             "propagate": False,
         },
@@ -301,34 +241,9 @@ LOGGING = {
             "handlers": ["console"],
             "propagate": False,
         },
-        "proteins": {
-            "level": "WARNING",  # Only warnings and errors for proteins app
-            "handlers": ["console"],
-            "propagate": False,
-        },
-        "fpbase": {
-            "level": "WARNING",  # Only warnings and errors for fpbase app
-            "handlers": ["console"],
-            "propagate": False,
-        },
-        "django_structlog": {
-            "level": "INFO",
-            "handlers": ["console"],
-            "propagate": False,
-        },
     },
 }
 
-# Django-Structlog Configuration
-# ------------------------------------------------------------------------------
-DJANGO_STRUCTLOG_CELERY_ENABLED = True  # Enable Celery task logging
-DJANGO_STRUCTLOG_IP_LOGGING_ENABLED = True  # Automatically bind user IP
-DJANGO_STRUCTLOG_COMMAND_LOGGING_ENABLED = True  # Enable management command logging
-
-# Log application startup with commit hash
-logger = structlog.get_logger(__name__)
-if HEROKU_SLUG_COMMIT:
-    logger.info("application_startup", commit=HEROKU_SLUG_COMMIT)
 
 # Custom Admin URL, use {% url 'admin:index' %}
 ADMIN_URL = env("DJANGO_ADMIN_URL", default="admin/")
