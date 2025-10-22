@@ -40,7 +40,6 @@ dependencies = [
     'numpy>=1.26.3',
     'Pillow>=10.0.0',
     'psycopg2>=2.9.11; platform_system == "Linux"',
-    'python-json-logger>=2.0.7',
     'python-slugify>=8.0.1',
     'rcssmin>=1.1.1',
     'redis==5.0.4',
