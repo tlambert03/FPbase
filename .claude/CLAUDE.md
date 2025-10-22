@@ -2,6 +2,10 @@
 
 Django web app for <https://www.fpbase.org> with React frontend. PostgreSQL database, REST + GraphQL APIs, Celery background tasks.
 
+## Important instructions
+
+- don't auto-deploy to heroku from this local git repo.  All deployments must go through github PRs.
+
 ## Tech Stack
 
 **Backend**: Django 5.2, Python 3.13, DRF, GraphQL (graphene-django), PostgreSQL 15, Celery + Redis
