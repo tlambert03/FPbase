@@ -248,6 +248,7 @@ class ProteinTableStateSerializer(serializers.ModelSerializer):
             "lifetime",
             "exhex",
             "emhex",
+            "is_dark",
         )
 
     def get_stokes(self, obj):

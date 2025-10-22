@@ -1,7 +1,7 @@
-from django.db.models import F, Max
+from django.db.models import F, Max, Prefetch
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_control, cache_page
 from django_filters import rest_framework as filters
 from rest_framework.generics import (
     ListAPIView,
@@ -137,7 +137,9 @@ class ProteinTableAPIView(ListAPIView):
 
     queryset = (
         Protein.visible.all()
-        .prefetch_related("states")  # Prefetch all states for each protein
+        .prefetch_related(
+            Prefetch("states", queryset=State.objects.filter(is_dark=False))
+        )  # Prefetch only non-dark states
         .select_related("primary_reference")  # Needed for year field
         .order_by("name")
     )
@@ -146,6 +148,7 @@ class ProteinTableAPIView(ListAPIView):
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProteinFilter
 
+    @method_decorator(cache_control(public=True, max_age=600))
     @method_decorator(cache_page(60 * 10))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)

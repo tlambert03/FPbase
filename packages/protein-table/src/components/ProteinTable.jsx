@@ -35,6 +35,24 @@ import AddCircleIcon from "@mui/icons-material/AddCircle"
 const ROW_VERTICAL_PADDING = 0.7
 
 /**
+ * Wavelength thresholds for determining text color on colored backgrounds
+ * Wavelengths between these values appear yellowish and need dark text
+ */
+const WAVELENGTH_DARK_TEXT_MIN = 477
+const WAVELENGTH_DARK_TEXT_MAX = 590
+
+/**
+ * Opacity for colored spectral cells (ex_max, em_max)
+ */
+const SPECTRAL_CELL_OPACITY = 0.7
+
+/**
+ * Alpha values for hover effects
+ */
+const TABLE_HOVER_ALPHA = 0.08
+const HEADER_HOVER_ALPHA = 0.1
+
+/**
  * Glossary URL mapping for help links
  */
 const GLOSSARY_BASE = "https://help.fpbase.org/glossary"
@@ -99,14 +117,30 @@ function formatNumber(num) {
 }
 
 /**
- * Format decimal number to fixed precision
- * Removes trailing zeros and unnecessary decimal points
+ * Reusable component for spectral wavelength cells with colored backgrounds
  */
-function formatDecimal(num, decimals = 2) {
-  if (num == null) return ""
-  const rounded = Number(num).toFixed(decimals)
-  // Remove trailing zeros and decimal point if not needed
-  return parseFloat(rounded).toString()
+function ColoredCell({ value, backgroundColor }) {
+  if (!value) return ""
+
+  const textColor =
+    value > WAVELENGTH_DARK_TEXT_MIN && value < WAVELENGTH_DARK_TEXT_MAX ? "#000" : "#eee"
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: backgroundColor || "#fff",
+        color: textColor,
+        opacity: SPECTRAL_CELL_OPACITY,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        py: ROW_VERTICAL_PADDING,
+      }}
+    >
+      {value}
+    </Box>
+  )
 }
 
 /**
@@ -124,16 +158,17 @@ function createColumns() {
         const state = row.original.state
         return (
           <Box>
-            <a
+            <Box
+              component="a"
               href={protein.url}
-              style={{
+              sx={{
                 textDecoration: "none",
-                color: "#0066cc",
+                color: "primary.main",
                 fontWeight: 500,
               }}
             >
               {protein.name}
-            </a>
+            </Box>
             {state && state.name !== "default" && (
               <Box
                 component="span"
@@ -157,24 +192,7 @@ function createColumns() {
       header: () => <ColumnHeader glossaryKey="ex_max">λₑₓ</ColumnHeader>,
       cell: ({ row }) => {
         const state = row.original.state
-        if (!state?.ex_max) return ""
-        return (
-          <Box
-            sx={{
-              backgroundColor: state.exhex || "#fff",
-              color:
-                state.ex_max > 477 && state.ex_max < 590 ? "#000" : "#eee",
-              opacity: 0.7,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              py: ROW_VERTICAL_PADDING,
-            }}
-          >
-            {state.ex_max}
-          </Box>
-        )
+        return <ColoredCell value={state?.ex_max} backgroundColor={state?.exhex} />
       },
       size: 50,
       meta: { align: "center", noPadding: true },
@@ -185,24 +203,7 @@ function createColumns() {
       header: () => <ColumnHeader glossaryKey="em_max">λₑₘ</ColumnHeader>,
       cell: ({ row }) => {
         const state = row.original.state
-        if (!state?.em_max) return ""
-        return (
-          <Box
-            sx={{
-              backgroundColor: state.emhex || "#fff",
-              color:
-                state.em_max > 477 && state.em_max < 590 ? "#000" : "#eee",
-              opacity: 0.7,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              py: ROW_VERTICAL_PADDING,
-            }}
-          >
-            {state.em_max}
-          </Box>
-        )
+        return <ColoredCell value={state?.em_max} backgroundColor={state?.emhex} />
       },
       size: 50,
       meta: { align: "center", noPadding: true },
@@ -306,7 +307,7 @@ function createColumns() {
             color: "primary.main",
             p: 0.5,
             "&:hover": {
-              backgroundColor: alpha("#0066cc", 0.08),
+              backgroundColor: (theme) => alpha(theme.palette.primary.main, TABLE_HOVER_ALPHA),
             },
           }}
         >
@@ -446,7 +447,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                       px: 1,
                       "&:hover": header.column.getCanSort()
                         ? {
-                            backgroundColor: alpha("#000", 0.1),
+                            backgroundColor: alpha("#000", HEADER_HOVER_ALPHA),
                           }
                         : {},
                     }}
@@ -499,7 +500,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                     backgroundColor: "action.hover",
                   },
                   "&:hover": {
-                    backgroundColor: alpha("#0066cc", 0.08),
+                    backgroundColor: (theme) => alpha(theme.palette.primary.main, TABLE_HOVER_ALPHA),
                   },
                 }}
               >

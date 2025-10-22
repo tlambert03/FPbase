@@ -1,71 +1,59 @@
-import { useState, useEffect } from "react"
-import {
-  Box,
-  Container,
-  CircularProgress,
-  Alert,
-  ThemeProvider,
-  createTheme,
-} from "@mui/material"
+import { useState } from "react"
+import { Box, Container, CircularProgress, Alert, ThemeProvider } from "@mui/material"
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query"
 import ProteinTable from "./components/ProteinTable"
 import TableControls from "./components/TableControls"
+import theme from "./theme"
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#0066cc",
+/**
+ * Configure React Query client with appropriate caching settings
+ */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes (previously cacheTime)
+      refetchOnWindowFocus: false,
+      retry: 1,
     },
-  },
-  typography: {
-    fontFamily: [
-      "-apple-system",
-      "BlinkMacSystemFont",
-      '"Segoe UI"',
-      "Roboto",
-      '"Helvetica Neue"',
-      "Arial",
-      "sans-serif",
-    ].join(","),
   },
 })
 
 /**
- * Main App component for the protein table viewer
+ * Fetch proteins from the API
  */
-export default function App() {
-  const [proteins, setProteins] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+async function fetchProteins() {
+  const response = await fetch("/api/proteins/table-data/")
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  return response.json()
+}
+
+/**
+ * Inner App component that uses React Query hooks
+ */
+function AppContent() {
   const [filters, setFilters] = useState({
     search: "",
     switchType: "",
     aggType: "",
   })
 
-  useEffect(() => {
-    async function fetchProteins() {
-      try {
-        const response = await fetch("/api/proteins/table-data/")
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        const data = await response.json()
-        setProteins(data)
-        setLoading(false)
-      } catch (err) {
-        console.error("Failed to fetch proteins:", err)
-        setError(err.message)
-        setLoading(false)
+  const { data: proteins = [], isLoading, error } = useQuery({
+    queryKey: ["proteins", "table-data"],
+    queryFn: fetchProteins,
+    onError: (error) => {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to fetch proteins:", error)
       }
-    }
+    },
+  })
 
-    fetchProteins()
-  }, [])
-
-  if (loading) {
-    return (
-      <ThemeProvider theme={theme}>
-        <Container maxWidth="xl" sx={{ py: 4 }}>
+  return (
+    <ThemeProvider theme={theme}>
+      <Container maxWidth="xl" sx={{ py: isLoading || error ? 4 : 3 }}>
+        {isLoading && (
           <Box
             sx={{
               display: "flex",
@@ -76,38 +64,41 @@ export default function App() {
           >
             <CircularProgress />
           </Box>
-        </Container>
-      </ThemeProvider>
-    )
-  }
+        )}
 
-  if (error) {
-    return (
-      <ThemeProvider theme={theme}>
-        <Container maxWidth="xl" sx={{ py: 4 }}>
+        {error && (
           <Alert severity="error">
-            Failed to load protein data: {error}
+            Failed to load protein data: {error.message}
           </Alert>
-        </Container>
-      </ThemeProvider>
-    )
-  }
+        )}
 
-  return (
-    <ThemeProvider theme={theme}>
-      <Container maxWidth="xl" sx={{ py: 3 }}>
-        <TableControls
-          proteins={proteins}
-          filters={filters}
-          onFilterChange={setFilters}
-        />
+        {!isLoading && !error && (
+          <>
+            <TableControls
+              proteins={proteins}
+              filters={filters}
+              onFilterChange={setFilters}
+            />
 
-        <ProteinTable
-          proteins={proteins}
-          filters={filters}
-          totalCount={proteins.length}
-        />
+            <ProteinTable
+              proteins={proteins}
+              filters={filters}
+              totalCount={proteins.length}
+            />
+          </>
+        )}
       </Container>
     </ThemeProvider>
+  )
+}
+
+/**
+ * Main App component wrapped with React Query provider
+ */
+export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
   )
 }
