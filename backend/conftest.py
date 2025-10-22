@@ -27,14 +27,22 @@ def uses_frontend(request):
     from django.conf import settings
 
     stats_file = settings.WEBPACK_LOADER["DEFAULT"].get("STATS_FILE")
+    needs_rebuild = True
+
     if os.path.exists(stats_file):
         with open(stats_file, encoding="utf-8") as f:
             assets = json.load(f)
-        assets_ready = assets.get("status") == "done" and assets.get("chunks")
-    else:
-        assets_ready = False
 
-    if not assets_ready or request.config.getoption(REBUILD_ASSETS):
+        # Check if assets are from a production build (not dev server)
+        # Dev builds have publicPath pointing to localhost:8080
+        is_production_build = assets.get("status") == "done" and assets.get("chunks")
+        if is_production_build and assets.get("publicPath"):
+            # If publicPath contains localhost, it's from dev server - need rebuild
+            is_production_build = "localhost" not in assets.get("publicPath")
+
+        needs_rebuild = not is_production_build
+
+    if needs_rebuild or request.config.getoption(REBUILD_ASSETS):
         subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
 
 
