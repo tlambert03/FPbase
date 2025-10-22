@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 from pathlib import Path
 
 import environ
+import structlog
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 APPS_DIR = ROOT_DIR / "fpbase"
@@ -58,6 +59,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    "django_structlog",  # Structured logging
     "scout_apm.django",  # APM monitoring
     "crispy_forms",  # Form layouts
     # "crispy_bootstrap4",
@@ -93,6 +95,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django_structlog.middlewares.RequestMiddleware",  # Add request context to logs
     "fpbase.middleware.BlackListMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -399,3 +402,31 @@ CORS_ORIGIN_WHITELIST = [
 ]
 
 BLOCKED_IPS = env.list("IP_BLACKLIST", default=[])
+
+# LOGGING CONFIGURATION - Structlog Base Setup
+# ------------------------------------------------------------------------------
+# Shared configuration for both local and production environments
+# Environment-specific settings override this in local.py and production.py
+
+# Shared processors for both structlog and stdlib logging
+STRUCTLOG_SHARED_PROCESSORS = [
+    structlog.contextvars.merge_contextvars,
+    structlog.stdlib.add_log_level,
+    structlog.stdlib.add_logger_name,
+    structlog.processors.TimeStamper(fmt="iso"),
+]
+
+# Default structlog configuration (production-safe)
+# local.py will reconfigure to add dev-specific processors
+structlog.configure(
+    processors=[
+        *STRUCTLOG_SHARED_PROCESSORS,
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)

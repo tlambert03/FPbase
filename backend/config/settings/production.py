@@ -12,6 +12,7 @@ Production settings for FPbase project.
 import ssl
 
 import sentry_sdk
+import structlog
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -195,34 +196,86 @@ sentry_sdk.init(
 # SCOUT_MONITOR and SCOUT_KEY are automatically set by the Heroku addon
 SCOUT_NAME = "FPbase"
 
+# Structlog Configuration for Production
+# Uses JSON output for log aggregation systems like Logtail
+# Base structlog configuration is in base.py - no need to reconfigure here
+
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": True,
-    "root": {"level": "WARNING"},
+    "disable_existing_loggers": False,
     "formatters": {
-        "verbose": {"format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"},
+        "json": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processors": [
+                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                structlog.processors.JSONRenderer(),
+            ],
+            "foreign_pre_chain": STRUCTLOG_SHARED_PROCESSORS,
+        },
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        }
+            "formatter": "json",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "ERROR",  # Only ERROR and above in production to reduce volume
     },
     "loggers": {
-        "django.db.backends": {
-            "level": "ERROR",
+        # Application loggers - capture WARNING and above
+        "fpbase": {
             "handlers": ["console"],
+            "level": "WARNING",
             "propagate": False,
         },
-        "sentry.errors": {
-            "level": "DEBUG",
+        "proteins": {
             "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "references": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "favit": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        # Django framework loggers - only errors
+        "django": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "ERROR",
             "propagate": False,
         },
         "django.security.DisallowedHost": {
-            "level": "ERROR",
             "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        # django-structlog request logging
+        "django_structlog": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Sentry errors
+        "sentry.errors": {
+            "handlers": ["console"],
+            "level": "ERROR",
             "propagate": False,
         },
     },
