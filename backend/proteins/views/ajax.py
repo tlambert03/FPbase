@@ -18,6 +18,8 @@ from proteins.util.maintain import validate_node
 
 from ..models import Fluorophore, Lineage, Organism, Protein, Spectrum, State
 
+logger = logging.getLogger(__name__)
+
 
 def serialize_comparison(request):
     info = []
@@ -111,7 +113,7 @@ def approve_protein(request, slug=None):
                 uncache_protein_page(p.slug, request)
         return JsonResponse({})
     except Exception as e:
-        logging.error(e)
+        logger.error(e)
 
 
 def similar_spectrum_owners(request):

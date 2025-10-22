@@ -1,3 +1,5 @@
+import logging
+
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
@@ -5,6 +7,8 @@ from django.http import HttpResponseBadRequest, HttpResponseNotAllowed, JsonResp
 from fpbase.util import is_ajax, uncache_protein_page
 
 from .models import Favorite
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -34,10 +38,7 @@ def add_or_remove(request):
             slug = apps.get_model(app_model).objects.get(id=obj_id).slug
             uncache_protein_page(slug, request)
         except Exception as e:
-            import logging
-
-            logger = logging.getLogger(__name__)
-            logger.error(f"failed to uncache protein: {e}")
+            logger.error("failed to uncache protein: %s", e)
 
     return JsonResponse(response)
 

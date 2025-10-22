@@ -5,17 +5,14 @@ Production settings for FPbase project.
 - Use Amazon's S3 for storing uploaded media
 - Use mailgun to send emails
 - Use Redis for cache
-
 - Use sentry for error logging
-
-
-- Use opbeat for error reporting
 
 """
 
 import ssl
 
 import sentry_sdk
+import structlog
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -35,17 +32,6 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Use Whitenoise to serve static files
 # See: https://whitenoise.readthedocs.io/
 MIDDLEWARE = ["whitenoise.middleware.WhiteNoiseMiddleware", *MIDDLEWARE]
-
-
-# opbeat integration
-# See https://opbeat.com/languages/django/
-# INSTALLED_APPS += ['opbeat.contrib.django', ]
-# OPBEAT = {
-#     'ORGANIZATION_ID': env('DJANGO_OPBEAT_ORGANIZATION_ID'),
-#     'APP_ID': env('DJANGO_OPBEAT_APP_ID'),
-#     'SECRET_TOKEN': env('DJANGO_OPBEAT_SECRET_TOKEN')
-# }
-# MIDDLEWARE = ['opbeat.contrib.django.middleware.OpbeatAPMMiddleware', ] + MIDDLEWARE
 
 
 # SECURITY
@@ -198,7 +184,6 @@ CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 SENTRY_DSN = env("SENTRY_DSN")
 HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
-print(f"HEROKU_SLUG_COMMIT = {HEROKU_SLUG_COMMIT}")
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[DjangoIntegration(), CeleryIntegration()],
@@ -211,34 +196,96 @@ sentry_sdk.init(
 # SCOUT_MONITOR and SCOUT_KEY are automatically set by the Heroku addon
 SCOUT_NAME = "FPbase"
 
+# Structlog Configuration for Production
+# Uses JSON output for log aggregation systems like Logtail
+# Base structlog configuration is in base.py - no need to reconfigure here
+
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": True,
-    "root": {"level": "WARNING"},
+    "disable_existing_loggers": False,
     "formatters": {
-        "verbose": {"format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"},
+        "json": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processors": [
+                structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+                structlog.processors.JSONRenderer(),
+            ],
+            "foreign_pre_chain": [
+                *STRUCTLOG_SHARED_PROCESSORS,
+                structlog.stdlib.ExtraAdder(),  # Merge extra={"key": "value"} from stdlib logging
+                structlog.processors.StackInfoRenderer(),
+                # NOTE: format_exc_info intentionally OMITTED in production (present in local.py)
+            ],
+        },
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
-        }
+            "formatter": "json",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "ERROR",  # Only ERROR and above in production to reduce volume
     },
     "loggers": {
-        "django.db.backends": {
-            "level": "ERROR",
+        # Application loggers - capture WARNING and above
+        "fpbase": {
             "handlers": ["console"],
+            "level": "WARNING",
             "propagate": False,
         },
-        "sentry.errors": {
-            "level": "DEBUG",
+        "proteins": {
             "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "references": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "favit": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        # Django framework loggers - only errors
+        "django": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "ERROR",
             "propagate": False,
         },
         "django.security.DisallowedHost": {
-            "level": "ERROR",
             "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        # django-structlog request logging
+        "django_structlog": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Sentry errors
+        "sentry.errors": {
+            "handlers": ["console"],
+            "level": "ERROR",
             "propagate": False,
         },
     },

@@ -31,7 +31,7 @@ class CanonicalDomainMiddleware:
         canonical_hostname = settings.CANONICAL_URL.split("://", 1)[1]
         if hostname != canonical_hostname:
             canonical_url = settings.CANONICAL_URL + request.get_full_path()
-            logger.debug(f"REDIRECTING {request.get_host()} to {canonical_url}")
+            logger.debug("REDIRECTING %s to %s", request.get_host(), canonical_url)
             return redirect(canonical_url, permanent=True)
         return self.get_response(request)
 
