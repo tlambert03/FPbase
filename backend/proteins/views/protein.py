@@ -2,6 +2,7 @@ import contextlib
 import io
 import logging
 import operator
+from functools import reduce
 from typing import TYPE_CHECKING, cast
 
 import django.forms
@@ -644,8 +645,6 @@ def problems_gaps(request):
 
 
 def problems_inconsistencies(request):
-    from functools import reduce
-
     titles = reduce(
         operator.or_,
         (Q(primary_reference__title__icontains=item) for item in ["activat", "switch", "convert", "dark", "revers"]),
