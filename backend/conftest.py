@@ -1,6 +1,8 @@
 import json
 import os
+import random
 import subprocess
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -67,7 +69,6 @@ def mock_ncbi_api_calls(monkeypatch):
     This fixture automatically mocks external API calls to NCBI E-utilities
     to prevent HTTP 429 rate limit errors during test runs.
     """
-    from datetime import datetime
 
     def mock_doi_lookup(doi):
         """Mock doi_lookup to return realistic test data without API calls."""
@@ -83,97 +84,19 @@ def mock_ncbi_api_calls(monkeypatch):
                 {"family": "Smith", "given": "John A."},
                 {"family": "Doe", "given": "Jane B."},
             ],
-            "pmid": "12345678",
+            # random 8 numbers
+            "pmid": random.randint(10_000_000, 99_999_999),
         }
 
-    def mock_entrez_esearch(db, term, **kwargs):
-        """Mock Entrez.esearch to return a test record."""
-        from io import BytesIO
+    def mock_get_organism_info(organism_id: str | int):
+        return {
+            "scientific_name": "ScientificName",
+            "division": "Division",
+            "common_name": "CommonName",
+            "species": "Species",
+            "genus": "Genus",
+            "rank": "Rank",
+        }
 
-        # Return XML that Bio.Entrez.read can parse - must be binary
-        xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE eSearchResult PUBLIC "-//NLM//DTD esearch 20060628//EN"
-        "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20060628/esearch.dtd">
-        <eSearchResult>
-            <Count>1</Count>
-            <RetMax>1</RetMax>
-            <RetStart>0</RetStart>
-            <IdList>
-                <Id>12345678</Id>
-            </IdList>
-        </eSearchResult>"""
-        return BytesIO(xml)
-
-    def mock_entrez_esummary(db, id, retmode="xml", **kwargs):
-        """Mock Entrez.esummary to return test data."""
-        from io import BytesIO
-
-        if db == "pubmed":
-            xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN"
-            "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20041029/esummary-v1.dtd">
-            <eSummaryResult>
-                <DocSum>
-                    <Id>12345678</Id>
-                    <Item Name="PubDate" Type="Date">2024 Jan 01</Item>
-                    <Item Name="EPubDate" Type="Date">2024 Jan 01</Item>
-                    <Item Name="Source" Type="String">Test Journal</Item>
-                    <Item Name="Title" Type="String">Test Article Title</Item>
-                    <Item Name="Volume" Type="String">42</Item>
-                    <Item Name="Issue" Type="String">1</Item>
-                    <Item Name="Pages" Type="String">123-456</Item>
-                    <Item Name="DOI" Type="String">10.1234/test.doi</Item>
-                    <Item Name="AuthorList" Type="List">
-                        <Item Name="Author" Type="String">Smith JA</Item>
-                        <Item Name="Author" Type="String">Doe JB</Item>
-                    </Item>
-                </DocSum>
-            </eSummaryResult>"""
-        elif db == "taxonomy":
-            # Mock taxonomy database responses for Organism model
-            xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE eSummaryResult PUBLIC "-//NLM//DTD esummary v1 20041029//EN"
-            "https://eutils.ncbi.nlm.nih.gov/eutils/dtd/20041029/esummary-v1.dtd">
-            <eSummaryResult>
-                <DocSum>
-                    <Id>9606</Id>
-                    <Item Name="Rank" Type="String">species</Item>
-                    <Item Name="Division" Type="String">hydrozoans</Item>
-                    <Item Name="ScientificName" Type="String">Aequorea victoria</Item>
-                    <Item Name="CommonName" Type="String">jellyfish</Item>
-                    <Item Name="Species" Type="String">victoria</Item>
-                    <Item Name="Genus" Type="String">Aequorea</Item>
-                </DocSum>
-            </eSummaryResult>"""
-        else:
-            xml = b"""<?xml version="1.0" encoding="UTF-8"?>
-            <eSummaryResult><DocSum></DocSum></eSummaryResult>"""
-        return BytesIO(xml)
-
-    # Apply the mocks
-
-    def mock_genbank_seq(accession):
-        """Mock genbank_seq to return a test sequence."""
-        return "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
-
-    def mock_uniprot_seq(accession):
-        """Mock uniprot_seq to return a test sequence."""
-        return "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
-
-    def mock_pdb_seq(accession):
-        """Mock pdb_seq to return a test sequence."""
-        return "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
-
-    # Mock external sequence fetchers
-    monkeypatch.setattr("fpseq.external.genbank_seq", mock_genbank_seq)
-    monkeypatch.setattr("fpseq.external.uniprot_seq", mock_uniprot_seq)
-    monkeypatch.setattr("fpseq.external.pdb_seq", mock_pdb_seq)
-
-    # Mock Bio.Entrez functions
-    try:
-        from Bio import Entrez
-
-        monkeypatch.setattr(Entrez, "esearch", mock_entrez_esearch)
-        monkeypatch.setattr(Entrez, "esummary", mock_entrez_esummary)
-    except ImportError:
-        pass  # Bio not imported yet
+    monkeypatch.setattr("proteins.extrest.entrez.doi_lookup", mock_doi_lookup)
+    monkeypatch.setattr("proteins.extrest.entrez.get_organism_info", mock_get_organism_info)

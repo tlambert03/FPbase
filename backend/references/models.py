@@ -13,7 +13,7 @@ from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
-from proteins.extrest.entrez import doi_lookup
+from proteins.extrest import entrez
 from proteins.validators import validate_doi
 
 User = get_user_model()
@@ -164,7 +164,7 @@ class Reference(TimeStampedModel):
         if self.doi:
             self.doi = self.doi.lower()
         if not skipdoi:
-            info = doi_lookup(self.doi)
+            info = entrez.doi_lookup(self.doi)
             authors = info.pop("authors")
             authorlist = []
             for author in authors:

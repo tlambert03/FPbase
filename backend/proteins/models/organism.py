@@ -2,7 +2,7 @@ from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
-from proteins.extrest.entrez import get_organism_info
+from proteins.extrest import entrez
 
 from .mixins import Authorable
 
@@ -32,7 +32,7 @@ class Organism(Authorable, TimeStampedModel):
         return reverse("proteins:organism-detail", args=[self.pk])
 
     def save(self, *args, **kwargs):
-        if info := get_organism_info(self.id):
+        if info := entrez.get_organism_info(self.id):
             self.__dict__.update(info)
 
         super().save(*args, **kwargs)
