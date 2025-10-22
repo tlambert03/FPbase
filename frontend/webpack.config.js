@@ -112,6 +112,7 @@ module.exports = {
     simpleSpectraViewer: "./src/simple-spectra-viewer.js",
     microscopeForm: "./src/microscope-form.js",
     blast: "./src/blast-app.js",
+    proteinTable: "./src/protein-table.js",
   },
   output: {
     path: path.resolve("./dist/"),
@@ -130,6 +131,10 @@ module.exports = {
       "@fpbase/blast": path.resolve(
         __dirname,
         "../packages/blast/src/index.js"
+      ),
+      "@fpbase/protein-table": path.resolve(
+        __dirname,
+        "../packages/protein-table/src/index.jsx"
       ),
     },
     fallback: {

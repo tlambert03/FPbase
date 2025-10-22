@@ -13,6 +13,11 @@ urlpatterns = [
     path("proteins/", views.ProteinListAPIView.as_view(), name="protein-api"),
     # path("proteins2/", views.ProteinListAPIView2.as_view(), name="protein-api2"),
     path(
+        "proteins/table-data/",
+        views.ProteinTableAPIView.as_view(),
+        name="protein-table-api",
+    ),
+    path(
         "proteins/spectra/",
         views.ProteinSpectraListAPIView.as_view(),
         name="spectra-api",

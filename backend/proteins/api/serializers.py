@@ -226,3 +226,66 @@ class BasicProteinSerializer(ModelSerializer, serializers.HyperlinkedModelSerial
             "cofactor",
         )
         on_demand_fields = ("uuid", "ex_spectrum", "em_spectrum")
+
+
+class ProteinTableStateSerializer(serializers.ModelSerializer):
+    """Optimized serializer for table state data - only includes necessary fields."""
+
+    stokes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = State
+        fields = (
+            "name",
+            "ex_max",
+            "em_max",
+            "stokes",
+            "ext_coeff",
+            "qy",
+            "brightness",
+            "pka",
+            "maturation",
+            "lifetime",
+            "exhex",
+            "emhex",
+            "is_dark",
+        )
+
+    def get_stokes(self, obj):
+        """Calculate Stokes shift."""
+        if obj.ex_max and obj.em_max:
+            return obj.em_max - obj.ex_max
+        return None
+
+
+class ProteinTableSerializer(serializers.ModelSerializer):
+    """Optimized serializer for the protein table view.
+
+    Only includes fields needed for table display, with efficient queries
+    to avoid N+1 problems.
+    """
+
+    states = ProteinTableStateSerializer(many=True, read_only=True)
+    url = serializers.CharField(source="get_absolute_url", read_only=True)
+    year = serializers.IntegerField(source="primary_reference.year", read_only=True)
+    weight = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Protein
+        fields = (
+            "name",
+            "slug",
+            "url",
+            "states",
+            "agg",
+            "switch_type",
+            "aliases",
+            "year",
+            "weight",
+        )
+
+    def get_weight(self, obj):
+        """Get molecular weight from sequence."""
+        if obj.seq and obj.seq.weight is not None:
+            return round(obj.seq.weight, 2)
+        return None

@@ -29,7 +29,6 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, base
 from reversion.models import Revision, Version
@@ -552,17 +551,12 @@ def spectra_image(request, slug, **kwargs):
 
 
 @cache_page(60 * 10)
-@csrf_protect
 def protein_table(request):
-    """renders html for protein table page"""
-    return render(
-        request,
-        "table.html",
-        {
-            "proteins": Protein.visible.all().prefetch_related("states"),
-            "request": request,
-        },
-    )
+    """Renders html for protein table page.
+
+    The table is now a React app that fetches data from the API endpoint.
+    """
+    return render(request, "table.html")
 
 
 class ComparisonView(base.TemplateView):

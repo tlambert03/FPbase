@@ -503,6 +503,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     # Meta
     class Meta:
         ordering = ["name"]
+        indexes = [
+            models.Index(fields=["status"], name="protein_status_idx"),
+        ]
 
     def history(self, ignoreKeys=()):
         from proteins.util.history import get_history
