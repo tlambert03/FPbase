@@ -49,13 +49,6 @@ const calcHeight = width => {
   return 420
 }
 
-// export function spectraSorter(a, b) {
-//   const SPECTRA_ORDER = ["P", "D", "F", "L", "C"]
-//   if (SPECTRA_ORDER.indexOf(a.category) > SPECTRA_ORDER.indexOf(b.category))
-//     return 1
-//   return -1
-// }
-
 const {
   plotOptions: _plotOptions,
   xAxis: _xAxis,
