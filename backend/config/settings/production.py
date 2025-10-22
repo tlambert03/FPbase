@@ -229,6 +229,7 @@ LOGGING = {
                 not hasattr(record, "args")
                 or not record.args
                 or not isinstance(record.args, tuple)
+                or not isinstance(record.args[0], str)
                 or not record.args[0].startswith(("GET /static/", "GET /media/"))
             ),
         },
