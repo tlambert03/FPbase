@@ -140,7 +140,12 @@ LOGGING = {
                 structlog.stdlib.ProcessorFormatter.remove_processors_meta,
                 structlog.dev.ConsoleRenderer(colors=True),
             ],
-            "foreign_pre_chain": STRUCTLOG_SHARED_PROCESSORS,
+            "foreign_pre_chain": [
+                *STRUCTLOG_SHARED_PROCESSORS,
+                structlog.stdlib.ExtraAdder(),  # Merge extra={"key": "value"} from stdlib logging
+                structlog.processors.StackInfoRenderer(),
+                structlog.processors.format_exc_info,  # Format tracebacks from stdlib logging
+            ],
         },
     },
     "handlers": {

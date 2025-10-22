@@ -408,12 +408,40 @@ BLOCKED_IPS = env.list("IP_BLACKLIST", default=[])
 # Shared configuration for both local and production environments
 # Environment-specific settings override this in local.py and production.py
 
+
+def add_sentry_context(logger, method_name, event_dict):
+    """
+    Add Sentry event ID to logs for correlation.
+
+    When an exception is captured by Sentry, this adds the event ID to the log
+    so you can link directly to the Sentry issue instead of duplicating full tracebacks.
+
+    Note: For automatic correlation, exceptions should be captured in Sentry first
+    using sentry_sdk.capture_exception(), then log with the returned event_id.
+    """
+    # Check if sentry_event_id was explicitly passed in extra dict
+    if "sentry_event_id" not in event_dict:
+        # Try to get it from Sentry SDK's last_event_id()
+        # This works if Django/Sentry integration auto-captured an exception
+        if event_dict.get("exc_info") or "exception" in event_dict:
+            try:
+                import sentry_sdk
+
+                if event_id := sentry_sdk.last_event_id():
+                    event_dict["sentry_event_id"] = event_id
+            except (ImportError, AttributeError, Exception):
+                pass  # Sentry not available
+
+    return event_dict
+
+
 # Shared processors for both structlog and stdlib logging
 STRUCTLOG_SHARED_PROCESSORS = [
     structlog.contextvars.merge_contextvars,
     structlog.stdlib.add_log_level,
     structlog.stdlib.add_logger_name,
     structlog.processors.TimeStamper(fmt="iso"),
+    add_sentry_context,  # Add Sentry event ID for exception correlation
 ]
 
 # Default structlog configuration (production-safe)
