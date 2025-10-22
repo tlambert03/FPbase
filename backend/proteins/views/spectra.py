@@ -161,18 +161,18 @@ def spectrum_preview(request) -> JsonResponse:
 
     try:
         # Log the request for debugging
-        logger.info(f"Spectrum preview request from user: {request.user}")
+        logger.debug("Spectrum preview request from user: %s", request.user)
         # Determine data source based on explicit tab selection
         data_source = request.POST.get("data_source", "file")  # Default to file tab
         use_manual_data = data_source == "manual"
-        logger.debug(f"Tab selection - data_source: {data_source}")
+        logger.debug("Tab selection - data_source: %s", data_source)
 
         if use_manual_data:
             # Manual data tab selected - ignore any files, only use manual data
             logger.debug("Using manual data entry (files ignored)")
             manual_data = request.POST.get("data", "")
             if manual_data:
-                logger.debug(f"Manual data submitted: {manual_data[:100]}...")
+                logger.debug("Manual data submitted: %s...", manual_data[:100])
             form = SpectrumForm(request.POST, None, user=request.user)  # No files
         else:
             # File upload tab selected - ignore manual data, only use files
@@ -183,7 +183,7 @@ def spectrum_preview(request) -> JsonResponse:
             form = SpectrumForm(post_data, request.FILES, user=request.user)
 
         if not form.is_valid():
-            logger.warning(f"Form validation failed: {form.errors}")
+            logger.warning("Form validation failed: %s", form.errors)
             return JsonResponse(
                 {
                     "error": "Form validation failed. Please check your input data.",
@@ -206,7 +206,7 @@ def spectrum_preview(request) -> JsonResponse:
             temp_spectrum.clean()  # This runs the normalization
             logger.debug("Spectrum normalization completed successfully")
         except Exception as e:
-            logger.error(f"Data processing failed: {e}", exc_info=True)
+            logger.exception("Data processing failed: %s", e)
             return JsonResponse(
                 {
                     "error": f"Data processing failed: {e!s}",
@@ -229,7 +229,7 @@ def spectrum_preview(request) -> JsonResponse:
             svg_data = svg_buffer.getvalue().decode("utf-8")
             logger.debug("SVG generation completed successfully")
         except Exception as e:
-            logger.error(f"SVG generation failed: {e}", exc_info=True)
+            logger.exception("SVG generation failed: %s", e)
             return JsonResponse(
                 {
                     "error": f"Chart generation failed: {e!s}",
@@ -264,7 +264,7 @@ def spectrum_preview(request) -> JsonResponse:
             )
 
         except Exception as e:
-            logger.error(f"Preview data generation failed: {e}", exc_info=True)
+            logger.exception("Preview data generation failed: %s", e)
             return JsonResponse(
                 {
                     "error": f"Preview data generation failed: {e!s}",
@@ -274,7 +274,7 @@ def spectrum_preview(request) -> JsonResponse:
             )
 
     except Exception as e:
-        logger.error(f"Unexpected error in spectrum_preview: {e}", exc_info=True)
+        logger.exception("Unexpected error in spectrum_preview: %s", e)
         return JsonResponse(
             {
                 "error": f"Unexpected server error: {e!s}",

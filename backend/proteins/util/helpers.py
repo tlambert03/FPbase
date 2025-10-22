@@ -450,7 +450,7 @@ def spectra_fig(
     colr = kwargs.pop("color", None)
     twitter = kwargs.pop("twitter", 0)
 
-    logger.debug("spectra_fig called on {}".format(",".join([str(spec.id) for spec in spectra])))
+    logger.debug("spectra_fig called on %s", ",".join([str(spec.id) for spec in spectra]))
     if twitter:
         xlabels = False
         transparent = False

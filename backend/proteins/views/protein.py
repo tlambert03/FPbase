@@ -408,7 +408,7 @@ class ProteinCreateUpdateMixin:
                 try:
                     uncache_protein_page(self.object.slug, self.request)
                 except Exception as e:
-                    logger.error(f"failed to uncache protein: {e}")
+                    logger.error("failed to uncache protein: %s", e)
 
                 check_switch_type(self.object, self.request)
 
@@ -720,7 +720,7 @@ def add_reference(request, slug=None):
             try:
                 uncache_protein_page(slug, request)
             except Exception as e:
-                logger.error(f"failed to uncache protein: {e}")
+                logger.error("failed to uncache protein: %s", e)
         return JsonResponse({"status": "success"})
     except Exception as e:
         return JsonResponse({"status": "failed", "msg": e})
@@ -749,7 +749,7 @@ def add_protein_excerpt(request, slug=None):
                 try:
                     uncache_protein_page(slug, request)
                 except Exception as e:
-                    logger.error(f"failed to uncache protein: {e}")
+                    logger.error("failed to uncache protein: %s", e)
         return JsonResponse({"status": "success"})
     except Exception as e:
         return JsonResponse({"status": "failed", "msg": e})
@@ -809,7 +809,7 @@ def update_transitions(request, slug=None):
                 try:
                     uncache_protein_page(slug, request)
                 except Exception as e:
-                    logger.error(f"failed to uncache protein: {e}")
+                    logger.error("failed to uncache protein: %s", e)
                 check_switch_type(obj, request)
         return HttpResponse(status=200)
     else:
@@ -861,7 +861,7 @@ def protein_bleach_formsets(request, slug):
                 try:
                     uncache_protein_page(slug, request)
                 except Exception as e:
-                    logger.error(f"failed to uncache protein: {e}")
+                    logger.error("failed to uncache protein: %s", e)
         return HttpResponseRedirect(protein.get_absolute_url())
     else:
         formset = BleachMeasurementFormSet(queryset=qs)
@@ -944,7 +944,7 @@ def flag_object(request):
             try:
                 uncache_protein_page(obj.protein.slug, request)
             except Exception as e:
-                logger.error(f"failed to uncache protein: {e}")
+                logger.error("failed to uncache protein: %s", e)
 
             mail_admins(
                 f"{model_type} {status}",

@@ -181,7 +181,7 @@ def _fetch_gb_seqs(gbids):
             nucs.append(id)
         else:
             prots.append(id)
-            logger.error(f"Could not determine accession type for {id}")
+            logger.error("Could not determine accession type for %s", id)
     records = {}
     if len(nucs):
         with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
