@@ -62,13 +62,16 @@ def use_real_webpack_loader(monkeypatch):
     )
 
 
-@pytest.fixture(autouse=True)
-def mock_ncbi_api_calls(monkeypatch):
+@pytest.fixture(scope="session", autouse=True)
+def mock_ncbi_api_calls():
     """Mock NCBI API calls to avoid rate limiting during tests.
 
     This fixture automatically mocks external API calls to NCBI E-utilities
     to prevent HTTP 429 rate limit errors during test runs.
+
+    Session-scoped to ensure mocks are active during Django TestCase.setUpTestData().
     """
+    import unittest.mock
 
     def mock_doi_lookup(doi):
         """Mock doi_lookup to return realistic test data without API calls."""
@@ -98,5 +101,14 @@ def mock_ncbi_api_calls(monkeypatch):
             "rank": "Rank",
         }
 
-    monkeypatch.setattr("proteins.extrest.entrez.doi_lookup", mock_doi_lookup)
-    monkeypatch.setattr("proteins.extrest.entrez.get_organism_info", mock_get_organism_info)
+    # Use unittest.mock.patch for session-scoped mocking
+    patcher1 = unittest.mock.patch("proteins.extrest.entrez.doi_lookup", side_effect=mock_doi_lookup)
+    patcher2 = unittest.mock.patch("proteins.extrest.entrez.get_organism_info", side_effect=mock_get_organism_info)
+
+    patcher1.start()
+    patcher2.start()
+
+    yield
+
+    patcher1.stop()
+    patcher2.stop()

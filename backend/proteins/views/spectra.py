@@ -135,7 +135,13 @@ class SpectrumCreateView(CreateView):
 def spectra_csv(request):
     try:
         idlist = [int(x) for x in request.GET.get("q", "").split(",") if x]
-        spectralist = Spectrum.objects.filter(id__in=idlist)
+        spectralist = Spectrum.objects.filter(id__in=idlist).select_related(
+            "owner_state__protein",
+            "owner_dye",
+            "owner_filter",
+            "owner_light",
+            "owner_camera",
+        )
         if spectralist:
             return spectra2csv(spectralist)
     except Exception:
