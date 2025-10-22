@@ -113,16 +113,6 @@ class ProteinFilter(filters.FilterSet):
         queryset=Organism.objects.all(), method="parent_organism__notequal"
     )
 
-    # name__iexact = django_filters.CharFilter(
-    #     field_name='name',
-    #     method='name_or_alias_iexact', lookup_expr='iexact')
-    # name__iendswith = django_filters.CharFilter(
-    #     field_name='name',
-    #     method='name_or_alias_iendswith', lookup_expr='iendswith')
-    # name__istartswith = django_filters.CharFilter(
-    #     field_name='name',
-    #     method='name_or_alias_istartswith', lookup_expr='istartswith')
-
     class Meta:
         model = Protein
         form = ProteinFilterForm
@@ -208,15 +198,6 @@ class ProteinFilter(filters.FilterSet):
 
     def parent_organism__notequal(self, queryset, name, value):
         return queryset.exclude(parent_organism=value)
-
-    # def name_or_alias_iexact(self, queryset, name, value):
-    #     return queryset.filter(name__iexact=value) | queryset.filter(aliases__iexact=value)
-
-    # def name_or_alias_iendswith(self, queryset, name, value):
-    #     return queryset.filter(name__iendswith=value) | queryset.filter(aliases__iendswith=value)
-
-    # def name_or_alias_istartswith(self, queryset, name, value):
-    #     return queryset.filter(name__istartswith=value) | queryset.filter(aliases__istartswith=value)
 
     def get_specbright(self, queryset, name, value):
         qsALL = list(queryset.all())

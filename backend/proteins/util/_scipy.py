@@ -239,38 +239,6 @@ class InterpolatedUnivariateSpline:
         return self._spline(xnew)
 
 
-def interp1d(x: np.ndarray, y: np.ndarray, kind: str = "linear"):
-    """
-    Drop-in replacement for scipy.interpolate.interp1d.
-
-    Only linear interpolation is supported (which is what's used in production).
-
-    Parameters
-    ----------
-    x : np.ndarray
-        Known x values
-    y : np.ndarray
-        Known y values
-    kind : str, optional
-        Type of interpolation (only 'linear' is supported)
-
-    Returns
-    -------
-    callable
-        Interpolation function
-    """
-    if kind != "linear":
-        raise NotImplementedError(f"Only linear interpolation is supported, got: {kind}")
-
-    x = np.asarray(x)
-    y = np.asarray(y)
-
-    def interpolator(xnew):
-        return np.interp(xnew, x, y)
-
-    return interpolator
-
-
 # ============================================================================
 # Module structure to mimic scipy imports
 # ============================================================================
@@ -279,7 +247,6 @@ def interp1d(x: np.ndarray, y: np.ndarray, kind: str = "linear"):
 class _InterpolateModule:
     """Mimics scipy.interpolate module."""
 
-    interp1d = staticmethod(interp1d)
     InterpolatedUnivariateSpline = InterpolatedUnivariateSpline
 
 

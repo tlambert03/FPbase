@@ -192,22 +192,6 @@ class SpectrumOwnerUnion(graphene.Union):
         types = (State,)
 
 
-# class SpectrumLoader(DataLoader):
-#     def batch_load_fn(self, keys):
-#         spectra = {
-#             spectrum.id: spectrum
-#             for spectrum in models.Spectrum.objects.filter(id__in=keys).select_related(
-#                 "owner_state",
-#                 "owner_state__protein",
-#                 "owner_dye",
-#                 "owner_camera",
-#                 "owner_filter",
-#                 "owner_light",
-#             )
-#         }
-#         return Promise.resolve([spectra.get(spectra_id) for spectra_id in keys])
-
-
 class Spectrum(gdo.OptimizedDjangoObjectType):
     class Meta:
         model = models.Spectrum

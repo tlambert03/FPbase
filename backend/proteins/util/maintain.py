@@ -1,30 +1,10 @@
 from typing import TYPE_CHECKING, cast
 
-from fpseq.mutations import Mutation, MutationSet
-from proteins.util.helpers import getprot
+from fpseq.mutations import Mutation
 
 if TYPE_CHECKING:
     from fpseq import FPSeq
     from proteins.models import Lineage
-
-
-def check_offset(protname):
-    prot = getprot(protname)
-    ms = MutationSet(prot.lineage.mutation)
-    offset = ms.detect_offset(prot.lineage.parent.protein.seq)
-    if offset:
-        print(f"{protname}:\t{ms} -> {ms.shift(offset)}")
-
-
-def add_missing_seqs():
-    from ..models import Lineage
-
-    for node in Lineage.objects.all():
-        if not node.protein.seq and (node.parent and node.parent.protein.seq):
-            seq, _ = node.parent.protein.seq.mutate(node.mutation, correct_offset=True)
-            node.protein.seq = seq
-            node.protein.save()
-            print(f"saved seq for {node.protein}")
 
 
 def check_node_sequence_mutation_consistent(node, correct_offset=False):

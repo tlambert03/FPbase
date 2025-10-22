@@ -396,13 +396,6 @@ class MicroscopeDetailView(DetailView):
             data["scopespectra"] = json.dumps(self.object.spectra_d3())
         else:
             data["scopespectra"] = {}
-        # safari = ('Safari' in self.request.META['HTTP_USER_AGENT']
-        #           and 'Chrome' not in self.request.META['HTTP_USER_AGENT'])
-        # if safari:
-        #     messages.add_message(
-        #         self.request, messages.INFO, 'Due to slow performance on Safari, '
-        #         'wavelength precision has been reduced. '
-        #         'Click gear tab for settings, or zoom in for increased performance')
         return data
 
 
