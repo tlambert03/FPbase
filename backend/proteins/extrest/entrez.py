@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import contextlib
 import datetime
 import logging
 import os
 import re
 import time
-from typing import Literal
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 from Bio import Entrez, SeqIO
 from django.core.cache import cache
@@ -12,12 +14,26 @@ from habanero import Crossref
 
 logger = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+
+    class DoiInfo(TypedDict, total=False):
+        doi: str | None
+        pmid: str | None
+        title: str | None
+        journal: str | None
+        pages: str | None
+        volume: str | None
+        issue: str | None
+        year: int | None
+        date: datetime.date | None
+        authors: list[dict] | None
+
 
 Entrez.email = "talley_lambert@hms.harvard.edu"
 Entrez.api_key = os.getenv("NCBI_API_KEY", None)
 
 
-def _parse_crossref(doidict):
+def _parse_crossref(doidict: dict) -> DoiInfo:
     if "message" in doidict:
         doidict = doidict["message"]
     out = {}
@@ -61,7 +77,7 @@ def _doi2pmid(doi: str) -> str | None:
         return None
 
 
-def _get_pmid_info(pmid):
+def _get_pmid_info(pmid: str) -> DoiInfo | None:
     pubmed_record = Entrez.read(Entrez.esummary(db="pubmed", id=pmid, retmode="xml"))
     if len(pubmed_record):
         pubmed_record = pubmed_record[0]
@@ -82,6 +98,7 @@ def _get_pmid_info(pmid):
             "authors": pubmed_record["AuthorList"],
             "date": date,
         }
+    return None
 
 
 def _merge_info(dict1, dict2, exclude=()):
@@ -92,7 +109,7 @@ def _merge_info(dict1, dict2, exclude=()):
     return dict1
 
 
-def doi_lookup(doi: str) -> dict:
+def doi_lookup(doi: str) -> DoiInfo:
     info = _crossref(doi)
     pmid = _doi2pmid(doi)
     if pmid:
