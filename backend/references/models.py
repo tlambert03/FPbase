@@ -1,3 +1,4 @@
+import re
 from datetime import UTC, datetime
 
 from django.contrib.auth import get_user_model
@@ -12,11 +13,14 @@ from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
+from proteins.extrest import entrez
 from proteins.validators import validate_doi
 
-from .helpers import doi_lookup, name_to_initials
-
 User = get_user_model()
+
+
+def _name_to_initials(name: str) -> str:
+    return re.sub("([^A-Z-])", "", name)
 
 
 class Author(TimeStampedModel):
@@ -38,7 +42,7 @@ class Author(TimeStampedModel):
         return [p.reference for p in self.referenceauthor_set.all() if p.author_idx == p.author_count - 1]
 
     def save(self, *args, **kwargs):
-        self.initials = name_to_initials(self.initials)
+        self.initials = _name_to_initials(self.initials)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -160,12 +164,12 @@ class Reference(TimeStampedModel):
         if self.doi:
             self.doi = self.doi.lower()
         if not skipdoi:
-            info = doi_lookup(self.doi)
+            info = entrez.doi_lookup(self.doi)
             authors = info.pop("authors")
             authorlist = []
             for author in authors:
                 auth, _ = Author.objects.get_or_create(
-                    initials=name_to_initials(author["given"]),
+                    initials=_name_to_initials(author["given"]),
                     family=author["family"],
                     defaults={"given": author["given"].replace(".", "")},
                 )
