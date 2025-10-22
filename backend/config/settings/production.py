@@ -5,11 +5,7 @@ Production settings for FPbase project.
 - Use Amazon's S3 for storing uploaded media
 - Use mailgun to send emails
 - Use Redis for cache
-
 - Use sentry for error logging
-
-
-- Use opbeat for error reporting
 
 """
 
@@ -35,17 +31,6 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Use Whitenoise to serve static files
 # See: https://whitenoise.readthedocs.io/
 MIDDLEWARE = ["whitenoise.middleware.WhiteNoiseMiddleware", *MIDDLEWARE]
-
-
-# opbeat integration
-# See https://opbeat.com/languages/django/
-# INSTALLED_APPS += ['opbeat.contrib.django', ]
-# OPBEAT = {
-#     'ORGANIZATION_ID': env('DJANGO_OPBEAT_ORGANIZATION_ID'),
-#     'APP_ID': env('DJANGO_OPBEAT_APP_ID'),
-#     'SECRET_TOKEN': env('DJANGO_OPBEAT_SECRET_TOKEN')
-# }
-# MIDDLEWARE = ['opbeat.contrib.django.middleware.OpbeatAPMMiddleware', ] + MIDDLEWARE
 
 
 # SECURITY
@@ -198,7 +183,6 @@ CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 SENTRY_DSN = env("SENTRY_DSN")
 HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
-print(f"HEROKU_SLUG_COMMIT = {HEROKU_SLUG_COMMIT}")
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[DjangoIntegration(), CeleryIntegration()],
