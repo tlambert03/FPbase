@@ -13,6 +13,7 @@ Production settings for FPbase project.
 
 """
 
+import logging
 import ssl
 
 import sentry_sdk
@@ -198,7 +199,7 @@ CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 
 SENTRY_DSN = env("SENTRY_DSN")
 HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
-print(f"HEROKU_SLUG_COMMIT = {HEROKU_SLUG_COMMIT}")
+# Note: HEROKU_SLUG_COMMIT will be logged after LOGGING is configured
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[DjangoIntegration(), CeleryIntegration()],
@@ -213,26 +214,56 @@ SCOUT_NAME = "FPbase"
 
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": True,
-    "root": {"level": "WARNING"},
+    "disable_existing_loggers": False,  # Changed from True to preserve app loggers
     "formatters": {
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(asctime)s %(name)s %(levelname)s %(message)s %(pathname)s %(lineno)d",
+        },
         "verbose": {"format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"},
+    },
+    "filters": {
+        "skip_static_requests": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": lambda record: (
+                not hasattr(record, "args")
+                or not record.args
+                or not isinstance(record.args, tuple)
+                or not record.args[0].startswith(("GET /static/", "GET /media/"))
+            ),
+        },
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",  # Changed from DEBUG
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json",  # Use JSON for production
+            "filters": ["skip_static_requests"],
         }
     },
+    "root": {
+        "level": "INFO",  # Changed from WARNING for better coverage
+        "handlers": ["console"],
+    },
     "loggers": {
+        "django": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "django.server": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+            "filters": ["skip_static_requests"],  # Filter Django dev server logs
+        },
         "django.db.backends": {
-            "level": "ERROR",
+            "level": "ERROR",  # Only log database errors
             "handlers": ["console"],
             "propagate": False,
         },
         "sentry.errors": {
-            "level": "DEBUG",
+            "level": "WARNING",  # Changed from DEBUG
             "handlers": ["console"],
             "propagate": False,
         },
@@ -241,9 +272,23 @@ LOGGING = {
             "handlers": ["console"],
             "propagate": False,
         },
+        "proteins": {
+            "level": "WARNING",  # Only warnings and errors for proteins app
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "fpbase": {
+            "level": "WARNING",  # Only warnings and errors for fpbase app
+            "handlers": ["console"],
+            "propagate": False,
+        },
     },
 }
 
+# Log application startup with commit hash
+logger = logging.getLogger(__name__)
+if HEROKU_SLUG_COMMIT:
+    logger.info(f"Application starting with commit: {HEROKU_SLUG_COMMIT}")
 
 # Custom Admin URL, use {% url 'admin:index' %}
 ADMIN_URL = env("DJANGO_ADMIN_URL", default="admin/")

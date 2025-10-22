@@ -165,18 +165,18 @@ def spectrum_preview(request) -> JsonResponse:
         # Determine data source based on explicit tab selection
         data_source = request.POST.get("data_source", "file")  # Default to file tab
         use_manual_data = data_source == "manual"
-        logger.info(f"Tab selection - data_source: {data_source}")
+        logger.debug(f"Tab selection - data_source: {data_source}")
 
         if use_manual_data:
             # Manual data tab selected - ignore any files, only use manual data
-            logger.info("Using manual data entry (files ignored)")
+            logger.debug("Using manual data entry (files ignored)")
             manual_data = request.POST.get("data", "")
             if manual_data:
-                logger.info(f"Manual data submitted: {manual_data[:100]}...")
+                logger.debug(f"Manual data submitted: {manual_data[:100]}...")
             form = SpectrumForm(request.POST, None, user=request.user)  # No files
         else:
             # File upload tab selected - ignore manual data, only use files
-            logger.info("Using file upload (manual data ignored)")
+            logger.debug("Using file upload (manual data ignored)")
             # Clear manual data to avoid any confusion
             post_data = request.POST.copy()
             post_data["data"] = ""
@@ -202,9 +202,9 @@ def spectrum_preview(request) -> JsonResponse:
 
         # Run the normalization/cleaning process without saving
         try:
-            logger.info("Running spectrum normalization...")
+            logger.debug("Running spectrum normalization...")
             temp_spectrum.clean()  # This runs the normalization
-            logger.info("Spectrum normalization completed successfully")
+            logger.debug("Spectrum normalization completed successfully")
         except Exception as e:
             logger.error(f"Data processing failed: {e}", exc_info=True)
             return JsonResponse(
@@ -217,7 +217,7 @@ def spectrum_preview(request) -> JsonResponse:
 
         # Generate SVG image using existing matplotlib renderer
         try:
-            logger.info("Generating SVG image...")
+            logger.debug("Generating SVG image...")
             # Use custom parameters for preview: Y-axis labels, proper sizing for web display
             svg_buffer = io.BytesIO()
             temp_spectrum.spectrum_img(
@@ -227,7 +227,7 @@ def spectrum_preview(request) -> JsonResponse:
                 figsize=(12, 4.5),  # Wider to accommodate Y-axis labels
             )
             svg_data = svg_buffer.getvalue().decode("utf-8")
-            logger.info("SVG generation completed successfully")
+            logger.debug("SVG generation completed successfully")
         except Exception as e:
             logger.error(f"SVG generation failed: {e}", exc_info=True)
             return JsonResponse(
@@ -254,7 +254,7 @@ def spectrum_preview(request) -> JsonResponse:
                 "normalization_applied": True,  # We always normalize in clean()
             }
 
-            logger.info("Spectrum preview generated successfully")
+            logger.debug("Spectrum preview generated successfully")
             return JsonResponse(
                 {
                     "success": True,
