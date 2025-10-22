@@ -26,7 +26,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline"
+import AddCircleIcon from "@mui/icons-material/AddCircle"
 
 /**
  * Row vertical padding - controls table row height
@@ -99,6 +99,17 @@ function formatNumber(num) {
 }
 
 /**
+ * Format decimal number to fixed precision
+ * Removes trailing zeros and unnecessary decimal points
+ */
+function formatDecimal(num, decimals = 2) {
+  if (num == null) return ""
+  const rounded = Number(num).toFixed(decimals)
+  // Remove trailing zeros and decimal point if not needed
+  return parseFloat(rounded).toString()
+}
+
+/**
  * Create column definitions for the protein table
  * Uses accessor functions to properly access nested data for sorting
  */
@@ -138,7 +149,7 @@ function createColumns() {
           </Box>
         )
       },
-      size: 200,
+      size: 220,
     },
     {
       id: "ex_max",
@@ -217,7 +228,7 @@ function createColumns() {
       accessorFn: (row) => row.state?.qy ?? null,
       header: () => <ColumnHeader glossaryKey="qy">QY</ColumnHeader>,
       cell: ({ row }) => row.original.state?.qy || "",
-      size: 50,
+      size: 60,
       meta: { align: "center" },
     },
     {
@@ -273,7 +284,7 @@ function createColumns() {
       accessorFn: (row) => row.protein.year ?? null,
       header: "Year",
       cell: ({ row }) => row.original.protein.year || "",
-      size: 80,
+      size: 60,
       meta: { align: "center" },
     },
     {
@@ -299,10 +310,10 @@ function createColumns() {
             },
           }}
         >
-          <AddCircleOutlineIcon sx={{ fontSize: "1rem" }} />
+          <AddCircleIcon sx={{ fontSize: "1rem", color: "gray" }} />
         </IconButton>
       ),
-      size: 50,
+      size: 60,
       meta: { align: "center", noPadding: true },
       enableSorting: false,
     },
