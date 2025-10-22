@@ -9,16 +9,6 @@ import { parseURL } from "./client/client"
 import { defaults } from "./client/resolvers"
 import theme from "./Components/theme"
 
-/* eslint-disable */
-// if (process.env.NODE_ENV === 'development') {
-//   const whyDidYouRender = require('@welldone-software/why-did-you-render');
-//   whyDidYouRender(React, {
-//     trackAllPureComponents: true,
-//     logOnDifferentValues: true,
-//     collapseGroups: true,
-//   })
-// }
-/* eslint-enable */
 
 const AppWrapper = ({ uri = "/graphql/" }) => {
   const client = useMemo(() => initializeClient({ uri }), [uri])
