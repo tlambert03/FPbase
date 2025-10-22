@@ -34,14 +34,7 @@ from proteins.models import (
 from proteins.models.lineage import MutationSetField
 from proteins.util.maintain import validate_node
 
-# from reversion.models import Version
-
 # ############ INLINES ###############
-
-# placeholder... not yet used
-# @admin.register(Mutation)
-# class MutationAdmin(VersionAdmin):
-#     model = Mutation
 
 
 class SpectrumOwner:
@@ -162,16 +155,6 @@ class LineageInline(admin.TabularInline):
 
 
 # ############# MODELS ###############
-
-
-# @admin.register(Version)
-# class myVersionAdmin(admin.ModelAdmin):
-#     model = Version
-#     # autocomplete_fields = ('revision',)
-#
-#     def get_queryset(self, request):
-#         qs = super().get_queryset(request)
-#         return qs.prefetch_related('revision')
 
 
 @admin.register(Light)
@@ -396,33 +379,6 @@ class StateTransitionInline(admin.TabularInline):
         return field
 
 
-# class FRETpairAdmin(CompareVersionAdmin):
-#     list_display = ('__str__', 'donor', 'acceptor', 'radius', 'created_by', 'created', 'modified')
-#     list_filter = ('created', 'modified')
-#     search_fields = ('name', 'donor', 'acceptor', 'created_by__username',
-#                      'created_by__first_name', 'created_by__last_name')
-#     fieldsets = [
-#         ('FRET Pair', {
-#             'fields': ('name', 'donor', 'acceptor', 'radius')
-#         }),
-#         ('References', {
-#             'classes': ('collapse',),
-#             'fields': ('pair_references',)
-#         }),
-#         ('Change History', {
-#             'classes': ('collapse',),
-#             'fields': ('created', 'created_by', 'modified', 'updated_by')
-#         })
-#     ]
-#     readonly_fields = ('name', 'created', 'created_by', 'modified', 'updated_by')
-#
-#     def save_model(self, request, obj, form, change):
-#         if not obj.created_by:
-#             obj.created_by = request.user
-#         obj.updated_by = request.user
-#         obj.save()
-
-
 @admin.register(Organism)
 class OrganismAdmin(CompareVersionAdmin):
     list_select_related = ("created_by", "updated_by")
@@ -609,12 +565,6 @@ class OpticalConfigAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.prefetch_related("microscope__owner")
-
-
-# class OpticalConfigInline(admin.TabularInline):
-#     model = OpticalConfig
-#     fields = ('name', 'light', 'laser', 'camera')
-#     extra = 1  # how many rows to show
 
 
 @admin.register(Microscope)

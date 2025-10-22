@@ -326,8 +326,7 @@ SPECTACULAR_SETTINGS = {
 
 # django-compressor
 # ------------------------------------------------------------------------------
-# INSTALLED_APPS += ['compressor']
-# STATICFILES_FINDERS += ['compressor.finders.CompressorFinder']
+# Note: django-compressor is not currently in use
 
 # Location of root django.contrib.admin URL, use {% url 'admin:index' %}
 ADMIN_URL = r"^admin/"

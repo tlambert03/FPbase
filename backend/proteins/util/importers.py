@@ -8,7 +8,6 @@ from django.core.validators import URLValidator
 from django.template.defaultfilters import slugify
 
 from ..models import Filter
-from .helpers import zip_wave_data
 
 ############################################
 #       Importing Tools
@@ -16,17 +15,6 @@ from .helpers import zip_wave_data
 
 
 BASEDIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
-
-def reimport_filter_spectrum(obj):
-    if obj.manufacturer.lower() == "semrock":
-        text = fetch_semrock_part(obj.part)
-    elif obj.manufacturer.lower() == "chroma":
-        text = fetch_chroma_part(obj.part)
-    waves, data, _headers = text_to_spectra(text)
-    D = zip_wave_data(waves, data[0])
-    obj.spectrum.data = D
-    obj.spectrum.save()
 
 
 def add_filter_to_database(brand, part, user=None):
@@ -352,8 +340,3 @@ def import_semrock_spectra(part=None, **kwargs):
         obj.owner.save()
 
     return new_objects, errors
-
-
-#########################
-#  Conversion
-#########################

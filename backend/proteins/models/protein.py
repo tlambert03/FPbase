@@ -123,11 +123,6 @@ class ProteinManager(models.Manager):
     def annotated(self):
         return self.get_queryset().annotate(Count("states"), Count("transitions"))
 
-    # def with_spectra(self):
-    #     pids = [s.protein.id for s in
-    #         State.objects.exclude(ex_spectra=None, em_spectra=None).distinct('protein')]
-    #     return self.get_queryset().filter(id__in=pids)
-
     def with_spectra(self, twoponly=False):
         qs = self.get_queryset().filter(states__spectra__isnull=False).distinct()
         if not twoponly:
@@ -346,11 +341,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     # managers
     objects = ProteinManager()
     visible = QueryManager(~Q(status="hidden"))
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     # store IPG_ID so that we know if it changes
-    #     self.__original_ipg_id = self.ipg_id
 
     def mutations_from_root(self):
         try:

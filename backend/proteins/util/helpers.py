@@ -206,16 +206,6 @@ def wave_to_hex(wavelength, gamma=1):
     return f"#{int(r):02x}{int(g):02x}{int(b):02x}"
 
 
-# def wave_to_hex(wave):
-#    wave = int(wave)
-#    if wave < 380:
-#        return "#000000"
-#    if wave > 780:
-#        return "#FFFF00"
-#    else:
-#        return COLORS[wave]
-
-
 def get_color_group(ex_max, em_max):
     if (em_max - ex_max) > 90:
         return "Long Stokes Shift", "#80A0FF"

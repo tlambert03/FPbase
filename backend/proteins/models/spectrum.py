@@ -209,22 +209,6 @@ class SpectrumManager(models.Manager):
             )
         return sorted(out, key=lambda k: k["name"])
 
-    # def owner_slugs(self):
-    #     ''' unused? '''
-    #     L = self.get_queryset().exclude(owner_state=None).values_list(
-    #         'owner_state__slug', 'owner_state__protein__name',
-    #         'owner_state__name', 'category', 'subtype').distinct()
-    #     out = [(slug, prot, cat if state == 'default' else '{} ({})'.format(prot, state))
-    #            for slug, prot, state, cat in L]
-
-    #     for n in ('dye', 'light', 'filter', 'camera'):
-    #         out += self.get_queryset().exclude(**{'owner_' + n: None}).values_list(
-    #             *['owner_' + n + '__slug', 'owner_' + n + '__name', 'category', 'subtype']).distinct()
-
-    #     out.sort(key=lambda x: x[1], reverse=False)
-
-    #     return out
-
     def filter_owner(self, slug):
         qs = self.none()
         A = ("owner_state", "owner_dye", "owner_filter", "owner_light", "owner_camera")
@@ -609,10 +593,6 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
 
     def d3data(self):
         return [{"x": elem[0], "y": elem[1]} for elem in self.data]
-        # out = [{'x': w, 'y': 0} for w in range(300, int(self.min_wave))]
-        # out.extend([{'x': elem[0], 'y': elem[1]} for elem in self.data])
-        # out.extend([{'x': w, 'y': 0} for w in range(int(self.max_wave + 1), 801)])
-        # return out
 
     def wave_value_pairs(self):
         output = {}
