@@ -61,12 +61,14 @@ def protein_search(request):
             del request.GET["q"]
             return redirect("/search/?name__iexact=" + query)
 
-        stateprefetch = Prefetch("states", queryset=State.objects.order_by("-is_dark", "em_max"))
+        stateprefetch = Prefetch(
+            "states", queryset=State.objects.order_by("-is_dark", "em_max").prefetch_related("spectra")
+        )
         f = ProteinFilter(
             request.GET,
             queryset=Protein.visible.annotate(nstates=Count("states"))
-            .select_related("default_state")
-            .prefetch_related(stateprefetch)
+            .select_related("default_state", "primary_reference")
+            .prefetch_related(stateprefetch, "transitions")
             .order_by("default_state__em_max"),
         )
 
@@ -79,8 +81,10 @@ def protein_search(request):
                 name = f.form.data["name__iexact"]
             if name:
                 f.recs = (
-                    Protein.visible.annotate(similarity=TrigramSimilarity("name", name))
+                    Protein.visible.annotate(nstates=Count("states"), similarity=TrigramSimilarity("name", name))
                     .filter(similarity__gt=0.2)
+                    .select_related("default_state", "primary_reference")
+                    .prefetch_related(stateprefetch, "transitions")
                     .order_by("-similarity")
                 )
         if len(f.qs) == 1:

@@ -64,7 +64,17 @@ class ProteinListAPIView2(ListAPIView):
 
 
 class ProteinListAPIView(ListAPIView):
-    queryset = Protein.objects.all().prefetch_related("states", "transitions").select_related("default_state")
+    queryset = (
+        Protein.objects.all()
+        .prefetch_related(
+            "states__spectra",  # Prefetch spectra for each state to avoid N+1 queries
+            "transitions",
+        )
+        .select_related(
+            "default_state",
+            "primary_reference",  # Needed for DOI field in serializer
+        )
+    )
     permission_classes = (AllowAny,)
     serializer_class = ProteinSerializer
     lookup_field = "slug"  # Don't use Protein.id!
