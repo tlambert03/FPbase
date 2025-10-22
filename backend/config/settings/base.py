@@ -95,12 +95,12 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django_structlog.middlewares.RequestMiddleware",  # Add request context to logs
     "fpbase.middleware.BlackListMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "django_structlog.middlewares.RequestMiddleware",  # After auth so user context is available
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "fpbase.middleware.CanonicalDomainMiddleware",
@@ -416,8 +416,36 @@ def add_sentry_context(logger, method_name, event_dict):
     When an exception is captured by Sentry, this adds the event ID to the log
     so you can link directly to the Sentry issue instead of duplicating full tracebacks.
 
-    Note: For automatic correlation, exceptions should be captured in Sentry first
-    using sentry_sdk.capture_exception(), then log with the returned event_id.
+    Usage Patterns:
+    ---------------
+
+    1. Automatic (Django integration captures exceptions):
+       ```python
+       try:
+           risky_operation()
+       except Exception:
+           logger.error("Operation failed", exc_info=True)
+           # Sentry auto-captures via Django integration
+           # This processor adds sentry_event_id automatically
+       ```
+
+    2. Manual (explicit Sentry capture for better control):
+       ```python
+       import sentry_sdk
+
+       try:
+           risky_operation()
+       except Exception as e:
+           event_id = sentry_sdk.capture_exception(e)
+           logger.error(
+               "Operation failed",
+               exc_info=True,
+               extra={"sentry_event_id": event_id, "context": "value"}
+           )
+       ```
+
+    The sentry_event_id field allows searching Logtail for the log, then
+    using the ID to find the full exception context in Sentry.
     """
     # Check if sentry_event_id was explicitly passed in extra dict
     if "sentry_event_id" not in event_dict:

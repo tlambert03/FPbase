@@ -214,6 +214,7 @@ LOGGING = {
                 *STRUCTLOG_SHARED_PROCESSORS,
                 structlog.stdlib.ExtraAdder(),  # Merge extra={"key": "value"} from stdlib logging
                 structlog.processors.StackInfoRenderer(),
+                # NOTE: format_exc_info intentionally OMITTED in production (present in local.py)
             ],
         },
     },
@@ -245,6 +246,11 @@ LOGGING = {
             "propagate": False,
         },
         "favit": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "celery": {
             "handlers": ["console"],
             "level": "WARNING",
             "propagate": False,
