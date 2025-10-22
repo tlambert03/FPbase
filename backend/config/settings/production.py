@@ -13,10 +13,10 @@ Production settings for FPbase project.
 
 """
 
-import logging
 import ssl
 
 import sentry_sdk
+import structlog
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -212,13 +212,32 @@ sentry_sdk.init(
 # SCOUT_MONITOR and SCOUT_KEY are automatically set by the Heroku addon
 SCOUT_NAME = "FPbase"
 
+# Structlog Configuration
+# ------------------------------------------------------------------------------
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,  # Changed from True to preserve app loggers
     "formatters": {
         "json": {
-            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "format": "%(asctime)s %(name)s %(levelname)s %(message)s %(pathname)s %(lineno)d",
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.JSONRenderer(),
         },
         "verbose": {"format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"},
     },
@@ -283,13 +302,24 @@ LOGGING = {
             "handlers": ["console"],
             "propagate": False,
         },
+        "django_structlog": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
     },
 }
 
+# Django-Structlog Configuration
+# ------------------------------------------------------------------------------
+DJANGO_STRUCTLOG_CELERY_ENABLED = True  # Enable Celery task logging
+DJANGO_STRUCTLOG_IP_LOGGING_ENABLED = True  # Automatically bind user IP
+DJANGO_STRUCTLOG_COMMAND_LOGGING_ENABLED = True  # Enable management command logging
+
 # Log application startup with commit hash
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 if HEROKU_SLUG_COMMIT:
-    logger.info(f"Application starting with commit: {HEROKU_SLUG_COMMIT}")
+    logger.info("application_startup", commit=HEROKU_SLUG_COMMIT)
 
 # Custom Admin URL, use {% url 'admin:index' %}
 ADMIN_URL = env("DJANGO_ADMIN_URL", default="admin/")
