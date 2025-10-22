@@ -415,6 +415,12 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
 
     class Meta:
         verbose_name_plural = "spectra"
+        indexes = [
+            # Composite index for the most common query pattern: filtering by state and status
+            models.Index(fields=["owner_state_id", "status"], name="spectrum_state_status_idx"),
+            # Index on status for queries that only filter by approval status
+            models.Index(fields=["status"], name="spectrum_status_idx"),
+        ]
 
     def __str__(self):
         if self.owner_state:
