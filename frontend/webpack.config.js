@@ -27,7 +27,14 @@ const styleRule = {
         },
       },
     },
-    "sass-loader",
+    {
+      loader: "sass-loader",
+      options: {
+        sassOptions: {
+          silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'abs-percent'],
+        },
+      },
+    },
   ],
 }
 
