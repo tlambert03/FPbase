@@ -1,6 +1,10 @@
+import json
 import os
 import shutil
 import tempfile
+import time
+import uuid
+from unittest.mock import patch
 
 import pytest
 from allauth.account.models import EmailAddress
@@ -8,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import Client
 from django.urls import reverse
+from django_recaptcha.client import RecaptchaResponse
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -58,6 +63,57 @@ class TestPagesRender(StaticLiveServerTestCase):
         for lg in logs:
             if lg["level"] == "SEVERE":
                 raise AssertionError(f"Console errors occurred: {lg['message']}")
+
+    def test_contact_form(self):
+        """Test contact form submission with reCAPTCHA JavaScript.
+
+        This test verifies that the form submit button doesn't shadow the
+        form.submit() method, which would break reCAPTCHA v3's JavaScript
+        submission flow.
+        """
+
+        # Mock the reCAPTCHA server-side validation to always pass
+        # Test keys are configured in test.py settings
+        with patch("django_recaptcha.fields.client.submit") as mock_submit:
+            mock_submit.return_value = RecaptchaResponse(is_valid=True, extra_data={"score": 0.9})
+
+            self._load_reverse("contact")
+
+            # Wait for form to load
+            WebDriverWait(self.browser, 10).until(EC.presence_of_element_located((By.ID, "id_name")))
+
+            # Fill out the form
+            self.browser.find_element(by="id", value="id_name").send_keys("Test User")
+            self.browser.find_element(by="id", value="id_email").send_keys("test@example.com")
+            self.browser.find_element(by="id", value="id_message").send_keys("This is a test message")
+
+            # Wait for reCAPTCHA script to load (look for the grecaptcha global)
+            WebDriverWait(self.browser, 10).until(
+                lambda d: d.execute_script("return typeof grecaptcha !== 'undefined'")
+            )
+
+            # Find and click the submit button
+            # This triggers the reCAPTCHA JavaScript which calls element.form.submit()
+            submit_button = self.browser.find_element(by="css selector", value='input[type="submit"]')
+            submit_button.click()
+
+            # Wait for the form to redirect to /thanks/ after successful submission
+            # If the button name shadows form.submit(), we'll get a timeout
+            # We check console errors within the wait to provide better diagnostics
+            try:
+                WebDriverWait(self.browser, 2).until(lambda d: "/thanks/" in d.current_url)
+            except Exception:
+                # If redirect didn't happen, check for JavaScript errors first
+                # This provides the actual error message (e.g., "submit is not a function")
+                self._assert_no_console_errors()
+                # If no JS errors, re-raise the timeout with better context
+                raise AssertionError(
+                    f"Form did not redirect to /thanks/. Current URL: {self.browser.current_url}"
+                ) from None
+
+            # Final verification - no errors and successful redirect
+            self._assert_no_console_errors()
+            assert "/thanks/" in self.browser.current_url
 
     def test_spectra(self):
         self._load_reverse("proteins:spectra")
@@ -266,8 +322,6 @@ class TestPagesRender(StaticLiveServerTestCase):
         User = get_user_model()
 
         # Create a test user with verified email
-        import uuid
-
         username = f"testuser_{uuid.uuid4().hex[:8]}"
         # Use the existing knownSequence protein from setUp
         # Delete any existing ex spectrum to ensure test can submit a new one
@@ -345,8 +399,6 @@ class TestPagesRender(StaticLiveServerTestCase):
         submit_button.click()
 
         # Wait a moment for AJAX to start
-        import time
-
         time.sleep(2)
 
         # Check for any error alerts
@@ -382,8 +434,6 @@ class TestPagesRender(StaticLiveServerTestCase):
         assert self.browser.find_element(by="id", value="manual-tab").get_attribute("class").find("active") != -1
 
         # Data should still be there (compare parsed JSON, not string formatting)
-        import json
-
         data_field = self.browser.find_element(by="id", value="id_data")
         expected_data = json.loads(spectrum_data)
         actual_data = json.loads(data_field.get_attribute("value"))
@@ -397,8 +447,6 @@ class TestPagesRender(StaticLiveServerTestCase):
         User = get_user_model()
 
         # Create a test user with verified email
-        import uuid
-
         username = f"testuser_{uuid.uuid4().hex[:8]}"
         user = User.objects.create_user(username=username, password=PASSWORD, email=f"{username}@example.com")
         user.is_active = True
