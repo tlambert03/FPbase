@@ -42,4 +42,3 @@ clean:
     rm -rf .ruff_cache
     rm -rf .mypy_cache
     rm -f coverage.xml
-
