@@ -59,7 +59,6 @@ const jsRule = {
 
 const assetRule = {
   test: /.(jpe?g|png|woff(2)?|eot|ttf|svg)$/,
-  loader: "file-loader",
   type: "asset",
 }
 
