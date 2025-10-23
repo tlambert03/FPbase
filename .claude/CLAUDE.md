@@ -6,6 +6,8 @@ Django web app for <https://www.fpbase.org> with React frontend. PostgreSQL data
 
 - don't auto-deploy to heroku from this local git repo.  All deployments must go through github PRs.
 - unless explicitly told otherwise, don't run `git commit`, let me review changes.
+- avoid nested imports unless specifically used to avoid circular imports or delay heavy imports.
+- avoid arbitrary time.sleep() calls in tests; use proper waits on a specific condition instead.
 
 ## Tech Stack
 
@@ -45,23 +47,6 @@ pre-commit run --all-files             # Run all hooks
 pnpm build                             # Build all frontend packages
 ```
 
-## Project Structure
-
-```
-backend/
-├── config/          # Django settings (base/local/production/test)
-├── fpbase/          # Main app (users, site-wide)
-├── proteins/        # Core app (models, APIs, views)
-├── fpseq/           # Sequence analysis module
-├── references/      # Citations
-└── favit/           # Favorites
-
-frontend/            # Main React app (Webpack)
-packages/
-├── spectra/         # Spectral viewer (Vite + React)
-└── blast/           # BLAST interface (Vite + React)
-```
-
 ## Testing Notes
 
 - Tests colocated with apps: `proteins/tests/`, `fpbase/tests/`
@@ -91,6 +76,4 @@ packages/
 
 ## Gotchas
 
-- Run `pnpm build` after frontend changes before Django tests if using `uses_frontend` fixture
 - Migrations in proteins/ are extensive - review carefully before changing models
-- React 16 is legacy version - upgrades planned but not yet done

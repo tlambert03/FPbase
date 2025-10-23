@@ -19,7 +19,7 @@ class ContactForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
-        self.helper.add_input(Submit("submit", "Submit", css_class="btn btn-primary"))
+        self.helper.add_input(Submit("submit_button", "Submit", css_class="btn btn-primary"))
         self.helper.form_method = "POST"
 
     def friendly_email(self):
