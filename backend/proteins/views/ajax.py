@@ -16,7 +16,8 @@ from django.views.generic import DetailView
 from fpbase.util import is_ajax, uncache_protein_page
 from proteins.util.maintain import validate_node
 
-from ..models import Fluorophore, Lineage, Organism, Protein, Spectrum, State
+from ..models import Dye, Fluorophore, Lineage, Organism, Protein, Spectrum, State
+from ..models.spectrum import Camera, Filter, Light
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +122,45 @@ def similar_spectrum_owners(request):
         return HttpResponseNotAllowed([])
 
     name = request.POST.get("owner", None)
-    similars = Spectrum.objects.find_similar_owners(name, 0.3)
+    similars = Spectrum.objects.find_similar_owners(name, 0.3)[:4]
+
+    # Group similars by type and fetch with proper prefetching to avoid N+1 queries
+    # State, Dye, Filter, Light, Camera are the possible types
+    state_ids = []
+    dye_ids = []
+    filter_ids = []
+    light_ids = []
+    camera_ids = []
+
+    for s in similars:
+        if isinstance(s, State):
+            state_ids.append(s.id)
+        elif isinstance(s, Dye):
+            dye_ids.append(s.id)
+        elif isinstance(s, Filter):
+            filter_ids.append(s.id)
+        elif isinstance(s, Light):
+            light_ids.append(s.id)
+        elif isinstance(s, Camera):
+            camera_ids.append(s.id)
+
+    # Fetch each type with appropriate prefetching
+    states = State.objects.filter(id__in=state_ids).select_related("protein").prefetch_related("spectra")
+    dyes = Dye.objects.filter(id__in=dye_ids).prefetch_related("spectra")
+    filters = Filter.objects.filter(id__in=filter_ids).prefetch_related("spectra")
+    lights = Light.objects.filter(id__in=light_ids).prefetch_related("spectra")
+    cameras = Camera.objects.filter(id__in=camera_ids).prefetch_related("spectra")
+
+    # Combine all objects maintaining order
+    similars_dict = {}
+    for item in [*states, *dyes, *filters, *lights, *cameras]:
+        similars_dict[(item.__class__.__name__, item.id)] = item
+
+    similars_optimized = []
+    for s in similars:
+        key = (s.__class__.__name__, s.id)
+        similars_optimized.append(similars_dict.get(key, s))
+
     data = {
         "similars": [
             {
@@ -134,7 +173,7 @@ def similar_spectrum_owners(request):
                     else [s.spectrum.get_subtype_display()]
                 ),
             }
-            for s in similars[:4]
+            for s in similars_optimized
         ]
     }
 
