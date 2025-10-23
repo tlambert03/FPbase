@@ -16,8 +16,8 @@ FPbase is a Django/React monorepo for the Fluorescent Protein Database (fpbase.o
 - **`packages/`**: Standalone Vite apps (`blast/`, `spectra/`) embedded in Django templates
 
 ### Key Technologies
-- **Backend**: Django 4.x, Django REST Framework, Graphene (GraphQL), Celery (Redis), PostgreSQL
-- **Frontend**: React 16, Material-UI, Webpack 5, Vite 4
+- **Backend**: Django, Django REST Framework, Graphene (GraphQL), Celery (Redis), PostgreSQL
+- **Frontend**: React, Material-UI, Webpack, Vite
 - **Search**: Algolia for protein/organism search
 - **Bioinformatics**: Biopython (sequence alignment), BLAST (local binaries in `backend/bin/`)
 - **Deployment**: Heroku, AWS S3 (media), Sentry (error tracking)

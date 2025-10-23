@@ -11,8 +11,8 @@ Django web app for <https://www.fpbase.org> with React frontend. PostgreSQL data
 
 ## Tech Stack
 
-**Backend**: Django 5.2, Python 3.13, DRF, GraphQL (graphene-django), PostgreSQL 15, Celery + Redis
-**Frontend**: React 16, Webpack, pnpm monorepo (packages: spectra, blast use Vite)
+**Backend**: Django, Python, DRF, GraphQL (graphene-django), PostgreSQL, Celery + Redis
+**Frontend**: React, Webpack, pnpm monorepo (packages: spectra, blast use Vite)
 **Science**: BioPython, NumPy, Pandas, SciPy, Matplotlib
 
 ## Key Overrides

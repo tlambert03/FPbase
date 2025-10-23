@@ -165,7 +165,14 @@ module.exports = {
   },
   plugins,
   optimization: {
-    minimizer: [new TerserJSPlugin(), new CssMinimizerPlugin()],
+    minimizer: [
+      new TerserJSPlugin(),
+      new CssMinimizerPlugin({
+        minimizerOptions: {
+          preset: ["default", { svgo: false }],
+        },
+      }),
+    ],
     splitChunks: {
       cacheGroups: {
         commons: {
