@@ -10,7 +10,7 @@ import pytest
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.test import Client, override_settings
+from django.test import Client
 from django.urls import reverse
 from django_recaptcha.client import RecaptchaResponse
 from selenium import webdriver
@@ -72,53 +72,48 @@ class TestPagesRender(StaticLiveServerTestCase):
         submission flow.
         """
 
-        # Use Google's official test keys for reCAPTCHA
-        # See: https://developers.google.com/recaptcha/docs/faq#id-like-to-run-automated-tests-with-recaptcha.-what-should-i-do
-        with override_settings(
-            RECAPTCHA_PUBLIC_KEY="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
-            RECAPTCHA_PRIVATE_KEY="6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
-        ):
-            # Mock the reCAPTCHA server-side validation to always pass
-            with patch("django_recaptcha.fields.client.submit") as mock_submit:
-                mock_submit.return_value = RecaptchaResponse(is_valid=True, extra_data={"score": 0.9})
+        # Mock the reCAPTCHA server-side validation to always pass
+        # Test keys are configured in test.py settings
+        with patch("django_recaptcha.fields.client.submit") as mock_submit:
+            mock_submit.return_value = RecaptchaResponse(is_valid=True, extra_data={"score": 0.9})
 
-                self._load_reverse("contact")
+            self._load_reverse("contact")
 
-                # Wait for form to load
-                WebDriverWait(self.browser, 10).until(EC.presence_of_element_located((By.ID, "id_name")))
+            # Wait for form to load
+            WebDriverWait(self.browser, 10).until(EC.presence_of_element_located((By.ID, "id_name")))
 
-                # Fill out the form
-                self.browser.find_element(by="id", value="id_name").send_keys("Test User")
-                self.browser.find_element(by="id", value="id_email").send_keys("test@example.com")
-                self.browser.find_element(by="id", value="id_message").send_keys("This is a test message")
+            # Fill out the form
+            self.browser.find_element(by="id", value="id_name").send_keys("Test User")
+            self.browser.find_element(by="id", value="id_email").send_keys("test@example.com")
+            self.browser.find_element(by="id", value="id_message").send_keys("This is a test message")
 
-                # Wait for reCAPTCHA script to load (look for the grecaptcha global)
-                WebDriverWait(self.browser, 10).until(
-                    lambda d: d.execute_script("return typeof grecaptcha !== 'undefined'")
-                )
+            # Wait for reCAPTCHA script to load (look for the grecaptcha global)
+            WebDriverWait(self.browser, 10).until(
+                lambda d: d.execute_script("return typeof grecaptcha !== 'undefined'")
+            )
 
-                # Find and click the submit button
-                # This triggers the reCAPTCHA JavaScript which calls element.form.submit()
-                submit_button = self.browser.find_element(by="css selector", value='input[type="submit"]')
-                submit_button.click()
+            # Find and click the submit button
+            # This triggers the reCAPTCHA JavaScript which calls element.form.submit()
+            submit_button = self.browser.find_element(by="css selector", value='input[type="submit"]')
+            submit_button.click()
 
-                # Wait for the form to redirect to /thanks/ after successful submission
-                # If the button name shadows form.submit(), we'll get a timeout
-                # We check console errors within the wait to provide better diagnostics
-                try:
-                    WebDriverWait(self.browser, 2).until(lambda d: "/thanks/" in d.current_url)
-                except Exception:
-                    # If redirect didn't happen, check for JavaScript errors first
-                    # This provides the actual error message (e.g., "submit is not a function")
-                    self._assert_no_console_errors()
-                    # If no JS errors, re-raise the timeout with better context
-                    raise AssertionError(
-                        f"Form did not redirect to /thanks/. Current URL: {self.browser.current_url}"
-                    ) from None
-
-                # Final verification - no errors and successful redirect
+            # Wait for the form to redirect to /thanks/ after successful submission
+            # If the button name shadows form.submit(), we'll get a timeout
+            # We check console errors within the wait to provide better diagnostics
+            try:
+                WebDriverWait(self.browser, 2).until(lambda d: "/thanks/" in d.current_url)
+            except Exception:
+                # If redirect didn't happen, check for JavaScript errors first
+                # This provides the actual error message (e.g., "submit is not a function")
                 self._assert_no_console_errors()
-                assert "/thanks/" in self.browser.current_url
+                # If no JS errors, re-raise the timeout with better context
+                raise AssertionError(
+                    f"Form did not redirect to /thanks/. Current URL: {self.browser.current_url}"
+                ) from None
+
+            # Final verification - no errors and successful redirect
+            self._assert_no_console_errors()
+            assert "/thanks/" in self.browser.current_url
 
     def test_spectra(self):
         self._load_reverse("proteins:spectra")
