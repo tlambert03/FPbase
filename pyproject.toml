@@ -51,6 +51,7 @@ dependencies = [
     "scout-apm>=3.4.0",
     "structlog>=24.1.0",
     "django-structlog>=8.1.0",
+    "structlog-sentry>=2.1.0",
 ]
 
 

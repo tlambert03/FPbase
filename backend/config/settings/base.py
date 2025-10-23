@@ -8,10 +8,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
+import logging
 from pathlib import Path
 
 import environ
 import structlog
+from structlog_sentry import SentryProcessor
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 APPS_DIR = ROOT_DIR / "fpbase"
@@ -469,6 +471,10 @@ STRUCTLOG_SHARED_PROCESSORS = [
     structlog.stdlib.add_logger_name,
     structlog.processors.TimeStamper(fmt="iso"),
     add_sentry_context,  # Add Sentry event ID for exception correlation
+    # SentryProcessor sends ERROR+ events to Sentry BEFORE JSON formatting
+    # This ensures Sentry gets clean, structured data instead of JSON strings
+    # level=INFO -> sends INFO+ as breadcrumbs, event_level=ERROR -> sends ERROR+ as events
+    SentryProcessor(level=logging.INFO, event_level=logging.ERROR),
 ]
 
 # Default structlog configuration (production-safe)
