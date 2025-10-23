@@ -13,7 +13,7 @@ from rest_framework.settings import api_settings
 from rest_framework_csv import renderers as r
 
 from ..filters import ProteinFilter, SpectrumFilter, StateFilter
-from ..models import Protein, State
+from ..models import Protein, State, StateTransition
 from ..models.microscope import get_cached_optical_configs
 from ..models.spectrum import Spectrum, get_cached_spectra_info
 from .serializers import (
@@ -69,7 +69,10 @@ class ProteinListAPIView(ListAPIView):
         Protein.objects.all()
         .prefetch_related(
             "states__spectra",  # Prefetch spectra for each state to avoid N+1 queries
-            "transitions",
+            Prefetch(
+                "transitions",
+                queryset=StateTransition.objects.select_related("from_state", "to_state"),
+            ),
         )
         .select_related(
             "default_state",

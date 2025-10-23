@@ -5,6 +5,7 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_admins
+from django.db.models import Prefetch
 from django.http import (
     HttpResponseBadRequest,
     HttpResponseNotAllowed,
@@ -25,7 +26,7 @@ from django.views.generic import (
 from fpbase.util import is_ajax
 
 from ..forms import CollectionForm
-from ..models import ProteinCollection
+from ..models import Protein, ProteinCollection, StateTransition
 from .mixins import OwnableObject
 
 
@@ -64,9 +65,16 @@ class CollectionList(ListView):
 
 class CollectionDetail(DetailView):
     queryset = ProteinCollection.objects.all().prefetch_related(
-        "proteins__states__spectra",
-        "proteins__transitions",
-        "proteins__primary_reference",
+        Prefetch(
+            "proteins",
+            queryset=Protein.objects.prefetch_related(
+                "states__spectra",
+                Prefetch(
+                    "transitions",
+                    queryset=StateTransition.objects.select_related("from_state", "to_state"),
+                ),
+            ).select_related("primary_reference"),
+        )
     )
 
     def get(self, request, *args, **kwargs):
