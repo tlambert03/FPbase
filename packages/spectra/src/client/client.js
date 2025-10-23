@@ -141,37 +141,47 @@ function intializeClient({ uri, storage }) {
 
   function _parseURL() {
     try {
-      const chartOptions = cache.readQuery({ query: GET_CHART_OPTIONS });
-      const activeSpectraData = cache.readQuery({ query: GET_ACTIVE_SPECTRA });
-      const exNormData = cache.readQuery({ query: GET_EX_NORM });
+      // Read current chartOptions from cache (restored from sessionStorage)
+      const { chartOptions } = cache.readQuery({ query: GET_CHART_OPTIONS }) || {};
 
-      // parseURL expects the full defaults structure
-      const fullData = {
-        ...defaults,
-        chartOptions: chartOptions?.chartOptions || defaults.chartOptions,
-        activeSpectra: activeSpectraData?.activeSpectra || defaults.activeSpectra,
-        exNorm: exNormData?.exNorm || defaults.exNorm,
+      // Create a mutable clone of chartOptions for parseURL to mutate
+      // In Apollo v2, objects from cache were mutable; in v3 they're frozen
+      const data = {
+        chartOptions: chartOptions ? { ...chartOptions } : { ...defaults.chartOptions },
       };
 
-      const parsedData = parseURL(fullData);
+      // parseURL will mutate data and add activeSpectra, exNorm, selectors based on URL params
+      // This mimics the original Apollo v2 behavior where parseURL would add fields to the object
+      const parsedData = parseURL(data);
 
-      // Write back parsed data to cache
-      if (parsedData.chartOptions) {
-        cache.writeQuery({
-          query: GET_CHART_OPTIONS,
-          data: { chartOptions: parsedData.chartOptions },
-        });
-      }
-      if (parsedData.activeSpectra) {
+      // Write all fields back to cache, mimicking Apollo v2's cache.writeData({ data })
+      // which would merge all fields at once
+      cache.writeQuery({
+        query: GET_CHART_OPTIONS,
+        data: { chartOptions: parsedData.chartOptions },
+      });
+
+      // Only write activeSpectra if parseURL set it (i.e., if URL had "s" param)
+      // Otherwise leave whatever was in sessionStorage
+      if (parsedData.activeSpectra !== undefined) {
         cache.writeQuery({
           query: GET_ACTIVE_SPECTRA,
           data: { activeSpectra: parsedData.activeSpectra },
         });
       }
-      if (parsedData.exNorm) {
+
+      if (parsedData.exNorm !== undefined) {
         cache.writeQuery({
           query: GET_EX_NORM,
           data: { exNorm: parsedData.exNorm },
+        });
+      }
+
+      // parseURL always sets selectors to []
+      if (parsedData.selectors !== undefined) {
+        cache.writeQuery({
+          query: GET_SELECTORS,
+          data: { selectors: parsedData.selectors },
         });
       }
     } catch (error) {
