@@ -145,11 +145,12 @@ def similar_spectrum_owners(request):
             camera_ids.append(s.id)
 
     # Fetch each type with appropriate prefetching
+    # Fluorophores (State, Dye) have 'spectra' (plural), others have 'spectrum' (singular)
     states = State.objects.filter(id__in=state_ids).select_related("protein").prefetch_related("spectra")
     dyes = Dye.objects.filter(id__in=dye_ids).prefetch_related("spectra")
-    filters = Filter.objects.filter(id__in=filter_ids).prefetch_related("spectra")
-    lights = Light.objects.filter(id__in=light_ids).prefetch_related("spectra")
-    cameras = Camera.objects.filter(id__in=camera_ids).prefetch_related("spectra")
+    filters = Filter.objects.filter(id__in=filter_ids).select_related("spectrum")
+    lights = Light.objects.filter(id__in=light_ids).select_related("spectrum")
+    cameras = Camera.objects.filter(id__in=camera_ids).select_related("spectrum")
 
     # Combine all objects maintaining order
     similars_dict = {}
