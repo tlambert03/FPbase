@@ -26,7 +26,7 @@ from django.views.generic import (
 from fpbase.util import is_ajax
 
 from ..forms import CollectionForm
-from ..models import Protein, ProteinCollection, StateTransition
+from ..models import Protein, ProteinCollection, State, StateTransition
 from .mixins import OwnableObject
 
 
@@ -68,12 +68,18 @@ class CollectionDetail(DetailView):
         Prefetch(
             "proteins",
             queryset=Protein.objects.prefetch_related(
-                "states__spectra",
+                Prefetch(
+                    "states",
+                    queryset=State.objects.prefetch_related(
+                        "spectra",
+                        "bleach_measurements",
+                    ),
+                ),
                 Prefetch(
                     "transitions",
                     queryset=StateTransition.objects.select_related("from_state", "to_state"),
                 ),
-            ).select_related("primary_reference"),
+            ).select_related("primary_reference", "default_state"),
         )
     )
 
