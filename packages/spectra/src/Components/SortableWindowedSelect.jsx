@@ -1,6 +1,6 @@
 import React, { useEffect } from "react"
 import Select, { components } from "react-select"
-import { WindowedMenuList } from "react-windowed-select"
+import WindowedMenuList from "./WindowedMenuList"
 import PropTypes from "prop-types"
 import { categoryIcon } from "./FaIcon"
 
