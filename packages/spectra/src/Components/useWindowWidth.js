@@ -13,7 +13,7 @@ const useWindowWidth = delay => {
     return () => {
       window.removeEventListener("resize", handleResize)
     }
-  })
+  }, []) // Empty dependency array - only run on mount/unmount
 
   return width
 }

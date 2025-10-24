@@ -77,6 +77,18 @@ const GET_OPTICAL_CONFIG = gql`
   }
 `
 
+// Fragment for fluorophore-specific fields (State and Dye types)
+// Now works correctly with proper possibleTypes configuration
+const FluorophoreParts = gql`
+  fragment FluorophoreParts on FluorophoreInterface {
+    qy
+    extCoeff
+    twopPeakgm
+    exMax
+    emMax
+  }
+`
+
 const GET_SPECTRUM = gql`
   query Spectrum($id: Int!) {
     spectrum(id: $id) {
@@ -90,23 +102,11 @@ const GET_SPECTRUM = gql`
         slug
         name
         id
-        ... on State {
-          ...FluorophoreParts
-        }
-        ... on Dye {
-          ...FluorophoreParts
-        }
+        ...FluorophoreParts
       }
     }
   }
-
-  fragment FluorophoreParts on FluorophoreInterface {
-    qy
-    extCoeff
-    twopPeakgm
-    exMax
-    emMax
-  }
+  ${FluorophoreParts}
 `
 
 const GET_OVERLAP = gql`

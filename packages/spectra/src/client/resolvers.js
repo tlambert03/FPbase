@@ -39,21 +39,53 @@ export const defaults = {
 }
 
 function toggleChartOption(cache, key) {
+  // Read the full chartOptions object using the complete query
+  // This matches the original Apollo v2 behavior where all fields were read/written together
   const current = cache.readQuery({
     query: gql`
-      {
-        chartOptions {
-          ${key}
+      query ChartOptions {
+        chartOptions @client {
+          showY
+          showX
+          showGrid
+          areaFill
+          logScale
+          scaleEC
+          scaleQY
+          extremes
+          shareTooltip
+          palette
         }
       }
     `,
   })
-  const data = { chartOptions: { ...current.chartOptions, [key]: !current.chartOptions[key], __typename: "chartOptions" } }
+
+  // Toggle the specific field
+  const data = {
+    chartOptions: {
+      ...current.chartOptions,
+      [key]: !current.chartOptions[key],
+      __typename: "chartOptions"
+    }
+  }
+
+  // Write back the full chartOptions object
+  // In Apollo v2, cache.writeData({ data }) would merge the entire object
+  // In Apollo v3, we need to use writeQuery with the full query to achieve the same effect
   cache.writeQuery({
     query: gql`
-      {
+      query ChartOptions {
         chartOptions @client {
-          ${key}
+          showY
+          showX
+          showGrid
+          areaFill
+          logScale
+          scaleEC
+          scaleQY
+          extremes
+          shareTooltip
+          palette
         }
       }
     `,
@@ -272,7 +304,7 @@ export const resolvers = {
 
       // Create a new promise for this call
       const executeNormalize = async () => {
-        const { activeSpectra, selectors: currentSelectors } = cache.readQuery({
+        const cachedData = cache.readQuery({
           query: gql`
             {
               activeSpectra @client
@@ -280,6 +312,13 @@ export const resolvers = {
             }
           `,
         })
+
+        // Handle null cache (empty cache on initial load)
+        if (!cachedData) {
+          return [[], []];
+        }
+
+        const { activeSpectra, selectors: currentSelectors } = cachedData
 
         // Use window globals (safe because OwnersContainer checks they're populated before calling)
         if (!window.ownerInfo || !window.spectraInfo) {
