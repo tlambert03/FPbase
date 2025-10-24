@@ -550,7 +550,6 @@ def spectra_image(request, slug, **kwargs):
     raise Http404()
 
 
-@cache_page(60 * 10)
 def protein_table(request):
     """Renders html for protein table page.
 
