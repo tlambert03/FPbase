@@ -102,8 +102,12 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
     activeSpectra = provideSpectra
     activeOverlaps = provideOverlaps
   } else {
-    activeSpectra = data?.activeSpectra || []
-    activeOverlaps = data?.activeOverlaps || []
+    // Defensive: Handle potential array wrapper from cache corruption
+    // (Not seen with apollo3-cache-persist, but kept as safety measure)
+    const rawActiveSpectra = data?.activeSpectra || []
+    const rawActiveOverlaps = data?.activeOverlaps || []
+    activeSpectra = Array.isArray(rawActiveSpectra) ? rawActiveSpectra : (rawActiveSpectra?.json || [])
+    activeOverlaps = Array.isArray(rawActiveOverlaps) ? rawActiveOverlaps : (rawActiveOverlaps?.json || [])
   }
   useEffect(() => {
     function idToData(id) {

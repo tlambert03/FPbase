@@ -304,7 +304,7 @@ export const resolvers = {
 
       // Create a new promise for this call
       const executeNormalize = async () => {
-        const { activeSpectra, selectors: currentSelectors } = cache.readQuery({
+        const cachedData = cache.readQuery({
           query: gql`
             {
               activeSpectra @client
@@ -312,6 +312,13 @@ export const resolvers = {
             }
           `,
         })
+
+        // Handle null cache (empty cache on initial load)
+        if (!cachedData) {
+          return [[], []];
+        }
+
+        const { activeSpectra, selectors: currentSelectors } = cachedData
 
         // Use window globals (safe because OwnersContainer checks they're populated before calling)
         if (!window.ownerInfo || !window.spectraInfo) {

@@ -62,11 +62,23 @@ export function parseURL(data) {
 }
 
 function intializeClient({ uri, storage }) {
+  // Transform Apollo 2.x introspection format to Apollo 3.x possibleTypes format
+  // Apollo 2.x format: {__schema: {types: [{name: "Interface", possibleTypes: [{name: "Type"}]}]}}
+  // Apollo 3.x format: {Interface: ["Type1", "Type2"]}
+  const possibleTypes = introspectionQueryResultData.__schema.types.reduce(
+    (acc, type) => {
+      if (type.possibleTypes) {
+        acc[type.name] = type.possibleTypes.map(t => t.name);
+      }
+      return acc;
+    },
+    {}
+  );
+
   const cache = new InMemoryCache({
-    possibleTypes: introspectionQueryResultData.possibleTypes,
-    // Disable freezing in development to prevent "read-only property" errors
-    // when components mutate arrays from cache
-    freezeResults: false,
+    possibleTypes,
+    // freezeResults: false removed - components should clone data before mutation
+    // Freezing cache results prevents bugs from shared state mutations
     typePolicies: {
       Query: {
         fields: {
@@ -142,7 +154,9 @@ function intializeClient({ uri, storage }) {
   function _parseURL() {
     try {
       // Read current chartOptions from cache (restored from sessionStorage)
-      const { chartOptions } = cache.readQuery({ query: GET_CHART_OPTIONS }) || {};
+      // Note: readQuery returns null if the cache is empty, so we need to handle that
+      const cachedData = cache.readQuery({ query: GET_CHART_OPTIONS });
+      const chartOptions = cachedData?.chartOptions;
 
       // Create a mutable clone of chartOptions for parseURL to mutate
       // In Apollo v2, objects from cache were mutable; in v3 they're frozen
