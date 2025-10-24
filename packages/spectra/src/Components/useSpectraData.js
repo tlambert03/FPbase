@@ -102,12 +102,8 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
     activeSpectra = provideSpectra
     activeOverlaps = provideOverlaps
   } else {
-    // Defensive: Handle potential array wrapper from cache corruption
-    // (Not seen with apollo3-cache-persist, but kept as safety measure)
-    const rawActiveSpectra = data?.activeSpectra || []
-    const rawActiveOverlaps = data?.activeOverlaps || []
-    activeSpectra = Array.isArray(rawActiveSpectra) ? rawActiveSpectra : (rawActiveSpectra?.json || [])
-    activeOverlaps = Array.isArray(rawActiveOverlaps) ? rawActiveOverlaps : (rawActiveOverlaps?.json || [])
+    activeSpectra = data?.activeSpectra || []
+    activeOverlaps = data?.activeOverlaps || []
   }
   useEffect(() => {
     function idToData(id) {
@@ -122,43 +118,64 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
     }
 
     async function updateData() {
-      // find dead Spectra
-      const deadSpectra = currentData.reduceRight((acc, item, idx) => {
-        if (
-          !activeSpectra.includes(item.customId || item.id) &&
-          !activeOverlaps.includes(item.id)
-        )
-          acc.push([idx, 1])
-        return acc
-      }, [])
+      // Use functional state update to get current data without having it as a dependency
+      // This prevents the infinite loop risk
+      setCurrentData((prevData) => {
+        // Compute changes based on previous state
+        const deadSpectra = prevData.reduceRight((acc, item, idx) => {
+          if (
+            !activeSpectra.includes(item.customId || item.id) &&
+            !activeOverlaps.includes(item.id)
+          )
+            acc.push([idx, 1])
+          return acc
+        }, [])
 
-      // find new activeSpectra that aren't in current Data
-      const currentIDs = currentData.map((item) => item.customId || item.id)
-      const newSpectra = activeSpectra.filter(
-        (id) => id && !currentIDs.includes(id)
-      )
-      let newData = await Promise.all(newSpectra.map((id) => idToData(id)))
-      newData = newData.map((item) => item.data.spectrum).filter((i) => i)
-      // find new overlaps that aren't in current Data
-      const newOverlaps = activeOverlaps.filter(
-        (id) => id && !currentIDs.includes(id)
-      )
-      const newOverlapData = newOverlaps
-        .map((id) => window.OverlapCache[id])
-        .filter((i) => i)
-
-      if (deadSpectra.length || newData.length || newOverlapData.length) {
-        setCurrentData(
-          update(currentData, {
-            $splice: deadSpectra,
-            $push: [...newData, ...newOverlapData],
-          })
+        const currentIDs = prevData.map((item) => item.customId || item.id)
+        const newSpectraIds = activeSpectra.filter(
+          (id) => id && !currentIDs.includes(id)
         )
-      }
+        const newOverlapIds = activeOverlaps.filter(
+          (id) => id && !currentIDs.includes(id)
+        )
+
+        // If no changes, return the same reference (no re-render)
+        if (!deadSpectra.length && !newSpectraIds.length && !newOverlapIds.length) {
+          return prevData
+        }
+
+        // Schedule async fetch for new data
+        if (newSpectraIds.length || newOverlapIds.length) {
+          (async () => {
+            let newData = await Promise.all(newSpectraIds.map((id) => idToData(id)))
+            newData = newData.map((item) => item.data.spectrum).filter((i) => i)
+
+            const newOverlapData = newOverlapIds
+              .map((id) => window.OverlapCache[id])
+              .filter((i) => i)
+
+            // Add fetched data
+            if (newData.length || newOverlapData.length) {
+              setCurrentData((current) =>
+                update(current, {
+                  $push: [...newData, ...newOverlapData],
+                })
+              )
+            }
+          })()
+        }
+
+        // Immediately remove dead spectra
+        if (deadSpectra.length) {
+          return update(prevData, { $splice: deadSpectra })
+        }
+
+        return prevData
+      })
     }
 
     updateData()
-  }, [activeOverlaps, activeSpectra, client, currentData])
+  }, [activeOverlaps, activeSpectra, client])  // Removed currentData to prevent infinite loop
 
   return currentData
 }

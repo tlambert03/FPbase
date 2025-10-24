@@ -71,7 +71,7 @@ const XRangePickers = ({ visible }) => {
         axis.object.chart.showResetZoom()
       }
     }
-  }, []) // eslint-disable-line
+  }, [axis, min, max])  // Added proper dependencies
 
   useEffect(() => {
     if (!axis || !axis.object || !Highcharts) return
@@ -121,24 +121,24 @@ const XRangePickers = ({ visible }) => {
 
     Highcharts.addEvent(axis.object.chart, "redraw", positionInputs)
     Highcharts.addEvent(axis.object, "afterSetExtremes", handleAfterSetExtremes)
+    Highcharts.addEvent(axis.object.chart, "redraw", handleAfterSetExtremes)
 
-    Highcharts.addEvent(
-      axis.object.chart,
-      "redraw",
-      handleAfterSetExtremes
-      // debounce(handleAfterSetExtremes, 200)
-    )
     handleAfterSetExtremes()
     positionInputs()
+
+    // Cleanup: remove ALL three event listeners
     return () => {
-      Highcharts.removeEvent(
-        axis.object,
-        "afterSetExtremes",
-        handleAfterSetExtremes
-        // debounce(handleAfterSetExtremes, 200)
-      )
+      if (axis && axis.object && axis.object.chart && Highcharts) {
+        try {
+          Highcharts.removeEvent(axis.object.chart, "redraw", positionInputs)
+          Highcharts.removeEvent(axis.object, "afterSetExtremes", handleAfterSetExtremes)
+          Highcharts.removeEvent(axis.object.chart, "redraw", handleAfterSetExtremes)
+        } catch (e) {
+          // Ignore errors during cleanup if objects have been destroyed
+        }
+      }
     }
-  }, []) // eslint-disable-line
+  }, [axis, Highcharts, mutateExtremes, forceUpdate])  // Added missing dependencies
 
   const updateRange = () => {
     if (!axis) return

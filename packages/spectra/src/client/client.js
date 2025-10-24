@@ -77,6 +77,7 @@ function intializeClient({ uri, storage }) {
 
   const cache = new InMemoryCache({
     possibleTypes,
+    // Note: canonizeResults option removed - deprecated in Apollo 3.14+
     // freezeResults: false removed - components should clone data before mutation
     // Freezing cache results prevents bugs from shared state mutations
     typePolicies: {
