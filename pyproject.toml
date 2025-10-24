@@ -118,6 +118,9 @@ src = ["backend/"]
 line-length = 119
 target-version = "py313"
 exclude = ['*/migrations/*', '*/static/CACHE/*', '.venv']
+fix = true
+unsafe-fixes = true
+
 [tool.ruff.lint]
 select = [
     "F",   # Pyflakes
