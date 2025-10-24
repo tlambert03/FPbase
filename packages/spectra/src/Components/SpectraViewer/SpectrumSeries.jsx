@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react"
+import { memo, useEffect, useState } from "react"
 import { Series } from "react-jsx-highcharts"
 import { useApolloClient } from "@apollo/client"
 import { List } from "immutable"
@@ -35,31 +35,8 @@ const VERT_LINES = {
   },
 }
 
-class ErrorBoundary extends React.Component {
-  // constructor(props) {
-  //   super(props)
-  //   this.state = { hasError: false }
-  // }
-
-  // static getDerivedStateFromError(error) {
-  //   // Update state so the next render will show the fallback UI.
-  //   return { hasError: true }
-  // }
-
-  componentDidCatch(error, info) {
-    // You can also log the error to an error reporting service
-    // logErrorToMyService(error, info);
-  }
-
-  render() {
-    // if (this.state.hasError) {
-    //   // You can render any custom fallback UI
-    //   return this.props.children
-    // }
-
-    return this.props.children
-  }
-}
+// ErrorBoundary removed - was non-functional (all logic commented out)
+// If error handling is needed in the future, implement a proper error boundary
 
 const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
   const client = useApolloClient()
@@ -179,23 +156,21 @@ const SpectrumSeries = memo(function SpectrumSeries({
   }
 
   return (
-    <ErrorBoundary>
-      <Series
-        type={type}
-        subtype={spectrum.subtype}
-        scaleEC={willScaleEC}
-        scaleQY={willScaleQY}
-        name={name}
-        visible={visible}
-        color={color}
-        fillColor={fillColor}
-        dashStyle={dashStyle}
-        lineWidth={lineWidth}
-        className={`cat-${spectrum.category} subtype-${spectrum.subtype}`}
-        data={serie.toJS ? serie.toJS() : Array.from(serie)}
-        threshold={logScale ? 10 : 0}
-      />
-    </ErrorBoundary>
+    <Series
+      type={type}
+      subtype={spectrum.subtype}
+      scaleEC={willScaleEC}
+      scaleQY={willScaleQY}
+      name={name}
+      visible={visible}
+      color={color}
+      fillColor={fillColor}
+      dashStyle={dashStyle}
+      lineWidth={lineWidth}
+      className={`cat-${spectrum.category} subtype-${spectrum.subtype}`}
+      data={serie.toJS ? serie.toJS() : Array.from(serie)}
+      threshold={logScale ? 10 : 0}
+    />
   )
 })
 

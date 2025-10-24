@@ -25,6 +25,9 @@ frontend:
 backend:
     uv run backend/manage.py runserver
 
+test-js:
+    pnpm --filter @fpbase/spectra test:ci
+
 # update browserslist database
 update-browserslist:
     pnpm update -r caniuse-lite browserslist
