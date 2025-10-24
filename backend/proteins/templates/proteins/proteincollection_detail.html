@@ -74,7 +74,6 @@
             <p>There are no proteins in this collection yet.{% if object.owner.id == request.user.id %}You can add proteins to a collection by clicking the "book" icon at the top right of any protein page.  Search for proteins <a href="{% url 'proteins:search' %}">here</a> or browse the <a href="{% url 'proteins:table' %}">table</a>{% endif %}</p>
         {% endif %}
     </div>
-    {{proteins}}
 
 
 

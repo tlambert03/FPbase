@@ -65,3 +65,25 @@ class CollectionDetailViewTests(TestCase):
             f"Expected ≤8 queries with proper prefetch_related. "
             f"This may indicate an N+1 query regression.",
         )
+
+    @override_settings(DEBUG=True)
+    def test_collection_html_view_query_count(self):
+        """
+        Test that collection HTML view doesn't generate excessive queries.
+
+        This test catches N+1 queries caused by template rendering accessing
+        related objects like default_state and bleach_measurements.
+        """
+        with CaptureQueriesContext(connection) as context:
+            response = self.client.get(f"/collection/{self.collection.pk}/")
+
+        self.assertEqual(response.status_code, 200)
+
+        query_count = len(context.captured_queries)
+        self.assertLessEqual(
+            query_count,
+            8,
+            f"Collection HTML view generated {query_count} queries. "
+            f"Expected ≤8 queries with proper prefetch_related. "
+            f"This may indicate an N+1 query regression in template rendering.",
+        )
