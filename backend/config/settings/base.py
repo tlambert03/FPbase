@@ -306,18 +306,6 @@ AUTOSLUG_SLUGIFY_FUNCTION = "slugify.slugify"
 # django-rest-framework
 # -------------------------------------------------------------------------------
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
-# throttle settings accessible in tests via settings.API_THROTTLE_SETTINGS
-API_THROTTLE_SETTINGS = {
-    "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
-    ],
-    # NOTE: Rate limiting settings are used by both REST API and GraphQL
-    "DEFAULT_THROTTLE_RATES": {
-        "anon": "30/min",  # Generous limit for unauthenticated API/GraphQL users
-        "user": "300/min",  # 10x higher for authenticated users
-    },
-}
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
@@ -327,7 +315,6 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     # https://www.django-rest-framework.org/api-guide/throttling/#how-clients-are-identified
     "NUM_PROXIES": None,  # Use X-Forwarded-For header (Heroku default)
-    **API_THROTTLE_SETTINGS,
 }
 
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
