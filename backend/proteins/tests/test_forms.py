@@ -316,3 +316,24 @@ class TestSpectrumForm(TestCase):
         self.assertFalse(form.is_valid())
         # Should show validation error since it defaults to file validation
         self.assertIn("__all__", form.errors)
+
+    def test_spectrum_form_with_interpolation(self):
+        """Test form validation with data requiring interpolation (step size > 1).
+
+        This tests the fix for FPBASE-5G6 where NumPy float types from interpolation
+        caused validation errors.
+        """
+        # Data with step size > 1 will trigger interpolation and NumPy floats
+        form_data = {
+            "category": Spectrum.PROTEIN,
+            "subtype": Spectrum.EX,
+            "owner_state": self.state.id,
+            "data": ("[[400, 0.1], [405, 0.5], [410, 1.0], [415, 0.8], [420, 0.5], [425, 0.3], [430, 0.1]]"),
+            "data_source": "manual",
+            "confirmation": True,
+        }
+        form = SpectrumForm(data=form_data, files=None, user=self.user)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
+        # Ensure the form can be saved without NumPy type errors
+        spectrum = form.save()
+        self.assertIsNotNone(spectrum.id)

@@ -21,18 +21,19 @@ def make_monotonic(x, y):
 
 
 def interp_linear(x, y, s=1, savgol=False):
-    """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
+    """Interpolate pair of vectors at integer increments between min(x) and max(x)."""
     if not is_monotonic(x):
         x, y = make_monotonic(x, y)
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
     ynew = np.interp(xnew, x, y)
     if savgol:
         ynew = scipy.signal.savgol_filter(ynew, 9, 2)
-    return xnew, ynew
+    # Convert NumPy array to Python list of floats, to avoid Django validation errors.
+    return xnew, [float(val) for val in ynew]
 
 
 def interp_univar(x, y, s=1, savgol=False):
-    """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
+    """Interpolate pair of vectors at integer increments between min(x) and max(x)."""
     if not is_monotonic(x):
         x, y = make_monotonic(x, y)
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
@@ -40,7 +41,8 @@ def interp_univar(x, y, s=1, savgol=False):
     ynew = f(xnew)
     if savgol:
         ynew = norm2one(scipy.signal.savgol_filter(ynew, 15, 2))
-    return xnew, ynew
+    # Convert NumPy array to Python list of floats
+    return xnew, [float(val) for val in ynew]
 
 
 def norm2one(y):
