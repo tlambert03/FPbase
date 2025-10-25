@@ -9,7 +9,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from graphene_django.views import GraphQLView
 
 import fpbase.views
 from fpbase.sitemaps import (
@@ -125,8 +124,9 @@ urlpatterns = [  # noqa: RUF005
     path("fav/", include("favit.urls")),
     path("avatar/", include("avatar.urls")),
     re_path(r"^test500/", fpbase.views.test500),
-    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
-    path("graphql/batch/", csrf_exempt(GraphQLView.as_view(batch=True))),
+    # GraphQL endpoints with rate limiting (30 requests/min per IP)
+    path("graphql/", csrf_exempt(fpbase.views.RateLimitedGraphQLView.as_view(graphiql=True))),
+    path("graphql/batch/", csrf_exempt(fpbase.views.RateLimitedGraphQLView.as_view(batch=True))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler500 = "fpbase.views.server_error"

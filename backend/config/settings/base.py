@@ -33,8 +33,6 @@ if READ_DOT_ENV_FILE:
         print(f"Loading : {env_file}")
         env.read_env(env_file)
         print("The .env file has been loaded. See base.py for more information")
-    else:
-        print(f"Could not find {env_file}.")
     if "amazonaws.com" in env("DATABASE_URL", default=""):
         print("\n##################\nWARNING: Using AWS database\n##################\n")
 
@@ -315,6 +313,17 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    # NOTE: Rate limiting settings are used by both REST API and GraphQL
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/min",  # Generous limit for unauthenticated API/GraphQL users
+        "user": "300/min",  # 10x higher for authenticated users
+    },
+    # https://www.django-rest-framework.org/api-guide/throttling/#how-clients-are-identified
+    "NUM_PROXIES": None,  # Use X-Forwarded-For header (Heroku default)
 }
 
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
