@@ -34,7 +34,14 @@ class RateLimitedGraphQLView(GraphQLView):
 
     def get_throttles(self):
         """Instantiate and return the list of throttles that this view uses."""
-        return [throttle() for throttle in self.throttle_classes]
+        throttles = []
+        for throttle_class in self.throttle_classes:
+            try:
+                throttles.append(throttle_class())
+            except Exception as e:
+                # If a throttle class is improperly configured, skip it
+                logger.error("Error instantiating throttle %s: %s", throttle_class, str(e))
+        return throttles
 
     def check_throttles(self, request):
         """
