@@ -313,8 +313,6 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    # https://www.django-rest-framework.org/api-guide/throttling/#how-clients-are-identified
-    "NUM_PROXIES": None,  # Use X-Forwarded-For header (Heroku default)
 }
 
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
