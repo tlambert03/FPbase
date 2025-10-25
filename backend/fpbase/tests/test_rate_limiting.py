@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import pytest
-from django.test import Client
+from django.conf import settings
+from django.test import Client, override_settings
 
 
 @pytest.mark.django_db
+@override_settings(REST_FRAMEWORK=settings.API_THROTTLE_SETTINGS)
 def test_graphql_rate_limiting():
     """Test that anonymous users are rate limited at 30 requests/min for GraphQL."""
     client = Client()

@@ -94,3 +94,10 @@ class MockWebpackLoader(FakeWebpackLoader):
 
 
 WEBPACK_LOADER["DEFAULT"]["LOADER_CLASS"] = "config.settings.test.MockWebpackLoader"
+
+# THROTTLING
+# ------------------------------------------------------------------------------
+# Disable rate limiting in tests by default for better performance
+# Individual tests can override this with @override_settings if needed (e.g., test_rate_limiting.py)
+REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {}
