@@ -15,6 +15,7 @@ import sentry_sdk
 import structlog
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 from .base import *  # noqa
 
@@ -186,7 +187,13 @@ SENTRY_DSN = env("SENTRY_DSN")
 HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
 sentry_sdk.init(
     dsn=SENTRY_DSN,
-    integrations=[DjangoIntegration(), CeleryIntegration()],
+    integrations=[
+        DjangoIntegration(),
+        CeleryIntegration(),
+        # Disable LoggingIntegration to prevent duplicate events and ugly JSON titles
+        # We use structlog-sentry's SentryProcessor instead (configured in base.py)
+        LoggingIntegration(level=None, event_level=None),
+    ],
     send_default_pii=True,
     release=HEROKU_SLUG_COMMIT,
 )
