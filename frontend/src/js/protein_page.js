@@ -1,49 +1,54 @@
 import $ from "jquery"
 
 window.initSnapGene = function(protein, selection) {
-  const snaptemplate =
-    "https://www.snapgene.com/resources/plasmid_files/fluorescent_protein_genes_and_plasmids/*/"
+  // Search SnapGene's plasmid database for this protein
   $.get({
-    url: "https://fpbase.s3.amazonaws.com/snapgene.xml",
+    url: "https://www.snapgene.com/api/plasmids/search",
+    data: { string: protein },
     crossDomain: true,
     success: function(data) {
-      /* handle data here */
-      const hits = []
-      $(data)
-        .find(`[name*="${protein}"]`)
-        .each(function() {
-          let name = $(this).attr("name")
-          while (name.charAt(0) === "p") {
-            name = name.substr(1)
-          }
-          $.each(
-            ["-N2", "-N1", "-N", "-C2", "-C1", "-C", "-1", "-B", "-S1", "-PRL"],
-            function(index, val) {
-              name = name.replace(val, "")
-            }
-          )
-          if (name === protein || name === `${protein}1`) {
-            hits.push([$(this).attr("name"), $(this).attr("url")])
-          }
-        })
+      if (!data || !Array.isArray(data)) return
 
-      if (hits.length) {
-        let t = "SnapGene links: "
-        if (hits.length === 1) {
-          t = "SnapGene link: "
-        }
-        const $li = $("<li>")
-          .text(t)
-          .appendTo($(selection))
-        $.each(hits, function(index, val) {
+      // Filter to only the Fluorescent Protein Genes & Plasmids set
+      const fpSet = data.find(set => set.setData?.set === "fluorescent_protein_genes_and_plasmids")
+      if (!fpSet || !fpSet.sequences) return
+
+      // Filter plasmids to only include relevant matches:
+      // - Exact match (e.g., "EGFP")
+      // - Plasmid vectors (e.g., "pEGFP", "pEGFP-N1", "pEGFP-C2")
+      const isPlasmidVector = new RegExp(`^p${protein}(-[CN]?\\d+)?$`, 'i')
+
+      const plasmids = fpSet.sequences
+        .filter(plasmid => {
+          const name = plasmid.plasmidName
+          return name === protein || isPlasmidVector.test(name)
+        })
+        .map(plasmid => ({
+          name: plasmid.plasmidName,
+          url: `https://www.snapgene.com/plasmids/${plasmid.setID}/${plasmid.plasmidID}`
+        }))
+
+      if (plasmids.length > 0) {
+        const label = plasmids.length === 1 ? "SnapGene plasmid: " : "SnapGene plasmids: "
+        const $li = $("<li>").text(label).appendTo($(selection))
+
+        plasmids.forEach((plasmid, index) => {
           $li.append(
-            $("<a>", { href: snaptemplate.replace("*", val[1]) }).text(val[0])
+            $("<a>", {
+              href: plasmid.url,
+              target: "_blank",
+              rel: "noopener"
+            }).text(plasmid.name)
           )
-          if (index !== hits.length - 1) {
+          if (index !== plasmids.length - 1) {
             $li.append(", ")
           }
         })
       }
     },
+    error: function() {
+      // Silently fail - this is a nice-to-have feature
+      console.debug("SnapGene search unavailable")
+    }
   })
 }
