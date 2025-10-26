@@ -41,6 +41,8 @@ class TestPagesRender(StaticLiveServerTestCase):
         cls.download_dir = tempfile.mkdtemp()
         options = webdriver.ChromeOptions()
         options.add_experimental_option("prefs", {"download.default_directory": cls.download_dir})
+        if not os.getenv("CI"):
+            options.add_argument("--headless=new")
 
         cls.browser = webdriver.Chrome(options=options)
         return super().setUpClass()
@@ -62,6 +64,10 @@ class TestPagesRender(StaticLiveServerTestCase):
         logs = self.browser.get_log("browser")
         for lg in logs:
             if lg["level"] == "SEVERE":
+                # Ignore favicon 404 errors - browsers request this by default
+                # even for non-HTML responses like image endpoints
+                if "favicon.ico" in lg["message"] and "404" in lg["message"]:
+                    continue
                 raise AssertionError(f"Console errors occurred: {lg['message']}")
 
     def test_contact_form(self):
