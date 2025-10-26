@@ -1,19 +1,29 @@
+// Initialize Sentry first to catch errors during module loading
+import "./js/sentry-init.js"
+
 import $ from "jquery"
 import "./js/detect-touch"
 import { createElement } from "react"
 import { createRoot } from "react-dom/client"
 import { SimpleSpectraViewer } from "@fpbase/spectra"
+import { SentryErrorBoundary } from "./js/sentry-error-boundary"
+
+// Mark this bundle for Sentry context
+window.FPBASE = window.FPBASE || {}
+window.FPBASE.currentBundle = "simpleSpectraViewer"
 
 const elem = document.getElementById("spectra-viewer")
 
 window.onload = function() {
   const root = createRoot(elem)
   root.render(
-    createElement(SimpleSpectraViewer, {
-      ids: JSON.parse(elem.getAttribute("data-spectra")),
-      options: JSON.parse(elem.getAttribute("data-options")),
-      hidden: JSON.parse(elem.getAttribute("data-hidden")) || [],
-    })
+    createElement(SentryErrorBoundary, { name: "SimpleSpectraViewer" },
+      createElement(SimpleSpectraViewer, {
+        ids: JSON.parse(elem.getAttribute("data-spectra")),
+        options: JSON.parse(elem.getAttribute("data-options")),
+        hidden: JSON.parse(elem.getAttribute("data-hidden")) || [],
+      })
+    )
   )
 }
 const name = elem.getAttribute("data-name")
