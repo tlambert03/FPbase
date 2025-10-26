@@ -204,7 +204,7 @@ class Mutation:
             return (seq[:startpos] + self.new_chars + seq[nextpos:], shift)
         if self.operation == "ext":
             return seq + self.new_chars + self.ext, 0
-        raise
+        raise ValueError(f"Unrecognized operation type: {self.operation}")
 
     def _assert_position_consistency(self, seq, idx0=1):
         """test whether the mutation actually lines up with the
