@@ -82,6 +82,7 @@ dev = [
     "basedpyright>=1.32.1",
     "prek>=0.2.11",
     "pyright>=1.1.407",
+    "celery-types>=0.23.0",
 ]
 
 # ==== pytest ====
