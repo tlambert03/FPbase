@@ -1,3 +1,5 @@
+# pyright: reportPrivateImportUsage=false
+
 import factory
 import factory.fuzzy
 

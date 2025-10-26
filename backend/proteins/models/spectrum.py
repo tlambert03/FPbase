@@ -21,7 +21,7 @@ from model_utils.models import StatusModel, TimeStampedModel
 from references.models import Reference
 
 from ..util.helpers import spectra_fig, wave_to_hex
-from ..util.spectra import interp_linear, interp_univar, norm2one, norm2P, step_size
+from ..util.spectra import interp_linear, norm2one, norm2P, step_size
 from .mixins import AdminURLMixin, Authorable, Product
 
 logger = logging.getLogger(__name__)
@@ -268,20 +268,20 @@ class SpectrumData(ArrayField):
     def value_to_string(self, obj):
         return json.dumps(self.value_from_object(obj))
 
-    def clean(self, raw_value, model_instance):
-        if not raw_value:
+    def clean(self, value, model_instance):
+        if not value:
             return None
-        raw_value = super().clean(raw_value, model_instance)
-        step = step_size(raw_value)
-        if step > 10 and len(raw_value) < 10:
+        value = super().clean(value, model_instance)
+        step = step_size(value)
+        if step > 10 and len(value) < 10:
             raise ValidationError("insufficient data")
         if step != 1:
             try:
                 # TODO:  better choice of interpolation
-                raw_value = [list(i) for i in zip(*interp_linear(*zip(*raw_value)))]
+                value = [list(i) for i in zip(*interp_linear(*zip(*value)))]
             except ValueError as e:
                 raise ValidationError(f"could not properly interpolate data: {e}") from e
-        return raw_value
+        return value
 
     def validate(self, value, model_instance):
         super().validate(value, model_instance)
@@ -434,12 +434,6 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
                 self.change_y(norm2one(self.y))
         except Exception:
             logger.exception("Error normalizing spectrum data")
-
-    def _interpolated_data(self, method=None, **kwargs):
-        if not method or method.lower() == "linear":
-            return [list(i) for i in zip(*interp_linear(*zip(*self.data)))]
-        elif method == "univar":
-            return [list(i) for i in zip(*interp_univar(*zip(*self.data), **kwargs))]
 
     def clean(self):
         # model-wide validation after individual fields have been cleaned

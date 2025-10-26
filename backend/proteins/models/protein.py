@@ -417,7 +417,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     @property
     def color(self):
         try:
-            return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]
+            return get_color_group(self.default_state.ex_max, self.default_state.em_max)[0]  # pyright: ignore
         except Exception:
             return ""
 

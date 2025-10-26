@@ -1,3 +1,4 @@
+# pyright: reportPrivateImportUsage=false
 import random
 from typing import TYPE_CHECKING, cast
 
@@ -9,7 +10,7 @@ from django.utils.text import slugify
 from fpseq import FPSeq
 from proteins.util.helpers import wave_to_hex
 
-from .models import Filter, FilterPlacement, Microscope, OpticalConfig, Protein, Spectrum, State
+from .models import Camera, Filter, FilterPlacement, Light, Microscope, OpticalConfig, Protein, Spectrum, State
 
 if TYPE_CHECKING:
     import factory.builder
@@ -254,6 +255,36 @@ class FilterFactory(SpectrumOwnerFactory):
         factory_related_name="owner_filter",
         category="f",
         subtype=factory.SelfAttribute("..subtype"),
+    )
+
+
+class LightFactory(SpectrumOwnerFactory):
+    class Meta:
+        model = Light
+
+    name = factory.Sequence(lambda n: f"TestLight{n}")
+    manufacturer = factory.Faker("company")
+
+    spectrum = factory.RelatedFactory(
+        "proteins.factories.SpectrumFactory",
+        factory_related_name="owner_light",
+        category="l",
+        subtype=Spectrum.PD,
+    )
+
+
+class CameraFactory(SpectrumOwnerFactory):
+    class Meta:
+        model = Camera
+
+    name = factory.Sequence(lambda n: f"TestCamera{n}")
+    manufacturer = factory.Faker("company")
+
+    spectrum = factory.RelatedFactory(
+        "proteins.factories.SpectrumFactory",
+        factory_related_name="owner_camera",
+        category="c",
+        subtype=Spectrum.QE,
     )
 
 

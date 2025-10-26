@@ -30,13 +30,21 @@ full string:
     'S65T/C76del/C76_G79del/K23_L24insRSG/C76delinsRRGY/C76_G78delinsRRGY/*315TextAKGT/M1_L2insVKSGEE'
 """
 
+from __future__ import annotations
+
 import re
 import warnings
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
 from .align import align_seqs, parental_numbering
 from .skbio_protein import SkbSequence
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    type Operation = Literal["sub", "del", "ins", "delins", "ext"]
 
 # optional prefix could be added
 # (?:(?P<prefix>[A-Za-z0-9]+)\.)?
@@ -76,7 +84,7 @@ class Mutation:
         start_idx,
         stop_char,
         stop_idx,
-        operation,
+        operation: Operation,
         new_chars,
         ext,
         start_label=None,
@@ -170,7 +178,7 @@ class Mutation:
     def __hash__(self):
         return hash(str(self))
 
-    def __call__(self, seq, idx0=1):
+    def __call__(self, seq: Sequence, idx0: int = 1) -> tuple[Sequence, int]:
         # not calling this since the start-CHAR may have changed from a
         # previous mutation when stringing...
         # instead... this gets called at each step of MutationSet.apply
@@ -196,6 +204,7 @@ class Mutation:
             return (seq[:startpos] + self.new_chars + seq[nextpos:], shift)
         if self.operation == "ext":
             return seq + self.new_chars + self.ext, 0
+        raise ValueError(f"Unrecognized operation type: {self.operation}")
 
     def _assert_position_consistency(self, seq, idx0=1):
         """test whether the mutation actually lines up with the
@@ -256,6 +265,7 @@ def _get_aligned_muts(AQS, ATS, gapchars="-.", zeroindex=1):
     ishift = 0
     numdel = 0
     delins = ""
+    idx = zeroindex  # Initialize idx in case the loop doesn't execute
 
     def clear_insertions(ins_start_idx, insertions, extension=False):
         if extension:
@@ -337,6 +347,8 @@ class MutationSet:
     def __init__(self, muts=None, position_labels=None):
         """optional position_labels list will change the numbering of the
         muationset ... for instance, to match a reference sequence numbering"""
+        if muts is None:
+            raise ValueError("Mutations argument cannot be None")
         if isinstance(muts, str):
             muts = parse_mutstring(muts)
         elif not isinstance(muts, list | set | tuple):

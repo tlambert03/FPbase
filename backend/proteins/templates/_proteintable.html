@@ -5,10 +5,12 @@
 		removebutton [Bool]: whether to include the remove button column
 		proteins [List, Queryset]: List or queryset of proteins to show in the table
     comparison [Bool]: whether to show comparison button
+    classes [Str] (optional): Additional CSS classes for the table
+    id [Str] (optional): Table ID, defaults to 'proteinTable'
 {% endcomment %}
 
 
-<table class="table table-sm table-striped {{classes}}" id="{{ id|default:'proteinTable' }}" style="width:100%">
+<table class="table table-sm table-striped{% if classes %} {{classes}}{% endif %}" id="{% if id %}{{id}}{% else %}proteinTable{% endif %}" style="width:100%">
 	<thead>
 		<tr class="table-header">
 			{% if removebutton %}<th class='remove-button'>Remove</th>{% endif %}

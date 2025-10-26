@@ -68,7 +68,8 @@ class ProteinViewTests(TestCase):
         assert new_prot.primary_reference
         assert new_prot.primary_reference.doi == "10.1038/nmeth.2413"
 
-        state: State = new_prot.default_state
+        state = new_prot.default_state
+        assert isinstance(state, State)
         assert state.name == "default"
         assert state.ex_max == 488
         assert state.em_max == 525

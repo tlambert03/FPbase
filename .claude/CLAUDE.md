@@ -41,7 +41,7 @@ pnpm --filter @fpbase/spectra test:ci  # Frontend tests
 ruff format backend                    # Format Python
 ruff check --fix backend               # Auto-fix linting
 uv run mypy backend                    # Type check
-pre-commit run --all-files             # Run all hooks
+prek run --all-files                   # Run all hooks
 
 # Build
 pnpm build                             # Build all frontend packages

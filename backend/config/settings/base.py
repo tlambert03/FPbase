@@ -33,8 +33,6 @@ if READ_DOT_ENV_FILE:
         print(f"Loading : {env_file}")
         env.read_env(env_file)
         print("The .env file has been loaded. See base.py for more information")
-    else:
-        print(f"Could not find {env_file}.")
     if "amazonaws.com" in env("DATABASE_URL", default=""):
         print("\n##################\nWARNING: Using AWS database\n##################\n")
 

@@ -26,7 +26,7 @@ from django.views.generic import (
 from fpbase.util import is_ajax
 
 from ..forms import CollectionForm
-from ..models import Protein, ProteinCollection, StateTransition
+from ..models import Protein, ProteinCollection, State, StateTransition
 from .mixins import OwnableObject
 
 
@@ -43,6 +43,8 @@ def serialized_proteins_response(queryset, format="json", filename="FPbase_prote
         response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
     elif format == "json":
         response = JsonResponse(serializer.data, safe=False)
+    else:
+        raise ValueError(f"Unsupported format: {format}. Must be 'csv' or 'json'")
     return response
 
 
@@ -68,12 +70,18 @@ class CollectionDetail(DetailView):
         Prefetch(
             "proteins",
             queryset=Protein.objects.prefetch_related(
-                "states__spectra",
+                Prefetch(
+                    "states",
+                    queryset=State.objects.prefetch_related(
+                        "spectra",
+                        "bleach_measurements",
+                    ),
+                ),
                 Prefetch(
                     "transitions",
                     queryset=StateTransition.objects.select_related("from_state", "to_state"),
                 ),
-            ).select_related("primary_reference"),
+            ).select_related("primary_reference", "default_state"),
         )
     )
 

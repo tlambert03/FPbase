@@ -50,7 +50,9 @@ class SpectrumForm(forms.ModelForm):
         required=False,
         help_text="Name of protein, dye, filter, etc...",
     )
-    data = SpectrumFormField(required=False, label="Data")
+    # FIXME!!
+    # this is an actual problem.  this field needs to be renamed to avoid name with the Form
+    data = SpectrumFormField(required=False, label="Data")  # pyright: ignore[reportAssignmentType]
     file = forms.FileField(
         required=False,
         label="File Upload",
@@ -140,6 +142,8 @@ class SpectrumForm(forms.ModelForm):
     def clean_file(self):
         if self.files:
             filetext = ""
+            x = []
+            y = []
             try:
                 for chunk in self.files["file"].chunks():
                     try:
@@ -159,7 +163,7 @@ class SpectrumForm(forms.ModelForm):
                 )
             if not self.errors:
                 self.cleaned_data["data"] = zip_wave_data(x, y[0])
-                self.data = self.data.copy()
+                self.data: dict = self.data.copy()
                 self.data["data"] = self.cleaned_data["data"]
 
     def clean_owner_state(self):

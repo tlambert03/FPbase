@@ -6,6 +6,7 @@ from functools import reduce
 from typing import TYPE_CHECKING, cast
 
 import django.forms
+import django.forms.formsets
 import reversion
 from django.apps import apps
 from django.contrib import messages
@@ -191,8 +192,8 @@ def get_country_code(request) -> str:
             ip = x_forwarded_for.split(",")[0]
         else:
             ip = request.META.get("REMOTE_ADDR")
-        response = reader.get(ip)
-        return response["country"]["iso_code"]  # type: ignore
+        if response := reader.get(ip):
+            return str(response["country"]["iso_code"])  # pyright: ignore[reportIndexIssue]
     return ""
 
 
@@ -318,7 +319,7 @@ class ProteinCreateUpdateMixin:
     def get_form_type(self):
         return self.request.resolver_match.url_name
 
-    def form_valid(self: CreateView, form: ProteinForm):
+    def form_valid(self, form: ProteinForm):
         # This method is called when valid form data has been POSTed.
         context: dict = self.get_context_data()
         states = cast("BaseStateFormSet", context["states"])
@@ -550,7 +551,6 @@ def spectra_image(request, slug, **kwargs):
     raise Http404()
 
 
-@cache_page(60 * 10)
 def protein_table(request):
     """Renders html for protein table page.
 
@@ -656,7 +656,7 @@ def problems_inconsistencies(request):
     gbseqs = get_cached_gbseqs([g["genbank"] for g in with_genbank])
     for item in with_genbank:
         if item["genbank"] in gbseqs:
-            gbseq = gbseqs.get(item["genbank"])[0]
+            gbseq = gbseqs[item["genbank"]][0]
             ourseq = item["seq"]
             if ourseq != gbseq:
                 gb_mismatch.append(

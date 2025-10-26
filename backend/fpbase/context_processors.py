@@ -3,7 +3,6 @@ from django.conf import settings
 
 def api_keys(request):
     return {
-        "ga_tracking_id": getattr(settings, "GA_TRACKING_ID", ""),
         "sentry_dsn": getattr(settings, "SENTRY_DSN", ""),
         "algolia_suffix": getattr(settings, "ALGOLIA_SUFFIX", "prod"),
         "algolia_public_key": getattr(settings, "ALGOLIA_PUBLIC_KEY", ""),

@@ -1,10 +1,10 @@
-import factory
+import factory.declarations
 
 
 class UserFactory(factory.django.DjangoModelFactory):
-    username = factory.Sequence(lambda n: f"user-{n}")
-    email = factory.Sequence(lambda n: f"user-{n}@example.com")
-    password = factory.PostGenerationMethodCall("set_password", "password")
+    username = factory.declarations.Sequence(lambda n: f"user-{n}")
+    email = factory.declarations.Sequence(lambda n: f"user-{n}@example.com")
+    password = factory.declarations.PostGenerationMethodCall("set_password", "password")
 
     class Meta:
         model = "users.User"

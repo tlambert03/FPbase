@@ -163,17 +163,18 @@ class Reference(TimeStampedModel):
     def save(self, skipdoi=False, *args, **kwargs):
         if self.doi:
             self.doi = self.doi.lower()
+        authorlist = []
         if not skipdoi:
             info = entrez.doi_lookup(self.doi)
             authors = info.pop("authors")
-            authorlist = []
-            for author in authors:
-                auth, _ = Author.objects.get_or_create(
-                    initials=_name_to_initials(author["given"]),
-                    family=author["family"],
-                    defaults={"given": author["given"].replace(".", "")},
-                )
-                authorlist.append(auth)
+            if authors is not None:
+                for author in authors:
+                    auth, _ = Author.objects.get_or_create(
+                        initials=_name_to_initials(author["given"]),
+                        family=author["family"],
+                        defaults={"given": author["given"].replace(".", "")},
+                    )
+                    authorlist.append(auth)
             for k, v in info.items():
                 setattr(self, k, v)
             self.citation = self.get_citation(authorlist)

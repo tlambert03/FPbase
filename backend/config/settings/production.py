@@ -15,6 +15,7 @@ import sentry_sdk
 import structlog
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 from .base import *  # noqa
 
@@ -186,7 +187,13 @@ SENTRY_DSN = env("SENTRY_DSN")
 HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
 sentry_sdk.init(
     dsn=SENTRY_DSN,
-    integrations=[DjangoIntegration(), CeleryIntegration()],
+    integrations=[
+        DjangoIntegration(),
+        CeleryIntegration(),
+        # Disable LoggingIntegration to prevent duplicate events and ugly JSON titles
+        # We use structlog-sentry's SentryProcessor instead (configured in base.py)
+        LoggingIntegration(level=None, event_level=None),
+    ],
     send_default_pii=True,
     release=HEROKU_SLUG_COMMIT,
 )
@@ -295,14 +302,20 @@ LOGGING = {
 # Custom Admin URL, use {% url 'admin:index' %}
 ADMIN_URL = env("DJANGO_ADMIN_URL", default="admin/")
 
-# Your production stuff: Below this line define 3rd party library settings
-# ------------------------------------------------------------------------------
-
-GA_TRACKING_ID = env("GA_TRACKING_ID", default="")
-
 # django-rest-framework
 # -------------------------------------------------------------------------------
 # Tools that generate code samples can use SERVERS to point to the correct domain
 SPECTACULAR_SETTINGS["SERVERS"] = [
     {"url": "https://fpbase.org", "description": "Production server"},
 ]
+
+# Enable API and GraphQL rate limiting in production
+REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = [
+    "rest_framework.throttling.AnonRateThrottle",
+    "rest_framework.throttling.UserRateThrottle",
+]
+# NOTE: Rate limiting settings are used by both REST API and GraphQL
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
+    "anon": "30/min",  # Generous limit for unauthenticated API/GraphQL users
+    "user": "300/min",  # 10x higher for authenticated users
+}

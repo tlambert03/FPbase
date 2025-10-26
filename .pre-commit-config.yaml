@@ -32,3 +32,9 @@ repos:
       - id: ruff-check
         args: ["--fix", "--unsafe-fixes"]
       - id: ruff-format
+
+  - repo: https://github.com/DetachHead/basedpyright-prek-mirror
+    rev: "1.32.1"
+    hooks:
+      - id: basedpyright
+        stages: [manual]

@@ -32,6 +32,7 @@ def long_blurb(self, withbright=False, withbleach=False):
             blurb += f"It is {bright} other proteins in the database with similar emission spectra"
 
         bleach = None
+        BM = None
         if withbleach:
             BM = self.default_state.bleach_measurements.first()
             if BM:
@@ -45,7 +46,7 @@ def long_blurb(self, withbright=False, withbleach=False):
                     bleach = "relatively poor"
                 elif BM.rate < 50:
                     bleach = "very poor"
-        if bleach:
+        if bleach and BM:
             if bright:
                 if (BM.rate > 100 and self.default_state.local_brightness < 0.9) or (
                     BM.rate <= 100 and self.default_state.local_brightness > 0.9

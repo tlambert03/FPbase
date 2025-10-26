@@ -1,46 +1,43 @@
 from __future__ import annotations
 
 import csv
+from typing import TYPE_CHECKING
 
 import numpy as np
 from django.http import HttpResponse
 
 from . import _scipy as scipy
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
-def is_monotonic(array):
-    array = np.array(array)
+    from numpy.typing import ArrayLike, NDArray
+
+
+def _is_monotonic(array: ArrayLike) -> np.bool:
+    array = np.asarray(array)
     return np.all(array[1:] > array[:-1])
 
 
-def make_monotonic(x, y):
-    x, y = list(zip(*sorted(zip(x, y))))
-    x, xind = np.unique(x, return_index=True)
+def _make_monotonic(x: Iterable, y: Iterable) -> tuple[NDArray, NDArray]:
+    _x, y = list(zip(*sorted(zip(x, y))))
+    x_out, xind = np.unique(_x, return_index=True)
     y = np.array(y)[xind]
-    return x, y
+    return x_out, y
 
 
-def interp_linear(x, y, s=1, savgol=False):
-    """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
-    if not is_monotonic(x):
-        x, y = make_monotonic(x, y)
+def interp_linear(x: ArrayLike, y: ArrayLike, s: int = 1, savgol: bool = False) -> tuple[Iterable, Iterable]:
+    """Interpolate pair of vectors at integer increments between min(x) and max(x)."""
+    x = np.asarray(x)
+    y = np.asarray(y)
+    if not _is_monotonic(x):
+        x, y = _make_monotonic(x, y)
     xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
     ynew = np.interp(xnew, x, y)
     if savgol:
         ynew = scipy.signal.savgol_filter(ynew, 9, 2)
-    return xnew, ynew
-
-
-def interp_univar(x, y, s=1, savgol=False):
-    """Interpolate pair of vectors at integer increments between min(x) and max(x)"""
-    if not is_monotonic(x):
-        x, y = make_monotonic(x, y)
-    xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
-    f = scipy.interpolate.InterpolatedUnivariateSpline(x, y)
-    ynew = f(xnew)
-    if savgol:
-        ynew = norm2one(scipy.signal.savgol_filter(ynew, 15, 2))
-    return xnew, ynew
+    # Convert NumPy array to Python list of floats, to avoid Django validation errors.
+    return xnew, [float(val) for val in ynew]
 
 
 def norm2one(y):
