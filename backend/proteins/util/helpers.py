@@ -40,8 +40,10 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=()):
         return None
     excerpt_list = list(excerpts_qs)
     slug_dict = cache.get_or_set("slug_dict", create_slug_dict, 60)
+    if slug_dict is None:
+        slug_dict = {}
     for excerpt in excerpt_list:
-        for name in slug_dict or {}:
+        for name in slug_dict:
             if len(name) <= 1:
                 continue
             if name == obj_name or (aliases and name in aliases):
@@ -502,7 +504,7 @@ def spectra_fig(
         ax.get_yaxis().set_ticks([])
         pos[0] = 0.015
 
-    ax.set_position(pos)
+    ax.set_position(tuple(pos))
     if title:
         font = {
             "family": "sans-serif",

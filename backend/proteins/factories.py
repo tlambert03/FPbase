@@ -1,3 +1,4 @@
+# pyright: reportPrivateImportUsage=false
 import random
 from typing import TYPE_CHECKING, cast
 

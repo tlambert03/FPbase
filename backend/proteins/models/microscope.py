@@ -343,6 +343,7 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
         tuples can be used to add multiples:
             quick_OC('double em', ['ET395/25x', 'T425lpxr', ('ET460/50m', 'ET605/70m')])
     """
+    bs_em_reflect = False
     if len(filternames) == 4:
         bs_em_reflect = not bool(filternames.pop())
     if not len(filternames) == 3:

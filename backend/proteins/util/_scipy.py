@@ -12,6 +12,9 @@ for production use cases.
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
 
 # ============================================================================
@@ -63,7 +66,7 @@ def savgol_filter(y: np.ndarray, window_length: int, polyorder: int) -> np.ndarr
     return result
 
 
-def argrelextrema(data: np.ndarray, comparator: callable, order: int = 1) -> tuple[np.ndarray]:
+def argrelextrema(data: np.ndarray, comparator: Callable, order: int = 1) -> tuple[np.ndarray]:
     """
     Find relative extrema in data.
 
@@ -169,7 +172,7 @@ class _CubicSpline:
         self.c = np.linalg.solve(A, b)
         self.h = h
 
-    def __call__(self, xnew: np.ndarray | float) -> np.ndarray | float:
+    def __call__(self, xnew: Any) -> np.ndarray | float:
         """
         Evaluate the spline at new points.
 
@@ -234,7 +237,7 @@ class InterpolatedUnivariateSpline:
         """
         self._spline = _CubicSpline(x, y)
 
-    def __call__(self, xnew: np.ndarray | float) -> np.ndarray | float:
+    def __call__(self, xnew: Any) -> np.ndarray | float:
         """Evaluate the spline at new points."""
         return self._spline(xnew)
 

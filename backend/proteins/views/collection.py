@@ -43,6 +43,8 @@ def serialized_proteins_response(queryset, format="json", filename="FPbase_prote
         response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
     elif format == "json":
         response = JsonResponse(serializer.data, safe=False)
+    else:
+        raise ValueError(f"Unsupported format: {format}. Must be 'csv' or 'json'")
     return response
 
 

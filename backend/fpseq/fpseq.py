@@ -1,14 +1,11 @@
 import json
 
+import requests
+
 from .align import align_seqs, parental_numbering
 from .mutations import get_mutations, mutate_sequence
 from .skbio_protein import SkbSequence
 from .util import protein_weight, slugify
-
-try:
-    import requests
-except ImportError:
-    print("Could not import requests. Cannot pull sequences from fpbase")
 
 
 def generate_labels(seq, mods=None, zeroindex=1):

@@ -223,7 +223,7 @@ class SerializerCustomizationMixin:
         return ret
 
     # one-step validation
-    def to_internal_value(self: serializers.Serializer, data):
+    def to_internal_value(self, data):
         if not isinstance(data, dict):
             message = self.error_messages["invalid"].format(datatype=type(data).__name__)
             raise ValidationError({api_settings.NON_FIELD_ERRORS_KEY: [message]})
