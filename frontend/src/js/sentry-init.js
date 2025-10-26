@@ -34,16 +34,10 @@ export function initSentry() {
         environment: process.env.NODE_ENV,
         integrations: [Sentry.replayIntegration()],
 
-        // Session Replay sampling
-        replaysSessionSampleRate: 0.1, // 10% of normal sessions
-        replaysOnErrorSampleRate: 1.0, // 100% of error sessions
-
-        // Performance monitoring
-        tracesSampleRate: 0.05, // 5% of transactions
-        profilesSampleRate: 0.05, // 5% of transactions for profiling
-
-        // Error sampling - capture all errors
-        sampleRate: 1.0,
+        replaysSessionSampleRate: 0,      // Don't record normal sessions
+        replaysOnErrorSampleRate: 1.0,    // Record all error sessions
+        tracesSampleRate: 0.05,           // 5% performance monitoring
+        sampleRate: 1.0,                  // Send all errors (defatult=1)
 
         // Ignore common benign errors
         ignoreErrors: [
