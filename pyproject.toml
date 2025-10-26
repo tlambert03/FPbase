@@ -79,7 +79,9 @@ dev = [
     "werkzeug[watchdog]>=2.3.4",
     "ipython>=8.32.0",
     "playwright>=1.55.0",
-    "pandas>=2.0.3",                                        # Only needed for local data import scripts (proteins/util/_local.py)
+    "pandas>=2.0.3", # Only needed for local data import scripts (proteins/util/_local.py)
+    "ty>=0.0.1a24",
+    "django-types>=0.22.0",
 ]
 
 # ==== pytest ====
@@ -164,3 +166,12 @@ ignore_errors = true
 django_settings_module = "config.settings.test"
 
 [tool.djlint]
+
+[tool.ty.environment]
+root = ["./backend"]
+
+[tool.ty.src]
+exclude = ["**/migrations/**", "**/tests/**", "**/test_*.py"]
+
+[tool.ty.rules]
+possibly-unbound-attribute = "ignore"

@@ -29,20 +29,20 @@ def interp_linear(x, y, s=1, savgol=False):
     if savgol:
         ynew = scipy.signal.savgol_filter(ynew, 9, 2)
     # Convert NumPy array to Python list of floats, to avoid Django validation errors.
-    return xnew, [float(val) for val in ynew]
+    return xnew, [float(val) for val in ynew]  # ty: ignore[not-iterable]
 
 
 def interp_univar(x, y, s=1, savgol=False):
     """Interpolate pair of vectors at integer increments between min(x) and max(x)."""
     if not is_monotonic(x):
         x, y = make_monotonic(x, y)
-    xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
+    xnew = np.array(range(int(np.ceil(min(x))), int(np.floor(max(x)))))
     f = scipy.interpolate.InterpolatedUnivariateSpline(x, y)
     ynew = f(xnew)
     if savgol:
         ynew = norm2one(scipy.signal.savgol_filter(ynew, 15, 2))
     # Convert NumPy array to Python list of floats
-    return xnew, [float(val) for val in ynew]
+    return xnew, [float(val) for val in ynew]  # ty: ignore[not-iterable]
 
 
 def norm2one(y):

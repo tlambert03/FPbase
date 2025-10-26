@@ -6,6 +6,7 @@ from functools import reduce
 from typing import TYPE_CHECKING, cast
 
 import django.forms
+import django.forms.formsets
 import reversion
 from django.apps import apps
 from django.contrib import messages
@@ -318,7 +319,7 @@ class ProteinCreateUpdateMixin:
     def get_form_type(self):
         return self.request.resolver_match.url_name
 
-    def form_valid(self: CreateView, form: ProteinForm):
+    def form_valid(self, form: ProteinForm):
         # This method is called when valid form data has been POSTed.
         context: dict = self.get_context_data()
         states = cast("BaseStateFormSet", context["states"])
@@ -655,7 +656,7 @@ def problems_inconsistencies(request):
     gbseqs = get_cached_gbseqs([g["genbank"] for g in with_genbank])
     for item in with_genbank:
         if item["genbank"] in gbseqs:
-            gbseq = gbseqs.get(item["genbank"])[0]
+            gbseq = gbseqs[item["genbank"]][0]
             ourseq = item["seq"]
             if ourseq != gbseq:
                 gb_mismatch.append(
@@ -820,7 +821,7 @@ def protein_bleach_formsets(request, slug):
     qs = BleachMeasurement.objects.filter(state__protein=protein)
     if request.method == "POST":
         formset = BleachMeasurementFormSet(request.POST, queryset=qs)
-        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)
+        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)  # ty: ignore[unresolved-attribute]
         if not formset.is_valid():
             return render(request, template_name, {"formset": formset, "protein": protein})
 
@@ -858,7 +859,7 @@ def protein_bleach_formsets(request, slug):
         return HttpResponseRedirect(protein.get_absolute_url())
     else:
         formset = BleachMeasurementFormSet(queryset=qs)
-        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)
+        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)  # ty: ignore[unresolved-attribute]
     return render(request, template_name, {"formset": formset, "protein": protein})
 
 
@@ -926,10 +927,10 @@ def flag_object(request):
         status = None
         if request.POST["flagged"] == "1":
             if request.user.is_staff:
-                obj.status = model.STATUS.approved
+                obj.status = model.STATUS.approved  # ty: ignore[unresolved-attribute]
                 status = "unflagged"
         else:
-            obj.status = model.STATUS.flagged
+            obj.status = model.STATUS.flagged  # ty: ignore[unresolved-attribute]
             status = "flagged"
         obj.save()
 

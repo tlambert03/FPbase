@@ -69,7 +69,7 @@ class RateLimitedGraphQLView(GraphQLView):
             self.check_throttles(request)
         except exceptions.Throttled as exc:
             # Extract wait time from DRF's exception
-            retry_after = int(exc.wait) if exc.wait else 60
+            retry_after = int(exc.wait) if exc.wait else 60  # ty: ignore[unresolved-attribute]
 
             # Log rate limit event with structured data
             logger.warning(

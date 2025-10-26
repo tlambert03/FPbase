@@ -2,7 +2,7 @@ from django.db.models import F, Max, Prefetch
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control, cache_page
-from django_filters import rest_framework as filters
+from django_filters import rest_framework as filters  # ty: ignore[possibly-unbound-import]
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,

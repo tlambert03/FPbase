@@ -2,7 +2,7 @@ import graphene
 import graphene_django_optimizer as gdo
 from django.core.cache import cache
 from django.utils.text import slugify
-from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django.filter import DjangoFilterConnectionField  # ty: ignore[possibly-unbound-import]
 from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
 
 from .. import models

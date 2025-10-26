@@ -143,7 +143,7 @@ def add_to_collection(request):
                 qs = qs.filter(proteins=int(request.GET.get("id")))
                 members = [(item.name, item.get_absolute_url()) for item in qs]
         response = {
-            "widget": choicefield.widget.render("collectionChoice", ""),
+            "widget": choicefield.widget.render("collectionChoice", ""),  # ty: ignore[missing-argument]
             "members": json.dumps(members),
         }
         return JsonResponse(response)

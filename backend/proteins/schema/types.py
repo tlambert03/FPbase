@@ -26,7 +26,7 @@ def nullable_enum_from_field(_model, _field):
                 return named_choices_descriptions[self.name]
 
         enum = graphene.Enum(name, list(named_choices), type=EnumWithDescriptionsType)
-        converted = enum(description=field.help_text, required=not (field.null or field.blank))
+        converted = enum(description=field.help_text, required=not (field.null or field.blank))  # ty: ignore[call-non-callable]
     else:
         raise NotImplementedError("Field does NOT have choices")
     return converted

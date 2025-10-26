@@ -317,19 +317,19 @@ class SkbSequence:
         return set("*")
 
     def gaps(self):
-        return np.in1d(self._bytes, self._gap_codes)
+        return np.isin(self._bytes, self._gap_codes)
 
     def has_gaps(self):
         return bool(self.gaps().any())
 
     def degenerates(self):
-        return np.in1d(self._bytes, self._degenerate_codes)
+        return np.isin(self._bytes, self._degenerate_codes)
 
     def has_degenerates(self):
         return bool(self.degenerates().any())
 
     def stops(self):
-        return np.in1d(self._bytes, self._stop_codes)
+        return np.isin(self._bytes, self._stop_codes)
 
     def has_stops(self):
         return bool(self.stops().any())

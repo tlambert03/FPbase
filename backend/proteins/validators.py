@@ -47,8 +47,8 @@ def cdna_sequence_validator(seq):
     if len(badletters):
         raise ValidationError(f"Invalid DNA letters: {''.join(set(badletters))}")
     try:
-        Seq.Seq(seq, UNAMBIGUOUS_DNA_LETTERS).translate()
-    except Data.CodonTable.TranslationError as e:
+        Seq.Seq(seq, UNAMBIGUOUS_DNA_LETTERS).translate()  # ty: ignore[invalid-argument-type]
+    except Data.CodonTable.TranslationError as e:  # ty: ignore[unresolved-attribute]
         raise ValidationError(e) from e
 
 

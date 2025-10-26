@@ -337,6 +337,8 @@ class MutationSet:
     def __init__(self, muts=None, position_labels=None):
         """optional position_labels list will change the numbering of the
         muationset ... for instance, to match a reference sequence numbering"""
+        if muts is None:
+            raise ValueError("Mutations argument cannot be None")
         if isinstance(muts, str):
             muts = parse_mutstring(muts)
         elif not isinstance(muts, list | set | tuple):
