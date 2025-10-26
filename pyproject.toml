@@ -147,45 +147,27 @@ django_settings_module = "config.settings.test"
 [tool.pyright]
 pythonVersion = "3.13"
 typeCheckingMode = "standard"
-
-# Django project structure
 include = ["backend"]
-exclude = [
-    "**/migrations",
-    "**/tests",
-    "**/config/settings/",
-    "**/*_test.py",
-    "**/test_*.py",
-    "**/node_modules",
-    "**/__pycache__",
-    ".git",
-    ".venv",
-]
+exclude = ["**/migrations", "**/config/settings/"]
 
 # Extra paths for module resolution
 extraPaths = ["backend"]
-
 # Type checking settings
 strictListInference = true
 strictDictionaryInference = true
 strictSetInference = true
-
 # Disable noisy checks that don't work well with Django
 reportMissingTypeStubs = false
 reportUnknownMemberType = false
 reportUnknownArgumentType = false
 reportUnknownVariableType = false
 reportUntypedBaseClass = false
-
 # Django has many dynamically created attributes (reverse relations, etc.)
 reportAttributeAccessIssue = false
-
 # Django and third-party libraries often use Optional types
 reportOptionalMemberAccess = false
-
 # Django Meta classes override parent Meta
 reportIncompatibleVariableOverride = false
-
 # Noisy for Django settings and library calls with incomplete stubs
 reportCallIssue = false
 reportArgumentType = false
