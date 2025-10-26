@@ -11,6 +11,9 @@ setup:
 serve:
     pnpm dev
 
+shell:
+    uv run backend/manage.py shell_plus
+
 # clone the production database to local
 pgpull:
     dropdb fpbase

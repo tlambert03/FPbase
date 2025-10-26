@@ -12,6 +12,8 @@ for production use cases.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 # ============================================================================
@@ -169,7 +171,7 @@ class _CubicSpline:
         self.c = np.linalg.solve(A, b)
         self.h = h
 
-    def __call__(self, xnew: np.ndarray | float) -> np.ndarray | float:
+    def __call__(self, xnew: Any) -> np.ndarray | float:
         """
         Evaluate the spline at new points.
 
@@ -234,7 +236,7 @@ class InterpolatedUnivariateSpline:
         """
         self._spline = _CubicSpline(x, y)
 
-    def __call__(self, xnew: np.ndarray | float) -> np.ndarray | float:
+    def __call__(self, xnew: Any) -> np.ndarray | float:
         """Evaluate the spline at new points."""
         return self._spline(xnew)
 

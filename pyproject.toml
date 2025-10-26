@@ -81,6 +81,7 @@ dev = [
     "django-types>=0.22.0",
     "basedpyright>=1.32.1",
     "prek>=0.2.11",
+    "pyright>=1.1.407",
 ]
 
 # ==== pytest ====
@@ -142,9 +143,9 @@ django_settings_module = "config.settings.test"
 
 [tool.djlint]
 
-[tool.basedpyright]
+# we're actually using basedpyright
+[tool.pyright]
 pythonVersion = "3.13"
-pythonPlatform = "Darwin"
 typeCheckingMode = "standard"
 
 # Django project structure
@@ -195,6 +196,3 @@ reportArgumentType = false
 reportIncompatibleMethodOverride = false
 reportGeneralTypeIssues = false
 reportOperatorIssue = false
-reportReturnType = false
-reportAssignmentType = false
-reportFunctionMemberAccess = false

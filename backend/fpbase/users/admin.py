@@ -39,7 +39,7 @@ class MyUserAdmin(AuthUserAdmin):
     add_form = MyUserCreationForm
     fieldsets = (
         ("User Profile", {"fields": ("avatar", "name", "verified", "microscopes", "collections")}),
-        *AuthUserAdmin.fieldsets,
+        *AuthUserAdmin.fieldsets,  # pyright: ignore[reportOptionalIterable]
     )
     list_display = (
         "username",

@@ -193,7 +193,7 @@ def get_country_code(request) -> str:
         else:
             ip = request.META.get("REMOTE_ADDR")
         response = reader.get(ip)
-        return response["country"]["iso_code"]
+        return str(response["country"]["iso_code"])
     return ""
 
 

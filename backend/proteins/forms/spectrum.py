@@ -50,7 +50,9 @@ class SpectrumForm(forms.ModelForm):
         required=False,
         help_text="Name of protein, dye, filter, etc...",
     )
-    data = SpectrumFormField(required=False, label="Data")
+    # FIXME!!
+    # this is an actual problem.  this field needs to be renamed to avoid name with the Form
+    data = SpectrumFormField(required=False, label="Data")  # pyright: ignore[reportAssignmentType]
     file = forms.FileField(
         required=False,
         label="File Upload",

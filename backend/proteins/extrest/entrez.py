@@ -6,7 +6,7 @@ import logging
 import os
 import re
 import time
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 from Bio import Entrez, SeqIO
 from django.core.cache import cache
@@ -38,7 +38,7 @@ def _parse_crossref(doidict: dict) -> DoiInfo:
         doidict = doidict["message"]
     out = {}
     ct = doidict.get("container-title", [])
-    out = {
+    out: DoiInfo = {
         "journal": ct[0] if ct else None,
         "title": doidict.get("title"),
         "pages": doidict.get("page", None),
@@ -124,7 +124,7 @@ def doi_lookup(doi: str) -> DoiInfo:
     for key, val in list(info.items()):
         if not val:
             del info[key]
-    return info
+    return cast("DoiInfo", info)
 
 
 def get_cached_gbseqs(gbids, max_age=60 * 60 * 24) -> dict[str, tuple[str, float]]:
