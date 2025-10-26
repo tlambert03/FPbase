@@ -27,7 +27,14 @@ const styleRule = {
         },
       },
     },
-    "sass-loader",
+    {
+      loader: "sass-loader",
+      options: {
+        sassOptions: {
+          silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'abs-percent'],
+        },
+      },
+    },
   ],
 }
 
@@ -59,7 +66,6 @@ const jsRule = {
 
 const assetRule = {
   test: /.(jpe?g|png|woff(2)?|eot|ttf|svg)$/,
-  loader: "file-loader",
   type: "asset",
 }
 
