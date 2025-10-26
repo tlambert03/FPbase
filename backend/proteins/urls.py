@@ -198,6 +198,11 @@ urlpatterns = [
         views.FilterAutocomplete.as_view(),
         name="filter-autocomplete",
     ),
+    # Tom-Select autocomplete endpoints
+    path("ts/protein/", views.ProteinTomSelectView.as_view(), name="protein-ts"),
+    path("ts/lineage/", views.LineageTomSelectView.as_view(), name="lineage-ts"),
+    path("ts/state/", views.StateTomSelectView.as_view(), name="state-ts"),
+    path("ts/filter/", views.FilterTomSelectView.as_view(), name="filter-ts"),
     re_path(
         r"^microscope/create/",
         login_required(

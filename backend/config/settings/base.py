@@ -51,6 +51,7 @@ DJANGO_APPS = [
     "django.contrib.humanize",
     "dal",
     "dal_select2",
+    "django_tomselect",
     # Admin
     "django.contrib.admin",
     # DRF
@@ -288,6 +289,7 @@ ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
+USE_TOMSELECT = env.bool("USE_TOMSELECT", default=False)
 ACCOUNT_ADAPTER = "fpbase.users.adapters.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "fpbase.users.adapters.SocialAccountAdapter"
 SOCIALACCOUNT_AUTO_SIGNUP = False

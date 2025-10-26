@@ -3,9 +3,8 @@ import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
 import $ from "jquery"
-import "select2/dist/css/select2.css"
-import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
-import "select2/dist/js/select2.full"
+import TomSelect from "tom-select"
+import "tom-select/dist/css/tom-select.bootstrap4.css"
 import "./js/jquery.formset"
 
 // Mark this bundle for Sentry context
@@ -45,14 +44,23 @@ $(document).on("hidden.bs.modal", "#sureModal", function() {
   $("#sureModal").css("z-index", 1039)
 })
 
-$(
-  "#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights"
-).select2({
-  theme: "bootstrap",
-  containerCssClass: ":all:",
-  placeholder: "---------",
-  allowClear: true,
-  width: "auto",
+const selectElements = [
+  "#id_detector",
+  "#id_light_source",
+  "#id_extra_cameras",
+  "#id_extra_lights",
+]
+
+selectElements.forEach((selector) => {
+  const element = document.querySelector(selector)
+  if (!element) return
+
+  new TomSelect(selector, {
+    plugins: ["clear_button"],
+    placeholder: "---------",
+    allowEmptyOption: true,
+    controlClass: element.className,
+  })
 })
 
 $(function() {

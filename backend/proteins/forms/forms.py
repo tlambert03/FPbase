@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from typing import cast
 
@@ -8,6 +10,8 @@ from django import forms
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
+from django_tomselect.app_settings import PluginClearButton, TomSelectConfig
+from django_tomselect.forms import TomSelectModelChoiceField
 
 from proteins.models import (
     BleachMeasurement,
@@ -404,18 +408,19 @@ StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=St
 
 
 class LineageForm(forms.ModelForm):
-    parent = forms.ModelChoiceField(
-        help_text="Direct evolutionary ancestor (must have ancestor of its own to appear)",
-        required=False,
-        queryset=Lineage.objects.all().prefetch_related("protein"),
-        widget=autocomplete.ModelSelect2(
-            url="proteins:lineage-autocomplete",
-            attrs={
-                "data-theme": "bootstrap",
-                "data-width": "100%",
-                "data-placeholder": "----------",
-            },
+    parent = TomSelectModelChoiceField(
+        config=TomSelectConfig(
+            url="proteins:lineage-ts",
+            placeholder="Select parent lineage",
+            minimum_query_length=2,
+            highlight=True,
+            preload="focus",
+            plugin_clear_button=PluginClearButton(title="Clear Selection"),
+            css_framework="bootstrap4",
         ),
+        queryset=Lineage.objects.select_related("protein"),
+        required=False,
+        help_text="Direct evolutionary ancestor (must have ancestor of its own to appear)",
     )
 
     class Meta:

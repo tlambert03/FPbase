@@ -6,8 +6,13 @@ import "bootstrap"
 import "nouislider"
 // D3 v3 is loaded from CDN for microscope.js compatibility (see microscope_embed.html)
 // Do NOT import D3 v7 here as it will overwrite the global d3 object and break nvd3
+// KEEP Select2 - legacy microscope.js (CDN-loaded) depends on it
 import "select2/dist/js/select2.full.js"
 // microscope.js loaded separately via CDN on microscope pages
+
+// Tom-Select for new features
+import TomSelect from "tom-select"
+import "tom-select/dist/css/tom-select.bootstrap4.css"
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}

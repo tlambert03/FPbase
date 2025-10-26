@@ -3,6 +3,8 @@ import Highcharts from "highcharts"
 import "highcharts/modules/pattern-fill"
 import "highcharts/modules/no-data-to-display"
 import $ from "jquery"
+import TomSelect from "tom-select"
+import "tom-select/dist/css/tom-select.bootstrap4.css"
 
 export default function initFRET() {
   var chart
@@ -110,15 +112,13 @@ export default function initFRET() {
     }
   })
 
-  $("#donor-select").select2({
-    theme: "bootstrap",
-    containerCssClass: ":all:",
-    width: "auto",
-  })
-  $("#acceptor-select").select2({
-    theme: "bootstrap",
-    containerCssClass: ":all:",
-    width: "auto",
+  ;["#donor-select", "#acceptor-select"].forEach((selector) => {
+    const element = document.querySelector(selector)
+    if (!element) return
+
+    new TomSelect(selector, {
+      controlClass: element.className,
+    })
   })
 
   function getData(slug) {
@@ -419,7 +419,7 @@ export default function initFRET() {
         .find("td:nth-child(3) a")
         .attr("href")
         .split("/")[2] + "_default"
-    $("#donor-select").val(donorslug).trigger("change.select2")
+    $("#donor-select").val(donorslug).change()
     $("#acceptor-select").val(accslug).change()
   })
 

@@ -944,6 +944,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/5f/83/fda5e666c5504ec5d6205c9a2aac4b7758dffc5dfcd4c25da6e535e51ddd/django-test-plus-2.3.0.tar.gz", hash = "sha256:05c153186c4122a42b14bbc5f8a546f34a0e0a714c26afb8ff23868ffc4c8e87", size = 18960, upload-time = "2025-07-02T21:16:57.658Z" }
 
 [[package]]
+name = "django-tomselect"
+version = "2025.9.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/80/7b/e1e6e5598fc1a082d1fe70eeac633e4ed103b63a0278e905962e0c8ebc55/django_tomselect-2025.9.1.tar.gz", hash = "sha256:3c904359d21f75b335089754b30b649b7205577014383c70dd9f76c67a9b8b6d", size = 207325, upload-time = "2025-09-09T16:59:09.384Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ec/b7/746da3a03eec2d9a80a148355c8a687a7d5151017a047898cff456dbb3fc/django_tomselect-2025.9.1-py3-none-any.whl", hash = "sha256:7ec9389a6c24266c1b2f18f5f9a67b84f7847b7fb6d0b94e31022bc266898059", size = 237724, upload-time = "2025-09-09T16:59:08.021Z" },
+]
+
+[[package]]
 name = "django-types"
 version = "0.22.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1131,6 +1143,7 @@ dependencies = [
     { name = "django-reversion-compare" },
     { name = "django-storages", extra = ["boto3"] },
     { name = "django-structlog" },
+    { name = "django-tomselect" },
     { name = "django-webpack-loader" },
     { name = "djangorestframework" },
     { name = "djangorestframework-csv" },
@@ -1211,6 +1224,7 @@ requires-dist = [
     { name = "django-reversion-compare", specifier = ">=0.19.0" },
     { name = "django-storages", extras = ["boto3"], specifier = ">=1.13.2" },
     { name = "django-structlog", specifier = ">=8.1.0" },
+    { name = "django-tomselect", specifier = ">=2025.9.1" },
     { name = "django-webpack-loader", specifier = ">=2.0.1" },
     { name = "djangorestframework", specifier = ">=3.14.0" },
     { name = "djangorestframework-csv", specifier = ">=2.1.1" },
