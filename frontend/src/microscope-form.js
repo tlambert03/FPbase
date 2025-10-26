@@ -1,8 +1,16 @@
+// Initialize Sentry first to catch errors during module loading
+import "./js/sentry-init.js"
+import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
+
 import $ from "jquery"
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 import "select2/dist/js/select2.full"
 import "./js/jquery.formset"
+
+// Mark this bundle for Sentry context
+window.FPBASE = window.FPBASE || {}
+window.FPBASE.currentBundle = "microscopeForm"
 
 $("#microscopeform").submit(function(e) {
   // eslint-disable-next-line

@@ -1,6 +1,14 @@
+// Initialize Sentry first to catch errors during module loading
+import "./js/sentry-init.js"
+import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
+
 import "./css/litemol/LiteMol-plugin-blue.css"
 import $ from "jquery"
 import LiteMol from "./js/pdb/LiteMol-plugin"
+
+// Mark this bundle for Sentry context
+window.FPBASE = window.FPBASE || {}
+window.FPBASE.currentBundle = "litemol"
 
 // populated by downloadPDBMeta.success
 const pdbInfo = {}

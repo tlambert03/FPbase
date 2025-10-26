@@ -70,6 +70,12 @@ const plugins = [
     jQuery: "jquery",
     process: "process/browser",
   }),
+  // Inject environment variables into the bundle for runtime access
+  new webpack.DefinePlugin({
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'process.env.SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN || ''),
+    'process.env.HEROKU_SLUG_COMMIT': JSON.stringify(process.env.HEROKU_SLUG_COMMIT || ''),
+  }),
   // new webpack.IgnorePlugin(/vertx/),
   new BundleTracker({
     filename: "webpack-stats.json",
@@ -166,6 +172,9 @@ module.exports = {
   },
   plugins,
   optimization: {
+    // Share webpack runtime across all bundles
+    runtimeChunk: "single",
+
     minimizer: [
       new TerserJSPlugin(),
       new CssMinimizerPlugin({
@@ -174,12 +183,45 @@ module.exports = {
         },
       }),
     ],
+
+    // Improved code splitting for shared dependencies
     splitChunks: {
+      chunks: "all",
       cacheGroups: {
-        commons: {
+        // Extract Sentry into its own chunk (shared across all bundles)
+        sentry: {
+          test: /[\\/]node_modules[\\/]@sentry[\\/]/,
+          name: "sentry",
+          priority: 30,
+          reuseExistingChunk: true,
+        },
+        // Extract React and React-DOM (used by multiple bundles)
+        react: {
+          test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+          name: "react-vendor",
+          priority: 25,
+          reuseExistingChunk: true,
+        },
+        // Extract jQuery (used by multiple bundles)
+        jquery: {
+          test: /[\\/]node_modules[\\/]jquery[\\/]/,
+          name: "jquery",
+          priority: 20,
+          reuseExistingChunk: true,
+        },
+        // Extract other large vendor libraries
+        vendors: {
           test: /[\\/]node_modules[\\/]/,
-          name: "vendor",
-          chunks: "initial",
+          name: "vendors",
+          priority: 10,
+          reuseExistingChunk: true,
+        },
+        // Extract common code shared between entry points
+        common: {
+          minChunks: 2,
+          name: "common",
+          priority: 5,
+          reuseExistingChunk: true,
         },
       },
     },
