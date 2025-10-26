@@ -75,25 +75,6 @@ export function setupAjaxErrorTracking() {
             })
         }
     })
-
-    // Add breadcrumb for successful AJAX calls (helps trace errors)
-    $(document).ajaxComplete(function (event, jqXHR, ajaxSettings) {
-        // Only log successful requests as breadcrumbs (errors are captured above)
-        if (jqXHR.status >= 200 && jqXHR.status < 400) {
-            Sentry.addBreadcrumb({
-                category: "ajax",
-                message: `${ajaxSettings.type || "GET"} ${ajaxSettings.url}`,
-                level: "info",
-                data: {
-                    method: ajaxSettings.type || ajaxSettings.method,
-                    url: ajaxSettings.url,
-                    status: jqXHR.status,
-                },
-            })
-        }
-    })
-
-    console.log("✅ jQuery AJAX error tracking enabled")
 }
 
 // Auto-setup on import

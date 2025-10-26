@@ -28,12 +28,12 @@ import initFRET from "./js/fret.js"
 import * as d3 from "d3";
 
 // Mark this bundle for Sentry context
-window.FPBASE = window.FPBASE || {}
-window.FPBASE.currentBundle = "main"
 window.d3 = d3;
 
+window.FPBASE = window.FPBASE || {}
 window.FPBASE = {
   ...window.FPBASE,
+  currentBundle: "main",
   initAutocomplete,
   FPPropChart,
   LineageChart,
