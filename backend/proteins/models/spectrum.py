@@ -344,7 +344,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         LIGHT: [PD],
     }
 
-    data = SpectrumData()  # ty: ignore[no-matching-overload]
+    data = SpectrumData()
     category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True)
     subtype = models.CharField(
         max_length=2,

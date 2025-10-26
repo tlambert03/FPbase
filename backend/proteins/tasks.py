@@ -15,11 +15,18 @@ def calculate_scope_report(self, scope_id, outdated_ids=None, fluor_collection=N
 
     from proteins.models import Dye, Microscope, OcFluorEff, State
 
+    # Initialize state_ids and dye_ids
     if not fluor_collection:
         # Use iterator to avoid loading all objects into memory at once
         # Build list of IDs instead of full objects
         state_ids = list(State.objects.with_spectra().values_list("id", flat=True))
         dye_ids = list(Dye.objects.with_spectra().values_list("id", flat=True))
+    else:
+        # fluor_collection is not currently implemented, but initialize to empty lists
+        # to prevent potential errors if this parameter is used in the future
+        state_ids = []
+        dye_ids = []
+
     m = Microscope.objects.get(id=scope_id)
     updated = []
     i = 0

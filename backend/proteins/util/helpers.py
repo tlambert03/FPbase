@@ -504,7 +504,7 @@ def spectra_fig(
         ax.get_yaxis().set_ticks([])
         pos[0] = 0.015
 
-    ax.set_position(tuple(pos))  # ty: ignore[invalid-argument-type]
+    ax.set_position(tuple(pos))
     if title:
         font = {
             "family": "sans-serif",

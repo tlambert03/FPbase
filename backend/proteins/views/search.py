@@ -80,7 +80,7 @@ def protein_search(request):
             elif "name__iexact" in f.form.data:
                 name = f.form.data["name__iexact"]
             if name:
-                f.recs = (  # ty: ignore[unresolved-attribute]
+                f.recs = (
                     Protein.visible.annotate(nstates=Count("states"), similarity=TrigramSimilarity("name", name))
                     .filter(similarity__gt=0.2)
                     .select_related("default_state", "primary_reference")

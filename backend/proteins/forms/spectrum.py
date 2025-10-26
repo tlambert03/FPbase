@@ -140,6 +140,8 @@ class SpectrumForm(forms.ModelForm):
     def clean_file(self):
         if self.files:
             filetext = ""
+            x = []
+            y = []
             try:
                 for chunk in self.files["file"].chunks():
                     try:

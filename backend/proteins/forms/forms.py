@@ -92,7 +92,7 @@ class SequenceField(forms.CharField):
         return super().to_python(value)
 
 
-class SelectAddWidget(forms.widgets.Select):  # ty: ignore[unresolved-attribute]
+class SelectAddWidget(forms.widgets.Select):
     template_name = "proteins/forms/widgets/select_add.html"
 
 

@@ -57,15 +57,17 @@ class Spectrum:
     @property
     def x(self):
         self._x = []
-        for i in self.data:
-            self._x.append(i[0])
+        if self.data:
+            for i in self.data:
+                self._x.append(i[0])
         return self._x
 
     @property
     def y(self):
         self._y = []
-        for i in self.data:
-            self._y.append(i[1])
+        if self.data:
+            for i in self.data:
+                self._y.append(i[1])
         return self._y
 
     @property
@@ -114,19 +116,21 @@ class Spectrum:
     def d3data(self):
         output = []
         # arrayLength = len(self.data)
-        for wave in range(350, int(self.min_wave)):
-            output.append({"x": wave, "y": 0})
-        for elem in self.data:
-            output.append({"x": elem[0], "y": elem[1]})
-        for wave in range(int(self.max_wave), 751):
-            output.append({"x": wave, "y": 0})
+        if self.data:
+            for wave in range(350, int(self.min_wave)):
+                output.append({"x": wave, "y": 0})
+            for elem in self.data:
+                output.append({"x": elem[0], "y": elem[1]})
+            for wave in range(int(self.max_wave), 751):
+                output.append({"x": wave, "y": 0})
         return output
 
     def wave_value_pairs(self):
         output = {}
         # arrayLength = len(self.data)
-        for elem in self.data:
-            output[elem[0]] = elem[1]
+        if self.data:
+            for elem in self.data:
+                output[elem[0]] = elem[1]
         return output
 
 

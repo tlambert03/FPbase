@@ -290,7 +290,7 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
             raise ValueError('must provide argument "stypes" when importing from url')
         text = fetch_chroma_url(url)
     else:
-        ValueError("did not receive appropriate input to import_chroma_spectra")
+        raise ValueError("did not receive appropriate input to import_chroma_spectra")
     waves, data, headers = text_to_spectra(text)
 
     kwargs["categories"] = "f"
@@ -326,7 +326,7 @@ def import_semrock_spectra(part=None, **kwargs):
         if "stypes" not in kwargs:
             raise ValueError(f"Could not guess filter type for part {part}")
     else:
-        ValueError("did not receive appropriate input to import_semrock_spectra")
+        raise ValueError("did not receive appropriate input to import_semrock_spectra")
     waves, data, headers = text_to_spectra(text)
 
     kwargs["categories"] = "f"

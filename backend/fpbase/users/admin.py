@@ -12,7 +12,7 @@ from .models import User
 
 
 class MyUserChangeForm(UserChangeForm):
-    class Meta(UserChangeForm.Meta):  # ty: ignore[unresolved-attribute]
+    class Meta(UserChangeForm.Meta):
         model = User
 
 
@@ -21,7 +21,7 @@ class MyUserCreationForm(UserCreationForm):
         {"duplicate_username": "This username has already been taken."}
     )
 
-    class Meta(UserCreationForm.Meta):  # ty: ignore[unresolved-attribute]
+    class Meta(UserCreationForm.Meta):
         model = User
 
     def clean_username(self):

@@ -193,7 +193,7 @@ def get_country_code(request) -> str:
         else:
             ip = request.META.get("REMOTE_ADDR")
         response = reader.get(ip)
-        return response["country"]["iso_code"]  # type: ignore
+        return response["country"]["iso_code"]
     return ""
 
 
@@ -821,7 +821,7 @@ def protein_bleach_formsets(request, slug):
     qs = BleachMeasurement.objects.filter(state__protein=protein)
     if request.method == "POST":
         formset = BleachMeasurementFormSet(request.POST, queryset=qs)
-        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)  # ty: ignore[unresolved-attribute]
+        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)
         if not formset.is_valid():
             return render(request, template_name, {"formset": formset, "protein": protein})
 
@@ -859,7 +859,7 @@ def protein_bleach_formsets(request, slug):
         return HttpResponseRedirect(protein.get_absolute_url())
     else:
         formset = BleachMeasurementFormSet(queryset=qs)
-        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)  # ty: ignore[unresolved-attribute]
+        formset.form.base_fields["state"].queryset = State.objects.filter(protein__slug=slug)
     return render(request, template_name, {"formset": formset, "protein": protein})
 
 
@@ -927,10 +927,10 @@ def flag_object(request):
         status = None
         if request.POST["flagged"] == "1":
             if request.user.is_staff:
-                obj.status = model.STATUS.approved  # ty: ignore[unresolved-attribute]
+                obj.status = model.STATUS.approved
                 status = "unflagged"
         else:
-            obj.status = model.STATUS.flagged  # ty: ignore[unresolved-attribute]
+            obj.status = model.STATUS.flagged
             status = "flagged"
         obj.save()
 

@@ -29,7 +29,7 @@ def interp_linear(x, y, s=1, savgol=False):
     if savgol:
         ynew = scipy.signal.savgol_filter(ynew, 9, 2)
     # Convert NumPy array to Python list of floats, to avoid Django validation errors.
-    return xnew, [float(val) for val in ynew]  # ty: ignore[not-iterable]
+    return xnew, [float(val) for val in ynew]
 
 
 def interp_univar(x, y, s=1, savgol=False):
@@ -42,7 +42,7 @@ def interp_univar(x, y, s=1, savgol=False):
     if savgol:
         ynew = norm2one(scipy.signal.savgol_filter(ynew, 15, 2))
     # Convert NumPy array to Python list of floats
-    return xnew, [float(val) for val in ynew]  # ty: ignore[not-iterable]
+    return xnew, [float(val) for val in ynew]
 
 
 def norm2one(y):

@@ -7,5 +7,5 @@ from .types import Protein
 class ProteinNode(Protein):
     class Meta:
         model = models.Protein
-        interfaces = (graphene.relay.Node,)  # ty: ignore[unresolved-attribute]
+        interfaces = (graphene.relay.Node,)
         fields = "__all__"

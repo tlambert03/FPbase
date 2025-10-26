@@ -256,6 +256,7 @@ def _get_aligned_muts(AQS, ATS, gapchars="-.", zeroindex=1):
     ishift = 0
     numdel = 0
     delins = ""
+    idx = zeroindex  # Initialize idx in case the loop doesn't execute
 
     def clear_insertions(ins_start_idx, insertions, extension=False):
         if extension:

@@ -63,7 +63,7 @@ def savgol_filter(y: np.ndarray, window_length: int, polyorder: int) -> np.ndarr
     return result
 
 
-def argrelextrema(data: np.ndarray, comparator: callable, order: int = 1) -> tuple[np.ndarray]:  # ty: ignore[invalid-type-form]
+def argrelextrema(data: np.ndarray, comparator: callable, order: int = 1) -> tuple[np.ndarray]:
     """
     Find relative extrema in data.
 

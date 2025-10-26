@@ -43,6 +43,8 @@ def serialized_proteins_response(queryset, format="json", filename="FPbase_prote
         response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
     elif format == "json":
         response = JsonResponse(serializer.data, safe=False)
+    else:
+        raise ValueError(f"Unsupported format: {format}. Must be 'csv' or 'json'")
     return response
 
 
@@ -143,7 +145,7 @@ def add_to_collection(request):
                 qs = qs.filter(proteins=int(request.GET.get("id")))
                 members = [(item.name, item.get_absolute_url()) for item in qs]
         response = {
-            "widget": choicefield.widget.render("collectionChoice", ""),  # ty: ignore[missing-argument]
+            "widget": choicefield.widget.render("collectionChoice", ""),
             "members": json.dumps(members),
         }
         return JsonResponse(response)

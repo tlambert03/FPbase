@@ -64,7 +64,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         if self.parent:
             try:
                 self.root_node = self.get_root()
-            except models.ObjectDoesNotExist:  # ty: ignore[unresolved-attribute]
+            except models.ObjectDoesNotExist:
                 self.root_node = None
         else:
             self.root_node = None

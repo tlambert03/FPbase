@@ -163,10 +163,10 @@ class Reference(TimeStampedModel):
     def save(self, skipdoi=False, *args, **kwargs):
         if self.doi:
             self.doi = self.doi.lower()
+        authorlist = []
         if not skipdoi:
             info = entrez.doi_lookup(self.doi)
             authors = info.pop("authors")
-            authorlist = []
             if authors is not None:
                 for author in authors:
                     auth, _ = Author.objects.get_or_create(

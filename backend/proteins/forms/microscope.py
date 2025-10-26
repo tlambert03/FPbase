@@ -111,10 +111,10 @@ class MicroscopeForm(forms.ModelForm):
             "collection": "Only show fluorophores from a custom collection (leave blank to allow all proteins)",
         }
         widgets = {
-            "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),  # ty: ignore[unresolved-attribute]
-            "description": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),  # ty: ignore[unresolved-attribute]
-            "detector": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),  # ty: ignore[unresolved-attribute]
-            "light_source": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),  # ty: ignore[unresolved-attribute]
+            "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "description": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "detector": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),
+            "light_source": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),
         }
 
     def create_oc(self, name, filters):
@@ -331,7 +331,7 @@ class OpticalConfigForm(forms.ModelForm):
 
     invert_bs = forms.BooleanField(
         required=False,
-        widget=forms.widgets.CheckboxInput(attrs={"class": "custom-control-input"}),  # ty: ignore[unresolved-attribute]
+        widget=forms.widgets.CheckboxInput(attrs={"class": "custom-control-input"}),
     )
 
     def __init__(self, *args, **kwargs):
@@ -383,11 +383,11 @@ class OpticalConfigForm(forms.ModelForm):
             "comments": "When present, comments will appear below the selected optical configuration",
         }
         widgets = {
-            "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),  # ty: ignore[unresolved-attribute]
-            "camera": forms.widgets.Select(attrs={"class": "form-control custom-select"}),  # ty: ignore[unresolved-attribute]
-            "light": forms.widgets.Select(attrs={"class": "form-control custom-select"}),  # ty: ignore[unresolved-attribute]
-            "laser": forms.widgets.NumberInput(attrs={"class": "numberinput form-control"}),  # ty: ignore[unresolved-attribute]
-            "comments": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),  # ty: ignore[unresolved-attribute]
+            "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "camera": forms.widgets.Select(attrs={"class": "form-control custom-select"}),
+            "light": forms.widgets.Select(attrs={"class": "form-control custom-select"}),
+            "laser": forms.widgets.NumberInput(attrs={"class": "numberinput form-control"}),
+            "comments": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
         }
 
     def is_valid(self):
