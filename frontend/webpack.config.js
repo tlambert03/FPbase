@@ -215,9 +215,24 @@ module.exports = {
           priority: 20,
           reuseExistingChunk: true,
         },
-        // Extract other large vendor libraries
+        // Extract D3 separately - NOT used by embedscope (uses CDN D3 v3 instead)
+        d3: {
+          test: /[\\/]node_modules[\\/]d3.*[\\/]/,
+          name: "d3-vendor",
+          priority: 15,
+          chunks: (chunk) => chunk.name !== "embedscope",
+          reuseExistingChunk: true,
+        },
+        // Extract other large vendor libraries (excluding D3 which has its own chunk)
         vendors: {
-          test: /[\\/]node_modules[\\/]/,
+          test(module) {
+            // Exclude D3 from vendors chunk - it has its own d3-vendor chunk
+            return (
+              module.resource &&
+              /[\\/]node_modules[\\/]/.test(module.resource) &&
+              !/[\\/]node_modules[\\/]d3.*[\\/]/.test(module.resource)
+            )
+          },
           name: "vendors",
           priority: 10,
           reuseExistingChunk: true,

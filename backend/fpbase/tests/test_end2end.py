@@ -41,8 +41,6 @@ class TestPagesRender(StaticLiveServerTestCase):
         cls.download_dir = tempfile.mkdtemp()
         options = webdriver.ChromeOptions()
         options.add_experimental_option("prefs", {"download.default_directory": cls.download_dir})
-        if not os.getenv("CI"):
-            options.add_argument("--headless=new")
 
         cls.browser = webdriver.Chrome(options=options)
         return super().setUpClass()
@@ -154,9 +152,22 @@ class TestPagesRender(StaticLiveServerTestCase):
         self._load_reverse("proteins:microscope-embed", args=(m.id,))
         self._interact_scope(m)
 
-        # FIXME: there are some console errors on CI that need to be fixed
-        # http://localhost:33339/protein/knownsequence/ - OTS parsing error: invalid sfntVersion: 1702391919'
-        self.browser.get_log("browser")  # clear prior logs
+        # Check for JavaScript errors, filtering out known font-related warnings
+        logs = self.browser.get_log("browser")
+        errors = [
+            log
+            for log in logs
+            if log["level"] == "SEVERE"
+            and "OTS parsing error" not in log["message"]  # Font loading warnings on CI
+            and "favicon.ico" not in log["message"]  # Missing favicon is not critical
+        ]
+        self.assertEqual([], errors, f"JavaScript errors found: {errors}")
+
+        # Verify the chart SVG actually rendered with content
+        svg = self.browser.find_element(By.CSS_SELECTOR, ".svg-container svg")
+        self.assertIsNotNone(svg, "Chart SVG not found")
+        paths = self.browser.find_elements(By.CSS_SELECTOR, ".svg-container svg path")
+        self.assertGreater(len(paths), 10, "Chart should have rendered spectra paths")
 
     def _interact_scope(self, scope):
         # Wait for select2 to initialize the fluor selector
