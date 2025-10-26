@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import time
+from collections.abc import MutableMapping, Sequence
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 from Bio import Entrez, SeqIO
@@ -47,7 +48,8 @@ def _parse_crossref(doidict: dict) -> DoiInfo:
         "authors": doidict.get("author", None),
         "doi": doidict.get("DOI", None),
     }
-    out["title"] = out["title"][0] if len(out["title"]) else None
+    if title := out["title"]:
+        out["title"] = title[0]
     dp = doidict.get("published-online", doidict.get("published-print", doidict.get("issued", {}))).get(
         "date-parts", [None]
     )[0]
@@ -71,15 +73,13 @@ def _crossref(doi):
 
 def _doi2pmid(doi: str) -> str | None:
     pubmed_record = Entrez.read(Entrez.esearch(db="pubmed", term=doi))
-    try:
-        return pubmed_record.get("IdList")[0]
-    except Exception:
-        return None
+    if isinstance(id_list := pubmed_record.get("IdList"), Sequence):
+        return id_list[0]
 
 
 def _get_pmid_info(pmid: str) -> DoiInfo | None:
     pubmed_record = Entrez.read(Entrez.esummary(db="pubmed", id=pmid, retmode="xml"))
-    if len(pubmed_record):
+    if isinstance(pubmed_record, Sequence) and len(pubmed_record):
         pubmed_record = pubmed_record[0]
         date = None
         try:
@@ -101,7 +101,7 @@ def _get_pmid_info(pmid: str) -> DoiInfo | None:
     return None
 
 
-def _merge_info(dict1, dict2, exclude=()):
+def _merge_info(dict1: MutableMapping, dict2: MutableMapping, exclude=()) -> MutableMapping:
     """existings values in dict2 will overwrite dict1"""
     for key in dict1.keys():
         if key in dict2 and dict2[key] and key not in exclude:
@@ -113,18 +113,12 @@ def doi_lookup(doi: str) -> DoiInfo:
     info = _crossref(doi)
     pmid = _doi2pmid(doi)
     if pmid:
-        try:
-            pinfo = _get_pmid_info(pmid)
-            assert pinfo.pop("doi") == doi
+        pinfo = _get_pmid_info(pmid)
+        if pinfo.pop("doi") == doi:
             info = _merge_info(pinfo, info)
             info["pmid"] = pmid
-        except AssertionError:
-            pass
     # get rid of empty values
-    for key, val in list(info.items()):
-        if not val:
-            del info[key]
-    return cast("DoiInfo", info)
+    return cast("DoiInfo", {k: v for k, v in info.items() if v})
 
 
 def get_cached_gbseqs(gbids, max_age=60 * 60 * 24) -> dict[str, tuple[str, float]]:
@@ -259,14 +253,13 @@ def _parse_gbnuc_record(record):
 
 def get_organism_info(organism_id: int | str) -> dict | None:
     pubmed_record = Entrez.read(Entrez.esummary(db="taxonomy", id=organism_id, retmode="xml"))
-    if not pubmed_record or len(pubmed_record) == 0:
-        return None
-    r = pubmed_record[0]
-    return {
-        "scientific_name": r["ScientificName"],
-        "division": r["Division"],
-        "common_name": r["CommonName"],
-        "species": r["Species"],
-        "genus": r["Genus"],
-        "rank": r["Rank"],
-    }
+    if isinstance(pubmed_record, Sequence) and len(pubmed_record):
+        r = pubmed_record[0]
+        return {
+            "scientific_name": r["ScientificName"],
+            "division": r["Division"],
+            "common_name": r["CommonName"],
+            "species": r["Species"],
+            "genus": r["Genus"],
+            "rank": r["Rank"],
+        }

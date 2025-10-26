@@ -163,7 +163,7 @@ class SpectrumForm(forms.ModelForm):
                 )
             if not self.errors:
                 self.cleaned_data["data"] = zip_wave_data(x, y[0])
-                self.data = self.data.copy()
+                self.data: dict = self.data.copy()
                 self.data["data"] = self.cleaned_data["data"]
 
     def clean_owner_state(self):

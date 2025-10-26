@@ -30,13 +30,21 @@ full string:
     'S65T/C76del/C76_G79del/K23_L24insRSG/C76delinsRRGY/C76_G78delinsRRGY/*315TextAKGT/M1_L2insVKSGEE'
 """
 
+from __future__ import annotations
+
 import re
 import warnings
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
 from .align import align_seqs, parental_numbering
 from .skbio_protein import SkbSequence
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    type Operation = Literal["sub", "del", "ins", "delins", "ext"]
 
 # optional prefix could be added
 # (?:(?P<prefix>[A-Za-z0-9]+)\.)?
@@ -76,7 +84,7 @@ class Mutation:
         start_idx,
         stop_char,
         stop_idx,
-        operation,
+        operation: Operation,
         new_chars,
         ext,
         start_label=None,
@@ -170,7 +178,7 @@ class Mutation:
     def __hash__(self):
         return hash(str(self))
 
-    def __call__(self, seq, idx0=1):
+    def __call__(self, seq: Sequence, idx0: int = 1) -> tuple[Sequence, int]:
         # not calling this since the start-CHAR may have changed from a
         # previous mutation when stringing...
         # instead... this gets called at each step of MutationSet.apply
@@ -196,6 +204,7 @@ class Mutation:
             return (seq[:startpos] + self.new_chars + seq[nextpos:], shift)
         if self.operation == "ext":
             return seq + self.new_chars + self.ext, 0
+        raise
 
     def _assert_position_consistency(self, seq, idx0=1):
         """test whether the mutation actually lines up with the

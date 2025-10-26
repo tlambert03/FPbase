@@ -154,6 +154,7 @@ include = ["backend"]
 exclude = [
     "**/migrations",
     "**/tests",
+    "**/config/settings/",
     "**/*_test.py",
     "**/test_*.py",
     "**/node_modules",
@@ -182,18 +183,12 @@ reportAttributeAccessIssue = false
 
 # Django and third-party libraries often use Optional types
 reportOptionalMemberAccess = false
-reportOptionalSubscript = false
-
-# Factory-boy and Django use private imports intentionally
-reportPrivateImportUsage = false
 
 # Django Meta classes override parent Meta
 reportIncompatibleVariableOverride = false
 
 # Noisy for Django settings and library calls with incomplete stubs
 reportCallIssue = false
-reportIndexIssue = false
 reportArgumentType = false
 reportIncompatibleMethodOverride = false
-reportGeneralTypeIssues = false
 reportOperatorIssue = false

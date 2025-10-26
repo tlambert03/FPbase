@@ -12,6 +12,7 @@ for production use cases.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -65,7 +66,7 @@ def savgol_filter(y: np.ndarray, window_length: int, polyorder: int) -> np.ndarr
     return result
 
 
-def argrelextrema(data: np.ndarray, comparator: callable, order: int = 1) -> tuple[np.ndarray]:
+def argrelextrema(data: np.ndarray, comparator: Callable, order: int = 1) -> tuple[np.ndarray]:
     """
     Find relative extrema in data.
 

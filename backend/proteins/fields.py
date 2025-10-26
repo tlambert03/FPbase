@@ -98,20 +98,22 @@ class Spectrum:
             return False
 
     def change_x(self, value):
-        if not isinstance(value, list):
-            raise TypeError("X values must be a python list")
-        if len(value) != len(self.data):
-            raise ValueError("Error: array length must match existing data")
-        for i in range(len(value)):
-            self.data[i][0] = value[i]
+        if self.data:
+            if not isinstance(value, list):
+                raise TypeError("X values must be a python list")
+            if len(value) != len(self.data):
+                raise ValueError("Error: array length must match existing data")
+            for i in range(len(value)):
+                self.data[i][0] = value[i]
 
     def change_y(self, value):
-        if not isinstance(value, list):
-            raise TypeError("Y values must be a python list")
-        if len(value) != len(self.data):
-            raise ValueError("Error: array length must match existing data")
-        for i in range(len(value)):
-            self.data[i][1] = value[i]
+        if self.data:
+            if not isinstance(value, list):
+                raise TypeError("Y values must be a python list")
+            if len(value) != len(self.data):
+                raise ValueError("Error: array length must match existing data")
+            for i in range(len(value)):
+                self.data[i][1] = value[i]
 
     def d3data(self):
         output = []
