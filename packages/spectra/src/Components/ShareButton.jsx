@@ -33,22 +33,41 @@ import {
   GET_EX_NORM,
 } from "../client/queries"
 
-window.twttr = (function(d, s, id) {
-  const fjs = d.getElementsByTagName(s)[0]
-  const t = window.twttr || {}
-  if (d.getElementById(id)) return t
-  const js = d.createElement(s)
-  js.id = id
-  js.src = "https://platform.twitter.com/widgets.js"
-  fjs.parentNode.insertBefore(js, fjs)
-
-  t._e = []
-  t.ready = function(f) {
-    t._e.push(f)
+// Lazy load Twitter widget only when needed
+function loadTwitterWidget() {
+  // Return existing widget if already loaded
+  if (window.twttr) {
+    return Promise.resolve(window.twttr)
   }
 
-  return t
-})(document, "script", "twitter-wjs")
+  // Check if script is already being loaded
+  const existingScript = document.getElementById("twitter-wjs")
+  if (existingScript) {
+    return new Promise((resolve) => {
+      existingScript.addEventListener("load", () => resolve(window.twttr))
+    })
+  }
+
+  // Load the script
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script")
+    script.id = "twitter-wjs"
+    script.src = "https://platform.twitter.com/widgets.js"
+    script.async = true
+    script.onload = () => resolve(window.twttr)
+    script.onerror = () => {
+      console.debug("Twitter widget failed to load")
+      reject(new Error("Twitter widget load failed"))
+    }
+
+    const firstScript = document.getElementsByTagName("script")[0]
+    if (firstScript && firstScript.parentNode) {
+      firstScript.parentNode.insertBefore(script, firstScript)
+    } else {
+      document.head.appendChild(script)
+    }
+  })
+}
 
 const useStyles = makeStyles(theme => ({
   textField: {
@@ -104,6 +123,15 @@ function ShareLinkAlert({ open, setOpen }) {
       cp.destroy()
     }
   }, [])
+
+  // Lazy load Twitter widget when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadTwitterWidget().catch(() => {
+        // Silently fail - Twitter sharing will still work via URL
+      })
+    }
+  }, [open])
 
   return (
     <div>
