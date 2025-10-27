@@ -115,7 +115,8 @@ function activeSpectraToSelectors(
   spectraInfo,
   ownerInfo
 ) {
-  const currentOwners = selectors.map(({ owner }) => owner)
+  const safeSelectors = Array.isArray(selectors) ? selectors : []
+  const currentOwners = safeSelectors.map(({ owner }) => owner)
   const newOwners = activeSpectra
     .map(id => spectraInfo[id] && spectraInfo[id].owner)
     .filter(owner => owner && !currentOwners.includes(owner))
@@ -124,7 +125,7 @@ function activeSpectraToSelectors(
     category: ownerInfo[owner].category,
   }))
   Array.from(["D", "P", "L", "C", "F", null]).forEach(cat => {
-    if (!selectors.find(item => item.category === cat && !item.owner)) {
+    if (!safeSelectors.find(item => item.category === cat && !item.owner)) {
       toAdd.push({
         owner: null,
         category: cat,
