@@ -166,7 +166,7 @@ const OwnersContainer = React.memo(function OwnersContainer({
     }
   }, [])
 
-  const sortedSelectors = useMemo(() => [...selectors].sort(selectorSorter), [selectors])
+  const sortedSelectors = useMemo(() => (Array.isArray(selectors) ? [...selectors] : []).sort(selectorSorter), [selectors])
 
   const isPopulated = cat => {
     let populated =
