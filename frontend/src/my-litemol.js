@@ -13,68 +13,159 @@ window.FPBASE.currentBundle = "litemol"
 // populated by downloadPDBMeta.success
 const pdbInfo = {}
 
-async function loadSmiles(pdbid) {
-  let chromophore = pdbInfo[pdbid].chromophore
-  if (!chromophore) {
-    return
-  }
-  const _id = pdbInfo[pdbid].chromophore.id
-  const url = `https://cdn.rcsb.org/images/ccd/unlabeled/${_id[0]}/${_id}.svg`
+/**
+ * Load and display chromophore structure diagram from RCSB.
+ *
+ * @param {string} pdbid - PDB identifier
+ */
+function loadSmiles(pdbid) {
+  const chromophore = pdbInfo[pdbid]?.chromophore
+  if (!chromophore) return
+
+  // Escape HTML to prevent XSS
+  const chromoId = $("<div>").text(chromophore.id).html()
+  const svgUrl = `https://cdn.rcsb.org/images/ccd/unlabeled/${chromoId[0]}/${chromoId}.svg`
+
   $("#smilesDrawing div").html(
-    `<a href="https://www.rcsb.org/ligand/${_id}">
-      <img id="smilesImg" src="${url}" alt="Diagram chromophore structure (${_id})">
+    `<a href="https://www.rcsb.org/ligand/${chromoId}">
+      <img id="smilesImg" src="${svgUrl}" alt="Chromophore structure diagram (${chromoId})">
     </a>`
   )
 }
 
-function getPDBbinary(id) {
-  return new Promise(function (resolve, reject) {
-    $.get(`https://files.rcsb.org/download/${id}.cif`)
-      .done((response) => {
-        resolve(response)
-      })
-      .fail((xhr, status, error) => {
-        $.get(
-          `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`
+/**
+ * Fetch PDB structure file from multiple mirror sources with cascading fallback.
+ *
+ * Tries sources in order of preference:
+ * 1. wwPDB (official worldwide PDB, recommended by RCSB docs)
+ * 2. RCSB (US mirror, byte-identical to wwPDB)
+ * 3. EBI/PDBe (European mirror, compatible format)
+ *
+ * @param {string} id - PDB identifier (e.g., '6GP0')
+ * @returns {Promise<string>} CIF format structure data
+ * @throws {Error} If all endpoints fail
+ * @see https://www.rcsb.org/docs/programmatic-access/file-download-services
+ */
+async function getPDBbinary(id) {
+  const TIMEOUT = 15000 // 15 second timeout per request
+
+  const endpoints = [
+    {
+      name: "wwPDB",
+      url: `https://files.wwpdb.org/download/${id}.cif`,
+    },
+    {
+      name: "RCSB",
+      url: `https://files.rcsb.org/download/${id}.cif`,
+    },
+    {
+      name: "EBI",
+      url: `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`,
+    },
+  ]
+
+  const errors = []
+
+  // Try each endpoint in sequence
+  for (let i = 0; i < endpoints.length; i++) {
+    const { name, url } = endpoints[i]
+    const isLastEndpoint = i === endpoints.length - 1
+
+    try {
+      const response = await $.ajax({ url, timeout: TIMEOUT })
+      return response
+    } catch (error) {
+      // Track the error
+      errors.push({ endpoint: name, error })
+
+      // Log to Sentry for monitoring
+      if (window.Sentry) {
+        window.Sentry.addBreadcrumb({
+          message: `PDB fetch failed: ${name}`,
+          data: {
+            pdbId: id,
+            endpoint: name,
+            error: error.statusText,
+            attemptNumber: i + 1,
+            totalEndpoints: endpoints.length,
+          },
+          level: "warning",
+        })
+      }
+
+      // If this was the last endpoint, throw with all error details
+      if (isLastEndpoint) {
+        const errorSummary = errors
+          .map((e) => `${e.endpoint}: ${e.error.statusText || "Network error"}`)
+          .join("; ")
+
+        throw new Error(
+          `Failed to fetch PDB ${id} from all sources. Errors: ${errorSummary}`
         )
-          .done((response) => {
-            resolve(response)
-          })
-          .fail((_xhr) =>
-            reject(
-              new Error({
-                status: _xhr.status,
-                statusText: _xhr.statusText,
-              })
-            )
-          )
-      })
-  })
+      }
+    }
+  }
 }
 
+/**
+ * Load and display chemical information for a PDB entry.
+ *
+ * @param {string} pdbid - PDB identifier
+ */
 function loadChemInfo(pdbid) {
-  const e = pdbInfo[pdbid]
-  $("#chem-title").html(e.struct.title)
-  const d = new Date(e.rcsb_accession_info.deposit_date)
-  $("#chem-date").html(
-    d.toLocaleDateString("en-US", { year: "numeric", month: "short" })
-  )
-  $("#chem-authors").html(`${e.audit_author[0].name} et al. `)
-  $("#chem-pubmed").attr(
-    "href",
-    `https://www.ncbi.nlm.nih.gov/pubmed/${e.rcsb_primary_citation.pdbx_database_id_PubMed}`
-  )
-  if (e.chromophore !== undefined) {
+  const entry = pdbInfo[pdbid]
+  if (!entry) return
+
+  // Use .text() for safe insertion of untrusted content
+  $("#chem-title").text(entry.struct?.title || "Unknown")
+
+  const depositDate = entry.rcsb_accession_info?.deposit_date
+  if (depositDate) {
+    const date = new Date(depositDate)
+    $("#chem-date").html(
+      date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+      })
+    )
+  }
+
+  // Safe access to potentially missing author data
+  const firstAuthor = entry.audit_author?.[0]?.name
+  if (firstAuthor) {
+    $("#chem-authors").text(`${firstAuthor} et al. `)
+  }
+
+  // Safe access to PubMed ID
+  const pubmedId = entry.rcsb_primary_citation?.pdbx_database_id_PubMed
+  if (pubmedId) {
+    $("#chem-pubmed").attr(
+      "href",
+      `https://www.ncbi.nlm.nih.gov/pubmed/${pubmedId}`
+    )
+  } else {
+    $("#chem-pubmed").removeAttr("href")
+  }
+
+  if (entry.chromophore) {
+    // Escape HTML to prevent XSS
+    const chromoId = $("<div>").text(entry.chromophore.id).html()
     $("#chem-id").html(
       `<a target="_blank" rel="noopener" class="text-secondary"
-      href="https://www.rcsb.org/ligand/${e.chromophore.id}">${e.chromophore.id}</a>`
+      href="https://www.rcsb.org/ligand/${chromoId}">${chromoId}</a>`
     )
-    $("#chem-form").html(e.chromophore.formula)
+    $("#chem-form").text(entry.chromophore.formula)
   } else {
     $("#chem-id").html("")
   }
 }
 
+/**
+ * Initialize LiteMol molecular visualization plugin.
+ *
+ * @param {string} selection - CSS selector for the container element
+ * @param {jQuery} changer - jQuery object for the PDB selector dropdown
+ */
 function initLiteMol(selection, changer) {
   const PluginSpec = LiteMol.Plugin.getDefaultSpecification()
   const { LayoutRegion } = LiteMol.Bootstrap.Components
@@ -86,9 +177,7 @@ function initLiteMol(selection, changer) {
       true
     ),
     Components.Transform.View(LayoutRegion.Right),
-    // Components.Context.Log(LayoutRegion.Bottom, true),
     Components.Context.Overlay(LayoutRegion.Root),
-    // Components.Context.Toast(LayoutRegion.Main, true),
     Components.Context.BackgroundTasks(LayoutRegion.Main, true),
   ]
 
@@ -104,174 +193,200 @@ function initLiteMol(selection, changer) {
       allowAnalytics: true,
     })
 
-    const dataCache = {}
-    changer.change(function () {
+    // Cache PDB data promises to avoid redundant fetches
+    const dataCache = new Map()
+    let currentRequest = null
+
+    changer.change(async function () {
       const id = this.value
-      if (!Object.prototype.hasOwnProperty.call(dataCache, "id")) {
-        dataCache[id] = getPDBbinary(id)
+      const requestId = Symbol("request")
+      currentRequest = requestId
+
+      // Get or create cached promise
+      if (!dataCache.has(id)) {
+        dataCache.set(id, getPDBbinary(id))
       }
+
       plugin.clear()
-      dataCache[id].then(
-        (data) =>
-          plugin.loadMolecule({
-            data,
-            id,
-          }),
-        (reason) => {
-          $(selection).html(
-            '<span class="text-danger muted">failed to retrieve molecular structure</span>'
-          )
+
+      try {
+        const data = await dataCache.get(id)
+
+        // Only load if this is still the active request
+        if (currentRequest === requestId) {
+          plugin.loadMolecule({ data, id })
         }
-      )
+      } catch (error) {
+        // Only show error if this is still the active request
+        if (currentRequest === requestId) {
+          $(selection).html(
+            '<span class="text-danger muted">Failed to retrieve molecular structure. Please refresh.</span>'
+          )
+          if (window.Sentry) {
+            window.Sentry.captureException(error, {
+              tags: { pdbId: id, component: "litemol" },
+            })
+          }
+        }
+      }
     })
 
-    $("body").on("click", function (e) {
-      if ($(".lm-layout-right").length) {
-        if ($(e.target).closest("#litemol-viewer").length === 0) {
-          plugin.setLayoutState({
-            hideControls: true,
-          })
-        }
+    // Close side panel when clicking outside (use namespace to prevent leaks)
+    $("body").off("click.litemol").on("click.litemol", (e) => {
+      if (
+        $(".lm-layout-right").length &&
+        $(e.target).closest("#litemol-viewer").length === 0
+      ) {
+        plugin.setLayoutState({ hideControls: true })
       }
     })
   } catch (err) {
-    if (window.Sentry !== undefined) {
-      window.Sentry.captureException(err)
+    if (window.Sentry) {
+      window.Sentry.captureException(err, {
+        tags: { component: "litemol-init" },
+      })
     }
   }
 
+  // Update external link and load metadata when selection changes
   changer
     .change(function () {
-      // var id = this.value
-      $("#pdb-out-link").attr(
-        "href",
-        `https://www.rcsb.org/structure/${this.value}`
-      )
-      if (pdbInfo[this.value]) {
-        loadSmiles(this.value)
-        loadChemInfo(this.value)
+      const id = this.value
+      $("#pdb-out-link").attr("href", `https://www.rcsb.org/structure/${id}`)
+
+      if (pdbInfo[id]) {
+        loadSmiles(id)
+        loadChemInfo(id)
       }
     })
     .trigger("change")
 }
 
+/**
+ * Download PDB metadata from RCSB GraphQL API.
+ *
+ * @param {string} pdbIds - JSON array string of PDB IDs (e.g., '["6GP0","1GFL"]')
+ * @returns {Promise} jQuery promise that resolves when metadata is loaded
+ */
 function downloadPDBMeta(pdbIds) {
-  return $.when(
-    $.post({
-      url: "https://data.rcsb.org/graphql",
-      contentType: "application/json",
-      data: JSON.stringify({
-        query: `{
-          entries(entry_ids:${pdbIds}) {
-            entry {
-              id
-            }
-            struct {
-              title
-            }
-            rcsb_entry_info {
-              experimental_method
-              resolution_combined
-            }
-            rcsb_accession_info {
-              deposit_date
-              revision_date
-            }
-            audit_author {
-              name
-            }
-            rcsb_primary_citation {
-              pdbx_database_id_PubMed
-            }
-            polymer_entities {
-              chem_comp_nstd_monomers {
-                chem_comp {
-                  id
-                  type
-                  formula_weight
-                  name
-                  formula
-                }
-              }
-            }
-            nonpolymer_entities {
-              nonpolymer_comp {
-                chem_comp {
-                  id
-                  type
-                  formula_weight
-                  name
-                  formula
-                }
+  return $.post({
+    url: "https://data.rcsb.org/graphql",
+    contentType: "application/json",
+    data: JSON.stringify({
+      query: `{
+        entries(entry_ids:${pdbIds}) {
+          entry { id }
+          struct { title }
+          rcsb_entry_info {
+            experimental_method
+            resolution_combined
+          }
+          rcsb_accession_info {
+            deposit_date
+            revision_date
+          }
+          audit_author { name }
+          rcsb_primary_citation {
+            pdbx_database_id_PubMed
+          }
+          polymer_entities {
+            chem_comp_nstd_monomers {
+              chem_comp {
+                id
+                type
+                formula_weight
+                name
+                formula
               }
             }
           }
-        }`,
-      }),
-      success: function ({ data }) {
-        data.entries.forEach((entry) => {
-          pdbInfo[entry.entry.id] = entry
-          let chromo = null
-
-          if (entry.polymer_entities && entry.polymer_entities.length > 0) {
-            chromo = entry.polymer_entities[0].chem_comp_nstd_monomers
-          } else if (
-            entry.nonpolymer_entities &&
-            entry.nonpolymer_entities.length > 0
-          ) {
-            chromo = entry.nonpolymer_entities[0].nonpolymer_comp
+          nonpolymer_entities {
+            nonpolymer_comp {
+              chem_comp {
+                id
+                type
+                formula_weight
+                name
+                formula
+              }
+            }
           }
+        }
+      }`,
+    }),
+  }).then(({ data }) => {
+    data.entries.forEach((entry) => {
+      const entryId = entry.entry.id
+      pdbInfo[entryId] = entry
 
-          if (Array.isArray(chromo)) {
-            chromo = chromo.reduce((a, b) =>
-              a.chem_comp.formula_weight > b.chem_comp.formula_weight ? a : b
-            )
-          }
+      // Extract chromophore (largest component by molecular weight)
+      let chromo = null
+      if (entry.polymer_entities?.length > 0) {
+        chromo = entry.polymer_entities[0].chem_comp_nstd_monomers
+      } else if (entry.nonpolymer_entities?.length > 0) {
+        chromo = entry.nonpolymer_entities[0].nonpolymer_comp
+      }
 
-          if (chromo && chromo.chem_comp) {
-            pdbInfo[entry.entry.id].chromophore = { ...chromo.chem_comp }
-          }
+      if (Array.isArray(chromo) && chromo.length > 0) {
+        chromo = chromo.reduce((a, b) =>
+          a.chem_comp.formula_weight > b.chem_comp.formula_weight ? a : b
+        )
+      }
 
-          if (
-            entry.rcsb_entry_info &&
-            entry.rcsb_entry_info.resolution_combined &&
-            entry.rcsb_entry_info.resolution_combined.length > 0
-          ) {
-            pdbInfo[entry.entry.id].resolution =
-              entry.rcsb_entry_info.resolution_combined[0]
-          }
-        })
-      },
+      if (chromo?.chem_comp) {
+        pdbInfo[entryId].chromophore = { ...chromo.chem_comp }
+      }
+
+      // Extract resolution if available
+      const resolutions = entry.rcsb_entry_info?.resolution_combined
+      if (resolutions?.length > 0) {
+        pdbInfo[entryId].resolution = resolutions[0]
+      }
     })
-  )
+  })
 }
 
-const getPDBinfo = function (pdbIds) {
+/**
+ * Fetch PDB metadata and initialize LiteMol viewer.
+ *
+ * @param {string[]} pdbIds - Array of PDB identifiers
+ */
+function getPDBinfo(pdbIds) {
   downloadPDBMeta(`["${pdbIds.join('","')}"]`)
     .done(() => {
       const select = $("#pdb_select")
+
+      // Sort by resolution (best first)
       pdbIds.sort((a, b) =>
         pdbInfo[a].resolution > pdbInfo[b].resolution ? 1 : -1
       )
+
+      // Populate dropdown
       pdbIds.forEach((id) => {
         select.append(
-          $("<option>", {
-            value: id,
-          }).html(`${id} (${pdbInfo[id].resolution} Å)`)
+          $("<option>", { value: id }).html(
+            `${id} (${pdbInfo[id].resolution} Å)`
+          )
         )
       })
 
       initLiteMol("#litemol-viewer", select)
     })
-    .fail(function () {
-      let html =
-        '<div><p><small class="text-muted">Failed to retrieve metadata from PDB!</small></p>'
-      html += "Please look for these IDs at RSCB PDB: &nbsp;"
-      pdbIds.forEach((_id) => {
-        html += `<a href="https://www.rcsb.org/structure/${_id}">${_id}</a>, `
-      })
-      html += "</div>"
-      $("#protein-structure").html(html).removeClass("row")
+    .fail(() => {
+      const links = pdbIds
+        .map(
+          (id) => `<a href="https://www.rcsb.org/structure/${id}">${id}</a>`
+        )
+        .join(", ")
+
+      $("#protein-structure")
+        .html(
+          `<div>
+            <p><small class="text-muted">Failed to retrieve metadata from PDB!</small></p>
+            <p>Please look for these IDs at RCSB PDB: ${links}</p>
+          </div>`
+        )
+        .removeClass("row")
     })
 }
 
