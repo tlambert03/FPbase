@@ -116,7 +116,7 @@ function intializeClient({ uri, storage }) {
     // typeDefs removed - not supported in Apollo Client v3
     resolvers,
     devtools: {
-      enabled: process.env.NODE_ENV === "development",
+      enabled: process.env.NODE_ENV === 'development',
     },
   });
 
