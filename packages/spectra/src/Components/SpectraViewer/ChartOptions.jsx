@@ -144,7 +144,12 @@ const DEFAULT_OPTIONS = {
     filename: "FPbase_Spectra.csv",
     sourceWidth: 1200,
     scale: 1,
+    fallbackToExportServer: false,
     csv: {},
+    error: function(options, err) {
+      console.error('Chart export failed:', err)
+      alert('Export failed. Please try again or contact us if the problem persists.')
+    },
     chartOptions: {
       chart: {
         height: this && this.chartHeight,

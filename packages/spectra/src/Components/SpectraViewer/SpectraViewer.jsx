@@ -14,6 +14,7 @@ import {
   useHighcharts,
 } from "react-jsx-highcharts"
 import "highcharts/modules/exporting"
+import "highcharts/modules/offline-exporting"
 import "highcharts/modules/pattern-fill"
 import "highcharts/modules/export-data"
 import "highcharts/modules/accessibility"
