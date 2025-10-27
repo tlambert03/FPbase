@@ -124,7 +124,10 @@ function populate_comparison_tab(comparison_set) {
           }).html(val.name)
         )
         .append($("<p>").html((exemstring || "") + (ecqystring || "")))
-        .append(
+
+      // Only append spectrum image if the protein has spectra
+      if (val.spectra && JSON.parse(val.spectra).length > 0) {
+        widget.append(
           $("<img>", {
             src:
               "/spectra_img/" + val.slug + ".svg?xlim=400,700&fill=1&xlabels=0",
@@ -133,14 +136,16 @@ function populate_comparison_tab(comparison_set) {
             alt: val.name + " spectrum"
           })
         )
-        .append(
-          $("<button>", {
-            class: "comparison-btn remove-protein",
-            "data-op": "remove",
-            "data-object": val.slug,
-            "data-action-url": "/ajax/comparison/"
-          }).html("&times;")
-        )
+      }
+
+      widget.append(
+        $("<button>", {
+          class: "comparison-btn remove-protein",
+          "data-op": "remove",
+          "data-object": val.slug,
+          "data-action-url": "/ajax/comparison/"
+        }).html("&times;")
+      )
       widget.appendTo($ul)
     })
     $("#clearbutton").show()
