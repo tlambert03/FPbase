@@ -88,15 +88,9 @@ export function initSentry() {
       window.Sentry = Sentry
 
       sentryInitialized = true
-
-      console.log("✅ Sentry initialized successfully")
     } catch (error) {
       console.error("❌ Failed to initialize Sentry:", error)
     }
-  } else if (process.env.NODE_ENV !== "production") {
-    console.log("ℹ️ Sentry not initialized (development mode)")
-  } else {
-    console.warn("⚠️ Sentry not initialized (missing DSN)")
   }
 
   return Sentry
