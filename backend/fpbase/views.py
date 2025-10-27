@@ -10,12 +10,45 @@ from django.views.generic.edit import FormView
 from graphene_django.views import GraphQLView
 from rest_framework import exceptions
 from rest_framework.settings import api_settings
+from rest_framework.throttling import AnonRateThrottle
 from sentry_sdk import last_event_id
 
 from fpbase.forms import ContactForm
 from proteins.models import Protein, Spectrum
 
 logger = logging.getLogger(__name__)
+
+
+class SameOriginExemptAnonThrottle(AnonRateThrottle):
+    """
+    Throttle class that exempts same-origin requests from rate limiting.
+
+    This allows the FPbase spectra viewer (https://www.fpbase.org/spectra/)
+    to make unlimited GraphQL requests to its own backend, while still
+    throttling external API consumers.
+
+    Same-origin is determined by checking if the Referer header matches
+    the request host.
+    """
+
+    def allow_request(self, request, view):
+        """Check if request should be throttled, exempting same-origin requests."""
+        # Check if this is a same-origin request by comparing the referer with the host
+        referer = request.headers.get("referer", "")
+
+        # If the referer contains our host (accounting for port differences), it's a same-origin request
+        # Note: This checks for the host in the referer URL (e.g., "https://www.fpbase.org/...")
+        # We strip the port from host comparison to handle localhost:8000 vs fpbase.org
+        if referer:
+            host = request.get_host()
+            # Extract the main host without port for comparison
+            host_without_port = host.split(":")[0]
+            # Check if host (with or without port) appears in the referer
+            if host in referer or host_without_port in referer:
+                return True
+
+        # For all other requests, apply normal throttling
+        return super().allow_request(request, view)
 
 
 class RateLimitedGraphQLView(GraphQLView):
@@ -80,6 +113,7 @@ class RateLimitedGraphQLView(GraphQLView):
                     "path": request.path,
                     "method": request.method,
                     "user_agent": request.headers.get("user-agent", "")[:200],
+                    "referer": request.headers.get("referer", "")[:200],  # for analysis
                     "retry_after": retry_after,
                     "exception_detail": str(exc.detail),
                 },
