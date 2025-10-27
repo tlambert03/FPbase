@@ -687,15 +687,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-autocomplete-light"
-version = "3.12.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bc/49/fd4705cd96f313d858f9a8c5fce1c33f1f61adb6b25acc92a924acf0a305/django_autocomplete_light-3.12.1.tar.gz", hash = "sha256:50f7b83681feec6491c38e6114d7a4fe80f9e99a8cc6c8458a3e7bb137ad6b1d", size = 296420, upload-time = "2025-02-26T08:21:16.332Z" }
-
-[[package]]
 name = "django-avatar"
 version = "8.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1129,7 +1120,6 @@ dependencies = [
     { name = "django" },
     { name = "django-allauth", extra = ["socialaccount"] },
     { name = "django-anymail" },
-    { name = "django-autocomplete-light" },
     { name = "django-avatar" },
     { name = "django-cors-headers" },
     { name = "django-crispy-forms" },
@@ -1210,7 +1200,6 @@ requires-dist = [
     { name = "django", specifier = ">=5.2,<5.3" },
     { name = "django-allauth", extras = ["socialaccount"], specifier = ">=0.70.0" },
     { name = "django-anymail", specifier = "==10.0" },
-    { name = "django-autocomplete-light", specifier = ">=3.11.0" },
     { name = "django-avatar", specifier = ">=8.0.1" },
     { name = "django-cors-headers", specifier = ">=4.2.0" },
     { name = "django-crispy-forms", specifier = "==1.13.0" },

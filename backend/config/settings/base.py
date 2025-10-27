@@ -49,8 +49,6 @@ DJANGO_APPS = [
     "django.contrib.sitemaps",
     # Useful template tags:
     "django.contrib.humanize",
-    "dal",
-    "dal_select2",
     "django_tomselect",
     # Admin
     "django.contrib.admin",

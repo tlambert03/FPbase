@@ -1,4 +1,6 @@
 import $ from "jquery"
+import TomSelect from "tom-select"
+import "tom-select/dist/css/tom-select.bootstrap4.css"
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
 window.mobilecheck = function() {
@@ -204,28 +206,40 @@ $(function() {
 
 /////////////////. Spectra Image URL Builder
 
-$("#proteinSlug").select2({
-  theme: "bootstrap",
-  width: "80%",
-  ajax: {
-    theme: "bootstrap",
-    containerCssClass: ":all:",
-    width: "auto",
+if (document.getElementById("proteinSlug")) {
+  new TomSelect("#proteinSlug", {
+    valueField: "id",
+    labelField: "text",
+    searchField: "text",
 
-    url: "/autocomplete-protein",
-    dataType: "json",
-    cache: true,
-    data: function(params) {
-      var query = {
-        q: params.term,
-        type: "spectra",
-        page: params.page,
-        _type: params._type
-      }
-      return query
-    }
-  }
-})
+    load: function(query, callback) {
+      if (!query.length) return callback()
+
+      const url = `/proteins/ts/protein/?q=${encodeURIComponent(query)}&type=spectra`
+
+      fetch(url)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`)
+          }
+          return response.json()
+        })
+        .then((json) => {
+          callback(json.results || [])
+        })
+        .catch((error) => {
+          console.error("Autocomplete error:", error)
+          callback()
+        })
+    },
+
+    render: {
+      option: function(item, escape) {
+        return `<div>${escape(item.text)}</div>`
+      },
+    },
+  })
+}
 
 function buildURL() {
   var ext = "." + $("#fileTypeSelect").val()

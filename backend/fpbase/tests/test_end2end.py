@@ -170,11 +170,12 @@ class TestPagesRender(StaticLiveServerTestCase):
         self.assertGreater(len(paths), 10, "Chart should have rendered spectra paths")
 
     def _interact_scope(self, scope):
-        # Wait for select2 to initialize the fluor selector
+        # NOTE: embedscope still uses Select2 due to legacy microscope.js dependency
+        # Wait for Select2 to initialize the fluor selector
         WebDriverWait(self.browser, 10).until(
-            EC.presence_of_element_located((By.ID, "select2-fluor-select-container"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, "#fluor-select + .select2"))
         )
-        self.browser.find_element(value="select2-fluor-select-container").click()
+        self.browser.find_element(by="css selector", value=".select2-selection").click()
         self.browser.switch_to.active_element.send_keys(self.p1.name[:5])
         self.browser.switch_to.active_element.send_keys(Keys.ENTER)
 
@@ -231,9 +232,13 @@ class TestPagesRender(StaticLiveServerTestCase):
         )
         self._load_reverse("proteins:fret")
 
-        # Verify page loads and select2 widgets are present and clickable
-        WebDriverWait(self.browser, 10).until(EC.element_to_be_clickable((By.ID, "select2-donor-select-container")))
-        WebDriverWait(self.browser, 10).until(EC.element_to_be_clickable((By.ID, "select2-acceptor-select-container")))
+        # Verify page loads and Tom-Select widgets are present and clickable
+        WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#donor-select + .ts-wrapper"))
+        )
+        WebDriverWait(self.browser, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "#acceptor-select + .ts-wrapper"))
+        )
 
         # Verify the result fields exist
         self.browser.find_element(value="QYD")
@@ -375,19 +380,17 @@ class TestPagesRender(StaticLiveServerTestCase):
         Select(self.browser.find_element(by="id", value="id_category")).select_by_value("p")
         Select(self.browser.find_element(by="id", value="id_subtype")).select_by_value("ex")
 
-        # Wait for protein owner field to appear (it's a Select2 autocomplete field)
-        # Find the Select2 container and click it to open the search
-        select2_container = WebDriverWait(self.browser, 10).until(
-            lambda d: d.find_element(by="css selector", value=".select2-selection")
+        # Wait for protein owner field to appear (it's a Tom-Select autocomplete field)
+        # Find the Tom-Select container and click it to open the search
+        ts_container = WebDriverWait(self.browser, 10).until(
+            lambda d: d.find_element(by="css selector", value=".ts-control")
         )
-        select2_container.click()
+        ts_container.click()
 
         # Type the protein name into the autocomplete search box and select it
         self.browser.switch_to.active_element.send_keys(protein_name)
         # Wait briefly for autocomplete results to load
-        WebDriverWait(self.browser, 5).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".select2-results__option"))
-        )
+        WebDriverWait(self.browser, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".ts-dropdown .option")))
         self.browser.switch_to.active_element.send_keys(Keys.ENTER)
 
         # Switch to manual data tab

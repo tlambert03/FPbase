@@ -11,7 +11,6 @@ dependencies = [
     'celery[redis]==5.5.3',
     'django-allauth[socialaccount]>=0.70.0',
     'django-anymail==10.0',
-    'django-autocomplete-light>=3.11.0',
     'django-avatar>=8.0.1',
     'django-cors-headers>=4.2.0',
     'django-crispy-forms==1.13.0', # NOTE: there's an issue with 1.14 and bootstrap4 forms not having form-control class

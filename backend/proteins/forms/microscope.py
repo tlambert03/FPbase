@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import re
 
-from dal import autocomplete
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.forms.models import inlineformset_factory
+from django_tomselect.app_settings import PluginRemoveButton, TomSelectConfig
+from django_tomselect.forms import TomSelectModelMultipleChoiceField
 
 from ..models import (
     Camera,
@@ -306,29 +309,7 @@ class MicroscopeForm(forms.ModelForm):
         return cleaned
 
 
-class MultipleFilterField(forms.ModelMultipleChoiceField):
-    def __init__(self, label):
-        super().__init__(
-            label=label,
-            queryset=Filter.objects.all(),
-            required=False,
-            widget=autocomplete.ModelSelect2Multiple(
-                url="proteins:filter-autocomplete",
-                attrs={
-                    "data-theme": "bootstrap",
-                    "data-width": "100%",
-                    "data-placeholder": "----------",
-                },
-            ),
-        )
-
-
 class OpticalConfigForm(forms.ModelForm):
-    ex_filters = MultipleFilterField("Excitation Filter(s)")
-    em_filters = MultipleFilterField("Emission Filter(s)")
-    ref_em_filters = MultipleFilterField("Advanced: Reflective Emission Filter(s)")
-    bs_filters = MultipleFilterField("Dichroic Filter(s)")
-
     invert_bs = forms.BooleanField(
         required=False,
         widget=forms.widgets.CheckboxInput(attrs={"class": "custom-control-input"}),
@@ -347,6 +328,43 @@ class OpticalConfigForm(forms.ModelForm):
                 }
             )
         super().__init__(*args, **kwargs)
+
+        # Configure Tom-Select filter fields after Django startup to avoid circular imports
+        filter_config = TomSelectConfig(
+            url="proteins:filter-ts",
+            placeholder="----------",
+            minimum_query_length=1,
+            highlight=True,
+            preload="focus",
+            max_items=None,
+            plugin_remove_button=PluginRemoveButton(title="Remove"),
+            css_framework="bootstrap4",
+        )
+
+        self.fields["ex_filters"] = TomSelectModelMultipleChoiceField(
+            label="Excitation Filter(s)",
+            config=filter_config,
+            queryset=Filter.objects.all(),
+            required=False,
+        )
+        self.fields["em_filters"] = TomSelectModelMultipleChoiceField(
+            label="Emission Filter(s)",
+            config=filter_config,
+            queryset=Filter.objects.all(),
+            required=False,
+        )
+        self.fields["ref_em_filters"] = TomSelectModelMultipleChoiceField(
+            label="Advanced: Reflective Emission Filter(s)",
+            config=filter_config,
+            queryset=Filter.objects.all(),
+            required=False,
+        )
+        self.fields["bs_filters"] = TomSelectModelMultipleChoiceField(
+            label="Dichroic Filter(s)",
+            config=filter_config,
+            queryset=Filter.objects.all(),
+            required=False,
+        )
 
     def save(self, commit=True):
         oc = super().save()

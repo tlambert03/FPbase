@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import reversion
-from dal import autocomplete
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import mail_managers
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.utils.html import strip_tags
 from django.views.generic import DetailView, ListView
+from django_tomselect.autocompletes import AutocompleteModelView
 
 from fpbase.util import is_ajax
 from proteins.models import Excerpt
@@ -52,26 +55,19 @@ class ReferenceDetailView(DetailView):
         return data
 
 
-class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
-    def get_results(self, context):
-        """Return data for the 'results' key of the response."""
-        return [
-            {
-                "id": result.doi,
-                # 'slug': result.slug,
-                "text": result.citation,
-            }
-            for result in context["object_list"]
-        ]
+class ReferenceTomSelectView(LoginRequiredMixin, AutocompleteModelView):
+    """Tom-Select autocomplete view for Reference model."""
 
-    def get_queryset(self):
-        # Don't forget to filter out results depending on the visitor !
-        if not self.request.user.is_authenticated:
-            return Reference.objects.none()
-        qs = Reference.objects.all()
-        if self.q:
-            qs = qs.filter(doi__icontains=self.q)
-        return qs
+    model = Reference
+    search_lookups = ["doi__icontains"]
+    ordering = ["citation"]
+    page_size = 20
+
+    def create_result_dict(self, result):
+        return {
+            "id": result.doi,
+            "text": result.citation,
+        }
 
 
 def add_excerpt(request, pk=None):

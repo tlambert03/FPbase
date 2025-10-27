@@ -100,6 +100,61 @@
 
 {% block javascript %}
 
+<script type="module">
+  // Import Tom-Select from the already-loaded library
+  console.log('[Spectrum Form] JavaScript block loaded');
+  console.log('[Spectrum Form] TomSelect available:', typeof TomSelect !== 'undefined');
+
+  // Initialize Tom-Select on owner_state field for autocomplete
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('[Spectrum Form] DOM loaded, initializing Tom-Select on #id_owner_state');
+
+    const ownerStateElement = document.getElementById('id_owner_state');
+    if (ownerStateElement) {
+      console.log('[Spectrum Form] Found #id_owner_state element:', ownerStateElement);
+
+      try {
+        const tomSelectInstance = new TomSelect('#id_owner_state', {
+          valueField: 'id',
+          labelField: 'text',
+          searchField: 'text',
+          placeholder: 'Select a state...',
+          load: function(query, callback) {
+            if (!query.length) return callback();
+
+            const url = `/proteins/ts/state/?q=${encodeURIComponent(query)}`;
+            console.log('[Spectrum Form] Loading autocomplete from:', url);
+
+            fetch(url)
+              .then(response => response.json())
+              .then(json => {
+                console.log('[Spectrum Form] Autocomplete results:', json);
+                callback(json.results || []);
+              })
+              .catch(error => {
+                console.error('[Spectrum Form] Autocomplete error:', error);
+                callback();
+              });
+          },
+          render: {
+            option: function(item, escape) {
+              return `<div>${escape(item.text)}</div>`;
+            },
+            item: function(item, escape) {
+              return `<div>${escape(item.text)}</div>`;
+            }
+          }
+        });
+        console.log('[Spectrum Form] Tom-Select initialized successfully:', tomSelectInstance);
+      } catch (error) {
+        console.error('[Spectrum Form] Error initializing Tom-Select:', error);
+      }
+    } else {
+      console.warn('[Spectrum Form] #id_owner_state element not found');
+    }
+  });
+</script>
+
 <script>
 
   // Configure jQuery to include CSRF token in AJAX requests

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Div, Field, Layout, Submit
-from dal import autocomplete
 from django import forms
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
@@ -35,15 +36,14 @@ class SpectrumForm(forms.ModelForm):
         Spectrum.LIGHT: ("owner_light", "Light"),
     }
 
+    # Use regular ModelChoiceField - Tom-Select will be initialized manually via JavaScript
     owner_state = forms.ModelChoiceField(
+        queryset=State.objects.all(),
         required=False,
         label=mark_safe('Protein<span class="asteriskField">*</span>'),
-        queryset=State.objects.select_related("protein"),
-        widget=autocomplete.ModelSelect2(
-            url="proteins:state-autocomplete",
-            attrs={"data-theme": "bootstrap", "data-width": "100%"},
-        ),
+        widget=forms.Select(attrs={"class": "form-control"}),
     )
+
     owner = forms.CharField(
         max_length=100,
         label=mark_safe('<span class="owner-type">Owner</span> Name<span class="asteriskField">*</span>'),
@@ -92,6 +92,8 @@ class SpectrumForm(forms.ModelForm):
         )
 
         super().__init__(*args, **kwargs)
+
+        # Tom-Select will be initialized manually via JavaScript in the template
 
     class Meta:
         model = Spectrum

@@ -5,7 +5,6 @@ from typing import cast
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Field, Layout
-from dal import autocomplete
 from django import forms
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
 from django.utils.safestring import mark_safe
@@ -408,21 +407,6 @@ StateTransitionFormSet = inlineformset_factory(Protein, StateTransition, form=St
 
 
 class LineageForm(forms.ModelForm):
-    parent = TomSelectModelChoiceField(
-        config=TomSelectConfig(
-            url="proteins:lineage-ts",
-            placeholder="Select parent lineage",
-            minimum_query_length=2,
-            highlight=True,
-            preload="focus",
-            plugin_clear_button=PluginClearButton(title="Clear Selection"),
-            css_framework="bootstrap4",
-        ),
-        queryset=Lineage.objects.select_related("protein"),
-        required=False,
-        help_text="Direct evolutionary ancestor (must have ancestor of its own to appear)",
-    )
-
     class Meta:
         model = Lineage
         fields = ("protein", "parent", "mutation")
@@ -442,6 +426,22 @@ class LineageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Create Tom-Select field after Django startup to avoid circular imports
+        self.fields["parent"] = TomSelectModelChoiceField(
+            config=TomSelectConfig(
+                url="proteins:lineage-ts",
+                placeholder="Select parent lineage",
+                minimum_query_length=2,
+                highlight=True,
+                preload="focus",
+                plugin_clear_button=PluginClearButton(title="Clear Selection"),
+                css_framework="bootstrap4",
+            ),
+            queryset=Lineage.objects.all(),
+            required=False,
+            help_text="Direct evolutionary ancestor (must have ancestor of its own to appear)",
+        )
 
         instance = getattr(self, "instance", None)
         if instance and instance.pk:
@@ -555,27 +555,28 @@ class BleachMeasurementForm(forms.ModelForm):
 
 
 class protBleachItem(forms.ModelForm):
-    state = forms.ModelChoiceField(
-        label="Protein (State)",
-        help_text="If protein not in list, submit a new protein first",
-        queryset=State.objects.all(),
-        widget=autocomplete.ModelSelect2(
-            url="proteins:state-autocomplete",
-            attrs={
-                "class": "custom-select",
-                "data-theme": "bootstrap",
-                "data-width": "100%",
-                "data-placeholder": "----------",
-            },
-        ),
-    )
-
     class Meta:
         model = BleachMeasurement
         fields = ("rate", "state")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Create Tom-Select field after Django startup to avoid circular imports
+        self.fields["state"] = TomSelectModelChoiceField(
+            config=TomSelectConfig(
+                url="proteins:state-ts",
+                placeholder="----------",
+                minimum_query_length=2,
+                highlight=True,
+                preload="focus",
+                css_framework="bootstrap4",
+            ),
+            queryset=State.objects.all(),
+            label="Protein (State)",
+            help_text="If protein not in list, submit a new protein first",
+        )
+
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.disable_csrf = True

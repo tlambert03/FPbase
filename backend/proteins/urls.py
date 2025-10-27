@@ -178,26 +178,6 @@ urlpatterns = [
         views.ProteinDetailView.as_view(),
         name="protein-detail",
     ),
-    path(
-        "autocomplete-protein/",
-        views.ProteinAutocomplete.as_view(),
-        name="protein-autocomplete",
-    ),
-    path(
-        "autocomplete-lineage/",
-        views.LineageAutocomplete.as_view(),
-        name="lineage-autocomplete",
-    ),
-    path(
-        "autocomplete-state/",
-        views.StateAutocomplete.as_view(),
-        name="state-autocomplete",
-    ),
-    path(
-        "autocomplete-filter/",
-        views.FilterAutocomplete.as_view(),
-        name="filter-autocomplete",
-    ),
     # Tom-Select autocomplete endpoints
     path("ts/protein/", views.ProteinTomSelectView.as_view(), name="protein-ts"),
     path("ts/lineage/", views.LineageTomSelectView.as_view(), name="lineage-ts"),
