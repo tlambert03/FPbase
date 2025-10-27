@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 import time
 import uuid
@@ -28,6 +29,41 @@ SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS
 # reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
 cDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
 PASSWORD = "testpass2341o87123o847u3214"
+
+
+@pytest.fixture(scope="session")
+def uses_frontend(request):
+    from django.conf import settings
+
+    stats_file = settings.WEBPACK_LOADER["DEFAULT"].get("STATS_FILE")
+    needs_rebuild = True
+
+    if os.path.exists(stats_file):
+        with open(stats_file, encoding="utf-8") as f:
+            assets = json.load(f)
+
+        # Check if assets are from a production build (not dev server)
+        # Dev builds have publicPath pointing to localhost:8080
+        is_production_build = assets.get("status") == "done" and assets.get("chunks")
+        if is_production_build and assets.get("publicPath"):
+            # If publicPath contains localhost, it's from dev server - need rebuild
+            is_production_build = "localhost" not in assets.get("publicPath")
+
+        needs_rebuild = not is_production_build
+
+    if needs_rebuild:
+        subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
+
+
+@pytest.fixture()
+def use_real_webpack_loader(monkeypatch):
+    from webpack_loader import config, loaders, utils
+
+    monkeypatch.setattr(
+        utils,
+        "get_loader",
+        lambda config_name: loaders.WebpackLoader(config_name, config.load_config(config_name)),
+    )
 
 
 @pytest.mark.usefixtures("uses_frontend", "use_real_webpack_loader")

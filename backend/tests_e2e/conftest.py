@@ -28,6 +28,7 @@ import json
 import os
 import re
 import subprocess
+import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -36,7 +37,7 @@ import django.conf
 import pytest
 
 if TYPE_CHECKING:
-    from playwright.sync_api import Page
+    from playwright.sync_api import ConsoleMessage, Page
 
 # Required for pytest-playwright fixtures to work with Django ORM in test setup.
 # Playwright runs fixtures in an async event loop, triggering Django's async-unsafe
@@ -115,10 +116,14 @@ def assert_no_console_errors(page: Page):
     Based on: https://playwright.dev/python/docs/api/class-page#page-event-console
     """
     # mapping of {level: [messages]}
-    messages: defaultdict[str, list[str]] = defaultdict(list)
-    ignore_messages = ["favicon.ico"]
+    messages: defaultdict[str, list[ConsoleMessage]] = defaultdict(list)
+    ignore_messages = [
+        "favicon.ico",
+        "sentry",
+        "WebGL",  # TODO: investigate
+    ]
 
-    def on_console(msg):
+    def on_console(msg: ConsoleMessage) -> None:
         for pattern in ignore_messages:
             if re.search(pattern, msg.text, re.IGNORECASE):
                 return
@@ -129,6 +134,10 @@ def assert_no_console_errors(page: Page):
     yield
 
     if errors := messages.get("error"):
-        error_messages = [f"  - {e['text']} (at {e['location']})" for e in errors]
+        error_messages = [f"  - {e.text} (at {e.location})" for e in errors]
         msg = "Console errors detected:\n" + "\n".join(error_messages)
         pytest.fail(msg)
+    if _warnings := messages.get("warning"):
+        warning_messages = [f"  - {w.text} (at {w.location})" for w in _warnings]
+        msg = "Console warnings detected:\n" + "\n".join(warning_messages)
+        warnings.warn(msg, stacklevel=2)

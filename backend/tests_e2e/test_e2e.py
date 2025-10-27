@@ -9,7 +9,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from django.urls import reverse
 from playwright.sync_api import expect
+
+from proteins.factories import ProteinFactory
 
 if TYPE_CHECKING:
     from playwright.sync_api import Page
@@ -55,3 +58,16 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page) -> Non
     # Rather than checking computed styles, verify semantic structure
     main_content = page.locator("main, #content, .main-content")
     expect(main_content.first).to_be_visible()
+
+
+@pytest.mark.usefixtures("assert_no_console_errors")
+def test_spectra_viewer_loads(live_server: LiveServer, page: Page) -> None:
+    """Test the spectra viewer page loads without console errors."""
+    ProteinFactory(name="TestGFP", agg="m")
+
+    url = f"{live_server.url}{reverse('proteins:spectra')}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+
+    spectra_viewer = page.locator("#spectra-viewer")
+    expect(spectra_viewer).to_be_attached()
