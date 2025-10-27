@@ -76,6 +76,7 @@ dev = [
     "pylint-django>=2.6.1",
     "pytest-cov>=6.0.0",
     "pytest-django>=4.10.0",
+    "pytest-playwright>=0.7.1",
     "pytest-sugar>=1.0.0",
     "pytest>=8.3.4",
     "ruff>=0.9.6",
