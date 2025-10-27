@@ -172,6 +172,7 @@ def auth_session_cookie(auth_user: AbstractUser) -> dict[str, str]:
     session["_auth_user_backend"] = "django.contrib.auth.backends.ModelBackend"
     session["_auth_user_hash"] = auth_user.get_session_auth_hash()
     session.save()
+    assert session.session_key is not None
 
     return {
         "name": "sessionid",
