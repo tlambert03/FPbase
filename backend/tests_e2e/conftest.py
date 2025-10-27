@@ -65,28 +65,43 @@ pytestmark = [
 ]
 
 
+def _frontend_assets_need_rebuild(stats_file) -> bool:
+    """Check if frontend assets need to be rebuilt."""
+    if not stats_file.is_file():
+        return True
+
+    assets = json.loads(stats_file.read_bytes())
+    if assets.get("status") != "done" or not assets.get("chunks") or ("localhost" in assets.get("publicPath", "")):
+        return True
+
+    # Stats are valid - check if source files are newer
+    stats_mtime = stats_file.stat().st_mtime
+    frontend_src = Path(__file__).parent.parent.parent / "frontend" / "src"
+    if any(
+        f.stat().st_mtime > stats_mtime for f in frontend_src.rglob("*") if f.is_file() and not f.name.startswith(".")
+    ):
+        return True
+
+    # Everything is up to date
+    return False
+
+
 @pytest.fixture(scope="module", autouse=True)
 def _build_frontend_assets() -> None:
     """Build webpack assets once per test module if needed.
 
-    Checks if existing webpack stats represent a static build.
-    Rebuilds if missing, stale, or dev server output detected.
+    Checks if existing webpack stats represent a static build and if source files have changed.
+    Rebuilds if missing, stale, dev server output detected, or source files are newer.
 
     Module-scoped to avoid rebuilding for every test (which would be slow).
     This is safe because webpack output is filesystem-based, not database.
     """
     stats_file = Path(django.conf.settings.WEBPACK_LOADER["DEFAULT"]["STATS_FILE"])
-    if stats_file.is_file():
-        assets = json.loads(stats_file.read_bytes())
-        if (
-            assets.get("status") == "done"
-            and assets.get("chunks")
-            and ("localhost" not in assets.get("publicPath", ""))
-        ):
-            return
 
-    print("Building frontend assets for e2e tests...")
-    subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
+    # Need to build - either no stats, invalid stats, or source files changed
+    if _frontend_assets_need_rebuild(stats_file):
+        print("Building frontend assets for e2e tests...")
+        subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
 
 
 @pytest.fixture
@@ -107,7 +122,11 @@ def page(page: Page) -> Page:
 def console_errors_raised(page: Page) -> Iterator[None]:
     """Context manager that collects console errors and warnings on a Playwright page."""
     messages: defaultdict[str, list[ConsoleMessage]] = defaultdict(list)
-    ignore_messages = ["favicon.ico", "sentry", "WebGL"]
+    ignore_messages = [
+        "favicon.ico",
+        "sentry",
+        "WebGL",
+    ]
 
     def on_console(msg: ConsoleMessage) -> None:
         for pattern in ignore_messages:
