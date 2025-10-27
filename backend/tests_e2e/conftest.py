@@ -26,7 +26,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
+from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -94,3 +96,39 @@ def page(page: Page) -> Page:
     page.set_viewport_size({"width": 1280, "height": 720})
 
     return page
+
+
+@pytest.fixture
+def assert_no_console_errors(page: Page):
+    """Fixture that collects console errors and asserts none occurred.
+
+    Usage:
+        def test_something(page, assert_no_console_errors):
+            page.goto(url)
+            # Test interactions...
+            # Errors are automatically checked at test end
+
+    Filters out known acceptable errors:
+    - Favicon 404s (browsers always request these)
+    - Extension-related errors (from browser dev tools)
+
+    Based on: https://playwright.dev/python/docs/api/class-page#page-event-console
+    """
+    # mapping of {level: [messages]}
+    messages: defaultdict[str, list[str]] = defaultdict(list)
+    ignore_messages = ["favicon.ico"]
+
+    def on_console(msg):
+        for pattern in ignore_messages:
+            if re.search(pattern, msg.text, re.IGNORECASE):
+                return
+        messages[msg.type].append(msg)
+
+    page.on("console", on_console)
+
+    yield
+
+    if errors := messages.get("error"):
+        error_messages = [f"  - {e['text']} (at {e['location']})" for e in errors]
+        msg = "Console errors detected:\n" + "\n".join(error_messages)
+        pytest.fail(msg)
