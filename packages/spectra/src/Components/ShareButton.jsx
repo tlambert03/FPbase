@@ -185,6 +185,28 @@ const ShareButton = () => {
   function exportChart(format) {
     if (format === "csv") {
       chart.downloadCSV()
+    } else if (format === "image/svg+xml") {
+      // Safari-specific workaround: get SVG synchronously and download
+      // Safari blocks downloads that happen asynchronously, so we must
+      // get the SVG and trigger download in the same call stack
+      try {
+        const svg = chart.getSVG()
+        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'FPbaseSpectra.svg'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+
+        // Clean up the blob URL
+        setTimeout(() => URL.revokeObjectURL(url), 100)
+      } catch (err) {
+        console.error('SVG export failed:', err)
+        alert('Export failed. Please try again or contact us if the problem persists.')
+      }
     } else {
       chart.exportChart({
         type: format,
@@ -194,7 +216,7 @@ const ShareButton = () => {
     setAnchorEl(null)
   }
 
-  function printChart(format) {
+  function printChart() {
     chart.print()
     setAnchorEl(null)
   }

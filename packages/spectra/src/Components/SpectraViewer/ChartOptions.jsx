@@ -144,7 +144,8 @@ const DEFAULT_OPTIONS = {
     filename: "FPbase_Spectra.csv",
     sourceWidth: 1200,
     scale: 1,
-    fallbackToExportServer: false,
+    fallbackToExportServer: true,
+    url: 'https://export.highcharts.com/',
     csv: {},
     error: function(options, err) {
       console.error('Chart export failed:', err)
