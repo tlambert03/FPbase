@@ -182,6 +182,17 @@ const ShareButton = () => {
     setAnchorEl(null)
   }
 
+  function handleExportError(err, context) {
+    console.error('Chart export failed:', err)
+    if (window.Sentry) {
+      window.Sentry.captureException(err, {
+        tags: { component: 'SpectraViewer' },
+        extra: { context, format: context }
+      })
+    }
+    alert('Export failed. Please try again or contact us if the problem persists.')
+  }
+
   function exportChart(format) {
     if (format === "csv") {
       chart.downloadCSV()
@@ -211,8 +222,7 @@ const ShareButton = () => {
         // Clean up the blob URL
         setTimeout(() => URL.revokeObjectURL(url), 100)
       } catch (err) {
-        console.error('SVG export failed:', err)
-        alert('Export failed. Please try again or contact us if the problem persists.')
+        handleExportError(err, 'SVG export (Safari workaround)')
       }
     } else {
       chart.exportChart({
