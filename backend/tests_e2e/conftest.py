@@ -30,15 +30,21 @@ import re
 import subprocess
 import warnings
 from collections import defaultdict
+from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import django.conf
 import pytest
+from allauth.account.models import EmailAddress
+from django.contrib.auth import get_user_model
+from django.contrib.sessions.backends.db import SessionStore
 
 if TYPE_CHECKING:
-    from playwright.sync_api import ConsoleMessage, Page
+    from collections.abc import Iterator
 
+    from django.contrib.auth.models import AbstractUser
+    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page
 # Required for pytest-playwright fixtures to work with Django ORM in test setup.
 # Playwright runs fixtures in an async event loop, triggering Django's async-unsafe
 # protections. This is safe for tests because:
@@ -48,7 +54,7 @@ if TYPE_CHECKING:
 # See: https://docs.djangoproject.com/en/5.2/topics/async/#envvar-DJANGO_ALLOW_ASYNC_UNSAFE
 #      https://github.com/microsoft/playwright-pytest/issues/29
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
-
+DEFAULT_TIMEOUT = int(os.getenv("DEFAULT_TIMEOUT", 2000))  # milliseconds
 
 # Mark all tests in this directory with transactional database access
 # This is REQUIRED for live_server tests - it tells pytest-django to use
@@ -91,37 +97,17 @@ def page(page: Page) -> Page:
     This wraps the default pytest-playwright page fixture.
     """
     # Set default timeout for actions (locator clicks, waits, etc)
-    page.set_default_timeout(10000)  # 10 seconds
-
+    page.set_default_timeout(DEFAULT_TIMEOUT)  # 4 seconds
     # Set consistent viewport size for predictable rendering
     page.set_viewport_size({"width": 1280, "height": 720})
-
     return page
 
 
-@pytest.fixture
-def assert_no_console_errors(page: Page):
-    """Fixture that collects console errors and asserts none occurred.
-
-    Usage:
-        def test_something(page, assert_no_console_errors):
-            page.goto(url)
-            # Test interactions...
-            # Errors are automatically checked at test end
-
-    Filters out known acceptable errors:
-    - Favicon 404s (browsers always request these)
-    - Extension-related errors (from browser dev tools)
-
-    Based on: https://playwright.dev/python/docs/api/class-page#page-event-console
-    """
-    # mapping of {level: [messages]}
+@contextmanager
+def console_errors_raised(page: Page) -> Iterator[None]:
+    """Context manager that collects console errors and warnings on a Playwright page."""
     messages: defaultdict[str, list[ConsoleMessage]] = defaultdict(list)
-    ignore_messages = [
-        "favicon.ico",
-        "sentry",
-        "WebGL",  # TODO: investigate
-    ]
+    ignore_messages = ["favicon.ico", "sentry", "WebGL"]
 
     def on_console(msg: ConsoleMessage) -> None:
         for pattern in ignore_messages:
@@ -141,3 +127,54 @@ def assert_no_console_errors(page: Page):
         warning_messages = [f"  - {w.text} (at {w.location})" for w in _warnings]
         msg = "Console warnings detected:\n" + "\n".join(warning_messages)
         warnings.warn(msg, stacklevel=2)
+
+
+@pytest.fixture
+def assert_no_console_errors(page: Page):
+    """Fixture that collects console errors and asserts none occurred."""
+    with console_errors_raised(page):
+        yield
+
+
+@pytest.fixture
+def auth_user() -> AbstractUser:
+    """Create authenticated user with verified email."""
+    User = get_user_model()
+    user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+    EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
+    return user
+
+
+@pytest.fixture
+def auth_session_cookie(auth_user: AbstractUser) -> dict[str, str]:
+    """Create Django session cookie for authenticated user."""
+    session = SessionStore()
+    session["_auth_user_id"] = str(auth_user.pk)
+    session["_auth_user_backend"] = "django.contrib.auth.backends.ModelBackend"
+    session["_auth_user_hash"] = auth_user.get_session_auth_hash()
+    session.save()
+
+    return {
+        "name": "sessionid",
+        "value": session.session_key,
+        "domain": "localhost",
+        "path": "/",
+    }
+
+
+@pytest.fixture
+def auth_context(browser: Browser, auth_session_cookie: dict) -> Iterator[BrowserContext]:
+    """Browser context with authenticated session."""
+    context = browser.new_context(storage_state={"cookies": [auth_session_cookie]})
+    yield context
+    context.close()
+
+
+@pytest.fixture
+def auth_page(auth_context: Browser) -> Iterator[Page]:
+    """Page with authenticated session and console error checking."""
+    page = auth_context.new_page()
+    page.set_default_timeout(DEFAULT_TIMEOUT)
+    with console_errors_raised(page):
+        yield page
+    page.close()

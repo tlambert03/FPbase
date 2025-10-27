@@ -6,6 +6,7 @@ Database configuration and fixtures are in conftest.py.
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 import pytest
@@ -13,6 +14,7 @@ from django.urls import reverse
 from playwright.sync_api import expect
 
 from proteins.factories import ProteinFactory
+from proteins.models import Spectrum
 
 if TYPE_CHECKING:
     from playwright.sync_api import Page
@@ -71,3 +73,42 @@ def test_spectra_viewer_loads(live_server: LiveServer, page: Page) -> None:
 
     spectra_viewer = page.locator("#spectra-viewer")
     expect(spectra_viewer).to_be_attached()
+
+
+def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: LiveServer) -> None:
+    """Test spectrum submission form with manual data preview."""
+    protein = ProteinFactory.create(name="TestGFP", agg="m")
+    spectrum = protein.default_state.ex_spectrum
+    spectrum.delete()
+
+    url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
+    auth_page.goto(url)
+    expect(auth_page).to_have_url(url)
+
+    auth_page.locator("#id_category").select_option(Spectrum.PROTEIN)
+    auth_page.locator("#id_subtype").select_option(Spectrum.EX)
+
+    # Select2 autocomplete for protein
+    combo = auth_page.locator("#div_id_owner_state [role='combobox']")
+    combo.click()
+    expect(combo).to_have_attribute("aria-expanded", "true")
+    auth_page.keyboard.type(protein.name)
+    auth_page.keyboard.press("Enter")
+
+    # Switch to manual data tab and enter data
+    auth_page.locator("#manual-tab").click()
+    auth_page.locator("#id_data").fill(json.dumps(spectrum.data))
+    auth_page.locator("#id_confirmation").check()
+
+    # Submit for preview
+    auth_page.locator('input[type="submit"]').click()
+
+    # Verify preview section appears with chart
+    expect(auth_page.locator("#spectrum-preview-section")).to_be_visible()
+    svg = auth_page.locator("#spectrum-preview-chart svg")
+    expect(svg).to_be_visible()
+    expect(svg.locator("[id^='FillBetweenPolyCollection']")).to_have_count(1)
+
+    # submit it!
+    auth_page.get_by_text("Submit Spectrum").click()
+    expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:spectrum_submitted')}")
