@@ -115,7 +115,9 @@ function intializeClient({ uri, storage }) {
     cache,
     // typeDefs removed - not supported in Apollo Client v3
     resolvers,
-    connectToDevTools: process.env.NODE_ENV === 'development',
+    devtools: {
+      enabled: process.env.NODE_ENV === 'development',
+    },
   });
 
   // Populate from localstorage?

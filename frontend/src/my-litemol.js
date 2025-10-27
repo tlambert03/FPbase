@@ -282,7 +282,6 @@ function downloadPDBMeta(pdbIds) {
       if (Date.now() - timestamp < CACHE_TTL) {
         // Restore cached data to pdbInfo
         Object.assign(pdbInfo, data)
-        console.log("using cached data", data)
         return Promise.resolve()
       }
     }
@@ -346,7 +345,6 @@ function downloadPDBMeta(pdbIds) {
     if (!response.data?.entries) {
       throw new Error("No data returned from GraphQL API")
     }
-    console.log("processing data")
     const { data } = response
     const fetchedData = {}
 
