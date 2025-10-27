@@ -204,10 +204,12 @@ $(function() {
 
 /////////////////. Spectra Image URL Builder
 
-$("#proteinSlug").select2({
-  theme: "bootstrap",
-  width: "80%",
-  ajax: {
+// Only initialize Select2 if not already initialized (fixes duplicate select boxes)
+if (!$("#proteinSlug").hasClass("select2-hidden-accessible")) {
+  $("#proteinSlug").select2({
+    theme: "bootstrap",
+    width: "80%",
+    ajax: {
     theme: "bootstrap",
     containerCssClass: ":all:",
     width: "auto",
@@ -223,9 +225,38 @@ $("#proteinSlug").select2({
         _type: params._type
       }
       return query
+    },
+    processResults: function(data) {
+      // Ensure all results have an id property (fixes FPBASE-5H3)
+      // The autocomplete endpoint returns results, but we need to ensure
+      // each item has an id that can be safely converted to string
+      if (data.results) {
+        data.results = data.results.map(function(item) {
+          // If item doesn't have an id, use text as fallback
+          if (!item.id && item.text) {
+            item.id = item.text
+          }
+          return item
+        })
+      }
+      return data
     }
+  },
+  // Safely handle cases where id might still be undefined
+  templateResult: function(item) {
+    if (!item.id) {
+      return item.text
+    }
+    return item.text || item.id
+  },
+  templateSelection: function(item) {
+    if (!item.id) {
+      return item.text
+    }
+    return item.text || item.id
   }
-})
+  })
+}
 
 function buildURL() {
   var ext = "." + $("#fileTypeSelect").val()
