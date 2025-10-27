@@ -189,6 +189,13 @@ const ShareButton = () => {
       // Safari-specific workaround: get SVG synchronously and download
       // Safari blocks downloads that happen asynchronously, so we must
       // get the SVG and trigger download in the same call stack
+
+      // The timing is critical: Safari allows operations for up to 1 second after
+      //  a user gesture, but:
+      // - chart.exportChart() returns a Promise
+      // - The actual download happens after the Promise resolves
+      // - This asynchronous delay breaks the connection to the original click event
+      // - Safari silently blocks the download because it's no longer user-initiated
       try {
         const svg = chart.getSVG()
         const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
