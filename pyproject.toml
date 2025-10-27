@@ -93,7 +93,8 @@ FAIL_INVALID_TEMPLATE_VARS = true
 addopts = "--reuse-db --cov-config=pyproject.toml"
 python_files = ["tests.py", "test_*.py"]
 pythonpath = ["backend"]
-norecursedirs = ["node_modules"]
+# Exclude e2e tests by default - run them explicitly with: pytest backend/tests_e2e/
+norecursedirs = ["node_modules", "tests_e2e"]
 filterwarnings = [
     "error",
     "ignore::ResourceWarning",
