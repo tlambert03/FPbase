@@ -86,7 +86,72 @@ jobs:
           sleep 3
 
       - name: Test
-        run: uv run pytest --color=yes -v --cov --cov-report=xml --cov-report=term-missing
+        run: uv run pytest --color=yes -v --cov --cov-report=xml
+
+      - name: coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+    env:
+      CELERY_BROKER_URL: "redis://localhost:6379/0"
+      # postgres://user:password@host:port/database
+      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"
+      UV_FROZEN: 1
+      NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v5
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: latest
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: "pnpm"
+
+      - name: Install node Dependencies
+        run: pnpm install
+
+      - name: Test spectra package
+        run: pnpm --filter @fpbase/spectra test:ci
+
+      - run: uv sync
+
+      - name: setup-chromedriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Configure headless display
+        run: |
+          echo "DISPLAY=:99.0" >> $GITHUB_ENV
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          sleep 3
+
+      - name: Test
+        run: uv run pytest backend/tests_e2e/ --color=yes -v --cov --cov-report=xml
 
       - name: coverage
         uses: codecov/codecov-action@v5
