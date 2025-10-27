@@ -232,14 +232,16 @@ function initLiteMol(selection, changer) {
     })
 
     // Close side panel when clicking outside (use namespace to prevent leaks)
-    $("body").off("click.litemol").on("click.litemol", (e) => {
-      if (
-        $(".lm-layout-right").length &&
-        $(e.target).closest("#litemol-viewer").length === 0
-      ) {
-        plugin.setLayoutState({ hideControls: true })
-      }
-    })
+    $("body")
+      .off("click.litemol")
+      .on("click.litemol", (e) => {
+        if (
+          $(".lm-layout-right").length &&
+          $(e.target).closest("#litemol-viewer").length === 0
+        ) {
+          plugin.setLayoutState({ hideControls: true })
+        }
+      })
   } catch (err) {
     if (window.Sentry) {
       window.Sentry.captureException(err, {
@@ -269,6 +271,26 @@ function initLiteMol(selection, changer) {
  * @returns {Promise} jQuery promise that resolves when metadata is loaded
  */
 function downloadPDBMeta(pdbIds) {
+  // Check cache first (7-day TTL per RCSB recommendations)
+  const cacheKey = `pdb_meta_${pdbIds}`
+  const CACHE_TTL = 7 * 24 * 60 * 60 * 1000 // 7 days in milliseconds
+
+  try {
+    const cached = localStorage.getItem(cacheKey)
+    if (cached) {
+      const { timestamp, data } = JSON.parse(cached)
+      if (Date.now() - timestamp < CACHE_TTL) {
+        // Restore cached data to pdbInfo
+        Object.assign(pdbInfo, data)
+        console.log("using cached data", data)
+        return Promise.resolve()
+      }
+    }
+  } catch (error) {
+    // Ignore cache errors, fall through to fetch
+    console.warn("Cache read failed:", error)
+  }
+
   return $.post({
     url: "https://data.rcsb.org/graphql",
     contentType: "application/json",
@@ -314,10 +336,24 @@ function downloadPDBMeta(pdbIds) {
         }
       }`,
     }),
-  }).then(({ data }) => {
+  }).then((response) => {
+    // GraphQL always returns 200 OK, check for errors in response body
+    if (response.errors) {
+      const errorMsg = response.errors.map((e) => e.message).join("; ")
+      throw new Error(`GraphQL errors: ${errorMsg}`)
+    }
+
+    if (!response.data?.entries) {
+      throw new Error("No data returned from GraphQL API")
+    }
+    console.log("processing data")
+    const { data } = response
+    const fetchedData = {}
+
     data.entries.forEach((entry) => {
       const entryId = entry.entry.id
       pdbInfo[entryId] = entry
+      fetchedData[entryId] = entry
 
       // Extract chromophore (largest component by molecular weight)
       let chromo = null
@@ -343,6 +379,20 @@ function downloadPDBMeta(pdbIds) {
         pdbInfo[entryId].resolution = resolutions[0]
       }
     })
+
+    // Cache the successful result
+    try {
+      localStorage.setItem(
+        cacheKey,
+        JSON.stringify({
+          timestamp: Date.now(),
+          data: fetchedData,
+        })
+      )
+    } catch (error) {
+      // Ignore cache write errors (quota exceeded, etc.)
+      console.warn("Cache write failed:", error)
+    }
   })
 }
 
@@ -351,43 +401,46 @@ function downloadPDBMeta(pdbIds) {
  *
  * @param {string[]} pdbIds - Array of PDB identifiers
  */
-function getPDBinfo(pdbIds) {
-  downloadPDBMeta(`["${pdbIds.join('","')}"]`)
-    .done(() => {
-      const select = $("#pdb_select")
+async function getPDBinfo(pdbIds) {
+  try {
+    await downloadPDBMeta(`["${pdbIds.join('","')}"]`)
 
-      // Sort by resolution (best first)
-      pdbIds.sort((a, b) =>
-        pdbInfo[a].resolution > pdbInfo[b].resolution ? 1 : -1
+    const select = $("#pdb_select")
+
+    // Sort by resolution (best first)
+    pdbIds.sort((a, b) =>
+      pdbInfo[a].resolution > pdbInfo[b].resolution ? 1 : -1
+    )
+
+    // Populate dropdown
+    pdbIds.forEach((id) => {
+      select.append(
+        $("<option>", { value: id }).html(`${id} (${pdbInfo[id].resolution} Å)`)
       )
+    })
 
-      // Populate dropdown
-      pdbIds.forEach((id) => {
-        select.append(
-          $("<option>", { value: id }).html(
-            `${id} (${pdbInfo[id].resolution} Å)`
-          )
-        )
+    initLiteMol("#litemol-viewer", select)
+  } catch (error) {
+    // Log error to Sentry for monitoring
+    if (window.Sentry) {
+      window.Sentry.captureException(error, {
+        tags: { component: "pdb-metadata", pdbIds: pdbIds.join(",") },
       })
+    }
 
-      initLiteMol("#litemol-viewer", select)
-    })
-    .fail(() => {
-      const links = pdbIds
-        .map(
-          (id) => `<a href="https://www.rcsb.org/structure/${id}">${id}</a>`
-        )
-        .join(", ")
+    const links = pdbIds
+      .map((id) => `<a href="https://www.rcsb.org/structure/${id}">${id}</a>`)
+      .join(", ")
 
-      $("#protein-structure")
-        .html(
-          `<div>
-            <p><small class="text-muted">Failed to retrieve metadata from PDB!</small></p>
-            <p>Please look for these IDs at RCSB PDB: ${links}</p>
-          </div>`
-        )
-        .removeClass("row")
-    })
+    $("#protein-structure")
+      .html(
+        `<div>
+          <p class="text-danger muted">Failed to retrieve metadata from PDB!</p>
+          <p>You may view these PDB IDs directly at RCSB: ${links}</p>
+        </div>`
+      )
+      .removeClass("row")
+  }
 }
 
 export default function initPDB(pdbids) {
