@@ -100,7 +100,13 @@ const BaseSpectraViewerContainer = React.memo(
       normWave = undefined
     } else if (data?.chartOptions) {
       chartOptions = data.chartOptions
-        ;[normWave] = data.exNorm || [null]
+      // Safely extract normWave from exNorm array, handling non-array values
+      // exNorm should be [normWave, normID] but may be corrupted/malformed
+      if (Array.isArray(data.exNorm)) {
+        ;[normWave] = data.exNorm
+      } else {
+        normWave = null
+      }
     } else {
       // Data not loaded yet, return null after all hooks are called
       return null
