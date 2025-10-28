@@ -5,6 +5,11 @@ env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
 
+  # postgres://user:password@host:port/database
+  DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"
+  UV_FROZEN: 1
+  NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+
 on:
   pull_request:
     branches: ["develop", "main"]
@@ -26,39 +31,72 @@ jobs:
         with:
           enable-cache: true
       - name: Run basedpyright
-        run: uv run basedpyright
+        run: uv run --group typing --no-dev basedpyright
 
   test:
     runs-on: ubuntu-latest
     services:
-      redis:
-        image: redis:6
-        ports:
-          - 6379:6379
       postgres:
         image: postgres:15
         ports:
           - 5432:5432
         env:
           POSTGRES_PASSWORD: postgres
-    env:
-      CELERY_BROKER_URL: "redis://localhost:6379/0"
-      # postgres://user:password@host:port/database
-      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/postgres"
-      UV_FROZEN: 1
-      NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
     steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           version: latest
           enable-cache: true
 
       - uses: pnpm/action-setup@v4
-        name: Install pnpm
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: "pnpm"
+
+      - name: Install node Dependencies
+        run: pnpm install
+
+      - name: Test spectra package
+        run: pnpm --filter @fpbase/spectra test:ci
+
+      - name: Test
+        run: |
+          uv sync --group test --no-dev
+          uv run --no-sync pytest -n auto -v --cov --cov-report=xml
+
+      - name: coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: latest
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v4
         with:
           run_install: false
 
@@ -71,22 +109,19 @@ jobs:
       - name: Install node Dependencies
         run: pnpm install
 
-      - name: Test spectra package
-        run: pnpm --filter @fpbase/spectra test:ci
+      - run: uv sync --group test --no-dev
 
-      - run: uv sync
-
-      - name: setup-chromedriver
-        uses: nanasess/setup-chromedriver@v2
-
-      - name: Configure headless display
-        run: |
-          echo "DISPLAY=:99.0" >> $GITHUB_ENV
-          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          sleep 3
+      - name: Ensure browsers are installed
+        run: uv run --no-sync playwright install ${{ matrix.browser }} --with-deps
 
       - name: Test
-        run: uv run pytest --color=yes -v --cov --cov-report=xml --cov-report=term-missing
+        run: uv run --no-sync pytest backend/tests_e2e/ -v --browser ${{ matrix.browser }} --cov --cov-report=xml --tracing=retain-on-failure
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-traces-${{ matrix.browser }}
+          path: test-results/
 
       - name: coverage
         uses: codecov/codecov-action@v5

@@ -206,7 +206,7 @@ class DyeFactory(FluorophoreFactory):
         model = "proteins.Dye"
 
 
-class ProteinFactory(factory.django.DjangoModelFactory):
+class ProteinFactory(factory.django.DjangoModelFactory[Protein]):
     class Meta:
         model = Protein
         django_get_or_create = ("name", "slug")

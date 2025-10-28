@@ -8,10 +8,11 @@ from avatar.models import Avatar
 from avatar.templatetags.avatar_tags import avatar_url
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
-from test_plus.test import TestCase
+
+from .factories import UserFactory
 
 User = get_user_model()
 
@@ -49,7 +50,7 @@ class AvatarTestCase(TestCase):
         settings.MEDIA_ROOT = str(self.temp_media)
 
     def setUp(self):
-        self.user = self.make_user(username="testuser")
+        self.user = UserFactory()
         self.client.force_login(self.user)
 
     def tearDown(self):
@@ -209,7 +210,7 @@ class TestAvatarTemplateTag(AvatarTestCase):
 
     def test_avatar_url_without_avatar(self):
         """Test avatar_url for user without avatar returns default."""
-        user_without_avatar = self.make_user(username="noavatar")
+        user_without_avatar = UserFactory()
         url = avatar_url(user_without_avatar)
         # Should return a default/gravatar URL
         self.assertIsNotNone(url)
@@ -259,7 +260,7 @@ class TestAvatarIntegration(AvatarTestCase):
 
     def test_multiple_users_can_have_avatars(self):
         """Test that multiple users can each have their own avatars."""
-        user2 = self.make_user(username="testuser2")
+        user2 = UserFactory()
 
         # Create avatar for user1
         avatar1 = Avatar.objects.create(

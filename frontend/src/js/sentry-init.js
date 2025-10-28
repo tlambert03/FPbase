@@ -32,8 +32,7 @@ export function initSentry() {
         dsn: process.env.SENTRY_DSN,
         release: process.env.HEROKU_SLUG_COMMIT,
         environment: process.env.NODE_ENV,
-        integrations: [Sentry.replayIntegration()],
-
+        integrations: [Sentry.replayIntegration({maskAllText: false, blockAllMedia: false})],
         replaysSessionSampleRate: 0,      // Don't record normal sessions
         replaysOnErrorSampleRate: 1.0,    // Record all error sessions
         tracesSampleRate: 0.05,           // 5% performance monitoring
@@ -89,15 +88,9 @@ export function initSentry() {
       window.Sentry = Sentry
 
       sentryInitialized = true
-
-      console.log("✅ Sentry initialized successfully")
     } catch (error) {
       console.error("❌ Failed to initialize Sentry:", error)
     }
-  } else if (process.env.NODE_ENV !== "production") {
-    console.log("ℹ️ Sentry not initialized (development mode)")
-  } else {
-    console.warn("⚠️ Sentry not initialized (missing DSN)")
   }
 
   return Sentry

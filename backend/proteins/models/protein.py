@@ -7,6 +7,7 @@ import re
 import sys
 from random import choices
 from subprocess import PIPE, run
+from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
@@ -31,6 +32,9 @@ from ..validators import protein_sequence_validator, validate_uniprot
 from .collection import ProteinCollection
 from .mixins import Authorable
 from .spectrum import Spectrum
+
+if TYPE_CHECKING:
+    from proteins.models import State  # noqa: F401
 
 User = get_user_model()
 
@@ -328,7 +332,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         Reference, related_name="proteins", blank=True
     )  # all papers that reference the protein
     # FRET_partner = models.ManyToManyField('self', symmetrical=False, through='FRETpair', blank=True)
-    default_state = models.ForeignKey(
+    default_state_id: int | None
+    default_state = models.ForeignKey["State | None"](
         "State",
         related_name="default_for",
         blank=True,

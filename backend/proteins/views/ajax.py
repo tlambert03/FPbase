@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 def serialize_comparison(request):
     info = []
     slugs = request.session.get("comparison", [])
-    for prot in Protein.objects.filter(slug__in=slugs).prefetch_related("default_state"):
+    # Prefetch states and their spectra to avoid N+1 queries
+    proteins = Protein.objects.filter(slug__in=slugs).prefetch_related("default_state", "states__spectra")
+    for prot in proteins:
         d = {"name": prot.name, "slug": prot.slug}
         if prot.default_state:
             d.update(

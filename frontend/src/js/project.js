@@ -126,7 +126,10 @@ function populate_comparison_tab(comparison_set) {
           }).html(val.name)
         )
         .append($("<p>").html((exemstring || "") + (ecqystring || "")))
-        .append(
+
+      // Only append spectrum image if the protein has spectra
+      if (val.spectra && JSON.parse(val.spectra).length > 0) {
+        widget.append(
           $("<img>", {
             src:
               "/spectra_img/" + val.slug + ".svg?xlim=400,700&fill=1&xlabels=0",
@@ -135,14 +138,16 @@ function populate_comparison_tab(comparison_set) {
             alt: val.name + " spectrum"
           })
         )
-        .append(
-          $("<button>", {
-            class: "comparison-btn remove-protein",
-            "data-op": "remove",
-            "data-object": val.slug,
-            "data-action-url": "/ajax/comparison/"
-          }).html("&times;")
-        )
+      }
+
+      widget.append(
+        $("<button>", {
+          class: "comparison-btn remove-protein",
+          "data-op": "remove",
+          "data-object": val.slug,
+          "data-action-url": "/ajax/comparison/"
+        }).html("&times;")
+      )
       widget.appendTo($ul)
     })
     $("#clearbutton").show()
@@ -206,13 +211,20 @@ $(function() {
 
 /////////////////. Spectra Image URL Builder
 
+// Only initialize TomSelect if not already initialized (fixes duplicate select boxes)
 if (document.getElementById("proteinSlug")) {
-  new TomSelect("#proteinSlug", {
-    valueField: "id",
-    labelField: "text",
-    searchField: "text",
+  const element = document.getElementById("proteinSlug")
+  
+  // Check if TomSelect is already initialized on this element
+  if (element.tomselect) {
+    // Already initialized, skip
+  } else {
+    new TomSelect("#proteinSlug", {
+      valueField: "id",
+      labelField: "text",
+      searchField: "text",
 
-    load: function(query, callback) {
+      load: function(query, callback) {
       if (!query.length) return callback()
 
       const url = `/proteins/ts/protein/?q=${encodeURIComponent(query)}&type=spectra`
@@ -225,7 +237,18 @@ if (document.getElementById("proteinSlug")) {
           return response.json()
         })
         .then((json) => {
-          callback(json.results || [])
+          // Ensure all results have an id property (fixes FPBASE-5H3)
+          // The autocomplete endpoint returns results, but we need to ensure
+          // each item has an id that can be safely converted to string
+          let results = json.results || []
+          results = results.map(function(item) {
+            // If item doesn't have an id, use text as fallback
+            if (!item.id && item.text) {
+              item.id = item.text
+            }
+            return item
+          })
+          callback(results)
         })
         .catch((error) => {
           console.error("Autocomplete error:", error)
@@ -235,10 +258,16 @@ if (document.getElementById("proteinSlug")) {
 
     render: {
       option: function(item, escape) {
-        return `<div>${escape(item.text)}</div>`
+        // Safely handle cases where id might still be undefined
+        return `<div>${escape(item.text || item.id)}</div>`
+      },
+      item: function(item, escape) {
+        // Safely handle selection rendering
+        return `<div>${escape(item.text || item.id)}</div>`
       },
     },
-  })
+    })
+  }
 }
 
 function buildURL() {

@@ -148,6 +148,8 @@ module.exports = {
         __dirname,
         "../packages/protein-table/src/index.jsx"
       ),
+      "@emotion/react": require.resolve("@emotion/react"),
+      "@emotion/styled": require.resolve("@emotion/styled"),
     },
     fallback: {
       url: require.resolve("url/"),

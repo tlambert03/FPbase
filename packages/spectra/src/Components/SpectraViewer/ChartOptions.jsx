@@ -145,6 +145,16 @@ const DEFAULT_OPTIONS = {
     sourceWidth: 1200,
     scale: 1,
     csv: {},
+    error: function(options, err) {
+      console.error('Chart export failed:', err)
+      if (window.Sentry) {
+        window.Sentry.captureException(err, {
+          tags: { component: 'SpectraViewer' },
+          extra: { context: 'PNG/PDF export', exportOptions: options }
+        })
+      }
+      alert('Export failed. Please try again or contact us if the problem persists.')
+    },
     chartOptions: {
       chart: {
         height: this && this.chartHeight,

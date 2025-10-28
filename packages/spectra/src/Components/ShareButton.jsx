@@ -33,23 +33,6 @@ import {
   GET_EX_NORM,
 } from "../client/queries"
 
-window.twttr = (function(d, s, id) {
-  const fjs = d.getElementsByTagName(s)[0]
-  const t = window.twttr || {}
-  if (d.getElementById(id)) return t
-  const js = d.createElement(s)
-  js.id = id
-  js.src = "https://platform.twitter.com/widgets.js"
-  fjs.parentNode.insertBefore(js, fjs)
-
-  t._e = []
-  t.ready = function(f) {
-    t._e.push(f)
-  }
-
-  return t
-})(document, "script", "twitter-wjs")
-
 const useStyles = makeStyles(theme => ({
   textField: {
     flexBasis: 200,
@@ -199,9 +182,48 @@ const ShareButton = () => {
     setAnchorEl(null)
   }
 
+  function handleExportError(err, context) {
+    console.error('Chart export failed:', err)
+    if (window.Sentry) {
+      window.Sentry.captureException(err, {
+        tags: { component: 'SpectraViewer' },
+        extra: { context, format: context }
+      })
+    }
+    alert('Export failed. Please try again or contact us if the problem persists.')
+  }
+
   function exportChart(format) {
     if (format === "csv") {
       chart.downloadCSV()
+    } else if (format === "image/svg+xml") {
+      // Safari-specific workaround: get SVG synchronously and download
+      // Safari blocks downloads that happen asynchronously, so we must
+      // get the SVG and trigger download in the same call stack
+
+      // The timing is critical: Safari allows operations for up to 1 second after
+      //  a user gesture, but:
+      // - chart.exportChart() returns a Promise
+      // - The actual download happens after the Promise resolves
+      // - This asynchronous delay breaks the connection to the original click event
+      // - Safari silently blocks the download because it's no longer user-initiated
+      try {
+        const svg = chart.getSVG()
+        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'FPbaseSpectra.svg'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+
+        // Clean up the blob URL
+        setTimeout(() => URL.revokeObjectURL(url), 100)
+      } catch (err) {
+        handleExportError(err, 'SVG export (Safari workaround)')
+      }
     } else {
       chart.exportChart({
         type: format,
@@ -211,7 +233,7 @@ const ShareButton = () => {
     setAnchorEl(null)
   }
 
-  function printChart(format) {
+  function printChart() {
     chart.print()
     setAnchorEl(null)
   }
