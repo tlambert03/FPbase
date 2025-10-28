@@ -83,15 +83,16 @@ def test_spectra_viewer_loads(live_server: LiveServer, page: Page) -> None:
 
 def _select2_enter(selector: str, text: str, page: Page) -> None:
     """Helper to select an option in a Select2 widget by typing and selecting."""
-    page.wait_for_selector(".select2-results", state="hidden", timeout=1000)
-
     combo = page.locator(selector)
     combo.click()
-    page.wait_for_selector(".select2-search__field:focus", state="visible")
-    page.keyboard.type(text)
-    page.wait_for_selector(".select2-results__option--highlighted", state="visible")
+    # Wait for search field to be ready and type
+    search_field = page.locator(".select2-search__field")
+    expect(search_field).to_be_visible()
+    search_field.type(text)
+    # Wait for and select highlighted option
+    highlighted = page.locator(".select2-results__option--highlighted")
+    expect(highlighted).to_be_visible()
     page.keyboard.press("Enter")
-    page.wait_for_selector(".select2-results", state="hidden")
 
 
 def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: LiveServer) -> None:
@@ -208,11 +209,13 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page) -
     """Test microscope page with fluorophore selection and config switching."""
     protein = ProteinFactory.create()
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
-    OpticalConfigWithFiltersFactory.create_batch(4, microscope=microscope)
+    # Only need 2 configs to test switching between them
+    OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
 
     page.goto(f"{live_server.url}{reverse('proteins:microscopes')}")
     page.get_by_role("link", name=microscope.name).click()
-    page.wait_for_load_state("networkidle")
+    # Wait for the select2 widget to be ready instead of networkidle
+    expect(page.locator("#select2-fluor-select-container")).to_be_visible()
 
     # Type fluorophore name and select
     _select2_enter("#select2-fluor-select-container", protein.name[:5], page)
@@ -241,7 +244,9 @@ def test_fret_page_loads(live_server: LiveServer, page: Page) -> None:
     # Verify select2 widgets are present and clickable
     _select2_enter("#select2-donor-select-container", "donor", page)
     _select2_enter("#select2-acceptor-select-container", "acceptor", page)
-    page.wait_for_load_state("networkidle")
+
+    # Wait for calculation to complete by checking for SVG to be rendered
+    expect(page.locator("#spectra svg")).to_be_visible()
 
     # Verify result fields exist
     expect(page.locator("#QYD")).to_be_attached()
@@ -283,7 +288,8 @@ def test_problems_gaps_page_loads(live_server: LiveServer, page: Page) -> None:
 
 def test_protein_table_page_loads(live_server: LiveServer, page: Page) -> None:
     """Test protein table page loads without errors."""
-    ProteinFactory.create_batch(10)
+    # Create minimal data - table functionality doesn't require 10 proteins
+    ProteinFactory.create_batch(3)
     url = f"{live_server.url}{reverse('proteins:table')}"
     page.goto(url)
     expect(page).to_have_url(url)
@@ -291,7 +297,8 @@ def test_protein_table_page_loads(live_server: LiveServer, page: Page) -> None:
 
 def test_interactive_chart_page(live_server: LiveServer, page: Page) -> None:
     """Test interactive chart page with axis selection."""
-    ProteinFactory.create_batch(6)
+    # Create minimal data - chart interaction doesn't require 6 proteins
+    ProteinFactory.create_batch(2)
     url = f"{live_server.url}{reverse('proteins:ichart')}"
     page.goto(url)
     expect(page).to_have_url(url)
@@ -342,8 +349,10 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     protein = ProteinFactory.create(name="SearchTestGFP", seq=SEQ)
 
     url = f"{live_server.url}{reverse('proteins:search')}"
-    page.goto(url, wait_until="networkidle")
+    page.goto(url)
     expect(page).to_have_url(url)
+    # Wait for search form to be ready
+    expect(page.locator("#filter-select-0")).to_be_visible()
 
     # First filter: Sequence cDNA contains
     page.locator("#filter-select-0").select_option("seq")
