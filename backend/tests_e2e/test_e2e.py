@@ -342,57 +342,71 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     protein = ProteinFactory.create(name="SearchTestGFP", seq=SEQ)
 
     url = f"{live_server.url}{reverse('proteins:search')}"
-    page.goto(url)
+    page.goto(url, wait_until="networkidle")
     expect(page).to_have_url(url)
 
-    # Wait for the form to be fully initialized
-    page.wait_for_selector("#filter-select-0", state="visible")
-    page.wait_for_timeout(500)  # Give JavaScript time to initialize
-
-    # First filter: Sequence cDNA contains
+    # Wait for the form to be fully initialized by checking a visible element
     filter1 = page.locator("#filter-select-0")
     expect(filter1).to_be_visible()
+    expect(filter1).to_be_enabled()
+
+    # First filter: Sequence cDNA contains
+    # Use fill() instead of type() for more reliable input
     filter1.click()
-    filter1.type("seq", delay=50)
-    page.wait_for_timeout(200)
+    filter1.fill("seq")
+    # Wait for the next input to be focused/visible after tab
     page.keyboard.press("Tab")
-    page.wait_for_timeout(200)
+
+    # Wait for operator select to be focused (it should be the active element)
+    operator1 = page.locator("#operator-select-0")
+    expect(operator1).to_be_visible()
 
     # Type to select "cDNA could contain" action
-    page.keyboard.type("cdna", delay=50)
-    page.wait_for_timeout(200)
+    page.keyboard.type("cdna")
     page.keyboard.press("Tab")
-    page.wait_for_timeout(200)
+
+    # Wait for value input to be focused
+    value1 = page.locator("#value-input-0")
+    expect(value1).to_be_visible()
 
     # Enter cDNA value
-    page.keyboard.type(CDNA, delay=10)
-    page.wait_for_timeout(200)
+    page.keyboard.type(CDNA)
 
-    # Add second filter
-    page.locator("#add-row-btn").click()
-    page.wait_for_timeout(300)
+    # Add second filter - wait for button to be ready
+    add_btn = page.locator("#add-row-btn")
+    expect(add_btn).to_be_visible()
+    expect(add_btn).to_be_enabled()
+    add_btn.click()
 
-    # Second filter: Name contains
+    # Second filter: Name contains - wait for new row to appear
     filter2 = page.locator("#filter-select-1")
     expect(filter2).to_be_visible()
+    expect(filter2).to_be_enabled()
+
     filter2.click()
-    filter2.type("name", delay=50)
-    page.wait_for_timeout(200)
+    filter2.fill("name")
     page.keyboard.press("Tab")
-    page.wait_for_timeout(200)
+
+    # Wait for operator to be ready
+    operator2 = page.locator("#operator-select-1")
+    expect(operator2).to_be_visible()
 
     # Select "contains" action
-    page.keyboard.type("cont", delay=50)
-    page.wait_for_timeout(200)
+    page.keyboard.type("cont")
     page.keyboard.press("Tab")
-    page.wait_for_timeout(200)
+
+    # Wait for value input
+    value2 = page.locator("#value-input-1")
+    expect(value2).to_be_visible()
 
     # Enter partial name
-    page.keyboard.type(protein.name[2:6], delay=50)
-    page.wait_for_timeout(200)
+    page.keyboard.type(protein.name[2:6])
 
-    # Submit search
-    page.locator('button[type="submit"]').click()
+    # Submit search - wait for button to be ready
+    submit_btn = page.locator('button[type="submit"]')
+    expect(submit_btn).to_be_visible()
+    expect(submit_btn).to_be_enabled()
+    submit_btn.click()
 
     # Should redirect to protein detail page
     expected_url = f"{live_server.url}{protein.get_absolute_url()}"
