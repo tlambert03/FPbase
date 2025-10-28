@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
