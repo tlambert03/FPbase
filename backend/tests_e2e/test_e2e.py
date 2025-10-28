@@ -83,9 +83,11 @@ def test_spectra_viewer_loads(live_server: LiveServer, page: Page) -> None:
 
 def _select2_enter(selector: str, text: str, page: Page) -> None:
     """Helper to select an option in a Select2 widget by typing and selecting."""
+    page.wait_for_selector(".select2-results", state="hidden", timeout=1000)
+
     combo = page.locator(selector)
     combo.click()
-    page.wait_for_selector(".select2-results", state="visible")
+    page.wait_for_selector(".select2-search__field:focus", state="visible")
     page.keyboard.type(text)
     page.wait_for_selector(".select2-results__option--highlighted", state="visible")
     page.keyboard.press("Enter")
@@ -239,6 +241,7 @@ def test_fret_page_loads(live_server: LiveServer, page: Page) -> None:
     # Verify select2 widgets are present and clickable
     _select2_enter("#select2-donor-select-container", "donor", page)
     _select2_enter("#select2-acceptor-select-container", "acceptor", page)
+    page.wait_for_load_state("networkidle")
 
     # Verify result fields exist
     expect(page.locator("#QYD")).to_be_attached()

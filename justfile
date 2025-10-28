@@ -32,8 +32,8 @@ test-js:
     pnpm --filter @fpbase/spectra test:ci
 
 test-py:
-    uv run pytest
-    uv run pytest backend/tests_e2e/
+    uv run pytest backend/tests_e2e/ -v
+    uv run pytest -v
 
 test: test-py test-js
 
