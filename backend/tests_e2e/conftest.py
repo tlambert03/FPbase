@@ -55,7 +55,7 @@ if TYPE_CHECKING:
 # See: https://docs.djangoproject.com/en/5.2/topics/async/#envvar-DJANGO_ALLOW_ASYNC_UNSAFE
 #      https://github.com/microsoft/playwright-pytest/issues/29
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
-DEFAULT_TIMEOUT = int(os.getenv("DEFAULT_TIMEOUT", 5000))  # milliseconds
+DEFAULT_TIMEOUT = int(os.getenv("DEFAULT_TIMEOUT", 4000))  # milliseconds
 
 # Mark all tests in this directory with transactional database access
 # This is REQUIRED for live_server tests - it tells pytest-django to use
