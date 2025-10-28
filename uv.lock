@@ -920,18 +920,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-types"
-version = "0.22.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "types-psycopg2" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/3d/26/5f2873f7208dee0791710fda494a8d3ef7fb1d34785069b55168a23e2ac2/django_types-0.22.0.tar.gz", hash = "sha256:4cecc9eee846e7ff2a398bec9dfe6543e76efb922a7a58c5d6064bcb0e6a3dc5", size = 187214, upload-time = "2025-07-15T01:05:48.039Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/82/3a/0ecbaab07cfe7b0a4fd72dfde4be8e7c11aad2b88c816cfcbb800c14cbda/django_types-0.22.0-py3-none-any.whl", hash = "sha256:ba15c756c7a732e58afd0737e54489f1c5e6f1bd24132e9199c637b1f88b057c", size = 376869, upload-time = "2025-07-15T01:05:46.621Z" },
-]
-
-[[package]]
 name = "django-webpack-loader"
 version = "3.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1151,8 +1139,6 @@ dev = [
     { name = "celery-types" },
     { name = "django-debug-toolbar" },
     { name = "django-extensions" },
-    { name = "django-stubs" },
-    { name = "django-types" },
     { name = "djangorestframework-stubs" },
     { name = "factory-boy" },
     { name = "ipython" },
@@ -1183,8 +1169,6 @@ typing = [
     { name = "basedpyright" },
     { name = "celery-types" },
     { name = "django-debug-toolbar" },
-    { name = "django-stubs" },
-    { name = "django-types" },
     { name = "djangorestframework-stubs" },
     { name = "factory-boy" },
     { name = "playwright" },
@@ -1254,8 +1238,6 @@ dev = [
     { name = "celery-types", specifier = ">=0.23.0" },
     { name = "django-debug-toolbar", specifier = ">=4.2" },
     { name = "django-extensions", specifier = ">=3.2.3" },
-    { name = "django-stubs", specifier = ">=5.1.3" },
-    { name = "django-types", specifier = ">=0.22.0" },
     { name = "djangorestframework-stubs", specifier = ">=3.15.2" },
     { name = "factory-boy", specifier = ">=3.2.0" },
     { name = "ipython", specifier = ">=8.32.0" },
@@ -1286,8 +1268,6 @@ typing = [
     { name = "basedpyright", specifier = ">=1.32.1" },
     { name = "celery-types", specifier = ">=0.23.0" },
     { name = "django-debug-toolbar", specifier = ">=4.2" },
-    { name = "django-stubs", specifier = ">=5.1.3" },
-    { name = "django-types", specifier = ">=0.22.0" },
     { name = "djangorestframework-stubs", specifier = ">=3.15.2" },
     { name = "factory-boy", specifier = ">=3.2.0" },
     { name = "playwright", specifier = ">=1.55.0" },
@@ -2814,15 +2794,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/eb/79/72064e6a701c2183016abbbfedaba506d81e30e232a68c9f0d6f6fcd1574/traitlets-5.14.3.tar.gz", hash = "sha256:9ed0579d3502c94b4b3732ac120375cda96f923114522847de4b3bb98b96b6b7", size = 161621, upload-time = "2024-04-19T11:11:49.746Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/00/c0/8f5d070730d7836adc9c9b6408dec68c6ced86b304a9b26a14df072a6e8c/traitlets-5.14.3-py3-none-any.whl", hash = "sha256:b74e89e397b1ed28cc831db7aea759ba6640cb3de13090ca145426688ff1ac4f", size = 85359, upload-time = "2024-04-19T11:11:46.763Z" },
-]
-
-[[package]]
-name = "types-psycopg2"
-version = "2.9.21.20251012"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/9b/b3/2d09eaf35a084cffd329c584970a3fa07101ca465c13cad1576d7c392587/types_psycopg2-2.9.21.20251012.tar.gz", hash = "sha256:4cdafd38927da0cfde49804f39ab85afd9c6e9c492800e42f1f0c1a1b0312935", size = 26710, upload-time = "2025-10-12T02:55:39.5Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/0c/05feaf8cb51159f2c0af04b871dab7e98a2f83a3622f5f216331d2dd924c/types_psycopg2-2.9.21.20251012-py3-none-any.whl", hash = "sha256:712bad5c423fe979e357edbf40a07ca40ef775d74043de72bd4544ca328cc57e", size = 24883, upload-time = "2025-10-12T02:55:38.439Z" },
 ]
 
 [[package]]
