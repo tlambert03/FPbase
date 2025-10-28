@@ -99,7 +99,9 @@ async function getPDBbinary(id) {
           .map((e) => `${e.endpoint}: ${e.error.statusText || "Network error"}`)
           .join("; ")
 
-        throw new Error(`Failed to fetch PDB ${id} from all sources. Errors: ${errorSummary}`)
+        throw new Error(
+          `Failed to fetch PDB ${id} from all sources. Errors: ${errorSummary}`
+        )
       }
     }
   }
@@ -137,7 +139,10 @@ function loadChemInfo(pdbid) {
   // Safe access to PubMed ID
   const pubmedId = entry.rcsb_primary_citation?.pdbx_database_id_PubMed
   if (pubmedId) {
-    $("#chem-pubmed").attr("href", `https://www.ncbi.nlm.nih.gov/pubmed/${pubmedId}`)
+    $("#chem-pubmed").attr(
+      "href",
+      `https://www.ncbi.nlm.nih.gov/pubmed/${pubmedId}`
+    )
   } else {
     $("#chem-pubmed").removeAttr("href")
   }
@@ -167,7 +172,10 @@ function initLiteMol(selection, changer) {
   const { Components } = LiteMol.Plugin
   PluginSpec.components = [
     Components.Visualization.HighlightInfo(LayoutRegion.Main, true),
-    Components.Entity.Current("LiteMol", LiteMol.Plugin.VERSION.number)(LayoutRegion.Right, true),
+    Components.Entity.Current("LiteMol", LiteMol.Plugin.VERSION.number)(
+      LayoutRegion.Right,
+      true
+    ),
     Components.Transform.View(LayoutRegion.Right),
     Components.Context.Overlay(LayoutRegion.Root),
     Components.Context.BackgroundTasks(LayoutRegion.Main, true),
@@ -227,7 +235,10 @@ function initLiteMol(selection, changer) {
     $("body")
       .off("click.litemol")
       .on("click.litemol", (e) => {
-        if ($(".lm-layout-right").length && $(e.target).closest("#litemol-viewer").length === 0) {
+        if (
+          $(".lm-layout-right").length &&
+          $(e.target).closest("#litemol-viewer").length === 0
+        ) {
           plugin.setLayoutState({ hideControls: true })
         }
       })
@@ -395,11 +406,15 @@ async function getPDBinfo(pdbIds) {
     const select = $("#pdb_select")
 
     // Sort by resolution (best first)
-    pdbIds.sort((a, b) => (pdbInfo[a].resolution > pdbInfo[b].resolution ? 1 : -1))
+    pdbIds.sort((a, b) =>
+      pdbInfo[a].resolution > pdbInfo[b].resolution ? 1 : -1
+    )
 
     // Populate dropdown
     pdbIds.forEach((id) => {
-      select.append($("<option>", { value: id }).html(`${id} (${pdbInfo[id].resolution} Å)`))
+      select.append(
+        $("<option>", { value: id }).html(`${id} (${pdbInfo[id].resolution} Å)`)
+      )
     })
 
     initLiteMol("#litemol-viewer", select)

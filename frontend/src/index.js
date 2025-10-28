@@ -21,14 +21,14 @@ import "./js/onload.js"
 // microscope.js loaded separately via CDN on microscope pages
 import "./js/scope_report.js"
 
-import * as d3 from "d3"
-import initAutocomplete from "./js/algolia.js"
-import initFRET from "./js/fret.js"
 import FPPropChart from "./js/ichart.js"
+import initAutocomplete from "./js/algolia.js"
 import LineageChart from "./js/lineage.js"
+import initFRET from "./js/fret.js"
+import * as d3 from "d3";
 
 // Mark this bundle for Sentry context
-window.d3 = d3
+window.d3 = d3;
 
 window.FPBASE = window.FPBASE || {}
 window.FPBASE = {
@@ -37,5 +37,5 @@ window.FPBASE = {
   initAutocomplete,
   FPPropChart,
   LineageChart,
-  initFRET,
+  initFRET
 }

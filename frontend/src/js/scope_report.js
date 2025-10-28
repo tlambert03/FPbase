@@ -1,6 +1,6 @@
-import Highcharts from "highcharts"
-import $ from "jquery"
 import ProgressBar from "progressbar.js"
+import $ from "jquery"
+import Highcharts from "highcharts"
 
 function compare(a, b) {
   if (a.key < b.key) return 1
@@ -9,7 +9,10 @@ function compare(a, b) {
 }
 
 function titleCase(str) {
-  str = str.replace(/_/g, " ").toLowerCase().split(" ")
+  str = str
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .split(" ")
   for (var i = 0; i < str.length; i++) {
     str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1)
   }
@@ -28,12 +31,12 @@ function slugify(text) {
 }
 
 $.fn.extend({
-  scopeReport: (config) => {
+  scopeReport: function(config) {
     var CSRF_TOKEN = config.csrfToken
     var SCOPE_ID = config.scopeID
     var SCOPE_URL = config.scopeURL
     var JOB_ID = null
-    var OUTDATED
+    var OUTDATED = undefined
     if (config.outdated.length) {
       OUTDATED = config.outdated
     }
@@ -46,68 +49,69 @@ $.fn.extend({
 
     function updateChart(reportData) {
       if (!reportData || !reportData.length) {
-        while (chart.series.length > 0) {
-          chart.series[0].remove(false)
+        while(chart.series.length > 0) {
+          chart.series[0].remove(false);
         }
-        chart.redraw()
-        return
+        chart.redraw();
+        return;
       }
 
       // Convert nvd3-style data to Highcharts format
-      var series = reportData.map((group, index) => {
+      var series = reportData.map(function(group, index) {
         // Get the default Highcharts color for this series
-        var seriesColor =
-          Highcharts.getOptions().colors[index % Highcharts.getOptions().colors.length]
+        var seriesColor = Highcharts.getOptions().colors[index % Highcharts.getOptions().colors.length];
 
         return {
           name: group.key,
-          data: group.values.map((d) => {
+          data: group.values.map(function(d) {
             // Determine symbol shape: circles for proteins, squares for dyes
-            var isProtein = FLUORS && FLUORS[d.fluor_slug] && FLUORS[d.fluor_slug].type === "p"
-            var symbol = isProtein ? "circle" : "square"
+            var isProtein = FLUORS && FLUORS[d.fluor_slug] && FLUORS[d.fluor_slug].type === 'p';
+            var symbol = isProtein ? 'circle' : 'square';
 
             // Scale brightness with a cap to prevent huge symbols
             // Use square root scaling to reduce the range
-            var radius = Math.max(2, Math.min(12, Math.sqrt(+d.brightness || 1) * 2))
+            var radius = Math.max(2, Math.min(12, Math.sqrt(+d.brightness || 1) * 2));
 
             // Convert color to rgba with opacity
-            var color = Highcharts.color(seriesColor).setOpacity(0.6).get("rgba")
+            var color = Highcharts.color(seriesColor).setOpacity(0.6).get('rgba');
 
             return {
-              x: d.ex_eff && d.ex_eff !== null ? d.ex_eff : 0,
-              y: d.em_eff && d.em_eff !== null ? d.em_eff : 0,
+              x: (d.ex_eff && d.ex_eff !== null) ? d.ex_eff : 0,
+              y: (d.em_eff && d.em_eff !== null) ? d.em_eff : 0,
               color: color,
               marker: {
                 symbol: symbol,
-                radius: radius,
+                radius: radius
               },
               fluor: d.fluor,
               fluor_slug: d.fluor_slug,
               brightness: d.brightness,
-              url: d.url,
-            }
-          }),
-        }
-      })
+              url: d.url
+            };
+          })
+        };
+      });
 
       // Remove existing series
-      while (chart.series.length > 0) {
-        chart.series[0].remove(false)
+      while(chart.series.length > 0) {
+        chart.series[0].remove(false);
       }
 
       // Add new series
-      series.forEach((s) => {
-        chart.addSeries(s, false)
-      })
+      series.forEach(function(s) {
+        chart.addSeries(s, false);
+      });
 
-      chart.redraw()
+      chart.redraw();
     }
 
     function updateData() {
-      $.get(window.location + "json/", (d) => {
+      $.get(window.location + "json/", function(d) {
         $("#update-alert").show()
         if (!(d.report && d.report.length)) {
-          $("#status").html('<p class="mt-5">No data yet.  Please update scope report.</p>')
+          $("#status").html(
+            '<p class="mt-5">No data yet.  Please update scope report.</p>'
+          )
           $("#status").show()
           $(".needs-data").hide()
           $("#report_chart").height(0)
@@ -118,7 +122,7 @@ $.fn.extend({
         REPORT = d.report
         $("#report_chart").height(750)
 
-        updateChart(REPORT)
+        updateChart(REPORT);
 
         $("#status").hide()
         $(".needs-data").show()
@@ -129,18 +133,19 @@ $.fn.extend({
           {
             title: "EC",
             class: "col_ext_coeff",
-            visible: localStorage.getItem(SCOPE_ID + "ext_coeff_checkbox") === "true",
+            visible:
+              localStorage.getItem(SCOPE_ID + "ext_coeff_checkbox") === "true"
           },
           {
             title: "QY",
             class: "col_qy",
-            visible: localStorage.getItem(SCOPE_ID + "qy_checkbox") === "true",
+            visible: localStorage.getItem(SCOPE_ID + "qy_checkbox") === "true"
           },
           { title: "Ex Max", class: "col_ex_max", visible: false },
           { title: "Em Max", class: "col_em_max", visible: false },
           { title: "Agg", class: "col_agg", visible: false },
           { title: "Switch Type", class: "col_switch_type", visible: false },
-          { title: "UUID", class: "col_uuid", visible: false },
+          { title: "UUID", class: "col_uuid", visible: false }
         ]
         var ocNames = []
         var fluorData = {}
@@ -155,12 +160,12 @@ $.fn.extend({
           for (var x = 0; x < colHeaders.length; x++) {
             var cls = slugify("col_" + thisOC) + " col_" + colHeaders[x]
             var vis =
-              localStorage.getItem(SCOPE_ID + slugify(thisOC) + "_checkbox") !== "false" &&
-              $("#" + colHeaders[x] + "_checkbox").prop("checked")
+              localStorage.getItem(SCOPE_ID + slugify(thisOC) + "_checkbox") !==
+                "false" && $("#" + colHeaders[x] + "_checkbox").prop("checked")
             colTitles.push({
               title: thisOC + " " + titleCase(colHeaders[x]),
               class: cls,
-              visible: vis,
+              visible: vis
             })
           }
 
@@ -195,7 +200,7 @@ $.fn.extend({
 
         for (var fluor in fluorData) {
           // skip loop if the property is from prototype
-          if (!Object.hasOwn(fluorData, fluor)) continue
+          if (!fluorData.hasOwnProperty(fluor)) continue
 
           let fluorlink = fluorData[fluor].name
           if (FLUORS[fluor].type === "p") {
@@ -217,10 +222,10 @@ $.fn.extend({
             FLUORS[fluor]["em_max"],
             FLUORS[fluor]["agg"],
             FLUORS[fluor]["switch_type"],
-            FLUORS[fluor]["uuid"],
+            FLUORS[fluor]["uuid"]
           ]
           for (var o = 0; o < ocNames.length; o++) {
-            if (Object.hasOwn(fluorData[fluor], ocNames[o])) {
+            if (fluorData[fluor].hasOwnProperty(ocNames[o])) {
               f = f.concat(fluorData[fluor][ocNames[o]])
             } else {
               f = f.concat(empty)
@@ -231,7 +236,9 @@ $.fn.extend({
         $("#oc-toggles").empty()
         for (let o = 0; o < ocNames.length; o++) {
           var ischecked =
-            localStorage.getItem(SCOPE_ID + slugify(ocNames[o]) + "_checkbox") !== "false"
+            localStorage.getItem(
+              SCOPE_ID + slugify(ocNames[o]) + "_checkbox"
+            ) !== "false"
           var el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
             .append(
               $("<input>", {
@@ -239,13 +246,13 @@ $.fn.extend({
                 type: "checkbox",
                 id: slugify(ocNames[o]) + "_checkbox",
                 value: slugify(ocNames[o]),
-                checked: ischecked,
+                checked: ischecked
               })
             )
             .append(
               $("<label>", {
                 class: "custom-control-label",
-                for: slugify(ocNames[o]) + "_checkbox",
+                for: slugify(ocNames[o]) + "_checkbox"
               }).text(ocNames[o])
             )
 
@@ -253,13 +260,13 @@ $.fn.extend({
         }
 
         var buttonCommon = {
-          init: (api, node, config) => {
+          init: function(api, node, config) {
             $(node).removeClass("btn-secondary")
           },
           className: "btn-sm btn-primary",
           exportOptions: {
             format: {
-              body: (data, row, column, node) => {
+              body: function(data, row, column, node) {
                 switch (column) {
                   case 0:
                     if (data.startsWith("<a")) {
@@ -272,12 +279,12 @@ $.fn.extend({
                     }
                     return data
                 }
-              },
-            },
-          },
+              }
+            }
+          }
         }
 
-        colTitles = colTitles.map((d) => {
+        colTitles = colTitles.map(function(d) {
           d.orderSequence = ["desc", "asc"]
           return d
         })
@@ -294,32 +301,32 @@ $.fn.extend({
             "<'row mt-2 small text-small'<'col-sm-12 col-md-3 d-none d-md-block'B><'col-xs-12 col-sm-5 col-md-4'i><'col-xs-12 col-sm-7 col-md-5'p>>",
           buttons: [
             $.extend(true, {}, buttonCommon, {
-              extend: "copyHtml5",
+              extend: "copyHtml5"
             }),
             $.extend(true, {}, buttonCommon, {
-              extend: "excelHtml5",
+              extend: "excelHtml5"
             }),
             $.extend(true, {}, buttonCommon, {
-              extend: "csvHtml5",
+              extend: "csvHtml5"
             }),
             {
               text: "JSON",
               className: "btn-sm btn-primary json-button",
-              action: (e, dt, node, config) => {
+              action: function(e, dt, node, config) {
                 $.fn.dataTable.fileSave(
                   new Blob([JSON.stringify(d.report)]),
                   "report_" + SCOPE_ID + ".json"
                 )
-              },
-            },
-          ],
+              }
+            }
+          ]
         })
 
         dt.clear()
         dt.rows.add(dataRows)
         dt.draw()
 
-        $("#report_table_filter input").on("keyup", function () {
+        $("#report_table_filter input").on("keyup", function() {
           var rx = this.value.replace(/,\s*$/g, "").replace(/,\s*/g, "|.*")
           try {
             //var regex = new RegExp(rx)
@@ -340,7 +347,7 @@ $.fn.extend({
         color: "#74779B",
         trailColor: "#ddd",
         trailWidth: 1,
-        svgStyle: { width: "100%", height: "100%" },
+        svgStyle: { width: "100%", height: "100%" }
       })
     }
 
@@ -363,13 +370,13 @@ $.fn.extend({
           data: {
             action: "check",
             job_id: JOB_ID,
-            csrfmiddlewaretoken: CSRF_TOKEN,
+            csrfmiddlewaretoken: CSRF_TOKEN
           },
           dataType: "json",
-          success: (data) => {
+          success: function(data) {
             if (data.ready || data.info === undefined || data.info === null) {
               // job went to completion
-              line.animate(1, { duration: 200 }, () => {
+              line.animate(1, { duration: 200 }, function() {
                 $("#update-alert").fadeOut()
               })
               reset_button()
@@ -377,24 +384,25 @@ $.fn.extend({
               var passed = Date.now() - LAST_TIME
               var curRate = passed / (data.info.current - LAST_PROG)
               var nextPosition = data.info.current + interval / curRate
-              var timeRemaining = (data.info.total - data.info.current) * curRate
+              var timeRemaining =
+                (data.info.total - data.info.current) * curRate
               var nextCheck = Math.min(interval, timeRemaining)
               LAST_PROG = data.info.current
               LAST_TIME = Date.now()
 
               line.animate(Math.min(nextPosition / data.info.total, 1), {
-                duration: nextCheck,
+                duration: nextCheck
               })
 
               setTimeout(check_status, nextCheck)
               //window.CHECKER = setInterval(check_status, interval);
             }
-          },
+          }
         })
       }
     }
 
-    $("#request-report").click((e) => {
+    $("#request-report").click(function(e) {
       $("#request-report").attr("disabled", true)
       $("#request-report").val("Running")
 
@@ -411,10 +419,10 @@ $.fn.extend({
           scope_id: SCOPE_ID,
           csrfmiddlewaretoken: CSRF_TOKEN,
           job_id: JOB_ID,
-          outdated: JSON.stringify(OUTDATED),
+          outdated: JSON.stringify(OUTDATED)
         },
         dataType: "json",
-        success: (data) => {
+        success: function(data) {
           if (data.canceled) {
             line.animate(0, { duration: 200 })
             JOB_ID = null
@@ -435,7 +443,7 @@ $.fn.extend({
             setTimeout(check_status, 250, interval - 250)
           }
         },
-        error: (req, status, err) => {
+        error: function(req, status, err) {
           $("#alert-msg").text(
             "Sorry!  There was an unexpected error on the server.  Please try again in a few minutes, or contact us if the problem persists."
           )
@@ -443,7 +451,7 @@ $.fn.extend({
           $("#update-alert").addClass("alert-danger")
           $("#request-report").val("Error!")
           $("#request-report").addClass("btn-danger")
-          setTimeout(() => {
+          setTimeout(function() {
             reset_button()
             $("#request-report").attr("disabled", false)
             $("#alert-msg").text("try again?...")
@@ -451,169 +459,173 @@ $.fn.extend({
             $("#update-alert").addClass("alert-info")
             $("#request-report").removeClass("btn-danger")
           }, 20000)
-        },
+        }
       })
     })
 
-    $(document).ready(() => {
+    $(document).ready(function() {
       // create the chart with Highcharts
-      chart = Highcharts.chart("report_chart", {
+      chart = Highcharts.chart('report_chart', {
         chart: {
-          type: "scatter",
-          zoomType: "xy",
+          type: 'scatter',
+          zoomType: 'xy',
         },
         title: { text: null },
         legend: {
           enabled: true,
-          align: "center",
-          verticalAlign: "top",
-          layout: "horizontal",
+          align: 'center',
+          verticalAlign: 'top',
+          layout: 'horizontal',
           itemStyle: {
-            fontSize: "12px",
-          },
+            fontSize: '12px'
+          }
         },
         xAxis: {
-          title: { text: "Excitation Efficiency" },
+          title: { text: 'Excitation Efficiency' },
           labels: {
-            format: "{value:.2f}",
+            format: '{value:.2f}'
           },
           min: -0.02,
           max: 1.0,
           gridLineWidth: 1,
-          gridLineColor: "#e6e6e6",
+          gridLineColor: '#e6e6e6',
           lineWidth: 0,
-          tickColor: "#e6e6e6",
+          tickColor: '#e6e6e6'
         },
         yAxis: {
-          title: { text: "Collection Efficiency" },
+          title: { text: 'Collection Efficiency' },
           labels: {
-            format: "{value:.2f}",
+            format: '{value:.2f}'
           },
           gridLineWidth: 1,
-          gridLineColor: "#e6e6e6",
+          gridLineColor: '#e6e6e6'
         },
         tooltip: {
           useHTML: true,
-          formatter: function () {
-            const point = this.point
-            const fluor = FLUORS?.[point.fluor_slug]
+          formatter: function() {
+            const point = this.point;
+            const fluor = FLUORS?.[point.fluor_slug];
 
-            const formatPercent = (value) => `${Math.round(value * 1000) / 10}%`
-            const formatValue = (value) => value ?? "-"
+            const formatPercent = (value) => `${Math.round(value * 1000) / 10}%`;
+            const formatValue = (value) => value ?? "-";
 
             const fields = [
               { label: "Ex Eff", value: formatPercent(point.x) },
               { label: "Em Eff", value: formatPercent(point.y) },
               { label: "Brightness", value: formatValue(point.brightness) },
               { label: "EC", value: formatValue(fluor?.ext_coeff) },
-              { label: "QY", value: formatValue(fluor?.qy) },
-            ]
+              { label: "QY", value: formatValue(fluor?.qy) }
+            ];
 
-            const rows = fields.map((f) => `<span>${f.label}: ${f.value}</span><br>`).join("")
+            const rows = fields.map(f => `<span>${f.label}: ${f.value}</span><br>`).join("");
 
-            return `<div><p><strong>${point.fluor}</strong></p>${rows}</div>`
-          },
+            return `<div><p><strong>${point.fluor}</strong></p>${rows}</div>`;
+          }
         },
         plotOptions: {
           legend: {
             squareSymbol: true,
             symbolRadius: 12,
             symbolHeight: 12,
-            symbolWidth: 12,
+            symbolWidth: 12
           },
           series: {
             events: {
-              legendItemClick: function () {
-                var chart = this.chart
-                var currentTime = new Date().getTime()
+              legendItemClick: function() {
+                var clickedSeries = this;
+                var chart = clickedSeries.chart;
+                var currentTime = new Date().getTime();
 
                 // Check for double-click (within 300ms)
-                if (this._lastClickTime && currentTime - this._lastClickTime < 300) {
+                if (clickedSeries._lastClickTime && (currentTime - clickedSeries._lastClickTime) < 300) {
                   // Double-click: show only this series
-                  var anyOthersVisible = false
-                  chart.series.forEach((series) => {
-                    if (series !== this && series.visible) {
-                      anyOthersVisible = true
+                  var anyOthersVisible = false;
+                  chart.series.forEach(function(series) {
+                    if (series !== clickedSeries && series.visible) {
+                      anyOthersVisible = true;
                     }
-                  })
+                  });
 
                   if (anyOthersVisible) {
                     // Hide all others, show only this one
-                    chart.series.forEach((series) => {
-                      series.setVisible(series === this, false)
-                    })
+                    chart.series.forEach(function(series) {
+                      series.setVisible(series === clickedSeries, false);
+                    });
                   } else {
                     // All others are hidden, restore all
-                    chart.series.forEach((series) => {
-                      series.setVisible(true, false)
-                    })
+                    chart.series.forEach(function(series) {
+                      series.setVisible(true, false);
+                    });
                   }
-                  chart.redraw()
-                  this._lastClickTime = null
-                  return false // Prevent default toggle
+                  chart.redraw();
+                  clickedSeries._lastClickTime = null;
+                  return false; // Prevent default toggle
                 } else {
                   // Single-click: allow default toggle behavior
-                  this._lastClickTime = currentTime
-                  return true // Allow default toggle
+                  clickedSeries._lastClickTime = currentTime;
+                  return true; // Allow default toggle
                 }
-              },
-            },
+              }
+            }
           },
           scatter: {
-            legendSymbol: "rectangle",
+            legendSymbol: 'rectangle',
             marker: {
               radius: 5,
-              lineWidth: 0.5,
-              lineColor: "#0000004d",
+              lineWidth: .5,
+              lineColor: '#0000004d',
               states: {
                 hover: {
-                  enabled: true,
-                },
-              },
+                  enabled: true
+                }
+              }
             },
             states: {
               hover: {
                 marker: {
-                  enabled: false,
-                },
-              },
+                  enabled: false
+                }
+              }
             },
             point: {
               events: {
-                click: function () {
+                click: function() {
                   if (this.url) {
-                    window.open(this.url)
+                    window.open(this.url);
                   }
-                },
-              },
-            },
-          },
+                }
+              }
+            }
+          }
         },
         series: [],
         lang: {
-          noData: "",
+          noData: ''
         },
         noData: {
           style: {
-            fontWeight: "bold",
-            fontSize: "15px",
-            color: "#303030",
-          },
+            fontWeight: 'bold',
+            fontSize: '15px',
+            color: '#303030'
+          }
         },
-        credits: { enabled: false },
-      })
+        credits: { enabled: false }
+      });
 
       // Add resize handler
-      $(window).on("resize", () => {
+      $(window).on('resize', function() {
         if (chart) {
-          chart.reflow()
+          chart.reflow();
         }
-      })
+      });
 
       updateData()
 
-      $("body").on("click", "input.toggle-vis, input.meas-vis", function (e) {
-        localStorage.setItem(SCOPE_ID + $(this).attr("id"), $(this).prop("checked"))
+      $("body").on("click", "input.toggle-vis, input.meas-vis", function(e) {
+        localStorage.setItem(
+          SCOPE_ID + $(this).attr("id"),
+          $(this).prop("checked")
+        )
         if (["ext_coeff", "qy"].includes($(this).val())) {
           dt.columns(".col_" + $(this).val()).visible($(this).prop("checked"))
           return
@@ -624,24 +636,30 @@ $.fn.extend({
           let included
           if ($(this).hasClass("toggle-vis")) {
             included = $("input.meas-vis:checkbox:checked")
-              .map((x, d) => ".col_" + d.value)
+              .map(function(x, d) {
+                return ".col_" + d.value
+              })
               .toArray()
               .join(", ")
           } else {
             included = $("input.toggle-vis:checkbox:checked")
-              .map((x, d) => ".col_" + d.value)
+              .map(function(x, d) {
+                return ".col_" + d.value
+              })
               .toArray()
               .join(", ")
           }
           included = dt.columns(included)[0]
-          columns = columns.filter((elem) => included.includes(elem))
+          columns = columns.filter(function(elem) {
+            return included.includes(elem)
+          })
           dt.columns(columns).visible($(this).prop("checked"))
         } else {
           dt.columns(".col_" + $(this).val()).visible($(this).prop("checked"))
         }
       })
 
-      $(".table-filter").change(function () {
+      $(".table-filter").change(function() {
         var uuids = $("#probe_filter option:selected").data("ids")
 
         // filter the table
@@ -660,10 +678,12 @@ $.fn.extend({
 
         // filter the chart
         var newReport = []
-        const filterfunc = (d) =>
+        const filterfunc = d =>
           ($("#probe_filter").val() === "" ||
-            (FLUORS[d.fluor_slug].type === "p" && uuids.includes(FLUORS[d.fluor_slug].uuid))) &&
-          ($("#agg_filter").val() === "" || FLUORS[d.fluor_slug].agg === $("#agg_filter").val()) &&
+            (FLUORS[d.fluor_slug].type === "p" &&
+              uuids.includes(FLUORS[d.fluor_slug].uuid))) &&
+          ($("#agg_filter").val() === "" ||
+            FLUORS[d.fluor_slug].agg === $("#agg_filter").val()) &&
           ($("#switch_filter").val() === "" ||
             FLUORS[d.fluor_slug].switch_type === $("#switch_filter").val())
 
@@ -672,7 +692,7 @@ $.fn.extend({
           newReport[i].values = newReport[i].values.filter(filterfunc)
         }
 
-        updateChart(newReport)
+        updateChart(newReport);
       })
 
       $("#meas-toggles").empty()
@@ -682,14 +702,18 @@ $.fn.extend({
         ["ex_eff", "Ex Eff"],
         ["ex_eff_broad", "Ex Eff (Broadband)"],
         ["em_eff", "Em Eff"],
-        ["brightness", "Brightness"],
+        ["brightness", "Brightness"]
       ]
       for (var o = 0; o < measbuttons.length; o++) {
         var id = measbuttons[o][0] + "_checkbox"
         var ischecked = localStorage.getItem(SCOPE_ID + id)
         if (
           ischecked === null &&
-          ["ex_eff_checkbox", "em_eff_checkbox", "brightness_checkbox"].includes(id)
+          [
+            "ex_eff_checkbox",
+            "em_eff_checkbox",
+            "brightness_checkbox"
+          ].includes(id)
         ) {
           ischecked = true
         } else {
@@ -703,12 +727,16 @@ $.fn.extend({
               type: "checkbox",
               id: id,
               value: measbuttons[o][0],
-              checked: ischecked,
+              checked: ischecked
             })
           )
-          .append($("<label>", { class: "custom-control-label", for: id }).text(measbuttons[o][1]))
+          .append(
+            $("<label>", { class: "custom-control-label", for: id }).text(
+              measbuttons[o][1]
+            )
+          )
         el.appendTo($("#meas-toggles"))
       }
     })
-  },
+  }
 })

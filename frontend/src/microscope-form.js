@@ -12,19 +12,19 @@ import "./js/jquery.formset"
 window.FPBASE = window.FPBASE || {}
 window.FPBASE.currentBundle = "microscopeForm"
 
-$("#microscopeform").submit((e) => {
+$("#microscopeform").submit(function(e) {
   // eslint-disable-next-line
   if (confirmError) {
-    const multidichroics = $("select[id*='bs_filters']").filter(function () {
+    const multidichroics = $("select[id*='bs_filters']").filter(function() {
       return $(this).val().length > 1
     })
-    const multiex = $("select[id*='ex_filters']").filter(function () {
+    const multiex = $("select[id*='ex_filters']").filter(function() {
       return $(this).val().length > 1
     })
     if (multidichroics.length > 0 || multiex.length > 0) {
       e.preventDefault()
       $("#sureModal")
-        .one("hidden.bs.modal", () => {
+        .one("hidden.bs.modal", function() {
           if ($(document.activeElement).attr("id") === "save") {
             confirmError = false // eslint-disable-line
             $("#microscopeform").submit()
@@ -37,15 +37,17 @@ $("#microscopeform").submit((e) => {
   }
 })
 
-$(document).on("show.bs.modal", "#sureModal", () => {
+$(document).on("show.bs.modal", "#sureModal", function() {
   $("#sureModal").css("z-index", 1200)
 })
 
-$(document).on("hidden.bs.modal", "#sureModal", () => {
+$(document).on("hidden.bs.modal", "#sureModal", function() {
   $("#sureModal").css("z-index", 1039)
 })
 
-$("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2({
+$(
+  "#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights"
+).select2({
   theme: "bootstrap",
   containerCssClass: ":all:",
   placeholder: "---------",
@@ -53,7 +55,7 @@ $("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2
   width: "auto",
 })
 
-$(() => {
+$(function() {
   $(".formset_div").formset({
     addText: "Add Optical Configuration",
     addCssClass: "btn btn-sm btn-info add-oc-button mb-1 mr-1",
@@ -71,7 +73,7 @@ $(() => {
   }
 })
 
-$("#chromaImportForm, #semrockImportForm").submit(function (e) {
+$("#chromaImportForm, #semrockImportForm").submit(function(e) {
   e.preventDefault() // avoid to execute the actual submit of the form.
   $("#footerSpinner").show()
   $("#footerFail").hide()
@@ -83,7 +85,7 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
     url: form.attr("data-action-url"),
     data: form.serialize(),
     dataType: "json",
-    success: (data) => {
+    success: function(data) {
       if (data.status) {
         const newdata = JSON.parse(data.spectra_options)
         $('.data-selector[data-category="f"]').append(
@@ -92,7 +94,10 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
           }).text(newdata.name)
         )
         $(`#${brand}Input`).removeClass("is-invalid")
-        $(`#${brand}Help`).removeClass("invalid-feedback").addClass("text-muted").text("Success!")
+        $(`#${brand}Help`)
+          .removeClass("invalid-feedback")
+          .addClass("text-muted")
+          .text("Success!")
         $("#footerSpinner").hide()
         $("#footerFail").hide()
         $("#footerSuccess").show()
@@ -108,13 +113,13 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
         $("#footerSuccess").hide()
       }
     },
-  }).then((d) => {
+  }).then(function(d) {
     $("#footerSpinner").hide()
     // $('#importModal').modal('hide')
   })
 })
 
-$(".importerClose").click(() => {
+$(".importerClose").click(function() {
   $("#footerSpinner").hide()
   $("#footerFail").hide()
   $("#footerSuccess").hide()
