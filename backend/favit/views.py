@@ -23,7 +23,8 @@ def add_or_remove(request):
         return HttpResponseBadRequest()
     fav = Favorite.objects.get_favorite(user, obj_id, model=app_model)
     if fav is None:
-        Favorite.objects.create(user, obj_id, app_model)
+        # Use get_or_create to handle race conditions atomically
+        fav, _created = Favorite.objects.get_or_create(user, obj_id, app_model)
         status = "added"
     else:
         fav.delete()
