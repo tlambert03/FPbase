@@ -86,7 +86,7 @@ jobs:
           sleep 3
 
       - name: Test
-        run: uv run pytest --color=yes -v --cov --cov-report=xml
+        run: uv run pytest -v --cov --cov-report=xml
 
       - name: coverage
         uses: codecov/codecov-action@v5
@@ -147,14 +147,8 @@ jobs:
       - name: setup-chromedriver
         uses: nanasess/setup-chromedriver@v2
 
-      - name: Configure headless display
-        run: |
-          echo "DISPLAY=:99.0" >> $GITHUB_ENV
-          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          sleep 3
-
       - name: Test
-        run: uv run pytest backend/tests_e2e/ --color=yes -v --cov --cov-report=xml --tracing=retain-on-failure
+        run: uv run pytest backend/tests_e2e/ -v --cov --cov-report=xml --tracing=retain-on-failure
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
