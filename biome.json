@@ -8,20 +8,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["frontend/**", "packages/**"],
-    "experimentalScannerIgnores": [
-      "backend/**",
-      "node_modules/**",
-      "**/node_modules/**",
-      "dist/**",
-      "**/dist/**",
-      "build/**",
-      "**/build/**",
-      "coverage/**",
-      "**/coverage/**",
-      "*.min.js",
-      "**/*.min.js"
-    ]
+    "includes": ["**", "!!frontend/src/css/litemol", "!!frontend/src/js/pdb/LiteMol-plugin.js"]
   },
   "formatter": {
     "enabled": true,
