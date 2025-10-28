@@ -105,7 +105,7 @@ def _build_frontend_assets() -> None:
 
 
 @pytest.fixture
-def page(page: Page) -> Page:
+def page(page: Page) -> Iterator[Page]:
     """Configure Playwright page fixture with FPbase defaults.
 
     Sets reasonable timeouts and viewport size for consistent test behavior.
@@ -115,7 +115,8 @@ def page(page: Page) -> Page:
     page.set_default_timeout(DEFAULT_TIMEOUT)  # 4 seconds
     # Set consistent viewport size for predictable rendering
     page.set_viewport_size({"width": 1280, "height": 720})
-    return page
+    with console_errors_raised(page):
+        yield page
 
 
 @contextmanager
@@ -126,6 +127,7 @@ def console_errors_raised(page: Page) -> Iterator[None]:
         "favicon.ico",
         "sentry",
         "WebGL",
+        "[Report Only]",
     ]
 
     def on_console(msg: ConsoleMessage) -> None:
