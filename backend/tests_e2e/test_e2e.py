@@ -345,66 +345,46 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     page.goto(url, wait_until="networkidle")
     expect(page).to_have_url(url)
 
-    # Wait for the form to be fully initialized by checking a visible element
+    # First filter: Sequence cDNA contains
+    # Select "Sequence" from filter dropdown
     filter1 = page.locator("#filter-select-0")
     expect(filter1).to_be_visible()
-    expect(filter1).to_be_enabled()
+    filter1.select_option("seq")
 
-    # First filter: Sequence cDNA contains
-    # Click to focus, then type to filter the dropdown
-    filter1.click()
-    filter1.type("seq")
-    page.keyboard.press("Tab")
-
-    # Wait for operator select to be visible
-    operator1 = page.locator("#operator-select-0")
+    # Select "cDNA could contain" from operator dropdown
+    operator1 = page.locator("#query-row-0 .operator-select")
     expect(operator1).to_be_visible()
+    operator1.select_option("cdna_contains")
 
-    # Type to select "cDNA could contain" action
-    page.keyboard.type("cdna")
-    page.keyboard.press("Tab")
-
-    # Wait for value input to be visible
-    value1 = page.locator("#value-input-0")
+    # Enter cDNA value in the text input
+    value1 = page.locator("#id_seq__cdna_contains")
     expect(value1).to_be_visible()
+    value1.fill(CDNA)
 
-    # Enter cDNA value
-    page.keyboard.type(CDNA)
-
-    # Add second filter - wait for button to be ready
+    # Add second filter row
     add_btn = page.locator("#add-row-btn")
     expect(add_btn).to_be_visible()
-    expect(add_btn).to_be_enabled()
     add_btn.click()
 
-    # Second filter: Name contains - wait for new row to appear
+    # Second filter: Name starts with
+    # Wait for second row to appear and select "Name or Alias"
     filter2 = page.locator("#filter-select-1")
     expect(filter2).to_be_visible()
-    expect(filter2).to_be_enabled()
+    filter2.select_option("name")
 
-    filter2.click()
-    filter2.type("name")
-    page.keyboard.press("Tab")
-
-    # Wait for operator to be ready
-    operator2 = page.locator("#operator-select-1")
+    # Select "starts with" from operator dropdown (row 1 doesn't have "contains" option)
+    operator2 = page.locator("#query-row-1 .operator-select")
     expect(operator2).to_be_visible()
+    operator2.select_option("istartswith")
 
-    # Select "contains" action
-    page.keyboard.type("cont")
-    page.keyboard.press("Tab")
-
-    # Wait for value input
-    value2 = page.locator("#value-input-1")
+    # Enter name prefix value
+    value2 = page.locator("#id_name__istartswith")
     expect(value2).to_be_visible()
+    value2.fill(protein.name[:6])
 
-    # Enter partial name
-    page.keyboard.type(protein.name[2:6])
-
-    # Submit search - wait for button to be ready
+    # Submit search
     submit_btn = page.locator('button[type="submit"]')
     expect(submit_btn).to_be_visible()
-    expect(submit_btn).to_be_enabled()
     submit_btn.click()
 
     # Should redirect to protein detail page
