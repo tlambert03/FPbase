@@ -45,7 +45,11 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page
+    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, ViewportSize
+
+DEFAULT_TIMEOUT = int(os.getenv("DEFAULT_TIMEOUT", 4000))  # milliseconds
+VIEWPORT_SIZE: ViewportSize = {"width": 1020, "height": 1200}
+
 # Required for pytest-playwright fixtures to work with Django ORM in test setup.
 # Playwright runs fixtures in an async event loop, triggering Django's async-unsafe
 # protections. This is safe for tests because:
@@ -55,7 +59,6 @@ if TYPE_CHECKING:
 # See: https://docs.djangoproject.com/en/5.2/topics/async/#envvar-DJANGO_ALLOW_ASYNC_UNSAFE
 #      https://github.com/microsoft/playwright-pytest/issues/29
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
-DEFAULT_TIMEOUT = int(os.getenv("DEFAULT_TIMEOUT", 4000))  # milliseconds
 
 # Mark all tests in this directory with transactional database access
 # This is REQUIRED for live_server tests - it tells pytest-django to use
@@ -121,7 +124,7 @@ def page(page: Page) -> Iterator[Page]:
     # Set default timeout for actions (locator clicks, waits, etc)
     page.set_default_timeout(DEFAULT_TIMEOUT)
     # Set consistent viewport size for predictable rendering
-    page.set_viewport_size({"width": 1280, "height": 720})
+    page.set_viewport_size(VIEWPORT_SIZE)
     with console_errors_raised(page):
         yield page
 
@@ -204,6 +207,7 @@ def auth_page(auth_context: BrowserContext) -> Iterator[Page]:
     """Page with authenticated session and console error checking."""
     page = auth_context.new_page()
     page.set_default_timeout(DEFAULT_TIMEOUT)
+    page.set_viewport_size(VIEWPORT_SIZE)
     with console_errors_raised(page):
         yield page
     page.close()

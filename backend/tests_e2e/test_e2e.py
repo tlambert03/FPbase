@@ -220,12 +220,9 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page) -
     # Type fluorophore name and select
     _select2_enter("#select2-fluor-select-container", protein.name[:5], page)
 
-    # Switch optical config
+    # Switch optical config - select by label (TestOC1 is the second config created)
     config_select = page.locator("#config-select")
-    config_select.click()
-    page.keyboard.press("ArrowDown")
-    page.keyboard.press("ArrowDown")
-    page.keyboard.press("Enter")
+    config_select.select_option(label="TestOC1")
 
 
 def test_fret_page_loads(live_server: LiveServer, page: Page) -> None:
