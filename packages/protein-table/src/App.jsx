@@ -1,6 +1,6 @@
-import { Alert, Box, CircularProgress, Container, ThemeProvider } from "@mui/material"
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query"
 import { useState } from "react"
+import { Box, Container, CircularProgress, Alert, ThemeProvider } from "@mui/material"
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query"
 import ProteinTable from "./components/ProteinTable"
 import TableControls from "./components/TableControls"
 import theme from "./theme"
@@ -40,11 +40,7 @@ function AppContent() {
     aggType: "",
   })
 
-  const {
-    data: proteins = [],
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: proteins = [], isLoading, error } = useQuery({
     queryKey: ["proteins", "table-data"],
     queryFn: fetchProteins,
     onError: (error) => {
@@ -70,13 +66,25 @@ function AppContent() {
           </Box>
         )}
 
-        {error && <Alert severity="error">Failed to load protein data: {error.message}</Alert>}
+        {error && (
+          <Alert severity="error">
+            Failed to load protein data: {error.message}
+          </Alert>
+        )}
 
         {!isLoading && !error && (
           <>
-            <TableControls proteins={proteins} filters={filters} onFilterChange={setFilters} />
+            <TableControls
+              proteins={proteins}
+              filters={filters}
+              onFilterChange={setFilters}
+            />
 
-            <ProteinTable proteins={proteins} filters={filters} totalCount={proteins.length} />
+            <ProteinTable
+              proteins={proteins}
+              filters={filters}
+              totalCount={proteins.length}
+            />
           </>
         )}
       </Container>

@@ -1,13 +1,13 @@
-import { useMutation } from "@apollo/client"
+import React, { useEffect, useRef, useState } from "react"
+import Box from "@mui/material/Box"
+import IconButton from "@mui/material/IconButton"
+import Button from "@mui/material/Button"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import IconButton from "@mui/material/IconButton"
-import React, { useEffect, useRef, useState } from "react"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
-import CustomFilterCreator from "./CustomFilterCreator"
+import { useMutation } from "@apollo/client"
 import { categoryIcon } from "./FaIcon"
+import CustomFilterCreator from "./CustomFilterCreator"
+import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const CustomFilterGroup = ({ activeSpectra }) => {
   const filterCounter = useRef(0)
@@ -18,9 +18,9 @@ const CustomFilterGroup = ({ activeSpectra }) => {
     setFilters([...customFilters, `$cf${filterCounter.current++}`])
   }
 
-  const removeRow = (filter) => {
+  const removeRow = filter => {
     const filterID = filter.split("_")[0]
-    setFilters(customFilters.filter((id) => !id.startsWith(filterID)))
+    setFilters(customFilters.filter(id => !id.startsWith(filterID)))
     updateSpectra({
       variables: {
         remove: [filterID],
@@ -34,12 +34,13 @@ const CustomFilterGroup = ({ activeSpectra }) => {
   useEffect(() => {
     if (activeSpectra && activeSpectra.length > 0) {
       const newFilters = activeSpectra.filter(
-        (as) =>
-          as.startsWith("$cf") && !customFilters.find((item) => item.startsWith(as.split("_")[0]))
+        as =>
+          as.startsWith("$cf") &&
+          !customFilters.find(item => item.startsWith(as.split("_")[0]))
       )
 
       if (newFilters.length) {
-        const inds = newFilters.map((id) => +id.split("_")[0].replace("$cf", ""))
+        const inds = newFilters.map(id => +id.split("_")[0].replace("$cf", ""))
         filterCounter.current = Math.max(...inds) + 1
         setFilters([...customFilters, ...newFilters])
       }
@@ -48,7 +49,7 @@ const CustomFilterGroup = ({ activeSpectra }) => {
 
   return (
     <div>
-      {customFilters.sort().map((filter) => (
+      {customFilters.sort().map(filter => (
         <div style={{ width: "100%", margin: "4px 0" }} key={filter}>
           <Box display="flex" alignItems="center">
             {categoryIcon("CF", "rgba(0,0,50,0.4)", {

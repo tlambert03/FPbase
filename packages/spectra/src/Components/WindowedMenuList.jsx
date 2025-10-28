@@ -1,5 +1,5 @@
-import PropTypes from "prop-types"
 import React from "react"
+import PropTypes from "prop-types"
 import { List } from "react-window"
 
 const ITEM_HEIGHT = 35

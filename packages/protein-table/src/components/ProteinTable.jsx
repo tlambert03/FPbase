@@ -1,32 +1,32 @@
-import AddCircleIcon from "@mui/icons-material/AddCircle"
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
-import ChevronRightIcon from "@mui/icons-material/ChevronRight"
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import { useMemo, useState } from "react"
 import {
-  alpha,
-  Box,
-  IconButton,
-  MenuItem,
-  Paper,
-  Select,
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getPaginationRowModel,
+  flexRender,
+} from "@tanstack/react-table"
+import {
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
+  Box,
+  alpha,
   Typography,
+  IconButton,
+  Select,
+  MenuItem,
 } from "@mui/material"
-import {
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
-import { useMemo, useState } from "react"
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
+import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import AddCircleIcon from "@mui/icons-material/AddCircle"
 
 /**
  * Row vertical padding - controls table row height
@@ -290,7 +290,11 @@ function createColumns() {
     },
     {
       id: "compare",
-      header: () => <Box sx={{ display: { xs: "none", lg: "block" } }}>Compare</Box>,
+      header: () => (
+        <Box sx={{ display: { xs: "none", lg: "block" } }}>
+          Compare
+        </Box>
+      ),
       cell: ({ row }) => (
         <IconButton
           size="small"
@@ -410,8 +414,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
   }
 
   const canPreviousPage = pagination.pageIndex > 0
-  const canNextPage =
-    pagination.pageIndex < Math.ceil(filteredData.length / pagination.pageSize) - 1
+  const canNextPage = pagination.pageIndex < Math.ceil(filteredData.length / pagination.pageSize) - 1
   const startRow = pagination.pageIndex * pagination.pageSize + 1
   const endRow = Math.min((pagination.pageIndex + 1) * pagination.pageSize, filteredData.length)
 
@@ -463,7 +466,10 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                         gap: 0.5,
                       }}
                     >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                       {header.column.getIsSorted() && (
                         <Box
                           sx={{
@@ -494,8 +500,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                     backgroundColor: "action.hover",
                   },
                   "&:hover": {
-                    backgroundColor: (theme) =>
-                      alpha(theme.palette.primary.main, TABLE_HOVER_ALPHA),
+                    backgroundColor: (theme) => alpha(theme.palette.primary.main, TABLE_HOVER_ALPHA),
                   },
                 }}
               >

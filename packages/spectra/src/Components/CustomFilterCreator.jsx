@@ -1,12 +1,12 @@
-import { useApolloClient } from "@apollo/client"
+import React, { useEffect } from "react"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
+import { useApolloClient } from "@apollo/client"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import React, { useEffect } from "react"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 import InputSlider from "./InputSlider"
+import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 export const useStyles = makeStyles({
   label: {
@@ -50,7 +50,9 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
       }}
     >
       <Box display="flex" flexWrap="wrap">
-        <Typography style={{ margin: "8px 10px 3px" }}>Custom Filter Type</Typography>
+        <Typography style={{ margin: "8px 10px 3px" }}>
+          Custom Filter Type
+        </Typography>
         <ToggleButtonGroup
           size="small"
           value={type}

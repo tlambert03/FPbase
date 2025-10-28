@@ -1,12 +1,12 @@
-import { useMutation, useQuery } from "@apollo/client"
-import { Tooltip } from "@mui/material"
-import Input from "@mui/material/Input"
-import { withStyles } from "@mui/styles"
-import gql from "graphql-tag"
 import React, { useEffect, useRef } from "react"
+import { useMutation, useQuery } from "@apollo/client"
 import { useAxis, useHighcharts } from "react-jsx-highcharts"
+import Input from "@mui/material/Input"
+import gql from "graphql-tag"
+import { Tooltip } from "@mui/material"
+import { withStyles } from "@mui/styles"
 
-const LightTooltip = withStyles((theme) => ({
+const LightTooltip = withStyles(theme => ({
   tooltip: {
     backgroundColor: theme.palette.common.white,
     color: "rgba(0, 0, 0, 0.87)",
@@ -71,7 +71,7 @@ const XRangePickers = ({ visible }) => {
         axis.object.chart.showResetZoom()
       }
     }
-  }, [axis, min, max]) // Added proper dependencies
+  }, [axis, min, max])  // Added proper dependencies
 
   useEffect(() => {
     if (!axis || !axis.object || !Highcharts) return
@@ -79,7 +79,10 @@ const XRangePickers = ({ visible }) => {
     function handleAfterSetExtremes() {
       const e = axis.object.getExtremes()
       if (e) {
-        const extremes = [e.userMin && Math.round(e.min), e.userMax && Math.round(e.max)]
+        const extremes = [
+          e.userMin && Math.round(e.min),
+          e.userMax && Math.round(e.max),
+        ]
         // this seems to be causing a bug with the inputs
         mutateExtremes({ variables: { extremes } })
         forceUpdate(counter++)
@@ -98,11 +101,16 @@ const XRangePickers = ({ visible }) => {
         }
         minNode.current.parentElement.style.left = `${leftPad}px`
         maxNode.current.parentElement.style.right = `${rightPad}px`
-        axis.object.labelGroup.element.childNodes.forEach((node) => (node.style.display = "block"))
+        axis.object.labelGroup.element.childNodes.forEach(
+          node => (node.style.display = "block")
+        )
         const { min: exMin, max: exMax } = axis.getExtremes()
-        axis.object.labelGroup.element.childNodes.forEach((node) => {
+        axis.object.labelGroup.element.childNodes.forEach(node => {
           if (
-            Math.min(Math.abs(node.textContent - exMin), Math.abs(node.textContent - exMax)) <
+            Math.min(
+              Math.abs(node.textContent - exMin),
+              Math.abs(node.textContent - exMax)
+            ) <
             0.43 * axis.object.tickInterval
           ) {
             node.style.display = "none"
@@ -130,14 +138,17 @@ const XRangePickers = ({ visible }) => {
         }
       }
     }
-  }, [axis, Highcharts, mutateExtremes, forceUpdate]) // Added missing dependencies
+  }, [axis, Highcharts, mutateExtremes, forceUpdate])  // Added missing dependencies
 
   const updateRange = () => {
     if (!axis) return
-    const extremes = [+minNode.current.value || null, +maxNode.current.value || null]
+    const extremes = [
+      +minNode.current.value || null,
+      +maxNode.current.value || null,
+    ]
     axis.setExtremes(...extremes)
   }
-  const handleKeyPress = (e) => {
+  const handleKeyPress = e => {
     if (e.key === "Enter") {
       updateRange()
       e.target.select()
@@ -157,13 +168,13 @@ const XRangePickers = ({ visible }) => {
   const minColor = !extremes.userMin
     ? "444"
     : extremes.dataMin < extremes.min
-      ? "#B1191E"
-      : "#5F67CE"
+    ? "#B1191E"
+    : "#5F67CE"
   const maxColor = !extremes.userMax
     ? "444"
     : extremes.dataMax > extremes.max
-      ? "#B1191E"
-      : "#5F67CE"
+    ? "#B1191E"
+    : "#5F67CE"
 
   return (
     <div
@@ -186,7 +197,9 @@ const XRangePickers = ({ visible }) => {
           placeholder={`${extremes.dataMin || ""}`}
           value={Math.round(min) || ""}
           inputRef={minNode}
-          onChange={(e) => mutateExtremes({ variables: { extremes: [e.target.value, max] } })}
+          onChange={e =>
+            mutateExtremes({ variables: { extremes: [e.target.value, max] } })
+          }
           onKeyPress={handleKeyPress}
           onBlur={updateRange}
           style={{ ...CLASSES.minInput, color: minColor }}
@@ -204,7 +217,9 @@ const XRangePickers = ({ visible }) => {
           placeholder={`${extremes.dataMax || ""}`}
           value={Math.round(max) || ""}
           inputRef={maxNode}
-          onChange={(e) => mutateExtremes({ variables: { extremes: [min, e.target.value] } })}
+          onChange={e =>
+            mutateExtremes({ variables: { extremes: [min, e.target.value] } })
+          }
           onKeyPress={handleKeyPress}
           onBlur={updateRange}
           style={{ ...CLASSES.maxInput, color: maxColor }}

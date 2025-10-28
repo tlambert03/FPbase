@@ -1,14 +1,14 @@
-import { useMutation, useQuery } from "@apollo/client"
-import Visibility from "@mui/icons-material/Visibility"
+import React from "react"
+import PropTypes from "prop-types"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
+import { useQuery, useMutation } from "@apollo/client"
 import { makeStyles } from "@mui/styles"
-import PropTypes from "prop-types"
-import React from "react"
+import Visibility from "@mui/icons-material/Visibility"
 import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   toggleButton: {
     paddingLeft: "11px",
     paddingRight: "11px",
@@ -33,20 +33,25 @@ function subtypeSorter(a, b) {
   return -1
 }
 
-const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) {
+const SubtypeSelector = React.memo(function SubtypeSelector({
+  subtypes,
+  skip,
+}) {
   const classes = useStyles()
 
   const { data } = useQuery(GET_ACTIVE_SPECTRA)
   const activeSpectra = data?.activeSpectra || []
 
   // Create a mutable copy and add active status
-  const sortedSubtypes = [...subtypes].sort(subtypeSorter).map((subtype) => ({
-    ...subtype,
-    active: activeSpectra.includes(subtype.id),
-  }))
+  const sortedSubtypes = [...subtypes]
+    .sort(subtypeSorter)
+    .map(subtype => ({
+      ...subtype,
+      active: activeSpectra.includes(subtype.id)
+    }))
 
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
-  const handleClick = (e) => {
+  const handleClick = e => {
     const elem = e.target.closest("button")
     const checked = !elem.classList.contains("Mui-selected")
     const variables = {}
@@ -59,11 +64,11 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
   return (
     <Box>
       <ToggleButtonGroup
-        value={sortedSubtypes.filter((i) => i.active).map((i) => i.id)}
+        value={sortedSubtypes.filter(i => i.active).map(i => i.id)}
         size="small"
         className={classes.toggleButtonGroup}
       >
-        {sortedSubtypes.map((st) => (
+        {sortedSubtypes.map(st => (
           <ToggleButton
             key={st.id}
             value={st.id}

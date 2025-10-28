@@ -1,20 +1,20 @@
-import { useApolloClient, useQuery } from "@apollo/client"
+import React, { useState, useEffect, useMemo } from "react"
+import Tabs from "@mui/material/Tabs"
+import Tab from "@mui/material/Tab"
+import { makeStyles } from "@mui/styles"
+import { RingLoader } from "react-spinners"
 import { css } from "@emotion/react"
 import { Typography } from "@mui/material"
-import Tab from "@mui/material/Tab"
-import Tabs from "@mui/material/Tabs"
-import { makeStyles } from "@mui/styles"
+import { useQuery, useApolloClient } from "@apollo/client"
 import gql from "graphql-tag"
-import React, { useEffect, useMemo, useState } from "react"
-import { RingLoader } from "react-spinners"
+import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
+import CustomFilterGroup from "./CustomFilterGroup"
+import CustomLaserGroup from "./CustomLaserGroup"
 // import useSelectors from "./useSelectors"
 import { NORMALIZE_CURRENT } from "../client/queries"
 import { isTouchDevice } from "../util"
-import CustomFilterGroup from "./CustomFilterGroup"
-import CustomLaserGroup from "./CustomLaserGroup"
 import EfficiencyTable from "./EfficiencyTable"
 import { categoryIcon } from "./FaIcon"
-import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 
 const ISTOUCH = isTouchDevice()
 
@@ -24,7 +24,7 @@ const override = css`
   border-color: red;
 `
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   tabHeader: {
     marginBottom: 12,
     // marginLeft: 60,
@@ -95,12 +95,16 @@ function selectorSorter(a, b) {
   return -1
 }
 
-const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectraInfo }) {
+const OwnersContainer = React.memo(function OwnersContainer({
+  ownerInfo,
+  spectraInfo,
+}) {
   const classes = useStyles()
   const [tab, setTab] = useState(0)
 
-  const { data: { activeSpectra, selectors } = { activeSpectra: [], selectors: [] } } =
-    useQuery(gql`
+  const {
+    data: { activeSpectra, selectors } = { activeSpectra: [], selectors: [] },
+  } = useQuery(gql`
     {
       selectors @client
       activeSpectra @client
@@ -113,8 +117,8 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
     if (Object.keys(ownerInfo).length > 0 && Object.keys(spectraInfo).length > 0) {
       // Double-check window globals are actually set (defensive)
       if (!window.ownerInfo || !window.spectraInfo) {
-        window.ownerInfo = ownerInfo
-        window.spectraInfo = spectraInfo
+        window.ownerInfo = ownerInfo;
+        window.spectraInfo = spectraInfo;
       }
       client.mutate({ mutation: NORMALIZE_CURRENT })
     }
@@ -128,9 +132,12 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
 
   // keyboard shortcut for tab switcher
   useEffect(() => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = event => {
       // don't do anything if we're on an input
-      if (document.activeElement && document.activeElement.tagName.toUpperCase() === "INPUT") {
+      if (
+        document.activeElement &&
+        document.activeElement.tagName.toUpperCase() === "INPUT"
+      ) {
         return
       }
       switch (event.code) {
@@ -143,10 +150,10 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
           setTab(event.key - 1)
           break
         case "ArrowRight":
-          setTab((prevTab) => (prevTab === 5 ? 0 : prevTab + 1))
+          setTab(prevTab => (prevTab === 5 ? 0 : prevTab + 1))
           break
         case "ArrowLeft":
-          setTab((prevTab) => (prevTab === 0 ? 5 : prevTab - 1))
+          setTab(prevTab => (prevTab === 0 ? 5 : prevTab - 1))
           break
         default:
           break
@@ -159,19 +166,17 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
     }
   }, [])
 
-  const sortedSelectors = useMemo(
-    () => (Array.isArray(selectors) ? [...selectors] : []).sort(selectorSorter),
-    [selectors]
-  )
+  const sortedSelectors = useMemo(() => (Array.isArray(selectors) ? [...selectors] : []).sort(selectorSorter), [selectors])
 
-  const isPopulated = (cat) => {
+  const isPopulated = cat => {
     let populated =
-      sortedSelectors.filter(({ owner, category }) => category === cat && owner).length > 0
+      sortedSelectors.filter(({ owner, category }) => category === cat && owner)
+        .length > 0
     if (cat === "F") {
-      populated = populated || activeSpectra.some((s) => s.startsWith("$cf"))
+      populated = populated || activeSpectra.some(s => s.startsWith("$cf"))
     }
     if (cat === "L") {
-      populated = populated || activeSpectra.some((s) => s.startsWith("$cl"))
+      populated = populated || activeSpectra.some(s => s.startsWith("$cl"))
     }
     return populated
   }
@@ -180,16 +185,18 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
     const _cats = cats ? cats.split("") : null
     let populated = false
     if (label === "All") {
-      populated = Boolean(sortedSelectors.filter((i) => i.owner).length)
+      populated = Boolean(sortedSelectors.filter(i => i.owner).length)
     } else if (label !== "Efficiency") {
       if (activeSpectra.length > 0) {
-        populated = _cats.some((c) => isPopulated(c))
+        populated = _cats.some(c => isPopulated(c))
       }
     }
     return (
       <span className={`tab-header ${populated ? " populated" : ""}`}>
         <span className={classes.bigShow}>
-          {label} {populated ? " ✶" : ""}
+          {label}
+          {' '}
+          {populated ? " ✶" : ""}
         </span>
         <span className={classes.bigHide}>
           {categoryIcon(_cats && _cats[_cats.length - 1], "")}
@@ -212,17 +219,46 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
         scrollButtons="on"
         className={classes.tabHeader}
       >
-        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel("All", null)} />
-        <Tab className={classes.tabLabel} tabIndex={-1} label={smartLabel("Fluorophores", "DP")} />
-        <Tab className={classes.tabLabel} tabIndex={-1} label={smartLabel("Filters", "F")} />
-        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel("Light Sources", "L")} />
-        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel("Detectors", "C")} />
-        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel("Efficiency", "%")} />
+        <Tab
+          tabIndex={-1}
+          className={classes.tabLabel}
+          label={smartLabel("All", null)}
+        />
+        <Tab
+          className={classes.tabLabel}
+          tabIndex={-1}
+          label={smartLabel("Fluorophores", "DP")}
+        />
+        <Tab
+          className={classes.tabLabel}
+          tabIndex={-1}
+          label={smartLabel("Filters", "F")}
+        />
+        <Tab
+          tabIndex={-1}
+          className={classes.tabLabel}
+          label={smartLabel("Light Sources", "L")}
+        />
+        <Tab
+          tabIndex={-1}
+          className={classes.tabLabel}
+          label={smartLabel("Detectors", "C")}
+        />
+        <Tab
+          tabIndex={-1}
+          className={classes.tabLabel}
+          label={smartLabel("Efficiency", "%")}
+        />
       </Tabs>
 
       {Object.keys(ownerInfo).length === 0 ? (
         <div className="sweet-loading">
-          <RingLoader css={override} size={100} color="#ccc" loading />
+          <RingLoader
+            css={override}
+            size={100}
+            color="#ccc"
+            loading
+          />
         </div>
       ) : (
         <div>

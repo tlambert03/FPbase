@@ -407,7 +407,7 @@ const COLORS = {
   777: "#680000",
   778: "#660000",
   779: "#640000",
-  780: "#610000",
-}
+  780: "#610000"
+};
 
-export default COLORS
+export default COLORS;

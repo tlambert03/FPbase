@@ -1,15 +1,15 @@
-import { useMutation, useQuery } from "@apollo/client"
-import Grid from "@mui/material/Grid"
+import React, { memo } from "react"
 import List from "@mui/material/List"
+import { useMutation, useQuery } from "@apollo/client"
+import gql from "graphql-tag"
+import Grid from "@mui/material/Grid"
 import MenuItem from "@mui/material/MenuItem"
 import Select from "@mui/material/Select"
-import gql from "graphql-tag"
-import React, { memo } from "react"
 import { GET_CHART_OPTIONS } from "../../client/queries"
-import PALETTES from "../../palettes"
 import ListCheckbox from "../ListCheckbox"
+import PALETTES from "../../palettes"
 
-const toggleMut = (param) => gql`
+const toggleMut = param => gql`
 mutation Toggle${param} {
   toggle${param} @client
 }
@@ -41,86 +41,104 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
           <ListCheckbox
             onCheckItem={toggleY}
             checked={chartOptions.showY}
-            name={
+            name={(
               <span>
                 Show Y Axis
-                <span className="mobile-hide small text-muted ml-3">(Y key)</span>
+                <span className="mobile-hide small text-muted ml-3">
+                  (Y key)
+                </span>
               </span>
-            }
+)}
           />
           <ListCheckbox
             onCheckItem={toggleX}
             checked={chartOptions.showX}
-            name={
+            name={(
               <span>
                 Show X Axis
-                <span className="mobile-hide small text-muted ml-3">(X key)</span>
+                <span className="mobile-hide small text-muted ml-3">
+                  (X key)
+                </span>
               </span>
-            }
+)}
           />
           <ListCheckbox
             onCheckItem={toggleGrid}
             checked={chartOptions.showGrid}
-            name={
+            name={(
               <span>
                 Show Grid
-                <span className="mobile-hide small text-muted ml-3">(G key)</span>
+                <span className="mobile-hide small text-muted ml-3">
+                  (G key)
+                </span>
               </span>
-            }
+)}
           />
           <ListCheckbox
             onCheckItem={toggleAreaFill}
             checked={chartOptions.areaFill}
-            name={
+            name={(
               <span>
                 Fill area under curves
-                <span className="mobile-hide small text-muted ml-3">(F key)</span>
+                <span className="mobile-hide small text-muted ml-3">
+                  (F key)
+                </span>
               </span>
-            }
+)}
           />
         </Grid>
         <Grid item sm={12} md={6} style={{ margin: 0, padding: 0 }}>
           <ListCheckbox
             onCheckItem={toggleScaleEC}
             checked={chartOptions.scaleEC}
-            name={
+            name={(
               <span>
                 Scale Excitation to Extinction Coefficient
-                <span className="mobile-hide small text-muted ml-3">(E key)</span>
+                <span className="mobile-hide small text-muted ml-3">
+                  (E key)
+                </span>
               </span>
-            }
+)}
           />
           <ListCheckbox
             onCheckItem={toggleScaleQY}
             checked={chartOptions.scaleQY}
-            name={
+            name={(
               <span>
                 Scale Emission to Quantum Yield
-                <span className="mobile-hide small text-muted ml-3">(Q key)</span>
+                <span className="mobile-hide small text-muted ml-3">
+                  (Q key)
+                </span>
               </span>
-            }
+)}
           />
           <ListCheckbox
             onCheckItem={toggleShareTooltip}
             checked={chartOptions.shareTooltip}
-            name={
+            name={(
               <span>
                 Show Y value for all spectra on chart hover
-                <span className="mobile-hide small text-muted ml-3">(T key)</span>
+                <span className="mobile-hide small text-muted ml-3">
+                  (T key)
+                </span>
               </span>
-            }
+)}
           />
           <div style={{ marginBottom: 20 }}>
-            <span style={{ marginRight: 14, marginLeft: 14 }}>Color palette:</span>
+            <span style={{ marginRight: 14, marginLeft: 14 }}>
+              Color palette:
+            </span>
             <Select
               value={chartOptions.palette}
-              onChange={(e) => mutatePalette({ variables: { palette: e.target.value } })}
+              onChange={e =>
+                mutatePalette({ variables: { palette: e.target.value } })
+              }
               inputProps={{
                 name: "color-palette",
                 id: "color-palette-select",
               }}
             >
-              {Object.keys(PALETTES).map((i) => (
+              {Object.keys(PALETTES).map(i => (
                 <MenuItem value={i} key={i}>
                   {PALETTES[i].name}
                 </MenuItem>

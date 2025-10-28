@@ -1,28 +1,28 @@
+import React, { useState, useEffect } from "react"
+import { makeStyles } from "@mui/styles"
+import Paper from "@mui/material/Paper"
+import Tabs from "@mui/material/Tabs"
+import Tab from "@mui/material/Tab"
+import BlastReportDescription from "./ReportDescription.jsx"
+import BlastReportAlignments from "./ReportAlignments.jsx"
+import Snackbar from "@mui/material/Snackbar"
+import IconButton from "@mui/material/IconButton"
 import CloseIcon from "@mui/icons-material/Close"
 import { Typography } from "@mui/material"
-import IconButton from "@mui/material/IconButton"
-import Paper from "@mui/material/Paper"
-import Snackbar from "@mui/material/Snackbar"
-import Tab from "@mui/material/Tab"
-import Tabs from "@mui/material/Tabs"
-import { makeStyles } from "@mui/styles"
 import $ from "jquery"
-import React, { useEffect, useState } from "react"
-import BlastReportAlignments from "./ReportAlignments.jsx"
-import BlastReportDescription from "./ReportDescription.jsx"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   paperRoot: {
     width: "100%",
     marginTop: "23px",
     overflowX: "auto",
     position: "sticky",
     top: "0px",
-    zIndex: "1000",
+    zIndex: "1000"
   },
   close: {
-    padding: theme.spacing(0.5),
-  },
+    padding: theme.spacing(0.5)
+  }
 }))
 
 const NoHitsMessage = ({ open, handleClose }) => {
@@ -33,21 +33,26 @@ const NoHitsMessage = ({ open, handleClose }) => {
       <Snackbar
         anchorOrigin={{
           vertical: "bottom",
-          horizontal: "left",
+          horizontal: "left"
         }}
         open={open}
         autoHideDuration={20000}
         onClose={handleClose}
         ContentProps={{
-          "aria-describedby": "message-id",
+          "aria-describedby": "message-id"
         }}
         message={
           <span id="message-id">
-            <Typography key="undo" color="secondary" size="small" onClick={handleClose}>
+            <Typography
+              key="undo"
+              color="secondary"
+              size="small"
+              onClick={handleClose}
+            >
               NO HITS
             </Typography>
-            Please confirm that you are entering either amino acid sequence(s) or nucleotide
-            sequence(s).
+            Please confirm that you are entering either amino acid sequence(s)
+            or nucleotide sequence(s).
           </span>
         }
         action={[
@@ -59,7 +64,7 @@ const NoHitsMessage = ({ open, handleClose }) => {
             onClick={handleClose}
           >
             <CloseIcon />
-          </IconButton>,
+          </IconButton>
         ]}
       />
     </div>
@@ -78,7 +83,7 @@ function BlastReport({ report }) {
     if (algnItem !== null && tab === 1) {
       $("html, body").animate(
         {
-          scrollTop: $("#dln_" + algnItem).offset().top - 60,
+          scrollTop: $("#dln_" + algnItem).offset().top - 60
         },
         300
       )
@@ -115,14 +120,22 @@ function BlastReport({ report }) {
   return (
     <div>
       <Paper square className={classes.paperRoot}>
-        <Tabs value={tab} onChange={handleTabClick} indicatorColor="primary" textColor="primary">
+        <Tabs
+          value={tab}
+          onChange={handleTabClick}
+          indicatorColor="primary"
+          textColor="primary"
+        >
           <Tab label="Descriptions" />
           <Tab label="Alignments" />
         </Tabs>
       </Paper>
       {tab === 0 && (
         <div>
-          <BlastReportDescription report={report.report.results} onClick={handleItemClick} />
+          <BlastReportDescription
+            report={report.report.results}
+            onClick={handleItemClick}
+          />
         </div>
       )}
       {tab === 1 && (

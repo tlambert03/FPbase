@@ -1,16 +1,16 @@
+import React from "react"
+import SvgIcon from "@mui/material/SvgIcon"
 import {
-  faAdjust,
-  faBolt,
-  faCamera,
+  faQuestionCircle,
   faDna,
   faFlask,
+  faAdjust,
   faLightbulb,
-  faPercent,
-  faQuestionCircle,
+  faCamera,
   faSliders,
+  faBolt,
+  faPercent,
 } from "@fortawesome/free-solid-svg-icons"
-import SvgIcon from "@mui/material/SvgIcon"
-import React from "react"
 
 function FAIcon(props) {
   return (

@@ -1,6 +1,6 @@
-import LinkIcon from "@mui/icons-material/Link"
-import IconButton from "@mui/material/IconButton"
 import React from "react"
+import IconButton from "@mui/material/IconButton"
+import LinkIcon from "@mui/icons-material/Link"
 
 const ProductLink = ({ current }) => {
   if (!(current && current.url)) return null

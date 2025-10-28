@@ -1,8 +1,8 @@
-import PropTypes from "prop-types"
 import React, { useEffect } from "react"
 import Select, { components } from "react-select"
-import { categoryIcon } from "./FaIcon"
 import WindowedMenuList from "./WindowedMenuList"
+import PropTypes from "prop-types"
+import { categoryIcon } from "./FaIcon"
 
 const filterOptions = (query, label) => {
   const words = query.toLowerCase().split(" ")
@@ -10,7 +10,7 @@ const filterOptions = (query, label) => {
   return words.reduce((acc, cur) => acc && opts.includes(cur), true)
 }
 
-const querySorter = (query) => {
+const querySorter = query => {
   const lowerquery = query.trimRight().toLowerCase()
   return function sortOptions(a, b) {
     const alabel = a.label.replace(/^m/, "").toLowerCase()
@@ -26,7 +26,7 @@ const querySorter = (query) => {
   }
 }
 
-const OptionWithIcon = (props) => {
+const OptionWithIcon = props => {
   const myProps = { ...props }
 
   myProps.children = (
@@ -64,7 +64,7 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
   // blur the select element when the escape key is pressed
   const selectRef = React.useRef()
   useEffect(() => {
-    const blurme = (e) => (e.code === "Escape" ? selectRef.current.blur() : null)
+    const blurme = e => (e.code === "Escape" ? selectRef.current.blur() : null)
     document.addEventListener("keydown", blurme)
     return () => {
       document.removeEventListener("keydown", blurme)
@@ -110,7 +110,13 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
         components={memoizedComponents}
       />
     ),
-    [dynamicOptions, handleInputChange, inputValue, memoizedComponents, otherprops]
+    [
+      dynamicOptions,
+      handleInputChange,
+      inputValue,
+      memoizedComponents,
+      otherprops,
+    ]
   )
   return component
 })

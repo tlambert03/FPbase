@@ -1,5 +1,5 @@
+import { useState, useEffect } from "react"
 import { useApolloClient } from "@apollo/client"
-import { useEffect, useState } from "react"
 import { getStorageWithExpire, setStorageWithTimeStamp } from "./util"
 import "unfetch/polyfill/index"
 
@@ -26,7 +26,7 @@ const useCachedFetch = (url, cacheKey, maxAge) => {
   useEffect(() => {
     if (!stash) {
       fetch(url)
-        .then((i) => i.json())
+        .then(i => i.json())
         .then(({ data }) => {
           setStash(data)
           setStorageWithTimeStamp(cacheKey, data)
