@@ -1,24 +1,24 @@
-import CloseIcon from '@mui/icons-material/Close'
-import { Typography } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import Paper from '@mui/material/Paper'
-import Snackbar from '@mui/material/Snackbar'
-import Tab from '@mui/material/Tab'
-import Tabs from '@mui/material/Tabs'
-import { makeStyles } from '@mui/styles'
-import $ from 'jquery'
-import React, { useEffect, useState } from 'react'
-import BlastReportAlignments from './ReportAlignments.jsx'
-import BlastReportDescription from './ReportDescription.jsx'
+import CloseIcon from "@mui/icons-material/Close"
+import { Typography } from "@mui/material"
+import IconButton from "@mui/material/IconButton"
+import Paper from "@mui/material/Paper"
+import Snackbar from "@mui/material/Snackbar"
+import Tab from "@mui/material/Tab"
+import Tabs from "@mui/material/Tabs"
+import { makeStyles } from "@mui/styles"
+import $ from "jquery"
+import React, { useEffect, useState } from "react"
+import BlastReportAlignments from "./ReportAlignments.jsx"
+import BlastReportDescription from "./ReportDescription.jsx"
 
 const useStyles = makeStyles((theme) => ({
   paperRoot: {
-    width: '100%',
-    marginTop: '23px',
-    overflowX: 'auto',
-    position: 'sticky',
-    top: '0px',
-    zIndex: '1000',
+    width: "100%",
+    marginTop: "23px",
+    overflowX: "auto",
+    position: "sticky",
+    top: "0px",
+    zIndex: "1000",
   },
   close: {
     padding: theme.spacing(0.5),
@@ -32,14 +32,14 @@ const NoHitsMessage = ({ open, handleClose }) => {
     <div>
       <Snackbar
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
+          vertical: "bottom",
+          horizontal: "left",
         }}
         open={open}
         autoHideDuration={20000}
         onClose={handleClose}
         ContentProps={{
-          'aria-describedby': 'message-id',
+          "aria-describedby": "message-id",
         }}
         message={
           <span id="message-id">
@@ -70,15 +70,15 @@ function BlastReport({ report }) {
   const [tab, setTab] = useState(0)
   const [algnItem, setAlgnItem] = useState(null)
 
-  function handleTabClick(_event, newValue) {
+  function handleTabClick(event, newValue) {
     setTab(newValue)
   }
 
   useEffect(() => {
     if (algnItem !== null && tab === 1) {
-      $('html, body').animate(
+      $("html, body").animate(
         {
-          scrollTop: $('#dln_' + algnItem).offset().top - 60,
+          scrollTop: $("#dln_" + algnItem).offset().top - 60,
         },
         300
       )
@@ -89,14 +89,14 @@ function BlastReport({ report }) {
   function handleItemClick(event) {
     event.preventDefault()
     setTab(1)
-    setAlgnItem(event.target.getAttribute('href'))
+    setAlgnItem(event.target.getAttribute("href"))
   }
 
   const classes = useStyles()
 
   const [open, setOpen] = React.useState(true)
-  function closeSnackbar(_event, reason) {
-    if (reason === 'clickaway') {
+  function closeSnackbar(event, reason) {
+    if (reason === "clickaway") {
       return
     }
     setOpen(false)

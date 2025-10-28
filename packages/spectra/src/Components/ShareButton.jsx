@@ -1,38 +1,38 @@
-import { useQuery } from '@apollo/client'
-import { faTwitter } from '@fortawesome/free-brands-svg-icons'
-import { faCopy, faEnvelope } from '@fortawesome/free-solid-svg-icons'
-import CloseIcon from '@mui/icons-material/Close'
-import DownloadIcon from '@mui/icons-material/GetApp'
-import ChartIcon from '@mui/icons-material/InsertChart'
-import LinkIcon from '@mui/icons-material/Link'
-import PrintIcon from '@mui/icons-material/Print'
-import ShareIcon from '@mui/icons-material/Share'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogTitle from '@mui/material/DialogTitle'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import InputAdornment from '@mui/material/InputAdornment'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
-import TextField from '@mui/material/TextField'
-import Tooltip from '@mui/material/Tooltip'
-import Zoom from '@mui/material/Zoom'
-import { makeStyles } from '@mui/styles'
-import ClipboardJS from 'clipboard'
-import Highcharts from 'highcharts'
-import React, { useEffect, useState } from 'react'
-import { GET_ACTIVE_SPECTRA, GET_CHART_OPTIONS, GET_EX_NORM } from '../client/queries'
-import { FAIcon } from './FaIcon'
-import stateToUrl from './stateToUrl'
+import { useQuery } from "@apollo/client"
+import { faTwitter } from "@fortawesome/free-brands-svg-icons"
+import { faCopy, faEnvelope } from "@fortawesome/free-solid-svg-icons"
+import CloseIcon from "@mui/icons-material/Close"
+import DownloadIcon from "@mui/icons-material/GetApp"
+import ChartIcon from "@mui/icons-material/InsertChart"
+import LinkIcon from "@mui/icons-material/Link"
+import PrintIcon from "@mui/icons-material/Print"
+import ShareIcon from "@mui/icons-material/Share"
+import Dialog from "@mui/material/Dialog"
+import DialogActions from "@mui/material/DialogActions"
+import DialogContent from "@mui/material/DialogContent"
+import DialogTitle from "@mui/material/DialogTitle"
+import Divider from "@mui/material/Divider"
+import IconButton from "@mui/material/IconButton"
+import InputAdornment from "@mui/material/InputAdornment"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import ListItemText from "@mui/material/ListItemText"
+import Menu from "@mui/material/Menu"
+import MenuItem from "@mui/material/MenuItem"
+import TextField from "@mui/material/TextField"
+import Tooltip from "@mui/material/Tooltip"
+import Zoom from "@mui/material/Zoom"
+import { makeStyles } from "@mui/styles"
+import ClipboardJS from "clipboard"
+import Highcharts from "highcharts"
+import React, { useEffect, useState } from "react"
+import { GET_ACTIVE_SPECTRA, GET_CHART_OPTIONS, GET_EX_NORM } from "../client/queries"
+import { FAIcon } from "./FaIcon"
+import stateToUrl from "./stateToUrl"
 
 const useStyles = makeStyles((theme) => ({
   textField: {
     flexBasis: 200,
-    width: '98%',
+    width: "98%",
     margin: theme.spacing(1),
   },
   listIcon: {
@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function ShareLinkAlert({ open, setOpen }) {
-  const [qString, setQString] = useState('')
+  const [qString, setQString] = useState("")
   const classes = useStyles()
 
   const { loading: spectraLoading, data: spectraData } = useQuery(GET_ACTIVE_SPECTRA)
@@ -66,14 +66,14 @@ function ShareLinkAlert({ open, setOpen }) {
   }
 
   useEffect(() => {
-    const cp = new ClipboardJS('#copy-button', {
-      target: (_trigger) => document.getElementById('qString-input'),
+    const cp = new ClipboardJS("#copy-button", {
+      target: (trigger) => document.getElementById("qString-input"),
     })
-    cp.on('success', handleTooltipOpen)
+    cp.on("success", handleTooltipOpen)
     return () => {
       cp.destroy()
     }
-  }, [handleTooltipOpen])
+  }, [])
 
   return (
     <div>
@@ -99,7 +99,7 @@ function ShareLinkAlert({ open, setOpen }) {
             fullWidth
             readOnly
             InputProps={{
-              style: { color: '#669' },
+              style: { color: "#669" },
               endAdornment: (
                 <InputAdornment position="end">
                   <Tooltip
@@ -124,7 +124,7 @@ function ShareLinkAlert({ open, setOpen }) {
         <DialogActions>
           <IconButton
             color="primary"
-            href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qString.replace(/&/g, '%26')}`}
+            href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qString.replace(/&/g, "%26")}`}
           >
             <FAIcon icon={faEnvelope} style={{}} />
           </IconButton>
@@ -132,7 +132,7 @@ function ShareLinkAlert({ open, setOpen }) {
             color="primary"
             href={`http://twitter.com/intent/tweet?url=${qString.replace(
               /&/g,
-              '%26'
+              "%26"
             )}&text=Check out these spectra at FPbase%0D%0A&via=FPbase`}
             title="Tweet"
             target="_blank"
@@ -163,20 +163,20 @@ const ShareButton = () => {
   }
 
   function handleExportError(err, context) {
-    console.error('Chart export failed:', err)
+    console.error("Chart export failed:", err)
     if (window.Sentry) {
       window.Sentry.captureException(err, {
-        tags: { component: 'SpectraViewer' },
+        tags: { component: "SpectraViewer" },
         extra: { context, format: context },
       })
     }
-    alert('Export failed. Please try again or contact us if the problem persists.')
+    alert("Export failed. Please try again or contact us if the problem persists.")
   }
 
   function exportChart(format) {
-    if (format === 'csv') {
+    if (format === "csv") {
       chart.downloadCSV()
-    } else if (format === 'image/svg+xml') {
+    } else if (format === "image/svg+xml") {
       // Safari-specific workaround: get SVG synchronously and download
       // Safari blocks downloads that happen asynchronously, so we must
       // get the SVG and trigger download in the same call stack
@@ -189,12 +189,12 @@ const ShareButton = () => {
       // - Safari silently blocks the download because it's no longer user-initiated
       try {
         const svg = chart.getSVG()
-        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
+        const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" })
         const url = URL.createObjectURL(blob)
 
-        const link = document.createElement('a')
+        const link = document.createElement("a")
         link.href = url
-        link.download = 'FPbaseSpectra.svg'
+        link.download = "FPbaseSpectra.svg"
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -202,12 +202,12 @@ const ShareButton = () => {
         // Clean up the blob URL
         setTimeout(() => URL.revokeObjectURL(url), 100)
       } catch (err) {
-        handleExportError(err, 'SVG export (Safari workaround)')
+        handleExportError(err, "SVG export (Safari workaround)")
       }
     } else {
       chart.exportChart({
         type: format,
-        filename: 'FPbaseSpectra',
+        filename: "FPbaseSpectra",
       })
     }
     setAnchorEl(null)
@@ -245,26 +245,26 @@ const ShareButton = () => {
       >
         {hasSeries ? (
           <div>
-            <MenuItem onClick={() => exportChart('image/svg+xml')}>
+            <MenuItem onClick={() => exportChart("image/svg+xml")}>
               <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
               <ListItemText primary="Download chart as SVG" style={{ paddingRight: 20 }} />
             </MenuItem>
-            <MenuItem onClick={() => exportChart('image/png')}>
+            <MenuItem onClick={() => exportChart("image/png")}>
               <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
               <ListItemText primary="Download chart as PNG" />
             </MenuItem>
-            <MenuItem onClick={() => exportChart('application/pdf')}>
+            <MenuItem onClick={() => exportChart("application/pdf")}>
               <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
               <ListItemText primary="Download chart as PDF" />
             </MenuItem>
             <Divider />
-            <MenuItem onClick={() => exportChart('csv')}>
+            <MenuItem onClick={() => exportChart("csv")}>
               <ListItemIcon className={classes.listIcon}>
                 <ChartIcon />
               </ListItemIcon>

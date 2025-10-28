@@ -1,5 +1,5 @@
-import $ from 'jquery'
-import './detect-touch' // adds window.USER_IS_TOUCHING = true; after touch event.
+import $ from "jquery"
+import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
 window.mobilecheck = () => {
   var check = false
@@ -17,51 +17,51 @@ window.mobilecheck = () => {
   return check
 }
 
-if (document.getElementById('comparison-slider')) {
+if (document.getElementById("comparison-slider")) {
   if (window.USER_IS_TOUCHING) {
-    $('#comparison-toggle').click(() => {
-      $('#comparison-slider').toggleClass('hover-effect')
+    $("#comparison-toggle").click(() => {
+      $("#comparison-slider").toggleClass("hover-effect")
     })
-    $(document).on('click', (e) => {
-      if (!document.getElementById('comparison-slider').contains(e.target)) {
-        $('#comparison-slider').removeClass('hover-effect')
+    $(document).on("click", (e) => {
+      if (!document.getElementById("comparison-slider").contains(e.target)) {
+        $("#comparison-slider").removeClass("hover-effect")
       }
     })
   } else {
-    $('#comparison-slider').hover(
+    $("#comparison-slider").hover(
       () => {
-        $('#comparison-slider').addClass('hover-effect')
+        $("#comparison-slider").addClass("hover-effect")
       },
       () => {
-        $('#comparison-slider').removeClass('hover-effect')
+        $("#comparison-slider").removeClass("hover-effect")
       }
     )
   }
 }
 
-$('.custom-file-input').on('change', function () {
-  var fileName = $(this).val().split('\\').pop()
-  if (fileName === '') {
-    fileName = 'Choose file'
+$(".custom-file-input").on("change", function () {
+  var fileName = $(this).val().split("\\").pop()
+  if (fileName === "") {
+    fileName = "Choose file"
   }
-  $(this).next('.custom-file-label').addClass('selected').html(fileName)
+  $(this).next(".custom-file-label").addClass("selected").html(fileName)
 })
 
 $(() => {
-  var $quote = $('.protein .name:first')
+  var $quote = $(".protein .name:first")
   var $numChar = $quote.text().length
 
   if ($numChar >= 40) {
-    $quote.css('font-size', '28px')
+    $quote.css("font-size", "28px")
   } else if ($numChar >= 35) {
-    $quote.css('font-size', '32px')
+    $quote.css("font-size", "32px")
   } else if ($numChar >= 28) {
-    $quote.css('font-size', '36px')
+    $quote.css("font-size", "36px")
   } else {
   }
 })
 
-$('.form-group').removeClass('row')
+$(".form-group").removeClass("row")
 
 //Navbar Scroll Event.
 // comment this out to remove "navbar hiding" when the user scrolls down
@@ -80,77 +80,77 @@ $('.form-group').removeClass('row')
 /////////////// COMPARISON SLIDER ///////////
 
 function populate_comparison_tab(comparison_set) {
-  var $ul = $('#comparison-slider ul.comparison-list')
+  var $ul = $("#comparison-slider ul.comparison-list")
   //$ul.empty();
   if (comparison_set.length) {
     //var token = $("#csrfform input").val()
-    var currents = $('.comparison-list li')
-      .map((_i, v) => $(v).attr('value'))
+    var currents = $(".comparison-list li")
+      .map((i, v) => $(v).attr("value"))
       .toArray()
-    $.each(comparison_set, (_index, val) => {
+    $.each(comparison_set, (index, val) => {
       if (currents.indexOf(val.slug) >= 0) {
         return true
       }
       if (val.exMax && val.emMax) {
         var exemstring =
-          'Ex/Em &lambda;: &nbsp;<strong>' +
-          (val.exMax || '') +
-          '</strong> / <strong>' +
+          "Ex/Em &lambda;: &nbsp;<strong>" +
+          (val.exMax || "") +
+          "</strong> / <strong>" +
           val.emMax +
-          '</strong>'
+          "</strong>"
       }
       if (val.ec && val.qy) {
         const ec = val.ec.toLocaleString()
         var ecqystring =
-          '<br>EC: <strong>' +
+          "<br>EC: <strong>" +
           ec +
-          '</strong>&nbsp;&nbsp;&nbsp;QY: <strong>' +
-          (val.qy || '') +
-          '</strong>'
+          "</strong>&nbsp;&nbsp;&nbsp;QY: <strong>" +
+          (val.qy || "") +
+          "</strong>"
       }
-      var widget = $('<li>', { class: 'comparison-item', value: val.slug })
+      var widget = $("<li>", { class: "comparison-item", value: val.slug })
         .append(
-          $('<a>', {
-            href: '/protein/' + val.slug,
-            style: 'color: ' + val.color,
+          $("<a>", {
+            href: "/protein/" + val.slug,
+            style: "color: " + val.color,
           }).html(val.name)
         )
-        .append($('<p>').html((exemstring || '') + (ecqystring || '')))
+        .append($("<p>").html((exemstring || "") + (ecqystring || "")))
 
       // Only append spectrum image if the protein has spectra
       if (val.spectra && JSON.parse(val.spectra).length > 0) {
         widget.append(
-          $('<img>', {
-            src: '/spectra_img/' + val.slug + '.svg?xlim=400,700&fill=1&xlabels=0',
-            class: 'img-fluid spectrum-svg',
+          $("<img>", {
+            src: "/spectra_img/" + val.slug + ".svg?xlim=400,700&fill=1&xlabels=0",
+            class: "img-fluid spectrum-svg",
             onerror: "this.style.display='none'",
-            alt: val.name + ' spectrum',
+            alt: val.name + " spectrum",
           })
         )
       }
 
       widget.append(
-        $('<button>', {
-          class: 'comparison-btn remove-protein',
-          'data-op': 'remove',
-          'data-object': val.slug,
-          'data-action-url': '/ajax/comparison/',
-        }).html('&times;')
+        $("<button>", {
+          class: "comparison-btn remove-protein",
+          "data-op": "remove",
+          "data-object": val.slug,
+          "data-action-url": "/ajax/comparison/",
+        }).html("&times;")
       )
       widget.appendTo($ul)
     })
-    $('#clearbutton').show()
+    $("#clearbutton").show()
     if (comparison_set.length === 1) {
-      $('#compare-link a').hide()
-      $('#compare-link div.msg').text('Add at least two proteins...')
+      $("#compare-link a").hide()
+      $("#compare-link div.msg").text("Add at least two proteins...")
     } else {
-      $('#compare-link a').show()
-      $('#compare-link div.msg').text('')
+      $("#compare-link a").show()
+      $("#compare-link div.msg").text("")
     }
   } else {
-    $('#clearbutton').hide()
-    $('#compare-link a').hide()
-    $('#compare-link div.msg').text('Nothing added to comparison...')
+    $("#clearbutton").hide()
+    $("#compare-link a").hide()
+    $("#compare-link div.msg").text("Nothing added to comparison...")
   }
 }
 
@@ -160,37 +160,37 @@ function handle_comparison_button(e) {
   $.ajax({
     // create an AJAX call...
     data: {
-      object: button.data('object'),
+      object: button.data("object"),
       csrfmiddlewaretoken: window.CSRF_TOKEN,
-      operation: button.data('op'),
+      operation: button.data("op"),
     },
-    type: 'POST',
-    url: button.attr('data-action-url'),
-    dataType: 'json',
+    type: "POST",
+    url: button.attr("data-action-url"),
+    dataType: "json",
     success: (response) => {
       // on success..
       populate_comparison_tab(response.comparison_set)
     },
   })
-  if ($(this).data('op') === 'remove') {
-    $(this).closest('li').remove()
-  } else if ($(this).data('op') === 'clear') {
-    $('.comparison-list').empty()
+  if ($(this).data("op") === "remove") {
+    $(this).closest("li").remove()
+  } else if ($(this).data("op") === "clear") {
+    $(".comparison-list").empty()
   }
-  if ($(this).data('flash')) {
-    $('#comparison-toggle').fadeTo(30, 0.3, function () {
+  if ($(this).data("flash")) {
+    $("#comparison-toggle").fadeTo(30, 0.3, function () {
       $(this).fadeTo(200, 1.0)
     })
   }
   return false
 }
 
-$(document).on('click', '.comparison-btn', handle_comparison_button)
-$('.comparison-btn').on('click', handle_comparison_button)
+$(document).on("click", ".comparison-btn", handle_comparison_button)
+$(".comparison-btn").on("click", handle_comparison_button)
 
 $(() => {
-  if (document.getElementById('comparison-slider')) {
-    $.getJSON('/ajax/comparison/').then((d) => {
+  if (document.getElementById("comparison-slider")) {
+    $.getJSON("/ajax/comparison/").then((d) => {
       populate_comparison_tab(d.comparison_set)
     })
   }
@@ -199,22 +199,22 @@ $(() => {
 /////////////////. Spectra Image URL Builder
 
 // Only initialize Select2 if not already initialized (fixes duplicate select boxes)
-if (!$('#proteinSlug').hasClass('select2-hidden-accessible')) {
-  $('#proteinSlug').select2({
-    theme: 'bootstrap',
-    width: '80%',
+if (!$("#proteinSlug").hasClass("select2-hidden-accessible")) {
+  $("#proteinSlug").select2({
+    theme: "bootstrap",
+    width: "80%",
     ajax: {
-      theme: 'bootstrap',
-      containerCssClass: ':all:',
-      width: 'auto',
+      theme: "bootstrap",
+      containerCssClass: ":all:",
+      width: "auto",
 
-      url: '/autocomplete-protein',
-      dataType: 'json',
+      url: "/autocomplete-protein",
+      dataType: "json",
       cache: true,
       data: (params) => {
         var query = {
           q: params.term,
-          type: 'spectra',
+          type: "spectra",
           page: params.page,
           _type: params._type,
         }
@@ -253,55 +253,55 @@ if (!$('#proteinSlug').hasClass('select2-hidden-accessible')) {
 }
 
 function buildURL() {
-  var ext = '.' + $('#fileTypeSelect').val()
-  var slug = $('#proteinSlug').val()
-  var title = $('#showName').prop('checked') ? 'title=1' : ''
-  var fill = $('#areaFill').prop('checked') ? '' : 'fill=0'
-  var transparent = $('#transCheck').prop('checked') ? '' : 'transparent=0'
-  var alpha = $('#opacitySlider').val() === '0.5' ? '' : 'alpha=' + $('#opacitySlider').val()
+  var ext = "." + $("#fileTypeSelect").val()
+  var slug = $("#proteinSlug").val()
+  var title = $("#showName").prop("checked") ? "title=1" : ""
+  var fill = $("#areaFill").prop("checked") ? "" : "fill=0"
+  var transparent = $("#transCheck").prop("checked") ? "" : "transparent=0"
+  var alpha = $("#opacitySlider").val() === "0.5" ? "" : "alpha=" + $("#opacitySlider").val()
   var linewidth =
-    $('#lineWidthSlider').val() === '1' ? '' : 'linewidth=' + $('#lineWidthSlider').val()
-  var xlabels = $('#xAxis').prop('checked') ? '' : 'xlabels=0'
-  var ylabels = $('#yAxis').prop('checked') ? 'ylabels=1' : ''
-  var grid = $('#grid').prop('checked') ? 'grid=1' : ''
-  var xlim = ''
-  if ($('#minXRange').val() !== '350' || $('#maxXRange').val() !== '750') {
-    xlim = 'xlim=' + $('#minXRange').val() + ',' + $('#maxXRange').val() + ''
+    $("#lineWidthSlider").val() === "1" ? "" : "linewidth=" + $("#lineWidthSlider").val()
+  var xlabels = $("#xAxis").prop("checked") ? "" : "xlabels=0"
+  var ylabels = $("#yAxis").prop("checked") ? "ylabels=1" : ""
+  var grid = $("#grid").prop("checked") ? "grid=1" : ""
+  var xlim = ""
+  if ($("#minXRange").val() !== "350" || $("#maxXRange").val() !== "750") {
+    xlim = "xlim=" + $("#minXRange").val() + "," + $("#maxXRange").val() + ""
   }
 
-  var newstring = '/spectra_img/' + slug + ext
+  var newstring = "/spectra_img/" + slug + ext
   var argarray = [title, grid, xlabels, ylabels, fill, transparent, xlim, alpha, linewidth].filter(
-    (d) => Boolean(d !== '')
+    (d) => Boolean(d !== "")
   )
   if (argarray.length) {
-    newstring += '?' + argarray.join('&')
+    newstring += "?" + argarray.join("&")
   }
-  var fullurl = window.location.protocol + '//' + window.location.host + newstring
-  $('#activeImg').attr('src', newstring)
-  $('#linktext').text(fullurl).attr('href', fullurl)
+  var fullurl = window.location.protocol + "//" + window.location.host + newstring
+  $("#activeImg").attr("src", newstring)
+  $("#linktext").text(fullurl).attr("href", fullurl)
 }
 
-$('#spectra_url_form').submit((e) => {
+$("#spectra_url_form").submit((e) => {
   e.preventDefault()
 })
 
-$('#spectra_url_form input, #spectra_url_form select').change(function (_e) {
-  if ($(this).hasClass('wave-range')) {
+$("#spectra_url_form input, #spectra_url_form select").change(function (e) {
+  if ($(this).hasClass("wave-range")) {
     if (!$(this).val()) {
-      $(this).val($(this).hasClass('min-range') ? 350 : 750)
+      $(this).val($(this).hasClass("min-range") ? 350 : 750)
     }
     $(this).val(Math.min(Math.max($(this).val(), 200), 1600))
   }
   buildURL()
-  if ($('#fileTypeSelect').val() === 'pdf') {
-    $('#activeImg').hide()
-    $('#linktext').attr('download', true)
+  if ($("#fileTypeSelect").val() === "pdf") {
+    $("#activeImg").hide()
+    $("#linktext").attr("download", true)
   } else {
-    $('#activeImg').show()
-    $('#linktext').removeAttr('download')
+    $("#activeImg").show()
+    $("#linktext").removeAttr("download")
   }
 })
-if (document.getElementById('activeImg')) {
+if (document.getElementById("activeImg")) {
   buildURL()
 }
 
@@ -343,142 +343,142 @@ if (document.getElementById('activeImg')) {
 ///////////////////////
 
 // Hide unnecessary fiels in forms when the dark state checkbox is toggled
-$('.dark_state_button input').click(function () {
-  const neighbors = $(this).closest('.stateform_block').children('.hide_if_dark')
+$(".dark_state_button input").click(function () {
+  const neighbors = $(this).closest(".stateform_block").children(".hide_if_dark")
   if ($(this)[0].checked) {
     neighbors.hide()
     $(this).find("input[name*='max']").empty()
   } else {
     neighbors.show()
-    $(this).closest('.stateform_block')
+    $(this).closest(".stateform_block")
   }
 })
 
 $(() => {
-  $('.dark_state_button input:checked').each(function () {
-    const neighbors = $(this).closest('.stateform_block').children('.hide_if_dark')
+  $(".dark_state_button input:checked").each(function () {
+    const neighbors = $(this).closest(".stateform_block").children(".hide_if_dark")
     neighbors.hide()
   })
 })
 
 function reset_ipgid(hintstring) {
   if (hintstring) {
-    $('#hint_id_ipg_id').html(hintstring)
+    $("#hint_id_ipg_id").html(hintstring)
   }
-  $('#id_seq').prop('disabled', false)
-  $('#hint_id_seq').html('Amino acid sequence (IPG ID is preferred)')
+  $("#id_seq").prop("disabled", false)
+  $("#hint_id_seq").html("Amino acid sequence (IPG ID is preferred)")
 }
 
-$('#id_ipg_id').change(function () {
+$("#id_ipg_id").change(function () {
   const ipg_id = $(this).val()
   const protein_uri =
-    'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&retmode=json&rettype=fasta&id='
+    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&retmode=json&rettype=fasta&id="
   const ipg_uri =
-    'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=ipg&retmode=json&id='
-  const fpbase_params = '&tool=fpbase&email=talley.lambert+fpbase@gmail.com'
+    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=ipg&retmode=json&id="
+  const fpbase_params = "&tool=fpbase&email=talley.lambert+fpbase@gmail.com"
   $.ajax({
     url: ipg_uri + ipg_id + fpbase_params,
     context: document.body,
     success: (data) => {
-      if (!('result' in data)) {
+      if (!("result" in data)) {
         reset_ipgid(
           'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/">Identical Protein Group ID</a>'
         )
       } else if (ipg_id in data.result) {
         const accession = data.result[ipg_id].accession
         const title = data.result[ipg_id].title
-        $('#hint_id_ipg_id').html('IPG name: ' + title)
+        $("#hint_id_ipg_id").html("IPG name: " + title)
         $.ajax({
           url: protein_uri + accession + fpbase_params,
           context: document.body,
           success: (data2) => {
-            var lines = data2.split('\n')
-            var seq = ''
+            var lines = data2.split("\n")
+            var seq = ""
             for (var i = 0; i < lines.length; i++) {
-              if (lines[i].length !== 0 && lines[i][0] !== '>') {
+              if (lines[i].length !== 0 && lines[i][0] !== ">") {
                 seq += lines[i]
               }
             }
-            $('#id_seq').val(seq)
+            $("#id_seq").val(seq)
             //$("#id_seq").prop('disabled', true);
             //$("#hint_id_seq").html('Sequence input disabled when IPG ID provided')
           },
-          error: (_data) => {
-            reset_ipgid('Unrecognized IPG ID')
+          error: (data) => {
+            reset_ipgid("Unrecognized IPG ID")
           },
         })
       }
     },
-    error: (_data) => {
-      reset_ipgid('Unrecognized IPG ID')
+    error: (data) => {
+      reset_ipgid("Unrecognized IPG ID")
     },
   })
 })
 
-$('#proteinform #id_name').change(function () {
-  var form = $(this).closest('form')
+$("#proteinform #id_name").change(function () {
+  var form = $(this).closest("form")
   $.ajax({
-    method: 'POST',
-    url: form.data('validate-proteinname-url'),
+    method: "POST",
+    url: form.data("validate-proteinname-url"),
     data: form.find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']").serialize(),
-    dataType: 'json',
+    dataType: "json",
     success: (data) => {
       if (data.is_taken) {
         var namelink =
-          '<a href="' + data.url + '" style="text-decoration: underline;">' + data.name + '</a>'
-        var message = '<strong>' + namelink + ' already exists in the database.</strong>'
-        $('#id_name').addClass('is-invalid')
-        $('#div_id_name').addClass('has-danger')
+          '<a href="' + data.url + '" style="text-decoration: underline;">' + data.name + "</a>"
+        var message = "<strong>" + namelink + " already exists in the database.</strong>"
+        $("#id_name").addClass("is-invalid")
+        $("#div_id_name").addClass("has-danger")
 
-        if ($('#error_1_id_name').length) {
-          $('#error_1_id_name').html(message)
+        if ($("#error_1_id_name").length) {
+          $("#error_1_id_name").html(message)
         } else {
-          const span = $('<span/>', {
-            id: 'error_1_id_name',
-            class: 'invalid-feedback',
+          const span = $("<span/>", {
+            id: "error_1_id_name",
+            class: "invalid-feedback",
           }).append(message)
-          $('#hint_id_name').before(span)
+          $("#hint_id_name").before(span)
         }
       } else {
-        if ($('#error_1_id_name').length) {
-          $('#error_1_id_name').remove()
-          $('#id_name').removeClass('is-invalid')
-          $('#div_id_name').removeClass('has-danger')
+        if ($("#error_1_id_name").length) {
+          $("#error_1_id_name").remove()
+          $("#id_name").removeClass("is-invalid")
+          $("#div_id_name").removeClass("has-danger")
         }
       }
     },
   })
 })
 
-$('#spectrum-submit-form #id_owner').change(function () {
-  var form = $(this).closest('form')
+$("#spectrum-submit-form #id_owner").change(function () {
+  var form = $(this).closest("form")
   $.ajax({
-    method: 'POST',
-    url: form.data('validate-owner-url'),
+    method: "POST",
+    url: form.data("validate-owner-url"),
     data: form.find("#id_owner, [name='csrfmiddlewaretoken']").serialize(),
-    dataType: 'json',
+    dataType: "json",
     success: (data) => {
       if (data.similars.length) {
-        var str = '<strong>Avoid duplicates.</strong> Similarly named existing spectra: '
+        var str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
         $.each(data.similars, (index, val) => {
-          str = str + '<span class="text-danger">' + val.name + '</span>'
-          if (val.spectra.length) {
-            str = str + ' ('
-            $.each(val.spectra, (i, s) => {
+          str = str + '<span class="text-danger">' + val["name"] + "</span>"
+          if (val["spectra"].length) {
+            str = str + " ("
+            $.each(val["spectra"], (i, s) => {
               str = str + s
-              if (i !== val.spectra.length - 1) {
-                str = str + ', '
+              if (i !== val["spectra"].length - 1) {
+                str = str + ", "
               }
             })
-            str = str + ')'
+            str = str + ")"
           }
           if (index !== data.similars.length - 1) {
-            str = str + ', '
+            str = str + ", "
           }
         })
-        $('#hint_id_owner').html(str)
+        $("#hint_id_owner").html(str)
       } else {
-        $('#hint_id_owner').html('Owner of the spectrum')
+        $("#hint_id_owner").html("Owner of the spectrum")
       }
     },
   })
@@ -490,7 +490,7 @@ $('input[id*="reference_doi"]').change(function () {
   const input = $(this)
   const small = input.parent().siblings('small[id*="reference_doi"]')
   const doi = input.val()
-  var searchurl = 'https://api.crossref.org/v1/works/'
+  var searchurl = "https://api.crossref.org/v1/works/"
   searchurl += doi
 
   // searchurl = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term="
@@ -500,18 +500,18 @@ $('input[id*="reference_doi"]').change(function () {
     url: searchurl,
     context: document.body,
     success: (data) => {
-      if (data.status === 'ok') {
-        const year = data.message.issued['date-parts']['0']['0']
-        const author = data.message.author['0'].family
+      if (data.status === "ok") {
+        const year = data.message.issued["date-parts"]["0"]["0"]
+        const author = data.message.author["0"]["family"]
         const title = data.message.title[0].slice(0, 45)
-        const citation = author + ' (' + year + ') ' + title + '...'
+        const citation = author + " (" + year + ") " + title + "..."
         small.html(citation)
       } else {
-        small.html('DOI not found at Crossref')
+        small.html("DOI not found at Crossref")
       }
     },
-    error: (_data) => {
-      small.html('DOI not found at Crossref')
+    error: (data) => {
+      small.html("DOI not found at Crossref")
     },
   })
 })
@@ -567,14 +567,14 @@ function chunkString(str, len) {
 }
 
 function tooltipwrap(chunk, index, skipV2) {
-  var out = ''
+  var out = ""
   for (var i = 0; i < chunk.length; i++) {
     let ind
     if (skipV2) {
       if (+index + i < 1) {
         ind = +index + i + 1
       } else if (+index + i === 1) {
-        ind = '1a'
+        ind = "1a"
       } else if (+index + i > 1) {
         ind = +index + i
       }
@@ -584,11 +584,11 @@ function tooltipwrap(chunk, index, skipV2) {
     out +=
       '<span data-toggle="tooltip" data-placement="top" title="' +
       chunk[i] +
-      ' ' +
+      " " +
       ind +
       '">' +
       chunk[i] +
-      '</span>'
+      "</span>"
   }
   return out
 }
@@ -596,12 +596,12 @@ function tooltipwrap(chunk, index, skipV2) {
 function formatAAseq(elem, breakpoint) {
   breakpoint = breakpoint || 10
   //clear any existing counts
-  elem.find('.sequence_count').empty()
+  elem.find(".sequence_count").empty()
   // extract the string and chop it up into segments by breakpoint
-  if (elem.text().startsWith('MVSKGEEL')) {
+  if (elem.text().startsWith("MVSKGEEL")) {
     var skipV2 = true
   }
-  const words = chunkString(elem.text().replace(/ /g, ''), breakpoint)
+  const words = chunkString(elem.text().replace(/ /g, ""), breakpoint)
   // clear the div
   elem.empty()
   //console.log(words)
@@ -609,21 +609,21 @@ function formatAAseq(elem, breakpoint) {
   const seqcount = $("<div class='sequence_count'></div>").appendTo(elem)
   const seqdiv = $("<div class='formatted_aminosquence'></div>").appendTo(elem)
   seqdiv.html(tooltipwrap(words[0], 0, skipV2))
-  seqcount.append(1 + '<br>')
+  seqcount.append(1 + "<br>")
   var height = seqdiv.height()
   for (var i = 1; i < words.length; i++) {
     var tippywords = tooltipwrap(words[i], i * 10, skipV2)
-    seqdiv.html(seqdiv.html() + ' ' + tippywords)
+    seqdiv.html(seqdiv.html() + " " + tippywords)
     if (seqdiv.height() > height) {
       // line break occured at iteration i
       //console.log(words[i])
-      seqcount.append(i * breakpoint + 1 + '<br>')
+      seqcount.append(i * breakpoint + 1 + "<br>")
       height = seqdiv.height()
     }
   }
   elem.show()
   $('[data-toggle="tooltip"]').tooltip({
-    trigger: 'hover',
+    trigger: "hover",
     delay: { show: 200 },
   })
 }
@@ -631,27 +631,27 @@ function formatAAseq(elem, breakpoint) {
 $(() => {
   setTimeout(() => {
     // waiting is just a hack...
-    $('.aminosequence').each(function () {
+    $(".aminosequence").each(function () {
       formatAAseq($(this))
     })
   }, 1)
 })
 
 $(window).resize(() => {
-  $('.aminosequence').each(function () {
+  $(".aminosequence").each(function () {
     formatAAseq($(this))
   })
 })
 
-$('#refModalForm').submit(function (e) {
-  var form = $(this).closest('form')
+$("#refModalForm").submit(function (e) {
+  var form = $(this).closest("form")
   $.ajax({
-    type: 'POST',
-    url: form.attr('data-action-url'),
+    type: "POST",
+    url: form.attr("data-action-url"),
     data: form.serialize(),
-    dataType: 'json',
+    dataType: "json",
     success: (data) => {
-      if (data.status === 'success') {
+      if (data.status === "success") {
         window.location.reload()
       }
     },
@@ -659,15 +659,15 @@ $('#refModalForm').submit(function (e) {
   e.preventDefault() // avoid to execute the actual submit of the form.
 })
 
-$('#excerptModalForm').submit(function (e) {
-  var form = $(this).closest('form')
+$("#excerptModalForm").submit(function (e) {
+  var form = $(this).closest("form")
   $.ajax({
-    type: 'POST',
-    url: form.attr('data-action-url'),
+    type: "POST",
+    url: form.attr("data-action-url"),
     data: form.serialize(),
-    dataType: 'json',
+    dataType: "json",
     success: (data) => {
-      if (data.status === 'success') {
+      if (data.status === "success") {
         window.location.reload()
       }
     },
@@ -676,60 +676,60 @@ $('#excerptModalForm').submit(function (e) {
 })
 
 function register_transition_form() {
-  $('.trans_formset_div').formset({
-    addText: 'Add Transition',
-    addCssClass: 'btn btn-info mb-4',
-    deleteCssClass: 'transDelete',
+  $(".trans_formset_div").formset({
+    addText: "Add Transition",
+    addCssClass: "btn btn-info mb-4",
+    deleteCssClass: "transDelete",
     deleteText: '<i class="fas fa-minus-circle"></i>',
-    prefix: 'transitions',
+    prefix: "transitions",
     processHidden: true, // I added this to
   })
 }
 
 // This function is for showing the modal
 $(() => {
-  $('#show_transition_modal').click(function () {
+  $("#show_transition_modal").click(function () {
     $.ajax({
-      type: 'GET',
-      url: $(this).attr('data-action-url'),
+      type: "GET",
+      url: $(this).attr("data-action-url"),
       data: {},
       cache: false,
-      success: (data, _status) => {
-        $('#transitionForm').html(data)
+      success: (data, status) => {
+        $("#transitionForm").html(data)
         register_transition_form()
-        $('#transitionModal').modal()
+        $("#transitionModal").modal()
       },
     })
   })
 })
 
-$('#transitionForm').submit(function (e) {
-  var form = $(this).closest('form')
+$("#transitionForm").submit(function (e) {
+  var form = $(this).closest("form")
   $.ajax({
-    type: 'POST',
-    url: form.attr('data-action-url'),
+    type: "POST",
+    url: form.attr("data-action-url"),
     data: form.serialize(),
     cache: false,
-    success: (_data, _status) => {
+    success: (data, status) => {
       window.location.reload()
     },
-    error: (data, _status, _error) => {
-      $('#transitionForm').html(data.responseText)
+    error: (data, status, error) => {
+      $("#transitionForm").html(data.responseText)
       register_transition_form()
     },
   })
   e.preventDefault() // avoid to execute the actual submit of the form.
 })
 
-$('#adminApprove, #adminRevert').submit(function (e) {
-  var form = $(this).closest('form')
+$("#adminApprove, #adminRevert").submit(function (e) {
+  var form = $(this).closest("form")
   $.ajax({
-    type: 'POST',
-    url: form.attr('data-action-url'),
+    type: "POST",
+    url: form.attr("data-action-url"),
     data: form.serialize(),
-    dataType: 'json',
-    success: (_data) => {
-      window.location = form.data('success')
+    dataType: "json",
+    success: (data) => {
+      window.location = form.data("success")
     },
   })
   e.preventDefault() // avoid to execute the actual submit of the form.
@@ -740,99 +740,99 @@ $('#adminApprove, #adminRevert').submit(function (e) {
 ////////////////// AJAX REMOVE FROM COLLECTION ////////////////////
 
 $(document).ready(() => {
-  $('a.object-flag').click(function (e) {
+  $("a.object-flag").click(function (e) {
     e.preventDefault()
     var button = $(this)
 
     $.post({
-      url: button.data('action-url'),
+      url: button.data("action-url"),
       data: {
-        flagged: button.data('flagged'),
-        target_model: button.data('model'),
-        target_id: button.data('id'),
+        flagged: button.data("flagged"),
+        target_model: button.data("model"),
+        target_id: button.data("id"),
         csrfmiddlewaretoken: window.CSRF_TOKEN,
       },
       success: (response) => {
-        if (response.status === 'flagged') {
-          button.data('flagged', 1)
-          button.find('.flagicon').removeClass('far')
-          button.find('.flagicon').addClass('fas')
-          button.data('original-title', 'This excerpt has been flagged for review')
-          button.css('opacity', 1)
-        } else if (response.status === 'unflagged') {
-          button.data('flagged', 0)
-          button.find('.flagicon').removeClass('fas')
-          button.find('.flagicon').addClass('far')
-          button.data('original-title', 'Flag this excerpt for review')
-          button.css('opacity', 0.3)
+        if (response.status === "flagged") {
+          button.data("flagged", 1)
+          button.find(".flagicon").removeClass("far")
+          button.find(".flagicon").addClass("fas")
+          button.data("original-title", "This excerpt has been flagged for review")
+          button.css("opacity", 1)
+        } else if (response.status === "unflagged") {
+          button.data("flagged", 0)
+          button.find(".flagicon").removeClass("fas")
+          button.find(".flagicon").addClass("far")
+          button.data("original-title", "Flag this excerpt for review")
+          button.css("opacity", 0.3)
         }
       },
     })
   })
 
-  $('.btn.collection-remove').click(function (e) {
+  $(".btn.collection-remove").click(function (e) {
     var button = $(this)
-    button.prop('disabled', true)
+    button.prop("disabled", true)
     $.ajax({
-      url: button.attr('data-action-url'),
-      type: 'POST',
+      url: button.attr("data-action-url"),
+      type: "POST",
       data: {
-        target_protein: button.data('object'),
-        target_collection: button.data('collection'),
+        target_protein: button.data("object"),
+        target_collection: button.data("collection"),
         csrfmiddlewaretoken: window.CSRF_TOKEN,
       },
       success: (response) => {
-        if (response.status === 'deleted') {
-          button.closest('tr').remove()
+        if (response.status === "deleted") {
+          button.closest("tr").remove()
         }
       },
     })
     e.preventDefault()
   })
 
-  $('.collection-add-button').click(function (e) {
+  $(".collection-add-button").click(function (e) {
     //var button = $(this)
     $.ajax({
-      type: 'GET',
-      url: $(this).attr('data-action-url'),
-      dataType: 'json',
-      success: (data, _status) => {
-        if ('members' in data) {
+      type: "GET",
+      url: $(this).attr("data-action-url"),
+      dataType: "json",
+      success: (data, status) => {
+        if ("members" in data) {
           const members = JSON.parse(data.members)
           if (members.length) {
-            $('#currentmemberships').empty()
-            $('<p>This protein is currently a member of these collections </p>').appendTo(
-              '#currentmemberships'
+            $("#currentmemberships").empty()
+            $("<p>This protein is currently a member of these collections </p>").appendTo(
+              "#currentmemberships"
             )
-            const list = $('<ul>').appendTo('#currentmemberships')
-            $.each(members, function (_e) {
-              const li = $('<li>')
-              $('<a>').html(this[0]).attr('href', this[1]).appendTo(li)
+            const list = $("<ul>").appendTo("#currentmemberships")
+            $.each(members, function (e) {
+              const li = $("<li>")
+              $("<a>").html(this[0]).attr("href", this[1]).appendTo(li)
               li.appendTo(list)
             })
           }
         }
-        if (!$('#collectionSelect').length) {
+        if (!$("#collectionSelect").length) {
           // only retrieve once
-          $('#collectionSelection').prepend(data.widget)
-          $('#collectionModal').modal()
+          $("#collectionSelection").prepend(data.widget)
+          $("#collectionModal").modal()
         }
       },
     })
     e.preventDefault()
   })
 
-  $('#collectionForm').submit(function (e) {
-    var form = $(this).closest('form')
+  $("#collectionForm").submit(function (e) {
+    var form = $(this).closest("form")
     const data = form.serialize()
     $.ajax({
-      type: 'POST',
-      url: form.attr('data-action-url'),
+      type: "POST",
+      url: form.attr("data-action-url"),
       data,
       cache: false,
-      success: (_data, _status) => {},
+      success: (data, status) => {},
     })
-    $('#collectionModal').modal('hide')
+    $("#collectionModal").modal("hide")
     e.preventDefault() // avoid to execute the actual submit of the form.
   })
 })
@@ -840,47 +840,47 @@ $(document).ready(() => {
 /////////////// ORGANISM BUTTON ///////////
 
 $(() => {
-  $('#id_parent_organism')
-    .siblings('.input-group-append')
-    .find('.select-add-button')
+  $("#id_parent_organism")
+    .siblings(".input-group-append")
+    .find(".select-add-button")
     .click(() => {
-      $('#organismModal').modal()
+      $("#organismModal").modal()
     })
 
-  $('#taxonomyModalForm').submit(function (e) {
+  $("#taxonomyModalForm").submit(function (e) {
     const form = $(this)
     const tax_id = form.find('input[name="taxonomy_id"]').val()
     const tax_uri =
-      'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&retmode=json&id='
+      "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&retmode=json&id="
     $.ajax({
       url: tax_uri + tax_id,
       success: (data) => {
-        if ('scientificname' in data.result[data.result.uids[0]]) {
+        if ("scientificname" in data.result[data.result.uids[0]]) {
           // successful fetch from NCBI
-          const sci_name = data.result[data.result.uids[0]].scientificname
+          const sci_name = data.result[data.result.uids[0]]["scientificname"]
           $.ajax({
-            type: 'POST',
-            url: form.attr('data-action-url'),
+            type: "POST",
+            url: form.attr("data-action-url"),
             data: form.serialize(),
-            dataType: 'json',
-            success: (_data) => {
-              $('<option value="' + tax_id + '">' + sci_name + ' </option>').appendTo(
-                '#id_parent_organism'
+            dataType: "json",
+            success: (data) => {
+              $('<option value="' + tax_id + '">' + sci_name + " </option>").appendTo(
+                "#id_parent_organism"
               )
-              $('#id_parent_organism option[value="' + tax_id + '"]').prop('selected', true)
-              $('#organismModal').modal('hide')
+              $('#id_parent_organism option[value="' + tax_id + '"]').prop("selected", true)
+              $("#organismModal").modal("hide")
             },
           })
         } else {
-          $('#id_taxonomy_id').addClass('is-invalid')
-          $('#div_id_taxonomy_id').addClass('has-danger')
-          $('#hint_id_taxonomy_id')
-            .text('Could not find that Taxonomy id at NCBI!')
-            .addClass('text-danger font-weight-bold')
-            .removeClass('text-muted')
+          $("#id_taxonomy_id").addClass("is-invalid")
+          $("#div_id_taxonomy_id").addClass("has-danger")
+          $("#hint_id_taxonomy_id")
+            .text("Could not find that Taxonomy id at NCBI!")
+            .addClass("text-danger font-weight-bold")
+            .removeClass("text-muted")
         }
       },
-      error: (_data) => {},
+      error: (data) => {},
     })
     e.preventDefault()
   })

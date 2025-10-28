@@ -1,11 +1,11 @@
-import { List } from 'immutable'
+import { List } from "immutable"
 
 // Realistic spectrum data based on EGFP (excitation and emission)
 export const mockSpectrumEGFP_EX = {
   id: 17,
-  category: 'P',
-  subtype: 'EX',
-  color: '#00FF00',
+  category: "P",
+  subtype: "EX",
+  color: "#00FF00",
   // Realistic EGFP excitation spectrum data: wavelength (nm), intensity (0-1)
   data: [
     [350, 0.01],
@@ -20,9 +20,9 @@ export const mockSpectrumEGFP_EX = {
     [550, 0.05],
   ],
   owner: {
-    id: 'egfp-state',
-    slug: 'egfp',
-    name: 'EGFP',
+    id: "egfp-state",
+    slug: "egfp",
+    name: "EGFP",
     qy: 0.6,
     extCoeff: 55900,
     exMax: 488,
@@ -32,9 +32,9 @@ export const mockSpectrumEGFP_EX = {
 
 export const mockSpectrumEGFP_EM = {
   id: 18,
-  category: 'P',
-  subtype: 'EM',
-  color: '#00FF00',
+  category: "P",
+  subtype: "EM",
+  color: "#00FF00",
   // Realistic EGFP emission spectrum data
   data: [
     [470, 0.01],
@@ -49,9 +49,9 @@ export const mockSpectrumEGFP_EM = {
     [620, 0.01],
   ],
   owner: {
-    id: 'egfp-state',
-    slug: 'egfp',
-    name: 'EGFP',
+    id: "egfp-state",
+    slug: "egfp",
+    name: "EGFP",
     qy: 0.6,
     extCoeff: 55900,
     exMax: 488,
@@ -69,7 +69,7 @@ export const mockChartOptions = {
   scaleQY: false,
   extremes: [null, null],
   shareTooltip: true,
-  palette: 'wavelength',
+  palette: "wavelength",
 }
 
 // Apollo Mock Provider setup

@@ -14,37 +14,37 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
 
   function toTitleCase(str) {
     if (!str) {
-      return ''
+      return ""
     }
-    str = str.split('__').join('_')
-    str = str.split('_').join(' ')
+    str = str.split("__").join("_")
+    str = str.split("_").join(" ")
     return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())
   }
 
   function name_options() {
-    var out = ''
+    var out = ""
     for (const n of available_fields) {
-      if (n !== 'id' && n !== 'slug') {
+      if (n !== "id" && n !== "slug") {
         if (n in labelLookup) {
           name = labelLookup[n]
         } else {
           name = toTitleCase(n)
         }
-        out += '<option value=' + n + '>' + name + '</option>'
+        out += "<option value=" + n + ">" + name + "</option>"
       }
     }
     return out
   }
 
   function operator_options(ops) {
-    var out = ''
+    var out = ""
     for (const o of ops) {
       if (o in operatorLookup) {
         op = operatorLookup[o]
       } else {
         op = toTitleCase(ops[o])
       }
-      out += '<option value=' + o + '>' + op + '</option>'
+      out += "<option value=" + o + ">" + op + "</option>"
     }
     return out
   }
@@ -55,31 +55,31 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
 
   function updateInputField(row, keepValue) {
     // figure out filter name and operator
-    var filter_name = row.find('.filter-select').val()
-    var operation = row.find('.operator-select').val()
-    if (operation == 'exact') {
+    var filter_name = row.find(".filter-select").val()
+    var operation = row.find(".operator-select").val()
+    if (operation == "exact") {
       name = filter_name
     } else {
-      name = filter_name + '__' + operation
+      name = filter_name + "__" + operation
     }
 
     // hide the current input field by putting it in the hidden #crispy-form
     // FIXME: change this to a variable selector
-    var inputcol = row.find('.input-col')
+    var inputcol = row.find(".input-col")
     if (keepValue) {
-      value = inputcol.find('input').val()
+      value = inputcol.find("input").val()
     }
-    inputcol.find('.form-group').appendTo('#crispy-form')
+    inputcol.find(".form-group").appendTo("#crispy-form")
 
     // grab the form div that we want to put here
-    var formdiv = $('#div_id_' + name)
+    var formdiv = $("#div_id_" + name)
     formdiv.appendTo(inputcol)
 
     // for some reason range input is losing this class
-    formdiv.find('input').addClass('form-control')
+    formdiv.find("input").addClass("form-control")
     //formdiv.find('input').prop('required',true);
     if (keepValue) {
-      formdiv.find('input').val(value)
+      formdiv.find("input").val(value)
     }
   }
 
@@ -113,16 +113,16 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     newrow = $(queryRow(i)).appendTo(target)
 
     if (filter) {
-      newrow.find('.filter-select').val(filter)
+      newrow.find(".filter-select").val(filter)
     }
 
-    filterSelector = newrow.find('.filter-select')
+    filterSelector = newrow.find(".filter-select")
     filterName = filterSelector.val()
 
-    operatorSelect = newrow.find('.operator-select')
+    operatorSelect = newrow.find(".operator-select")
     operatorSelect.html(operator_options(fields[filterName]))
     operatorSelect.removeClass()
-    operatorSelect.addClass('form-control operator-select ' + filterName + '_operator')
+    operatorSelect.addClass("form-control operator-select " + filterName + "_operator")
 
     if (operator) {
       operatorSelect.val(operator)
@@ -152,54 +152,54 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
 
   function updateOperators(filterName, sender) {
     // where sender is the operatorSelect that sent the update command
-    selector = $('.' + filterName + '_operator').not(sender)
+    selector = $("." + filterName + "_operator").not(sender)
     if (selector.length > 0) {
-      selector.find('option').not(':selected').remove()
+      selector.find("option").not(":selected").remove()
       selector.append(operator_options(fields[filterName]))
     }
   }
 
-  $('body').on('focus', '.filter-select', function (_event) {
+  $("body").on("focus", ".filter-select", function (event) {
     // Store the current value on focus and on change
     prevName = this.value
-    prevOperator = $(this).closest('.query-row').find('.operator-select').val()
+    prevOperator = $(this).closest(".query-row").find(".operator-select").val()
   })
-  $('body').on('focus', '.operator-select', function (_event) {
+  $("body").on("focus", ".operator-select", function (event) {
     // Store the current value on focus and on change
     prevOperator = this.value
   })
 
-  $('#add-row-btn').on('click', () => {
-    addRow('#query_builder')
+  $("#add-row-btn").on("click", () => {
+    addRow("#query_builder")
   })
 
-  $('body').on('click', '.remove-row-btn', function () {
-    thisrow = $(this).closest('.query-row')
-    filterName = thisrow.find('.filter-select').val()
-    operatorSelect = thisrow.find('.operator-select')
+  $("body").on("click", ".remove-row-btn", function () {
+    thisrow = $(this).closest(".query-row")
+    filterName = thisrow.find(".filter-select").val()
+    operatorSelect = thisrow.find(".operator-select")
     enableOperator(filterName, operatorSelect.val())
     updateOperators(filterName, operatorSelect)
 
-    inputfield = thisrow.find('.input-col').find('.form-group')
-    inputfield.appendTo('#crispy-form')
+    inputfield = thisrow.find(".input-col").find(".form-group")
+    inputfield.appendTo("#crispy-form")
 
     thisrow.remove()
     i -= 1
   })
 
-  $('body').on('change', '.filter-select', function () {
+  $("body").on("change", ".filter-select", function () {
     //when the filter name selector gets changed (or added)
     dropdownSelect = $(this)
     filterName = dropdownSelect.val()
 
-    thisrow = $(this).closest('.query-row')
+    thisrow = $(this).closest(".query-row")
 
     // remove the old operator dropdown and add the new one
-    operatorSelect = thisrow.find('.operator-select')
+    operatorSelect = thisrow.find(".operator-select")
     operatorSelect.empty()
     operatorSelect.html(operator_options(fields[filterName]))
     operatorSelect.removeClass()
-    operatorSelect.addClass('form-control operator-select ' + filterName + '_operator')
+    operatorSelect.addClass("form-control operator-select " + filterName + "_operator")
 
     if (prevName && prevOperator) {
       enableOperator(prevName, prevOperator)
@@ -210,12 +210,12 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     updateInputField(thisrow)
 
     prevName = this.value
-    prevOperator = $(this).closest('.query-row').find('.operator-select').val()
+    prevOperator = $(this).closest(".query-row").find(".operator-select").val()
   })
 
-  $('body').on('change', '.operator-select', function () {
-    thisrow = $(this).closest('.query-row')
-    filterName = thisrow.find('.filter-select').val()
+  $("body").on("change", ".operator-select", function () {
+    thisrow = $(this).closest(".query-row")
+    filterName = thisrow.find(".filter-select").val()
     enableOperator(filterName, prevOperator)
     disableOperator(filterName, this.value)
     updateOperators(filterName)
@@ -227,51 +227,51 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
   function loadState(state) {
     for (key in state) {
       value = state[key]
-      if (key === 'display') {
-        $('#' + value + 'button').click()
+      if (key === "display") {
+        $("#" + value + "button").click()
         continue
       }
       if (key in fields) {
         filter = key
-        operator = 'exact'
+        operator = "exact"
       } else {
-        splits = key.split('__')
-        filter = splits.slice(0, splits.length - 1).join('__')
+        splits = key.split("__")
+        filter = splits.slice(0, splits.length - 1).join("__")
         operator = splits[splits.length - 1]
       }
       if (filter && operator) {
-        addRow('#query_builder', filter, operator)
+        addRow("#query_builder", filter, operator)
       }
     }
   }
 
   $(() => {
-    $('#crispy-form label').remove()
+    $("#crispy-form label").remove()
 
     var urlParams
     ;(window.onpopstate = () => {
       var match,
         pl = /\+/g, // Regex for replacing addition symbol with a space
         search = /([^&=]+)=?([^&]*)/g,
-        decode = (s) => decodeURIComponent(s.replace(pl, ' ')),
+        decode = (s) => decodeURIComponent(s.replace(pl, " ")),
         query = window.location.search.substring(1)
 
       urlParams = {}
       while ((match = search.exec(query))) urlParams[decode(match[1])] = decode(match[2])
     })()
 
-    $('#query_builder').empty()
+    $("#query_builder").empty()
     loadState(urlParams)
-    if (!$('#query_builder').find('.query-row').exists()) {
-      $('#query_builder').empty()
-      addRow('#query_builder')
+    if (!$("#query_builder").find(".query-row").exists()) {
+      $("#query_builder").empty()
+      addRow("#query_builder")
     }
 
-    $('.displaybuttons input').change(function () {
+    $(".displaybuttons input").change(function () {
       var display_type = $(this).val()
-      $('#' + display_type + 'display').show()
-      $('#' + display_type + 'display')
-        .siblings('div')
+      $("#" + display_type + "display").show()
+      $("#" + display_type + "display")
+        .siblings("div")
         .hide()
     })
   })

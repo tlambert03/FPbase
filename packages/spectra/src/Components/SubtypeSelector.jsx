@@ -1,32 +1,32 @@
-import { useMutation, useQuery } from '@apollo/client'
-import Visibility from '@mui/icons-material/Visibility'
-import Box from '@mui/material/Box'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import { makeStyles } from '@mui/styles'
-import PropTypes from 'prop-types'
-import React from 'react'
-import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from '../client/queries'
+import { useMutation, useQuery } from "@apollo/client"
+import Visibility from "@mui/icons-material/Visibility"
+import Box from "@mui/material/Box"
+import ToggleButton from "@mui/material/ToggleButton"
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
+import { makeStyles } from "@mui/styles"
+import PropTypes from "prop-types"
+import React from "react"
+import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const useStyles = makeStyles((theme) => ({
   toggleButton: {
-    paddingLeft: '11px',
-    paddingRight: '11px',
-    height: '38px',
+    paddingLeft: "11px",
+    paddingRight: "11px",
+    height: "38px",
     // [theme.breakpoints.down(960)]: {
     //   height: "34px"
     // },
   },
   toggleButtonGroup: {
-    marginLeft: '5px',
-    [theme.breakpoints.down('xs')]: {
-      display: 'none',
+    marginLeft: "5px",
+    [theme.breakpoints.down("xs")]: {
+      display: "none",
     },
   },
 }))
 
 function subtypeSorter(a, b) {
-  const TYPE_ORDER = ['AB', 'A_2P', 'EX', 'EM']
+  const TYPE_ORDER = ["AB", "A_2P", "EX", "EM"]
   const upperA = a.subtype.toUpperCase()
   const upperB = b.subtype.toUpperCase()
   if (TYPE_ORDER.indexOf(upperA) > TYPE_ORDER.indexOf(upperB)) return 1
@@ -47,10 +47,10 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
 
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const handleClick = (e) => {
-    const elem = e.target.closest('button')
-    const checked = !elem.classList.contains('Mui-selected')
+    const elem = e.target.closest("button")
+    const checked = !elem.classList.contains("Mui-selected")
     const variables = {}
-    variables[checked ? 'add' : 'remove'] = [elem.value]
+    variables[checked ? "add" : "remove"] = [elem.value]
     updateSpectra({ variables })
   }
 
@@ -71,7 +71,7 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
             className={classes.toggleButton}
             tabIndex={-1}
           >
-            {skip ? <Visibility /> : st.subtype.replace(/^A_/g, '')}
+            {skip ? <Visibility /> : st.subtype.replace(/^A_/g, "")}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>

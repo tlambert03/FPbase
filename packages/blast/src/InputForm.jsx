@@ -1,10 +1,11 @@
-import { Box, Button, FormHelperText, TextField } from '@mui/material'
-import Cookies from 'js-cookie'
+import { Box, Button, FormHelperText, TextField } from "@mui/material"
+import Cookies from "js-cookie"
+import React from "react"
 
 function InputForm({ handleSubmit, initialValue }) {
   return (
     <Box component="form" onSubmit={handleSubmit}>
-      <input type="hidden" name="csrfmiddlewaretoken" value={Cookies.get('csrftoken')} />
+      <input type="hidden" name="csrfmiddlewaretoken" value={Cookies.get("csrftoken")} />
       <TextField
         id="queryInput"
         required

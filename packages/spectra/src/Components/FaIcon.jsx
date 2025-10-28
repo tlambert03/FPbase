@@ -8,17 +8,18 @@ import {
   faPercent,
   faQuestionCircle,
   faSliders,
-} from '@fortawesome/free-solid-svg-icons'
-import SvgIcon from '@mui/material/SvgIcon'
+} from "@fortawesome/free-solid-svg-icons"
+import SvgIcon from "@mui/material/SvgIcon"
+import React from "react"
 
 function FAIcon(props) {
   return (
     <SvgIcon
       viewBox="0 0 530 530"
       style={{
-        position: 'relative',
+        position: "relative",
         top: -1,
-        height: '1rem',
+        height: "1rem",
       }}
       {...props}
     >
@@ -27,7 +28,7 @@ function FAIcon(props) {
   )
 }
 
-function categoryIcon(category, color = '#aaa', props) {
+function categoryIcon(category, color = "#aaa", props) {
   let iconClass = faQuestionCircle
   const iconMap = {
     P: faDna,
@@ -37,7 +38,7 @@ function categoryIcon(category, color = '#aaa', props) {
     C: faCamera,
     CF: faSliders,
     CL: faBolt,
-    '%': faPercent,
+    "%": faPercent,
   }
   if (category in iconMap) {
     iconClass = iconMap[category]

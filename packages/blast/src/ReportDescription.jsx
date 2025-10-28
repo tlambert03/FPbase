@@ -1,10 +1,11 @@
-import Paper from '@mui/material/Paper'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import { makeStyles } from '@mui/styles'
+import Paper from "@mui/material/Paper"
+import Table from "@mui/material/Table"
+import TableBody from "@mui/material/TableBody"
+import TableCell from "@mui/material/TableCell"
+import TableHead from "@mui/material/TableHead"
+import TableRow from "@mui/material/TableRow"
+import { makeStyles } from "@mui/styles"
+import React from "react"
 
 function fpbaseLink(accession) {
   return (
@@ -14,15 +15,15 @@ function fpbaseLink(accession) {
   )
 }
 
-const useStyles = makeStyles((_theme) => ({
+const useStyles = makeStyles((theme) => ({
   table: {
-    marginTop: '10px',
+    marginTop: "10px",
     minWidth: 650,
   },
 }))
 
 function BlastReportDescription({ report, onClick }) {
-  const rows = report.search.hits.map((elem, _i) => {
+  const rows = report.search.hits.map((elem, i) => {
     return {
       key: elem.num,
       title: elem.description[0].title,
@@ -38,7 +39,7 @@ function BlastReportDescription({ report, onClick }) {
 
   const classes = useStyles()
   return (
-    <Paper style={{ overflowX: 'scroll' }}>
+    <Paper style={{ overflowX: "scroll" }}>
       <Table className={classes.table} size="small">
         <TableHead>
           <TableRow>

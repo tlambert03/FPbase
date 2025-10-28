@@ -1,22 +1,22 @@
-import { useApolloClient, useMutation, useQuery } from '@apollo/client'
-import SaveAlt from '@mui/icons-material/SaveAlt'
-import Shuffle from '@mui/icons-material/Shuffle'
-import { Box, IconButton, Typography } from '@mui/material'
-import Button from '@mui/material/Button'
-import { makeStyles } from '@mui/styles'
-import gql from 'graphql-tag'
-import { MaterialReactTable } from 'material-react-table'
-import React, { useEffect, useMemo, useState } from 'react'
-import { GET_ACTIVE_OVERLAPS } from '../client/queries'
-import { trapz } from '../util'
-import useSpectralData from './useSpectraData'
+import { useApolloClient, useMutation, useQuery } from "@apollo/client"
+import SaveAlt from "@mui/icons-material/SaveAlt"
+import Shuffle from "@mui/icons-material/Shuffle"
+import { Box, IconButton, Typography } from "@mui/material"
+import Button from "@mui/material/Button"
+import { makeStyles } from "@mui/styles"
+import gql from "graphql-tag"
+import { MaterialReactTable } from "material-react-table"
+import React, { useEffect, useMemo, useState } from "react"
+import { GET_ACTIVE_OVERLAPS } from "../client/queries"
+import { trapz } from "../util"
+import useSpectralData from "./useSpectraData"
 
 class ErrorBoundary extends React.Component {
-  static getDerivedStateFromError(_error) {
+  static getDerivedStateFromError(error) {
     return { hasError: true }
   }
 
-  componentDidCatch(_error, _info) {}
+  componentDidCatch(error, info) {}
 
   render() {
     const { children } = this.props
@@ -24,13 +24,13 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-const useStyles = makeStyles((_theme) => ({
+const useStyles = makeStyles((theme) => ({
   table: {
-    marginTop: '10px',
+    marginTop: "10px",
     minWidth: 650,
   },
   description: {
-    padding: '8px 20px',
+    padding: "8px 20px",
   },
 }))
 
@@ -66,16 +66,16 @@ function getOverlap(...args) {
   const idString = args
     .map((arg) => arg.customId || arg.id)
     .sort(numStringSort)
-    .join('_')
+    .join("_")
 
-  const ownerName = args.map(({ owner }) => owner.name).join(' & ')
+  const ownerName = args.map(({ owner }) => owner.name).join(" & ")
   const ownerID = args
     .map(({ owner }) => owner.id)
     .sort(numStringSort)
-    .join('_')
+    .join("_")
   const qy = args.reduce((acc, next) => next.owner.qy || acc, null)
   const slug = args.reduce(
-    (acc, next) => (['P', 'D'].includes(next.category) ? next.owner.slug : acc),
+    (acc, next) => (["P", "D"].includes(next.category) ? next.owner.slug : acc),
     null
   )
 
@@ -85,9 +85,9 @@ function getOverlap(...args) {
       data: product,
       area: trapz(product),
       id: idString,
-      category: 'O',
-      subtype: 'O',
-      color: '#000000',
+      category: "O",
+      subtype: "O",
+      color: "#000000",
       owner: { id: ownerID, name: ownerName, qy, slug },
     }
   }
@@ -114,9 +114,9 @@ const EfficiencyTable = ({ initialTranspose }) => {
   useEffect(() => {
     async function updateTableData() {
       const filters = spectraData.filter(
-        ({ category, subtype }) => category === 'F' && subtype !== 'BX'
+        ({ category, subtype }) => category === "F" && subtype !== "BX"
       )
-      const emSpectra = spectraData.filter(({ subtype }) => subtype === 'EM')
+      const emSpectra = spectraData.filter(({ subtype }) => subtype === "EM")
 
       // untransposed columns represent different fluors
       let colItems = emSpectra
@@ -147,22 +147,22 @@ const EfficiencyTable = ({ initialTranspose }) => {
     }
 
     updateTableData()
-  }, [spectraData, transposed])
+  }, [client, spectraData, transposed])
 
   // Generate columns using useMemo
   const columns = useMemo(() => {
     if (!rows.length) return []
 
     const filters = spectraData.filter(
-      ({ category, subtype }) => category === 'F' && subtype !== 'BX'
+      ({ category, subtype }) => category === "F" && subtype !== "BX"
     )
-    const emSpectra = spectraData.filter(({ subtype }) => subtype === 'EM')
+    const emSpectra = spectraData.filter(({ subtype }) => subtype === "EM")
     const colItems = transposed ? filters : emSpectra
 
     const cols = [
       {
-        accessorKey: 'field',
-        header: transposed ? 'Fluorophore' : 'Filter',
+        accessorKey: "field",
+        header: transposed ? "Fluorophore" : "Filter",
         size: 150,
       },
     ]
@@ -210,16 +210,16 @@ const EfficiencyTable = ({ initialTranspose }) => {
           enableGlobalFilter={false}
           muiTableProps={{
             sx: {
-              tableLayout: 'auto',
+              tableLayout: "auto",
             },
           }}
           muiTableBodyCellProps={{
             sx: {
-              fontSize: '1rem',
+              fontSize: "1rem",
             },
           }}
           renderTopToolbarCustomActions={({ table }) => (
-            <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center', p: 1 }}>
+            <Box sx={{ display: "flex", gap: "1rem", alignItems: "center", p: 1 }}>
               <Typography variant="h6">Collection Efficiency (%)</Typography>
               <IconButton onClick={() => setTransposed((prev) => !prev)} title="Transpose">
                 <Shuffle />
@@ -230,18 +230,18 @@ const EfficiencyTable = ({ initialTranspose }) => {
                     // Header row
                     columns
                       .map((col) => col.header)
-                      .join(','),
+                      .join(","),
                     // Data rows
                     ...rows.map((row) =>
-                      columns.map((col) => row[col.accessorKey] || '').join(',')
+                      columns.map((col) => row[col.accessorKey] || "").join(",")
                     ),
-                  ].join('\n')
+                  ].join("\n")
 
-                  const blob = new Blob([csvContent], { type: 'text/csv' })
+                  const blob = new Blob([csvContent], { type: "text/csv" })
                   const url = window.URL.createObjectURL(blob)
-                  const a = document.createElement('a')
+                  const a = document.createElement("a")
                   a.href = url
-                  a.download = 'efficiency-table.csv'
+                  a.download = "efficiency-table.csv"
                   a.click()
                   window.URL.revokeObjectURL(url)
                 }}
@@ -276,7 +276,7 @@ const OverlapToggle = ({ children, id, isActive }) => {
   const handleClick = () => {
     const checked = !active
     const variables = {}
-    variables[checked ? 'add' : 'remove'] = [id]
+    variables[checked ? "add" : "remove"] = [id]
     setOverlaps({ variables })
     setActive(checked)
   }
@@ -287,8 +287,8 @@ const OverlapToggle = ({ children, id, isActive }) => {
       onClick={handleClick}
       value={id}
       checked={active}
-      variant={active ? 'contained' : 'outlined'}
-      color={+children > 50 ? 'primary' : +children > 5 ? 'inherit' : 'secondary'}
+      variant={active ? "contained" : "outlined"}
+      color={+children > 50 ? "primary" : +children > 5 ? "inherit" : "secondary"}
     >
       {children}
     </Button>

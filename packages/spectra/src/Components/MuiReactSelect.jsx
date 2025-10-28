@@ -1,30 +1,31 @@
-import NoSsr from '@mui/material/NoSsr'
-import Paper from '@mui/material/Paper'
-import { useTheme } from '@mui/material/styles'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import { makeStyles } from '@mui/styles'
-import PropTypes from 'prop-types'
-import 'regenerator-runtime' // why do I need this?!?
-import Select from 'react-select'
-import SortableWindowedSelect from './SortableWindowedSelect'
+import NoSsr from "@mui/material/NoSsr"
+import Paper from "@mui/material/Paper"
+import { useTheme } from "@mui/material/styles"
+import TextField from "@mui/material/TextField"
+import Typography from "@mui/material/Typography"
+import { makeStyles } from "@mui/styles"
+import PropTypes from "prop-types"
+import React from "react"
+import "regenerator-runtime" // why do I need this?!?
+import Select from "react-select"
+import SortableWindowedSelect from "./SortableWindowedSelect"
 
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
   input: {
-    display: 'flex',
-    padding: '0 4px 4px 4px',
-    height: 'auto',
-    fontSize: '1.2rem',
+    display: "flex",
+    padding: "0 4px 4px 4px",
+    height: "auto",
+    fontSize: "1.2rem",
   },
   valueContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
+    display: "flex",
+    flexWrap: "wrap",
     flex: 1,
-    alignItems: 'center',
-    overflow: 'hidden',
+    alignItems: "center",
+    overflow: "hidden",
   },
   noOptionsMessage: {
     padding: theme.spacing(1, 2),
@@ -33,13 +34,13 @@ const useStyles = makeStyles((theme) => ({
     fontSize: 16,
   },
   placeholder: {
-    position: 'absolute',
+    position: "absolute",
     left: 8,
     bottom: 7,
-    fontSize: '1.2rem',
+    fontSize: "1.2rem",
   },
   paper: {
-    position: 'absolute',
+    position: "absolute",
     zIndex: 1,
     marginTop: theme.spacing(1),
     left: 0,
@@ -163,8 +164,8 @@ function MuiReactSelect({ paginate = true, components, ...otherprops }) {
     input: (base) => ({
       ...base,
       color: theme.palette.text.primary,
-      '& input': {
-        font: 'inherit',
+      "& input": {
+        font: "inherit",
       },
     }),
   }

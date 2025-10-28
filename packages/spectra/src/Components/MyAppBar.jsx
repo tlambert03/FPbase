@@ -1,59 +1,59 @@
-import { useMutation, useQuery } from '@apollo/client'
-import AddIcon from '@mui/icons-material/Add'
-import HelpIcon from '@mui/icons-material/Help'
-import { IconButton } from '@mui/material'
-import AppBar from '@mui/material/AppBar'
-import Fab from '@mui/material/Fab'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Switch from '@mui/material/Switch'
-import Toolbar from '@mui/material/Toolbar'
-import Tooltip from '@mui/material/Tooltip'
-import { makeStyles } from '@mui/styles'
-import gql from 'graphql-tag'
-import React, { memo } from 'react'
-import { GET_CHART_OPTIONS } from '../client/queries'
-import SearchModal from './SearchModal'
-import SettingsDrawer from './SettingsDrawer'
-import ShareButton from './ShareButton'
+import { useMutation, useQuery } from "@apollo/client"
+import AddIcon from "@mui/icons-material/Add"
+import HelpIcon from "@mui/icons-material/Help"
+import { IconButton } from "@mui/material"
+import AppBar from "@mui/material/AppBar"
+import Fab from "@mui/material/Fab"
+import FormControlLabel from "@mui/material/FormControlLabel"
+import Switch from "@mui/material/Switch"
+import Toolbar from "@mui/material/Toolbar"
+import Tooltip from "@mui/material/Tooltip"
+import { makeStyles } from "@mui/styles"
+import gql from "graphql-tag"
+import React, { memo } from "react"
+import { GET_CHART_OPTIONS } from "../client/queries"
+import SearchModal from "./SearchModal"
+import SettingsDrawer from "./SettingsDrawer"
+import ShareButton from "./ShareButton"
 
 export const useStyles = makeStyles((theme) => ({
   text: {
     padding: theme.spacing(2, 2, 0),
   },
   appBar: {
-    top: 'auto',
+    top: "auto",
     bottom: 0,
-    backgroundColor: '#0D4B33',
+    backgroundColor: "#0D4B33",
   },
   grow: {
     flexGrow: 1,
   },
   fabButton: {
-    backgroundColor: '#3CA644',
-    '&:hover': { backgroundColor: '#3A8B44' },
-    '&:active': { backgroundColor: '#3CA644' },
-    color: 'white',
-    position: 'absolute',
+    backgroundColor: "#3CA644",
+    "&:hover": { backgroundColor: "#3A8B44" },
+    "&:active": { backgroundColor: "#3CA644" },
+    color: "white",
+    position: "absolute",
     zIndex: 1,
     top: -30,
     left: 0,
     right: 0,
-    margin: '0 auto',
+    margin: "0 auto",
   },
   spaceBar: {
-    [theme.breakpoints.down('sm')]: {
-      display: 'none',
+    [theme.breakpoints.down("sm")]: {
+      display: "none",
     },
-    color: 'rgba(255,255,255,0.2)',
-    textTransform: 'uppercase',
-    position: 'absolute',
-    fontSize: '0.85rem',
+    color: "rgba(255,255,255,0.2)",
+    textTransform: "uppercase",
+    position: "absolute",
+    fontSize: "0.85rem",
     zIndex: 1,
     left: 0,
     right: 0,
     top: 30,
-    margin: '0 auto',
-    width: '71px',
+    margin: "0 auto",
+    width: "71px",
   },
   odToggle: { paddingTop: 6, marginRight: 2 },
 }))

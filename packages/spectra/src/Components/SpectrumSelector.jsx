@@ -1,33 +1,33 @@
-import { useApolloClient, useMutation, useQuery } from '@apollo/client'
-import Box from '@mui/material/Box'
-import gql from 'graphql-tag'
-import update from 'immutability-helper'
-import PropTypes from 'prop-types'
-import React, { useCallback, useEffect } from 'react'
-import { components } from 'react-select'
-import { GET_OWNER_OPTIONS, GET_SPECTRUM } from '../client/queries'
-import ProductLink from './ProductLink'
-import SortableWindowedSelect from './SortableWindowedSelect'
-import SubtypeSelector from './SubtypeSelector'
+import { useApolloClient, useMutation, useQuery } from "@apollo/client"
+import Box from "@mui/material/Box"
+import gql from "graphql-tag"
+import update from "immutability-helper"
+import PropTypes from "prop-types"
+import React, { useCallback, useEffect } from "react"
+import { components } from "react-select"
+import { GET_OWNER_OPTIONS, GET_SPECTRUM } from "../client/queries"
+import ProductLink from "./ProductLink"
+import SortableWindowedSelect from "./SortableWindowedSelect"
+import SubtypeSelector from "./SubtypeSelector"
 
-import theme from './theme'
+import theme from "./theme"
 
 const customStyles = {
   menu: (provided) => ({
     ...provided,
-    zIndex: '10000',
+    zIndex: "10000",
   }),
-  singleValue: (provided, _state) => ({
+  singleValue: (provided, state) => ({
     ...provided,
-    [theme.breakpoints.down('xs')]: {
-      fontSize: '0.88rem',
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.88rem",
     },
   }),
 }
 
 const SingleValue = ({ children, data, ...props }) => {
   const client = useApolloClient()
-  const [extra, setExtra] = React.useState('')
+  const [extra, setExtra] = React.useState("")
   useEffect(() => {
     async function fetchQeEc(id) {
       const {
@@ -39,35 +39,35 @@ const SingleValue = ({ children, data, ...props }) => {
       if (spectrum.owner) {
         const { qy, extCoeff } = spectrum.owner
         if (qy || extCoeff) {
-          let val = '('
+          let val = "("
           if (qy) {
             val += `QY: ${qy}`
-            if (extCoeff) val += ' / '
+            if (extCoeff) val += " / "
           }
           if (extCoeff) val += `EC: ${extCoeff.toLocaleString()}`
-          val += ')'
+          val += ")"
           setExtra(val)
         } else {
-          setExtra('')
+          setExtra("")
         }
       }
     }
-    if (data.category === 'P' || data.category === 'D') {
+    if (data.category === "P" || data.category === "D") {
       fetchQeEc(data.spectra[0].id)
     }
-  }, [client, data.spectra, data.category])
+  }, [client, children, data.spectra, data.category])
 
   return (
     <components.SingleValue {...props}>
-      {children}{' '}
+      {children}{" "}
       <span
         style={{
-          fontSize: '0.76rem',
-          color: '#a9a9a9',
+          fontSize: "0.76rem",
+          color: "#a9a9a9",
           fontWeight: 600,
           marginLeft: 5,
           bottom: 1,
-          position: 'relative',
+          position: "relative",
         }}
       >
         {extra}
@@ -97,7 +97,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
     setValue(selector.owner && ownerInfo[selector.owner])
   }, [ownerInfo, selector])
 
-  const subtypes = value?.spectra || []
+  const subtypes = (value && value.spectra) || []
   // const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
   const { data } = useQuery(GET_OWNER_OPTIONS)
@@ -114,24 +114,26 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
       if (value === newValue) return
       // setValue(newValue)
       // onChange(newValue && newValue.value)
-      const newOwner = newValue?.value
+      const newOwner = newValue && newValue.value
       setValue(newOwner && ownerInfo[newOwner]) // FIXME: replace with optimistic UI?
 
       comboMutate({
         variables: {
-          add: newValue?.spectra
-            .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
-            .map(({ id }) => id),
-          remove: value?.spectra.map(({ id }) => id),
+          add:
+            newValue &&
+            newValue.spectra
+              .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
+              .map(({ id }) => id),
+          remove: value && value.spectra.map(({ id }) => id),
           selector: {
             id: +selector.id,
             owner: newOwner,
-            category: ownerInfo[newOwner]?.category,
+            category: ownerInfo[newOwner] && ownerInfo[newOwner].category,
           },
         },
       })
     },
-    [excludeSubtypes, ownerInfo, selector.id, value, comboMutate] // eslint-disable-line
+    [excludeSubtypes, ownerInfo, selector.id, value] // eslint-disable-line
   )
 
   // disable options that are already claimed by other selectors
@@ -181,7 +183,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
         />
       </Box>
       {subtypes.length > 0 && (
-        <SubtypeSelector subtypes={subtypes} skip={value && !['P', 'D'].includes(value.category)} />
+        <SubtypeSelector subtypes={subtypes} skip={value && !["P", "D"].includes(value.category)} />
       )}
       <ProductLink current={value} />
     </Box>

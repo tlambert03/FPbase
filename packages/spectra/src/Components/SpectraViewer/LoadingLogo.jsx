@@ -1,19 +1,21 @@
+import React from "react"
+
 const LoadingLogo = () => (
   <div
     style={{
-      position: 'relative',
-      width: '100%',
-      margin: 'auto',
-      textAlign: 'center',
+      position: "relative",
+      width: "100%",
+      margin: "auto",
+      textAlign: "center",
     }}
   >
     <span
       style={{
-        top: '118px',
-        left: '34%',
-        position: 'absolute',
-        fontSize: '4.6rem',
-        color: '#ccc',
+        top: "118px",
+        left: "34%",
+        position: "absolute",
+        fontSize: "4.6rem",
+        color: "#ccc",
       }}
     >
       loading...
@@ -22,7 +24,7 @@ const LoadingLogo = () => (
       xmlns="http://www.w3.org/2000/svg"
       height="300"
       viewBox="0 0 2947 1061"
-      style={{ fillRule: 'evenodd' }}
+      style={{ fillRule: "evenodd" }}
     >
       <defs>
         <linearGradient id="lightGradient">

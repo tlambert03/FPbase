@@ -1,6 +1,6 @@
-import { useMutation, useQuery } from '@apollo/client'
-import { useEffect } from 'react'
-import { GET_ACTIVE_SPECTRA, GET_SELECTORS, NORMALIZE_CURRENT } from '../client/queries'
+import { useMutation, useQuery } from "@apollo/client"
+import { useEffect } from "react"
+import { GET_ACTIVE_SPECTRA, GET_SELECTORS, NORMALIZE_CURRENT } from "../client/queries"
 
 // selectors is an array:
 // [{id: 1, owner: String (slug from the ownersInfo dict), category: String}]
@@ -14,7 +14,7 @@ const useSelectors = ({ ownerInfo, spectraInfo }) => {
   const [normalize, { loading: normLoading }] = useMutation(NORMALIZE_CURRENT)
   useEffect(() => {
     if (!normLoading) normalize()
-  }, [normLoading, normalize])
+  }, [activeSpectra, normLoading, normalize])
 
   return { activeSpectra, selectors }
 }

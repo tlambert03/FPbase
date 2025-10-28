@@ -1,13 +1,13 @@
-import { useMutation } from '@apollo/client'
-import DeleteIcon from '@mui/icons-material/Delete'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import { makeStyles } from '@mui/styles'
-import React, { useCallback, useMemo } from 'react'
-import { REMOVE_SELECTOR, UPDATE_ACTIVE_SPECTRA } from '../client/queries'
-import { categoryIcon } from './FaIcon'
-import SpectrumSelector from './SpectrumSelector'
+import { useMutation } from "@apollo/client"
+import DeleteIcon from "@mui/icons-material/Delete"
+import Box from "@mui/material/Box"
+import IconButton from "@mui/material/IconButton"
+import Typography from "@mui/material/Typography"
+import { makeStyles } from "@mui/styles"
+import React, { useCallback, useMemo } from "react"
+import { REMOVE_SELECTOR, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { categoryIcon } from "./FaIcon"
+import SpectrumSelector from "./SpectrumSelector"
 
 export const useStyles = makeStyles((theme) => ({
   // root: {
@@ -16,16 +16,16 @@ export const useStyles = makeStyles((theme) => ({
   //   }
   // },
   deleteButton: {
-    padding: '6px 6px',
+    padding: "6px 6px",
     marginRight: 2,
     marginLeft: 2,
-    [theme.breakpoints.down('xs')]: {
-      display: 'none',
+    [theme.breakpoints.down("xs")]: {
+      display: "none",
     },
-    '&:hover': {
+    "&:hover": {
       // you want this to be the same as the backgroundColor above
-      backgroundColor: '#fff',
-      color: '#C84064',
+      backgroundColor: "#fff",
+      color: "#C84064",
     },
   },
   addButton: {
@@ -33,20 +33,20 @@ export const useStyles = makeStyles((theme) => ({
     marginRight: 6,
   },
   categoryHeader: {
-    textTransform: 'uppercase',
-    fontSize: 'small',
-    color: '#3F51B5',
-    marginTop: '.35rem',
-    marginBottom: '0.4rem',
+    textTransform: "uppercase",
+    fontSize: "small",
+    color: "#3F51B5",
+    marginTop: ".35rem",
+    marginBottom: "0.4rem",
   },
 }))
 
 const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   selectors,
   options,
-  category = '',
+  category = "",
   showCategoryIcon,
-  hint = 'item',
+  hint = "item",
   ownerInfo,
 }) {
   const classes = useStyles()
@@ -64,13 +64,13 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   //   addRow(category || null)
   // }
 
-  let lastCategory = ''
+  let lastCategory = ""
   const categoryNames = {
-    P: 'Fluorescent Proteins',
-    D: 'Dyes',
-    F: 'Filters',
-    L: 'Light Sources',
-    C: 'Detectors',
+    P: "Fluorescent Proteins",
+    D: "Dyes",
+    F: "Filters",
+    L: "Light Sources",
+    C: "Detectors",
   }
 
   const categoryOptions = useMemo(
@@ -99,7 +99,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   return (
     <>
       {mySelectors.map((selector) => (
-        <div style={{ width: '100%', margin: '4px 0' }} key={selector.id}>
+        <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
           {!category &&
             selector.category !== lastCategory &&
             (lastCategory = selector.category) && (
@@ -108,11 +108,11 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
               </Typography>
             )}
           <Box display="flex" alignItems="center" className={classes.root}>
-            {categoryIcon(selector.category, 'rgba(0,0,50,0.4)', {
+            {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
               style: {
-                position: 'relative',
-                left: category === 'L' ? 4 : 2,
-                height: '1.3rem',
+                position: "relative",
+                left: category === "L" ? 4 : 2,
+                height: "1.3rem",
                 marginRight: 10,
               },
             })}

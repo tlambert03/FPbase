@@ -8,9 +8,9 @@
 		<div id="spectra-viewer"></div>
 	</body>
 	<script type="module">
+		import App from "./src/index.jsx";
 		import * as React from "react";
 		import { render } from "react-dom";
-		import App from "./src/index.jsx";
 
 		render(
 			React.createElement(App, { uri: "/graphql/" }, null),

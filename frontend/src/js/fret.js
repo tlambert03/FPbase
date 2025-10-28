@@ -1,8 +1,9 @@
-import Highcharts from 'highcharts'
-import 'highcharts/modules/accessibility'
-import 'highcharts/modules/pattern-fill'
-import 'highcharts/modules/no-data-to-display'
-import $ from 'jquery'
+import * as d3 from "d3"
+import Highcharts from "highcharts"
+import "highcharts/modules/accessibility"
+import "highcharts/modules/pattern-fill"
+import "highcharts/modules/no-data-to-display"
+import $ from "jquery"
 
 export default function initFRET() {
   var chart
@@ -17,23 +18,23 @@ export default function initFRET() {
     startingBrush: [350, 750],
     autoscaleBrush: false,
     exNormWave: undefined,
-    scale: 'linear',
+    scale: "linear",
     hide2p: true,
     scaleToEC: false,
     scaleToQY: false,
   }
 
   //initialize chart with Highcharts
-  chart = Highcharts.chart('spectra', {
+  chart = Highcharts.chart("spectra", {
     chart: {
-      type: 'line',
+      type: "line",
       animation: { duration: 300 },
-      backgroundColor: '#ffffff',
+      backgroundColor: "#ffffff",
       height: 350,
     },
     title: { text: null },
     xAxis: {
-      title: { text: 'Wavelength (nm)' },
+      title: { text: "Wavelength (nm)" },
       min: 350,
       max: 750,
       tickLength: 0,
@@ -45,7 +46,7 @@ export default function initFRET() {
       max: 1,
       labels: {
         formatter: function () {
-          return Math.round(this.value * 100) + '%'
+          return Math.round(this.value * 100) + "%"
         },
       },
       gridLineWidth: 0, // Remove horizontal grid lines
@@ -53,20 +54,20 @@ export default function initFRET() {
     tooltip: {
       shared: !window.mobilecheck(),
       valueDecimals: 1,
-      valueSuffix: '%',
+      valueSuffix: "%",
       valueFormatter: (value) => {
         if (value !== null && value !== undefined) {
-          return Math.round(value * 1000) / 10 + '%'
+          return Math.round(value * 1000) / 10 + "%"
         } else {
-          return '--'
+          return "--"
         }
       },
     },
     legend: {
       enabled: true,
-      align: 'right',
-      verticalAlign: 'top',
-      layout: 'horizontal',
+      align: "right",
+      verticalAlign: "top",
+      layout: "horizontal",
       x: 0,
       y: 0,
       floating: false,
@@ -76,7 +77,7 @@ export default function initFRET() {
     },
     plotOptions: {
       series: {
-        legendSymbol: 'rectangle',
+        legendSymbol: "rectangle",
       },
       line: {
         animation: false,
@@ -91,44 +92,44 @@ export default function initFRET() {
     },
     series: [],
     lang: {
-      noData: 'Choose a donor and acceptor below',
+      noData: "Choose a donor and acceptor below",
     },
     noData: {
       style: {
-        fontWeight: 'bold',
-        fontSize: '15px',
-        color: '#303030',
+        fontWeight: "bold",
+        fontSize: "15px",
+        color: "#303030",
       },
     },
     credits: { enabled: false },
   })
 
   // Add resize handler
-  $(window).on('resize', () => {
+  $(window).on("resize", () => {
     if (chart) {
       chart.reflow()
     }
   })
 
-  $('#donor-select').select2({
-    theme: 'bootstrap',
-    containerCssClass: ':all:',
-    width: 'auto',
+  $("#donor-select").select2({
+    theme: "bootstrap",
+    containerCssClass: ":all:",
+    width: "auto",
   })
-  $('#acceptor-select').select2({
-    theme: 'bootstrap',
-    containerCssClass: ':all:',
-    width: 'auto',
+  $("#acceptor-select").select2({
+    theme: "bootstrap",
+    containerCssClass: ":all:",
+    width: "auto",
   })
 
   function getData(slug) {
     var dfd = $.Deferred()
     // download if not already downloaded
     if (!(slug in localData)) {
-      $.getJSON('/spectra/' + slug)
+      $.getJSON("/spectra/" + slug)
         .done((d) => {
           for (var n = 0; n < d.spectra.length; n++) {
-            if (d.spectra[n].type !== '2p') {
+            if (d.spectra[n].type !== "2p") {
               d.spectra[n] = padDataLimits(d.spectra[n])
             }
           }
@@ -163,14 +164,14 @@ export default function initFRET() {
     d = d || data
     return d.filter((item) => {
       for (var key in filter) {
-        if (typeof item[key] === 'undefined' || item[key] !== filter[key]) return false
+        if (typeof item[key] === "undefined" || item[key] !== filter[key]) return false
       }
       return true
     })
   }
 
   function addItem(slug, subtype) {
-    if (slug === '') {
+    if (slug === "") {
       return $.Deferred((def) => {
         def.resolve()
       }).promise()
@@ -181,13 +182,13 @@ export default function initFRET() {
     return getData(slug)
       .then((d) => {
         for (var i = 0; i < d.length; i++) {
-          if ((d[i].type !== '2p') & !dataHasKey(d[i].key)) {
+          if ((d[i].type !== "2p") & !dataHasKey(d[i].key)) {
             data.push(JSON.parse(JSON.stringify(d[i]))) // make a copy of the object
           }
         }
       })
-      .fail((_d) => {
-        console.log('item not found')
+      .fail((d) => {
+        console.log("item not found")
       })
   }
 
@@ -240,14 +241,14 @@ export default function initFRET() {
     return [overlapIntgrl, r]
   }
 
-  $('#ni-input').on('change', function () {
+  $("#ni-input").on("change", function () {
     var input = $(this)
     var val = input.val()
     input.val(Math.max(Math.min(val, 1.6), 0.5))
     updateTable()
   })
 
-  $('#k2-input').on('change', function () {
+  $("#k2-input").on("change", function () {
     var input = $(this)
     var val = input.val()
     input.val(Math.max(Math.min(val, 4), 0))
@@ -255,36 +256,36 @@ export default function initFRET() {
   })
 
   function updateTable() {
-    var r = forster_distance(donorEM, acceptorEX, $('#k2-input').val(), $('#ni-input').val())
-    $('#overlapIntgrl').text(Math.round(r[0] * 1e15) / 100)
-    $('#r0').text(Math.round(r[1] * 1000) / 100)
-    $('#r0QYA').text(Math.round(r[1] * $('#QYA').text() * 1000) / 100)
+    var r = forster_distance(donorEM, acceptorEX, $("#k2-input").val(), $("#ni-input").val())
+    $("#overlapIntgrl").text(Math.round(r[0] * 1e15) / 100)
+    $("#r0").text(Math.round(r[1] * 1000) / 100)
+    $("#r0QYA").text(Math.round(r[1] * $("#QYA").text() * 1000) / 100)
   }
 
   function updateChart() {
     // Convert data to Highcharts format
     var series = data.map((item) => {
-      var isFadedFret = item.classed?.includes('faded-fret')
-      var isFretOverlap = item.classed?.includes('fret-overlap')
+      var isFadedFret = item.classed && item.classed.includes("faded-fret")
+      var isFretOverlap = item.classed && item.classed.includes("fret-overlap")
 
       var seriesConfig = {
         name: item.key,
         data: item.values.map((v) => [v.x, v.y]),
-        type: item.area ? 'area' : 'line',
+        type: item.area ? "area" : "line",
         className: item.classed,
         zIndex: isFretOverlap ? 10 : isFadedFret ? 1 : 5,
       }
 
       // Apply faded-fret styling
       if (isFadedFret) {
-        seriesConfig.dashStyle = 'Dash' // Highcharts dash style (5,5)
-        seriesConfig.lineColor = 'rgba(0, 0, 0, 0.2)' // Gray dashed line
+        seriesConfig.dashStyle = "Dash" // Highcharts dash style (5,5)
+        seriesConfig.lineColor = "rgba(0, 0, 0, 0.2)" // Gray dashed line
         seriesConfig.lineWidth = 1.2
         if (item.area) {
           seriesConfig.fillOpacity = 0.15 // Keep original color but very transparent
         }
         // Keep the original item.color for the fill
-        if (item.color && typeof item.color === 'string' && !item.color.startsWith('url(')) {
+        if (item.color && typeof item.color === "string" && !item.color.startsWith("url(")) {
           seriesConfig.color = item.color
         }
       } else {
@@ -294,7 +295,7 @@ export default function initFRET() {
 
       // Handle color - could be a string, object (pattern), or undefined
       if (item.color && !isFadedFret) {
-        if (typeof item.color === 'string' && item.color.startsWith('url(')) {
+        if (typeof item.color === "string" && item.color.startsWith("url(")) {
           // Skip old-style SVG pattern references
           seriesConfig.color = null
         } else {
@@ -304,7 +305,7 @@ export default function initFRET() {
       }
 
       // Set fillOpacity for area charts (but not for pattern fills or faded-fret)
-      if (item.area && !isFadedFret && (!item.color || typeof item.color === 'string')) {
+      if (item.area && !isFadedFret && (!item.color || typeof item.color === "string")) {
         seriesConfig.fillOpacity = 0.5
       }
 
@@ -322,86 +323,86 @@ export default function initFRET() {
   }
 
   // main function when data-selector has been changed
-  $('.data-selector').change((_event) => {
+  $(".data-selector").change((event) => {
     data.splice(0, 10)
-    var donorslug = $('#donor-select :selected').val()
-    var acceptorslug = $('#acceptor-select :selected').val()
+    var donorslug = $("#donor-select :selected").val()
+    var acceptorslug = $("#acceptor-select :selected").val()
     $.when(addItem(donorslug), addItem(acceptorslug)).then(() => {
       if (donorslug || acceptorslug) {
-        $('.table-wrapper').show()
+        $(".table-wrapper").show()
       }
       if (donorslug) {
-        donorEM = dataItemMatching({ slug: donorslug, type: 'em' })[0]
-        donorEM.classed = (donorEM.classed || '') + ' faded-fret'
-        $('#QYD').text(donorEM.scalar)
+        donorEM = dataItemMatching({ slug: donorslug, type: "em" })[0]
+        donorEM.classed = (donorEM.classed || "") + " faded-fret"
+        $("#QYD").text(donorEM.scalar)
       } else {
-        $('#QYD').text('')
+        $("#QYD").text("")
       }
       if (acceptorslug) {
-        acceptorEX = dataItemMatching({ slug: acceptorslug, type: 'ex' })[0]
-        acceptorEX.classed = (acceptorEX.classed || '') + ' faded-fret'
-        $('#ECA').text(acceptorEX.scalar.toLocaleString())
+        acceptorEX = dataItemMatching({ slug: acceptorslug, type: "ex" })[0]
+        acceptorEX.classed = (acceptorEX.classed || "") + " faded-fret"
+        $("#ECA").text(acceptorEX.scalar.toLocaleString())
 
-        var acceptorEM = dataItemMatching({ slug: acceptorslug, type: 'em' })[0]
-        $('#QYA').text(acceptorEM ? acceptorEM.scalar : '')
+        var acceptorEM = dataItemMatching({ slug: acceptorslug, type: "em" })[0]
+        $("#QYA").text(acceptorEM ? acceptorEM.scalar : "")
       } else {
-        $('#ECA, #QYA').text('')
+        $("#ECA, #QYA").text("")
       }
       if (donorslug && acceptorslug) {
         data.push({
-          key: 'Overlap',
+          key: "Overlap",
           values: spectral_product(donorEM.values, acceptorEX.values),
           area: true,
           color: {
             pattern: {
               path: {
-                d: 'M -1 1 l 2 -2 M 0 10 l 10 -10 M 9 11 l 2 -2',
-                stroke: 'white',
+                d: "M -1 1 l 2 -2 M 0 10 l 10 -10 M 9 11 l 2 -2",
+                stroke: "white",
                 strokeWidth: 3,
               },
               width: 10,
               height: 10,
-              backgroundColor: '#00000092',
+              backgroundColor: "#00000092",
               opacity: 1,
             },
           },
-          classed: 'fret-overlap',
-          type: 'overlap',
+          classed: "fret-overlap",
+          type: "overlap",
         })
         updateTable(donorEM, acceptorEX)
       } else {
-        $('#overlapIntgrl, #r0').text('')
+        $("#overlapIntgrl, #r0").text("")
       }
       updateChart()
     })
   })
 
-  $('body').on('click', '.load-button', function () {
+  $("body").on("click", ".load-button", function () {
     var donorslug =
-      $(this).closest('tr').find('td:nth-child(2) a').attr('href').split('/')[2] + '_default'
+      $(this).closest("tr").find("td:nth-child(2) a").attr("href").split("/")[2] + "_default"
     var accslug =
-      $(this).closest('tr').find('td:nth-child(3) a').attr('href').split('/')[2] + '_default'
-    $('#donor-select').val(donorslug).trigger('change.select2')
-    $('#acceptor-select').val(accslug).change()
+      $(this).closest("tr").find("td:nth-child(3) a").attr("href").split("/")[2] + "_default"
+    $("#donor-select").val(donorslug).trigger("change.select2")
+    $("#acceptor-select").val(accslug).change()
   })
 
   /* Custom filtering function which will search data in column four between two values */
-  $.fn.dataTable.ext.search.push((_settings, data, _dataIndex) => {
-    var min = parseFloat($('#minQYAinput').val())
-    var minlam = parseInt($('#minLambdaSep').val(), 10)
+  $.fn.dataTable.ext.search.push((settings, data, dataIndex) => {
+    var min = parseFloat($("#minQYAinput").val())
+    var minlam = parseInt($("#minLambdaSep").val())
     var qya = parseFloat(data[7]) || 0 // use data for the age column
     var lambsep = parseFloat(data[4]) || 0 // use data for the age column
 
     if (min > 1) {
       min = 1
-      $('#minQYAinput').val(1)
+      $("#minQYAinput").val(1)
     }
     if (min < 0) {
       min = 0
-      $('#minQYAinput').val(0)
+      $("#minQYAinput").val(0)
     }
 
-    if ((Number.isNaN(min) || qya >= min) && (Number.isNaN(minlam) || lambsep >= minlam)) {
+    if ((isNaN(min) || qya >= min) && (isNaN(minlam) || lambsep >= minlam)) {
       return true
     }
     return false
@@ -410,7 +411,7 @@ export default function initFRET() {
   $(document).ready(() => {
     var getData = (data, callback, settings) => {
       $.get({
-        url: '',
+        url: "",
         success: function (d) {
           if (d.data === null) {
             setTimeout(getData.bind(this, data, callback, settings), 1500)
@@ -425,15 +426,15 @@ export default function initFRET() {
       })
     }
 
-    var fretTable = $('#fret_report').DataTable({
+    var fretTable = $("#fret_report").DataTable({
       ajax: getData,
-      buttons: ['copy', 'excel', 'pdf'],
+      buttons: ["copy", "excel", "pdf"],
       scrollX: true,
       pageLength: 25,
-      order: [[10, 'desc']],
+      order: [[10, "desc"]],
       language: {
-        emptyTable: 'No Data received from server...',
-        loadingRecords: 'Recalculating FRET efficiencies across database...  Please wait.',
+        emptyTable: "No Data received from server...",
+        loadingRecords: "Recalculating FRET efficiencies across database...  Please wait.",
       },
       update: function () {
         this._positions()
@@ -443,96 +444,96 @@ export default function initFRET() {
         {
           data: () =>
             '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>',
-          width: '1px',
+          width: "1px",
           orderable: false,
         },
-        { data: 'donor', width: '20px' },
-        { data: 'acceptor', width: '20px' },
-        { data: 'donorPeak', width: '10px' },
-        { data: 'emdist', width: '10px' },
-        { data: 'donorQY' },
-        { data: 'acceptorEC' },
-        { data: 'acceptorQY' },
-        { data: 'overlap' },
-        { data: 'forster' },
-        { data: 'forsterQYA' },
+        { data: "donor", width: "20px" },
+        { data: "acceptor", width: "20px" },
+        { data: "donorPeak", width: "10px" },
+        { data: "emdist", width: "10px" },
+        { data: "donorQY" },
+        { data: "acceptorEC" },
+        { data: "acceptorQY" },
+        { data: "overlap" },
+        { data: "forster" },
+        { data: "forsterQYA" },
       ],
     })
 
-    var sel = $('#fret_report_wrapper .row:first-child div.col-md-6')
-    sel.removeClass('col-md-6').addClass('col-md-4')
+    var sel = $("#fret_report_wrapper .row:first-child div.col-md-6")
+    sel.removeClass("col-md-6").addClass("col-md-4")
 
-    var e = $('#fret_report_wrapper .row:first-child div.col-md-4:first-child')
-    e.removeClass('col-md-4').addClass('col-md-3')
-    var D1 = $('<div>', {
-      class: 'col-md-2 col-sm-6 col-xs-12',
-      style: 'margin-top: -2px;',
+    var e = $("#fret_report_wrapper .row:first-child div.col-md-4:first-child")
+    e.removeClass("col-md-4").addClass("col-md-3")
+    var D1 = $("<div>", {
+      class: "col-md-2 col-sm-6 col-xs-12",
+      style: "margin-top: -2px;",
     })
       .append(
-        $('<div>', {
-          class: 'input-group input-group-sm d-flex justify-content-center pb-3',
+        $("<div>", {
+          class: "input-group input-group-sm d-flex justify-content-center pb-3",
         })
           .append(
-            $('<div>', { class: 'input-group-prepend' }).append(
-              $('<span>', { class: 'input-group-text', id: 'minQYA' }).html('min QY<sub>A</sub>')
+            $("<div>", { class: "input-group-prepend" }).append(
+              $("<span>", { class: "input-group-text", id: "minQYA" }).html("min QY<sub>A</sub>")
             )
           )
           .append(
-            $('<input>', {
-              type: 'number',
+            $("<input>", {
+              type: "number",
               step: 0.01,
               min: 0,
               max: 1,
-              class: 'form-control',
-              'aria-describedby': 'minQYA',
+              class: "form-control",
+              "aria-describedby": "minQYA",
               value: 0.4,
-              id: 'minQYAinput',
+              id: "minQYAinput",
             })
           )
       )
       .insertAfter(e)
 
-    $('<div>', {
-      class: 'col-md-3 col-sm-6 col-xs-12',
-      style: 'margin-top: -2px;',
+    $("<div>", {
+      class: "col-md-3 col-sm-6 col-xs-12",
+      style: "margin-top: -2px;",
     })
       .append(
-        $('<div>', {
-          class: 'input-group input-group-sm d-flex justify-content-center pb-3',
+        $("<div>", {
+          class: "input-group input-group-sm d-flex justify-content-center pb-3",
         })
           .append(
-            $('<div>', { class: 'input-group-prepend' }).append(
-              $('<span>', {
-                class: 'input-group-text',
-                id: 'minLambdaSepLab',
+            $("<div>", { class: "input-group-prepend" }).append(
+              $("<span>", {
+                class: "input-group-text",
+                id: "minLambdaSepLab",
               }).html('min &Delta;&lambda;<sub class="small">em</sub>')
             )
           )
           .append(
-            $('<input>', {
-              type: 'number',
+            $("<input>", {
+              type: "number",
               min: -200,
               max: 200,
-              class: 'form-control',
-              'aria-describedby': 'minLambdaSepLab',
+              class: "form-control",
+              "aria-describedby": "minLambdaSepLab",
               value: 20,
-              id: 'minLambdaSep',
+              id: "minLambdaSep",
             })
           )
       )
       .insertAfter(D1)
 
-    $('#minQYAinput, #minLambdaSep').keyup(() => {
+    $("#minQYAinput, #minLambdaSep").keyup(() => {
       fretTable.draw()
     })
   })
 
-  var topofDiv = $('.spectra-wrapper').offset().top
+  var topofDiv = $(".spectra-wrapper").offset().top
   $(window).scroll(() => {
     if ($(window).scrollTop() > topofDiv) {
-      $('.spectra-wrapper').css('box-shadow', '0 12px 8px -8px rgba(0,0,0,.2)')
+      $(".spectra-wrapper").css("box-shadow", "0 12px 8px -8px rgba(0,0,0,.2)")
     } else {
-      $('.spectra-wrapper').css('box-shadow', 'none')
+      $(".spectra-wrapper").css("box-shadow", "none")
     }
   })
 }

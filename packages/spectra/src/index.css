@@ -29,11 +29,11 @@ code {
 }
 
 .MuiListItem-dense .MuiButtonBase-root {
-  padding: 5px;
+  padding: 5px !important;
 }
 
 .Select-menu-outer {
-  z-index: 999;
+  z-index: 999 !important;
 }
 
 .tab-wrapper {
@@ -80,7 +80,7 @@ code {
 
 @media screen and (max-width: 420px) {
   .efficiency-table h6 {
-    font-size: 1.2rem;
+    font-size: 1.2rem !important;
   }
   .efficiency-table th.MuiTableCell-root {
     padding: 6px 12px;

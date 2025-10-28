@@ -1,13 +1,13 @@
-import { useMutation, useQuery } from '@apollo/client'
-import Grid from '@mui/material/Grid'
-import List from '@mui/material/List'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import gql from 'graphql-tag'
-import { memo } from 'react'
-import { GET_CHART_OPTIONS } from '../../client/queries'
-import PALETTES from '../../palettes'
-import ListCheckbox from '../ListCheckbox'
+import { useMutation, useQuery } from "@apollo/client"
+import Grid from "@mui/material/Grid"
+import List from "@mui/material/List"
+import MenuItem from "@mui/material/MenuItem"
+import Select from "@mui/material/Select"
+import gql from "graphql-tag"
+import React, { memo } from "react"
+import { GET_CHART_OPTIONS } from "../../client/queries"
+import PALETTES from "../../palettes"
+import ListCheckbox from "../ListCheckbox"
 
 const toggleMut = (param) => gql`
 mutation Toggle${param} {
@@ -21,13 +21,13 @@ const MUTATE_PALETTE = gql`
 `
 
 const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
-  const [toggleY] = useMutation(toggleMut('YAxis'))
-  const [toggleX] = useMutation(toggleMut('XAxis'))
-  const [toggleGrid] = useMutation(toggleMut('Grid'))
-  const [toggleScaleEC] = useMutation(toggleMut('ScaleEC'))
-  const [toggleScaleQY] = useMutation(toggleMut('ScaleQY'))
-  const [toggleShareTooltip] = useMutation(toggleMut('ShareTooltip'))
-  const [toggleAreaFill] = useMutation(toggleMut('AreaFill'))
+  const [toggleY] = useMutation(toggleMut("YAxis"))
+  const [toggleX] = useMutation(toggleMut("XAxis"))
+  const [toggleGrid] = useMutation(toggleMut("Grid"))
+  const [toggleScaleEC] = useMutation(toggleMut("ScaleEC"))
+  const [toggleScaleQY] = useMutation(toggleMut("ScaleQY"))
+  const [toggleShareTooltip] = useMutation(toggleMut("ShareTooltip"))
+  const [toggleAreaFill] = useMutation(toggleMut("AreaFill"))
   const [mutatePalette] = useMutation(MUTATE_PALETTE)
   const { data } = useQuery(GET_CHART_OPTIONS)
   const chartOptions = data?.chartOptions
@@ -116,8 +116,8 @@ const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
               value={chartOptions.palette}
               onChange={(e) => mutatePalette({ variables: { palette: e.target.value } })}
               inputProps={{
-                name: 'color-palette',
-                id: 'color-palette-select',
+                name: "color-palette",
+                id: "color-palette-select",
               }}
             >
               {Object.keys(PALETTES).map((i) => (

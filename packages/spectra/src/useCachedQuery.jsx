@@ -1,7 +1,7 @@
-import { useApolloClient } from '@apollo/client'
-import { useEffect, useState } from 'react'
-import { getStorageWithExpire, setStorageWithTimeStamp } from './util'
-import 'unfetch/polyfill/index'
+import { useApolloClient } from "@apollo/client"
+import { useEffect, useState } from "react"
+import { getStorageWithExpire, setStorageWithTimeStamp } from "./util"
+import "unfetch/polyfill/index"
 
 const useCachedQuery = (query, cacheKey, maxAge) => {
   // fetch data no more than once every maxAge
@@ -16,7 +16,7 @@ const useCachedQuery = (query, cacheKey, maxAge) => {
       }
     }
     if (!stash) fetchData()
-  }, [cacheKey, client.query, query, stash]) // eslint-disable-line
+  }, []) // eslint-disable-line
   return stash
 }
 
@@ -32,7 +32,7 @@ const useCachedFetch = (url, cacheKey, maxAge) => {
           setStorageWithTimeStamp(cacheKey, data)
         })
     }
-  }, [cacheKey, stash, url]) // eslint-disable-line
+  }, []) // eslint-disable-line
   return stash
 }
 

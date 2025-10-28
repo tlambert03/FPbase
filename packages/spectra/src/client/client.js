@@ -1,9 +1,9 @@
-import { ApolloClient, from, HttpLink, InMemoryCache } from '@apollo/client'
-import { onError } from '@apollo/client/link/error'
-import { persistCache } from 'apollo3-cache-persist'
-import qs from 'qs'
-import introspectionQueryResultData from '../fragmentTypes.json'
-import { decoder } from '../util'
+import { ApolloClient, ApolloLink, from, HttpLink, InMemoryCache } from "@apollo/client"
+import { onError } from "@apollo/client/link/error"
+import { persistCache } from "apollo3-cache-persist"
+import qs from "qs"
+import introspectionQueryResultData from "../fragmentTypes.json"
+import { decoder } from "../util"
 import {
   GET_ACTIVE_OVERLAPS,
   GET_ACTIVE_SPECTRA,
@@ -11,21 +11,22 @@ import {
   GET_EX_NORM,
   GET_OWNER_OPTIONS,
   GET_SELECTORS,
-} from './queries'
-import { defaults, resolvers, validSpectraIds } from './resolvers'
-import 'unfetch/polyfill/index'
-import PALETTES from '../palettes'
+} from "./queries"
+import { defaults, resolvers, validSpectraIds } from "./resolvers"
+import typeDefs from "./schema"
+import "unfetch/polyfill/index"
+import PALETTES from "../palettes"
 
 export function parseURL(data) {
   data = data || defaults
-  const url = qs.parse(window.location.search.replace(/^\?/, ''), {
+  const url = qs.parse(window.location.search.replace(/^\?/, ""), {
     decoder,
   })
   if (Object.keys(url).length === 0 && url.constructor === Object) return data
 
   data.selectors = []
   const booleanOptions = Object.keys(defaults.chartOptions).filter(
-    (key) => typeof defaults.chartOptions[key] === 'boolean'
+    (key) => typeof defaults.chartOptions[key] === "boolean"
   )
 
   const extremes = [null, null]
@@ -34,23 +35,23 @@ export function parseURL(data) {
     if (booleanOptions.includes(key)) {
       data.chartOptions[key] = Boolean(+url[key])
     }
-    if (key === 'palette' && url[key] in PALETTES) {
+    if (key === "palette" && url[key] in PALETTES) {
       data.chartOptions.palette = url[key]
     }
-    if (key === 'zoomType') {
-      if (['x', 'y', 'xy'].includes(url[key])) {
+    if (key === "zoomType") {
+      if (["x", "y", "xy"].includes(url[key])) {
         data.chartOptions.zoomType = url[key]
       } else {
         data.chartOptions.zoomType = null
       }
     }
-    if (key === 'xMin') extremes[0] = +url[key]
-    if (key === 'xMax') extremes[1] = +url[key]
-    if (key === 'normWave') exNorm[0] = url[key]
-    if (key === 'normID') exNorm[1] = url[key]
-    if (['s', 'activeSpectra'].includes(key)) {
+    if (key === "xMin") extremes[0] = +url[key]
+    if (key === "xMax") extremes[1] = +url[key]
+    if (key === "normWave") exNorm[0] = url[key]
+    if (key === "normID") exNorm[1] = url[key]
+    if (["s", "activeSpectra"].includes(key)) {
       let active = url[key]
-      if (!Array.isArray(active)) active = active.split(',')
+      if (!Array.isArray(active)) active = active.split(",")
       data.activeSpectra = validSpectraIds(active)
     }
   })
@@ -98,8 +99,8 @@ function intializeClient({ uri, storage }) {
       if (networkError) console.log(`[Network error]: ${networkError}`)
     }),
     new HttpLink({
-      uri: uri || 'https://www.fpbase.org/graphql/',
-      credentials: 'same-origin',
+      uri: uri || "https://www.fpbase.org/graphql/",
+      credentials: "same-origin",
     }),
   ])
 
@@ -109,7 +110,7 @@ function intializeClient({ uri, storage }) {
     // typeDefs removed - not supported in Apollo Client v3
     resolvers,
     devtools: {
-      enabled: process.env.NODE_ENV === 'development',
+      enabled: process.env.NODE_ENV === "development",
     },
   })
 
@@ -124,7 +125,7 @@ function intializeClient({ uri, storage }) {
       })
     } catch (error) {
       // If persistence fails (quota exceeded, etc), just continue without it
-      console.warn('Cache persistence disabled:', error.message)
+      console.warn("Cache persistence disabled:", error.message)
     }
 
     // Initialize all cache fields with defaults if not present
@@ -134,7 +135,7 @@ function intializeClient({ uri, storage }) {
         if (!cached) {
           cache.writeQuery({ query, data })
         }
-      } catch (_e) {
+      } catch (e) {
         // Query failed (no data in cache), initialize with defaults
         cache.writeQuery({ query, data })
       }
@@ -196,7 +197,7 @@ function intializeClient({ uri, storage }) {
         })
       }
     } catch (error) {
-      console.warn('Failed to parse URL parameters:', error)
+      console.warn("Failed to parse URL parameters:", error)
     }
   }
 

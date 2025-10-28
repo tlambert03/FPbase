@@ -1,6 +1,6 @@
-import { useQuery } from '@apollo/client'
-import Highcharts from 'highcharts'
-import React, { memo, useEffect } from 'react'
+import { useQuery } from "@apollo/client"
+import Highcharts from "highcharts"
+import React, { memo, useEffect } from "react"
 import {
   Chart /* etc... */,
   Credits,
@@ -12,24 +12,24 @@ import {
   useHighcharts,
   XAxis,
   YAxis,
-} from 'react-jsx-highcharts'
-import 'highcharts/modules/exporting'
-import 'highcharts/modules/offline-exporting'
-import 'highcharts/modules/pattern-fill'
-import 'highcharts/modules/export-data'
-import 'highcharts/modules/accessibility'
-import 'highcharts/modules/boost'
-import { css } from '@emotion/react'
-import gql from 'graphql-tag'
-import update from 'immutability-helper'
-import { BarLoader } from 'react-spinners'
-import useSpectraData from '../useSpectraData'
-import useWindowWidth from '../useWindowWidth'
-import DEFAULT_OPTIONS from './ChartOptions'
-import fixLogScale from './fixLogScale'
-import NoData from './NoData'
-import SpectrumSeries from './SpectrumSeries'
-import XRangePickers from './XRangePickers'
+} from "react-jsx-highcharts"
+import "highcharts/modules/exporting"
+import "highcharts/modules/offline-exporting"
+import "highcharts/modules/pattern-fill"
+import "highcharts/modules/export-data"
+import "highcharts/modules/accessibility"
+import "highcharts/modules/boost"
+import { css } from "@emotion/react"
+import gql from "graphql-tag"
+import update from "immutability-helper"
+import { BarLoader } from "react-spinners"
+import useSpectraData from "../useSpectraData"
+import useWindowWidth from "../useWindowWidth"
+import DEFAULT_OPTIONS from "./ChartOptions"
+import fixLogScale from "./fixLogScale"
+import NoData from "./NoData"
+import SpectrumSeries from "./SpectrumSeries"
+import XRangePickers from "./XRangePickers"
 
 fixLogScale(Highcharts)
 
@@ -155,8 +155,8 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   const windowWidth = useWindowWidth()
   const numSpectra = data.length
   const owners = [...new Set(data.map((item) => item.owner.slug))]
-  const exData = data.filter((i) => i.subtype === 'EX' || i.subtype === 'AB')
-  const nonExData = data.filter((i) => i.subtype !== 'EX' && i.subtype !== 'AB')
+  const exData = data.filter((i) => i.subtype === "EX" || i.subtype === "AB")
+  const nonExData = data.filter((i) => i.subtype !== "EX" && i.subtype !== "AB")
 
   let height = calcHeight(windowWidth) * (chartOptions.height || 1)
   let showPickers = numSpectra > 0 && !chartOptions.simpleMode
@@ -176,19 +176,19 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   }
 
   return (
-    <div className="spectra-viewer" style={{ position: 'relative', height: height }}>
+    <div className="spectra-viewer" style={{ position: "relative", height: height }}>
       <span
         id="zoom-info"
         style={{
-          display: 'none',
-          position: 'absolute',
+          display: "none",
+          position: "absolute",
           fontWeight: 600,
-          textAlign: 'center',
+          textAlign: "center",
           bottom: -1,
-          width: '100%',
+          width: "100%",
           zIndex: 10,
-          fontSize: '0.7rem',
-          color: '#bbb',
+          fontSize: "0.7rem",
+          color: "#bbb",
         }}
       />
       {numSpectra === 0 &&
@@ -244,7 +244,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
             labels={{
               ...yAxis.labels,
               enabled: chartOptions.scaleEC,
-              style: { fontWeight: 600, fontSize: '0.65rem' },
+              style: { fontWeight: 600, fontSize: "0.65rem" },
             }}
             opposite
             gridLineWidth={chartOptions.scaleEC && chartOptions.showGrid}
@@ -255,7 +255,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
             endOnTick={chartOptions.scaleEC}
           >
             {exData.length > 0 && chartOptions.scaleEC && (
-              <YAxis.Title style={{ fontSize: '0.65rem' }}>Extinction Coefficient</YAxis.Title>
+              <YAxis.Title style={{ fontSize: "0.65rem" }}>Extinction Coefficient</YAxis.Title>
             )}
             {exData.map((spectrum) => (
               <SpectrumSeries
@@ -283,12 +283,12 @@ const MyCredits = function MyCredits({ hide }) {
     if (!axis || !axis.object || !Highcharts) return
 
     function shiftCredits() {
-      const yShift = axis.object.chart.get('xAxis').axisTitleMargin
+      const yShift = axis.object.chart.get("xAxis").axisTitleMargin
       axis.object.chart.credits.update({
         position: { y: -25 - yShift, x: -25 - axis.object.axisTitleMargin },
       })
     }
-    Highcharts.addEvent(axis.object.chart, 'redraw', shiftCredits)
+    Highcharts.addEvent(axis.object.chart, "redraw", shiftCredits)
     shiftCredits()
   }, [axis, Highcharts])
 
@@ -296,7 +296,7 @@ const MyCredits = function MyCredits({ hide }) {
     <Credits
       position={{ y: -45 }}
       href="https://www.fpbase.org/spectra"
-      style={{ display: hide ? 'none' : 'block' }}
+      style={{ display: hide ? "none" : "block" }}
     >
       fpbase.org
     </Credits>
@@ -306,7 +306,7 @@ const MyCredits = function MyCredits({ hide }) {
 export const XAxisWithRange = memo(function XAxisWithRange({ options, showPickers }) {
   return (
     <XAxis {...options} lineWidth={showPickers ? 1 : 0} id="xAxis">
-      <XAxis.Title style={{ display: 'none' }}>Wavelength</XAxis.Title>
+      <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
       {showPickers && <XRangePickers visible={showPickers && options.labels.enabled} />}
     </XAxis>
   )
@@ -318,20 +318,20 @@ const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerI
   return (
     <div
       style={{
-        position: 'relative',
+        position: "relative",
         top: -11,
         left: 20,
         zIndex: 1000,
-        color: 'rgba(200,0,0,0.45)',
+        color: "rgba(200,0,0,0.45)",
         fontWeight: 600,
-        fontSize: '0.82rem',
+        fontSize: "0.82rem",
         height: 0,
       }}
     >
-      {exNormed ? `EX NORMED TO EXT COEFF ${emNormed ? ' & ' : ''}` : ''}
-      {emNormed && 'EM NORMED TO '}
-      {exNorm ? `${exNorm} EX${qyNorm ? ' & ' : ''}` : ''}
-      {qyNorm && 'QY'}
+      {exNormed ? `EX NORMED TO EXT COEFF ${emNormed ? " & " : ""}` : ""}
+      {emNormed && "EM NORMED TO "}
+      {exNorm ? `${exNorm} EX${qyNorm ? " & " : ""}` : ""}
+      {qyNorm && "QY"}
     </div>
   )
 })

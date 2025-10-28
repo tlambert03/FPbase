@@ -1,20 +1,20 @@
-import { useApolloClient, useQuery } from '@apollo/client'
-import { css } from '@emotion/react'
-import { Typography } from '@mui/material'
-import Tab from '@mui/material/Tab'
-import Tabs from '@mui/material/Tabs'
-import { makeStyles } from '@mui/styles'
-import gql from 'graphql-tag'
-import React, { useEffect, useMemo, useState } from 'react'
-import { RingLoader } from 'react-spinners'
+import { useApolloClient, useQuery } from "@apollo/client"
+import { css } from "@emotion/react"
+import { Typography } from "@mui/material"
+import Tab from "@mui/material/Tab"
+import Tabs from "@mui/material/Tabs"
+import { makeStyles } from "@mui/styles"
+import gql from "graphql-tag"
+import React, { useEffect, useMemo, useState } from "react"
+import { RingLoader } from "react-spinners"
 // import useSelectors from "./useSelectors"
-import { NORMALIZE_CURRENT } from '../client/queries'
-import { isTouchDevice } from '../util'
-import CustomFilterGroup from './CustomFilterGroup'
-import CustomLaserGroup from './CustomLaserGroup'
-import EfficiencyTable from './EfficiencyTable'
-import { categoryIcon } from './FaIcon'
-import SpectrumSelectorGroup from './SpectrumSelectorGroup'
+import { NORMALIZE_CURRENT } from "../client/queries"
+import { isTouchDevice } from "../util"
+import CustomFilterGroup from "./CustomFilterGroup"
+import CustomLaserGroup from "./CustomLaserGroup"
+import EfficiencyTable from "./EfficiencyTable"
+import { categoryIcon } from "./FaIcon"
+import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 
 const ISTOUCH = isTouchDevice()
 
@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 12,
     // marginLeft: 60,
     // paddingLeft: 0
-    whiteSpace: 'nowrap',
+    whiteSpace: "nowrap",
     minHeight: 40,
   },
   tabLabel: {
@@ -39,53 +39,53 @@ const useStyles = makeStyles((theme) => ({
     minHeight: 40,
     minWidth: 72,
     // lineHeight: 0,
-    [theme.breakpoints.down('xs')]: {
-      fontSize: '0.7rem',
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.7rem",
       paddingLeft: 5,
       paddingRight: 5,
     },
-    [theme.breakpoints.up('sm')]: {
-      fontSize: '.73rem',
-      paddingLeft: '4%',
-      paddingRight: '4%',
+    [theme.breakpoints.up("sm")]: {
+      fontSize: ".73rem",
+      paddingLeft: "4%",
+      paddingRight: "4%",
     },
-    [theme.breakpoints.up('md')]: {
-      fontSize: '.76rem',
+    [theme.breakpoints.up("md")]: {
+      fontSize: ".76rem",
       paddingLeft: 20,
       paddingRight: 20,
       minWidth: 160,
     },
-    [theme.breakpoints.up('lg')]: {
-      fontSize: '.9rem',
+    [theme.breakpoints.up("lg")]: {
+      fontSize: ".9rem",
       paddingLeft: 60,
       paddingRight: 60,
     },
   },
   bigShow: {
-    display: 'none',
-    [theme.breakpoints.up('md')]: {
-      display: 'inline',
+    display: "none",
+    [theme.breakpoints.up("md")]: {
+      display: "inline",
     },
   },
   bigHide: {
-    display: 'inline-block',
+    display: "inline-block",
     marginRight: 13,
     marginLeft: 13,
-    [theme.breakpoints.up('md')]: {
-      display: 'none',
+    [theme.breakpoints.up("md")]: {
+      display: "none",
     },
   },
   categoryHeader: {
-    textTransform: 'uppercase',
-    fontSize: 'small',
-    color: '#3F51B5',
-    marginTop: '.35rem',
-    marginBottom: '0.4rem',
+    textTransform: "uppercase",
+    fontSize: "small",
+    color: "#3F51B5",
+    marginTop: ".35rem",
+    marginBottom: "0.4rem",
   },
 }))
 
 function selectorSorter(a, b) {
-  const ORDER = ['P', 'D', 'F', 'L', 'C', '', null]
+  const ORDER = ["P", "D", "F", "L", "C", "", null]
   if (ORDER.indexOf(a.category) === ORDER.indexOf(b.category)) {
     if (a.owner && !b.owner) return -1
     if (!a.owner && b.owner) return 1
@@ -118,9 +118,9 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
       }
       client.mutate({ mutation: NORMALIZE_CURRENT })
     }
-  }, [ownerInfo, spectraInfo, client])
+  }, [activeSpectra, ownerInfo, spectraInfo, client])
 
-  const handleTabChange = (_event, newValue) => {
+  const handleTabChange = (event, newValue) => {
     if (newValue !== tab) {
       setTab(newValue)
     }
@@ -130,22 +130,22 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
   useEffect(() => {
     const handleKeyDown = (event) => {
       // don't do anything if we're on an input
-      if (document.activeElement && document.activeElement.tagName.toUpperCase() === 'INPUT') {
+      if (document.activeElement && document.activeElement.tagName.toUpperCase() === "INPUT") {
         return
       }
       switch (event.code) {
-        case 'Digit1':
-        case 'Digit2':
-        case 'Digit3':
-        case 'Digit4':
-        case 'Digit5':
-        case 'Digit6':
+        case "Digit1":
+        case "Digit2":
+        case "Digit3":
+        case "Digit4":
+        case "Digit5":
+        case "Digit6":
           setTab(event.key - 1)
           break
-        case 'ArrowRight':
+        case "ArrowRight":
           setTab((prevTab) => (prevTab === 5 ? 0 : prevTab + 1))
           break
-        case 'ArrowLeft':
+        case "ArrowLeft":
           setTab((prevTab) => (prevTab === 0 ? 5 : prevTab - 1))
           break
         default:
@@ -153,9 +153,9 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener("keydown", handleKeyDown)
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener("keydown", handleKeyDown)
     }
   }, [])
 
@@ -167,31 +167,33 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
   const isPopulated = (cat) => {
     let populated =
       sortedSelectors.filter(({ owner, category }) => category === cat && owner).length > 0
-    if (cat === 'F') {
-      populated = populated || activeSpectra.some((s) => s.startsWith('$cf'))
+    if (cat === "F") {
+      populated = populated || activeSpectra.some((s) => s.startsWith("$cf"))
     }
-    if (cat === 'L') {
-      populated = populated || activeSpectra.some((s) => s.startsWith('$cl'))
+    if (cat === "L") {
+      populated = populated || activeSpectra.some((s) => s.startsWith("$cl"))
     }
     return populated
   }
 
   const smartLabel = (label, cats) => {
-    const _cats = cats ? cats.split('') : null
+    const _cats = cats ? cats.split("") : null
     let populated = false
-    if (label === 'All') {
+    if (label === "All") {
       populated = Boolean(sortedSelectors.filter((i) => i.owner).length)
-    } else if (label !== 'Efficiency') {
+    } else if (label !== "Efficiency") {
       if (activeSpectra.length > 0) {
         populated = _cats.some((c) => isPopulated(c))
       }
     }
     return (
-      <span className={`tab-header ${populated ? ' populated' : ''}`}>
+      <span className={`tab-header ${populated ? " populated" : ""}`}>
         <span className={classes.bigShow}>
-          {label} {populated ? ' ✶' : ''}
+          {label} {populated ? " ✶" : ""}
         </span>
-        <span className={classes.bigHide}>{categoryIcon(_cats?.[_cats.length - 1], '')}</span>
+        <span className={classes.bigHide}>
+          {categoryIcon(_cats && _cats[_cats.length - 1], "")}
+        </span>
       </span>
     )
   }
@@ -206,16 +208,16 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
         indicatorColor="primary"
         textColor="primary"
         centered={!ISTOUCH}
-        variant={ISTOUCH ? 'scrollable' : 'standard'}
+        variant={ISTOUCH ? "scrollable" : "standard"}
         scrollButtons="on"
         className={classes.tabHeader}
       >
-        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel('All', null)} />
-        <Tab className={classes.tabLabel} tabIndex={-1} label={smartLabel('Fluorophores', 'DP')} />
-        <Tab className={classes.tabLabel} tabIndex={-1} label={smartLabel('Filters', 'F')} />
-        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel('Light Sources', 'L')} />
-        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel('Detectors', 'C')} />
-        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel('Efficiency', '%')} />
+        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel("All", null)} />
+        <Tab className={classes.tabLabel} tabIndex={-1} label={smartLabel("Fluorophores", "DP")} />
+        <Tab className={classes.tabLabel} tabIndex={-1} label={smartLabel("Filters", "F")} />
+        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel("Light Sources", "L")} />
+        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel("Detectors", "C")} />
+        <Tab tabIndex={-1} className={classes.tabLabel} label={smartLabel("Efficiency", "%")} />
       </Tabs>
 
       {Object.keys(ownerInfo).length === 0 ? (

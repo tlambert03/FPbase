@@ -1,12 +1,14 @@
+import React from "react"
+
 const zip = (arr, ...arrs) => {
   return arr.map((val, i) => arrs.reduce((a, arr) => [...a, arr[i]], [val]))
 }
 
-const chunkString = (str, length) => str.match(new RegExp('.{1,' + length + '}', 'g'))
+const chunkString = (str, length) => str.match(new RegExp(".{1," + length + "}", "g"))
 
 function BlastStatsTable({ hit }) {
   return (
-    <table className={'small border-top border-bottom mb-2 flip-scroll'} style={{ width: '100%' }}>
+    <table className={"small border-top border-bottom mb-2 flip-scroll"} style={{ width: "100%" }}>
       <tbody>
         <tr className="text-muted">
           <th>Score</th>
@@ -46,9 +48,9 @@ function FormattedBlastAlignment({ hit, lineWidth }) {
     chunkString(hit.hseq, lineWidth)
   ).map(([q, m, h], index) => {
     if (q !== h) {
-      const qsplit = q.split('')
-      const hsplit = h.split('')
-      const msplit = m.split('')
+      const qsplit = q.split("")
+      const hsplit = h.split("")
+      const msplit = m.split("")
       qsplit.forEach((letter, index) => {
         if (letter.toUpperCase() !== hsplit[index].toUpperCase()) {
           qsplit[index] = `<span class="mismatch">${qsplit[index]}</span>`
@@ -56,28 +58,28 @@ function FormattedBlastAlignment({ hit, lineWidth }) {
           msplit[index] = `<span class="mismatch">${msplit[index]}</span>`
         }
       })
-      q = qsplit.join('')
-      h = hsplit.join('')
-      m = msplit.join('')
+      q = qsplit.join("")
+      h = hsplit.join("")
+      m = msplit.join("")
     }
     return [
       `Query   ${String(index * lineWidth + hit.query_from).padEnd(5)}${q}`,
       `             ${m}`,
       `Sbjct   ${String(index * lineWidth + hit.hit_from).padEnd(5)}${h}`,
-      '', // adds a space between triplets
-    ].join('\n')
+      "", // adds a space between triplets
+    ].join("\n")
   })
-  return <pre dangerouslySetInnerHTML={{ __html: text.join('\n') }} />
+  return <pre dangerouslySetInnerHTML={{ __html: text.join("\n") }} />
 }
 
 function BlastHitSummary({ data }) {
   const accession = data.description[0].accession
   const title = data.description[0].title
-  const _id = data.description[0].id
+  const id = data.description[0].id
 
   return (
-    <div id={'dln_' + accession} className="dlfRow mt-4">
-      <h5 style={{ fontWeight: 'bold', color: '#5b616b' }}>{title}</h5>
+    <div id={"dln_" + accession} className="dlfRow mt-4">
+      <h5 style={{ fontWeight: "bold", color: "#5b616b" }}>{title}</h5>
       <div className="small">
         <label className="mr-1 font-weight-bold text-muted">FPbase ID:</label>
         <a href={`/protein/${accession}`} target="_blank" title={`Go to ${title} at FPbase`}>
@@ -94,7 +96,7 @@ function BlastHitSummary({ data }) {
 
 function BlastHit({ data }) {
   return (
-    <div className={'mt-2 border-bottom'}>
+    <div className={"mt-2 border-bottom"}>
       <BlastHitSummary data={data} />
       <BlastStatsTable hit={data.hsps[0]} />
       <FormattedBlastAlignment hit={data.hsps[0]} lineWidth={60} />

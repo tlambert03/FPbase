@@ -4,10 +4,10 @@
  */
 
 export const EGFP_STATE_OWNER = {
-  __typename: 'State',
-  id: 'egfp-state',
-  slug: 'egfp',
-  name: 'EGFP',
+  __typename: "State",
+  id: "egfp-state",
+  slug: "egfp",
+  name: "EGFP",
   // Fields from FluorophoreInterface fragment
   qy: 0.6,
   extCoeff: 55900,
@@ -17,10 +17,10 @@ export const EGFP_STATE_OWNER = {
 }
 
 export const MCHERRY_STATE_OWNER = {
-  __typename: 'State',
-  id: 'mcherry-state',
-  slug: 'mcherry',
-  name: 'mCherry',
+  __typename: "State",
+  id: "mcherry-state",
+  slug: "mcherry",
+  name: "mCherry",
   // Fields from FluorophoreInterface fragment
   qy: 0.22,
   extCoeff: 72000,
@@ -30,10 +30,10 @@ export const MCHERRY_STATE_OWNER = {
 }
 
 export const ALEXA488_DYE_OWNER = {
-  __typename: 'Dye',
-  id: 'alexa-488',
-  slug: 'alexa-488',
-  name: 'Alexa Fluor 488',
+  __typename: "Dye",
+  id: "alexa-488",
+  slug: "alexa-488",
+  name: "Alexa Fluor 488",
   // Fields from FluorophoreInterface fragment
   qy: 0.92,
   extCoeff: 71000,
@@ -43,20 +43,20 @@ export const ALEXA488_DYE_OWNER = {
 }
 
 export const FILTER_OWNER = {
-  __typename: 'Filter',
-  id: 'filter-1',
-  slug: 'bp-525-50',
-  name: 'BP 525/50',
+  __typename: "Filter",
+  id: "filter-1",
+  slug: "bp-525-50",
+  name: "BP 525/50",
   // Filters don't implement FluorophoreInterface
   // so they don't have qy, extCoeff, etc.
 }
 
 export const EGFP_EXCITATION_SPECTRUM = {
-  __typename: 'Spectrum',
+  __typename: "Spectrum",
   id: 18,
-  category: 'P',
-  subtype: 'EX',
-  color: '#00FF00',
+  category: "P",
+  subtype: "EX",
+  color: "#00FF00",
   data: [
     [350, 0.01],
     [400, 0.15],
@@ -69,11 +69,11 @@ export const EGFP_EXCITATION_SPECTRUM = {
 }
 
 export const EGFP_EMISSION_SPECTRUM = {
-  __typename: 'Spectrum',
+  __typename: "Spectrum",
   id: 17,
-  category: 'P',
-  subtype: 'EM',
-  color: '#00FF00',
+  category: "P",
+  subtype: "EM",
+  color: "#00FF00",
   data: [
     [450, 0.01],
     [480, 0.05],
@@ -85,11 +85,11 @@ export const EGFP_EMISSION_SPECTRUM = {
 }
 
 export const MCHERRY_EXCITATION_SPECTRUM = {
-  __typename: 'Spectrum',
+  __typename: "Spectrum",
   id: 80,
-  category: 'P',
-  subtype: 'EX',
-  color: '#FF0066',
+  category: "P",
+  subtype: "EX",
+  color: "#FF0066",
   data: [
     [450, 0.05],
     [500, 0.15],
@@ -101,11 +101,11 @@ export const MCHERRY_EXCITATION_SPECTRUM = {
 }
 
 export const MCHERRY_EMISSION_SPECTRUM = {
-  __typename: 'Spectrum',
+  __typename: "Spectrum",
   id: 79,
-  category: 'P',
-  subtype: 'EM',
-  color: '#FF0066',
+  category: "P",
+  subtype: "EM",
+  color: "#FF0066",
   data: [
     [550, 0.01],
     [580, 0.08],
@@ -117,11 +117,11 @@ export const MCHERRY_EMISSION_SPECTRUM = {
 }
 
 export const FILTER_SPECTRUM = {
-  __typename: 'Spectrum',
+  __typename: "Spectrum",
   id: 50,
-  category: 'F',
-  subtype: 'BP',
-  color: '#0000FF',
+  category: "F",
+  subtype: "BP",
+  color: "#0000FF",
   data: [
     [500, 0.0],
     [510, 0.9],

@@ -1,14 +1,14 @@
-import { useMemo } from 'react'
-import './index.css'
-import { ApolloProvider } from '@apollo/client'
-import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles'
-import App from './App'
-import { SpectraViewerContainer } from './Components/SpectraViewer'
-import theme from './Components/theme'
-import initializeClient, { parseURL } from './client/client'
-import { defaults } from './client/resolvers'
+import React, { useMemo } from "react"
+import "./index.css"
+import { ApolloProvider } from "@apollo/client"
+import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles"
+import App from "./App"
+import { SpectraViewerContainer } from "./Components/SpectraViewer"
+import theme from "./Components/theme"
+import initializeClient, { parseURL } from "./client/client"
+import { defaults } from "./client/resolvers"
 
-const AppWrapper = ({ uri = '/graphql/' }) => {
+const AppWrapper = ({ uri = "/graphql/" }) => {
   const client = useMemo(() => initializeClient({ uri }), [uri])
   return (
     <StyledEngineProvider injectFirst>
@@ -23,7 +23,7 @@ const AppWrapper = ({ uri = '/graphql/' }) => {
 
 export default AppWrapper
 
-const SimpleSpectraViewer = ({ uri = '/graphql/', ids, overlaps, options, hidden }) => {
+const SimpleSpectraViewer = ({ uri = "/graphql/", ids, overlaps, options, hidden }) => {
   const client = useMemo(() => initializeClient({ uri }), [uri])
 
   return (

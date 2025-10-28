@@ -1,11 +1,11 @@
-import { Box, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from '@mui/material'
-import $ from 'jquery'
-import { useState } from 'react'
-import InputForm from './InputForm.jsx'
-import BlastReport from './ReportView.jsx'
+import { Box, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material"
+import $ from "jquery"
+import React, { useState } from "react"
+import InputForm from "./InputForm.jsx"
+import BlastReport from "./ReportView.jsx"
 
 function ReportSelect({ reports, binary, index, onChange }) {
-  const unit = binary === 'blastp' ? 'aa' : 'nt'
+  const unit = binary === "blastp" ? "aa" : "nt"
 
   function handleChange(event) {
     onChange(event.target.value)
@@ -15,7 +15,7 @@ function ReportSelect({ reports, binary, index, onChange }) {
     <Box sx={{ mt: 4 }}>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={12} sm={3} md={2}>
-          <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#5b616b' }}>
+          <Typography variant="body1" sx={{ fontWeight: "bold", color: "#5b616b" }}>
             Results for:
           </Typography>
         </Grid>
@@ -46,7 +46,7 @@ function ReportSelect({ reports, binary, index, onChange }) {
 
 function App() {
   const [results, setResults] = useState([])
-  const [binary, setBinary] = useState('blastp')
+  const [binary, setBinary] = useState("blastp")
   const [reportIndex, setReportIndex] = useState(0)
   const notDNA = new RegExp(/[^(A|T|C|G)]/g)
 
@@ -56,19 +56,19 @@ function App() {
 
     const seqLetters = $(e.target)[0][1]
       .value.toUpperCase()
-      .replace(/^>.*$/gm, '')
-      .replace(/(?:\r\n|\r|\n)/g, '')
+      .replace(/^>.*$/gm, "")
+      .replace(/(?:\r\n|\r|\n)/g, "")
 
-    const bin = notDNA.test(seqLetters) ? 'blastp' : 'blastx'
+    const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
     setBinary(bin)
 
-    $.post('', $(e.target).serialize() + '&binary=' + bin, (data) => {
+    $.post("", $(e.target).serialize() + "&binary=" + bin, (data) => {
       if (data.status === 200) {
         setResults(data.blastResult)
       } else if (data.status === 500) {
         console.error(data.error)
         alert(
-          'There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format'
+          "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
         )
       }
     })
@@ -78,7 +78,7 @@ function App() {
     setReportIndex(index)
   }
 
-  const initialValue = new URLSearchParams(window.location.search).get('query')
+  const initialValue = new URLSearchParams(window.location.search).get("query")
 
   return (
     <div>
@@ -97,8 +97,8 @@ function App() {
           <p className="text-center small">
             Version: {results[0].report.version}
             <br />
-            FPbase Sequence Database ({results[0].report.results.search.stat.db_num} sequences,{' '}
-            {results[0].report.results.search.stat.db_len.toLocaleString('en')} total letters)
+            FPbase Sequence Database ({results[0].report.results.search.stat.db_num} sequences,{" "}
+            {results[0].report.results.search.stat.db_len.toLocaleString("en")} total letters)
             <br />
             Matrix: {results[0].report.params.matrix}
           </p>

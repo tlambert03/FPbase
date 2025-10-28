@@ -132,8 +132,8 @@ function reshapeSpectraInfo(arr) {
 }
 
 function decoder(str, _, charset) {
-  const strWithoutPlus = str.replace(/\+/g, ' ')
-  if (charset === 'iso-8859-1') {
+  const strWithoutPlus = str.replace(/\+/g, " ")
+  if (charset === "iso-8859-1") {
     // unescape never throws, no try...catch needed:
     return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape)
   }
@@ -156,26 +156,26 @@ function decoder(str, _, charset) {
   // utf-8
   try {
     return decodeURIComponent(strWithoutPlus)
-  } catch (_e) {
+  } catch (e) {
     return strWithoutPlus
   }
 }
 
 function isTouchDevice() {
   try {
-    const prefixes = ' -webkit- -moz- -o- -ms- '.split(' ')
+    const prefixes = " -webkit- -moz- -o- -ms- ".split(" ")
 
     const mq = (query) => window.matchMedia(query).matches
 
     if (
-      'ontouchstart' in window ||
-      (typeof window.DocumentTouch !== 'undefined' && document instanceof window.DocumentTouch)
+      "ontouchstart" in window ||
+      (typeof window.DocumentTouch !== "undefined" && document instanceof window.DocumentTouch)
     ) {
       return true
     }
 
-    return mq(['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join(''))
-  } catch (_e) {
+    return mq(["(", prefixes.join("touch-enabled),("), "heartz", ")"].join(""))
+  } catch (e) {
     // console.error("(Touch detect failed)", e)
     return false
   }

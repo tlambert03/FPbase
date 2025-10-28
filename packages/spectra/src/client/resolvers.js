@@ -1,7 +1,7 @@
-import gql from 'graphql-tag'
-import update from 'immutability-helper'
-import PALETTES from '../palettes'
-import { spectraProduct, trapz } from '../util'
+import gql from "graphql-tag"
+import update from "immutability-helper"
+import PALETTES from "../palettes"
+import { spectraProduct, trapz } from "../util"
 import {
   ADD_SELECTORS,
   batchSpectra,
@@ -9,7 +9,7 @@ import {
   GET_ACTIVE_SPECTRA,
   GET_EX_NORM,
   GET_SELECTORS,
-} from './queries'
+} from "./queries"
 
 const PALETTE_KEYS = Object.keys(PALETTES)
 
@@ -28,13 +28,13 @@ export const defaults = {
     scaleQY: false,
     shareTooltip: true,
     areaFill: true,
-    palette: 'wavelength',
-    zoomType: 'x',
+    palette: "wavelength",
+    zoomType: "x",
     extremes: [undefined, undefined],
-    __typename: 'chartOptions',
+    __typename: "chartOptions",
   },
   exNorm: [null, null], // [normWave, normID]
-  excludeSubtypes: ['2P'],
+  excludeSubtypes: ["2P"],
   selectors: [],
 }
 
@@ -65,7 +65,7 @@ function toggleChartOption(cache, key) {
     chartOptions: {
       ...current.chartOptions,
       [key]: !current.chartOptions[key],
-      __typename: 'chartOptions',
+      __typename: "chartOptions",
     },
   }
 
@@ -95,7 +95,7 @@ function toggleChartOption(cache, key) {
 }
 
 function _setPalette(palette, client) {
-  const data = { chartOptions: { palette, __typename: 'chartOptions' } }
+  const data = { chartOptions: { palette, __typename: "chartOptions" } }
   client.writeQuery({
     query: gql`
       {
@@ -113,13 +113,13 @@ function activeSpectraToSelectors(activeSpectra, selectors, spectraInfo, ownerIn
   const safeSelectors = Array.isArray(selectors) ? selectors : []
   const currentOwners = safeSelectors.map(({ owner }) => owner)
   const newOwners = activeSpectra
-    .map((id) => spectraInfo[id]?.owner)
+    .map((id) => spectraInfo[id] && spectraInfo[id].owner)
     .filter((owner) => owner && !currentOwners.includes(owner))
   const toAdd = [...new Set(newOwners)].map((owner) => ({
     owner,
     category: ownerInfo[owner].category,
   }))
-  Array.from(['D', 'P', 'L', 'C', 'F', null]).forEach((cat) => {
+  Array.from(["D", "P", "L", "C", "F", null]).forEach((cat) => {
     if (!safeSelectors.find((item) => item.category === cat && !item.owner)) {
       toAdd.push({
         owner: null,
@@ -133,11 +133,11 @@ function activeSpectraToSelectors(activeSpectra, selectors, spectraInfo, ownerIn
 const isValidId = (id) => {
   if (!id) return false
   if (!Number.isNaN(parseFloat(id))) return true
-  if (typeof id === 'string') {
-    if (id.startsWith('$cl') || id.startsWith('$cf')) {
+  if (typeof id === "string") {
+    if (id.startsWith("$cl") || id.startsWith("$cf")) {
       return true
     }
-    return id.split('_').every((i) => isValidId(i))
+    return id.split("_").every((i) => isValidId(i))
   }
   return false
 }
@@ -147,61 +147,61 @@ const validSpectraIds = (spectra) => spectra.filter((id) => isValidId(id))
 export const resolvers = {
   Query: {
     overlap: async (_root, { ids }, { client }) => {
-      const idString = [...ids].sort((a, b) => a - b).join('_')
+      const idString = [...ids].sort((a, b) => a - b).join("_")
       const { data } = await client.query({
         query: batchSpectra(ids),
       })
       const dataArray = ids.map((id) => data[`spectrum_${id}`].data)
-      const name = ids.map((id) => data[`spectrum_${id}`].owner.name).join(' & ')
+      const name = ids.map((id) => data[`spectrum_${id}`].owner.name).join(" & ")
       const ownerID = ids
         .map((id) => data[`spectrum_${id}`].owner.id)
         .sort((a, b) => a - b)
-        .join('_')
+        .join("_")
       const product = spectraProduct(...dataArray)
       return {
         data: product,
         area: trapz(product),
         id: idString,
-        category: 'O',
-        subtype: 'O',
-        color: '#000000',
-        owner: { id: ownerID, name, __typename: 'Owner' },
-        __typename: 'Spectrum',
+        category: "O",
+        subtype: "O",
+        color: "#000000",
+        owner: { id: ownerID, name, __typename: "Owner" },
+        __typename: "Spectrum",
       }
     },
   },
   Spectrum: {
-    area: (spectrum, _obj, _cli) => {
+    area: (spectrum, obj, cli) => {
       return trapz(spectrum.data)
     },
   },
   Mutation: {
-    toggleYAxis: (_root, _variables, { cache }) => {
-      return toggleChartOption(cache, 'showY')
+    toggleYAxis: (_root, variables, { cache }) => {
+      return toggleChartOption(cache, "showY")
     },
-    toggleXAxis: (_root, _variables, { cache }) => {
-      return toggleChartOption(cache, 'showX')
+    toggleXAxis: (_root, variables, { cache }) => {
+      return toggleChartOption(cache, "showX")
     },
-    toggleGrid: (_root, _variables, { cache }) => {
-      return toggleChartOption(cache, 'showGrid')
+    toggleGrid: (_root, variables, { cache }) => {
+      return toggleChartOption(cache, "showGrid")
     },
-    toggleLogScale: (_root, _variables, { cache }) => {
-      return toggleChartOption(cache, 'logScale')
+    toggleLogScale: (_root, variables, { cache }) => {
+      return toggleChartOption(cache, "logScale")
     },
-    toggleScaleEC: (_root, _variables, { cache }) => {
-      return toggleChartOption(cache, 'scaleEC')
+    toggleScaleEC: (_root, variables, { cache }) => {
+      return toggleChartOption(cache, "scaleEC")
     },
-    toggleScaleQY: (_root, _variables, { cache }) => {
-      return toggleChartOption(cache, 'scaleQY')
+    toggleScaleQY: (_root, variables, { cache }) => {
+      return toggleChartOption(cache, "scaleQY")
     },
-    toggleShareTooltip: (_root, _variables, { cache }) => {
-      return toggleChartOption(cache, 'shareTooltip')
+    toggleShareTooltip: (_root, variables, { cache }) => {
+      return toggleChartOption(cache, "shareTooltip")
     },
-    toggleAreaFill: (_root, _variables, { cache }) => {
-      return toggleChartOption(cache, 'areaFill')
+    toggleAreaFill: (_root, variables, { cache }) => {
+      return toggleChartOption(cache, "areaFill")
     },
     setChartExtremes: (_root, { extremes }, { client }) => {
-      const data = { chartOptions: { extremes, __typename: 'chartOptions' } }
+      const data = { chartOptions: { extremes, __typename: "chartOptions" } }
       client.writeQuery({
         query: gql`
           {
@@ -217,7 +217,7 @@ export const resolvers = {
     setPalette: (_root, { palette }, { client }) => {
       return _setPalette(palette, client)
     },
-    cyclePalette: (_root, _variables, { cache, client }) => {
+    cyclePalette: (_root, variables, { cache, client }) => {
       const {
         chartOptions: { palette },
       } = cache.readQuery({
@@ -257,12 +257,12 @@ export const resolvers = {
       const result = cache.readQuery({ query: GET_ACTIVE_SPECTRA })
       let activeSpectra = result?.activeSpectra || []
       activeSpectra = activeSpectra.filter((id) => {
-        if (id.startsWith('$cf') && remove) {
-          const _id = id.split('_')[0]
+        if (id.startsWith("$cf") && remove) {
+          const _id = id.split("_")[0]
           return !(remove.findIndex((item) => item.startsWith(_id)) > -1)
         }
-        if (id.startsWith('$cl') && remove) {
-          const _id = id.split('_')[0]
+        if (id.startsWith("$cl") && remove) {
+          const _id = id.split("_")[0]
           return !(remove.findIndex((item) => item.startsWith(_id)) > -1)
         }
         return !(remove || []).includes(id)
@@ -288,7 +288,7 @@ export const resolvers = {
       await client.writeQuery({ query: GET_ACTIVE_OVERLAPS, data })
       return data
     },
-    normalizeCurrent: async (_, _args, { cache, client }) => {
+    normalizeCurrent: async (_, args, { cache, client }) => {
       // Wait if another normalizeCurrent is already running (mutex)
       if (normalizingPromise) {
         await normalizingPromise
