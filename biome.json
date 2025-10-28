@@ -3,12 +3,21 @@
   "vcs": {
     "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": true,
-    "defaultBranch": "main"
+    "useIgnoreFile": true
   },
   "files": {
-    "ignoreUnknown": false,
-    "includes": ["**", "!!frontend/src/css/litemol", "!!frontend/src/js/pdb/LiteMol-plugin.js"]
+    "includes": [
+      "frontend/**",
+      "packages/**",
+      "!!backend",
+      "!!**/node_modules",
+      "!!**/dist",
+      "!!**/build",
+      "!!**/coverage",
+      "!!**/*.min.js",
+      "!!frontend/src/css/litemol",
+      "!!frontend/src/js/pdb/LiteMol-plugin.js"
+    ]
   },
   "formatter": {
     "enabled": true,
