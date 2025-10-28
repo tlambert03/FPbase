@@ -116,10 +116,10 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
     expect(data_field).to_be_visible()
     data_field.fill("[[500,0.1],[505,0.5],[510,0.8],[515,0.6],[520,0.3]]")
 
-    # Submit for preview and wait for form to process
-    submit_btn = auth_page.locator('input[type="submit"]')
-    submit_btn.click()
-    auth_page.wait_for_load_state("domcontentloaded")
+    # Submit for preview
+    auth_page.locator('input[type="submit"]').click()
+
+    # Wait for preview section to appear (auto-waiting)
     preview_section = auth_page.locator("#spectrum-preview-section")
     expect(preview_section).to_be_visible()
 
@@ -296,10 +296,10 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page) -> None:
     page.goto(url)
     expect(page).to_have_url(url)
 
-    # Click X-axis radio button for quantum yield using XPath
+    # Click X-axis radio button for quantum yield (wrapped in Bootstrap label)
     page.locator("//label[input[@id='Xqy']]").click()
 
-    # Click Y-axis radio button for extinction coefficient using XPath
+    # Click Y-axis radio button for extinction coefficient (wrapped in Bootstrap label)
     page.locator("//label[input[@id='Yext_coeff']]").click()
 
 
@@ -346,46 +346,20 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
     # First filter: Sequence cDNA contains
-    # Select "Sequence" from filter dropdown
-    filter1 = page.locator("#filter-select-0")
-    expect(filter1).to_be_visible()
-    filter1.select_option("seq")
-
-    # Select "cDNA could contain" from operator dropdown
-    operator1 = page.locator("#query-row-0 .operator-select")
-    expect(operator1).to_be_visible()
-    operator1.select_option("cdna_contains")
-
-    # Enter cDNA value in the text input
-    value1 = page.locator("#id_seq__cdna_contains")
-    expect(value1).to_be_visible()
-    value1.fill(CDNA)
+    page.locator("#filter-select-0").select_option("seq")
+    page.locator("#query-row-0 .operator-select").select_option("cdna_contains")
+    page.locator("#id_seq__cdna_contains").fill(CDNA)
 
     # Add second filter row
-    add_btn = page.locator("#add-row-btn")
-    expect(add_btn).to_be_visible()
-    add_btn.click()
+    page.locator("#add-row-btn").click()
 
-    # Second filter: Name starts with
-    # Wait for second row to appear and select "Name or Alias"
-    filter2 = page.locator("#filter-select-1")
-    expect(filter2).to_be_visible()
-    filter2.select_option("name")
-
-    # Select "starts with" from operator dropdown (row 1 doesn't have "contains" option)
-    operator2 = page.locator("#query-row-1 .operator-select")
-    expect(operator2).to_be_visible()
-    operator2.select_option("istartswith")
-
-    # Enter name prefix value
-    value2 = page.locator("#id_name__istartswith")
-    expect(value2).to_be_visible()
-    value2.fill(protein.name[:6])
+    # Second filter: Name starts with (row 1 doesn't have "contains" option)
+    page.locator("#filter-select-1").select_option("name")
+    page.locator("#query-row-1 .operator-select").select_option("istartswith")
+    page.locator("#id_name__istartswith").fill(protein.name[:6])
 
     # Submit search
-    submit_btn = page.locator('button[type="submit"]')
-    expect(submit_btn).to_be_visible()
-    submit_btn.click()
+    page.locator('button[type="submit"]').click()
 
     # Should redirect to protein detail page
     expected_url = f"{live_server.url}{protein.get_absolute_url()}"
