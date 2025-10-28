@@ -16,11 +16,13 @@ from django.urls import reverse
 from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
 
+from favit.models import Favorite
 from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
 from proteins.models import Spectrum
 from proteins.util.blast import _get_binary
 
 if TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Page
     from pytest_django.live_server_helper import LiveServer
 
@@ -440,3 +442,45 @@ def test_blast_search(live_server: LiveServer, page: Page) -> None:
 
     # Verify we're still on the BLAST page (alignment shown in same page)
     expect(page).to_have_url(re.compile(r"/blast"))
+
+
+def test_favorite_button_interaction(auth_user: AbstractUser, auth_page: Page, live_server: LiveServer) -> None:
+    """Test favorite button interaction on protein detail page."""
+    protein = ProteinFactory.create(name="FavoriteTestProtein")
+
+    # Navigate to protein detail page
+    url = f"{live_server.url}{reverse('proteins:protein-detail', args=(protein.slug,))}"
+    auth_page.goto(url)
+    expect(auth_page).to_have_url(url)
+
+    # Verify favorite button is present
+    favorite_btn = auth_page.locator("#add_remove_favorite")
+
+    # Verify initial state: heart icon should be hollow (.far .fa-heart)
+    # Note: there are two icons (one for mobile, one for desktop) - check the visible one
+    heart_icon = favorite_btn.locator("i").first
+    expect(heart_icon).to_contain_class("far")
+    expect(heart_icon).to_contain_class("fa-heart")
+
+    # Verify no favorite exists in database yet
+    assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None
+
+    # Click the favorite button
+    favorite_btn.click()
+
+    # Wait for AJAX to complete and icon to change
+    # The icon should change from .far to .fas (hollow to solid)
+    expect(heart_icon).to_contain_class("fas")
+    expect(heart_icon).to_contain_class("fa-heart")
+
+    # Verify backend is updated: favorite should now exist in database
+    assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is not None
+
+    # Click again to unfavorite
+    favorite_btn.click()
+
+    # Should return to hollow heart
+    expect(heart_icon).to_contain_class("far")
+
+    # Verify backend is updated: favorite should be removed
+    assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None

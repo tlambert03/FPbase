@@ -130,3 +130,19 @@ class FavoriteManager(models.Manager):
         )
 
         return fav
+
+    def get_or_create(self, user, obj, model=None):
+        """
+        Gets or creates a Favorite for the given user and obj.
+        Returns tuple (favorite, created) where created is a boolean.
+
+        This method is atomic and safe from race conditions.
+        """
+        content_type, content_object = _get_content_type_and_obj(obj, model)
+        fav, created = super().get_or_create(
+            user=user,
+            target_content_type=content_type,
+            target_object_id=content_object.pk,
+            defaults={"target": content_object},
+        )
+        return fav, created

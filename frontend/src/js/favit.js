@@ -10,15 +10,22 @@ $(document).ready(function() {
              target_object_id: $obj.data('target').split('_')[1],
              csrfmiddlewaretoken: window.CSRF_TOKEN},
       success: function(response) {
-          if (response.status == 'added') {
-            $obj.find('svg').attr('data-prefix', 'fas');
+          if (response.status === 'added') {
+            $obj.find('i').removeClass('far').addClass('fas');
             $obj.find('span').text('Remove from favorites');
           }
-          else {
-            $obj.find('svg').attr('data-prefix', 'far');
+          else if (response.status === 'deleted') {
+            $obj.find('i').removeClass('fas').addClass('far');
             $obj.find('span').text('Add to favorites');
           }
+          else {
+            console.warn('Unexpected response status:', response.status);
+          }
           $obj.parent('.favit').children('.fav-count').text(response.fav_count);
+          $obj.prop('disabled', false);
+      },
+      error: function(xhr, status, error) {
+          console.error('Failed to toggle favorite:', error);
           $obj.prop('disabled', false);
       }
       });
