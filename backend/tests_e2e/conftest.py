@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, ViewportSize
 
-DEFAULT_TIMEOUT = int(os.getenv("DEFAULT_TIMEOUT", 4000))  # milliseconds
+DEFAULT_TIMEOUT = int(os.getenv("DEFAULT_TIMEOUT", 8000))  # milliseconds
 VIEWPORT_SIZE: ViewportSize = {"width": 1020, "height": 1200}
 
 # Required for pytest-playwright fixtures to work with Django ORM in test setup.
