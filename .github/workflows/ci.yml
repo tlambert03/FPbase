@@ -31,7 +31,7 @@ jobs:
         with:
           enable-cache: true
       - name: Run basedpyright
-        run: uv run basedpyright
+        run: uv run --group typing --no-dev basedpyright
 
   test:
     runs-on: ubuntu-latest
@@ -65,10 +65,8 @@ jobs:
       - name: Test spectra package
         run: pnpm --filter @fpbase/spectra test:ci
 
-      - run: uv sync
-
       - name: Test
-        run: uv run pytest -n auto -v --cov --cov-report=xml
+        run: uv run --group test --no-dev pytest -n auto -v --cov --cov-report=xml
 
       - name: coverage
         uses: codecov/codecov-action@v5
@@ -109,13 +107,13 @@ jobs:
       - name: Install node Dependencies
         run: pnpm install
 
-      - run: uv sync
+      - run: uv sync --group test --no-dev
 
       - name: Ensure browsers are installed
-        run: uv run playwright install ${{ matrix.browser }} --with-deps
+        run: uv run --no-sync playwright install ${{ matrix.browser }} --with-deps
 
       - name: Test
-        run: uv run pytest backend/tests_e2e/ -n auto -v --browser ${{ matrix.browser }} --cov --cov-report=xml --tracing=retain-on-failure
+        run: uv run --no-sync pytest backend/tests_e2e/ -n auto -v --browser ${{ matrix.browser }} --cov --cov-report=xml --tracing=retain-on-failure
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

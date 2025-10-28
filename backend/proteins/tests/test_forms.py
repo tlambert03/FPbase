@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from test_plus.test import TestCase
+from django.test import TestCase
+
+from fpbase.users.tests.factories import UserFactory
 
 from ..forms import CollectionForm, ProteinForm, SpectrumForm, StateForm
 from ..models import Protein, Spectrum, State
@@ -137,8 +139,8 @@ class TestStateForm(TestCase):
 class TestCollectionForm(TestCase):
     def setUp(self):
         self.p, _c = Protein.objects.get_or_create(name="Test Protein")
-        self.userA = self.make_user("userA", "userApassword")
-        self.userB = self.make_user("userB", "userBpassword")
+        self.userA = UserFactory(username="userA")
+        self.userB = UserFactory(username="userB")
 
     def test_create_collection_success(self):
         form = CollectionForm(
