@@ -1,25 +1,24 @@
-import React from "react"
-import SvgIcon from "@mui/material/SvgIcon"
 import {
-  faQuestionCircle,
+  faAdjust,
+  faBolt,
+  faCamera,
   faDna,
   faFlask,
-  faAdjust,
   faLightbulb,
-  faCamera,
-  faSliders,
-  faBolt,
   faPercent,
-} from "@fortawesome/free-solid-svg-icons"
+  faQuestionCircle,
+  faSliders,
+} from '@fortawesome/free-solid-svg-icons'
+import SvgIcon from '@mui/material/SvgIcon'
 
 function FAIcon(props) {
   return (
     <SvgIcon
       viewBox="0 0 530 530"
       style={{
-        position: "relative",
+        position: 'relative',
         top: -1,
-        height: "1rem",
+        height: '1rem',
       }}
       {...props}
     >
@@ -28,7 +27,7 @@ function FAIcon(props) {
   )
 }
 
-function categoryIcon(category, color = "#aaa", props) {
+function categoryIcon(category, color = '#aaa', props) {
   let iconClass = faQuestionCircle
   const iconMap = {
     P: faDna,
@@ -38,7 +37,7 @@ function categoryIcon(category, color = "#aaa", props) {
     C: faCamera,
     CF: faSliders,
     CL: faBolt,
-    "%": faPercent,
+    '%': faPercent,
   }
   if (category in iconMap) {
     iconClass = iconMap[category]

@@ -1,31 +1,31 @@
-import React, { useMemo, useCallback } from "react"
-import Box from "@mui/material/Box"
-import IconButton from "@mui/material/IconButton"
-import DeleteIcon from "@mui/icons-material/Delete"
-import { makeStyles } from "@mui/styles"
-import Typography from "@mui/material/Typography"
-import { useMutation } from "@apollo/client"
-import { categoryIcon } from "./FaIcon"
-import SpectrumSelector from "./SpectrumSelector"
-import { UPDATE_ACTIVE_SPECTRA, REMOVE_SELECTOR } from "../client/queries"
+import { useMutation } from '@apollo/client'
+import DeleteIcon from '@mui/icons-material/Delete'
+import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
+import React, { useCallback, useMemo } from 'react'
+import { REMOVE_SELECTOR, UPDATE_ACTIVE_SPECTRA } from '../client/queries'
+import { categoryIcon } from './FaIcon'
+import SpectrumSelector from './SpectrumSelector'
 
-export const useStyles = makeStyles(theme => ({
+export const useStyles = makeStyles((theme) => ({
   // root: {
   //   [theme.breakpoints.down("sm")]: {
   //     height: 42
   //   }
   // },
   deleteButton: {
-    padding: "6px 6px",
+    padding: '6px 6px',
     marginRight: 2,
     marginLeft: 2,
-    [theme.breakpoints.down("xs")]: {
-      display: "none",
+    [theme.breakpoints.down('xs')]: {
+      display: 'none',
     },
-    "&:hover": {
+    '&:hover': {
       // you want this to be the same as the backgroundColor above
-      backgroundColor: "#fff",
-      color: "#C84064",
+      backgroundColor: '#fff',
+      color: '#C84064',
     },
   },
   addButton: {
@@ -33,32 +33,30 @@ export const useStyles = makeStyles(theme => ({
     marginRight: 6,
   },
   categoryHeader: {
-    textTransform: "uppercase",
-    fontSize: "small",
-    color: "#3F51B5",
-    marginTop: ".35rem",
-    marginBottom: "0.4rem",
+    textTransform: 'uppercase',
+    fontSize: 'small',
+    color: '#3F51B5',
+    marginTop: '.35rem',
+    marginBottom: '0.4rem',
   },
 }))
 
 const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   selectors,
   options,
-  category = "",
+  category = '',
   showCategoryIcon,
-  hint = "item",
+  hint = 'item',
   ownerInfo,
 }) {
   const classes = useStyles()
-  const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [
-    selectors,
-  ])
+  const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [selectors])
 
   let mySelectors
   if (category) {
-    mySelectors = selectors.filter(sel => sel.category === category)
+    mySelectors = selectors.filter((sel) => sel.category === category)
   } else {
-    mySelectors = selectors.filter(sel => sel.owner || !sel.category)
+    mySelectors = selectors.filter((sel) => sel.owner || !sel.category)
   }
 
   // make sure there is always one empty selector available
@@ -66,26 +64,24 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   //   addRow(category || null)
   // }
 
-  let lastCategory = ""
+  let lastCategory = ''
   const categoryNames = {
-    P: "Fluorescent Proteins",
-    D: "Dyes",
-    F: "Filters",
-    L: "Light Sources",
-    C: "Detectors",
+    P: 'Fluorescent Proteins',
+    D: 'Dyes',
+    F: 'Filters',
+    L: 'Light Sources',
+    C: 'Detectors',
   }
 
   const categoryOptions = useMemo(
-    () => options.filter(opt => (category ? opt.category === category : true)),
+    () => options.filter((opt) => (category ? opt.category === category : true)),
     [category, options]
   )
 
-  const [removeSelector, { loading: removeLoading }] = useMutation(
-    REMOVE_SELECTOR
-  )
+  const [removeSelector, { loading: removeLoading }] = useMutation(REMOVE_SELECTOR)
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const removeRow = useCallback(
-    selector => {
+    (selector) => {
       if (!removeLoading) {
         removeSelector({ variables: { id: selector.id } })
         if (ownerInfo[selector.owner] && ownerInfo[selector.owner].spectra) {
@@ -102,21 +98,21 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
 
   return (
     <>
-      {mySelectors.map(selector => (
-        <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
+      {mySelectors.map((selector) => (
+        <div style={{ width: '100%', margin: '4px 0' }} key={selector.id}>
           {!category &&
             selector.category !== lastCategory &&
-            ((lastCategory = selector.category) && (
+            (lastCategory = selector.category) && (
               <Typography variant="h6" className={classes.categoryHeader}>
                 {categoryNames[selector.category]}
               </Typography>
-            ))}
+            )}
           <Box display="flex" alignItems="center" className={classes.root}>
-            {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
+            {categoryIcon(selector.category, 'rgba(0,0,50,0.4)', {
               style: {
-                position: "relative",
-                left: category === "L" ? 4 : 2,
-                height: "1.3rem",
+                position: 'relative',
+                left: category === 'L' ? 4 : 2,
+                height: '1.3rem',
                 marginRight: 10,
               },
             })}

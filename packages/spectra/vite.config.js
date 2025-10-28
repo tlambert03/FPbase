@@ -1,7 +1,5 @@
-import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react";
-
-import pkg from './package.json';
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 // const external = Object.keys(pkg.dependencies);
 // external.push('react', 'react-dom')
@@ -12,7 +10,7 @@ export default defineConfig({
       entry: 'src/index.jsx',
       formats: ['es'],
     },
-    rollupOptions: { external }
+    rollupOptions: { external },
   },
   server: {
     proxy: {

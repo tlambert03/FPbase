@@ -1,5 +1,5 @@
-import * as d3 from "d3"
-import $ from "jquery"
+import * as d3 from 'd3'
+import $ from 'jquery'
 
 function n_sibs(node) {
   return node.parent ? node.parent.children.length - 1 : 0
@@ -9,11 +9,7 @@ function is_first_sib(node) {
   if (!node.parent || node.parent.children.length === 1) {
     return false
   }
-  var i = node.parent.children
-    .map(function(e) {
-      return e.name
-    })
-    .indexOf(node.name)
+  var i = node.parent.children.map((e) => e.name).indexOf(node.name)
   if (i === 0) {
     return true
   }
@@ -24,11 +20,7 @@ function is_last_sib(node) {
   if (!node.parent || node.parent.children.length === 1) {
     return false
   }
-  var i = node.parent.children
-    .map(function(e) {
-      return e.name
-    })
-    .indexOf(node.name)
+  var i = node.parent.children.map((e) => e.name).indexOf(node.name)
   if (i === node.parent.children.length - 1) {
     return true
   }
@@ -38,11 +30,11 @@ function is_last_sib(node) {
 function text_position(node, slug, vertical) {
   var x
   var y
-  var anchor = "middle"
+  var anchor = 'middle'
   if (node.depth < 2) {
     x = -13
     y = 0
-    anchor = "end"
+    anchor = 'end'
   } else if (n_sibs(node) < 2) {
     if (node.children || node._children) {
       x = 0
@@ -50,7 +42,7 @@ function text_position(node, slug, vertical) {
     } else {
       x = 13
       y = 0
-      anchor = "start"
+      anchor = 'start'
     }
   } else {
     y = 0
@@ -58,18 +50,18 @@ function text_position(node, slug, vertical) {
       if (is_first_sib(node)) {
         y = -16
         x = 0
-        anchor = "middle"
+        anchor = 'middle'
       } else if (is_last_sib(node)) {
         y = 16
         x = 0
-        anchor = "middle"
+        anchor = 'middle'
       } else {
         x = -13
-        anchor = "end"
+        anchor = 'end'
       }
     } else {
       x = 13
-      anchor = "start"
+      anchor = 'start'
     }
   }
   if (node.slug === slug) {
@@ -86,7 +78,7 @@ function text_position(node, slug, vertical) {
 }
 
 export default function LineageChart(conf) {
-  let config = conf || {}
+  const config = conf || {}
   let margin = config.margin || { top: 20, right: 110, bottom: 15, left: 65 },
     width,
     minNodeWidth = config.minNodeWidth || 70,
@@ -112,23 +104,21 @@ export default function LineageChart(conf) {
       stdDeviation: 4,
       dx: 0,
       dy: 0,
-      floodColor: "#38e"
+      floodColor: '#38e',
     }
 
   // Custom diagonal function for D3 v7 (replaces d3.svg.diagonal)
-  var diagonal = function(d) {
-    return `M${d.source.y},${d.source.x}
+  var diagonal = (d) => `M${d.source.y},${d.source.x}
             C${(d.source.y + d.target.y) / 2},${d.source.x}
              ${(d.source.y + d.target.y) / 2},${d.target.x}
              ${d.target.y},${d.target.x}`
-  }
 
   // Define the div for the tooltip
   var tooltip = d3
-    .select("body")
-    .append("div")
-    .attr("class", "tooltip lineage-tooltip")
-    .style("opacity", 0)
+    .select('body')
+    .append('div')
+    .attr('class', 'tooltip lineage-tooltip')
+    .style('opacity', 0)
 
   // function stopEvent(event) {
   //   if (event.preventDefault !== undefined) event.preventDefault();
@@ -137,45 +127,39 @@ export default function LineageChart(conf) {
 
   function chart(selection) {
     sel = selection
-    selection.on("contextmenu", function(event) {
+    selection.on('contextmenu', (event) => {
       event.preventDefault()
     })
 
-    if (withSearch && d3.select("#mutation-search-input").node() == null) {
+    if (withSearch && d3.select('#mutation-search-input').node() == null) {
       createMutationSearch(selection)
     }
-    if (withToolbar && d3.select(".lineage-toolbar").node() == null) {
+    if (withToolbar && d3.select('.lineage-toolbar').node() == null) {
       createToolBar(selection)
     }
 
-    if (withTopScroll && d3.select(".top-scroll-wrapper").node() == null) {
+    if (withTopScroll && d3.select('.top-scroll-wrapper').node() == null) {
       selection
-        .append("div")
-        .attr("class", "top-scroll-wrapper")
-        .append("div")
-        .attr("class", "top-scroll-div")
+        .append('div')
+        .attr('class', 'top-scroll-wrapper')
+        .append('div')
+        .attr('class', 'top-scroll-div')
     }
 
-    if (
-      selection.node().classList.contains("lineage") &&
-      !d3.select(".lineage-wrapper").node()
-    ) {
-      selection = selection.append("div").attr("class", "lineage-wrapper")
+    if (selection.node().classList.contains('lineage') && !d3.select('.lineage-wrapper').node()) {
+      selection = selection.append('div').attr('class', 'lineage-wrapper')
     }
 
-    $(".top-scroll-wrapper").scroll(function() {
-      $(".lineage-wrapper").scrollLeft($(".top-scroll-wrapper").scrollLeft())
+    $('.top-scroll-wrapper').scroll(() => {
+      $('.lineage-wrapper').scrollLeft($('.top-scroll-wrapper').scrollLeft())
     })
-    $(".lineage-wrapper").scroll(function() {
-      $(".top-scroll-wrapper").scrollLeft($(".lineage-wrapper").scrollLeft())
+    $('.lineage-wrapper').scroll(() => {
+      $('.top-scroll-wrapper').scrollLeft($('.lineage-wrapper').scrollLeft())
     })
 
-    selection.each(function() {
+    selection.each(() => {
       var minWidth = data.max_depth * minNodeWidth
-      var containerWidth = d3
-        .select(".lineage-wrapper")
-        .node()
-        .getBoundingClientRect().width
+      var containerWidth = d3.select('.lineage-wrapper').node().getBoundingClientRect().width
       var scrollWidth = Math.max(minWidth, containerWidth)
       data.x0 = height / 2
       data.y0 = 0
@@ -186,49 +170,41 @@ export default function LineageChart(conf) {
       } else {
         height = 80 + data.max_width * heightScalar
         width = scrollWidth - margin.right - margin.left
-        nodeWidth = Math.max(
-          minNodeWidth,
-          (widthScalar * width) / data.max_depth
-        )
+        nodeWidth = Math.max(minNodeWidth, (widthScalar * width) / data.max_depth)
       }
       tree.size([height - margin.top - margin.bottom, width])
 
       // Select the svg element, if it exists.
-      var svg = selection.selectAll("svg").data([data])
+      var svg = selection.selectAll('svg').data([data])
 
       // Otherwise, create the skeletal chart.
-      var svgEnter = svg
-        .enter()
-        .append("svg")
-        .style("width", "100%")
-      var svgDefs = svgEnter.append("defs")
+      var svgEnter = svg.enter().append('svg').style('width', '100%')
+      var svgDefs = svgEnter.append('defs')
       svgDefs
-        .append("radialGradient")
-        .attr("id", "unknown_gradient")
-        .html(
-          '<stop offset="10%" stop-color="#bcbcbc"/> <stop offset="80%" stop-color="#ccc"/> '
-        )
-      svgEnter.append("g");
+        .append('radialGradient')
+        .attr('id', 'unknown_gradient')
+        .html('<stop offset="10%" stop-color="#bcbcbc"/> <stop offset="80%" stop-color="#ccc"/> ')
+      svgEnter.append('g')
       addDrawDropShadow(svg, dropShadow)
 
       var neededWidth = nodeWidth * data.max_depth + margin.right + margin.left
-      d3.select(".top-scroll-div").style("min-width", neededWidth + "px")
-      d3.select(".top-scroll-wrapper").style(
-        "display",
-        neededWidth <= containerWidth ? "none" : "block"
+      d3.select('.top-scroll-div').style('min-width', neededWidth + 'px')
+      d3.select('.top-scroll-wrapper').style(
+        'display',
+        neededWidth <= containerWidth ? 'none' : 'block'
       )
 
       // Merge enter and update selections for svg
       svg = svg.merge(svgEnter)
 
       // Update the outer dimensions on the merged selection
-      svg.attr("height", height).style("min-width", neededWidth)
+      svg.attr('height', height).style('min-width', neededWidth)
 
       // Update the inner dimensions.
       var g = svg
-        .select("g")
-        .attr("width", width)
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .select('g')
+        .attr('width', width)
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
       // D3 v7: Create hierarchy from data if not already a hierarchy
       // Check if data is already a d3 hierarchy (has descendants method)
@@ -246,23 +222,23 @@ export default function LineageChart(conf) {
         var links = hierarchy.links()
 
         // Normalize for fixed-depth.
-        nodes.forEach(function(d) {
+        nodes.forEach((d) => {
           d.y = (d.depth - 1) * nodeWidth
         })
 
         // Check for negative Y positions and shift if needed
         // But exclude fakeroot from this calculation since it will be removed from display
-        var visibleNodes = nodes.filter(d => d.data.name !== "fakeroot")
-        var minY = d3.min(visibleNodes, d => d.y)
+        var visibleNodes = nodes.filter((d) => d.data.name !== 'fakeroot')
+        var minY = d3.min(visibleNodes, (d) => d.y)
         if (minY < 0) {
           var yShift = -minY
-          nodes.forEach(function(d) {
+          nodes.forEach((d) => {
             d.y = d.y + yShift
           })
         }
 
         if (vertical) {
-          nodes.forEach(function(d) {
+          nodes.forEach((d) => {
             var f = d.x
             d.x = d.y
             d.y = f
@@ -270,228 +246,192 @@ export default function LineageChart(conf) {
         }
 
         // Calculate actual height needed based on node positions
-        var minX = d3.min(nodes, d => d.x)
-        var maxX = d3.max(nodes, d => d.x)
+        var minX = d3.min(nodes, (d) => d.x)
+        var maxX = d3.max(nodes, (d) => d.x)
         var neededHeight = maxX - minX + margin.top + margin.bottom + 40 // extra padding
 
         // Update SVG height if needed
         if (neededHeight > height) {
           height = neededHeight
-          svg.attr("height", height)
+          svg.attr('height', height)
         }
 
         // Update the nodes…
-        var node = g.selectAll("g.node").data(nodes, function(d) {
-          return d.id || (d.id = ++i)
-        })
+        var node = g.selectAll('g.node').data(nodes, (d) => d.id || (d.id = ++i))
 
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node
           .enter()
-          .append("g")
-          .attr("class", function(d) {
-            return (
-              "node" +
-              (d.data.err && d.data.err.length > 0 ? " has-err" : "")
-            )
-          })
-          .attr("id", function(d) {
-            return "node_" + d.data.slug
-          })
-          .attr("transform", function(d) {
-            return "translate(" + source.y0 + "," + source.x0 + ")"
-          })
-          .on("contextmenu", click)
+          .append('g')
+          .attr('class', (d) => 'node' + (d.data.err && d.data.err.length > 0 ? ' has-err' : ''))
+          .attr('id', (d) => 'node_' + d.data.slug)
+          .attr('transform', (_d) => 'translate(' + source.y0 + ',' + source.x0 + ')')
+          .on('contextmenu', click)
 
         nodeEnter
-          .append("a")
-          .attr("xlink:href", function(d) {
-            return d.data.url
-          })
-          .append("circle")
-          .attr("r", 1e-6)
-          .style("filter", "url(#shadow);")
-          .style("fill", function(d) {
-            if (d.data.bg && d.data.bg.startsWith("linear:")) {
+          .append('a')
+          .attr('xlink:href', (d) => d.data.url)
+          .append('circle')
+          .attr('r', 1e-6)
+          .style('filter', 'url(#shadow);')
+          .style('fill', (d) => {
+            if (d.data.bg?.startsWith('linear:')) {
               svg
-                .select("defs")
-                .append("linearGradient")
+                .select('defs')
+                .append('linearGradient')
                 // the 0 -> XX is a hack to fix a weird name-changing bug
-                .attr("id", d.data.slug.replace("0", "XX") + "_svggradient")
-                .html(d.data.bg.replace("linear:", ""))
+                .attr('id', d.data.slug.replace('0', 'XX') + '_svggradient')
+                .html(d.data.bg.replace('linear:', ''))
             }
           })
-          .on("mouseover", function(event, d) {
+          .on('mouseover', function (event, d) {
             if (d.data.slug !== slug) {
               d3.select(this)
                 .transition(150)
-                .attr("r", function(d) {
-                  return d._children ? defaultRadius : defaultRadius * 1.3
-                })
+                .attr('r', (d) => (d._children ? defaultRadius : defaultRadius * 1.3))
             }
 
-            const largeWindow = window.matchMedia("(min-width: 576px)").matches
+            const largeWindow = window.matchMedia('(min-width: 576px)').matches
             let dtext
             if (largeWindow) {
               dtext = `<strong>${d.data.name}</strong><br><span>`
             } else {
-              dtext = `<strong><a href="${d.data.url}">${
-                d.data.name
-              }</a></strong><br><span>`
+              dtext = `<strong><a href="${d.data.url}">${d.data.name}</a></strong><br><span>`
             }
-            dtext += d.parent ? (d.parent.data.name === "fakeroot" ? "" : d.parent.data.name) : ""
+            dtext += d.parent ? (d.parent.data.name === 'fakeroot' ? '' : d.parent.data.name) : ''
             if (d.data.mut) {
-              let muts = d.data.mut.split("/")
+              let muts = d.data.mut.split('/')
               if (!show_inserts) {
-                muts = muts.filter(m => (m.includes("ins") ? "" : m))
-                muts = muts.filter(m => (m.includes("ext") ? "" : m))
+                muts = muts.filter((m) => (m.includes('ins') ? '' : m))
+                muts = muts.filter((m) => (m.includes('ext') ? '' : m))
               }
               if (!show_deletions) {
-                muts = muts.filter(m => (m.includes("del") ? "" : m))
+                muts = muts.filter((m) => (m.includes('del') ? '' : m))
               }
-              dtext += ` &rarr; ${muts.join("/")}`
+              dtext += ` &rarr; ${muts.join('/')}`
             }
-            dtext += d.data.ref ? `<br><em>${d.data.ref}</em>` : ""
-            dtext += "</span>"
+            dtext += d.data.ref ? `<br><em>${d.data.ref}</em>` : ''
+            dtext += '</span>'
 
             tooltip.html(dtext)
 
             if (largeWindow) {
               const _ttwidth = 200
               tooltip
-                .style("width", _ttwidth + "px")
-                .style("position", "absolute")
-                .style("left", event.pageX - _ttwidth / 2 + "px")
-                .style("border-radius", "8px")
-                .style("bottom", "inherit")
-                .style("padding", ".6rem 0.5rem")
-                .style("font-size", "inherit")
-                .selectAll("span")
-                .style("font-size", "0.75rem")
-              tooltip.style(
-                "top",
-                event.pageY - tooltip.node().clientHeight - 28 + "px"
-              )
+                .style('width', _ttwidth + 'px')
+                .style('position', 'absolute')
+                .style('left', event.pageX - _ttwidth / 2 + 'px')
+                .style('border-radius', '8px')
+                .style('bottom', 'inherit')
+                .style('padding', '.6rem 0.5rem')
+                .style('font-size', 'inherit')
+                .selectAll('span')
+                .style('font-size', '0.75rem')
+              tooltip.style('top', event.pageY - tooltip.node().clientHeight - 28 + 'px')
             } else {
               tooltip
-                .style("width", "100%")
-                .style("border-radius", "0px")
-                .style("position", "fixed")
-                .style("left", 0)
-                .style("top", "inherit")
-                .style("bottom", 0)
-                .style("padding", "1rem 0.4rem 1.8rem 0.4rem")
-                .style("font-size", "1.3rem")
-                .selectAll("span")
-                .style("font-size", "0.85rem")
+                .style('width', '100%')
+                .style('border-radius', '0px')
+                .style('position', 'fixed')
+                .style('left', 0)
+                .style('top', 'inherit')
+                .style('bottom', 0)
+                .style('padding', '1rem 0.4rem 1.8rem 0.4rem')
+                .style('font-size', '1.3rem')
+                .selectAll('span')
+                .style('font-size', '0.85rem')
               tooltip
-                .append("div")
-                .attr("class", "close-btn")
-                .style("color", "#fff")
-                .style("position", "absolute")
-                .style("top", "10px")
-                .style("right", "10px")
-                .html("✖")
-                .on("click", function() {
+                .append('div')
+                .attr('class', 'close-btn')
+                .style('color', '#fff')
+                .style('position', 'absolute')
+                .style('top', '10px')
+                .style('right', '10px')
+                .html('✖')
+                .on('click', () => {
                   tooltip
                     .transition()
                     .duration(150)
-                    .style("opacity", 0)
+                    .style('opacity', 0)
                     .transition()
                     .duration(0)
-                    .style("left", -9999 + "px")
+                    .style('left', -9999 + 'px')
                 })
             }
             tooltip
               .transition()
               .duration(150)
-              .style("opacity", largeWindow ? 0.9 : 1)
+              .style('opacity', largeWindow ? 0.9 : 1)
           })
-          .on("mouseout", function(event, d) {
+          .on('mouseout', function (_event, d) {
             tooltip
               .transition()
               .duration(150)
-              .style("opacity", 0)
+              .style('opacity', 0)
               .transition()
               .duration(0)
-              .style("left", -9999 + "px")
+              .style('left', -9999 + 'px')
 
             if (d.data.slug !== slug) {
               d3.select(this)
                 .transition(150)
-                .attr("r", function(d) {
-                  return d._children
+                .attr('r', (d) =>
+                  d._children
                     ? defaultRadius / 2
                     : d.data.slug === slug
-                    ? slugRadius
-                    : defaultRadius
-                })
+                      ? slugRadius
+                      : defaultRadius
+                )
             }
           })
 
-        d3.select("#mutation-search-input").on("input", highlightMutations)
-        d3.selectAll(".update-mutations").on("click", highlightMutations)
+        d3.select('#mutation-search-input').on('input', highlightMutations)
+        d3.selectAll('.update-mutations').on('click', highlightMutations)
 
         //.style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
         nodeEnter
-          .append("text")
-          .attr("x", function(d) {
-            return text_position(d, slug, vertical)[0]
-          })
-          .attr("y", function(d) {
-            return text_position(d, slug, vertical)[1]
-          })
-          .attr("dy", ".35em")
-          .attr("text-anchor", function(d) {
-            return text_position(d, slug, vertical)[2]
-          })
-          .text(function(d) {
+          .append('text')
+          .attr('x', (d) => text_position(d, slug, vertical)[0])
+          .attr('y', (d) => text_position(d, slug, vertical)[1])
+          .attr('dy', '.35em')
+          .attr('text-anchor', (d) => text_position(d, slug, vertical)[2])
+          .text((d) => {
             var t = d.data.name
             if (d.data.err && d.data.err.length > 0) {
-              t += ` ! (${d.data.err[0].replace("SequenceMismatch:  diff: ", "")})`
+              t += ` ! (${d.data.err[0].replace('SequenceMismatch:  diff: ', '')})`
             }
             return t
           })
-          .attr("class", function(d) {
-            return d.data.slug === slug ? "font-weight-bold" : ""
-          })
-          .style("fill-opacity", 1e-6)
+          .attr('class', (d) => (d.data.slug === slug ? 'font-weight-bold' : ''))
+          .style('fill-opacity', 1e-6)
 
         // Merge enter and update selections
         var nodeUpdate = node
           .merge(nodeEnter)
           .transition()
           .duration(duration)
-          .attr("transform", function(d) {
-            return "translate(" + d.y + "," + d.x + ")"
-          })
+          .attr('transform', (d) => 'translate(' + d.y + ',' + d.x + ')')
 
         nodeUpdate
-          .select("circle")
-          .attr("r", function(d) {
-            return d._children
-              ? defaultRadius / 2
-              : d.data.slug === slug
-              ? slugRadius
-              : defaultRadius
-          })
-          .style("fill", function(d) {
-            if (d.data.bg && d.data.bg.startsWith("linear:")) {
-              return "url(#" + d.data.slug.replace("0", "XX") + "_svggradient)"
-            } else if (d.data.bg === "?") {
-              return "url(#unknown_gradient)"
+          .select('circle')
+          .attr('r', (d) =>
+            d._children ? defaultRadius / 2 : d.data.slug === slug ? slugRadius : defaultRadius
+          )
+          .style('fill', (d) => {
+            if (d.data.bg?.startsWith('linear:')) {
+              return 'url(#' + d.data.slug.replace('0', 'XX') + '_svggradient)'
+            } else if (d.data.bg === '?') {
+              return 'url(#unknown_gradient)'
             }
-            return d.data.bg === "#222" ? "#888" : d.data.bg
+            return d.data.bg === '#222' ? '#888' : d.data.bg
           })
-          .style("stroke-width", function(d) {
-            return d._children ? defaultRadius / 2 + "px" : "1px"
-          })
+          .style('stroke-width', (d) => (d._children ? defaultRadius / 2 + 'px' : '1px'))
 
         nodeUpdate
-          .select("text")
-          .style("fill-opacity", 1)
-          .attr("transform", function(d) {
+          .select('text')
+          .style('fill-opacity', 1)
+          .attr('transform', (d) => {
             if (
               nodeWidth < 80 &&
               d.children &&
@@ -500,7 +440,7 @@ export default function LineageChart(conf) {
               d.data.name.length > 8 &&
               n_sibs(d.parent) === 0
             ) {
-              return "rotate(-15) translate(2, -2)"
+              return 'rotate(-15) translate(2, -2)'
             }
           })
 
@@ -509,43 +449,35 @@ export default function LineageChart(conf) {
           .exit()
           .transition()
           .duration(duration)
-          .attr("transform", function(d) {
-            return "translate(" + source.y + "," + source.x + ")"
-          })
+          .attr('transform', (_d) => 'translate(' + source.y + ',' + source.x + ')')
           .remove()
 
-        nodeExit.select("circle").attr("r", 1e-6)
+        nodeExit.select('circle').attr('r', 1e-6)
 
-        nodeExit.select("text").style("fill-opacity", 1e-6)
+        nodeExit.select('text').style('fill-opacity', 1e-6)
 
         // Update the links…
-        var link = g.selectAll("path.link").data(links, function(d) {
-          return d.target.id
-        })
+        var link = g.selectAll('path.link').data(links, (d) => d.target.id)
 
         // Enter any new links at the parent's previous position.
         var linkEnter = link
           .enter()
-          .insert("path", "g")
-          .attr("class", "link")
-          .attr("d", function(d) {
+          .insert('path', 'g')
+          .attr('class', 'link')
+          .attr('d', (_d) => {
             var o = { x: source.x0, y: source.y0 }
             return diagonal({ source: o, target: o })
           })
 
         // Transition links to their new position.
-        link
-          .merge(linkEnter)
-          .transition()
-          .duration(duration)
-          .attr("d", diagonal)
+        link.merge(linkEnter).transition().duration(duration).attr('d', diagonal)
 
         // Transition exiting nodes to the parent's new position.
         link
           .exit()
           .transition()
           .duration(duration)
-          .attr("d", function(d) {
+          .attr('d', (_d) => {
             var o = { x: source.x, y: source.y }
             return diagonal({ source: o, target: o })
           })
@@ -553,22 +485,22 @@ export default function LineageChart(conf) {
 
         // Remove fakeroot nodes and links
         // Must operate on merged selection to catch both enter and update selections
-        node.merge(nodeEnter).each(function(d) {
-          if (d.data.name === "fakeroot") d3.select(this).remove()
+        node.merge(nodeEnter).each(function (d) {
+          if (d.data.name === 'fakeroot') d3.select(this).remove()
         })
 
-        link.merge(linkEnter).each(function(d) {
-          if (d.source.data.name === "fakeroot") d3.select(this).remove()
+        link.merge(linkEnter).each(function (d) {
+          if (d.source.data.name === 'fakeroot') d3.select(this).remove()
         })
 
         // Stash the old positions for transition.
-        nodes.forEach(function(d) {
+        nodes.forEach((d) => {
           d.x0 = d.x
           d.y0 = d.y
         })
 
         // toggle children on click
-        function click(event, d) {
+        function click(_event, d) {
           if (d.children) {
             d._children = d.children
             d.children = null
@@ -584,112 +516,90 @@ export default function LineageChart(conf) {
           // fast enough
           let any
           let relparent
-          if (this.classList.contains("mut-any")) {
+          if (this.classList.contains('mut-any')) {
             any = true
-          } else if (this.classList.contains("mut-all")) {
+          } else if (this.classList.contains('mut-all')) {
             any = false
           } else {
-            any = d3
-              .select("#anytoggle")
-              .node()
-              .closest("label")
-              .classList.contains("active")
+            any = d3.select('#anytoggle').node().closest('label').classList.contains('active')
           }
-          if (this.classList.contains("mut-parent")) {
+          if (this.classList.contains('mut-parent')) {
             relparent = true
-          } else if (this.classList.contains("mut-root")) {
+          } else if (this.classList.contains('mut-root')) {
             relparent = false
           } else {
             relparent = d3
-              .select("#parenttoggle")
+              .select('#parenttoggle')
               .node()
-              .closest("label")
-              .classList.contains("active")
+              .closest('label')
+              .classList.contains('active')
           }
 
-          var val = (d3.select("#mutation-search-input").node().value || "")
+          var val = (d3.select('#mutation-search-input').node().value || '')
             .toUpperCase()
-            .replace(",", " ")
-            .split(" ")
-            .filter(function(a) {
-              return a.length > 1 ? a : null
-            })
+            .replace(',', ' ')
+            .split(' ')
+            .filter((a) => (a.length > 1 ? a : null))
 
           if (val.length) {
-            g.selectAll("path.link").attr("opacity", 0.35)
+            g.selectAll('path.link').attr('opacity', 0.35)
           } else {
-            g.selectAll("path.link").attr("opacity", 1)
+            g.selectAll('path.link').attr('opacity', 1)
           }
 
-          g.selectAll("circle")
-            .attr("filter", function(d) {
+          g.selectAll('circle')
+            .attr('filter', (d) => {
               if (!val.length) {
                 return null
               }
               if (any) {
-                return val.some(function(v) {
-                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-                })
-                  ? "url(#dropshadow)"
+                return val.some((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
+                  ? 'url(#dropshadow)'
                   : null
               }
-              return val.every(function(v) {
-                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-              })
-                ? "url(#dropshadow)"
+              return val.every((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
+                ? 'url(#dropshadow)'
                 : null
             })
-            .attr("opacity", function(d) {
+            .attr('opacity', (d) => {
               if (!val.length) {
                 return 1
               }
               if (any) {
-                return val.some(function(v) {
-                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-                })
+                return val.some((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                   ? 1
                   : 0.3
               }
-              return val.every(function(v) {
-                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-              })
+              return val.every((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                 ? 1
                 : 0.3
             })
-          g.selectAll("text")
-            .attr("opacity", function(d) {
+          g.selectAll('text')
+            .attr('opacity', (d) => {
               if (!val.length) {
                 return 1
               }
               if (any) {
-                return val.some(function(v) {
-                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-                })
+                return val.some((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                   ? 1
                   : 0.3
               }
-              return val.every(function(v) {
-                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-              })
+              return val.every((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                 ? 1
                 : 0.3
             })
-            .style("font-weight", function(d) {
+            .style('font-weight', (d) => {
               if (!val.length) {
-                return "inherit"
+                return 'inherit'
               }
               if (any) {
-                return val.some(function(v) {
-                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-                })
+                return val.some((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                   ? 500
-                  : "inherit"
+                  : 'inherit'
               }
-              return val.every(function(v) {
-                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-              })
+              return val.every((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                 ? 500
-                : "inherit"
+                : 'inherit'
             })
         }
       }
@@ -697,86 +607,86 @@ export default function LineageChart(conf) {
   }
 
   var resizeTimer
-  $(window).on("resize", function(e) {
+  $(window).on('resize', (_e) => {
     clearTimeout(resizeTimer)
     resizeTimer = setTimeout(chart.update, 100)
   })
 
   // Public accessor methods
 
-  chart.margin = function(_) {
+  chart.margin = (_) => {
     if (!arguments.length) return margin
     margin = _
     return chart
   }
 
-  chart.width = function(value) {
+  chart.width = (value) => {
     if (!arguments.length) return width
     width = value
     return chart
   }
 
-  chart.slug = function(value) {
+  chart.slug = (value) => {
     if (!arguments.length) return slug
     slug = value
     return chart
   }
 
-  chart.duration = function(value) {
+  chart.duration = (value) => {
     if (!arguments.length) return duration
     duration = value
     return chart
   }
 
-  chart.height = function(value) {
+  chart.height = (value) => {
     if (!arguments.length) return height
     height = value
     return chart
   }
 
-  chart.heightScalar = function(value) {
+  chart.heightScalar = (value) => {
     if (!arguments.length) return heightScalar
     heightScalar = value
     return chart
   }
 
-  chart.scaleHeightUp = function() {
+  chart.scaleHeightUp = () => {
     heightScalar += 2
     chart(sel)
     return chart
   }
 
-  chart.scaleHeightDown = function() {
+  chart.scaleHeightDown = () => {
     heightScalar -= 2
     chart(sel)
     return chart
   }
 
-  chart.scaleWidthUp = function() {
+  chart.scaleWidthUp = () => {
     widthScalar += 0.07
     chart(sel)
     return chart
   }
 
-  chart.scaleWidthDown = function() {
+  chart.scaleWidthDown = () => {
     widthScalar -= 0.07
     chart(sel)
     return chart
   }
 
-  chart.widthScalar = function(value) {
+  chart.widthScalar = (value) => {
     if (!arguments.length) return widthScalar
     widthScalar = value
     return chart
   }
 
-  chart.withSearch = function(value) {
+  chart.withSearch = (value) => {
     if (!arguments.length) return withSearch
     withSearch = value
     return chart
   }
 
-  chart.withToolbar = function(value) {
+  chart.withToolbar = (value) => {
     if (!arguments.length) return withToolbar
     withToolbar = value
     return chart
@@ -784,76 +694,70 @@ export default function LineageChart(conf) {
 
   function createToolBar(selection) {
     var tbar = selection
-      .append("div")
-      .attr("class", "btn-toolbar lineage-toolbar")
-      .attr("role", "toolbar")
-      .style("opacity", 0.8)
-    var grp1 = tbar
-      .append("div")
-      .attr("class", "btn-group btn-group-sm mr-2")
-      .attr("role", "group")
+      .append('div')
+      .attr('class', 'btn-toolbar lineage-toolbar')
+      .attr('role', 'toolbar')
+      .style('opacity', 0.8)
+    var grp1 = tbar.append('div').attr('class', 'btn-group btn-group-sm mr-2').attr('role', 'group')
     grp1
-      .append("button")
-      .on("click", chart.scaleWidthDown)
-      .attr("type", "button")
-      .attr("class", "btn btn-outline-dark")
-      .html("⇦")
+      .append('button')
+      .on('click', chart.scaleWidthDown)
+      .attr('type', 'button')
+      .attr('class', 'btn btn-outline-dark')
+      .html('⇦')
     grp1
-      .append("button")
-      .on("click", chart.scaleWidthUp)
-      .attr("type", "button")
-      .attr("class", "btn btn-outline-dark")
-      .html("⇨")
+      .append('button')
+      .on('click', chart.scaleWidthUp)
+      .attr('type', 'button')
+      .attr('class', 'btn btn-outline-dark')
+      .html('⇨')
     grp1
-      .append("button")
-      .on("click", chart.scaleHeightDown)
-      .attr("type", "button")
-      .attr("class", "btn btn-outline-dark")
-      .html("⇧")
+      .append('button')
+      .on('click', chart.scaleHeightDown)
+      .attr('type', 'button')
+      .attr('class', 'btn btn-outline-dark')
+      .html('⇧')
     grp1
-      .append("button")
-      .on("click", chart.scaleHeightUp)
-      .attr("type", "button")
-      .attr("class", "btn btn-outline-dark")
-      .html("⇩")
-    var grp2 = tbar
-      .append("div")
-      .attr("class", "btn-group btn-group-sm mr-2")
-      .attr("role", "group")
+      .append('button')
+      .on('click', chart.scaleHeightUp)
+      .attr('type', 'button')
+      .attr('class', 'btn btn-outline-dark')
+      .html('⇩')
+    var grp2 = tbar.append('div').attr('class', 'btn-group btn-group-sm mr-2').attr('role', 'group')
     grp2
-      .append("button")
-      .on("click", function() {
-        chart.tree("tree")
+      .append('button')
+      .on('click', () => {
+        chart.tree('tree')
       })
-      .attr("type", "button")
-      .attr("class", "btn btn-outline-dark")
-      .html("⚯")
-      .style("width", "2rem")
+      .attr('type', 'button')
+      .attr('class', 'btn btn-outline-dark')
+      .html('⚯')
+      .style('width', '2rem')
     grp2
-      .append("button")
-      .on("click", function() {
-        chart.tree("cluster")
+      .append('button')
+      .on('click', () => {
+        chart.tree('cluster')
       })
-      .attr("type", "button")
-      .attr("class", "btn btn-outline-dark")
-      .html("⚭")
-      .style("width", "2rem")
+      .attr('type', 'button')
+      .attr('class', 'btn btn-outline-dark')
+      .html('⚭')
+      .style('width', '2rem')
   }
 
-  chart.data = function(value) {
+  chart.data = (value) => {
     if (!arguments.length) return data
     data = value
     // if (typeof updateData === "function") updateData();
     return chart
   }
 
-  chart.update = function() {
+  chart.update = () => {
     chart(sel)
   }
 
-  chart.tree = function(value) {
+  chart.tree = (value) => {
     if (!arguments.length) return tree
-    if (value === "cluster") {
+    if (value === 'cluster') {
       tree = d3.cluster()
       chart(sel)
     } else {
@@ -870,107 +774,102 @@ export default function LineageChart(conf) {
  * @see http://stackoverflow.com/questions/14865915/how-to-lower-the-opacity-of-the-alpha-layer-in-an-svg-filter/14871278#14871278
  */
 function addDrawDropShadow(svg, dropShadow) {
-  if (!d3.select("#dropshadow").node()) {
+  if (!d3.select('#dropshadow').node()) {
     var filter = svg
-      .select("defs")
-      .append("filter")
-      .attr("id", "dropshadow")
+      .select('defs')
+      .append('filter')
+      .attr('id', 'dropshadow')
       // x, y, width and height represent values in the current coordinate system that results
       // from taking the current user coordinate system in place at the time when the
       // <filter> element is referenced
       // (i.e., the user coordinate system for the element referencing the <filter> element via a filter attribute).
-      .attr("filterUnits", "userSpaceOnUse")
+      .attr('filterUnits', 'userSpaceOnUse')
 
     filter
-      .append("feDropShadow")
-      .attr("dx", dropShadow.dx || 0)
-      .attr("dy", dropShadow.dy || 0)
-      .attr("stdDeviation", dropShadow.stdDeviation || 4)
-      .attr("flood-color", dropShadow.floodColor)
+      .append('feDropShadow')
+      .attr('dx', dropShadow.dx || 0)
+      .attr('dy', dropShadow.dy || 0)
+      .attr('stdDeviation', dropShadow.stdDeviation || 4)
+      .attr('flood-color', dropShadow.floodColor)
   }
 }
 
 function createMutationSearch(selection) {
-  var wrapperDiv = selection
-    .append("div")
-    .append("div")
-    .attr("class", "row")
-  var searchDiv = wrapperDiv
-    .append("div")
-    .attr("class", "input-group col-12 col-lg-8 mb-2")
+  var wrapperDiv = selection.append('div').append('div').attr('class', 'row')
+  var searchDiv = wrapperDiv.append('div').attr('class', 'input-group col-12 col-lg-8 mb-2')
   searchDiv
-    .append("div")
-    .attr("class", "input-group-prepend")
-    .append("span")
-    .attr("class", "input-group-text")
-    .text("Search")
+    .append('div')
+    .attr('class', 'input-group-prepend')
+    .append('span')
+    .attr('class', 'input-group-text')
+    .text('Search')
 
-  searchDiv.append("input")
-    .attr("type", "search")
-    .attr("class", "form-control")
-    .attr("name", "textInput")
-    .attr("placeholder", "Mutations (e.g. A206K) separated by spaces")
-    .attr("id", "mutation-search-input")
+  searchDiv
+    .append('input')
+    .attr('type', 'search')
+    .attr('class', 'form-control')
+    .attr('name', 'textInput')
+    .attr('placeholder', 'Mutations (e.g. A206K) separated by spaces')
+    .attr('id', 'mutation-search-input')
 
-  var btngroup = searchDiv.append("div").attr("class", "input-group-append")
+  var btngroup = searchDiv.append('div').attr('class', 'input-group-append')
 
   var anyallgroup = btngroup
-    .append("div")
-    .attr("class", "btn-group-toggle btn-group")
-    .attr("data-toggle", "buttons")
+    .append('div')
+    .attr('class', 'btn-group-toggle btn-group')
+    .attr('data-toggle', 'buttons')
 
   anyallgroup
-    .append("label")
-    .attr("class", "btn btn-outline-primary update-mutations mut-all active")
-    .text("all")
-    .append("input")
-    .attr("type", "radio")
-    .attr("name", "anyall")
-    .attr("id", "alltoggle")
-    .attr("autocomplete", "off")
+    .append('label')
+    .attr('class', 'btn btn-outline-primary update-mutations mut-all active')
+    .text('all')
+    .append('input')
+    .attr('type', 'radio')
+    .attr('name', 'anyall')
+    .attr('id', 'alltoggle')
+    .attr('autocomplete', 'off')
 
   anyallgroup
-    .append("label")
-    .attr("class", "btn btn-outline-primary update-mutations mut-any")
-    .text("any")
-    .append("input")
-    .attr("type", "radio")
-    .attr("name", "anyall")
-    .attr("id", "anytoggle")
-    .attr("autocomplete", "off")
+    .append('label')
+    .attr('class', 'btn btn-outline-primary update-mutations mut-any')
+    .text('any')
+    .append('input')
+    .attr('type', 'radio')
+    .attr('name', 'anyall')
+    .attr('id', 'anytoggle')
+    .attr('autocomplete', 'off')
 
-  var rightdiv = wrapperDiv
-    .append("div")
-    .attr("class", "input-group col-12 col-lg-4 mb-2")
+  var rightdiv = wrapperDiv.append('div').attr('class', 'input-group col-12 col-lg-4 mb-2')
   rightdiv
-    .append("div")
-    .attr("class", "input-group-prepend")
-    .append("span")
-    .attr("class", "input-group-text")
-    .text("Relative to")
+    .append('div')
+    .attr('class', 'input-group-prepend')
+    .append('span')
+    .attr('class', 'input-group-text')
+    .text('Relative to')
 
-  var relativetogroup = rightdiv.append("div")
-    .attr("class", "btn-group-toggle btn-group input-group-append")
-    .attr("data-toggle", "buttons")
-
-  relativetogroup
-    .append("label")
-    .attr("class", "btn btn-outline-primary update-mutations mut-root active")
-    .text("root")
-    .append("input")
-    .attr("type", "radio")
-    .attr("name", "parentroot")
-    .attr("id", "roottoggle")
-    .attr("autocomplete", "off")
+  var relativetogroup = rightdiv
+    .append('div')
+    .attr('class', 'btn-group-toggle btn-group input-group-append')
+    .attr('data-toggle', 'buttons')
 
   relativetogroup
-    .append("label")
-    .attr("class", "btn btn-outline-primary update-mutations mut-parent")
-    .text("parent")
-    .append("input")
-    .attr("type", "radio")
-    .attr("name", "parentroot")
-    .attr("id", "parenttoggle")
-    .attr("autocomplete", "off")
+    .append('label')
+    .attr('class', 'btn btn-outline-primary update-mutations mut-root active')
+    .text('root')
+    .append('input')
+    .attr('type', 'radio')
+    .attr('name', 'parentroot')
+    .attr('id', 'roottoggle')
+    .attr('autocomplete', 'off')
+
+  relativetogroup
+    .append('label')
+    .attr('class', 'btn btn-outline-primary update-mutations mut-parent')
+    .text('parent')
+    .append('input')
+    .attr('type', 'radio')
+    .attr('name', 'parentroot')
+    .attr('id', 'parenttoggle')
+    .attr('autocomplete', 'off')
 }
 // Force rebuild

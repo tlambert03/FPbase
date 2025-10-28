@@ -1,32 +1,32 @@
-import { useMemo, useState } from "react"
+import AddCircleIcon from '@mui/icons-material/AddCircle'
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  flexRender,
-} from "@tanstack/react-table"
-import {
+  alpha,
+  Box,
+  IconButton,
+  MenuItem,
+  Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Box,
-  alpha,
   Typography,
-  IconButton,
-  Select,
-  MenuItem,
-} from "@mui/material"
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
-import ChevronRightIcon from "@mui/icons-material/ChevronRight"
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
-import AddCircleIcon from "@mui/icons-material/AddCircle"
+} from '@mui/material'
+import {
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+import { useMemo, useState } from 'react'
 
 /**
  * Row vertical padding - controls table row height
@@ -55,7 +55,7 @@ const HEADER_HOVER_ALPHA = 0.1
 /**
  * Glossary URL mapping for help links
  */
-const GLOSSARY_BASE = "https://help.fpbase.org/glossary"
+const GLOSSARY_BASE = 'https://help.fpbase.org/glossary'
 const GLOSSARY_LINKS = {
   ex_max: `${GLOSSARY_BASE}#ex-max`,
   em_max: `${GLOSSARY_BASE}#em-max`,
@@ -79,7 +79,7 @@ function ColumnHeader({ children, glossaryKey }) {
   }
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
       {children}
       <a
         href={GLOSSARY_LINKS[glossaryKey]}
@@ -87,16 +87,16 @@ function ColumnHeader({ children, glossaryKey }) {
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
         style={{
-          color: "inherit",
-          fontSize: "0.75rem",
+          color: 'inherit',
+          fontSize: '0.75rem',
           opacity: 0.5,
-          display: "flex",
-          alignItems: "center",
-          textDecoration: "none",
+          display: 'flex',
+          alignItems: 'center',
+          textDecoration: 'none',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.opacity = 0.8
-          e.currentTarget.style.cursor = "help"
+          e.currentTarget.style.cursor = 'help'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.opacity = 0.5
@@ -112,7 +112,7 @@ function ColumnHeader({ children, glossaryKey }) {
  * Format number with thousand separators
  */
 function formatNumber(num) {
-  if (num == null) return ""
+  if (num == null) return ''
   return num.toLocaleString()
 }
 
@@ -120,21 +120,21 @@ function formatNumber(num) {
  * Reusable component for spectral wavelength cells with colored backgrounds
  */
 function ColoredCell({ value, backgroundColor }) {
-  if (!value) return ""
+  if (!value) return ''
 
   const textColor =
-    value > WAVELENGTH_DARK_TEXT_MIN && value < WAVELENGTH_DARK_TEXT_MAX ? "#000" : "#eee"
+    value > WAVELENGTH_DARK_TEXT_MIN && value < WAVELENGTH_DARK_TEXT_MAX ? '#000' : '#eee'
 
   return (
     <Box
       sx={{
-        backgroundColor: backgroundColor || "#fff",
+        backgroundColor: backgroundColor || '#fff',
         color: textColor,
         opacity: SPECTRAL_CELL_OPACITY,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
         py: ROW_VERTICAL_PADDING,
       }}
     >
@@ -150,9 +150,9 @@ function ColoredCell({ value, backgroundColor }) {
 function createColumns() {
   return [
     {
-      id: "name",
+      id: 'name',
       accessorFn: (row) => row.protein.name,
-      header: "Name",
+      header: 'Name',
       cell: ({ row }) => {
         const protein = row.original.protein
         const state = row.original.state
@@ -162,20 +162,20 @@ function createColumns() {
               component="a"
               href={protein.url}
               sx={{
-                textDecoration: "none",
-                color: "primary.main",
+                textDecoration: 'none',
+                color: 'primary.main',
                 fontWeight: 500,
               }}
             >
               {protein.name}
             </Box>
-            {state && state.name !== "default" && (
+            {state && state.name !== 'default' && (
               <Box
                 component="span"
                 sx={{
                   ml: 0.5,
-                  fontSize: "0.85em",
-                  color: "text.secondary",
+                  fontSize: '0.85em',
+                  color: 'text.secondary',
                 }}
               >
                 ({state.name})
@@ -187,7 +187,7 @@ function createColumns() {
       size: 220,
     },
     {
-      id: "ex_max",
+      id: 'ex_max',
       accessorFn: (row) => row.state?.ex_max ?? null,
       header: () => <ColumnHeader glossaryKey="ex_max">λₑₓ</ColumnHeader>,
       cell: ({ row }) => {
@@ -195,10 +195,10 @@ function createColumns() {
         return <ColoredCell value={state?.ex_max} backgroundColor={state?.exhex} />
       },
       size: 50,
-      meta: { align: "center", noPadding: true },
+      meta: { align: 'center', noPadding: true },
     },
     {
-      id: "em_max",
+      id: 'em_max',
       accessorFn: (row) => row.state?.em_max ?? null,
       header: () => <ColumnHeader glossaryKey="em_max">λₑₘ</ColumnHeader>,
       cell: ({ row }) => {
@@ -206,95 +206,91 @@ function createColumns() {
         return <ColoredCell value={state?.em_max} backgroundColor={state?.emhex} />
       },
       size: 50,
-      meta: { align: "center", noPadding: true },
+      meta: { align: 'center', noPadding: true },
     },
     {
-      id: "stokes",
+      id: 'stokes',
       accessorFn: (row) => row.state?.stokes ?? null,
       header: () => <ColumnHeader glossaryKey="stokes">Stokes</ColumnHeader>,
-      cell: ({ row }) => row.original.state?.stokes || "",
+      cell: ({ row }) => row.original.state?.stokes || '',
       size: 40,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "ext_coeff",
+      id: 'ext_coeff',
       accessorFn: (row) => row.state?.ext_coeff ?? null,
       header: () => <ColumnHeader glossaryKey="ext_coeff">EC</ColumnHeader>,
       cell: ({ row }) => formatNumber(row.original.state?.ext_coeff),
       size: 60,
-      meta: { align: "right" },
+      meta: { align: 'right' },
     },
     {
-      id: "qy",
+      id: 'qy',
       accessorFn: (row) => row.state?.qy ?? null,
       header: () => <ColumnHeader glossaryKey="qy">QY</ColumnHeader>,
-      cell: ({ row }) => row.original.state?.qy || "",
+      cell: ({ row }) => row.original.state?.qy || '',
       size: 60,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "brightness",
+      id: 'brightness',
       accessorFn: (row) => row.state?.brightness ?? null,
       header: () => <ColumnHeader glossaryKey="brightness">Brightness</ColumnHeader>,
-      cell: ({ row }) => row.original.state?.brightness || "",
+      cell: ({ row }) => row.original.state?.brightness || '',
       size: 60,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "pka",
+      id: 'pka',
       accessorFn: (row) => row.state?.pka ?? null,
       header: () => <ColumnHeader glossaryKey="pka">pKa</ColumnHeader>,
-      cell: ({ row }) => row.original.state?.pka || "",
+      cell: ({ row }) => row.original.state?.pka || '',
       size: 50,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "agg",
-      accessorFn: (row) => row.protein.agg ?? "",
+      id: 'agg',
+      accessorFn: (row) => row.protein.agg ?? '',
       header: () => <ColumnHeader glossaryKey="agg">Agg</ColumnHeader>,
-      cell: ({ row }) => row.original.protein.agg || "",
+      cell: ({ row }) => row.original.protein.agg || '',
       size: 50,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "maturation",
+      id: 'maturation',
       accessorFn: (row) => row.state?.maturation ?? null,
       header: () => <ColumnHeader glossaryKey="maturation">Mat</ColumnHeader>,
-      cell: ({ row }) => row.original.state?.maturation || "",
+      cell: ({ row }) => row.original.state?.maturation || '',
       size: 50,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "lifetime",
+      id: 'lifetime',
       accessorFn: (row) => row.state?.lifetime ?? null,
       header: () => <ColumnHeader glossaryKey="lifetime">τ</ColumnHeader>,
-      cell: ({ row }) => row.original.state?.lifetime || "",
+      cell: ({ row }) => row.original.state?.lifetime || '',
       size: 50,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "weight",
+      id: 'weight',
       accessorFn: (row) => row.protein.weight ?? null,
       header: () => <ColumnHeader glossaryKey="weight">kDa</ColumnHeader>,
-      cell: ({ row }) => row.original.protein.weight || "",
+      cell: ({ row }) => row.original.protein.weight || '',
       size: 70,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "year",
+      id: 'year',
       accessorFn: (row) => row.protein.year ?? null,
-      header: "Year",
-      cell: ({ row }) => row.original.protein.year || "",
+      header: 'Year',
+      cell: ({ row }) => row.original.protein.year || '',
       size: 60,
-      meta: { align: "center" },
+      meta: { align: 'center' },
     },
     {
-      id: "compare",
-      header: () => (
-        <Box sx={{ display: { xs: "none", lg: "block" } }}>
-          Compare
-        </Box>
-      ),
+      id: 'compare',
+      header: () => <Box sx={{ display: { xs: 'none', lg: 'block' } }}>Compare</Box>,
       cell: ({ row }) => (
         <IconButton
           size="small"
@@ -304,18 +300,18 @@ function createColumns() {
           data-object={row.original.protein.slug}
           data-op="add"
           sx={{
-            color: "primary.main",
+            color: 'primary.main',
             p: 0.5,
-            "&:hover": {
+            '&:hover': {
               backgroundColor: (theme) => alpha(theme.palette.primary.main, TABLE_HOVER_ALPHA),
             },
           }}
         >
-          <AddCircleIcon sx={{ fontSize: "1rem", color: "gray" }} />
+          <AddCircleIcon sx={{ fontSize: '1rem', color: 'gray' }} />
         </IconButton>
       ),
       size: 60,
-      meta: { align: "center", noPadding: true },
+      meta: { align: 'center', noPadding: true },
       enableSorting: false,
     },
   ]
@@ -348,7 +344,7 @@ function transformProteinsToRows(proteins) {
  * Main ProteinTable component using TanStack Table
  */
 export default function ProteinTable({ proteins, filters, totalCount }) {
-  const [sorting, setSorting] = useState([{ id: "brightness", desc: true }])
+  const [sorting, setSorting] = useState([{ id: 'brightness', desc: true }])
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 25,
@@ -414,7 +410,8 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
   }
 
   const canPreviousPage = pagination.pageIndex > 0
-  const canNextPage = pagination.pageIndex < Math.ceil(filteredData.length / pagination.pageSize) - 1
+  const canNextPage =
+    pagination.pageIndex < Math.ceil(filteredData.length / pagination.pageSize) - 1
   const startRow = pagination.pageIndex * pagination.pageSize + 1
   const endRow = Math.min((pagination.pageIndex + 1) * pagination.pageSize, filteredData.length)
 
@@ -435,19 +432,19 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                 {headerGroup.headers.map((header) => (
                   <TableCell
                     key={header.id}
-                    align={header.column.columnDef.meta?.align || "left"}
+                    align={header.column.columnDef.meta?.align || 'left'}
                     sx={{
                       fontWeight: 600,
-                      fontSize: "0.75rem",
-                      backgroundColor: "grey.100",
-                      cursor: header.column.getCanSort() ? "pointer" : "default",
-                      userSelect: "none",
+                      fontSize: '0.75rem',
+                      backgroundColor: 'grey.100',
+                      cursor: header.column.getCanSort() ? 'pointer' : 'default',
+                      userSelect: 'none',
                       width: header.column.columnDef.size,
                       py: 0.5,
                       px: 1,
-                      "&:hover": header.column.getCanSort()
+                      '&:hover': header.column.getCanSort()
                         ? {
-                            backgroundColor: alpha("#000", HEADER_HOVER_ALPHA),
+                            backgroundColor: alpha('#000', HEADER_HOVER_ALPHA),
                           }
                         : {},
                     }}
@@ -455,30 +452,27 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                   >
                     <Box
                       sx={{
-                        display: "flex",
-                        alignItems: "center",
+                        display: 'flex',
+                        alignItems: 'center',
                         justifyContent:
-                          header.column.columnDef.meta?.align === "right"
-                            ? "flex-end"
-                            : header.column.columnDef.meta?.align === "center"
-                              ? "center"
-                              : "flex-start",
+                          header.column.columnDef.meta?.align === 'right'
+                            ? 'flex-end'
+                            : header.column.columnDef.meta?.align === 'center'
+                              ? 'center'
+                              : 'flex-start',
                         gap: 0.5,
                       }}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
+                      {flexRender(header.column.columnDef.header, header.getContext())}
                       {header.column.getIsSorted() && (
                         <Box
                           sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            fontSize: "0.75rem",
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '0.75rem',
                           }}
                         >
-                          {header.column.getIsSorted() === "desc" ? (
+                          {header.column.getIsSorted() === 'desc' ? (
                             <ArrowDownwardIcon fontSize="inherit" />
                           ) : (
                             <ArrowUpwardIcon fontSize="inherit" />
@@ -496,11 +490,12 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
               <TableRow
                 key={row.id}
                 sx={{
-                  "&:nth-of-type(odd)": {
-                    backgroundColor: "action.hover",
+                  '&:nth-of-type(odd)': {
+                    backgroundColor: 'action.hover',
                   },
-                  "&:hover": {
-                    backgroundColor: (theme) => alpha(theme.palette.primary.main, TABLE_HOVER_ALPHA),
+                  '&:hover': {
+                    backgroundColor: (theme) =>
+                      alpha(theme.palette.primary.main, TABLE_HOVER_ALPHA),
                   },
                 }}
               >
@@ -509,11 +504,11 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                   return (
                     <TableCell
                       key={cell.id}
-                      align={cell.column.columnDef.meta?.align || "left"}
+                      align={cell.column.columnDef.meta?.align || 'left'}
                       sx={{
                         py: isColorCell ? 0 : ROW_VERTICAL_PADDING,
                         px: isColorCell ? 0 : 0.5,
-                        fontSize: "0.75rem",
+                        fontSize: '0.75rem',
                       }}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -531,16 +526,16 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
           mt: 2,
           px: 2,
           py: 1.5,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
         <Typography variant="body2" color="text.secondary">
           {displayText}
         </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" color="text.secondary">
               Rows per page:
             </Typography>
@@ -549,8 +544,8 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
               onChange={handleChangeRowsPerPage}
               size="small"
               sx={{
-                fontSize: "0.875rem",
-                "& .MuiSelect-select": {
+                fontSize: '0.875rem',
+                '& .MuiSelect-select': {
                   py: 0.5,
                   pr: 3,
                 },
@@ -565,7 +560,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
           <Typography variant="body2" color="text.secondary">
             {startRow}–{endRow} of {filteredData.length}
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton
               onClick={() => handleChangePage(pagination.pageIndex - 1)}
               disabled={!canPreviousPage}

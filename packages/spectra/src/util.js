@@ -91,7 +91,7 @@ const setStorageWithTimeStamp = (cacheKey, value) => {
 const debounce = (fn, time) => {
   let timeout
 
-  return function(...args) {
+  return function (...args) {
     const functionCall = () => fn.apply(this, args)
 
     clearTimeout(timeout)
@@ -103,9 +103,7 @@ function reshapeSpectraInfo(arr) {
   if (!arr) return {}
   return arr.reduce(
     (prev, cur) => {
-      if (
-        !Object.prototype.hasOwnProperty.call(prev.ownerInfo, cur.owner.slug)
-      ) {
+      if (!Object.hasOwn(prev.ownerInfo, cur.owner.slug)) {
         // eslint-disable-next-line no-param-reassign
         prev.ownerInfo[cur.owner.slug] = {
           category: cur.category.toUpperCase(),
@@ -134,8 +132,8 @@ function reshapeSpectraInfo(arr) {
 }
 
 function decoder(str, _, charset) {
-  const strWithoutPlus = str.replace(/\+/g, " ")
-  if (charset === "iso-8859-1") {
+  const strWithoutPlus = str.replace(/\+/g, ' ')
+  if (charset === 'iso-8859-1') {
     // unescape never throws, no try...catch needed:
     return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape)
   }
@@ -158,29 +156,26 @@ function decoder(str, _, charset) {
   // utf-8
   try {
     return decodeURIComponent(strWithoutPlus)
-  } catch (e) {
+  } catch (_e) {
     return strWithoutPlus
   }
 }
 
 function isTouchDevice() {
   try {
-    const prefixes = " -webkit- -moz- -o- -ms- ".split(" ")
+    const prefixes = ' -webkit- -moz- -o- -ms- '.split(' ')
 
-    const mq = function(query) {
-      return window.matchMedia(query).matches
-    }
+    const mq = (query) => window.matchMedia(query).matches
 
     if (
-      "ontouchstart" in window ||
-      (typeof window.DocumentTouch !== "undefined" &&
-        document instanceof window.DocumentTouch)
+      'ontouchstart' in window ||
+      (typeof window.DocumentTouch !== 'undefined' && document instanceof window.DocumentTouch)
     ) {
       return true
     }
 
-    return mq(["(", prefixes.join("touch-enabled),("), "heartz", ")"].join(""))
-  } catch (e) {
+    return mq(['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join(''))
+  } catch (_e) {
     // console.error("(Touch detect failed)", e)
     return false
   }

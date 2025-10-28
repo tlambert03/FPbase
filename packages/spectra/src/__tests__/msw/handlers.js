@@ -17,14 +17,14 @@ export const handlers = [
 
     if (!spectrum) {
       return HttpResponse.json({
-        errors: [{ message: `Spectrum with id ${id} not found` }]
+        errors: [{ message: `Spectrum with id ${id} not found` }],
       })
     }
 
     return HttpResponse.json({
       data: {
-        spectrum
-      }
+        spectrum,
+      },
     })
   }),
 
@@ -33,7 +33,7 @@ export const handlers = [
     const results = {}
 
     // BatchSpectra query uses dynamic field names like spectrum_17, spectrum_18
-    Object.keys(variables).forEach(key => {
+    Object.keys(variables).forEach((key) => {
       const match = key.match(/^spectrum_(\d+)$/)
       if (match) {
         const id = Number(match[1])
@@ -45,7 +45,7 @@ export const handlers = [
     })
 
     return HttpResponse.json({
-      data: results
+      data: results,
     })
   }),
 
@@ -53,8 +53,8 @@ export const handlers = [
   fpbaseGraphQL.query('ActiveSpectra', () => {
     return HttpResponse.json({
       data: {
-        activeSpectra: ['17', '18', '79', '80']
-      }
+        activeSpectra: ['17', '18', '79', '80'],
+      },
     })
   }),
 
@@ -73,11 +73,11 @@ export const handlers = [
           scaleQY: true,
           extremes: [null, null],
           shareTooltip: true,
-          palette: 'wavelength'
-        }
-      }
+          palette: 'wavelength',
+        },
+      },
     })
-  })
+  }),
 ]
 
 /**
@@ -89,16 +89,16 @@ export function createSpectrumHandler(id, customData) {
     if (variables.id === id) {
       return HttpResponse.json({
         data: {
-          spectrum: customData
-        }
+          spectrum: customData,
+        },
       })
     }
     // Fallback to default behavior
     const spectrum = getSpectrumById(Number(variables.id))
     return HttpResponse.json({
       data: {
-        spectrum
-      }
+        spectrum,
+      },
     })
   })
 }
@@ -109,7 +109,7 @@ export function createSpectrumHandler(id, customData) {
 export function createErrorHandler(errorMessage = 'GraphQL error') {
   return fpbaseGraphQL.query('Spectrum', () => {
     return HttpResponse.json({
-      errors: [{ message: errorMessage }]
+      errors: [{ message: errorMessage }],
     })
   })
 }

@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
-import { expect, beforeAll, afterAll, afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { setupServer } from 'msw/node'
+import { afterAll, afterEach, beforeAll } from 'vitest'
 import { handlers } from './msw/handlers'
 
 // Set up MSW server for API mocking
@@ -10,7 +10,7 @@ const server = setupServer(...handlers)
 // Start server before all tests
 beforeAll(() => {
   server.listen({
-    onUnhandledRequest: 'warn' // Warn on unhandled requests instead of error
+    onUnhandledRequest: 'warn', // Warn on unhandled requests instead of error
   })
 
   // Suppress Highcharts warnings in test environment (no WebGL support in happy-dom)

@@ -1,9 +1,9 @@
-import { useState } from "react"
-import { Box, Container, CircularProgress, Alert, ThemeProvider } from "@mui/material"
-import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query"
-import ProteinTable from "./components/ProteinTable"
-import TableControls from "./components/TableControls"
-import theme from "./theme"
+import { Alert, Box, CircularProgress, Container, ThemeProvider } from '@mui/material'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import ProteinTable from './components/ProteinTable'
+import TableControls from './components/TableControls'
+import theme from './theme'
 
 /**
  * Configure React Query client with appropriate caching settings
@@ -23,7 +23,7 @@ const queryClient = new QueryClient({
  * Fetch proteins from the API
  */
 async function fetchProteins() {
-  const response = await fetch("/api/proteins/table-data/")
+  const response = await fetch('/api/proteins/table-data/')
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`)
   }
@@ -35,17 +35,21 @@ async function fetchProteins() {
  */
 function AppContent() {
   const [filters, setFilters] = useState({
-    search: "",
-    switchType: "",
-    aggType: "",
+    search: '',
+    switchType: '',
+    aggType: '',
   })
 
-  const { data: proteins = [], isLoading, error } = useQuery({
-    queryKey: ["proteins", "table-data"],
+  const {
+    data: proteins = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['proteins', 'table-data'],
     queryFn: fetchProteins,
     onError: (error) => {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Failed to fetch proteins:", error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to fetch proteins:', error)
       }
     },
   })
@@ -56,9 +60,9 @@ function AppContent() {
         {isLoading && (
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
               minHeight: 400,
             }}
           >
@@ -66,25 +70,13 @@ function AppContent() {
           </Box>
         )}
 
-        {error && (
-          <Alert severity="error">
-            Failed to load protein data: {error.message}
-          </Alert>
-        )}
+        {error && <Alert severity="error">Failed to load protein data: {error.message}</Alert>}
 
         {!isLoading && !error && (
           <>
-            <TableControls
-              proteins={proteins}
-              filters={filters}
-              onFilterChange={setFilters}
-            />
+            <TableControls proteins={proteins} filters={filters} onFilterChange={setFilters} />
 
-            <ProteinTable
-              proteins={proteins}
-              filters={filters}
-              totalCount={proteins.length}
-            />
+            <ProteinTable proteins={proteins} filters={filters} totalCount={proteins.length} />
           </>
         )}
       </Container>

@@ -6,7 +6,7 @@
  * fragments on interface types to work.
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import introspectionQueryResultData from '../../fragmentTypes.json'
 import { getPossibleTypes, validatePossibleTypes } from '../fixtures/apolloClient'
 
@@ -19,7 +19,7 @@ describe('Apollo Client possibleTypes Configuration', () => {
 
   it('contains FluorophoreInterface in introspection data', () => {
     const fluorophoreType = introspectionQueryResultData.__schema.types.find(
-      type => type.name === 'FluorophoreInterface'
+      (type) => type.name === 'FluorophoreInterface'
     )
 
     expect(fluorophoreType).toBeDefined()
@@ -29,17 +29,17 @@ describe('Apollo Client possibleTypes Configuration', () => {
 
   it('FluorophoreInterface has State and Dye as possible types', () => {
     const fluorophoreType = introspectionQueryResultData.__schema.types.find(
-      type => type.name === 'FluorophoreInterface'
+      (type) => type.name === 'FluorophoreInterface'
     )
 
-    const typeNames = fluorophoreType.possibleTypes.map(t => t.name)
+    const typeNames = fluorophoreType.possibleTypes.map((t) => t.name)
     expect(typeNames).toContain('State')
     expect(typeNames).toContain('Dye')
   })
 
   it('contains SpectrumOwnerInterface in introspection data', () => {
     const ownerType = introspectionQueryResultData.__schema.types.find(
-      type => type.name === 'SpectrumOwnerInterface'
+      (type) => type.name === 'SpectrumOwnerInterface'
     )
 
     expect(ownerType).toBeDefined()
@@ -49,13 +49,13 @@ describe('Apollo Client possibleTypes Configuration', () => {
 
   it('SpectrumOwnerInterface has all expected possible types', () => {
     const ownerType = introspectionQueryResultData.__schema.types.find(
-      type => type.name === 'SpectrumOwnerInterface'
+      (type) => type.name === 'SpectrumOwnerInterface'
     )
 
-    const typeNames = ownerType.possibleTypes.map(t => t.name)
+    const typeNames = ownerType.possibleTypes.map((t) => t.name)
     const expectedTypes = ['State', 'Dye', 'Filter', 'Light', 'Camera']
 
-    expectedTypes.forEach(expectedType => {
+    expectedTypes.forEach((expectedType) => {
       expect(typeNames).toContain(expectedType)
     })
   })
@@ -75,13 +75,13 @@ describe('Apollo Client possibleTypes Configuration', () => {
   it('FluorophoreInterface maps to array of type names', () => {
     const possibleTypes = getPossibleTypes()
 
-    const fluorophoreTypes = possibleTypes['FluorophoreInterface']
+    const fluorophoreTypes = possibleTypes.FluorophoreInterface
     expect(fluorophoreTypes).toBeInstanceOf(Array)
     expect(fluorophoreTypes).toContain('State')
     expect(fluorophoreTypes).toContain('Dye')
 
     // Should be strings, not objects
-    fluorophoreTypes.forEach(type => {
+    fluorophoreTypes.forEach((type) => {
       expect(typeof type).toBe('string')
     })
   })
@@ -89,11 +89,11 @@ describe('Apollo Client possibleTypes Configuration', () => {
   it('SpectrumOwnerInterface maps to array of all owner type names', () => {
     const possibleTypes = getPossibleTypes()
 
-    const ownerTypes = possibleTypes['SpectrumOwnerInterface']
+    const ownerTypes = possibleTypes.SpectrumOwnerInterface
     expect(ownerTypes).toBeInstanceOf(Array)
 
     const expectedTypes = ['State', 'Dye', 'Filter', 'Light', 'Camera']
-    expectedTypes.forEach(expectedType => {
+    expectedTypes.forEach((expectedType) => {
       expect(ownerTypes).toContain(expectedType)
     })
   })
@@ -106,15 +106,12 @@ describe('Apollo Client possibleTypes Configuration', () => {
 
   it('getPossibleTypes matches production client transformation', () => {
     // This is the EXACT transformation used in production client.js
-    const productionTransform = introspectionQueryResultData.__schema.types.reduce(
-      (acc, type) => {
-        if (type.possibleTypes) {
-          acc[type.name] = type.possibleTypes.map(t => t.name)
-        }
-        return acc
-      },
-      {}
-    )
+    const productionTransform = introspectionQueryResultData.__schema.types.reduce((acc, type) => {
+      if (type.possibleTypes) {
+        acc[type.name] = type.possibleTypes.map((t) => t.name)
+      }
+      return acc
+    }, {})
 
     const testUtilityTransform = getPossibleTypes()
 
@@ -140,7 +137,7 @@ describe('Fragment Configuration Regression', () => {
     // The bug manifested because fragments on FluorophoreInterface didn't work
     expect(possibleTypes).toHaveProperty('FluorophoreInterface')
 
-    const fluorophoreTypes = possibleTypes['FluorophoreInterface']
+    const fluorophoreTypes = possibleTypes.FluorophoreInterface
     expect(fluorophoreTypes).toBeInstanceOf(Array)
     expect(fluorophoreTypes.length).toBeGreaterThan(0)
   })
@@ -148,7 +145,7 @@ describe('Fragment Configuration Regression', () => {
   it('prevents regression: State and Dye must implement FluorophoreInterface', () => {
     const possibleTypes = getPossibleTypes()
 
-    const fluorophoreTypes = possibleTypes['FluorophoreInterface']
+    const fluorophoreTypes = possibleTypes.FluorophoreInterface
 
     // If either State or Dye is missing, fragments won't apply to them
     expect(fluorophoreTypes).toContain('State')
@@ -163,7 +160,7 @@ describe('Fragment Configuration Regression', () => {
     expect(introspectionQueryResultData.__schema.types).toBeInstanceOf(Array)
 
     const hasInterfaces = introspectionQueryResultData.__schema.types.some(
-      type => type.kind === 'INTERFACE' && type.possibleTypes
+      (type) => type.kind === 'INTERFACE' && type.possibleTypes
     )
 
     expect(hasInterfaces).toBe(true)

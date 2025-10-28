@@ -13,17 +13,16 @@
  * This test ensures this bug never happens again.
  */
 
-import { describe, it, expect } from 'vitest'
+import { ApolloClient, ApolloProvider, from, HttpLink, useQuery } from '@apollo/client'
 import { render, screen, waitFor } from '@testing-library/react'
-import { ApolloProvider, useQuery } from '@apollo/client'
-import { ApolloClient, HttpLink, from } from '@apollo/client'
-import { createTestCache } from '../fixtures/apolloClient'
+import { describe, expect, it } from 'vitest'
 import { GET_SPECTRUM } from '../../client/queries'
+import { createTestCache } from '../fixtures/apolloClient'
 
 // Test component that displays spectrum data including fragment fields
 function SpectrumDisplay({ spectrumId }) {
   const { data, loading, error } = useQuery(GET_SPECTRUM, {
-    variables: { id: spectrumId }
+    variables: { id: spectrumId },
   })
 
   if (loading) return <div role="progressbar">Loading...</div>
@@ -62,13 +61,13 @@ function createTestApolloClient() {
   const link = from([
     new HttpLink({
       uri: 'http://test-endpoint/graphql/',
-      fetch
-    })
+      fetch,
+    }),
   ])
 
   return new ApolloClient({
     link,
-    cache
+    cache,
   })
 }
 
@@ -183,7 +182,7 @@ describe('FluorophoreInterface Fragment - CRITICAL REGRESSION TEST', () => {
     // Execute query - this should populate the cache
     const { data: firstData } = await client.query({
       query: GET_SPECTRUM,
-      variables: { id: 18 }
+      variables: { id: 18 },
     })
 
     // Verify data structure in response
@@ -196,7 +195,7 @@ describe('FluorophoreInterface Fragment - CRITICAL REGRESSION TEST', () => {
     const { data: cachedData } = await client.query({
       query: GET_SPECTRUM,
       variables: { id: 18 },
-      fetchPolicy: 'cache-only'  // This will throw if data isn't in cache
+      fetchPolicy: 'cache-only', // This will throw if data isn't in cache
     })
 
     // Verify cached data has fragment fields
@@ -211,13 +210,13 @@ describe('FluorophoreInterface Fragment - CRITICAL REGRESSION TEST', () => {
     // Query excitation spectrum
     const exData = await client.query({
       query: GET_SPECTRUM,
-      variables: { id: 18 }
+      variables: { id: 18 },
     })
 
     // Query emission spectrum
     const emData = await client.query({
       query: GET_SPECTRUM,
-      variables: { id: 17 }
+      variables: { id: 17 },
     })
 
     // Both should have same owner with same qy/extCoeff

@@ -1,16 +1,18 @@
-import $ from "jquery"
+import $ from 'jquery'
 
-window.initSnapGene = function(protein, selection) {
+window.initSnapGene = (protein, selection) => {
   // Search SnapGene's plasmid database for this protein
   $.get({
-    url: "https://www.snapgene.com/api/plasmids/search",
+    url: 'https://www.snapgene.com/api/plasmids/search',
     data: { string: protein },
     crossDomain: true,
-    success: function(data) {
+    success: (data) => {
       if (!data || !Array.isArray(data)) return
 
       // Filter to only the Fluorescent Protein Genes & Plasmids set
-      const fpSet = data.find(set => set.setData?.set === "fluorescent_protein_genes_and_plasmids")
+      const fpSet = data.find(
+        (set) => set.setData?.set === 'fluorescent_protein_genes_and_plasmids'
+      )
       if (!fpSet || !fpSet.sequences) return
 
       // Filter plasmids to only include relevant matches:
@@ -19,36 +21,36 @@ window.initSnapGene = function(protein, selection) {
       const isPlasmidVector = new RegExp(`^p${protein}(-[CN]?\\d+)?$`, 'i')
 
       const plasmids = fpSet.sequences
-        .filter(plasmid => {
+        .filter((plasmid) => {
           const name = plasmid.plasmidName
           return name === protein || isPlasmidVector.test(name)
         })
-        .map(plasmid => ({
+        .map((plasmid) => ({
           name: plasmid.plasmidName,
-          url: `https://www.snapgene.com/plasmids/${plasmid.setID}/${plasmid.plasmidID}`
+          url: `https://www.snapgene.com/plasmids/${plasmid.setID}/${plasmid.plasmidID}`,
         }))
 
       if (plasmids.length > 0) {
-        const label = plasmids.length === 1 ? "SnapGene plasmid: " : "SnapGene plasmids: "
-        const $li = $("<li>").text(label).appendTo($(selection))
+        const label = plasmids.length === 1 ? 'SnapGene plasmid: ' : 'SnapGene plasmids: '
+        const $li = $('<li>').text(label).appendTo($(selection))
 
         plasmids.forEach((plasmid, index) => {
           $li.append(
-            $("<a>", {
+            $('<a>', {
               href: plasmid.url,
-              target: "_blank",
-              rel: "noopener"
+              target: '_blank',
+              rel: 'noopener',
             }).text(plasmid.name)
           )
           if (index !== plasmids.length - 1) {
-            $li.append(", ")
+            $li.append(', ')
           }
         })
       }
     },
-    error: function() {
+    error: () => {
       // Silently fail - this is a nice-to-have feature
-      console.debug("SnapGene search unavailable")
-    }
+      console.debug('SnapGene search unavailable')
+    },
   })
 }

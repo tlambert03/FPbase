@@ -1,11 +1,10 @@
-import React from 'react'
-import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
-import { List } from 'immutable'
-import { HighchartsChart, XAxis, YAxis, HighchartsProvider } from 'react-jsx-highcharts'
 import Highcharts from 'highcharts'
+import { List } from 'immutable'
+import { HighchartsChart, HighchartsProvider, XAxis, YAxis } from 'react-jsx-highcharts'
+import { describe, expect, it, vi } from 'vitest'
 import SpectrumSeries from '../Components/SpectraViewer/SpectrumSeries'
-import { mockSpectrumEGFP_EX, mockSpectrumEGFP_EM } from './mockData'
+import { mockSpectrumEGFP_EM, mockSpectrumEGFP_EX } from './mockData'
 
 // Mock Apollo Client
 const mockApolloClient = {
@@ -22,9 +21,7 @@ const TestWrapper = ({ children }) => {
     <HighchartsProvider Highcharts={Highcharts}>
       <HighchartsChart>
         <XAxis id="xAxis">
-          <YAxis id="yAxis">
-            {children}
-          </YAxis>
+          <YAxis id="yAxis">{children}</YAxis>
         </XAxis>
       </HighchartsChart>
     </HighchartsProvider>
@@ -68,7 +65,7 @@ describe('SpectrumSeries', () => {
     // Create spectrum with Immutable.js List data (simulates real app behavior)
     const spectrumWithImmutableData = {
       ...mockSpectrumEGFP_EX,
-      data: List(mockSpectrumEGFP_EX.data.map(point => List(point)))
+      data: List(mockSpectrumEGFP_EX.data.map((point) => List(point))),
     }
 
     const { container } = render(

@@ -11,7 +11,7 @@
  * - Global error handlers set up before any other code runs
  */
 
-import * as Sentry from "@sentry/browser"
+import * as Sentry from '@sentry/browser'
 
 let sentryInitialized = false
 
@@ -26,39 +26,39 @@ export function initSentry() {
   }
 
   // Only initialize in production with a valid DSN
-  if (process.env.NODE_ENV === "production" && process.env.SENTRY_DSN) {
+  if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
     try {
       Sentry.init({
         dsn: process.env.SENTRY_DSN,
         release: process.env.HEROKU_SLUG_COMMIT,
         environment: process.env.NODE_ENV,
-        integrations: [Sentry.replayIntegration({maskAllText: false, blockAllMedia: false})],
-        replaysSessionSampleRate: 0,      // Don't record normal sessions
-        replaysOnErrorSampleRate: 1.0,    // Record all error sessions
-        tracesSampleRate: 0.05,           // 5% performance monitoring
-        sampleRate: 1.0,                  // Send all errors (defatult=1)
+        integrations: [Sentry.replayIntegration({ maskAllText: false, blockAllMedia: false })],
+        replaysSessionSampleRate: 0, // Don't record normal sessions
+        replaysOnErrorSampleRate: 1.0, // Record all error sessions
+        tracesSampleRate: 0.05, // 5% performance monitoring
+        sampleRate: 1.0, // Send all errors (defatult=1)
 
         // Ignore common benign errors
         ignoreErrors: [
           // Browser extensions
-          "top.GLOBALS",
-          "originalCreateNotification",
-          "canvas.contentDocument",
-          "MyApp_RemoveAllHighlights",
-          "atomicFindClose",
+          'top.GLOBALS',
+          'originalCreateNotification',
+          'canvas.contentDocument',
+          'MyApp_RemoveAllHighlights',
+          'atomicFindClose',
           // Network errors that are expected
-          "NetworkError",
-          "Non-Error promise rejection captured",
+          'NetworkError',
+          'Non-Error promise rejection captured',
           // Random plugins/extensions
-          "conduitPage",
+          'conduitPage',
         ],
 
         // Filter sensitive data before sending
-        beforeSend(event, hint) {
+        beforeSend(event, _hint) {
           // Add bundle information for easier debugging
           event.tags = {
             ...event.tags,
-            bundle: window.FPBASE?.currentBundle || "unknown",
+            bundle: window.FPBASE?.currentBundle || 'unknown',
           }
 
           return event
@@ -69,7 +69,7 @@ export function initSentry() {
           // Add custom context to transactions
           event.tags = {
             ...event.tags,
-            bundle: window.FPBASE?.currentBundle || "unknown",
+            bundle: window.FPBASE?.currentBundle || 'unknown',
           }
           return event
         },
@@ -89,7 +89,7 @@ export function initSentry() {
 
       sentryInitialized = true
     } catch (error) {
-      console.error("❌ Failed to initialize Sentry:", error)
+      console.error('❌ Failed to initialize Sentry:', error)
     }
   }
 

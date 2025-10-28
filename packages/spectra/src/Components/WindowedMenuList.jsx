@@ -1,6 +1,6 @@
-import React from "react"
-import PropTypes from "prop-types"
-import { List } from "react-window"
+import PropTypes from 'prop-types'
+import React from 'react'
+import { List } from 'react-window'
 
 const ITEM_HEIGHT = 35
 const MAX_WINDOW_HEIGHT = 300
@@ -14,7 +14,7 @@ const WindowedMenuList = ({ children, maxHeight, getValue }) => {
 
   // Handle empty children
   if (!childrenArray.length) {
-    return <div style={{ padding: "8px" }}>{children}</div>
+    return <div style={{ padding: '8px' }}>{children}</div>
   }
 
   const height = Math.min(maxHeight || MAX_WINDOW_HEIGHT, childrenArray.length * ITEM_HEIGHT)
@@ -30,7 +30,7 @@ const WindowedMenuList = ({ children, maxHeight, getValue }) => {
       rowCount={childrenArray.length}
       rowHeight={ITEM_HEIGHT}
       rowProps={{}}
-      style={{ height, width: "100%" }}
+      style={{ height, width: '100%' }}
     />
   )
 }

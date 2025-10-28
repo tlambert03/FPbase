@@ -1,21 +1,19 @@
-import React from "react"
-
 const LoadingLogo = () => (
   <div
     style={{
-      position: "relative",
-      width: "100%",
-      margin: "auto",
-      textAlign: "center",
+      position: 'relative',
+      width: '100%',
+      margin: 'auto',
+      textAlign: 'center',
     }}
   >
     <span
       style={{
-        top: "118px",
-        left: "34%",
-        position: "absolute",
-        fontSize: "4.6rem",
-        color: "#ccc",
+        top: '118px',
+        left: '34%',
+        position: 'absolute',
+        fontSize: '4.6rem',
+        color: '#ccc',
       }}
     >
       loading...
@@ -24,17 +22,12 @@ const LoadingLogo = () => (
       xmlns="http://www.w3.org/2000/svg"
       height="300"
       viewBox="0 0 2947 1061"
-      style={{ fillRule: "evenodd" }}
+      style={{ fillRule: 'evenodd' }}
     >
       <defs>
         <linearGradient id="lightGradient">
           <stop offset="0%" stopColor="#888">
-            <animate
-              attributeName="stop-color"
-              values="#eee; #888"
-              dur="1s"
-              fill="freeze"
-            />
+            <animate attributeName="stop-color" values="#eee; #888" dur="1s" fill="freeze" />
           </stop>
           <stop offset="100%" stopColor="#eee">
             <animate
@@ -48,12 +41,7 @@ const LoadingLogo = () => (
         </linearGradient>
         <clipPath id="left-to-right">
           <rect x="0" y="0" width="0" height="1061">
-            <animate
-              attributeName="width"
-              values="0;2947"
-              dur="1.3s"
-              fill="freeze"
-            />
+            <animate attributeName="width" values="0;2947" dur="1.3s" fill="freeze" />
           </rect>
         </clipPath>
         <clipPath id="steady">

@@ -1,14 +1,14 @@
-import gql from "graphql-tag"
+import gql from 'graphql-tag'
 
-const batchSpectra = ids => {
+const batchSpectra = (ids) => {
   const f = ids
-    .filter(i => i)
+    .filter((i) => i)
     .map(
-      id => `spectrum_${id}: spectrum(id: ${id}) {
+      (id) => `spectrum_${id}: spectrum(id: ${id}) {
     ...spectrumDetails
   }`
     )
-    .join("\n")
+    .join('\n')
   return gql`
     query BatchSpectra{
       ${f}

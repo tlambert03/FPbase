@@ -1,22 +1,22 @@
 const FONTS =
   'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";'
 
-const toolTipRow = entry => {
+const toolTipRow = (entry) => {
   return (
     `<tr><td><span style="color:${entry.series.color}">` +
     `&#9673; ` +
     `</span>${entry.series.name}${
       entry.series.userOptions.scaleEC
         ? ' <span style="font-size: 0.7rem; font-style: italic">(EC)</span>'
-        : ""
+        : ''
     }${
       entry.series.userOptions.scaleQY
         ? ' <span style="font-size: 0.7rem; font-style: italic">(QY)</span>'
-        : ""
-    }:</td><td style="text-align: right; font-weight: bold"> ${(entry.series
-      .userOptions.scaleEC
-      ? Math.round(entry.y)
-      : (Math.round(100 * entry.y) / 100).toFixed(2)
+        : ''
+    }:</td><td style="text-align: right; font-weight: bold"> ${(
+      entry.series.userOptions.scaleEC
+        ? Math.round(entry.y)
+        : (Math.round(100 * entry.y) / 100).toFixed(2)
     ).toLocaleString()}</td></tr>`
   )
 }
@@ -27,20 +27,20 @@ const DEFAULT_OPTIONS = {
       findNearestPointBy: 'x',
       stickyTracking: true,
       events: {
-        mouseOver: function({ target: { xAxis } }, b) {
-          const el = document.getElementById("zoom-info")
-          if (el) el.style.display = "block"
+        mouseOver: ({ target: { xAxis } }, _b) => {
+          const el = document.getElementById('zoom-info')
+          if (el) el.style.display = 'block'
         },
-        mouseOut: function() {
-          const el = document.getElementById("zoom-info")
-          if (el) el.style.display = "none"
+        mouseOut: () => {
+          const el = document.getElementById('zoom-info')
+          if (el) el.style.display = 'none'
         },
       },
       animation: false,
       lineWidth: 0.5,
       marker: {
         enabled: false,
-        symbol: "circle",
+        symbol: 'circle',
       },
     },
   },
@@ -56,20 +56,20 @@ const DEFAULT_OPTIONS = {
     },
   },
   chart: {
-    type: "areaspline",
-    zoomType: "x",
+    type: 'areaspline',
+    zoomType: 'x',
     panning: true,
-    panKey: "shift",
+    panKey: 'shift',
     animation: { duration: 50 },
     resetZoomButton: {
       theme: {
-        fill: "RGBA(90, 90, 90, 0.35)",
-        style: { color: "#FFFFFF", fontSize: "0.7rem", fontWeight: "bold" },
+        fill: 'RGBA(90, 90, 90, 0.35)',
+        style: { color: '#FFFFFF', fontSize: '0.7rem', fontWeight: 'bold' },
         r: 3,
-        stroke: "RGBA(90, 90, 90, 0.1)",
+        stroke: 'RGBA(90, 90, 90, 0.1)',
         states: {
           hover: {
-            fill: "RGBA(18, 75, 51, 0.8)",
+            fill: 'RGBA(18, 75, 51, 0.8)',
           },
         },
       },
@@ -80,7 +80,7 @@ const DEFAULT_OPTIONS = {
     title: false,
     labels: {
       enabled: false,
-      formatter: function() {
+      formatter: function () {
         if (this.value !== 0) {
           return this.axis.defaultLabelFormatter.call(this)
         }
@@ -98,20 +98,19 @@ const DEFAULT_OPTIONS = {
     },
     crosshair: true,
     events: {
-      afterSetExtremes: function({ userMin, userMax }) {
-        const el = document.getElementById("zoom-info")
+      afterSetExtremes: ({ userMin, userMax }) => {
+        const el = document.getElementById('zoom-info')
         if (el) {
           if (userMin || userMax) {
             if (window.USER_IS_TOUCHING) {
-              el.innerHTML = "pinch to zoom, two-finger drag to pan"
+              el.innerHTML = 'pinch to zoom, two-finger drag to pan'
             } else {
-              el.innerHTML =
-                "click and drag to zoom, shift-click and drag to pan"
+              el.innerHTML = 'click and drag to zoom, shift-click and drag to pan'
             }
           } else if (window.USER_IS_TOUCHING) {
-            el.innerHTML = "pinch to zoom"
+            el.innerHTML = 'pinch to zoom'
           } else {
-            el.innerHTML = "click and drag to zoom"
+            el.innerHTML = 'click and drag to zoom'
           }
         }
       },
@@ -120,7 +119,7 @@ const DEFAULT_OPTIONS = {
   navigation: {
     buttonOptions: {
       theme: {
-        "stroke-width": 0,
+        'stroke-width': 0,
         opacity: 0.35,
         states: {
           hover: {
@@ -128,29 +127,29 @@ const DEFAULT_OPTIONS = {
             opacity: 0.9,
           },
           select: {
-            fill: "#EEEEEE",
+            fill: '#EEEEEE',
             opacity: 0.9,
           },
         },
       },
     },
     menuItemStyle: {
-      color: "#333",
+      color: '#333',
       fontFamily: FONTS,
-      fontSize: "0.7rem",
+      fontSize: '0.7rem',
     },
   },
   exporting: {
-    filename: "FPbase_Spectra.csv",
+    filename: 'FPbase_Spectra.csv',
     sourceWidth: 1200,
     scale: 1,
     csv: {},
-    error: function(options, err) {
+    error: (options, err) => {
       console.error('Chart export failed:', err)
       if (window.Sentry) {
         window.Sentry.captureException(err, {
           tags: { component: 'SpectraViewer' },
-          extra: { context: 'PNG/PDF export', exportOptions: options }
+          extra: { context: 'PNG/PDF export', exportOptions: options },
         })
       }
       alert('Export failed. Please try again or contact us if the problem persists.')
@@ -166,12 +165,12 @@ const DEFAULT_OPTIONS = {
       contextButton: {
         enabled: false,
         menuItems: [
-          "downloadPNG",
-          "downloadPDF",
-          "downloadSVG",
-          "separator",
-          "downloadCSV",
-          "printChart",
+          'downloadPNG',
+          'downloadPDF',
+          'downloadSVG',
+          'separator',
+          'downloadCSV',
+          'printChart',
           // "separator",
           // "reset"
           // "openInCloud"
@@ -181,12 +180,12 @@ const DEFAULT_OPTIONS = {
     },
   },
   legend: {
-    verticalAlign: "top",
-    align: "right",
-    labelFormatter: function() {
+    verticalAlign: 'top',
+    align: 'right',
+    labelFormatter: function () {
       let { name } = this
       if (this.chart.chartWidth < 800) {
-        name = name.replace("Chroma", "Chr").replace("Semrock", "Sem")
+        name = name.replace('Chroma', 'Chr').replace('Semrock', 'Sem')
       }
       if (+this.chart.chartWidth < 500) {
         name = name.length > 18 ? `${name.slice(0, 18)}...` : name
@@ -195,56 +194,50 @@ const DEFAULT_OPTIONS = {
     },
     itemStyle: {
       fontWeight: 600,
-      fontSize: "11px",
+      fontSize: '11px',
       fontFamily: FONTS,
     },
   },
   tooltip: {
     useHTML: true,
-    backgroundColor: "#FFFFFFCC",
-    borderColor: "#999",
+    backgroundColor: '#FFFFFFCC',
+    borderColor: '#999',
     crosshairs: true,
     shared: true,
     hideDelay: 150,
     valueDecimals: 3,
-    formatter: function(tooltip) {
+    formatter: function (_tooltip) {
       let tooltipHtml = "<table class='spectrum-tooltip'>"
-      tooltipHtml += `${"<tr><td></td>" +
-        "<td style='text-align: right; line-height: 1.1rem; font-size: 0.75rem; border-bottom: 1px solid #ccc;'>"}${
-        this.x
-      }nm</td></tr>`
+      tooltipHtml += `${
+        '<tr><td></td>' +
+        "<td style='text-align: right; line-height: 1.1rem; font-size: 0.75rem; border-bottom: 1px solid #ccc;'>"
+      }${this.x}nm</td></tr>`
 
       if (this.points && this.points.length > 0) {
-        this.points.forEach(function(entry) {
+        this.points.forEach((entry) => {
           tooltipHtml += toolTipRow(entry)
         })
       } else if (this.point) {
         tooltipHtml += toolTipRow(this.point)
       }
 
-      tooltipHtml += "</table>"
+      tooltipHtml += '</table>'
       return tooltipHtml
     },
     positioner(labelWidth, labelHeight, point) {
       const chartwidth = this.chart.chartWidth
-      const yAx2 = this.chart.get("yAx2")
-      const rightPad = (yAx2 && yAx2.axisTitleMargin) || 0
-      const y = Math.min(
-        Math.max(point.plotY, 50),
-        this.chart.chartHeight - labelHeight - 40
-      )
+      const yAx2 = this.chart.get('yAx2')
+      const rightPad = yAx2?.axisTitleMargin || 0
+      const y = Math.min(Math.max(point.plotY, 50), this.chart.chartHeight - labelHeight - 40)
       const t = 10 + point.plotX + labelWidth / 3
-      const x =
-        t + labelWidth < chartwidth - rightPad
-          ? t
-          : point.plotX - labelWidth - 20
+      const x = t + labelWidth < chartwidth - rightPad ? t : point.plotX - labelWidth - 20
       return { x, y }
     },
     shadow: false,
     style: {
-      color: "#333",
+      color: '#333',
       fontFamily: FONTS,
-      fontSize: "0.8rem",
+      fontSize: '0.8rem',
     },
   },
 }

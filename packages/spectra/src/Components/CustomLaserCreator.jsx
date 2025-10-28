@@ -1,33 +1,27 @@
-import React, { useEffect, memo, useState } from "react"
-import Box from "@mui/material/Box"
-
-import { useApolloClient } from "@apollo/client"
-import Typography from "@mui/material/Typography"
-import { makeStyles } from "@mui/styles"
-import Checkbox from "@mui/material/Checkbox"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked"
-import RadioButtonChecked from "@mui/icons-material/RadioButtonChecked"
-import InputSlider from "./InputSlider"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useApolloClient } from '@apollo/client'
+import RadioButtonChecked from '@mui/icons-material/RadioButtonChecked'
+import RadioButtonUnchecked from '@mui/icons-material/RadioButtonUnchecked'
+import Box from '@mui/material/Box'
+import Checkbox from '@mui/material/Checkbox'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Typography from '@mui/material/Typography'
+import { makeStyles } from '@mui/styles'
+import { memo, useEffect, useState } from 'react'
+import { UPDATE_ACTIVE_SPECTRA } from '../client/queries'
+import InputSlider from './InputSlider'
 
 const useStyles = makeStyles({
   label: {
-    fontSize: "small",
-    color: "#444",
+    fontSize: 'small',
+    color: '#444',
   },
 })
 
 // $cl1
-const CustomLaserCreator = memo(function CustomLaserCreator({
-  id,
-  normID,
-  setExNorm,
-  clearNorm,
-}) {
+const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExNorm, clearNorm }) {
   const classes = useStyles()
 
-  const [laserID, _wave] = id.split("_")
+  const [laserID, _wave] = id.split('_')
   const [wave, setWave] = useState(_wave || 488)
 
   const client = useApolloClient()
@@ -45,7 +39,7 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
     }
   }, [client, laserID, normID, setExNorm, wave])
 
-  const handleNormCheck = (e, checked) => {
+  const handleNormCheck = (_e, checked) => {
     if (checked) {
       setExNorm([String(wave), laserID])
     } else {
@@ -56,15 +50,15 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
   return (
     <div
       style={{
-        padding: "10px 10px 0px 10px",
-        border: "1px solid #ccc",
+        padding: '10px 10px 0px 10px',
+        border: '1px solid #ccc',
         borderRadius: 4,
       }}
     >
       <Box display="flex" flexWrap="wrap">
-        <Typography style={{ margin: "8px 10px 3px" }}>Laser</Typography>
+        <Typography style={{ margin: '8px 10px 3px' }}>Laser</Typography>
         <Box flexGrow={2}>
-          <div style={{ margin: "0 12px", minWidth: 200 }}>
+          <div style={{ margin: '0 12px', minWidth: 200 }}>
             <Typography className={classes.label}>Wavelength</Typography>
             <InputSlider
               value={wave}
@@ -77,13 +71,9 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
         <Box>
           <FormControlLabel
             value="normalize"
-            label={(
-              <Typography className={classes.label}>
-                Norm em. to this
-              </Typography>
-)}
+            label={<Typography className={classes.label}>Norm em. to this</Typography>}
             labelPlacement="end"
-            control={(
+            control={
               <Checkbox
                 icon={<RadioButtonUnchecked fontSize="small" />}
                 checkedIcon={<RadioButtonChecked fontSize="small" />}
@@ -91,7 +81,7 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
                 checked={id.startsWith(normID)}
                 onChange={handleNormCheck}
               />
-)}
+            }
           />
         </Box>
       </Box>

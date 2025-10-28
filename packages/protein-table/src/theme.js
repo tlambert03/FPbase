@@ -1,4 +1,4 @@
-import { createTheme } from "@mui/material"
+import { createTheme } from '@mui/material'
 
 /**
  * Material-UI theme configuration for the protein table
@@ -6,19 +6,19 @@ import { createTheme } from "@mui/material"
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#0066cc",
+      main: '#0066cc',
     },
   },
   typography: {
     fontFamily: [
-      "-apple-system",
-      "BlinkMacSystemFont",
+      '-apple-system',
+      'BlinkMacSystemFont',
       '"Segoe UI"',
-      "Roboto",
+      'Roboto',
       '"Helvetica Neue"',
-      "Arial",
-      "sans-serif",
-    ].join(","),
+      'Arial',
+      'sans-serif',
+    ].join(','),
   },
 })
 

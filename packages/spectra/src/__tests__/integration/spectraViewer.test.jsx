@@ -9,20 +9,19 @@
  * 4. The viewer handles different spectrum types (EX/EM) correctly
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { ApolloClient, ApolloProvider, from, HttpLink } from '@apollo/client'
+import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles'
 import { render, screen, waitFor } from '@testing-library/react'
-import { ApolloProvider } from '@apollo/client'
-import { ApolloClient, HttpLink, from, InMemoryCache } from '@apollo/client'
-import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles'
-import { createTestCache } from '../fixtures/apolloClient'
+import { describe, expect, it } from 'vitest'
 import { SpectraViewerContainer } from '../../Components/SpectraViewer/SpectraViewer'
 import theme from '../../Components/theme'
 import {
-  GET_CHART_OPTIONS,
-  GET_ACTIVE_SPECTRA,
   GET_ACTIVE_OVERLAPS,
-  GET_EX_NORM
+  GET_ACTIVE_SPECTRA,
+  GET_CHART_OPTIONS,
+  GET_EX_NORM,
 } from '../../client/queries'
+import { createTestCache } from '../fixtures/apolloClient'
 
 // Helper to create a test Apollo Client with cache initialized
 function createTestApolloClient({ activeSpectra = [], chartOptions = {} } = {}) {
@@ -41,39 +40,39 @@ function createTestApolloClient({ activeSpectra = [], chartOptions = {} } = {}) 
     extremes: [null, null],
     shareTooltip: true,
     palette: 'wavelength',
-    ...chartOptions
+    ...chartOptions,
   }
 
   cache.writeQuery({
     query: GET_CHART_OPTIONS,
-    data: { chartOptions: defaultChartOptions }
+    data: { chartOptions: defaultChartOptions },
   })
 
   cache.writeQuery({
     query: GET_ACTIVE_SPECTRA,
-    data: { activeSpectra }
+    data: { activeSpectra },
   })
 
   cache.writeQuery({
     query: GET_ACTIVE_OVERLAPS,
-    data: { activeOverlaps: [] }
+    data: { activeOverlaps: [] },
   })
 
   cache.writeQuery({
     query: GET_EX_NORM,
-    data: { exNorm: [null, null] }
+    data: { exNorm: [null, null] },
   })
 
   const link = from([
     new HttpLink({
       uri: 'http://test-endpoint/graphql/',
-      fetch
-    })
+      fetch,
+    }),
   ])
 
   return new ApolloClient({
     link,
-    cache
+    cache,
   })
 }
 
@@ -82,9 +81,7 @@ function renderWithProviders(ui, client) {
   return render(
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <ApolloProvider client={client}>
-          {ui}
-        </ApolloProvider>
+        <ApolloProvider client={client}>{ui}</ApolloProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   )
@@ -94,10 +91,7 @@ describe('SpectraViewer Integration Tests', () => {
   it('renders loading state when no spectra are active', async () => {
     const client = createTestApolloClient({ activeSpectra: [] })
 
-    renderWithProviders(
-      <SpectraViewerContainer ownerInfo={{}} />,
-      client
-    )
+    renderWithProviders(<SpectraViewerContainer ownerInfo={{}} />, client)
 
     // Should show NoData component (not in simple mode)
     await waitFor(() => {
@@ -114,14 +108,11 @@ describe('SpectraViewer Integration Tests', () => {
       activeSpectra: ['18'], // EGFP excitation
       chartOptions: {
         scaleEC: true, // Enable EC scaling
-        scaleQY: false
-      }
+        scaleQY: false,
+      },
     })
 
-    renderWithProviders(
-      <SpectraViewerContainer ownerInfo={{}} />,
-      client
-    )
+    renderWithProviders(<SpectraViewerContainer ownerInfo={{}} />, client)
 
     // Wait for the spectrum to be fetched and rendered
     await waitFor(
@@ -143,19 +134,19 @@ describe('SpectraViewer Integration Tests', () => {
       activeSpectra: ['17', '18'], // EGFP emission (17) and excitation (18)
       chartOptions: {
         scaleEC: true,
-        scaleQY: true
-      }
+        scaleQY: true,
+      },
     })
 
     // Verify that both spectra can be fetched and have fragment fields
     const { data: data18 } = await client.query({
       query: require('../../client/queries').GET_SPECTRUM,
-      variables: { id: 18 }
+      variables: { id: 18 },
     })
 
     const { data: data17 } = await client.query({
       query: require('../../client/queries').GET_SPECTRUM,
-      variables: { id: 17 }
+      variables: { id: 17 },
     })
 
     // Verify both spectra have the fragment fields needed for scaling
@@ -177,19 +168,16 @@ describe('SpectraViewer Integration Tests', () => {
       activeSpectra: ['18', '80'], // EGFP and mCherry excitation
       chartOptions: {
         scaleEC: true,
-        scaleQY: false
-      }
+        scaleQY: false,
+      },
     })
 
     const ownerInfo = {
       egfp: { ec: 55900, qy: 0.6 },
-      mcherry: { ec: 72000, qy: 0.22 }
+      mcherry: { ec: 72000, qy: 0.22 },
     }
 
-    renderWithProviders(
-      <SpectraViewerContainer ownerInfo={ownerInfo} />,
-      client
-    )
+    renderWithProviders(<SpectraViewerContainer ownerInfo={ownerInfo} />, client)
 
     await waitFor(
       () => {
@@ -209,18 +197,15 @@ describe('SpectraViewer Integration Tests', () => {
       activeSpectra: ['17'], // EGFP emission
       chartOptions: {
         scaleEC: false,
-        scaleQY: true
-      }
+        scaleQY: true,
+      },
     })
 
     const ownerInfo = {
-      egfp: { ec: 55900, qy: 0.6 }
+      egfp: { ec: 55900, qy: 0.6 },
     }
 
-    renderWithProviders(
-      <SpectraViewerContainer ownerInfo={ownerInfo} />,
-      client
-    )
+    renderWithProviders(<SpectraViewerContainer ownerInfo={ownerInfo} />, client)
 
     await waitFor(
       () => {
@@ -240,17 +225,17 @@ describe('SpectraViewer Integration Tests', () => {
       activeSpectra: ['17', '18', '79', '80'], // EGFP and mCherry EX/EM
       chartOptions: {
         scaleEC: true,
-        scaleQY: true
-      }
+        scaleQY: true,
+      },
     })
 
     // Verify all 4 spectra can be fetched with correct fragment fields
     const spectraIds = [17, 18, 79, 80]
     const results = await Promise.all(
-      spectraIds.map(id =>
+      spectraIds.map((id) =>
         client.query({
           query: require('../../client/queries').GET_SPECTRUM,
-          variables: { id }
+          variables: { id },
         })
       )
     )
@@ -268,7 +253,7 @@ describe('SpectraViewer Integration Tests', () => {
     expect(results[3].data.spectrum.owner.name).toBe('mCherry')
 
     // Verify mix of EX and EM subtypes
-    const subtypes = results.map(r => r.data.spectrum.subtype)
+    const subtypes = results.map((r) => r.data.spectrum.subtype)
     expect(subtypes).toContain('EX')
     expect(subtypes).toContain('EM')
   })
@@ -287,7 +272,7 @@ describe('SpectraViewer Integration Tests', () => {
       logScale: false,
       extremes: [null, null],
       shareTooltip: true,
-      palette: 'wavelength'
+      palette: 'wavelength',
     }
 
     renderWithProviders(
@@ -319,14 +304,11 @@ describe('SpectraViewer Integration Tests', () => {
       activeSpectra: ['18', '80'], // EGFP and mCherry excitation
       chartOptions: {
         scaleEC: true,
-        scaleQY: false
-      }
+        scaleQY: false,
+      },
     })
 
-    renderWithProviders(
-      <SpectraViewerContainer ownerInfo={{}} />,
-      client
-    )
+    renderWithProviders(<SpectraViewerContainer ownerInfo={{}} />, client)
 
     await waitFor(
       async () => {
@@ -345,7 +327,7 @@ describe('SpectraViewer Integration Tests', () => {
               }
             }
           `,
-          variables: { id: 18 }
+          variables: { id: 18 },
         })
 
         // This test verifies that the fragment fields are in the cache

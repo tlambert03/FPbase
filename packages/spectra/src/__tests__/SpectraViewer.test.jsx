@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { BaseSpectraViewer, XAxisWithRange, SpectraViewerContainer } from '../Components/SpectraViewer/SpectraViewer'
+import { describe, expect, it } from 'vitest'
+import {
+  BaseSpectraViewer,
+  SpectraViewerContainer,
+  XAxisWithRange,
+} from '../Components/SpectraViewer/SpectraViewer'
 
 describe('SpectraViewer exports', () => {
   it('exports BaseSpectraViewer component', () => {

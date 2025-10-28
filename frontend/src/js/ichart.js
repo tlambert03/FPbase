@@ -1,6 +1,6 @@
-import noUiSlider from "nouislider"
-import * as d3 from "d3"
-import $ from "jquery"
+import * as d3 from 'd3'
+import $ from 'jquery'
+import noUiSlider from 'nouislider'
 
 export default function FPPropChart() {
   const margin = { top: 20, right: 30, bottom: 20, left: 68 }
@@ -11,8 +11,8 @@ export default function FPPropChart() {
   // sel,
   let currentData
   let FPdata = [] // Where the fluorescent protein data table will end up.;
-  let currentX = "ex_max"
-  let currentY = "em_max"
+  let currentX = 'ex_max'
+  let currentY = 'em_max'
   // danceInterval,
   const circleMoveDuration = 400
   const symbolsize = 8 // radius of circle
@@ -28,20 +28,20 @@ export default function FPPropChart() {
     ext_coeff: [10000, 230000, 1000],
     qy: [0, 1, 0.01],
     brightness: [0, 165, 1],
-    agg: "",
+    agg: '',
   }
   // string variables for updating the axis labels
   const strings = {
-    em_max: "Emission Wavelength (nm)",
-    ex_max: "Excitation Wavelength (nm)",
-    stokes: "Stokes Shift (nm)",
-    ext_coeff: "Extinction Coefficient",
-    qy: "Quantum Yield",
-    brightness: "Brightness",
-    pka: "pKa",
-    bleach: "Bleaching Half-life (s)",
-    maturation: "Maturation Half-time (min)",
-    lifetime: "Lifetime (ns)",
+    em_max: 'Emission Wavelength (nm)',
+    ex_max: 'Excitation Wavelength (nm)',
+    stokes: 'Stokes Shift (nm)',
+    ext_coeff: 'Extinction Coefficient',
+    qy: 'Quantum Yield',
+    brightness: 'Brightness',
+    pka: 'pKa',
+    bleach: 'Bleaching Half-life (s)',
+    maturation: 'Maturation Half-time (min)',
+    lifetime: 'Lifetime (ns)',
   }
 
   // Scales and axes
@@ -52,40 +52,26 @@ export default function FPPropChart() {
   const originalYScale = d3.scaleLinear().range([height, 0])
 
   // This scale will set the saturation (gray to saturated color).  We will use it for mapping brightness.
-  const saturationScale = d3
-    .scaleLinear()
-    .range([0, 1])
-    .domain([0, 100])
+  const saturationScale = d3.scaleLinear().range([0, 1]).domain([0, 100])
 
   // This scale will set the hue.  We will use it for mapping emission wavelength.
-  const hueScale = d3
-    .scaleLinear()
-    .range([300, 300, 240, 0, 0])
-    .domain([200, 405, 440, 650, 850])
+  const hueScale = d3.scaleLinear().range([300, 300, 240, 0, 0]).domain([200, 405, 440, 650, 850])
 
   // X and Y axes
-  const xAxisBottom = d3
-    .axisBottom(xScale)
-    .tickSize(5)
+  const xAxisBottom = d3.axisBottom(xScale).tickSize(5)
 
-  const yAxisLeft = d3
-    .axisLeft(yScale)
-    .tickSize(5)
+  const yAxisLeft = d3.axisLeft(yScale).tickSize(5)
 
   // top and right axes are identical but without tick labels
   const xAxisTop = d3
     .axisTop(xScale)
     .tickSize(5)
-    .tickFormat(function(d) {
-      return ""
-    })
+    .tickFormat((_d) => '')
 
   const yAxisRight = d3
     .axisRight(yScale)
     .tickSize(5)
-    .tickFormat(function(d) {
-      return ""
-    })
+    .tickFormat((_d) => '')
 
   // on page load, listen to slider events and respond by updating the filter ranges (and updating the ui)
 
@@ -95,113 +81,97 @@ export default function FPPropChart() {
     // Create the SVG container and set the origin.
 
     // Select the svg element, if it exists.
-    let svg = selection.selectAll("svg").data([FPdata])
+    let svg = selection.selectAll('svg').data([FPdata])
 
     // Otherwise, create the skeletal chart.
-    const svgEnter = svg.enter().append("svg")
-      .attr("viewBox", "0 0 760 760")
-      .attr("id", "mainchart")
-      .attr("preserveAspectRatio", "xMinYMin meet")
-    const gEnter = svgEnter.append("g")
+    const svgEnter = svg
+      .enter()
+      .append('svg')
+      .attr('viewBox', '0 0 760 760')
+      .attr('id', 'mainchart')
+      .attr('preserveAspectRatio', 'xMinYMin meet')
+    const gEnter = svgEnter.append('g')
 
     function drawGraph() {
       // redraw axes with new domainsc
-      svg.select(".x.axis.bottom").call(xAxisBottom)
-      svg.select(".y.axis.left").call(yAxisLeft)
-      svg.select(".x.axis.top").call(xAxisTop)
-      svg.select(".y.axis.right").call(yAxisRight)
+      svg.select('.x.axis.bottom').call(xAxisBottom)
+      svg.select('.y.axis.left').call(yAxisLeft)
+      svg.select('.x.axis.top').call(xAxisTop)
+      svg.select('.y.axis.right').call(yAxisRight)
 
       svg
-        .selectAll("circle.FP")
-        .attr("cx", function(d) {
-          return xScale(d[currentX])
-        })
-        .attr("cy", function(d) {
-          return yScale(d[currentY])
-        })
+        .selectAll('circle.FP')
+        .attr('cx', (d) => xScale(d[currentX]))
+        .attr('cy', (d) => yScale(d[currentY]))
 
       svg
-        .selectAll("rect.FP")
-        .attr("x", function(d) {
-          return xScale(d[currentX]) - symbolsize
-        })
-        .attr("y", function(d) {
-          return yScale(d[currentY]) - symbolsize
-        })
+        .selectAll('rect.FP')
+        .attr('x', (d) => xScale(d[currentX]) - symbolsize)
+        .attr('y', (d) => yScale(d[currentY]) - symbolsize)
 
       svg
-        .selectAll("text.FP")
-        .attr("x", function(d) {
-          return xScale(d[currentX]) - symbolsize / 2
-        })
-        .attr("y", function(d) {
-          return yScale(d[currentY]) + symbolsize / 2
-        })
+        .selectAll('text.FP')
+        .attr('x', (d) => xScale(d[currentX]) - symbolsize / 2)
+        .attr('y', (d) => yScale(d[currentY]) + symbolsize / 2)
     }
 
     svg
-      .attr("viewBox", "0 0 760 760")
-      .attr("id", "mainchart")
-      .attr("preserveAspectRatio", "xMinYMin meet")
+      .attr('viewBox', '0 0 760 760')
+      .attr('id', 'mainchart')
+      .attr('preserveAspectRatio', 'xMinYMin meet')
 
-    svg = svg.merge(svgEnter).select("g")
+    svg = svg.merge(svgEnter).select('g')
 
     gEnter
-      .attr("transform", `translate(${margin.left},${margin.top})`)
-      .classed("svg-content-responsive", true)
+      .attr('transform', `translate(${margin.left},${margin.top})`)
+      .classed('svg-content-responsive', true)
 
     // Add the axes
     gEnter
-      .append("g")
-      .attr("class", "x axis bottom")
-      .attr("transform", `translate(0,${height})`)
+      .append('g')
+      .attr('class', 'x axis bottom')
+      .attr('transform', `translate(0,${height})`)
       .call(xAxisBottom)
+    gEnter.append('g').attr('class', 'y axis left').call(yAxisLeft)
+    gEnter.append('g').attr('class', 'x axis top').call(xAxisTop)
     gEnter
-      .append("g")
-      .attr("class", "y axis left")
-      .call(yAxisLeft)
-    gEnter
-      .append("g")
-      .attr("class", "x axis top")
-      .call(xAxisTop)
-    gEnter
-      .append("svg:g")
-      .attr("class", "y axis right")
-      .attr("transform", `translate(${width},0)`)
+      .append('svg:g')
+      .attr('class', 'y axis right')
+      .attr('transform', `translate(${width},0)`)
       .call(yAxisRight)
 
     // Add an x-axis label.
     gEnter
-      .append("text")
-      .attr("class", "x label")
-      .attr("text-anchor", "middle")
-      .attr("x", width / 2)
-      .attr("y", height - 10)
-      .text("Excitation wavelength (nm)")
+      .append('text')
+      .attr('class', 'x label')
+      .attr('text-anchor', 'middle')
+      .attr('x', width / 2)
+      .attr('y', height - 10)
+      .text('Excitation wavelength (nm)')
 
     // Add a y-axis label.
     gEnter
-      .append("text")
-      .attr("class", "y label")
-      .attr("text-anchor", "middle")
-      .attr("x", -height / 2)
-      .attr("y", margin.left - 30)
-      .attr("transform", "rotate(-90)")
-      .text("Emission wavelength (nm)")
+      .append('text')
+      .attr('class', 'y label')
+      .attr('text-anchor', 'middle')
+      .attr('x', -height / 2)
+      .attr('y', margin.left - 30)
+      .attr('transform', 'rotate(-90)')
+      .text('Emission wavelength (nm)')
 
     // Add a clipping path so that data points don't go outside of frame
     gEnter
-      .append("clipPath") // Make a new clipPath
-      .attr("id", "chart-area") // Assign an ID
-      .append("rect")
-      .attr("width", width)
-      .attr("height", height)
+      .append('clipPath') // Make a new clipPath
+      .attr('id', 'chart-area') // Assign an ID
+      .append('rect')
+      .attr('width', width)
+      .attr('height', height)
 
     // enable zooming
     const zoom = d3
       .zoom()
       .scaleExtent([1, 10])
-      .on("zoom", (event) => {
+      .on('zoom', (event) => {
         const transform = event.transform
         xScale.domain(transform.rescaleX(originalXScale).domain())
         yScale.domain(transform.rescaleY(originalYScale).domain())
@@ -209,147 +179,125 @@ export default function FPPropChart() {
       })
 
     gEnter
-      .append("rect")
-      .attr("class", "pane")
-      .attr("width", width)
-      .attr("height", height)
+      .append('rect')
+      .attr('class', 'pane')
+      .attr('width', width)
+      .attr('height', height)
       .call(zoom)
 
     function addactions(sel) {
-      sel.on("click", function(event, d) {
+      sel.on('click', (_event, d) => {
         window.location = d.url
       })
       sel
-        .on("mouseover", function(event, d) {
+        .on('mouseover', function (event, d) {
           // Get this bar's x/y values, then augment for the tooltip
-          if (d3.select(this).attr("cx")) {
+          if (d3.select(this).attr('cx')) {
             // if circle
             d3.select(this)
               .transition()
               .duration(100)
-              .attr("r", symbolsize * bigscale)
-          } else if (d3.select(this).attr("x")) {
+              .attr('r', symbolsize * bigscale)
+          } else if (d3.select(this).attr('x')) {
             // if rectangle
             d3.select(this)
               .transition()
               .duration(100)
-              .attr("x", function(d_) {
-                return xScale(d_[currentX]) - symbolsize * bigscale
-              })
-              .attr("y", function(d_) {
-                return yScale(d_[currentY]) - symbolsize * bigscale
-              })
-              .attr("width", symbolsize * 2 * bigscale)
-              .attr("height", symbolsize * 2 * bigscale)
+              .attr('x', (d_) => xScale(d_[currentX]) - symbolsize * bigscale)
+              .attr('y', (d_) => yScale(d_[currentY]) - symbolsize * bigscale)
+              .attr('width', symbolsize * 2 * bigscale)
+              .attr('height', symbolsize * 2 * bigscale)
           }
-          const ypos = event.pageY - $("rect.pane").position().top
-          const xpos = event.pageX - $("rect.pane").position().left
+          const ypos = event.pageY - $('rect.pane').position().top
+          const xpos = event.pageX - $('rect.pane').position().left
 
-          const yPosition = $("rect.pane").position().top + 10
+          const yPosition = $('rect.pane').position().top + 10
           let xPosition
           if (xpos < 179 && ypos < 141) {
-            xPosition =
-              $("#mainchart").position().left + $("#mainchart").width() - 180
+            xPosition = $('#mainchart').position().left + $('#mainchart').width() - 180
           } else {
-            xPosition = $("rect.pane").position().left + 10
+            xPosition = $('rect.pane').position().left + 10
           }
           // Update the tooltip position and value
-          d3.select("#tooltip")
-            .style("left", `${xPosition}px`)
-            .style("top", `${yPosition}px`)
-            .select("#exvalue")
+          d3.select('#tooltip')
+            .style('left', `${xPosition}px`)
+            .style('top', `${yPosition}px`)
+            .select('#exvalue')
             .text(d.ex_max)
-          d3.select("#tooltip")
-            .select("#emvalue")
-            .text(d.em_max)
-          d3.select("#tooltip")
-            .select("#ecvalue")
-            .text(d.ext_coeff)
-          d3.select("#tooltip")
-            .select("#qyvalue")
-            .text(d.qy)
-          d3.select("#tooltip")
-            .select("h3")
-            .html(d.name)
-          d3.select("#tooltip")
-            .select("#brightnessvalue")
-            .text(d.brightness)
+          d3.select('#tooltip').select('#emvalue').text(d.em_max)
+          d3.select('#tooltip').select('#ecvalue').text(d.ext_coeff)
+          d3.select('#tooltip').select('#qyvalue').text(d.qy)
+          d3.select('#tooltip').select('h3').html(d.name)
+          d3.select('#tooltip').select('#brightnessvalue').text(d.brightness)
 
           // Show the tooltip
-          d3.select("#tooltip").classed("hidden", false)
+          d3.select('#tooltip').classed('hidden', false)
         })
 
-        .on("mouseout", function() {
-          if (d3.select(this).attr("cx")) {
+        .on('mouseout', function () {
+          if (d3.select(this).attr('cx')) {
+            // if circle
+            d3.select(this).transition().duration(200).attr('r', symbolsize)
+          } else if (d3.select(this).attr('x')) {
             // if circle
             d3.select(this)
               .transition()
               .duration(200)
-              .attr("r", symbolsize)
-          } else if (d3.select(this).attr("x")) {
-            // if circle
-            d3.select(this)
-              .transition()
-              .duration(200)
-              .attr("x", function(d) {
-                return xScale(d[currentX]) - symbolsize
-              })
-              .attr("y", function(d) {
-                return yScale(d[currentY]) - symbolsize
-              })
-              .attr("width", symbolsize * 2)
-              .attr("height", symbolsize * 2)
+              .attr('x', (d) => xScale(d[currentX]) - symbolsize)
+              .attr('y', (d) => yScale(d[currentY]) - symbolsize)
+              .attr('width', symbolsize * 2)
+              .attr('height', symbolsize * 2)
           }
           // Hide the tooltip
-          d3.select("#tooltip").classed("hidden", true)
+          d3.select('#tooltip').classed('hidden', true)
         })
     }
 
     function plotcircle(sel) {
       const circle = sel
-        .append("circle")
-        .attr("class", "FP")
-        .attr("r", symbolsize)
-        .attr("stroke", "#000")
-        .attr("opacity", 0.7)
-        .style("fill", function(d) {
-          return d3.hsl(hueScale(d.em_max), saturationScale(d.brightness), 0.5).toString()
-        })
+        .append('circle')
+        .attr('class', 'FP')
+        .attr('r', symbolsize)
+        .attr('stroke', '#000')
+        .attr('opacity', 0.7)
+        .style('fill', (d) =>
+          d3.hsl(hueScale(d.em_max), saturationScale(d.brightness), 0.5).toString()
+        )
       addactions(circle)
     }
 
     function plotsquare(sel) {
       const square = sel
-        .append("rect")
-        .attr("class", "FP")
-        .attr("width", symbolsize * 2)
-        .attr("height", symbolsize * 2)
-        .attr("stroke", "#000")
-        .attr("opacity", 0.7)
-        .style("fill", function(d) {
-          return d3.hsl(hueScale(d.em_max), saturationScale(d.brightness), 0.5).toString()
-        })
+        .append('rect')
+        .attr('class', 'FP')
+        .attr('width', symbolsize * 2)
+        .attr('height', symbolsize * 2)
+        .attr('stroke', '#000')
+        .attr('opacity', 0.7)
+        .style('fill', (d) =>
+          d3.hsl(hueScale(d.em_max), saturationScale(d.brightness), 0.5).toString()
+        )
       addactions(square)
     }
 
     function labelAgg(sel) {
       sel
-        .append("text")
-        .attr("class", "FP")
-        .text(function(d) {
-          if (d.agg === "d") {
-            return "2"
+        .append('text')
+        .attr('class', 'FP')
+        .text((d) => {
+          if (d.agg === 'd') {
+            return '2'
           }
-          if (d.agg === "td") {
-            return "t"
+          if (d.agg === 'td') {
+            return 't'
           }
-          if (d.agg === "wd") {
-            return "2"
+          if (d.agg === 'wd') {
+            return '2'
           }
-          if (d.agg === "t") {
-            return "4"
+          if (d.agg === 't') {
+            return '4'
           }
-          return ""
+          return ''
         })
     }
 
@@ -365,7 +313,7 @@ export default function FPPropChart() {
       function filtercheck(datum) {
         // eslint-disable-next-line
         for (const f in dataFilters) {
-          if (f === "agg") {
+          if (f === 'agg') {
             if (dataFilters[f]) {
               if (datum[f] !== dataFilters[f]) {
                 return false
@@ -382,24 +330,16 @@ export default function FPPropChart() {
       }
 
       // filter the currentData according to the user settings for EC, QY, and brightness range
-      currentData = currentData.filter(function(d) {
-        return filtercheck(d) ? d : null
-      })
+      currentData = currentData.filter((d) => (filtercheck(d) ? d : null))
 
       // filter out currentData with empty values
-      currentData = currentData.filter(function(d) {
-        return d[xvar] > 0 && d[yvar] > 0
-      })
+      currentData = currentData.filter((d) => d[xvar] > 0 && d[yvar] > 0)
 
       // update scale domains based on currentData
       xScale
         .domain([
-          d3.min(currentData, function(d) {
-            return 0.99 * d[xvar]
-          }),
-          d3.max(currentData, function(d) {
-            return 1.01 * d[xvar]
-          }),
+          d3.min(currentData, (d) => 0.99 * d[xvar]),
+          d3.max(currentData, (d) => 1.01 * d[xvar]),
         ])
         .nice()
 
@@ -408,12 +348,8 @@ export default function FPPropChart() {
 
       yScale
         .domain([
-          d3.min(currentData, function(d) {
-            return 0.99 * d[yvar]
-          }),
-          d3.max(currentData, function(d) {
-            return 1.01 * d[yvar]
-          }),
+          d3.min(currentData, (d) => 0.99 * d[yvar]),
+          d3.max(currentData, (d) => 1.01 * d[yvar]),
         ])
         .nice()
 
@@ -421,23 +357,21 @@ export default function FPPropChart() {
       originalYScale.domain(yScale.domain())
 
       // relabel X and Y axes
-      svg.select(".x.label").text(strings[xvar])
-      svg.select(".y.label").text(strings[yvar])
+      svg.select('.x.label').text(strings[xvar])
+      svg.select('.y.label').text(strings[yvar])
 
       // Join new currentData with old elements, if any.
-      const datagroup = svg.selectAll("g.FP").data(currentData, function(d) {
-        return d.name
-      })
+      const datagroup = svg.selectAll('g.FP').data(currentData, (d) => d.name)
       const entergroup = datagroup
         .enter()
-        .append("g")
-        .attr("class", "FP")
-        .attr("clip-path", "url(#chart-area)")
+        .append('g')
+        .attr('class', 'FP')
+        .attr('clip-path', 'url(#chart-area)')
         .call(zoom) // so we can zoom while moused over elements
 
-      entergroup.each(function(d, i) {
+      entergroup.each(function (d, _i) {
         // determine type of protein and whether to plot a circle or a square
-        if (d.cofactor !== "") {
+        if (d.cofactor !== '') {
           // plot squeares (for proteins with cofactor)
           plotsquare(d3.select(this))
         } else {
@@ -455,61 +389,47 @@ export default function FPPropChart() {
       const mergedgroup = datagroup.merge(entergroup)
 
       // move circles to their new positions (based on axes) with transition animation
-      mergedgroup.each(function(d, i) {
+      mergedgroup.each(function (_d, _i) {
         const current = d3.select(this)
         current
-          .selectAll("circle.FP")
+          .selectAll('circle.FP')
           .transition()
           .duration(circleMoveDuration) // change this number to speed up or slow down the animation
-          .attr("cx", function(d_) {
-            return xScale(d_[xvar])
-          })
-          .attr("cy", function(d_) {
-            return yScale(d_[yvar])
-          })
+          .attr('cx', (d_) => xScale(d_[xvar]))
+          .attr('cy', (d_) => yScale(d_[yvar]))
         current
-          .selectAll("rect.FP")
+          .selectAll('rect.FP')
           .transition()
           .duration(circleMoveDuration) // change this number to speed up or slow down the animation
-          .attr("x", function(d_) {
-            return xScale(d_[xvar]) - symbolsize
-          })
-          .attr("y", function(d_) {
-            return yScale(d_[yvar]) - symbolsize
-          })
+          .attr('x', (d_) => xScale(d_[xvar]) - symbolsize)
+          .attr('y', (d_) => yScale(d_[yvar]) - symbolsize)
         current
-          .selectAll("text.FP")
+          .selectAll('text.FP')
           .transition()
           .duration(circleMoveDuration) // change this number to speed up or slow down the animation
-          .attr("x", function(d_) {
-            return xScale(d_[xvar]) - symbolsize / 2
-          })
-          .attr("y", function(d_) {
-            return yScale(d_[yvar]) + symbolsize / 2
-          })
+          .attr('x', (d_) => xScale(d_[xvar]) - symbolsize / 2)
+          .attr('y', (d_) => yScale(d_[yvar]) + symbolsize / 2)
       })
 
       // these two lines cause the transition animation on the axes... they are also cause
       // chopiness in the user interface when the user slides the range sliders
       // on the right side...  uncomment to see their effect.
-      svg.select(".x.axis.bottom").call(xAxisBottom)
-      svg.select(".y.axis.left").call(yAxisLeft)
+      svg.select('.x.axis.bottom').call(xAxisBottom)
+      svg.select('.y.axis.left').call(yAxisLeft)
     }
 
     if (!svgEnter.empty()) {
       // dynamically generate filter sliders based on "filters" object
-      $.each(dataFilters, function(i, v) {
-        if (i === "agg") {
+      $.each(dataFilters, (i, v) => {
+        if (i === 'agg') {
           return true
         }
-        $(`<div id='${i}' class='noUi-slider'/>`).appendTo("#sliders")
+        $(`<div id='${i}' class='noUi-slider'/>`).appendTo('#sliders')
         let slider = document.getElementById(i)
-        $(
-          `<label class='noUi-slider-label' for=${i}>${strings[i]}</label>`
-        ).appendTo(slider)
+        $(`<label class='noUi-slider-label' for=${i}>${strings[i]}</label>`).appendTo(slider)
 
         const formatttip = {
-          to: function(value) {
+          to: (value) => {
             if (value < 1) {
               return value
             }
@@ -523,7 +443,7 @@ export default function FPPropChart() {
         noUiSlider.create(slider, {
           start: [v[0], v[1]], // 4 handles, starting at...
           connect: true, // Display a colored bar between the handles
-          behaviour: "tap-drag", // Move handle on tap, bar is draggable
+          behaviour: 'tap-drag', // Move handle on tap, bar is draggable
           step: v[2],
           tooltips: [formatttip, formatttip],
           range: { min: v[0], max: v[1] },
@@ -531,10 +451,10 @@ export default function FPPropChart() {
 
         let resizeTimer
         // update filter settings when user changes slider
-        slider.noUiSlider.on("update", function() {
+        slider.noUiSlider.on('update', function () {
           const filtID = this.target.id
           clearTimeout(resizeTimer)
-          resizeTimer = setTimeout(function() {
+          resizeTimer = setTimeout(() => {
             slider = document.getElementById(filtID)
             const data = slider.noUiSlider.get()
             dataFilters[filtID][0] = parseFloat(data[0])
@@ -545,22 +465,18 @@ export default function FPPropChart() {
         return true
       })
 
-      $("#aggselect").change(function() {
+      $('#aggselect').change(function () {
         const aggchoice = $(this).val()
         dataFilters.agg = aggchoice
         plot()
       })
 
-      $("#Xradio label").click(function() {
-        currentX = $(this)
-          .children("input")
-          .val()
+      $('#Xradio label').click(function () {
+        currentX = $(this).children('input').val()
         plot()
       })
-      $("#Yradio label").click(function() {
-        currentY = $(this)
-          .children("input")
-          .val()
+      $('#Yradio label').click(function () {
+        currentY = $(this).children('input').val()
         plot()
       })
     }
@@ -573,10 +489,10 @@ export default function FPPropChart() {
   //   doalittledance(1600)
   // })
 
-  chart.data = function(value) {
+  chart.data = (value) => {
     if (!arguments.length) return FPdata
 
-    value.forEach(function(d) {
+    value.forEach((d) => {
       d.em_max = +d.em_max // typing these variables here for simplicity of code later on
       d.ex_max = +d.ex_max
       d.ext_coeff = +d.ext_coeff

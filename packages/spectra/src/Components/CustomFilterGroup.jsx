@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from "react"
-import Box from "@mui/material/Box"
-import IconButton from "@mui/material/IconButton"
-import Button from "@mui/material/Button"
-import AddIcon from "@mui/icons-material/Add"
-import DeleteIcon from "@mui/icons-material/Delete"
-import { useMutation } from "@apollo/client"
-import { categoryIcon } from "./FaIcon"
-import CustomFilterCreator from "./CustomFilterCreator"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useMutation } from '@apollo/client'
+import AddIcon from '@mui/icons-material/Add'
+import DeleteIcon from '@mui/icons-material/Delete'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import IconButton from '@mui/material/IconButton'
+import { useEffect, useRef, useState } from 'react'
+import { UPDATE_ACTIVE_SPECTRA } from '../client/queries'
+import CustomFilterCreator from './CustomFilterCreator'
+import { categoryIcon } from './FaIcon'
 
 const CustomFilterGroup = ({ activeSpectra }) => {
   const filterCounter = useRef(0)
@@ -18,9 +18,9 @@ const CustomFilterGroup = ({ activeSpectra }) => {
     setFilters([...customFilters, `$cf${filterCounter.current++}`])
   }
 
-  const removeRow = filter => {
-    const filterID = filter.split("_")[0]
-    setFilters(customFilters.filter(id => !id.startsWith(filterID)))
+  const removeRow = (filter) => {
+    const filterID = filter.split('_')[0]
+    setFilters(customFilters.filter((id) => !id.startsWith(filterID)))
     updateSpectra({
       variables: {
         remove: [filterID],
@@ -34,35 +34,34 @@ const CustomFilterGroup = ({ activeSpectra }) => {
   useEffect(() => {
     if (activeSpectra && activeSpectra.length > 0) {
       const newFilters = activeSpectra.filter(
-        as =>
-          as.startsWith("$cf") &&
-          !customFilters.find(item => item.startsWith(as.split("_")[0]))
+        (as) =>
+          as.startsWith('$cf') && !customFilters.find((item) => item.startsWith(as.split('_')[0]))
       )
 
       if (newFilters.length) {
-        const inds = newFilters.map(id => +id.split("_")[0].replace("$cf", ""))
+        const inds = newFilters.map((id) => +id.split('_')[0].replace('$cf', ''))
         filterCounter.current = Math.max(...inds) + 1
         setFilters([...customFilters, ...newFilters])
       }
     }
-  }, [activeSpectra]) // eslint-disable-line
+  }, [activeSpectra, customFilters]) // eslint-disable-line
 
   return (
     <div>
-      {customFilters.sort().map(filter => (
-        <div style={{ width: "100%", margin: "4px 0" }} key={filter}>
+      {customFilters.sort().map((filter) => (
+        <div style={{ width: '100%', margin: '4px 0' }} key={filter}>
           <Box display="flex" alignItems="center">
-            {categoryIcon("CF", "rgba(0,0,50,0.4)", {
+            {categoryIcon('CF', 'rgba(0,0,50,0.4)', {
               style: {
-                position: "relative",
+                position: 'relative',
                 top: 0,
                 left: 2,
-                height: "1.3rem",
+                height: '1.3rem',
                 marginRight: 10,
               },
             })}
             <Box flexGrow={1}>
-              <CustomFilterCreator key={filter.split("_")[0]} id={filter} />
+              <CustomFilterCreator key={filter.split('_')[0]} id={filter} />
             </Box>
             <Box>
               <IconButton
@@ -71,7 +70,7 @@ const CustomFilterGroup = ({ activeSpectra }) => {
                 tabIndex={-1}
                 onClick={() => removeRow(filter)}
                 style={{
-                  padding: "6px 6px",
+                  padding: '6px 6px',
                   marginRight: 2,
                   marginLeft: 2,
                 }}
