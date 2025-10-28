@@ -103,6 +103,7 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
 
     auth_page.locator("#id_category").select_option(Spectrum.PROTEIN)
     auth_page.locator("#id_subtype").select_option(Spectrum.EX)
+    auth_page.locator("#id_confirmation").check()
 
     # Select2 autocomplete for protein
     _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
@@ -112,7 +113,6 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
     data_field = auth_page.locator("#id_data")
     expect(data_field).to_be_visible()
     data_field.fill("[[500,0.1],[505,0.5],[510,0.8],[515,0.6],[520,0.3]]")
-    auth_page.locator("#id_confirmation").check()
 
     # Submit for preview and wait for form to process
     submit_btn = auth_page.locator('input[type="submit"]')
@@ -128,6 +128,48 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
     # submit it!
     auth_page.get_by_text("Submit Spectrum").click()
     expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:spectrum_submitted')}")
+
+
+def test_spectrum_submission_tab_switching(auth_page: Page, live_server: LiveServer) -> None:
+    """Test tab switching behavior in spectrum submission form."""
+    # Create a protein so owner_state field has options
+    protein = ProteinFactory.create()
+
+    url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
+    auth_page.goto(url)
+    expect(auth_page).to_have_url(url)
+
+    # Fill out basic fields
+    auth_page.locator("#id_category").select_option(Spectrum.PROTEIN)
+    auth_page.locator("#id_subtype").select_option(Spectrum.EX)
+    auth_page.locator("#id_confirmation").check()
+
+    _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
+
+    # Test tab switching
+    file_tab = auth_page.locator("#file-tab")
+    manual_tab = auth_page.locator("#manual-tab")
+
+    # Verify file tab is active by default
+    expect(file_tab).to_have_class(re.compile("active"))
+
+    # Switch to manual tab
+    manual_tab.click()
+    expect(manual_tab).to_have_class(re.compile("active"))
+
+    # Enter manual data
+    data_field = auth_page.locator("#id_data")
+    expect(data_field).to_be_visible()
+    expect(data_field).to_be_enabled()
+    data_field.fill("[[400,0.1],[401,0.2],[402,0.3],[403,0.5],[404,0.8],[405,1.0]]")
+
+    # Switch back to file tab
+    file_tab.click()
+    expect(file_tab).to_have_class(re.compile("active"))
+
+    # Verify submit button is present
+    submit_btn = auth_page.locator('input[type="submit"]')
+    expect(submit_btn).to_be_visible()
 
 
 @pytest.mark.parametrize("ext", [".svg", ".png", ".jpg", ".jpeg"])
@@ -172,9 +214,6 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page) -
 
     # Type fluorophore name and select
     _select2_enter("#select2-fluor-select-container", protein.name[:5], page)
-
-    # Wait for selection to complete
-    page.wait_for_timeout(300)
 
     # Switch optical config
     config_select = page.locator("#config-select")
@@ -274,59 +313,9 @@ def test_embedded_microscope_viewer(live_server: LiveServer, page: Page) -> None
     svg = page.locator(".svg-container svg")
     expect(svg).to_be_visible()
 
+    # Verify the chart has rendered spectra paths
     paths = page.locator(".svg-container svg path")
-    expect(paths).not_to_have_count(0)
-
-
-def test_spectrum_submission_tab_switching(auth_page: Page, live_server: LiveServer) -> None:
-    """Test tab switching behavior in spectrum submission form."""
-    url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
-    auth_page.goto(url)
-    expect(auth_page).to_have_url(url)
-
-    # Fill out basic fields
-    auth_page.locator("#id_category").select_option(Spectrum.PROTEIN)
-    auth_page.locator("#id_subtype").select_option(Spectrum.EX)
-
-    # Wait for owner_state field to be populated and select first non-empty option
-    owner_state = auth_page.locator("#id_owner_state")
-    expect(owner_state).to_be_visible()
-    # Wait a bit for the field to be populated after category/subtype selection
-    auth_page.wait_for_timeout(500)
-    # Try to select by index if options are available
-    try:
-        owner_state.select_option(index=1)
-    except Exception:
-        # If no options available, skip this step
-        pass
-
-    # Check confirmation
-    auth_page.locator("#id_confirmation").check()
-
-    # Test tab switching
-    file_tab = auth_page.locator("#file-tab")
-    manual_tab = auth_page.locator("#manual-tab")
-
-    # Verify file tab is active by default
-    expect(file_tab).to_have_class(re.compile("active"))
-
-    # Switch to manual tab
-    manual_tab.click()
-    expect(manual_tab).to_have_class(re.compile("active"))
-
-    # Enter manual data
-    data_field = auth_page.locator("#id_data")
-    expect(data_field).to_be_visible()
-    expect(data_field).to_be_enabled()
-    data_field.fill("[[400,0.1],[401,0.2],[402,0.3],[403,0.5],[404,0.8],[405,1.0]]")
-
-    # Switch back to file tab
-    file_tab.click()
-    expect(file_tab).to_have_class(re.compile("active"))
-
-    # Verify submit button is present
-    submit_btn = auth_page.locator('input[type="submit"]')
-    expect(submit_btn).to_be_visible()
+    assert paths.count() > 10, f"Expected more than 10 paths, but got {paths.count()}"
 
 
 def test_protein_comparison(live_server: LiveServer, page: Page) -> None:

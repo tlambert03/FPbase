@@ -54,6 +54,15 @@ CACHES = {
     }
 }
 
+# CELERY
+# ------------------------------------------------------------------------------
+# Use eager mode for tests - tasks execute synchronously without Redis
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True
+# Use in-memory broker and backend for tests
+CELERY_BROKER_URL = "memory://"
+CELERY_RESULT_BACKEND = "cache+memory://"
+
 # TESTING
 # ------------------------------------------------------------------------------
 TEST_RUNNER = "django.test.runner.DiscoverRunner"

@@ -72,15 +72,6 @@ jobs:
 
       - run: uv sync
 
-      - name: setup-chromedriver
-        uses: nanasess/setup-chromedriver@v2
-
-      - name: Configure headless display
-        run: |
-          echo "DISPLAY=:99.0" >> $GITHUB_ENV
-          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-          sleep 3
-
       - name: Test
         run: uv run pytest -v --cov --cov-report=xml
 

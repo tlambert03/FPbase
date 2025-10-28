@@ -31,6 +31,12 @@ backend:
 test-js:
     pnpm --filter @fpbase/spectra test:ci
 
+test-py:
+    uv run pytest
+    uv run pytest backend/tests_e2e/
+
+test: test-py test-js
+
 # update browserslist database
 update-browserslist:
     pnpm update -r caniuse-lite browserslist

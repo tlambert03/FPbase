@@ -119,7 +119,7 @@ def page(page: Page) -> Iterator[Page]:
     This wraps the default pytest-playwright page fixture.
     """
     # Set default timeout for actions (locator clicks, waits, etc)
-    page.set_default_timeout(DEFAULT_TIMEOUT)  # 4 seconds
+    page.set_default_timeout(DEFAULT_TIMEOUT)
     # Set consistent viewport size for predictable rendering
     page.set_viewport_size({"width": 1280, "height": 720})
     with console_errors_raised(page):
@@ -200,7 +200,7 @@ def auth_context(browser: Browser, auth_session_cookie: dict) -> Iterator[Browse
 
 
 @pytest.fixture
-def auth_page(auth_context: Browser) -> Iterator[Page]:
+def auth_page(auth_context: BrowserContext) -> Iterator[Page]:
     """Page with authenticated session and console error checking."""
     page = auth_context.new_page()
     page.set_default_timeout(DEFAULT_TIMEOUT)
