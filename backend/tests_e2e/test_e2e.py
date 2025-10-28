@@ -351,13 +351,12 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     expect(filter1).to_be_enabled()
 
     # First filter: Sequence cDNA contains
-    # Use fill() instead of type() for more reliable input
+    # Click to focus, then type to filter the dropdown
     filter1.click()
-    filter1.fill("seq")
-    # Wait for the next input to be focused/visible after tab
+    filter1.type("seq")
     page.keyboard.press("Tab")
 
-    # Wait for operator select to be focused (it should be the active element)
+    # Wait for operator select to be visible
     operator1 = page.locator("#operator-select-0")
     expect(operator1).to_be_visible()
 
@@ -365,7 +364,7 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     page.keyboard.type("cdna")
     page.keyboard.press("Tab")
 
-    # Wait for value input to be focused
+    # Wait for value input to be visible
     value1 = page.locator("#value-input-0")
     expect(value1).to_be_visible()
 
@@ -384,7 +383,7 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     expect(filter2).to_be_enabled()
 
     filter2.click()
-    filter2.fill("name")
+    filter2.type("name")
     page.keyboard.press("Tab")
 
     # Wait for operator to be ready
