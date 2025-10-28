@@ -345,34 +345,51 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     page.goto(url)
     expect(page).to_have_url(url)
 
+    # Wait for the form to be fully initialized
+    page.wait_for_selector("#filter-select-0", state="visible")
+    page.wait_for_timeout(500)  # Give JavaScript time to initialize
+
     # First filter: Sequence cDNA contains
     filter1 = page.locator("#filter-select-0")
     expect(filter1).to_be_visible()
-    filter1.type("seq")
+    filter1.click()
+    filter1.type("seq", delay=50)
+    page.wait_for_timeout(200)
     page.keyboard.press("Tab")
+    page.wait_for_timeout(200)
 
     # Type to select "cDNA could contain" action
-    page.keyboard.type("cdna")
+    page.keyboard.type("cdna", delay=50)
+    page.wait_for_timeout(200)
     page.keyboard.press("Tab")
+    page.wait_for_timeout(200)
 
     # Enter cDNA value
-    page.keyboard.type(CDNA)
+    page.keyboard.type(CDNA, delay=10)
+    page.wait_for_timeout(200)
 
     # Add second filter
     page.locator("#add-row-btn").click()
+    page.wait_for_timeout(300)
 
     # Second filter: Name contains
     filter2 = page.locator("#filter-select-1")
     expect(filter2).to_be_visible()
-    filter2.type("name")
+    filter2.click()
+    filter2.type("name", delay=50)
+    page.wait_for_timeout(200)
     page.keyboard.press("Tab")
+    page.wait_for_timeout(200)
 
     # Select "contains" action
-    page.keyboard.type("cont")
+    page.keyboard.type("cont", delay=50)
+    page.wait_for_timeout(200)
     page.keyboard.press("Tab")
+    page.wait_for_timeout(200)
 
     # Enter partial name
-    page.keyboard.type(protein.name[2:6])
+    page.keyboard.type(protein.name[2:6], delay=50)
+    page.wait_for_timeout(200)
 
     # Submit search
     page.locator('button[type="submit"]').click()
