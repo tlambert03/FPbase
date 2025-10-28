@@ -39,6 +39,7 @@ import pytest
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
+from webpack_loader import config, loaders, utils
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -87,7 +88,7 @@ def _frontend_assets_need_rebuild(stats_file) -> bool:
 
 
 @pytest.fixture(scope="module", autouse=True)
-def _build_frontend_assets() -> None:
+def _setup_frontend_assets() -> None:
     """Build webpack assets once per test module if needed.
 
     Checks if existing webpack stats represent a static build and if source files have changed.
@@ -102,6 +103,12 @@ def _build_frontend_assets() -> None:
     if _frontend_assets_need_rebuild(stats_file):
         print("Building frontend assets for e2e tests...")
         subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
+
+    # UNDO the MockWebpackLoader used in normal unit tests in config.settings.test
+    def _get_real_get_loader(config_name):
+        return loaders.WebpackLoader(config_name, config.load_config(config_name))
+
+    utils.get_loader = _get_real_get_loader
 
 
 @pytest.fixture

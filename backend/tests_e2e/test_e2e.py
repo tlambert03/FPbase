@@ -81,6 +81,17 @@ def test_spectra_viewer_loads(live_server: LiveServer, page: Page) -> None:
     expect(spectra_viewer).to_be_attached()
 
 
+def _select2_enter(selector: str, text: str, page: Page) -> None:
+    """Helper to select an option in a Select2 widget by typing and selecting."""
+    combo = page.locator(selector)
+    combo.click()
+    page.wait_for_selector(".select2-results", state="visible")
+    page.keyboard.type(text)
+    page.wait_for_selector(".select2-results__option--highlighted", state="visible")
+    page.keyboard.press("Enter")
+    page.wait_for_selector(".select2-results", state="hidden")
+
+
 def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: LiveServer) -> None:
     """Test spectrum submission form with manual data preview."""
     protein = ProteinFactory.create()
@@ -94,13 +105,7 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
     auth_page.locator("#id_subtype").select_option(Spectrum.EX)
 
     # Select2 autocomplete for protein
-    combo = auth_page.locator("#div_id_owner_state [role='combobox']")
-    combo.click()
-    auth_page.wait_for_selector(".select2-results", state="visible")
-    auth_page.keyboard.type(protein.name)
-    auth_page.wait_for_selector(".select2-results__option--highlighted", state="visible")
-    auth_page.keyboard.press("Enter")
-    auth_page.wait_for_selector(".select2-results", state="hidden")
+    _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
 
     # Switch to manual data tab and enter data
     auth_page.locator("#manual-tab").click()
@@ -165,18 +170,8 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page) -
     page.get_by_role("link", name=microscope.name).click()
     page.wait_for_load_state("networkidle")
 
-    # Wait for select2 to initialize
-    fluor_combo = page.locator("#select2-fluor-select-container")
-    expect(fluor_combo).to_be_visible()
-    expect(fluor_combo).to_be_enabled()
-    fluor_combo.click()
-
-    # Wait for dropdown to open
-    page.wait_for_selector(".select2-results", state="visible")
-
     # Type fluorophore name and select
-    page.keyboard.type(protein.name[:5])
-    page.keyboard.press("Enter")
+    _select2_enter("#select2-fluor-select-container", protein.name[:5], page)
 
     # Wait for selection to complete
     page.wait_for_timeout(300)
@@ -191,22 +186,29 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page) -
 
 def test_fret_page_loads(live_server: LiveServer, page: Page) -> None:
     """Test FRET page loads with donor/acceptor selection."""
-    ProteinFactory.create_batch(3)
-
+    ProteinFactory(name="donor", agg="m", default_state__ex_max=488, default_state__em_max=525)
+    ProteinFactory(
+        name="acceptor",
+        agg="m",
+        default_state__ex_max=525,
+        default_state__em_max=550,
+    )
     url = f"{live_server.url}{reverse('proteins:fret')}"
     page.goto(url)
     expect(page).to_have_url(url)
 
     # Verify select2 widgets are present and clickable
-    donor_combo = page.locator("#select2-donor-select-container")
-    acceptor_combo = page.locator("#select2-acceptor-select-container")
-    expect(donor_combo).to_be_visible()
-    expect(acceptor_combo).to_be_visible()
+    _select2_enter("#select2-donor-select-container", "donor", page)
+    _select2_enter("#select2-acceptor-select-container", "acceptor", page)
 
     # Verify result fields exist
     expect(page.locator("#QYD")).to_be_attached()
     expect(page.locator("#QYA")).to_be_attached()
     expect(page.locator("#overlapIntgrl")).to_be_attached()
+
+    svg = page.locator("#spectra svg")
+    expect(svg).to_be_visible()
+    expect(svg.locator("g.highcharts-series")).to_have_count(5)
 
 
 def test_collections_page_loads(live_server: LiveServer, page: Page) -> None:
