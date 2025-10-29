@@ -1,11 +1,11 @@
-import React from "react"
+import Paper from "@mui/material/Paper"
 import Table from "@mui/material/Table"
 import TableBody from "@mui/material/TableBody"
 import TableCell from "@mui/material/TableCell"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
-import Paper from "@mui/material/Paper"
 import { makeStyles } from "@mui/styles"
+import React from "react"
 
 function fpbaseLink(accession) {
   return (
@@ -15,11 +15,11 @@ function fpbaseLink(accession) {
   )
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   table: {
     marginTop: "10px",
-    minWidth: 650
-  }
+    minWidth: 650,
+  },
 }))
 
 function BlastReportDescription({ report, onClick }) {
@@ -33,7 +33,7 @@ function BlastReportDescription({ report, onClick }) {
       len: elem.len,
       gaps: elem.hsps[0].gaps,
       identity: elem.hsps[0].identity,
-      align_len: elem.hsps[0].align_len
+      align_len: elem.hsps[0].align_len,
     }
   })
 
@@ -52,7 +52,7 @@ function BlastReportDescription({ report, onClick }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map(row => (
+          {rows.map((row) => (
             <TableRow key={row.key}>
               <TableCell align="left">
                 <a
