@@ -1,8 +1,8 @@
-import '@testing-library/jest-dom'
-import { expect, beforeAll, afterAll, afterEach } from 'vitest'
-import { cleanup } from '@testing-library/react'
-import { setupServer } from 'msw/node'
-import { handlers } from './msw/handlers'
+import "@testing-library/jest-dom"
+import { cleanup } from "@testing-library/react"
+import { setupServer } from "msw/node"
+import { afterAll, afterEach, beforeAll, expect } from "vitest"
+import { handlers } from "./msw/handlers"
 
 // Set up MSW server for API mocking
 const server = setupServer(...handlers)
@@ -10,14 +10,14 @@ const server = setupServer(...handlers)
 // Start server before all tests
 beforeAll(() => {
   server.listen({
-    onUnhandledRequest: 'warn' // Warn on unhandled requests instead of error
+    onUnhandledRequest: "warn", // Warn on unhandled requests instead of error
   })
 
   // Suppress Highcharts warnings in test environment (no WebGL support in happy-dom)
   const originalConsoleError = console.error
   console.error = (...args) => {
     // Suppress Highcharts warning #26 (Boost module WebGL fallback)
-    if (typeof args[0] === 'string' && args[0].includes('Highcharts warning')) {
+    if (typeof args[0] === "string" && args[0].includes("Highcharts warning")) {
       return
     }
     originalConsoleError.apply(console, args)

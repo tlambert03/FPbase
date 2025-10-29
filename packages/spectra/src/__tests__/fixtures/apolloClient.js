@@ -3,23 +3,20 @@
  * Ensures tests use the same configuration as production
  */
 
-import { InMemoryCache } from '@apollo/client'
-import introspectionQueryResultData from '../../fragmentTypes.json'
+import { InMemoryCache } from "@apollo/client"
+import introspectionQueryResultData from "../../fragmentTypes.json"
 
 /**
  * Transform Apollo v2 introspection format to Apollo v3 possibleTypes
  * This is the SAME transformation used in production client.js
  */
 export function getPossibleTypes() {
-  return introspectionQueryResultData.__schema.types.reduce(
-    (acc, type) => {
-      if (type.possibleTypes) {
-        acc[type.name] = type.possibleTypes.map(t => t.name)
-      }
-      return acc
-    },
-    {}
-  )
+  return introspectionQueryResultData.__schema.types.reduce((acc, type) => {
+    if (type.possibleTypes) {
+      acc[type.name] = type.possibleTypes.map((t) => t.name)
+    }
+    return acc
+  }, {})
 }
 
 /**
@@ -54,20 +51,20 @@ export function validatePossibleTypes() {
   const possibleTypes = getPossibleTypes()
 
   // Critical: FluorophoreInterface must map to State and Dye
-  const fluorophore = possibleTypes['FluorophoreInterface']
+  const fluorophore = possibleTypes["FluorophoreInterface"]
   if (!fluorophore) {
-    throw new Error('FluorophoreInterface not found in possibleTypes')
+    throw new Error("FluorophoreInterface not found in possibleTypes")
   }
-  if (!fluorophore.includes('State') || !fluorophore.includes('Dye')) {
-    throw new Error('FluorophoreInterface must include State and Dye types')
+  if (!fluorophore.includes("State") || !fluorophore.includes("Dye")) {
+    throw new Error("FluorophoreInterface must include State and Dye types")
   }
 
   // Critical: SpectrumOwnerInterface must include all owner types
-  const owner = possibleTypes['SpectrumOwnerInterface']
+  const owner = possibleTypes["SpectrumOwnerInterface"]
   if (!owner) {
-    throw new Error('SpectrumOwnerInterface not found in possibleTypes')
+    throw new Error("SpectrumOwnerInterface not found in possibleTypes")
   }
-  const expectedTypes = ['State', 'Dye', 'Filter', 'Light', 'Camera']
+  const expectedTypes = ["State", "Dye", "Filter", "Light", "Camera"]
   for (const type of expectedTypes) {
     if (!owner.includes(type)) {
       throw new Error(`SpectrumOwnerInterface must include ${type} type`)
