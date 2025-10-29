@@ -17,9 +17,9 @@ function checkObject(val, prop, str) {
   }
   if (val.matchLevel === "full" || val.matchLevel === "partial") {
     if (str.length > 0) {
-      str = str + "; "
+      str = `${str}; `
     }
-    str = str + propDict[prop] + ": " + val.value
+    str = `${str + propDict[prop]}: ${val.value}`
   }
   return str
 }
@@ -42,7 +42,7 @@ function highlightHits(high) {
     }
   }
   if (str) {
-    return "<span class='highlighted-hits'>(" + str + ")</span>"
+    return `<span class='highlighted-hits'>(${str})</span>`
   } else {
     return ""
   }
@@ -104,7 +104,7 @@ function highlightRefHits(high) {
   }
 
   function truncate(str, no_words) {
-    return str.split(" ").splice(0, no_words).join(" ") + " ..."
+    return `${str.split(" ").splice(0, no_words).join(" ")} ...`
   }
 
   var results = recurseMatches(high)
@@ -127,14 +127,14 @@ function highlightRefHits(high) {
       for (let i = 0; i < results[key].length; i++) {
         _str.push(results[key][i][0])
       }
-      str = str + title + ": " + _str.join(", ")
+      str = `${str + title}: ${_str.join(", ")}`
     }
   }
   if (str) {
-    str = "<span class='highlighted-hits'>(" + str + ")</span>"
+    str = `<span class='highlighted-hits'>(${str})</span>`
   }
   if (Object.hasOwn(results, "title")) {
-    str = str + '<div class="ref-title" >' + results.title[0][0] + "</div>"
+    str = `${str}<div class="ref-title" >${results.title[0][0]}</div>`
   } else if (Object.hasOwn(results, "_excerpts")) {
     if (results._excerpts.some((d) => d[1] === "full")) {
       for (let e = 0; e < results._excerpts.length; e++) {
@@ -143,7 +143,7 @@ function highlightRefHits(high) {
           const pre = exc.split("<em>")[0].split(" ")
           let _pre = ""
           if (pre.length > 5) {
-            _pre = _pre + "... "
+            _pre = `${_pre}... `
           }
           str =
             str +
@@ -221,13 +221,13 @@ export default async function initAutocomplete() {
                 "_40.png'>"
               str = str + suggestion._highlightResult.name.value
               if (suggestion.img_url) {
-                str = str + "<img class='spectra' src=" + suggestion.img_url + ">"
+                str = `${str}<img class='spectra' src=${suggestion.img_url}>`
               }
               str = str + highlightHits(suggestion._highlightResult)
               var info = ""
               if (suggestion.switchType === "Basic") {
                 if (suggestion.ex && suggestion.em) {
-                  info = suggestion.ex + "/" + suggestion.em
+                  info = `${suggestion.ex}/${suggestion.em}`
                 } else {
                   info = ""
                 }
@@ -241,8 +241,8 @@ export default async function initAutocomplete() {
                   timer: "Time",
                 }[suggestion.switchType.toLowerCase()]
               }
-              str = str + "<span class='info'>" + info + "</span>"
-              return "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
+              str = `${str}<span class='info'>${info}</span>`
+              return `<a href='${suggestion.url}'><div>${str}</div></a>`
             },
           },
         },
@@ -254,9 +254,9 @@ export default async function initAutocomplete() {
           templates: {
             suggestion: (suggestion) => {
               var str = suggestion._highlightResult.citation.value
-              str = str + "<img class='type' src='" + window.FPBASE.imageDir + "ref.png" + "'>"
+              str = `${str}<img class='type' src='${window.FPBASE.imageDir}ref.png'>`
               str = str + highlightRefHits(suggestion._highlightResult)
-              return "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
+              return `<a href='${suggestion.url}'><div>${str}</div></a>`
             },
           },
         },
@@ -274,7 +274,7 @@ export default async function initAutocomplete() {
                 window.FPBASE.imageDir +
                 "organism_icon.png" +
                 "'>"
-              return "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
+              return `<a href='${suggestion.url}'><div>${str}</div></a>`
             },
           },
         },
@@ -283,7 +283,7 @@ export default async function initAutocomplete() {
             callback([
               {
                 query: query,
-                url: "/search/?q=" + encodeURI(query),
+                url: `/search/?q=${encodeURI(query)}`,
               },
             ])
           },

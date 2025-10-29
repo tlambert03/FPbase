@@ -188,7 +188,7 @@ export default function LineageChart(conf) {
       addDrawDropShadow(svg, dropShadow)
 
       var neededWidth = nodeWidth * data.max_depth + margin.right + margin.left
-      d3.select(".top-scroll-div").style("min-width", neededWidth + "px")
+      d3.select(".top-scroll-div").style("min-width", `${neededWidth}px`)
       d3.select(".top-scroll-wrapper").style(
         "display",
         neededWidth <= containerWidth ? "none" : "block"
@@ -204,7 +204,7 @@ export default function LineageChart(conf) {
       var g = svg
         .select("g")
         .attr("width", width)
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .attr("transform", `translate(${margin.left},${margin.top})`)
 
       // D3 v7: Create hierarchy from data if not already a hierarchy
       // Check if data is already a d3 hierarchy (has descendants method)
@@ -268,9 +268,9 @@ export default function LineageChart(conf) {
         var nodeEnter = node
           .enter()
           .append("g")
-          .attr("class", (d) => "node" + (d.data.err && d.data.err.length > 0 ? " has-err" : ""))
-          .attr("id", (d) => "node_" + d.data.slug)
-          .attr("transform", (_d) => "translate(" + source.y0 + "," + source.x0 + ")")
+          .attr("class", (d) => `node${d.data.err && d.data.err.length > 0 ? " has-err" : ""}`)
+          .attr("id", (d) => `node_${d.data.slug}`)
+          .attr("transform", (_d) => `translate(${source.y0},${source.x0})`)
           .on("contextmenu", click)
 
         nodeEnter
@@ -285,7 +285,7 @@ export default function LineageChart(conf) {
                 .select("defs")
                 .append("linearGradient")
                 // the 0 -> XX is a hack to fix a weird name-changing bug
-                .attr("id", d.data.slug.replace("0", "XX") + "_svggradient")
+                .attr("id", `${d.data.slug.replace("0", "XX")}_svggradient`)
                 .html(d.data.bg.replace("linear:", ""))
             }
           })
@@ -323,16 +323,16 @@ export default function LineageChart(conf) {
             if (largeWindow) {
               const _ttwidth = 200
               tooltip
-                .style("width", _ttwidth + "px")
+                .style("width", `${_ttwidth}px`)
                 .style("position", "absolute")
-                .style("left", event.pageX - _ttwidth / 2 + "px")
+                .style("left", `${event.pageX - _ttwidth / 2}px`)
                 .style("border-radius", "8px")
                 .style("bottom", "inherit")
                 .style("padding", ".6rem 0.5rem")
                 .style("font-size", "inherit")
                 .selectAll("span")
                 .style("font-size", "0.75rem")
-              tooltip.style("top", event.pageY - tooltip.node().clientHeight - 28 + "px")
+              tooltip.style("top", `${event.pageY - tooltip.node().clientHeight - 28}px`)
             } else {
               tooltip
                 .style("width", "100%")
@@ -360,7 +360,7 @@ export default function LineageChart(conf) {
                     .style("opacity", 0)
                     .transition()
                     .duration(0)
-                    .style("left", -9999 + "px")
+                    .style("left", `${-9999}px`)
                 })
             }
             tooltip
@@ -375,7 +375,7 @@ export default function LineageChart(conf) {
               .style("opacity", 0)
               .transition()
               .duration(0)
-              .style("left", -9999 + "px")
+              .style("left", `${-9999}px`)
 
             if (d.data.slug !== slug) {
               d3.select(this)
@@ -416,7 +416,7 @@ export default function LineageChart(conf) {
           .merge(nodeEnter)
           .transition()
           .duration(duration)
-          .attr("transform", (d) => "translate(" + d.y + "," + d.x + ")")
+          .attr("transform", (d) => `translate(${d.y},${d.x})`)
 
         nodeUpdate
           .select("circle")
@@ -425,13 +425,13 @@ export default function LineageChart(conf) {
           )
           .style("fill", (d) => {
             if (d.data.bg?.startsWith("linear:")) {
-              return "url(#" + d.data.slug.replace("0", "XX") + "_svggradient)"
+              return `url(#${d.data.slug.replace("0", "XX")}_svggradient)`
             } else if (d.data.bg === "?") {
               return "url(#unknown_gradient)"
             }
             return d.data.bg === "#222" ? "#888" : d.data.bg
           })
-          .style("stroke-width", (d) => (d._children ? defaultRadius / 2 + "px" : "1px"))
+          .style("stroke-width", (d) => (d._children ? `${defaultRadius / 2}px` : "1px"))
 
         nodeUpdate
           .select("text")
@@ -454,7 +454,7 @@ export default function LineageChart(conf) {
           .exit()
           .transition()
           .duration(duration)
-          .attr("transform", (_d) => "translate(" + source.y + "," + source.x + ")")
+          .attr("transform", (_d) => `translate(${source.y},${source.x})`)
           .remove()
 
         nodeExit.select("circle").attr("r", 1e-6)

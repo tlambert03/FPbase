@@ -33,15 +33,15 @@
     }
     const hasChildElements = (row) => row.find(childElementSelector).length > 0
     const showAddButton = () =>
-      maxForms.length == 0 || // For Django versions pre 1.2
-      maxForms.val() == "" ||
+      maxForms.length === 0 || // For Django versions pre 1.2
+      maxForms.val() === "" ||
       maxForms.val() - totalForms.val() > 0
     /**
      * Indicates whether delete link(s) can be displayed - when total forms > min forms
      */
     const showDeleteLinks = () =>
-      minForms.length == 0 || // For Django versions pre 1.7
-      minForms.val() == "" ||
+      minForms.length === 0 || // For Django versions pre 1.7
+      minForms.val() === "" ||
       totalForms.val() - minForms.val() > 0
     const insertDeleteLink = (row) => {
       const delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, ".")

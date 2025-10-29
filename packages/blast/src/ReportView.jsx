@@ -78,7 +78,7 @@ function BlastReport({ report }) {
     if (algnItem !== null && tab === 1) {
       $("html, body").animate(
         {
-          scrollTop: $("#dln_" + algnItem).offset().top - 60,
+          scrollTop: $(`#dln_${algnItem}`).offset().top - 60,
         },
         300
       )

@@ -104,7 +104,7 @@ $.fn.extend({
     }
 
     function updateData() {
-      $.get(window.location + "json/", (d) => {
+      $.get(`${window.location}json/`, (d) => {
         $("#update-alert").show()
         if (!d.report?.length) {
           $("#status").html('<p class="mt-5">No data yet.  Please update scope report.</p>')
@@ -129,12 +129,12 @@ $.fn.extend({
           {
             title: "EC",
             class: "col_ext_coeff",
-            visible: localStorage.getItem(SCOPE_ID + "ext_coeff_checkbox") === "true",
+            visible: localStorage.getItem(`${SCOPE_ID}ext_coeff_checkbox`) === "true",
           },
           {
             title: "QY",
             class: "col_qy",
-            visible: localStorage.getItem(SCOPE_ID + "qy_checkbox") === "true",
+            visible: localStorage.getItem(`${SCOPE_ID}qy_checkbox`) === "true",
           },
           { title: "Ex Max", class: "col_ex_max", visible: false },
           { title: "Em Max", class: "col_em_max", visible: false },
@@ -153,12 +153,12 @@ $.fn.extend({
           ocNames.push(thisOC)
 
           for (let x = 0; x < colHeaders.length; x++) {
-            const cls = slugify("col_" + thisOC) + " col_" + colHeaders[x]
+            const cls = `${slugify(`col_${thisOC}`)} col_${colHeaders[x]}`
             const vis =
-              localStorage.getItem(SCOPE_ID + slugify(thisOC) + "_checkbox") !== "false" &&
-              $("#" + colHeaders[x] + "_checkbox").prop("checked")
+              localStorage.getItem(`${SCOPE_ID + slugify(thisOC)}_checkbox`) !== "false" &&
+              $(`#${colHeaders[x]}_checkbox`).prop("checked")
             colTitles.push({
-              title: thisOC + " " + titleCase(colHeaders[x]),
+              title: `${thisOC} ${titleCase(colHeaders[x])}`,
               class: cls,
               visible: vis,
             })
@@ -231,13 +231,13 @@ $.fn.extend({
         $("#oc-toggles").empty()
         for (let o = 0; o < ocNames.length; o++) {
           const ischecked =
-            localStorage.getItem(SCOPE_ID + slugify(ocNames[o]) + "_checkbox") !== "false"
+            localStorage.getItem(`${SCOPE_ID + slugify(ocNames[o])}_checkbox`) !== "false"
           const el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
             .append(
               $("<input>", {
                 class: "custom-control-input toggle-vis",
                 type: "checkbox",
-                id: slugify(ocNames[o]) + "_checkbox",
+                id: `${slugify(ocNames[o])}_checkbox`,
                 value: slugify(ocNames[o]),
                 checked: ischecked,
               })
@@ -245,7 +245,7 @@ $.fn.extend({
             .append(
               $("<label>", {
                 class: "custom-control-label",
-                for: slugify(ocNames[o]) + "_checkbox",
+                for: `${slugify(ocNames[o])}_checkbox`,
               }).text(ocNames[o])
             )
 
@@ -308,7 +308,7 @@ $.fn.extend({
               action: (_e, _dt, _node, _config) => {
                 $.fn.dataTable.fileSave(
                   new Blob([JSON.stringify(d.report)]),
-                  "report_" + SCOPE_ID + ".json"
+                  `report_${SCOPE_ID}.json`
                 )
               },
             },
@@ -609,21 +609,21 @@ $.fn.extend({
       $("body").on("click", "input.toggle-vis, input.meas-vis", function (_e) {
         localStorage.setItem(SCOPE_ID + $(this).attr("id"), $(this).prop("checked"))
         if (["ext_coeff", "qy"].includes($(this).val())) {
-          dt.columns(".col_" + $(this).val()).visible($(this).prop("checked"))
+          dt.columns(`.col_${$(this).val()}`).visible($(this).prop("checked"))
           return
         }
         if ($(this).prop("checked")) {
           // prevent "re-enabling disabled things"
-          let columns = dt.columns(".col_" + $(this).val())[0]
+          let columns = dt.columns(`.col_${$(this).val()}`)[0]
           let included
           if ($(this).hasClass("toggle-vis")) {
             included = $("input.meas-vis:checkbox:checked")
-              .map((_x, d) => ".col_" + d.value)
+              .map((_x, d) => `.col_${d.value}`)
               .toArray()
               .join(", ")
           } else {
             included = $("input.toggle-vis:checkbox:checked")
-              .map((_x, d) => ".col_" + d.value)
+              .map((_x, d) => `.col_${d.value}`)
               .toArray()
               .join(", ")
           }
@@ -631,7 +631,7 @@ $.fn.extend({
           columns = columns.filter((elem) => included.includes(elem))
           dt.columns(columns).visible($(this).prop("checked"))
         } else {
-          dt.columns(".col_" + $(this).val()).visible($(this).prop("checked"))
+          dt.columns(`.col_${$(this).val()}`).visible($(this).prop("checked"))
         }
       })
 
@@ -642,15 +642,13 @@ $.fn.extend({
         localStorage.setItem(SCOPE_ID + $(this).attr("id"), this.value)
         var searchval = this.value
         if (searchval !== "") {
-          searchval = "^" + this.value + "$"
+          searchval = `^${this.value}$`
         }
         if (this.id === "probe_filter" && uuids) {
-          searchval = "^(" + uuids.join("|") + ")$"
+          searchval = `^(${uuids.join("|")})$`
         }
         var searchcol = $(this).data("col")
-        dt.column(".col_" + searchcol)
-          .search(searchval, true, false)
-          .draw()
+        dt.column(`.col_${searchcol}`).search(searchval, true, false).draw()
 
         // filter the chart
         var newReport = []
@@ -679,7 +677,7 @@ $.fn.extend({
         ["brightness", "Brightness"],
       ]
       for (let o = 0; o < measbuttons.length; o++) {
-        const id = measbuttons[o][0] + "_checkbox"
+        const id = `${measbuttons[o][0]}_checkbox`
         let ischecked = localStorage.getItem(SCOPE_ID + id)
         if (
           ischecked === null &&

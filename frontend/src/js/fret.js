@@ -45,7 +45,7 @@ export default function initFRET() {
       max: 1,
       labels: {
         formatter: function () {
-          return Math.round(this.value * 100) + "%"
+          return `${Math.round(this.value * 100)}%`
         },
       },
       gridLineWidth: 0, // Remove horizontal grid lines
@@ -56,7 +56,7 @@ export default function initFRET() {
       valueSuffix: "%",
       valueFormatter: (value) => {
         if (value !== null && value !== undefined) {
-          return Math.round(value * 1000) / 10 + "%"
+          return `${Math.round(value * 1000) / 10}%`
         } else {
           return "--"
         }
@@ -125,7 +125,7 @@ export default function initFRET() {
     var dfd = $.Deferred()
     // download if not already downloaded
     if (!(slug in localData)) {
-      $.getJSON("/spectra/" + slug)
+      $.getJSON(`/spectra/${slug}`)
         .done((d) => {
           for (let n = 0; n < d.spectra.length; n++) {
             if (d.spectra[n].type !== "2p") {
@@ -332,14 +332,14 @@ export default function initFRET() {
       }
       if (donorslug) {
         donorEM = dataItemMatching({ slug: donorslug, type: "em" })[0]
-        donorEM.classed = (donorEM.classed || "") + " faded-fret"
+        donorEM.classed = `${donorEM.classed || ""} faded-fret`
         $("#QYD").text(donorEM.scalar)
       } else {
         $("#QYD").text("")
       }
       if (acceptorslug) {
         acceptorEX = dataItemMatching({ slug: acceptorslug, type: "ex" })[0]
-        acceptorEX.classed = (acceptorEX.classed || "") + " faded-fret"
+        acceptorEX.classed = `${acceptorEX.classed || ""} faded-fret`
         $("#ECA").text(acceptorEX.scalar.toLocaleString())
 
         const acceptorEM = dataItemMatching({ slug: acceptorslug, type: "em" })[0]
@@ -377,10 +377,8 @@ export default function initFRET() {
   })
 
   $("body").on("click", ".load-button", function () {
-    var donorslug =
-      $(this).closest("tr").find("td:nth-child(2) a").attr("href").split("/")[2] + "_default"
-    var accslug =
-      $(this).closest("tr").find("td:nth-child(3) a").attr("href").split("/")[2] + "_default"
+    var donorslug = `${$(this).closest("tr").find("td:nth-child(2) a").attr("href").split("/")[2]}_default`
+    var accslug = `${$(this).closest("tr").find("td:nth-child(3) a").attr("href").split("/")[2]}_default`
     $("#donor-select").val(donorslug).trigger("change.select2")
     $("#acceptor-select").val(accslug).change()
   })

@@ -44,7 +44,7 @@ $(document).ready(() => {
         csrfmiddlewaretoken: window.CSRF_TOKEN,
       },
       success: (response) => {
-        if (response.status == "deleted") {
+        if (response.status === "deleted") {
           $obj.parent().remove()
         }
       },

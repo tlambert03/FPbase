@@ -62,7 +62,7 @@ function App() {
     const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
     setBinary(bin)
 
-    $.post("", $(e.target).serialize() + "&binary=" + bin, (data) => {
+    $.post("", `${$(e.target).serialize()}&binary=${bin}`, (data) => {
       if (data.status === 200) {
         setResults(data.blastResult)
       } else if (data.status === 500) {

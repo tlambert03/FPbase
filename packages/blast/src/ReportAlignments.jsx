@@ -3,7 +3,7 @@ const zip = (arr, ...arrs) => {
   return arr.map((val, i) => [val, ...arrs.map((a) => a[i])])
 }
 
-const chunkString = (str, length) => str.match(new RegExp(".{1," + length + "}", "g"))
+const chunkString = (str, length) => str.match(new RegExp(`.{1,${length}}`, "g"))
 
 function BlastStatsTable({ hit }) {
   return (
@@ -78,7 +78,7 @@ function BlastHitSummary({ data }) {
   const _id = data.description[0].id
 
   return (
-    <div id={"dln_" + accession} className="dlfRow mt-4">
+    <div id={`dln_${accession}`} className="dlfRow mt-4">
       <h5 style={{ fontWeight: "bold", color: "#5b616b" }}>{title}</h5>
       <div className="small">
         <span className="mr-1 font-weight-bold text-muted">FPbase ID:</span>

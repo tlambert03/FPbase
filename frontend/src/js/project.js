@@ -113,8 +113,8 @@ function populate_comparison_tab(comparison_set) {
       var widget = $("<li>", { class: "comparison-item", value: val.slug })
         .append(
           $("<a>", {
-            href: "/protein/" + val.slug,
-            style: "color: " + val.color,
+            href: `/protein/${val.slug}`,
+            style: `color: ${val.color}`,
           }).html(val.name)
         )
         .append($("<p>").html((exemstring || "") + (ecqystring || "")))
@@ -123,10 +123,10 @@ function populate_comparison_tab(comparison_set) {
       if (val.spectra && JSON.parse(val.spectra).length > 0) {
         widget.append(
           $("<img>", {
-            src: "/spectra_img/" + val.slug + ".svg?xlim=400,700&fill=1&xlabels=0",
+            src: `/spectra_img/${val.slug}.svg?xlim=400,700&fill=1&xlabels=0`,
             class: "img-fluid spectrum-svg",
             onerror: "this.style.display='none'",
-            alt: val.name + " spectrum",
+            alt: `${val.name} spectrum`,
           })
         )
       }
@@ -255,30 +255,30 @@ if (!$("#proteinSlug").hasClass("select2-hidden-accessible")) {
 }
 
 function buildURL() {
-  var ext = "." + $("#fileTypeSelect").val()
+  var ext = `.${$("#fileTypeSelect").val()}`
   var slug = $("#proteinSlug").val()
   var title = $("#showName").prop("checked") ? "title=1" : ""
   var fill = $("#areaFill").prop("checked") ? "" : "fill=0"
   var transparent = $("#transCheck").prop("checked") ? "" : "transparent=0"
-  var alpha = $("#opacitySlider").val() === "0.5" ? "" : "alpha=" + $("#opacitySlider").val()
+  var alpha = $("#opacitySlider").val() === "0.5" ? "" : `alpha=${$("#opacitySlider").val()}`
   var linewidth =
-    $("#lineWidthSlider").val() === "1" ? "" : "linewidth=" + $("#lineWidthSlider").val()
+    $("#lineWidthSlider").val() === "1" ? "" : `linewidth=${$("#lineWidthSlider").val()}`
   var xlabels = $("#xAxis").prop("checked") ? "" : "xlabels=0"
   var ylabels = $("#yAxis").prop("checked") ? "ylabels=1" : ""
   var grid = $("#grid").prop("checked") ? "grid=1" : ""
   var xlim = ""
   if ($("#minXRange").val() !== "350" || $("#maxXRange").val() !== "750") {
-    xlim = "xlim=" + $("#minXRange").val() + "," + $("#maxXRange").val() + ""
+    xlim = `xlim=${$("#minXRange").val()},${$("#maxXRange").val()}`
   }
 
-  var newstring = "/spectra_img/" + slug + ext
+  var newstring = `/spectra_img/${slug}${ext}`
   var argarray = [title, grid, xlabels, ylabels, fill, transparent, xlim, alpha, linewidth].filter(
     (d) => Boolean(d !== "")
   )
   if (argarray.length) {
-    newstring += "?" + argarray.join("&")
+    newstring += `?${argarray.join("&")}`
   }
-  var fullurl = window.location.protocol + "//" + window.location.host + newstring
+  var fullurl = `${window.location.protocol}//${window.location.host}${newstring}`
   $("#activeImg").attr("src", newstring)
   $("#linktext").text(fullurl).attr("href", fullurl)
 }
@@ -389,7 +389,7 @@ $("#id_ipg_id").change(function () {
       } else if (ipg_id in data.result) {
         const accession = data.result[ipg_id].accession
         const title = data.result[ipg_id].title
-        $("#hint_id_ipg_id").html("IPG name: " + title)
+        $("#hint_id_ipg_id").html(`IPG name: ${title}`)
         $.ajax({
           url: protein_uri + accession + fpbase_params,
           context: document.body,
@@ -426,9 +426,8 @@ $("#proteinform #id_name").change(function () {
     dataType: "json",
     success: (data) => {
       if (data.is_taken) {
-        const namelink =
-          '<a href="' + data.url + '" style="text-decoration: underline;">' + data.name + "</a>"
-        const message = "<strong>" + namelink + " already exists in the database.</strong>"
+        const namelink = `<a href="${data.url}" style="text-decoration: underline;">${data.name}</a>`
+        const message = `<strong>${namelink} already exists in the database.</strong>`
         $("#id_name").addClass("is-invalid")
         $("#div_id_name").addClass("has-danger")
 
@@ -463,19 +462,19 @@ $("#spectrum-submit-form #id_owner").change(function () {
       if (data.similars.length) {
         let str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
         $.each(data.similars, (index, val) => {
-          str = str + '<span class="text-danger">' + val.name + "</span>"
+          str = `${str}<span class="text-danger">${val.name}</span>`
           if (val.spectra.length) {
-            str = str + " ("
+            str = `${str} (`
             $.each(val.spectra, (i, s) => {
               str = str + s
               if (i !== val.spectra.length - 1) {
-                str = str + ", "
+                str = `${str}, `
               }
             })
-            str = str + ")"
+            str = `${str})`
           }
           if (index !== data.similars.length - 1) {
-            str = str + ", "
+            str = `${str}, `
           }
         })
         $("#hint_id_owner").html(str)
@@ -506,7 +505,7 @@ $('input[id*="reference_doi"]').change(function () {
         const year = data.message.issued["date-parts"]["0"]["0"]
         const author = data.message.author["0"].family
         const title = data.message.title[0].slice(0, 45)
-        const citation = author + " (" + year + ") " + title + "..."
+        const citation = `${author} (${year}) ${title}...`
         small.html(citation)
       } else {
         small.html("DOI not found at Crossref")
@@ -612,15 +611,15 @@ function formatAAseq(elem, breakpoint) {
   const seqcount = $("<div class='sequence_count'></div>").appendTo(elem)
   const seqdiv = $("<div class='formatted_aminosquence'></div>").appendTo(elem)
   seqdiv.html(tooltipwrap(words[0], 0, skipV2))
-  seqcount.append(1 + "<br>")
+  seqcount.append(`${1}<br>`)
   let height = seqdiv.height()
   for (let i = 1; i < words.length; i++) {
     const tippywords = tooltipwrap(words[i], i * 10, skipV2)
-    seqdiv.html(seqdiv.html() + " " + tippywords)
+    seqdiv.html(`${seqdiv.html()} ${tippywords}`)
     if (seqdiv.height() > height) {
       // line break occured at iteration i
       //console.log(words[i])
-      seqcount.append(i * breakpoint + 1 + "<br>")
+      seqcount.append(`${i * breakpoint + 1}<br>`)
       height = seqdiv.height()
     }
   }
@@ -867,10 +866,8 @@ $(() => {
             data: form.serialize(),
             dataType: "json",
             success: (_data) => {
-              $('<option value="' + tax_id + '">' + sci_name + " </option>").appendTo(
-                "#id_parent_organism"
-              )
-              $('#id_parent_organism option[value="' + tax_id + '"]').prop("selected", true)
+              $(`<option value="${tax_id}">${sci_name} </option>`).appendTo("#id_parent_organism")
+              $(`#id_parent_organism option[value="${tax_id}"]`).prop("selected", true)
               $("#organismModal").modal("hide")
             },
           })

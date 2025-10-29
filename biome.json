@@ -26,20 +26,6 @@
       "trailingCommas": "es5"
     }
   },
-  "linter": {
-    "rules": {
-      "recommended": true,
-      "complexity": {
-        "noForEach": "off"
-      },
-      "style": {
-        "useTemplate": "off"
-      },
-      "suspicious": {
-        "noDoubleEquals": "off"
-      }
-    }
-  },
   "vcs": {
     "clientKind": "git",
     "enabled": true,

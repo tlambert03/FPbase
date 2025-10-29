@@ -31,7 +31,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
         } else {
           name = toTitleCase(n)
         }
-        out += "<option value=" + n + ">" + name + "</option>"
+        out += `<option value=${n}>${name}</option>`
       }
     }
     return out
@@ -45,7 +45,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
       } else {
         op = toTitleCase(ops[o])
       }
-      out += "<option value=" + o + ">" + op + "</option>"
+      out += `<option value=${o}>${op}</option>`
     }
     return out
   }
@@ -59,10 +59,10 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     var filter_name = row.find(".filter-select").val()
     var operation = row.find(".operator-select").val()
     let name
-    if (operation == "exact") {
+    if (operation === "exact") {
       name = filter_name
     } else {
-      name = filter_name + "__" + operation
+      name = `${filter_name}__${operation}`
     }
 
     // hide the current input field by putting it in the hidden #crispy-form
@@ -74,7 +74,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     inputcol.find(".form-group").appendTo("#crispy-form")
 
     // grab the form div that we want to put here
-    var formdiv = $("#div_id_" + name)
+    var formdiv = $(`#div_id_${name}`)
     formdiv.appendTo(inputcol)
 
     // for some reason range input is losing this class
@@ -124,7 +124,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     operatorSelect = newrow.find(".operator-select")
     operatorSelect.html(operator_options(fields[filterName]))
     operatorSelect.removeClass()
-    operatorSelect.addClass("form-control operator-select " + filterName + "_operator")
+    operatorSelect.addClass(`form-control operator-select ${filterName}_operator`)
 
     if (operator) {
       operatorSelect.val(operator)
@@ -142,7 +142,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
 
   function disableOperator(name, op) {
     fields[name].delete(op)
-    if (fields[name].size == 0) {
+    if (fields[name].size === 0) {
       available_fields.delete(name)
     }
   }
@@ -154,7 +154,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
 
   function updateOperators(filterName, sender) {
     // where sender is the operatorSelect that sent the update command
-    selector = $("." + filterName + "_operator").not(sender)
+    selector = $(`.${filterName}_operator`).not(sender)
     if (selector.length > 0) {
       selector.find("option").not(":selected").remove()
       selector.append(operator_options(fields[filterName]))
@@ -201,7 +201,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     operatorSelect.empty()
     operatorSelect.html(operator_options(fields[filterName]))
     operatorSelect.removeClass()
-    operatorSelect.addClass("form-control operator-select " + filterName + "_operator")
+    operatorSelect.addClass(`form-control operator-select ${filterName}_operator`)
 
     if (prevName && prevOperator) {
       enableOperator(prevName, prevOperator)
@@ -230,7 +230,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     for (key in state) {
       value = state[key]
       if (key === "display") {
-        $("#" + value + "button").click()
+        $(`#${value}button`).click()
         continue
       }
       if (key in fields) {
@@ -276,10 +276,8 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
 
     $(".displaybuttons input").change(function () {
       var display_type = $(this).val()
-      $("#" + display_type + "display").show()
-      $("#" + display_type + "display")
-        .siblings("div")
-        .hide()
+      $(`#${display_type}display`).show()
+      $(`#${display_type}display`).siblings("div").hide()
     })
   })
 }
