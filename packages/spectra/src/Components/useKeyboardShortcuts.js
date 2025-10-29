@@ -1,8 +1,8 @@
-import { useEffect } from "react"
 import { useMutation } from "@apollo/client"
 import gql from "graphql-tag"
+import { useEffect } from "react"
 
-const toggleMut = param => gql`
+const toggleMut = (param) => gql`
 mutation Toggle${param} {
   toggle${param} @client
 }
@@ -25,12 +25,9 @@ const useKeyboardShortcuts = () => {
   const [cyclePalette] = useMutation(CYCLE_PALLETE)
 
   useEffect(() => {
-    const handleKeyDown = event => {
+    const handleKeyDown = (event) => {
       // don't do anything if we're on an input
-      if (
-        document.activeElement &&
-        document.activeElement.tagName.toUpperCase() === "INPUT"
-      ) {
+      if (document.activeElement && document.activeElement.tagName.toUpperCase() === "INPUT") {
         return
       }
       switch (event.code) {

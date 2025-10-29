@@ -1,5 +1,5 @@
-import React from "react"
 import PropTypes from "prop-types"
+import React from "react"
 import { List } from "react-window"
 
 const ITEM_HEIGHT = 35
@@ -9,7 +9,7 @@ const MAX_WINDOW_HEIGHT = 300
  * Virtualized MenuList component for react-select using react-window
  * Only renders visible options for better performance with large lists
  */
-const WindowedMenuList = ({ children, maxHeight, getValue }) => {
+const WindowedMenuList = ({ children, maxHeight, _getValue }) => {
   const childrenArray = React.Children.toArray(children)
 
   // Handle empty children

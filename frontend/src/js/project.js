@@ -1,9 +1,9 @@
 import $ from "jquery"
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
-window.mobilecheck = function() {
+window.mobilecheck = () => {
   var check = false
-  ;(function(a) {
+  ;((a) => {
     if (
       /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(
         a
@@ -19,41 +19,35 @@ window.mobilecheck = function() {
 
 if (document.getElementById("comparison-slider")) {
   if (window.USER_IS_TOUCHING) {
-    $("#comparison-toggle").click(function() {
+    $("#comparison-toggle").click(() => {
       $("#comparison-slider").toggleClass("hover-effect")
     })
-    $(document).on("click", function(e) {
+    $(document).on("click", (e) => {
       if (!document.getElementById("comparison-slider").contains(e.target)) {
         $("#comparison-slider").removeClass("hover-effect")
       }
     })
   } else {
     $("#comparison-slider").hover(
-      function() {
+      () => {
         $("#comparison-slider").addClass("hover-effect")
       },
-      function() {
+      () => {
         $("#comparison-slider").removeClass("hover-effect")
       }
     )
   }
 }
 
-$(".custom-file-input").on("change", function() {
-  var fileName = $(this)
-    .val()
-    .split("\\")
-    .pop()
+$(".custom-file-input").on("change", function () {
+  var fileName = $(this).val().split("\\").pop()
   if (fileName === "") {
     fileName = "Choose file"
   }
-  $(this)
-    .next(".custom-file-label")
-    .addClass("selected")
-    .html(fileName)
+  $(this).next(".custom-file-label").addClass("selected").html(fileName)
 })
 
-$(function() {
+$(() => {
   var $quote = $(".protein .name:first")
   var $numChar = $quote.text().length
 
@@ -90,26 +84,26 @@ function populate_comparison_tab(comparison_set) {
   //$ul.empty();
   if (comparison_set.length) {
     //var token = $("#csrfform input").val()
-    var currents = $(".comparison-list li")
-      .map(function(i, v) {
-        return $(v).attr("value")
-      })
+    const currents = $(".comparison-list li")
+      .map((_i, v) => $(v).attr("value"))
       .toArray()
-    $.each(comparison_set, function(index, val) {
+    $.each(comparison_set, (_index, val) => {
       if (currents.indexOf(val.slug) >= 0) {
         return true
       }
+      let exemstring
       if (val.exMax && val.emMax) {
-        var exemstring =
+        exemstring =
           "Ex/Em &lambda;: &nbsp;<strong>" +
           (val.exMax || "") +
           "</strong> / <strong>" +
           val.emMax +
           "</strong>"
       }
+      let ecqystring
       if (val.ec && val.qy) {
-        let ec = val.ec.toLocaleString()
-        var ecqystring =
+        const ec = val.ec.toLocaleString()
+        ecqystring =
           "<br>EC: <strong>" +
           ec +
           "</strong>&nbsp;&nbsp;&nbsp;QY: <strong>" +
@@ -119,8 +113,8 @@ function populate_comparison_tab(comparison_set) {
       var widget = $("<li>", { class: "comparison-item", value: val.slug })
         .append(
           $("<a>", {
-            href: "/protein/" + val.slug,
-            style: "color: " + val.color
+            href: `/protein/${val.slug}`,
+            style: `color: ${val.color}`,
           }).html(val.name)
         )
         .append($("<p>").html((exemstring || "") + (ecqystring || "")))
@@ -129,11 +123,10 @@ function populate_comparison_tab(comparison_set) {
       if (val.spectra && JSON.parse(val.spectra).length > 0) {
         widget.append(
           $("<img>", {
-            src:
-              "/spectra_img/" + val.slug + ".svg?xlim=400,700&fill=1&xlabels=0",
+            src: `/spectra_img/${val.slug}.svg?xlim=400,700&fill=1&xlabels=0`,
             class: "img-fluid spectrum-svg",
             onerror: "this.style.display='none'",
-            alt: val.name + " spectrum"
+            alt: `${val.name} spectrum`,
           })
         )
       }
@@ -143,7 +136,7 @@ function populate_comparison_tab(comparison_set) {
           class: "comparison-btn remove-protein",
           "data-op": "remove",
           "data-object": val.slug,
-          "data-action-url": "/ajax/comparison/"
+          "data-action-url": "/ajax/comparison/",
         }).html("&times;")
       )
       widget.appendTo($ul)
@@ -171,25 +164,23 @@ function handle_comparison_button(e) {
     data: {
       object: button.data("object"),
       csrfmiddlewaretoken: window.CSRF_TOKEN,
-      operation: button.data("op")
+      operation: button.data("op"),
     },
     type: "POST",
     url: button.attr("data-action-url"),
     dataType: "json",
-    success: function(response) {
+    success: (response) => {
       // on success..
       populate_comparison_tab(response.comparison_set)
-    }
+    },
   })
   if ($(this).data("op") === "remove") {
-    $(this)
-      .closest("li")
-      .remove()
+    $(this).closest("li").remove()
   } else if ($(this).data("op") === "clear") {
     $(".comparison-list").empty()
   }
   if ($(this).data("flash")) {
-    $("#comparison-toggle").fadeTo(30, 0.3, function() {
+    $("#comparison-toggle").fadeTo(30, 0.3, function () {
       $(this).fadeTo(200, 1.0)
     })
   }
@@ -199,9 +190,9 @@ function handle_comparison_button(e) {
 $(document).on("click", ".comparison-btn", handle_comparison_button)
 $(".comparison-btn").on("click", handle_comparison_button)
 
-$(function() {
+$(() => {
   if (document.getElementById("comparison-slider")) {
-    $.getJSON("/ajax/comparison/").then(function(d) {
+    $.getJSON("/ajax/comparison/").then((d) => {
       populate_comparison_tab(d.comparison_set)
     })
   }
@@ -215,106 +206,88 @@ if (!$("#proteinSlug").hasClass("select2-hidden-accessible")) {
     theme: "bootstrap",
     width: "80%",
     ajax: {
-    theme: "bootstrap",
-    containerCssClass: ":all:",
-    width: "auto",
+      theme: "bootstrap",
+      containerCssClass: ":all:",
+      width: "auto",
 
-    url: "/autocomplete-protein",
-    dataType: "json",
-    cache: true,
-    data: function(params) {
-      var query = {
-        q: params.term,
-        type: "spectra",
-        page: params.page,
-        _type: params._type
-      }
-      return query
+      url: "/autocomplete-protein",
+      dataType: "json",
+      cache: true,
+      data: (params) => {
+        var query = {
+          q: params.term,
+          type: "spectra",
+          page: params.page,
+          _type: params._type,
+        }
+        return query
+      },
+      processResults: (data) => {
+        // Ensure all results have an id property (fixes FPBASE-5H3)
+        // The autocomplete endpoint returns results, but we need to ensure
+        // each item has an id that can be safely converted to string
+        if (data.results) {
+          data.results = data.results.map((item) => {
+            // If item doesn't have an id, use text as fallback
+            if (!item.id && item.text) {
+              item.id = item.text
+            }
+            return item
+          })
+        }
+        return data
+      },
     },
-    processResults: function(data) {
-      // Ensure all results have an id property (fixes FPBASE-5H3)
-      // The autocomplete endpoint returns results, but we need to ensure
-      // each item has an id that can be safely converted to string
-      if (data.results) {
-        data.results = data.results.map(function(item) {
-          // If item doesn't have an id, use text as fallback
-          if (!item.id && item.text) {
-            item.id = item.text
-          }
-          return item
-        })
+    // Safely handle cases where id might still be undefined
+    templateResult: (item) => {
+      if (!item.id) {
+        return item.text
       }
-      return data
-    }
-  },
-  // Safely handle cases where id might still be undefined
-  templateResult: function(item) {
-    if (!item.id) {
-      return item.text
-    }
-    return item.text || item.id
-  },
-  templateSelection: function(item) {
-    if (!item.id) {
-      return item.text
-    }
-    return item.text || item.id
-  }
+      return item.text || item.id
+    },
+    templateSelection: (item) => {
+      if (!item.id) {
+        return item.text
+      }
+      return item.text || item.id
+    },
   })
 }
 
 function buildURL() {
-  var ext = "." + $("#fileTypeSelect").val()
+  var ext = `.${$("#fileTypeSelect").val()}`
   var slug = $("#proteinSlug").val()
   var title = $("#showName").prop("checked") ? "title=1" : ""
   var fill = $("#areaFill").prop("checked") ? "" : "fill=0"
   var transparent = $("#transCheck").prop("checked") ? "" : "transparent=0"
-  var alpha =
-    $("#opacitySlider").val() === "0.5"
-      ? ""
-      : "alpha=" + $("#opacitySlider").val()
+  var alpha = $("#opacitySlider").val() === "0.5" ? "" : `alpha=${$("#opacitySlider").val()}`
   var linewidth =
-    $("#lineWidthSlider").val() === "1"
-      ? ""
-      : "linewidth=" + $("#lineWidthSlider").val()
+    $("#lineWidthSlider").val() === "1" ? "" : `linewidth=${$("#lineWidthSlider").val()}`
   var xlabels = $("#xAxis").prop("checked") ? "" : "xlabels=0"
   var ylabels = $("#yAxis").prop("checked") ? "ylabels=1" : ""
   var grid = $("#grid").prop("checked") ? "grid=1" : ""
   var xlim = ""
   if ($("#minXRange").val() !== "350" || $("#maxXRange").val() !== "750") {
-    xlim = "xlim=" + $("#minXRange").val() + "," + $("#maxXRange").val() + ""
+    xlim = `xlim=${$("#minXRange").val()},${$("#maxXRange").val()}`
   }
 
-  var newstring = "/spectra_img/" + slug + ext
-  var argarray = [
-    title,
-    grid,
-    xlabels,
-    ylabels,
-    fill,
-    transparent,
-    xlim,
-    alpha,
-    linewidth
-  ].filter(function(d) {
-    return Boolean(d !== "")
-  })
+  var newstring = `/spectra_img/${slug}${ext}`
+  var argarray = [title, grid, xlabels, ylabels, fill, transparent, xlim, alpha, linewidth].filter(
+    (d) => Boolean(d !== "")
+  )
   if (argarray.length) {
-    newstring += "?" + argarray.join("&")
+    newstring += `?${argarray.join("&")}`
   }
-  var fullurl =
-    window.location.protocol + "//" + window.location.host + newstring
+  var fullurl = `${window.location.protocol}//${window.location.host}${newstring}`
   $("#activeImg").attr("src", newstring)
-  $("#linktext")
-    .text(fullurl)
-    .attr("href", fullurl)
+  $("#linktext").text(fullurl).attr("href", fullurl)
 }
 
-$("#spectra_url_form").submit(function(e) {
+$("#spectra_url_form").submit((e) => {
   e.preventDefault()
 })
 
-$("#spectra_url_form input, #spectra_url_form select").change(function(e) {
+$("#spectra_url_form input, #spectra_url_form select").change(function (_e) {
   if ($(this).hasClass("wave-range")) {
     if (!$(this).val()) {
       $(this).val($(this).hasClass("min-range") ? 350 : 750)
@@ -372,26 +345,20 @@ if (document.getElementById("activeImg")) {
 ///////////////////////
 
 // Hide unnecessary fiels in forms when the dark state checkbox is toggled
-$(".dark_state_button input").click(function() {
-  const neighbors = $(this)
-    .closest(".stateform_block")
-    .children(".hide_if_dark")
+$(".dark_state_button input").click(function () {
+  const neighbors = $(this).closest(".stateform_block").children(".hide_if_dark")
   if ($(this)[0].checked) {
     neighbors.hide()
-    $(this)
-      .find("input[name*='max']")
-      .empty()
+    $(this).find("input[name*='max']").empty()
   } else {
     neighbors.show()
     $(this).closest(".stateform_block")
   }
 })
 
-$(function() {
-  $(".dark_state_button input:checked").each(function() {
-    const neighbors = $(this)
-      .closest(".stateform_block")
-      .children(".hide_if_dark")
+$(() => {
+  $(".dark_state_button input:checked").each(function () {
+    const neighbors = $(this).closest(".stateform_block").children(".hide_if_dark")
     neighbors.hide()
   })
 })
@@ -404,7 +371,7 @@ function reset_ipgid(hintstring) {
   $("#hint_id_seq").html("Amino acid sequence (IPG ID is preferred)")
 }
 
-$("#id_ipg_id").change(function() {
+$("#id_ipg_id").change(function () {
   const ipg_id = $(this).val()
   const protein_uri =
     "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&retmode=json&rettype=fasta&id="
@@ -414,7 +381,7 @@ $("#id_ipg_id").change(function() {
   $.ajax({
     url: ipg_uri + ipg_id + fpbase_params,
     context: document.body,
-    success: function(data) {
+    success: (data) => {
       if (!("result" in data)) {
         reset_ipgid(
           'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/">Identical Protein Group ID</a>'
@@ -422,14 +389,14 @@ $("#id_ipg_id").change(function() {
       } else if (ipg_id in data.result) {
         const accession = data.result[ipg_id].accession
         const title = data.result[ipg_id].title
-        $("#hint_id_ipg_id").html("IPG name: " + title)
+        $("#hint_id_ipg_id").html(`IPG name: ${title}`)
         $.ajax({
           url: protein_uri + accession + fpbase_params,
           context: document.body,
-          success: function(data2) {
+          success: (data2) => {
             var lines = data2.split("\n")
             var seq = ""
-            for (var i = 0; i < lines.length; i++) {
+            for (let i = 0; i < lines.length; i++) {
               if (lines[i].length !== 0 && lines[i][0] !== ">") {
                 seq += lines[i]
               }
@@ -438,37 +405,29 @@ $("#id_ipg_id").change(function() {
             //$("#id_seq").prop('disabled', true);
             //$("#hint_id_seq").html('Sequence input disabled when IPG ID provided')
           },
-          error: function(data) {
+          error: (_data) => {
             reset_ipgid("Unrecognized IPG ID")
-          }
+          },
         })
       }
     },
-    error: function(data) {
+    error: (_data) => {
       reset_ipgid("Unrecognized IPG ID")
-    }
+    },
   })
 })
 
-$("#proteinform #id_name").change(function() {
+$("#proteinform #id_name").change(function () {
   var form = $(this).closest("form")
   $.ajax({
     method: "POST",
     url: form.data("validate-proteinname-url"),
-    data: form
-      .find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']")
-      .serialize(),
+    data: form.find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']").serialize(),
     dataType: "json",
-    success: function(data) {
+    success: (data) => {
       if (data.is_taken) {
-        var namelink =
-          '<a href="' +
-          data.url +
-          '" style="text-decoration: underline;">' +
-          data.name +
-          "</a>"
-        var message =
-          "<strong>" + namelink + " already exists in the database.</strong>"
+        const namelink = `<a href="${data.url}" style="text-decoration: underline;">${data.name}</a>`
+        const message = `<strong>${namelink} already exists in the database.</strong>`
         $("#id_name").addClass("is-invalid")
         $("#div_id_name").addClass("has-danger")
 
@@ -477,7 +436,7 @@ $("#proteinform #id_name").change(function() {
         } else {
           const span = $("<span/>", {
             id: "error_1_id_name",
-            class: "invalid-feedback"
+            class: "invalid-feedback",
           }).append(message)
           $("#hint_id_name").before(span)
         }
@@ -488,48 +447,47 @@ $("#proteinform #id_name").change(function() {
           $("#div_id_name").removeClass("has-danger")
         }
       }
-    }
+    },
   })
 })
 
-$("#spectrum-submit-form #id_owner").change(function() {
+$("#spectrum-submit-form #id_owner").change(function () {
   var form = $(this).closest("form")
   $.ajax({
     method: "POST",
     url: form.data("validate-owner-url"),
     data: form.find("#id_owner, [name='csrfmiddlewaretoken']").serialize(),
     dataType: "json",
-    success: function(data) {
+    success: (data) => {
       if (data.similars.length) {
-        var str =
-          "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
-        $.each(data.similars, function(index, val) {
-          str = str + '<span class="text-danger">' + val["name"] + "</span>"
-          if (val["spectra"].length) {
-            str = str + " ("
-            $.each(val["spectra"], function(i, s) {
+        let str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
+        $.each(data.similars, (index, val) => {
+          str = `${str}<span class="text-danger">${val.name}</span>`
+          if (val.spectra.length) {
+            str = `${str} (`
+            $.each(val.spectra, (i, s) => {
               str = str + s
-              if (i !== val["spectra"].length - 1) {
-                str = str + ", "
+              if (i !== val.spectra.length - 1) {
+                str = `${str}, `
               }
             })
-            str = str + ")"
+            str = `${str})`
           }
           if (index !== data.similars.length - 1) {
-            str = str + ", "
+            str = `${str}, `
           }
         })
         $("#hint_id_owner").html(str)
       } else {
         $("#hint_id_owner").html("Owner of the spectrum")
       }
-    }
+    },
   })
 })
 
 // auto populate PMID after DOI input
 
-$('input[id*="reference_doi"]').change(function() {
+$('input[id*="reference_doi"]').change(function () {
   const input = $(this)
   const small = input.parent().siblings('small[id*="reference_doi"]')
   const doi = input.val()
@@ -542,20 +500,20 @@ $('input[id*="reference_doi"]').change(function() {
   $.ajax({
     url: searchurl,
     context: document.body,
-    success: function(data) {
+    success: (data) => {
       if (data.status === "ok") {
         const year = data.message.issued["date-parts"]["0"]["0"]
-        const author = data.message.author["0"]["family"]
+        const author = data.message.author["0"].family
         const title = data.message.title[0].slice(0, 45)
-        const citation = author + " (" + year + ") " + title + "..."
+        const citation = `${author} (${year}) ${title}...`
         small.html(citation)
       } else {
         small.html("DOI not found at Crossref")
       }
     },
-    error: function(data) {
+    error: (_data) => {
       small.html("DOI not found at Crossref")
-    }
+    },
   })
 })
 
@@ -597,11 +555,11 @@ $('input[id*="reference_doi"]').change(function() {
 /////////////////// PROTEIN DETAIL PAGE //////////////////////
 
 function chunkString(str, len) {
-  var _size = Math.ceil(str.length / len),
-    _ret = new Array(_size),
-    _offset
+  const _size = Math.ceil(str.length / len)
+  const _ret = new Array(_size)
+  let _offset
 
-  for (var _i = 0; _i < _size; _i++) {
+  for (let _i = 0; _i < _size; _i++) {
     _offset = _i * len
     _ret[_i] = str.substring(_offset, _offset + len)
   }
@@ -611,7 +569,7 @@ function chunkString(str, len) {
 
 function tooltipwrap(chunk, index, skipV2) {
   var out = ""
-  for (var i = 0; i < chunk.length; i++) {
+  for (let i = 0; i < chunk.length; i++) {
     let ind
     if (skipV2) {
       if (+index + i < 1) {
@@ -641,8 +599,9 @@ function formatAAseq(elem, breakpoint) {
   //clear any existing counts
   elem.find(".sequence_count").empty()
   // extract the string and chop it up into segments by breakpoint
+  let skipV2
   if (elem.text().startsWith("MVSKGEEL")) {
-    var skipV2 = true
+    skipV2 = true
   }
   const words = chunkString(elem.text().replace(/ /g, ""), breakpoint)
   // clear the div
@@ -652,68 +611,68 @@ function formatAAseq(elem, breakpoint) {
   const seqcount = $("<div class='sequence_count'></div>").appendTo(elem)
   const seqdiv = $("<div class='formatted_aminosquence'></div>").appendTo(elem)
   seqdiv.html(tooltipwrap(words[0], 0, skipV2))
-  seqcount.append(1 + "<br>")
-  var height = seqdiv.height()
-  for (var i = 1; i < words.length; i++) {
-    var tippywords = tooltipwrap(words[i], i * 10, skipV2)
-    seqdiv.html(seqdiv.html() + " " + tippywords)
+  seqcount.append(`${1}<br>`)
+  let height = seqdiv.height()
+  for (let i = 1; i < words.length; i++) {
+    const tippywords = tooltipwrap(words[i], i * 10, skipV2)
+    seqdiv.html(`${seqdiv.html()} ${tippywords}`)
     if (seqdiv.height() > height) {
       // line break occured at iteration i
       //console.log(words[i])
-      seqcount.append(i * breakpoint + 1 + "<br>")
+      seqcount.append(`${i * breakpoint + 1}<br>`)
       height = seqdiv.height()
     }
   }
   elem.show()
   $('[data-toggle="tooltip"]').tooltip({
     trigger: "hover",
-    delay: { show: 200 }
+    delay: { show: 200 },
   })
 }
 
-$(function() {
-  setTimeout(function() {
+$(() => {
+  setTimeout(() => {
     // waiting is just a hack...
-    $(".aminosequence").each(function() {
+    $(".aminosequence").each(function () {
       formatAAseq($(this))
     })
   }, 1)
 })
 
-$(window).resize(function() {
-  $(".aminosequence").each(function() {
+$(window).resize(() => {
+  $(".aminosequence").each(function () {
     formatAAseq($(this))
   })
 })
 
-$("#refModalForm").submit(function(e) {
+$("#refModalForm").submit(function (e) {
   var form = $(this).closest("form")
   $.ajax({
     type: "POST",
     url: form.attr("data-action-url"),
     data: form.serialize(),
     dataType: "json",
-    success: function(data) {
+    success: (data) => {
       if (data.status === "success") {
         window.location.reload()
       }
-    }
+    },
   })
   e.preventDefault() // avoid to execute the actual submit of the form.
 })
 
-$("#excerptModalForm").submit(function(e) {
+$("#excerptModalForm").submit(function (e) {
   var form = $(this).closest("form")
   $.ajax({
     type: "POST",
     url: form.attr("data-action-url"),
     data: form.serialize(),
     dataType: "json",
-    success: function(data) {
+    success: (data) => {
       if (data.status === "success") {
         window.location.reload()
       }
-    }
+    },
   })
   e.preventDefault() // avoid to execute the actual submit of the form.
 })
@@ -725,55 +684,55 @@ function register_transition_form() {
     deleteCssClass: "transDelete",
     deleteText: '<i class="fas fa-minus-circle"></i>',
     prefix: "transitions",
-    processHidden: true // I added this to
+    processHidden: true, // I added this to
   })
 }
 
 // This function is for showing the modal
-$(function() {
-  $("#show_transition_modal").click(function() {
+$(() => {
+  $("#show_transition_modal").click(function () {
     $.ajax({
       type: "GET",
       url: $(this).attr("data-action-url"),
       data: {},
       cache: false,
-      success: function(data, status) {
+      success: (data, _status) => {
         $("#transitionForm").html(data)
         register_transition_form()
         $("#transitionModal").modal()
-      }
+      },
     })
   })
 })
 
-$("#transitionForm").submit(function(e) {
+$("#transitionForm").submit(function (e) {
   var form = $(this).closest("form")
   $.ajax({
     type: "POST",
     url: form.attr("data-action-url"),
     data: form.serialize(),
     cache: false,
-    success: function(data, status) {
+    success: (_data, _status) => {
       window.location.reload()
     },
-    error: function(data, status, error) {
+    error: (data, _status, _error) => {
       $("#transitionForm").html(data.responseText)
       register_transition_form()
-    }
+    },
   })
   e.preventDefault() // avoid to execute the actual submit of the form.
 })
 
-$("#adminApprove, #adminRevert").submit(function(e) {
+$("#adminApprove, #adminRevert").submit(function (e) {
   var form = $(this).closest("form")
   $.ajax({
     type: "POST",
     url: form.attr("data-action-url"),
     data: form.serialize(),
     dataType: "json",
-    success: function(data) {
+    success: (_data) => {
       window.location = form.data("success")
-    }
+    },
   })
   e.preventDefault() // avoid to execute the actual submit of the form.
 })
@@ -782,8 +741,8 @@ $("#adminApprove, #adminRevert").submit(function(e) {
 
 ////////////////// AJAX REMOVE FROM COLLECTION ////////////////////
 
-$(document).ready(function() {
-  $("a.object-flag").click(function(e) {
+$(document).ready(() => {
+  $("a.object-flag").click(function (e) {
     e.preventDefault()
     var button = $(this)
 
@@ -793,17 +752,14 @@ $(document).ready(function() {
         flagged: button.data("flagged"),
         target_model: button.data("model"),
         target_id: button.data("id"),
-        csrfmiddlewaretoken: window.CSRF_TOKEN
+        csrfmiddlewaretoken: window.CSRF_TOKEN,
       },
-      success: function(response) {
+      success: (response) => {
         if (response.status === "flagged") {
           button.data("flagged", 1)
           button.find(".flagicon").removeClass("far")
           button.find(".flagicon").addClass("fas")
-          button.data(
-            "original-title",
-            "This excerpt has been flagged for review"
-          )
+          button.data("original-title", "This excerpt has been flagged for review")
           button.css("opacity", 1)
         } else if (response.status === "unflagged") {
           button.data("flagged", 0)
@@ -812,11 +768,11 @@ $(document).ready(function() {
           button.data("original-title", "Flag this excerpt for review")
           button.css("opacity", 0.3)
         }
-      }
+      },
     })
   })
 
-  $(".btn.collection-remove").click(function(e) {
+  $(".btn.collection-remove").click(function (e) {
     var button = $(this)
     button.prop("disabled", true)
     $.ajax({
@@ -825,38 +781,35 @@ $(document).ready(function() {
       data: {
         target_protein: button.data("object"),
         target_collection: button.data("collection"),
-        csrfmiddlewaretoken: window.CSRF_TOKEN
+        csrfmiddlewaretoken: window.CSRF_TOKEN,
       },
-      success: function(response) {
+      success: (response) => {
         if (response.status === "deleted") {
           button.closest("tr").remove()
         }
-      }
+      },
     })
     e.preventDefault()
   })
 
-  $(".collection-add-button").click(function(e) {
+  $(".collection-add-button").click(function (e) {
     //var button = $(this)
     $.ajax({
       type: "GET",
       url: $(this).attr("data-action-url"),
       dataType: "json",
-      success: function(data, status) {
+      success: (data, _status) => {
         if ("members" in data) {
           const members = JSON.parse(data.members)
           if (members.length) {
             $("#currentmemberships").empty()
-            $(
-              "<p>This protein is currently a member of these collections </p>"
-            ).appendTo("#currentmemberships")
+            $("<p>This protein is currently a member of these collections </p>").appendTo(
+              "#currentmemberships"
+            )
             const list = $("<ul>").appendTo("#currentmemberships")
-            $.each(members, function(e) {
+            $.each(members, function (_e) {
               const li = $("<li>")
-              $("<a>")
-                .html(this[0])
-                .attr("href", this[1])
-                .appendTo(li)
+              $("<a>").html(this[0]).attr("href", this[1]).appendTo(li)
               li.appendTo(list)
             })
           }
@@ -866,21 +819,21 @@ $(document).ready(function() {
           $("#collectionSelection").prepend(data.widget)
           $("#collectionModal").modal()
         }
-      }
+      },
     })
     e.preventDefault()
   })
 
-  $("#collectionForm").submit(function(e) {
+  $("#collectionForm").submit(function (e) {
     var form = $(this).closest("form")
     const data = form.serialize()
-      $.ajax({
-        type: "POST",
-        url: form.attr("data-action-url"),
-        data,
-        cache: false,
-        success: function(data, status) {}
-      })
+    $.ajax({
+      type: "POST",
+      url: form.attr("data-action-url"),
+      data,
+      cache: false,
+      success: (_data, _status) => {},
+    })
     $("#collectionModal").modal("hide")
     e.preventDefault() // avoid to execute the actual submit of the form.
   })
@@ -888,40 +841,35 @@ $(document).ready(function() {
 
 /////////////// ORGANISM BUTTON ///////////
 
-$(function() {
+$(() => {
   $("#id_parent_organism")
     .siblings(".input-group-append")
     .find(".select-add-button")
-    .click(function() {
+    .click(() => {
       $("#organismModal").modal()
     })
 
-  $("#taxonomyModalForm").submit(function(e) {
+  $("#taxonomyModalForm").submit(function (e) {
     const form = $(this)
     const tax_id = form.find('input[name="taxonomy_id"]').val()
     const tax_uri =
       "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&retmode=json&id="
     $.ajax({
       url: tax_uri + tax_id,
-      success: function(data) {
+      success: (data) => {
         if ("scientificname" in data.result[data.result.uids[0]]) {
           // successful fetch from NCBI
-          const sci_name = data.result[data.result.uids[0]]["scientificname"]
+          const sci_name = data.result[data.result.uids[0]].scientificname
           $.ajax({
             type: "POST",
             url: form.attr("data-action-url"),
             data: form.serialize(),
             dataType: "json",
-            success: function(data) {
-              $(
-                '<option value="' + tax_id + '">' + sci_name + " </option>"
-              ).appendTo("#id_parent_organism")
-              $('#id_parent_organism option[value="' + tax_id + '"]').prop(
-                "selected",
-                true
-              )
+            success: (_data) => {
+              $(`<option value="${tax_id}">${sci_name} </option>`).appendTo("#id_parent_organism")
+              $(`#id_parent_organism option[value="${tax_id}"]`).prop("selected", true)
               $("#organismModal").modal("hide")
-            }
+            },
           })
         } else {
           $("#id_taxonomy_id").addClass("is-invalid")
@@ -932,7 +880,7 @@ $(function() {
             .removeClass("text-muted")
         }
       },
-      error: function(data) {}
+      error: (_data) => {},
     })
     e.preventDefault()
   })

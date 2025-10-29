@@ -1,7 +1,6 @@
-import React from "react"
-import Slider from "@mui/material/Slider"
 import Grid from "@mui/material/Grid"
 import Input from "@mui/material/Input"
+import Slider from "@mui/material/Slider"
 import { makeStyles } from "@mui/styles"
 
 export const useStyles = makeStyles({
@@ -17,10 +16,10 @@ export const useStyles = makeStyles({
 
 const InputSlider = ({ value, setValue, min = 300, max = 999, step = 1 }) => {
   const classes = useStyles()
-  const handleSliderChange = (event, newValue) => {
+  const handleSliderChange = (_event, newValue) => {
     setValue(newValue)
   }
-  const handleInputChange = event => {
+  const handleInputChange = (event) => {
     setValue(event.target.value === "" ? "" : Number(event.target.value))
   }
   const handleBlur = () => {

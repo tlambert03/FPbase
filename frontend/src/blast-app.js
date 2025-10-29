@@ -1,9 +1,8 @@
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 
-import React from "react"
-import { createRoot } from "react-dom/client"
 import App from "@fpbase/blast"
+import { createRoot } from "react-dom/client"
 import { SentryErrorBoundary } from "./js/sentry-error-boundary"
 
 // Mark this bundle for Sentry context

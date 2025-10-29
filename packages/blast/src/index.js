@@ -1,5 +1,4 @@
-import React from "react"
-import { ThemeProvider, StyledEngineProvider, createTheme } from "@mui/material/styles"
+import { createTheme, StyledEngineProvider, ThemeProvider } from "@mui/material/styles"
 import App from "./App"
 
 const theme = createTheme()

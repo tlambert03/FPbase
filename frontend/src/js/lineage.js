@@ -9,11 +9,7 @@ function is_first_sib(node) {
   if (!node.parent || node.parent.children.length === 1) {
     return false
   }
-  var i = node.parent.children
-    .map(function(e) {
-      return e.name
-    })
-    .indexOf(node.name)
+  const i = node.parent.children.map((e) => e.name).indexOf(node.name)
   if (i === 0) {
     return true
   }
@@ -24,11 +20,7 @@ function is_last_sib(node) {
   if (!node.parent || node.parent.children.length === 1) {
     return false
   }
-  var i = node.parent.children
-    .map(function(e) {
-      return e.name
-    })
-    .indexOf(node.name)
+  const i = node.parent.children.map((e) => e.name).indexOf(node.name)
   if (i === node.parent.children.length - 1) {
     return true
   }
@@ -86,7 +78,7 @@ function text_position(node, slug, vertical) {
 }
 
 export default function LineageChart(conf) {
-  let config = conf || {}
+  const config = conf || {}
   let margin = config.margin || { top: 20, right: 110, bottom: 15, left: 65 },
     width,
     minNodeWidth = config.minNodeWidth || 70,
@@ -112,16 +104,14 @@ export default function LineageChart(conf) {
       stdDeviation: 4,
       dx: 0,
       dy: 0,
-      floodColor: "#38e"
+      floodColor: "#38e",
     }
 
   // Custom diagonal function for D3 v7 (replaces d3.svg.diagonal)
-  var diagonal = function(d) {
-    return `M${d.source.y},${d.source.x}
+  var diagonal = (d) => `M${d.source.y},${d.source.x}
             C${(d.source.y + d.target.y) / 2},${d.source.x}
              ${(d.source.y + d.target.y) / 2},${d.target.x}
              ${d.target.y},${d.target.x}`
-  }
 
   // Define the div for the tooltip
   var tooltip = d3
@@ -137,7 +127,7 @@ export default function LineageChart(conf) {
 
   function chart(selection) {
     sel = selection
-    selection.on("contextmenu", function(event) {
+    selection.on("contextmenu", (event) => {
       event.preventDefault()
     })
 
@@ -156,26 +146,20 @@ export default function LineageChart(conf) {
         .attr("class", "top-scroll-div")
     }
 
-    if (
-      selection.node().classList.contains("lineage") &&
-      !d3.select(".lineage-wrapper").node()
-    ) {
+    if (selection.node().classList.contains("lineage") && !d3.select(".lineage-wrapper").node()) {
       selection = selection.append("div").attr("class", "lineage-wrapper")
     }
 
-    $(".top-scroll-wrapper").scroll(function() {
+    $(".top-scroll-wrapper").scroll(() => {
       $(".lineage-wrapper").scrollLeft($(".top-scroll-wrapper").scrollLeft())
     })
-    $(".lineage-wrapper").scroll(function() {
+    $(".lineage-wrapper").scroll(() => {
       $(".top-scroll-wrapper").scrollLeft($(".lineage-wrapper").scrollLeft())
     })
 
-    selection.each(function() {
+    selection.each(() => {
       var minWidth = data.max_depth * minNodeWidth
-      var containerWidth = d3
-        .select(".lineage-wrapper")
-        .node()
-        .getBoundingClientRect().width
+      var containerWidth = d3.select(".lineage-wrapper").node().getBoundingClientRect().width
       var scrollWidth = Math.max(minWidth, containerWidth)
       data.x0 = height / 2
       data.y0 = 0
@@ -186,10 +170,7 @@ export default function LineageChart(conf) {
       } else {
         height = 80 + data.max_width * heightScalar
         width = scrollWidth - margin.right - margin.left
-        nodeWidth = Math.max(
-          minNodeWidth,
-          (widthScalar * width) / data.max_depth
-        )
+        nodeWidth = Math.max(minNodeWidth, (widthScalar * width) / data.max_depth)
       }
       tree.size([height - margin.top - margin.bottom, width])
 
@@ -197,22 +178,17 @@ export default function LineageChart(conf) {
       var svg = selection.selectAll("svg").data([data])
 
       // Otherwise, create the skeletal chart.
-      var svgEnter = svg
-        .enter()
-        .append("svg")
-        .style("width", "100%")
+      var svgEnter = svg.enter().append("svg").style("width", "100%")
       var svgDefs = svgEnter.append("defs")
       svgDefs
         .append("radialGradient")
         .attr("id", "unknown_gradient")
-        .html(
-          '<stop offset="10%" stop-color="#bcbcbc"/> <stop offset="80%" stop-color="#ccc"/> '
-        )
-      svgEnter.append("g");
+        .html('<stop offset="10%" stop-color="#bcbcbc"/> <stop offset="80%" stop-color="#ccc"/> ')
+      svgEnter.append("g")
       addDrawDropShadow(svg, dropShadow)
 
       var neededWidth = nodeWidth * data.max_depth + margin.right + margin.left
-      d3.select(".top-scroll-div").style("min-width", neededWidth + "px")
+      d3.select(".top-scroll-div").style("min-width", `${neededWidth}px`)
       d3.select(".top-scroll-wrapper").style(
         "display",
         neededWidth <= containerWidth ? "none" : "block"
@@ -228,7 +204,7 @@ export default function LineageChart(conf) {
       var g = svg
         .select("g")
         .attr("width", width)
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .attr("transform", `translate(${margin.left},${margin.top})`)
 
       // D3 v7: Create hierarchy from data if not already a hierarchy
       // Check if data is already a d3 hierarchy (has descendants method)
@@ -246,23 +222,23 @@ export default function LineageChart(conf) {
         var links = hierarchy.links()
 
         // Normalize for fixed-depth.
-        nodes.forEach(function(d) {
+        nodes.forEach((d) => {
           d.y = (d.depth - 1) * nodeWidth
         })
 
         // Check for negative Y positions and shift if needed
         // But exclude fakeroot from this calculation since it will be removed from display
-        var visibleNodes = nodes.filter(d => d.data.name !== "fakeroot")
-        var minY = d3.min(visibleNodes, d => d.y)
+        var visibleNodes = nodes.filter((d) => d.data.name !== "fakeroot")
+        const minY = d3.min(visibleNodes, (d) => d.y)
         if (minY < 0) {
-          var yShift = -minY
-          nodes.forEach(function(d) {
+          const yShift = -minY
+          nodes.forEach((d) => {
             d.y = d.y + yShift
           })
         }
 
         if (vertical) {
-          nodes.forEach(function(d) {
+          nodes.forEach((d) => {
             var f = d.x
             d.x = d.y
             d.y = f
@@ -270,8 +246,8 @@ export default function LineageChart(conf) {
         }
 
         // Calculate actual height needed based on node positions
-        var minX = d3.min(nodes, d => d.x)
-        var maxX = d3.max(nodes, d => d.x)
+        var minX = d3.min(nodes, (d) => d.x)
+        var maxX = d3.max(nodes, (d) => d.x)
         var neededHeight = maxX - minX + margin.top + margin.bottom + 40 // extra padding
 
         // Update SVG height if needed
@@ -281,53 +257,43 @@ export default function LineageChart(conf) {
         }
 
         // Update the nodes…
-        var node = g.selectAll("g.node").data(nodes, function(d) {
-          return d.id || (d.id = ++i)
+        var node = g.selectAll("g.node").data(nodes, (d) => {
+          if (!d.id) {
+            d.id = ++i
+          }
+          return d.id
         })
 
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node
           .enter()
           .append("g")
-          .attr("class", function(d) {
-            return (
-              "node" +
-              (d.data.err && d.data.err.length > 0 ? " has-err" : "")
-            )
-          })
-          .attr("id", function(d) {
-            return "node_" + d.data.slug
-          })
-          .attr("transform", function(d) {
-            return "translate(" + source.y0 + "," + source.x0 + ")"
-          })
+          .attr("class", (d) => `node${d.data.err && d.data.err.length > 0 ? " has-err" : ""}`)
+          .attr("id", (d) => `node_${d.data.slug}`)
+          .attr("transform", (_d) => `translate(${source.y0},${source.x0})`)
           .on("contextmenu", click)
 
         nodeEnter
           .append("a")
-          .attr("xlink:href", function(d) {
-            return d.data.url
-          })
+          .attr("xlink:href", (d) => d.data.url)
           .append("circle")
           .attr("r", 1e-6)
           .style("filter", "url(#shadow);")
-          .style("fill", function(d) {
-            if (d.data.bg && d.data.bg.startsWith("linear:")) {
+          .style("fill", (d) => {
+            if (d.data.bg?.startsWith("linear:")) {
               svg
                 .select("defs")
                 .append("linearGradient")
                 // the 0 -> XX is a hack to fix a weird name-changing bug
-                .attr("id", d.data.slug.replace("0", "XX") + "_svggradient")
+                .attr("id", `${d.data.slug.replace("0", "XX")}_svggradient`)
                 .html(d.data.bg.replace("linear:", ""))
             }
           })
-          .on("mouseover", function(event, d) {
+          .on("mouseover", function (event, d) {
             if (d.data.slug !== slug) {
               d3.select(this)
                 .transition(150)
-                .attr("r", function(d) {
-                  return d._children ? defaultRadius : defaultRadius * 1.3
-                })
+                .attr("r", (d) => (d._children ? defaultRadius : defaultRadius * 1.3))
             }
 
             const largeWindow = window.matchMedia("(min-width: 576px)").matches
@@ -335,19 +301,17 @@ export default function LineageChart(conf) {
             if (largeWindow) {
               dtext = `<strong>${d.data.name}</strong><br><span>`
             } else {
-              dtext = `<strong><a href="${d.data.url}">${
-                d.data.name
-              }</a></strong><br><span>`
+              dtext = `<strong><a href="${d.data.url}">${d.data.name}</a></strong><br><span>`
             }
             dtext += d.parent ? (d.parent.data.name === "fakeroot" ? "" : d.parent.data.name) : ""
             if (d.data.mut) {
               let muts = d.data.mut.split("/")
               if (!show_inserts) {
-                muts = muts.filter(m => (m.includes("ins") ? "" : m))
-                muts = muts.filter(m => (m.includes("ext") ? "" : m))
+                muts = muts.filter((m) => (m.includes("ins") ? "" : m))
+                muts = muts.filter((m) => (m.includes("ext") ? "" : m))
               }
               if (!show_deletions) {
-                muts = muts.filter(m => (m.includes("del") ? "" : m))
+                muts = muts.filter((m) => (m.includes("del") ? "" : m))
               }
               dtext += ` &rarr; ${muts.join("/")}`
             }
@@ -359,19 +323,16 @@ export default function LineageChart(conf) {
             if (largeWindow) {
               const _ttwidth = 200
               tooltip
-                .style("width", _ttwidth + "px")
+                .style("width", `${_ttwidth}px`)
                 .style("position", "absolute")
-                .style("left", event.pageX - _ttwidth / 2 + "px")
+                .style("left", `${event.pageX - _ttwidth / 2}px`)
                 .style("border-radius", "8px")
                 .style("bottom", "inherit")
                 .style("padding", ".6rem 0.5rem")
                 .style("font-size", "inherit")
                 .selectAll("span")
                 .style("font-size", "0.75rem")
-              tooltip.style(
-                "top",
-                event.pageY - tooltip.node().clientHeight - 28 + "px"
-              )
+              tooltip.style("top", `${event.pageY - tooltip.node().clientHeight - 28}px`)
             } else {
               tooltip
                 .style("width", "100%")
@@ -392,14 +353,14 @@ export default function LineageChart(conf) {
                 .style("top", "10px")
                 .style("right", "10px")
                 .html("✖")
-                .on("click", function() {
+                .on("click", () => {
                   tooltip
                     .transition()
                     .duration(150)
                     .style("opacity", 0)
                     .transition()
                     .duration(0)
-                    .style("left", -9999 + "px")
+                    .style("left", `${-9999}px`)
                 })
             }
             tooltip
@@ -407,25 +368,25 @@ export default function LineageChart(conf) {
               .duration(150)
               .style("opacity", largeWindow ? 0.9 : 1)
           })
-          .on("mouseout", function(event, d) {
+          .on("mouseout", function (_event, d) {
             tooltip
               .transition()
               .duration(150)
               .style("opacity", 0)
               .transition()
               .duration(0)
-              .style("left", -9999 + "px")
+              .style("left", `${-9999}px`)
 
             if (d.data.slug !== slug) {
               d3.select(this)
                 .transition(150)
-                .attr("r", function(d) {
-                  return d._children
+                .attr("r", (d) =>
+                  d._children
                     ? defaultRadius / 2
                     : d.data.slug === slug
-                    ? slugRadius
-                    : defaultRadius
-                })
+                      ? slugRadius
+                      : defaultRadius
+                )
             }
           })
 
@@ -436,26 +397,18 @@ export default function LineageChart(conf) {
 
         nodeEnter
           .append("text")
-          .attr("x", function(d) {
-            return text_position(d, slug, vertical)[0]
-          })
-          .attr("y", function(d) {
-            return text_position(d, slug, vertical)[1]
-          })
+          .attr("x", (d) => text_position(d, slug, vertical)[0])
+          .attr("y", (d) => text_position(d, slug, vertical)[1])
           .attr("dy", ".35em")
-          .attr("text-anchor", function(d) {
-            return text_position(d, slug, vertical)[2]
-          })
-          .text(function(d) {
+          .attr("text-anchor", (d) => text_position(d, slug, vertical)[2])
+          .text((d) => {
             var t = d.data.name
             if (d.data.err && d.data.err.length > 0) {
               t += ` ! (${d.data.err[0].replace("SequenceMismatch:  diff: ", "")})`
             }
             return t
           })
-          .attr("class", function(d) {
-            return d.data.slug === slug ? "font-weight-bold" : ""
-          })
+          .attr("class", (d) => (d.data.slug === slug ? "font-weight-bold" : ""))
           .style("fill-opacity", 1e-6)
 
         // Merge enter and update selections
@@ -463,35 +416,27 @@ export default function LineageChart(conf) {
           .merge(nodeEnter)
           .transition()
           .duration(duration)
-          .attr("transform", function(d) {
-            return "translate(" + d.y + "," + d.x + ")"
-          })
+          .attr("transform", (d) => `translate(${d.y},${d.x})`)
 
         nodeUpdate
           .select("circle")
-          .attr("r", function(d) {
-            return d._children
-              ? defaultRadius / 2
-              : d.data.slug === slug
-              ? slugRadius
-              : defaultRadius
-          })
-          .style("fill", function(d) {
-            if (d.data.bg && d.data.bg.startsWith("linear:")) {
-              return "url(#" + d.data.slug.replace("0", "XX") + "_svggradient)"
+          .attr("r", (d) =>
+            d._children ? defaultRadius / 2 : d.data.slug === slug ? slugRadius : defaultRadius
+          )
+          .style("fill", (d) => {
+            if (d.data.bg?.startsWith("linear:")) {
+              return `url(#${d.data.slug.replace("0", "XX")}_svggradient)`
             } else if (d.data.bg === "?") {
               return "url(#unknown_gradient)"
             }
             return d.data.bg === "#222" ? "#888" : d.data.bg
           })
-          .style("stroke-width", function(d) {
-            return d._children ? defaultRadius / 2 + "px" : "1px"
-          })
+          .style("stroke-width", (d) => (d._children ? `${defaultRadius / 2}px` : "1px"))
 
         nodeUpdate
           .select("text")
           .style("fill-opacity", 1)
-          .attr("transform", function(d) {
+          .attr("transform", (d) => {
             if (
               nodeWidth < 80 &&
               d.children &&
@@ -509,9 +454,7 @@ export default function LineageChart(conf) {
           .exit()
           .transition()
           .duration(duration)
-          .attr("transform", function(d) {
-            return "translate(" + source.y + "," + source.x + ")"
-          })
+          .attr("transform", (_d) => `translate(${source.y},${source.x})`)
           .remove()
 
         nodeExit.select("circle").attr("r", 1e-6)
@@ -519,33 +462,27 @@ export default function LineageChart(conf) {
         nodeExit.select("text").style("fill-opacity", 1e-6)
 
         // Update the links…
-        var link = g.selectAll("path.link").data(links, function(d) {
-          return d.target.id
-        })
+        var link = g.selectAll("path.link").data(links, (d) => d.target.id)
 
         // Enter any new links at the parent's previous position.
         var linkEnter = link
           .enter()
           .insert("path", "g")
           .attr("class", "link")
-          .attr("d", function(d) {
+          .attr("d", (_d) => {
             var o = { x: source.x0, y: source.y0 }
             return diagonal({ source: o, target: o })
           })
 
         // Transition links to their new position.
-        link
-          .merge(linkEnter)
-          .transition()
-          .duration(duration)
-          .attr("d", diagonal)
+        link.merge(linkEnter).transition().duration(duration).attr("d", diagonal)
 
         // Transition exiting nodes to the parent's new position.
         link
           .exit()
           .transition()
           .duration(duration)
-          .attr("d", function(d) {
+          .attr("d", (_d) => {
             var o = { x: source.x, y: source.y }
             return diagonal({ source: o, target: o })
           })
@@ -553,22 +490,22 @@ export default function LineageChart(conf) {
 
         // Remove fakeroot nodes and links
         // Must operate on merged selection to catch both enter and update selections
-        node.merge(nodeEnter).each(function(d) {
+        node.merge(nodeEnter).each(function (d) {
           if (d.data.name === "fakeroot") d3.select(this).remove()
         })
 
-        link.merge(linkEnter).each(function(d) {
+        link.merge(linkEnter).each(function (d) {
           if (d.source.data.name === "fakeroot") d3.select(this).remove()
         })
 
         // Stash the old positions for transition.
-        nodes.forEach(function(d) {
+        nodes.forEach((d) => {
           d.x0 = d.x
           d.y0 = d.y
         })
 
         // toggle children on click
-        function click(event, d) {
+        function click(_event, d) {
           if (d.children) {
             d._children = d.children
             d.children = null
@@ -589,11 +526,7 @@ export default function LineageChart(conf) {
           } else if (this.classList.contains("mut-all")) {
             any = false
           } else {
-            any = d3
-              .select("#anytoggle")
-              .node()
-              .closest("label")
-              .classList.contains("active")
+            any = d3.select("#anytoggle").node().closest("label").classList.contains("active")
           }
           if (this.classList.contains("mut-parent")) {
             relparent = true
@@ -611,9 +544,7 @@ export default function LineageChart(conf) {
             .toUpperCase()
             .replace(",", " ")
             .split(" ")
-            .filter(function(a) {
-              return a.length > 1 ? a : null
-            })
+            .filter((a) => (a.length > 1 ? a : null))
 
           if (val.length) {
             g.selectAll("path.link").attr("opacity", 0.35)
@@ -622,72 +553,56 @@ export default function LineageChart(conf) {
           }
 
           g.selectAll("circle")
-            .attr("filter", function(d) {
+            .attr("filter", (d) => {
               if (!val.length) {
                 return null
               }
               if (any) {
-                return val.some(function(v) {
-                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-                })
+                return val.some((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                   ? "url(#dropshadow)"
                   : null
               }
-              return val.every(function(v) {
-                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-              })
+              return val.every((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                 ? "url(#dropshadow)"
                 : null
             })
-            .attr("opacity", function(d) {
+            .attr("opacity", (d) => {
               if (!val.length) {
                 return 1
               }
               if (any) {
-                return val.some(function(v) {
-                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-                })
+                return val.some((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                   ? 1
                   : 0.3
               }
-              return val.every(function(v) {
-                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-              })
+              return val.every((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                 ? 1
                 : 0.3
             })
           g.selectAll("text")
-            .attr("opacity", function(d) {
+            .attr("opacity", (d) => {
               if (!val.length) {
                 return 1
               }
               if (any) {
-                return val.some(function(v) {
-                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-                })
+                return val.some((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                   ? 1
                   : 0.3
               }
-              return val.every(function(v) {
-                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-              })
+              return val.every((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                 ? 1
                 : 0.3
             })
-            .style("font-weight", function(d) {
+            .style("font-weight", (d) => {
               if (!val.length) {
                 return "inherit"
               }
               if (any) {
-                return val.some(function(v) {
-                  return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-                })
+                return val.some((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                   ? 500
                   : "inherit"
               }
-              return val.every(function(v) {
-                return (relparent ? d.data.mut : d.data.rootmut).includes(v)
-              })
+              return val.every((v) => (relparent ? d.data.mut : d.data.rootmut).includes(v))
                 ? 500
                 : "inherit"
             })
@@ -697,88 +612,88 @@ export default function LineageChart(conf) {
   }
 
   var resizeTimer
-  $(window).on("resize", function(e) {
+  $(window).on("resize", (_e) => {
     clearTimeout(resizeTimer)
     resizeTimer = setTimeout(chart.update, 100)
   })
 
   // Public accessor methods
 
-  chart.margin = function(_) {
-    if (!arguments.length) return margin
-    margin = _
+  chart.margin = (...args) => {
+    if (!args.length) return margin
+    margin = args[0]
     return chart
   }
 
-  chart.width = function(value) {
-    if (!arguments.length) return width
-    width = value
+  chart.width = (...args) => {
+    if (!args.length) return width
+    width = args[0]
     return chart
   }
 
-  chart.slug = function(value) {
-    if (!arguments.length) return slug
-    slug = value
+  chart.slug = (...args) => {
+    if (!args.length) return slug
+    slug = args[0]
     return chart
   }
 
-  chart.duration = function(value) {
-    if (!arguments.length) return duration
-    duration = value
+  chart.duration = (...args) => {
+    if (!args.length) return duration
+    duration = args[0]
     return chart
   }
 
-  chart.height = function(value) {
-    if (!arguments.length) return height
-    height = value
+  chart.height = (...args) => {
+    if (!args.length) return height
+    height = args[0]
     return chart
   }
 
-  chart.heightScalar = function(value) {
-    if (!arguments.length) return heightScalar
-    heightScalar = value
+  chart.heightScalar = (...args) => {
+    if (!args.length) return heightScalar
+    heightScalar = args[0]
     return chart
   }
 
-  chart.scaleHeightUp = function() {
+  chart.scaleHeightUp = () => {
     heightScalar += 2
     chart(sel)
     return chart
   }
 
-  chart.scaleHeightDown = function() {
+  chart.scaleHeightDown = () => {
     heightScalar -= 2
     chart(sel)
     return chart
   }
 
-  chart.scaleWidthUp = function() {
+  chart.scaleWidthUp = () => {
     widthScalar += 0.07
     chart(sel)
     return chart
   }
 
-  chart.scaleWidthDown = function() {
+  chart.scaleWidthDown = () => {
     widthScalar -= 0.07
     chart(sel)
     return chart
   }
 
-  chart.widthScalar = function(value) {
-    if (!arguments.length) return widthScalar
-    widthScalar = value
+  chart.widthScalar = (...args) => {
+    if (!args.length) return widthScalar
+    widthScalar = args[0]
     return chart
   }
 
-  chart.withSearch = function(value) {
-    if (!arguments.length) return withSearch
-    withSearch = value
+  chart.withSearch = (...args) => {
+    if (!args.length) return withSearch
+    withSearch = args[0]
     return chart
   }
 
-  chart.withToolbar = function(value) {
-    if (!arguments.length) return withToolbar
-    withToolbar = value
+  chart.withToolbar = (...args) => {
+    if (!args.length) return withToolbar
+    withToolbar = args[0]
     return chart
   }
 
@@ -788,10 +703,7 @@ export default function LineageChart(conf) {
       .attr("class", "btn-toolbar lineage-toolbar")
       .attr("role", "toolbar")
       .style("opacity", 0.8)
-    var grp1 = tbar
-      .append("div")
-      .attr("class", "btn-group btn-group-sm mr-2")
-      .attr("role", "group")
+    var grp1 = tbar.append("div").attr("class", "btn-group btn-group-sm mr-2").attr("role", "group")
     grp1
       .append("button")
       .on("click", chart.scaleWidthDown)
@@ -816,13 +728,10 @@ export default function LineageChart(conf) {
       .attr("type", "button")
       .attr("class", "btn btn-outline-dark")
       .html("⇩")
-    var grp2 = tbar
-      .append("div")
-      .attr("class", "btn-group btn-group-sm mr-2")
-      .attr("role", "group")
+    var grp2 = tbar.append("div").attr("class", "btn-group btn-group-sm mr-2").attr("role", "group")
     grp2
       .append("button")
-      .on("click", function() {
+      .on("click", () => {
         chart.tree("tree")
       })
       .attr("type", "button")
@@ -831,7 +740,7 @@ export default function LineageChart(conf) {
       .style("width", "2rem")
     grp2
       .append("button")
-      .on("click", function() {
+      .on("click", () => {
         chart.tree("cluster")
       })
       .attr("type", "button")
@@ -840,20 +749,20 @@ export default function LineageChart(conf) {
       .style("width", "2rem")
   }
 
-  chart.data = function(value) {
-    if (!arguments.length) return data
-    data = value
+  chart.data = (...args) => {
+    if (!args.length) return data
+    data = args[0]
     // if (typeof updateData === "function") updateData();
     return chart
   }
 
-  chart.update = function() {
+  chart.update = () => {
     chart(sel)
   }
 
-  chart.tree = function(value) {
-    if (!arguments.length) return tree
-    if (value === "cluster") {
+  chart.tree = (...args) => {
+    if (!args.length) return tree
+    if (args[0] === "cluster") {
       tree = d3.cluster()
       chart(sel)
     } else {
@@ -871,7 +780,7 @@ export default function LineageChart(conf) {
  */
 function addDrawDropShadow(svg, dropShadow) {
   if (!d3.select("#dropshadow").node()) {
-    var filter = svg
+    const filter = svg
       .select("defs")
       .append("filter")
       .attr("id", "dropshadow")
@@ -891,13 +800,8 @@ function addDrawDropShadow(svg, dropShadow) {
 }
 
 function createMutationSearch(selection) {
-  var wrapperDiv = selection
-    .append("div")
-    .append("div")
-    .attr("class", "row")
-  var searchDiv = wrapperDiv
-    .append("div")
-    .attr("class", "input-group col-12 col-lg-8 mb-2")
+  var wrapperDiv = selection.append("div").append("div").attr("class", "row")
+  var searchDiv = wrapperDiv.append("div").attr("class", "input-group col-12 col-lg-8 mb-2")
   searchDiv
     .append("div")
     .attr("class", "input-group-prepend")
@@ -905,7 +809,8 @@ function createMutationSearch(selection) {
     .attr("class", "input-group-text")
     .text("Search")
 
-  searchDiv.append("input")
+  searchDiv
+    .append("input")
     .attr("type", "search")
     .attr("class", "form-control")
     .attr("name", "textInput")
@@ -939,9 +844,7 @@ function createMutationSearch(selection) {
     .attr("id", "anytoggle")
     .attr("autocomplete", "off")
 
-  var rightdiv = wrapperDiv
-    .append("div")
-    .attr("class", "input-group col-12 col-lg-4 mb-2")
+  var rightdiv = wrapperDiv.append("div").attr("class", "input-group col-12 col-lg-4 mb-2")
   rightdiv
     .append("div")
     .attr("class", "input-group-prepend")
@@ -949,7 +852,8 @@ function createMutationSearch(selection) {
     .attr("class", "input-group-text")
     .text("Relative to")
 
-  var relativetogroup = rightdiv.append("div")
+  var relativetogroup = rightdiv
+    .append("div")
     .attr("class", "btn-group-toggle btn-group input-group-append")
     .attr("data-toggle", "buttons")
 

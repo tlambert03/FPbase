@@ -1,4 +1,4 @@
-const path = require("path")
+const path = require("node:path")
 const webpack = require("webpack")
 const BundleTracker = require("webpack-bundle-tracker")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
@@ -31,7 +31,7 @@ const styleRule = {
       loader: "sass-loader",
       options: {
         sassOptions: {
-          silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'abs-percent'],
+          silenceDeprecations: ["import", "global-builtin", "color-functions", "abs-percent"],
         },
       },
     },
@@ -78,9 +78,9 @@ const plugins = [
   }),
   // Inject environment variables into the bundle for runtime access
   new webpack.DefinePlugin({
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-    'process.env.SENTRY_DSN': JSON.stringify(process.env.SENTRY_DSN || ''),
-    'process.env.HEROKU_SLUG_COMMIT': JSON.stringify(process.env.HEROKU_SLUG_COMMIT || ''),
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development"),
+    "process.env.SENTRY_DSN": JSON.stringify(process.env.SENTRY_DSN || ""),
+    "process.env.HEROKU_SLUG_COMMIT": JSON.stringify(process.env.HEROKU_SLUG_COMMIT || ""),
   }),
   // new webpack.IgnorePlugin(/vertx/),
   new BundleTracker({
@@ -136,18 +136,9 @@ module.exports = {
     extensions: [".webpack.js", ".web.js", ".mjs", ".js", ".jsx", ".json"],
     alias: {
       jquery: "jquery/src/jquery",
-      "@fpbase/spectra": path.resolve(
-        __dirname,
-        "../packages/spectra/src/index.jsx"
-      ),
-      "@fpbase/blast": path.resolve(
-        __dirname,
-        "../packages/blast/src/index.js"
-      ),
-      "@fpbase/protein-table": path.resolve(
-        __dirname,
-        "../packages/protein-table/src/index.jsx"
-      ),
+      "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.jsx"),
+      "@fpbase/blast": path.resolve(__dirname, "../packages/blast/src/index.js"),
+      "@fpbase/protein-table": path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
       "@emotion/react": require.resolve("@emotion/react"),
       "@emotion/styled": require.resolve("@emotion/styled"),
     },

@@ -1,15 +1,14 @@
-import React, { useEffect, memo, useState } from "react"
-import Box from "@mui/material/Box"
-
 import { useApolloClient } from "@apollo/client"
-import Typography from "@mui/material/Typography"
-import { makeStyles } from "@mui/styles"
+import RadioButtonChecked from "@mui/icons-material/RadioButtonChecked"
+import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked"
+import Box from "@mui/material/Box"
 import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
-import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked"
-import RadioButtonChecked from "@mui/icons-material/RadioButtonChecked"
-import InputSlider from "./InputSlider"
+import Typography from "@mui/material/Typography"
+import { makeStyles } from "@mui/styles"
+import { memo, useEffect, useState } from "react"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import InputSlider from "./InputSlider"
 
 const useStyles = makeStyles({
   label: {
@@ -19,12 +18,7 @@ const useStyles = makeStyles({
 })
 
 // $cl1
-const CustomLaserCreator = memo(function CustomLaserCreator({
-  id,
-  normID,
-  setExNorm,
-  clearNorm,
-}) {
+const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExNorm, clearNorm }) {
   const classes = useStyles()
 
   const [laserID, _wave] = id.split("_")
@@ -45,7 +39,7 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
     }
   }, [client, laserID, normID, setExNorm, wave])
 
-  const handleNormCheck = (e, checked) => {
+  const handleNormCheck = (_e, checked) => {
     if (checked) {
       setExNorm([String(wave), laserID])
     } else {
@@ -77,13 +71,9 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
         <Box>
           <FormControlLabel
             value="normalize"
-            label={(
-              <Typography className={classes.label}>
-                Norm em. to this
-              </Typography>
-)}
+            label={<Typography className={classes.label}>Norm em. to this</Typography>}
             labelPlacement="end"
-            control={(
+            control={
               <Checkbox
                 icon={<RadioButtonUnchecked fontSize="small" />}
                 checkedIcon={<RadioButtonChecked fontSize="small" />}
@@ -91,7 +81,7 @@ const CustomLaserCreator = memo(function CustomLaserCreator({
                 checked={id.startsWith(normID)}
                 onChange={handleNormCheck}
               />
-)}
+            }
           />
         </Box>
       </Box>

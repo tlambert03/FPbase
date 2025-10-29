@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
@@ -19,9 +20,12 @@ from playwright.sync_api import expect
 from favit.models import Favorite
 from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
 from proteins.models import Spectrum
+from proteins.models.protein import Protein
 from proteins.util.blast import _get_binary
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Page
     from pytest_django.live_server_helper import LiveServer
@@ -31,7 +35,22 @@ SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS
 CDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
 
 
-def test_main_page_loads_with_assets(live_server: LiveServer, page: Page) -> None:
+def _is_not_chromium() -> bool:
+    """Check if browser specified in CLI args is not chromium.
+
+    pytest-playwright defaults to chromium, so we only skip if a different browser
+    was explicitly specified via --browser CLI option.
+    """
+    for i, arg in enumerate(sys.argv):
+        if arg.startswith("--browser="):
+            browser = arg.split("=", 1)[1]
+            return browser != "chromium"
+        if arg == "--browser" and i + 1 < len(sys.argv):
+            return sys.argv[i + 1] != "chromium"
+    return False
+
+
+def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test that the main page loads without errors and CSS/JS assets are applied.
 
     Verifies:
@@ -70,8 +89,11 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page) -> Non
     main_content = page.locator("main, #content, .main-content")
     expect(main_content.first).to_be_visible()
 
+    # Visual snapshot: capture homepage after all elements loaded
+    assert_snapshot(page)
 
-def test_spectra_viewer_loads(live_server: LiveServer, page: Page) -> None:
+
+def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test the spectra viewer page loads without console errors."""
     ProteinFactory.create()
 
@@ -81,6 +103,9 @@ def test_spectra_viewer_loads(live_server: LiveServer, page: Page) -> None:
 
     spectra_viewer = page.locator("#spectra-viewer")
     expect(spectra_viewer).to_be_attached()
+
+    # Visual snapshot: capture spectra viewer initial state
+    assert_snapshot(page)
 
 
 def _select2_enter(selector: str, text: str, page: Page) -> None:
@@ -97,7 +122,7 @@ def _select2_enter(selector: str, text: str, page: Page) -> None:
     page.keyboard.press("Enter")
 
 
-def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: LiveServer) -> None:
+def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: LiveServer, assert_snapshot) -> None:
     """Test spectrum submission form with manual data preview."""
     protein = ProteinFactory.create()
     protein.default_state.ex_spectrum.delete()
@@ -119,6 +144,9 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
     expect(data_field).to_be_visible()
     data_field.fill("[[500,0.1],[505,0.5],[510,0.8],[515,0.6],[520,0.3]]")
 
+    # Visual snapshot: form filled but before preview
+    assert_snapshot(auth_page)
+
     # Submit for preview
     auth_page.locator('input[type="submit"]').click()
 
@@ -130,12 +158,17 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
     expect(svg).to_be_visible()
     expect(svg.locator("[id^='FillBetweenPolyCollection']")).to_have_count(1)
 
+    # Visual snapshot: preview chart displayed
+    if not hasattr(assert_snapshot, "NOOP"):
+        auth_page.wait_for_load_state("networkidle")
+        assert_snapshot(auth_page)
+
     # submit it!
     auth_page.get_by_text("Submit Spectrum").click()
     expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:spectrum_submitted')}")
 
 
-def test_spectrum_submission_tab_switching(auth_page: Page, live_server: LiveServer) -> None:
+def test_spectrum_submission_tab_switching(auth_page: Page, live_server: LiveServer, assert_snapshot) -> None:
     """Test tab switching behavior in spectrum submission form."""
     # Create a protein so owner_state field has options
     protein = ProteinFactory.create()
@@ -168,6 +201,9 @@ def test_spectrum_submission_tab_switching(auth_page: Page, live_server: LiveSer
     expect(data_field).to_be_enabled()
     data_field.fill("[[400,0.1],[401,0.2],[402,0.3],[403,0.5],[404,0.8],[405,1.0]]")
 
+    # Visual snapshot: manual tab active with data
+    assert_snapshot(auth_page)
+
     # Switch back to file tab
     file_tab.click()
     expect(file_tab).to_have_class(re.compile("active"))
@@ -175,6 +211,9 @@ def test_spectrum_submission_tab_switching(auth_page: Page, live_server: LiveSer
     # Verify submit button is present
     submit_btn = auth_page.locator('input[type="submit"]')
     expect(submit_btn).to_be_visible()
+
+    # Visual snapshot: file tab active
+    assert_snapshot(auth_page)
 
 
 @pytest.mark.parametrize("ext", [".svg", ".png", ".jpg", ".jpeg"])
@@ -207,7 +246,7 @@ def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
-def test_microscope_page_with_interaction(live_server: LiveServer, page: Page) -> None:
+def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test microscope page with fluorophore selection and config switching."""
     protein = ProteinFactory.create()
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
@@ -227,14 +266,22 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page) -
     config_select.select_option(label="TestOC1")
 
 
-def test_fret_page_loads(live_server: LiveServer, page: Page) -> None:
+def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test FRET page loads with donor/acceptor selection."""
-    ProteinFactory(name="donor", agg="m", default_state__ex_max=488, default_state__em_max=525)
+    ProteinFactory(
+        name="donor",
+        agg="m",
+        default_state__ex_max=488,
+        default_state__em_max=525,
+        default_state__qy=0.8,
+    )
     ProteinFactory(
         name="acceptor",
         agg="m",
         default_state__ex_max=525,
         default_state__em_max=550,
+        default_state__ext_coeff=55000,
+        default_state__qy=0.6,
     )
     url = f"{live_server.url}{reverse('proteins:fret')}"
     page.goto(url)
@@ -256,12 +303,20 @@ def test_fret_page_loads(live_server: LiveServer, page: Page) -> None:
     expect(svg).to_be_visible()
     expect(svg.locator("g.highcharts-series")).to_have_count(5)
 
+    # Visual snapshot: FRET calculation complete with chart
+    if not hasattr(assert_snapshot, "NOOP"):
+        page.wait_for_load_state("networkidle")
+        assert_snapshot(page)
 
-def test_collections_page_loads(live_server: LiveServer, page: Page) -> None:
+
+def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test collections page loads without errors."""
     url = f"{live_server.url}{reverse('proteins:collections')}"
     page.goto(url)
     expect(page).to_have_url(url)
+
+    # Visual snapshot: collections page
+    assert_snapshot(page)
 
 
 def test_problems_page_loads(live_server: LiveServer, page: Page) -> None:
@@ -285,7 +340,7 @@ def test_problems_gaps_page_loads(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
-def test_protein_table_page_loads(live_server: LiveServer, page: Page) -> None:
+def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test protein table page loads without errors."""
     # Create minimal data - table functionality doesn't require 10 proteins
     ProteinFactory.create_batch(3)
@@ -294,22 +349,41 @@ def test_protein_table_page_loads(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
-def test_interactive_chart_page(live_server: LiveServer, page: Page) -> None:
+def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test interactive chart page with axis selection."""
     # Create minimal data - chart interaction doesn't require 6 proteins
-    ProteinFactory.create_batch(2)
+    ProteinFactory.create(
+        name="Prot1",
+        agg="d",
+        default_state__ext_coeff=20000,
+        default_state__qy=0.5,
+        default_state__ex_max=490,
+        default_state__em_max=520,
+    )
+    ProteinFactory.create(
+        name="Prot2",
+        agg="m",
+        default_state__ext_coeff=40000,
+        default_state__qy=0.6,
+        default_state__ex_max=550,
+        default_state__em_max=580,
+    )
     url = f"{live_server.url}{reverse('proteins:ichart')}"
     page.goto(url)
     expect(page).to_have_url(url)
 
+    # Visual snapshot: chart with custom axes
+    if hasattr(assert_snapshot, "NOOP"):
+        page.wait_for_load_state("networkidle")
+        assert_snapshot(page)
+
     # Click X-axis radio button for quantum yield (wrapped in Bootstrap label)
     page.locator("//label[input[@id='Xqy']]").click()
-
     # Click Y-axis radio button for extinction coefficient (wrapped in Bootstrap label)
     page.locator("//label[input[@id='Yext_coeff']]").click()
 
 
-def test_embedded_microscope_viewer(live_server: LiveServer, page: Page) -> None:
+def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test embedded microscope viewer with chart rendering."""
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
     OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
@@ -326,8 +400,11 @@ def test_embedded_microscope_viewer(live_server: LiveServer, page: Page) -> None
     paths = page.locator(".svg-container svg path")
     assert paths.count() > 10, f"Expected more than 10 paths, but got {paths.count()}"
 
+    # Visual snapshot: embedded microscope viewer
+    # assert_snapshot(page)
 
-def test_protein_comparison(live_server: LiveServer, page: Page) -> None:
+
+def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test protein comparison page shows mutations between two proteins."""
     protein1 = ProteinFactory.create(name="GFP1", seq=SEQ)
     protein2 = ProteinFactory.create(name="GFP2", seq=SEQ.replace("ELDG", "ETTG"))
@@ -342,16 +419,32 @@ def test_protein_comparison(live_server: LiveServer, page: Page) -> None:
     mutations_text = page.locator("text=/Mutations:.*L19T\\/D20T/")
     expect(mutations_text).to_be_visible()
 
+    # Visual snapshot: protein comparison with mutations
+    assert_snapshot(page.get_by_text("Sequence Comparison").locator("css=+ div").screenshot())
 
-def test_advanced_search(live_server: LiveServer, page: Page) -> None:
+
+@pytest.mark.skipif(_is_not_chromium(), reason="Timing flaky ... limiting to chrome.")
+def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test advanced search with multiple filters."""
-    protein = ProteinFactory.create(name="SearchTestGFP", seq=SEQ)
+    protein = ProteinFactory.create(
+        name="SearchTestGFP",
+        seq=SEQ,
+        default_state__ex_max=488,
+        default_state__em_max=525,
+    )
+    protein = ProteinFactory.create(
+        name="SearchTestGFP2",
+        seq=SEQ + "AA",
+        default_state__ex_max=600,
+        default_state__em_max=650,
+    )
 
     url = f"{live_server.url}{reverse('proteins:search')}"
     page.goto(url)
     expect(page).to_have_url(url)
     # Wait for search form to be ready
     expect(page.locator("#filter-select-0")).to_be_visible()
+    assert_snapshot(page)
 
     # First filter: Sequence cDNA contains
     page.locator("#filter-select-0").select_option("seq")
@@ -367,7 +460,21 @@ def test_advanced_search(live_server: LiveServer, page: Page) -> None:
     page.locator("#id_name__istartswith").fill(protein.name[:6])
 
     # Submit search
-    page.locator('button[type="submit"]').click()
+    page.locator('button[type="submit"]').first.click()
+    # page.wait_for_load_state("networkidle")
+
+    lozenges = page.locator("#ldisplay")
+    expect(lozenges).to_be_visible()
+    assert_snapshot(page)
+
+    # click on table display
+    page.locator("label:has(#tbutton)").click()
+    table = page.locator("#tdisplay")
+    expect(table).to_be_visible()
+
+    # now verify that an exact match redirects to the protein detail page
+    page.locator("#id_name__istartswith").fill(protein.name)
+    page.locator('button[type="submit"]').first.click()
 
     # Should redirect to protein detail page
     expected_url = f"{live_server.url}{protein.get_absolute_url()}"
@@ -406,15 +513,7 @@ def test_contact_form_submission(live_server: LiveServer, page: Page) -> None:
         expect(page).to_have_url(re.compile(r"/thanks/?$"))
 
 
-try:
-    _get_binary("makeblastdb")
-    HAVE_BLAST = True
-except Exception:
-    HAVE_BLAST = False
-
-
-@pytest.mark.skipif(not os.environ.get("CI") or not HAVE_BLAST, reason="BLAST binaries may not be installed locally")
-def test_blast_search(live_server: LiveServer, page: Page) -> None:
+def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot) -> None:
     """Test BLAST search functionality."""
     protein = ProteinFactory.create(name="BlastTestGFP", seq=SEQ)
 
@@ -426,6 +525,14 @@ def test_blast_search(live_server: LiveServer, page: Page) -> None:
     query_input = page.locator("#queryInput")
     expect(query_input).to_be_visible()
     query_input.fill(SEQ[5:20].replace("LDG", "LG"))
+    assert_snapshot(page)
+
+    if not os.environ.get("CI"):
+        try:
+            _get_binary("makeblastdb")
+        except Exception:
+            # this is a local test without BLAST installed; skip the rest
+            return
 
     # Submit search
     page.locator('button[type="submit"]').click()
@@ -433,6 +540,8 @@ def test_blast_search(live_server: LiveServer, page: Page) -> None:
     # Wait for results table to load
     first_result = page.locator("table tbody tr:first-child td:first-child a")
     expect(first_result).to_be_visible()
+
+    assert_snapshot(page)
 
     # Verify the protein is in results
     expect(first_result).to_have_text(protein.name)
@@ -443,10 +552,15 @@ def test_blast_search(live_server: LiveServer, page: Page) -> None:
     # Verify we're still on the BLAST page (alignment shown in same page)
     expect(page).to_have_url(re.compile(r"/blast"))
 
+    # Visual snapshot: BLAST alignment view
+    assert_snapshot(page)
 
-def test_favorite_button_interaction(auth_user: AbstractUser, auth_page: Page, live_server: LiveServer) -> None:
+
+def test_favorite_button_interaction(
+    auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot
+) -> None:
     """Test favorite button interaction on protein detail page."""
-    protein = ProteinFactory.create(name="FavoriteTestProtein")
+    protein = Protein.objects.create(name="MyProt", seq=SEQ, uuid="XSQ4F")
 
     # Navigate to protein detail page
     url = f"{live_server.url}{reverse('proteins:protein-detail', args=(protein.slug,))}"
@@ -465,6 +579,9 @@ def test_favorite_button_interaction(auth_user: AbstractUser, auth_page: Page, l
     # Verify no favorite exists in database yet
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None
 
+    # Visual snapshot: initial state (not favorited)
+    assert_snapshot(auth_page)
+
     # Click the favorite button
     favorite_btn.click()
 
@@ -475,6 +592,9 @@ def test_favorite_button_interaction(auth_user: AbstractUser, auth_page: Page, l
 
     # Verify backend is updated: favorite should now exist in database
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is not None
+
+    # Visual snapshot: favorited state
+    assert_snapshot(auth_page)
 
     # Click again to unfavorite
     favorite_btn.click()

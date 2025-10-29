@@ -1,7 +1,7 @@
 const FONTS =
   'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";'
 
-const toolTipRow = entry => {
+const toolTipRow = (entry) => {
   return (
     `<tr><td><span style="color:${entry.series.color}">` +
     `&#9673; ` +
@@ -13,10 +13,10 @@ const toolTipRow = entry => {
       entry.series.userOptions.scaleQY
         ? ' <span style="font-size: 0.7rem; font-style: italic">(QY)</span>'
         : ""
-    }:</td><td style="text-align: right; font-weight: bold"> ${(entry.series
-      .userOptions.scaleEC
-      ? Math.round(entry.y)
-      : (Math.round(100 * entry.y) / 100).toFixed(2)
+    }:</td><td style="text-align: right; font-weight: bold"> ${(
+      entry.series.userOptions.scaleEC
+        ? Math.round(entry.y)
+        : (Math.round(100 * entry.y) / 100).toFixed(2)
     ).toLocaleString()}</td></tr>`
   )
 }
@@ -24,14 +24,14 @@ const DEFAULT_OPTIONS = {
   plotOptions: {
     series: {
       boostThreshold: 800,
-      findNearestPointBy: 'x',
+      findNearestPointBy: "x",
       stickyTracking: true,
       events: {
-        mouseOver: function({ target: { xAxis } }, b) {
+        mouseOver: () => {
           const el = document.getElementById("zoom-info")
           if (el) el.style.display = "block"
         },
-        mouseOut: function() {
+        mouseOut: () => {
           const el = document.getElementById("zoom-info")
           if (el) el.style.display = "none"
         },
@@ -80,7 +80,7 @@ const DEFAULT_OPTIONS = {
     title: false,
     labels: {
       enabled: false,
-      formatter: function() {
+      formatter: function () {
         if (this.value !== 0) {
           return this.axis.defaultLabelFormatter.call(this)
         }
@@ -98,15 +98,14 @@ const DEFAULT_OPTIONS = {
     },
     crosshair: true,
     events: {
-      afterSetExtremes: function({ userMin, userMax }) {
+      afterSetExtremes: ({ userMin, userMax }) => {
         const el = document.getElementById("zoom-info")
         if (el) {
           if (userMin || userMax) {
             if (window.USER_IS_TOUCHING) {
               el.innerHTML = "pinch to zoom, two-finger drag to pan"
             } else {
-              el.innerHTML =
-                "click and drag to zoom, shift-click and drag to pan"
+              el.innerHTML = "click and drag to zoom, shift-click and drag to pan"
             }
           } else if (window.USER_IS_TOUCHING) {
             el.innerHTML = "pinch to zoom"
@@ -145,15 +144,15 @@ const DEFAULT_OPTIONS = {
     sourceWidth: 1200,
     scale: 1,
     csv: {},
-    error: function(options, err) {
-      console.error('Chart export failed:', err)
+    error: (options, err) => {
+      console.error("Chart export failed:", err)
       if (window.Sentry) {
         window.Sentry.captureException(err, {
-          tags: { component: 'SpectraViewer' },
-          extra: { context: 'PNG/PDF export', exportOptions: options }
+          tags: { component: "SpectraViewer" },
+          extra: { context: "PNG/PDF export", exportOptions: options },
         })
       }
-      alert('Export failed. Please try again or contact us if the problem persists.')
+      alert("Export failed. Please try again or contact us if the problem persists.")
     },
     chartOptions: {
       chart: {
@@ -183,7 +182,7 @@ const DEFAULT_OPTIONS = {
   legend: {
     verticalAlign: "top",
     align: "right",
-    labelFormatter: function() {
+    labelFormatter: function () {
       let { name } = this
       if (this.chart.chartWidth < 800) {
         name = name.replace("Chroma", "Chr").replace("Semrock", "Sem")
@@ -207,15 +206,15 @@ const DEFAULT_OPTIONS = {
     shared: true,
     hideDelay: 150,
     valueDecimals: 3,
-    formatter: function(tooltip) {
+    formatter: function (_tooltip) {
       let tooltipHtml = "<table class='spectrum-tooltip'>"
-      tooltipHtml += `${"<tr><td></td>" +
-        "<td style='text-align: right; line-height: 1.1rem; font-size: 0.75rem; border-bottom: 1px solid #ccc;'>"}${
-        this.x
-      }nm</td></tr>`
+      tooltipHtml += `${
+        "<tr><td></td>" +
+        "<td style='text-align: right; line-height: 1.1rem; font-size: 0.75rem; border-bottom: 1px solid #ccc;'>"
+      }${this.x}nm</td></tr>`
 
       if (this.points && this.points.length > 0) {
-        this.points.forEach(function(entry) {
+        this.points.forEach((entry) => {
           tooltipHtml += toolTipRow(entry)
         })
       } else if (this.point) {
@@ -228,16 +227,10 @@ const DEFAULT_OPTIONS = {
     positioner(labelWidth, labelHeight, point) {
       const chartwidth = this.chart.chartWidth
       const yAx2 = this.chart.get("yAx2")
-      const rightPad = (yAx2 && yAx2.axisTitleMargin) || 0
-      const y = Math.min(
-        Math.max(point.plotY, 50),
-        this.chart.chartHeight - labelHeight - 40
-      )
+      const rightPad = yAx2?.axisTitleMargin || 0
+      const y = Math.min(Math.max(point.plotY, 50), this.chart.chartHeight - labelHeight - 40)
       const t = 10 + point.plotX + labelWidth / 3
-      const x =
-        t + labelWidth < chartwidth - rightPad
-          ? t
-          : point.plotX - labelWidth - 20
+      const x = t + labelWidth < chartwidth - rightPad ? t : point.plotX - labelWidth - 20
       return { x, y }
     },
     shadow: false,

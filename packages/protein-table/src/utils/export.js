@@ -9,16 +9,18 @@ function arrayToCSV(data) {
 
   // Create CSV rows
   const rows = data.map((row) => {
-    return headers.map((header) => {
-      const value = row[header]
-      // Escape quotes and wrap in quotes if contains comma, quote, or newline
-      if (value == null) return ""
-      const stringValue = String(value)
-      if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
-        return `"${stringValue.replace(/"/g, '""')}"`
-      }
-      return stringValue
-    }).join(",")
+    return headers
+      .map((header) => {
+        const value = row[header]
+        // Escape quotes and wrap in quotes if contains comma, quote, or newline
+        if (value == null) return ""
+        const stringValue = String(value)
+        if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
+          return `"${stringValue.replace(/"/g, '""')}"`
+        }
+        return stringValue
+      })
+      .join(",")
   })
 
   // Combine headers and rows
@@ -61,21 +63,21 @@ export function prepareExportData(proteins) {
 
       const row = {
         Name: protein.name,
-        "State": state.name !== "default" ? state.name : "",
+        State: state.name !== "default" ? state.name : "",
         "Ex max (nm)": state.ex_max || "",
         "Em max (nm)": state.em_max || "",
         "Stokes Shift (nm)": state.stokes || "",
         "Extinction Coefficient": state.ext_coeff || "",
         "Quantum Yield": state.qy || "",
-        "Brightness": state.brightness || "",
-        "pKa": state.pka || "",
-        "Oligomerization": protein.agg || "",
+        Brightness: state.brightness || "",
+        pKa: state.pka || "",
+        Oligomerization: protein.agg || "",
         "Maturation (min)": state.maturation || "",
         "Lifetime (ns)": state.lifetime || "",
         "Molecular Weight (kDa)": protein.weight || "",
-        "Year": protein.year || "",
+        Year: protein.year || "",
         "Switch Type": protein.switch_type || "",
-        "Aliases": Array.isArray(protein.aliases) ? protein.aliases.join(", ") : "",
+        Aliases: Array.isArray(protein.aliases) ? protein.aliases.join(", ") : "",
       }
       rows.push(row)
     })

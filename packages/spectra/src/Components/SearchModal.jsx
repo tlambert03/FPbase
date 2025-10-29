@@ -1,22 +1,18 @@
-import React, { useState, useEffect } from "react"
-import PropTypes from "prop-types"
+import { useApolloClient, useMutation, useQuery } from "@apollo/client"
+import Checkbox from "@mui/material/Checkbox"
+import FormControlLabel from "@mui/material/FormControlLabel"
 import Modal from "@mui/material/Modal"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import { useMutation, useQuery, useApolloClient } from "@apollo/client"
-import { components } from "react-select"
-import Checkbox from "@mui/material/Checkbox"
-import FormControlLabel from "@mui/material/FormControlLabel"
 import gql from "graphql-tag"
+import PropTypes from "prop-types"
+import React, { useEffect, useState } from "react"
+import { components } from "react-select"
+import { GET_OPTICAL_CONFIG, GET_OWNER_OPTIONS, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 import { useCachedFetch } from "../useCachedQuery"
-import {
-  UPDATE_ACTIVE_SPECTRA,
-  GET_OWNER_OPTIONS,
-  GET_OPTICAL_CONFIG,
-} from "../client/queries"
 import MuiReactSelect from "./MuiReactSelect"
 
-const OptionWithBlurb = props => {
+const OptionWithBlurb = (props) => {
   const myProps = { ...props }
 
   myProps.children = (
@@ -47,7 +43,7 @@ function getModalStyle() {
   }
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   paper: {
     position: "absolute",
     maxWidth: "620px",
@@ -82,41 +78,28 @@ const filterOption = ({ label }, query) => {
   return words.reduce((acc, cur) => acc && opt.includes(cur), true)
 }
 
-const SearchModal = React.memo(function SearchModal({
-  options,
-  open,
-  setOpen,
-}) {
+const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) {
   const [modalStyle] = useState(getModalStyle)
   const classes = useStyles()
 
   const [ocOptions, setOcOptions] = useState([])
-  const stash = useCachedFetch(
-    "/api/proteins/ocinfo/",
-    "_FPbaseOCStash",
-    10 * 60
-  )
+  const stash = useCachedFetch("/api/proteins/ocinfo/", "_FPbaseOCStash", 10 * 60)
   // const stash = useCachedQuery(OPTICAL_CONFIG_LIST, "_FPbaseOCStash", 5 * 60)
   useEffect(() => {
     if (stash) {
-      const newOpts = stash.opticalConfigs.map(
-        ({ id, name, microscope, comments }) => ({
-          label: `${name} (${microscope.name})`,
-          value: id,
-          comments: comments,
-        })
-      )
+      const newOpts = stash.opticalConfigs.map(({ id, name, microscope, comments }) => ({
+        label: `${name} (${microscope.name})`,
+        value: id,
+        comments: comments,
+      }))
       setOcOptions(newOpts)
     }
   }, [stash])
 
   useEffect(() => {
-    const handleKeyDown = event => {
+    const handleKeyDown = (event) => {
       // don't do anything if we're on an input
-      if (
-        document.activeElement &&
-        document.activeElement.tagName.toUpperCase() === "INPUT"
-      ) {
+      if (document.activeElement && document.activeElement.tagName.toUpperCase() === "INPUT") {
         return
       }
       switch (event.code) {
@@ -145,12 +128,10 @@ const SearchModal = React.memo(function SearchModal({
   const { data } = useQuery(GET_OWNER_OPTIONS)
   const excludeSubtypes = data?.excludeSubtypes || []
 
-  const handleChange = event => {
-    const spectra =
-      event &&
-      event.spectra
-        .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
-        .map(({ id }) => id)
+  const handleChange = (event) => {
+    const spectra = event?.spectra
+      .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
+      .map(({ id }) => id)
 
     if (spectra) {
       updateSpectra({ variables: { add: spectra } })
@@ -221,21 +202,18 @@ const SearchModal = React.memo(function SearchModal({
             marginBottom: 1,
           }}
         >
-          This is a list of optical configurations used in FPbase user
-          microscopes. Selecting one will populate the chart with items from
-          that config.
+          This is a list of optical configurations used in FPbase user microscopes. Selecting one
+          will populate the chart with items from that config.
         </p>
         <FormControlLabel
-          control={(
+          control={
             <Checkbox
               onChange={() => setPreserveFluors(!preserveFluors)}
               checked={preserveFluors}
               value="preserveFluors"
             />
-          )}
-          label={
-            <span style={{ fontSize: "small" }}>Preserve fluorophores</span>
           }
+          label={<span style={{ fontSize: "small" }}>Preserve fluorophores</span>}
         />
         <p
           style={{
@@ -244,9 +222,8 @@ const SearchModal = React.memo(function SearchModal({
             textAlign: "center",
           }}
         >
-          Spectra missing?
-          {" "}
-          <a href="/spectra/submit/" target="_blank">
+          Spectra missing?{" "}
+          <a href="/spectra/submit/" target="_blank" rel="noopener">
             Submit a spectrum
           </a>
         </p>

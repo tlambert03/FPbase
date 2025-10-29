@@ -1,16 +1,15 @@
-import React from "react"
-import Typography from "@mui/material/Typography"
 import NoSsr from "@mui/material/NoSsr"
-import TextField from "@mui/material/TextField"
 import Paper from "@mui/material/Paper"
-import PropTypes from "prop-types"
-import { makeStyles } from "@mui/styles"
 import { useTheme } from "@mui/material/styles"
+import TextField from "@mui/material/TextField"
+import Typography from "@mui/material/Typography"
+import { makeStyles } from "@mui/styles"
+import PropTypes from "prop-types"
 import "regenerator-runtime" // why do I need this?!?
 import Select from "react-select"
 import SortableWindowedSelect from "./SortableWindowedSelect"
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
   },
@@ -104,11 +103,7 @@ Control.propTypes = {
 
 function Placeholder({ selectProps, innerProps, children }) {
   return (
-    <Typography
-      color="textSecondary"
-      className={selectProps.classes.placeholder}
-      {...innerProps}
-    >
+    <Typography color="textSecondary" className={selectProps.classes.placeholder} {...innerProps}>
       {children}
     </Typography>
   )
@@ -165,7 +160,7 @@ function MuiReactSelect({ paginate = true, components, ...otherprops }) {
   const theme = useTheme()
 
   const selectStyles = {
-    input: base => ({
+    input: (base) => ({
       ...base,
       color: theme.palette.text.primary,
       "& input": {

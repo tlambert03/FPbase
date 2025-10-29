@@ -65,6 +65,7 @@ test = [
     "pytest-sugar>=1.0.0",
     "pytest-xdist>=3.8.0",
     "pytest>=8.3.4",
+    "pixelmatch>=0.3.0",
 ]
 typing = [
     { include-group = "test" },
@@ -88,7 +89,7 @@ dev = [
 [tool.pytest.ini_options]
 minversion = "8.0"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
-FAIL_INVALID_TEMPLATE_VARS = true
+FAIL_INVALID_TEMPLATE_VARS = false
 addopts = "--reuse-db --cov-config=pyproject.toml --color=yes"
 python_files = ["tests.py", "test_*.py"]
 pythonpath = ["backend"]

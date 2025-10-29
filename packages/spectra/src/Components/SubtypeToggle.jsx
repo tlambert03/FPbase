@@ -1,13 +1,12 @@
-import React from "react"
+import { useMutation } from "@apollo/client"
+import { Typography } from "@mui/material"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
-import { Typography } from "@mui/material"
 import { makeStyles } from "@mui/styles"
-import { useMutation } from "@apollo/client"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   toggleButton: {
     height: "38px",
     // [theme.breakpoints.down(960)]: {
@@ -27,7 +26,7 @@ const SubtypeToggle = ({ subtypes }) => {
   const classes = useStyles()
 
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
-  const handleClick = e => {
+  const handleClick = (e) => {
     const elem = e.target.closest("button")
     const checked = !elem.classList.contains("Mui-selected")
     const variables = {}
@@ -48,12 +47,8 @@ const SubtypeToggle = ({ subtypes }) => {
         >
           TOGGLE ALL
         </Typography>
-        <ToggleButtonGroup
-          value={subtypes}
-          size="small"
-          className={classes.toggleButtonGroup}
-        >
-          {subtypes.map(st => (
+        <ToggleButtonGroup value={subtypes} size="small" className={classes.toggleButtonGroup}>
+          {subtypes.map((st) => (
             <ToggleButton
               key={st}
               value={st}

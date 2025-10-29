@@ -32,11 +32,11 @@ export function initSentry() {
         dsn: process.env.SENTRY_DSN,
         release: process.env.HEROKU_SLUG_COMMIT,
         environment: process.env.NODE_ENV,
-        integrations: [Sentry.replayIntegration({maskAllText: false, blockAllMedia: false})],
-        replaysSessionSampleRate: 0,      // Don't record normal sessions
-        replaysOnErrorSampleRate: 1.0,    // Record all error sessions
-        tracesSampleRate: 0.05,           // 5% performance monitoring
-        sampleRate: 1.0,                  // Send all errors (defatult=1)
+        integrations: [Sentry.replayIntegration({ maskAllText: false, blockAllMedia: false })],
+        replaysSessionSampleRate: 0, // Don't record normal sessions
+        replaysOnErrorSampleRate: 1.0, // Record all error sessions
+        tracesSampleRate: 0.05, // 5% performance monitoring
+        sampleRate: 1.0, // Send all errors (defatult=1)
 
         // Ignore common benign errors
         ignoreErrors: [
@@ -54,7 +54,7 @@ export function initSentry() {
         ],
 
         // Filter sensitive data before sending
-        beforeSend(event, hint) {
+        beforeSend(event, _hint) {
           // Add bundle information for easier debugging
           event.tags = {
             ...event.tags,

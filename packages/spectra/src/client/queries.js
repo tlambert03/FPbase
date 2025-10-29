@@ -1,10 +1,10 @@
 import gql from "graphql-tag"
 
-const batchSpectra = ids => {
+const batchSpectra = (ids) => {
   const f = ids
-    .filter(i => i)
+    .filter((i) => i)
     .map(
-      id => `spectrum_${id}: spectrum(id: ${id}) {
+      (id) => `spectrum_${id}: spectrum(id: ${id}) {
     ...spectrumDetails
   }`
     )

@@ -1,8 +1,8 @@
-import React, { useState } from "react"
+import { Box, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material"
+import $ from "jquery"
+import { useState } from "react"
 import InputForm from "./InputForm.jsx"
 import BlastReport from "./ReportView.jsx"
-import { Box, Grid, FormControl, InputLabel, Select, MenuItem, Typography } from "@mui/material"
-import $ from "jquery"
 
 function ReportSelect({ reports, binary, index, onChange }) {
   const unit = binary === "blastp" ? "aa" : "nt"
@@ -15,7 +15,7 @@ function ReportSelect({ reports, binary, index, onChange }) {
     <Box sx={{ mt: 4 }}>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={12} sm={3} md={2}>
-          <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#5b616b' }}>
+          <Typography variant="body1" sx={{ fontWeight: "bold", color: "#5b616b" }}>
             Results for:
           </Typography>
         </Grid>
@@ -30,7 +30,7 @@ function ReportSelect({ reports, binary, index, onChange }) {
               onChange={handleChange}
             >
               {reports.map((item, i) => (
-                <MenuItem key={i} value={i}>
+                <MenuItem key={item.report.results.search.query_id} value={i}>
                   {`${item.report.results.search.query_id}: ${
                     item.report.results.search.query_title
                   } (${item.report.results.search.query_len}${unit})`}
@@ -62,7 +62,7 @@ function App() {
     const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
     setBinary(bin)
 
-    $.post("", $(e.target).serialize() + "&binary=" + bin, data => {
+    $.post("", `${$(e.target).serialize()}&binary=${bin}`, (data) => {
       if (data.status === 200) {
         setResults(data.blastResult)
       } else if (data.status === 500) {
@@ -78,7 +78,7 @@ function App() {
     setReportIndex(index)
   }
 
-  const initialValue = new URLSearchParams(window.location.search).get('query');
+  const initialValue = new URLSearchParams(window.location.search).get("query")
 
   return (
     <div>
@@ -97,30 +97,26 @@ function App() {
           <p className="text-center small">
             Version: {results[0].report.version}
             <br />
-            FPbase Sequence Database (
-            {results[0].report.results.search.stat.db_num} sequences,{" "}
-            {results[0].report.results.search.stat.db_len.toLocaleString("en")}{" "}
-            total letters)
+            FPbase Sequence Database ({results[0].report.results.search.stat.db_num} sequences,{" "}
+            {results[0].report.results.search.stat.db_len.toLocaleString("en")} total letters)
             <br />
             Matrix: {results[0].report.params.matrix}
           </p>
           <p className="small text-muted mt-4">
             <span className="font-weight-bold">Reference:</span>
             <br />
-            Stephen F. Altschul, Thomas L. Madden, Alejandro A. Schäffer,
-            Jinghui Zhang, Zheng Zhang, Webb Miller, and David J. Lipman (1997),
-            "Gapped BLAST and PSI-BLAST: a new generation of protein database
-            search programs", Nucleic Acids Res. 25:3389-3402.
+            Stephen F. Altschul, Thomas L. Madden, Alejandro A. Schäffer, Jinghui Zhang, Zheng
+            Zhang, Webb Miller, and David J. Lipman (1997), "Gapped BLAST and PSI-BLAST: a new
+            generation of protein database search programs", Nucleic Acids Res. 25:3389-3402.
           </p>
           <p className="small">
             <span className="font-weight-bold">
               Reference for compositional score matrix adjustment:
             </span>
             <br />
-            Stephen F. Altschul, John C. Wootton, E. Michael Gertz, Richa
-            Agarwala, Aleksandr Morgulis, Alejandro A. Schäffer, and Yi-Kuo Yu
-            (2005) "Protein database searches using compositionally adjusted
-            substitution matrices", FEBS J. 272:5101-5109.
+            Stephen F. Altschul, John C. Wootton, E. Michael Gertz, Richa Agarwala, Aleksandr
+            Morgulis, Alejandro A. Schäffer, and Yi-Kuo Yu (2005) "Protein database searches using
+            compositionally adjusted substitution matrices", FEBS J. 272:5101-5109.
           </p>
         </div>
       ) : null}

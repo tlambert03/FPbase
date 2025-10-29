@@ -1,17 +1,17 @@
-import React, { useEffect } from "react"
-import IconButton from "@mui/material/IconButton"
-import SettingsIcon from "@mui/icons-material/Settings"
-import SwipeableDrawer from "@mui/material/SwipeableDrawer"
-import Button from "@mui/material/Button"
-import CloseIcon from "@mui/icons-material/Close"
-import DeleteIcon from "@mui/icons-material/Cached"
-import { makeStyles } from "@mui/styles"
 import { useMutation } from "@apollo/client"
+import DeleteIcon from "@mui/icons-material/Cached"
+import CloseIcon from "@mui/icons-material/Close"
+import SettingsIcon from "@mui/icons-material/Settings"
+import Button from "@mui/material/Button"
+import IconButton from "@mui/material/IconButton"
+import SwipeableDrawer from "@mui/material/SwipeableDrawer"
+import { makeStyles } from "@mui/styles"
 import gql from "graphql-tag"
-import ChartOptionsForm from "./SpectraViewer/ChartOptionsForm"
+import React, { useEffect } from "react"
 import OwnerOptionsForm from "./OwnerOptionsForm"
+import ChartOptionsForm from "./SpectraViewer/ChartOptionsForm"
 
-export const useStyles = makeStyles(theme => ({
+export const useStyles = makeStyles((theme) => ({
   root: {
     width: "auto",
     padding: 30,
@@ -33,12 +33,9 @@ const SettingsDrawer = () => {
   `)
 
   useEffect(() => {
-    const handleKeyDown = event => {
+    const handleKeyDown = (event) => {
       // don't do anything if we're on an input
-      if (
-        document.activeElement &&
-        document.activeElement.tagName.toUpperCase() === "INPUT"
-      ) {
+      if (document.activeElement && document.activeElement.tagName.toUpperCase() === "INPUT") {
         return
       }
       switch (event.code) {
@@ -95,9 +92,7 @@ const SettingsDrawer = () => {
             style={{ float: "right" }}
             onClick={handleClearForm}
           >
-            <DeleteIcon />
-            {' '}
-&nbsp; Remove All Spectra
+            <DeleteIcon /> &nbsp; Remove All Spectra
           </Button>
         </div>
       </SwipeableDrawer>

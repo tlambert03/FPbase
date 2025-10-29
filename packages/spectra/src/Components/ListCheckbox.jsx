@@ -1,20 +1,13 @@
-import React, { memo } from "react"
 import Checkbox from "@mui/material/Checkbox"
-import MUIListItem from "@mui/material/ListItem"
 import FormControlLabel from "@mui/material/FormControlLabel"
+import MUIListItem from "@mui/material/ListItem"
+import { memo } from "react"
 
-const ListCheckbox = memo(function ListCheckbox({
-  onCheckItem,
-  name,
-  value,
-  checked,
-}) {
+const ListCheckbox = memo(function ListCheckbox({ onCheckItem, name, value, checked }) {
   return (
     <MUIListItem>
       <FormControlLabel
-        control={
-          <Checkbox onChange={onCheckItem} checked={checked} value={value} />
-        }
+        control={<Checkbox onChange={onCheckItem} checked={checked} value={value} />}
         label={name}
       />
     </MUIListItem>

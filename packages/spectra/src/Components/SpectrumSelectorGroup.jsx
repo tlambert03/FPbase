@@ -1,15 +1,15 @@
-import React, { useMemo, useCallback } from "react"
+import { useMutation } from "@apollo/client"
+import DeleteIcon from "@mui/icons-material/Delete"
 import Box from "@mui/material/Box"
 import IconButton from "@mui/material/IconButton"
-import DeleteIcon from "@mui/icons-material/Delete"
-import { makeStyles } from "@mui/styles"
 import Typography from "@mui/material/Typography"
-import { useMutation } from "@apollo/client"
+import { makeStyles } from "@mui/styles"
+import React, { useCallback, useMemo } from "react"
+import { REMOVE_SELECTOR, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 import { categoryIcon } from "./FaIcon"
 import SpectrumSelector from "./SpectrumSelector"
-import { UPDATE_ACTIVE_SPECTRA, REMOVE_SELECTOR } from "../client/queries"
 
-export const useStyles = makeStyles(theme => ({
+export const useStyles = makeStyles((theme) => ({
   // root: {
   //   [theme.breakpoints.down("sm")]: {
   //     height: 42
@@ -46,19 +46,17 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   options,
   category = "",
   showCategoryIcon,
-  hint = "item",
+  _hint = "item",
   ownerInfo,
 }) {
   const classes = useStyles()
-  const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [
-    selectors,
-  ])
+  const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [selectors])
 
   let mySelectors
   if (category) {
-    mySelectors = selectors.filter(sel => sel.category === category)
+    mySelectors = selectors.filter((sel) => sel.category === category)
   } else {
-    mySelectors = selectors.filter(sel => sel.owner || !sel.category)
+    mySelectors = selectors.filter((sel) => sel.owner || !sel.category)
   }
 
   // make sure there is always one empty selector available
@@ -76,16 +74,14 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   }
 
   const categoryOptions = useMemo(
-    () => options.filter(opt => (category ? opt.category === category : true)),
+    () => options.filter((opt) => (category ? opt.category === category : true)),
     [category, options]
   )
 
-  const [removeSelector, { loading: removeLoading }] = useMutation(
-    REMOVE_SELECTOR
-  )
+  const [removeSelector, { loading: removeLoading }] = useMutation(REMOVE_SELECTOR)
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const removeRow = useCallback(
-    selector => {
+    (selector) => {
       if (!removeLoading) {
         removeSelector({ variables: { id: selector.id } })
         if (ownerInfo[selector.owner] && ownerInfo[selector.owner].spectra) {
@@ -102,53 +98,55 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
 
   return (
     <>
-      {mySelectors.map(selector => (
-        <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
-          {!category &&
-            selector.category !== lastCategory &&
-            ((lastCategory = selector.category) && (
+      {mySelectors.map((selector) => {
+        const showCategoryHeader = !category && selector.category !== lastCategory
+        if (showCategoryHeader) {
+          lastCategory = selector.category
+        }
+        return (
+          <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
+            {showCategoryHeader && (
               <Typography variant="h6" className={classes.categoryHeader}>
                 {categoryNames[selector.category]}
               </Typography>
-            ))}
-          <Box display="flex" alignItems="center" className={classes.root}>
-            {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
-              style: {
-                position: "relative",
-                left: category === "L" ? 4 : 2,
-                height: "1.3rem",
-                marginRight: 10,
-              },
-            })}
-            <Box flexGrow={1}>
-              <SpectrumSelector
-                key={selector.id}
-                // this line restricts the options to similar categories
-                options={categoryOptions}
-                allOwners={allOwners}
-                showCategoryIcon={showCategoryIcon}
-                selector={selector}
-                ownerInfo={ownerInfo}
-              />
-            </Box>
-            {selector.owner ? (
-              <Box>
-                <IconButton
-                  aria-label="Delete"
-                  color="secondary"
-                  className={classes.deleteButton}
-                  tabIndex={-1}
-                  onClick={() => removeRow(selector)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            ) : (
-              <></>
             )}
-          </Box>
-        </div>
-      ))}
+            <Box display="flex" alignItems="center" className={classes.root}>
+              {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
+                style: {
+                  position: "relative",
+                  left: category === "L" ? 4 : 2,
+                  height: "1.3rem",
+                  marginRight: 10,
+                },
+              })}
+              <Box flexGrow={1}>
+                <SpectrumSelector
+                  key={selector.id}
+                  // this line restricts the options to similar categories
+                  options={categoryOptions}
+                  allOwners={allOwners}
+                  showCategoryIcon={showCategoryIcon}
+                  selector={selector}
+                  ownerInfo={ownerInfo}
+                />
+              </Box>
+              {selector.owner ? (
+                <Box>
+                  <IconButton
+                    aria-label="Delete"
+                    color="secondary"
+                    className={classes.deleteButton}
+                    tabIndex={-1}
+                    onClick={() => removeRow(selector)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              ) : null}
+            </Box>
+          </div>
+        )
+      })}
       {/* <Button
         variant="contained"
         color="primary"

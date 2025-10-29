@@ -46,15 +46,7 @@ export default {
   },
   tol_vibrant: {
     name: "Vibrant (Paul Tol)",
-    hexlist: [
-      "#0077BB",
-      "#EE7733",
-      "#33BBEE",
-      "#CC3311",
-      "#009988",
-      "#EE3377",
-      "#AAAAAA",
-    ],
+    hexlist: ["#0077BB", "#EE7733", "#33BBEE", "#CC3311", "#009988", "#EE3377", "#AAAAAA"],
   },
   // tol_light: {
   //   name: 'Tol Light',

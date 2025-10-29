@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react"
 import { useApolloClient, useQuery } from "@apollo/client"
-import update from "immutability-helper"
 import gql from "graphql-tag"
+import update from "immutability-helper"
+import { useEffect, useState } from "react"
 import { GET_SPECTRUM } from "../client/queries"
 import COLORS from "../colors"
 
-const rangexy = (start, end) =>
-  Array.from({ length: end - start }, (v, k) => k + start)
+const rangexy = (start, end) => Array.from({ length: end - start }, (_v, k) => k + start)
 
 // $cl1_wave
 const customLaserSpectrum = (_id) => {
@@ -47,19 +46,29 @@ const customFilterSpectrum = (_id) => {
       const min = Math.round(+center - width / 2)
       const max = Math.round(+center + width / 2)
       data.push([min - 1, 0])
-      rangexy(min, max + 1).forEach((x) => data.push([x, +trans]))
+      rangexy(min, max + 1).forEach((x) => {
+        data.push([x, +trans])
+      })
       data.push([max + 1, 0])
       name += ` ${center}/${width} bp`
       break
     }
     case "LP":
-      rangexy(300, center).forEach((x) => data.push([x, 0]))
-      rangexy(+center + 1, 1000).forEach((x) => data.push([x, +trans]))
+      rangexy(300, center).forEach((x) => {
+        data.push([x, 0])
+      })
+      rangexy(+center + 1, 1000).forEach((x) => {
+        data.push([x, +trans])
+      })
       name += ` ${center}lp`
       break
     case "SP":
-      rangexy(300, center).forEach((x) => data.push([x, +trans]))
-      rangexy(+center + 1, 1000).forEach((x) => data.push([x, 0]))
+      rangexy(300, center).forEach((x) => {
+        data.push([x, +trans])
+      })
+      rangexy(+center + 1, 1000).forEach((x) => {
+        data.push([x, 0])
+      })
       name += ` ${center}sp`
       break
     default:
@@ -77,7 +86,7 @@ const customFilterSpectrum = (_id) => {
         owner: { name, id: _id, slug: _id },
         category: "F",
         data,
-        color: +center in COLORS ? COLORS[+center] : "#999999",
+        color: (+center) in COLORS ? COLORS[+center] : "#999999",
       },
     },
   }
@@ -132,12 +141,8 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
         }, [])
 
         const currentIDs = prevData.map((item) => item.customId || item.id)
-        const newSpectraIds = activeSpectra.filter(
-          (id) => id && !currentIDs.includes(id)
-        )
-        const newOverlapIds = activeOverlaps.filter(
-          (id) => id && !currentIDs.includes(id)
-        )
+        const newSpectraIds = activeSpectra.filter((id) => id && !currentIDs.includes(id))
+        const newOverlapIds = activeOverlaps.filter((id) => id && !currentIDs.includes(id))
 
         // If no changes, return the same reference (no re-render)
         if (!deadSpectra.length && !newSpectraIds.length && !newOverlapIds.length) {
@@ -146,7 +151,7 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
 
         // Schedule async fetch for new data
         if (newSpectraIds.length || newOverlapIds.length) {
-          (async () => {
+          ;(async () => {
             let newData = await Promise.all(newSpectraIds.map((id) => idToData(id)))
             newData = newData.map((item) => item.data.spectrum).filter((i) => i)
 
@@ -175,7 +180,7 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
     }
 
     updateData()
-  }, [activeOverlaps, activeSpectra, client])  // Removed currentData to prevent infinite loop
+  }, [activeOverlaps, activeSpectra, client]) // Removed currentData to prevent infinite loop
 
   return currentData
 }

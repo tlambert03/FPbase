@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react"
-import { useQuery, useMutation } from "@apollo/client"
+import { useMutation, useQuery } from "@apollo/client"
+import { useEffect, useState } from "react"
 import { GET_ACTIVE_SPECTRA, SET_ACTIVE_SPECTRA } from "../client/queries"
 
 const CurrentSpectraInput = () => {
@@ -11,21 +11,21 @@ const CurrentSpectraInput = () => {
   useEffect(() => {
     setValue(activeSpectra.join(", "))
   }, [activeSpectra])
-  const handleKeyPress = e => {
+  const handleKeyPress = (e) => {
     if (e.key !== "Enter") {
       return
     }
     e.preventDefault()
     const newVal = e.target.value
       .split(",")
-      .map(i => i.trim())
-      .filter(i => i)
+      .map((i) => i.trim())
+      .filter((i) => i)
     updateSpectra({
       variables: {
         activeSpectra: newVal,
       },
       update: (
-        cache,
+        _cache,
         {
           data: {
             setActiveSpectra: { activeSpectra },
@@ -36,11 +36,11 @@ const CurrentSpectraInput = () => {
       },
     })
   }
-  const handleChange = e => {
+  const handleChange = (e) => {
     setValue(e.target.value)
   }
   if (loading) {
-    return <></>
+    return null
   }
   return (
     <input
