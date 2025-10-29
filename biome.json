@@ -21,7 +21,6 @@
       "!!frontend/src/js/pdb/LiteMol-plugin.js",
       "!!frontend/src/js/ichart.js",
       "!!packages/spectra/index.html",
-      "!!packages/spectra/src/App.jsx",
       "!!packages/spectra/src/index.css"
     ]
   },
