@@ -3,9 +3,9 @@ import "./js/sentry-init.js"
 
 import $ from "jquery"
 import "./js/detect-touch"
+import { SimpleSpectraViewer } from "@fpbase/spectra"
 import { createElement } from "react"
 import { createRoot } from "react-dom/client"
-import { SimpleSpectraViewer } from "@fpbase/spectra"
 import { SentryErrorBoundary } from "./js/sentry-error-boundary"
 
 // Mark this bundle for Sentry context
@@ -14,10 +14,12 @@ window.FPBASE.currentBundle = "simpleSpectraViewer"
 
 const elem = document.getElementById("spectra-viewer")
 
-window.onload = function() {
+window.onload = () => {
   const root = createRoot(elem)
   root.render(
-    createElement(SentryErrorBoundary, { name: "SimpleSpectraViewer" },
+    createElement(
+      SentryErrorBoundary,
+      { name: "SimpleSpectraViewer" },
       createElement(SimpleSpectraViewer, {
         ids: JSON.parse(elem.getAttribute("data-spectra")),
         options: JSON.parse(elem.getAttribute("data-options")),
