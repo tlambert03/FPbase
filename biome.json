@@ -22,8 +22,7 @@
       "!!frontend/src/js/ichart.js",
       "!!packages/spectra/index.html",
       "!!packages/spectra/src/App.jsx",
-      "!!packages/spectra/src/index.css",
-      "!!packages/spectra/src/index.jsx"
+      "!!packages/spectra/src/index.css"
     ]
   },
   "formatter": {
