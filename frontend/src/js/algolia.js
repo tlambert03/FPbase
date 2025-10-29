@@ -13,7 +13,7 @@ function checkObject(val, prop, str) {
     title: "Title",
     _excerpts: "Excerpt",
     prot_primary: "Protein",
-    prot_secondary: "Protein"
+    prot_secondary: "Protein",
   }
   if (val.matchLevel === "full" || val.matchLevel === "partial") {
     if (str.length > 0) {
@@ -27,7 +27,7 @@ function checkObject(val, prop, str) {
 function highlightHits(high) {
   var str = ""
   for (var prop in high) {
-    if (high.hasOwnProperty(prop) && prop !== "name" && prop !== "citation") {
+    if (Object.hasOwn(high, prop) && prop !== "name" && prop !== "citation") {
       if (high[prop].constructor === Array) {
         for (var i = 0; i < high[prop].length; i++) {
           if (typeof high[prop][i] === "object") {
@@ -81,19 +81,16 @@ function highlightRefHits(high) {
         obj = obj[_key]
       }
       for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.hasOwn(obj, key)) {
           if (obj[key].constructor === Array) {
             innerRecurse(obj, key)
-          } else if (obj[key].hasOwnProperty("matchLevel")) {
-            if (
-              obj[key].matchLevel !== "none" &&
-              obj[key].value !== undefined
-            ) {
+          } else if (Object.hasOwn(obj[key], "matchLevel")) {
+            if (obj[key].matchLevel !== "none" && obj[key].value !== undefined) {
               let attr = key
               if (_key !== undefined) {
                 attr = _key
               }
-              if (!results.hasOwnProperty(attr)) {
+              if (!Object.hasOwn(results, attr)) {
                 results[attr] = []
               }
               results[attr].push([obj[key].value, obj[key].matchLevel])
@@ -107,17 +104,12 @@ function highlightRefHits(high) {
   }
 
   function truncate(str, no_words) {
-    return (
-      str
-        .split(" ")
-        .splice(0, no_words)
-        .join(" ") + " ..."
-    )
+    return str.split(" ").splice(0, no_words).join(" ") + " ..."
   }
 
   var results = recurseMatches(high)
 
-  if (results.hasOwnProperty("prot_primary")) {
+  if (Object.hasOwn(results, "prot_primary")) {
     delete results.prot_secondary
   }
   var str = ""
@@ -125,12 +117,12 @@ function highlightRefHits(high) {
     ["doi", "DOI"],
     ["pmid", "PMID"],
     ["prot_primary", "Protein"],
-    ["prot_secondary", "2˚ Protein"]
+    ["prot_secondary", "2˚ Protein"],
   ]
   for (var x = 0; x < items.length; x++) {
     var key = items[x][0]
     var title = items[x][1]
-    if (results.hasOwnProperty(key)) {
+    if (Object.hasOwn(results, key)) {
       var _str = []
       for (var i = 0; i < results[key].length; i++) {
         _str.push(results[key][i][0])
@@ -141,14 +133,10 @@ function highlightRefHits(high) {
   if (str) {
     str = "<span class='highlighted-hits'>(" + str + ")</span>"
   }
-  if (results.hasOwnProperty("title")) {
+  if (Object.hasOwn(results, "title")) {
     str = str + '<div class="ref-title" >' + results.title[0][0] + "</div>"
-  } else if (results.hasOwnProperty("_excerpts")) {
-    if (
-      results._excerpts.some(function(d) {
-        return d[1] === "full"
-      })
-    ) {
+  } else if (Object.hasOwn(results, "_excerpts")) {
+    if (results._excerpts.some((d) => d[1] === "full")) {
       for (var e = 0; e < results._excerpts.length; e++) {
         if (results._excerpts[e][1] === "full") {
           var exc = results._excerpts[e][0]
@@ -177,23 +165,16 @@ function highlightRefHits(high) {
 export default async function initAutocomplete() {
   const [{ default: algoliasearch }] = await Promise.all([
     import("algoliasearch"),
-    import("autocomplete.js/dist/autocomplete.jquery.js")
+    import("autocomplete.js/dist/autocomplete.jquery.js"),
   ])
 
-  var algoliaClient = algoliasearch(
-    window.FPBASE.ALGOLIA.appID,
-    window.FPBASE.ALGOLIA.publicKey
-  )
+  var algoliaClient = algoliasearch(window.FPBASE.ALGOLIA.appID, window.FPBASE.ALGOLIA.publicKey)
   var proteinIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.proteinIndex)
-  var organismIndex = algoliaClient.initIndex(
-    window.FPBASE.ALGOLIA.organismIndex
-  )
-  var referenceIndex = algoliaClient.initIndex(
-    window.FPBASE.ALGOLIA.referenceIndex
-  )
+  var organismIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.organismIndex)
+  var referenceIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.referenceIndex)
 
   function empty(context) {
-    if (context.hasOwnProperty("query")) {
+    if (Object.hasOwn(context, "query")) {
       var p = context.query.trim().replace(/\s/g, "%20")
       return (
         '<div class="empty"><span class="nohits"></span>No results... try the <a href="/search/?name__icontains=' +
@@ -212,25 +193,22 @@ export default async function initAutocomplete() {
         autoselect: true,
         autoselectOnBlur: window.mobilecheck(),
         templates: {
-          empty: empty
-        }
+          empty: empty,
+        },
       },
       [
         {
           // add {attributesToRetrieve: }
           source: $.fn.autocomplete.sources.hits(proteinIndex, {
-            hitsPerPage: 5
+            hitsPerPage: 5,
           }),
           displayKey: "name",
           templates: {
-            suggestion: function(suggestion) {
+            suggestion: (suggestion) => {
               let col
               if (suggestion.switchType && suggestion.switchType !== "Basic") {
                 col = "rainbow"
-              } else if (
-                suggestion.color &&
-                !suggestion.color.includes("Stokes")
-              ) {
+              } else if (suggestion.color && !suggestion.color.includes("Stokes")) {
                 col = suggestion.color.toLowerCase().replace(/ |\//g, "_")
               } else {
                 col = "gray50"
@@ -243,8 +221,7 @@ export default async function initAutocomplete() {
                 "_40.png'>"
               str = str + suggestion._highlightResult.name.value
               if (suggestion.img_url) {
-                str =
-                  str + "<img class='spectra' src=" + suggestion.img_url + ">"
+                str = str + "<img class='spectra' src=" + suggestion.img_url + ">"
               }
               str = str + highlightHits(suggestion._highlightResult)
               var info = ""
@@ -261,44 +238,35 @@ export default async function initAutocomplete() {
                   photoconvertible: "PC",
                   "multi-photochromic": "MPC",
                   multistate: "MS",
-                  timer: "Time"
+                  timer: "Time",
                 }[suggestion.switchType.toLowerCase()]
               }
               str = str + "<span class='info'>" + info + "</span>"
-              return (
-                "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
-              )
-            }
-          }
+              return "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
+            },
+          },
         },
         {
           source: $.fn.autocomplete.sources.hits(referenceIndex, {
-            hitsPerPage: 3
+            hitsPerPage: 3,
           }),
           displayKey: "citation",
           templates: {
-            suggestion: function(suggestion) {
+            suggestion: (suggestion) => {
               var str = suggestion._highlightResult.citation.value
-              str =
-                str +
-                "<img class='type' src='" +
-                window.FPBASE.imageDir +
-                "ref.png" +
-                "'>"
+              str = str + "<img class='type' src='" + window.FPBASE.imageDir + "ref.png" + "'>"
               str = str + highlightRefHits(suggestion._highlightResult)
-              return (
-                "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
-              )
-            }
-          }
+              return "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
+            },
+          },
         },
         {
           source: $.fn.autocomplete.sources.hits(organismIndex, {
-            hitsPerPage: 2
+            hitsPerPage: 2,
           }),
           displayKey: "scientific_name",
           templates: {
-            suggestion: function(suggestion) {
+            suggestion: (suggestion) => {
               var str = suggestion._highlightResult.scientific_name.value
               str =
                 str +
@@ -306,38 +274,33 @@ export default async function initAutocomplete() {
                 window.FPBASE.imageDir +
                 "organism_icon.png" +
                 "'>"
-              return (
-                "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
-              )
-            }
-          }
+              return "<a href='" + suggestion.url + "'><div>" + str + "</div></a>"
+            },
+          },
         },
         {
-          source: function(query, callback) {
+          source: (query, callback) => {
             callback([
               {
                 query: query,
-                url: "/search/?q=" + encodeURI(query)
-              }
+                url: "/search/?q=" + encodeURI(query),
+              },
             ])
           },
           templates: {
-            suggestion: function(suggestion) {
-              return (
-                '<div class="search-footer"><a class="asearch" href="' +
-                suggestion.url +
-                '">Advanced search for: <em>' +
-                suggestion.query +
-                '</em></a><div class="branding">search powered by <a href="https://algolia.com"><img src="' +
-                window.FPBASE.imageDir +
-                'logo-algolia-nebula-blue-full.svg" /></a></div></div>'
-              )
-            }
-          }
-        }
+            suggestion: (suggestion) =>
+              '<div class="search-footer"><a class="asearch" href="' +
+              suggestion.url +
+              '">Advanced search for: <em>' +
+              suggestion.query +
+              '</em></a><div class="branding">search powered by <a href="https://algolia.com"><img src="' +
+              window.FPBASE.imageDir +
+              'logo-algolia-nebula-blue-full.svg" /></a></div></div>',
+          },
+        },
       ]
     )
-    .on("autocomplete:selected", function(event, suggestion, dataset, context) {
+    .on("autocomplete:selected", (event, suggestion, dataset, context) => {
       if (context.selectionMethod === "click") {
         return
       }

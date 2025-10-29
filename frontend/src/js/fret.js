@@ -55,7 +55,7 @@ export default function initFRET() {
       shared: !window.mobilecheck(),
       valueDecimals: 1,
       valueSuffix: "%",
-      valueFormatter: function (value) {
+      valueFormatter: (value) => {
         if (value !== null && value !== undefined) {
           return Math.round(value * 1000) / 10 + "%"
         } else {
@@ -105,7 +105,7 @@ export default function initFRET() {
   })
 
   // Add resize handler
-  $(window).on("resize", function () {
+  $(window).on("resize", () => {
     if (chart) {
       chart.reflow()
     }
@@ -127,7 +127,7 @@ export default function initFRET() {
     // download if not already downloaded
     if (!(slug in localData)) {
       $.getJSON("/spectra/" + slug)
-        .done(function (d) {
+        .done((d) => {
           for (var n = 0; n < d.spectra.length; n++) {
             if (d.spectra[n].type !== "2p") {
               d.spectra[n] = padDataLimits(d.spectra[n])
@@ -136,7 +136,7 @@ export default function initFRET() {
           localData[slug] = d.spectra
           dfd.resolve(localData[slug])
         })
-        .fail(function (d) {
+        .fail((d) => {
           dfd.reject(d.status)
         })
     } else {
@@ -157,19 +157,14 @@ export default function initFRET() {
   }
 
   function dataHasKey(key) {
-    return (
-      $.grep(data, function (obj) {
-        return obj.key === key
-      }).length > 0
-    )
+    return $.grep(data, (obj) => obj.key === key).length > 0
   }
 
   function dataItemMatching(filter, d) {
     d = d || data
-    return d.filter(function (item) {
+    return d.filter((item) => {
       for (var key in filter) {
-        if (typeof item[key] === "undefined" || item[key] !== filter[key])
-          return false
+        if (typeof item[key] === "undefined" || item[key] !== filter[key]) return false
       }
       return true
     })
@@ -177,7 +172,7 @@ export default function initFRET() {
 
   function addItem(slug, subtype) {
     if (slug === "") {
-      return $.Deferred(function (def) {
+      return $.Deferred((def) => {
         def.resolve()
       }).promise()
     }
@@ -185,14 +180,14 @@ export default function initFRET() {
     subtype = subtype || false
 
     return getData(slug)
-      .then(function (d) {
+      .then((d) => {
         for (var i = 0; i < d.length; i++) {
           if ((d[i].type !== "2p") & !dataHasKey(d[i].key)) {
             data.push(JSON.parse(JSON.stringify(d[i]))) // make a copy of the object
           }
         }
       })
-      .fail(function (d) {
+      .fail((d) => {
         console.log("item not found")
       })
   }
@@ -225,34 +220,24 @@ export default function initFRET() {
 
     var donorQY = ar1.scalar
     var accECmax = ar2.scalar
-    var a1wavemap = ar1.values.reduce(function (acc, cur) {
+    var a1wavemap = ar1.values.reduce((acc, cur) => {
       acc[cur.x] = cur.y
       return acc
     }, {})
-    var a2wavemap = ar2.values.reduce(function (acc, cur) {
+    var a2wavemap = ar2.values.reduce((acc, cur) => {
       acc[cur.x] = cur.y
       return acc
     }, {})
-    var donorsum = ar1.values.reduce(function (a, b) {
-      return a + b.y
-    }, 0)
+    var donorsum = ar1.values.reduce((a, b) => a + b.y, 0)
     var startingwave = Math.max(ar1.minwave, ar2.minwave)
     var endingwave = Math.min(ar1.maxwave, ar2.maxwave)
     var step = ar1.values[1].x - ar1.values[0].x
     var overlapIntgrl = 0
     for (var wave = startingwave; wave <= endingwave; wave += step) {
       overlapIntgrl +=
-        (Math.pow(wave * 1e-7, 4) *
-          a1wavemap[wave] *
-          accECmax *
-          a2wavemap[wave]) /
-        donorsum
+        ((wave * 1e-7) ** 4 * a1wavemap[wave] * accECmax * a2wavemap[wave]) / donorsum
     }
-    var r =
-      Math.pow(
-        8.8 * 1e-25 * k2 * donorQY * Math.pow(ni, -4) * overlapIntgrl,
-        1 / 6
-      ) * 1e7
+    var r = (8.8 * 1e-25 * k2 * donorQY * ni ** -4 * overlapIntgrl) ** (1 / 6) * 1e7
     return [overlapIntgrl, r]
   }
 
@@ -271,12 +256,7 @@ export default function initFRET() {
   })
 
   function updateTable() {
-    var r = forster_distance(
-      donorEM,
-      acceptorEX,
-      $("#k2-input").val(),
-      $("#ni-input").val()
-    )
+    var r = forster_distance(donorEM, acceptorEX, $("#k2-input").val(), $("#ni-input").val())
     $("#overlapIntgrl").text(Math.round(r[0] * 1e15) / 100)
     $("#r0").text(Math.round(r[1] * 1000) / 100)
     $("#r0QYA").text(Math.round(r[1] * $("#QYA").text() * 1000) / 100)
@@ -284,15 +264,13 @@ export default function initFRET() {
 
   function updateChart() {
     // Convert data to Highcharts format
-    var series = data.map(function (item) {
+    var series = data.map((item) => {
       var isFadedFret = item.classed && item.classed.includes("faded-fret")
       var isFretOverlap = item.classed && item.classed.includes("fret-overlap")
 
       var seriesConfig = {
         name: item.key,
-        data: item.values.map(function (v) {
-          return [v.x, v.y]
-        }),
+        data: item.values.map((v) => [v.x, v.y]),
         type: item.area ? "area" : "line",
         className: item.classed,
         zIndex: isFretOverlap ? 10 : isFadedFret ? 1 : 5,
@@ -307,11 +285,7 @@ export default function initFRET() {
           seriesConfig.fillOpacity = 0.15 // Keep original color but very transparent
         }
         // Keep the original item.color for the fill
-        if (
-          item.color &&
-          typeof item.color === "string" &&
-          !item.color.startsWith("url(")
-        ) {
+        if (item.color && typeof item.color === "string" && !item.color.startsWith("url(")) {
           seriesConfig.color = item.color
         }
       } else {
@@ -331,11 +305,7 @@ export default function initFRET() {
       }
 
       // Set fillOpacity for area charts (but not for pattern fills or faded-fret)
-      if (
-        item.area &&
-        !isFadedFret &&
-        (!item.color || typeof item.color === "string")
-      ) {
+      if (item.area && !isFadedFret && (!item.color || typeof item.color === "string")) {
         seriesConfig.fillOpacity = 0.5
       }
 
@@ -346,18 +316,18 @@ export default function initFRET() {
     while (chart.series.length > 0) {
       chart.series[0].remove(false)
     }
-    series.forEach(function (s) {
+    series.forEach((s) => {
       chart.addSeries(s, false)
     })
     chart.redraw()
   }
 
   // main function when data-selector has been changed
-  $(".data-selector").change(function (event) {
+  $(".data-selector").change((event) => {
     data.splice(0, 10)
     var donorslug = $("#donor-select :selected").val()
     var acceptorslug = $("#acceptor-select :selected").val()
-    $.when(addItem(donorslug), addItem(acceptorslug)).then(function () {
+    $.when(addItem(donorslug), addItem(acceptorslug)).then(() => {
       if (donorslug || acceptorslug) {
         $(".table-wrapper").show()
       }
@@ -409,23 +379,15 @@ export default function initFRET() {
 
   $("body").on("click", ".load-button", function () {
     var donorslug =
-      $(this)
-        .closest("tr")
-        .find("td:nth-child(2) a")
-        .attr("href")
-        .split("/")[2] + "_default"
+      $(this).closest("tr").find("td:nth-child(2) a").attr("href").split("/")[2] + "_default"
     var accslug =
-      $(this)
-        .closest("tr")
-        .find("td:nth-child(3) a")
-        .attr("href")
-        .split("/")[2] + "_default"
+      $(this).closest("tr").find("td:nth-child(3) a").attr("href").split("/")[2] + "_default"
     $("#donor-select").val(donorslug).trigger("change.select2")
     $("#acceptor-select").val(accslug).change()
   })
 
   /* Custom filtering function which will search data in column four between two values */
-  $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+  $.fn.dataTable.ext.search.push((settings, data, dataIndex) => {
     var min = parseFloat($("#minQYAinput").val())
     var minlam = parseInt($("#minLambdaSep").val())
     var qya = parseFloat(data[7]) || 0 // use data for the age column
@@ -446,8 +408,8 @@ export default function initFRET() {
     return false
   })
 
-  $(document).ready(function () {
-    var getData = function (data, callback, settings) {
+  $(document).ready(() => {
+    var getData = (data, callback, settings) => {
       $.get({
         url: "",
         success: function (d) {
@@ -472,8 +434,7 @@ export default function initFRET() {
       order: [[10, "desc"]],
       language: {
         emptyTable: "No Data received from server...",
-        loadingRecords:
-          "Recalculating FRET efficiencies across database...  Please wait.",
+        loadingRecords: "Recalculating FRET efficiencies across database...  Please wait.",
       },
       update: function () {
         this._positions()
@@ -481,9 +442,8 @@ export default function initFRET() {
       },
       columns: [
         {
-          data: function () {
-            return '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>'
-          },
+          data: () =>
+            '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>',
           width: "1px",
           orderable: false,
         },
@@ -511,14 +471,11 @@ export default function initFRET() {
     })
       .append(
         $("<div>", {
-          class:
-            "input-group input-group-sm d-flex justify-content-center pb-3",
+          class: "input-group input-group-sm d-flex justify-content-center pb-3",
         })
           .append(
             $("<div>", { class: "input-group-prepend" }).append(
-              $("<span>", { class: "input-group-text", id: "minQYA" }).html(
-                "min QY<sub>A</sub>"
-              )
+              $("<span>", { class: "input-group-text", id: "minQYA" }).html("min QY<sub>A</sub>")
             )
           )
           .append(
@@ -542,8 +499,7 @@ export default function initFRET() {
     })
       .append(
         $("<div>", {
-          class:
-            "input-group input-group-sm d-flex justify-content-center pb-3",
+          class: "input-group input-group-sm d-flex justify-content-center pb-3",
         })
           .append(
             $("<div>", { class: "input-group-prepend" }).append(
@@ -567,13 +523,13 @@ export default function initFRET() {
       )
       .insertAfter(D1)
 
-    $("#minQYAinput, #minLambdaSep").keyup(function () {
+    $("#minQYAinput, #minLambdaSep").keyup(() => {
       fretTable.draw()
     })
   })
 
   var topofDiv = $(".spectra-wrapper").offset().top
-  $(window).scroll(function () {
+  $(window).scroll(() => {
     if ($(window).scrollTop() > topofDiv) {
       $(".spectra-wrapper").css("box-shadow", "0 12px 8px -8px rgba(0,0,0,.2)")
     } else {

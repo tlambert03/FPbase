@@ -9,8 +9,8 @@
  * Licensed under the New BSD License
  * See: http://www.opensource.org/licenses/bsd-license.php
  */
-;(function($) {
-  $.fn.formset = function(opts) {
+;(($) => {
+  $.fn.formset = function (opts) {
     const options = $.extend({}, $.fn.formset.defaults, opts)
     const flatExtraClasses = options.extraClasses.join(" ")
     const totalForms = $(`#id_${options.prefix}-TOTAL_FORMS`)
@@ -18,43 +18,32 @@
     const minForms = $(`#id_${options.prefix}-MIN_NUM_FORMS`)
     const childElementSelector = "input,select,textarea,label,div"
     const $$ = $(this)
-    const applyExtraClasses = function(row, ndx) {
+    const applyExtraClasses = (row, ndx) => {
       if (options.extraClasses) {
         row.removeClass(flatExtraClasses)
         row.addClass(options.extraClasses[ndx % options.extraClasses.length])
       }
     }
-    const updateElementIndex = function(elem, prefix, ndx) {
+    const updateElementIndex = (elem, prefix, ndx) => {
       const idRegex = new RegExp(`${prefix}-(\\d+|__prefix__)-`)
       const replacement = `${prefix}-${ndx}-`
-      if (elem.attr("for"))
-        elem.attr("for", elem.attr("for").replace(idRegex, replacement))
-      if (elem.attr("id"))
-        elem.attr("id", elem.attr("id").replace(idRegex, replacement))
-      if (elem.attr("name"))
-        elem.attr("name", elem.attr("name").replace(idRegex, replacement))
+      if (elem.attr("for")) elem.attr("for", elem.attr("for").replace(idRegex, replacement))
+      if (elem.attr("id")) elem.attr("id", elem.attr("id").replace(idRegex, replacement))
+      if (elem.attr("name")) elem.attr("name", elem.attr("name").replace(idRegex, replacement))
     }
-    const hasChildElements = function(row) {
-      return row.find(childElementSelector).length > 0
-    }
-    const showAddButton = function() {
-      return (
-        maxForms.length == 0 || // For Django versions pre 1.2
-        maxForms.val() == "" ||
-        maxForms.val() - totalForms.val() > 0
-      )
-    }
+    const hasChildElements = (row) => row.find(childElementSelector).length > 0
+    const showAddButton = () =>
+      maxForms.length == 0 || // For Django versions pre 1.2
+      maxForms.val() == "" ||
+      maxForms.val() - totalForms.val() > 0
     /**
      * Indicates whether delete link(s) can be displayed - when total forms > min forms
      */
-    const showDeleteLinks = function() {
-      return (
-        minForms.length == 0 || // For Django versions pre 1.7
-        minForms.val() == "" ||
-        totalForms.val() - minForms.val() > 0
-      )
-    }
-    const insertDeleteLink = function(row) {
+    const showDeleteLinks = () =>
+      minForms.length == 0 || // For Django versions pre 1.7
+      minForms.val() == "" ||
+      totalForms.val() - minForms.val() > 0
+    const insertDeleteLink = (row) => {
       const delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, ".")
       const addCssSelector = $.trim(options.addCssClass).replace(/\s+/g, ".")
 
@@ -62,9 +51,7 @@
       if (options.deleteContainerClass) {
         // If we have a specific container for the remove button,
         // place it as the last child of that container:
-        row
-          .find(`[class*="${options.deleteContainerClass}"]`)
-          .append(delButtonHTML)
+        row.find(`[class*="${options.deleteContainerClass}"]`).append(delButtonHTML)
       } else if (row.is("TR")) {
         // If the forms are laid out in table rows, insert
         // the remove button into the last table cell:
@@ -84,12 +71,10 @@
         row.find(`a.${delCssSelector}`).hide()
       }
 
-      row.find(`a.${delCssSelector}`).click(function() {
+      row.find(`a.${delCssSelector}`).click(function () {
         const row = $(this).parents(`.${options.formCssClass}`)
         const del = row.find('input:hidden[id $= "-DELETE"]')
-        const buttonRow = row.siblings(
-          `a.${addCssSelector}, .${options.formCssClass}-add`
-        )
+        const buttonRow = row.siblings(`a.${addCssSelector}, .${options.formCssClass}-add`)
         let forms
         if (del.length) {
           // We're dealing with an inline formset.
@@ -113,14 +98,14 @@
             forms
               .eq(i)
               .find(childElementSelector)
-              .each(function() {
+              .each(function () {
                 updateElementIndex($(this), options.prefix, i)
               })
           }
         }
         // Check if we've reached the minimum number of forms - hide all delete link(s)
         if (!showDeleteLinks()) {
-          $(`a.${delCssSelector}`).each(function() {
+          $(`a.${delCssSelector}`).each(function () {
             $(this).hide()
           })
         }
@@ -132,7 +117,7 @@
       })
     }
 
-    $$.each(function(i) {
+    $$.each(function (i) {
       const row = $(this)
       const del = row.find('input:checkbox[id $= "-DELETE"]')
       if (del.length) {
@@ -143,17 +128,11 @@
           // If an inline formset containing deleted forms fails validation, make sure
           // we keep the forms hidden (thanks for the bug report and suggested fix Mike)
           del.before(
-            `<input type="hidden" name="${del.attr("name")}" id="${del.attr(
-              "id"
-            )}" value="on" />`
+            `<input type="hidden" name="${del.attr("name")}" id="${del.attr("id")}" value="on" />`
           )
           row.hide()
         } else {
-          del.before(
-            `<input type="hidden" name="${del.attr("name")}" id="${del.attr(
-              "id"
-            )}" />`
-          )
+          del.before(`<input type="hidden" name="${del.attr("name")}" id="${del.attr("id")}" />`)
         }
         // Hide any labels associated with the DELETE checkbox:
         $(`label[for="${del.attr("id")}"]`).hide()
@@ -175,13 +154,9 @@
       if (options.formTemplate) {
         // If a form template was specified, we'll clone it to generate new form instances:
         template =
-          options.formTemplate instanceof $
-            ? options.formTemplate
-            : $(options.formTemplate)
-        template
-          .removeAttr("id")
-          .addClass(`${options.formCssClass} formset-custom-template`)
-        template.find(childElementSelector).each(function() {
+          options.formTemplate instanceof $ ? options.formTemplate : $(options.formTemplate)
+        template.removeAttr("id").addClass(`${options.formCssClass} formset-custom-template`)
+        template.find(childElementSelector).each(function () {
           updateElementIndex($(this), options.prefix, "__prefix__")
         })
         insertDeleteLink(template)
@@ -189,15 +164,13 @@
         // Otherwise, use the last form in the formset; this works much better if you've got
         // extra (>= 1) forms (thnaks to justhamade for pointing this out):
         if (options.hideLastAddForm) $(`.${options.formCssClass}:last`).hide()
-        template = $(`.${options.formCssClass}:last`)
-          .clone(true)
-          .removeAttr("id")
+        template = $(`.${options.formCssClass}:last`).clone(true).removeAttr("id")
         template.find('input:hidden[id $= "-DELETE"]').remove()
         // Clear all cloned fields, except those the user wants to keep (thanks to brunogola for the suggestion):
         template
           .find(childElementSelector)
           .not(options.keepFieldValues)
-          .each(function() {
+          .each(function () {
             const elem = $(this)
             // If this is a checkbox or radiobutton, uncheck it.
             // This fixes Issue 1, reported by Wilson.Andrew.J:
@@ -222,9 +195,9 @@
         // If forms are laid out as table rows, insert the
         // "add" button in a new table row:
         const numCols = $$.eq(0).children().length // This is a bit of an assumption :|
-        const buttonRow = $(
-          `<tr><td colspan="${numCols}">${addButtonHTML}</tr>`
-        ).addClass(`${options.formCssClass}-add`)
+        const buttonRow = $(`<tr><td colspan="${numCols}">${addButtonHTML}</tr>`).addClass(
+          `${options.formCssClass}-add`
+        )
         $$.parent().append(buttonRow)
         addButton = buttonRow.find("a")
       } else {
@@ -235,29 +208,20 @@
 
       if (hideAddButton) addButton.hide()
 
-      addButton.click(function() {
+      addButton.click(function () {
         const formCount = parseInt(totalForms.val())
-        const row = options.formTemplate
-          .clone(true)
-          .removeClass("formset-custom-template")
-        const buttonRow = $(
-          $(this)
-            .parents(`tr.${options.formCssClass}-add`)
-            .get(0) || this
-        )
-        const delCssSelector = $.trim(options.deleteCssClass).replace(
-          /\s+/g,
-          "."
-        )
+        const row = options.formTemplate.clone(true).removeClass("formset-custom-template")
+        const buttonRow = $($(this).parents(`tr.${options.formCssClass}-add`).get(0) || this)
+        const delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, ".")
         applyExtraClasses(row, formCount)
         row.insertBefore(buttonRow).show()
-        row.find(childElementSelector).each(function() {
+        row.find(childElementSelector).each(function () {
           updateElementIndex($(this), options.prefix, formCount)
         })
         totalForms.val(formCount + 1)
         // Check if we're above the minimum allowed number of forms -> show all delete link(s)
         if (showDeleteLinks()) {
-          $(`a.${delCssSelector}`).each(function() {
+          $(`a.${delCssSelector}`).each(function () {
             $(this).show()
           })
         }
