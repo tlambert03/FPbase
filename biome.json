@@ -33,7 +33,6 @@
         "noForEach": "off"
       },
       "style": {
-        "noParameterAssign": "off",
         "useTemplate": "off"
       },
       "suspicious": {
