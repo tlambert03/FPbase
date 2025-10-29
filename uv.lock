@@ -1155,6 +1155,7 @@ dev = [
     { name = "ipython" },
     { name = "pandas" },
     { name = "pdbpp" },
+    { name = "pixelmatch" },
     { name = "playwright" },
     { name = "prek" },
     { name = "psycopg2-binary", marker = "sys_platform == 'darwin'" },
@@ -1256,6 +1257,7 @@ dev = [
     { name = "ipython", specifier = ">=8.32.0" },
     { name = "pandas", specifier = ">=2.0.3" },
     { name = "pdbpp", specifier = ">=0.10.3" },
+    { name = "pixelmatch", specifier = ">=0.3.0" },
     { name = "playwright", specifier = ">=1.55.0" },
     { name = "prek", specifier = ">=0.2.11" },
     { name = "psycopg2-binary", marker = "sys_platform == 'darwin'", specifier = ">=2.9.11" },
@@ -2060,6 +2062,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/a2/2f/16cabcc6426c32218ace36bf0d55955e813f2958afddbf1d391849fee9d1/pillow-12.0.0-cp314-cp314t-win32.whl", hash = "sha256:3830c769decf88f1289680a59d4f4c46c72573446352e2befec9a8512104fa52", size = 6408045, upload-time = "2025-10-15T18:23:53.177Z" },
     { url = "https://files.pythonhosted.org/packages/35/73/e29aa0c9c666cf787628d3f0dcf379f4791fba79f4936d02f8b37165bdf8/pillow-12.0.0-cp314-cp314t-win_amd64.whl", hash = "sha256:905b0365b210c73afb0ebe9101a32572152dfd1c144c7e28968a331b9217b94a", size = 7148282, upload-time = "2025-10-15T18:23:55.316Z" },
     { url = "https://files.pythonhosted.org/packages/c1/70/6b41bdcddf541b437bbb9f47f94d2db5d9ddef6c37ccab8c9107743748a4/pillow-12.0.0-cp314-cp314t-win_arm64.whl", hash = "sha256:99353a06902c2e43b43e8ff74ee65a7d90307d82370604746738a1e0661ccca7", size = 2525630, upload-time = "2025-10-15T18:23:57.149Z" },
+]
+
+[[package]]
+name = "pixelmatch"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1c/59/ebc53e64156db78c75c6d7f535e3f80f62c8a8e1545783770f06f528e187/pixelmatch-0.3.0.tar.gz", hash = "sha256:d0fa36a593cfcfa2d4b225da9d72c5b5218aef8b0594bc1a91953533c2676099", size = 9142, upload-time = "2022-03-23T14:51:35.225Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e1/09/766e3cb038be997cef78a29cfd4ec5e9be739b8ea44a09c839a6da8cb55b/pixelmatch-0.3.0-py3-none-any.whl", hash = "sha256:1fe86c50e7d00eb4b4de7b991f8b7ebc12da841ce1e9f7304480ab0f58a2bd81", size = 9155, upload-time = "2022-03-23T14:51:33.271Z" },
 ]
 
 [[package]]

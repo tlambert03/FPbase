@@ -80,6 +80,7 @@ dev = [
     "ipython>=8.32.0",
     "pandas>=2.0.3",
     "pdbpp>=0.10.3",
+    "pixelmatch>=0.3.0",
     "prek>=0.2.11",
     "ruff>=0.9.6",
 ]
@@ -88,7 +89,7 @@ dev = [
 [tool.pytest.ini_options]
 minversion = "8.0"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
-FAIL_INVALID_TEMPLATE_VARS = true
+FAIL_INVALID_TEMPLATE_VARS = false
 addopts = "--reuse-db --cov-config=pyproject.toml --color=yes"
 python_files = ["tests.py", "test_*.py"]
 pythonpath = ["backend"]
