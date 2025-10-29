@@ -385,3 +385,4 @@ memray_*/
 *.bin
 test_fix*.bin
 __snapshots__/
+snapshot_failures/
