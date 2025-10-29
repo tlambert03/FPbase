@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useMemo } from "react"
-import { makeStyles } from "@mui/styles"
-import { Typography, Box, IconButton } from "@mui/material"
-import { MaterialReactTable } from "material-react-table"
-import Shuffle from "@mui/icons-material/Shuffle"
+import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import SaveAlt from "@mui/icons-material/SaveAlt"
-import { useMutation, useQuery, useApolloClient } from "@apollo/client"
+import Shuffle from "@mui/icons-material/Shuffle"
+import { Box, IconButton, Typography } from "@mui/material"
 import Button from "@mui/material/Button"
+import { makeStyles } from "@mui/styles"
 import gql from "graphql-tag"
+import { MaterialReactTable } from "material-react-table"
+import React, { useEffect, useMemo, useState } from "react"
+import { GET_ACTIVE_OVERLAPS } from "../client/queries"
 import { trapz } from "../util"
 import useSpectralData from "./useSpectraData"
-import { GET_ACTIVE_OVERLAPS } from "../client/queries"
 
 class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(error) {
@@ -24,7 +24,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   table: {
     marginTop: "10px",
     minWidth: 650,
@@ -64,7 +64,7 @@ function spectraProduct(ar1, ar2) {
 
 function getOverlap(...args) {
   const idString = args
-    .map(arg => arg.customId || arg.id)
+    .map((arg) => arg.customId || arg.id)
     .sort(numStringSort)
     .join("_")
 
@@ -128,14 +128,14 @@ const EfficiencyTable = ({ initialTranspose }) => {
         rowItems = emSpectra
       }
 
-      rowItems.forEach(rowItem => {
+      rowItems.forEach((rowItem) => {
         const row = {
           field: rowItem.owner.name,
           _colItems: colItems,
           _rowItem: rowItem,
-          _transposed: transposed
+          _transposed: transposed,
         }
-        colItems.forEach(colItem => {
+        colItems.forEach((colItem) => {
           const overlap = getOverlap(rowItem, colItem)
           const fluor = transposed ? rowItem : colItem
           row[colItem.owner.id] = ((100 * overlap.area) / fluor.area).toFixed(1)
@@ -174,11 +174,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
         size: 100,
         Cell: ({ row }) => {
           const overlapID = row.original[`${owner.id}_overlapID`]
-          return (
-            <OverlapToggle id={overlapID}>
-              {row.original[owner.id]}
-            </OverlapToggle>
-          )
+          return <OverlapToggle id={overlapID}>{row.original[owner.id]}</OverlapToggle>
         },
       })
     })
@@ -191,9 +187,9 @@ const EfficiencyTable = ({ initialTranspose }) => {
       <div className={classes.description}>
         <Typography variant="h6">Efficiency Table</Typography>
         <Typography variant="body1">
-          Add at least on filter and one fluorophore, and this tab will show a
-          table of collection efficiency (sometimes called
-          &quot;spillover&quot;) for each filter/fluorophore combination
+          Add at least on filter and one fluorophore, and this tab will show a table of collection
+          efficiency (sometimes called &quot;spillover&quot;) for each filter/fluorophore
+          combination
         </Typography>
       </div>
     )
@@ -214,39 +210,38 @@ const EfficiencyTable = ({ initialTranspose }) => {
           enableGlobalFilter={false}
           muiTableProps={{
             sx: {
-              tableLayout: 'auto',
+              tableLayout: "auto",
             },
           }}
           muiTableBodyCellProps={{
             sx: {
-              fontSize: '1rem',
+              fontSize: "1rem",
             },
           }}
           renderTopToolbarCustomActions={({ table }) => (
-            <Box sx={{ display: 'flex', gap: '1rem', alignItems: 'center', p: 1 }}>
+            <Box sx={{ display: "flex", gap: "1rem", alignItems: "center", p: 1 }}>
               <Typography variant="h6">Collection Efficiency (%)</Typography>
-              <IconButton
-                onClick={() => setTransposed(prev => !prev)}
-                title="Transpose"
-              >
+              <IconButton onClick={() => setTransposed((prev) => !prev)} title="Transpose">
                 <Shuffle />
               </IconButton>
               <IconButton
                 onClick={() => {
                   const csvContent = [
                     // Header row
-                    columns.map(col => col.header).join(','),
+                    columns
+                      .map((col) => col.header)
+                      .join(","),
                     // Data rows
-                    ...rows.map(row =>
-                      columns.map(col => row[col.accessorKey] || '').join(',')
-                    )
-                  ].join('\n')
+                    ...rows.map((row) =>
+                      columns.map((col) => row[col.accessorKey] || "").join(",")
+                    ),
+                  ].join("\n")
 
-                  const blob = new Blob([csvContent], { type: 'text/csv' })
+                  const blob = new Blob([csvContent], { type: "text/csv" })
                   const url = window.URL.createObjectURL(blob)
-                  const a = document.createElement('a')
+                  const a = document.createElement("a")
                   a.href = url
-                  a.download = 'efficiency-table.csv'
+                  a.download = "efficiency-table.csv"
                   a.click()
                   window.URL.revokeObjectURL(url)
                 }}
@@ -293,9 +288,7 @@ const OverlapToggle = ({ children, id, isActive }) => {
       value={id}
       checked={active}
       variant={active ? "contained" : "outlined"}
-      color={
-        +children > 50 ? "primary" : +children > 5 ? "inherit" : "secondary"
-      }
+      color={+children > 50 ? "primary" : +children > 5 ? "inherit" : "secondary"}
     >
       {children}
     </Button>

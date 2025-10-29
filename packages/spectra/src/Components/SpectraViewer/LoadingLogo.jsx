@@ -29,12 +29,7 @@ const LoadingLogo = () => (
       <defs>
         <linearGradient id="lightGradient">
           <stop offset="0%" stopColor="#888">
-            <animate
-              attributeName="stop-color"
-              values="#eee; #888"
-              dur="1s"
-              fill="freeze"
-            />
+            <animate attributeName="stop-color" values="#eee; #888" dur="1s" fill="freeze" />
           </stop>
           <stop offset="100%" stopColor="#eee">
             <animate
@@ -48,12 +43,7 @@ const LoadingLogo = () => (
         </linearGradient>
         <clipPath id="left-to-right">
           <rect x="0" y="0" width="0" height="1061">
-            <animate
-              attributeName="width"
-              values="0;2947"
-              dur="1.3s"
-              fill="freeze"
-            />
+            <animate attributeName="width" values="0;2947" dur="1.3s" fill="freeze" />
           </rect>
         </clipPath>
         <clipPath id="steady">

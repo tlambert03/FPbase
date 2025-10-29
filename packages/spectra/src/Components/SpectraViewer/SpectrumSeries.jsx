@@ -1,14 +1,14 @@
-import { memo, useEffect, useState } from "react"
-import { Series } from "react-jsx-highcharts"
 import { useApolloClient } from "@apollo/client"
 import { List } from "immutable"
+import { memo, useEffect, useState } from "react"
+import { Series } from "react-jsx-highcharts"
 import { GET_SPECTRUM } from "../../client/queries"
 import PALETTES from "../../palettes"
 
-const OD = num => (num <= 0 ? 10 : -Math.log10(num))
+const OD = (num) => (num <= 0 ? 10 : -Math.log10(num))
 
 const hex2rgba = (hex, alpha = 1) => {
-  const [r, g, b] = hex.match(/\w\w/g).map(x => parseInt(x, 16))
+  const [r, g, b] = hex.match(/\w\w/g).map((x) => parseInt(x, 16))
   return `rgba(${r},${g},${b},${alpha})`
 }
 
@@ -49,8 +49,8 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
         const ownerSpectra = ownerInfo[spectrum.owner.slug].spectra
         if (ownerSpectra) {
           const exSpectrum =
-            ownerSpectra.find(i => i.subtype === "EX") ||
-            ownerSpectra.find(i => i.subtype === "AB")
+            ownerSpectra.find((i) => i.subtype === "EX") ||
+            ownerSpectra.find((i) => i.subtype === "AB")
           if (exSpectrum) {
             const {
               data: {
@@ -75,14 +75,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
     } else {
       setSerie(List([...spectrum.data]))
     }
-  }, [
-    client,
-    exNorm,
-    ownerInfo,
-    spectrum.data,
-    spectrum.owner.slug,
-    spectrum.subtype,
-  ])
+  }, [client, exNorm, ownerInfo, spectrum.data, spectrum.owner.slug, spectrum.subtype])
 
   return serie
 }
@@ -103,14 +96,10 @@ const SpectrumSeries = memo(function SpectrumSeries({
   let serie = useExNormedData({ exNorm, spectrum, ownerInfo })
   if (!spectrum) return null
   const willScaleEC = Boolean(
-    (spectrum.subtype === "EX" || spectrum.subtype === "AB") &&
-      scaleEC &&
-      spectrum.owner.extCoeff
+    (spectrum.subtype === "EX" || spectrum.subtype === "AB") && scaleEC && spectrum.owner.extCoeff
   )
   const willScaleQY = Boolean(
-    (spectrum.subtype === "EM" || spectrum.subtype === "O") &&
-      scaleQY &&
-      spectrum.owner.qy
+    (spectrum.subtype === "EM" || spectrum.subtype === "O") && scaleQY && spectrum.owner.qy
   )
   if (willScaleEC) {
     serie = serie.map(([a, b]) => [a, b * spectrum.owner.extCoeff])

@@ -4,13 +4,16 @@ function stateToUrl(activeSpectra, chartOptions, exNorm) {
   const qstrings = []
   if (activeSpectra) qstrings.push(`s=${activeSpectra.join(",")}`)
   if (chartOptions) {
-    const opts = { ...chartOptions, extremes: chartOptions.extremes ? [...chartOptions.extremes] : undefined }
+    const opts = {
+      ...chartOptions,
+      extremes: chartOptions.extremes ? [...chartOptions.extremes] : undefined,
+    }
     delete opts.__typename
     const [xMin, xMax] = opts.extremes || []
     if (xMin) opts.xMin = xMin
     if (xMax) opts.xMax = xMax
     delete opts.extremes
-    Object.keys(opts).forEach(key => {
+    Object.keys(opts).forEach((key) => {
       if (typeof opts[key] === "boolean") {
         opts[key] = Number(opts[key])
       }

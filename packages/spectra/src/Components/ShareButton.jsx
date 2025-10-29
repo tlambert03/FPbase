@@ -1,39 +1,35 @@
-import React, { useEffect, useState } from "react"
-import Menu from "@mui/material/Menu"
-import MenuItem from "@mui/material/MenuItem"
-import ListItemIcon from "@mui/material/ListItemIcon"
-import ListItemText from "@mui/material/ListItemText"
+import { useQuery } from "@apollo/client"
+import { faTwitter } from "@fortawesome/free-brands-svg-icons"
+import { faCopy, faEnvelope } from "@fortawesome/free-solid-svg-icons"
+import CloseIcon from "@mui/icons-material/Close"
 import DownloadIcon from "@mui/icons-material/GetApp"
 import ChartIcon from "@mui/icons-material/InsertChart"
-import PrintIcon from "@mui/icons-material/Print"
 import LinkIcon from "@mui/icons-material/Link"
-import CloseIcon from "@mui/icons-material/Close"
-import Divider from "@mui/material/Divider"
+import PrintIcon from "@mui/icons-material/Print"
 import ShareIcon from "@mui/icons-material/Share"
-import { useQuery } from "@apollo/client"
+import Dialog from "@mui/material/Dialog"
+import DialogActions from "@mui/material/DialogActions"
+import DialogContent from "@mui/material/DialogContent"
+import DialogTitle from "@mui/material/DialogTitle"
+import Divider from "@mui/material/Divider"
+import IconButton from "@mui/material/IconButton"
+import InputAdornment from "@mui/material/InputAdornment"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import ListItemText from "@mui/material/ListItemText"
+import Menu from "@mui/material/Menu"
+import MenuItem from "@mui/material/MenuItem"
 import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
-import InputAdornment from "@mui/material/InputAdornment"
-import IconButton from "@mui/material/IconButton"
-import Highcharts from "highcharts"
-import Dialog from "@mui/material/Dialog"
-import DialogTitle from "@mui/material/DialogTitle"
-import DialogContent from "@mui/material/DialogContent"
-import DialogActions from "@mui/material/DialogActions"
-import { faEnvelope, faCopy } from "@fortawesome/free-solid-svg-icons"
-import { faTwitter } from "@fortawesome/free-brands-svg-icons"
-import ClipboardJS from "clipboard"
-import { makeStyles } from "@mui/styles"
 import Zoom from "@mui/material/Zoom"
+import { makeStyles } from "@mui/styles"
+import ClipboardJS from "clipboard"
+import Highcharts from "highcharts"
+import React, { useEffect, useState } from "react"
+import { GET_ACTIVE_SPECTRA, GET_CHART_OPTIONS, GET_EX_NORM } from "../client/queries"
 import { FAIcon } from "./FaIcon"
 import stateToUrl from "./stateToUrl"
-import {
-  GET_ACTIVE_SPECTRA,
-  GET_CHART_OPTIONS,
-  GET_EX_NORM,
-} from "../client/queries"
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   textField: {
     flexBasis: 200,
     width: "98%",
@@ -60,14 +56,7 @@ function ShareLinkAlert({ open, setOpen }) {
     if (!spectraLoading && !chartLoading && !exNormLoading) {
       setQString(stateToUrl(activeSpectra, chartOptions, exNorm))
     }
-  }, [
-    activeSpectra,
-    spectraLoading,
-    chartOptions,
-    chartLoading,
-    exNormLoading,
-    exNorm,
-  ])
+  }, [activeSpectra, spectraLoading, chartOptions, chartLoading, exNormLoading, exNorm])
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 
@@ -78,9 +67,7 @@ function ShareLinkAlert({ open, setOpen }) {
 
   useEffect(() => {
     const cp = new ClipboardJS("#copy-button", {
-      target: function(trigger) {
-        return document.getElementById("qString-input")
-      },
+      target: (trigger) => document.getElementById("qString-input"),
     })
     cp.on("success", handleTooltipOpen)
     return () => {
@@ -125,11 +112,7 @@ function ShareLinkAlert({ open, setOpen }) {
                     TransitionComponent={Zoom}
                     TransitionProps={{ timeout: { enter: 200, exit: 700 } }}
                   >
-                    <IconButton
-                      edge="end"
-                      id="copy-button"
-                      aria-label="Toggle password visibility"
-                    >
+                    <IconButton edge="end" id="copy-button" aria-label="Toggle password visibility">
                       <FAIcon icon={faCopy} style={{}} />
                     </IconButton>
                   </Tooltip>
@@ -141,10 +124,7 @@ function ShareLinkAlert({ open, setOpen }) {
         <DialogActions>
           <IconButton
             color="primary"
-            href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qString.replace(
-              /&/g,
-              "%26"
-            )}`}
+            href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qString.replace(/&/g, "%26")}`}
           >
             <FAIcon icon={faEnvelope} style={{}} />
           </IconButton>
@@ -183,14 +163,14 @@ const ShareButton = () => {
   }
 
   function handleExportError(err, context) {
-    console.error('Chart export failed:', err)
+    console.error("Chart export failed:", err)
     if (window.Sentry) {
       window.Sentry.captureException(err, {
-        tags: { component: 'SpectraViewer' },
-        extra: { context, format: context }
+        tags: { component: "SpectraViewer" },
+        extra: { context, format: context },
       })
     }
-    alert('Export failed. Please try again or contact us if the problem persists.')
+    alert("Export failed. Please try again or contact us if the problem persists.")
   }
 
   function exportChart(format) {
@@ -209,12 +189,12 @@ const ShareButton = () => {
       // - Safari silently blocks the download because it's no longer user-initiated
       try {
         const svg = chart.getSVG()
-        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
+        const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" })
         const url = URL.createObjectURL(blob)
 
-        const link = document.createElement('a')
+        const link = document.createElement("a")
         link.href = url
-        link.download = 'FPbaseSpectra.svg'
+        link.download = "FPbaseSpectra.svg"
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -222,7 +202,7 @@ const ShareButton = () => {
         // Clean up the blob URL
         setTimeout(() => URL.revokeObjectURL(url), 100)
       } catch (err) {
-        handleExportError(err, 'SVG export (Safari workaround)')
+        handleExportError(err, "SVG export (Safari workaround)")
       }
     } else {
       chart.exportChart({
@@ -269,10 +249,7 @@ const ShareButton = () => {
               <ListItemIcon className={classes.listIcon}>
                 <DownloadIcon />
               </ListItemIcon>
-              <ListItemText
-                primary="Download chart as SVG"
-                style={{ paddingRight: 20 }}
-              />
+              <ListItemText primary="Download chart as SVG" style={{ paddingRight: 20 }} />
             </MenuItem>
             <MenuItem onClick={() => exportChart("image/png")}>
               <ListItemIcon className={classes.listIcon}>

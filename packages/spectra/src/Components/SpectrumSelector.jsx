@@ -1,19 +1,19 @@
-import React, { useEffect, useCallback } from "react"
-import PropTypes from "prop-types"
+import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import Box from "@mui/material/Box"
-import { useQuery, useMutation, useApolloClient } from "@apollo/client"
-import { components } from "react-select"
-import update from "immutability-helper"
 import gql from "graphql-tag"
+import update from "immutability-helper"
+import PropTypes from "prop-types"
+import React, { useCallback, useEffect } from "react"
+import { components } from "react-select"
 import { GET_OWNER_OPTIONS, GET_SPECTRUM } from "../client/queries"
-import SubtypeSelector from "./SubtypeSelector"
-import SortableWindowedSelect from "./SortableWindowedSelect"
 import ProductLink from "./ProductLink"
+import SortableWindowedSelect from "./SortableWindowedSelect"
+import SubtypeSelector from "./SubtypeSelector"
 
 import theme from "./theme"
 
 const customStyles = {
-  menu: provided => ({
+  menu: (provided) => ({
     ...provided,
     zIndex: "10000",
   }),
@@ -59,8 +59,7 @@ const SingleValue = ({ children, data, ...props }) => {
 
   return (
     <components.SingleValue {...props}>
-      {children}
-      {" "}
+      {children}{" "}
       <span
         style={{
           fontSize: "0.76rem",
@@ -110,7 +109,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   const [comboMutate] = useMutation(COMBO_MUTATE)
   // when the spectrum selector changes
   const handleOwnerChange = useCallback(
-    newValue => {
+    (newValue) => {
       // if it's the same as the previous value do nothing
       if (value === newValue) return
       // setValue(newValue)
@@ -142,7 +141,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   const [myOptions, setMyOptions] = React.useState(options)
 
   useEffect(() => {
-    const otherOwners = allOwners.filter(i => i !== selector.owner)
+    const otherOwners = allOwners.filter((i) => i !== selector.owner)
     if (!otherOwners) return
     let newOptions = myOptions
     options.forEach((option, index) => {
@@ -184,10 +183,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
         />
       </Box>
       {subtypes.length > 0 && (
-        <SubtypeSelector
-          subtypes={subtypes}
-          skip={value && !["P", "D"].includes(value.category)}
-        />
+        <SubtypeSelector subtypes={subtypes} skip={value && !["P", "D"].includes(value.category)} />
       )}
       <ProductLink current={value} />
     </Box>

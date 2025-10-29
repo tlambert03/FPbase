@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react"
 import { useApolloClient, useQuery } from "@apollo/client"
-import update from "immutability-helper"
 import gql from "graphql-tag"
+import update from "immutability-helper"
+import { useEffect, useState } from "react"
 import { GET_SPECTRUM } from "../client/queries"
 import COLORS from "../colors"
 
-const rangexy = (start, end) =>
-  Array.from({ length: end - start }, (v, k) => k + start)
+const rangexy = (start, end) => Array.from({ length: end - start }, (v, k) => k + start)
 
 // $cl1_wave
 const customLaserSpectrum = (_id) => {
@@ -77,7 +76,7 @@ const customFilterSpectrum = (_id) => {
         owner: { name, id: _id, slug: _id },
         category: "F",
         data,
-        color: +center in COLORS ? COLORS[+center] : "#999999",
+        color: (+center) in COLORS ? COLORS[+center] : "#999999",
       },
     },
   }
@@ -132,12 +131,8 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
         }, [])
 
         const currentIDs = prevData.map((item) => item.customId || item.id)
-        const newSpectraIds = activeSpectra.filter(
-          (id) => id && !currentIDs.includes(id)
-        )
-        const newOverlapIds = activeOverlaps.filter(
-          (id) => id && !currentIDs.includes(id)
-        )
+        const newSpectraIds = activeSpectra.filter((id) => id && !currentIDs.includes(id))
+        const newOverlapIds = activeOverlaps.filter((id) => id && !currentIDs.includes(id))
 
         // If no changes, return the same reference (no re-render)
         if (!deadSpectra.length && !newSpectraIds.length && !newOverlapIds.length) {
@@ -146,7 +141,7 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
 
         // Schedule async fetch for new data
         if (newSpectraIds.length || newOverlapIds.length) {
-          (async () => {
+          ;(async () => {
             let newData = await Promise.all(newSpectraIds.map((id) => idToData(id)))
             newData = newData.map((item) => item.data.spectrum).filter((i) => i)
 
@@ -175,7 +170,7 @@ const useSpectralData = (provideSpectra, provideOverlaps) => {
     }
 
     updateData()
-  }, [activeOverlaps, activeSpectra, client])  // Removed currentData to prevent infinite loop
+  }, [activeOverlaps, activeSpectra, client]) // Removed currentData to prevent infinite loop
 
   return currentData
 }
