@@ -22,8 +22,8 @@ const App = () => {
   const [helpOpen, setHelpOpen] = React.useState(false)
 
   const options = useMemo(() => Object.values(ownerInfo || {}), [ownerInfo])
-  const openHelp = useCallback(() => setHelpOpen(true), [setHelpOpen])
-  const closeHelp = useCallback(() => setHelpOpen(false), [setHelpOpen])
+  const openHelp = useCallback(() => setHelpOpen(true), [])
+  const closeHelp = useCallback(() => setHelpOpen(false), [])
 
   useKeyboardShortcuts()
   return (

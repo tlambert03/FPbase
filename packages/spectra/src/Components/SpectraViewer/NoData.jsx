@@ -1,4 +1,4 @@
-import React, { memo } from "react"
+import { memo } from "react"
 
 const NoData = memo(function NoData({ height, loading }) {
   return (

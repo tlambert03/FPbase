@@ -12,11 +12,11 @@ import { trapz } from "../util"
 import useSpectralData from "./useSpectraData"
 
 class ErrorBoundary extends React.Component {
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error) {
     return { hasError: true }
   }
 
-  componentDidCatch(error, info) {}
+  componentDidCatch(_error, _info) {}
 
   render() {
     const { children } = this.props
@@ -24,7 +24,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((_theme) => ({
   table: {
     marginTop: "10px",
     minWidth: 650,
@@ -147,7 +147,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
     }
 
     updateTableData()
-  }, [client, spectraData, transposed])
+  }, [spectraData, transposed])
 
   // Generate columns using useMemo
   const columns = useMemo(() => {

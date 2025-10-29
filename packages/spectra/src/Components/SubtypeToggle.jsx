@@ -4,7 +4,6 @@ import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import { makeStyles } from "@mui/styles"
-import React from "react"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 
 const useStyles = makeStyles((theme) => ({

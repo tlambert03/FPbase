@@ -35,7 +35,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
     })
   }, [width, center, type, trans, filterID, client])
 
-  const handleType = (event, newType) => {
+  const handleType = (_event, newType) => {
     if (newType) {
       setType(newType)
     }

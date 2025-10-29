@@ -156,7 +156,7 @@ function decoder(str, _, charset) {
   // utf-8
   try {
     return decodeURIComponent(strWithoutPlus)
-  } catch (e) {
+  } catch (_e) {
     return strWithoutPlus
   }
 }
@@ -175,7 +175,7 @@ function isTouchDevice() {
     }
 
     return mq(["(", prefixes.join("touch-enabled),("), "heartz", ")"].join(""))
-  } catch (e) {
+  } catch (_e) {
     // console.error("(Touch detect failed)", e)
     return false
   }

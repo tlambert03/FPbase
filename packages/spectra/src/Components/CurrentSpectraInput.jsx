@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@apollo/client"
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { GET_ACTIVE_SPECTRA, SET_ACTIVE_SPECTRA } from "../client/queries"
 
 const CurrentSpectraInput = () => {
@@ -25,7 +25,7 @@ const CurrentSpectraInput = () => {
         activeSpectra: newVal,
       },
       update: (
-        cache,
+        _cache,
         {
           data: {
             setActiveSpectra: { activeSpectra },

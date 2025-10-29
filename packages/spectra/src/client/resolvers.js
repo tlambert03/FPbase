@@ -113,7 +113,7 @@ function activeSpectraToSelectors(activeSpectra, selectors, spectraInfo, ownerIn
   const safeSelectors = Array.isArray(selectors) ? selectors : []
   const currentOwners = safeSelectors.map(({ owner }) => owner)
   const newOwners = activeSpectra
-    .map((id) => spectraInfo[id] && spectraInfo[id].owner)
+    .map((id) => spectraInfo[id]?.owner)
     .filter((owner) => owner && !currentOwners.includes(owner))
   const toAdd = [...new Set(newOwners)].map((owner) => ({
     owner,
@@ -171,33 +171,33 @@ export const resolvers = {
     },
   },
   Spectrum: {
-    area: (spectrum, obj, cli) => {
+    area: (spectrum, _obj, _cli) => {
       return trapz(spectrum.data)
     },
   },
   Mutation: {
-    toggleYAxis: (_root, variables, { cache }) => {
+    toggleYAxis: (_root, _variables, { cache }) => {
       return toggleChartOption(cache, "showY")
     },
-    toggleXAxis: (_root, variables, { cache }) => {
+    toggleXAxis: (_root, _variables, { cache }) => {
       return toggleChartOption(cache, "showX")
     },
-    toggleGrid: (_root, variables, { cache }) => {
+    toggleGrid: (_root, _variables, { cache }) => {
       return toggleChartOption(cache, "showGrid")
     },
-    toggleLogScale: (_root, variables, { cache }) => {
+    toggleLogScale: (_root, _variables, { cache }) => {
       return toggleChartOption(cache, "logScale")
     },
-    toggleScaleEC: (_root, variables, { cache }) => {
+    toggleScaleEC: (_root, _variables, { cache }) => {
       return toggleChartOption(cache, "scaleEC")
     },
-    toggleScaleQY: (_root, variables, { cache }) => {
+    toggleScaleQY: (_root, _variables, { cache }) => {
       return toggleChartOption(cache, "scaleQY")
     },
-    toggleShareTooltip: (_root, variables, { cache }) => {
+    toggleShareTooltip: (_root, _variables, { cache }) => {
       return toggleChartOption(cache, "shareTooltip")
     },
-    toggleAreaFill: (_root, variables, { cache }) => {
+    toggleAreaFill: (_root, _variables, { cache }) => {
       return toggleChartOption(cache, "areaFill")
     },
     setChartExtremes: (_root, { extremes }, { client }) => {
@@ -217,7 +217,7 @@ export const resolvers = {
     setPalette: (_root, { palette }, { client }) => {
       return _setPalette(palette, client)
     },
-    cyclePalette: (_root, variables, { cache, client }) => {
+    cyclePalette: (_root, _variables, { cache, client }) => {
       const {
         chartOptions: { palette },
       } = cache.readQuery({
@@ -288,7 +288,7 @@ export const resolvers = {
       await client.writeQuery({ query: GET_ACTIVE_OVERLAPS, data })
       return data
     },
-    normalizeCurrent: async (_, args, { cache, client }) => {
+    normalizeCurrent: async (_, _args, { cache, client }) => {
       // Wait if another normalizeCurrent is already running (mutex)
       if (normalizingPromise) {
         await normalizingPromise

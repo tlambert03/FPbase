@@ -1,4 +1,4 @@
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import "./index.css"
 import { ApolloProvider } from "@apollo/client"
 import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles"

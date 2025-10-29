@@ -159,12 +159,12 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     }
   }
 
-  $("body").on("focus", ".filter-select", function (event) {
+  $("body").on("focus", ".filter-select", function (_event) {
     // Store the current value on focus and on change
     prevName = this.value
     prevOperator = $(this).closest(".query-row").find(".operator-select").val()
   })
-  $("body").on("focus", ".operator-select", function (event) {
+  $("body").on("focus", ".operator-select", function (_event) {
     // Store the current value on focus and on change
     prevOperator = this.value
   })

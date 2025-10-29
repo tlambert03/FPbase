@@ -3,7 +3,6 @@ import { Box } from "@mui/material"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import gql from "graphql-tag"
-import React from "react"
 import { GET_OWNER_OPTIONS } from "../client/queries"
 
 const MUTATE_OWNER_OPTIONS = gql`
@@ -17,7 +16,7 @@ const OwnerOptionsForm = () => {
   const { data } = useQuery(GET_OWNER_OPTIONS)
   const excludeSubtypes = data?.excludeSubtypes || []
 
-  const handleChange = (e, subtypes) => {
+  const handleChange = (_e, subtypes) => {
     setSubtypes({ variables: { subtypes } })
   }
   return (

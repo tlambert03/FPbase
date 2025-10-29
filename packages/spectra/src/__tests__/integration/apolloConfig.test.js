@@ -75,7 +75,7 @@ describe("Apollo Client possibleTypes Configuration", () => {
   it("FluorophoreInterface maps to array of type names", () => {
     const possibleTypes = getPossibleTypes()
 
-    const fluorophoreTypes = possibleTypes["FluorophoreInterface"]
+    const fluorophoreTypes = possibleTypes.FluorophoreInterface
     expect(fluorophoreTypes).toBeInstanceOf(Array)
     expect(fluorophoreTypes).toContain("State")
     expect(fluorophoreTypes).toContain("Dye")
@@ -89,7 +89,7 @@ describe("Apollo Client possibleTypes Configuration", () => {
   it("SpectrumOwnerInterface maps to array of all owner type names", () => {
     const possibleTypes = getPossibleTypes()
 
-    const ownerTypes = possibleTypes["SpectrumOwnerInterface"]
+    const ownerTypes = possibleTypes.SpectrumOwnerInterface
     expect(ownerTypes).toBeInstanceOf(Array)
 
     const expectedTypes = ["State", "Dye", "Filter", "Light", "Camera"]
@@ -137,7 +137,7 @@ describe("Fragment Configuration Regression", () => {
     // The bug manifested because fragments on FluorophoreInterface didn't work
     expect(possibleTypes).toHaveProperty("FluorophoreInterface")
 
-    const fluorophoreTypes = possibleTypes["FluorophoreInterface"]
+    const fluorophoreTypes = possibleTypes.FluorophoreInterface
     expect(fluorophoreTypes).toBeInstanceOf(Array)
     expect(fluorophoreTypes.length).toBeGreaterThan(0)
   })
@@ -145,7 +145,7 @@ describe("Fragment Configuration Regression", () => {
   it("prevents regression: State and Dye must implement FluorophoreInterface", () => {
     const possibleTypes = getPossibleTypes()
 
-    const fluorophoreTypes = possibleTypes["FluorophoreInterface"]
+    const fluorophoreTypes = possibleTypes.FluorophoreInterface
 
     // If either State or Dye is missing, fragments won't apply to them
     expect(fluorophoreTypes).toContain("State")

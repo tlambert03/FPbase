@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { GET_SPECTRUM } from "../client/queries"
 import COLORS from "../colors"
 
-const rangexy = (start, end) => Array.from({ length: end - start }, (v, k) => k + start)
+const rangexy = (start, end) => Array.from({ length: end - start }, (_v, k) => k + start)
 
 // $cl1_wave
 const customLaserSpectrum = (_id) => {

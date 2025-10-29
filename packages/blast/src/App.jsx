@@ -1,6 +1,6 @@
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material"
 import $ from "jquery"
-import React, { useState } from "react"
+import { useState } from "react"
 import InputForm from "./InputForm.jsx"
 import BlastReport from "./ReportView.jsx"
 

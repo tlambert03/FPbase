@@ -1,5 +1,4 @@
 import { createTheme, StyledEngineProvider, ThemeProvider } from "@mui/material/styles"
-import React from "react"
 import App from "./App"
 
 const theme = createTheme()

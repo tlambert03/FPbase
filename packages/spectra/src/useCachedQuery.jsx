@@ -16,7 +16,7 @@ const useCachedQuery = (query, cacheKey, maxAge) => {
       }
     }
     if (!stash) fetchData()
-  }, []) // eslint-disable-line
+  }, [cacheKey, client.query, query, stash]) // eslint-disable-line
   return stash
 }
 
@@ -32,7 +32,7 @@ const useCachedFetch = (url, cacheKey, maxAge) => {
           setStorageWithTimeStamp(cacheKey, data)
         })
     }
-  }, []) // eslint-disable-line
+  }, [cacheKey, stash, url]) // eslint-disable-line
   return stash
 }
 

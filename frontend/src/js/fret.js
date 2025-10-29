@@ -1,4 +1,3 @@
-import * as d3 from "d3"
 import Highcharts from "highcharts"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/pattern-fill"
@@ -187,7 +186,7 @@ export default function initFRET() {
           }
         }
       })
-      .fail((d) => {
+      .fail((_d) => {
         console.log("item not found")
       })
   }
@@ -265,8 +264,8 @@ export default function initFRET() {
   function updateChart() {
     // Convert data to Highcharts format
     var series = data.map((item) => {
-      var isFadedFret = item.classed && item.classed.includes("faded-fret")
-      var isFretOverlap = item.classed && item.classed.includes("fret-overlap")
+      var isFadedFret = item.classed?.includes("faded-fret")
+      var isFretOverlap = item.classed?.includes("fret-overlap")
 
       var seriesConfig = {
         name: item.key,
@@ -323,7 +322,7 @@ export default function initFRET() {
   }
 
   // main function when data-selector has been changed
-  $(".data-selector").change((event) => {
+  $(".data-selector").change((_event) => {
     data.splice(0, 10)
     var donorslug = $("#donor-select :selected").val()
     var acceptorslug = $("#acceptor-select :selected").val()
@@ -387,9 +386,9 @@ export default function initFRET() {
   })
 
   /* Custom filtering function which will search data in column four between two values */
-  $.fn.dataTable.ext.search.push((settings, data, dataIndex) => {
+  $.fn.dataTable.ext.search.push((_settings, data, _dataIndex) => {
     var min = parseFloat($("#minQYAinput").val())
-    var minlam = parseInt($("#minLambdaSep").val())
+    var minlam = parseInt($("#minLambdaSep").val(), 10)
     var qya = parseFloat(data[7]) || 0 // use data for the age column
     var lambsep = parseFloat(data[4]) || 0 // use data for the age column
 
@@ -402,7 +401,7 @@ export default function initFRET() {
       $("#minQYAinput").val(0)
     }
 
-    if ((isNaN(min) || qya >= min) && (isNaN(minlam) || lambsep >= minlam)) {
+    if ((Number.isNaN(min) || qya >= min) && (Number.isNaN(minlam) || lambsep >= minlam)) {
       return true
     }
     return false

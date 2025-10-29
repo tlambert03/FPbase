@@ -265,7 +265,7 @@ export default function LineageChart(conf) {
           .append("g")
           .attr("class", (d) => "node" + (d.data.err && d.data.err.length > 0 ? " has-err" : ""))
           .attr("id", (d) => "node_" + d.data.slug)
-          .attr("transform", (d) => "translate(" + source.y0 + "," + source.x0 + ")")
+          .attr("transform", (_d) => "translate(" + source.y0 + "," + source.x0 + ")")
           .on("contextmenu", click)
 
         nodeEnter
@@ -275,7 +275,7 @@ export default function LineageChart(conf) {
           .attr("r", 1e-6)
           .style("filter", "url(#shadow);")
           .style("fill", (d) => {
-            if (d.data.bg && d.data.bg.startsWith("linear:")) {
+            if (d.data.bg?.startsWith("linear:")) {
               svg
                 .select("defs")
                 .append("linearGradient")
@@ -363,7 +363,7 @@ export default function LineageChart(conf) {
               .duration(150)
               .style("opacity", largeWindow ? 0.9 : 1)
           })
-          .on("mouseout", function (event, d) {
+          .on("mouseout", function (_event, d) {
             tooltip
               .transition()
               .duration(150)
@@ -419,7 +419,7 @@ export default function LineageChart(conf) {
             d._children ? defaultRadius / 2 : d.data.slug === slug ? slugRadius : defaultRadius
           )
           .style("fill", (d) => {
-            if (d.data.bg && d.data.bg.startsWith("linear:")) {
+            if (d.data.bg?.startsWith("linear:")) {
               return "url(#" + d.data.slug.replace("0", "XX") + "_svggradient)"
             } else if (d.data.bg === "?") {
               return "url(#unknown_gradient)"
@@ -449,7 +449,7 @@ export default function LineageChart(conf) {
           .exit()
           .transition()
           .duration(duration)
-          .attr("transform", (d) => "translate(" + source.y + "," + source.x + ")")
+          .attr("transform", (_d) => "translate(" + source.y + "," + source.x + ")")
           .remove()
 
         nodeExit.select("circle").attr("r", 1e-6)
@@ -464,7 +464,7 @@ export default function LineageChart(conf) {
           .enter()
           .insert("path", "g")
           .attr("class", "link")
-          .attr("d", (d) => {
+          .attr("d", (_d) => {
             var o = { x: source.x0, y: source.y0 }
             return diagonal({ source: o, target: o })
           })
@@ -477,7 +477,7 @@ export default function LineageChart(conf) {
           .exit()
           .transition()
           .duration(duration)
-          .attr("d", (d) => {
+          .attr("d", (_d) => {
             var o = { x: source.x, y: source.y }
             return diagonal({ source: o, target: o })
           })
@@ -500,7 +500,7 @@ export default function LineageChart(conf) {
         })
 
         // toggle children on click
-        function click(event, d) {
+        function click(_event, d) {
           if (d.children) {
             d._children = d.children
             d.children = null
@@ -607,7 +607,7 @@ export default function LineageChart(conf) {
   }
 
   var resizeTimer
-  $(window).on("resize", (e) => {
+  $(window).on("resize", (_e) => {
     clearTimeout(resizeTimer)
     resizeTimer = setTimeout(chart.update, 100)
   })

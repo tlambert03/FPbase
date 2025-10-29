@@ -10,7 +10,6 @@ import {
   faSliders,
 } from "@fortawesome/free-solid-svg-icons"
 import SvgIcon from "@mui/material/SvgIcon"
-import React from "react"
 
 function FAIcon(props) {
   return (

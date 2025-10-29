@@ -27,7 +27,7 @@ const DEFAULT_OPTIONS = {
       findNearestPointBy: "x",
       stickyTracking: true,
       events: {
-        mouseOver: ({ target: { xAxis } }, b) => {
+        mouseOver: ({ target: { xAxis } }, _b) => {
           const el = document.getElementById("zoom-info")
           if (el) el.style.display = "block"
         },
@@ -206,7 +206,7 @@ const DEFAULT_OPTIONS = {
     shared: true,
     hideDelay: 150,
     valueDecimals: 3,
-    formatter: function (tooltip) {
+    formatter: function (_tooltip) {
       let tooltipHtml = "<table class='spectrum-tooltip'>"
       tooltipHtml += `${
         "<tr><td></td>" +
@@ -227,7 +227,7 @@ const DEFAULT_OPTIONS = {
     positioner(labelWidth, labelHeight, point) {
       const chartwidth = this.chart.chartWidth
       const yAx2 = this.chart.get("yAx2")
-      const rightPad = (yAx2 && yAx2.axisTitleMargin) || 0
+      const rightPad = yAx2?.axisTitleMargin || 0
       const y = Math.min(Math.max(point.plotY, 50), this.chart.chartHeight - labelHeight - 40)
       const t = 10 + point.plotX + labelWidth / 3
       const x = t + labelWidth < chartwidth - rightPad ? t : point.plotX - labelWidth - 20

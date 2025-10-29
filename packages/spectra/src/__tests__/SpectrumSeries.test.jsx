@@ -1,7 +1,6 @@
 import { render } from "@testing-library/react"
 import Highcharts from "highcharts"
 import { List } from "immutable"
-import React from "react"
 import { HighchartsChart, HighchartsProvider, XAxis, YAxis } from "react-jsx-highcharts"
 import { describe, expect, it, vi } from "vitest"
 import SpectrumSeries from "../Components/SpectraViewer/SpectrumSeries"

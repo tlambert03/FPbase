@@ -1,6 +1,5 @@
 import { Box, Button, FormHelperText, TextField } from "@mui/material"
 import Cookies from "js-cookie"
-import React from "react"
 
 function InputForm({ handleSubmit, initialValue }) {
   return (

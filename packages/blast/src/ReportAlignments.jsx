@@ -1,5 +1,3 @@
-import React from "react"
-
 const zip = (arr, ...arrs) => {
   return arr.map((val, i) => arrs.reduce((a, arr) => [...a, arr[i]], [val]))
 }
@@ -75,7 +73,7 @@ function FormattedBlastAlignment({ hit, lineWidth }) {
 function BlastHitSummary({ data }) {
   const accession = data.description[0].accession
   const title = data.description[0].title
-  const id = data.description[0].id
+  const _id = data.description[0].id
 
   return (
     <div id={"dln_" + accession} className="dlfRow mt-4">

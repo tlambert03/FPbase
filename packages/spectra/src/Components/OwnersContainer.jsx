@@ -118,9 +118,9 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
       }
       client.mutate({ mutation: NORMALIZE_CURRENT })
     }
-  }, [activeSpectra, ownerInfo, spectraInfo, client])
+  }, [ownerInfo, spectraInfo, client])
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (_event, newValue) => {
     if (newValue !== tab) {
       setTab(newValue)
     }
@@ -191,9 +191,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
         <span className={classes.bigShow}>
           {label} {populated ? " ✶" : ""}
         </span>
-        <span className={classes.bigHide}>
-          {categoryIcon(_cats && _cats[_cats.length - 1], "")}
-        </span>
+        <span className={classes.bigHide}>{categoryIcon(_cats?.[_cats.length - 1], "")}</span>
       </span>
     )
   }

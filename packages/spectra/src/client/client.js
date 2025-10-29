@@ -1,4 +1,4 @@
-import { ApolloClient, ApolloLink, from, HttpLink, InMemoryCache } from "@apollo/client"
+import { ApolloClient, from, HttpLink, InMemoryCache } from "@apollo/client"
 import { onError } from "@apollo/client/link/error"
 import { persistCache } from "apollo3-cache-persist"
 import qs from "qs"
@@ -13,7 +13,6 @@ import {
   GET_SELECTORS,
 } from "./queries"
 import { defaults, resolvers, validSpectraIds } from "./resolvers"
-import typeDefs from "./schema"
 import "unfetch/polyfill/index"
 import PALETTES from "../palettes"
 
@@ -135,7 +134,7 @@ function intializeClient({ uri, storage }) {
         if (!cached) {
           cache.writeQuery({ query, data })
         }
-      } catch (e) {
+      } catch (_e) {
         // Query failed (no data in cache), initialize with defaults
         cache.writeQuery({ query, data })
       }

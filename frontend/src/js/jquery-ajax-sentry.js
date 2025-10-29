@@ -21,7 +21,7 @@ import $ from "jquery"
  */
 export function setupAjaxErrorTracking() {
   // Track all AJAX errors globally
-  $(document).ajaxError((event, jqXHR, ajaxSettings, thrownError) => {
+  $(document).ajaxError((_event, jqXHR, ajaxSettings, thrownError) => {
     // Don't report if it's a user abort
     if (jqXHR.statusText === "abort") {
       return

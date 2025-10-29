@@ -70,7 +70,7 @@ function BlastReport({ report }) {
   const [tab, setTab] = useState(0)
   const [algnItem, setAlgnItem] = useState(null)
 
-  function handleTabClick(event, newValue) {
+  function handleTabClick(_event, newValue) {
     setTab(newValue)
   }
 
@@ -95,7 +95,7 @@ function BlastReport({ report }) {
   const classes = useStyles()
 
   const [open, setOpen] = React.useState(true)
-  function closeSnackbar(event, reason) {
+  function closeSnackbar(_event, reason) {
     if (reason === "clickaway") {
       return
     }

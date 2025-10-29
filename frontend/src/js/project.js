@@ -85,9 +85,9 @@ function populate_comparison_tab(comparison_set) {
   if (comparison_set.length) {
     //var token = $("#csrfform input").val()
     var currents = $(".comparison-list li")
-      .map((i, v) => $(v).attr("value"))
+      .map((_i, v) => $(v).attr("value"))
       .toArray()
-    $.each(comparison_set, (index, val) => {
+    $.each(comparison_set, (_index, val) => {
       if (currents.indexOf(val.slug) >= 0) {
         return true
       }
@@ -285,7 +285,7 @@ $("#spectra_url_form").submit((e) => {
   e.preventDefault()
 })
 
-$("#spectra_url_form input, #spectra_url_form select").change(function (e) {
+$("#spectra_url_form input, #spectra_url_form select").change(function (_e) {
   if ($(this).hasClass("wave-range")) {
     if (!$(this).val()) {
       $(this).val($(this).hasClass("min-range") ? 350 : 750)
@@ -403,13 +403,13 @@ $("#id_ipg_id").change(function () {
             //$("#id_seq").prop('disabled', true);
             //$("#hint_id_seq").html('Sequence input disabled when IPG ID provided')
           },
-          error: (data) => {
+          error: (_data) => {
             reset_ipgid("Unrecognized IPG ID")
           },
         })
       }
     },
-    error: (data) => {
+    error: (_data) => {
       reset_ipgid("Unrecognized IPG ID")
     },
   })
@@ -461,12 +461,12 @@ $("#spectrum-submit-form #id_owner").change(function () {
       if (data.similars.length) {
         var str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
         $.each(data.similars, (index, val) => {
-          str = str + '<span class="text-danger">' + val["name"] + "</span>"
-          if (val["spectra"].length) {
+          str = str + '<span class="text-danger">' + val.name + "</span>"
+          if (val.spectra.length) {
             str = str + " ("
-            $.each(val["spectra"], (i, s) => {
+            $.each(val.spectra, (i, s) => {
               str = str + s
-              if (i !== val["spectra"].length - 1) {
+              if (i !== val.spectra.length - 1) {
                 str = str + ", "
               }
             })
@@ -502,7 +502,7 @@ $('input[id*="reference_doi"]').change(function () {
     success: (data) => {
       if (data.status === "ok") {
         const year = data.message.issued["date-parts"]["0"]["0"]
-        const author = data.message.author["0"]["family"]
+        const author = data.message.author["0"].family
         const title = data.message.title[0].slice(0, 45)
         const citation = author + " (" + year + ") " + title + "..."
         small.html(citation)
@@ -510,7 +510,7 @@ $('input[id*="reference_doi"]').change(function () {
         small.html("DOI not found at Crossref")
       }
     },
-    error: (data) => {
+    error: (_data) => {
       small.html("DOI not found at Crossref")
     },
   })
@@ -694,7 +694,7 @@ $(() => {
       url: $(this).attr("data-action-url"),
       data: {},
       cache: false,
-      success: (data, status) => {
+      success: (data, _status) => {
         $("#transitionForm").html(data)
         register_transition_form()
         $("#transitionModal").modal()
@@ -710,10 +710,10 @@ $("#transitionForm").submit(function (e) {
     url: form.attr("data-action-url"),
     data: form.serialize(),
     cache: false,
-    success: (data, status) => {
+    success: (_data, _status) => {
       window.location.reload()
     },
-    error: (data, status, error) => {
+    error: (data, _status, _error) => {
       $("#transitionForm").html(data.responseText)
       register_transition_form()
     },
@@ -728,7 +728,7 @@ $("#adminApprove, #adminRevert").submit(function (e) {
     url: form.attr("data-action-url"),
     data: form.serialize(),
     dataType: "json",
-    success: (data) => {
+    success: (_data) => {
       window.location = form.data("success")
     },
   })
@@ -796,7 +796,7 @@ $(document).ready(() => {
       type: "GET",
       url: $(this).attr("data-action-url"),
       dataType: "json",
-      success: (data, status) => {
+      success: (data, _status) => {
         if ("members" in data) {
           const members = JSON.parse(data.members)
           if (members.length) {
@@ -805,7 +805,7 @@ $(document).ready(() => {
               "#currentmemberships"
             )
             const list = $("<ul>").appendTo("#currentmemberships")
-            $.each(members, function (e) {
+            $.each(members, function (_e) {
               const li = $("<li>")
               $("<a>").html(this[0]).attr("href", this[1]).appendTo(li)
               li.appendTo(list)
@@ -830,7 +830,7 @@ $(document).ready(() => {
       url: form.attr("data-action-url"),
       data,
       cache: false,
-      success: (data, status) => {},
+      success: (_data, _status) => {},
     })
     $("#collectionModal").modal("hide")
     e.preventDefault() // avoid to execute the actual submit of the form.
@@ -857,13 +857,13 @@ $(() => {
       success: (data) => {
         if ("scientificname" in data.result[data.result.uids[0]]) {
           // successful fetch from NCBI
-          const sci_name = data.result[data.result.uids[0]]["scientificname"]
+          const sci_name = data.result[data.result.uids[0]].scientificname
           $.ajax({
             type: "POST",
             url: form.attr("data-action-url"),
             data: form.serialize(),
             dataType: "json",
-            success: (data) => {
+            success: (_data) => {
               $('<option value="' + tax_id + '">' + sci_name + " </option>").appendTo(
                 "#id_parent_organism"
               )
@@ -880,7 +880,7 @@ $(() => {
             .removeClass("text-muted")
         }
       },
-      error: (data) => {},
+      error: (_data) => {},
     })
     e.preventDefault()
   })

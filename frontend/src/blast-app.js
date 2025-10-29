@@ -2,7 +2,6 @@
 import "./js/sentry-init.js"
 
 import App from "@fpbase/blast"
-import React from "react"
 import { createRoot } from "react-dom/client"
 import { SentryErrorBoundary } from "./js/sentry-error-boundary"
 

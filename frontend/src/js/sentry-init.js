@@ -54,7 +54,7 @@ export function initSentry() {
         ],
 
         // Filter sensitive data before sending
-        beforeSend(event, hint) {
+        beforeSend(event, _hint) {
           // Add bundle information for easier debugging
           event.tags = {
             ...event.tags,

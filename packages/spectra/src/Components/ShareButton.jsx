@@ -67,13 +67,13 @@ function ShareLinkAlert({ open, setOpen }) {
 
   useEffect(() => {
     const cp = new ClipboardJS("#copy-button", {
-      target: (trigger) => document.getElementById("qString-input"),
+      target: (_trigger) => document.getElementById("qString-input"),
     })
     cp.on("success", handleTooltipOpen)
     return () => {
       cp.destroy()
     }
-  }, [])
+  }, [handleTooltipOpen])
 
   return (
     <div>

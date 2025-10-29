@@ -6,7 +6,7 @@ import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import React, { memo, useEffect, useState } from "react"
+import { memo, useEffect, useState } from "react"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 import InputSlider from "./InputSlider"
 
@@ -39,7 +39,7 @@ const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExN
     }
   }, [client, laserID, normID, setExNorm, wave])
 
-  const handleNormCheck = (e, checked) => {
+  const handleNormCheck = (_e, checked) => {
     if (checked) {
       setExNorm([String(wave), laserID])
     } else {

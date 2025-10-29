@@ -20,7 +20,7 @@ function stateToUrl(activeSpectra, chartOptions, exNorm) {
     })
     qstrings.push(qs.stringify(opts))
   }
-  if (exNorm && exNorm[0] && exNorm[1]) {
+  if (exNorm?.[0] && exNorm[1]) {
     qstrings.push(qs.stringify({ normWave: exNorm[0], normID: exNorm[1] }))
   }
   const { origin, pathname } = window.location

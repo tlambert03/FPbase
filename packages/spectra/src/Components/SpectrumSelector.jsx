@@ -17,7 +17,7 @@ const customStyles = {
     ...provided,
     zIndex: "10000",
   }),
-  singleValue: (provided, state) => ({
+  singleValue: (provided, _state) => ({
     ...provided,
     [theme.breakpoints.down("xs")]: {
       fontSize: "0.88rem",
@@ -55,7 +55,7 @@ const SingleValue = ({ children, data, ...props }) => {
     if (data.category === "P" || data.category === "D") {
       fetchQeEc(data.spectra[0].id)
     }
-  }, [client, children, data.spectra, data.category])
+  }, [client, data.spectra, data.category])
 
   return (
     <components.SingleValue {...props}>
@@ -97,7 +97,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
     setValue(selector.owner && ownerInfo[selector.owner])
   }, [ownerInfo, selector])
 
-  const subtypes = (value && value.spectra) || []
+  const subtypes = value?.spectra || []
   // const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
   const { data } = useQuery(GET_OWNER_OPTIONS)
@@ -114,26 +114,24 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
       if (value === newValue) return
       // setValue(newValue)
       // onChange(newValue && newValue.value)
-      const newOwner = newValue && newValue.value
+      const newOwner = newValue?.value
       setValue(newOwner && ownerInfo[newOwner]) // FIXME: replace with optimistic UI?
 
       comboMutate({
         variables: {
-          add:
-            newValue &&
-            newValue.spectra
-              .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
-              .map(({ id }) => id),
-          remove: value && value.spectra.map(({ id }) => id),
+          add: newValue?.spectra
+            .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
+            .map(({ id }) => id),
+          remove: value?.spectra.map(({ id }) => id),
           selector: {
             id: +selector.id,
             owner: newOwner,
-            category: ownerInfo[newOwner] && ownerInfo[newOwner].category,
+            category: ownerInfo[newOwner]?.category,
           },
         },
       })
     },
-    [excludeSubtypes, ownerInfo, selector.id, value] // eslint-disable-line
+    [excludeSubtypes, ownerInfo, selector.id, value, comboMutate] // eslint-disable-line
   )
 
   // disable options that are already claimed by other selectors

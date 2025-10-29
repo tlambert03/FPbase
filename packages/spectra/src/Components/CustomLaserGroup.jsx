@@ -46,7 +46,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
         setLasers([...customLasers, ...newLasers])
       }
     }
-  }, [activeSpectra]) // eslint-disable-line
+  }, [activeSpectra, customLasers]) // eslint-disable-line
 
   const addRow = () => {
     setLasers([...customLasers, `$cl${laserCounter.current++}`])

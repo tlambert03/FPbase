@@ -129,9 +129,9 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
   const excludeSubtypes = data?.excludeSubtypes || []
 
   const handleChange = (event) => {
-    const spectra =
-      event &&
-      event.spectra.filter(({ subtype }) => !excludeSubtypes.includes(subtype)).map(({ id }) => id)
+    const spectra = event?.spectra
+      .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
+      .map(({ id }) => id)
 
     if (spectra) {
       updateSpectra({ variables: { add: spectra } })

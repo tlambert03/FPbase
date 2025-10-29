@@ -1,6 +1,6 @@
 import SearchIcon from "@mui/icons-material/Search"
 import IconButton from "@mui/material/IconButton"
-import React, { useState } from "react"
+import { useState } from "react"
 import SearchModal from "./SearchModal"
 
 const QuickEntry = ({ options, clearForm }) => {

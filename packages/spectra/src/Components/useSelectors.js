@@ -14,7 +14,7 @@ const useSelectors = ({ ownerInfo, spectraInfo }) => {
   const [normalize, { loading: normLoading }] = useMutation(NORMALIZE_CURRENT)
   useEffect(() => {
     if (!normLoading) normalize()
-  }, [activeSpectra, normLoading, normalize])
+  }, [normLoading, normalize])
 
   return { activeSpectra, selectors }
 }

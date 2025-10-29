@@ -9,10 +9,10 @@
  * 4. The viewer handles different spectrum types (EX/EM) correctly
  */
 
-import { ApolloClient, ApolloProvider, from, HttpLink, InMemoryCache } from "@apollo/client"
+import { ApolloClient, ApolloProvider, from, HttpLink } from "@apollo/client"
 import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles"
 import { render, screen, waitFor } from "@testing-library/react"
-import { beforeEach, describe, expect, it } from "vitest"
+import { describe, expect, it } from "vitest"
 import { SpectraViewerContainer } from "../../Components/SpectraViewer/SpectraViewer"
 import theme from "../../Components/theme"
 import {

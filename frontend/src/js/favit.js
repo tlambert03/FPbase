@@ -1,7 +1,7 @@
 $(document).ready(() => {
   $("#add_remove_favorite").click(function (e) {
     var $obj = $(this)
-    var target_id = $obj.data("target").split("_")[1]
+    var _target_id = $obj.data("target").split("_")[1]
     $obj.prop("disabled", true)
     $.ajax({
       url: $obj.attr("data-action-url"),
@@ -24,7 +24,7 @@ $(document).ready(() => {
         $obj.parent(".favit").children(".fav-count").text(response.fav_count)
         $obj.prop("disabled", false)
       },
-      error: (xhr, status, error) => {
+      error: (_xhr, _status, error) => {
         console.error("Failed to toggle favorite:", error)
         $obj.prop("disabled", false)
       },
@@ -48,7 +48,7 @@ $(document).ready(() => {
           $obj.parent().remove()
         }
       },
-      complete: (response) => {
+      complete: (_response) => {
         $obj.prop("disabled", false)
       },
     })

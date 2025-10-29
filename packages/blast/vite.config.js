@@ -1,8 +1,6 @@
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
-import pkg from "./package.json"
-
 // const external = Object.keys(pkg.dependencies);
 // external.push('react', 'react-dom')
 const external = ["react"]

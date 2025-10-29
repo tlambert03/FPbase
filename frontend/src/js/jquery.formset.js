@@ -209,7 +209,7 @@
       if (hideAddButton) addButton.hide()
 
       addButton.click(function () {
-        const formCount = parseInt(totalForms.val())
+        const formCount = parseInt(totalForms.val(), 10)
         const row = options.formTemplate.clone(true).removeClass("formset-custom-template")
         const buttonRow = $($(this).parents(`tr.${options.formCssClass}-add`).get(0) || this)
         const delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, ".")

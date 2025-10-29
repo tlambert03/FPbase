@@ -300,7 +300,7 @@ export default async function initAutocomplete() {
         },
       ]
     )
-    .on("autocomplete:selected", (event, suggestion, dataset, context) => {
+    .on("autocomplete:selected", (_event, suggestion, _dataset, context) => {
       if (context.selectionMethod === "click") {
         return
       }

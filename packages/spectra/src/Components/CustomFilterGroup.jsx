@@ -4,7 +4,7 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
 import CustomFilterCreator from "./CustomFilterCreator"
 import { categoryIcon } from "./FaIcon"
@@ -44,7 +44,7 @@ const CustomFilterGroup = ({ activeSpectra }) => {
         setFilters([...customFilters, ...newFilters])
       }
     }
-  }, [activeSpectra]) // eslint-disable-line
+  }, [activeSpectra, customFilters]) // eslint-disable-line
 
   return (
     <div>

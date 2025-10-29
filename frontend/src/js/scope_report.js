@@ -63,7 +63,7 @@ $.fn.extend({
           name: group.key,
           data: group.values.map((d) => {
             // Determine symbol shape: circles for proteins, squares for dyes
-            var isProtein = FLUORS && FLUORS[d.fluor_slug] && FLUORS[d.fluor_slug].type === "p"
+            var isProtein = FLUORS?.[d.fluor_slug] && FLUORS[d.fluor_slug].type === "p"
             var symbol = isProtein ? "circle" : "square"
 
             // Scale brightness with a cap to prevent huge symbols
@@ -106,7 +106,7 @@ $.fn.extend({
     function updateData() {
       $.get(window.location + "json/", (d) => {
         $("#update-alert").show()
-        if (!(d.report && d.report.length)) {
+        if (!d.report?.length) {
           $("#status").html('<p class="mt-5">No data yet.  Please update scope report.</p>')
           $("#status").show()
           $(".needs-data").hide()
@@ -211,13 +211,13 @@ $.fn.extend({
           }
           var f = [
             fluorlink,
-            FLUORS[fluor]["ext_coeff"] || "-",
-            FLUORS[fluor]["qy"] || "-",
-            FLUORS[fluor]["ex_max"],
-            FLUORS[fluor]["em_max"],
-            FLUORS[fluor]["agg"],
-            FLUORS[fluor]["switch_type"],
-            FLUORS[fluor]["uuid"],
+            FLUORS[fluor].ext_coeff || "-",
+            FLUORS[fluor].qy || "-",
+            FLUORS[fluor].ex_max,
+            FLUORS[fluor].em_max,
+            FLUORS[fluor].agg,
+            FLUORS[fluor].switch_type,
+            FLUORS[fluor].uuid,
           ]
           for (var o = 0; o < ocNames.length; o++) {
             if (Object.hasOwn(fluorData[fluor], ocNames[o])) {
@@ -253,13 +253,13 @@ $.fn.extend({
         }
 
         var buttonCommon = {
-          init: (api, node, config) => {
+          init: (_api, node, _config) => {
             $(node).removeClass("btn-secondary")
           },
           className: "btn-sm btn-primary",
           exportOptions: {
             format: {
-              body: (data, row, column, node) => {
+              body: (data, _row, column, node) => {
                 switch (column) {
                   case 0:
                     if (data.startsWith("<a")) {
@@ -305,7 +305,7 @@ $.fn.extend({
             {
               text: "JSON",
               className: "btn-sm btn-primary json-button",
-              action: (e, dt, node, config) => {
+              action: (_e, _dt, _node, _config) => {
                 $.fn.dataTable.fileSave(
                   new Blob([JSON.stringify(d.report)]),
                   "report_" + SCOPE_ID + ".json"
@@ -435,7 +435,7 @@ $.fn.extend({
             setTimeout(check_status, 250, interval - 250)
           }
         },
-        error: (req, status, err) => {
+        error: (_req, _status, _err) => {
           $("#alert-msg").text(
             "Sorry!  There was an unexpected error on the server.  Please try again in a few minutes, or contact us if the problem persists."
           )
@@ -525,7 +525,7 @@ $.fn.extend({
             events: {
               legendItemClick: function () {
                 var chart = this.chart
-                var currentTime = new Date().getTime()
+                var currentTime = Date.now()
 
                 // Check for double-click (within 300ms)
                 if (this._lastClickTime && currentTime - this._lastClickTime < 300) {
@@ -612,7 +612,7 @@ $.fn.extend({
 
       updateData()
 
-      $("body").on("click", "input.toggle-vis, input.meas-vis", function (e) {
+      $("body").on("click", "input.toggle-vis, input.meas-vis", function (_e) {
         localStorage.setItem(SCOPE_ID + $(this).attr("id"), $(this).prop("checked"))
         if (["ext_coeff", "qy"].includes($(this).val())) {
           dt.columns(".col_" + $(this).val()).visible($(this).prop("checked"))
@@ -624,12 +624,12 @@ $.fn.extend({
           let included
           if ($(this).hasClass("toggle-vis")) {
             included = $("input.meas-vis:checkbox:checked")
-              .map((x, d) => ".col_" + d.value)
+              .map((_x, d) => ".col_" + d.value)
               .toArray()
               .join(", ")
           } else {
             included = $("input.toggle-vis:checkbox:checked")
-              .map((x, d) => ".col_" + d.value)
+              .map((_x, d) => ".col_" + d.value)
               .toArray()
               .join(", ")
           }

@@ -5,7 +5,6 @@ import TableCell from "@mui/material/TableCell"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
 import { makeStyles } from "@mui/styles"
-import React from "react"
 
 function fpbaseLink(accession) {
   return (
@@ -15,7 +14,7 @@ function fpbaseLink(accession) {
   )
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((_theme) => ({
   table: {
     marginTop: "10px",
     minWidth: 650,
@@ -23,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function BlastReportDescription({ report, onClick }) {
-  const rows = report.search.hits.map((elem, i) => {
+  const rows = report.search.hits.map((elem, _i) => {
     return {
       key: elem.num,
       title: elem.description[0].title,

@@ -108,7 +108,7 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
         $("#footerSuccess").hide()
       }
     },
-  }).then((d) => {
+  }).then((_d) => {
     $("#footerSpinner").hide()
     // $('#importModal').modal('hide')
   })

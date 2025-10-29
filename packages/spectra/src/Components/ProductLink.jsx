@@ -1,9 +1,8 @@
 import LinkIcon from "@mui/icons-material/Link"
 import IconButton from "@mui/material/IconButton"
-import React from "react"
 
 const ProductLink = ({ current }) => {
-  if (!(current && current.url)) return null
+  if (!current?.url) return null
   let ownerLink = current.url
   if (current.category === "P") {
     ownerLink = current.url ? `/protein/${current.url}` : current.url || null

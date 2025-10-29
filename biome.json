@@ -25,9 +25,7 @@
     ]
   },
   "formatter": {
-    "enabled": true,
     "indentStyle": "space",
-    "indentWidth": 2,
     "lineWidth": 100
   },
   "javascript": {
@@ -37,15 +35,14 @@
     }
   },
   "linter": {
-    "enabled": true,
     "rules": {
+      "recommended": true,
       "a11y": {
         "recommended": true
       },
       "complexity": {
         "noForEach": "off"
       },
-      "recommended": true,
       "style": {
         "noParameterAssign": "off",
         "useTemplate": "off"

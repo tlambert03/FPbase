@@ -51,7 +51,7 @@ export function validatePossibleTypes() {
   const possibleTypes = getPossibleTypes()
 
   // Critical: FluorophoreInterface must map to State and Dye
-  const fluorophore = possibleTypes["FluorophoreInterface"]
+  const fluorophore = possibleTypes.FluorophoreInterface
   if (!fluorophore) {
     throw new Error("FluorophoreInterface not found in possibleTypes")
   }
@@ -60,7 +60,7 @@ export function validatePossibleTypes() {
   }
 
   // Critical: SpectrumOwnerInterface must include all owner types
-  const owner = possibleTypes["SpectrumOwnerInterface"]
+  const owner = possibleTypes.SpectrumOwnerInterface
   if (!owner) {
     throw new Error("SpectrumOwnerInterface not found in possibleTypes")
   }

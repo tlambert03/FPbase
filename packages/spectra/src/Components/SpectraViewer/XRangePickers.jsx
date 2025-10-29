@@ -120,12 +120,12 @@ const XRangePickers = ({ visible }) => {
 
     // Cleanup: remove ALL three event listeners
     return () => {
-      if (axis && axis.object && axis.object.chart && Highcharts) {
+      if (axis?.object?.chart && Highcharts) {
         try {
           Highcharts.removeEvent(axis.object.chart, "redraw", positionInputs)
           Highcharts.removeEvent(axis.object, "afterSetExtremes", handleAfterSetExtremes)
           Highcharts.removeEvent(axis.object.chart, "redraw", handleAfterSetExtremes)
-        } catch (e) {
+        } catch (_e) {
           // Ignore errors during cleanup if objects have been destroyed
         }
       }
