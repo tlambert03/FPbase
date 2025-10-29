@@ -243,7 +243,7 @@ export const resolvers = {
       await client.writeQuery({ query: GET_EX_NORM, data: { exNorm: data } })
       return data
     },
-    setActiveSpectra: async (_, { activeSpectra }, { cache, client }) => {
+    setActiveSpectra: async (_, { activeSpectra }, { _cache, client }) => {
       const filtered = [...new Set(activeSpectra)]
         // .filter(id => Boolean(spectrumFrag(cache, id)))
         .map((i) => String(i))

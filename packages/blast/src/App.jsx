@@ -30,7 +30,7 @@ function ReportSelect({ reports, binary, index, onChange }) {
               onChange={handleChange}
             >
               {reports.map((item, i) => (
-                <MenuItem key={i} value={i}>
+                <MenuItem key={item.report.results.search.query_id} value={i}>
                   {`${item.report.results.search.query_id}: ${
                     item.report.results.search.query_title
                   } (${item.report.results.search.query_len}${unit})`}

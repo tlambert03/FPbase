@@ -98,7 +98,9 @@ const XRangePickers = ({ visible }) => {
         }
         minNode.current.parentElement.style.left = `${leftPad}px`
         maxNode.current.parentElement.style.right = `${rightPad}px`
-        axis.object.labelGroup.element.childNodes.forEach((node) => (node.style.display = "block"))
+        axis.object.labelGroup.element.childNodes.forEach((node) => {
+          node.style.display = "block"
+        })
         const { min: exMin, max: exMax } = axis.getExtremes()
         axis.object.labelGroup.element.childNodes.forEach((node) => {
           if (

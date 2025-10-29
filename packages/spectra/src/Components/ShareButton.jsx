@@ -24,7 +24,7 @@ import Zoom from "@mui/material/Zoom"
 import { makeStyles } from "@mui/styles"
 import ClipboardJS from "clipboard"
 import Highcharts from "highcharts"
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { GET_ACTIVE_SPECTRA, GET_CHART_OPTIONS, GET_EX_NORM } from "../client/queries"
 import { FAIcon } from "./FaIcon"
 import stateToUrl from "./stateToUrl"
@@ -60,10 +60,10 @@ function ShareLinkAlert({ open, setOpen }) {
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 
-  function handleTooltipOpen() {
+  const handleTooltipOpen = useCallback(() => {
     setTooltipOpen(true)
     setTimeout(() => setTooltipOpen(false), 1200)
-  }
+  }, [])
 
   useEffect(() => {
     const cp = new ClipboardJS("#copy-button", {

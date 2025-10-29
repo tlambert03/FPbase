@@ -98,21 +98,17 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
     }),
     [components, showIcon]
   )
-  const component = React.useMemo(
-    () => (
-      <Select
-        {...otherprops}
-        options={dynamicOptions}
-        ref={selectRef}
-        inputValue={inputValue}
-        onInputChange={handleInputChange}
-        filterOption={emptyFilter}
-        components={memoizedComponents}
-      />
-    ),
-    [dynamicOptions, handleInputChange, inputValue, memoizedComponents, otherprops]
+  return (
+    <Select
+      {...otherprops}
+      options={dynamicOptions}
+      ref={selectRef}
+      inputValue={inputValue}
+      onInputChange={handleInputChange}
+      filterOption={emptyFilter}
+      components={memoizedComponents}
+    />
   )
-  return component
 })
 
 SortableWindowedSelect.propTypes = {

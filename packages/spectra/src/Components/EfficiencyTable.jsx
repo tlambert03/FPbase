@@ -218,7 +218,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
               fontSize: "1rem",
             },
           }}
-          renderTopToolbarCustomActions={({ table }) => (
+          renderTopToolbarCustomActions={() => (
             <Box sx={{ display: "flex", gap: "1rem", alignItems: "center", p: 1 }}>
               <Typography variant="h6">Collection Efficiency (%)</Typography>
               <IconButton onClick={() => setTransposed((prev) => !prev)} title="Transpose">

@@ -40,7 +40,7 @@ const CurrentSpectraInput = () => {
     setValue(e.target.value)
   }
   if (loading) {
-    return <></>
+    return null
   }
   return (
     <input

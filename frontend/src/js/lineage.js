@@ -614,39 +614,39 @@ export default function LineageChart(conf) {
 
   // Public accessor methods
 
-  chart.margin = (_) => {
-    if (!arguments.length) return margin
-    margin = _
+  chart.margin = (...args) => {
+    if (!args.length) return margin
+    margin = args[0]
     return chart
   }
 
-  chart.width = (value) => {
-    if (!arguments.length) return width
-    width = value
+  chart.width = (...args) => {
+    if (!args.length) return width
+    width = args[0]
     return chart
   }
 
-  chart.slug = (value) => {
-    if (!arguments.length) return slug
-    slug = value
+  chart.slug = (...args) => {
+    if (!args.length) return slug
+    slug = args[0]
     return chart
   }
 
-  chart.duration = (value) => {
-    if (!arguments.length) return duration
-    duration = value
+  chart.duration = (...args) => {
+    if (!args.length) return duration
+    duration = args[0]
     return chart
   }
 
-  chart.height = (value) => {
-    if (!arguments.length) return height
-    height = value
+  chart.height = (...args) => {
+    if (!args.length) return height
+    height = args[0]
     return chart
   }
 
-  chart.heightScalar = (value) => {
-    if (!arguments.length) return heightScalar
-    heightScalar = value
+  chart.heightScalar = (...args) => {
+    if (!args.length) return heightScalar
+    heightScalar = args[0]
     return chart
   }
 
@@ -674,21 +674,21 @@ export default function LineageChart(conf) {
     return chart
   }
 
-  chart.widthScalar = (value) => {
-    if (!arguments.length) return widthScalar
-    widthScalar = value
+  chart.widthScalar = (...args) => {
+    if (!args.length) return widthScalar
+    widthScalar = args[0]
     return chart
   }
 
-  chart.withSearch = (value) => {
-    if (!arguments.length) return withSearch
-    withSearch = value
+  chart.withSearch = (...args) => {
+    if (!args.length) return withSearch
+    withSearch = args[0]
     return chart
   }
 
-  chart.withToolbar = (value) => {
-    if (!arguments.length) return withToolbar
-    withToolbar = value
+  chart.withToolbar = (...args) => {
+    if (!args.length) return withToolbar
+    withToolbar = args[0]
     return chart
   }
 
@@ -744,9 +744,9 @@ export default function LineageChart(conf) {
       .style("width", "2rem")
   }
 
-  chart.data = (value) => {
-    if (!arguments.length) return data
-    data = value
+  chart.data = (...args) => {
+    if (!args.length) return data
+    data = args[0]
     // if (typeof updateData === "function") updateData();
     return chart
   }
@@ -755,9 +755,9 @@ export default function LineageChart(conf) {
     chart(sel)
   }
 
-  chart.tree = (value) => {
-    if (!arguments.length) return tree
-    if (value === "cluster") {
+  chart.tree = (...args) => {
+    if (!args.length) return tree
+    if (args[0] === "cluster") {
       tree = d3.cluster()
       chart(sel)
     } else {

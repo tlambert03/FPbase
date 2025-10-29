@@ -46,7 +46,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   options,
   category = "",
   showCategoryIcon,
-  hint = "item",
+  _hint = "item",
   ownerInfo,
 }) {
   const classes = useStyles()
@@ -139,9 +139,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                   <DeleteIcon />
                 </IconButton>
               </Box>
-            ) : (
-              <></>
-            )}
+            ) : null}
           </Box>
         </div>
       ))}

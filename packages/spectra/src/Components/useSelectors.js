@@ -4,7 +4,7 @@ import { GET_ACTIVE_SPECTRA, GET_SELECTORS, NORMALIZE_CURRENT } from "../client/
 
 // selectors is an array:
 // [{id: 1, owner: String (slug from the ownersInfo dict), category: String}]
-const useSelectors = ({ ownerInfo, spectraInfo }) => {
+const useSelectors = ({ _ownerInfo, _spectraInfo }) => {
   const { data: spectraData } = useQuery(GET_ACTIVE_SPECTRA)
   const { data: selectorsData } = useQuery(GET_SELECTORS)
 

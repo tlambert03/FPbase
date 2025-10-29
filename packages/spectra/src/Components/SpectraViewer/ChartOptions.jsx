@@ -27,7 +27,7 @@ const DEFAULT_OPTIONS = {
       findNearestPointBy: "x",
       stickyTracking: true,
       events: {
-        mouseOver: ({ target: { xAxis } }, _b) => {
+        mouseOver: () => {
           const el = document.getElementById("zoom-info")
           if (el) el.style.display = "block"
         },

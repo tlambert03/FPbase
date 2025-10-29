@@ -46,19 +46,29 @@ const customFilterSpectrum = (_id) => {
       const min = Math.round(+center - width / 2)
       const max = Math.round(+center + width / 2)
       data.push([min - 1, 0])
-      rangexy(min, max + 1).forEach((x) => data.push([x, +trans]))
+      rangexy(min, max + 1).forEach((x) => {
+        data.push([x, +trans])
+      })
       data.push([max + 1, 0])
       name += ` ${center}/${width} bp`
       break
     }
     case "LP":
-      rangexy(300, center).forEach((x) => data.push([x, 0]))
-      rangexy(+center + 1, 1000).forEach((x) => data.push([x, +trans]))
+      rangexy(300, center).forEach((x) => {
+        data.push([x, 0])
+      })
+      rangexy(+center + 1, 1000).forEach((x) => {
+        data.push([x, +trans])
+      })
       name += ` ${center}lp`
       break
     case "SP":
-      rangexy(300, center).forEach((x) => data.push([x, +trans]))
-      rangexy(+center + 1, 1000).forEach((x) => data.push([x, 0]))
+      rangexy(300, center).forEach((x) => {
+        data.push([x, +trans])
+      })
+      rangexy(+center + 1, 1000).forEach((x) => {
+        data.push([x, 0])
+      })
       name += ` ${center}sp`
       break
     default:

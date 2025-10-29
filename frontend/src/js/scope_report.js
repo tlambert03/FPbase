@@ -321,13 +321,6 @@ $.fn.extend({
 
         $("#report_table_filter input").on("keyup", function () {
           var rx = this.value.replace(/,\s*$/g, "").replace(/,\s*/g, "|.*")
-          try {
-            //var regex = new RegExp(rx)
-          } catch (e) {
-            console.log(e)
-            return
-            // don't need to know if this regex fails...
-          }
           dt.search(rx, true).draw()
         })
       })

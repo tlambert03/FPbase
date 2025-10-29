@@ -20,7 +20,7 @@ const MUTATE_PALETTE = gql`
   }
 `
 
-const ChartOptionsForm = memo(function ChartOptionsForm({ options }) {
+const ChartOptionsForm = memo(function ChartOptionsForm() {
   const [toggleY] = useMutation(toggleMut("YAxis"))
   const [toggleX] = useMutation(toggleMut("XAxis"))
   const [toggleGrid] = useMutation(toggleMut("Grid"))
