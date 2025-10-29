@@ -1,7 +1,13 @@
+// Vite modulepreload polyfill (must be first)
+import "vite/modulepreload-polyfill"
+
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 
-import "jquery"
+// Inject jQuery globally for Vite (replaces webpack ProvidePlugin)
+import $ from "jquery"
+
+window.$ = window.jQuery = $
 import "bootstrap"
 import "nouislider"
 // D3 v3 is loaded from CDN for microscope.js compatibility (see microscope_embed.html)

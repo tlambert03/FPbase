@@ -1,8 +1,16 @@
+// Vite modulepreload polyfill (must be first)
+import "vite/modulepreload-polyfill"
+
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
 import "regenerator-runtime/runtime"
+
+// Inject jQuery globally for Vite (replaces webpack ProvidePlugin)
+import $ from "jquery"
+
+window.$ = window.jQuery = $
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 import "nouislider/distribute/nouislider.min.css"

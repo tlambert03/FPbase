@@ -1,10 +1,16 @@
+// Vite modulepreload polyfill (must be first)
+import "vite/modulepreload-polyfill"
+
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
 import "./css/litemol/LiteMol-plugin-blue.css"
 import $ from "jquery"
-import LiteMol from "./js/pdb/LiteMol-plugin"
+
+window.$ = window.jQuery = $
+
+import * as LiteMol from "./js/pdb/LiteMol-plugin"
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}

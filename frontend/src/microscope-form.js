@@ -1,8 +1,13 @@
+// Vite modulepreload polyfill (must be first)
+import "vite/modulepreload-polyfill"
+
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
 import $ from "jquery"
+
+window.$ = window.jQuery = $
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 import "select2/dist/js/select2.full"
