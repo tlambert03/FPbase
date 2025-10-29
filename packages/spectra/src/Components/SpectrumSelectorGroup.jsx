@@ -98,16 +98,19 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
 
   return (
     <>
-      {mySelectors.map((selector) => (
-        <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
-          {!category &&
-            selector.category !== lastCategory &&
-            (lastCategory = selector.category) && (
+      {mySelectors.map((selector) => {
+        const showCategoryHeader = !category && selector.category !== lastCategory
+        if (showCategoryHeader) {
+          lastCategory = selector.category
+        }
+        return (
+          <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
+            {showCategoryHeader && (
               <Typography variant="h6" className={classes.categoryHeader}>
                 {categoryNames[selector.category]}
               </Typography>
             )}
-          <Box display="flex" alignItems="center" className={classes.root}>
+            <Box display="flex" alignItems="center" className={classes.root}>
             {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
               style: {
                 position: "relative",
@@ -142,7 +145,8 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
             ) : null}
           </Box>
         </div>
-      ))}
+        )
+      })}
       {/* <Button
         variant="contained"
         color="primary"

@@ -257,7 +257,12 @@ export default function LineageChart(conf) {
         }
 
         // Update the nodes…
-        var node = g.selectAll("g.node").data(nodes, (d) => d.id || (d.id = ++i))
+        var node = g.selectAll("g.node").data(nodes, (d) => {
+          if (!d.id) {
+            d.id = ++i
+          }
+          return d.id
+        })
 
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node

@@ -25,6 +25,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     var out = ""
     for (const n of available_fields) {
       if (n !== "id" && n !== "slug") {
+        let name
         if (n in labelLookup) {
           name = labelLookup[n]
         } else {
@@ -57,6 +58,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     // figure out filter name and operator
     var filter_name = row.find(".filter-select").val()
     var operation = row.find(".operator-select").val()
+    let name
     if (operation == "exact") {
       name = filter_name
     } else {
@@ -249,7 +251,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     $("#crispy-form label").remove()
 
     var urlParams
-    ;(window.onpopstate = () => {
+    window.onpopstate = () => {
       var match,
         pl = /\+/g, // Regex for replacing addition symbol with a space
         search = /([^&=]+)=?([^&]*)/g,
@@ -257,8 +259,13 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
         query = window.location.search.substring(1)
 
       urlParams = {}
-      while ((match = search.exec(query))) urlParams[decode(match[1])] = decode(match[2])
-    })()
+      match = search.exec(query)
+      while (match) {
+        urlParams[decode(match[1])] = decode(match[2])
+        match = search.exec(query)
+      }
+    }
+    window.onpopstate()
 
     $("#query_builder").empty()
     loadState(urlParams)
