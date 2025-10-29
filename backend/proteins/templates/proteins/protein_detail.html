@@ -490,8 +490,14 @@
   {% render_bundle 'simpleSpectraViewer' %}
   {% endif %}
 
+  {% comment %}
+  FIXME!!
+  This is a Bug.  We should be able to nest render_bundle litemol inside of if protein.pdb
+  but it's currently causing the navigation dropdown click event to break for pages
+  that DO have spectra but don't have pdb files. 
+  {% endcomment %}
+  {% render_bundle 'litemol' attrs='defer' %}
   {% if protein.pdb %}
-    {% render_bundle 'litemol' attrs='defer' %}
     <script type="text/javascript">
     $(window).on('load', function() {
       initPDB({{protein.pdb|safe}});

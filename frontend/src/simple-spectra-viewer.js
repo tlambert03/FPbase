@@ -14,7 +14,7 @@ window.FPBASE.currentBundle = "simpleSpectraViewer"
 
 const elem = document.getElementById("spectra-viewer")
 
-window.onload = () => {
+window.addEventListener("load", () => {
   const root = createRoot(elem)
   root.render(
     createElement(
@@ -27,7 +27,7 @@ window.onload = () => {
       })
     )
   )
-}
+})
 const name = elem.getAttribute("data-name")
 
 if (name) {
