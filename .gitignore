@@ -393,3 +393,4 @@ playwright/.cache/
 memray_*/
 *.bin
 test_fix*.bin
+__snapshots__/
