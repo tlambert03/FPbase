@@ -39,7 +39,9 @@ import pytest
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
-from webpack_loader import config, loaders, utils
+from playwright.sync_api import Page
+
+# django-vite doesn't need loader imports
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -72,20 +74,51 @@ pytestmark = [
 ]
 
 
-def _frontend_assets_need_rebuild(stats_file) -> bool:
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Add custom command line options for e2e tests."""
+    parser.addoption(
+        "--visual-snapshots",
+        action="store_true",
+        default=False,
+        help="Enable visual snapshot testing (disabled by default, never runs on CI)",
+    )
+    parser.addoption(
+        "--update-snapshots",
+        action="store_true",
+        default=False,
+        help="Update visual snapshots instead of comparing (for use with --visual-snapshots)",
+    )
+
+
+def _visual_snapshots_enabled(config: pytest.Config) -> bool:
+    """Check if visual snapshots are enabled via CLI flag or environment variable."""
+    return config.getoption("--visual-snapshots", False) or os.environ.get("VISUAL_SNAPSHOTS", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
+
+def _frontend_assets_need_rebuild(manifest_file) -> bool:
     """Check if frontend assets need to be rebuilt."""
-    if not stats_file.is_file():
+    if not manifest_file.is_file():
         return True
 
-    assets = json.loads(stats_file.read_bytes())
-    if assets.get("status") != "done" or not assets.get("chunks") or ("localhost" in assets.get("publicPath", "")):
+    # Check if manifest is valid JSON
+    try:
+        manifest = json.loads(manifest_file.read_bytes())
+        if not manifest:
+            return True
+    except (json.JSONDecodeError, ValueError):
         return True
 
-    # Stats are valid - check if source files are newer
-    stats_mtime = stats_file.stat().st_mtime
+    # Manifest is valid - check if source files are newer
+    manifest_mtime = manifest_file.stat().st_mtime
     frontend_src = Path(__file__).parent.parent.parent / "frontend" / "src"
     if any(
-        f.stat().st_mtime > stats_mtime for f in frontend_src.rglob("*") if f.is_file() and not f.name.startswith(".")
+        f.stat().st_mtime > manifest_mtime
+        for f in frontend_src.rglob("*")
+        if f.is_file() and not f.name.startswith(".")
     ):
         return True
 
@@ -95,26 +128,22 @@ def _frontend_assets_need_rebuild(stats_file) -> bool:
 
 @pytest.fixture(scope="module", autouse=True)
 def _setup_frontend_assets() -> None:
-    """Build webpack assets once per test module if needed.
+    """Build Vite assets once per test module if needed.
 
-    Checks if existing webpack stats represent a static build and if source files have changed.
-    Rebuilds if missing, stale, dev server output detected, or source files are newer.
+    Checks if existing manifest represents a valid build and if source files have changed.
+    Rebuilds if missing, invalid, or source files are newer.
 
     Module-scoped to avoid rebuilding for every test (which would be slow).
-    This is safe because webpack output is filesystem-based, not database.
+    This is safe because Vite output is filesystem-based, not database.
     """
-    stats_file = Path(django.conf.settings.WEBPACK_LOADER["DEFAULT"]["STATS_FILE"])
+    manifest_file = Path(django.conf.settings.DJANGO_VITE["default"]["manifest_path"])
 
-    # Need to build - either no stats, invalid stats, or source files changed
-    if _frontend_assets_need_rebuild(stats_file):
+    # Need to build - either no manifest, invalid manifest, or source files changed
+    if _frontend_assets_need_rebuild(manifest_file):
         print("Building frontend assets for e2e tests...")
         subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
 
-    # UNDO the MockWebpackLoader used in normal unit tests in config.settings.test
-    def _get_real_get_loader(config_name):
-        return loaders.WebpackLoader(config_name, config.load_config(config_name))
-
-    utils.get_loader = _get_real_get_loader
+    # django-vite doesn't need MockWebpackLoader reversion (uses manifest directly)
 
 
 @pytest.fixture
