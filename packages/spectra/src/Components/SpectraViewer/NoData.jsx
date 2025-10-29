@@ -1,6 +1,6 @@
 import { memo } from "react"
 
-const NoData = memo(function NoData({ height, loading }) {
+const NoData = memo(function NoData({ height, loading, alt = "No data" }) {
   return (
     <div
       style={{
@@ -30,6 +30,8 @@ const NoData = memo(function NoData({ height, loading }) {
         xmlns="http://www.w3.org/2000/svg"
         height={height / 1.3}
         viewBox="0 0 2947 1061"
+        role="img"
+        aria-label={alt}
         style={{
           fillRule: "evenodd",
           position: "absolute",

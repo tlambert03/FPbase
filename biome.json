@@ -11,17 +11,9 @@
     "includes": [
       "frontend/**",
       "packages/**",
-      "!!backend",
-      "!!**/node_modules",
-      "!!**/dist",
-      "!!**/build",
-      "!!**/coverage",
-      "!!**/*.min.js",
       "!!frontend/src/css/litemol",
       "!!frontend/src/js/pdb/LiteMol-plugin.js",
-      "!!packages/spectra/index.html",
-      "!!packages/spectra/src/index.css",
-      "!!packages/spectra/vitest.config.js"
+      "!!packages/spectra/src/index.css"
     ]
   },
   "formatter": {
@@ -37,9 +29,6 @@
   "linter": {
     "rules": {
       "recommended": true,
-      "a11y": {
-        "recommended": true
-      },
       "complexity": {
         "noForEach": "off"
       },
@@ -48,8 +37,7 @@
         "useTemplate": "off"
       },
       "suspicious": {
-        "noDoubleEquals": "off",
-        "noExplicitAny": "off"
+        "noDoubleEquals": "off"
       }
     }
   },

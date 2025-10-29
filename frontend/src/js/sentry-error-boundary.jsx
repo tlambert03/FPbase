@@ -60,6 +60,7 @@ function DefaultErrorFallback({ error, errorInfo, resetError }) {
       {resetError && (
         <button
           onClick={resetError}
+          type="button"
           style={{
             marginTop: "1rem",
             padding: "0.5rem 1rem",

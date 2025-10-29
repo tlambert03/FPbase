@@ -19,6 +19,8 @@ const LoadingLogo = () => (
       loading...
     </span>
     <svg
+      role="img"
+      aria-label="Loading logo"
       xmlns="http://www.w3.org/2000/svg"
       height="300"
       viewBox="0 0 2947 1061"

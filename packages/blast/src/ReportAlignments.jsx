@@ -1,5 +1,6 @@
 const zip = (arr, ...arrs) => {
-  return arr.map((val, i) => arrs.reduce((a, arr) => [...a, arr[i]], [val]))
+  // avoid shadowing outer `arr` in the reducer; keep implementation simple
+  return arr.map((val, i) => [val, ...arrs.map((a) => a[i])])
 }
 
 const chunkString = (str, length) => str.match(new RegExp(".{1," + length + "}", "g"))
@@ -67,6 +68,7 @@ function FormattedBlastAlignment({ hit, lineWidth }) {
       "", // adds a space between triplets
     ].join("\n")
   })
+  // biome-ignore lint/security/noDangerouslySetInnerHtml: only injecting safe span tags for formatting
   return <pre dangerouslySetInnerHTML={{ __html: text.join("\n") }} />
 }
 
@@ -79,12 +81,17 @@ function BlastHitSummary({ data }) {
     <div id={"dln_" + accession} className="dlfRow mt-4">
       <h5 style={{ fontWeight: "bold", color: "#5b616b" }}>{title}</h5>
       <div className="small">
-        <label className="mr-1 font-weight-bold text-muted">FPbase ID:</label>
-        <a href={`/protein/${accession}`} target="_blank" title={`Go to ${title} at FPbase`}>
+        <span className="mr-1 font-weight-bold text-muted">FPbase ID:</span>
+        <a
+          href={`/protein/${accession}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`Go to ${title} at FPbase`}
+        >
           {accession}
         </a>
         <span className="ml-4">
-          <label className="mr-1 font-weight-bold text-muted">Length: </label>
+          <span className="mr-1 font-weight-bold text-muted">Length: </span>
           {data.len}
         </span>
       </div>

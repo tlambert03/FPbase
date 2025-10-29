@@ -111,40 +111,40 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
               </Typography>
             )}
             <Box display="flex" alignItems="center" className={classes.root}>
-            {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
-              style: {
-                position: "relative",
-                left: category === "L" ? 4 : 2,
-                height: "1.3rem",
-                marginRight: 10,
-              },
-            })}
-            <Box flexGrow={1}>
-              <SpectrumSelector
-                key={selector.id}
-                // this line restricts the options to similar categories
-                options={categoryOptions}
-                allOwners={allOwners}
-                showCategoryIcon={showCategoryIcon}
-                selector={selector}
-                ownerInfo={ownerInfo}
-              />
-            </Box>
-            {selector.owner ? (
-              <Box>
-                <IconButton
-                  aria-label="Delete"
-                  color="secondary"
-                  className={classes.deleteButton}
-                  tabIndex={-1}
-                  onClick={() => removeRow(selector)}
-                >
-                  <DeleteIcon />
-                </IconButton>
+              {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
+                style: {
+                  position: "relative",
+                  left: category === "L" ? 4 : 2,
+                  height: "1.3rem",
+                  marginRight: 10,
+                },
+              })}
+              <Box flexGrow={1}>
+                <SpectrumSelector
+                  key={selector.id}
+                  // this line restricts the options to similar categories
+                  options={categoryOptions}
+                  allOwners={allOwners}
+                  showCategoryIcon={showCategoryIcon}
+                  selector={selector}
+                  ownerInfo={ownerInfo}
+                />
               </Box>
-            ) : null}
-          </Box>
-        </div>
+              {selector.owner ? (
+                <Box>
+                  <IconButton
+                    aria-label="Delete"
+                    color="secondary"
+                    className={classes.deleteButton}
+                    tabIndex={-1}
+                    onClick={() => removeRow(selector)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              ) : null}
+            </Box>
+          </div>
         )
       })}
       {/* <Button

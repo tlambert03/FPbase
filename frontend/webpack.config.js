@@ -1,4 +1,4 @@
-const path = require("path")
+const path = require("node:path")
 const webpack = require("webpack")
 const BundleTracker = require("webpack-bundle-tracker")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
