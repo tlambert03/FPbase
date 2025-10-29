@@ -89,7 +89,7 @@
           forms = $(`.${options.formCssClass}`).not(".formset-custom-template")
           totalForms.val(forms.length)
         }
-        for (var i = 0, formCount = forms.length; i < formCount; i++) {
+        for (let i = 0, formCount = forms.length; i < formCount; i++) {
           // Apply `extraClasses` to form rows so they're nicely alternating:
           applyExtraClasses(forms.eq(i), i)
           if (!del.length) {

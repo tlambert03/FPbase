@@ -127,7 +127,7 @@ export default function initFRET() {
     if (!(slug in localData)) {
       $.getJSON("/spectra/" + slug)
         .done((d) => {
-          for (var n = 0; n < d.spectra.length; n++) {
+          for (let n = 0; n < d.spectra.length; n++) {
             if (d.spectra[n].type !== "2p") {
               d.spectra[n] = padDataLimits(d.spectra[n])
             }
@@ -146,10 +146,10 @@ export default function initFRET() {
   }
 
   function padDataLimits(d) {
-    for (var i = d.minwave - 1; i >= options.minwave; i--) {
+    for (let i = d.minwave - 1; i >= options.minwave; i--) {
       d.values.unshift({ x: i, y: 0 })
     }
-    for (var n = d.maxwave + 1; n <= Math.max(options.maxwave, 1000); n++) {
+    for (let n = d.maxwave + 1; n <= Math.max(options.maxwave, 1000); n++) {
       d.values.push({ x: n, y: 0 })
     }
     return d
@@ -180,7 +180,7 @@ export default function initFRET() {
 
     return getData(slug)
       .then((d) => {
-        for (var i = 0; i < d.length; i++) {
+        for (let i = 0; i < d.length; i++) {
           if ((d[i].type !== "2p") & !dataHasKey(d[i].key)) {
             data.push(JSON.parse(JSON.stringify(d[i]))) // make a copy of the object
           }
@@ -206,7 +206,7 @@ export default function initFRET() {
       ar2.findIndex((i) => i.x === left),
       ar2.findIndex((i) => i.x === right)
     )
-    for (var i = 0; i < a1.length; i++) {
+    for (let i = 0; i < a1.length; i++) {
       output.push({ x: a1[i].x, y: a1[i].y * a2[i].y })
     }
 
@@ -231,8 +231,8 @@ export default function initFRET() {
     var startingwave = Math.max(ar1.minwave, ar2.minwave)
     var endingwave = Math.min(ar1.maxwave, ar2.maxwave)
     var step = ar1.values[1].x - ar1.values[0].x
-    var overlapIntgrl = 0
-    for (var wave = startingwave; wave <= endingwave; wave += step) {
+    let overlapIntgrl = 0
+    for (let wave = startingwave; wave <= endingwave; wave += step) {
       overlapIntgrl +=
         ((wave * 1e-7) ** 4 * a1wavemap[wave] * accECmax * a2wavemap[wave]) / donorsum
     }
@@ -342,7 +342,7 @@ export default function initFRET() {
         acceptorEX.classed = (acceptorEX.classed || "") + " faded-fret"
         $("#ECA").text(acceptorEX.scalar.toLocaleString())
 
-        var acceptorEM = dataItemMatching({ slug: acceptorslug, type: "em" })[0]
+        const acceptorEM = dataItemMatching({ slug: acceptorslug, type: "em" })[0]
         $("#QYA").text(acceptorEM ? acceptorEM.scalar : "")
       } else {
         $("#ECA, #QYA").text("")

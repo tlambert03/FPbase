@@ -10,7 +10,7 @@ function compare(a, b) {
 
 function titleCase(str) {
   str = str.replace(/_/g, " ").toLowerCase().split(" ")
-  for (var i = 0; i < str.length; i++) {
+  for (let i = 0; i < str.length; i++) {
     str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1)
   }
   return str.join(" ")
@@ -147,14 +147,14 @@ $.fn.extend({
 
         d.report.sort(compare)
         // d.report is an array, where each item is an object corresponding to a different OC
-        for (var i = d.report.length - 1; i >= 0; i--) {
-          var values = d.report[i].values // the array of values for this OC
-          var thisOC = d.report[i].key // the name of this thisOC
+        for (let i = d.report.length - 1; i >= 0; i--) {
+          const values = d.report[i].values // the array of values for this OC
+          const thisOC = d.report[i].key // the name of this thisOC
           ocNames.push(thisOC)
 
-          for (var x = 0; x < colHeaders.length; x++) {
-            var cls = slugify("col_" + thisOC) + " col_" + colHeaders[x]
-            var vis =
+          for (let x = 0; x < colHeaders.length; x++) {
+            const cls = slugify("col_" + thisOC) + " col_" + colHeaders[x]
+            const vis =
               localStorage.getItem(SCOPE_ID + slugify(thisOC) + "_checkbox") !== "false" &&
               $("#" + colHeaders[x] + "_checkbox").prop("checked")
             colTitles.push({
@@ -164,9 +164,9 @@ $.fn.extend({
             })
           }
 
-          for (var r = values.length - 1; r >= 0; r--) {
+          for (let r = values.length - 1; r >= 0; r--) {
             //extract the values for this OC / Fluor combination
-            var thisFluor = values[r].fluor_slug
+            const thisFluor = values[r].fluor_slug
             if (fluorData[thisFluor] === undefined) {
               fluorData[thisFluor] = { name: values[r].fluor }
             }
@@ -175,7 +175,7 @@ $.fn.extend({
               fluorData[thisFluor][thisOC] = []
             }
 
-            for (var h = 0; h < colHeaders.length; h++) {
+            for (let h = 0; h < colHeaders.length; h++) {
               if (values[r][colHeaders[h]] !== null) {
                 fluorData[thisFluor][thisOC].push(values[r][colHeaders[h]])
               } else {
@@ -209,7 +209,7 @@ $.fn.extend({
               fluorlink +
               "</a>"
           }
-          var f = [
+          let f = [
             fluorlink,
             FLUORS[fluor].ext_coeff || "-",
             FLUORS[fluor].qy || "-",
@@ -219,7 +219,7 @@ $.fn.extend({
             FLUORS[fluor].switch_type,
             FLUORS[fluor].uuid,
           ]
-          for (var o = 0; o < ocNames.length; o++) {
+          for (let o = 0; o < ocNames.length; o++) {
             if (Object.hasOwn(fluorData[fluor], ocNames[o])) {
               f = f.concat(fluorData[fluor][ocNames[o]])
             } else {
@@ -230,9 +230,9 @@ $.fn.extend({
         }
         $("#oc-toggles").empty()
         for (let o = 0; o < ocNames.length; o++) {
-          var ischecked =
+          const ischecked =
             localStorage.getItem(SCOPE_ID + slugify(ocNames[o]) + "_checkbox") !== "false"
-          var el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
+          const el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
             .append(
               $("<input>", {
                 class: "custom-control-input toggle-vis",
@@ -333,8 +333,9 @@ $.fn.extend({
       })
     }
 
+    let line
     if ($("#update-progress").length) {
-      var line = new ProgressBar.Line("#update-progress", {
+      line = new ProgressBar.Line("#update-progress", {
         strokeWidth: 4,
         duration: interval,
         color: "#74779B",
@@ -374,11 +375,11 @@ $.fn.extend({
               })
               reset_button()
             } else {
-              var passed = Date.now() - LAST_TIME
-              var curRate = passed / (data.info.current - LAST_PROG)
-              var nextPosition = data.info.current + interval / curRate
-              var timeRemaining = (data.info.total - data.info.current) * curRate
-              var nextCheck = Math.min(interval, timeRemaining)
+              const passed = Date.now() - LAST_TIME
+              const curRate = passed / (data.info.current - LAST_PROG)
+              const nextPosition = data.info.current + interval / curRate
+              const timeRemaining = (data.info.total - data.info.current) * curRate
+              const nextCheck = Math.min(interval, timeRemaining)
               LAST_PROG = data.info.current
               LAST_TIME = Date.now()
 
@@ -530,7 +531,7 @@ $.fn.extend({
                 // Check for double-click (within 300ms)
                 if (this._lastClickTime && currentTime - this._lastClickTime < 300) {
                   // Double-click: show only this series
-                  var anyOthersVisible = false
+                  let anyOthersVisible = false
                   chart.series.forEach((series) => {
                     if (series !== this && series.visible) {
                       anyOthersVisible = true
@@ -620,7 +621,7 @@ $.fn.extend({
         }
         if ($(this).prop("checked")) {
           // prevent "re-enabling disabled things"
-          var columns = dt.columns(".col_" + $(this).val())[0]
+          let columns = dt.columns(".col_" + $(this).val())[0]
           let included
           if ($(this).hasClass("toggle-vis")) {
             included = $("input.meas-vis:checkbox:checked")
@@ -667,7 +668,7 @@ $.fn.extend({
           ($("#switch_filter").val() === "" ||
             FLUORS[d.fluor_slug].switch_type === $("#switch_filter").val())
 
-        for (var i = 0; i < REPORT.length; i++) {
+        for (let i = 0; i < REPORT.length; i++) {
           newReport.push(Object.assign({}, REPORT[i]))
           newReport[i].values = newReport[i].values.filter(filterfunc)
         }
@@ -684,9 +685,9 @@ $.fn.extend({
         ["em_eff", "Em Eff"],
         ["brightness", "Brightness"],
       ]
-      for (var o = 0; o < measbuttons.length; o++) {
-        var id = measbuttons[o][0] + "_checkbox"
-        var ischecked = localStorage.getItem(SCOPE_ID + id)
+      for (let o = 0; o < measbuttons.length; o++) {
+        const id = measbuttons[o][0] + "_checkbox"
+        let ischecked = localStorage.getItem(SCOPE_ID + id)
         if (
           ischecked === null &&
           ["ex_eff_checkbox", "em_eff_checkbox", "brightness_checkbox"].includes(id)
@@ -696,7 +697,7 @@ $.fn.extend({
           ischecked = ischecked === "true"
         }
 
-        var el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
+        const el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
           .append(
             $("<input>", {
               class: "custom-control-input meas-vis",

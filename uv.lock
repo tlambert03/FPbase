@@ -1169,6 +1169,7 @@ dev = [
 ]
 test = [
     { name = "factory-boy" },
+    { name = "pixelmatch" },
     { name = "playwright" },
     { name = "psycopg2-binary", marker = "sys_platform == 'darwin'" },
     { name = "pytest" },
@@ -1185,6 +1186,7 @@ typing = [
     { name = "django-types" },
     { name = "djangorestframework-stubs" },
     { name = "factory-boy" },
+    { name = "pixelmatch" },
     { name = "playwright" },
     { name = "psycopg2-binary", marker = "sys_platform == 'darwin'" },
     { name = "pytest" },
@@ -1271,6 +1273,7 @@ dev = [
 ]
 test = [
     { name = "factory-boy", specifier = ">=3.2.0" },
+    { name = "pixelmatch", specifier = ">=0.3.0" },
     { name = "playwright", specifier = ">=1.55.0" },
     { name = "psycopg2-binary", marker = "sys_platform == 'darwin'", specifier = ">=2.9.11" },
     { name = "pytest", specifier = ">=8.3.4" },
@@ -1287,6 +1290,7 @@ typing = [
     { name = "django-types", specifier = ">=0.22.0" },
     { name = "djangorestframework-stubs", specifier = ">=3.15.2" },
     { name = "factory-boy", specifier = ">=3.2.0" },
+    { name = "pixelmatch", specifier = ">=0.3.0" },
     { name = "playwright", specifier = ">=1.55.0" },
     { name = "psycopg2-binary", marker = "sys_platform == 'darwin'", specifier = ">=2.9.11" },
     { name = "pytest", specifier = ">=8.3.4" },

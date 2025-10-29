@@ -84,24 +84,26 @@ function populate_comparison_tab(comparison_set) {
   //$ul.empty();
   if (comparison_set.length) {
     //var token = $("#csrfform input").val()
-    var currents = $(".comparison-list li")
+    const currents = $(".comparison-list li")
       .map((_i, v) => $(v).attr("value"))
       .toArray()
     $.each(comparison_set, (_index, val) => {
       if (currents.indexOf(val.slug) >= 0) {
         return true
       }
+      let exemstring
       if (val.exMax && val.emMax) {
-        var exemstring =
+        exemstring =
           "Ex/Em &lambda;: &nbsp;<strong>" +
           (val.exMax || "") +
           "</strong> / <strong>" +
           val.emMax +
           "</strong>"
       }
+      let ecqystring
       if (val.ec && val.qy) {
         const ec = val.ec.toLocaleString()
-        var ecqystring =
+        ecqystring =
           "<br>EC: <strong>" +
           ec +
           "</strong>&nbsp;&nbsp;&nbsp;QY: <strong>" +
@@ -394,7 +396,7 @@ $("#id_ipg_id").change(function () {
           success: (data2) => {
             var lines = data2.split("\n")
             var seq = ""
-            for (var i = 0; i < lines.length; i++) {
+            for (let i = 0; i < lines.length; i++) {
               if (lines[i].length !== 0 && lines[i][0] !== ">") {
                 seq += lines[i]
               }
@@ -424,9 +426,9 @@ $("#proteinform #id_name").change(function () {
     dataType: "json",
     success: (data) => {
       if (data.is_taken) {
-        var namelink =
+        const namelink =
           '<a href="' + data.url + '" style="text-decoration: underline;">' + data.name + "</a>"
-        var message = "<strong>" + namelink + " already exists in the database.</strong>"
+        const message = "<strong>" + namelink + " already exists in the database.</strong>"
         $("#id_name").addClass("is-invalid")
         $("#div_id_name").addClass("has-danger")
 
@@ -459,7 +461,7 @@ $("#spectrum-submit-form #id_owner").change(function () {
     dataType: "json",
     success: (data) => {
       if (data.similars.length) {
-        var str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
+        let str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
         $.each(data.similars, (index, val) => {
           str = str + '<span class="text-danger">' + val.name + "</span>"
           if (val.spectra.length) {
@@ -554,11 +556,11 @@ $('input[id*="reference_doi"]').change(function () {
 /////////////////// PROTEIN DETAIL PAGE //////////////////////
 
 function chunkString(str, len) {
-  var _size = Math.ceil(str.length / len),
-    _ret = new Array(_size),
-    _offset
+  const _size = Math.ceil(str.length / len)
+  const _ret = new Array(_size)
+  let _offset
 
-  for (var _i = 0; _i < _size; _i++) {
+  for (let _i = 0; _i < _size; _i++) {
     _offset = _i * len
     _ret[_i] = str.substring(_offset, _offset + len)
   }
@@ -568,7 +570,7 @@ function chunkString(str, len) {
 
 function tooltipwrap(chunk, index, skipV2) {
   var out = ""
-  for (var i = 0; i < chunk.length; i++) {
+  for (let i = 0; i < chunk.length; i++) {
     let ind
     if (skipV2) {
       if (+index + i < 1) {
@@ -598,8 +600,9 @@ function formatAAseq(elem, breakpoint) {
   //clear any existing counts
   elem.find(".sequence_count").empty()
   // extract the string and chop it up into segments by breakpoint
+  let skipV2
   if (elem.text().startsWith("MVSKGEEL")) {
-    var skipV2 = true
+    skipV2 = true
   }
   const words = chunkString(elem.text().replace(/ /g, ""), breakpoint)
   // clear the div
@@ -610,9 +613,9 @@ function formatAAseq(elem, breakpoint) {
   const seqdiv = $("<div class='formatted_aminosquence'></div>").appendTo(elem)
   seqdiv.html(tooltipwrap(words[0], 0, skipV2))
   seqcount.append(1 + "<br>")
-  var height = seqdiv.height()
-  for (var i = 1; i < words.length; i++) {
-    var tippywords = tooltipwrap(words[i], i * 10, skipV2)
+  let height = seqdiv.height()
+  for (let i = 1; i < words.length; i++) {
+    const tippywords = tooltipwrap(words[i], i * 10, skipV2)
     seqdiv.html(seqdiv.html() + " " + tippywords)
     if (seqdiv.height() > height) {
       // line break occured at iteration i

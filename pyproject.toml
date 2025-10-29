@@ -65,6 +65,7 @@ test = [
     "pytest-sugar>=1.0.0",
     "pytest-xdist>=3.8.0",
     "pytest>=8.3.4",
+    "pixelmatch>=0.3.0",
 ]
 typing = [
     { include-group = "test" },
@@ -80,7 +81,6 @@ dev = [
     "ipython>=8.32.0",
     "pandas>=2.0.3",
     "pdbpp>=0.10.3",
-    "pixelmatch>=0.3.0",
     "prek>=0.2.11",
     "ruff>=0.9.6",
 ]

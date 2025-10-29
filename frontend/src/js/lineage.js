@@ -9,7 +9,7 @@ function is_first_sib(node) {
   if (!node.parent || node.parent.children.length === 1) {
     return false
   }
-  var i = node.parent.children.map((e) => e.name).indexOf(node.name)
+  const i = node.parent.children.map((e) => e.name).indexOf(node.name)
   if (i === 0) {
     return true
   }
@@ -20,7 +20,7 @@ function is_last_sib(node) {
   if (!node.parent || node.parent.children.length === 1) {
     return false
   }
-  var i = node.parent.children.map((e) => e.name).indexOf(node.name)
+  const i = node.parent.children.map((e) => e.name).indexOf(node.name)
   if (i === node.parent.children.length - 1) {
     return true
   }
@@ -229,9 +229,9 @@ export default function LineageChart(conf) {
         // Check for negative Y positions and shift if needed
         // But exclude fakeroot from this calculation since it will be removed from display
         var visibleNodes = nodes.filter((d) => d.data.name !== "fakeroot")
-        var minY = d3.min(visibleNodes, (d) => d.y)
+        const minY = d3.min(visibleNodes, (d) => d.y)
         if (minY < 0) {
-          var yShift = -minY
+          const yShift = -minY
           nodes.forEach((d) => {
             d.y = d.y + yShift
           })
@@ -775,7 +775,7 @@ export default function LineageChart(conf) {
  */
 function addDrawDropShadow(svg, dropShadow) {
   if (!d3.select("#dropshadow").node()) {
-    var filter = svg
+    const filter = svg
       .select("defs")
       .append("filter")
       .attr("id", "dropshadow")

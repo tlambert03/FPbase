@@ -25,11 +25,11 @@ function checkObject(val, prop, str) {
 }
 
 function highlightHits(high) {
-  var str = ""
-  for (var prop in high) {
+  let str = ""
+  for (const prop in high) {
     if (Object.hasOwn(high, prop) && prop !== "name" && prop !== "citation") {
       if (high[prop].constructor === Array) {
-        for (var i = 0; i < high[prop].length; i++) {
+        for (let i = 0; i < high[prop].length; i++) {
           if (typeof high[prop][i] === "object") {
             str = checkObject(high[prop][i], prop, str)
           }
@@ -112,19 +112,19 @@ function highlightRefHits(high) {
   if (Object.hasOwn(results, "prot_primary")) {
     delete results.prot_secondary
   }
-  var str = ""
-  var items = [
+  let str = ""
+  const items = [
     ["doi", "DOI"],
     ["pmid", "PMID"],
     ["prot_primary", "Protein"],
     ["prot_secondary", "2˚ Protein"],
   ]
-  for (var x = 0; x < items.length; x++) {
-    var key = items[x][0]
-    var title = items[x][1]
+  for (let x = 0; x < items.length; x++) {
+    const key = items[x][0]
+    const title = items[x][1]
     if (Object.hasOwn(results, key)) {
-      var _str = []
-      for (var i = 0; i < results[key].length; i++) {
+      const _str = []
+      for (let i = 0; i < results[key].length; i++) {
         _str.push(results[key][i][0])
       }
       str = str + title + ": " + _str.join(", ")
@@ -137,11 +137,11 @@ function highlightRefHits(high) {
     str = str + '<div class="ref-title" >' + results.title[0][0] + "</div>"
   } else if (Object.hasOwn(results, "_excerpts")) {
     if (results._excerpts.some((d) => d[1] === "full")) {
-      for (var e = 0; e < results._excerpts.length; e++) {
+      for (let e = 0; e < results._excerpts.length; e++) {
         if (results._excerpts[e][1] === "full") {
-          var exc = results._excerpts[e][0]
-          var pre = exc.split("<em>")[0].split(" ")
-          var _pre = ""
+          const exc = results._excerpts[e][0]
+          const pre = exc.split("<em>")[0].split(" ")
+          let _pre = ""
           if (pre.length > 5) {
             _pre = _pre + "... "
           }
@@ -175,7 +175,7 @@ export default async function initAutocomplete() {
 
   function empty(context) {
     if (Object.hasOwn(context, "query")) {
-      var p = context.query.trim().replace(/\s/g, "%20")
+      const p = context.query.trim().replace(/\s/g, "%20")
       return (
         '<div class="empty"><span class="nohits"></span>No results... try the <a href="/search/?name__icontains=' +
         p +
