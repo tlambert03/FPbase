@@ -171,9 +171,6 @@ module.exports = {
   },
   plugins,
   optimization: {
-    // Share webpack runtime across all bundles
-    runtimeChunk: "single",
-
     minimizer: [
       new TerserJSPlugin(),
       new CssMinimizerPlugin({
