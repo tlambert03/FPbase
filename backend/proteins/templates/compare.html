@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 {% block title %}{% endblock %}
 {% block meta-description %}{% endblock %}
 
@@ -89,6 +89,6 @@
 
 {% block javascript %}
   {% if spectra_ids %}
-  {% render_bundle 'simpleSpectraViewer' %}
+  {% vite_asset 'src/simple-spectra-viewer.js' %}
   {% endif %}
 {% endblock javascript %}

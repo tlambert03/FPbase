@@ -1,11 +1,12 @@
 {% load i18n %}
 {% load static %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 {% load webp_picture from protein_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    {% vite_hmr_client %}
     {% block ga %}
       {% if not debug %}
         {% include "_ga.html" %}
@@ -51,7 +52,7 @@
 
     <!-- FontAwesome 7 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    {% render_bundle 'main' 'css' %}
+    {% vite_asset 'src/index.js' %}
 
       <script>
         window.FPBASE = window.FPBASE || {};
@@ -139,7 +140,6 @@
     {% endblock body %}
 
       <!-- place project specific Javascript -->
-      {% render_bundle 'main' 'js' %}
       <script>
         FPBASE.initAutocomplete();
       </script>

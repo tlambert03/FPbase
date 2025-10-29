@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 
 {% block title %}{% if object %}{{object}} Microscope{% else %}Create a Microscope{% endif %} on FPbase{% endblock %}
 {% block meta-description %}Create and save your own microscope configuration (filters, light sources, detectors) and
@@ -20,7 +19,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
   {% endif %}
   var formErrors = '{{ form.errors|safe }}';
 </script>
-{% render_bundle 'microscopeForm' %}
+{% vite_asset 'src/microscope-form.js' %}
 
 {% if object %}
 <h2>Update microscope: {{object}}</h2>

@@ -14,7 +14,7 @@ dependencies = [
     'django-autocomplete-light>=3.11.0',
     'django-avatar>=8.0.1',
     'django-cors-headers>=4.2.0',
-    'django-crispy-forms==1.13.0',                  # NOTE: there's an issue with 1.14 and bootstrap4 forms not having form-control class
+    'django-crispy-forms==1.13.0', # NOTE: there's an issue with 1.14 and bootstrap4 forms not having form-control class
     'django-environ>=0.10.0',
     'django-filter>=23.3',
     'django-model-utils>=5.0.0',
@@ -51,6 +51,7 @@ dependencies = [
     "structlog-sentry>=2.1.0",
     "structlog>=24.1.0",
     "whitenoise[brotli]>=6.11.0",
+    "django-vite>=3.1.0",
 ]
 
 

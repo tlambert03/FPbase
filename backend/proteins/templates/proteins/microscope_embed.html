@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 
 <html lang="en">
   <head>
@@ -21,7 +21,7 @@
   <!-- FontAwesome 7 Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   {# Load only CSS from main bundle (not JS which includes D3 v7) #}
-  {% render_bundle 'main' 'css' %}
+  {% vite_asset 'src/index.js' %}
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.1/css/select2.min.css" rel="stylesheet" />
 
   <!-- Legacy d3 v3 + nvd3 + noUiSlider for microscope charts (isolated from main bundle) -->
@@ -40,7 +40,7 @@
     {% include 'proteins/_microscope_include.html' with embeddable=False %}
   </div>
 
-  {% render_bundle 'embedscope' 'js' %}
+  {% vite_asset 'src/embedscope.js' %}
 
   <script>$('#efflink a').attr('target', '_blank').append('<i class="small ml-2 fas fa-external-link-alt"></i>');</script>
 

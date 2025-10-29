@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
 
 {% block title %}Server Error{% endblock %}
 
@@ -12,7 +11,7 @@
 
 {% block javascript %}
 
-<script src="{% webpack_static 'sentry.js' %}"></script>
+{% comment %}Sentry is now loaded as part of the main bundle{% endcomment %}
 
 {% if sentry_event_id %}
 <script>
