@@ -18,7 +18,14 @@
       "!!**/coverage",
       "!!**/*.min.js",
       "!!frontend/src/css/litemol",
-      "!!frontend/src/js/pdb/LiteMol-plugin.js"
+      "!!frontend/src/js/pdb/LiteMol-plugin.js",
+      "!!frontend/src/js/ichart.js",
+      "!!packages/spectra/index.html",
+      "!!packages/spectra/src/App.jsx",
+      "!!packages/spectra/src/index.css",
+      "!!packages/spectra/src/index.jsx",
+      "!!packages/spectra/src/useCachedQuery.jsx",
+      "!!packages/spectra/vitest.config.js"
     ]
   },
   "formatter": {
