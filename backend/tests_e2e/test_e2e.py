@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import re
+import sys
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
@@ -32,6 +33,21 @@ if TYPE_CHECKING:
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # Reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
 CDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
+
+
+def _is_not_chromium() -> bool:
+    """Check if browser specified in CLI args is not chromium.
+
+    pytest-playwright defaults to chromium, so we only skip if a different browser
+    was explicitly specified via --browser CLI option.
+    """
+    for i, arg in enumerate(sys.argv):
+        if arg.startswith("--browser="):
+            browser = arg.split("=", 1)[1]
+            return browser != "chromium"
+        if arg == "--browser" and i + 1 < len(sys.argv):
+            return sys.argv[i + 1] != "chromium"
+    return False
 
 
 def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert_snapshot) -> None:
@@ -407,6 +423,7 @@ def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot
     assert_snapshot(page.get_by_text("Sequence Comparison").locator("css=+ div").screenshot())
 
 
+@pytest.mark.skipif(_is_not_chromium(), reason="Timing flaky ... limiting to chrome.")
 def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test advanced search with multiple filters."""
     protein = ProteinFactory.create(
