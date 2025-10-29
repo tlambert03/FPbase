@@ -1,6 +1,15 @@
-import { Box, FormControl, InputLabel, Select, MenuItem, Button, Paper, TextField } from "@mui/material"
 import DownloadIcon from "@mui/icons-material/Download"
 import SearchIcon from "@mui/icons-material/Search"
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+} from "@mui/material"
 import { exportToCSV, prepareExportData } from "../utils/export"
 
 const SWITCH_TYPES = [
