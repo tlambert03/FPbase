@@ -8,9 +8,9 @@ import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 const $ = window.jQuery // jQuery loaded from CDN
 
 window.$ = window.jQuery = $
+// select2 JS loaded from CDN in base.html - only import CSS
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
-import "select2/dist/js/select2.full"
 import "./js/jquery.formset"
 
 // Mark this bundle for Sentry context

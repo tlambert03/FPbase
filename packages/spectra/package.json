@@ -39,7 +39,6 @@
     "react-select": "^5.9.0",
     "react-spinners": "^0.17.0",
     "react-window": "^2.2.1",
-    "regenerator-runtime": "^0.13.5",
     "unfetch": "^4.2.0"
   },
   "devDependencies": {
