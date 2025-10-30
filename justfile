@@ -42,6 +42,8 @@ prod-local:
     DJANGO_SECURE_SSL_REDIRECT=False \
     DJANGO_AWS_ACCESS_KEY_ID=dummy \
     DJANGO_AWS_SECRET_ACCESS_KEY=dummy \
+    MAILGUN_API_KEY=key-888888888888888888 \
+    MAILGUN_DOMAIN=mg.fpbase.org \
     SENTRY_DSN=https://dummy@sentry.io/0 \
     uv run backend/manage.py collectstatic --noinput --clear
     echo "🚀 Starting gunicorn on http://localhost:8000"

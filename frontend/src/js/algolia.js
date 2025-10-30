@@ -183,7 +183,8 @@ export default async function initAutocomplete() {
       return '<div class="empty"><span class="nohits"></span>No results... try the <a href="/search/">advanced search</a></div>'
     }
   }
-  $("#algolia-search-input")
+  const $searchInput = $("#algolia-search-input")
+  $searchInput
     .autocomplete(
       {
         getRankingInfo: false,
@@ -305,4 +306,10 @@ export default async function initAutocomplete() {
       // Change the page, for example, on other events
       window.location.assign(suggestion.url)
     })
+
+  const $hintInput = $searchInput.parent().find(".aa-hint")
+  if ($hintInput.length) {
+    $hintInput.attr("name", "search-hint")
+    $hintInput.attr("id", "algolia-search-hint")
+  }
 }
