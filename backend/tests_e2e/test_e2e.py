@@ -19,7 +19,7 @@ from playwright.sync_api import expect
 
 from favit.models import Favorite
 from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
-from proteins.models import Spectrum
+from proteins.models import Microscope, Spectrum
 from proteins.models.protein import Protein
 from proteins.util.blast import _get_binary
 
@@ -48,6 +48,20 @@ def _is_not_chromium() -> bool:
         if arg == "--browser" and i + 1 < len(sys.argv):
             return sys.argv[i + 1] != "chromium"
     return False
+
+
+def _select2_enter(selector: str, text: str, page: Page) -> None:
+    """Helper to select an option in a Select2 widget by typing and selecting."""
+    combo = page.locator(selector)
+    combo.click()
+    # Wait for search field to be ready and type
+    search_field = page.locator(".select2-search__field")
+    expect(search_field).to_be_visible()
+    search_field.type(text)
+    # Wait for and select highlighted option
+    highlighted = page.locator(".select2-results__option--highlighted")
+    expect(highlighted).to_be_visible()
+    page.keyboard.press("Enter")
 
 
 def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert_snapshot) -> None:
@@ -106,20 +120,6 @@ def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapsh
 
     # Visual snapshot: capture spectra viewer initial state
     assert_snapshot(page)
-
-
-def _select2_enter(selector: str, text: str, page: Page) -> None:
-    """Helper to select an option in a Select2 widget by typing and selecting."""
-    combo = page.locator(selector)
-    combo.click()
-    # Wait for search field to be ready and type
-    search_field = page.locator(".select2-search__field")
-    expect(search_field).to_be_visible()
-    search_field.type(text)
-    # Wait for and select highlighted option
-    highlighted = page.locator(".select2-results__option--highlighted")
-    expect(highlighted).to_be_visible()
-    page.keyboard.press("Enter")
 
 
 def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: LiveServer, assert_snapshot) -> None:
@@ -244,6 +244,119 @@ def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
     url = f"{live_server.url}{base_url}?xlim=350,700&alpha=0.2&grid=true"
     page.goto(url)
     expect(page).to_have_url(url)
+
+
+def test_microscope_create(live_server: LiveServer, auth_page: Page, assert_snapshot) -> None:
+    """Test microscope creation form with optical config."""
+    # Create filters that can be selected in the form
+    filter_configs = OpticalConfigWithFiltersFactory.create_batch(3)
+    # Extract filter names from the created configs
+    ex0_name = filter_configs[0].ex_filters.first().name
+    ex1_name = filter_configs[1].ex_filters.first().name
+    bs_name = filter_configs[0].bs_filters.first().name
+    em_name = filter_configs[0].em_filters.first().name
+
+    # Navigate to microscopes list page
+    url = f"{live_server.url}{reverse('proteins:microscopes')}"
+    auth_page.goto(url)
+    expect(auth_page).to_have_url(url)
+
+    # Click "Create a new microscope" button
+    auth_page.get_by_role("link", name="Create a new microscope").click()
+
+    # Wait for create page to load
+    create_url = f"{live_server.url}{reverse('proteins:newmicroscope')}"
+    expect(auth_page).to_have_url(create_url)
+
+    auth_page.locator('input[name="name"]').fill("test microscope")
+    auth_page.locator('input[name="optical_configs-0-name"]').fill("WF Green")
+
+    # Select first excitation filter
+    # Click on the excitation filters box to open dropdown
+    ex_filters_container = auth_page.locator("#div_id_optical_configs-0-ex_filters")
+    ex_filters_container.click()
+
+    # Wait for search field and type first filter name
+    search_field = auth_page.locator("#div_id_optical_configs-0-ex_filters")
+    expect(search_field).to_be_visible()
+    search_field.type(ex0_name)
+    # Wait for highlighted option to appear, then press Enter
+    highlighted = auth_page.locator(".select2-results__option--highlighted")
+    expect(highlighted).to_be_visible()
+    auth_page.keyboard.press("Enter")
+
+    # Verify first filter is selected
+    selected_choices = auth_page.locator("#div_id_optical_configs-0-ex_filters li.select2-selection__choice")
+    expect(selected_choices).to_have_count(1)
+
+    # Wait for the dropdown results to disappear (dropdown closes after selection)
+    results_dropdown = auth_page.locator(".select2-results")
+    expect(results_dropdown).not_to_be_visible()
+
+    # Click on the excitation filters box again to reopen dropdown
+    ex_filters_container.click()
+
+    # Wait for the dropdown to open by checking for results options containing our second filter
+    # This ensures the dropdown is fully loaded with search results
+    result_with_filter = auth_page.locator(f".select2-results__option:has-text('{ex1_name}')")
+    expect(result_with_filter).to_be_visible()
+
+    # Now type to filter the results
+    search_field = auth_page.locator("#div_id_optical_configs-0-ex_filters")
+    search_field.type(ex1_name)
+
+    # Wait for the specific filter to become highlighted (ensures search completed and result is highlighted)
+    highlighted_with_text = auth_page.locator(f".select2-results__option--highlighted:has-text('{ex1_name}')")
+    expect(highlighted_with_text).to_be_visible()
+
+    # Press Enter to select
+    auth_page.keyboard.press("Enter")
+
+    # Verify both filters are now selected
+    selected_choices = auth_page.locator("#div_id_optical_configs-0-ex_filters li.select2-selection__choice")
+    expect(selected_choices).to_have_count(2)
+
+    # Add Dichroic Filter (bs_name)
+    bs_filters_container = auth_page.locator("#div_id_optical_configs-0-bs_filters")
+    bs_filters_container.click()
+
+    # Wait for the dropdown to open with the dichroic filter
+    result_with_bs = auth_page.locator(f".select2-results__option:has-text('{bs_name}')")
+    expect(result_with_bs).to_be_visible()
+
+    # Type to filter the results
+    bs_search_field = auth_page.locator("#div_id_optical_configs-0-bs_filters")
+    bs_search_field.type(bs_name)
+
+    # Wait for the specific filter to become highlighted
+    bs_highlighted = auth_page.locator(f".select2-results__option:has-text('{bs_name}')")
+    expect(bs_highlighted).to_be_visible()
+    auth_page.keyboard.press("Enter")
+
+    # Add Emission Filter (em_name)
+    em_filters_container = auth_page.locator("#div_id_optical_configs-0-em_filters")
+    em_filters_container.click()
+
+    # Wait for the dropdown to open with the emission filter
+    result_with_em = auth_page.locator(f".select2-results__option:has-text('{em_name}')")
+    expect(result_with_em).to_be_visible()
+
+    # Type to filter the results
+    em_search_field = auth_page.locator("#div_id_optical_configs-0-em_filters")
+    em_search_field.type(em_name)
+
+    # Wait for the specific filter to become highlighted
+    em_highlighted = auth_page.locator(f".select2-results__option:has-text('{em_name}')")
+    expect(em_highlighted).to_be_visible()
+    auth_page.keyboard.press("Enter")
+
+    assert_snapshot(auth_page)
+
+    auth_page.locator('input[type="submit"]').click()
+    auth_page.wait_for_load_state("networkidle")
+    scope = Microscope.objects.last()
+    expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:microscope-detail', args=(scope.id,))}")
+    assert_snapshot(auth_page, mask_elements=["#spectrasvg"])  # mask details of filter svgs
 
 
 def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, assert_snapshot) -> None:
