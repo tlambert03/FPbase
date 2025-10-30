@@ -6,10 +6,8 @@ import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
 import "./css/litemol/LiteMol-plugin-blue.css"
-import $ from "jquery"
 
-window.$ = window.jQuery = $
-
+// jQuery loaded from CDN in base.html - available as window.jQuery and window.$
 import * as LiteMol from "./js/pdb/LiteMol-plugin"
 
 // Mark this bundle for Sentry context

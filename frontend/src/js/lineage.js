@@ -1,5 +1,6 @@
 import * as d3 from "d3"
-import $ from "jquery"
+
+const $ = window.jQuery // jQuery loaded from CDN
 
 function n_sibs(node) {
   return node.parent ? node.parent.children.length - 1 : 0

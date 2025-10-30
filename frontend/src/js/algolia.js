@@ -1,4 +1,4 @@
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 
 function checkObject(val, prop, str) {
   var propDict = {

@@ -1,3 +1,5 @@
+const $ = window.jQuery // jQuery loaded from CDN
+
 window.initSearch = (filterfields, operatorLookup, labelLookup) => {
   var fields = {}
 

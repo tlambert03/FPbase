@@ -2,7 +2,7 @@ import Highcharts from "highcharts"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/pattern-fill"
 import "highcharts/modules/no-data-to-display"
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 
 export default function initFRET() {
   var chart

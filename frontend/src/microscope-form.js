@@ -5,7 +5,7 @@ import "vite/modulepreload-polyfill"
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 
 window.$ = window.jQuery = $
 import "select2/dist/css/select2.css"

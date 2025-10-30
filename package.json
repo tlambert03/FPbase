@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "dev": "concurrently -n webpack,django -c \"blue.bold,green.bold\" \"pnpm --stream -r start\" \"uv run backend/manage.py runserver\"",
-    "start": "pnpm --stream -r start",
+    "dev": "concurrently -n vite,django -c \"blue.bold,green.bold\" \"pnpm --filter fpbase dev\" \"uv run backend/manage.py runserver\"",
+    "start": "pnpm --filter fpbase dev",
     "build": "pnpm -r --parallel build",
     "heroku-postbuild": "CI=true pnpm --filter fpbase build",
     "heroku-cleanup": "rm -rf node_modules _resources .github",

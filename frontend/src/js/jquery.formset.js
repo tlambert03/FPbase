@@ -9,7 +9,7 @@
  * Licensed under the New BSD License
  * See: http://www.opensource.org/licenses/bsd-license.php
  */
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 
 ;(($) => {
   $.fn.formset = function (opts) {

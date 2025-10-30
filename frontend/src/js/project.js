@@ -1,4 +1,4 @@
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
 window.mobilecheck = () => {

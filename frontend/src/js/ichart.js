@@ -1,5 +1,7 @@
 import * as d3 from "d3"
-import $ from "jquery"
+
+const $ = window.jQuery // jQuery loaded from CDN
+
 import noUiSlider from "nouislider"
 
 export default function FPPropChart() {

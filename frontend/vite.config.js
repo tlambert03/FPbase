@@ -39,8 +39,15 @@ export default defineConfig(({ mode }) => {
           proteinTable: path.resolve(__dirname, "src/protein-table.js"),
         },
 
+        // Externalize jQuery - loaded from CDN for legacy inline script compatibility
+        external: ["jquery"],
+
         // Manual code splitting (hybrid approach)
         output: {
+          // Map external jquery to global jQuery
+          globals: {
+            jquery: "jQuery",
+          },
           manualChunks(id) {
             // Sentry (shared across all)
             if (id.includes("node_modules/@sentry")) {
@@ -50,11 +57,6 @@ export default defineConfig(({ mode }) => {
             // React (shared, but NOT in embedscope)
             if (id.includes("node_modules/react") || id.includes("node_modules/scheduler")) {
               return "vendor-react"
-            }
-
-            // jQuery (shared across multiple)
-            if (id.includes("node_modules/jquery")) {
-              return "vendor-jquery"
             }
 
             // D3 v7 (EXCLUDE from embedscope - it uses CDN D3 v3)
@@ -84,7 +86,7 @@ export default defineConfig(({ mode }) => {
         "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.jsx"),
         "@fpbase/blast": path.resolve(__dirname, "../packages/blast/src/index.js"),
         "@fpbase/protein-table": path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
-        jquery: path.resolve(__dirname, "node_modules/jquery/dist/jquery.js"),
+        // jQuery loaded from CDN - no alias needed
       },
     },
 
@@ -147,9 +149,10 @@ export default defineConfig(({ mode }) => {
 
     // Optimize dependencies
     optimizeDeps: {
-      include: ["jquery", "process/browser"],
+      // Exclude jQuery - loaded from CDN
+      exclude: ["jquery"],
+      include: ["process/browser"],
       esbuildOptions: {
-        // Inject global jQuery (match webpack ProvidePlugin)
         define: {
           global: "globalThis",
         },
