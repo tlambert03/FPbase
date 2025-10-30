@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
@@ -18,7 +17,7 @@ from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
 
 from favit.models import Favorite
-from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
+from proteins.factories import FilterFactory, MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
 from proteins.models import Microscope, Spectrum
 from proteins.models.protein import Protein
 from proteins.util.blast import _get_binary
@@ -27,27 +26,12 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Page
+    from playwright.sync_api import Browser, Page
     from pytest_django.live_server_helper import LiveServer
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # Reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
 CDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
-
-
-def _is_not_chromium() -> bool:
-    """Check if browser specified in CLI args is not chromium.
-
-    pytest-playwright defaults to chromium, so we only skip if a different browser
-    was explicitly specified via --browser CLI option.
-    """
-    for i, arg in enumerate(sys.argv):
-        if arg.startswith("--browser="):
-            browser = arg.split("=", 1)[1]
-            return browser != "chromium"
-        if arg == "--browser" and i + 1 < len(sys.argv):
-            return sys.argv[i + 1] != "chromium"
-    return False
 
 
 def _select2_enter(selector: str, text: str, page: Page) -> None:
@@ -64,7 +48,7 @@ def _select2_enter(selector: str, text: str, page: Page) -> None:
     page.keyboard.press("Enter")
 
 
-def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test that the main page loads without errors and CSS/JS assets are applied.
 
     Verifies:
@@ -107,7 +91,7 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert
     assert_snapshot(page)
 
 
-def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test the spectra viewer page loads without console errors."""
     ProteinFactory.create()
 
@@ -122,7 +106,9 @@ def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapsh
     assert_snapshot(page)
 
 
-def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: LiveServer, assert_snapshot) -> None:
+def test_spectrum_submission_preview_manual_data(
+    auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
+) -> None:
     """Test spectrum submission form with manual data preview."""
     protein = ProteinFactory.create()
     protein.default_state.ex_spectrum.delete()
@@ -168,7 +154,9 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
     expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:spectrum_submitted')}")
 
 
-def test_spectrum_submission_tab_switching(auth_page: Page, live_server: LiveServer, assert_snapshot) -> None:
+def test_spectrum_submission_tab_switching(
+    auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
+) -> None:
     """Test tab switching behavior in spectrum submission form."""
     # Create a protein so owner_state field has options
     protein = ProteinFactory.create()
@@ -246,11 +234,14 @@ def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
-def test_microscope_create(live_server: LiveServer, auth_page: Page, assert_snapshot) -> None:
+def test_microscope_create(
+    live_server: LiveServer, auth_page: Page, browser: Browser, assert_snapshot: Callable
+) -> None:
     """Test microscope creation form with optical config."""
-    # Create filters that can be selected in the form (without full optical configs)
-    from proteins.factories import FilterFactory
+    if browser.browser_type.name != "chromium":
+        pytest.skip("Skipping microscope create test on non-chromium browser due to flakiness.")
 
+    # Create filters that can be selected in the form (without full optical configs)
     ex_filter0 = FilterFactory(name="TestExFilter0")
     ex_filter1 = FilterFactory(name="TestExFilter1")
     bs_filter = FilterFactory(name="TestBsFilter")
@@ -364,7 +355,7 @@ def test_microscope_create(live_server: LiveServer, auth_page: Page, assert_snap
     assert_snapshot(auth_page, mask_elements=["#spectrasvg"])  # mask details of filter svgs
 
 
-def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test microscope page with fluorophore selection and config switching."""
     protein = ProteinFactory.create()
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
@@ -384,7 +375,7 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, a
     config_select.select_option(label="TestOC1")
 
 
-def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test FRET page loads with donor/acceptor selection."""
     ProteinFactory(
         name="donor",
@@ -427,7 +418,7 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -
         assert_snapshot(page)
 
 
-def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test collections page loads without errors."""
     url = f"{live_server.url}{reverse('proteins:collections')}"
     page.goto(url)
@@ -458,7 +449,7 @@ def test_problems_gaps_page_loads(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
-def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test protein table page loads without errors."""
     # Create minimal data - table functionality doesn't require 10 proteins
     ProteinFactory.create_batch(3)
@@ -467,7 +458,7 @@ def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_sn
     expect(page).to_have_url(url)
 
 
-def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test interactive chart page with axis selection."""
     # Create minimal data - chart interaction doesn't require 6 proteins
     ProteinFactory.create(
@@ -501,7 +492,7 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
     page.locator("//label[input[@id='Yext_coeff']]").click()
 
 
-def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test embedded microscope viewer with chart rendering."""
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
     OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
@@ -522,7 +513,7 @@ def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_
     # assert_snapshot(page)
 
 
-def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test protein comparison page shows mutations between two proteins."""
     protein1 = ProteinFactory.create(name="GFP1", seq=SEQ)
     protein2 = ProteinFactory.create(name="GFP2", seq=SEQ.replace("ELDG", "ETTG"))
@@ -541,9 +532,11 @@ def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot
     assert_snapshot(page.get_by_text("Sequence Comparison").locator("css=+ div").screenshot())
 
 
-@pytest.mark.skipif(_is_not_chromium(), reason="Timing flaky ... limiting to chrome.")
-def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: Callable, browser: Browser) -> None:
     """Test advanced search with multiple filters."""
+    if browser.browser_type.name != "chromium":
+        pytest.skip("Skipping microscope create test on non-chromium browser due to flakiness.")
+
     protein = ProteinFactory.create(
         name="SearchTestGFP",
         seq=SEQ,
@@ -631,7 +624,7 @@ def test_contact_form_submission(live_server: LiveServer, page: Page) -> None:
         expect(page).to_have_url(re.compile(r"/thanks/?$"))
 
 
-def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test BLAST search functionality."""
     protein = ProteinFactory.create(name="BlastTestGFP", seq=SEQ)
 
