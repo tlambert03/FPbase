@@ -288,7 +288,7 @@ class CameraFactory(SpectrumOwnerFactory):
     )
 
 
-class OpticalConfigFactory(factory.django.DjangoModelFactory):
+class OpticalConfigFactory(factory.django.DjangoModelFactory[OpticalConfig]):
     class Meta:
         model = OpticalConfig
 

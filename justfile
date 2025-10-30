@@ -31,8 +31,11 @@ backend:
 test-js:
     pnpm --filter @fpbase/spectra test:ci
 
+test-e2e:
+    uv run pytest backend/tests_e2e/ -v -n=6 --browser chromium
+    uv run pytest backend/tests_e2e/ -v -n=6 --browser webkit
+
 test-py:
-    uv run pytest backend/tests_e2e/ -v -n=6
     uv run pytest -v -n=6
 
 snapshots-update:
@@ -41,7 +44,7 @@ snapshots-update:
 snapshots-test:
     uv run pytest backend/tests_e2e/ --visual-snapshots -n 4
 
-test: test-py test-js
+test: test-py test-js test-e2e
 
 # update browserslist database
 update-browserslist:

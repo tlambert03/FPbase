@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
@@ -18,8 +17,8 @@ from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
 
 from favit.models import Favorite
-from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
-from proteins.models import Spectrum
+from proteins.factories import FilterFactory, MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
+from proteins.models import Microscope, Spectrum
 from proteins.models.protein import Protein
 from proteins.util.blast import _get_binary
 
@@ -27,7 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Page
+    from playwright.sync_api import Browser, Page
     from pytest_django.live_server_helper import LiveServer
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
@@ -35,22 +34,21 @@ SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS
 CDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
 
 
-def _is_not_chromium() -> bool:
-    """Check if browser specified in CLI args is not chromium.
+def _select2_enter(selector: str, text: str, page: Page) -> None:
+    """Helper to select an option in a Select2 widget by typing and selecting."""
+    combo = page.locator(selector)
+    combo.click()
+    # Wait for search field to be ready and type
+    search_field = page.locator(".select2-search__field")
+    expect(search_field).to_be_visible()
+    search_field.type(text)
+    # Wait for and select highlighted option
+    highlighted = page.locator(".select2-results__option--highlighted")
+    expect(highlighted).to_be_visible()
+    page.keyboard.press("Enter")
 
-    pytest-playwright defaults to chromium, so we only skip if a different browser
-    was explicitly specified via --browser CLI option.
-    """
-    for i, arg in enumerate(sys.argv):
-        if arg.startswith("--browser="):
-            browser = arg.split("=", 1)[1]
-            return browser != "chromium"
-        if arg == "--browser" and i + 1 < len(sys.argv):
-            return sys.argv[i + 1] != "chromium"
-    return False
 
-
-def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test that the main page loads without errors and CSS/JS assets are applied.
 
     Verifies:
@@ -93,7 +91,7 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert
     assert_snapshot(page)
 
 
-def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test the spectra viewer page loads without console errors."""
     ProteinFactory.create()
 
@@ -108,21 +106,9 @@ def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapsh
     assert_snapshot(page)
 
 
-def _select2_enter(selector: str, text: str, page: Page) -> None:
-    """Helper to select an option in a Select2 widget by typing and selecting."""
-    combo = page.locator(selector)
-    combo.click()
-    # Wait for search field to be ready and type
-    search_field = page.locator(".select2-search__field")
-    expect(search_field).to_be_visible()
-    search_field.type(text)
-    # Wait for and select highlighted option
-    highlighted = page.locator(".select2-results__option--highlighted")
-    expect(highlighted).to_be_visible()
-    page.keyboard.press("Enter")
-
-
-def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: LiveServer, assert_snapshot) -> None:
+def test_spectrum_submission_preview_manual_data(
+    auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
+) -> None:
     """Test spectrum submission form with manual data preview."""
     protein = ProteinFactory.create()
     protein.default_state.ex_spectrum.delete()
@@ -168,7 +154,9 @@ def test_spectrum_submission_preview_manual_data(auth_page: Page, live_server: L
     expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:spectrum_submitted')}")
 
 
-def test_spectrum_submission_tab_switching(auth_page: Page, live_server: LiveServer, assert_snapshot) -> None:
+def test_spectrum_submission_tab_switching(
+    auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
+) -> None:
     """Test tab switching behavior in spectrum submission form."""
     # Create a protein so owner_state field has options
     protein = ProteinFactory.create()
@@ -246,7 +234,128 @@ def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
-def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_microscope_create(
+    live_server: LiveServer, auth_page: Page, browser: Browser, assert_snapshot: Callable
+) -> None:
+    """Test microscope creation form with optical config."""
+    if browser.browser_type.name != "chromium":
+        pytest.skip("Skipping microscope create test on non-chromium browser due to flakiness.")
+
+    # Create filters that can be selected in the form (without full optical configs)
+    ex_filter0 = FilterFactory(name="TestExFilter0")
+    ex_filter1 = FilterFactory(name="TestExFilter1")
+    bs_filter = FilterFactory(name="TestBsFilter")
+    em_filter = FilterFactory(name="TestEmFilter")
+
+    ex0_name = ex_filter0.name
+    ex1_name = ex_filter1.name
+    bs_name = bs_filter.name
+    em_name = em_filter.name
+
+    # Navigate to microscopes list page
+    url = f"{live_server.url}{reverse('proteins:microscopes')}"
+    auth_page.goto(url)
+    expect(auth_page).to_have_url(url)
+
+    # Click "Create a new microscope" button
+    auth_page.get_by_role("link", name="Create a new microscope").click()
+
+    # Wait for create page to load
+    create_url = f"{live_server.url}{reverse('proteins:newmicroscope')}"
+    expect(auth_page).to_have_url(create_url)
+
+    auth_page.locator('input[name="name"]').fill("test microscope")
+    auth_page.locator('input[name="optical_configs-0-name"]').fill("WF Green")
+
+    # Select first excitation filter
+    # Click on the excitation filters box to open dropdown
+    ex_filters_container = auth_page.locator("#div_id_optical_configs-0-ex_filters")
+    ex_filters_container.click()
+
+    # Wait for search field and type first filter name
+    search_field = auth_page.locator("#div_id_optical_configs-0-ex_filters")
+    expect(search_field).to_be_visible()
+    search_field.type(ex0_name)
+    # Wait for highlighted option to appear, then press Enter
+    highlighted = auth_page.locator(".select2-results__option--highlighted")
+    expect(highlighted).to_be_visible()
+    auth_page.keyboard.press("Enter")
+
+    # Verify first filter is selected
+    selected_choices = auth_page.locator("#div_id_optical_configs-0-ex_filters li.select2-selection__choice")
+    expect(selected_choices).to_have_count(1)
+
+    # Wait for the dropdown results to disappear (dropdown closes after selection)
+    results_dropdown = auth_page.locator(".select2-results")
+    expect(results_dropdown).not_to_be_visible()
+
+    # Click on the excitation filters box again to reopen dropdown
+    ex_filters_container.click()
+
+    # Wait for the dropdown to open by checking for results options containing our second filter
+    # This ensures the dropdown is fully loaded with search results
+    result_with_filter = auth_page.locator(f".select2-results__option:has-text('{ex1_name}')")
+    expect(result_with_filter).to_be_visible()
+
+    # Now type to filter the results
+    search_field = auth_page.locator("#div_id_optical_configs-0-ex_filters")
+    search_field.type(ex1_name)
+
+    # Wait for the specific filter to become highlighted (ensures search completed and result is highlighted)
+    highlighted_with_text = auth_page.locator(f".select2-results__option--highlighted:has-text('{ex1_name}')")
+    expect(highlighted_with_text).to_be_visible()
+
+    # Press Enter to select
+    auth_page.keyboard.press("Enter")
+
+    # Verify both filters are now selected
+    selected_choices = auth_page.locator("#div_id_optical_configs-0-ex_filters li.select2-selection__choice")
+    expect(selected_choices).to_have_count(2)
+
+    # Add Dichroic Filter (bs_name)
+    bs_filters_container = auth_page.locator("#div_id_optical_configs-0-bs_filters")
+    bs_filters_container.click()
+
+    # Wait for the dropdown to open with the dichroic filter
+    result_with_bs = auth_page.locator(f".select2-results__option:has-text('{bs_name}')")
+    expect(result_with_bs).to_be_visible()
+
+    # Type to filter the results
+    bs_search_field = auth_page.locator("#div_id_optical_configs-0-bs_filters")
+    bs_search_field.type(bs_name)
+
+    # Wait for the specific filter to become highlighted
+    bs_highlighted = auth_page.locator(f".select2-results__option:has-text('{bs_name}')")
+    expect(bs_highlighted).to_be_visible()
+    auth_page.keyboard.press("Enter")
+
+    # Add Emission Filter (em_name)
+    em_filters_container = auth_page.locator("#div_id_optical_configs-0-em_filters")
+    em_filters_container.click()
+
+    # Wait for the dropdown to open with the emission filter
+    result_with_em = auth_page.locator(f".select2-results__option:has-text('{em_name}')")
+    expect(result_with_em).to_be_visible()
+
+    # Type to filter the results
+    em_search_field = auth_page.locator("#div_id_optical_configs-0-em_filters")
+    em_search_field.type(em_name)
+
+    # Wait for the specific filter to become highlighted
+    em_highlighted = auth_page.locator(f".select2-results__option:has-text('{em_name}')")
+    expect(em_highlighted).to_be_visible()
+    auth_page.keyboard.press("Enter")
+
+    assert_snapshot(auth_page)
+
+    auth_page.locator('input[type="submit"]').click()
+    auth_page.wait_for_load_state("networkidle")
+    scope = Microscope.objects.last()
+    expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:microscope-detail', args=(scope.id,))}")
+    assert_snapshot(auth_page, mask_elements=["#spectrasvg"])  # mask details of filter svgs
+
+
+def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test microscope page with fluorophore selection and config switching."""
     protein = ProteinFactory.create()
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
@@ -266,7 +375,7 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, a
     config_select.select_option(label="TestOC1")
 
 
-def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test FRET page loads with donor/acceptor selection."""
     ProteinFactory(
         name="donor",
@@ -309,7 +418,7 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -
         assert_snapshot(page)
 
 
-def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test collections page loads without errors."""
     url = f"{live_server.url}{reverse('proteins:collections')}"
     page.goto(url)
@@ -340,7 +449,7 @@ def test_problems_gaps_page_loads(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
-def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test protein table page loads without errors."""
     # Create minimal data - table functionality doesn't require 10 proteins
     ProteinFactory.create_batch(3)
@@ -349,7 +458,7 @@ def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_sn
     expect(page).to_have_url(url)
 
 
-def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test interactive chart page with axis selection."""
     # Create minimal data - chart interaction doesn't require 6 proteins
     ProteinFactory.create(
@@ -383,7 +492,7 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
     page.locator("//label[input[@id='Yext_coeff']]").click()
 
 
-def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test embedded microscope viewer with chart rendering."""
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
     OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
@@ -404,7 +513,7 @@ def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_
     # assert_snapshot(page)
 
 
-def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test protein comparison page shows mutations between two proteins."""
     protein1 = ProteinFactory.create(name="GFP1", seq=SEQ)
     protein2 = ProteinFactory.create(name="GFP2", seq=SEQ.replace("ELDG", "ETTG"))
@@ -423,9 +532,11 @@ def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot
     assert_snapshot(page.get_by_text("Sequence Comparison").locator("css=+ div").screenshot())
 
 
-@pytest.mark.skipif(_is_not_chromium(), reason="Timing flaky ... limiting to chrome.")
-def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: Callable, browser: Browser) -> None:
     """Test advanced search with multiple filters."""
+    if browser.browser_type.name != "chromium":
+        pytest.skip("Skipping microscope create test on non-chromium browser due to flakiness.")
+
     protein = ProteinFactory.create(
         name="SearchTestGFP",
         seq=SEQ,
@@ -513,7 +624,7 @@ def test_contact_form_submission(live_server: LiveServer, page: Page) -> None:
         expect(page).to_have_url(re.compile(r"/thanks/?$"))
 
 
-def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot) -> None:
+def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test BLAST search functionality."""
     protein = ProteinFactory.create(name="BlastTestGFP", seq=SEQ)
 
