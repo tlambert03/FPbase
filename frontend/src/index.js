@@ -31,7 +31,12 @@ import FPPropChart from "./js/ichart.js"
 import LineageChart from "./js/lineage.js"
 
 // Mark this bundle for Sentry context
-window.d3 = d3
+// Save D3 v7 to a separate variable and set as default if no other d3 is loaded
+// This allows microscope pages to load D3 v3 from CDN without conflict
+window.d3v7 = d3
+if (!window.d3) {
+  window.d3 = d3
+}
 
 window.FPBASE = window.FPBASE || {}
 window.FPBASE = {

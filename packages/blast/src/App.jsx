@@ -1,6 +1,9 @@
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material"
-import $ from "jquery"
 import { useState } from "react"
+
+// Use window.jQuery from CDN instead of importing (importmap doesn't work in Vite dev mode)
+const $ = window.jQuery
+
 import InputForm from "./InputForm.jsx"
 import BlastReport from "./ReportView.jsx"
 
