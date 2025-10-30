@@ -29,36 +29,20 @@ backend:
     uv run backend/manage.py runserver
 
 # run production build locally (build frontend, collect static, run gunicorn with whitenoise)
+# uses config.settings.production_local which has all dummy credentials for local testing
 prod-local:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "🏗️  Building frontend assets..."
     pnpm build
     echo "📦 Collecting static files..."
-    DJANGO_SETTINGS_MODULE=config.settings.production \
-    DJANGO_SECRET_KEY=local-production-test-key \
-    DATABASE_URL=postgres:///fpbase \
-    DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 \
-    DJANGO_SECURE_SSL_REDIRECT=False \
-    DJANGO_AWS_ACCESS_KEY_ID=dummy \
-    DJANGO_AWS_SECRET_ACCESS_KEY=dummy \
-    MAILGUN_API_KEY=key-888888888888888888 \
-    MAILGUN_DOMAIN=mg.fpbase.org \
-    SENTRY_DSN=https://dummy@sentry.io/0 \
-    uv run backend/manage.py collectstatic --noinput --clear
+    DJANGO_SETTINGS_MODULE=config.settings.production_local \
+        uv run backend/manage.py collectstatic --noinput --clear
     echo "🚀 Starting gunicorn on http://localhost:8000"
     echo "   Press Ctrl+C to stop"
-    DJANGO_SETTINGS_MODULE=config.settings.production \
-    DJANGO_SECRET_KEY=local-production-test-key \
-    DATABASE_URL=postgres:///fpbase \
-    DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 \
-    DJANGO_SECURE_SSL_REDIRECT=False \
-    DJANGO_AWS_ACCESS_KEY_ID=dummy \
-    DJANGO_AWS_SECRET_ACCESS_KEY=dummy \
-    MAILGUN_API_KEY=key-888888888888888888 \
-    MAILGUN_DOMAIN=mg.fpbase.org \
-    SENTRY_DSN=https://dummy@sentry.io/0 \
-    uv run gunicorn --chdir backend --workers 2 --worker-class sync --timeout 30 --bind 127.0.0.1:8000 config.wsgi:application
+    echo "⚠️  Using production-like config with local resources (see config/settings/production_local.py)"
+    DJANGO_SETTINGS_MODULE=config.settings.production_local \
+        uv run gunicorn --chdir backend --workers 2 --worker-class sync --timeout 30 --bind 127.0.0.1:8000 config.wsgi:application
 
 test-js:
     pnpm --filter @fpbase/spectra test:ci
