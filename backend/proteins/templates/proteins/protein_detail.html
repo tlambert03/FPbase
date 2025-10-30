@@ -491,7 +491,7 @@
   {% endif %}
 
   {% if protein.pdb %}
-    {% vite_asset 'src/my-litemol.js' defer %}
+    {% vite_asset 'src/my-litemol.js' defer=True %}
     <script type="text/javascript">
     $(window).on('load', function() {
       initPDB({{protein.pdb|safe}});

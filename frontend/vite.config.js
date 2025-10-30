@@ -84,7 +84,7 @@ export default defineConfig(({ mode }) => {
         "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.jsx"),
         "@fpbase/blast": path.resolve(__dirname, "../packages/blast/src/index.js"),
         "@fpbase/protein-table": path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
-        jquery: path.resolve(__dirname, "node_modules/jquery/src/jquery"),
+        jquery: path.resolve(__dirname, "node_modules/jquery/dist/jquery.js"),
       },
     },
 
@@ -94,9 +94,6 @@ export default defineConfig(({ mode }) => {
       react({
         // Include .js files for JSX processing (not just .jsx)
         include: /\.(jsx|js|tsx|ts)$/,
-        babel: {
-          plugins: ["@babel/plugin-syntax-dynamic-import"],
-        },
       }),
 
       // Copy static files (microscope.js)
