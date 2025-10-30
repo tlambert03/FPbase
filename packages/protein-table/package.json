@@ -1,6 +1,7 @@
 {
   "name": "@fpbase/protein-table",
   "version": "1.0.0",
+  "type": "module",
   "description": "fpbase protein table viewer",
   "main": "src/App.jsx",
   "scripts": {

@@ -1,6 +1,7 @@
 {
   "name": "@fpbase/spectra",
   "version": "1.0.0",
+  "type": "module",
   "description": "fpbase spectra viewer",
   "main": "src/App.jsx",
   "scripts": {

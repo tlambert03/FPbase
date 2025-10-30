@@ -1,6 +1,7 @@
 {
   "name": "@fpbase/blast",
   "version": "1.0.0",
+  "type": "module",
   "description": "fpbase blast app",
   "main": "src/App.jsx",
   "scripts": {
