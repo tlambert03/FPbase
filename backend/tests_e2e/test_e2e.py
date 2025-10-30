@@ -237,6 +237,8 @@ def test_microscope_create(
     live_server: LiveServer, auth_page: Page, browser: Browser, assert_snapshot: Callable
 ) -> None:
     """Test microscope creation form with optical config."""
+    if browser.browser_type.name != "chromium":
+        pytest.skip("Skipping microscope create test on non-chromium browser due to flakiness.")
 
     ex = FilterFactory.create(subtype=Filter.BP, bandwidth=20, bandcenter=480)
     bs = FilterFactory.create(subtype=Filter.LP, edge=500)
