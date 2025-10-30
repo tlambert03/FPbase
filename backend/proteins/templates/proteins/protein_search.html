@@ -108,9 +108,32 @@
 {% block javascript %}
 
 <script>
-  $(function(){
-    initSearch(JSON.parse('{{filter_fields|safe}}'), JSON.parse('{{filter_operators|safe}}'), JSON.parse('{{filter_labels|safe}}'))
-  });
+  // Wait for ES modules to load before calling initSearch
+  (function() {
+    var filterFields = JSON.parse('{{filter_fields|safe}}');
+    var filterOperators = JSON.parse('{{filter_operators|safe}}');
+    var filterLabels = JSON.parse('{{filter_labels|safe}}');
+
+    function tryInitSearch() {
+      if (typeof window.initSearch === 'function') {
+        $(function() {
+          window.initSearch(filterFields, filterOperators, filterLabels);
+        });
+        return true;
+      }
+      return false;
+    }
+
+    if (!tryInitSearch()) {
+      // Module not loaded yet, wait for it
+      setTimeout(function() {
+        if (!tryInitSearch()) {
+          // Try one more time after longer delay
+          setTimeout(tryInitSearch, 200);
+        }
+      }, 100);
+    }
+  })();
 </script>
 
 {% endblock javascript %}

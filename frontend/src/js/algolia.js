@@ -163,10 +163,8 @@ function highlightRefHits(high) {
 }
 
 export default async function initAutocomplete() {
-  const [{ default: algoliasearch }] = await Promise.all([
-    import("algoliasearch"),
-    import("autocomplete.js/dist/autocomplete.jquery.js"),
-  ])
+  // autocomplete.jquery.js loaded from CDN in base.html
+  const { default: algoliasearch } = await import("algoliasearch")
 
   var algoliaClient = algoliasearch(window.FPBASE.ALGOLIA.appID, window.FPBASE.ALGOLIA.publicKey)
   var proteinIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.proteinIndex)

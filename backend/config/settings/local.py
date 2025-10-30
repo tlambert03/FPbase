@@ -28,6 +28,10 @@ TEMPLATES[0]["OPTIONS"]["debug"] = DEBUG
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
+# DJANGO_VITE - Enable dev mode for local development
+# ------------------------------------------------------------------------------
+DJANGO_VITE["default"]["dev_mode"] = True
+
 # CSRF_COOKIE_HTTPONLY = True
 
 # SECRET CONFIGURATION

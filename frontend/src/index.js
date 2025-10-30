@@ -13,10 +13,10 @@ import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 import "nouislider/distribute/nouislider.min.css"
 import "./css/style.scss"
 
-import "bootstrap"
+// Bootstrap loaded from CDN in base.html for jQuery compatibility
 
 import "./js/project.js"
-import "./js/search_logic.js"
+import initSearch from "./js/search_logic.js"
 import "./js/protein_page.js"
 import "./js/favit.js"
 import "./js/jquery.formset.js"
@@ -38,7 +38,11 @@ window.FPBASE = {
   ...window.FPBASE,
   currentBundle: "main",
   initAutocomplete,
+  initSearch,
   FPPropChart,
   LineageChart,
   initFRET,
 }
+
+// Also expose initSearch globally for legacy inline scripts
+window.initSearch = initSearch
