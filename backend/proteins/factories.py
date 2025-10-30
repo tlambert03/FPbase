@@ -1,8 +1,9 @@
 # pyright: reportPrivateImportUsage=false
 import random
-from typing import TYPE_CHECKING, cast
+from typing import TypeVar, cast
 
 import factory
+import factory.builder
 import factory.fuzzy
 import numpy as np
 from django.utils.text import slugify
@@ -12,8 +13,7 @@ from proteins.util.helpers import wave_to_hex
 
 from .models import Camera, Filter, FilterPlacement, Light, Microscope, OpticalConfig, Protein, Spectrum, State
 
-if TYPE_CHECKING:
-    import factory.builder
+T = TypeVar("T")
 
 # fmt: off
 _BP_TYPE = {Filter.BP, Filter.BPM, Filter.BPX}
@@ -120,14 +120,14 @@ def _build_spectral_data(resolver: factory.builder.Resolver):
     subtype = getattr(resolver, "subtype", None)
 
     if (owner_state := getattr(resolver, "owner_state", None)) is not None:
-        owner_state = cast(State, owner_state)
+        owner_state = cast("State", owner_state)
         if subtype == "ex":
             return _mock_spectrum(owner_state.ex_max, type="ex")
         elif subtype == "em":
             return _mock_spectrum(owner_state.em_max, type="em")
 
     if (owner_filter := getattr(resolver, "owner_filter", None)) is not None:
-        owner_filter = cast(Filter, owner_filter)
+        owner_filter = cast("Filter", owner_filter)
         if subtype in _BP_TYPE:
             center = owner_filter.bandcenter or resolver.factory_parent.bandcenter
             width = owner_filter.bandwidth or resolver.factory_parent.bandwidth
@@ -150,7 +150,7 @@ class OrganismFactory(factory.django.DjangoModelFactory):
     division = factory.Iterator([o[2] for o in COMMON_ORGANISMS])
 
 
-class SpectrumOwnerFactory(factory.django.DjangoModelFactory):
+class SpectrumOwnerFactory(factory.django.DjangoModelFactory[T]):
     class Meta:
         abstract = True
         django_get_or_create = ("name", "slug")
@@ -239,7 +239,7 @@ class MicroscopeFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: f"TestMicroscope{n}")
 
 
-class FilterFactory(SpectrumOwnerFactory):
+class FilterFactory(SpectrumOwnerFactory[Filter]):
     class Meta:
         model = Filter
         exclude = ("subtype",)
