@@ -276,6 +276,8 @@ def test_microscope_create(
     expect(result_with_bs).to_be_visible()
     result_with_bs.click()
 
+    expect(auth_page.locator(".select2-results")).not_to_be_visible()
+
     # Add Emission Filter (em_name)
     em_filters_container = auth_page.locator("#div_id_optical_configs-0-em_filters")
     em_filters_container.click()
