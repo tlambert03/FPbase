@@ -248,13 +248,18 @@ def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
 
 def test_microscope_create(live_server: LiveServer, auth_page: Page, assert_snapshot) -> None:
     """Test microscope creation form with optical config."""
-    # Create filters that can be selected in the form
-    filter_configs = OpticalConfigWithFiltersFactory.create_batch(3)
-    # Extract filter names from the created configs
-    ex0_name = filter_configs[0].ex_filters.first().name
-    ex1_name = filter_configs[1].ex_filters.first().name
-    bs_name = filter_configs[0].bs_filters.first().name
-    em_name = filter_configs[0].em_filters.first().name
+    # Create filters that can be selected in the form (without full optical configs)
+    from proteins.factories import FilterFactory
+
+    ex_filter0 = FilterFactory(name="TestExFilter0")
+    ex_filter1 = FilterFactory(name="TestExFilter1")
+    bs_filter = FilterFactory(name="TestBsFilter")
+    em_filter = FilterFactory(name="TestEmFilter")
+
+    ex0_name = ex_filter0.name
+    ex1_name = ex_filter1.name
+    bs_name = bs_filter.name
+    em_name = em_filter.name
 
     # Navigate to microscopes list page
     url = f"{live_server.url}{reverse('proteins:microscopes')}"
