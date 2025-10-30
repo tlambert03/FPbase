@@ -5,8 +5,6 @@ import "vite/modulepreload-polyfill"
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
-import "regenerator-runtime/runtime"
-
 // jQuery, select2, and nouislider loaded from CDN in base.html
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"

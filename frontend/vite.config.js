@@ -39,15 +39,8 @@ export default defineConfig(({ mode }) => {
           proteinTable: path.resolve(__dirname, "src/protein-table.js"),
         },
 
-        // Externalize jQuery - loaded from CDN for legacy inline script compatibility
-        external: ["jquery"],
-
         // Manual code splitting (hybrid approach)
         output: {
-          // Map external jquery to global jQuery
-          globals: {
-            jquery: "jQuery",
-          },
           manualChunks(id) {
             // Sentry (shared across all)
             if (id.includes("node_modules/@sentry")) {
@@ -80,7 +73,6 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    // Resolve aliases (match webpack)
     resolve: {
       alias: {
         "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.jsx"),

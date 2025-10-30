@@ -11,22 +11,18 @@
   "dependencies": {
     "@fpbase/blast": "workspace:*",
     "@fpbase/spectra": "workspace:*",
-    "@popperjs/core": "^2.4.0",
     "@sentry/browser": "^10.22.0",
     "algoliasearch": "^3.35.1",
     "autocomplete.js": "^0.36.0",
     "d3": "^7.9.0",
     "highcharts": "^12.4.0",
-    "jquery": "^3.7.0",
     "nouislider": "^14.7.0",
     "process": "^0.11.10",
     "progressbar.js": "^1.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "regenerator-runtime": "^0.13.5",
     "select2": "^4.0.13",
-    "select2-theme-bootstrap4": "^0.2.0-beta.6",
-    "url": "^0.11.0"
+    "select2-theme-bootstrap4": "^0.2.0-beta.6"
   },
   "devDependencies": {
     "@sentry/cli": "^2.57.0",
@@ -35,7 +31,6 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.0",
     "autoprefixer": "^10.4.21",
-    "babel-plugin-transform-imports": "^2.0.0",
     "bootstrap": "^4.6.2",
     "cssnano": "^7.1.1",
     "sass": "1.93.2",
