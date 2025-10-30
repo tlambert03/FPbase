@@ -35,6 +35,7 @@ from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import django.conf
 import pytest
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
@@ -103,6 +104,10 @@ def pytest_configure(config: pytest.Config) -> None:
     if hasattr(config, "workerinput"):
         return
 
+    CYAN = 36
+    RED = 31
+    GREEN = 32
+
     def _color_text(text: str, color_code: int) -> str:
         with suppress(AttributeError, OSError):
             # Check if stdout supports colors (has isatty and it returns True)
@@ -110,20 +115,13 @@ def pytest_configure(config: pytest.Config) -> None:
                 return f"\033[{color_code}m{text}\033[0m"
         return text
 
-    # Import here to avoid early Django import issues
-    import django.conf
-
     manifest_file = Path(django.conf.settings.DJANGO_VITE["default"]["manifest_path"])
     lock_file = manifest_file.parent / ".build.lock"
     lock_file.parent.mkdir(parents=True, exist_ok=True)
 
-    CYAN = 36
-    RED = 31
-    GREEN = 32
-
     # Use file locking to handle concurrent pytest runs
     with open(lock_file, "w") as f:
-        fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
 
         if _frontend_assets_need_rebuild(manifest_file):
             print(_color_text("⚙️  Building frontend assets for e2e tests...", CYAN), flush=True)
@@ -139,6 +137,12 @@ def pytest_configure(config: pytest.Config) -> None:
                 print(f"STDERR: {result.stderr}", flush=True)
                 raise RuntimeError(f"Frontend build failed: {result.stderr}")
             print(_color_text("✅ Frontend build completed successfully", GREEN), flush=True)
+
+            # Clear django-vite's cached manifest so it reloads the new one
+            # This is necessary because Django may have already loaded the old manifest
+            import django_vite.core.asset_loader
+
+            django_vite.core.asset_loader.DjangoViteAssetLoader._instance = None
         else:
             print(_color_text("✅ Frontend assets are up to date", GREEN), flush=True)
 
