@@ -106,13 +106,15 @@ export default defineConfig(({ mode }) => {
         ],
       }),
 
-      // Sentry source map upload (production only)
+      // Sentry source map upload (production only, and only if auth token is set)
       !isDev &&
+        process.env.SENTRY_AUTH_TOKEN &&
         sentryVitePlugin({
           org: "talley-lambert",
           project: "fpbase",
           authToken: process.env.SENTRY_AUTH_TOKEN,
           release: process.env.HEROKU_SLUG_COMMIT,
+          telemetry: false,
         }),
     ].filter(Boolean),
 
