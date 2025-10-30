@@ -284,5 +284,8 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
       $(`#${display_type}display`).removeClass("hidden")
       $(`#${display_type}display`).siblings("div").addClass("hidden")
     })
+
+    // Mark the form as ready for E2E tests
+    $("#query_builder").attr("data-search-ready", "true")
   })
 }

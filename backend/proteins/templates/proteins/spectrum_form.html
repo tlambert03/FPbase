@@ -342,7 +342,12 @@
         }
       },
       error: function(xhr) {
-        var response = JSON.parse(xhr.responseText || '{}');
+        var response = {};
+        try {
+          response = JSON.parse(xhr.responseText || '{}');
+        } catch(e) {
+          // Ignore parse errors
+        }
         var errorMsg = response.error || 'Failed to generate preview';
         var details = response.details || '';
         var formErrors = response.form_errors || {};
@@ -359,7 +364,8 @@
     var preview = response.preview;
 
     // Clear any previous validation error alerts since preview was successful
-    $('.alert-danger.alert-dismissible').alert('close');
+    // Use remove() instead of Bootstrap's alert('close') for better compatibility
+    $('.alert-danger.alert-dismissible').remove();
 
     // Update message based on whether file was processed
     var message = response.message;
@@ -501,6 +507,8 @@
   // Initialize submit button text
   $(document).ready(function() {
     updateSubmitButton();
+    // Mark form as ready for E2E tests
+    $("#spectrum-submit-form").attr("data-form-ready", "true");
   });
 
 </script>

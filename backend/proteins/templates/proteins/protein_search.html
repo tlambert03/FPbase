@@ -124,15 +124,23 @@
       return false;
     }
 
-    if (!tryInitSearch()) {
-      // Module not loaded yet, wait for it
-      setTimeout(function() {
-        if (!tryInitSearch()) {
-          // Try one more time after longer delay
-          setTimeout(tryInitSearch, 200);
-        }
-      }, 100);
+    // Poll for initSearch function with exponential backoff
+    var attempts = 0;
+    var maxAttempts = 20;
+    function pollForInit() {
+      if (tryInitSearch()) {
+        return;
+      }
+      attempts++;
+      if (attempts < maxAttempts) {
+        var delay = Math.min(50 * Math.pow(1.5, attempts), 1000);
+        setTimeout(pollForInit, delay);
+      } else {
+        console.error('Failed to initialize search form - initSearch function not found after', maxAttempts, 'attempts');
+      }
     }
+
+    pollForInit();
   })();
 </script>
 
