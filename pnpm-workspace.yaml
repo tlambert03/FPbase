@@ -1,6 +1,7 @@
 packages:
   - packages/**
   - frontend
+  - playwright
 
 onlyBuiltDependencies:
   - '@parcel/watcher'

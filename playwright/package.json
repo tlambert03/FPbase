@@ -1,0 +1,17 @@
+{
+  "name": "@fpbase/e2e",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "codegen": "playwright codegen",
+    "trace:show": "playwright show-trace"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@playwright/test": "^1.56.1",
+    "playwright": "^1.56.1"
+  }
+}

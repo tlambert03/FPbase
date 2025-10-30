@@ -9,7 +9,9 @@
     "format": "biome format --write",
     "format:check": "biome check --write",
     "format:unsafe": "biome check --write --unsafe",
-    "lint": "biome lint --write"
+    "lint": "biome lint --write",
+    "e2e": "pnpm --filter @fpbase/e2e test",
+    "e2e:headed": "pnpm --filter @fpbase/e2e test -- --headed"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.2",
