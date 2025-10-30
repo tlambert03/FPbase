@@ -9,6 +9,7 @@ Production settings for FPbase project.
 
 """
 
+import re
 import ssl
 
 import sentry_sdk
@@ -112,6 +113,14 @@ AWS_IS_GZIPPED = True
 # Static Assets
 # ------------------------
 WHITENOISE_MAX_AGE = 600
+
+
+# http://whitenoise.evans.io/en/stable/django.html#WHITENOISE_IMMUTABLE_FILE_TEST
+# https://github.com/MrBin99/django-vite?tab=readme-ov-file#whitenoise
+def WHITENOISE_IMMUTABLE_FILE_TEST(path, url):
+    # Match vite (rollup)-generated hashes, à la, `some_file-CSliV9zW.js`
+    return re.match(r"^.+[.-][0-9a-zA-Z_-]{8,12}\..+$", url)
+
 
 # EMAIL
 # ------------------------------------------------------------------------------

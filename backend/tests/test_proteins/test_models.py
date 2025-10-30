@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from ..models import Protein, Spectrum, State
+from proteins.models import Protein, Spectrum, State
 
 
 class TestProteinModel(TestCase):

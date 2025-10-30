@@ -24,17 +24,17 @@ References:
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import re
 import subprocess
 import warnings
 from collections import defaultdict
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import django.conf
 import pytest
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
@@ -90,6 +90,59 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    """Build frontend assets before test collection when running e2e tests.
+
+    This hook runs very early - before test collection and before Django is imported.
+    It ensures the manifest exists and is valid before any worker process starts.
+
+    For pytest-xdist, this runs once in the main process before workers are spawned,
+    ensuring all workers find a valid manifest when they start.
+    """
+    # Only run in main process (not in xdist workers)
+    if hasattr(config, "workerinput"):
+        return
+
+    def _color_text(text: str, color_code: int) -> str:
+        with suppress(AttributeError, OSError):
+            # Check if stdout supports colors (has isatty and it returns True)
+            if hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
+                return f"\033[{color_code}m{text}\033[0m"
+        return text
+
+    # Import here to avoid early Django import issues
+    import django.conf
+
+    manifest_file = Path(django.conf.settings.DJANGO_VITE["default"]["manifest_path"])
+    lock_file = manifest_file.parent / ".build.lock"
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+
+    CYAN = 36
+    RED = 31
+    GREEN = 32
+
+    # Use file locking to handle concurrent pytest runs
+    with open(lock_file, "w") as f:
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+        if _frontend_assets_need_rebuild(manifest_file):
+            print(_color_text("⚙️  Building frontend assets for e2e tests...", CYAN), flush=True)
+            result = subprocess.run(
+                ["pnpm", "--filter", "fpbase", "build"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                print(_color_text(f"❌ Build failed with exit code {result.returncode}", RED), flush=True)
+                print(f"STDOUT: {result.stdout}", flush=True)
+                print(f"STDERR: {result.stderr}", flush=True)
+                raise RuntimeError(f"Frontend build failed: {result.stderr}")
+            print(_color_text("✅ Frontend build completed successfully", GREEN), flush=True)
+        else:
+            print(_color_text("✅ Frontend assets are up to date", GREEN), flush=True)
+
+
 def _visual_snapshots_enabled(config: pytest.Config) -> bool:
     """Check if visual snapshots are enabled via CLI flag or environment variable."""
     return config.getoption("--visual-snapshots", False) or os.environ.get("VISUAL_SNAPSHOTS", "").lower() in (
@@ -126,24 +179,8 @@ def _frontend_assets_need_rebuild(manifest_file) -> bool:
     return False
 
 
-@pytest.fixture(scope="module", autouse=True)
-def _setup_frontend_assets() -> None:
-    """Build Vite assets once per test module if needed.
-
-    Checks if existing manifest represents a valid build and if source files have changed.
-    Rebuilds if missing, invalid, or source files are newer.
-
-    Module-scoped to avoid rebuilding for every test (which would be slow).
-    This is safe because Vite output is filesystem-based, not database.
-    """
-    manifest_file = Path(django.conf.settings.DJANGO_VITE["default"]["manifest_path"])
-
-    # Need to build - either no manifest, invalid manifest, or source files changed
-    if _frontend_assets_need_rebuild(manifest_file):
-        print("Building frontend assets for e2e tests...")
-        subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
-
-    # django-vite doesn't need MockWebpackLoader reversion (uses manifest directly)
+# Frontend assets are built in pytest_configure hook (runs before Django import)
+# No fixture needed here since assets are guaranteed to exist before workers start
 
 
 @pytest.fixture
