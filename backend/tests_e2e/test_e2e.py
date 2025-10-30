@@ -285,6 +285,7 @@ def test_microscope_create(
     expect(result_with_em).to_be_visible()
     result_with_em.click()
 
+    expect(auth_page.locator(".select2-results")).not_to_be_visible()
     assert_snapshot(auth_page)
 
     auth_page.locator('input[type="submit"]').click()
