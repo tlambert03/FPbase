@@ -6,6 +6,7 @@ It's registered in conftest.py via pytest_plugins to make fixtures auto-discover
 
 from __future__ import annotations
 
+from contextlib import suppress
 import os
 import shutil
 import sys
@@ -69,7 +70,8 @@ def _cleanup_snapshot_failures(pytestconfig: pytest.Config):
         shutil.rmtree(SnapshotPaths.failures_path, ignore_errors=True)
 
     # Create the directory to ensure it exists
-    SnapshotPaths.failures_path.mkdir(parents=True, exist_ok=True)
+    with suppress(FileExistsError):
+        SnapshotPaths.failures_path.mkdir(parents=True, exist_ok=True)
 
     yield
 
