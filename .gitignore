@@ -386,3 +386,4 @@ memray_*/
 test_fix*.bin
 __snapshots__/
 snapshot_failures/
+frontend/stats.html

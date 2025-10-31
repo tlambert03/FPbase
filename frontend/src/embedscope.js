@@ -4,8 +4,8 @@ import "vite/modulepreload-polyfill"
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 
-// jQuery, select2, and nouislider loaded from CDN in base.html
-import "bootstrap"
+// Bootstrap CSS is loaded from main bundle CSS in microscope_embed.html
+// Bootstrap JS, jQuery, select2, and nouislider are loaded from CDN
 // D3 v3 is loaded from CDN for microscope.js compatibility (see microscope_embed.html)
 // Do NOT import D3 v7 here as it will overwrite the global d3 object and break nvd3
 // microscope.js loaded separately via CDN on microscope pages

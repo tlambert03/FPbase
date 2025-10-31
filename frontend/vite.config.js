@@ -2,6 +2,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import react from "@vitejs/plugin-react"
+import { visualizer } from "rollup-plugin-visualizer"
 import { defineConfig } from "vite"
 import { viteStaticCopy } from "vite-plugin-static-copy"
 
@@ -26,6 +27,9 @@ export default defineConfig(({ mode }) => {
       // Source maps for Sentry
       sourcemap: true,
 
+      // Chunk size warnings (increased for large vendor chunks)
+      chunkSizeWarningLimit: 1000, // 1MB (we have large MUI/Highcharts chunks)
+
       // Multi-page app configuration
       rollupOptions: {
         input: {
@@ -39,25 +43,9 @@ export default defineConfig(({ mode }) => {
           proteinTable: path.resolve(__dirname, "src/protein-table.js"),
         },
 
-        // Manual code splitting (hybrid approach)
-        output: {
-          manualChunks(id) {
-            // Sentry (shared across all)
-            if (id.includes("node_modules/@sentry")) {
-              return "vendor-sentry"
-            }
-
-            // React (shared, but NOT in embedscope)
-            if (id.includes("node_modules/react") || id.includes("node_modules/scheduler")) {
-              return "vendor-react"
-            }
-
-            // D3 v7 (EXCLUDE from embedscope - it uses CDN D3 v3)
-            if (id.includes("node_modules/d3")) {
-              return "vendor-d3"
-            }
-          },
-        },
+        // Let Vite handle code splitting automatically
+        // Manual chunking was causing initialization order issues
+        output: {},
       },
     },
 
@@ -110,6 +98,16 @@ export default defineConfig(({ mode }) => {
           release: process.env.HEROKU_SLUG_COMMIT,
           telemetry: false,
         }),
+
+      // Bundle analyzer (production only, use `ANALYZE=1 pnpm build` to generate stats.html)
+      !isDev &&
+        process.env.ANALYZE &&
+        visualizer({
+          filename: "stats.html",
+          open: true,
+          gzipSize: true,
+          brotliSize: true,
+        }),
     ].filter(Boolean),
 
     // CSS configuration
@@ -145,6 +143,10 @@ export default defineConfig(({ mode }) => {
       exclude: ["jquery"],
       include: ["process/browser"],
       esbuildOptions: {
+        // Handle JSX in .js files during dependency scanning
+        loader: {
+          ".js": "jsx",
+        },
         define: {
           global: "globalThis",
         },

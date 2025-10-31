@@ -215,7 +215,10 @@ STATIC_ROOT = str(ROOT_DIR / "staticfiles")
 STATIC_URL = "/static/"
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(ROOT_DIR.parent / "frontend" / "dist")]
+# Only include dist directory if it exists (after production build)
+# In dev mode, django-vite proxies to Vite dev server instead
+_dist_dir = ROOT_DIR.parent / "frontend" / "dist"
+STATICFILES_DIRS = [str(_dist_dir)] if _dist_dir.exists() else []
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [

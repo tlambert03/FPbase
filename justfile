@@ -63,10 +63,6 @@ snapshots-test:
 
 test: test-py test-js test-e2e
 
-# update browserslist database
-update-browserslist:
-    pnpm update -r caniuse-lite browserslist
-
 # clean up all virtual environments, caches, and build artifacts
 clean:
     find . -name __pycache__ -type d -exec rm -r {} +
@@ -80,3 +76,5 @@ clean:
     rm -rf .ruff_cache
     rm -rf .mypy_cache
     rm -f coverage.xml
+    rm -rf __snapshots__
+    rm -rf snapshot_failures
