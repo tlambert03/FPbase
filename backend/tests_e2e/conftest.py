@@ -207,16 +207,26 @@ def console_errors_raised(page: Page) -> Iterator[None]:
         "WebGL",
         r"\[Report Only\]",  # Content Security Policy reports
         "analytics.google.com",  # Google Analytics
+        "doubleclick.net",  # Google Analytics (alternate domain)
         "googletagmanager.com",  # Google Tag Manager
         r"www.google.com/recaptcha",
+        "recaptcha",  # Catch all reCAPTCHA errors (test key returns 401)
         r"ERR_ABORTED",  # Navigation aborts (PDF downloads, autocomplete navigation)
+        r"Frame load interrupted",  # WebKit: PDF downloads interrupt navigation
+        r"autocomplete-state",  # Teardown race: autocomplete requests cancelled
+        r"font-awesome.*\.woff2",  # CDN font assets cancelled during teardown
+        r"cdnjs\.cloudflare\.com",  # CDN assets may be cancelled during teardown
     ]
 
     def on_console(msg: ConsoleMessage) -> None:
-        # Check ignore patterns
+        # Check ignore patterns against both message text and URL
         for pattern in ignore_patterns:
             if re.search(pattern, msg.text, re.IGNORECASE):
                 return
+            # Also check the URL in the location (if available)
+            if msg.location and "url" in msg.location:
+                if re.search(pattern, msg.location["url"], re.IGNORECASE):
+                    return
         console_messages[msg.type].append(msg)
 
     def on_page_error(error: Exception) -> None:
@@ -228,7 +238,7 @@ def console_errors_raised(page: Page) -> Iterator[None]:
                 return
         page_errors.append(error)
 
-    def on_crash(page: Page) -> None:
+    def on_crash(_page: Page) -> None:
         """Capture page/browser crashes."""
         pytest.fail("💥 Page/browser crashed during test execution")
 
