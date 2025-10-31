@@ -6,10 +6,10 @@ It's registered in conftest.py via pytest_plugins to make fixtures auto-discover
 
 from __future__ import annotations
 
-from contextlib import suppress
 import os
 import shutil
 import sys
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
