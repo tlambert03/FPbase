@@ -224,6 +224,7 @@ def test_spectra_img_pdf_download(live_server: LiveServer, page: Page) -> None:
         page.evaluate(f"window.location.href = '{url}'")
     download = download_info.value
     assert download.suggested_filename.endswith(".pdf")
+    page.wait_for_load_state("networkidle")
 
 
 def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
@@ -525,8 +526,8 @@ def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: C
     expect(lozenges).to_be_visible()
     assert_snapshot(page)
 
-    # click on table display button (click the input, which should trigger change event)
-    page.locator("#tbutton").click(force=True)
+    # Click on table display button by clicking its label
+    page.locator("label:has(#tbutton)").click()
     table = page.locator("#tdisplay")
     expect(table).to_be_visible()
 

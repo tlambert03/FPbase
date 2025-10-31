@@ -164,6 +164,17 @@ function highlightRefHits(high) {
 
 export default async function initAutocomplete() {
   // autocomplete.jquery.js loaded from CDN in base.html
+  // Wait for autocomplete plugin to be available
+  if (typeof $.fn.autocomplete === 'undefined') {
+    // Retry after a short delay
+    setTimeout(() => {
+      if (window.FPBASE && typeof window.FPBASE.initAutocomplete === 'function') {
+        window.FPBASE.initAutocomplete()
+      }
+    }, 50)
+    return
+  }
+
   const { default: algoliasearch } = await import("algoliasearch")
 
   var algoliaClient = algoliasearch(window.FPBASE.ALGOLIA.appID, window.FPBASE.ALGOLIA.publicKey)

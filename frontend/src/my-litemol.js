@@ -414,6 +414,7 @@ async function getPDBinfo(pdbIds) {
         tags: { component: "pdb-metadata", pdbIds: pdbIds.join(",") },
       })
     }
+    console.error("Failed to load PDB metadata:", error)
 
     const links = pdbIds
       .map((id) => `<a href="https://www.rcsb.org/structure/${id}">${id}</a>`)

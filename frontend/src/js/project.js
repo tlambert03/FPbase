@@ -1,6 +1,16 @@
 const $ = window.jQuery // jQuery loaded from CDN
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
+// Helper to wait for Bootstrap plugins to be available
+function waitForBootstrap(callback) {
+  if (typeof $.fn.tooltip !== 'undefined' && typeof $.fn.popover !== 'undefined') {
+    callback()
+  } else {
+    // Retry after a short delay
+    setTimeout(() => waitForBootstrap(callback), 50)
+  }
+}
+
 window.mobilecheck = () => {
   var check = false
   ;((a) => {
@@ -624,9 +634,12 @@ function formatAAseq(elem, breakpoint) {
     }
   }
   elem.show()
-  $('[data-toggle="tooltip"]').tooltip({
-    trigger: "hover",
-    delay: { show: 200 },
+  // Wait for Bootstrap to be available before initializing tooltips
+  waitForBootstrap(() => {
+    $('[data-toggle="tooltip"]').tooltip({
+      trigger: "hover",
+      delay: { show: 200 },
+    })
   })
 }
 
