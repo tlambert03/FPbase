@@ -74,6 +74,7 @@
   }
 })();
 
-$('.form-group').removeClass('row');
+// Remove crispy-forms Bootstrap row class
+document.querySelectorAll('.form-group').forEach(el => el.classList.remove('row'));
 </script>
 {% endblock %}

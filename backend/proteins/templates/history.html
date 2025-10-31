@@ -10,7 +10,7 @@
       {% if request.user.is_staff %}
       <form id="adminRevert" style="display:inline; font-weight: bold;" data-action-url="{% url 'proteins:admin_revert_revision' rev=revision.id %}" data-success="{{ protein.get_absolute_url }}">
       {% csrf_token %}
-      <a class="text-secondary ml-3"  href="#" onclick="$(this).closest('form').submit()">Revert to this revision</a>
+      <a class="text-secondary ml-3"  href="#" onclick="event.preventDefault(); this.closest('form').submit();">Revert to this revision</a>
       </form>
       {% endif %}
 

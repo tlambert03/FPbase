@@ -116,7 +116,7 @@
 
     function tryInitSearch() {
       if (typeof window.initSearch === 'function') {
-        $(function() {
+        document.addEventListener('DOMContentLoaded', function() {
           window.initSearch(filterFields, filterOperators, filterLabels);
         });
         return true;

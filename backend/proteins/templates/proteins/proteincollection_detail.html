@@ -85,13 +85,20 @@
 
 
 <script type="text/javascript">
-    $(function(){
+    document.addEventListener('DOMContentLoaded', function(){
 
-        $('.displaybuttons input').change(function(){
-            var display_type = $(this).val()
-            $("#" +  display_type + "display").show()
-            $("#" +  display_type + "display").siblings('div').hide()
-        })
+        document.querySelectorAll('.displaybuttons input').forEach(input => {
+            input.addEventListener('change', function(){
+                var display_type = this.value;
+                var displayEl = document.getElementById(display_type + "display");
+                displayEl.style.display = '';
+                Array.from(displayEl.parentElement.children).forEach(el => {
+                    if (el !== displayEl && el.tagName === 'DIV') {
+                        el.style.display = 'none';
+                    }
+                });
+            })
+        });
     });
 
 </script>

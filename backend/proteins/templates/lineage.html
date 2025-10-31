@@ -31,10 +31,10 @@
 <script>
 
 
-$('.lineage').each(function(i, el){
-  $(el).html('<p>loading lineage info... <img src="' + '{% static 'images/GFP_spinner.gif' %}' + '">');
+document.querySelectorAll('.lineage').forEach(function(el, i){
+  el.innerHTML = '<p>loading lineage info... <img src="' + '{% static 'images/GFP_spinner.gif' %}' + '">';
   $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
-    $(el).empty();
+    el.innerHTML = '';
     var chart = window.FPBASE.LineageChart({
       withSearch: true,
       withToolbar: true,

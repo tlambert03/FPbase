@@ -116,11 +116,11 @@ container-fluid
 
 {% block javascript %}
 
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
+<script defer type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
+<script defer type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
 
 <script type="text/javascript">
-  $(function() {
+  document.addEventListener('DOMContentLoaded', function() {
       $.fn.scopeReport({
           csrfToken: "{{ csrf_token }}",
           scopeID: "{{ object.id }}",
@@ -130,8 +130,8 @@ container-fluid
       })
   });
 
-  // In your Javascript (external .js resource or <script> tag)
-  $(document).ready(function() {
+  // Initialize Select2 (requires jQuery from CDN)
+  document.addEventListener('DOMContentLoaded', function() {
       $('#probe_filter').select2({theme: 'bootstrap', width: '300px'});
   });
 

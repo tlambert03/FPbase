@@ -46,7 +46,14 @@
 
   {% vite_asset 'src/embedscope.js' %}
 
-  <script>$('#efflink a').attr('target', '_blank').append('<i class="small ml-2 fas fa-external-link-alt"></i>');</script>
+  <script>
+    // Add external link styling to efficiency link
+    const efflink = document.querySelector('#efflink a');
+    if (efflink) {
+      efflink.setAttribute('target', '_blank');
+      efflink.insertAdjacentHTML('beforeend', '<i class="small ml-2 fas fa-external-link-alt"></i>');
+    }
+  </script>
 
 </body>
 <script type="text/javascript">

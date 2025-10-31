@@ -201,17 +201,8 @@
     {% endif %}
 {% endblock extrafooter %}
 
-
 {% block javascript %}
-
     <script type="text/javascript">
       window.CSRF_TOKEN = "{{ csrf_token }}";
-      $(document).on('show.bs.modal', '#excerptModal', function () {
-          $('#excerptModal').css('z-index', 1200);
-      });
-
-      $(document).on('hidden.bs.modal', 'excerptModal', function () {
-          $('#excerptModal').css('z-index', 1039);
-      });
     </script>
 {% endblock javascript %}

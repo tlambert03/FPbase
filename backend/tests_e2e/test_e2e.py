@@ -321,14 +321,14 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, a
 
 def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test FRET page loads with donor/acceptor selection."""
-    ProteinFactory(
+    donor = ProteinFactory.create(
         name="donor",
         agg="m",
         default_state__ex_max=488,
         default_state__em_max=525,
         default_state__qy=0.8,
     )
-    ProteinFactory(
+    acceptor = ProteinFactory.create(
         name="acceptor",
         agg="m",
         default_state__ex_max=525,
@@ -341,8 +341,8 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
     expect(page).to_have_url(url)
 
     # Verify select2 widgets are present and clickable
-    _select2_enter("#select2-donor-select-container", "donor", page)
-    _select2_enter("#select2-acceptor-select-container", "acceptor", page)
+    _select2_enter("#select2-donor-select-container", donor.name, page)
+    _select2_enter("#select2-acceptor-select-container", acceptor.name, page)
 
     # Wait for calculation to complete by checking for SVG to be rendered
     expect(page.locator("#spectra svg")).to_be_visible()
@@ -360,7 +360,6 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
     if not hasattr(assert_snapshot, "NOOP"):
         page.wait_for_load_state("networkidle")
         assert_snapshot(page)
-
 
 def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test collections page loads without errors."""

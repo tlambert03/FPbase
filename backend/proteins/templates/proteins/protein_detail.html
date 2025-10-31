@@ -498,7 +498,7 @@
   {% if protein.pdb %}
     {% vite_asset 'src/my-litemol.js' defer=True %}
     <script type="text/javascript">
-    $(window).on('load', function() {
+    window.addEventListener('load', function() {
       initPDB({{protein.pdb|safe}});
     });
     </script>
@@ -506,13 +506,13 @@
 
   <script type="text/javascript">
 
-    $(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         initSnapGene("{{protein.name|safe}}", '.external-resources ul')
     });
 
-    $(window).on('load', function() {
-      $('.lineage').each(function(i, el) {
-        var slug = $(el).data('slug') || '';
+    window.addEventListener('load', function() {
+      document.querySelectorAll('.lineage').forEach(function(el, i) {
+        var slug = el.dataset.slug || '';
         $.getJSON('/ajax/lineage/' + slug + '/', function(data) {
           window._lastLineageData = data;
           if (!data.children || data.children.length === 0){
@@ -522,11 +522,12 @@
           var lineage = d3.select(el);
           lineage.call(linchart);
           linchart.duration(200);
-          if (slug && $('.lineage-wrapper')){
+          const lineageWrapper = document.querySelector('.lineage-wrapper');
+          if (slug && lineageWrapper){
             var node = d3.select("#node_" + slug);
             if (!node.empty()) {
               var slugpos = node.datum().y;
-              $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
+              lineageWrapper.scrollLeft = slugpos - ((window.innerWidth - 30) / 3);
             }
           }
 

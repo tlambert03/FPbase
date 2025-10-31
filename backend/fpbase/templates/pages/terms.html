@@ -58,7 +58,12 @@
 
 {% if 'privacy' in request.path %}
     <script type="text/javascript">
-      $('html,body').animate({scrollTop: $('#privacy').offset().top}, 300);
+      // Scroll to privacy section with smooth animation
+      const target = document.getElementById('privacy');
+      if (target) {
+        console.log(target)
+        window.scrollTo({top: target.offsetTop - 130, behavior: 'smooth'});
+      }
     </script>
 {% endif %}
 

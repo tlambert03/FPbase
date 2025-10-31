@@ -160,10 +160,10 @@
 
 {% block javascript %}
     <script>
-      $(function(){
-        $('#ga_range_selector').change(function(d){
-          $('.ga-stats').hide()
-          $('.ga-stats.' + this.value).show()
+      document.addEventListener('DOMContentLoaded', function(){
+        document.getElementById('ga_range_selector').addEventListener('change', function(d){
+          document.querySelectorAll('.ga-stats').forEach(el => el.style.display = 'none');
+          document.querySelectorAll('.ga-stats.' + this.value).forEach(el => el.style.display = '');
         })
       })
     </script>

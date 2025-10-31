@@ -38,10 +38,13 @@
 
 <script>
 
-$('.lineage').each(function(i, el){
+document.querySelectorAll('.lineage').forEach(function(el, i){
   $.getJSON("{% url 'proteins:get-org-lineage' object.pk %}", function(data){
-    if(!$.isEmptyObject(data)){
-      $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
+    if(Object.keys(data).length !== 0){
+      const heading = document.createElement('h5');
+      heading.className = 'pt-3';
+      heading.innerHTML = '<strong>Lineages derived from {{ object }}</strong>';
+      el.parentNode.insertBefore(heading, el);
       var chart = window.FPBASE.LineageChart({
         withToolbar: true,
         withSearch: true,

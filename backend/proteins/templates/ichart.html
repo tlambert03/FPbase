@@ -110,8 +110,7 @@
   .then(response => response.json())
   .then(function(data){
     if (data == null || !Array.isArray(data)){
-      $('.loadinggif').hide();
-      //$('#errorModal').modal()
+      document.querySelectorAll('.loadinggif').forEach(el => el.style.display = 'none');
       $('#errorModal').modal('show');
       return;
     }
@@ -119,10 +118,10 @@
     // Data is already in the correct format from the basic API
     fpchart = window.FPBASE.FPPropChart().data(data);
     d3.select('#graph').call(fpchart);
-    $('.loadinggif').hide();
+    document.querySelectorAll('.loadinggif').forEach(el => el.style.display = 'none');
   }).catch(function(error){
     console.error("Error loading data:", error);
-    $('.loadinggif').hide();
+    document.querySelectorAll('.loadinggif').forEach(el => el.style.display = 'none');
     $('#errorModal').modal('show');
   });
 

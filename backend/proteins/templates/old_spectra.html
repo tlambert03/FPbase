@@ -207,7 +207,7 @@
 </script>
 <script>
 
-  $("#downloadSpectra").click(function(e){
+  document.getElementById("downloadSpectra").addEventListener('click', function(e){
     e.preventDefault();
     var ids = instance.getData()
       .filter(function(obj){ if (obj.disabled){ return false }; return true })

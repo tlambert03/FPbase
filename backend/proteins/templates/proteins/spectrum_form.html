@@ -129,7 +129,7 @@
   });
 
   // Create tabs immediately when DOM is ready
-  $(document).ready(function() {
+  document.addEventListener('DOMContentLoaded', function() {
     // Find the file and data fields in the crispy form and wrap them with tabs
     var fileField = $('#id_file').closest('.form-group');
     var dataField = $('#id_data').closest('.form-group');
@@ -184,7 +184,7 @@
   // Global variable to store current preview data
   var currentPreviewData = null;
 
-  $(function(){
+  document.addEventListener('DOMContentLoaded', function(){
 
     // Single consolidated change handler for category selection
     $("#id_category").change(function() {
@@ -505,7 +505,7 @@
   }
 
   // Initialize submit button text
-  $(document).ready(function() {
+  document.addEventListener('DOMContentLoaded', function() {
     updateSubmitButton();
     // Mark form as ready for E2E tests
     $("#spectrum-submit-form").attr("data-form-ready", "true");

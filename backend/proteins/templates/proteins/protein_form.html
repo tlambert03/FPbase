@@ -107,7 +107,7 @@
 
 	<script type="text/javascript">
 
-		$(function () {
+		document.addEventListener('DOMContentLoaded', function () {
 
 			var deleteclass = 'state-delete-button'
 
@@ -123,11 +123,6 @@
 
 			});
 
-			if ($("#id_ipg_id").val()){
-				//$("#id_seq").prop('disabled', true);
-				//$("#hint_id_seq").html('Sequence input disabled when IPG ID provided');
-			}
-
 			// if this is an update view without post data, remove the last (empty) state
 			{% if object %}
 				{% if not request.POST %}
@@ -136,20 +131,27 @@
 			{% endif %}
 
 
-			$('#id_states-TOTAL_FORMS').change(function(){
-				if (this.value > 1){
-					$('.transition-note').show()
-				} else {
-					$('.transition-note').hide()
-				}
-			});
+			const totalFormsField = document.getElementById('id_states-TOTAL_FORMS');
+			if (totalFormsField) {
+				totalFormsField.addEventListener('change', function(){
+					const transitionNotes = document.querySelectorAll('.transition-note');
+					if (this.value > 1){
+						transitionNotes.forEach(el => el.style.display = '');
+					} else {
+						transitionNotes.forEach(el => el.style.display = 'none');
+					}
+				});
+			}
 
-			$("form").submit(function (e) {
-			   if ($("#id_name").hasClass('is-invalid')) {
-			      e.preventDefault();
-			      $("html, body").animate({ scrollTop: 0 }, "slow");
-			      return false;
-			   }
+			document.querySelectorAll("form").forEach(form => {
+				form.addEventListener('submit', function (e) {
+					const nameField = document.getElementById("id_name");
+					if (nameField && nameField.classList.contains('is-invalid')) {
+						e.preventDefault();
+						window.scrollTo({ top: 0, behavior: 'smooth' });
+						return false;
+					}
+				});
 			});
 
 		})
