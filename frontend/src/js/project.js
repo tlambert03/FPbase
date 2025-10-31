@@ -3,7 +3,7 @@ import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch even
 
 // Helper to wait for Bootstrap plugins to be available
 function waitForBootstrap(callback) {
-  if (typeof $.fn.tooltip !== 'undefined' && typeof $.fn.popover !== 'undefined') {
+  if (typeof $.fn.tooltip !== "undefined" && typeof $.fn.popover !== "undefined") {
     callback()
   } else {
     // Retry after a short delay

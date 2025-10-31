@@ -1,6 +1,6 @@
 // Wait for Bootstrap to be available (loaded from CDN)
 function waitForBootstrap(callback) {
-  if (typeof $.fn.tooltip !== 'undefined' && typeof $.fn.popover !== 'undefined') {
+  if (typeof $.fn.tooltip !== "undefined" && typeof $.fn.popover !== "undefined") {
     callback()
   } else {
     // Retry after a short delay
