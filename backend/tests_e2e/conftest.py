@@ -216,6 +216,8 @@ def console_errors_raised(page: Page) -> Iterator[None]:
         r"autocomplete-state",  # Teardown race: autocomplete requests cancelled
         r"font-awesome.*\.woff2",  # CDN font assets cancelled during teardown
         r"cdnjs\.cloudflare\.com",  # CDN assets may be cancelled during teardown
+        r"_ga.*cookie.*overwritten",  # Firefox: Google Analytics cookie updates
+        r"expires.*cookie.*overwritten",  # Firefox: Cookie expiration updates
     ]
 
     def on_console(msg: ConsoleMessage) -> None:
@@ -297,11 +299,27 @@ def console_errors_raised(page: Page) -> Iterator[None]:
         msg = "Browser errors detected:\n" + "\n".join(errors)
         pytest.fail(msg, pytrace=False)
 
-    # Warnings are non-fatal but still reported
+    # Warnings are non-fatal but still reported (after filtering)
     if console_warnings := console_messages.get("warning"):
-        warning_messages = [f"  - {w.text} (at {w.location})" for w in console_warnings]
-        msg = "Console warnings detected:\n" + "\n".join(warning_messages)
-        warnings.warn(msg, stacklevel=2)
+        # Filter warnings using same ignore patterns
+        filtered_warnings = []
+        for w in console_warnings:
+            should_ignore = False
+            for pattern in ignore_patterns:
+                if re.search(pattern, w.text, re.IGNORECASE):
+                    should_ignore = True
+                    break
+                if w.location and "url" in w.location:
+                    if re.search(pattern, w.location["url"], re.IGNORECASE):
+                        should_ignore = True
+                        break
+            if not should_ignore:
+                filtered_warnings.append(w)
+
+        if filtered_warnings:
+            warning_messages = [f"  - {w.text} (at {w.location})" for w in filtered_warnings]
+            msg = "Console warnings detected:\n" + "\n".join(warning_messages)
+            warnings.warn(msg, stacklevel=2)
 
 
 @pytest.fixture
