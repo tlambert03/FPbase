@@ -108,40 +108,26 @@
 {% block javascript %}
 
 <script>
-  // Wait for ES modules to load before calling initSearch
-  (function() {
-    var filterFields = JSON.parse('{{filter_fields|safe}}');
-    var filterOperators = JSON.parse('{{filter_operators|safe}}');
-    var filterLabels = JSON.parse('{{filter_labels|safe}}');
+  $(function(){
+    // ES modules may still be loading - retry until initSearch is available
+    function tryInitSearch(retries = 0) {
+      const maxRetries = 20; // 1 second total (20 * 50ms)
 
-    function tryInitSearch() {
-      if (typeof window.initSearch === 'function') {
-        $(function() {
-          window.initSearch(filterFields, filterOperators, filterLabels);
-        });
-        return true;
-      }
-      return false;
-    }
-
-    // Poll for initSearch function with exponential backoff
-    var attempts = 0;
-    var maxAttempts = 20;
-    function pollForInit() {
-      if (tryInitSearch()) {
-        return;
-      }
-      attempts++;
-      if (attempts < maxAttempts) {
-        var delay = Math.min(50 * Math.pow(1.5, attempts), 1000);
-        setTimeout(pollForInit, delay);
+      if (window.FPBASE && typeof window.FPBASE.initSearch === 'function') {
+        window.FPBASE.initSearch(
+          JSON.parse('{{filter_fields|safe}}'),
+          JSON.parse('{{filter_operators|safe}}'),
+          JSON.parse('{{filter_labels|safe}}')
+        );
+      } else if (retries < maxRetries) {
+        setTimeout(function() { tryInitSearch(retries + 1); }, 50);
       } else {
-        console.error('Failed to initialize search form - initSearch function not found after', maxAttempts, 'attempts');
+        console.error('initSearch function not available after waiting');
       }
     }
 
-    pollForInit();
-  })();
+    tryInitSearch();
+  });
 </script>
 
 {% endblock javascript %}
