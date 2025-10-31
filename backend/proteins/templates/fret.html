@@ -22,6 +22,8 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
 
 {% block content %}
 
+<div data-fpbase-init="fret">
+
 <h2 class='text-center'>FPbase FRET Calculator</h2>
 <div class="spectra-wrapper mt-2 sticky">
   <div class="spectra container clearfix">
@@ -239,6 +241,8 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
     </div>
   </div>
 </div>
+
+</div><!-- end data-fpbase-init -->
 {% endblock content %}
 
 
@@ -247,10 +251,5 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
   src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js">
 </script>
 <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
-
-<script>
-  $(window).on('load', function () {
-    window.FPBASE.initFRET()
-  })
-</script>
+{# FRET initialization now handled by data-fpbase-init attribute - see frontend/src/index.js #}
 {% endblock javascript %}

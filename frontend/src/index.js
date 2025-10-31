@@ -49,3 +49,40 @@ window.FPBASE = {
 
 // Also expose initSearch globally for legacy inline scripts
 window.initSearch = initSearch
+
+// Auto-initialization: Look for elements with data-fpbase-init attribute
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("[data-fpbase-init]").forEach((element) => {
+    const initType = element.dataset.fpbaseInit
+
+    try {
+      switch (initType) {
+        case "search": {
+          const fields = JSON.parse(element.dataset.filterFields || "{}")
+          const operators = JSON.parse(element.dataset.filterOperators || "{}")
+          const labels = JSON.parse(element.dataset.filterLabels || "{}")
+          initSearch(fields, operators, labels)
+          break
+        }
+        case "autocomplete":
+          initAutocomplete()
+          break
+        case "fret":
+          initFRET()
+          break
+        default:
+          console.warn(`Unknown init type: ${initType}`)
+      }
+    } catch (error) {
+      console.error(`Error initializing ${initType}:`, error)
+    }
+  })
+})
+
+// Dispatch custom event to signal bundle is ready
+// This runs immediately - no need to wait for DOMContentLoaded
+window.dispatchEvent(
+  new CustomEvent("fpbase:ready", {
+    detail: { bundle: "main", version: window.FPBASE },
+  })
+)

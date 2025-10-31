@@ -150,25 +150,16 @@
 
       <!-- place project specific Javascript -->
       <script>
-        // Wait for ES modules to load before calling initAutocomplete
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', function() {
-            if (window.FPBASE && typeof window.FPBASE.initAutocomplete === 'function') {
-              window.FPBASE.initAutocomplete();
-            }
-          });
-        } else {
-          // DOMContentLoaded already fired, but module might still be loading
+        // Listen for bundle ready event (dispatched from frontend/src/index.js)
+        window.addEventListener('fpbase:ready', function() {
           if (window.FPBASE && typeof window.FPBASE.initAutocomplete === 'function') {
             window.FPBASE.initAutocomplete();
-          } else {
-            // Wait a bit for module to load
-            setTimeout(function() {
-              if (window.FPBASE && typeof window.FPBASE.initAutocomplete === 'function') {
-                window.FPBASE.initAutocomplete();
-              }
-            }, 100);
           }
+        });
+
+        // Handle case where bundle already loaded before listener attached
+        if (window.FPBASE && typeof window.FPBASE.initAutocomplete === 'function') {
+          window.FPBASE.initAutocomplete();
         }
       </script>
 
