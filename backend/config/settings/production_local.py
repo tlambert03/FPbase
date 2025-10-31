@@ -48,3 +48,8 @@ CACHES = {
 g = globals()
 g.pop("CELERY_BROKER_TRANSPORT_OPTIONS", None)
 g.pop("CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS", None)
+
+# Disable secure cookie settings for localhost (HTTP, not HTTPS)
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False

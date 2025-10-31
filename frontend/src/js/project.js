@@ -661,21 +661,32 @@ $("#refModalForm").submit(function (e) {
   e.preventDefault() // avoid to execute the actual submit of the form.
 })
 
-$("#excerptModalForm").submit(function (e) {
-  var form = $(this).closest("form")
-  $.ajax({
-    type: "POST",
-    url: form.attr("data-action-url"),
-    data: form.serialize(),
-    dataType: "json",
-    success: (data) => {
-      if (data.status === "success") {
-        window.location.reload()
-      }
-    },
+$("#excerptModalForm")
+  .off("submit")
+  .on("submit", function (e) {
+    e.preventDefault() // Prevent default FIRST
+    var form = $(this).closest("form")
+    var $submitBtn = form.find('button[type="submit"]')
+
+    // Prevent double submission
+    if ($submitBtn.prop("disabled")) return
+    $submitBtn.prop("disabled", true)
+
+    $.ajax({
+      type: "POST",
+      url: form.attr("data-action-url"),
+      data: form.serialize(),
+      dataType: "json",
+      success: (data) => {
+        if (data.status === "success") {
+          window.location.reload()
+        }
+      },
+      error: () => {
+        $submitBtn.prop("disabled", false) // Re-enable on error
+      },
+    })
   })
-  e.preventDefault() // avoid to execute the actual submit of the form.
-})
 
 function register_transition_form() {
   $(".trans_formset_div").formset({
