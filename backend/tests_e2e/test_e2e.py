@@ -19,7 +19,6 @@ from playwright.sync_api import expect
 from favit.models import Favorite
 from proteins.factories import FilterFactory, MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
 from proteins.models import Filter, Microscope, Protein, Spectrum
-from proteins.models.protein import Protein
 from proteins.util.blast import _get_binary
 
 if TYPE_CHECKING:
