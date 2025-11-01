@@ -21,6 +21,8 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       emptyOutDir: true,
 
+      // target: 'es2015'  # uncomment if needed for older browser support
+
       // Generate manifest.json for django-vite
       manifest: "manifest.json",
 
