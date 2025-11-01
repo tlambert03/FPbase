@@ -944,15 +944,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-webpack-loader"
-version = "3.2.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/64/e3/7c824814222d8411e5b2a72f4650e0181893bafa8324c33a5f77dd41db42/django_webpack_loader-3.2.1.tar.gz", hash = "sha256:d4bfaca9a640f087e7feeeb2ca6afd3d0a644bce3925b3d430448989c1673774", size = 17855, upload-time = "2025-06-16T12:33:24.353Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/79/dc/216df230d008495613b6fa3fe6f5f38c99c8516e81acda8cbe73a3c0f14c/django_webpack_loader-3.2.1-py2.py3-none-any.whl", hash = "sha256:b7e505bcdf7af8f75433f13d54010e0a95c61a8b80890a700a598602656e09bf", size = 20806, upload-time = "2025-06-16T12:33:22.672Z" },
-]
-
-[[package]]
 name = "djangorestframework"
 version = "3.16.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1129,7 +1120,6 @@ dependencies = [
     { name = "django-storages", extra = ["boto3"] },
     { name = "django-structlog" },
     { name = "django-vite" },
-    { name = "django-webpack-loader" },
     { name = "djangorestframework" },
     { name = "djangorestframework-csv" },
     { name = "dnspython" },
@@ -1234,7 +1224,6 @@ requires-dist = [
     { name = "django-storages", extras = ["boto3"], specifier = ">=1.13.2" },
     { name = "django-structlog", specifier = ">=8.1.0" },
     { name = "django-vite", specifier = ">=3.1.0" },
-    { name = "django-webpack-loader", specifier = ">=2.0.1" },
     { name = "djangorestframework", specifier = ">=3.14.0" },
     { name = "djangorestframework-csv", specifier = ">=2.1.1" },
     { name = "dnspython", specifier = ">=2.6.1" },

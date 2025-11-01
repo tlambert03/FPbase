@@ -23,7 +23,6 @@ dependencies = [
     'django-redis>=6.0.0',
     'django-reversion-compare>=0.19.0',
     'django-reversion>=6.0.0',
-    'django-webpack-loader>=2.0.1',
     'django>=5.2,<5.3',
     'djangorestframework-csv>=2.1.1',
     'djangorestframework>=3.14.0',

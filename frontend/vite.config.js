@@ -117,7 +117,6 @@ export default defineConfig(({ mode }) => {
       },
       preprocessorOptions: {
         scss: {
-          // Silence deprecation warnings similar to webpack config
           silenceDeprecations: ["import", "global-builtin", "color-functions", "abs-percent"],
         },
       },
