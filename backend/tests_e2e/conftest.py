@@ -182,15 +182,16 @@ def page(page: Page) -> Iterator[Page]:
 
 IGNORE_PATTERNS = [
     "autocomplete-state",  # Autocomplete requests cancelled
-    "doubleclick.net",
+    r"doubleclick\.net",
     "ERR_ABORTED",  # Navigation aborts (PDF downloads, autocomplete)
-    "favicon.ico",
+    r"favicon\.ico",
     "Frame load interrupted",  # WebKit: PDF downloads interrupt navigation
-    "google.com",
+    r"google\.com",
     "googletagmanager.com",
     "recaptcha",  # Test key returns 401
     "sentry",
     "WebGL",
+    r"accessibility\.js",  # highcharts accessibility module warnings
     r".*cookie.*overwritten",  # cookie updates
     r"\[Report Only\]",  # Content Security Policy reports
     r"cdnjs\.cloudflare\.com",  # CDN assets cancelled during teardown

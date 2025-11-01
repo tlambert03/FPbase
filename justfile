@@ -64,17 +64,25 @@ snapshots-test:
 test: test-py test-js test-e2e
 
 # clean up all virtual environments, caches, and build artifacts
-clean:
-    find . -name __pycache__ -type d -exec rm -r {} +
-    find . -name '*.pyc' -type f -delete
+clean-static:
     rm -rf backend/staticfiles
     rm -rf frontend/dist
-    rm -rf frontend/node_modules
-    rm -rf node_modules
+
+clean-env:
     rm -rf .venv
+    find . -name node_modules -type d -exec rm -rf {} +
+
+clean-caches:
+    find . -name __pycache__ -type d -exec rm -r {} +
+    find . -name '*.pyc' -type f -delete
     rm -rf .pytest_cache
     rm -rf .ruff_cache
     rm -rf .mypy_cache
+    rm -rf node_modules/.vite
+    rm -rf frontend/node_modules/.vite
+    rm -rf frontend/.vite
+
+clean: clean-static clean-env clean-caches
     rm -f coverage.xml
     rm -rf __snapshots__
     rm -rf snapshot_failures

@@ -686,3 +686,29 @@ def test_favorite_button_interaction(
 
     # Verify backend is updated: favorite should be removed
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None
+
+
+@pytest.mark.parametrize(
+    "viewname",
+    [
+        "proteins:search",
+        "proteins:blast",
+        "proteins:table",
+        "proteins:problems",
+        "proteins:problems-gaps",
+        "proteins:problems-inconsistencies",
+        "proteins:spectrum_submitted",
+        "proteins:spectra",
+        "proteins:spectra_graph",
+        "proteins:spectra_csv",
+        "proteins:fret",
+        "proteins:compare",
+        # "proteins:lineage-list",  # FIXME!!
+        "proteins:microscopes",
+    ],
+)
+def test_page_simply_loads_without_errors(live_server: LiveServer, page: Page, viewname: str) -> None:
+    """Test that a simple page loads without errors."""
+    url = f"{live_server.url}{reverse(viewname)}"
+    page.goto(url)
+    expect(page).to_have_url(url)

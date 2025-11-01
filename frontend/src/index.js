@@ -1,3 +1,9 @@
+// NOTE:
+// jQuery, select2, and nouislider loaded from CDN in base.html
+// Bootstrap loaded from CDN in base.html for jQuery compatibility
+// microscope.js loaded separately via CDN on microscope pages
+// scope_report.js and fret.js moved to separate bundles to avoid loading Highcharts on all pages
+
 // Vite modulepreload polyfill (must be first)
 import "vite/modulepreload-polyfill"
 
@@ -5,13 +11,10 @@ import "vite/modulepreload-polyfill"
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
-// jQuery, select2, and nouislider loaded from CDN in base.html
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 import "nouislider/distribute/nouislider.min.css"
 import "./css/style.scss"
-
-// Bootstrap loaded from CDN in base.html for jQuery compatibility
 
 import "./js/project.js"
 import initSearch from "./js/search_logic.js"
@@ -19,12 +22,9 @@ import "./js/protein_page.js"
 import "./js/favit.js"
 import "./js/jquery.formset.js"
 import "./js/onload.js"
-// microscope.js loaded separately via CDN on microscope pages
-import "./js/scope_report.js"
 
 import * as d3 from "d3"
 import initAutocomplete from "./js/algolia.js"
-import initFRET from "./js/fret.js"
 import FPPropChart from "./js/ichart.js"
 import LineageChart from "./js/lineage.js"
 
@@ -44,7 +44,6 @@ window.FPBASE = {
   initSearch,
   FPPropChart,
   LineageChart,
-  initFRET,
 }
 
 // Also expose initSearch globally for legacy inline scripts
@@ -66,9 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         case "autocomplete":
           initAutocomplete()
-          break
-        case "fret":
-          initFRET()
           break
         case "litemol": {
           // Lazy load LiteMol only when the structure section becomes visible
