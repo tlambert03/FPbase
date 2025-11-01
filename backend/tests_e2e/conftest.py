@@ -31,7 +31,6 @@ import re
 import subprocess
 import sys
 import textwrap
-import warnings
 from collections import defaultdict
 from contextlib import contextmanager, suppress
 from pathlib import Path
@@ -315,11 +314,6 @@ def console_errors_raised(page: Page) -> Iterator[None]:
                         break
             if not should_ignore:
                 filtered_warnings.append(w)
-
-        if filtered_warnings:
-            warning_messages = [f"  - {w.text} (at {w.location})" for w in filtered_warnings]
-            msg = "Console warnings detected:\n" + "\n".join(warning_messages)
-            warnings.warn(msg, stacklevel=2)
 
 
 @pytest.fixture
