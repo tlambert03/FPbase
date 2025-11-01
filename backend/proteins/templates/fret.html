@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load favit_tags %}
 {% load webp_picture from protein_tags %}
+{% load django_vite %}
 
 {% block title %}FPbase FRET Calculator{% endblock %}
 {% block meta-description %}An interactive fluorescence spectra viewer and Förster radius calculator to visualize
@@ -22,8 +23,6 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
 
 {% block content %}
 
-<div data-fpbase-init="fret">
-
 <h2 class='text-center'>FPbase FRET Calculator</h2>
 <div class="spectra-wrapper mt-2 sticky">
   <div class="spectra container clearfix">
@@ -31,18 +30,6 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
       <div class="svg-container">
         <svg id="spectrasvg"></svg>
       </div>
-      <!--
-      <div class="focusnote">click and drag to zoom</div>
-      <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
-        <label class="btn btn-info active">
-          <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
-        </label>
-        <label class="btn btn-info">
-          <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
-        </label>
-      </div>
-      <div class="float-right mr-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div> -->
-
     </div>
   </div>
 </div>
@@ -242,14 +229,15 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
   </div>
 </div>
 
-</div><!-- end data-fpbase-init -->
 {% endblock content %}
 
 
 {% block javascript %}
-<script type="text/javascript"
+{% vite_asset 'src/fret.js' %}
+
+<script defer type="text/javascript"
   src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js">
 </script>
-<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
-{# FRET initialization now handled by data-fpbase-init attribute - see frontend/src/index.js #}
+<script defer type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
+{# FRET initialization handled automatically by the fret.js bundle #}
 {% endblock javascript %}

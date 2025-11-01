@@ -1,4 +1,5 @@
 import Highcharts from "highcharts"
+import "highcharts/modules/accessibility"
 
 const $ = window.jQuery // jQuery loaded from CDN
 

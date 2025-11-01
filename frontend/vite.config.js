@@ -43,6 +43,8 @@ export default defineConfig(({ mode }) => {
           microscopeForm: path.resolve(__dirname, "src/microscope-form.js"),
           blast: path.resolve(__dirname, "src/blast-app.js"),
           proteinTable: path.resolve(__dirname, "src/protein-table.js"),
+          scopeReport: path.resolve(__dirname, "src/scope-report.js"),
+          fret: path.resolve(__dirname, "src/fret.js"),
         },
 
         // Let Vite handle code splitting automatically
