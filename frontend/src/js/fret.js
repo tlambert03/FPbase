@@ -1,5 +1,4 @@
 import Highcharts from "highcharts"
-import "highcharts/modules/accessibility"
 import "highcharts/modules/no-data-to-display"
 const $ = window.jQuery // jQuery loaded from CDN
 
