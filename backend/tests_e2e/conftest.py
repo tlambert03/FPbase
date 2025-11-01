@@ -298,23 +298,6 @@ def console_errors_raised(page: Page) -> Iterator[None]:
         msg = "Browser errors detected:\n" + "\n".join(errors)
         pytest.fail(msg, pytrace=False)
 
-    # Warnings are non-fatal but still reported (after filtering)
-    if console_warnings := console_messages.get("warning"):
-        # Filter warnings using same ignore patterns
-        filtered_warnings = []
-        for w in console_warnings:
-            should_ignore = False
-            for pattern in ignore_patterns:
-                if re.search(pattern, w.text, re.IGNORECASE):
-                    should_ignore = True
-                    break
-                if w.location and "url" in w.location:
-                    if re.search(pattern, w.location["url"], re.IGNORECASE):
-                        should_ignore = True
-                        break
-            if not should_ignore:
-                filtered_warnings.append(w)
-
 
 @pytest.fixture
 def assert_no_console_errors(page: Page):
