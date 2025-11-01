@@ -1,6 +1,5 @@
 import Highcharts from "highcharts"
 import "highcharts/modules/accessibility"
-import "highcharts/modules/pattern-fill"
 import "highcharts/modules/no-data-to-display"
 const $ = window.jQuery // jQuery loaded from CDN
 
@@ -348,31 +347,35 @@ export default function initFRET() {
         $("#ECA, #QYA").text("")
       }
       if (donorslug && acceptorslug) {
-        data.push({
-          key: "Overlap",
-          values: spectral_product(donorEM.values, acceptorEX.values),
-          area: true,
-          color: {
-            pattern: {
-              path: {
-                d: "M -1 1 l 2 -2 M 0 10 l 10 -10 M 9 11 l 2 -2",
-                stroke: "white",
-                strokeWidth: 3,
+        // Dynamically import pattern-fill module only when needed
+        import("highcharts/modules/pattern-fill").then(() => {
+          data.push({
+            key: "Overlap",
+            values: spectral_product(donorEM.values, acceptorEX.values),
+            area: true,
+            color: {
+              pattern: {
+                path: {
+                  d: "M -1 1 l 2 -2 M 0 10 l 10 -10 M 9 11 l 2 -2",
+                  stroke: "white",
+                  strokeWidth: 3,
+                },
+                width: 10,
+                height: 10,
+                backgroundColor: "#00000092",
+                opacity: 1,
               },
-              width: 10,
-              height: 10,
-              backgroundColor: "#00000092",
-              opacity: 1,
             },
-          },
-          classed: "fret-overlap",
-          type: "overlap",
+            classed: "fret-overlap",
+            type: "overlap",
+          })
+          updateChart()
         })
         updateTable(donorEM, acceptorEX)
       } else {
         $("#overlapIntgrl, #r0").text("")
+        updateChart()
       }
-      updateChart()
     })
   })
 
