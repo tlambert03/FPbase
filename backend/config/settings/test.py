@@ -7,8 +7,6 @@ Test settings for FPbase project.
 import getpass
 import os
 
-from webpack_loader.loaders import FakeWebpackLoader
-
 from .base import *  # noqa
 
 # DEBUG
@@ -95,11 +93,3 @@ TEMPLATES[0]["OPTIONS"]["loaders"] = [
         ],
     ],
 ]
-
-
-class MockWebpackLoader(FakeWebpackLoader):
-    def get_assets(self):
-        return {}
-
-
-WEBPACK_LOADER["DEFAULT"]["LOADER_CLASS"] = "config.settings.test.MockWebpackLoader"
