@@ -315,7 +315,6 @@ export default function FPPropChart() {
 
       // helper function to iterate through all of the data filters (without having to type them all out)
       function filtercheck(datum) {
-        // eslint-disable-next-line
         for (const f in dataFilters) {
           if (f === "agg") {
             if (dataFilters[f]) {

@@ -8,7 +8,6 @@ import Tabs from "@mui/material/Tabs"
 import { makeStyles } from "@mui/styles"
 import React, { useEffect, useState } from "react"
 
-// Use window.jQuery from CDN instead of importing (importmap doesn't work in Vite dev mode)
 const $ = window.jQuery
 
 import BlastReportAlignments from "./ReportAlignments.jsx"

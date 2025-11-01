@@ -11,8 +11,6 @@
 
 {% block javascript %}
 
-{% comment %}Sentry is now loaded as part of the main bundle{% endcomment %}
-
 {% if sentry_event_id %}
 <script>
   Sentry.init({ dsn: '{{ sentry_dsn }}' });

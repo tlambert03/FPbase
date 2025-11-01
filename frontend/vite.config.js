@@ -21,6 +21,8 @@ export default defineConfig(({ mode }) => {
       outDir: "dist",
       emptyOutDir: true,
 
+      // target: 'es2015'  # uncomment if needed for older browser support
+
       // Generate manifest.json for django-vite
       manifest: "manifest.json",
 
@@ -117,7 +119,6 @@ export default defineConfig(({ mode }) => {
       },
       preprocessorOptions: {
         scss: {
-          // Silence deprecation warnings similar to webpack config
           silenceDeprecations: ["import", "global-builtin", "color-functions", "abs-percent"],
         },
       },

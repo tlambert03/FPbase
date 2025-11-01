@@ -7,8 +7,9 @@ import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
 import "./css/litemol/LiteMol-plugin-blue.css"
 
-// jQuery loaded from CDN in base.html - available as window.jQuery and window.$
-import * as LiteMol from "./js/pdb/LiteMol-plugin"
+// Import UMD bundle - it sets window.LiteMol global
+import "./js/pdb/LiteMol-plugin"
+const LiteMol = window.LiteMol
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}
@@ -414,6 +415,7 @@ async function getPDBinfo(pdbIds) {
         tags: { component: "pdb-metadata", pdbIds: pdbIds.join(",") },
       })
     }
+    console.error("Failed to load PDB metadata:", error)
 
     const links = pdbIds
       .map((id) => `<a href="https://www.rcsb.org/structure/${id}">${id}</a>`)

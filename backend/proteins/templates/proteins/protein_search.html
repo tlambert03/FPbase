@@ -18,6 +18,11 @@
 
 {% block content %}
 
+<div data-fpbase-init="search"
+     data-filter-fields='{{filter_fields|safe}}'
+     data-filter-operators='{{filter_operators|safe}}'
+     data-filter-labels='{{filter_labels|safe}}'>
+
 <h2>Advanced Protein Search</h2>
 
 <p class="text-muted">Add additional rows to refine your search.  Each row is considered as an 'AND' clause in the search.  If a given search parameter is unknown for a protein in the database, that protein will be excluded from the results. If you find that you are not getting results, relax your query.</p>
@@ -103,45 +108,6 @@
             {% endif %}
         </div>
     {% endif %}
+
+</div><!-- end data-fpbase-init -->
 {% endblock %}
-
-{% block javascript %}
-
-<script>
-  // Wait for ES modules to load before calling initSearch
-  (function() {
-    var filterFields = JSON.parse('{{filter_fields|safe}}');
-    var filterOperators = JSON.parse('{{filter_operators|safe}}');
-    var filterLabels = JSON.parse('{{filter_labels|safe}}');
-
-    function tryInitSearch() {
-      if (typeof window.initSearch === 'function') {
-        document.addEventListener('DOMContentLoaded', function() {
-          window.initSearch(filterFields, filterOperators, filterLabels);
-        });
-        return true;
-      }
-      return false;
-    }
-
-    // Poll for initSearch function with exponential backoff
-    var attempts = 0;
-    var maxAttempts = 20;
-    function pollForInit() {
-      if (tryInitSearch()) {
-        return;
-      }
-      attempts++;
-      if (attempts < maxAttempts) {
-        var delay = Math.min(50 * Math.pow(1.5, attempts), 1000);
-        setTimeout(pollForInit, delay);
-      } else {
-        console.error('Failed to initialize search form - initSearch function not found after', maxAttempts, 'attempts');
-      }
-    }
-
-    pollForInit();
-  })();
-</script>
-
-{% endblock javascript %}

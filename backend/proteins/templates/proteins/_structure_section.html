@@ -1,7 +1,10 @@
 <h3>Structure</h3>
-<div class='row' id="protein-structure">
+<div class='row'
+     id="protein-structure"
+     data-fpbase-init="litemol"
+     data-pdb-ids='{{pdb_ids_json|safe}}'>
   <div class="col-12 col-md-6 order-2 order-md-1">
-    <div  style="height: 400px; background: white;">
+    <div style="height: 400px; background: white;">
       <div id="litemol-viewer"></div>
     </div>
   </div>
@@ -30,9 +33,6 @@
           <div id="smilesDrawing" class="mt-4">
             <div class="card-img-top" style="maxHeight: 300px;">
             </div>
-<!--              <div class="card-body pt-0">
-                <button onclick="loadDensity()" class='btn btn-xs btn-outline-info' id="density_loader" style="position: absolute; z-index: 9;">load electron density</button>
-            </div> -->
           </div>
         </div>
     </div>
