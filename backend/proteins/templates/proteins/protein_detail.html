@@ -179,7 +179,7 @@
       </table>
     </div>
 
-    <h3 class="fpbase-id"><a tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>"><i class="fas fa-info-circle ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a>FPbase ID: <span style="font-weight:400;">
+    <h3 class="fpbase-id"><button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>"><i class="fas fa-info-circle ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></button>FPbase ID: <span style="font-weight:400;">
       <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}' class="text-muted">{{ protein.uuid }}</a></span></h3>
 
 
@@ -282,7 +282,7 @@
               {% if protein.seq_validated %}
                 <span id='seq-badge' data-toggle="tooltip" data-placement="right" title="This sequence has been moderated, and matches the original publication"><i class="fas fa-check" title='sequence validated'></i></span>
               {% else %}
-                <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>
+                <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></button>
               {% endif %}
             {% endif %}
         </div>
@@ -291,9 +291,19 @@
       <div class="float-sm-right text-info"><a href="{% url 'proteins:blast' %}?query={{protein.seq}}">BLAST</a></div>
       {% endif %}
       {% if protein.lineage and protein.lineage.parent %}
-      <p class="text-muted">{{protein.name | safe}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span><span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
-          {% if protein.lineage.root_node != protein.lineage.parent and protein.lineage.mutation != protein.lineage.rootmut %}<span class="small">
-          amino acid numbers relative to <span class="mut-rel-parent hidden">{{protein.lineage.parent.protein}}</span><span class="mut-rel-root">{{protein.lineage.root_node}}</span>. <a href="" onclick="myFunction(event)" class="mut-rel-parent hidden text-secondary">show relative to {{protein.lineage.root_node}}</a><a href="" onclick="myFunction(event)" class="mut-rel-root text-secondary">show relative to {{protein.lineage.parent.protein}}</a></span>
+      <p class="text-muted">{{protein.name | safe}} was derived from
+          <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a>
+          with the following mutations:
+          <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span>
+          <span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
+          {% if protein.lineage.root_node != protein.lineage.parent and protein.lineage.mutation != protein.lineage.rootmut %}
+          <span class="small">
+            amino acid numbers relative to
+            <span class="mut-rel-parent hidden">{{protein.lineage.parent.protein}}</span>
+            <span class="mut-rel-root">{{protein.lineage.root_node}}</span>.
+            <span style="cursor: pointer;" onclick="myFunction(event)" class="mut-rel-parent hidden text-secondary">show relative to {{protein.lineage.root_node}}</span>
+            <span style="cursor: pointer;" onclick="myFunction(event)" class="mut-rel-root text-secondary">show relative to {{protein.lineage.parent.protein}}</span>
+          </span>
           {% endif %}
           </p>
           <script>
@@ -360,7 +370,7 @@
     {% endif %}
 
     <div class="excerpts">
-      <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
+      <h3>Excerpts <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></button></h3>
       {% if excerpts %}
         {% for excerpt in excerpts  %}
           {% if excerpt.status != 'rejected' %}
@@ -385,7 +395,7 @@
         <p class='text-muted'>No excerpts have been added for {{protein.name | safe }}<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
       {% endif %}
-      <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i>Add an excerpt</button></a>
+      <button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#excerptModal"><i class="fas fa-quote-left mr-2"></i>Add an excerpt</button>
     </div>
 
 
@@ -406,7 +416,7 @@
 				{% else %}
 				    <p style='color: #888;'>No additional references have been added.<p>
 				{% endif %}
-				<a class='text-info' data-toggle="modal" data-target="#referenceModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-book mr-2"></i>Add a reference</button></a>
+				<button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#referenceModal"><i class="fas fa-book mr-2"></i>Add a reference</button>
 			</ol>
 		</div>
 

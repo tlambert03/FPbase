@@ -10,6 +10,7 @@ import django.forms
 import django.forms.formsets
 import reversion
 from django.apps import apps
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -213,10 +214,13 @@ class ProteinDetailView(DetailView):
         .select_related("primary_reference")
     )
 
-    @method_decorator(cache_page(60 * 30))
-    @method_decorator(vary_on_cookie)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+    # Only enable caching in production (when DEBUG=False)
+    if not settings.DEBUG:
+        dispatch = method_decorator(cache_page(60 * 30))(dispatch)
+        dispatch = method_decorator(vary_on_cookie)(dispatch)
 
     def version_view(self, request, version, *args, **kwargs):
         try:
