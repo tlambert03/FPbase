@@ -1,5 +1,6 @@
 import contextlib
 import io
+import json
 import logging
 import operator
 from functools import reduce
@@ -37,7 +38,6 @@ from reversion.models import Revision, Version
 from fpbase.util import is_ajax, uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
 from proteins.extrest.ga import cached_ga_popular
-from proteins.forms.forms import BaseStateFormSet
 from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
 from proteins.util.spectra import spectra2csv
@@ -56,6 +56,8 @@ from ..models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, St
 
 if TYPE_CHECKING:
     import maxminddb
+
+    from proteins.forms.forms import BaseStateFormSet
 
 logger = logging.getLogger(__name__)
 
@@ -311,6 +313,10 @@ class ProteinDetailView(DetailView):
             data["country_code"] = get_country_code(self.request)
         except Exception:
             data["country_code"] = ""
+
+        # Serialize PDB IDs as JSON for JavaScript
+        if self.object.pdb:
+            data["pdb_ids_json"] = json.dumps(self.object.pdb)
 
         return data
 

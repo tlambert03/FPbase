@@ -70,6 +70,70 @@ document.addEventListener("DOMContentLoaded", () => {
         case "fret":
           initFRET()
           break
+        case "litemol": {
+          // Lazy load LiteMol only when the structure section becomes visible
+          const pdbIds = JSON.parse(element.dataset.pdbIds || "[]")
+
+          if (!pdbIds || pdbIds.length === 0) {
+            console.warn("LiteMol init: No PDB IDs provided")
+            break
+          }
+
+          // Use Intersection Observer for lazy loading
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  // Dynamically import LiteMol bundle only when needed
+                  import("./my-litemol.js")
+                    .then((module) => {
+                      const initPDB = module.default
+                      initPDB(pdbIds)
+                    })
+                    .catch((error) => {
+                      console.error("Failed to load LiteMol:", error)
+                      if (window.Sentry) {
+                        window.Sentry.captureException(error, {
+                          tags: { component: "litemol-lazy-load" },
+                        })
+                      }
+
+                      // Show user-friendly error message
+                      const links = pdbIds
+                        .map((id) => `<a href="https://www.rcsb.org/structure/${id}">${id}</a>`)
+                        .join(", ")
+
+                      element.innerHTML = `
+                        <div class="col-12">
+                          <div class="alert alert-warning" role="alert">
+                            <h5 class="alert-heading">
+                              <i class="fas fa-exclamation-triangle mr-2"></i>
+                              Unable to Load 3D Structure Viewer
+                            </h5>
+                            <p class="mb-2">The molecular structure viewer failed to load. This may be due to a network issue or browser compatibility problem.</p>
+                            <hr>
+                            <p class="mb-0">
+                              You can view these structures directly at RCSB PDB: ${links}
+                            </p>
+                          </div>
+                        </div>
+                      `
+                    })
+
+                  // Stop observing once loaded
+                  observer.unobserve(entry.target)
+                }
+              })
+            },
+            {
+              // Load when element is 200px from entering viewport
+              rootMargin: "200px",
+            }
+          )
+
+          observer.observe(element)
+          break
+        }
         default:
           console.warn(`Unknown init type: ${initType}`)
       }

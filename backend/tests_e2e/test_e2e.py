@@ -17,7 +17,13 @@ from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
 
 from favit.models import Favorite
-from proteins.factories import FilterFactory, MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
+from proteins.factories import (
+    FilterFactory,
+    MicroscopeFactory,
+    OpticalConfigWithFiltersFactory,
+    ProteinFactory,
+    create_egfp,
+)
 from proteins.models import Filter, Microscope, Protein, Spectrum
 from proteins.util.blast import _get_binary
 
@@ -615,8 +621,25 @@ def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot: Call
     assert_snapshot(page)
 
 
+def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapshot: Callable) -> None:
+    egfp = create_egfp()
+    url = f"{live_server.url}{reverse('proteins:protein-detail', args=(egfp.slug,))}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+    page.wait_for_load_state("networkidle")
+    assert_snapshot(page)
+
+    # scroll to the structure section and take another snapshot
+    page.locator("#protein-structure").scroll_into_view_if_needed()
+    chem_title = page.locator("h5#chem-title")
+    expect(chem_title).to_be_visible()
+    expect(chem_title).to_contain_text("Crystal structure of enhanced Green Fluorescent Protein")
+    expect(page.locator("img#smilesImg")).to_be_visible()
+    assert_snapshot(page)
+
+
 def test_favorite_button_interaction(
-    auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot
+    auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
 ) -> None:
     """Test favorite button interaction on protein detail page."""
     protein = Protein.objects.create(name="MyProt", seq=SEQ, uuid="XSQ4F")

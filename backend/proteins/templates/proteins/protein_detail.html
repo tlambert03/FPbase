@@ -15,6 +15,9 @@
 {% block extrahead %}
 {% include 'proteins/_structured_data.html' with protein=protein %}
 {% if protein.pdb %}
+  {# Preconnect to PDB data sources for faster loading #}
+  <link rel="preconnect" href="https://files.wwpdb.org">
+  <link rel="preconnect" href="https://data.rcsb.org">
   <link rel="preconnect" href="https://www.ebi.ac.uk">
 {% endif %}
 {% endblock extrahead %}
@@ -493,15 +496,6 @@
 
   {% if protein.has_spectra %}
   {% vite_asset 'src/simple-spectra-viewer.js' %}
-  {% endif %}
-
-  {% if protein.pdb %}
-    {% vite_asset 'src/my-litemol.js' defer=True %}
-    <script type="text/javascript">
-    $(window).on('load', function() {
-      initPDB({{protein.pdb|safe}});
-    });
-    </script>
   {% endif %}
 
   <script type="text/javascript">
