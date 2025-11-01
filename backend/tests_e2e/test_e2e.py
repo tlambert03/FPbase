@@ -443,22 +443,24 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
     page.locator("//label[input[@id='Yext_coeff']]").click()
 
 
-def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+@pytest.mark.parametrize("viewname", ["microscope-embed", "microscope-detail", "microscope-report"])
+def test_microscope_views(live_server: LiveServer, page: Page, viewname: str, assert_snapshot: Callable) -> None:
     """Test embedded microscope viewer with chart rendering."""
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
     OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
 
-    url = f"{live_server.url}{reverse('proteins:microscope-embed', args=(microscope.id,))}"
+    url = f"{live_server.url}{reverse(f'proteins:{viewname}', args=(microscope.id,))}"
     page.goto(url)
     expect(page).to_have_url(url)
 
     # Verify chart SVG rendered with content
-    svg = page.locator(".svg-container svg")
-    expect(svg).to_be_visible()
+    if "report" not in viewname:
+        svg = page.locator(".svg-container svg")
+        expect(svg).to_be_visible()
 
-    # Verify the chart has rendered spectra paths
-    paths = page.locator(".svg-container svg path")
-    assert paths.count() > 10, f"Expected more than 10 paths, but got {paths.count()}"
+        # Verify the chart has rendered spectra paths
+        paths = svg.locator("path")
+        assert paths.count() > 10, f"Expected more than 10 paths, but got {paths.count()}"
 
     # Visual snapshot: embedded microscope viewer
     # assert_snapshot(page)
