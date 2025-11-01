@@ -17,7 +17,13 @@ from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
 
 from favit.models import Favorite
-from proteins.factories import FilterFactory, MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
+from proteins.factories import (
+    FilterFactory,
+    MicroscopeFactory,
+    OpticalConfigWithFiltersFactory,
+    ProteinFactory,
+    create_egfp,
+)
 from proteins.models import Filter, Microscope, Protein, Spectrum
 from proteins.util.blast import _get_binary
 
@@ -222,6 +228,7 @@ def test_spectra_img_pdf_download(live_server: LiveServer, page: Page) -> None:
         page.evaluate(f"window.location.href = '{url}'")
     download = download_info.value
     assert download.suggested_filename.endswith(".pdf")
+    page.wait_for_load_state("networkidle")
 
 
 def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
@@ -434,22 +441,24 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
     page.locator("//label[input[@id='Yext_coeff']]").click()
 
 
-def test_embedded_microscope_viewer(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+@pytest.mark.parametrize("viewname", ["microscope-embed", "microscope-detail", "microscope-report"])
+def test_microscope_views(live_server: LiveServer, page: Page, viewname: str, assert_snapshot: Callable) -> None:
     """Test embedded microscope viewer with chart rendering."""
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
     OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
 
-    url = f"{live_server.url}{reverse('proteins:microscope-embed', args=(microscope.id,))}"
+    url = f"{live_server.url}{reverse(f'proteins:{viewname}', args=(microscope.id,))}"
     page.goto(url)
     expect(page).to_have_url(url)
 
     # Verify chart SVG rendered with content
-    svg = page.locator(".svg-container svg")
-    expect(svg).to_be_visible()
+    if "report" not in viewname:
+        svg = page.locator(".svg-container svg")
+        expect(svg).to_be_visible()
 
-    # Verify the chart has rendered spectra paths
-    paths = page.locator(".svg-container svg path")
-    assert paths.count() > 10, f"Expected more than 10 paths, but got {paths.count()}"
+        # Verify the chart has rendered spectra paths
+        paths = svg.locator("path")
+        assert paths.count() > 10, f"Expected more than 10 paths, but got {paths.count()}"
 
     # Visual snapshot: embedded microscope viewer
     # assert_snapshot(page)
@@ -609,8 +618,25 @@ def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot: Call
     assert_snapshot(page)
 
 
+def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapshot: Callable) -> None:
+    egfp = create_egfp()
+    url = f"{live_server.url}{reverse('proteins:protein-detail', args=(egfp.slug,))}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+    page.wait_for_load_state("networkidle")
+    assert_snapshot(page)
+
+    # scroll to the structure section and take another snapshot
+    page.locator("#protein-structure").scroll_into_view_if_needed()
+    chem_title = page.locator("h5#chem-title")
+    expect(chem_title).to_be_visible()
+    expect(chem_title).to_contain_text("Crystal structure of enhanced Green Fluorescent Protein")
+    expect(page.locator("img#smilesImg")).to_be_visible()
+    assert_snapshot(page)
+
+
 def test_favorite_button_interaction(
-    auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot
+    auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
 ) -> None:
     """Test favorite button interaction on protein detail page."""
     protein = Protein.objects.create(name="MyProt", seq=SEQ, uuid="XSQ4F")
@@ -657,3 +683,29 @@ def test_favorite_button_interaction(
 
     # Verify backend is updated: favorite should be removed
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None
+
+
+@pytest.mark.parametrize(
+    "viewname",
+    [
+        "proteins:search",
+        "proteins:blast",
+        "proteins:table",
+        "proteins:problems",
+        "proteins:problems-gaps",
+        "proteins:problems-inconsistencies",
+        "proteins:spectrum_submitted",
+        "proteins:spectra",
+        "proteins:spectra_graph",
+        "proteins:spectra_csv",
+        "proteins:fret",
+        "proteins:compare",
+        # "proteins:lineage-list",  # FIXME!!
+        "proteins:microscopes",
+    ],
+)
+def test_page_simply_loads_without_errors(live_server: LiveServer, page: Page, viewname: str) -> None:
+    """Test that a simple page loads without errors."""
+    url = f"{live_server.url}{reverse(viewname)}"
+    page.goto(url)
+    expect(page).to_have_url(url)

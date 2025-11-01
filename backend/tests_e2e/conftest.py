@@ -28,24 +28,23 @@ import json
 import os
 import re
 import subprocess
-import warnings
+import textwrap
 from collections import defaultdict
-from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 import django.conf
 import pytest
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
-from webpack_loader import config, loaders, utils
+from playwright.sync_api import Page
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, ViewportSize
+    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, Request, Response, ViewportSize
 
 # Register snapshot plugin to make assert_snapshot fixture available
 pytest_plugins = ["tests_e2e.snapshot_plugin"]
@@ -110,12 +109,6 @@ def _setup_frontend_assets() -> None:
         print("Building frontend assets for e2e tests...")
         subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
 
-    # UNDO the MockWebpackLoader used in normal unit tests in config.settings.test
-    def _get_real_get_loader(config_name):
-        return loaders.WebpackLoader(config_name, config.load_config(config_name))
-
-    utils.get_loader = _get_real_get_loader
-
 
 @pytest.fixture
 def page(page: Page) -> Iterator[Page]:
@@ -132,35 +125,98 @@ def page(page: Page) -> Iterator[Page]:
         yield page
 
 
-@contextmanager
-def console_errors_raised(page: Page) -> Iterator[None]:
-    """Context manager that collects console errors and warnings on a Playwright page."""
-    messages: defaultdict[str, list[ConsoleMessage]] = defaultdict(list)
-    ignore_messages = [
-        "favicon.ico",
-        "sentry",
-        "WebGL",
-        "[Report Only]",
-    ]
+IGNORE_PATTERNS = [
+    "autocomplete-state",  # Autocomplete requests cancelled
+    r"doubleclick\.net",
+    "ERR_ABORTED",  # Navigation aborts (PDF downloads, autocomplete)
+    r"favicon\.ico",
+    "Frame load interrupted",  # WebKit: PDF downloads interrupt navigation
+    r"google\.com",
+    "googletagmanager.com",
+    "recaptcha",  # Test key returns 401
+    "sentry",
+    "WebGL",
+    r"accessibility\.js",  # highcharts accessibility module warnings
+    r".*cookie.*overwritten",  # cookie updates
+    r"\[Report Only\]",  # Content Security Policy reports
+    r"cdnjs\.cloudflare\.com",  # CDN assets cancelled during teardown
+    r"font-awesome.*\.woff2",  # CDN fonts cancelled during teardown
+]
 
-    def on_console(msg: ConsoleMessage) -> None:
-        for pattern in ignore_messages:
-            if re.search(pattern, msg.text, re.IGNORECASE):
-                return
-        messages[msg.type].append(msg)
 
-    page.on("console", on_console)
+class console_errors_raised:
+    """Collects and categorizes browser errors during Playwright test execution."""
 
-    yield
+    def __init__(self, page: Page, ignore_patterns: list[str] = IGNORE_PATTERNS) -> None:
+        self.console_messages: defaultdict[str, list[ConsoleMessage]] = defaultdict(list)
+        self.page_errors: list[Exception] = []
+        self.request_failures: list[str] = []
+        self.http_errors: list[str] = []
+        self._compiled_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in ignore_patterns]
 
-    if errors := messages.get("error"):
-        error_messages = [f"  - {e.text} (at {e.location})" for e in errors]
-        msg = "Console errors detected:\n" + "\n".join(error_messages)
-        pytest.fail(msg)
-    if _warnings := messages.get("warning"):
-        warning_messages = [f"  - {w.text} (at {w.location})" for w in _warnings]
-        msg = "Console warnings detected:\n" + "\n".join(warning_messages)
-        warnings.warn(msg, stacklevel=2)
+        # Attach all event listeners
+        page.on("console", self.on_console)
+        page.on("pageerror", self.on_page_error)
+        page.on("crash", self.on_crash)
+        page.on("requestfailed", self.on_request_failed)
+        page.on("response", self.on_response)
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.assert_no_errors()
+
+    def _should_ignore(self, *texts: str) -> bool:
+        """Check if any text matches any ignore pattern (case-insensitive)."""
+        return any(pattern.search(text) for pattern in self._compiled_patterns for text in texts if text)
+
+    def on_console(self, msg: ConsoleMessage) -> None:
+        """Collect console messages unless they match ignore patterns."""
+        url = (msg.location or {}).get("url", "")
+        if not self._should_ignore(msg.text, url):
+            self.console_messages[msg.type].append(msg)
+
+    def on_page_error(self, error: Exception) -> None:
+        """Collect uncaught JavaScript exceptions (ReferenceError, TypeError, etc)."""
+        if not self._should_ignore(str(error)):
+            self.page_errors.append(error)
+
+    def on_request_failed(self, request: Request) -> None:
+        """Collect failed network requests (DNS errors, connection refused, etc)."""
+        error_msg = f"{request.url} - {request.failure}" if request.failure else request.url
+        if not self._should_ignore(request.url, error_msg):
+            self.request_failures.append(error_msg)
+
+    def on_response(self, response: Response) -> None:
+        """Collect HTTP error responses (4xx, 5xx status codes)."""
+        if response.status < 400:
+            return
+        if not self._should_ignore(response.url):
+            self.http_errors.append(f"HTTP {response.status}: {response.url}")
+
+    def on_crash(self, page: Page) -> None:
+        """Fail immediately on page/browser crash."""
+        pytest.fail("💥 Page/browser crashed during test execution")
+
+    def assert_no_errors(self) -> None:
+        """Fail the test if any errors were collected."""
+        # Critical: uncaught page errors fail immediately
+        if self.page_errors:
+            error_details = "\n".join(f"  - {textwrap.indent(err.stack, '    ')}" for err in self.page_errors)
+            pytest.fail(f"Uncaught page errors detected:\n{error_details}", pytrace=False)
+
+        # Collect other error types
+        errors = []
+        if console_errors := self.console_messages.get("error"):
+            errors.extend(f"  - Console error: {e.text} (at {e.location})" for e in console_errors)
+        if self.request_failures:
+            errors.extend(f"  - Request failed: {err}" for err in self.request_failures)
+        if self.http_errors:
+            errors.extend(f"  - {err}" for err in self.http_errors)
+
+        if errors:
+            pytest.fail("Browser errors detected:\n" + "\n".join(errors), pytrace=False)
 
 
 @pytest.fixture
