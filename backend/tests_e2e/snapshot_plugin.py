@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import shutil
 import sys
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -69,7 +70,8 @@ def _cleanup_snapshot_failures(pytestconfig: pytest.Config):
         shutil.rmtree(SnapshotPaths.failures_path, ignore_errors=True)
 
     # Create the directory to ensure it exists
-    SnapshotPaths.failures_path.mkdir(parents=True, exist_ok=True)
+    with suppress(FileExistsError):
+        SnapshotPaths.failures_path.mkdir(parents=True, exist_ok=True)
 
     yield
 

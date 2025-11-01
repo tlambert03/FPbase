@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load webpack_static from webpack_loader %}
 
 {% block title %}Server Error{% endblock %}
 
@@ -11,8 +10,6 @@
 {% endblock content %}
 
 {% block javascript %}
-
-<script src="{% webpack_static 'sentry.js' %}"></script>
 
 {% if sentry_event_id %}
 <script>

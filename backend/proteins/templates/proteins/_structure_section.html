@@ -1,7 +1,10 @@
 <h3>Structure</h3>
-<div class='row' id="protein-structure">
+<div class='row'
+     id="protein-structure"
+     data-fpbase-init="litemol"
+     data-pdb-ids='{{pdb_ids_json|safe}}'>
   <div class="col-12 col-md-6 order-2 order-md-1">
-    <div  style="height: 400px; background: white;">
+    <div style="height: 400px; background: white;">
       <div id="litemol-viewer"></div>
     </div>
   </div>
@@ -23,16 +26,13 @@
         <div class='col-12'>
           <div class="text-muted" id="pdb-info" style="position: absolute; top:8px">
             Deposited: <span id="chem-date"></span>, <span id="chem-authors"></span>
-            <a href="" id="chem-pubmed" target="_blank" ><i class="small fas fa-external-link-alt ml-2 text-secondary"></i></a><br>
+            <a href="" id="chem-pubmed" target="_blank" ><i class="fas fa-external-link-alt ml-2 text-secondary" style="font-size: 0.8rem;"></i></a><br>
             Chromophore{% if protein.chromophore %} ({{protein.chromophore}}){% endif %}: <span id='chem-id'></span><br>
             <span id='chem-form' class="small"></span><br>
           </div>
           <div id="smilesDrawing" class="mt-4">
             <div class="card-img-top" style="maxHeight: 300px;">
             </div>
-<!--              <div class="card-body pt-0">
-                <button onclick="loadDensity()" class='btn btn-xs btn-outline-info' id="density_loader" style="position: absolute; z-index: 9;">load electron density</button>
-            </div> -->
           </div>
         </div>
     </div>

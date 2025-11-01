@@ -6,8 +6,10 @@ import Snackbar from "@mui/material/Snackbar"
 import Tab from "@mui/material/Tab"
 import Tabs from "@mui/material/Tabs"
 import { makeStyles } from "@mui/styles"
-import $ from "jquery"
 import React, { useEffect, useState } from "react"
+
+const $ = window.jQuery
+
 import BlastReportAlignments from "./ReportAlignments.jsx"
 import BlastReportDescription from "./ReportDescription.jsx"
 

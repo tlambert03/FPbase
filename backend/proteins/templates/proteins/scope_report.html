@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load django_vite %}
 
 {% block title %}FPbase efficiency report for {{object}}{% endblock %}
 {% block meta-description %}Graphical and tabular representation of excitation and collection efficiency for each optical configuration on the scope, with each fluorophore in the database {% endblock %}
@@ -115,6 +116,7 @@ container-fluid
 {% endblock content %}
 
 {% block javascript %}
+{% vite_asset 'src/scope-report.js' %}
 
 <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>

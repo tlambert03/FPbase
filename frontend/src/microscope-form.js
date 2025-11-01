@@ -1,11 +1,26 @@
+// Vite modulepreload polyfill (must be first)
+import "vite/modulepreload-polyfill"
+
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
+
+// Helper to wait for Bootstrap plugins to be available
+function _waitForBootstrap(callback) {
+  if (typeof $.fn.tab !== "undefined") {
+    callback()
+  } else {
+    // Retry after a short delay
+    setTimeout(() => _waitForBootstrap(callback), 50)
+  }
+}
+
+window.$ = window.jQuery = $
+// select2 JS loaded from CDN in base.html - only import CSS
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
-import "select2/dist/js/select2.full"
 import "./js/jquery.formset"
 
 // Mark this bundle for Sentry context
@@ -13,7 +28,6 @@ window.FPBASE = window.FPBASE || {}
 window.FPBASE.currentBundle = "microscopeForm"
 
 $("#microscopeform").submit((e) => {
-  // eslint-disable-next-line
   if (confirmError) {
     const multidichroics = $("select[id*='bs_filters']").filter(function () {
       return $(this).val().length > 1
@@ -26,7 +40,7 @@ $("#microscopeform").submit((e) => {
       $("#sureModal")
         .one("hidden.bs.modal", () => {
           if ($(document.activeElement).attr("id") === "save") {
-            confirmError = false // eslint-disable-line
+            confirmError = false
             $("#microscopeform").submit()
           }
         })
@@ -65,9 +79,11 @@ $(() => {
     // in the OpticalConfig model
   })
 
-  // eslint-disable-next-line
   if (formErrors) {
-    $('#microscopeFormTabs a[href="#bulk"]').tab("show")
+    // Wait for Bootstrap to be available before calling .tab()
+    _waitForBootstrap(() => {
+      $('#microscopeFormTabs a[href="#bulk"]').tab("show")
+    })
   }
 })
 

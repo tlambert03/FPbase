@@ -1,7 +1,15 @@
+// Vite modulepreload polyfill (must be first)
+import "vite/modulepreload-polyfill"
+
+// React Fast Refresh preamble (must be before any React imports when using Django/backend integration)
+import "@vitejs/plugin-react/preamble"
+
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
+
+window.$ = window.jQuery = $
 import "./js/detect-touch"
 import { SimpleSpectraViewer } from "@fpbase/spectra"
 import { createElement } from "react"

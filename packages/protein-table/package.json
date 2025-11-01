@@ -1,6 +1,7 @@
 {
   "name": "@fpbase/protein-table",
   "version": "1.0.0",
+  "type": "module",
   "description": "fpbase protein table viewer",
   "main": "src/App.jsx",
   "scripts": {
@@ -17,8 +18,8 @@
     "@tanstack/react-table": "^8.20.6"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.0.0",
-    "vite": "^4.3.9"
+    "@vitejs/plugin-react": "^5.1.0",
+    "vite": "^7.1.12"
   },
   "peerDependencies": {
     "react": "^19.2.0",

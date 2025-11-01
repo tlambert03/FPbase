@@ -1,7 +1,7 @@
 # FPbase Copilot Instructions
 
 ## Project Overview
-FPbase is a Django/React monorepo for the Fluorescent Protein Database (fpbase.org). The backend uses Django 4.x with GraphQL and REST APIs, while the frontend is a hybrid of server-rendered Django templates with embedded React apps built via Webpack and Vite.
+FPbase is a Django/React monorepo for the Fluorescent Protein Database (fpbase.org). The backend uses Django 4.x with GraphQL and REST APIs, while the frontend is a hybrid of server-rendered Django templates with embedded React apps built via Vite.
 
 ## Architecture
 
@@ -12,12 +12,12 @@ FPbase is a Django/React monorepo for the Fluorescent Protein Database (fpbase.o
   - `references/`: Publication and citation management
   - `fpseq/`: Bioinformatics sequence alignment and analysis using Biopython
   - `favit/`: User favorites system
-- **`frontend/`**: Webpack-bundled assets integrated via `django-webpack-loader`
+- **`frontend/`**: vite-bundled assets integrated via `django-vite`
 - **`packages/`**: Standalone Vite apps (`blast/`, `spectra/`) embedded in Django templates
 
 ### Key Technologies
 - **Backend**: Django, Django REST Framework, Graphene (GraphQL), Celery (Redis), PostgreSQL
-- **Frontend**: React, Material-UI, Webpack, Vite
+- **Frontend**: React, Material-UI, Vite
 - **Search**: Algolia for protein/organism search
 - **Bioinformatics**: Biopython (sequence alignment), BLAST (local binaries in `backend/bin/`)
 - **Deployment**: Heroku, AWS S3 (media), Sentry (error tracking)
@@ -50,7 +50,6 @@ Django settings split across `backend/config/settings/`:
 - `base.py`: Shared configuration
 - `local.py`: Development (DEBUG=True, dummy cache, console email)
 - `production.py`: Production (Heroku, AWS S3, real cache)
-- `test.py`: Testing (uses `MockWebpackLoader` to skip frontend builds)
 
 Environment variables loaded via `django-environ` from `.env` file (set `DJANGO_READ_DOT_ENV_FILE=True`).
 
@@ -91,11 +90,6 @@ Core models in `models/`:
 
 ## Frontend Integration
 
-### Webpack + Django Templates
-- Webpack builds to `frontend/dist/` with stats tracked in `webpack-stats.json`
-- Django loads bundles via `{% load webpack_loader %}` template tags
-- Hot reload available with `HOT_RELOAD=1` env var
-- Entry points in `frontend/src/`: `index.js`, `spectra-viewer.js`, `blast-app.js`, etc.
 
 ### Vite Apps (packages/)
 - Standalone React apps (`@fpbase/blast`, `@fpbase/spectra`) embedded as iframes or via CDN
@@ -110,7 +104,6 @@ Core models in `models/`:
 ## Testing Patterns
 - Tests in `*/tests/` directories (pytest)
 - Use `@pytest.mark.django_db` for database access
-- Frontend-dependent tests use `@pytest.mark.usefixtures("uses_frontend", "use_real_webpack_loader")`
 - Factory fixtures preferred over manual object creation
 
 ## Custom Middleware

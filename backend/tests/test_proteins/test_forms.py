@@ -2,10 +2,10 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
-from fpbase.users.tests.factories import UserFactory
+from proteins.forms import CollectionForm, ProteinForm, SpectrumForm, StateForm
+from proteins.models import Protein, Spectrum, State
 
-from ..forms import CollectionForm, ProteinForm, SpectrumForm, StateForm
-from ..models import Protein, Spectrum, State
+from ..test_users.factories import UserFactory
 
 User = get_user_model()
 

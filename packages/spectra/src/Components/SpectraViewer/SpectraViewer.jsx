@@ -207,7 +207,12 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
         qyNorm={chartOptions.scaleQY}
       />
       <HighchartsProvider Highcharts={Highcharts}>
-        <HighchartsChart plotOptions={_plotOptions} navigation={_navigation} exporting={_exporting}>
+        <HighchartsChart
+          plotOptions={_plotOptions}
+          navigation={_navigation}
+          exporting={_exporting}
+          lang={{ noData: "" }}
+        >
           <Chart {..._chart} height={height} />
           <Legend {..._legend} />
           <Tooltip {...tooltip} />

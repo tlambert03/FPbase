@@ -1,6 +1,6 @@
 # Legacy Static JavaScript
 
-This directory contains legacy JavaScript that is **isolated from the main webpack bundle** and loaded separately via Django static files.
+This directory contains legacy JavaScript that is **isolated from the main vite bundle** and loaded separately via Django static files.
 
 ## Contents
 

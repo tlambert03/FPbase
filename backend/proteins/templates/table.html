@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 
 {% block title %}FPbase :: Table of Fluorescent Protein Properties{% endblock %}
 {% block meta-description %}A comprehensive, sortable, searchable table of all the fluorescent proteins in the fluorescent protein database.{% endblock %}
@@ -29,7 +29,7 @@
 
 <div id="protein-table"></div>
 
-{% render_bundle 'proteinTable' %}
+{% vite_asset 'src/protein-table.js' %}
 
 {% endblock %}
 

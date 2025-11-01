@@ -1,5 +1,7 @@
 import Highcharts from "highcharts"
-import $ from "jquery"
+
+const $ = window.jQuery // jQuery loaded from CDN
+
 import ProgressBar from "progressbar.js"
 
 function compare(a, b) {

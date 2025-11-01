@@ -1,4 +1,4 @@
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 
 function checkObject(val, prop, str) {
   var propDict = {
@@ -163,10 +163,19 @@ function highlightRefHits(high) {
 }
 
 export default async function initAutocomplete() {
-  const [{ default: algoliasearch }] = await Promise.all([
-    import("algoliasearch"),
-    import("autocomplete.js/dist/autocomplete.jquery.js"),
-  ])
+  // autocomplete.jquery.js loaded from CDN in base.html
+  // Wait for autocomplete plugin to be available
+  if (typeof $.fn.autocomplete === "undefined") {
+    // Retry after a short delay
+    setTimeout(() => {
+      if (window.FPBASE && typeof window.FPBASE.initAutocomplete === "function") {
+        window.FPBASE.initAutocomplete()
+      }
+    }, 50)
+    return
+  }
+
+  const { default: algoliasearch } = await import("algoliasearch")
 
   var algoliaClient = algoliasearch(window.FPBASE.ALGOLIA.appID, window.FPBASE.ALGOLIA.publicKey)
   var proteinIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.proteinIndex)
@@ -185,7 +194,8 @@ export default async function initAutocomplete() {
       return '<div class="empty"><span class="nohits"></span>No results... try the <a href="/search/">advanced search</a></div>'
     }
   }
-  $("#algolia-search-input")
+  const $searchInput = $("#algolia-search-input")
+  $searchInput
     .autocomplete(
       {
         getRankingInfo: false,
@@ -307,4 +317,10 @@ export default async function initAutocomplete() {
       // Change the page, for example, on other events
       window.location.assign(suggestion.url)
     })
+
+  const $hintInput = $searchInput.parent().find(".aa-hint")
+  if ($hintInput.length) {
+    $hintInput.attr("name", "search-hint")
+    $hintInput.attr("id", "algolia-search-hint")
+  }
 }

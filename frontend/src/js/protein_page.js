@@ -1,4 +1,4 @@
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 
 window.initSnapGene = (protein, selection) => {
   // Search SnapGene's plasmid database for this protein

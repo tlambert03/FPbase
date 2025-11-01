@@ -17,7 +17,13 @@ from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
 
 from favit.models import Favorite
-from proteins.factories import FilterFactory, MicroscopeFactory, OpticalConfigWithFiltersFactory, ProteinFactory
+from proteins.factories import (
+    FilterFactory,
+    MicroscopeFactory,
+    OpticalConfigWithFiltersFactory,
+    ProteinFactory,
+    create_egfp,
+)
 from proteins.models import Filter, Microscope, Protein, Spectrum
 from proteins.util.blast import _get_binary
 
@@ -115,6 +121,8 @@ def test_spectrum_submission_preview_manual_data(
     url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
     auth_page.goto(url)
     expect(auth_page).to_have_url(url)
+    # Wait for form to be fully initialized
+    expect(auth_page.locator("#spectrum-submit-form[data-form-ready='true']")).to_be_attached()
 
     auth_page.locator("#id_category").select_option(Spectrum.PROTEIN)
     auth_page.locator("#id_subtype").select_option(Spectrum.EX)
@@ -135,9 +143,9 @@ def test_spectrum_submission_preview_manual_data(
     # Submit for preview
     auth_page.locator('input[type="submit"]').click()
 
-    # Wait for preview section to appear (auto-waiting)
+    # Wait for preview section to appear (AJAX request)
     preview_section = auth_page.locator("#spectrum-preview-section")
-    expect(preview_section).to_be_visible()
+    expect(preview_section).to_be_visible(timeout=10000)
 
     svg = auth_page.locator("#spectrum-preview-chart svg")
     expect(svg).to_be_visible()
@@ -222,6 +230,7 @@ def test_spectra_img_pdf_download(live_server: LiveServer, page: Page) -> None:
         page.evaluate(f"window.location.href = '{url}'")
     download = download_info.value
     assert download.suggested_filename.endswith(".pdf")
+    page.wait_for_load_state("networkidle")
 
 
 def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
@@ -495,7 +504,8 @@ def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: C
     url = f"{live_server.url}{reverse('proteins:search')}"
     page.goto(url)
     expect(page).to_have_url(url)
-    # Wait for search form to be ready
+    # Wait for search form to be ready (initSearch has completed)
+    expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
     expect(page.locator("#filter-select-0")).to_be_visible()
     assert_snapshot(page)
 
@@ -514,13 +524,15 @@ def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: C
 
     # Submit search
     page.locator('button[type="submit"]').first.click()
-    # page.wait_for_load_state("networkidle")
+
+    # Wait for results page to load and JS to initialize
+    expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
 
     lozenges = page.locator("#ldisplay")
     expect(lozenges).to_be_visible()
     assert_snapshot(page)
 
-    # click on table display
+    # Click on table display button by clicking its label
     page.locator("label:has(#tbutton)").click()
     table = page.locator("#tdisplay")
     expect(table).to_be_visible()
@@ -609,8 +621,25 @@ def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot: Call
     assert_snapshot(page)
 
 
+def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapshot: Callable) -> None:
+    egfp = create_egfp()
+    url = f"{live_server.url}{reverse('proteins:protein-detail', args=(egfp.slug,))}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+    page.wait_for_load_state("networkidle")
+    assert_snapshot(page)
+
+    # scroll to the structure section and take another snapshot
+    page.locator("#protein-structure").scroll_into_view_if_needed()
+    chem_title = page.locator("h5#chem-title")
+    expect(chem_title).to_be_visible()
+    expect(chem_title).to_contain_text("Crystal structure of enhanced Green Fluorescent Protein")
+    expect(page.locator("img#smilesImg")).to_be_visible()
+    assert_snapshot(page)
+
+
 def test_favorite_button_interaction(
-    auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot
+    auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
 ) -> None:
     """Test favorite button interaction on protein detail page."""
     protein = Protein.objects.create(name="MyProt", seq=SEQ, uuid="XSQ4F")
@@ -657,3 +686,29 @@ def test_favorite_button_interaction(
 
     # Verify backend is updated: favorite should be removed
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None
+
+
+@pytest.mark.parametrize(
+    "viewname",
+    [
+        "proteins:search",
+        "proteins:blast",
+        "proteins:table",
+        "proteins:problems",
+        "proteins:problems-gaps",
+        "proteins:problems-inconsistencies",
+        "proteins:spectrum_submitted",
+        "proteins:spectra",
+        "proteins:spectra_graph",
+        "proteins:spectra_csv",
+        "proteins:fret",
+        "proteins:compare",
+        # "proteins:lineage-list",  # FIXME!!
+        "proteins:microscopes",
+    ],
+)
+def test_page_simply_loads_without_errors(live_server: LiveServer, page: Page, viewname: str) -> None:
+    """Test that a simple page loads without errors."""
+    url = f"{live_server.url}{reverse(viewname)}"
+    page.goto(url)
+    expect(page).to_have_url(url)

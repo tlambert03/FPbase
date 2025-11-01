@@ -1,5 +1,7 @@
 import * as d3 from "d3"
-import $ from "jquery"
+
+const $ = window.jQuery // jQuery loaded from CDN
+
 import noUiSlider from "nouislider"
 
 export default function FPPropChart() {
@@ -313,7 +315,6 @@ export default function FPPropChart() {
 
       // helper function to iterate through all of the data filters (without having to type them all out)
       function filtercheck(datum) {
-        // eslint-disable-next-line
         for (const f in dataFilters) {
           if (f === "agg") {
             if (dataFilters[f]) {

@@ -104,7 +104,6 @@ function reshapeSpectraInfo(arr) {
   return arr.reduce(
     (prev, cur) => {
       if (!Object.hasOwn(prev.ownerInfo, cur.owner.slug)) {
-        // eslint-disable-next-line no-param-reassign
         prev.ownerInfo[cur.owner.slug] = {
           category: cur.category.toUpperCase(),
           label: cur.owner.name,
@@ -118,7 +117,6 @@ function reshapeSpectraInfo(arr) {
         subtype: cur.subtype.toUpperCase(),
         active: true,
       })
-      // eslint-disable-next-line no-param-reassign
       prev.spectraInfo[cur.id] = {
         subtype: cur.subtype.toUpperCase(),
         owner: cur.owner.slug,
