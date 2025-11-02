@@ -6,6 +6,7 @@ import { makeStyles } from "@mui/styles"
 import { MaterialReactTable } from "material-react-table"
 import React, { useEffect, useMemo, useState } from "react"
 import useSpectralData from "../hooks/useSpectraData"
+import { useOverlapsStore } from "../store/overlapsStore"
 import { useSpectraStore } from "../store/spectraStore"
 import { trapz } from "../util"
 
@@ -31,8 +32,6 @@ const useStyles = makeStyles((_theme) => ({
     padding: "8px 20px",
   },
 }))
-
-window.OverlapCache = {}
 
 function numStringSort(a, b) {
   if (Number.isNaN(parseFloat(a))) {
@@ -60,7 +59,7 @@ function spectraProduct(ar1, ar2) {
   return output
 }
 
-function getOverlap(...args) {
+function getOverlap(store, ...args) {
   const idString = args
     .map((arg) => arg.customId || arg.id)
     .sort(numStringSort)
@@ -77,9 +76,10 @@ function getOverlap(...args) {
     null
   )
 
-  if (!(idString in window.OverlapCache)) {
+  const cached = store.getOverlap(idString)
+  if (!cached) {
     const product = spectraProduct(...args.map(({ data }) => data))
-    window.OverlapCache[idString] = {
+    const overlap = {
       data: product,
       area: trapz(product),
       id: idString,
@@ -88,8 +88,10 @@ function getOverlap(...args) {
       color: "#000000",
       owner: { id: ownerID, name: ownerName, qy, slug },
     }
+    store.setOverlap(idString, overlap)
+    return overlap
   }
-  return window.OverlapCache[idString]
+  return cached
 }
 
 const EfficiencyTable = ({ initialTranspose }) => {
@@ -98,6 +100,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
   const classes = useStyles()
   const spectraData = useSpectralData()
   const setActiveOverlaps = useSpectraStore((state) => state.setActiveOverlaps)
+  const overlapsStore = useOverlapsStore()
 
   useEffect(() => {
     return () => {
@@ -131,7 +134,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
           _transposed: transposed,
         }
         colItems.forEach((colItem) => {
-          const overlap = getOverlap(rowItem, colItem)
+          const overlap = getOverlap(overlapsStore, rowItem, colItem)
           const fluor = transposed ? rowItem : colItem
           row[colItem.owner.id] = ((100 * overlap.area) / fluor.area).toFixed(1)
           row[`${colItem.owner.id}_overlapID`] = overlap.id
@@ -142,7 +145,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
     }
 
     updateTableData()
-  }, [spectraData, transposed])
+  }, [spectraData, transposed, overlapsStore])
 
   // Generate columns using useMemo
   const columns = useMemo(() => {

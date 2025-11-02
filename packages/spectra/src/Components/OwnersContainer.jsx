@@ -5,6 +5,7 @@ import Tabs from "@mui/material/Tabs"
 import { makeStyles } from "@mui/styles"
 import React, { useEffect, useMemo, useState } from "react"
 import { RingLoader } from "react-spinners"
+import { useMetadataStore } from "../store/metadataStore"
 import { useSpectraStore } from "../store/spectraStore"
 import { isTouchDevice } from "../util"
 import CustomFilterGroup from "./CustomFilterGroup"
@@ -97,16 +98,14 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
   const [tab, setTab] = useState(0)
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const setMetadata = useMetadataStore((state) => state.setMetadata)
 
-  // Set window globals for legacy code (defensive)
+  // Populate metadata store when data is loaded
   useEffect(() => {
     if (Object.keys(ownerInfo).length > 0 && Object.keys(spectraInfo).length > 0) {
-      if (!window.ownerInfo || !window.spectraInfo) {
-        window.ownerInfo = ownerInfo
-        window.spectraInfo = spectraInfo
-      }
+      setMetadata(ownerInfo, spectraInfo)
     }
-  }, [ownerInfo, spectraInfo])
+  }, [ownerInfo, spectraInfo, setMetadata])
 
   // Derive selectors from activeSpectra - this is the single source of truth
   const selectors = useMemo(() => {
