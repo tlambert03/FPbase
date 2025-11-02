@@ -45,6 +45,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@tanstack/react-query-devtools": "^5.90.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^16.1.0",
