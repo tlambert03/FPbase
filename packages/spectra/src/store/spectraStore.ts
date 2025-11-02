@@ -97,34 +97,12 @@ export const useSpectraStore = create<SpectraStore>()(
 
       normalizeCurrent: () =>
         set((state) => {
-          const { activeSpectra, selectors } = state
+          const { selectors } = state
 
-          // Get all unique owners from active spectra
-          // This is a simplified version - in reality we'd need to fetch spectrum details
-          // to know their owners. For now, we'll just ensure we have enough selectors.
-
-          // Get all owners that have active spectra
-          const _ownersWithSpectra = new Set<string>()
-
-          // In the real implementation, we'd iterate through actual spectrum data
-          // For now, we'll keep existing selectors that have owners
-
-          // Ensure we have at least one selector
-          if (selectors.length === 0 && activeSpectra.length > 0) {
-            return {
-              selectors: [
-                {
-                  id: generateSelectorId(),
-                  owner: null,
-                  category: null,
-                },
-              ],
-            }
-          }
-
-          // Remove selectors that don't have owners and aren't the last one
+          // Ensure we always have at least one empty selector for the UI
           const hasEmptySelector = selectors.some((s) => !s.owner)
-          if (!hasEmptySelector && selectors.length > 0) {
+
+          if (!hasEmptySelector) {
             return {
               selectors: [
                 ...selectors,
@@ -134,6 +112,16 @@ export const useSpectraStore = create<SpectraStore>()(
                   category: null,
                 },
               ],
+            }
+          }
+
+          // If we have multiple empty selectors, keep only one
+          const emptySelectors = selectors.filter((s) => !s.owner)
+          if (emptySelectors.length > 1) {
+            const firstEmpty = emptySelectors[0]
+            const withOwners = selectors.filter((s) => s.owner)
+            return {
+              selectors: [...withOwners, firstEmpty],
             }
           }
 

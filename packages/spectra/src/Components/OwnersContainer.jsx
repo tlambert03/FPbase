@@ -1,14 +1,11 @@
-import { useApolloClient, useQuery } from "@apollo/client"
 import { css } from "@emotion/react"
 import { Typography } from "@mui/material"
 import Tab from "@mui/material/Tab"
 import Tabs from "@mui/material/Tabs"
 import { makeStyles } from "@mui/styles"
-import gql from "graphql-tag"
 import React, { useEffect, useMemo, useState } from "react"
 import { RingLoader } from "react-spinners"
-// import useSelectors from "./useSelectors"
-import { NORMALIZE_CURRENT } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 import { isTouchDevice } from "../util"
 import CustomFilterGroup from "./CustomFilterGroup"
 import CustomLaserGroup from "./CustomLaserGroup"
@@ -99,15 +96,10 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
   const classes = useStyles()
   const [tab, setTab] = useState(0)
 
-  const { data: { activeSpectra, selectors } = { activeSpectra: [], selectors: [] } } =
-    useQuery(gql`
-    {
-      selectors @client
-      activeSpectra @client
-    }
-  `)
+  const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const selectors = useSpectraStore((state) => state.selectors)
+  const normalizeCurrent = useSpectraStore((state) => state.normalizeCurrent)
 
-  const client = useApolloClient()
   useEffect(() => {
     // Only normalize when both ownerInfo and spectraInfo are populated
     if (Object.keys(ownerInfo).length > 0 && Object.keys(spectraInfo).length > 0) {
@@ -116,9 +108,9 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
         window.ownerInfo = ownerInfo
         window.spectraInfo = spectraInfo
       }
-      client.mutate({ mutation: NORMALIZE_CURRENT })
+      normalizeCurrent()
     }
-  }, [ownerInfo, spectraInfo, client])
+  }, [ownerInfo, spectraInfo, normalizeCurrent])
 
   const handleTabChange = (_event, newValue) => {
     if (newValue !== tab) {

@@ -1,11 +1,10 @@
-import { useMutation } from "@apollo/client"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Box from "@mui/material/Box"
 import IconButton from "@mui/material/IconButton"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
 import React, { useCallback, useMemo } from "react"
-import { REMOVE_SELECTOR, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 import { categoryIcon } from "./FaIcon"
 import SpectrumSelector from "./SpectrumSelector"
 
@@ -78,22 +77,18 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
     [category, options]
   )
 
-  const [removeSelector, { loading: removeLoading }] = useMutation(REMOVE_SELECTOR)
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const removeSelector = useSpectraStore((state) => state.removeSelector)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
+
   const removeRow = useCallback(
     (selector) => {
-      if (!removeLoading) {
-        removeSelector({ variables: { id: selector.id } })
-        if (ownerInfo[selector.owner] && ownerInfo[selector.owner].spectra) {
-          updateSpectra({
-            variables: {
-              remove: ownerInfo[selector.owner].spectra.map(({ id }) => id),
-            },
-          })
-        }
+      removeSelector(selector.id)
+      if (ownerInfo[selector.owner] && ownerInfo[selector.owner].spectra) {
+        const spectraToRemove = ownerInfo[selector.owner].spectra.map(({ id }) => id)
+        updateActiveSpectra(undefined, spectraToRemove)
       }
     },
-    [ownerInfo, removeLoading, removeSelector, updateSpectra]
+    [ownerInfo, removeSelector, updateActiveSpectra]
   )
 
   return (

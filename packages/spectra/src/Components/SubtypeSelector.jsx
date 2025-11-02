@@ -1,4 +1,3 @@
-import { useMutation, useQuery } from "@apollo/client"
 import Visibility from "@mui/icons-material/Visibility"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
@@ -6,7 +5,7 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import { makeStyles } from "@mui/styles"
 import PropTypes from "prop-types"
 import React from "react"
-import { GET_ACTIVE_SPECTRA, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 
 const useStyles = makeStyles((theme) => ({
   toggleButton: {
@@ -36,8 +35,8 @@ function subtypeSorter(a, b) {
 const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) {
   const classes = useStyles()
 
-  const { data } = useQuery(GET_ACTIVE_SPECTRA)
-  const activeSpectra = data?.activeSpectra || []
+  const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
 
   // Create a mutable copy and add active status
   const sortedSubtypes = [...subtypes].sort(subtypeSorter).map((subtype) => ({
@@ -45,13 +44,14 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
     active: activeSpectra.includes(subtype.id),
   }))
 
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
   const handleClick = (e) => {
     const elem = e.target.closest("button")
     const checked = !elem.classList.contains("Mui-selected")
-    const variables = {}
-    variables[checked ? "add" : "remove"] = [elem.value]
-    updateSpectra({ variables })
+    if (checked) {
+      updateActiveSpectra([elem.value])
+    } else {
+      updateActiveSpectra(undefined, [elem.value])
+    }
   }
 
   // if (skip) return null
