@@ -22,9 +22,8 @@ from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 from graphene_django.utils.testing import GraphQLTestCase
 
+from fpbase.schema import schema
 from proteins import factories, models
-
-from ..schema import schema
 
 # GraphQL query that would trigger N+1 queries without optimization
 PROTEINS_WITH_RELATIONS = """

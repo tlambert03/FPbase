@@ -1,6 +1,7 @@
 from django.test import RequestFactory, TestCase
 
-from ..views import UserRedirectView, UserUpdateView
+from fpbase.users.views import UserRedirectView, UserUpdateView
+
 from .factories import UserFactory
 
 

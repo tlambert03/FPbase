@@ -7,8 +7,6 @@ Test settings for FPbase project.
 import getpass
 import os
 
-from webpack_loader.loaders import FakeWebpackLoader
-
 from .base import *  # noqa
 
 # DEBUG
@@ -59,6 +57,7 @@ CACHES = {
 # Use eager mode for tests - tasks execute synchronously without Redis
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TASK_STORE_EAGER_RESULT = True  # Store results even in eager mode for result.ready() checks
 # Use in-memory broker and backend for tests
 CELERY_BROKER_URL = "memory://"
 CELERY_RESULT_BACKEND = "cache+memory://"
@@ -95,11 +94,3 @@ TEMPLATES[0]["OPTIONS"]["loaders"] = [
         ],
     ],
 ]
-
-
-class MockWebpackLoader(FakeWebpackLoader):
-    def get_assets(self):
-        return {}
-
-
-WEBPACK_LOADER["DEFAULT"]["LOADER_CLASS"] = "config.settings.test.MockWebpackLoader"

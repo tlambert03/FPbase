@@ -10,6 +10,7 @@ from django.utils.text import slugify
 
 from fpseq import FPSeq
 from proteins.util.helpers import wave_to_hex
+from references.factories import ReferenceFactory
 
 from .models import Camera, Filter, FilterPlacement, Light, Microscope, OpticalConfig, Protein, Spectrum, State
 
@@ -328,3 +329,35 @@ class OpticalConfigWithFiltersFactory(OpticalConfigFactory):
         filter__subtype=Filter.BP,
         path=FilterPlacement.EM,
     )
+
+
+def create_egfp() -> Protein:
+    """Create and return an EGFP protein with spectra."""
+    egfp = ProteinFactory(
+        name="EGFP",
+        slug="egfp",
+        uuid="R9NL8",
+        seq=FPSeq(
+            "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPT"
+            "LVTTLTYGVQCFSRYPDHMKQHDFFKSAMPEGYVQERTIFFKDDGNYKTRAEVKFEGDTL"
+            "VNRIELKGIDFKEDGNILGHKLEYNYNSHNVYIMADKQKNGIKVNFKIRHNIEDGSVQLA"
+            "DHYQQNTPIGDGPVLLPDNHYLSTQSALSKDPNEKRDHMVLLEFVTAAGITLGMDELYK"
+        ),
+        seq_validated=True,
+        agg=Protein.MONOMER,
+        pdb=["4EUL", "2Y0G"],
+        parent_organism=OrganismFactory(scientific_name="Aequorea victoria", id=6100, division="hydrozoans"),
+        primary_reference=ReferenceFactory(doi="10.1016/0378-1119(95)00685-0"),
+        genbank="AAB02572",
+        uniprot="C5MKY7",
+        ipg_id="928978",
+        default_state__ex_max=488,
+        default_state__em_max=507,
+        default_state__ext_coeff=55900,
+        default_state__qy=0.60,
+        default_state__pka=6.0,
+        default_state__maturation=25,
+        default_state__lifetime=2.8,
+    )
+
+    return egfp

@@ -1,13 +1,4 @@
-"""
-Local settings for FPbase project.
-
-- Run in Debug mode
-
-- Use console backend for emails
-
-- Add Django Debug Toolbar
-- Add django-extensions as app
-"""
+"""Local settings for FPbase project."""
 
 import os
 
@@ -68,28 +59,6 @@ CACHES = {
     }
 }
 
-
-# django-debug-toolbar
-# ------------------------------------------------------------------------------
-MIDDLEWARE += [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-]
-INSTALLED_APPS += [
-    "debug_toolbar",
-]
-
-INTERNAL_IPS = [
-    "127.0.0.1",
-    "10.0.2.2",
-]
-
-DEBUG_TOOLBAR_CONFIG = {
-    "DISABLE_PANELS": [
-        "debug_toolbar.panels.redirects.RedirectsPanel",
-        "debug_toolbar.panels.profiling.ProfilingPanel",
-    ],
-    "SHOW_TEMPLATE_CONTEXT": True,
-}
 
 # django-extensions
 # ------------------------------------------------------------------------------
