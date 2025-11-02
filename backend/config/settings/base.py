@@ -13,6 +13,7 @@ from pathlib import Path
 
 import environ
 import structlog
+from corsheaders.defaults import default_headers
 from structlog_sentry import SentryProcessor
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -391,15 +392,26 @@ CELERY_RESULT_BACKEND = REDIS_URL
 INSTALLED_APPS += ["graphene_django"]
 GRAPHENE = {"SCHEMA": "fpbase.schema.schema"}
 
-# CORS
+# CORS - Cross-Origin Resource Sharing
 # -------
+# CORS is ONLY needed for local development where frontend (webpack-dev-server on :8080)
+# and backend (Django on :8000) run on different ports (= different origins).
+#
+# In production, both frontend and backend are served from the same origin (fpbase.org),
+# so CORS doesn't apply - the middleware runs but does nothing (no Origin header = early exit).
+# This configuration is harmless in production and necessary for development.
 
 MIDDLEWARE = ["corsheaders.middleware.CorsMiddleware", *MIDDLEWARE]
 INSTALLED_APPS += ["corsheaders"]
-CORS_ORIGIN_WHITELIST = [
+CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:8080",
     "http://localhost:3000",
+]
+CORS_ALLOW_HEADERS = [
+    *default_headers,
+    "sentry-trace",  # Sentry distributed tracing
+    "baggage",  # Sentry trace context propagation
 ]
 
 BLOCKED_IPS = env.list("IP_BLACKLIST", default=[])
