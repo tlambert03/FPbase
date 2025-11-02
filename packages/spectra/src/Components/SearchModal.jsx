@@ -8,7 +8,12 @@ import gql from "graphql-tag"
 import PropTypes from "prop-types"
 import React, { useEffect, useState } from "react"
 import { components } from "react-select"
-import { GET_OPTICAL_CONFIG, GET_OWNER_OPTIONS, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import {
+  GET_OPTICAL_CONFIG,
+  GET_OWNER_OPTIONS,
+  NORMALIZE_CURRENT,
+  UPDATE_ACTIVE_SPECTRA,
+} from "../client/queries"
 import { useCachedFetch } from "../useCachedQuery"
 import MuiReactSelect from "./MuiReactSelect"
 
@@ -124,23 +129,27 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
   }, [setOpen])
 
   const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const [normalizeCurrent] = useMutation(NORMALIZE_CURRENT)
 
   const { data } = useQuery(GET_OWNER_OPTIONS)
   const excludeSubtypes = data?.excludeSubtypes || []
 
-  const handleChange = (event) => {
+  const client = useApolloClient()
+
+  const handleChange = async (event) => {
     const spectra = event?.spectra
       .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
       .map(({ id }) => id)
 
     if (spectra) {
-      updateSpectra({ variables: { add: spectra } })
+      await updateSpectra({ variables: { add: spectra } })
+      // Let normalizeCurrent create selectors for new owners AND add empty selectors
+      await normalizeCurrent()
     }
     setOpen(false)
   }
 
   const [clearForm] = useMutation(CLEAR_FORM)
-  const client = useApolloClient()
   const [preserveFluors, setPreserveFluors] = useState(true)
   const handleOCChange = async ({ value }) => {
     const {

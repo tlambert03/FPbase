@@ -66,7 +66,7 @@ VIEWPORT_SIZE: ViewportSize = {"width": 1020, "height": 1200}
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 # https://pytest-django.readthedocs.io/en/latest/database.html#enabling-database-access-in-tests
-pytestmark = pytest.mark.django_db()
+pytestmark = pytest.mark.django_db(transaction=True)
 
 
 def _frontend_assets_need_rebuild(stats_file) -> bool:

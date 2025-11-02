@@ -80,7 +80,13 @@ const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp })
             <HelpIcon />
           </IconButton>
           <Tooltip title="Click [or spacebar] for Quick Entry" enterDelay={700} leaveDelay={200}>
-            <Fab tabIndex={-1} onClick={handleClick} aria-label="Add" className={classes.fabButton}>
+            <Fab
+              tabIndex={-1}
+              onClick={handleClick}
+              aria-label="Add"
+              className={classes.fabButton}
+              id="quickentry-btn"
+            >
               <AddIcon />
             </Fab>
           </Tooltip>
