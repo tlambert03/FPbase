@@ -81,6 +81,7 @@ const COMBO_MUTATE = gql`
   mutation comboMutate($add: [String], $remove: [String], $selector: Selector) {
     updateActiveSpectra(add: $add, remove: $remove) @client
     updateSelector(selector: $selector) @client
+    normalizeCurrent @client
   }
 `
 

@@ -96,19 +96,75 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert
     assert_snapshot(page)
 
 
-def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
-    """Test the spectra viewer page loads without console errors."""
-    ProteinFactory.create()
+@pytest.fixture
+def spectra_viewer(live_server: LiveServer, page: Page) -> Page:
+    create_egfp()
 
     url = f"{live_server.url}{reverse('proteins:spectra')}"
     page.goto(url)
     expect(page).to_have_url(url)
 
     spectra_viewer = page.locator("#spectra-viewer")
-    expect(spectra_viewer).to_be_attached()
+    expect(spectra_viewer).to_be_visible()
+    return page
 
-    # Visual snapshot: capture spectra viewer initial state
-    assert_snapshot(page)
+
+def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Callable) -> None:
+    """Test the spectra viewer page loads without console errors."""
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
+    search_input = tab_wrapper.get_by_role("combobox")
+    search_input.click()
+    search_input.type("EGF")
+
+    egfp_option = tab_wrapper.get_by_role("option", name="EGFP", exact=True)
+    expect(egfp_option).to_be_visible()
+    egfp_option.click()
+
+    # a selector for EGFP should now be visible
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+    # a NEW search input should appear after selecting a protein
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
+
+    assert_snapshot(spectra_viewer)
+
+
+@pytest.mark.parametrize("method", ["spacebar", "click"])
+def test_spectra_viewer_add_from_spacebar(spectra_viewer: Page, assert_snapshot: Callable, method: str) -> None:
+    """Test the spectra viewer page loads without console errors."""
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
+
+    modal = spectra_viewer.get_by_role("presentation").filter(has_text="Quick Entry")
+    quick_entry_heading = modal.get_by_role("heading", name="Quick Entry")
+    expect(modal).not_to_be_attached()
+    expect(quick_entry_heading).not_to_be_visible()
+
+    if method == "spacebar":
+        # press spacebar to open the search input
+        spectra_viewer.keyboard.press("Space")
+    elif method == "click":
+        # click on the #quickentry-btn button
+        spectra_viewer.locator("button#quickentry-btn").click()
+    else:
+        raise ValueError(f"Unknown method: {method}")
+
+    expect(modal).to_be_attached()
+    expect(quick_entry_heading).to_be_visible()
+
+    search_input = modal.get_by_role("combobox").first
+    expect(search_input).to_be_visible()
+    search_input.type("EGF")
+
+    expect(modal.get_by_role("option", name="EGFP", exact=True)).to_be_visible()
+    spectra_viewer.keyboard.press("Enter")
+
+    # a NEW search input should appear after selecting a protein
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
+    # ... and a selector for EGFP should now be visible
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    assert_snapshot(spectra_viewer)
 
 
 def test_spectrum_submission_preview_manual_data(
