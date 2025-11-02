@@ -1,4 +1,3 @@
-import { useQuery } from "@apollo/client"
 import Highcharts from "highcharts"
 import React, { memo, useEffect } from "react"
 import {
@@ -20,10 +19,10 @@ import "highcharts/modules/export-data"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/boost"
 import { css } from "@emotion/react"
-import gql from "graphql-tag"
 import update from "immutability-helper"
 import { BarLoader } from "react-spinners"
-import useSpectraData from "../useSpectraData"
+import useSpectraData from "../../hooks/useSpectraData"
+import { useSpectraStore } from "../../store/spectraStore"
 import useWindowWidth from "../useWindowWidth"
 import DEFAULT_OPTIONS from "./ChartOptions"
 import fixLogScale from "./fixLogScale"
@@ -69,47 +68,25 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
   provideOverlaps,
   provideHidden = [],
 }) {
-  const { data } = useQuery(
-    gql`
-        query ChartOptions {
-          chartOptions @client {
-            showY
-            showX
-            showGrid
-            areaFill
-            logScale
-            scaleEC
-            scaleQY
-            extremes
-            shareTooltip
-            palette
-          }
-          exNorm @client
-        }
-      `,
-    { skip: provideOptions }
-  )
+  // Get chart options and exNorm from Zustand store
+  const storeChartOptions = useSpectraStore((state) => state.chartOptions)
+  const storeExNorm = useSpectraStore((state) => state.exNorm)
 
   // Always call useSpectraData hook before any returns (Rules of Hooks)
   const spectraldata = useSpectraData(provideSpectra, provideOverlaps)
 
-  let chartOptions
+  // Use provided options or fall back to store
+  const chartOptions = provideOptions || storeChartOptions
+
+  // Safely extract normWave from exNorm array, handling non-array values
+  // exNorm should be [normWave, normID] but may be corrupted/malformed
   let normWave
   if (provideOptions) {
-    chartOptions = provideOptions
     normWave = undefined
-  } else if (data?.chartOptions) {
-    chartOptions = data.chartOptions
-    // Safely extract normWave from exNorm array, handling non-array values
-    // exNorm should be [normWave, normID] but may be corrupted/malformed
-    if (Array.isArray(data.exNorm)) {
-      ;[normWave] = data.exNorm
-    } else {
-      normWave = null
-    }
+  } else if (Array.isArray(storeExNorm)) {
+    ;[normWave] = storeExNorm
   } else {
-    // Data not loaded yet, return null after all hooks are called
-    return null
+    normWave = null
   }
 
   const yAxis = update(_yAxis, {

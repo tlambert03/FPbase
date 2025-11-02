@@ -57,6 +57,24 @@ export const useSpectraStore = create<SpectraStore>()(
       // Overlaps management
       setActiveOverlaps: (ids) => set({ activeOverlaps: ids }),
 
+      updateActiveOverlaps: (add = [], remove = []) =>
+        set((state) => {
+          let newOverlaps = [...state.activeOverlaps]
+
+          // Remove overlaps
+          if (remove.length > 0) {
+            newOverlaps = newOverlaps.filter((id) => !remove.includes(id))
+          }
+
+          // Add overlaps (avoid duplicates)
+          if (add.length > 0) {
+            const toAdd = add.filter((id) => !newOverlaps.includes(id))
+            newOverlaps = [...newOverlaps, ...toAdd]
+          }
+
+          return { activeOverlaps: newOverlaps }
+        }),
+
       // Selector management
       addSelectors: (selectors) =>
         set((state) => {

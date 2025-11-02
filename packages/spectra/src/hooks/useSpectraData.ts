@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react"
 import COLORS from "../colors"
 import { useSpectraStore } from "../store/spectraStore"
-import type { Spectrum } from "../types"
+import type { Spectrum, SpectrumSubtype } from "../types"
 import { useSpectraBatch } from "./useSpectraQueries"
 
 const rangexy = (start: number, end: number): number[] =>
   Array.from({ length: end - start }, (_v, k) => k + start)
 
+// Verify TypeScript version is loading
+console.log("✅ NEW TypeScript useSpectraData.ts loaded!")
 /**
  * Generate custom laser spectrum (e.g., $cl1_488)
  * Format: $cl<id>_<wavelength>
  */
 function generateCustomLaser(id: string): Spectrum {
-  const [customId, waveStr] = id.split("_")
+  const parts = id.split("_")
+  const customId = parts[0] ?? id
+  const waveStr = parts[1] ?? "500"
   const wave = Number.parseInt(waveStr, 10)
 
   const data: [number, number][] = [
@@ -41,7 +45,12 @@ function generateCustomLaser(id: string): Spectrum {
  * Format: $cf<id>_<type>_<center>_<width>_<transmission>
  */
 function generateCustomFilter(id: string): Spectrum {
-  const [customId, subtypeStr, centerStr, widthStr, transStr] = id.split("_")
+  const parts = id.split("_")
+  const customId = parts[0] ?? id
+  const subtypeStr = parts[1] ?? "BP"
+  const centerStr = parts[2] ?? "500"
+  const widthStr = parts[3] ?? "50"
+  const transStr = parts[4]
 
   const subtype = subtypeStr.toUpperCase() as "BP" | "LP" | "SP"
   const center = Number.parseInt(centerStr, 10)
@@ -89,7 +98,7 @@ function generateCustomFilter(id: string): Spectrum {
   return {
     id: customId,
     customId: id,
-    subtype,
+    subtype: subtype as SpectrumSubtype,
     owner: {
       id,
       slug: id,

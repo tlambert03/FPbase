@@ -1,6 +1,6 @@
 // Core Spectrum Types
 export type SpectrumCategory = "P" | "D" | "F" | "L" | "C" | "BP" | "LP" | "SP"
-export type SpectrumSubtype = "ex" | "em" | "ab" | "2p" | "bx" | "pd" | "qd"
+export type SpectrumSubtype = "ex" | "em" | "ab" | "2p" | "bx" | "pd" | "qd" | "BP" | "LP" | "SP"
 
 export interface SpectrumOwner {
   id: string
@@ -17,6 +17,7 @@ export interface SpectrumOwner {
 
 export interface Spectrum {
   id: string
+  customId?: string // For custom spectra ($cf, $cl)
   data: [number, number][] // [wavelength, intensity] pairs
   category: SpectrumCategory
   subtype: SpectrumSubtype
@@ -144,6 +145,7 @@ export interface SpectraActions {
 
   // Overlaps management
   setActiveOverlaps: (ids: string[]) => void
+  updateActiveOverlaps: (add?: string[], remove?: string[]) => void
 
   // Selector management
   addSelectors: (selectors: Selector[]) => void

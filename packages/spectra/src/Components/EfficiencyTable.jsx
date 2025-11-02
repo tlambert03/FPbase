@@ -1,15 +1,13 @@
-import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import SaveAlt from "@mui/icons-material/SaveAlt"
 import Shuffle from "@mui/icons-material/Shuffle"
 import { Box, IconButton, Typography } from "@mui/material"
 import Button from "@mui/material/Button"
 import { makeStyles } from "@mui/styles"
-import gql from "graphql-tag"
 import { MaterialReactTable } from "material-react-table"
 import React, { useEffect, useMemo, useState } from "react"
-import { GET_ACTIVE_OVERLAPS } from "../client/queries"
+import useSpectralData from "../hooks/useSpectraData"
+import { useSpectraStore } from "../store/spectraStore"
 import { trapz } from "../util"
-import useSpectralData from "./useSpectraData"
 
 class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(_error) {
@@ -99,16 +97,13 @@ const EfficiencyTable = ({ initialTranspose }) => {
   const [rows, setRows] = useState([])
   const classes = useStyles()
   const spectraData = useSpectralData()
-  const client = useApolloClient()
+  const setActiveOverlaps = useSpectraStore((state) => state.setActiveOverlaps)
 
   useEffect(() => {
     return () => {
-      client.writeQuery({
-        query: GET_ACTIVE_OVERLAPS,
-        data: { activeOverlaps: [] },
-      })
+      setActiveOverlaps([])
     }
-  }, [client])
+  }, [setActiveOverlaps])
 
   // Generate table data
   useEffect(() => {
@@ -259,25 +254,20 @@ const EfficiencyTable = ({ initialTranspose }) => {
 
 const OverlapToggle = ({ children, id, isActive }) => {
   const [active, setActive] = useState(isActive)
-  const {
-    data: { activeOverlaps },
-  } = useQuery(GET_ACTIVE_OVERLAPS)
+  const activeOverlaps = useSpectraStore((state) => state.activeOverlaps)
+  const updateActiveOverlaps = useSpectraStore((state) => state.updateActiveOverlaps)
 
   useEffect(() => {
     setActive(activeOverlaps.includes(id))
   }, [activeOverlaps, id])
 
-  const [setOverlaps] = useMutation(gql`
-    mutation updateActiveOverlaps($add: [String], $remove: [String]) {
-      updateActiveOverlaps(add: $add, remove: $remove) @client
-    }
-  `)
-
   const handleClick = () => {
     const checked = !active
-    const variables = {}
-    variables[checked ? "add" : "remove"] = [id]
-    setOverlaps({ variables })
+    if (checked) {
+      updateActiveOverlaps([id])
+    } else {
+      updateActiveOverlaps(undefined, [id])
+    }
     setActive(checked)
   }
 

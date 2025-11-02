@@ -8,6 +8,7 @@ import PALETTES from "../../palettes"
 const OD = (num) => (num <= 0 ? 10 : -Math.log10(num))
 
 const hex2rgba = (hex, alpha = 1) => {
+  if (!hex) return `rgba(0,0,0,${alpha})` // Default to black if no color provided
   const [r, g, b] = hex.match(/\w\w/g).map((x) => parseInt(x, 16))
   return `rgba(${r},${g},${b},${alpha})`
 }

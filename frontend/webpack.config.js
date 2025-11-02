@@ -39,7 +39,7 @@ const styleRule = {
 }
 
 const jsRule = {
-  test: /\.jsx?$/,
+  test: /\.(jsx?|tsx?)$/,
   exclude: /node_modules\/(?!(qs|debounce-raf)\/).*/,
   use: {
     loader: "babel-loader",
@@ -58,6 +58,7 @@ const jsRule = {
             runtime: "automatic",
           },
         ],
+        "@babel/preset-typescript",
       ],
       plugins: ["@babel/plugin-syntax-dynamic-import"],
     },
@@ -133,10 +134,10 @@ module.exports = {
     chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js",
   },
   resolve: {
-    extensions: [".webpack.js", ".web.js", ".mjs", ".js", ".jsx", ".json"],
+    extensions: [".webpack.js", ".web.js", ".mjs", ".ts", ".tsx", ".js", ".jsx", ".json"],
     alias: {
       jquery: "jquery/src/jquery",
-      "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.jsx"),
+      "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.tsx"),
       "@fpbase/blast": path.resolve(__dirname, "../packages/blast/src/index.js"),
       "@fpbase/protein-table": path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
       "@emotion/react": require.resolve("@emotion/react"),
