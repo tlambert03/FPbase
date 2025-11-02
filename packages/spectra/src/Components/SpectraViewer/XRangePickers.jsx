@@ -46,12 +46,23 @@ const XRangePickers = ({ visible }) => {
   useEffect(() => {
     if (!axis || !axis.object) return
     if (min || max) {
-      axis.setExtremes(min && Math.round(min), max && Math.round(max))
-      if (min && max) {
-        axis.object.chart.showResetZoom()
+      // Only call setExtremes if the values are actually different from current axis extremes
+      // This prevents infinite loop with handleAfterSetExtremes
+      const current = axis.object.getExtremes()
+      const targetMin = min && Math.round(min)
+      const targetMax = max && Math.round(max)
+      const currentMin = current.userMin && Math.round(current.min)
+      const currentMax = current.userMax && Math.round(current.max)
+
+      // Only update if the extremes have actually changed
+      if (targetMin !== currentMin || targetMax !== currentMax) {
+        axis.setExtremes(targetMin, targetMax)
+        if (min && max) {
+          axis.object.chart.showResetZoom()
+        }
       }
     }
-  }, [axis, min, max]) // Added proper dependencies
+  }, [axis, min, max])
 
   useEffect(() => {
     if (!axis || !axis.object || !Highcharts) return
@@ -59,9 +70,12 @@ const XRangePickers = ({ visible }) => {
     function handleAfterSetExtremes() {
       const e = axis.object.getExtremes()
       if (e) {
-        const extremes = [e.userMin && Math.round(e.min), e.userMax && Math.round(e.max)]
-        // this seems to be causing a bug with the inputs
-        updateChartOptions({ extremes })
+        const newExtremes = [e.userMin && Math.round(e.min), e.userMax && Math.round(e.max)]
+        // Only update store if extremes actually changed (prevents infinite loop)
+        const currentExtremes = useSpectraStore.getState().chartOptions.extremes || [null, null]
+        if (newExtremes[0] !== currentExtremes[0] || newExtremes[1] !== currentExtremes[1]) {
+          updateChartOptions({ extremes: newExtremes })
+        }
         forceUpdate(counter++)
       }
     }

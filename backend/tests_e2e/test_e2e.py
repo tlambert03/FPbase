@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
@@ -97,7 +98,7 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert
 
 
 @pytest.fixture
-def spectra_viewer(live_server: LiveServer, page: Page) -> Page:
+def spectra_viewer(live_server: LiveServer, page: Page) -> Iterator[Page]:
     create_egfp()
 
     url = f"{live_server.url}{reverse('proteins:spectra')}"
@@ -106,7 +107,10 @@ def spectra_viewer(live_server: LiveServer, page: Page) -> Page:
 
     spectra_viewer = page.locator("#spectra-viewer")
     expect(spectra_viewer).to_be_visible()
-    return page
+    yield page
+    # DO NOT REMOVE: exposes many JS errors that happen on page actions
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(100)
 
 
 def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Callable) -> None:
