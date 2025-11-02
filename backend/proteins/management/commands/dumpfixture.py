@@ -93,13 +93,6 @@ class Command(BaseCommand):
                 seen.add(key)
                 unique_objects.append(obj)
 
-        # Serialize
-        data = CleanJSONSerializer().serialize(
-            unique_objects,
-            indent=options["indent"],
-            stream=None,
-            fields=None,
-        )
-
+        data = CleanJSONSerializer().serialize(unique_objects, indent=options["indent"])
         with open(options["dest"], "w") as f:
             f.write(data)
