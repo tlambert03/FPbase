@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.views.decorators.cache import cache_page
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from graphene_django.views import GraphQLView
@@ -183,13 +182,3 @@ def server_error(request, *args, **argv):
         },
         status=500,
     )
-
-
-@cache_page(10)
-def testview(request):
-    import logging
-
-    logger = logging.getLogger(__name__)
-    p = Protein.objects.get(name="mNeonGreen")
-    logger.info(p)
-    return render(request, "pages/test.html", {"protein": p})

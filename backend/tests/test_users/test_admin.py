@@ -1,6 +1,7 @@
 from django.test import TestCase
 
-from ..admin import MyUserCreationForm
+from fpbase.users.admin import MyUserCreationForm
+
 from .factories import UserFactory
 
 

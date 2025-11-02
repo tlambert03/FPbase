@@ -7,7 +7,7 @@ from django.urls import reverse
 from reversion import is_registered
 from reversion.models import Version
 
-from ..models import Protein, State
+from proteins.models import Protein, State
 
 User = get_user_model()
 

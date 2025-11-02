@@ -2,9 +2,8 @@ import json
 
 from graphene_django.utils.testing import GraphQLTestCase
 
+from fpbase.schema import schema
 from proteins import models
-
-from ..schema import schema
 
 OPTICAL_CONFIG = """
 query OpticalConfig($id: Int!) {

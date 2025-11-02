@@ -24,28 +24,30 @@ References:
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import re
 import subprocess
-import warnings
+import sys
+import textwrap
 from collections import defaultdict
-from contextlib import contextmanager
+from contextlib import suppress
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 import django.conf
 import pytest
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
-from webpack_loader import config, loaders, utils
+from playwright.sync_api import Page
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, ViewportSize
+    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, Request, Response, ViewportSize
 
 # Register snapshot plugin to make assert_snapshot fixture available
 pytest_plugins = ["tests_e2e.snapshot_plugin"]
@@ -63,13 +65,8 @@ VIEWPORT_SIZE: ViewportSize = {"width": 1020, "height": 1200}
 #      https://github.com/microsoft/playwright-pytest/issues/29
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
-# Mark all tests in this directory with transactional database access
-# This is REQUIRED for live_server tests - it tells pytest-django to use
-# table truncation instead of transaction rollback for cleanup
-# See: https://pytest-django.readthedocs.io/en/latest/database.html#transactional-db
-pytestmark = [
-    pytest.mark.django_db(transaction=True),
-]
+# https://pytest-django.readthedocs.io/en/latest/database.html#enabling-database-access-in-tests
+pytestmark = pytest.mark.django_db()
 
 
 def _frontend_assets_need_rebuild(stats_file) -> bool:
@@ -93,28 +90,58 @@ def _frontend_assets_need_rebuild(stats_file) -> bool:
     return False
 
 
-@pytest.fixture(scope="module", autouse=True)
-def _setup_frontend_assets() -> None:
-    """Build webpack assets once per test module if needed.
+def pytest_configure(config: pytest.Config) -> None:
+    """Build frontend assets before test collection when running e2e tests.
 
-    Checks if existing webpack stats represent a static build and if source files have changed.
-    Rebuilds if missing, stale, dev server output detected, or source files are newer.
+    This hook runs very early - before test collection and before Django is imported.
+    It ensures the manifest exists and is valid before any worker process starts.
 
-    Module-scoped to avoid rebuilding for every test (which would be slow).
-    This is safe because webpack output is filesystem-based, not database.
+    For pytest-xdist, this runs once in the main process before workers are spawned,
+    ensuring all workers find a valid manifest when they start.
     """
-    stats_file = Path(django.conf.settings.WEBPACK_LOADER["DEFAULT"]["STATS_FILE"])
+    # Only run in main process (not in xdist workers)
+    if hasattr(config, "workerinput"):
+        return
 
-    # Need to build - either no stats, invalid stats, or source files changed
-    if _frontend_assets_need_rebuild(stats_file):
-        print("Building frontend assets for e2e tests...")
-        subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
+    CYAN = 36
+    RED = 31
+    GREEN = 32
 
-    # UNDO the MockWebpackLoader used in normal unit tests in config.settings.test
-    def _get_real_get_loader(config_name):
-        return loaders.WebpackLoader(config_name, config.load_config(config_name))
+    def _color_text(text: str, color_code: int) -> str:
+        with suppress(AttributeError, OSError):
+            # Check if stdout supports colors (has isatty and it returns True)
+            if hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
+                return f"\033[{color_code}m{text}\033[0m"
+        return text
 
-    utils.get_loader = _get_real_get_loader
+    manifest_file = Path(django.conf.settings.WEBPACK_LOADER["DEFAULT"]["STATS_FILE"])
+
+    lock_file = manifest_file.parent / ".build.lock"
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Use file locking to handle concurrent pytest runs
+    with open(lock_file, "w") as f:
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+
+        if _frontend_assets_need_rebuild(manifest_file):
+            print(_color_text("🔨 Building frontend assets for e2e tests...", CYAN), flush=True)
+            result = subprocess.run(
+                ["pnpm", "--filter", "fpbase", "build"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                print(_color_text(f"❌ Build failed with exit code {result.returncode}", RED), flush=True)
+                print(f"STDOUT: {result.stdout}", flush=True)
+                print(f"STDERR: {result.stderr}", flush=True)
+                raise RuntimeError(f"Frontend build failed: {result.stderr}")
+            print(_color_text("✅ Frontend build completed successfully", GREEN), flush=True)
+
+            django.conf.settings.STATICFILES_DIRS.append(str(manifest_file.parent))
+
+        else:
+            print(_color_text("✅ Frontend assets are up to date", GREEN), flush=True)
 
 
 @pytest.fixture
@@ -132,35 +159,99 @@ def page(page: Page) -> Iterator[Page]:
         yield page
 
 
-@contextmanager
-def console_errors_raised(page: Page) -> Iterator[None]:
-    """Context manager that collects console errors and warnings on a Playwright page."""
-    messages: defaultdict[str, list[ConsoleMessage]] = defaultdict(list)
-    ignore_messages = [
-        "favicon.ico",
-        "sentry",
-        "WebGL",
-        "[Report Only]",
-    ]
+IGNORE_PATTERNS = [
+    "autocomplete-state",  # Autocomplete requests cancelled
+    "Content Security Policy",  # Webkit Content Security Policy reports
+    "ERR_ABORTED",  # Navigation aborts (PDF downloads, autocomplete)
+    "Frame load interrupted",  # WebKit: PDF downloads interrupt navigation
+    "googletagmanager.com",
+    "recaptcha",  # Test key returns 401
+    "sentry",
+    "WebGL",
+    r".*cookie.*overwritten",  # cookie updates
+    r"\[Report Only\]",  # Content Security Policy reports
+    r"accessibility\.js",  # highcharts accessibility module warnings
+    r"cdnjs\.cloudflare\.com",  # CDN assets cancelled during teardown
+    r"doubleclick\.net",
+    r"favicon\.ico",
+    r"font-awesome.*\.woff2",  # CDN fonts cancelled during teardown
+    r"google\.com",
+]
 
-    def on_console(msg: ConsoleMessage) -> None:
-        for pattern in ignore_messages:
-            if re.search(pattern, msg.text, re.IGNORECASE):
-                return
-        messages[msg.type].append(msg)
 
-    page.on("console", on_console)
+class console_errors_raised:
+    """Collects and categorizes browser errors during Playwright test execution."""
 
-    yield
+    def __init__(self, page: Page, ignore_patterns: list[str] = IGNORE_PATTERNS) -> None:
+        self.console_messages: defaultdict[str, list[ConsoleMessage]] = defaultdict(list)
+        self.page_errors: list[Exception] = []
+        self.request_failures: list[str] = []
+        self.http_errors: list[str] = []
+        self._compiled_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in ignore_patterns]
 
-    if errors := messages.get("error"):
-        error_messages = [f"  - {e.text} (at {e.location})" for e in errors]
-        msg = "Console errors detected:\n" + "\n".join(error_messages)
-        pytest.fail(msg)
-    if _warnings := messages.get("warning"):
-        warning_messages = [f"  - {w.text} (at {w.location})" for w in _warnings]
-        msg = "Console warnings detected:\n" + "\n".join(warning_messages)
-        warnings.warn(msg, stacklevel=2)
+        # Attach all event listeners
+        page.on("console", self.on_console)
+        page.on("pageerror", self.on_page_error)
+        page.on("crash", self.on_crash)
+        page.on("requestfailed", self.on_request_failed)
+        page.on("response", self.on_response)
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.assert_no_errors()
+
+    def _should_ignore(self, *texts: str) -> bool:
+        """Check if any text matches any ignore pattern (case-insensitive)."""
+        return any(pattern.search(text) for pattern in self._compiled_patterns for text in texts if text)
+
+    def on_console(self, msg: ConsoleMessage) -> None:
+        """Collect console messages unless they match ignore patterns."""
+        url = (msg.location or {}).get("url", "")
+        if not self._should_ignore(msg.text, url):
+            self.console_messages[msg.type].append(msg)
+
+    def on_page_error(self, error: Exception) -> None:
+        """Collect uncaught JavaScript exceptions (ReferenceError, TypeError, etc)."""
+        if not self._should_ignore(str(error)):
+            self.page_errors.append(error)
+
+    def on_request_failed(self, request: Request) -> None:
+        """Collect failed network requests (DNS errors, connection refused, etc)."""
+        error_msg = f"{request.url} - {request.failure}" if request.failure else request.url
+        if not self._should_ignore(request.url, error_msg):
+            self.request_failures.append(error_msg)
+
+    def on_response(self, response: Response) -> None:
+        """Collect HTTP error responses (4xx, 5xx status codes)."""
+        if response.status < 400:
+            return
+        if not self._should_ignore(response.url):
+            self.http_errors.append(f"HTTP {response.status}: {response.url}")
+
+    def on_crash(self, page: Page) -> None:
+        """Fail immediately on page/browser crash."""
+        pytest.fail("💥 Page/browser crashed during test execution")
+
+    def assert_no_errors(self) -> None:
+        """Fail the test if any errors were collected."""
+        # Critical: uncaught page errors fail immediately
+        if self.page_errors:
+            error_details = "\n".join(f"  - {textwrap.indent(err.stack, '    ')}" for err in self.page_errors)
+            pytest.fail(f"Uncaught page errors detected:\n{error_details}", pytrace=False)
+
+        # Collect other error types
+        errors = []
+        if console_errors := self.console_messages.get("error"):
+            errors.extend(f"  - Console error: {e.text} (at {e.location})" for e in console_errors)
+        if self.request_failures:
+            errors.extend(f"  - Request failed: {err}" for err in self.request_failures)
+        if self.http_errors:
+            errors.extend(f"  - {err}" for err in self.http_errors)
+
+        if errors:
+            pytest.fail("Browser errors detected:\n" + "\n".join(errors), pytrace=False)
 
 
 @pytest.fixture
