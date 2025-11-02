@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import COLORS from "../colors"
+import { useOverlapCache } from "../store/overlapsStore"
 import { useSpectraStore } from "../store/spectraStore"
 import type { Spectrum, SpectrumSubtype } from "../types"
 import { useSpectraBatch } from "./useSpectraQueries"
@@ -124,6 +125,7 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
   // Get active spectra from store if not provided
   const storeActiveSpectra = useSpectraStore((state) => state.activeSpectra)
   const storeActiveOverlaps = useSpectraStore((state) => state.activeOverlaps)
+  const overlapCache = useOverlapCache()
 
   const activeSpectra = providedIds ?? storeActiveSpectra
   const activeOverlaps = providedOverlaps ?? storeActiveOverlaps
@@ -150,10 +152,8 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
       .filter((s): s is Spectrum => s !== null)
 
     // Get overlap data from cache
-    // TODO: Replace window.OverlapCache with proper store
     const overlapSpectra: Spectrum[] = activeOverlaps
-      // biome-ignore lint/suspicious/noExplicitAny: Legacy window global, will be replaced with proper store
-      .map((id) => (window as any).OverlapCache?.[id])
+      .map((id) => overlapCache[id])
       .filter((s): s is Spectrum => !!s)
 
     // Combine all spectra
@@ -166,7 +166,7 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
     if (currentIds !== newIds) {
       setCurrentData(allSpectra)
     }
-  }, [activeOverlaps, apiSpectra, customIds, currentData])
+  }, [activeOverlaps, apiSpectra, customIds, currentData, overlapCache])
 
   return currentData
 }

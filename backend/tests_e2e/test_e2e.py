@@ -683,6 +683,8 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
     expect(chem_title).to_be_visible()
     expect(chem_title).to_contain_text("Crystal structure of enhanced Green Fluorescent Protein")
     expect(page.locator("img#smilesImg")).to_be_visible()
+
+    page.wait_for_load_state("networkidle")
     assert_snapshot(page)
 
 

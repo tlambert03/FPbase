@@ -8,6 +8,7 @@ import React, { useEffect, useState } from "react"
 import { components } from "react-select"
 import { fetchGraphQL } from "../api/client"
 import { GET_OPTICAL_CONFIG } from "../api/queries"
+import { useSpectraInfo } from "../store/metadataStore"
 import { useSpectraStore } from "../store/spectraStore"
 import { useCachedFetch } from "../useCachedQuery"
 import MuiReactSelect from "./MuiReactSelect"
@@ -92,6 +93,7 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
   const [modalStyle] = useState(getModalStyle)
   const classes = useStyles()
 
+  const spectraInfo = useSpectraInfo()
   const [ocOptions, setOcOptions] = useState([])
   const stash = useCachedFetch("/api/proteins/ocinfo/", "_FPbaseOCStash", 10 * 60)
   // const stash = useCachedQuery(OPTICAL_CONFIG_LIST, "_FPbaseOCStash", 5 * 60)
@@ -160,7 +162,7 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
 
     // Keep fluorophores if preserveFluors is true, otherwise clear all
     const keptSpectra = preserveFluors
-      ? filterSpectraByCategory(activeSpectra, window.spectraInfo, ["P", "D"])
+      ? filterSpectraByCategory(activeSpectra, spectraInfo, ["P", "D"])
       : []
 
     setActiveSpectra([...keptSpectra, ...newSpectra])
