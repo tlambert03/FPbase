@@ -72,7 +72,12 @@ clean-env:
     rm -rf .venv
     find . -name node_modules -type d -exec rm -rf {} +
 
-clean-caches:
+# Clean all test databases
+clean-db:
+    psql -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname LIKE 'test_%';" > /dev/null 2>&1; \
+    psql -d postgres -tc "SELECT 'DROP DATABASE IF EXISTS ' || quote_ident(datname) || ';' FROM pg_database WHERE datname LIKE 'test_%';" | psql -d postgres
+
+clean: clean-static clean-env clean-db
     find . -name __pycache__ -type d -exec rm -r {} +
     find . -name '*.pyc' -type f -delete
     rm -rf .pytest_cache
@@ -81,8 +86,9 @@ clean-caches:
     rm -rf node_modules/.vite
     rm -rf frontend/node_modules/.vite
     rm -rf frontend/.vite
-
-clean: clean-static clean-env clean-caches
     rm -f coverage.xml
     rm -rf __snapshots__
     rm -rf snapshot_failures
+
+dump-fixture:
+    uv run backend/manage.py dumpfixture

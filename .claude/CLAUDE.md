@@ -59,7 +59,6 @@ pnpm build                             # Build all frontend packages
 ## Important Tools
 
 - **django-extensions**: `shell_plus` auto-imports models
-- **django-debug-toolbar**: Available in local dev
 - **django-reversion**: Model history tracking enabled
 - **Algolia**: Full-text search integration
 - **Sentry**: Error tracking (production)

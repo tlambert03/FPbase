@@ -6,7 +6,7 @@
     "start": "pnpm dev",
     "build": "pnpm -r --parallel build",
     "heroku-postbuild": "CI=true pnpm --filter fpbase build",
-    "heroku-cleanup": "rm -rf node_modules _resources .github",
+    "heroku-cleanup": "rm -rf node_modules _resources .github backend/tests backend/tests_e2e",
     "clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules && pnpm -r run clean",
     "format": "biome format --write",
     "format:check": "biome check --write",
@@ -31,5 +31,5 @@
   "engines": {
     "node": "22.x"
   },
-  "packageManager": "pnpm@10.19.0"
+  "packageManager": "pnpm@10.20.0"
 }

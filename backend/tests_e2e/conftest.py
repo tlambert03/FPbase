@@ -43,8 +43,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
 from playwright.sync_api import Page
 
-# django-vite doesn't need loader imports
-
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
@@ -67,13 +65,8 @@ VIEWPORT_SIZE: ViewportSize = {"width": 1020, "height": 1200}
 #      https://github.com/microsoft/playwright-pytest/issues/29
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
-# Mark all tests in this directory with transactional database access
-# This is REQUIRED for live_server tests - it tells pytest-django to use
-# table truncation instead of transaction rollback for cleanup
-# See: https://pytest-django.readthedocs.io/en/latest/database.html#transactional-db
-pytestmark = [
-    pytest.mark.django_db(transaction=True),
-]
+# https://pytest-django.readthedocs.io/en/latest/database.html#enabling-database-access-in-tests
+pytestmark = pytest.mark.django_db()
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -182,20 +175,21 @@ def page(page: Page) -> Iterator[Page]:
 
 IGNORE_PATTERNS = [
     "autocomplete-state",  # Autocomplete requests cancelled
-    r"doubleclick\.net",
+    "Content Security Policy",  # Webkit Content Security Policy reports
     "ERR_ABORTED",  # Navigation aborts (PDF downloads, autocomplete)
-    r"favicon\.ico",
     "Frame load interrupted",  # WebKit: PDF downloads interrupt navigation
-    r"google\.com",
     "googletagmanager.com",
     "recaptcha",  # Test key returns 401
     "sentry",
     "WebGL",
-    r"accessibility\.js",  # highcharts accessibility module warnings
     r".*cookie.*overwritten",  # cookie updates
     r"\[Report Only\]",  # Content Security Policy reports
+    r"accessibility\.js",  # highcharts accessibility module warnings
     r"cdnjs\.cloudflare\.com",  # CDN assets cancelled during teardown
+    r"doubleclick\.net",
+    r"favicon\.ico",
     r"font-awesome.*\.woff2",  # CDN fonts cancelled during teardown
+    r"google\.com",
 ]
 
 
