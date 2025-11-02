@@ -81,9 +81,10 @@ def _frontend_assets_need_rebuild(stats_file) -> bool:
     # Stats are valid - check if source files are newer
     stats_mtime = stats_file.stat().st_mtime
     frontend_src = Path(__file__).parent.parent.parent / "frontend" / "src"
-    if any(
-        f.stat().st_mtime > stats_mtime for f in frontend_src.rglob("*") if f.is_file() and not f.name.startswith(".")
-    ):
+    sources = list(frontend_src.rglob("*"))
+    packages = Path(__file__).parent.parent.parent / "packages"
+    sources += list(packages.rglob("src/**/*"))
+    if any(f.stat().st_mtime > stats_mtime for f in sources if f.is_file() and not f.name.startswith(".")):
         return True
 
     # Everything is up to date
