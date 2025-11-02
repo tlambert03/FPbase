@@ -1,5 +1,4 @@
 import Box from "@mui/material/Box"
-import update from "immutability-helper"
 import PropTypes from "prop-types"
 import React, { useCallback, useEffect } from "react"
 import { components } from "react-select"
@@ -112,27 +111,33 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   useEffect(() => {
     const otherOwners = allOwners.filter((i) => i !== selector.owner)
     if (!otherOwners) return
-    let newOptions = myOptions
-    options.forEach((option, index) => {
-      if (otherOwners.includes(option.value)) {
-        if (!newOptions[index].isDisabled) {
-          newOptions = update(newOptions, {
-            [index]: {
-              isDisabled: { $set: true },
-              label: { $set: `${newOptions[index].label} (already selected)` },
-            },
-          })
+
+    let hasChanges = false
+    const newOptions = options.map((option) => {
+      // Find the existing option state by value, or use the base option
+      const existingOption = myOptions.find((opt) => opt.value === option.value) || option
+
+      if (otherOwners.includes(option.value) && !existingOption.isDisabled) {
+        hasChanges = true
+        return {
+          ...existingOption,
+          isDisabled: true,
+          label: `${existingOption.label} (already selected)`,
         }
-      } else if (newOptions[index].isDisabled) {
-        newOptions = update(newOptions, {
-          [index]: {
-            isDisabled: { $set: false },
-            label: { $set: option.label },
-          },
-        })
       }
+      if (!otherOwners.includes(option.value) && existingOption.isDisabled) {
+        hasChanges = true
+        return {
+          ...existingOption,
+          isDisabled: false,
+          label: option.label,
+        }
+      }
+      return existingOption
     })
-    if (newOptions !== myOptions) {
+
+    // Also check if the length changed (options prop was updated)
+    if (hasChanges || newOptions.length !== myOptions.length) {
       setMyOptions(newOptions)
     }
   }, [allOwners, myOptions, options, selector.owner])

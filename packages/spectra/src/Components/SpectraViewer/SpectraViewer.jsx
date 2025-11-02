@@ -19,7 +19,6 @@ import "highcharts/modules/export-data"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/boost"
 import { css } from "@emotion/react"
-import update from "immutability-helper"
 import { BarLoader } from "react-spinners"
 import useSpectraData from "../../hooks/useSpectraData"
 import { useSpectraStore } from "../../store/spectraStore"
@@ -89,21 +88,28 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
     normWave = null
   }
 
-  const yAxis = update(_yAxis, {
+  const yAxis = {
+    ..._yAxis,
     labels: {
-      enabled: { $set: chartOptions.showY || chartOptions.logScale },
+      ..._yAxis.labels,
+      enabled: chartOptions.showY || chartOptions.logScale,
     },
-    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
-  })
+    gridLineWidth: chartOptions.showGrid ? 1 : 0,
+  }
 
-  const xAxis = update(_xAxis, {
-    labels: { enabled: { $set: chartOptions.showX } },
-    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
-  })
+  const xAxis = {
+    ..._xAxis,
+    labels: {
+      ..._xAxis.labels,
+      enabled: chartOptions.showX,
+    },
+    gridLineWidth: chartOptions.showGrid ? 1 : 0,
+  }
 
-  const tooltip = update(_tooltip, {
-    shared: { $set: chartOptions.shareTooltip },
-  })
+  const tooltip = {
+    ..._tooltip,
+    shared: chartOptions.shareTooltip,
+  }
 
   return (
     <BaseSpectraViewer
