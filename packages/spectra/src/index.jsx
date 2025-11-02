@@ -6,9 +6,9 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import theme from "./Components/theme"
-import { parseURL } from "./client/client"
-import { defaults } from "./client/resolvers"
+import { defaults } from "./defaults"
 import { queryClientConfig } from "./hooks/useSpectraQueries"
+import { parseURL } from "./util"
 
 const AppWrapper = ({ uri = "/graphql/" }) => {
   const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
