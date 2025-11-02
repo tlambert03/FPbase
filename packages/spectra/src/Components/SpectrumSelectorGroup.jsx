@@ -77,18 +77,17 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
     [category, options]
   )
 
-  const removeSelector = useSpectraStore((state) => state.removeSelector)
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
 
   const removeRow = useCallback(
     (selector) => {
-      removeSelector(selector.id)
+      // Just remove spectra - selectors will be derived automatically
       if (ownerInfo[selector.owner] && ownerInfo[selector.owner].spectra) {
         const spectraToRemove = ownerInfo[selector.owner].spectra.map(({ id }) => id)
         updateActiveSpectra(undefined, spectraToRemove)
       }
     },
-    [ownerInfo, removeSelector, updateActiveSpectra]
+    [ownerInfo, updateActiveSpectra]
   )
 
   return (

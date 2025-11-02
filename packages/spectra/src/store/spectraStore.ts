@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
-import type { ChartOptions, SpectraStore } from "../types"
+import type { ChartOptions, ExNorm, SpectraStore } from "../types"
 
 // Default chart options
 const defaultChartOptions: ChartOptions = {
@@ -16,19 +16,14 @@ const defaultChartOptions: ChartOptions = {
   palette: "fpbase",
 }
 
-// Helper to generate unique selector IDs
-let selectorIdCounter = 0
-const generateSelectorId = () => `selector-${++selectorIdCounter}`
-
 export const useSpectraStore = create<SpectraStore>()(
   persist(
     (set, _get) => ({
       // Initial state
       activeSpectra: [],
       activeOverlaps: [],
-      selectors: [],
       excludeSubtypes: [],
-      exNorm: [],
+      exNorm: null,
       chartOptions: defaultChartOptions,
       customFilters: {},
       customLasers: {},
@@ -75,92 +70,17 @@ export const useSpectraStore = create<SpectraStore>()(
           return { activeOverlaps: newOverlaps }
         }),
 
-      // Selector management
-      addSelectors: (selectors) =>
-        set((state) => {
-          const newSelectors = selectors.map((s) => ({
-            ...s,
-            id: s.id || generateSelectorId(),
-          }))
-          return { selectors: [...state.selectors, ...newSelectors] }
-        }),
-
-      updateSelector: (selector) =>
-        set((state) => ({
-          selectors: state.selectors.map((s) => (s.id === selector.id ? { ...s, ...selector } : s)),
-        })),
-
-      removeSelector: (id) =>
-        set((state) => ({
-          selectors: state.selectors.filter((s) => s.id !== id),
-        })),
-
-      normalizeCurrent: () =>
-        set((state) => {
-          const { selectors } = state
-
-          // Ensure we always have at least one empty selector for the UI
-          const hasEmptySelector = selectors.some((s) => !s.owner)
-
-          if (!hasEmptySelector) {
-            return {
-              selectors: [
-                ...selectors,
-                {
-                  id: generateSelectorId(),
-                  owner: null,
-                  category: null,
-                },
-              ],
-            }
-          }
-
-          // If we have multiple empty selectors, keep only one
-          const emptySelectors = selectors.filter((s) => !s.owner)
-          if (emptySelectors.length > 1) {
-            const firstEmpty = emptySelectors[0]
-            const withOwners = selectors.filter((s) => s.owner)
-            return {
-              selectors: [...withOwners, firstEmpty],
-            }
-          }
-
-          return state
-        }),
-
       // Subtype management
       setExcludeSubtypes: (subtypes) => set({ excludeSubtypes: subtypes }),
 
       // Excitation normalization
-      setExNorm: (ids) => set({ exNorm: ids }),
+      setExNorm: (norm) => set({ exNorm: norm }),
 
       // Chart options
       updateChartOptions: (options) =>
         set((state) => ({
           chartOptions: { ...state.chartOptions, ...options },
         })),
-
-      cyclePalette: () =>
-        set((state) => {
-          // Import palettes dynamically to avoid circular dependency
-          // This matches the behavior from Apollo resolvers
-          const PALETTES = {
-            wavelength: { name: "By Wavelength" },
-            rainbow: { name: "Rainbow (Paul Tol)" },
-            fpbase: { name: "FPbase Default" },
-            bright: { name: "Bright (Paul Tol)" },
-            vibrant: { name: "Vibrant (Paul Tol)" },
-            muted: { name: "Muted (Paul Tol)" },
-            light: { name: "Light (Paul Tol)" },
-          }
-          const PALETTE_KEYS = Object.keys(PALETTES)
-          const currentPalette = state.chartOptions.palette || "fpbase"
-          const currentIndex = PALETTE_KEYS.indexOf(currentPalette)
-          const nextPalette = PALETTE_KEYS[(currentIndex + 1) % PALETTE_KEYS.length]
-          return {
-            chartOptions: { ...state.chartOptions, palette: nextPalette },
-          }
-        }),
 
       // Custom spectra
       addCustomFilter: (filter) =>
@@ -192,46 +112,6 @@ export const useSpectraStore = create<SpectraStore>()(
           const { [id]: removed, ...rest } = state.customLasers
           return { customLasers: rest }
         }),
-
-      // Clear form
-      clearForm: (leave = [], appendSpectra = []) =>
-        set((state) => {
-          let newSpectra = [...state.activeSpectra]
-          let newSelectors = [...state.selectors]
-
-          if (leave.length === 0) {
-            // Clear everything
-            newSpectra = []
-            newSelectors = []
-          } else {
-            // Keep only spectra from specified categories
-            // This is simplified - in reality we'd need to check each spectrum's category
-            // For now, we'll just keep selectors with matching categories
-            newSelectors = newSelectors.filter((s) => s.category && leave.includes(s.category))
-          }
-
-          // Add any spectra to append
-          if (appendSpectra.length > 0) {
-            const toAdd = appendSpectra.filter((id) => !newSpectra.includes(id))
-            newSpectra = [...newSpectra, ...toAdd]
-          }
-
-          // Ensure at least one selector
-          if (newSelectors.length === 0) {
-            newSelectors = [
-              {
-                id: generateSelectorId(),
-                owner: null,
-                category: null,
-              },
-            ]
-          }
-
-          return {
-            activeSpectra: newSpectra,
-            selectors: newSelectors,
-          }
-        }),
     }),
     {
       name: "fpbase-spectra-storage",
@@ -239,7 +119,6 @@ export const useSpectraStore = create<SpectraStore>()(
       // Only persist certain fields
       partialize: (state) => ({
         activeSpectra: state.activeSpectra,
-        selectors: state.selectors,
         excludeSubtypes: state.excludeSubtypes,
         chartOptions: state.chartOptions,
         customFilters: state.customFilters,
@@ -252,5 +131,4 @@ export const useSpectraStore = create<SpectraStore>()(
 // Selector hooks for optimized re-renders
 export const useActiveSpectra = () => useSpectraStore((state) => state.activeSpectra)
 export const useChartOptions = () => useSpectraStore((state) => state.chartOptions)
-export const useSelectors = () => useSpectraStore((state) => state.selectors)
 export const useExcludeSubtypes = () => useSpectraStore((state) => state.excludeSubtypes)

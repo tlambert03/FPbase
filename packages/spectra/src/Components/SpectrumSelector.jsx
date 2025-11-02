@@ -85,8 +85,7 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   // Get Zustand store actions and state
   const excludeSubtypes = useSpectraStore((state) => state.excludeSubtypes)
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
-  const updateSelector = useSpectraStore((state) => state.updateSelector)
-  const normalizeCurrent = useSpectraStore((state) => state.normalizeCurrent)
+
   // when the spectrum selector changes
   const handleOwnerChange = useCallback(
     (newValue) => {
@@ -95,33 +94,15 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
       const newOwner = newValue?.value
       setValue(newOwner && ownerInfo[newOwner]) // FIXME: replace with optimistic UI?
 
-      // Update active spectra
+      // Update active spectra - selectors will be derived automatically
       const spectraToAdd = newValue?.spectra
         .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
         .map(({ id }) => id)
       const spectraToRemove = value?.spectra.map(({ id }) => id)
 
       updateActiveSpectra(spectraToAdd, spectraToRemove)
-
-      // Update selector
-      updateSelector({
-        id: selector.id,
-        owner: newOwner,
-        category: ownerInfo[newOwner]?.category,
-      })
-
-      // Normalize selectors
-      normalizeCurrent()
     },
-    [
-      excludeSubtypes,
-      ownerInfo,
-      selector.id,
-      value,
-      updateActiveSpectra,
-      updateSelector,
-      normalizeCurrent,
-    ]
+    [excludeSubtypes, ownerInfo, value, updateActiveSpectra]
   )
 
   // disable options that are already claimed by other selectors

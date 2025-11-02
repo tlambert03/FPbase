@@ -112,6 +112,9 @@ export interface OwnerInfo {
   }>
 }
 
+// Excitation normalization tuple: [wavelength, spectrumId]
+export type ExNorm = readonly [wavelength: number | null, spectrumId: string | null] | null
+
 // Store State Types
 export interface SpectraState {
   // Active spectra IDs
@@ -120,14 +123,11 @@ export interface SpectraState {
   // Active overlap IDs
   activeOverlaps: string[]
 
-  // Selectors for UI
-  selectors: Selector[]
-
   // Excluded subtypes
   excludeSubtypes: SpectrumSubtype[]
 
-  // Excitation normalization
-  exNorm: string[]
+  // Excitation normalization: [wavelength, spectrumId]
+  exNorm: ExNorm
 
   // Chart options
   chartOptions: ChartOptions
@@ -147,30 +147,20 @@ export interface SpectraActions {
   setActiveOverlaps: (ids: string[]) => void
   updateActiveOverlaps: (add?: string[], remove?: string[]) => void
 
-  // Selector management
-  addSelectors: (selectors: Selector[]) => void
-  updateSelector: (selector: Selector) => void
-  removeSelector: (id: string) => void
-  normalizeCurrent: () => void
-
   // Subtype management
   setExcludeSubtypes: (subtypes: SpectrumSubtype[]) => void
 
   // Excitation normalization
-  setExNorm: (ids: string[]) => void
+  setExNorm: (norm: ExNorm) => void
 
   // Chart options
   updateChartOptions: (options: Partial<ChartOptions>) => void
-  cyclePalette: () => void
 
   // Custom spectra
   addCustomFilter: (filter: CustomFilter) => void
   removeCustomFilter: (id: string) => void
   addCustomLaser: (laser: CustomLaser) => void
   removeCustomLaser: (id: string) => void
-
-  // Clear form
-  clearForm: (leave?: SpectrumCategory[], appendSpectra?: string[]) => void
 }
 
 export type SpectraStore = SpectraState & SpectraActions

@@ -97,20 +97,53 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
   const [tab, setTab] = useState(0)
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
-  const selectors = useSpectraStore((state) => state.selectors)
-  const normalizeCurrent = useSpectraStore((state) => state.normalizeCurrent)
 
+  // Set window globals for legacy code (defensive)
   useEffect(() => {
-    // Only normalize when both ownerInfo and spectraInfo are populated
     if (Object.keys(ownerInfo).length > 0 && Object.keys(spectraInfo).length > 0) {
-      // Double-check window globals are actually set (defensive)
       if (!window.ownerInfo || !window.spectraInfo) {
         window.ownerInfo = ownerInfo
         window.spectraInfo = spectraInfo
       }
-      normalizeCurrent()
     }
-  }, [ownerInfo, spectraInfo, normalizeCurrent])
+  }, [ownerInfo, spectraInfo])
+
+  // Derive selectors from activeSpectra - this is the single source of truth
+  const selectors = useMemo(() => {
+    if (Object.keys(ownerInfo).length === 0 || Object.keys(spectraInfo).length === 0) {
+      // Return one empty selector while data is loading
+      return [{ id: "empty", owner: null, category: null }]
+    }
+
+    // Find all unique owners in activeSpectra
+    const ownersInActiveSpectra = new Set()
+    activeSpectra.forEach((spectrumId) => {
+      const spectrum = spectraInfo[spectrumId]
+      if (spectrum?.owner) {
+        // spectrum.owner is already a slug string, not an object
+        ownersInActiveSpectra.add(spectrum.owner)
+      }
+    })
+
+    // Create selectors for each owner
+    const derivedSelectors = Array.from(ownersInActiveSpectra).map((owner) => ({
+      id: owner, // Use owner slug as stable ID
+      owner,
+      category: ownerInfo[owner]?.category || null,
+    }))
+
+    // Sort before adding empty selector to maintain consistent order
+    derivedSelectors.sort(selectorSorter)
+
+    // Always ensure at least one empty selector for input (at the end after sorting)
+    derivedSelectors.push({
+      id: "empty",
+      owner: null,
+      category: null,
+    })
+
+    return derivedSelectors
+  }, [activeSpectra, ownerInfo, spectraInfo])
 
   const handleTabChange = (_event, newValue) => {
     if (newValue !== tab) {
@@ -151,14 +184,8 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
     }
   }, [])
 
-  const sortedSelectors = useMemo(
-    () => (Array.isArray(selectors) ? [...selectors] : []).sort(selectorSorter),
-    [selectors]
-  )
-
   const isPopulated = (cat) => {
-    let populated =
-      sortedSelectors.filter(({ owner, category }) => category === cat && owner).length > 0
+    let populated = selectors.filter(({ owner, category }) => category === cat && owner).length > 0
     if (cat === "F") {
       populated = populated || activeSpectra.some((s) => s.startsWith("$cf"))
     }
@@ -172,7 +199,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
     const _cats = cats ? cats.split("") : null
     let populated = false
     if (label === "All") {
-      populated = Boolean(sortedSelectors.filter((i) => i.owner).length)
+      populated = Boolean(selectors.filter((i) => i.owner).length)
     } else if (label !== "Efficiency") {
       if (activeSpectra.length > 0) {
         populated = _cats.some((c) => isPopulated(c))
@@ -219,7 +246,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
           {tab === 0 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -233,7 +260,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
               </Typography>
 
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -245,7 +272,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
                 Dyes
               </Typography>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -257,7 +284,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
           {tab === 2 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -270,7 +297,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
           {tab === 3 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -283,7 +310,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
           {tab === 4 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}

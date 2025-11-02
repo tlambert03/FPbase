@@ -1,10 +1,22 @@
 import { useCallback, useEffect } from "react"
 import { useSpectraStore } from "../store/spectraStore"
 
+// Palette order for cycling
+const PALETTE_ORDER = ["wavelength", "rainbow", "fpbase", "bright", "vibrant", "muted", "light"]
+
+/**
+ * Get the next palette in the cycle
+ * @param {string} currentPalette - Current palette name
+ * @returns {string} Next palette name
+ */
+const getNextPalette = (currentPalette) => {
+  const currentIndex = PALETTE_ORDER.indexOf(currentPalette)
+  return PALETTE_ORDER[(currentIndex + 1) % PALETTE_ORDER.length]
+}
+
 const useKeyboardShortcuts = () => {
   const chartOptions = useSpectraStore((state) => state.chartOptions)
   const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
-  const cyclePalette = useSpectraStore((state) => state.cyclePalette)
 
   const toggleY = useCallback(
     () => updateChartOptions({ showY: !chartOptions.showY }),
@@ -34,6 +46,11 @@ const useKeyboardShortcuts = () => {
     () => updateChartOptions({ areaFill: !chartOptions.areaFill }),
     [chartOptions.areaFill, updateChartOptions]
   )
+
+  const cyclePalette = useCallback(() => {
+    const nextPalette = getNextPalette(chartOptions.palette || "fpbase")
+    updateChartOptions({ palette: nextPalette })
+  }, [chartOptions.palette, updateChartOptions])
 
   useEffect(() => {
     const handleKeyDown = (event) => {

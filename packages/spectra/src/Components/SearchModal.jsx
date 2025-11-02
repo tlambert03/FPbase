@@ -12,6 +12,21 @@ import { useSpectraStore } from "../store/spectraStore"
 import { useCachedFetch } from "../useCachedQuery"
 import MuiReactSelect from "./MuiReactSelect"
 
+/**
+ * Filter spectra by category
+ * @param {string[]} spectraIds - Array of spectrum IDs
+ * @param {Object} spectraInfo - Mapping of spectrum ID to spectrum metadata
+ * @param {string[]} keepCategories - Categories to keep (e.g., ["P", "D"])
+ * @returns {string[]} Filtered spectrum IDs
+ */
+function filterSpectraByCategory(spectraIds, spectraInfo, keepCategories) {
+  if (!spectraInfo) return []
+  return spectraIds.filter((id) => {
+    const spectrum = spectraInfo[id]
+    return spectrum && keepCategories.includes(spectrum.category)
+  })
+}
+
 const OptionWithBlurb = (props) => {
   const myProps = { ...props }
 
@@ -119,32 +134,36 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
   }, [setOpen])
 
   const excludeSubtypes = useSpectraStore((state) => state.excludeSubtypes)
+  const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const setActiveSpectra = useSpectraStore((state) => state.setActiveSpectra)
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
-  const normalizeCurrent = useSpectraStore((state) => state.normalizeCurrent)
-  const clearForm = useSpectraStore((state) => state.clearForm)
 
   const handleChange = async (event) => {
     const spectra = event?.spectra
       .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
       .map(({ id }) => id)
 
-    if (spectra) {
+    if (spectra && event) {
+      // Just update activeSpectra - selectors will be derived automatically
       updateActiveSpectra(spectra)
-      // Let normalizeCurrent create selectors for new owners AND add empty selectors
-      normalizeCurrent()
     }
     setOpen(false)
   }
   const [preserveFluors, setPreserveFluors] = useState(true)
   const handleOCChange = async ({ value }) => {
     const { opticalConfig } = await fetchGraphQL(GET_OPTICAL_CONFIG, { id: value })
-    const spectra = []
+    const newSpectra = []
     opticalConfig.filters &&
-      spectra.push(...opticalConfig.filters.map(({ spectrum }) => spectrum.id))
-    opticalConfig.light && spectra.push(opticalConfig.light.spectrum.id)
-    opticalConfig.camera && spectra.push(opticalConfig.camera.spectrum.id)
+      newSpectra.push(...opticalConfig.filters.map(({ spectrum }) => spectrum.id))
+    opticalConfig.light && newSpectra.push(opticalConfig.light.spectrum.id)
+    opticalConfig.camera && newSpectra.push(opticalConfig.camera.spectrum.id)
 
-    clearForm(preserveFluors ? ["P", "D"] : [], spectra)
+    // Keep fluorophores if preserveFluors is true, otherwise clear all
+    const keptSpectra = preserveFluors
+      ? filterSpectraByCategory(activeSpectra, window.spectraInfo, ["P", "D"])
+      : []
+
+    setActiveSpectra([...keptSpectra, ...newSpectra])
     setOpen(false)
   }
 
