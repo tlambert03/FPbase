@@ -152,13 +152,8 @@ if settings.DEBUG:
             kwargs={"exception": Exception("Page not Found")},
         ),
         path("500/", fpbase.views.server_error),
-        path("test/", fpbase.views.testview),
         path(
             "autocomplete/",
             TemplateView.as_view(template_name="pages/test_autocomplete.html"),
         ),
     ]
-    if "debug_toolbar" in settings.INSTALLED_APPS:
-        import debug_toolbar
-
-        urlpatterns = [path("__debug__/", include(debug_toolbar.urls)), *urlpatterns]

@@ -29,36 +29,6 @@
 @import "_algoliasearch.scss";
 
 ////////////////////////////////
-    //Django Toolbar//
-////////////////////////////////
-
-// Display django-debug-toolbar.
-// See https://github.com/django-debug-toolbar/django-debug-toolbar/issues/742
-// and https://github.com/pydanny/cookiecutter-django/issues/317
-
-[hidden][style="display: block;"] {
-  display: block !important;
-}
-
-.modal-open .modal.modal-center {
-    display: flex!important;
-    align-items: center!important;
-    .modal-dialog {
-        flex-grow: 1;
-    }
-}
-
-.btn-xs {
-  @include button-size(.15rem, .45rem, ($font-size-base * .70), 1.1rem, $btn-border-radius-sm);
-}
-
-.btn-group-xs > .btn { @extend .btn-xs; }
-
-
-i {border: none}
-
-
-////////////////////////////////
     //Variables//
 ////////////////////////////////
 
