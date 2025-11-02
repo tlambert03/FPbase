@@ -71,7 +71,7 @@ clean-env:
     rm -rf .venv
     find . -name node_modules -type d -exec rm -rf {} +
 
-clean-caches:
+clean: clean-static clean-env
     find . -name __pycache__ -type d -exec rm -r {} +
     find . -name '*.pyc' -type f -delete
     rm -rf .pytest_cache
@@ -80,8 +80,9 @@ clean-caches:
     rm -rf node_modules/.vite
     rm -rf frontend/node_modules/.vite
     rm -rf frontend/.vite
-
-clean: clean-static clean-env clean-caches
     rm -f coverage.xml
     rm -rf __snapshots__
     rm -rf snapshot_failures
+
+dump-fixture:
+    uv run backend/manage.py dumpfixture

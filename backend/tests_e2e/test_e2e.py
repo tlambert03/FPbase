@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
+from anyio import Path
+from django.core.management import call_command
 from django.urls import reverse
 from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
@@ -33,10 +35,18 @@ if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Browser, Page
     from pytest_django.live_server_helper import LiveServer
+    from pytest_django.plugin import DjangoDbBlocker
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # Reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
 CDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
+
+
+@pytest.fixture(scope="session")
+def django_db_setup(django_db_setup: None, django_db_blocker: DjangoDbBlocker):
+    fixture = Path(__file__).parent / "fixtures" / "test_data.json"
+    with django_db_blocker.unblock():
+        call_command("loaddata", str(fixture))
 
 
 def _select2_enter(selector: str, text: str, page: Page) -> None:
@@ -240,6 +250,19 @@ def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
+def _select2_multi_fill(page: Page, id_: str, val: str) -> None:
+    container = page.locator(f"#div_{id_}")
+    # 1. Click to open the Select2 dropdown
+    container.locator(".select2").click()
+    # 2. Wait for the dropdown to appear
+    page.locator(f"#select2-{id_}-results").wait_for(state="visible")
+    # 3. Type to search
+    container.locator(".select2-search__field").fill(val)
+    # 4. Wait for results to load and click
+    page.locator(".select2-results__option", has_text=val).click()
+    expect(container.locator(".select2-selection__choice", has_text=val)).to_be_visible()
+
+
 def test_microscope_create(
     live_server: LiveServer, auth_page: Page, browser: Browser, assert_snapshot: Callable
 ) -> None:
@@ -267,34 +290,12 @@ def test_microscope_create(
     auth_page.locator('input[name="optical_configs-0-name"]').fill("WF Green")
 
     # Select first excitation filter
-    ex_filters_container = auth_page.locator("#div_id_optical_configs-0-ex_filters")
-    ex_filters_container.click()
-    result_with_ex = auth_page.locator(f".select2-results__option:has-text('{ex.name}')")
-    expect(result_with_ex).to_be_visible()
-    result_with_ex.click()
-    selected_choices = auth_page.locator("#div_id_optical_configs-0-ex_filters li.select2-selection__choice")
-    expect(selected_choices).to_have_count(1)
+    _select2_multi_fill(auth_page, "id_optical_configs-0-ex_filters", ex.name)
+    # select dichroic filter
+    _select2_multi_fill(auth_page, "id_optical_configs-0-bs_filters", bs.name)
+    # add emission filter
+    _select2_multi_fill(auth_page, "id_optical_configs-0-em_filters", em.name)
 
-    # Wait for the dropdown results to disappear (dropdown closes after selection)
-    expect(auth_page.locator(".select2-results")).not_to_be_visible()
-
-    # Add Dichroic Filter (bs_name)
-    bs_filters_container = auth_page.locator("#div_id_optical_configs-0-bs_filters")
-    bs_filters_container.click()
-    result_with_bs = auth_page.locator(f".select2-results__option:has-text('{bs.name}')")
-    expect(result_with_bs).to_be_visible()
-    result_with_bs.click()
-
-    expect(auth_page.locator(".select2-results")).not_to_be_visible()
-
-    # Add Emission Filter (em_name)
-    em_filters_container = auth_page.locator("#div_id_optical_configs-0-em_filters")
-    em_filters_container.click()
-    result_with_em = auth_page.locator(f".select2-results__option:has-text('{em.name}')")
-    expect(result_with_em).to_be_visible()
-    result_with_em.click()
-
-    expect(auth_page.locator(".select2-results")).not_to_be_visible()
     assert_snapshot(auth_page)
 
     auth_page.locator('input[type="submit"]').click()
