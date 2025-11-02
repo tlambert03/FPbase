@@ -11,8 +11,7 @@ import { useSpectraStore } from "./store/spectraStore"
 import { syncURLToStore } from "./store/urlSync"
 import type { ChartOptions } from "./types"
 
-// biome-ignore lint/correctness/noUnusedFunctionParameters: uri kept for API compatibility
-const AppWrapper = ({ uri = "/graphql/" }) => {
+const AppWrapper = () => {
   const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
 
   return (
@@ -30,21 +29,13 @@ const AppWrapper = ({ uri = "/graphql/" }) => {
 export default AppWrapper
 
 interface SimpleSpectraViewerProps {
-  uri?: string
   ids?: string[] | number[]
   overlaps?: string[] | number[]
   options?: Partial<ChartOptions>
   hidden?: string[] | number[]
 }
 
-// biome-ignore lint/correctness/noUnusedFunctionParameters: uri kept for API compatibility
-const SimpleSpectraViewer = ({
-  uri = "/graphql/",
-  ids,
-  overlaps,
-  options,
-  hidden,
-}: SimpleSpectraViewerProps) => {
+const SimpleSpectraViewer = ({ ids, overlaps, options, hidden }: SimpleSpectraViewerProps) => {
   const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
 
   return (

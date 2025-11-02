@@ -1,12 +1,13 @@
 import qs from "qs"
-import type { SpectraStore } from "../types"
+import type { ChartOptions, SpectraStore } from "../types"
 
-interface URLParams {
+interface URLParams extends Partial<ChartOptions> {
   s?: string | string[] // Spectra IDs
   o?: string | string[] // Overlap IDs
   ex?: string | string[] // Excitation normalization
-  // biome-ignore lint/suspicious/noExplicitAny: URL params can have any chart option values
-  [key: string]: any // Chart options
+  min?: string // Range minimum
+  max?: string // Range maximum
+  [key: string]: string | string[] | boolean | number | null | undefined
 }
 
 // Parse URL parameters and update store
@@ -34,8 +35,7 @@ export function syncURLToStore(store: SpectraStore) {
   }
 
   // Parse chart options
-  // biome-ignore lint/suspicious/noExplicitAny: Dynamic chart options object built from URL params
-  const chartOptions: any = {}
+  const chartOptions: Partial<ChartOptions> = {}
   let hasChartOptions = false
 
   // Boolean options

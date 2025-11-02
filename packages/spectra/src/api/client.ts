@@ -4,8 +4,10 @@ import type { GraphQLResponse } from "../types"
  * Lightweight GraphQL client using native fetch
  * Replaces Apollo Client for server queries
  */
-// biome-ignore lint/suspicious/noExplicitAny: GraphQL variables can be any type
-export async function fetchGraphQL<T>(query: string, variables?: Record<string, any>): Promise<T> {
+export async function fetchGraphQL<T>(
+  query: string,
+  variables?: Record<string, unknown>
+): Promise<T> {
   const response = await fetch("/graphql/", {
     method: "POST",
     headers: {

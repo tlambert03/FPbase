@@ -9,7 +9,6 @@ export interface SpectraViewerContainerProps {
   provideHidden?: string[]
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: Legacy component, will be typed properly when migrated
 export declare const SpectraViewerContainer: FC<SpectraViewerContainerProps>
 // biome-ignore lint/suspicious/noExplicitAny: Legacy component, will be typed properly when migrated
 export declare const SpectraViewer: FC<any>

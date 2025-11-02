@@ -1,5 +1,5 @@
 import { List } from "immutable"
-import { memo, useEffect, useMemo, useState } from "react"
+import { memo, useMemo } from "react"
 import { Series } from "react-jsx-highcharts"
 import { useSpectrum } from "../../hooks/useSpectraQueries"
 import PALETTES from "../../palettes"

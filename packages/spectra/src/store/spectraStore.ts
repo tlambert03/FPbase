@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
-import type { ChartOptions, ExNorm, SpectraStore } from "../types"
+import type { ChartOptions, SpectraStore } from "../types"
 
 // Default chart options
 const defaultChartOptions: ChartOptions = {
@@ -93,8 +93,7 @@ export const useSpectraStore = create<SpectraStore>()(
 
       removeCustomFilter: (id) =>
         set((state) => {
-          // biome-ignore lint/correctness/noUnusedVariables: removed is needed for destructuring
-          const { [id]: removed, ...rest } = state.customFilters
+          const { [id]: _removed, ...rest } = state.customFilters
           return { customFilters: rest }
         }),
 
@@ -108,8 +107,7 @@ export const useSpectraStore = create<SpectraStore>()(
 
       removeCustomLaser: (id) =>
         set((state) => {
-          // biome-ignore lint/correctness/noUnusedVariables: removed is needed for destructuring
-          const { [id]: removed, ...rest } = state.customLasers
+          const { [id]: _removed, ...rest } = state.customLasers
           return { customLasers: rest }
         }),
     }),
