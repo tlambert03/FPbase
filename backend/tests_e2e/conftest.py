@@ -24,12 +24,15 @@ References:
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import re
 import subprocess
+import sys
 import textwrap
 from collections import defaultdict
+from contextlib import suppress
 from pathlib import Path
 from typing import TYPE_CHECKING, Self
 
@@ -92,22 +95,58 @@ def _frontend_assets_need_rebuild(stats_file) -> bool:
     return False
 
 
-@pytest.fixture(scope="module", autouse=True)
-def _setup_frontend_assets() -> None:
-    """Build webpack assets once per test module if needed.
+def pytest_configure(config: pytest.Config) -> None:
+    """Build frontend assets before test collection when running e2e tests.
 
-    Checks if existing webpack stats represent a static build and if source files have changed.
-    Rebuilds if missing, stale, dev server output detected, or source files are newer.
+    This hook runs very early - before test collection and before Django is imported.
+    It ensures the manifest exists and is valid before any worker process starts.
 
-    Module-scoped to avoid rebuilding for every test (which would be slow).
-    This is safe because webpack output is filesystem-based, not database.
+    For pytest-xdist, this runs once in the main process before workers are spawned,
+    ensuring all workers find a valid manifest when they start.
     """
-    stats_file = Path(django.conf.settings.WEBPACK_LOADER["DEFAULT"]["STATS_FILE"])
+    # Only run in main process (not in xdist workers)
+    if hasattr(config, "workerinput"):
+        return
 
-    # Need to build - either no stats, invalid stats, or source files changed
-    if _frontend_assets_need_rebuild(stats_file):
-        print("Building frontend assets for e2e tests...")
-        subprocess.check_output(["pnpm", "--filter", "fpbase", "build"], stderr=subprocess.PIPE)
+    CYAN = 36
+    RED = 31
+    GREEN = 32
+
+    def _color_text(text: str, color_code: int) -> str:
+        with suppress(AttributeError, OSError):
+            # Check if stdout supports colors (has isatty and it returns True)
+            if hasattr(sys.stdout, "isatty") and sys.stdout.isatty():
+                return f"\033[{color_code}m{text}\033[0m"
+        return text
+
+    manifest_file = Path(django.conf.settings.WEBPACK_LOADER["DEFAULT"]["STATS_FILE"])
+
+    lock_file = manifest_file.parent / ".build.lock"
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Use file locking to handle concurrent pytest runs
+    with open(lock_file, "w") as f:
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+
+        if _frontend_assets_need_rebuild(manifest_file):
+            print(_color_text("🔨 Building frontend assets for e2e tests...", CYAN), flush=True)
+            result = subprocess.run(
+                ["pnpm", "--filter", "fpbase", "build"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode != 0:
+                print(_color_text(f"❌ Build failed with exit code {result.returncode}", RED), flush=True)
+                print(f"STDOUT: {result.stdout}", flush=True)
+                print(f"STDERR: {result.stderr}", flush=True)
+                raise RuntimeError(f"Frontend build failed: {result.stderr}")
+            print(_color_text("✅ Frontend build completed successfully", GREEN), flush=True)
+
+            django.conf.settings.STATICFILES_DIRS.append(str(manifest_file.parent))
+
+        else:
+            print(_color_text("✅ Frontend assets are up to date", GREEN), flush=True)
 
 
 @pytest.fixture
