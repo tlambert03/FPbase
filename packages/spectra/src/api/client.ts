@@ -1,0 +1,48 @@
+import type { GraphQLResponse } from "../types"
+
+/**
+ * Lightweight GraphQL client using native fetch
+ * Replaces Apollo Client for server queries
+ */
+// biome-ignore lint/suspicious/noExplicitAny: GraphQL variables can be any type
+export async function fetchGraphQL<T>(query: string, variables?: Record<string, any>): Promise<T> {
+  const response = await fetch("/graphql/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "same-origin",
+    body: JSON.stringify({
+      query,
+      variables,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`)
+  }
+
+  const json: GraphQLResponse<T> = await response.json()
+
+  if (json.errors?.length) {
+    throw new Error(json.errors[0].message)
+  }
+
+  return json.data
+}
+
+/**
+ * Fetch from REST API endpoints
+ */
+export async function fetchAPI<T>(endpoint: string): Promise<T> {
+  const response = await fetch(endpoint, {
+    method: "GET",
+    credentials: "same-origin",
+  })
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+  }
+
+  return response.json()
+}
