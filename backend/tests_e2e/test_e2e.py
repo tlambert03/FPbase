@@ -12,8 +12,6 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-from anyio import Path
-from django.core.management import call_command
 from django.urls import reverse
 from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
@@ -35,18 +33,10 @@ if TYPE_CHECKING:
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Browser, Page
     from pytest_django.live_server_helper import LiveServer
-    from pytest_django.plugin import DjangoDbBlocker
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # Reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
 CDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
-
-
-@pytest.fixture(scope="session")
-def django_db_setup(django_db_setup: None, django_db_blocker: DjangoDbBlocker):
-    fixture = Path(__file__).parent / "fixtures" / "test_data.json"
-    with django_db_blocker.unblock():
-        call_command("loaddata", str(fixture))
 
 
 def _select2_enter(selector: str, text: str, page: Page) -> None:

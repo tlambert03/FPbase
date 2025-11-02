@@ -115,7 +115,7 @@ jobs:
         run: uv run --no-sync playwright install ${{ matrix.browser }} --with-deps
 
       - name: Test
-        run: uv run --no-sync pytest backend/tests_e2e/ -v --browser ${{ matrix.browser }} --cov --cov-report=xml --tracing=retain-on-failure
+        run: uv run --no-sync pytest backend/tests_e2e/ --create-db --migrations -v --browser ${{ matrix.browser }} --cov --cov-report=xml --tracing=retain-on-failure
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
