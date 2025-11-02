@@ -43,14 +43,11 @@ from django.contrib.sessions.backends.db import SessionStore
 from django.core.management import call_command
 from playwright.sync_api import Page
 
-from proteins.models import Protein
-
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, Request, Response, ViewportSize
-    from pytest_django.plugin import DjangoDbBlocker
 
 # Register snapshot plugin to make assert_snapshot fixture available
 pytest_plugins = ["tests_e2e.snapshot_plugin"]
@@ -68,17 +65,13 @@ VIEWPORT_SIZE: ViewportSize = {"width": 1020, "height": 1200}
 #      https://github.com/microsoft/playwright-pytest/issues/29
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
-
-@pytest.fixture(scope="session")
-def django_db_setup(django_db_setup: None, django_db_blocker: DjangoDbBlocker):
-    fixture = Path(__file__).parent / "fixtures" / "test_data.json"
-
-    with django_db_blocker.unblock():
-        # Only load if database is empty
-        # (will be empty on first run, or with --create-db)
-        if not Protein.objects.exists():
-            # Database is empty, load fixtures
-            call_command("loaddata", str(fixture), verbosity=0)
+# Mark all tests in this directory with transactional database access
+# This is REQUIRED for live_server tests - it tells pytest-django to use
+# table truncation instead of transaction rollback for cleanup
+# See: https://pytest-django.readthedocs.io/en/latest/database.html#transactional-db
+pytestmark = [
+    pytest.mark.django_db(transaction=True),
+]
 
 
 def _frontend_assets_need_rebuild(stats_file) -> bool:

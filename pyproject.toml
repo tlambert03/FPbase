@@ -90,7 +90,7 @@ dev = [
 minversion = "8.0"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 FAIL_INVALID_TEMPLATE_VARS = false
-addopts = "--reuse-db --cov-config=pyproject.toml --color=yes --nomigrations"
+addopts = "--reuse-db --cov-config=pyproject.toml --color=yes"
 python_files = ["tests.py", "test_*.py"]
 pythonpath = ["backend"]
 # Exclude e2e tests by default - run them explicitly with: pytest backend/tests_e2e/
