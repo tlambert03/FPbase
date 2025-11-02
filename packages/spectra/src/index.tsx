@@ -1,13 +1,11 @@
 import { useMemo } from "react"
 import "./index.css"
-import { ApolloProvider } from "@apollo/client"
 import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import theme from "./Components/theme"
-import intializeClient from "./client/client"
 import { queryClientConfig } from "./hooks/useSpectraQueries"
 import { useSpectraStore } from "./store/spectraStore"
 import { syncURLToStore } from "./store/urlSync"
@@ -16,17 +14,14 @@ import type { ChartOptions } from "./types"
 // biome-ignore lint/correctness/noUnusedFunctionParameters: uri kept for API compatibility
 const AppWrapper = ({ uri = "/graphql/" }) => {
   const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
-  const apolloClient = useMemo(() => intializeClient({ uri }), [uri])
 
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <ApolloProvider client={apolloClient}>
-          <QueryClientProvider client={queryClient}>
-            <App />
-            <ReactQueryDevtools initialIsOpen={false} />
-          </QueryClientProvider>
-        </ApolloProvider>
+        <QueryClientProvider client={queryClient}>
+          <App />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   )
@@ -51,16 +46,14 @@ const SimpleSpectraViewer = ({
   hidden,
 }: SimpleSpectraViewerProps) => {
   const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
-  const apolloClient = useMemo(() => intializeClient({ uri }), [uri])
 
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <ApolloProvider client={apolloClient}>
-          <QueryClientProvider client={queryClient}>
-            <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
-          </QueryClientProvider>
-        </ApolloProvider>
+        <QueryClientProvider client={queryClient}>
+          <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   )

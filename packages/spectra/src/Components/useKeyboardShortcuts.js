@@ -1,28 +1,39 @@
-import { useMutation } from "@apollo/client"
-import gql from "graphql-tag"
-import { useEffect } from "react"
-
-const toggleMut = (param) => gql`
-mutation Toggle${param} {
-  toggle${param} @client
-}
-`
-
-const CYCLE_PALLETE = gql`
-  mutation CyclePalette {
-    cyclePalette @client
-  }
-`
+import { useCallback, useEffect } from "react"
+import { useSpectraStore } from "../store/spectraStore"
 
 const useKeyboardShortcuts = () => {
-  const [toggleY] = useMutation(toggleMut("YAxis"))
-  const [toggleX] = useMutation(toggleMut("XAxis"))
-  const [toggleGrid] = useMutation(toggleMut("Grid"))
-  const [toggleScaleEC] = useMutation(toggleMut("ScaleEC"))
-  const [toggleScaleQY] = useMutation(toggleMut("ScaleQY"))
-  const [toggleShareTooltip] = useMutation(toggleMut("ShareTooltip"))
-  const [toggleAreaFill] = useMutation(toggleMut("AreaFill"))
-  const [cyclePalette] = useMutation(CYCLE_PALLETE)
+  const chartOptions = useSpectraStore((state) => state.chartOptions)
+  const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+  const cyclePalette = useSpectraStore((state) => state.cyclePalette)
+
+  const toggleY = useCallback(
+    () => updateChartOptions({ showY: !chartOptions.showY }),
+    [chartOptions.showY, updateChartOptions]
+  )
+  const toggleX = useCallback(
+    () => updateChartOptions({ showX: !chartOptions.showX }),
+    [chartOptions.showX, updateChartOptions]
+  )
+  const toggleGrid = useCallback(
+    () => updateChartOptions({ showGrid: !chartOptions.showGrid }),
+    [chartOptions.showGrid, updateChartOptions]
+  )
+  const toggleScaleEC = useCallback(
+    () => updateChartOptions({ scaleEC: !chartOptions.scaleEC }),
+    [chartOptions.scaleEC, updateChartOptions]
+  )
+  const toggleScaleQY = useCallback(
+    () => updateChartOptions({ scaleQY: !chartOptions.scaleQY }),
+    [chartOptions.scaleQY, updateChartOptions]
+  )
+  const toggleShareTooltip = useCallback(
+    () => updateChartOptions({ shareTooltip: !chartOptions.shareTooltip }),
+    [chartOptions.shareTooltip, updateChartOptions]
+  )
+  const toggleAreaFill = useCallback(
+    () => updateChartOptions({ areaFill: !chartOptions.areaFill }),
+    [chartOptions.areaFill, updateChartOptions]
+  )
 
   useEffect(() => {
     const handleKeyDown = (event) => {

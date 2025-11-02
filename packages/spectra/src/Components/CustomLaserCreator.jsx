@@ -1,4 +1,3 @@
-import { useApolloClient } from "@apollo/client"
 import RadioButtonChecked from "@mui/icons-material/RadioButtonChecked"
 import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked"
 import Box from "@mui/material/Box"
@@ -7,7 +6,7 @@ import FormControlLabel from "@mui/material/FormControlLabel"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
 import { memo, useEffect, useState } from "react"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 import InputSlider from "./InputSlider"
 
 const useStyles = makeStyles({
@@ -24,20 +23,14 @@ const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExN
   const [laserID, _wave] = id.split("_")
   const [wave, setWave] = useState(_wave || 488)
 
-  const client = useApolloClient()
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
   useEffect(() => {
-    client.mutate({
-      mutation: UPDATE_ACTIVE_SPECTRA,
-      variables: {
-        add: [`${laserID}_${wave}`],
-        remove: [laserID],
-      },
-    })
+    updateActiveSpectra([`${laserID}_${wave}`], [laserID])
 
     if (laserID === normID) {
       setExNorm([String(wave), laserID])
     }
-  }, [client, laserID, normID, setExNorm, wave])
+  }, [laserID, normID, setExNorm, wave, updateActiveSpectra])
 
   const handleNormCheck = (_e, checked) => {
     if (checked) {

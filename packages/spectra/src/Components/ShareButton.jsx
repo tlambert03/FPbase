@@ -1,4 +1,3 @@
-import { useQuery } from "@apollo/client"
 import { faTwitter } from "@fortawesome/free-brands-svg-icons"
 import { faCopy, faEnvelope } from "@fortawesome/free-solid-svg-icons"
 import CloseIcon from "@mui/icons-material/Close"
@@ -25,7 +24,7 @@ import { makeStyles } from "@mui/styles"
 import ClipboardJS from "clipboard"
 import Highcharts from "highcharts"
 import React, { useCallback, useEffect, useState } from "react"
-import { GET_ACTIVE_SPECTRA, GET_CHART_OPTIONS, GET_EX_NORM } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 import { FAIcon } from "./FaIcon"
 import stateToUrl from "./stateToUrl"
 
@@ -44,19 +43,13 @@ function ShareLinkAlert({ open, setOpen }) {
   const [qString, setQString] = useState("")
   const classes = useStyles()
 
-  const { loading: spectraLoading, data: spectraData } = useQuery(GET_ACTIVE_SPECTRA)
-  const { loading: chartLoading, data: chartData } = useQuery(GET_CHART_OPTIONS)
-  const { loading: exNormLoading, data: exNormData } = useQuery(GET_EX_NORM)
-
-  const activeSpectra = spectraData?.activeSpectra || []
-  const chartOptions = chartData?.chartOptions
-  const exNorm = exNormData?.exNorm
+  const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const chartOptions = useSpectraStore((state) => state.chartOptions)
+  const exNorm = useSpectraStore((state) => state.exNorm)
 
   useEffect(() => {
-    if (!spectraLoading && !chartLoading && !exNormLoading) {
-      setQString(stateToUrl(activeSpectra, chartOptions, exNorm))
-    }
-  }, [activeSpectra, spectraLoading, chartOptions, chartLoading, exNormLoading, exNorm])
+    setQString(stateToUrl(activeSpectra, chartOptions, exNorm))
+  }, [activeSpectra, chartOptions, exNorm])
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 

@@ -1,12 +1,10 @@
-import { useMutation, useQuery } from "@apollo/client"
 import { useEffect, useState } from "react"
-import { GET_ACTIVE_SPECTRA, SET_ACTIVE_SPECTRA } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 
 const CurrentSpectraInput = () => {
-  const { loading, data } = useQuery(GET_ACTIVE_SPECTRA)
-  const activeSpectra = data?.activeSpectra || []
+  const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
 
-  const [updateSpectra] = useMutation(SET_ACTIVE_SPECTRA)
   const [value, setValue] = useState("")
   useEffect(() => {
     setValue(activeSpectra.join(", "))
@@ -20,27 +18,11 @@ const CurrentSpectraInput = () => {
       .split(",")
       .map((i) => i.trim())
       .filter((i) => i)
-    updateSpectra({
-      variables: {
-        activeSpectra: newVal,
-      },
-      update: (
-        _cache,
-        {
-          data: {
-            setActiveSpectra: { activeSpectra },
-          },
-        }
-      ) => {
-        setValue(activeSpectra.join(", "))
-      },
-    })
+    updateActiveSpectra(newVal)
+    setValue(newVal.join(", "))
   }
   const handleChange = (e) => {
     setValue(e.target.value)
-  }
-  if (loading) {
-    return null
   }
   return (
     <input

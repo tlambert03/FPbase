@@ -1,11 +1,10 @@
-import { useApolloClient } from "@apollo/client"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
 import React, { useEffect } from "react"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 import InputSlider from "./InputSlider"
 
 export const useStyles = makeStyles({
@@ -24,16 +23,10 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
   const [width, setWidth] = React.useState(_width || 50)
   const [trans, setTrans] = React.useState(_trans || 90)
 
-  const client = useApolloClient()
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
   useEffect(() => {
-    client.mutate({
-      mutation: UPDATE_ACTIVE_SPECTRA,
-      variables: {
-        add: [`${filterID}_${type}_${center}_${width}_${trans}`],
-        remove: [filterID],
-      },
-    })
-  }, [width, center, type, trans, filterID, client])
+    updateActiveSpectra([`${filterID}_${type}_${center}_${width}_${trans}`], [filterID])
+  }, [width, center, type, trans, filterID, updateActiveSpectra])
 
   const handleType = (_event, newType) => {
     if (newType) {

@@ -140,6 +140,28 @@ export const useSpectraStore = create<SpectraStore>()(
           chartOptions: { ...state.chartOptions, ...options },
         })),
 
+      cyclePalette: () =>
+        set((state) => {
+          // Import palettes dynamically to avoid circular dependency
+          // This matches the behavior from Apollo resolvers
+          const PALETTES = {
+            wavelength: { name: "By Wavelength" },
+            rainbow: { name: "Rainbow (Paul Tol)" },
+            fpbase: { name: "FPbase Default" },
+            bright: { name: "Bright (Paul Tol)" },
+            vibrant: { name: "Vibrant (Paul Tol)" },
+            muted: { name: "Muted (Paul Tol)" },
+            light: { name: "Light (Paul Tol)" },
+          }
+          const PALETTE_KEYS = Object.keys(PALETTES)
+          const currentPalette = state.chartOptions.palette || "fpbase"
+          const currentIndex = PALETTE_KEYS.indexOf(currentPalette)
+          const nextPalette = PALETTE_KEYS[(currentIndex + 1) % PALETTE_KEYS.length]
+          return {
+            chartOptions: { ...state.chartOptions, palette: nextPalette },
+          }
+        }),
+
       // Custom spectra
       addCustomFilter: (filter) =>
         set((state) => ({

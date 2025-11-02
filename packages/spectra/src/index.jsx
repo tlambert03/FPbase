@@ -1,21 +1,24 @@
 import { useMemo } from "react"
 import "./index.css"
-import { ApolloProvider } from "@apollo/client"
 import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import theme from "./Components/theme"
-import initializeClient, { parseURL } from "./client/client"
+import { parseURL } from "./client/client"
 import { defaults } from "./client/resolvers"
+import { queryClientConfig } from "./hooks/useSpectraQueries"
 
 const AppWrapper = ({ uri = "/graphql/" }) => {
-  const client = useMemo(() => initializeClient({ uri }), [uri])
+  const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <ApolloProvider client={client}>
+        <QueryClientProvider client={queryClient}>
           <App />
-        </ApolloProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   )
@@ -24,14 +27,15 @@ const AppWrapper = ({ uri = "/graphql/" }) => {
 export default AppWrapper
 
 const SimpleSpectraViewer = ({ uri = "/graphql/", ids, overlaps, options, hidden }) => {
-  const client = useMemo(() => initializeClient({ uri }), [uri])
+  const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
 
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <ApolloProvider client={client}>
+        <QueryClientProvider client={queryClient}>
           <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
-        </ApolloProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   )

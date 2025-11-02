@@ -161,6 +161,7 @@ export interface SpectraActions {
 
   // Chart options
   updateChartOptions: (options: Partial<ChartOptions>) => void
+  cyclePalette: () => void
 
   // Custom spectra
   addCustomFilter: (filter: CustomFilter) => void

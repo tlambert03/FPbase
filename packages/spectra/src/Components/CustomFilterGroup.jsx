@@ -1,18 +1,17 @@
-import { useMutation } from "@apollo/client"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
 import { useEffect, useRef, useState } from "react"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 import CustomFilterCreator from "./CustomFilterCreator"
 import { categoryIcon } from "./FaIcon"
 
 const CustomFilterGroup = ({ activeSpectra }) => {
   const filterCounter = useRef(0)
   const [customFilters, setFilters] = useState([])
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
 
   const addRow = () => {
     setFilters([...customFilters, `$cf${filterCounter.current++}`])
@@ -21,11 +20,7 @@ const CustomFilterGroup = ({ activeSpectra }) => {
   const removeRow = (filter) => {
     const filterID = filter.split("_")[0]
     setFilters(customFilters.filter((id) => !id.startsWith(filterID)))
-    updateSpectra({
-      variables: {
-        remove: [filterID],
-      },
-    })
+    updateActiveSpectra([], [filterID])
   }
 
   // const {

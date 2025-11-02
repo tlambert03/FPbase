@@ -1,19 +1,14 @@
-import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Modal from "@mui/material/Modal"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import gql from "graphql-tag"
 import PropTypes from "prop-types"
 import React, { useEffect, useState } from "react"
 import { components } from "react-select"
-import {
-  GET_OPTICAL_CONFIG,
-  GET_OWNER_OPTIONS,
-  NORMALIZE_CURRENT,
-  UPDATE_ACTIVE_SPECTRA,
-} from "../client/queries"
+import { fetchGraphQL } from "../api/client"
+import { GET_OPTICAL_CONFIG } from "../api/queries"
+import { useSpectraStore } from "../store/spectraStore"
 import { useCachedFetch } from "../useCachedQuery"
 import MuiReactSelect from "./MuiReactSelect"
 
@@ -32,11 +27,6 @@ const OptionWithBlurb = (props) => {
   return <components.Option {...myProps} />
 }
 
-const CLEAR_FORM = gql`
-  mutation ClearForm($leave: [String], $appendSpectra: [String]) {
-    clearForm(leave: $leave, appendSpectra: $appendSpectra) @client
-  }
-`
 function getModalStyle() {
   const top = 40
   const left = 42
@@ -128,13 +118,10 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
     }
   }, [setOpen])
 
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
-  const [normalizeCurrent] = useMutation(NORMALIZE_CURRENT)
-
-  const { data } = useQuery(GET_OWNER_OPTIONS)
-  const excludeSubtypes = data?.excludeSubtypes || []
-
-  const client = useApolloClient()
+  const excludeSubtypes = useSpectraStore((state) => state.excludeSubtypes)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
+  const normalizeCurrent = useSpectraStore((state) => state.normalizeCurrent)
+  const clearForm = useSpectraStore((state) => state.clearForm)
 
   const handleChange = async (event) => {
     const spectra = event?.spectra
@@ -142,34 +129,22 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
       .map(({ id }) => id)
 
     if (spectra) {
-      await updateSpectra({ variables: { add: spectra } })
+      updateActiveSpectra(spectra)
       // Let normalizeCurrent create selectors for new owners AND add empty selectors
-      await normalizeCurrent()
+      normalizeCurrent()
     }
     setOpen(false)
   }
-
-  const [clearForm] = useMutation(CLEAR_FORM)
   const [preserveFluors, setPreserveFluors] = useState(true)
   const handleOCChange = async ({ value }) => {
-    const {
-      data: { opticalConfig },
-    } = await client.query({
-      query: GET_OPTICAL_CONFIG,
-      variables: { id: value },
-    })
+    const { opticalConfig } = await fetchGraphQL(GET_OPTICAL_CONFIG, { id: value })
     const spectra = []
     opticalConfig.filters &&
       spectra.push(...opticalConfig.filters.map(({ spectrum }) => spectrum.id))
     opticalConfig.light && spectra.push(opticalConfig.light.spectrum.id)
     opticalConfig.camera && spectra.push(opticalConfig.camera.spectrum.id)
 
-    clearForm({
-      variables: {
-        leave: preserveFluors ? ["P", "D"] : [],
-        appendSpectra: spectra,
-      },
-    })
+    clearForm(preserveFluors ? ["P", "D"] : [], spectra)
     setOpen(false)
   }
 

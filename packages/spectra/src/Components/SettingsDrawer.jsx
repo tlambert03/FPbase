@@ -1,4 +1,3 @@
-import { useMutation } from "@apollo/client"
 import DeleteIcon from "@mui/icons-material/Cached"
 import CloseIcon from "@mui/icons-material/Close"
 import SettingsIcon from "@mui/icons-material/Settings"
@@ -6,8 +5,8 @@ import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
 import SwipeableDrawer from "@mui/material/SwipeableDrawer"
 import { makeStyles } from "@mui/styles"
-import gql from "graphql-tag"
 import React, { useEffect } from "react"
+import { useSpectraStore } from "../store/spectraStore"
 import OwnerOptionsForm from "./OwnerOptionsForm"
 import ChartOptionsForm from "./SpectraViewer/ChartOptionsForm"
 
@@ -25,12 +24,7 @@ export const useStyles = makeStyles((theme) => ({
 const SettingsDrawer = () => {
   const classes = useStyles()
   const [drawerOpen, setDrawerOpen] = React.useState(false)
-
-  const [clearForm] = useMutation(gql`
-    mutation ClearForm {
-      clearForm @client
-    }
-  `)
+  const clearForm = useSpectraStore((state) => state.clearForm)
 
   useEffect(() => {
     const handleKeyDown = (event) => {

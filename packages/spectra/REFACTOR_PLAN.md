@@ -707,6 +707,8 @@ export default function App() {
 
 #### 4.3 Data Fetching Hook
 
+**Note:** Current implementation uses `useState` + `useEffect` pattern for historical reasons during migration. Review and potentially refactor to `useMemo` pattern below once migration is complete and overlap cache is moved to store.
+
 ```typescript
 // hooks/useSpectraData.ts
 import { useMemo } from 'react'
@@ -1466,6 +1468,39 @@ None - The refactor maintains 100% backward compatibility for end users.
 - [TypeScript React Cheatsheet](https://react-typescript-cheatsheet.netlify.app/)
 - [Vite Documentation](https://vitejs.dev/)
 - [React 18 Documentation](https://react.dev/)
+
+---
+
+## Implementation Status
+
+**Branch:** `spectra-refactor`
+**Last Updated:** January 2025
+**Status:** 🟡 In Progress - Phase 4 (Component Migration)
+
+### ✅ Completed
+
+- **Phase 1-3:** TypeScript, Zustand, TanStack Query foundation complete
+- **Core infrastructure:** Types, stores, API client, hooks all working
+- **18 components migrated:** Selectors, chart options, subtypes, overlaps
+- **Tests passing:** 41/43 e2e tests (2 pre-existing failures in spacebar tests)
+- **No regressions:** All existing functionality preserved
+
+### 🔄 In Progress
+
+- **Phase 4:** Component migration (40% complete)
+- **Remaining:** 11 Apollo components (SearchModal, MyAppBar, keyboard shortcuts, custom filters/lasers)
+- **Known TODOs:** Window globals (marked with TODO comments), immutability-helper cleanup
+
+### 📋 Next Actions
+
+1. Continue migrating remaining 11 Apollo components
+2. Remove Apollo Client once all components migrated
+3. Clean up temporary migration artifacts (window globals, immutability-helper)
+4. Proceed to Phase 5 (Bundle Optimization)
+
+### 🎯 Migration Strategy
+
+Using **gradual migration** approach - Apollo + TanStack Query run in parallel during transition (intentional, per plan). All temporary states documented with TODO comments.
 
 ---
 

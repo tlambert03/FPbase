@@ -1,8 +1,7 @@
-import { useApolloClient } from "@apollo/client"
 import { List } from "immutable"
-import { memo, useEffect, useState } from "react"
+import { memo, useEffect, useMemo, useState } from "react"
 import { Series } from "react-jsx-highcharts"
-import { GET_SPECTRUM } from "../../client/queries"
+import { useSpectrum } from "../../hooks/useSpectraQueries"
 import PALETTES from "../../palettes"
 
 const OD = (num) => (num <= 0 ? 10 : -Math.log10(num))
@@ -40,43 +39,40 @@ const VERT_LINES = {
 // If error handling is needed in the future, implement a proper error boundary
 
 const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
-  const client = useApolloClient()
-  const [serie, setSerie] = useState(List([...spectrum.data]))
+  // Determine if we need to fetch EX spectrum for normalization
+  const needsExNorm = (spectrum.subtype === "EM" || spectrum.subtype === "O") && exNorm
 
-  useEffect(() => {
-    async function getExData() {
-      if (spectrum.owner.slug in ownerInfo) {
-        let scalar = 0
-        const ownerSpectra = ownerInfo[spectrum.owner.slug].spectra
-        if (ownerSpectra) {
-          const exSpectrum =
-            ownerSpectra.find((i) => i.subtype === "EX") ||
-            ownerSpectra.find((i) => i.subtype === "AB")
-          if (exSpectrum) {
-            const {
-              data: {
-                spectrum: { data: exData },
-              },
-            } = await client.query({
-              query: GET_SPECTRUM,
-              variables: { id: +exSpectrum.id },
-            })
-            const exEfficiency = exData.find(([x]) => x === exNorm)
-            if (exEfficiency) {
-              ;[, scalar] = exEfficiency
-            }
-          }
-        }
-        setSerie(List([...spectrum.data].map(([a, b]) => [a, b * scalar])))
-      }
+  // Find the EX spectrum ID if needed
+  const exSpectrumId = useMemo(() => {
+    if (!needsExNorm || !(spectrum.owner.slug in ownerInfo)) return null
+
+    const ownerSpectra = ownerInfo[spectrum.owner.slug].spectra
+    if (!ownerSpectra) return null
+
+    const exSpectrum =
+      ownerSpectra.find((i) => i.subtype === "EX") || ownerSpectra.find((i) => i.subtype === "AB")
+
+    return exSpectrum ? exSpectrum.id : null
+  }, [needsExNorm, spectrum.owner.slug, ownerInfo])
+
+  // Fetch the EX spectrum data if needed
+  const { data: exSpectrumData } = useSpectrum(exSpectrumId)
+
+  // Calculate normalized series
+  const serie = useMemo(() => {
+    if (!needsExNorm || !exSpectrumData) {
+      return List([...spectrum.data])
     }
 
-    if ((spectrum.subtype === "EM" || spectrum.subtype === "O") && exNorm) {
-      getExData()
-    } else {
-      setSerie(List([...spectrum.data]))
+    // Find the scalar value at the exNorm wavelength
+    let scalar = 0
+    const exEfficiency = exSpectrumData.data.find(([x]) => x === exNorm)
+    if (exEfficiency) {
+      ;[, scalar] = exEfficiency
     }
-  }, [client, exNorm, ownerInfo, spectrum.data, spectrum.owner.slug, spectrum.subtype])
+
+    return List([...spectrum.data].map(([a, b]) => [a, b * scalar]))
+  }, [needsExNorm, exSpectrumData, spectrum.data, exNorm])
 
   return serie
 }
