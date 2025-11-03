@@ -18,6 +18,8 @@ export type PaletteName = "wavelength" | "rainbow" | "tol_contrast" | "tol_vibra
  */
 export interface Palettes {
   wavelength: Palette
+  // tableau20: Palette
+  tableau20b: Palette
   rainbow: Palette
   tol_contrast: Palette
   tol_vibrant: Palette
@@ -29,6 +31,56 @@ const palettes: Palettes = {
     name: "By Wavelength",
     // this is the default palette, and uses colors based on wavelength from the database
     hexlist: null,
+  },
+  // tableau20: {
+  //   name: "Tableau 20",
+  //   hexlist: [
+  //     "#1F77B4",
+  //     "#AEC7E8",
+  //     "#FF7F0E",
+  //     "#FFBB78",
+  //     "#2CA02C",
+  //     "#98DF8A",
+  //     "#D62728",
+  //     "#FF9896",
+  //     "#9467BD",
+  //     "#C5B0D5",
+  //     "#8C564B",
+  //     "#C49C94",
+  //     "#E377C2",
+  //     "#F7B6D2",
+  //     "#7F7F7F",
+  //     "#C7C7C7",
+  //     "#BCBD22",
+  //     "#DBDB8D",
+  //     "#17BECF",
+  //     "#9EDAE5",
+  //   ],
+  // },
+  tableau20b: {
+    name: "Tableau 20B",
+    hexlist: [
+      "#393B79",
+      "#5254A3",
+      "#6B6ECF",
+      "#9C9EDE",
+      "#637939",
+      "#8CA252",
+      "#B5CF6B",
+      "#CEDB9C",
+      "#8C6D31",
+      "#BD9E39",
+      "#E7BA52",
+      "#E7CB94",
+      "#843C39",
+      "#AD494A",
+      "#D6616B",
+      "#E7969C",
+      "#7B4173",
+      "#A55194",
+      "#CE6DBD",
+      "#DE9ED6",
+    ],
   },
   rainbow: {
     name: "Rainbow (Paul Tol)",

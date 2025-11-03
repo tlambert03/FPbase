@@ -12,10 +12,6 @@ import type { SpectraURLState } from "./utils/urlParams"
 import { canonicalizeURLState, parseURLParams, serializeURLParams } from "./utils/urlParams"
 import "./polyfills"
 
-const daysSinceLaunch = Math.round(
-  (new Date(2019, 6, 1).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-)
-
 /**
  * Compare two state objects to see if they're meaningfully different
  * Canonicalizes both states (fills in defaults) before serializing for comparison
@@ -172,7 +168,7 @@ const App = () => {
 
   // biome-ignore-start format: Keep on one line for ts-expect-error to work
   // @ts-expect-error - WelcomeModal is JSX, will be typed when migrated to TS
-  const welcomeModal = <WelcomeModal open={helpOpen} close={closeHelp} isNew={daysSinceLaunch < 120} ownerInfo={ownerInfo} />
+  const welcomeModal = <WelcomeModal open={helpOpen} close={closeHelp} ownerInfo={ownerInfo} />
   // biome-ignore-end format: End ignore block
 
   return (

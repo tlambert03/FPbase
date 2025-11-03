@@ -82,7 +82,7 @@ const SettingsDrawer = () => {
           </Button>
           <Button
             variant="contained"
-            color="secondary"
+            color="error"
             style={{ float: "right" }}
             onClick={handleClearForm}
           >
