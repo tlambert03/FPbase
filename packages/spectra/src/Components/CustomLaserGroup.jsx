@@ -44,7 +44,9 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
       clearNorm()
     }
     setLasers(customLasers.filter((id) => !id.startsWith(laserID)))
-    updateActiveSpectra([], [laserID])
+    // Find all activeSpectra that start with this laserID and remove them
+    const toRemove = activeSpectra.filter((id) => id.startsWith(laserID))
+    updateActiveSpectra([], toRemove)
   }
 
   return (

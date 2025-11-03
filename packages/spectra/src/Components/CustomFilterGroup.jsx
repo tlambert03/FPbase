@@ -20,7 +20,9 @@ const CustomFilterGroup = ({ activeSpectra }) => {
   const removeRow = (filter) => {
     const filterID = filter.split("_")[0]
     setFilters(customFilters.filter((id) => !id.startsWith(filterID)))
-    updateActiveSpectra([], [filterID])
+    // Find all activeSpectra that start with this filterID and remove them
+    const toRemove = activeSpectra.filter((id) => id.startsWith(filterID))
+    updateActiveSpectra([], toRemove)
   }
 
   // const {
