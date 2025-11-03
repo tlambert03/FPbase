@@ -3,21 +3,9 @@ import { createJSONStorage, persist } from "zustand/middleware"
 import { defaults } from "../defaults"
 import type { SpectraStore } from "../types"
 
-// Helper function to clear URL params when user modifies state
-function clearUrlIfNeeded(get: () => SpectraStore) {
-  const state = get()
-  if (state._urlInitialized && window.location.search) {
-    // User is modifying state - clear URL to show it's no longer valid
-    window.history.replaceState({}, "", window.location.pathname)
-    // Return true to indicate the URL was cleared
-    return true
-  }
-  return false
-}
-
 export const useSpectraStore = create<SpectraStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Initial state
       activeSpectra: defaults.activeSpectra,
       activeOverlaps: defaults.activeOverlaps,
@@ -31,13 +19,9 @@ export const useSpectraStore = create<SpectraStore>()(
       _urlInitialized: false,
 
       // Spectra management
-      setActiveSpectra: (ids) => {
-        const wasCleared = clearUrlIfNeeded(get)
-        set({ activeSpectra: ids, _urlInitialized: wasCleared ? false : get()._urlInitialized })
-      },
+      setActiveSpectra: (ids) => set({ activeSpectra: ids }),
 
-      updateActiveSpectra: (add = [], remove = []) => {
-        const wasCleared = clearUrlIfNeeded(get)
+      updateActiveSpectra: (add = [], remove = []) =>
         set((state) => {
           let newSpectra = [...state.activeSpectra]
 
@@ -52,21 +36,13 @@ export const useSpectraStore = create<SpectraStore>()(
             newSpectra = [...newSpectra, ...toAdd]
           }
 
-          return {
-            activeSpectra: newSpectra,
-            _urlInitialized: wasCleared ? false : state._urlInitialized,
-          }
-        })
-      },
+          return { activeSpectra: newSpectra }
+        }),
 
       // Overlaps management
-      setActiveOverlaps: (ids) => {
-        const wasCleared = clearUrlIfNeeded(get)
-        set({ activeOverlaps: ids, _urlInitialized: wasCleared ? false : get()._urlInitialized })
-      },
+      setActiveOverlaps: (ids) => set({ activeOverlaps: ids }),
 
-      updateActiveOverlaps: (add = [], remove = []) => {
-        const wasCleared = clearUrlIfNeeded(get)
+      updateActiveOverlaps: (add = [], remove = []) =>
         set((state) => {
           let newOverlaps = [...state.activeOverlaps]
 
@@ -81,28 +57,18 @@ export const useSpectraStore = create<SpectraStore>()(
             newOverlaps = [...newOverlaps, ...toAdd]
           }
 
-          return {
-            activeOverlaps: newOverlaps,
-            _urlInitialized: wasCleared ? false : state._urlInitialized,
-          }
-        })
-      },
+          return { activeOverlaps: newOverlaps }
+        }),
 
       // Visibility management
-      toggleSpectrumVisibility: (id) => {
-        const wasCleared = clearUrlIfNeeded(get)
+      toggleSpectrumVisibility: (id) =>
         set((state) => ({
           hiddenSpectra: state.hiddenSpectra.includes(id)
             ? state.hiddenSpectra.filter((hid) => hid !== id)
             : [...state.hiddenSpectra, id],
-          _urlInitialized: wasCleared ? false : state._urlInitialized,
-        }))
-      },
+        })),
 
-      setHiddenSpectra: (ids) => {
-        const wasCleared = clearUrlIfNeeded(get)
-        set({ hiddenSpectra: ids, _urlInitialized: wasCleared ? false : get()._urlInitialized })
-      },
+      setHiddenSpectra: (ids) => set({ hiddenSpectra: ids }),
 
       // Subtype management
       setExcludeSubtypes: (subtypes) => set({ excludeSubtypes: subtypes }),
@@ -184,6 +150,23 @@ export const useSpectraStore = create<SpectraStore>()(
 
       // URL initialization tracking
       setUrlInitialized: (value) => set({ _urlInitialized: value }),
+
+      // Atomically replace state (single render, no mixing with existing state)
+      replace: (state) =>
+        set({
+          activeSpectra: state.activeSpectra ?? defaults.activeSpectra,
+          activeOverlaps: state.activeOverlaps ?? defaults.activeOverlaps,
+          hiddenSpectra: state.hiddenSpectra ?? [],
+          excludeSubtypes: state.excludeSubtypes ?? defaults.excludeSubtypes,
+          exNorm: state.exNorm ?? defaults.exNorm,
+          chartOptions: state.chartOptions
+            ? { ...defaults.chartOptions, ...state.chartOptions }
+            : defaults.chartOptions,
+          customFilters: state.customFilters ?? {},
+          customLasers: state.customLasers ?? {},
+          overlapCache: state.overlapCache ?? {},
+          _urlInitialized: state._urlInitialized ?? false,
+        }),
     }),
     {
       name: "fpbase-spectra-storage",

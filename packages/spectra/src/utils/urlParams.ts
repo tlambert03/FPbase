@@ -1,3 +1,4 @@
+import { defaultChartOptions } from "../defaults"
 import type { ChartOptions, CustomFilterParams, CustomLaserParams } from "../types"
 
 /**
@@ -21,6 +22,7 @@ const BOOLEAN_CHART_OPTIONS = [
 export interface SpectraURLState {
   activeSpectra?: string[]
   activeOverlaps?: string[]
+  hiddenSpectra?: string[]
   chartOptions?: Partial<ChartOptions>
   exNorm?: readonly [number, string] | null
   customFilters?: Record<string, CustomFilterParams>
@@ -105,6 +107,15 @@ export function parseURLParams(search: string): SpectraURLState {
     const overlapIds = overlapParam.split(",").filter(Boolean)
     if (overlapIds.length > 0) {
       result.activeOverlaps = overlapIds
+    }
+  }
+
+  // Parse hidden spectra IDs (comma-separated string)
+  const hiddenParam = params.get("h")
+  if (hiddenParam) {
+    const hiddenIds = hiddenParam.split(",").filter(Boolean)
+    if (hiddenIds.length > 0) {
+      result.hiddenSpectra = hiddenIds
     }
   }
 
@@ -207,6 +218,11 @@ export function serializeURLParams(state: SpectraURLState): string {
     params.set("o", state.activeOverlaps.join(","))
   }
 
+  // Add hidden spectra IDs (comma-separated)
+  if (state.hiddenSpectra && state.hiddenSpectra.length > 0) {
+    params.set("h", state.hiddenSpectra.join(","))
+  }
+
   // Add chart options
   if (state.chartOptions) {
     // Boolean options - convert to 0/1 for backwards compatibility
@@ -240,4 +256,25 @@ export function serializeURLParams(state: SpectraURLState): string {
   }
 
   return params.toString()
+}
+
+/**
+ * Canonicalize a partial state by filling in defaults for missing fields
+ * Converts various partial representations into one standard complete form
+ *
+ * @param state - Partial state to canonicalize
+ * @returns Canonical state with all fields present
+ */
+export function canonicalizeURLState(state: SpectraURLState): SpectraURLState {
+  return {
+    activeSpectra: state.activeSpectra ?? [],
+    activeOverlaps: state.activeOverlaps ?? [],
+    hiddenSpectra: state.hiddenSpectra ?? [],
+    chartOptions: state.chartOptions
+      ? { ...defaultChartOptions, ...state.chartOptions }
+      : defaultChartOptions,
+    exNorm: state.exNorm ?? null,
+    customFilters: state.customFilters ?? {},
+    customLasers: state.customLasers ?? {},
+  }
 }

@@ -44,19 +44,32 @@ function ShareLinkAlert({ open, setOpen }) {
   const activeOverlaps = useSpectraStore((state) => state.activeOverlaps)
   const chartOptions = useSpectraStore((state) => state.chartOptions)
   const exNorm = useSpectraStore((state) => state.exNorm)
+  const customFilters = useSpectraStore((state) => state.customFilters)
+  const customLasers = useSpectraStore((state) => state.customLasers)
 
   // Generate shareable URL with all current state
-  const qString = useMemo(() => {
+  const { qString, qStringEncoded } = useMemo(() => {
     const searchParams = serializeURLParams({
       activeSpectra,
       activeOverlaps,
       chartOptions,
       exNorm,
+      customFilters,
+      customLasers,
     })
-    return searchParams
-      ? `${window.location.origin}${window.location.pathname}?${searchParams}`
-      : ""
-  }, [activeSpectra, activeOverlaps, chartOptions, exNorm])
+
+    // Clean up URL for better readability: decode $ and , characters
+    const cleanParams = searchParams
+      .replace(/%24/g, "$") // Decode $ for custom spectra IDs
+      .replace(/%2C/g, ",") // Decode , for separator readability
+
+    const baseUrl = `${window.location.origin}${window.location.pathname}`
+
+    return {
+      qString: cleanParams ? `${baseUrl}?${cleanParams}` : "",
+      qStringEncoded: searchParams ? `${baseUrl}?${searchParams}` : "",
+    }
+  }, [activeSpectra, activeOverlaps, chartOptions, exNorm, customFilters, customLasers])
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 
@@ -123,7 +136,7 @@ function ShareLinkAlert({ open, setOpen }) {
         <DialogActions>
           <IconButton
             color="primary"
-            href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qString.replace(/&/g, "%26")}`}
+            href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qStringEncoded.replace(/&/g, "%26")}`}
           >
             <FAIcon icon={faEnvelope} style={{}} />
           </IconButton>

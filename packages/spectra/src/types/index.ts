@@ -227,6 +227,21 @@ export interface SpectraActions {
 
   // URL initialization tracking
   setUrlInitialized: (value: boolean) => void
+
+  // Atomically replace state (single render, no mixing with existing state)
+  // Accepts partial state with nested partials (e.g., Partial<ChartOptions>)
+  replace: (state: {
+    activeSpectra?: string[]
+    activeOverlaps?: string[]
+    hiddenSpectra?: string[]
+    excludeSubtypes?: SpectrumSubtype[]
+    exNorm?: ExNorm
+    chartOptions?: Partial<ChartOptions>
+    customFilters?: Record<string, CustomFilterParams>
+    customLasers?: Record<string, CustomLaserParams>
+    overlapCache?: Record<string, Spectrum>
+    _urlInitialized?: boolean
+  }) => void
 }
 
 export type SpectraStore = SpectraState & SpectraActions
