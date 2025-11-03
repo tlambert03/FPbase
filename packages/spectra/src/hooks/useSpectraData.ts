@@ -128,16 +128,18 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
   // Get active spectra from store if not provided
   const storeActiveSpectra = useSpectraStore((state) => state.activeSpectra)
   const storeActiveOverlaps = useSpectraStore((state) => state.activeOverlaps)
+  const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
   const overlapCache = useOverlapCache()
 
   const activeSpectra = providedIds ?? storeActiveSpectra
   const activeOverlaps = providedOverlaps ?? storeActiveOverlaps
 
-  // Separate custom and real spectrum IDs
+  // Separate custom and real spectrum IDs from ALL active spectra
+  // (We fetch everything, then filter by visibility later)
   const customIds = activeSpectra.filter((id) => id?.startsWith("$c"))
   const realIds = activeSpectra.filter((id) => id && !id.startsWith("$c"))
 
-  // Fetch real spectra using TanStack Query
+  // Fetch real spectra using TanStack Query (fetch ALL, not just visible)
   const { data: apiSpectra } = useSpectraBatch(realIds)
 
   useEffect(() => {
@@ -168,14 +170,19 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
     // Combine all spectra
     const allSpectra = [...apiSpectraWithArea, ...customSpectra, ...overlapSpectra]
 
+    // Filter out hidden spectra (only when using store data, not provided IDs)
+    const visibleSpectra = providedIds
+      ? allSpectra
+      : allSpectra.filter((s) => !hiddenSpectra.includes(s.customId || s.id))
+
     // Only update if data actually changed
     const currentIds = currentData.map((s) => s.customId || s.id).join(",")
-    const newIds = allSpectra.map((s) => s.customId || s.id).join(",")
+    const newIds = visibleSpectra.map((s) => s.customId || s.id).join(",")
 
     if (currentIds !== newIds) {
-      setCurrentData(allSpectra)
+      setCurrentData(visibleSpectra)
     }
-  }, [activeOverlaps, apiSpectra, customIds, currentData, overlapCache])
+  }, [activeOverlaps, apiSpectra, customIds, currentData, overlapCache, hiddenSpectra, providedIds])
 
   return currentData
 }

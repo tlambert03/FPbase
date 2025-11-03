@@ -141,7 +141,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   const exData = data.filter((i) => i.subtype === "EX" || i.subtype === "AB")
   const nonExData = data.filter((i) => i.subtype !== "EX" && i.subtype !== "AB")
 
-  let height = calcHeight(windowWidth) * (chartOptions.height || 1)
+  const height = calcHeight(windowWidth) * (chartOptions.height || 1)
   let showPickers = numSpectra > 0 && !chartOptions.simpleMode
   if (chartOptions.zoomType !== undefined) {
     _chart.zoomType = chartOptions.zoomType
@@ -151,12 +151,8 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
     xAxis.min = chartOptions.extremes[0]
     xAxis.max = chartOptions.extremes[1]
   }
-  const hChart = Highcharts.charts[0]
-  let legendHeight
-  if (hChart) {
-    legendHeight = Highcharts.charts[0].legend.legendHeight || 0
-    height += legendHeight
-  }
+  // Note: legendHeight is already accounted for by Highcharts internally
+  // Adding it here causes reflow issues when toggling series visibility
 
   return (
     <div className="spectra-viewer" style={{ position: "relative", height: height }}>

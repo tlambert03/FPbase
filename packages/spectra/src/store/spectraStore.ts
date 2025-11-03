@@ -9,6 +9,7 @@ export const useSpectraStore = create<SpectraStore>()(
       // Initial state
       activeSpectra: defaults.activeSpectra,
       activeOverlaps: defaults.activeOverlaps,
+      hiddenSpectra: [],
       excludeSubtypes: defaults.excludeSubtypes,
       exNorm: defaults.exNorm,
       chartOptions: defaults.chartOptions,
@@ -56,6 +57,16 @@ export const useSpectraStore = create<SpectraStore>()(
 
           return { activeOverlaps: newOverlaps }
         }),
+
+      // Visibility management
+      toggleSpectrumVisibility: (id) =>
+        set((state) => ({
+          hiddenSpectra: state.hiddenSpectra.includes(id)
+            ? state.hiddenSpectra.filter((hid) => hid !== id)
+            : [...state.hiddenSpectra, id],
+        })),
+
+      setHiddenSpectra: (ids) => set({ hiddenSpectra: ids }),
 
       // Subtype management
       setExcludeSubtypes: (subtypes) => set({ excludeSubtypes: subtypes }),
@@ -105,6 +116,7 @@ export const useSpectraStore = create<SpectraStore>()(
       // Only persist certain fields
       partialize: (state) => ({
         activeSpectra: state.activeSpectra,
+        hiddenSpectra: state.hiddenSpectra,
         excludeSubtypes: state.excludeSubtypes,
         chartOptions: state.chartOptions,
         customFilters: state.customFilters,

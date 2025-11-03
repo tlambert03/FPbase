@@ -123,6 +123,9 @@ export interface SpectraState {
   // Active overlap IDs
   activeOverlaps: string[]
 
+  // Hidden spectra IDs (temporarily invisible but not removed)
+  hiddenSpectra: string[]
+
   // Excluded subtypes
   excludeSubtypes: SpectrumSubtype[]
 
@@ -146,6 +149,10 @@ export interface SpectraActions {
   // Overlaps management
   setActiveOverlaps: (ids: string[]) => void
   updateActiveOverlaps: (add?: string[], remove?: string[]) => void
+
+  // Visibility management
+  toggleSpectrumVisibility: (id: string) => void
+  setHiddenSpectra: (ids: string[]) => void
 
   // Subtype management
   setExcludeSubtypes: (subtypes: SpectrumSubtype[]) => void

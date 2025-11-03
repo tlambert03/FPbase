@@ -36,22 +36,20 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
   const classes = useStyles()
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
-  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
+  const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
+  const toggleSpectrumVisibility = useSpectraStore((state) => state.toggleSpectrumVisibility)
 
-  // Create a mutable copy and add active status
+  // Create a mutable copy and add active status (visible = in activeSpectra AND not hidden)
   const sortedSubtypes = [...subtypes].sort(subtypeSorter).map((subtype) => ({
     ...subtype,
-    active: activeSpectra.includes(subtype.id),
+    active: activeSpectra.includes(subtype.id) && !hiddenSpectra.includes(subtype.id),
   }))
 
   const handleClick = (e) => {
     const elem = e.target.closest("button")
-    const checked = !elem.classList.contains("Mui-selected")
-    if (checked) {
-      updateActiveSpectra([elem.value])
-    } else {
-      updateActiveSpectra(undefined, [elem.value])
-    }
+    const spectrumId = elem.value
+    // Toggle visibility instead of adding/removing from activeSpectra
+    toggleSpectrumVisibility(spectrumId)
   }
 
   // if (skip) return null
