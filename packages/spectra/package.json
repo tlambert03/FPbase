@@ -28,7 +28,6 @@
     "highcharts": "^12.4.0",
     "highcharts-react-official": "^3.2.1",
     "immutable": "^4.0.0-rc.12",
-    "material-react-table": "^2.13.3",
     "progressbar.js": "^1.1.0",
     "prop-types": "^15.7.2",
     "qs": "^6.9.1",

@@ -1,9 +1,21 @@
 import SaveAlt from "@mui/icons-material/SaveAlt"
 import Shuffle from "@mui/icons-material/Shuffle"
-import { Box, IconButton, Typography } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Toolbar,
+  Typography,
+} from "@mui/material"
 import Button from "@mui/material/Button"
 import { makeStyles } from "@mui/styles"
-import { MaterialReactTable } from "material-react-table"
 import React, { useEffect, useMemo, useState } from "react"
 import useSpectralData from "../hooks/useSpectraData"
 import { useSpectraStore } from "../store/spectraStore"
@@ -29,6 +41,12 @@ const useStyles = makeStyles((_theme) => ({
   },
   description: {
     padding: "8px 20px",
+  },
+  toolbar: {
+    display: "flex",
+    gap: "1rem",
+    alignItems: "center",
+    padding: "8px 16px",
   },
 }))
 
@@ -58,6 +76,8 @@ function getOverlap(store, ...spectra) {
 const EfficiencyTable = ({ initialTranspose }) => {
   const [transposed, setTransposed] = useState(initialTranspose)
   const [rows, setRows] = useState([])
+  const [orderBy, setOrderBy] = useState("field")
+  const [order, setOrder] = useState("asc")
   const classes = useStyles()
   const spectraData = useSpectralData()
   const setActiveOverlaps = useSpectraStore((state) => state.setActiveOverlaps)
@@ -131,15 +151,60 @@ const EfficiencyTable = ({ initialTranspose }) => {
         accessorKey: owner.id,
         header: owner.name,
         size: 100,
-        Cell: ({ row }) => {
-          const overlapID = row.original[`${owner.id}_overlapID`]
-          return <OverlapToggle id={overlapID}>{row.original[owner.id]}</OverlapToggle>
-        },
       })
     })
 
     return cols
   }, [spectraData, transposed, rows.length])
+
+  // Sorting logic
+  const handleSort = (columnId) => {
+    const isAsc = orderBy === columnId && order === "asc"
+    setOrder(isAsc ? "desc" : "asc")
+    setOrderBy(columnId)
+  }
+
+  const sortedRows = useMemo(() => {
+    if (!orderBy) return rows
+
+    return [...rows].sort((a, b) => {
+      const aValue = a[orderBy]
+      const bValue = b[orderBy]
+
+      // Handle numeric values
+      const aNum = Number.parseFloat(aValue)
+      const bNum = Number.parseFloat(bValue)
+      if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+        return order === "asc" ? aNum - bNum : bNum - aNum
+      }
+
+      // Handle string values
+      const aStr = String(aValue || "")
+      const bStr = String(bValue || "")
+      const comparison = aStr.localeCompare(bStr)
+      return order === "asc" ? comparison : -comparison
+    })
+  }, [rows, orderBy, order])
+
+  // CSV Export
+  const handleExportCSV = () => {
+    const csvContent = [
+      // Header row
+      columns
+        .map((col) => col.header)
+        .join(","),
+      // Data rows
+      ...sortedRows.map((row) => columns.map((col) => row[col.accessorKey] || "").join(",")),
+    ].join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv" })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "efficiency-table.csv"
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
 
   if (rows.length < 1 || columns.length < 2) {
     return (
@@ -157,60 +222,54 @@ const EfficiencyTable = ({ initialTranspose }) => {
   return (
     <Box className="efficiency-table">
       <ErrorBoundary>
-        <MaterialReactTable
-          columns={columns}
-          data={rows}
-          enablePagination={false}
-          enableColumnActions={false}
-          enableTopToolbar={true}
-          enableBottomToolbar={false}
-          enableSorting={true}
-          enableFilters={false}
-          enableGlobalFilter={false}
-          muiTableProps={{
-            sx: {
-              tableLayout: "auto",
-            },
-          }}
-          muiTableBodyCellProps={{
-            sx: {
-              fontSize: "1rem",
-            },
-          }}
-          renderTopToolbarCustomActions={() => (
-            <Box sx={{ display: "flex", gap: "1rem", alignItems: "center", p: 1 }}>
-              <Typography variant="h6">Collection Efficiency (%)</Typography>
-              <IconButton onClick={() => setTransposed((prev) => !prev)} title="Transpose">
-                <Shuffle />
-              </IconButton>
-              <IconButton
-                onClick={() => {
-                  const csvContent = [
-                    // Header row
-                    columns
-                      .map((col) => col.header)
-                      .join(","),
-                    // Data rows
-                    ...rows.map((row) =>
-                      columns.map((col) => row[col.accessorKey] || "").join(",")
-                    ),
-                  ].join("\n")
+        <Paper>
+          <Toolbar className={classes.toolbar}>
+            <Typography variant="h6">Collection Efficiency (%)</Typography>
+            <IconButton onClick={() => setTransposed((prev) => !prev)} title="Transpose">
+              <Shuffle />
+            </IconButton>
+            <IconButton onClick={handleExportCSV} title="Export to CSV">
+              <SaveAlt />
+            </IconButton>
+          </Toolbar>
 
-                  const blob = new Blob([csvContent], { type: "text/csv" })
-                  const url = window.URL.createObjectURL(blob)
-                  const a = document.createElement("a")
-                  a.href = url
-                  a.download = "efficiency-table.csv"
-                  a.click()
-                  window.URL.revokeObjectURL(url)
-                }}
-                title="Export to CSV"
-              >
-                <SaveAlt />
-              </IconButton>
-            </Box>
-          )}
-        />
+          <TableContainer>
+            <Table className={classes.table} sx={{ tableLayout: "auto" }} size="small">
+              <TableHead>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell key={column.accessorKey} sx={{ width: column.size }}>
+                      <TableSortLabel
+                        active={orderBy === column.accessorKey}
+                        direction={orderBy === column.accessorKey ? order : "asc"}
+                        onClick={() => handleSort(column.accessorKey)}
+                      >
+                        {column.header}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedRows.map((row) => (
+                  <TableRow key={row.field} hover>
+                    {columns.map((column) => (
+                      <TableCell key={column.accessorKey} sx={{ fontSize: "1rem" }}>
+                        {column.accessorKey === "field" ? (
+                          row[column.accessorKey]
+                        ) : (
+                          <OverlapToggle id={row[`${column.accessorKey}_overlapID`]}>
+                            {row[column.accessorKey]}
+                          </OverlapToggle>
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       </ErrorBoundary>
     </Box>
   )
