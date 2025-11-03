@@ -404,9 +404,12 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
     expect(page.locator("#QYA")).to_be_attached()
     expect(page.locator("#overlapIntgrl")).to_be_attached()
 
+    # Verify chart has 5 series: donor ex, donor em, acceptor ex, acceptor em, overlap
     svg = page.locator("#spectra svg")
     expect(svg).to_be_visible()
     expect(svg.locator("g.highcharts-series")).to_have_count(5)
+    # verify table is visible
+    expect(page.locator(".table-wrapper")).to_be_visible()
 
     # Visual snapshot: FRET calculation complete with chart
     if not hasattr(assert_snapshot, "NOOP"):
