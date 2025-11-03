@@ -35,17 +35,19 @@ const App = () => {
 
   useKeyboardShortcuts()
 
+  // biome-ignore-start format: Keep on one line for ts-expect-error to work
+  // @ts-expect-error - WelcomeModal is JSX, will be typed when migrated to TS
+  const welcomeModal = <WelcomeModal open={helpOpen} close={closeHelp} isNew={daysSinceLaunch < 120} ownerInfo={ownerInfo} />
+  // biome-ignore-end format: End ignore block
+
   return (
     <>
       <SpectraViewerContainer ownerInfo={ownerInfo} />
+      {/* @ts-expect-error - OwnersContainer is JSX, will be typed when migrated to TS */}
       <OwnersContainer ownerInfo={ownerInfo} spectraInfo={spectraInfo} />
+      {/* @ts-expect-error - MyAppBar is JSX, will be typed when migrated to TS */}
       <MyAppBar spectraOptions={options} openHelp={openHelp} />
-      <WelcomeModal
-        open={helpOpen}
-        close={closeHelp}
-        isNew={daysSinceLaunch < 120}
-        ownerInfo={ownerInfo}
-      />
+      {welcomeModal}
     </>
   )
 }

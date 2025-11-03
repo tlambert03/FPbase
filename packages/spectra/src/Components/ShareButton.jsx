@@ -1,4 +1,3 @@
-import { faTwitter } from "@fortawesome/free-brands-svg-icons"
 import { faCopy, faEnvelope } from "@fortawesome/free-solid-svg-icons"
 import CloseIcon from "@mui/icons-material/Close"
 import DownloadIcon from "@mui/icons-material/GetApp"

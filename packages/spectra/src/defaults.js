@@ -12,7 +12,7 @@ export const defaultChartOptions = {
   shareTooltip: true,
   areaFill: true,
   palette: "wavelength",
-  extremes: [null, null],
+  extremes: null,
 }
 
 export const defaults = {
@@ -20,5 +20,5 @@ export const defaults = {
   activeOverlaps: [],
   chartOptions: defaultChartOptions,
   exNorm: null, // [wavelength, spectrumId] tuple
-  excludeSubtypes: ["2P"],
+  excludeSubtypes: [],
 }

@@ -2,22 +2,6 @@ import qs from "qs"
 import { defaults } from "./defaults"
 import PALETTES from "./palettes"
 
-// import { GET_SPECTRUM } from "./queries"
-// import client from "./client"
-
-// const DEFAULT_EXPIRY = 0 * 60 * 60 // n hours
-
-// const ID = () => {
-//   // Math.random should be unique because of its seeding algorithm.
-//   // Convert it to base 36 (numbers + letters), and grab the first 9 characters
-//   // after the decimal.
-//   return `_${Math.random()
-//     .toString(36)
-//     .substr(2, 9)}`
-// }
-
-// const emptyFormSelector = () => ({ id: ID(), value: null })
-
 const getStorageWithExpire = (cacheKey, expiry = 12 * 60 * 60) => {
   const cached = localStorage.getItem(cacheKey)
   const whenCached = localStorage.getItem(`${cacheKey}:ts`)
@@ -37,60 +21,6 @@ const setStorageWithTimeStamp = (cacheKey, value) => {
   localStorage.setItem(cacheKey, JSON.stringify(value))
   localStorage.setItem(`${cacheKey}:ts`, Date.now())
 }
-
-// const getCachedSpectrum = async (id, options) => {
-//   let expiry = DEFAULT_EXPIRY // 10 min default
-//   if (typeof options === "number") {
-//     expiry = options
-//   } else if (typeof options === "object") {
-//     // I hope you didn't set it to 0 seconds
-//     expiry = options.seconds || expiry
-//   }
-
-//   const cacheKey = `spectrum_${id}`
-//   const cached = getStorageWithExpire(cacheKey, expiry)
-//   if (cached !== null) return Promise.resolve(JSON.parse(cached))
-
-//   const { loading, error, data } = await client.query({
-//     query: GET_SPECTRUM,
-//     variables: { id }
-//   })
-//   if (!loading && !error) {
-//     const spec = data.spectrum
-//     localStorage.setItem(cacheKey, JSON.stringify(spec))
-//     localStorage.setItem(`${cacheKey}:ts`, Date.now())
-//     return Promise.resolve(spec)
-//   }
-//   return Promise.reject()
-// }
-
-// async function fetchSpectrum(id) {
-//   const data = await getCachedSpectrum(id)
-//   if (data) {
-//     return {
-//       ...data,
-//       name: `${data.owner.name}${
-//         ["P", "D"].includes(data.category)
-//           ? ` ${data.subtype.replace(/^A_/g, "")}`
-//           : ""
-//       }`,
-//       inverted: false,
-//       visible: true,
-//       ecNormed: false,
-//       qyNormed: false
-//     }
-//   }
-//   const msg = `Could not find spectrum with ID: ${id}`
-//   throw new Error(msg)
-// }
-
-// async function fetchSpectraList(ids) {
-//   const results = await Promise.all(
-//     ids.map(id => fetchSpectrum(id)).map(p => p.catch(e => e))
-//   )
-//   const valid = results.filter(result => !(result instanceof Error))
-//   return valid
-// }
 
 const debounce = (fn, time) => {
   let timeout

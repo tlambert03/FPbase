@@ -42,7 +42,9 @@ export function reshapeSpectraInfo(arr: any[]) {
 export function trapz(arr: [number, number][]): number {
   let sum = 0
   for (let i = 1; i < arr.length; i++) {
-    sum += 0.5 * (arr[i][1] + arr[i - 1][1]) * (arr[i][0] - arr[i - 1][0])
+    const curr = arr[i]!
+    const prev = arr[i - 1]!
+    sum += 0.5 * (curr[1] + prev[1]) * (curr[0] - prev[0])
   }
   return sum
 }
@@ -55,14 +57,14 @@ export function spectraProduct(
   ar2: [number, number][]
 ): [number, number][] {
   const output: [number, number][] = []
-  const left = Math.max(ar1[0][0], ar2[0][0])
-  const right = Math.min(ar1[ar1.length - 1][0], ar2[ar2.length - 1][0])
+  const left = Math.max(ar1[0]![0], ar2[0]![0])
+  const right = Math.min(ar1[ar1.length - 1]![0], ar2[ar2.length - 1]![0])
 
   const idx1 = ar1.findIndex((x) => x[0] >= left)
   const idx2 = ar2.findIndex((x) => x[0] >= left)
 
   for (let i = 0; i <= right - left; i++) {
-    output.push([left + i, ar1[idx1 + i][1] * ar2[idx2 + i][1]])
+    output.push([left + i, ar1[idx1 + i]![1] * ar2[idx2 + i]![1]])
   }
   return output
 }
@@ -91,10 +93,13 @@ export function isTouchDevice(): boolean {
     const prefixes = " -webkit- -moz- -o- -ms- ".split(" ")
     const mq = (query: string) => window.matchMedia(query).matches
 
-    if (
-      "ontouchstart" in window ||
-      (window.DocumentTouch && document instanceof window.DocumentTouch)
-    ) {
+    if ("ontouchstart" in window) {
+      return true
+    }
+
+    // Legacy DocumentTouch check (non-standard)
+    const DocumentTouch = (window as typeof window & { DocumentTouch?: unknown }).DocumentTouch
+    if (DocumentTouch && document instanceof (DocumentTouch as { new (): Document })) {
       return true
     }
 

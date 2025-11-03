@@ -27,7 +27,11 @@ export async function fetchGraphQL<T>(
   const json: GraphQLResponse<T> = await response.json()
 
   if (json.errors?.length) {
-    throw new Error(json.errors[0].message)
+    throw new Error(json.errors[0]!.message)
+  }
+
+  if (!json.data) {
+    throw new Error("GraphQL response missing data")
   }
 
   return json.data

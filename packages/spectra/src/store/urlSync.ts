@@ -11,7 +11,7 @@ interface URLParams extends Partial<ChartOptions> {
   max?: string // Range maximum
   xMin?: string // Range minimum (legacy)
   xMax?: string // Range maximum (legacy)
-  [key: string]: string | string[] | boolean | number | null | undefined
+  [key: string]: string | string[] | boolean | number | [number, number] | null | undefined
 }
 
 // Parse URL parameters and update store
@@ -58,7 +58,14 @@ export function syncURLToStore(store: SpectraStore) {
       // Split comma-separated string into array
       exIds = params.ex.split(",")
     }
-    store.setExNorm(exIds.filter(Boolean) as [string, string])
+    const filtered = exIds.filter(Boolean)
+    if (filtered.length === 2) {
+      const wave = Number.parseFloat(filtered[0]!)
+      const id = filtered[1]!
+      if (!Number.isNaN(wave) && id) {
+        store.setExNorm([wave, id] as const)
+      }
+    }
   } else if (params.normWave && params.normID) {
     // Legacy format: normWave=452&normID=%24cl0
     const wave = Number.parseFloat(params.normWave as string)
@@ -82,10 +89,12 @@ export function syncURLToStore(store: SpectraStore) {
     "scaleEC",
     "scaleQY",
     "shareTooltip",
-  ]
+  ] as const
   for (const option of booleanOptions) {
-    if (params[option] !== undefined) {
-      chartOptions[option] = params[option] === "true" || params[option] === "1"
+    const value = params[option]
+    if (value !== undefined) {
+      // URL params come as strings, convert to boolean
+      chartOptions[option] = typeof value === "boolean" ? value : value === "true" || value === "1"
       hasChartOptions = true
     }
   }
