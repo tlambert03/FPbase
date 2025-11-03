@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import theme from "./Components/theme"
+import { defaultChartOptions } from "./defaults"
 import { queryClientConfig } from "./hooks/useSpectraQueries"
 import { useSpectraStore } from "./store/spectraStore"
 import { syncURLToStore } from "./store/urlSync"
@@ -43,7 +44,7 @@ const SimpleSpectraViewer = ({ ids, overlaps, options, hidden }: SimpleSpectraVi
       <ThemeProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
           <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
-          <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
+          {/* Devtools disabled for SimpleSpectraViewer to prevent unwanted padding-bottom */}
         </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>
@@ -62,14 +63,17 @@ const Inner = ({ ids, overlaps, options, hidden }: InnerProps) => {
   let normalizedIds = Array.isArray(ids) ? ids.map(String) : []
   const normalizedOverlaps = Array.isArray(overlaps) ? overlaps.map(String) : []
   const normalizedHidden = Array.isArray(hidden) ? hidden.map(String) : []
-  let normalizedOptions = options || {}
+
+  // Start with default chart options and merge provided options on top
+  let normalizedOptions = { ...defaultChartOptions, ...options }
 
   // If no IDs provided, try to parse from URL
   if (normalizedIds.length === 0) {
     const store = useSpectraStore.getState()
     syncURLToStore(store)
     normalizedIds = store.activeSpectra
-    normalizedOptions = { ...store.chartOptions, ...normalizedOptions }
+    // Use store's chart options (which may have been persisted/modified)
+    normalizedOptions = { ...store.chartOptions, ...options }
   }
 
   return (
