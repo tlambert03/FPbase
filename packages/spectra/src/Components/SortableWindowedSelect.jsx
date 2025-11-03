@@ -1,4 +1,3 @@
-import PropTypes from "prop-types"
 import React, { useEffect } from "react"
 import Select, { components } from "react-select"
 import { categoryIcon } from "./FaIcon"
@@ -36,14 +35,6 @@ const OptionWithIcon = (props) => {
     </>
   )
   return <components.Option {...myProps} />
-}
-
-OptionWithIcon.propTypes = {
-  children: PropTypes.node,
-  innerProps: PropTypes.object,
-  innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-  isFocused: PropTypes.bool,
-  isSelected: PropTypes.bool,
 }
 
 const emptyFilter = () => true
@@ -110,11 +101,5 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
     />
   )
 })
-
-SortableWindowedSelect.propTypes = {
-  showIcon: PropTypes.bool,
-  components: PropTypes.object,
-  options: PropTypes.array,
-}
 
 export default SortableWindowedSelect

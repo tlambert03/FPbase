@@ -3,7 +3,6 @@ import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import { makeStyles } from "@mui/styles"
-import PropTypes from "prop-types"
 import React from "react"
 import { useSpectraStore } from "../store/spectraStore"
 
@@ -76,11 +75,5 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
     </Box>
   )
 })
-
-SubtypeSelector.propTypes = {
-  subtypes: PropTypes.arrayOf(
-    PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool]))
-  ).isRequired,
-}
 
 export default SubtypeSelector

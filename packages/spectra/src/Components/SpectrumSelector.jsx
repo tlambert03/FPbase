@@ -1,5 +1,4 @@
 import Box from "@mui/material/Box"
-import PropTypes from "prop-types"
 import React, { useCallback, useEffect } from "react"
 import { components } from "react-select"
 import { useSpectrum } from "../hooks/useSpectraQueries"
@@ -140,9 +139,5 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
     </Box>
   )
 })
-
-SpectrumSelector.propTypes = {
-  options: PropTypes.arrayOf(PropTypes.object).isRequired,
-}
 
 export default SpectrumSelector

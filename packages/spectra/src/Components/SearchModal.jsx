@@ -3,7 +3,6 @@ import FormControlLabel from "@mui/material/FormControlLabel"
 import Modal from "@mui/material/Modal"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import PropTypes from "prop-types"
 import React, { useEffect, useState } from "react"
 import { components } from "react-select"
 import { fetchGraphQL } from "../api/client"
@@ -236,9 +235,5 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
     </Modal>
   )
 })
-
-SearchModal.propTypes = {
-  options: PropTypes.arrayOf(PropTypes.object).isRequired,
-}
 
 export default SearchModal

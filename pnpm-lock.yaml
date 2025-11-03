@@ -260,9 +260,6 @@ importers:
       highcharts-react-official:
         specifier: ^3.2.1
         version: 3.2.3(highcharts@12.4.0)(react@19.2.0)
-      prop-types:
-        specifier: ^15.7.2
-        version: 15.8.1
       react:
         specifier: ^19.2.0
         version: 19.2.0
