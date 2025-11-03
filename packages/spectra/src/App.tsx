@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import MyAppBar from "./Components/MyAppBar"
 import OwnersContainer from "./Components/OwnersContainer"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
@@ -6,6 +6,8 @@ import useKeyboardShortcuts from "./Components/useKeyboardShortcuts"
 import WelcomeModal from "./Components/WelcomeModal"
 import { useSpectraMetadata } from "./hooks/useSpectraMetadata"
 import { useOwnerInfo, useSpectraInfo } from "./store/metadataStore"
+import { useSpectraStore } from "./store/spectraStore"
+import { syncURLToStore } from "./store/urlSync"
 import "./polyfills"
 
 const daysSinceLaunch = Math.round(
@@ -13,6 +15,11 @@ const daysSinceLaunch = Math.round(
 )
 
 const App = () => {
+  // Sync URL params to store on initial mount
+  useEffect(() => {
+    syncURLToStore(useSpectraStore.getState())
+  }, [])
+
   // Fetch and cache spectra metadata
   useSpectraMetadata()
 

@@ -3,9 +3,21 @@ import { createJSONStorage, persist } from "zustand/middleware"
 import { defaults } from "../defaults"
 import type { SpectraStore } from "../types"
 
+// Helper function to clear URL params when user modifies state
+function clearUrlIfNeeded(get: () => SpectraStore) {
+  const state = get()
+  if (state._urlInitialized && window.location.search) {
+    // User is modifying state - clear URL to show it's no longer valid
+    window.history.replaceState({}, "", window.location.pathname)
+    // Return true to indicate the URL was cleared
+    return true
+  }
+  return false
+}
+
 export const useSpectraStore = create<SpectraStore>()(
   persist(
-    (set, _get) => ({
+    (set, get) => ({
       // Initial state
       activeSpectra: defaults.activeSpectra,
       activeOverlaps: defaults.activeOverlaps,
@@ -15,11 +27,16 @@ export const useSpectraStore = create<SpectraStore>()(
       chartOptions: defaults.chartOptions,
       customFilters: {},
       customLasers: {},
+      _urlInitialized: false,
 
       // Spectra management
-      setActiveSpectra: (ids) => set({ activeSpectra: ids }),
+      setActiveSpectra: (ids) => {
+        const wasCleared = clearUrlIfNeeded(get)
+        set({ activeSpectra: ids, _urlInitialized: wasCleared ? false : get()._urlInitialized })
+      },
 
-      updateActiveSpectra: (add = [], remove = []) =>
+      updateActiveSpectra: (add = [], remove = []) => {
+        const wasCleared = clearUrlIfNeeded(get)
         set((state) => {
           let newSpectra = [...state.activeSpectra]
 
@@ -34,13 +51,21 @@ export const useSpectraStore = create<SpectraStore>()(
             newSpectra = [...newSpectra, ...toAdd]
           }
 
-          return { activeSpectra: newSpectra }
-        }),
+          return {
+            activeSpectra: newSpectra,
+            _urlInitialized: wasCleared ? false : state._urlInitialized,
+          }
+        })
+      },
 
       // Overlaps management
-      setActiveOverlaps: (ids) => set({ activeOverlaps: ids }),
+      setActiveOverlaps: (ids) => {
+        const wasCleared = clearUrlIfNeeded(get)
+        set({ activeOverlaps: ids, _urlInitialized: wasCleared ? false : get()._urlInitialized })
+      },
 
-      updateActiveOverlaps: (add = [], remove = []) =>
+      updateActiveOverlaps: (add = [], remove = []) => {
+        const wasCleared = clearUrlIfNeeded(get)
         set((state) => {
           let newOverlaps = [...state.activeOverlaps]
 
@@ -55,30 +80,46 @@ export const useSpectraStore = create<SpectraStore>()(
             newOverlaps = [...newOverlaps, ...toAdd]
           }
 
-          return { activeOverlaps: newOverlaps }
-        }),
+          return {
+            activeOverlaps: newOverlaps,
+            _urlInitialized: wasCleared ? false : state._urlInitialized,
+          }
+        })
+      },
 
       // Visibility management
-      toggleSpectrumVisibility: (id) =>
+      toggleSpectrumVisibility: (id) => {
+        const wasCleared = clearUrlIfNeeded(get)
         set((state) => ({
           hiddenSpectra: state.hiddenSpectra.includes(id)
             ? state.hiddenSpectra.filter((hid) => hid !== id)
             : [...state.hiddenSpectra, id],
-        })),
+          _urlInitialized: wasCleared ? false : state._urlInitialized,
+        }))
+      },
 
-      setHiddenSpectra: (ids) => set({ hiddenSpectra: ids }),
+      setHiddenSpectra: (ids) => {
+        const wasCleared = clearUrlIfNeeded(get)
+        set({ hiddenSpectra: ids, _urlInitialized: wasCleared ? false : get()._urlInitialized })
+      },
 
       // Subtype management
       setExcludeSubtypes: (subtypes) => set({ excludeSubtypes: subtypes }),
 
       // Excitation normalization
-      setExNorm: (norm) => set({ exNorm: norm }),
+      setExNorm: (norm) => {
+        const wasCleared = clearUrlIfNeeded(get)
+        set({ exNorm: norm, _urlInitialized: wasCleared ? false : get()._urlInitialized })
+      },
 
       // Chart options
-      updateChartOptions: (options) =>
+      updateChartOptions: (options) => {
+        const wasCleared = clearUrlIfNeeded(get)
         set((state) => ({
           chartOptions: { ...state.chartOptions, ...options },
-        })),
+          _urlInitialized: wasCleared ? false : state._urlInitialized,
+        }))
+      },
 
       // Custom spectra
       addCustomFilter: (filter) =>
@@ -108,12 +149,15 @@ export const useSpectraStore = create<SpectraStore>()(
           const { [id]: _removed, ...rest } = state.customLasers
           return { customLasers: rest }
         }),
+
+      // URL initialization tracking
+      setUrlInitialized: (value) => set({ _urlInitialized: value }),
     }),
     {
       name: "fpbase-spectra-storage",
       version: 1, // Increment this to invalidate old stored state
       storage: createJSONStorage(() => sessionStorage),
-      // Only persist certain fields
+      // Only persist certain fields (_urlInitialized is intentionally excluded)
       partialize: (state) => ({
         activeSpectra: state.activeSpectra,
         hiddenSpectra: state.hiddenSpectra,

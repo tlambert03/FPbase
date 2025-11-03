@@ -9,7 +9,6 @@ import theme from "./Components/theme"
 import { defaultChartOptions } from "./defaults"
 import { queryClientConfig } from "./hooks/useSpectraQueries"
 import { useSpectraStore } from "./store/spectraStore"
-import { syncURLToStore } from "./store/urlSync"
 import type { ChartOptions } from "./types"
 
 const AppWrapper = () => {
@@ -67,10 +66,9 @@ const Inner = ({ ids, overlaps, options, hidden }: InnerProps) => {
   // Start with default chart options and merge provided options on top
   let normalizedOptions = { ...defaultChartOptions, ...options }
 
-  // If no IDs provided, try to parse from URL
+  // If no IDs provided, use store's state (may be from URL or session storage)
   if (normalizedIds.length === 0) {
     const store = useSpectraStore.getState()
-    syncURLToStore(store)
     normalizedIds = store.activeSpectra
     // Use store's chart options (which may have been persisted/modified)
     normalizedOptions = { ...store.chartOptions, ...options }

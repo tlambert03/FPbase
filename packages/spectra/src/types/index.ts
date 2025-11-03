@@ -138,6 +138,9 @@ export interface SpectraState {
   // Custom spectra (stored in localStorage)
   customFilters: Record<string, CustomFilter>
   customLasers: Record<string, CustomLaser>
+
+  // URL initialization tracking (not persisted)
+  _urlInitialized: boolean
 }
 
 // Actions
@@ -168,6 +171,9 @@ export interface SpectraActions {
   removeCustomFilter: (id: string) => void
   addCustomLaser: (laser: CustomLaser) => void
   removeCustomLaser: (id: string) => void
+
+  // URL initialization tracking
+  setUrlInitialized: (value: boolean) => void
 }
 
 export type SpectraStore = SpectraState & SpectraActions

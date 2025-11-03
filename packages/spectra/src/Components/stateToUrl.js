@@ -1,30 +1,61 @@
-import qs from "qs"
-
+/**
+ * Generate shareable URL from current spectra viewer state
+ * Maintains backwards compatibility with 6+ year old URL format
+ */
 function stateToUrl(activeSpectra, chartOptions, exNorm) {
-  const qstrings = []
-  if (activeSpectra) qstrings.push(`s=${activeSpectra.join(",")}`)
+  const params = new URLSearchParams()
+
+  // Add spectra IDs (comma-separated)
+  if (activeSpectra && activeSpectra.length > 0) {
+    params.set("s", activeSpectra.join(","))
+  }
+
+  // Add chart options
   if (chartOptions) {
-    const opts = {
-      ...chartOptions,
-      extremes: chartOptions.extremes ? [...chartOptions.extremes] : undefined,
-    }
-    delete opts.__typename
-    const [xMin, xMax] = opts.extremes || []
-    if (xMin) opts.xMin = xMin
-    if (xMax) opts.xMax = xMax
-    delete opts.extremes
-    Object.keys(opts).forEach((key) => {
-      if (typeof opts[key] === "boolean") {
-        opts[key] = Number(opts[key])
+    // Boolean options - convert to 0/1 for backwards compatibility
+    const booleanOptions = [
+      "showY",
+      "showX",
+      "showGrid",
+      "areaFill",
+      "logScale",
+      "scaleEC",
+      "scaleQY",
+      "shareTooltip",
+    ]
+    for (const key of booleanOptions) {
+      if (chartOptions[key] !== undefined) {
+        params.set(key, chartOptions[key] ? "1" : "0")
       }
-    })
-    qstrings.push(qs.stringify(opts))
+    }
+
+    // String options
+    if (chartOptions.palette) {
+      params.set("palette", chartOptions.palette)
+    }
+
+    // Extremes - use xMin/xMax for backwards compatibility
+    if (chartOptions.extremes && Array.isArray(chartOptions.extremes)) {
+      const [xMin, xMax] = chartOptions.extremes
+      if (xMin !== null && xMin !== undefined) {
+        params.set("xMin", String(xMin))
+      }
+      if (xMax !== null && xMax !== undefined) {
+        params.set("xMax", String(xMax))
+      }
+    }
   }
-  if (exNorm?.[0] && exNorm[1]) {
-    qstrings.push(qs.stringify({ normWave: exNorm[0], normID: exNorm[1] }))
+
+  // Add excitation normalization - use normWave/normID for backwards compatibility
+  if (exNorm && exNorm[0] !== null && exNorm[1] !== null) {
+    params.set("normWave", String(exNorm[0]))
+    params.set("normID", String(exNorm[1]))
   }
+
+  // Build full URL
   const { origin, pathname } = window.location
-  return qstrings.length ? `${origin + pathname}?${qstrings.join("&")}` : ""
+  const queryString = params.toString()
+  return queryString ? `${origin}${pathname}?${queryString}` : ""
 }
 
 export default stateToUrl

@@ -121,17 +121,6 @@ function ShareLinkAlert({ open, setOpen }) {
           >
             <FAIcon icon={faEnvelope} style={{}} />
           </IconButton>
-          <IconButton
-            color="primary"
-            href={`http://twitter.com/intent/tweet?url=${qString.replace(
-              /&/g,
-              "%26"
-            )}&text=Check out these spectra at FPbase%0D%0A&via=FPbase`}
-            title="Tweet"
-            target="_blank"
-          >
-            <FAIcon icon={faTwitter} style={{}} />
-          </IconButton>
           <IconButton onClick={() => setOpen(false)} color="primary" autoFocus>
             <CloseIcon />
           </IconButton>
