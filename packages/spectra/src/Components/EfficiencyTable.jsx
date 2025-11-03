@@ -6,9 +6,8 @@ import { makeStyles } from "@mui/styles"
 import { MaterialReactTable } from "material-react-table"
 import React, { useEffect, useMemo, useState } from "react"
 import useSpectralData from "../hooks/useSpectraData"
-import { useOverlapsStore } from "../store/overlapsStore"
 import { useSpectraStore } from "../store/spectraStore"
-import { trapz } from "../util"
+import { computeOverlap } from "../utils/spectraUtils"
 
 class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(_error) {
@@ -33,65 +32,27 @@ const useStyles = makeStyles((_theme) => ({
   },
 }))
 
-function numStringSort(a, b) {
-  if (Number.isNaN(parseFloat(a))) {
-    if (Number.isNaN(parseFloat(b))) {
-      return a - b
-    }
-    return -1
-  }
-  return a - b
-}
+/**
+ * Get or compute overlap spectrum with caching
+ * Uses shared computeOverlap utility and spectraStore cache
+ */
+function getOverlap(store, ...spectra) {
+  // Generate consistent ID for caching
+  const sorted = [...spectra].sort((a, b) => {
+    const aId = a.customId || a.id
+    const bId = b.customId || b.id
+    return String(aId).localeCompare(String(bId))
+  })
+  const idString = sorted.map((s) => s.customId || s.id).join("_")
 
-function spectraProduct(ar1, ar2) {
-  // calculate product of two spectra.values
-  // these assume monotonic increase w/ step = 1
-  const output = []
-  const left = Math.max(ar1[0][0], ar2[0][0]) // the min wavelength shared by both arrays
-  const right = Math.min(ar1[ar1.length - 1][0], ar2[ar2.length - 1][0]) // the max wavelength shared by both arrays
-  if (left >= right) return []
+  // Check cache first
+  const cached = store.overlapCache[idString]
+  if (cached) return cached
 
-  const offsetA1 = left - ar1[0][0]
-  const offsetA2 = left - ar2[0][0]
-  for (let i = 0; i < right - left; i++) {
-    output.push([left + i, ar1[offsetA1 + i][1] * ar2[offsetA2 + i][1]])
-  }
-  return output
-}
-
-function getOverlap(store, ...args) {
-  const idString = args
-    .map((arg) => arg.customId || arg.id)
-    .sort(numStringSort)
-    .join("_")
-
-  const ownerName = args.map(({ owner }) => owner.name).join(" & ")
-  const ownerID = args
-    .map(({ owner }) => owner.id)
-    .sort(numStringSort)
-    .join("_")
-  const qy = args.reduce((acc, next) => next.owner.qy || acc, null)
-  const slug = args.reduce(
-    (acc, next) => (["P", "D"].includes(next.category) ? next.owner.slug : acc),
-    null
-  )
-
-  const cached = store.getOverlap(idString)
-  if (!cached) {
-    const product = spectraProduct(...args.map(({ data }) => data))
-    const overlap = {
-      data: product,
-      area: trapz(product),
-      id: idString,
-      category: "O",
-      subtype: "O",
-      color: "#000000",
-      owner: { id: ownerID, name: ownerName, qy, slug },
-    }
-    store.setOverlap(idString, overlap)
-    return overlap
-  }
-  return cached
+  // Compute and cache
+  const overlap = computeOverlap(...spectra)
+  store.setOverlapCache(idString, overlap)
+  return overlap
 }
 
 const EfficiencyTable = ({ initialTranspose }) => {
@@ -100,7 +61,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
   const classes = useStyles()
   const spectraData = useSpectralData()
   const setActiveOverlaps = useSpectraStore((state) => state.setActiveOverlaps)
-  const overlapsStore = useOverlapsStore()
+  const spectraStore = useSpectraStore()
 
   useEffect(() => {
     return () => {
@@ -134,7 +95,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
           _transposed: transposed,
         }
         colItems.forEach((colItem) => {
-          const overlap = getOverlap(overlapsStore, rowItem, colItem)
+          const overlap = getOverlap(spectraStore, rowItem, colItem)
           const fluor = transposed ? rowItem : colItem
           row[colItem.owner.id] = ((100 * overlap.area) / fluor.area).toFixed(1)
           row[`${colItem.owner.id}_overlapID`] = overlap.id
@@ -145,7 +106,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
     }
 
     updateTableData()
-  }, [spectraData, transposed, overlapsStore])
+  }, [spectraData, transposed, spectraStore])
 
   // Generate columns using useMemo
   const columns = useMemo(() => {

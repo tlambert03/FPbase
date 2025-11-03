@@ -27,6 +27,7 @@ export const useSpectraStore = create<SpectraStore>()(
       chartOptions: defaults.chartOptions,
       customFilters: {},
       customLasers: {},
+      overlapCache: {}, // Computed data, not persisted (see partialize)
       _urlInitialized: false,
 
       // Spectra management
@@ -149,6 +150,14 @@ export const useSpectraStore = create<SpectraStore>()(
           const { [id]: _removed, ...rest } = state.customLasers
           return { customLasers: rest }
         }),
+
+      // Overlap cache management
+      setOverlapCache: (id, spectrum) =>
+        set((state) => ({
+          overlapCache: { ...state.overlapCache, [id]: spectrum },
+        })),
+
+      clearOverlapCache: () => set({ overlapCache: {} }),
 
       // URL initialization tracking
       setUrlInitialized: (value) => set({ _urlInitialized: value }),

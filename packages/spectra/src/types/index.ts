@@ -139,6 +139,9 @@ export interface SpectraState {
   customFilters: Record<string, CustomFilter>
   customLasers: Record<string, CustomLaser>
 
+  // Overlap cache - computed data, NOT persisted (see partialize)
+  overlapCache: Record<string, Spectrum>
+
   // URL initialization tracking (not persisted)
   _urlInitialized: boolean
 }
@@ -171,6 +174,10 @@ export interface SpectraActions {
   removeCustomFilter: (id: string) => void
   addCustomLaser: (laser: CustomLaser) => void
   removeCustomLaser: (id: string) => void
+
+  // Overlap cache management
+  setOverlapCache: (id: string, spectrum: Spectrum) => void
+  clearOverlapCache: () => void
 
   // URL initialization tracking
   setUrlInitialized: (value: boolean) => void

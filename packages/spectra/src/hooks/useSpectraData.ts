@@ -1,9 +1,8 @@
 import { useMemo } from "react"
 import COLORS from "../colors"
-import { useOverlapCache } from "../store/overlapsStore"
 import { useSpectraStore } from "../store/spectraStore"
 import type { Spectrum, SpectrumSubtype } from "../types"
-import { trapz } from "../utils/spectraUtils"
+import { computeOverlap, trapz } from "../utils/spectraUtils"
 import { useSpectraBatch } from "./useSpectraQueries"
 
 const rangexy = (start: number, end: number): number[] =>
@@ -122,7 +121,8 @@ function computeVisibleSpectra(
   apiSpectra: Spectrum[] | undefined,
   overlapCache: Record<string, Spectrum>,
   hiddenSpectra: string[],
-  isProvidedMode: boolean
+  isProvidedMode: boolean,
+  setOverlapCache: (id: string, spectrum: Spectrum) => void
 ): Spectrum[] {
   // Separate custom and real spectrum IDs
   const customIds = activeSpectra.filter((id) => id?.startsWith("$c"))
@@ -136,19 +136,40 @@ function computeVisibleSpectra(
     })
     .filter((s): s is Spectrum => s !== null)
 
-  // Get overlap data from cache
-  const overlapSpectra: Spectrum[] = activeOverlaps
-    .map((id) => overlapCache[id])
-    .filter((s): s is Spectrum => !!s)
-
   // Add area calculation to API spectra
   const apiSpectraWithArea: Spectrum[] = (apiSpectra || []).map((s) => ({
     ...s,
     area: s.area ?? trapz(s.data),
   }))
 
+  // Combine available spectra for overlap computation
+  const allAvailableSpectra = [...apiSpectraWithArea, ...customSpectra]
+
+  // Compute overlaps from activeOverlaps IDs
+  const overlapSpectra: Spectrum[] = activeOverlaps
+    .map((id) => {
+      // Check cache first
+      if (overlapCache[id]) return overlapCache[id]
+
+      // Parse overlap ID to get constituent spectrum IDs (e.g., "123_456")
+      const spectrumIds = id.split("_")
+      const constituents = spectrumIds
+        .map((sid) => allAvailableSpectra.find((s) => (s.customId || s.id) === sid))
+        .filter((s): s is Spectrum => !!s)
+
+      // Only compute if we have all constituent spectra
+      if (constituents.length === spectrumIds.length) {
+        const overlap = computeOverlap(...constituents)
+        setOverlapCache(id, overlap)
+        return overlap
+      }
+
+      return null
+    })
+    .filter((s): s is Spectrum => !!s)
+
   // Combine all spectra
-  const allSpectra = [...apiSpectraWithArea, ...customSpectra, ...overlapSpectra]
+  const allSpectra = [...allAvailableSpectra, ...overlapSpectra]
 
   // Filter out hidden spectra (only when using store data, not provided IDs)
   return isProvidedMode
@@ -169,7 +190,8 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
   const storeActiveSpectra = useSpectraStore((state) => state.activeSpectra)
   const storeActiveOverlaps = useSpectraStore((state) => state.activeOverlaps)
   const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
-  const overlapCache = useOverlapCache()
+  const overlapCache = useSpectraStore((state) => state.overlapCache)
+  const setOverlapCache = useSpectraStore((state) => state.setOverlapCache)
 
   const activeSpectra = providedIds ?? storeActiveSpectra
   const activeOverlaps = providedOverlaps ?? storeActiveOverlaps
@@ -192,9 +214,18 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
         apiSpectra,
         overlapCache,
         hiddenSpectra,
-        providedIds !== undefined // Fix: check undefined, not truthiness
+        providedIds !== undefined, // Fix: check undefined, not truthiness
+        setOverlapCache
       ),
-    [activeSpectra, activeOverlaps, apiSpectra, overlapCache, hiddenSpectra, providedIds]
+    [
+      activeSpectra,
+      activeOverlaps,
+      apiSpectra,
+      overlapCache,
+      hiddenSpectra,
+      providedIds,
+      setOverlapCache,
+    ]
   )
 }
 

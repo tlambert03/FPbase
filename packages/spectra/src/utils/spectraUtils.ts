@@ -108,3 +108,77 @@ export function isTouchDevice(): boolean {
     return false
   }
 }
+
+/**
+ * Compute overlap spectrum from multiple input spectra
+ * Shared logic used by both EfficiencyTable and useSpectraData
+ */
+export function computeOverlap(
+  ...spectra: Array<{
+    id: string
+    customId?: string
+    data: [number, number][]
+    category: string
+    owner: {
+      id: string
+      name: string
+      qy?: number
+      slug?: string
+    }
+  }>
+): {
+  id: string
+  data: [number, number][]
+  area: number
+  category: string
+  subtype: string
+  color: string
+  owner: {
+    id: string
+    name: string
+    qy?: number
+    slug?: string
+  }
+} {
+  // Sort for consistent ID generation
+  const sorted = [...spectra].sort((a, b) => {
+    const aId = a.customId || a.id
+    const bId = b.customId || b.id
+    return String(aId).localeCompare(String(bId))
+  })
+
+  const idString = sorted.map((s) => s.customId || s.id).join("_")
+
+  const ownerName = sorted.map((s) => s.owner.name).join(" & ")
+  const ownerID = sorted.map((s) => s.owner.id).join("_")
+
+  // Get qy from first spectrum that has it
+  const qy = sorted.reduce<number | undefined>((acc, next) => next.owner.qy || acc, undefined)
+
+  // Get slug from first protein/dye spectrum
+  const slug = sorted.reduce<string | undefined>(
+    (acc, next) => (["P", "D"].includes(next.category) ? next.owner.slug : acc),
+    undefined
+  )
+
+  // Compute product of all spectra data
+  const product = sorted.reduce<[number, number][]>(
+    (acc, s) => (acc.length > 0 ? spectraProduct(acc, s.data) : s.data),
+    []
+  )
+
+  return {
+    id: idString,
+    data: product,
+    area: trapz(product),
+    category: "O",
+    subtype: "O",
+    color: "#000000",
+    owner: {
+      id: ownerID,
+      name: ownerName,
+      qy,
+      slug,
+    },
+  }
+}
