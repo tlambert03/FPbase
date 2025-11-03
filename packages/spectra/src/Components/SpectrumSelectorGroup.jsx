@@ -46,6 +46,9 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   const classes = useStyles()
   const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [selectors])
 
+  // Convert to Set for O(1) lookup in SpectrumSelector (performance optimization)
+  const disabledOwners = useMemo(() => new Set(allOwners), [allOwners])
+
   let mySelectors
   if (category) {
     // For specific categories, include selectors that match the category OR are empty selectors
@@ -109,7 +112,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                   key={selector.id}
                   // this line restricts the options to similar categories
                   options={categoryOptions}
-                  allOwners={allOwners}
+                  disabledOwners={disabledOwners}
                   showCategoryIcon={showCategoryIcon}
                   selector={selector}
                   ownerInfo={ownerInfo}

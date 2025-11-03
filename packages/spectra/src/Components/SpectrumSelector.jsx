@@ -68,7 +68,7 @@ const SINGLE = { SingleValue }
 
 const SpectrumSelector = React.memo(function SpectrumSelector({
   options,
-  allOwners,
+  disabledOwners,
   showCategoryIcon,
   selector,
   ownerInfo,
@@ -104,43 +104,20 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
     [excludeSubtypes, ownerInfo, value, updateActiveSpectra]
   )
 
-  // disable options that are already claimed by other selectors
-
-  const [myOptions, setMyOptions] = React.useState(options)
-
-  useEffect(() => {
-    const otherOwners = allOwners.filter((i) => i !== selector.owner)
-    if (!otherOwners) return
-
-    let hasChanges = false
-    const newOptions = options.map((option) => {
-      // Find the existing option state by value, or use the base option
-      const existingOption = myOptions.find((opt) => opt.value === option.value) || option
-
-      if (otherOwners.includes(option.value) && !existingOption.isDisabled) {
-        hasChanges = true
+  // Disable options that are already claimed by other selectors
+  // Uses Set for O(1) lookup instead of O(N) with array.includes()
+  const myOptions = React.useMemo(
+    () =>
+      options.map((option) => {
+        const shouldDisable = disabledOwners.has(option.value) && option.value !== selector.owner
         return {
-          ...existingOption,
-          isDisabled: true,
-          label: `${existingOption.label} (already selected)`,
+          ...option,
+          isDisabled: shouldDisable,
+          label: shouldDisable ? `${option.label} (already selected)` : option.label,
         }
-      }
-      if (!otherOwners.includes(option.value) && existingOption.isDisabled) {
-        hasChanges = true
-        return {
-          ...existingOption,
-          isDisabled: false,
-          label: option.label,
-        }
-      }
-      return existingOption
-    })
-
-    // Also check if the length changed (options prop was updated)
-    if (hasChanges || newOptions.length !== myOptions.length) {
-      setMyOptions(newOptions)
-    }
-  }, [allOwners, myOptions, options, selector.owner])
+      }),
+    [options, disabledOwners, selector.owner]
+  )
 
   return (
     <Box display="flex">
