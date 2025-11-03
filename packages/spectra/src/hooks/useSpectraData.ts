@@ -9,58 +9,54 @@ const rangexy = (start: number, end: number): number[] =>
   Array.from({ length: end - start }, (_v, k) => k + start)
 
 /**
- * Generate custom laser spectrum (e.g., $cl1_488)
- * Format: $cl<id>_<wavelength>
+ * Generate custom laser spectrum from stored parameters
+ * @param id - Stable ID like "$cl1"
+ * @param wavelength - Wavelength parameter from store
  */
-function generateCustomLaser(id: string): Spectrum {
-  const parts = id.split("_")
-  const customId = parts[0] ?? id
-  const waveStr = parts[1] ?? "500"
-  const wave = Number.parseInt(waveStr, 10)
-
+function generateCustomLaser(id: string, wavelength: number): Spectrum {
   const data: [number, number][] = [
-    [wave - 1, 0],
-    [wave, 1],
-    [wave + 1, 0],
+    [wavelength - 1, 0],
+    [wavelength, 1],
+    [wavelength + 1, 0],
   ]
 
   return {
-    id: customId,
+    id,
     customId: id,
     subtype: "PD",
     owner: {
-      id: id,
+      id,
       slug: id,
-      name: `${wave} laser`,
+      name: `${wavelength} laser`,
     },
     category: "L",
     data,
     area: trapz(data),
-    color: wave in COLORS ? COLORS[wave] : "#999999",
+    color: wavelength in COLORS ? COLORS[wavelength] : "#999999",
   }
 }
 
 /**
- * Generate custom filter spectrum (e.g., $cf1_bp_500_50_90)
- * Format: $cf<id>_<type>_<center>_<width>_<transmission>
+ * Generate custom filter spectrum from stored parameters
+ * @param id - Stable ID like "$cf0"
+ * @param type - Filter type (BP, LP, or SP)
+ * @param center - Center wavelength or edge
+ * @param width - Bandwidth (for BP filters)
+ * @param transmission - Transmission percentage (0-100)
  */
-function generateCustomFilter(id: string): Spectrum {
-  const parts = id.split("_")
-  const customId = parts[0] ?? id
-  const subtypeStr = parts[1] ?? "BP"
-  const centerStr = parts[2] ?? "500"
-  const widthStr = parts[3] ?? "50"
-  const transStr = parts[4]
-
-  const subtype = subtypeStr.toUpperCase() as "BP" | "LP" | "SP"
-  const center = Number.parseInt(centerStr, 10)
-  const width = Number.parseInt(widthStr, 10)
-  const trans = transStr ? Number.parseInt(transStr, 10) / 100 : 0.9
+function generateCustomFilter(
+  id: string,
+  type: "BP" | "LP" | "SP",
+  center: number,
+  width: number,
+  transmission: number
+): Spectrum {
+  const trans = transmission / 100
 
   const data: [number, number][] = []
   let name = "Custom "
 
-  switch (subtype) {
+  switch (type) {
     case "BP": {
       // Band pass filter
       const min = Math.round(center - width / 2)
@@ -96,9 +92,9 @@ function generateCustomFilter(id: string): Spectrum {
   }
 
   return {
-    id: customId,
+    id,
     customId: id,
-    subtype: subtype as SpectrumSubtype,
+    subtype: type as SpectrumSubtype,
     owner: {
       id,
       slug: id,
@@ -122,16 +118,32 @@ function computeVisibleSpectra(
   overlapCache: Record<string, Spectrum>,
   hiddenSpectra: string[],
   isProvidedMode: boolean,
-  setOverlapCache: (id: string, spectrum: Spectrum) => void
+  setOverlapCache: (id: string, spectrum: Spectrum) => void,
+  customFilters: Record<string, import("../types").CustomFilterParams>,
+  customLasers: Record<string, import("../types").CustomLaserParams>
 ): Spectrum[] {
   // Separate custom and real spectrum IDs
   const customIds = activeSpectra.filter((id) => id?.startsWith("$c"))
 
-  // Generate custom spectra
+  // Generate custom spectra from stored parameters
   const customSpectra: Spectrum[] = customIds
     .map((id) => {
-      if (id.startsWith("$cf")) return generateCustomFilter(id)
-      if (id.startsWith("$cl")) return generateCustomLaser(id)
+      if (id.startsWith("$cf")) {
+        const params = customFilters[id]
+        if (!params) return null
+        return generateCustomFilter(
+          id,
+          params.type,
+          params.center,
+          params.width,
+          params.transmission
+        )
+      }
+      if (id.startsWith("$cl")) {
+        const params = customLasers[id]
+        if (!params) return null
+        return generateCustomLaser(id, params.wavelength)
+      }
       return null
     })
     .filter((s): s is Spectrum => s !== null)
@@ -193,6 +205,8 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
   const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
   const overlapCache = useSpectraStore((state) => state.overlapCache)
   const setOverlapCache = useSpectraStore((state) => state.setOverlapCache)
+  const customFilters = useSpectraStore((state) => state.customFilters)
+  const customLasers = useSpectraStore((state) => state.customLasers)
 
   const activeSpectra = providedIds ?? storeActiveSpectra
   const activeOverlaps = providedOverlaps ?? storeActiveOverlaps
@@ -216,7 +230,9 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
         overlapCache,
         hiddenSpectra,
         providedIds !== undefined, // Fix: check undefined, not truthiness
-        setOverlapCache
+        setOverlapCache,
+        customFilters,
+        customLasers
       ),
     [
       activeSpectra,
@@ -226,6 +242,8 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
       hiddenSpectra,
       providedIds,
       setOverlapCache,
+      customFilters,
+      customLasers,
     ]
   )
 }

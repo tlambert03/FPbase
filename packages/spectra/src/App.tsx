@@ -23,6 +23,19 @@ const App = () => {
     if (Object.keys(urlState).length > 0) {
       const store = useSpectraStore.getState()
 
+      // Apply custom filters/lasers first (they define the stable IDs)
+      if (urlState.customFilters) {
+        for (const [id, params] of Object.entries(urlState.customFilters)) {
+          store.addCustomFilter(id, params)
+        }
+      }
+      if (urlState.customLasers) {
+        for (const [id, params] of Object.entries(urlState.customLasers)) {
+          store.addCustomLaser(id, params)
+        }
+      }
+
+      // Then apply active spectra (now uses stable IDs like "$cf0", "$cl1")
       if (urlState.activeSpectra) {
         store.setActiveSpectra(urlState.activeSpectra)
       }

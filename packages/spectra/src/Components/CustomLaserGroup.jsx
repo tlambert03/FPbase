@@ -12,6 +12,8 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
   const laserCounter = useRef(0)
   const [customLasers, setLasers] = useState([])
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
+  const addCustomLaser = useSpectraStore((state) => state.addCustomLaser)
+  const removeCustomLaser = useSpectraStore((state) => state.removeCustomLaser)
   const exNorm = useSpectraStore((state) => state.exNorm)
   const setExNormStore = useSpectraStore((state) => state.setExNorm)
   const normID = exNorm?.[1]
@@ -20,33 +22,40 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
 
   const clearNorm = React.useCallback(() => setExNormStore([null, null]), [setExNormStore])
 
+  // Sync with activeSpectra to detect lasers added from URL
   useEffect(() => {
     if (activeSpectra && activeSpectra.length > 0) {
       const newLasers = activeSpectra.filter(
-        (as) =>
-          as.startsWith("$cl") && !customLasers.find((item) => item.startsWith(as.split("_")[0]))
+        (id) => id.startsWith("$cl") && !customLasers.includes(id)
       )
       if (newLasers.length) {
-        const inds = newLasers.map((id) => +id.split("_")[0].replace("$cl", ""))
-        laserCounter.current = Math.max(...inds) + 1
+        const inds = newLasers.map((id) => Number.parseInt(id.replace("$cl", ""), 10))
+        laserCounter.current = Math.max(...inds, laserCounter.current) + 1
         setLasers([...customLasers, ...newLasers])
       }
     }
   }, [activeSpectra, customLasers]) // eslint-disable-line
 
   const addRow = () => {
-    setLasers([...customLasers, `$cl${laserCounter.current++}`])
+    const newId = `$cl${laserCounter.current++}`
+    // Add to store with default params
+    addCustomLaser(newId, { wavelength: 488 })
+    // Add to active spectra
+    updateActiveSpectra([newId])
+    // Add to local list
+    setLasers([...customLasers, newId])
   }
 
-  const removeRow = (laser) => {
-    const laserID = laser.split("_")[0]
-    if (laserID === normID) {
+  const removeRow = (laserId) => {
+    if (laserId === normID) {
       clearNorm()
     }
-    setLasers(customLasers.filter((id) => !id.startsWith(laserID)))
-    // Find all activeSpectra that start with this laserID and remove them
-    const toRemove = activeSpectra.filter((id) => id.startsWith(laserID))
-    updateActiveSpectra([], toRemove)
+    // Remove from local list
+    setLasers(customLasers.filter((id) => id !== laserId))
+    // Remove from store
+    removeCustomLaser(laserId)
+    // Remove from active spectra
+    updateActiveSpectra([], [laserId])
   }
 
   return (
@@ -65,7 +74,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
             })}
             <Box flexGrow={1}>
               <CustomLaserCreator
-                key={laser.split("_")[0]}
+                key={laser}
                 id={laser}
                 setExNorm={setExNorm}
                 clearNorm={clearNorm}

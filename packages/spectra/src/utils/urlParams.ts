@@ -1,4 +1,4 @@
-import type { ChartOptions } from "../types"
+import type { ChartOptions, CustomFilterParams, CustomLaserParams } from "../types"
 
 /**
  * Boolean chart options that can be serialized to URL
@@ -23,6 +23,8 @@ export interface SpectraURLState {
   activeOverlaps?: string[]
   chartOptions?: Partial<ChartOptions>
   exNorm?: readonly [number, string] | null
+  customFilters?: Record<string, CustomFilterParams>
+  customLasers?: Record<string, CustomLaserParams>
 }
 
 /**
@@ -42,12 +44,58 @@ export function parseURLParams(search: string): SpectraURLState {
 
   const result: SpectraURLState = {}
 
-  // Parse spectra IDs (comma-separated string like "17,18")
+  // Parse spectra IDs (comma-separated string like "17,18,$cf0_BP_450_50_90,$cl1_488")
+  // For custom spectra, extract stable IDs and parameters
   const spectraParam = params.get("s")
   if (spectraParam) {
-    const spectraIds = spectraParam.split(",").filter(Boolean)
+    const spectraIds: string[] = []
+    const customFilters: Record<string, CustomFilterParams> = {}
+    const customLasers: Record<string, CustomLaserParams> = {}
+
+    for (const id of spectraParam.split(",").filter(Boolean)) {
+      if (id.startsWith("$cf")) {
+        // Parse custom filter: $cf0_BP_450_50_90
+        const parts = id.split("_")
+        const stableId = parts[0]
+        if (stableId && parts.length >= 5 && parts[1] && parts[2] && parts[3] && parts[4]) {
+          const type = parts[1].toUpperCase() as "BP" | "LP" | "SP"
+          const center = Number.parseInt(parts[2], 10)
+          const width = Number.parseInt(parts[3], 10)
+          const transmission = Number.parseInt(parts[4], 10)
+
+          spectraIds.push(stableId)
+          customFilters[stableId] = { type, center, width, transmission }
+        } else {
+          // Malformed, just add the ID
+          spectraIds.push(id)
+        }
+      } else if (id.startsWith("$cl")) {
+        // Parse custom laser: $cl1_488
+        const parts = id.split("_")
+        const stableId = parts[0]
+        if (stableId && parts.length >= 2 && parts[1]) {
+          const wavelength = Number.parseInt(parts[1], 10)
+
+          spectraIds.push(stableId)
+          customLasers[stableId] = { wavelength }
+        } else {
+          // Malformed, just add the ID
+          spectraIds.push(id)
+        }
+      } else {
+        // Regular spectrum ID
+        spectraIds.push(id)
+      }
+    }
+
     if (spectraIds.length > 0) {
       result.activeSpectra = spectraIds
+    }
+    if (Object.keys(customFilters).length > 0) {
+      result.customFilters = customFilters
+    }
+    if (Object.keys(customLasers).length > 0) {
+      result.customLasers = customLasers
     }
   }
 
@@ -135,8 +183,23 @@ export function serializeURLParams(state: SpectraURLState): string {
   const params = new URLSearchParams()
 
   // Add spectra IDs (comma-separated)
+  // For custom spectra, serialize with parameters for backward compatibility
   if (state.activeSpectra && state.activeSpectra.length > 0) {
-    params.set("s", state.activeSpectra.join(","))
+    const serializedIds = state.activeSpectra.map((id) => {
+      if (id.startsWith("$cf") && state.customFilters?.[id]) {
+        // Serialize custom filter: $cf0 + params -> $cf0_BP_450_50_90
+        const filter = state.customFilters[id]
+        return `${id}_${filter.type}_${filter.center}_${filter.width}_${filter.transmission}`
+      }
+      if (id.startsWith("$cl") && state.customLasers?.[id]) {
+        // Serialize custom laser: $cl1 + params -> $cl1_488
+        const laser = state.customLasers[id]
+        return `${id}_${laser.wavelength}`
+      }
+      // Regular spectrum ID
+      return id
+    })
+    params.set("s", serializedIds.join(","))
   }
 
   // Add overlap IDs (comma-separated)

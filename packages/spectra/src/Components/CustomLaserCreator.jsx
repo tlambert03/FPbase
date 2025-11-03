@@ -5,7 +5,7 @@ import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import { memo, useEffect, useRef, useState } from "react"
+import { memo, useEffect } from "react"
 import { useSpectraStore } from "../store/spectraStore"
 import InputSlider from "./InputSlider"
 
@@ -16,35 +16,27 @@ const useStyles = makeStyles({
   },
 })
 
-// $cl1
+// id is stable like "$cl1"
 const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExNorm, clearNorm }) {
   const classes = useStyles()
 
-  const [laserID, _wave] = id.split("_")
-  const [wave, setWave] = useState(_wave || 488)
+  // Read params directly from store (single source of truth)
+  const params = useSpectraStore((state) => state.customLasers[id])
+  const updateCustomLaser = useSpectraStore((state) => state.updateCustomLaser)
 
-  // Track the previous full ID to properly remove it when wavelength changes
-  const prevIdRef = useRef(id)
+  // Default value if params don't exist yet
+  const wavelength = params?.wavelength || 488
 
-  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
+  // Update exNorm when wavelength changes (if this laser is the norm target)
   useEffect(() => {
-    const newId = `${laserID}_${wave}`
-    const oldId = prevIdRef.current
-
-    // Only update if the ID actually changed
-    if (newId !== oldId) {
-      updateActiveSpectra([newId], [oldId])
-      prevIdRef.current = newId
+    if (id === normID) {
+      setExNorm([wavelength, id])
     }
-
-    if (laserID === normID) {
-      setExNorm([String(wave), laserID])
-    }
-  }, [laserID, normID, setExNorm, wave, updateActiveSpectra])
+  }, [id, normID, setExNorm, wavelength])
 
   const handleNormCheck = (_e, checked) => {
     if (checked) {
-      setExNorm([String(wave), laserID])
+      setExNorm([wavelength, id])
     } else {
       clearNorm()
     }
@@ -64,8 +56,8 @@ const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExN
           <div style={{ margin: "0 12px", minWidth: 200 }}>
             <Typography className={classes.label}>Wavelength</Typography>
             <InputSlider
-              value={wave}
-              setValue={setWave}
+              value={wavelength}
+              setValue={(value) => updateCustomLaser(id, { wavelength: value })}
               valueLabelDisplay="auto"
               aria-labelledby="range-slider"
             />

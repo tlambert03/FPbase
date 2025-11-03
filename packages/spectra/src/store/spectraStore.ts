@@ -109,27 +109,38 @@ export const useSpectraStore = create<SpectraStore>()(
 
       // Excitation normalization
       setExNorm: (norm) => {
-        const wasCleared = clearUrlIfNeeded(get)
-        set({ exNorm: norm, _urlInitialized: wasCleared ? false : get()._urlInitialized })
+        // Don't clear URL for exNorm changes - it's part of URL state
+        set({ exNorm: norm })
       },
 
       // Chart options
       updateChartOptions: (options) => {
-        const wasCleared = clearUrlIfNeeded(get)
+        // Don't clear URL for chart option changes - they're part of URL state
         set((state) => ({
           chartOptions: { ...state.chartOptions, ...options },
-          _urlInitialized: wasCleared ? false : state._urlInitialized,
         }))
       },
 
-      // Custom spectra
-      addCustomFilter: (filter) =>
+      // Custom spectra management
+      addCustomFilter: (id, params) =>
         set((state) => ({
           customFilters: {
             ...state.customFilters,
-            [filter.id]: filter,
+            [id]: params,
           },
         })),
+
+      updateCustomFilter: (id, params) =>
+        set((state) => {
+          const existing = state.customFilters[id]
+          if (!existing) return state
+          return {
+            customFilters: {
+              ...state.customFilters,
+              [id]: { ...existing, ...params },
+            },
+          }
+        }),
 
       removeCustomFilter: (id) =>
         set((state) => {
@@ -137,13 +148,25 @@ export const useSpectraStore = create<SpectraStore>()(
           return { customFilters: rest }
         }),
 
-      addCustomLaser: (laser) =>
+      addCustomLaser: (id, params) =>
         set((state) => ({
           customLasers: {
             ...state.customLasers,
-            [laser.id]: laser,
+            [id]: params,
           },
         })),
+
+      updateCustomLaser: (id, params) =>
+        set((state) => {
+          const existing = state.customLasers[id]
+          if (!existing) return state
+          return {
+            customLasers: {
+              ...state.customLasers,
+              [id]: { ...existing, ...params },
+            },
+          }
+        }),
 
       removeCustomLaser: (id) =>
         set((state) => {

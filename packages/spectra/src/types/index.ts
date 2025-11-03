@@ -55,6 +55,21 @@ export interface Spectrum {
 }
 
 // Custom Spectrum Types (for $cf and $cl)
+
+// Parameters for custom filters (stored in state)
+export interface CustomFilterParams {
+  type: "BP" | "LP" | "SP"
+  center: number
+  width: number
+  transmission: number
+}
+
+// Parameters for custom lasers (stored in state)
+export interface CustomLaserParams {
+  wavelength: number
+}
+
+// Legacy types (deprecated - kept for backward compatibility)
 export interface CustomFilter {
   id: string
   data: [number, number][]
@@ -163,9 +178,10 @@ export interface SpectraState {
   // Chart options
   chartOptions: ChartOptions
 
-  // Custom spectra (stored in localStorage)
-  customFilters: Record<string, CustomFilter>
-  customLasers: Record<string, CustomLaser>
+  // Custom spectra parameters (stored in sessionStorage)
+  // Keys are stable IDs like "$cf0", "$cl1"
+  customFilters: Record<string, CustomFilterParams>
+  customLasers: Record<string, CustomLaserParams>
 
   // Overlap cache - computed data, NOT persisted (see partialize)
   overlapCache: Record<string, Spectrum>
@@ -197,10 +213,12 @@ export interface SpectraActions {
   // Chart options
   updateChartOptions: (options: Partial<ChartOptions>) => void
 
-  // Custom spectra
-  addCustomFilter: (filter: CustomFilter) => void
+  // Custom spectra management
+  addCustomFilter: (id: string, params: CustomFilterParams) => void
+  updateCustomFilter: (id: string, params: Partial<CustomFilterParams>) => void
   removeCustomFilter: (id: string) => void
-  addCustomLaser: (laser: CustomLaser) => void
+  addCustomLaser: (id: string, params: CustomLaserParams) => void
+  updateCustomLaser: (id: string, params: Partial<CustomLaserParams>) => void
   removeCustomLaser: (id: string) => void
 
   // Overlap cache management

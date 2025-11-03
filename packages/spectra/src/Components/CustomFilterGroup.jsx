@@ -12,32 +12,38 @@ const CustomFilterGroup = ({ activeSpectra }) => {
   const filterCounter = useRef(0)
   const [customFilters, setFilters] = useState([])
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
+  const addCustomFilter = useSpectraStore((state) => state.addCustomFilter)
+  const removeCustomFilter = useSpectraStore((state) => state.removeCustomFilter)
 
   const addRow = () => {
-    setFilters([...customFilters, `$cf${filterCounter.current++}`])
+    const newId = `$cf${filterCounter.current++}`
+    // Add to store with default params
+    addCustomFilter(newId, { type: "BP", center: 525, width: 50, transmission: 90 })
+    // Add to active spectra
+    updateActiveSpectra([newId])
+    // Add to local list
+    setFilters([...customFilters, newId])
   }
 
-  const removeRow = (filter) => {
-    const filterID = filter.split("_")[0]
-    setFilters(customFilters.filter((id) => !id.startsWith(filterID)))
-    // Find all activeSpectra that start with this filterID and remove them
-    const toRemove = activeSpectra.filter((id) => id.startsWith(filterID))
-    updateActiveSpectra([], toRemove)
+  const removeRow = (filterId) => {
+    // Remove from local list
+    setFilters(customFilters.filter((id) => id !== filterId))
+    // Remove from store
+    removeCustomFilter(filterId)
+    // Remove from active spectra
+    updateActiveSpectra([], [filterId])
   }
 
-  // const {
-  //   data: { activeSpectra }
-  // } = useQuery(GET_ACTIVE_SPECTRA)
+  // Sync with activeSpectra to detect filters added from URL
   useEffect(() => {
     if (activeSpectra && activeSpectra.length > 0) {
       const newFilters = activeSpectra.filter(
-        (as) =>
-          as.startsWith("$cf") && !customFilters.find((item) => item.startsWith(as.split("_")[0]))
+        (id) => id.startsWith("$cf") && !customFilters.includes(id)
       )
 
       if (newFilters.length) {
-        const inds = newFilters.map((id) => +id.split("_")[0].replace("$cf", ""))
-        filterCounter.current = Math.max(...inds) + 1
+        const inds = newFilters.map((id) => Number.parseInt(id.replace("$cf", ""), 10))
+        filterCounter.current = Math.max(...inds, filterCounter.current) + 1
         setFilters([...customFilters, ...newFilters])
       }
     }
@@ -58,7 +64,7 @@ const CustomFilterGroup = ({ activeSpectra }) => {
               },
             })}
             <Box flexGrow={1}>
-              <CustomFilterCreator key={filter.split("_")[0]} id={filter} />
+              <CustomFilterCreator key={filter} id={filter} />
             </Box>
             <Box>
               <IconButton
