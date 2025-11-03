@@ -19,7 +19,7 @@ const AppWrapper = () => {
       <ThemeProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
           <App />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
         </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>
@@ -43,7 +43,7 @@ const SimpleSpectraViewer = ({ ids, overlaps, options, hidden }: SimpleSpectraVi
       <ThemeProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
           <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
         </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>
