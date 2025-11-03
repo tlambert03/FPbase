@@ -44,11 +44,13 @@ export function batchSpectraQuery(ids: string[]): string {
       id
       data
       category
+      color
       subtype
       owner {
         slug
         name
         id
+        ...FluorophoreParts
       }
     }
   `
@@ -59,6 +61,7 @@ export function batchSpectraQuery(ids: string[]): string {
     query BatchSpectra {
       ${queries}
     }
+    ${FLUOROPHORE_PARTS}
   `
 }
 

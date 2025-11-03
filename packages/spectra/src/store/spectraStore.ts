@@ -1,30 +1,17 @@
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
-import type { ChartOptions, SpectraStore } from "../types"
-
-// Default chart options
-const defaultChartOptions: ChartOptions = {
-  showY: true,
-  showX: true,
-  showGrid: false,
-  areaFill: false,
-  logScale: false,
-  scaleEC: false,
-  scaleQY: false,
-  extremes: null,
-  shareTooltip: true,
-  palette: "fpbase",
-}
+import { defaults } from "../defaults"
+import type { SpectraStore } from "../types"
 
 export const useSpectraStore = create<SpectraStore>()(
   persist(
     (set, _get) => ({
       // Initial state
-      activeSpectra: [],
-      activeOverlaps: [],
-      excludeSubtypes: [],
-      exNorm: null,
-      chartOptions: defaultChartOptions,
+      activeSpectra: defaults.activeSpectra,
+      activeOverlaps: defaults.activeOverlaps,
+      excludeSubtypes: defaults.excludeSubtypes,
+      exNorm: defaults.exNorm,
+      chartOptions: defaults.chartOptions,
       customFilters: {},
       customLasers: {},
 
@@ -113,6 +100,7 @@ export const useSpectraStore = create<SpectraStore>()(
     }),
     {
       name: "fpbase-spectra-storage",
+      version: 1, // Increment this to invalidate old stored state
       storage: createJSONStorage(() => sessionStorage),
       // Only persist certain fields
       partialize: (state) => ({
