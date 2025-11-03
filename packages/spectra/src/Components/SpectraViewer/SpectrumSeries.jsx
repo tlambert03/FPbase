@@ -1,4 +1,3 @@
-import { List } from "immutable"
 import { memo, useMemo } from "react"
 import { Series } from "react-jsx-highcharts"
 import { useSpectrum } from "../../hooks/useSpectraQueries"
@@ -61,7 +60,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
   // Calculate normalized series
   const serie = useMemo(() => {
     if (!needsExNorm || !exSpectrumData) {
-      return List([...spectrum.data])
+      return [...spectrum.data]
     }
 
     // Find the scalar value at the exNorm wavelength
@@ -71,7 +70,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
       ;[, scalar] = exEfficiency
     }
 
-    return List([...spectrum.data].map(([a, b]) => [a, b * scalar]))
+    return spectrum.data.map(([a, b]) => [a, b * scalar])
   }, [needsExNorm, exSpectrumData, spectrum.data, exNorm])
 
   return serie
@@ -108,7 +107,7 @@ const SpectrumSeries = memo(function SpectrumSeries({
     serie = serie.map(([a, b]) => [a, 1 - b])
   }
   if (logScale) {
-    serie = [...serie].map(([a, b]) => [a, OD(b)])
+    serie = serie.map(([a, b]) => [a, OD(b)])
   }
 
   let name = `${spectrum.owner.name}`
@@ -154,7 +153,7 @@ const SpectrumSeries = memo(function SpectrumSeries({
       dashStyle={dashStyle}
       lineWidth={lineWidth}
       className={`cat-${spectrum.category} subtype-${spectrum.subtype}`}
-      data={serie.toJS ? serie.toJS() : Array.from(serie)}
+      data={serie}
       threshold={logScale ? 10 : 0}
     />
   )

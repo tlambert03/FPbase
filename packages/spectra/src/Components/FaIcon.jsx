@@ -1,3 +1,4 @@
+import SvgIcon from "@mui/material/SvgIcon"
 import {
   faAdjust,
   faBolt,
@@ -8,21 +9,23 @@ import {
   faPercent,
   faQuestionCircle,
   faSliders,
-} from "@fortawesome/free-solid-svg-icons"
-import SvgIcon from "@mui/material/SvgIcon"
+} from "../icons"
 
 function FAIcon(props) {
+  const { icon, ...rest } = props
+  const viewBox = `0 0 ${icon.width} ${icon.height}`
+
   return (
     <SvgIcon
-      viewBox="0 0 530 530"
+      viewBox={viewBox}
       style={{
         position: "relative",
         top: -1,
         height: "1rem",
       }}
-      {...props}
+      {...rest}
     >
-      <path d={props.icon.icon[4]} />
+      <path d={icon.path} />
     </SvgIcon>
   )
 }

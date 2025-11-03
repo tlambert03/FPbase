@@ -18,8 +18,7 @@ import "highcharts/modules/pattern-fill"
 import "highcharts/modules/export-data"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/boost"
-import { css } from "@emotion/react"
-import { BarLoader } from "react-spinners"
+import LinearProgress from "@mui/material/LinearProgress"
 import useSpectraData from "../../hooks/useSpectraData"
 import { useSpectraStore } from "../../store/spectraStore"
 import useWindowWidth from "../useWindowWidth"
@@ -30,15 +29,6 @@ import SpectrumSeries from "./SpectrumSeries"
 import XRangePickers from "./XRangePickers"
 
 fixLogScale(Highcharts)
-
-const override = css`
-  display: block;
-  position: absolute;
-  left: 40%;
-  top: 50%;
-  width: 20%;
-  z-index: 10;
-`
 
 const calcHeight = (width) => {
   if (width < 600) return 275
@@ -175,7 +165,16 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
       {numSpectra === 0 &&
         (chartOptions.simpleMode ? (
           <div className="sweet-loading">
-            <BarLoader css={override} height={4} width="100px" color="#ccc" loading />
+            <LinearProgress
+              sx={{
+                position: "absolute",
+                left: "40%",
+                top: "50%",
+                width: "20%",
+                height: 4,
+                zIndex: 10,
+              }}
+            />
           </div>
         ) : (
           <NoData height={height} />

@@ -1,10 +1,9 @@
-import { css } from "@emotion/react"
 import { Typography } from "@mui/material"
+import CircularProgress from "@mui/material/CircularProgress"
 import Tab from "@mui/material/Tab"
 import Tabs from "@mui/material/Tabs"
 import { makeStyles } from "@mui/styles"
 import React, { useEffect, useMemo, useState } from "react"
-import { RingLoader } from "react-spinners"
 import { useMetadataStore } from "../store/metadataStore"
 import { useSpectraStore } from "../store/spectraStore"
 import { isTouchDevice } from "../util"
@@ -15,12 +14,6 @@ import { categoryIcon } from "./FaIcon"
 import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 
 const ISTOUCH = isTouchDevice()
-
-const override = css`
-  display: block;
-  margin: 50px auto;
-  border-color: red;
-`
 
 const useStyles = makeStyles((theme) => ({
   tabHeader: {
@@ -237,8 +230,30 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
       </Tabs>
 
       {Object.keys(ownerInfo).length === 0 ? (
-        <div className="sweet-loading">
-          <RingLoader css={override} size={100} color="#ccc" loading />
+        <div
+          className="sweet-loading"
+          style={{ position: "relative", width: 100, margin: "50px auto" }}
+        >
+          {/* Background track */}
+          <CircularProgress
+            variant="determinate"
+            value={100}
+            size={100}
+            thickness={4}
+            sx={{
+              color: "#ddd",
+              position: "absolute",
+            }}
+          />
+          {/* Animated spinner */}
+          <CircularProgress
+            size={100}
+            thickness={4}
+            sx={{
+              color: "#888",
+              position: "absolute",
+            }}
+          />
         </div>
       ) : (
         <div>

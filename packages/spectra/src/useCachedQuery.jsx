@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import "unfetch/polyfill/index"
 
 // Local helper functions (only used by this legacy hook)
 const getStorageWithExpire = (cacheKey, expiry = 12 * 60 * 60) => {

@@ -5,7 +5,6 @@ import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
 import PropTypes from "prop-types"
-import "regenerator-runtime" // why do I need this?!?
 import Select from "react-select"
 import SortableWindowedSelect from "./SortableWindowedSelect"
 

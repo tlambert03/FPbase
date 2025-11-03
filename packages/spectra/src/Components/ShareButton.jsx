@@ -1,4 +1,3 @@
-import { faCopy, faEnvelope } from "@fortawesome/free-solid-svg-icons"
 import CloseIcon from "@mui/icons-material/Close"
 import DownloadIcon from "@mui/icons-material/GetApp"
 import ChartIcon from "@mui/icons-material/InsertChart"
@@ -20,9 +19,9 @@ import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Zoom from "@mui/material/Zoom"
 import { makeStyles } from "@mui/styles"
-import ClipboardJS from "clipboard"
 import Highcharts from "highcharts"
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useMemo, useState } from "react"
+import { faCopy, faEnvelope } from "../icons"
 import { useSpectraStore } from "../store/spectraStore"
 import { serializeURLParams } from "../utils/urlParams"
 import { FAIcon } from "./FaIcon"
@@ -61,20 +60,15 @@ function ShareLinkAlert({ open, setOpen }) {
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 
-  const handleTooltipOpen = useCallback(() => {
-    setTooltipOpen(true)
-    setTimeout(() => setTooltipOpen(false), 1200)
-  }, [])
-
-  useEffect(() => {
-    const cp = new ClipboardJS("#copy-button", {
-      target: (_trigger) => document.getElementById("qString-input"),
-    })
-    cp.on("success", handleTooltipOpen)
-    return () => {
-      cp.destroy()
+  const handleCopyClick = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(qString)
+      setTooltipOpen(true)
+      setTimeout(() => setTooltipOpen(false), 1200)
+    } catch (err) {
+      console.error("Failed to copy:", err)
     }
-  }, [handleTooltipOpen])
+  }, [qString])
 
   return (
     <div>
@@ -113,7 +107,11 @@ function ShareLinkAlert({ open, setOpen }) {
                     TransitionComponent={Zoom}
                     TransitionProps={{ timeout: { enter: 200, exit: 700 } }}
                   >
-                    <IconButton edge="end" id="copy-button" aria-label="Toggle password visibility">
+                    <IconButton
+                      edge="end"
+                      onClick={handleCopyClick}
+                      aria-label="Copy URL to clipboard"
+                    >
                       <FAIcon icon={faCopy} style={{}} />
                     </IconButton>
                   </Tooltip>
