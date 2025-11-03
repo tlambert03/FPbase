@@ -1,17 +1,34 @@
 // Core Spectrum Types
-export type SpectrumCategory = "P" | "D" | "F" | "L" | "C" | "BP" | "LP" | "SP" | "O"
+// Categories returned by GraphQL API (uppercase)
+export type SpectrumCategory =
+  | "P" // Protein
+  | "D" // Dye
+  | "F" // Filter
+  | "L" // Light
+  | "C" // Camera
+  | "O" // Overlap (client-side computed)
+
+// Subtypes returned by GraphQL API (uppercase)
+// Note: Backend stores these as lowercase, but GraphQL resolver transforms to uppercase
+// Graphene-django prefixes "A_" to enum values that aren't valid python identifiers
+// (e.g., "2P" starts with a digit), so the API returns "A_2P".
+// This is automatically normalized to "2P" at the query boundary (see useSpectraQueries.ts).
+// Frontend code should only reference "2P" - "A_2P" is included here only for type safety.
 export type SpectrumSubtype =
-  | "ex"
-  | "em"
-  | "ab"
-  | "2p"
-  | "bx"
-  | "pd"
-  | "qd"
-  | "BP"
-  | "LP"
-  | "SP"
-  | "O"
+  | "EX" // Excitation
+  | "AB" // Absorption
+  | "EM" // Emission
+  | "2P" // Two Photon
+  | "A_2P" // Two Photon (graphene-django auto-prefixed - normalized to "2P" automatically)
+  | "BP" // Bandpass
+  | "BX" // Bandpass-Ex
+  | "BM" // Bandpass-Em
+  | "SP" // Shortpass
+  | "LP" // Longpass
+  | "BS" // Beamsplitter
+  | "QE" // Quantum Efficiency (cameras)
+  | "PD" // Power Distribution (lights)
+  | "O" // Overlap (client-side computed)
 
 export interface SpectrumOwner {
   id: string

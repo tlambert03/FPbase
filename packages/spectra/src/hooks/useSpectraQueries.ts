@@ -4,6 +4,30 @@ import { batchSpectraQuery, GET_OPTICAL_CONFIG, GET_SPECTRUM, SPECTRA_LIST } fro
 import type { OpticalConfig, OpticalConfigInfo, SpectraListResponse, Spectrum } from "../types"
 
 /**
+ * Normalize spectrum subtype from API
+ * Graphene-django prefixes "A_" to enum values that aren't valid GraphQL identifiers
+ * (e.g., "2P" starts with a digit, so becomes "A_2P"). We normalize to the canonical "2P".
+ */
+function normalizeSpectrum<T extends Spectrum | null>(spectrum: T): T {
+  if (!spectrum) return spectrum
+  return {
+    ...spectrum,
+    subtype: spectrum.subtype === "A_2P" ? "2P" : spectrum.subtype,
+  } as T
+}
+
+/**
+ * Normalize subtype for any object with a subtype field
+ * Used for list responses that don't include full spectrum data
+ */
+function normalizeSubtype<T extends { subtype: string }>(item: T): T {
+  return {
+    ...item,
+    subtype: item.subtype === "A_2P" ? "2P" : item.subtype,
+  }
+}
+
+/**
  * Fetch a single spectrum by ID
  */
 export function useSpectrum(id: string | null) {
@@ -16,6 +40,7 @@ export function useSpectrum(id: string | null) {
       })
       return data.spectrum
     },
+    select: normalizeSpectrum,
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
@@ -37,6 +62,7 @@ export function useSpectraBatch(ids: string[]) {
       // Convert object to array
       return Object.values(data)
     },
+    select: (data) => data.map(normalizeSpectrum),
     enabled: ids.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
@@ -68,6 +94,7 @@ export function useSpectraList() {
       const data = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST, {})
       return data.spectra
     },
+    select: (data) => data.map(normalizeSubtype),
     staleTime: 10 * 60 * 1000, // 10 minutes
   })
 }

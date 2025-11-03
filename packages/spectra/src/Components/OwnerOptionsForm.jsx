@@ -14,6 +14,7 @@ const OwnerOptionsForm = () => {
     },
     [setExcludeSubtypes]
   )
+
   return (
     <Box style={{ marginTop: 8 }}>
       <span style={{ marginRight: 8 }}>Exclude subtypes:</span>

@@ -30,5 +30,5 @@ export const defaults: Defaults = {
   activeOverlaps: [],
   chartOptions: defaultChartOptions,
   exNorm: null,
-  excludeSubtypes: [],
+  excludeSubtypes: ["2P"], // Exclude two-photon spectra by default
 }

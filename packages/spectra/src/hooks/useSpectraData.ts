@@ -27,7 +27,7 @@ function generateCustomLaser(id: string): Spectrum {
   return {
     id: customId,
     customId: id,
-    subtype: "pd",
+    subtype: "PD",
     owner: {
       id: id,
       slug: id,
