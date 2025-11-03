@@ -7,7 +7,7 @@ import WelcomeModal from "./Components/WelcomeModal"
 import { useSpectraMetadata } from "./hooks/useSpectraMetadata"
 import { useOwnerInfo, useSpectraInfo } from "./store/metadataStore"
 import { useSpectraStore } from "./store/spectraStore"
-import { syncURLToStore } from "./store/urlSync"
+import { parseURLParams } from "./utils/urlParams"
 import "./polyfills"
 
 const daysSinceLaunch = Math.round(
@@ -15,9 +15,30 @@ const daysSinceLaunch = Math.round(
 )
 
 const App = () => {
-  // Sync URL params to store on initial mount
+  // Parse URL params and apply to store on initial mount
   useEffect(() => {
-    syncURLToStore(useSpectraStore.getState())
+    const urlState = parseURLParams(window.location.search)
+
+    // Only apply if URL has params
+    if (Object.keys(urlState).length > 0) {
+      const store = useSpectraStore.getState()
+
+      if (urlState.activeSpectra) {
+        store.setActiveSpectra(urlState.activeSpectra)
+      }
+      if (urlState.activeOverlaps) {
+        store.setActiveOverlaps(urlState.activeOverlaps)
+      }
+      if (urlState.chartOptions) {
+        store.updateChartOptions(urlState.chartOptions)
+      }
+      if (urlState.exNorm !== undefined) {
+        store.setExNorm(urlState.exNorm)
+      }
+
+      // Mark that store was initialized from URL
+      store.setUrlInitialized(true)
+    }
   }, [])
 
   // Fetch and cache spectra metadata

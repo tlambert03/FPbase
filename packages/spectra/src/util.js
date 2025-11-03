@@ -1,4 +1,3 @@
-import qs from "qs"
 import { defaults } from "./defaults"
 import PALETTES from "./palettes"
 
@@ -164,46 +163,6 @@ const isValidId = (id) => {
  * @returns {string[]} Array of valid spectrum IDs
  */
 export const validSpectraIds = (spectra) => spectra.filter((id) => isValidId(id))
-
-/**
- * Parse URL parameters to extract chart options and active spectra
- * @param {Object} data - Initial data object (defaults to defaults from defaults.js)
- * @returns {Object} Parsed data with activeSpectra, chartOptions, exNorm, etc.
- */
-export function parseURL(data) {
-  data = data || defaults
-  const url = qs.parse(window.location.search.replace(/^\?/, ""), {
-    decoder,
-  })
-  if (Object.keys(url).length === 0 && url.constructor === Object) return data
-
-  const booleanOptions = Object.keys(defaults.chartOptions).filter(
-    (key) => typeof defaults.chartOptions[key] === "boolean"
-  )
-
-  const extremes = [null, null]
-  const exNorm = [null, null]
-  Object.keys(url).forEach((key) => {
-    if (booleanOptions.includes(key)) {
-      data.chartOptions[key] = Boolean(+url[key])
-    }
-    if (key === "palette" && url[key] in PALETTES) {
-      data.chartOptions.palette = url[key]
-    }
-    if (key === "xMin") extremes[0] = +url[key]
-    if (key === "xMax") extremes[1] = +url[key]
-    if (key === "normWave") exNorm[0] = url[key]
-    if (key === "normID") exNorm[1] = url[key]
-    if (["s", "activeSpectra"].includes(key)) {
-      let active = url[key]
-      if (!Array.isArray(active)) active = active.split(",")
-      data.activeSpectra = validSpectraIds(active)
-    }
-  })
-  if (extremes.some((i) => i)) data.chartOptions.extremes = extremes
-  if (exNorm.some((i) => i)) data.exNorm = exNorm
-  return data
-}
 
 export {
   debounce,

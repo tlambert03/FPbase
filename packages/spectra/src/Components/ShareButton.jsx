@@ -22,10 +22,10 @@ import Zoom from "@mui/material/Zoom"
 import { makeStyles } from "@mui/styles"
 import ClipboardJS from "clipboard"
 import Highcharts from "highcharts"
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { useSpectraStore } from "../store/spectraStore"
+import { serializeURLParams } from "../utils/urlParams"
 import { FAIcon } from "./FaIcon"
-import stateToUrl from "./stateToUrl"
 
 const useStyles = makeStyles((theme) => ({
   textField: {
@@ -39,16 +39,25 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function ShareLinkAlert({ open, setOpen }) {
-  const [qString, setQString] = useState("")
   const classes = useStyles()
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const activeOverlaps = useSpectraStore((state) => state.activeOverlaps)
   const chartOptions = useSpectraStore((state) => state.chartOptions)
   const exNorm = useSpectraStore((state) => state.exNorm)
 
-  useEffect(() => {
-    setQString(stateToUrl(activeSpectra, chartOptions, exNorm))
-  }, [activeSpectra, chartOptions, exNorm])
+  // Generate shareable URL with all current state
+  const qString = useMemo(() => {
+    const searchParams = serializeURLParams({
+      activeSpectra,
+      activeOverlaps,
+      chartOptions,
+      exNorm,
+    })
+    return searchParams
+      ? `${window.location.origin}${window.location.pathname}?${searchParams}`
+      : ""
+  }, [activeSpectra, activeOverlaps, chartOptions, exNorm])
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 
