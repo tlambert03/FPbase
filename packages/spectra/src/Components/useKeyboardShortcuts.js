@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from "react"
 import { useSpectraStore } from "../store/spectraStore"
 
-// Palette order for cycling
-const PALETTE_ORDER = ["wavelength", "rainbow", "fpbase", "bright", "vibrant", "muted", "light"]
+// Palette order for cycling (must match keys in palettes.js)
+const PALETTE_ORDER = ["wavelength", "rainbow", "tol_contrast", "tol_vibrant", "okabe_ito"]
 
 /**
  * Get the next palette in the cycle
@@ -48,7 +48,7 @@ const useKeyboardShortcuts = () => {
   )
 
   const cyclePalette = useCallback(() => {
-    const nextPalette = getNextPalette(chartOptions.palette || "fpbase")
+    const nextPalette = getNextPalette(chartOptions.palette || "wavelength")
     updateChartOptions({ palette: nextPalette })
   }, [chartOptions.palette, updateChartOptions])
 

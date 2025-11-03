@@ -53,15 +53,11 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
 
   let mySelectors
   if (category) {
-    mySelectors = selectors.filter((sel) => sel.category === category)
+    // For specific categories, include selectors that match the category OR are empty selectors
+    mySelectors = selectors.filter((sel) => sel.category === category || !sel.owner)
   } else {
     mySelectors = selectors.filter((sel) => sel.owner || !sel.category)
   }
-
-  // make sure there is always one empty selector available
-  // if (selectors.filter(({ owner }) => !owner).length < 1) {
-  //   addRow(category || null)
-  // }
 
   let lastCategory = ""
   const categoryNames = {

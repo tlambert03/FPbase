@@ -3,6 +3,7 @@ import COLORS from "../colors"
 import { useOverlapCache } from "../store/overlapsStore"
 import { useSpectraStore } from "../store/spectraStore"
 import type { Spectrum, SpectrumSubtype } from "../types"
+import { trapz } from "../utils/spectraUtils"
 import { useSpectraBatch } from "./useSpectraQueries"
 
 const rangexy = (start: number, end: number): number[] =>
@@ -37,6 +38,7 @@ function generateCustomLaser(id: string): Spectrum {
     },
     category: "L",
     data,
+    area: trapz(data),
     color: wave in COLORS ? COLORS[wave] : "#999999",
   }
 }
@@ -107,6 +109,7 @@ function generateCustomFilter(id: string): Spectrum {
     },
     category: "F",
     data,
+    area: trapz(data),
     color: center in COLORS ? COLORS[center] : "#999999",
   }
 }
@@ -156,8 +159,14 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
       .map((id) => overlapCache[id])
       .filter((s): s is Spectrum => !!s)
 
+    // Add area calculation to API spectra
+    const apiSpectraWithArea: Spectrum[] = (apiSpectra || []).map((s) => ({
+      ...s,
+      area: s.area ?? trapz(s.data),
+    }))
+
     // Combine all spectra
-    const allSpectra = [...(apiSpectra || []), ...customSpectra, ...overlapSpectra]
+    const allSpectra = [...apiSpectraWithArea, ...customSpectra, ...overlapSpectra]
 
     // Only update if data actually changed
     const currentIds = currentData.map((s) => s.customId || s.id).join(",")
