@@ -1,10 +1,21 @@
 // Core Spectrum Types
-export type SpectrumCategory = "P" | "D" | "F" | "L" | "C" | "BP" | "LP" | "SP"
-export type SpectrumSubtype = "ex" | "em" | "ab" | "2p" | "bx" | "pd" | "qd" | "BP" | "LP" | "SP"
+export type SpectrumCategory = "P" | "D" | "F" | "L" | "C" | "BP" | "LP" | "SP" | "O"
+export type SpectrumSubtype =
+  | "ex"
+  | "em"
+  | "ab"
+  | "2p"
+  | "bx"
+  | "pd"
+  | "qd"
+  | "BP"
+  | "LP"
+  | "SP"
+  | "O"
 
 export interface SpectrumOwner {
   id: string
-  slug: string
+  slug?: string // Optional - not available for all spectrum types (e.g., overlap spectra)
   name: string
   url?: string
   // Fluorophore-specific fields (for P and D types)

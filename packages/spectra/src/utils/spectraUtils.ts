@@ -1,4 +1,4 @@
-import type { OwnerInfo } from "../types"
+import type { OwnerInfo, Spectrum } from "../types"
 
 /**
  * Reshape raw spectra info from API into ownerInfo and spectraInfo
@@ -112,34 +112,13 @@ export function isTouchDevice(): boolean {
 /**
  * Compute overlap spectrum from multiple input spectra
  * Shared logic used by both EfficiencyTable and useSpectraData
+ *
+ * @param spectra - Array of spectra with non-null owners
+ * @returns Overlap spectrum with category/subtype "O"
  */
 export function computeOverlap(
-  ...spectra: Array<{
-    id: string
-    customId?: string
-    data: [number, number][]
-    category: string
-    owner: {
-      id: string
-      name: string
-      qy?: number
-      slug?: string
-    }
-  }>
-): {
-  id: string
-  data: [number, number][]
-  area: number
-  category: string
-  subtype: string
-  color: string
-  owner: {
-    id: string
-    name: string
-    qy?: number
-    slug?: string
-  }
-} {
+  ...spectra: Array<Spectrum & { owner: NonNullable<Spectrum["owner"]> }>
+): Spectrum {
   // Sort for consistent ID generation
   const sorted = [...spectra].sort((a, b) => {
     const aId = a.customId || a.id

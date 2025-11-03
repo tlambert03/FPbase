@@ -1,6 +1,25 @@
 import { useEffect, useState } from "react"
-import { getStorageWithExpire, setStorageWithTimeStamp } from "./util"
 import "unfetch/polyfill/index"
+
+// Local helper functions (only used by this legacy hook)
+const getStorageWithExpire = (cacheKey, expiry = 12 * 60 * 60) => {
+  const cached = localStorage.getItem(cacheKey)
+  const whenCached = localStorage.getItem(`${cacheKey}:ts`)
+  if (cached !== null && whenCached !== null) {
+    const age = (Date.now() - whenCached) / 1000
+    if (age < expiry) {
+      return JSON.parse(cached)
+    }
+    localStorage.removeItem(cacheKey)
+    localStorage.removeItem(`${cacheKey}:ts`)
+  }
+  return null
+}
+
+const setStorageWithTimeStamp = (cacheKey, value) => {
+  localStorage.setItem(cacheKey, JSON.stringify(value))
+  localStorage.setItem(`${cacheKey}:ts`, Date.now())
+}
 
 const useCachedFetch = (url, cacheKey, maxAge) => {
   // fetch data no more than once every maxAge

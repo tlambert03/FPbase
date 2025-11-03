@@ -44,7 +44,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
 
   // Find the EX spectrum ID if needed
   const exSpectrumId = useMemo(() => {
-    if (!needsExNorm || !(spectrum.owner.slug in ownerInfo)) return null
+    if (!needsExNorm || !spectrum.owner?.slug || !(spectrum.owner.slug in ownerInfo)) return null
 
     const ownerSpectra = ownerInfo[spectrum.owner.slug].spectra
     if (!ownerSpectra) return null
@@ -53,7 +53,7 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
       ownerSpectra.find((i) => i.subtype === "EX") || ownerSpectra.find((i) => i.subtype === "AB")
 
     return exSpectrum ? exSpectrum.id : null
-  }, [needsExNorm, spectrum.owner.slug, ownerInfo])
+  }, [needsExNorm, spectrum.owner?.slug, ownerInfo])
 
   // Fetch the EX spectrum data if needed
   const { data: exSpectrumData } = useSpectrum(exSpectrumId)

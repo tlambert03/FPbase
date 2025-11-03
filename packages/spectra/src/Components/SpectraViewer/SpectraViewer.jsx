@@ -137,7 +137,9 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
 }) {
   const windowWidth = useWindowWidth()
   const numSpectra = data.length
-  const owners = [...new Set(data.map((item) => item.owner.slug))]
+  const owners = [
+    ...new Set(data.map((item) => item.owner?.slug).filter((slug) => slug !== undefined)),
+  ]
   const exData = data.filter((i) => i.subtype === "EX" || i.subtype === "AB")
   const nonExData = data.filter((i) => i.subtype !== "EX" && i.subtype !== "AB")
 
@@ -211,7 +213,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
                 key={spectrum.id}
                 visible={!hidden.includes(spectrum.id)}
                 ownerInfo={ownerInfo}
-                ownerIndex={owners.indexOf(spectrum.owner.slug)}
+                ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
                 {...chartOptions}
               />
             ))}
@@ -240,7 +242,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
               <SpectrumSeries
                 spectrum={spectrum}
                 key={spectrum.id}
-                ownerIndex={owners.indexOf(spectrum.owner.slug)}
+                ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
                 {...chartOptions}
               />
             ))}

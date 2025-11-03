@@ -156,8 +156,9 @@ function computeVisibleSpectra(
       const constituents = spectrumIds
         .map((sid) => allAvailableSpectra.find((s) => (s.customId || s.id) === sid))
         .filter((s): s is Spectrum => !!s)
+        .filter((s): s is Spectrum & { owner: NonNullable<Spectrum["owner"]> } => s.owner !== null)
 
-      // Only compute if we have all constituent spectra
+      // Only compute if we have all constituent spectra with valid owners
       if (constituents.length === spectrumIds.length) {
         const overlap = computeOverlap(...constituents)
         setOverlapCache(id, overlap)

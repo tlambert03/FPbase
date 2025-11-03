@@ -1,11 +1,3 @@
-// / STYLES
-
-// example:
-// createGradient($('svg')[0],'MyGradient',[
-//   {offset:'5%', 'stop-color':'#f60'},
-//   {offset:'95%','stop-color':'#ff6'}
-// ]);
-
 const COLORS = {
   380: "#610061",
   381: "#640066",
