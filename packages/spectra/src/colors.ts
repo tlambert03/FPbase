@@ -1,4 +1,4 @@
-const COLORS = {
+const COLORS: Record<number, string> = {
   380: "#610061",
   381: "#640066",
   382: "#67006a",

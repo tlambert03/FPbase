@@ -2,7 +2,9 @@
  * Default chart options and initial state
  */
 
-export const defaultChartOptions = {
+import type { ChartOptions, ExNorm, SpectrumSubtype } from "./types"
+
+export const defaultChartOptions: ChartOptions = {
   showY: false,
   showX: true,
   showGrid: false,
@@ -15,10 +17,18 @@ export const defaultChartOptions = {
   extremes: null,
 }
 
-export const defaults = {
+export interface Defaults {
+  activeSpectra: string[]
+  activeOverlaps: string[]
+  chartOptions: ChartOptions
+  exNorm: ExNorm
+  excludeSubtypes: SpectrumSubtype[]
+}
+
+export const defaults: Defaults = {
   activeSpectra: [],
   activeOverlaps: [],
   chartOptions: defaultChartOptions,
-  exNorm: null, // [wavelength, spectrumId] tuple
+  exNorm: null,
   excludeSubtypes: [],
 }
