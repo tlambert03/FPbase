@@ -9,11 +9,6 @@ import { categoryIcon } from "./FaIcon"
 import SpectrumSelector from "./SpectrumSelector"
 
 export const useStyles = makeStyles((theme) => ({
-  // root: {
-  //   [theme.breakpoints.down("sm")]: {
-  //     height: 42
-  //   }
-  // },
   deleteButton: {
     padding: "6px 6px",
     marginRight: 2,
@@ -137,15 +132,6 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
           </div>
         )
       })}
-      {/* <Button
-        variant="contained"
-        color="primary"
-        className={classes.addButton}
-        onClick={() => addRow(category || null)}
-      >
-        <AddIcon />
-        {`Add ${hint}`}
-      </Button> */}
     </>
   )
 })
