@@ -6,7 +6,7 @@ import type { OwnerInfo } from "../types"
  * Replaces window globals
  */
 
-interface SpectraInfo {
+export interface SpectraInfo {
   [spectrumId: string]: {
     subtype: string
     owner: string

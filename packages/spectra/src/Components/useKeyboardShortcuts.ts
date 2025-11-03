@@ -1,20 +1,42 @@
 import { useCallback, useEffect } from "react"
+import type { PaletteName } from "../palettes"
 import { useSpectraStore } from "../store/spectraStore"
 
-// Palette order for cycling (must match keys in palettes.js)
-const PALETTE_ORDER = ["wavelength", "rainbow", "tol_contrast", "tol_vibrant", "okabe_ito"]
+// Palette order for cycling (must match keys in palettes.ts)
+const PALETTE_ORDER: PaletteName[] = [
+  "wavelength",
+  "rainbow",
+  "tol_contrast",
+  "tol_vibrant",
+  "okabe_ito",
+]
 
 /**
  * Get the next palette in the cycle
- * @param {string} currentPalette - Current palette name
- * @returns {string} Next palette name
+ * @param currentPalette - Current palette name
+ * @returns Next palette name in the cycle
  */
-const getNextPalette = (currentPalette) => {
-  const currentIndex = PALETTE_ORDER.indexOf(currentPalette)
-  return PALETTE_ORDER[(currentIndex + 1) % PALETTE_ORDER.length]
+const getNextPalette = (currentPalette: string): PaletteName => {
+  const currentIndex = PALETTE_ORDER.indexOf(currentPalette as PaletteName)
+  const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % PALETTE_ORDER.length
+  return PALETTE_ORDER[nextIndex]!
 }
 
-const useKeyboardShortcuts = () => {
+/**
+ * Custom hook that sets up keyboard shortcuts for chart interactions.
+ * Keyboard shortcuts are only active when not focused on an input element.
+ *
+ * Shortcuts:
+ * - X: Toggle X-axis
+ * - Y: Toggle Y-axis
+ * - G: Toggle grid
+ * - E: Toggle extinction coefficient scaling
+ * - Q: Toggle quantum yield scaling
+ * - A/F: Toggle area fill
+ * - T: Toggle shared tooltip
+ * - C: Cycle through color palettes
+ */
+const useKeyboardShortcuts = (): void => {
   const chartOptions = useSpectraStore((state) => state.chartOptions)
   const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
 
@@ -53,7 +75,7 @@ const useKeyboardShortcuts = () => {
   }, [chartOptions.palette, updateChartOptions])
 
   useEffect(() => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       // don't do anything if we're on an input
       if (document.activeElement && document.activeElement.tagName.toUpperCase() === "INPUT") {
         return

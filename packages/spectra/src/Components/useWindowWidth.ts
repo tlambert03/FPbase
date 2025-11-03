@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react"
 import { debounce } from "../util"
 
-const useWindowWidth = (_delay) => {
-  const [width, setWidth] = useState(window.innerWidth)
+/**
+ * Custom hook that tracks the current window width with debounced resize events.
+ *
+ * @param _delay - Unused parameter (kept for backwards compatibility)
+ * @returns The current window width in pixels
+ */
+const useWindowWidth = (_delay?: number): number => {
+  const [width, setWidth] = useState<number>(window.innerWidth)
 
   useEffect(() => {
     const handleResize = debounce(() => {

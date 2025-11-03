@@ -1,4 +1,30 @@
-export default {
+/**
+ * Color palette definition for spectrum visualization.
+ */
+export interface Palette {
+  /** Display name of the palette */
+  name: string
+  /** Array of hex color codes, or null for wavelength-based colors */
+  hexlist: string[] | null
+}
+
+/**
+ * Available color palettes for the spectra viewer.
+ */
+export type PaletteName = "wavelength" | "rainbow" | "tol_contrast" | "tol_vibrant" | "okabe_ito"
+
+/**
+ * Collection of predefined color palettes.
+ */
+export interface Palettes {
+  wavelength: Palette
+  rainbow: Palette
+  tol_contrast: Palette
+  tol_vibrant: Palette
+  okabe_ito: Palette
+}
+
+const palettes: Palettes = {
   wavelength: {
     name: "By Wavelength",
     // this is the default palette, and uses colors based on wavelength from the database
@@ -68,3 +94,5 @@ export default {
     ],
   },
 }
+
+export default palettes
