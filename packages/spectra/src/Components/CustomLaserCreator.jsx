@@ -5,7 +5,7 @@ import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import { memo, useEffect, useState } from "react"
+import { memo, useEffect, useRef, useState } from "react"
 import { useSpectraStore } from "../store/spectraStore"
 import InputSlider from "./InputSlider"
 
@@ -23,9 +23,19 @@ const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExN
   const [laserID, _wave] = id.split("_")
   const [wave, setWave] = useState(_wave || 488)
 
+  // Track the previous full ID to properly remove it when wavelength changes
+  const prevIdRef = useRef(id)
+
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
   useEffect(() => {
-    updateActiveSpectra([`${laserID}_${wave}`], [laserID])
+    const newId = `${laserID}_${wave}`
+    const oldId = prevIdRef.current
+
+    // Only update if the ID actually changed
+    if (newId !== oldId) {
+      updateActiveSpectra([newId], [oldId])
+      prevIdRef.current = newId
+    }
 
     if (laserID === normID) {
       setExNorm([String(wave), laserID])

@@ -23,9 +23,19 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
   const [width, setWidth] = React.useState(_width || 50)
   const [trans, setTrans] = React.useState(_trans || 90)
 
+  // Track the previous full ID to properly remove it when parameters change
+  const prevIdRef = React.useRef(id)
+
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
   useEffect(() => {
-    updateActiveSpectra([`${filterID}_${type}_${center}_${width}_${trans}`], [filterID])
+    const newId = `${filterID}_${type}_${center}_${width}_${trans}`
+    const oldId = prevIdRef.current
+
+    // Only update if the ID actually changed
+    if (newId !== oldId) {
+      updateActiveSpectra([newId], [oldId])
+      prevIdRef.current = newId
+    }
   }, [width, center, type, trans, filterID, updateActiveSpectra])
 
   const handleType = (_event, newType) => {
