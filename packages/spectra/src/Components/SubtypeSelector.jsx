@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function subtypeSorter(a, b) {
-  const TYPE_ORDER = ["AB", "A_2P", "EX", "EM"]
+  const TYPE_ORDER = ["AB", "2P", "EX", "EM"]
   const upperA = a.subtype.toUpperCase()
   const upperB = b.subtype.toUpperCase()
   if (TYPE_ORDER.indexOf(upperA) > TYPE_ORDER.indexOf(upperB)) return 1
@@ -69,7 +69,7 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
             className={classes.toggleButton}
             tabIndex={-1}
           >
-            {skip ? <Visibility /> : st.subtype.replace(/^A_/g, "")}
+            {skip ? <Visibility /> : st.subtype}
           </ToggleButton>
         ))}
       </ToggleButtonGroup>

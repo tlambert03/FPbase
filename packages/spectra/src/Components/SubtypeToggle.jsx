@@ -58,7 +58,7 @@ const SubtypeToggle = ({ subtypes }) => {
               style={{ padding: 0 }}
               tabIndex={-1}
             >
-              {st.replace(/^A_/g, "")}
+              {st}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>

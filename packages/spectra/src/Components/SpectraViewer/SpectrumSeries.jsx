@@ -111,11 +111,11 @@ const SpectrumSeries = memo(function SpectrumSeries({
   }
 
   let name = `${spectrum.owner.name}`
-  if (["EX", "EM", "A_2P", "2P", "AB"].includes(spectrum.subtype)) {
-    name += ` ${spectrum.subtype.replace("A_", "")}`
+  if (["EX", "EM", "2P", "AB"].includes(spectrum.subtype)) {
+    name += ` ${spectrum.subtype}`
   }
   let dashStyle = "Solid"
-  if (["EX", "AB", "A_2P", "2P"].includes(spectrum.subtype)) {
+  if (["EX", "AB", "2P"].includes(spectrum.subtype)) {
     dashStyle = "ShortDash"
   }
   let myColor = spectrum.color
