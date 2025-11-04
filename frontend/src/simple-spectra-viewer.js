@@ -1,7 +1,6 @@
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 
-import $ from "jquery"
 import "./js/detect-touch"
 import { SimpleSpectraViewer } from "@fpbase/spectra"
 import { createElement } from "react"
@@ -14,7 +13,7 @@ window.FPBASE.currentBundle = "simpleSpectraViewer"
 
 const elem = document.getElementById("spectra-viewer")
 
-window.onload = () => {
+window.addEventListener("load", () => {
   const root = createRoot(elem)
   root.render(
     createElement(
@@ -27,15 +26,4 @@ window.onload = () => {
       })
     )
   )
-}
-const name = elem.getAttribute("data-name")
-
-if (name) {
-  const svgElem = document.getElementById("simple_spectrasvg")
-  $(svgElem).prepend(
-    $("<desc>", { id: "svgDesc" }).text(
-      `Fluorescent protein ${name} excitation and emission spectra`
-    )
-  )
-  $(svgElem).prepend($("<title>", { id: "svgTitle" }).text(`${name} Spectrum`))
-}
+})

@@ -1,4 +1,3 @@
-import { useApolloClient } from "@apollo/client"
 import RadioButtonChecked from "@mui/icons-material/RadioButtonChecked"
 import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked"
 import Box from "@mui/material/Box"
@@ -6,8 +5,8 @@ import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import { memo, useEffect, useState } from "react"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { memo, useEffect } from "react"
+import { useSpectraStore } from "../store/spectraStore"
 import InputSlider from "./InputSlider"
 
 const useStyles = makeStyles({
@@ -17,31 +16,27 @@ const useStyles = makeStyles({
   },
 })
 
-// $cl1
+// id is stable like "$cl1"
 const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExNorm, clearNorm }) {
   const classes = useStyles()
 
-  const [laserID, _wave] = id.split("_")
-  const [wave, setWave] = useState(_wave || 488)
+  // Read params directly from store (single source of truth)
+  const params = useSpectraStore((state) => state.customLasers[id])
+  const updateCustomLaser = useSpectraStore((state) => state.updateCustomLaser)
 
-  const client = useApolloClient()
+  // Default value if params don't exist yet
+  const wavelength = params?.wavelength || 488
+
+  // Update exNorm when wavelength changes (if this laser is the norm target)
   useEffect(() => {
-    client.mutate({
-      mutation: UPDATE_ACTIVE_SPECTRA,
-      variables: {
-        add: [`${laserID}_${wave}`],
-        remove: [laserID],
-      },
-    })
-
-    if (laserID === normID) {
-      setExNorm([String(wave), laserID])
+    if (id === normID) {
+      setExNorm([wavelength, id])
     }
-  }, [client, laserID, normID, setExNorm, wave])
+  }, [id, normID, setExNorm, wavelength])
 
   const handleNormCheck = (_e, checked) => {
     if (checked) {
-      setExNorm([String(wave), laserID])
+      setExNorm([wavelength, id])
     } else {
       clearNorm()
     }
@@ -61,8 +56,8 @@ const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExN
           <div style={{ margin: "0 12px", minWidth: 200 }}>
             <Typography className={classes.label}>Wavelength</Typography>
             <InputSlider
-              value={wave}
-              setValue={setWave}
+              value={wavelength}
+              setValue={(value) => updateCustomLaser(id, { wavelength: value })}
               valueLabelDisplay="auto"
               aria-labelledby="range-slider"
             />

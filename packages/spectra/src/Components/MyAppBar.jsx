@@ -1,4 +1,3 @@
-import { useMutation, useQuery } from "@apollo/client"
 import AddIcon from "@mui/icons-material/Add"
 import HelpIcon from "@mui/icons-material/Help"
 import { IconButton } from "@mui/material"
@@ -9,9 +8,8 @@ import Switch from "@mui/material/Switch"
 import Toolbar from "@mui/material/Toolbar"
 import Tooltip from "@mui/material/Tooltip"
 import { makeStyles } from "@mui/styles"
-import gql from "graphql-tag"
-import React, { memo } from "react"
-import { GET_CHART_OPTIONS } from "../client/queries"
+import React, { memo, useCallback } from "react"
+import { useSpectraStore } from "../store/spectraStore"
 import SearchModal from "./SearchModal"
 import SettingsDrawer from "./SettingsDrawer"
 import ShareButton from "./ShareButton"
@@ -63,13 +61,13 @@ const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp })
   const [searchOpen, setSearchOpen] = React.useState(false)
   const handleClick = () => setSearchOpen(true)
 
-  const { data } = useQuery(GET_CHART_OPTIONS)
-  const logScale = data?.chartOptions?.logScale || false
-  const [toggleLogScale] = useMutation(gql`
-    mutation ToggleLogScale {
-      toggleLogScale @client
-    }
-  `)
+  const chartOptions = useSpectraStore((state) => state.chartOptions)
+  const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+  const logScale = chartOptions?.logScale || false
+  const toggleLogScale = useCallback(
+    () => updateChartOptions({ logScale: !logScale }),
+    [logScale, updateChartOptions]
+  )
 
   return (
     <>

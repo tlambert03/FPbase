@@ -7,9 +7,11 @@
     "heroku-cleanup": "rm -rf node_modules _resources .github backend/tests backend/tests_e2e",
     "clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules && pnpm -r run clean",
     "format": "biome format --write",
-    "format:check": "biome check --write",
-    "format:unsafe": "biome check --write --unsafe",
-    "lint": "biome lint --write"
+    "check": "biome check --write",
+    "check:unsafe": "biome check --write --unsafe",
+    "lint": "biome lint --write",
+    "typecheck": "pnpm --filter @fpbase/spectra exec tsgo --noEmit",
+    "typecheck:tsc": "pnpm --filter @fpbase/spectra exec tsc --noEmit"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.2",

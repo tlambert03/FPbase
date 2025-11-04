@@ -43,3 +43,13 @@ repos:
     hooks:
       - id: basedpyright
         stages: [manual]
+
+  - repo: local
+    hooks:
+      - id: typescript-check
+        stages: [manual]
+        name: TypeScript type check
+        entry: pnpm typecheck
+        language: system
+        pass_filenames: false
+        files: \.(ts|tsx)$

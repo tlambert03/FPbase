@@ -39,7 +39,7 @@ const styleRule = {
 }
 
 const jsRule = {
-  test: /\.jsx?$/,
+  test: /\.(jsx?|tsx?)$/,
   exclude: /node_modules\/(?!(qs|debounce-raf)\/).*/,
   use: {
     loader: "babel-loader",
@@ -58,6 +58,7 @@ const jsRule = {
             runtime: "automatic",
           },
         ],
+        "@babel/preset-typescript",
       ],
       plugins: ["@babel/plugin-syntax-dynamic-import"],
     },
@@ -133,10 +134,10 @@ module.exports = {
     chunkFilename: devMode ? "[name].js" : "[name].[chunkhash].js",
   },
   resolve: {
-    extensions: [".webpack.js", ".web.js", ".mjs", ".js", ".jsx", ".json"],
+    extensions: [".webpack.js", ".web.js", ".mjs", ".ts", ".tsx", ".js", ".jsx", ".json"],
     alias: {
       jquery: "jquery/src/jquery",
-      "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.jsx"),
+      "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.tsx"),
       "@fpbase/blast": path.resolve(__dirname, "../packages/blast/src/index.js"),
       "@fpbase/protein-table": path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
       "@emotion/react": require.resolve("@emotion/react"),
@@ -198,6 +199,27 @@ module.exports = {
           priority: 25,
           reuseExistingChunk: true,
         },
+        // Extract MUI into its own chunk (heavy, only used by spectra viewer)
+        mui: {
+          test: /[\\/]node_modules[\\/](@mui|@emotion)[\\/]/,
+          name: "mui-vendor",
+          priority: 23,
+          reuseExistingChunk: true,
+        },
+        // Extract Highcharts (heavy, only used by spectra viewer)
+        highcharts: {
+          test: /[\\/]node_modules[\\/]highcharts.*[\\/]/,
+          name: "highcharts-vendor",
+          priority: 22,
+          reuseExistingChunk: true,
+        },
+        // Extract TanStack Query (lightweight, spectra viewer only)
+        tanstack: {
+          test: /[\\/]node_modules[\\/]@tanstack[\\/]/,
+          name: "query-vendor",
+          priority: 21,
+          reuseExistingChunk: true,
+        },
         // Extract jQuery (used by multiple bundles)
         jquery: {
           test: /[\\/]node_modules[\\/]jquery[\\/]/,
@@ -213,14 +235,16 @@ module.exports = {
           chunks: (chunk) => chunk.name !== "embedscope",
           reuseExistingChunk: true,
         },
-        // Extract other large vendor libraries (excluding D3 which has its own chunk)
+        // Extract other large vendor libraries
         vendors: {
           test(module) {
-            // Exclude D3 from vendors chunk - it has its own d3-vendor chunk
+            // Exclude already-chunked libraries
             return (
               module.resource &&
               /[\\/]node_modules[\\/]/.test(module.resource) &&
-              !/[\\/]node_modules[\\/]d3.*[\\/]/.test(module.resource)
+              !/[\\/]node_modules[\\/](d3.*|@mui|@emotion|highcharts|@tanstack)[\\/]/.test(
+                module.resource
+              )
             )
           },
           name: "vendors",

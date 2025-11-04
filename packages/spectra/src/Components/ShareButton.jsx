@@ -1,6 +1,3 @@
-import { useQuery } from "@apollo/client"
-import { faTwitter } from "@fortawesome/free-brands-svg-icons"
-import { faCopy, faEnvelope } from "@fortawesome/free-solid-svg-icons"
 import CloseIcon from "@mui/icons-material/Close"
 import DownloadIcon from "@mui/icons-material/GetApp"
 import ChartIcon from "@mui/icons-material/InsertChart"
@@ -22,12 +19,12 @@ import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Zoom from "@mui/material/Zoom"
 import { makeStyles } from "@mui/styles"
-import ClipboardJS from "clipboard"
 import Highcharts from "highcharts"
-import React, { useCallback, useEffect, useState } from "react"
-import { GET_ACTIVE_SPECTRA, GET_CHART_OPTIONS, GET_EX_NORM } from "../client/queries"
+import React, { useCallback, useMemo, useState } from "react"
+import { faCopy, faEnvelope } from "../icons"
+import { useSpectraStore } from "../store/spectraStore"
+import { serializeURLParams } from "../utils/urlParams"
 import { FAIcon } from "./FaIcon"
-import stateToUrl from "./stateToUrl"
 
 const useStyles = makeStyles((theme) => ({
   textField: {
@@ -41,39 +38,60 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function ShareLinkAlert({ open, setOpen }) {
-  const [qString, setQString] = useState("")
   const classes = useStyles()
 
-  const { loading: spectraLoading, data: spectraData } = useQuery(GET_ACTIVE_SPECTRA)
-  const { loading: chartLoading, data: chartData } = useQuery(GET_CHART_OPTIONS)
-  const { loading: exNormLoading, data: exNormData } = useQuery(GET_EX_NORM)
+  const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const activeOverlaps = useSpectraStore((state) => state.activeOverlaps)
+  const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
+  const chartOptions = useSpectraStore((state) => state.chartOptions)
+  const exNorm = useSpectraStore((state) => state.exNorm)
+  const customFilters = useSpectraStore((state) => state.customFilters)
+  const customLasers = useSpectraStore((state) => state.customLasers)
 
-  const activeSpectra = spectraData?.activeSpectra || []
-  const chartOptions = chartData?.chartOptions
-  const exNorm = exNormData?.exNorm
+  // Generate shareable URL with all current state
+  const { qString, qStringEncoded } = useMemo(() => {
+    const searchParams = serializeURLParams({
+      activeSpectra,
+      activeOverlaps,
+      hiddenSpectra,
+      chartOptions,
+      exNorm,
+      customFilters,
+      customLasers,
+    })
 
-  useEffect(() => {
-    if (!spectraLoading && !chartLoading && !exNormLoading) {
-      setQString(stateToUrl(activeSpectra, chartOptions, exNorm))
+    // Clean up URL for better readability: decode $ and , characters
+    const cleanParams = searchParams
+      .replace(/%24/g, "$") // Decode $ for custom spectra IDs
+      .replace(/%2C/g, ",") // Decode , for separator readability
+
+    const baseUrl = `${window.location.origin}${window.location.pathname}`
+
+    return {
+      qString: cleanParams ? `${baseUrl}?${cleanParams}` : "",
+      qStringEncoded: searchParams ? `${baseUrl}?${searchParams}` : "",
     }
-  }, [activeSpectra, spectraLoading, chartOptions, chartLoading, exNormLoading, exNorm])
+  }, [
+    activeSpectra,
+    activeOverlaps,
+    hiddenSpectra,
+    chartOptions,
+    exNorm,
+    customFilters,
+    customLasers,
+  ])
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 
-  const handleTooltipOpen = useCallback(() => {
-    setTooltipOpen(true)
-    setTimeout(() => setTooltipOpen(false), 1200)
-  }, [])
-
-  useEffect(() => {
-    const cp = new ClipboardJS("#copy-button", {
-      target: (_trigger) => document.getElementById("qString-input"),
-    })
-    cp.on("success", handleTooltipOpen)
-    return () => {
-      cp.destroy()
+  const handleCopyClick = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(qString)
+      setTooltipOpen(true)
+      setTimeout(() => setTooltipOpen(false), 1200)
+    } catch (err) {
+      console.error("Failed to copy:", err)
     }
-  }, [handleTooltipOpen])
+  }, [qString])
 
   return (
     <div>
@@ -112,7 +130,11 @@ function ShareLinkAlert({ open, setOpen }) {
                     TransitionComponent={Zoom}
                     TransitionProps={{ timeout: { enter: 200, exit: 700 } }}
                   >
-                    <IconButton edge="end" id="copy-button" aria-label="Toggle password visibility">
+                    <IconButton
+                      edge="end"
+                      onClick={handleCopyClick}
+                      aria-label="Copy URL to clipboard"
+                    >
                       <FAIcon icon={faCopy} style={{}} />
                     </IconButton>
                   </Tooltip>
@@ -124,20 +146,9 @@ function ShareLinkAlert({ open, setOpen }) {
         <DialogActions>
           <IconButton
             color="primary"
-            href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qString.replace(/&/g, "%26")}`}
+            href={`mailto:?&subject=Spectra%20at%20FPbase&body=${qStringEncoded.replace(/&/g, "%26")}`}
           >
             <FAIcon icon={faEnvelope} style={{}} />
-          </IconButton>
-          <IconButton
-            color="primary"
-            href={`http://twitter.com/intent/tweet?url=${qString.replace(
-              /&/g,
-              "%26"
-            )}&text=Check out these spectra at FPbase%0D%0A&via=FPbase`}
-            title="Tweet"
-            target="_blank"
-          >
-            <FAIcon icon={faTwitter} style={{}} />
           </IconButton>
           <IconButton onClick={() => setOpen(false)} color="primary" autoFocus>
             <CloseIcon />

@@ -1,14 +1,11 @@
-import { useApolloClient, useQuery } from "@apollo/client"
-import { css } from "@emotion/react"
 import { Typography } from "@mui/material"
+import CircularProgress from "@mui/material/CircularProgress"
 import Tab from "@mui/material/Tab"
 import Tabs from "@mui/material/Tabs"
 import { makeStyles } from "@mui/styles"
-import gql from "graphql-tag"
 import React, { useEffect, useMemo, useState } from "react"
-import { RingLoader } from "react-spinners"
-// import useSelectors from "./useSelectors"
-import { NORMALIZE_CURRENT } from "../client/queries"
+import { useMetadataStore } from "../store/metadataStore"
+import { useSpectraStore } from "../store/spectraStore"
 import { isTouchDevice } from "../util"
 import CustomFilterGroup from "./CustomFilterGroup"
 import CustomLaserGroup from "./CustomLaserGroup"
@@ -17,12 +14,6 @@ import { categoryIcon } from "./FaIcon"
 import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 
 const ISTOUCH = isTouchDevice()
-
-const override = css`
-  display: block;
-  margin: 50px auto;
-  border-color: red;
-`
 
 const useStyles = makeStyles((theme) => ({
   tabHeader: {
@@ -99,26 +90,52 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
   const classes = useStyles()
   const [tab, setTab] = useState(0)
 
-  const { data: { activeSpectra, selectors } = { activeSpectra: [], selectors: [] } } =
-    useQuery(gql`
-    {
-      selectors @client
-      activeSpectra @client
-    }
-  `)
+  const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const setMetadata = useMetadataStore((state) => state.setMetadata)
 
-  const client = useApolloClient()
+  // Populate metadata store when data is loaded
   useEffect(() => {
-    // Only normalize when both ownerInfo and spectraInfo are populated
     if (Object.keys(ownerInfo).length > 0 && Object.keys(spectraInfo).length > 0) {
-      // Double-check window globals are actually set (defensive)
-      if (!window.ownerInfo || !window.spectraInfo) {
-        window.ownerInfo = ownerInfo
-        window.spectraInfo = spectraInfo
-      }
-      client.mutate({ mutation: NORMALIZE_CURRENT })
+      setMetadata(ownerInfo, spectraInfo)
     }
-  }, [ownerInfo, spectraInfo, client])
+  }, [ownerInfo, spectraInfo, setMetadata])
+
+  // Derive selectors from activeSpectra - this is the single source of truth
+  const selectors = useMemo(() => {
+    if (Object.keys(ownerInfo).length === 0 || Object.keys(spectraInfo).length === 0) {
+      // Return one empty selector while data is loading
+      return [{ id: "empty", owner: null, category: null }]
+    }
+
+    // Find all unique owners in activeSpectra
+    const ownersInActiveSpectra = new Set()
+    activeSpectra.forEach((spectrumId) => {
+      const spectrum = spectraInfo[spectrumId]
+      if (spectrum?.owner) {
+        // spectrum.owner is already a slug string, not an object
+        ownersInActiveSpectra.add(spectrum.owner)
+      }
+    })
+
+    // Create selectors for each owner
+    const derivedSelectors = Array.from(ownersInActiveSpectra).map((owner) => ({
+      id: owner, // Use owner slug as stable ID
+      owner,
+      category: ownerInfo[owner]?.category || null,
+    }))
+
+    // Sort before adding empty selector to maintain consistent order
+    derivedSelectors.sort(selectorSorter)
+
+    // Always ensure at least one empty selector for input (at the end after sorting)
+    derivedSelectors.push({
+      id: "empty",
+      owner: null,
+      category: null,
+    })
+
+    return derivedSelectors
+  }, [activeSpectra, ownerInfo, spectraInfo])
 
   const handleTabChange = (_event, newValue) => {
     if (newValue !== tab) {
@@ -159,14 +176,8 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
     }
   }, [])
 
-  const sortedSelectors = useMemo(
-    () => (Array.isArray(selectors) ? [...selectors] : []).sort(selectorSorter),
-    [selectors]
-  )
-
   const isPopulated = (cat) => {
-    let populated =
-      sortedSelectors.filter(({ owner, category }) => category === cat && owner).length > 0
+    let populated = selectors.filter(({ owner, category }) => category === cat && owner).length > 0
     if (cat === "F") {
       populated = populated || activeSpectra.some((s) => s.startsWith("$cf"))
     }
@@ -180,7 +191,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
     const _cats = cats ? cats.split("") : null
     let populated = false
     if (label === "All") {
-      populated = Boolean(sortedSelectors.filter((i) => i.owner).length)
+      populated = Boolean(selectors.filter((i) => i.owner).length)
     } else if (label !== "Efficiency") {
       if (activeSpectra.length > 0) {
         populated = _cats.some((c) => isPopulated(c))
@@ -219,18 +230,46 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
       </Tabs>
 
       {Object.keys(ownerInfo).length === 0 ? (
-        <div className="sweet-loading">
-          <RingLoader css={override} size={100} color="#ccc" loading />
+        <div
+          className="sweet-loading"
+          style={{ position: "relative", width: 100, margin: "50px auto" }}
+        >
+          {/* Background track */}
+          <CircularProgress
+            variant="determinate"
+            value={100}
+            size={100}
+            thickness={4}
+            sx={{
+              color: "#ddd",
+              position: "absolute",
+            }}
+          />
+          {/* Animated spinner */}
+          <CircularProgress
+            size={100}
+            thickness={4}
+            sx={{
+              color: "#888",
+              position: "absolute",
+            }}
+          />
         </div>
       ) : (
         <div>
           {tab === 0 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
+                activeSpectra={activeSpectra}
+                // Inject custom builders into the existing Filters and Light Sources sections
+                categoryExtras={{
+                  F: <CustomFilterGroup activeSpectra={activeSpectra} showAddButton={false} />,
+                  L: <CustomLaserGroup activeSpectra={activeSpectra} showAddButton={false} />,
+                }}
               />
             </div>
           )}
@@ -241,7 +280,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
               </Typography>
 
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -253,7 +292,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
                 Dyes
               </Typography>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -265,7 +304,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
           {tab === 2 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -278,7 +317,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
           {tab === 3 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
@@ -291,7 +330,7 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
           {tab === 4 && (
             <div>
               <SpectrumSelectorGroup
-                selectors={sortedSelectors}
+                selectors={selectors}
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}

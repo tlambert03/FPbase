@@ -1,4 +1,3 @@
-import PropTypes from "prop-types"
 import React from "react"
 import { List } from "react-window"
 
@@ -33,12 +32,6 @@ const WindowedMenuList = ({ children, maxHeight, _getValue }) => {
       style={{ height, width: "100%" }}
     />
   )
-}
-
-WindowedMenuList.propTypes = {
-  children: PropTypes.node,
-  maxHeight: PropTypes.number,
-  getValue: PropTypes.func,
 }
 
 export default WindowedMenuList

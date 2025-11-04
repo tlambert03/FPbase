@@ -1,5 +1,3 @@
-import { List } from "immutable"
-
 // Realistic spectrum data based on EGFP (excitation and emission)
 export const mockSpectrumEGFP_EX = {
   id: 17,
@@ -70,24 +68,4 @@ export const mockChartOptions = {
   extremes: [null, null],
   shareTooltip: true,
   palette: "wavelength",
-}
-
-// Apollo Mock Provider setup
-export const createMockApolloProvider = (spectraData = []) => {
-  const mocks = {
-    Query: {
-      chartOptions: () => mockChartOptions,
-      exNorm: () => [null],
-      spectrum: (_, { id }) => {
-        const spectrum = spectraData.find((s) => s.id === id)
-        return spectrum || null
-      },
-    },
-  }
-  return mocks
-}
-
-// Convert regular array to Immutable List (simulates real app behavior)
-export const toImmutableData = (data) => {
-  return List(data.map((point) => List(point)))
 }

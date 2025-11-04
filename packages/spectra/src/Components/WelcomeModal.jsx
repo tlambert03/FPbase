@@ -9,7 +9,6 @@ import Dialog from "@mui/material/Dialog"
 import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
-import Icon from "@mui/material/Icon"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
 import React from "react"
@@ -40,6 +39,8 @@ const useStyles = makeStyles((theme) => ({
   headerIcon: {
     marginRight: ".6rem",
     color: "#999",
+    verticalAlign: "text-bottom",
+    display: "inline-block",
   },
   button: {
     height: 40,
@@ -61,7 +62,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const WelcomeModal = React.memo(function WelcomeModal({ open, close, isNew = false, ownerInfo }) {
+const WelcomeModal = React.memo(function WelcomeModal({ open, close, ownerInfo }) {
   const classes = useStyles()
 
   const counter =
@@ -79,9 +80,7 @@ const WelcomeModal = React.memo(function WelcomeModal({ open, close, isNew = fal
       maxWidth="md"
     >
       <DialogTitle id="scroll-dialog-title" style={{ textAlign: "center" }}>
-        Welcome to the
-        {isNew ? " new " : ""}
-        FPbase Spectra Viewer!
+        Welcome to the FPbase Spectra Viewer!
         {Object.values(counter).length > 0 && (
           <div className="stats-list">
             {[
@@ -96,9 +95,7 @@ const WelcomeModal = React.memo(function WelcomeModal({ open, close, isNew = fal
       </DialogTitle>
       <DialogContent dividers>
         <Typography variant="h6" gutterBottom>
-          <Icon className={classes.headerIcon}>
-            <SearchIcon />
-          </Icon>
+          <SearchIcon className={classes.headerIcon} />
           Quick Entry
         </Typography>
         <Typography variant="body1" gutterBottom>
@@ -114,9 +111,7 @@ const WelcomeModal = React.memo(function WelcomeModal({ open, close, isNew = fal
           from Chroma, Semrock, Omega, and Zeiss). Try it now!
         </Typography>
         <Typography variant="h6" gutterBottom>
-          <Icon className={classes.headerIcon}>
-            <FileIcon />
-          </Icon>
+          <FileIcon className={classes.headerIcon} />
           Export &amp; Sharing
         </Typography>
         <Typography variant="body1" gutterBottom>
@@ -127,23 +122,14 @@ const WelcomeModal = React.memo(function WelcomeModal({ open, close, isNew = fal
           &nbsp;) at the bottom right.
         </Typography>
         <Typography variant="h6" gutterBottom>
-          <Icon className={classes.headerIcon}>
-            <ChartIcon />
-          </Icon>
-          Improved Charts
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          The chart is faster, less buggy, and handles larger numbers of spectra.
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          <Icon className={classes.headerIcon}>
-            <SettingsIcon />
-          </Icon>
+          <SettingsIcon className={classes.headerIcon} />
           Configurable
         </Typography>
         <Typography variant="body1" gutterBottom>
-          Change the look and feel with a variety of options in the settings menu at the bottom
-          left. Set the X-axis range by clicking and dragging or directly enter the max and min
+          Change the look and feel with a variety of options in the settings menu at the bottom left
+          (&nbsp;
+          <SettingsIcon />
+          &nbsp;). Set the X-axis range by clicking and dragging or directly enter the max and min
           values into the inputs. Once zoomed, shift-click &amp; drag to pan. See{" "}
           <a href="https://help.fpbase.org/tools/spectra-viewer#keyboard-shortcuts">
             documentation
@@ -151,13 +137,21 @@ const WelcomeModal = React.memo(function WelcomeModal({ open, close, isNew = fal
           for all keyboard shortcuts.
         </Typography>
         <Typography variant="h6" gutterBottom>
-          <Icon className={classes.headerIcon}>
-            <CachedIcon />
-          </Icon>
+          <CachedIcon className={classes.headerIcon} />
           State Recovery
         </Typography>
         <Typography variant="body1" gutterBottom>
-          The state of the viewer in any tab will persist across browser refresh
+          The state of the viewer in any tab will persist across browser refresh. In the case of
+          conflict between the URL and local storage: The URL state is used on "navigation" events
+          and Session storage is used on "reload" events.{" "}
+        </Typography>
+        <Typography variant="h6" gutterBottom>
+          <ChartIcon className={classes.headerIcon} />
+          More Features
+        </Typography>
+        <Typography variant="body1" gutterBottom>
+          Many more features are available including batch loading, normalization, and more. See the
+          button below for full documentation.
         </Typography>
         <div style={{ textAlign: "center" }}>
           <Button

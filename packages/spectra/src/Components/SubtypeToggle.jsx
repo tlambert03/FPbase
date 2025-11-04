@@ -1,10 +1,9 @@
-import { useMutation } from "@apollo/client"
 import { Typography } from "@mui/material"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import { makeStyles } from "@mui/styles"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 
 const useStyles = makeStyles((theme) => ({
   toggleButton: {
@@ -25,13 +24,15 @@ const useStyles = makeStyles((theme) => ({
 const SubtypeToggle = ({ subtypes }) => {
   const classes = useStyles()
 
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
   const handleClick = (e) => {
     const elem = e.target.closest("button")
     const checked = !elem.classList.contains("Mui-selected")
-    const variables = {}
-    variables[checked ? "add" : "remove"] = [elem.value]
-    updateSpectra({ variables })
+    if (checked) {
+      updateActiveSpectra([elem.value])
+    } else {
+      updateActiveSpectra(undefined, [elem.value])
+    }
   }
 
   return (
@@ -57,7 +58,7 @@ const SubtypeToggle = ({ subtypes }) => {
               style={{ padding: 0 }}
               tabIndex={-1}
             >
-              {st.replace(/^A_/g, "")}
+              {st}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>

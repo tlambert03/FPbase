@@ -4,8 +4,6 @@ import { useTheme } from "@mui/material/styles"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import PropTypes from "prop-types"
-import "regenerator-runtime" // why do I need this?!?
 import Select from "react-select"
 import SortableWindowedSelect from "./SortableWindowedSelect"
 
@@ -62,18 +60,8 @@ function NoOptionsMessage({ selectProps, innerProps, children }) {
   )
 }
 
-NoOptionsMessage.propTypes = {
-  children: PropTypes.node,
-  innerProps: PropTypes.object,
-  selectProps: PropTypes.object.isRequired,
-}
-
 function inputComponent({ inputRef, ...props }) {
   return <div ref={inputRef} {...props} />
-}
-
-inputComponent.propTypes = {
-  inputRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 }
 
 function Control({ selectProps, innerRef, innerProps, children }) {
@@ -94,25 +82,12 @@ function Control({ selectProps, innerRef, innerProps, children }) {
   )
 }
 
-Control.propTypes = {
-  children: PropTypes.node,
-  innerProps: PropTypes.object,
-  innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-  selectProps: PropTypes.object.isRequired,
-}
-
 function Placeholder({ selectProps, innerProps, children }) {
   return (
     <Typography color="textSecondary" className={selectProps.classes.placeholder} {...innerProps}>
       {children}
     </Typography>
   )
-}
-
-Placeholder.propTypes = {
-  children: PropTypes.node,
-  innerProps: PropTypes.object,
-  selectProps: PropTypes.object.isRequired,
 }
 
 function SingleValue({ selectProps, innerProps, children }) {
@@ -127,23 +102,12 @@ function ValueContainer({ selectProps, children }) {
   return <div className={selectProps.classes.valueContainer}>{children}</div>
 }
 
-ValueContainer.propTypes = {
-  children: PropTypes.node,
-  selectProps: PropTypes.object.isRequired,
-}
-
 function Menu({ selectProps, innerProps, children }) {
   return (
     <Paper square className={selectProps.classes.paper} {...innerProps}>
       {children}
     </Paper>
   )
-}
-
-Menu.propTypes = {
-  children: PropTypes.node,
-  innerProps: PropTypes.object,
-  selectProps: PropTypes.object,
 }
 
 const myComponents = {
