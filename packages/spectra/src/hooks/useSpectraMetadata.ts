@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { useEffect } from "react"
-import { fetchAPI } from "../api/client"
+import { fetchGraphQL } from "../api/client"
+import { SPECTRA_LIST } from "../api/queries"
 import { useMetadataStore } from "../store/metadataStore"
 import { reshapeSpectraInfo } from "../utils/spectraUtils"
 
@@ -9,30 +10,29 @@ interface SpectraSlug {
   category: string
   subtype: string
   owner: {
+    id: string
     name: string
     slug: string
-    url: string
+    url: string | null
   }
 }
 
-interface SpectraSlugsResponse {
-  data: {
-    spectra: SpectraSlug[]
-  }
+interface SpectraListResponse {
+  spectra: SpectraSlug[]
 }
 
 /**
- * Fetch and cache spectra metadata
- * Replaces useCachedFetch with TanStack Query
+ * Fetch and cache spectra metadata using GraphQL
+ * Migrated from REST endpoint to use GraphQL with server-side caching
  */
 export function useSpectraMetadata() {
   const { setMetadata } = useMetadataStore()
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["spectra-slugs"],
+    queryKey: ["spectra-list"],
     queryFn: async () => {
-      const response = await fetchAPI<SpectraSlugsResponse>("/api/proteins/spectraslugs/")
-      return response.data.spectra
+      const response = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST)
+      return response.spectra
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes (formerly cacheTime)

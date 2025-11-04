@@ -109,6 +109,7 @@ export const SPECTRA_LIST = `
       category
       subtype
       owner {
+        id
         name
         slug
         url
