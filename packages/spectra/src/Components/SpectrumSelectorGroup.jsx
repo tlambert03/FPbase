@@ -42,6 +42,9 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   showCategoryIcon,
   _hint = "item",
   ownerInfo,
+  // Optional map of extras to render after each category group in the "All" view
+  // e.g. { F: <CustomFilterGroup ... />, L: <CustomLaserGroup ... /> }
+  categoryExtras = {},
 }) {
   const classes = useStyles()
   const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [selectors])
@@ -86,11 +89,13 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
 
   return (
     <>
-      {mySelectors.map((selector) => {
+      {mySelectors.map((selector, idx) => {
         const showCategoryHeader = !category && selector.category !== lastCategory
         if (showCategoryHeader) {
           lastCategory = selector.category
         }
+        const nextCategory = mySelectors[idx + 1]?.category
+        const isLastInCategory = nextCategory !== selector.category
         return (
           <div style={{ width: "100%", margin: "4px 0" }} key={selector.id}>
             {showCategoryHeader && (
@@ -132,6 +137,10 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                 </Box>
               ) : null}
             </Box>
+            {/* If this is the last selector in a category group, render any provided extras */}
+            {isLastInCategory && categoryExtras[selector.category] ? (
+              <div style={{ marginTop: 6 }}>{categoryExtras[selector.category]}</div>
+            ) : null}
           </div>
         )
       })}

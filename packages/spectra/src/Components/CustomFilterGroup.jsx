@@ -8,7 +8,7 @@ import { useSpectraStore } from "../store/spectraStore"
 import CustomFilterCreator from "./CustomFilterCreator"
 import { categoryIcon } from "./FaIcon"
 
-const CustomFilterGroup = ({ activeSpectra }) => {
+const CustomFilterGroup = ({ activeSpectra, showAddButton = true }) => {
   const filterCounter = useRef(0)
   const [customFilters, setFilters] = useState([])
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
@@ -84,15 +84,17 @@ const CustomFilterGroup = ({ activeSpectra }) => {
           </Box>
         </div>
       ))}
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => addRow()}
-        style={{ marginTop: 8, marginLeft: 34 }}
-      >
-        <AddIcon />
-        {`Add Custom Filter`}
-      </Button>
+      {showAddButton && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => addRow()}
+          style={{ marginTop: 8, marginLeft: 34 }}
+        >
+          <AddIcon />
+          {`Add Custom Filter`}
+        </Button>
+      )}
     </div>
   )
 }

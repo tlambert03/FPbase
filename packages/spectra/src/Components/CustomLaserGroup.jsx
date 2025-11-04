@@ -8,7 +8,10 @@ import { useSpectraStore } from "../store/spectraStore"
 import CustomLaserCreator from "./CustomLaserCreator"
 import { categoryIcon } from "./FaIcon"
 
-const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra }) {
+const CustomLaserGroup = React.memo(function CustomLaserGroup({
+  activeSpectra,
+  showAddButton = true,
+}) {
   const laserCounter = useRef(0)
   const [customLasers, setLasers] = useState([])
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
@@ -99,15 +102,17 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
           </Box>
         </div>
       ))}
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => addRow()}
-        style={{ marginTop: 8, marginLeft: 34 }}
-      >
-        <AddIcon />
-        {`Add Laser`}
-      </Button>
+      {showAddButton && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => addRow()}
+          style={{ marginTop: 8, marginLeft: 34 }}
+        >
+          <AddIcon />
+          {`Add Laser`}
+        </Button>
+      )}
     </div>
   )
 })

@@ -264,6 +264,11 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
                 options={options}
                 showCategoryIcon
                 ownerInfo={ownerInfo}
+                // Inject custom builders into the existing Filters and Light Sources sections
+                categoryExtras={{
+                  F: <CustomFilterGroup activeSpectra={activeSpectra} showAddButton={false} />,
+                  L: <CustomLaserGroup activeSpectra={activeSpectra} showAddButton={false} />,
+                }}
               />
             </div>
           )}
