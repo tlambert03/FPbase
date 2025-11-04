@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
+import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
 import React from "react"
@@ -42,7 +43,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
       }}
     >
       <Box display="flex" flexWrap="wrap">
-        <Typography style={{ margin: "8px 10px 3px" }}>Custom Filter Type</Typography>
+        <Typography style={{ margin: "8px 10px 3px" }}>Custom Filter</Typography>
         <ToggleButtonGroup
           size="small"
           value={type}
@@ -50,9 +51,15 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
           onChange={handleType}
           style={{ marginBottom: 10, marginLeft: 10 }}
         >
-          <ToggleButton value="LP">LP</ToggleButton>
-          <ToggleButton value="SP">SP</ToggleButton>
-          <ToggleButton value="BP">BP</ToggleButton>
+          <Tooltip title="Longpass Filter">
+            <ToggleButton value="LP">LP</ToggleButton>
+          </Tooltip>
+          <Tooltip title="Shortpass Filter">
+            <ToggleButton value="SP">SP</ToggleButton>
+          </Tooltip>
+          <Tooltip title="Bandpass Filter">
+            <ToggleButton value="BP">BP</ToggleButton>
+          </Tooltip>
         </ToggleButtonGroup>
 
         <Box flexGrow={2}>

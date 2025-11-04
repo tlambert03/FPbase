@@ -87,6 +87,20 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
     [ownerInfo, updateActiveSpectra]
   )
 
+  // Track which categories have been rendered to ensure extras are shown
+  const renderedCategories = useMemo(() => {
+    const cats = new Set(mySelectors.filter((s) => s.owner).map((s) => s.category))
+    return cats
+  }, [mySelectors])
+
+  // Determine which categories have extras but no selectors
+  const categoriesWithExtrasOnly = useMemo(() => {
+    if (!category && Object.keys(categoryExtras).length > 0) {
+      return Object.keys(categoryExtras).filter((cat) => !renderedCategories.has(cat))
+    }
+    return []
+  }, [category, categoryExtras, renderedCategories])
+
   return (
     <>
       {mySelectors.map((selector, idx) => {
@@ -144,6 +158,15 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
           </div>
         )
       })}
+      {/* Render extras for categories that have no database items */}
+      {categoriesWithExtrasOnly.map((cat) => (
+        <div key={`extras-${cat}`}>
+          <Typography variant="h6" className={classes.categoryHeader}>
+            {categoryNames[cat]}
+          </Typography>
+          <div style={{ marginTop: 6 }}>{categoryExtras[cat]}</div>
+        </div>
+      ))}
     </>
   )
 })
