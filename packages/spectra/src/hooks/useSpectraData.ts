@@ -149,10 +149,13 @@ function computeVisibleSpectra(
     .filter((s): s is Spectrum => s !== null)
 
   // Add area calculation to API spectra
-  const apiSpectraWithArea: Spectrum[] = (apiSpectra || []).map((s) => ({
-    ...s,
-    area: s.area ?? trapz(s.data),
-  }))
+  // Filter out any null/invalid spectra before processing
+  const apiSpectraWithArea: Spectrum[] = (apiSpectra || [])
+    .filter((s): s is Spectrum => s !== null && s !== undefined && Array.isArray(s.data))
+    .map((s) => ({
+      ...s,
+      area: s.area ?? trapz(s.data),
+    }))
 
   // Combine available spectra for overlap computation
   const allAvailableSpectra = [...apiSpectraWithArea, ...customSpectra]

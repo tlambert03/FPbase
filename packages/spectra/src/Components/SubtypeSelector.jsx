@@ -37,6 +37,7 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
   const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
   const toggleSpectrumVisibility = useSpectraStore((state) => state.toggleSpectrumVisibility)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
 
   // Create a mutable copy and add active status (visible = in activeSpectra AND not hidden)
   const sortedSubtypes = [...subtypes].sort(subtypeSorter).map((subtype) => ({
@@ -47,8 +48,14 @@ const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) 
   const handleClick = (e) => {
     const elem = e.target.closest("button")
     const spectrumId = elem.value
-    // Toggle visibility instead of adding/removing from activeSpectra
-    toggleSpectrumVisibility(spectrumId)
+
+    // If spectrum is not in activeSpectra, add it (handles excluded subtypes like 2P)
+    // Otherwise, toggle its visibility (hide/unhide)
+    if (!activeSpectra.includes(spectrumId)) {
+      updateActiveSpectra([spectrumId], [])
+    } else {
+      toggleSpectrumVisibility(spectrumId)
+    }
   }
 
   // if (skip) return null
