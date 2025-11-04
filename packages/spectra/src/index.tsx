@@ -1,8 +1,7 @@
-import { useMemo } from "react"
+import { lazy, Suspense, useMemo } from "react"
 import "./index.css"
 import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import theme from "./Components/theme"
@@ -10,6 +9,16 @@ import { defaultChartOptions } from "./defaults"
 import { queryClientConfig } from "./hooks/useSpectraQueries"
 import { useSpectraStore } from "./store/spectraStore"
 import type { ChartOptions } from "./types"
+
+// Lazy load devtools only in development - completely excluded from production bundle
+const ReactQueryDevtools =
+  process.env.NODE_ENV === "development"
+    ? lazy(() =>
+        import("@tanstack/react-query-devtools").then((mod) => ({
+          default: mod.ReactQueryDevtools,
+        }))
+      )
+    : null
 
 const AppWrapper = () => {
   const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
@@ -19,7 +28,11 @@ const AppWrapper = () => {
       <ThemeProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
           <App />
-          <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
+          {process.env.NODE_ENV === "development" && ReactQueryDevtools && (
+            <Suspense fallback={null}>
+              <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
+            </Suspense>
+          )}
         </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>

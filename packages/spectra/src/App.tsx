@@ -1,16 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import MyAppBar from "./Components/MyAppBar"
 import OwnersContainer from "./Components/OwnersContainer"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import { StateConflictToast } from "./Components/StateConflictToast"
 import useKeyboardShortcuts from "./Components/useKeyboardShortcuts"
-import WelcomeModal from "./Components/WelcomeModal"
 import { useSpectraMetadata } from "./hooks/useSpectraMetadata"
 import { useOwnerInfo, useSpectraInfo } from "./store/metadataStore"
 import { useSpectraStore } from "./store/spectraStore"
 import type { SpectraURLState } from "./utils/urlParams"
 import { canonicalizeURLState, parseURLParams, serializeURLParams } from "./utils/urlParams"
 import "./polyfills"
+
+// Lazy load WelcomeModal - only shown when help button clicked
+const WelcomeModal = lazy(() => import("./Components/WelcomeModal"))
 
 /**
  * Compare two state objects to see if they're meaningfully different
@@ -166,11 +168,6 @@ const App = () => {
     setToastState((prev) => ({ ...prev, open: false }))
   }, [])
 
-  // biome-ignore-start format: Keep on one line for ts-expect-error to work
-  // @ts-expect-error - WelcomeModal is JSX, will be typed when migrated to TS
-  const welcomeModal = <WelcomeModal open={helpOpen} close={closeHelp} ownerInfo={ownerInfo} />
-  // biome-ignore-end format: End ignore block
-
   return (
     <>
       <SpectraViewerContainer ownerInfo={ownerInfo} />
@@ -178,7 +175,10 @@ const App = () => {
       <OwnersContainer ownerInfo={ownerInfo} spectraInfo={spectraInfo} />
       {/* @ts-expect-error - MyAppBar is JSX, will be typed when migrated to TS */}
       <MyAppBar spectraOptions={options} openHelp={openHelp} />
-      {welcomeModal}
+      <Suspense fallback={null}>
+        {/* @ts-expect-error - WelcomeModal is JSX, will be typed when migrated to TS */}
+        <WelcomeModal open={helpOpen} close={closeHelp} ownerInfo={ownerInfo} />
+      </Suspense>
       <StateConflictToast
         open={toastState.open}
         message={toastState.message}
