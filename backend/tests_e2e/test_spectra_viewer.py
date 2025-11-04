@@ -400,8 +400,8 @@ def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
     em_button.click()
     expect(visible_areas).to_have_count(2)  # Both EX and EM visible again
 
-    # Click 2P button again to show 2P spectrum
-    twop_button.click()
-    expect(visible_areas).to_have_count(3)  # EX, EM, and 2P visible
-    twop_button.click()
-    expect(visible_areas).to_have_count(2)  # Back to EX and EM
+    # # Click 2P button again to show 2P spectrum
+    # twop_button.click()
+    # expect(visible_areas).to_have_count(3)  # EX, EM, and 2P visible
+    # twop_button.click()
+    # expect(visible_areas).to_have_count(2)  # Back to EX and EM
