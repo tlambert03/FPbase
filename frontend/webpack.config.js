@@ -10,6 +10,7 @@ const { sentryWebpackPlugin } = require("@sentry/webpack-plugin")
 
 const devMode = process.env.NODE_ENV !== "production"
 const hotReload = process.env.HOT_RELOAD === "1"
+const testBuild = process.env.TEST_BUILD === "1"
 
 const styleRule = {
   test: /\.(sa|sc|c)ss$/,
@@ -147,7 +148,11 @@ module.exports = {
       url: require.resolve("url/"),
     },
   },
-  devtool: devMode ? "eval-cheap-module-source-map" : "source-map",
+  devtool: testBuild
+    ? "inline-source-map"
+    : devMode
+      ? "eval-cheap-module-source-map"
+      : "source-map",
   devServer: {
     port: 8080,
     headers: {
@@ -173,7 +178,22 @@ module.exports = {
   plugins,
   optimization: {
     minimizer: [
-      new TerserJSPlugin(),
+      new TerserJSPlugin(
+        testBuild
+          ? {
+              terserOptions: {
+                // For test builds: keep names and make output more readable
+                keep_classnames: true,
+                keep_fnames: true,
+                mangle: false,
+                compress: {
+                  defaults: false,
+                  unused: true,
+                },
+              },
+            }
+          : {} // Production: use all Terser defaults (full minification)
+      ),
       new CssMinimizerPlugin({
         minimizerOptions: {
           preset: ["default", { svgo: false }],

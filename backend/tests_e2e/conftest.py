@@ -24,6 +24,7 @@ References:
 
 from __future__ import annotations
 
+import base64
 import fcntl
 import json
 import os
@@ -34,20 +35,25 @@ import textwrap
 from collections import defaultdict
 from contextlib import suppress
 from pathlib import Path
+from types import SimpleNamespace
 from typing import TYPE_CHECKING, Self
 
 import django.conf
 import pytest
+import sourcemap
+import sourcemap.objects
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
 from playwright.sync_api import Page
+from sourcemap import loads as load_sourcemap
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, Request, Response, ViewportSize
+    from sourcemap.decoder import SourceMapIndex
 
 # Register snapshot plugin to make assert_snapshot fixture available
 pytest_plugins = ["tests_e2e.snapshot_plugin"]
@@ -131,6 +137,7 @@ def pytest_configure(config: pytest.Config) -> None:
                 capture_output=True,
                 text=True,
                 check=False,
+                env={**os.environ, "TEST_BUILD": "1"},
             )
             if result.returncode != 0:
                 print(_color_text(f"❌ Build failed with exit code {result.returncode}", RED), flush=True)
@@ -158,6 +165,45 @@ def page(page: Page) -> Iterator[Page]:
     page.set_viewport_size(VIEWPORT_SIZE)
     with console_errors_raised(page):
         yield page
+
+
+# Cache parsed source maps to avoid re-reading bundle files
+_SOURCE_MAP_CACHE: dict[str, SourceMapIndex] = {}
+
+
+def _apply_source_maps_to_stack(stack_trace: str) -> str:
+    """Apply inline source maps to transform bundle paths into source file locations."""
+    static_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
+
+    def replace_location(match: re.Match) -> str:
+        bundle_name, line_str, column_str = match.groups()
+        bundle_path = Path(static_dir, bundle_name)
+
+        # Load and cache source map
+        if bundle_name not in _SOURCE_MAP_CACHE and bundle_path.exists():
+            try:
+                content = bundle_path.read_text()
+                sm_match = re.search(r"//# sourceMappingURL=data:[^,]+,(.+)$", content, re.MULTILINE)
+                if sm_match:
+                    sm_json = base64.b64decode(sm_match.group(1)).decode()
+                    _SOURCE_MAP_CACHE[bundle_name] = load_sourcemap(sm_json)
+            except Exception:
+                pass
+
+        # Look up original location
+        if source_map := _SOURCE_MAP_CACHE.get(bundle_name):
+            try:
+                token: sourcemap.objects.Token
+                token = source_map.lookup(line=int(line_str) - 1, column=int(column_str))
+                if token and token.src:
+                    src = token.src.replace("file:///", "").replace("webpack://fpbase/", "").lstrip("./")
+                    return f"{src}:{token.src_line + 1}:{token.src_col}"
+            except Exception:
+                pass
+
+        return match.group(0)
+
+    return re.sub(r"http://[^/]+/static/([^:]+):(\d+):(\d+)", replace_location, stack_trace)
 
 
 IGNORE_PATTERNS = [
@@ -210,8 +256,15 @@ class console_errors_raised:
     def on_console(self, msg: ConsoleMessage) -> None:
         """Collect console messages unless they match ignore patterns."""
         url = (msg.location or {}).get("url", "")
-        if not self._should_ignore(msg.text, url):
-            self.console_messages[msg.type].append(msg)
+        if msg.type == "error" and "at " in msg.text:
+            text = _apply_source_maps_to_stack(msg.text)
+        else:
+            text = msg.text
+
+        if not self._should_ignore(text, url):
+            # Store message with source-mapped text
+            mapped_msg = SimpleNamespace(text=text, type=msg.type, location=msg.location)
+            self.console_messages[msg.type].append(mapped_msg)
 
     def on_page_error(self, error: Exception) -> None:
         """Collect uncaught JavaScript exceptions (ReferenceError, TypeError, etc)."""

@@ -66,6 +66,7 @@ test = [
     "pytest-xdist>=3.8.0",
     "pytest>=8.3.4",
     "pixelmatch>=0.3.0",
+    "sourcemap>=0.2.1",
 ]
 typing = [
     { include-group = "test" },
