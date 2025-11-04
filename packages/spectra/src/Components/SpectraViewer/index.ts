@@ -1,5 +1,5 @@
 import type { FC } from "react"
-import type { ChartOptions, OwnerInfo } from "../../types"
+import type { OwnerInfo, SpectraState } from "../../types"
 import ChartOptionsForm from "./ChartOptionsForm"
 import {
   SpectraViewer as SpectraViewerComponent,
@@ -8,10 +8,7 @@ import {
 
 export interface SpectraViewerContainerProps {
   ownerInfo?: Record<string, OwnerInfo>
-  provideOptions?: Partial<ChartOptions>
-  provideSpectra?: string[]
-  provideOverlaps?: string[]
-  provideHidden?: string[]
+  provideState?: Partial<SpectraState>
 }
 
 // Typed versions

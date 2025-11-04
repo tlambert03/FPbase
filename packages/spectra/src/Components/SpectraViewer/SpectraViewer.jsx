@@ -19,6 +19,7 @@ import "highcharts/modules/export-data"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/boost"
 import LinearProgress from "@mui/material/LinearProgress"
+import { defaultChartOptions } from "../../defaults"
 import useSpectraData from "../../hooks/useSpectraData"
 import { useSpectraStore } from "../../store/spectraStore"
 import useWindowWidth from "../useWindowWidth"
@@ -52,25 +53,33 @@ const {
 
 const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContainer({
   ownerInfo,
-  provideOptions,
-  provideSpectra,
-  provideOverlaps,
-  provideHidden = [],
+  provideState,
 }) {
-  // Get chart options and exNorm from Zustand store
+  // Get state from Zustand store or use provided state
+  const storeActiveSpectra = useSpectraStore((state) => state.activeSpectra)
+  const storeActiveOverlaps = useSpectraStore((state) => state.activeOverlaps)
+  const storeHiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
   const storeChartOptions = useSpectraStore((state) => state.chartOptions)
   const storeExNorm = useSpectraStore((state) => state.exNorm)
 
-  // Always call useSpectraData hook before any returns (Rules of Hooks)
-  const spectraldata = useSpectraData(provideSpectra, provideOverlaps)
+  // Use provided state or fall back to store
+  const activeSpectra = provideState?.activeSpectra ?? storeActiveSpectra
+  const activeOverlaps = provideState?.activeOverlaps ?? storeActiveOverlaps
+  const hiddenSpectra = provideState?.hiddenSpectra ?? storeHiddenSpectra
 
-  // Use provided options or fall back to store
-  const chartOptions = provideOptions || storeChartOptions
+  // Merge provided chartOptions with defaults to ensure all required fields are present
+  const chartOptions = provideState?.chartOptions
+    ? { ...defaultChartOptions, ...provideState.chartOptions }
+    : storeChartOptions
+
+  // Always call useSpectraData hook before any returns (Rules of Hooks)
+  const spectraldata = useSpectraData(activeSpectra, activeOverlaps)
 
   // Safely extract normWave from exNorm array, handling non-array values
   // exNorm should be [normWave, normID] but may be corrupted/malformed
   let normWave
-  if (provideOptions) {
+  if (provideState?.chartOptions) {
+    // If state is provided, don't use exNorm from store
     normWave = undefined
   } else if (Array.isArray(storeExNorm)) {
     ;[normWave] = storeExNorm
@@ -110,7 +119,7 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
       chartOptions={chartOptions}
       exNorm={+normWave}
       ownerInfo={ownerInfo}
-      hidden={provideHidden}
+      hidden={hiddenSpectra}
     />
   )
 })

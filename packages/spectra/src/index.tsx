@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo } from "react"
+import { lazy, Suspense, useMemo } from "react"
 import "./index.css"
 import { StyledEngineProvider, ThemeProvider } from "@mui/material/styles"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -6,7 +6,6 @@ import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import theme from "./Components/theme"
 import { queryClientConfig } from "./hooks/useSpectraQueries"
-import { useSpectraStore } from "./store/spectraStore"
 import type { SpectraState } from "./types"
 import { parseURLParams } from "./utils/urlParams"
 
@@ -51,8 +50,9 @@ export default AppWrapper
  * This component is used for embedding (e.g., spectra_graph.html) and has no UI controls.
  * Must provide EITHER state OR fromUrl, but not both.
  *
- * Implementation: Populates the Zustand store on mount, then SpectraViewerContainer reads from it.
- * This matches the pattern used by App.tsx and simplifies state management.
+ * CRITICAL: This component does NOT use the session-persisted store. It passes state
+ * directly to SpectraViewerContainer via props to remain completely isolated and
+ * side-effect-free. This ensures navigating to the full app doesn't inherit state.
  */
 const SimpleSpectraViewer = ({
   state,
@@ -63,33 +63,18 @@ const SimpleSpectraViewer = ({
 }) => {
   const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
 
-  // Populate the store on mount
-  useEffect(() => {
-    if (state && fromUrl) {
-      throw new Error("SimpleSpectraViewer: Cannot provide both 'state' and 'fromUrl=true'")
-    }
+  // Determine what state to use (does not modify store)
+  if (state && fromUrl) {
+    throw new Error("SimpleSpectraViewer: Cannot provide both 'state' and 'fromUrl=true'")
+  }
 
-    const store = useSpectraStore.getState()
-
-    if (state) {
-      // Use provided state
-      store.replace(state)
-    } else if (fromUrl) {
-      // Load from URL parameters
-      const urlState = parseURLParams(window.location.search)
-      if (Object.keys(urlState).length > 0) {
-        store.replace(urlState)
-      }
-      // If no URL params, keep existing store state (from sessionStorage)
-    }
-    // If both state and fromUrl are false/undefined, keep existing store state
-  }, [state, fromUrl])
+  const viewerState = state || (fromUrl ? parseURLParams(window.location.search) : {})
 
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
-          <SpectraViewerContainer />
+          <SpectraViewerContainer provideState={viewerState as Partial<SpectraState>} />
           {/* Devtools disabled for SimpleSpectraViewer to prevent unwanted padding-bottom */}
         </QueryClientProvider>
       </ThemeProvider>
