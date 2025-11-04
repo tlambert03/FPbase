@@ -250,6 +250,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
               <SpectrumSeries
                 spectrum={spectrum}
                 key={spectrum.id}
+                visible={!hidden.includes(spectrum.id)}
                 ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
                 {...chartOptions}
               />
