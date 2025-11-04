@@ -336,3 +336,18 @@ def test_hidden_spectra_in_share_url(live_server: LiveServer, page: Page) -> Non
     # This is the key test: hiddenSpectra from store should be serialized
     assert "h=" in shared_url, "Shared URL should contain hidden spectra parameter"
     assert ex_id in shared_url, f"Shared URL should contain hidden EX spectrum ID: {ex_id}"
+
+
+def test_spectra_graph(live_server: LiveServer, page: Page):
+    egfp = create_egfp()
+
+    ids = ",".join([str(s.id) for s in egfp.default_state.spectra.all()])
+    url = f"{live_server.url}{reverse('proteins:spectra_graph')}?s={ids}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+
+    spectra_viewer = page.locator("#spectra-viewer")
+    expect(spectra_viewer).to_be_visible()
+
+    series_paths = spectra_viewer.locator(".highcharts-series-group path.highcharts-area")
+    expect(series_paths).to_have_count(2)
