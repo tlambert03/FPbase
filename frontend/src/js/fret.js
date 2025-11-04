@@ -326,7 +326,7 @@ export default function initFRET() {
     var acceptorslug = $("#acceptor-select :selected").val()
     $.when(addItem(donorslug), addItem(acceptorslug)).then(() => {
       if (donorslug || acceptorslug) {
-        $(".table-wrapper").show()
+        $(".table-wrapper").removeAttr("hidden").show()
       }
       if (donorslug) {
         donorEM = dataItemMatching({ slug: donorslug, type: "em" })[0]

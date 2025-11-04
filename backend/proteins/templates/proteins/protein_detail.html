@@ -134,8 +134,12 @@
 		    </div>
 
 		    <div id="spectra-viewer" data-spectra='[{{spectra_ids}}]' data-hidden='[{{hidden_spectra}}]'
-		      data-options='{"height": 0.6, "simpleMode": true}' data-name="{{protein.name|safe}}">
-		      <svg id="simple_spectrasvg" role='img' aria-labelledby='svgDesc svgTitle' style="width:100%;"></svg>
+		      data-options='{"height": 0.6, "simpleMode": true}'>
+          {# This div is for accessibility, and will be replaced by highcharts #}
+		      <svg id="simple_spectrasvg" role='img' aria-labelledby='svgTitle svgDesc' style="width:100%;">
+		        <title id="svgTitle">{{protein.name|safe}} Spectrum</title>
+		        <desc id="svgDesc">Fluorescent protein {{protein.name|safe}} excitation and emission spectra</desc>
+		      </svg>
 		    </div>
 		  </div>
 		  {% else %}

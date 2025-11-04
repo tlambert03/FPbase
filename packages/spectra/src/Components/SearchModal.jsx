@@ -1,16 +1,31 @@
-import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Modal from "@mui/material/Modal"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import gql from "graphql-tag"
-import PropTypes from "prop-types"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { components } from "react-select"
-import { GET_OPTICAL_CONFIG, GET_OWNER_OPTIONS, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
-import { useCachedFetch } from "../useCachedQuery"
+import { fetchGraphQL } from "../api/client"
+import { GET_OPTICAL_CONFIG } from "../api/queries"
+import { useOpticalConfigs } from "../hooks/useOpticalConfigs"
+import { useSpectraInfo } from "../store/metadataStore"
+import { useSpectraStore } from "../store/spectraStore"
 import MuiReactSelect from "./MuiReactSelect"
+
+/**
+ * Filter spectra by category
+ * @param {string[]} spectraIds - Array of spectrum IDs
+ * @param {Object} spectraInfo - Mapping of spectrum ID to spectrum metadata
+ * @param {string[]} keepCategories - Categories to keep (e.g., ["P", "D"])
+ * @returns {string[]} Filtered spectrum IDs
+ */
+function filterSpectraByCategory(spectraIds, spectraInfo, keepCategories) {
+  if (!spectraInfo) return []
+  return spectraIds.filter((id) => {
+    const spectrum = spectraInfo[id]
+    return spectrum && keepCategories.includes(spectrum.category)
+  })
+}
 
 const OptionWithBlurb = (props) => {
   const myProps = { ...props }
@@ -27,11 +42,6 @@ const OptionWithBlurb = (props) => {
   return <components.Option {...myProps} />
 }
 
-const CLEAR_FORM = gql`
-  mutation ClearForm($leave: [String], $appendSpectra: [String]) {
-    clearForm(leave: $leave, appendSpectra: $appendSpectra) @client
-  }
-`
 function getModalStyle() {
   const top = 40
   const left = 42
@@ -82,19 +92,17 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
   const [modalStyle] = useState(getModalStyle)
   const classes = useStyles()
 
-  const [ocOptions, setOcOptions] = useState([])
-  const stash = useCachedFetch("/api/proteins/ocinfo/", "_FPbaseOCStash", 10 * 60)
-  // const stash = useCachedQuery(OPTICAL_CONFIG_LIST, "_FPbaseOCStash", 5 * 60)
-  useEffect(() => {
-    if (stash) {
-      const newOpts = stash.opticalConfigs.map(({ id, name, microscope, comments }) => ({
-        label: `${name} (${microscope.name})`,
-        value: id,
-        comments: comments,
-      }))
-      setOcOptions(newOpts)
-    }
-  }, [stash])
+  const spectraInfo = useSpectraInfo()
+  const { data: opticalConfigs, isLoading: isLoadingConfigs } = useOpticalConfigs()
+
+  const ocOptions = useMemo(() => {
+    if (!opticalConfigs) return []
+    return opticalConfigs.map(({ id, name, microscope, comments }) => ({
+      label: `${name} (${microscope.name})`,
+      value: id,
+      comments: comments,
+    }))
+  }, [opticalConfigs])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -123,44 +131,39 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
     }
   }, [setOpen])
 
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
+  const excludeSubtypes = useSpectraStore((state) => state.excludeSubtypes)
+  const activeSpectra = useSpectraStore((state) => state.activeSpectra)
+  const setActiveSpectra = useSpectraStore((state) => state.setActiveSpectra)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
 
-  const { data } = useQuery(GET_OWNER_OPTIONS)
-  const excludeSubtypes = data?.excludeSubtypes || []
-
-  const handleChange = (event) => {
+  const handleChange = async (event) => {
     const spectra = event?.spectra
       .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
       .map(({ id }) => id)
 
-    if (spectra) {
-      updateSpectra({ variables: { add: spectra } })
+    if (spectra && event) {
+      // Just update activeSpectra - selectors will be derived automatically
+      updateActiveSpectra(spectra)
     }
     setOpen(false)
   }
-
-  const [clearForm] = useMutation(CLEAR_FORM)
-  const client = useApolloClient()
   const [preserveFluors, setPreserveFluors] = useState(true)
   const handleOCChange = async ({ value }) => {
-    const {
-      data: { opticalConfig },
-    } = await client.query({
-      query: GET_OPTICAL_CONFIG,
-      variables: { id: value },
-    })
-    const spectra = []
+    // Ensure ID is a number (GraphQL expects Int!)
+    const id = typeof value === "number" ? value : Number.parseInt(value, 10)
+    const { opticalConfig } = await fetchGraphQL(GET_OPTICAL_CONFIG, { id })
+    const newSpectra = []
     opticalConfig.filters &&
-      spectra.push(...opticalConfig.filters.map(({ spectrum }) => spectrum.id))
-    opticalConfig.light && spectra.push(opticalConfig.light.spectrum.id)
-    opticalConfig.camera && spectra.push(opticalConfig.camera.spectrum.id)
+      newSpectra.push(...opticalConfig.filters.map(({ spectrum }) => spectrum.id))
+    opticalConfig.light && newSpectra.push(opticalConfig.light.spectrum.id)
+    opticalConfig.camera && newSpectra.push(opticalConfig.camera.spectrum.id)
 
-    clearForm({
-      variables: {
-        leave: preserveFluors ? ["P", "D"] : [],
-        appendSpectra: spectra,
-      },
-    })
+    // Keep fluorophores if preserveFluors is true, otherwise clear all
+    const keptSpectra = preserveFluors
+      ? filterSpectraByCategory(activeSpectra, spectraInfo, ["P", "D"])
+      : []
+
+    setActiveSpectra([...keptSpectra, ...newSpectra])
     setOpen(false)
   }
 
@@ -184,8 +187,7 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
           Optical Config Lookup
         </Typography>
         <MuiReactSelect
-          paginate={false}
-          isLoading={ocOptions.length === 0}
+          isLoading={isLoadingConfigs}
           options={ocOptions}
           onChange={handleOCChange}
           className={classes.select}
@@ -231,9 +233,5 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
     </Modal>
   )
 })
-
-SearchModal.propTypes = {
-  options: PropTypes.arrayOf(PropTypes.object).isRequired,
-}
 
 export default SearchModal

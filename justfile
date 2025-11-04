@@ -92,3 +92,6 @@ clean: clean-static clean-env clean-db
 
 dump-fixture:
     uv run backend/manage.py dumpfixture
+
+typecheck:
+    prek -a --hook-stage=manual

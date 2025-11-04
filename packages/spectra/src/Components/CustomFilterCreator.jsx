@@ -1,11 +1,11 @@
-import { useApolloClient } from "@apollo/client"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
+import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import React, { useEffect } from "react"
-import { UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import React from "react"
+import { useSpectraStore } from "../store/spectraStore"
 import InputSlider from "./InputSlider"
 
 export const useStyles = makeStyles({
@@ -18,26 +18,19 @@ export const useStyles = makeStyles({
 const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
   const classes = useStyles()
 
-  const [filterID, _type, _center, _width, _trans] = id.split("_")
-  const [type, setType] = React.useState((_type || "").toUpperCase() || "BP")
-  const [center, setCenter] = React.useState(_center || 525)
-  const [width, setWidth] = React.useState(_width || 50)
-  const [trans, setTrans] = React.useState(_trans || 90)
+  // Read params directly from store (single source of truth)
+  const params = useSpectraStore((state) => state.customFilters[id])
+  const updateCustomFilter = useSpectraStore((state) => state.updateCustomFilter)
 
-  const client = useApolloClient()
-  useEffect(() => {
-    client.mutate({
-      mutation: UPDATE_ACTIVE_SPECTRA,
-      variables: {
-        add: [`${filterID}_${type}_${center}_${width}_${trans}`],
-        remove: [filterID],
-      },
-    })
-  }, [width, center, type, trans, filterID, client])
+  // Default values if params don't exist yet
+  const type = params?.type || "BP"
+  const center = params?.center || 525
+  const width = params?.width || 50
+  const transmission = params?.transmission || 90
 
   const handleType = (_event, newType) => {
     if (newType) {
-      setType(newType)
+      updateCustomFilter(id, { type: newType })
     }
   }
 
@@ -50,7 +43,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
       }}
     >
       <Box display="flex" flexWrap="wrap">
-        <Typography style={{ margin: "8px 10px 3px" }}>Custom Filter Type</Typography>
+        <Typography style={{ margin: "8px 10px 3px" }}>Custom Filter</Typography>
         <ToggleButtonGroup
           size="small"
           value={type}
@@ -58,9 +51,15 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
           onChange={handleType}
           style={{ marginBottom: 10, marginLeft: 10 }}
         >
-          <ToggleButton value="LP">LP</ToggleButton>
-          <ToggleButton value="SP">SP</ToggleButton>
-          <ToggleButton value="BP">BP</ToggleButton>
+          <Tooltip title="Longpass Filter">
+            <ToggleButton value="LP">LP</ToggleButton>
+          </Tooltip>
+          <Tooltip title="Shortpass Filter">
+            <ToggleButton value="SP">SP</ToggleButton>
+          </Tooltip>
+          <Tooltip title="Bandpass Filter">
+            <ToggleButton value="BP">BP</ToggleButton>
+          </Tooltip>
         </ToggleButtonGroup>
 
         <Box flexGrow={2}>
@@ -70,7 +69,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
             </Typography>
             <InputSlider
               value={center}
-              setValue={setCenter}
+              setValue={(value) => updateCustomFilter(id, { center: value })}
               valueLabelDisplay="auto"
               aria-labelledby="range-slider"
             />
@@ -87,7 +86,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
               <Typography className={classes.label}>Bandwidth</Typography>
               <InputSlider
                 value={width}
-                setValue={setWidth}
+                setValue={(value) => updateCustomFilter(id, { width: value })}
                 min={1}
                 max={300}
                 valueLabelDisplay="auto"
@@ -105,8 +104,8 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
           >
             <Typography className={classes.label}>Transmission %</Typography>
             <InputSlider
-              value={trans}
-              setValue={setTrans}
+              value={transmission}
+              setValue={(value) => updateCustomFilter(id, { transmission: value })}
               min={1}
               max={100}
               valueLabelDisplay="auto"

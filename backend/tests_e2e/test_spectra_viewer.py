@@ -1,0 +1,353 @@
+"""End-to-end tests for /spectra/ viewer page."""
+
+from __future__ import annotations
+
+import re
+from typing import TYPE_CHECKING
+
+import pytest
+from django.urls import reverse
+from playwright.sync_api import expect
+
+from proteins.factories import create_egfp
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
+
+    from playwright.sync_api import Page
+    from pytest_django.live_server_helper import LiveServer
+
+
+@pytest.fixture
+def spectra_viewer(live_server: LiveServer, page: Page) -> Iterator[Page]:
+    create_egfp()
+
+    url = f"{live_server.url}{reverse('proteins:spectra')}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+
+    spectra_viewer = page.locator("#spectra-viewer")
+    expect(spectra_viewer).to_be_visible()
+    yield page
+    # DO NOT REMOVE: exposes many JS errors that happen on page actions
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(100)
+
+
+def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Callable) -> None:
+    """Test the spectra viewer page loads without console errors."""
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
+    search_input = tab_wrapper.get_by_role("combobox")
+    search_input.click()
+    search_input.type("EGF")
+
+    egfp_option = tab_wrapper.get_by_role("option", name="EGFP", exact=True)
+    expect(egfp_option).to_be_visible()
+    egfp_option.click()
+
+    # a selector for EGFP should now be visible
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+    # a NEW search input should appear after selecting a protein
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
+
+    assert_snapshot(spectra_viewer)
+
+
+@pytest.mark.parametrize("method", ["spacebar", "click"])
+def test_spectra_viewer_add_from_spacebar(spectra_viewer: Page, assert_snapshot: Callable, method: str) -> None:
+    """Test the spectra viewer page loads without console errors."""
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
+
+    modal = spectra_viewer.get_by_role("presentation").filter(has_text="Quick Entry")
+    quick_entry_heading = modal.get_by_role("heading", name="Quick Entry")
+    expect(modal).not_to_be_attached()
+    expect(quick_entry_heading).not_to_be_visible()
+
+    if method == "spacebar":
+        # press spacebar to open the search input
+        spectra_viewer.keyboard.press("Space")
+    elif method == "click":
+        # click on the #quickentry-btn button
+        spectra_viewer.locator("button#quickentry-btn").click()
+    else:
+        raise ValueError(f"Unknown method: {method}")
+
+    expect(modal).to_be_attached()
+    expect(quick_entry_heading).to_be_visible()
+
+    search_input = modal.get_by_role("combobox").first
+    expect(search_input).to_be_visible()
+    search_input.type("EGF")
+
+    expect(modal.get_by_role("option", name="EGFP", exact=True)).to_be_visible()
+    spectra_viewer.keyboard.press("Enter")
+
+    # a NEW search input should appear after selecting a protein
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
+    # ... and a selector for EGFP should now be visible
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    assert_snapshot(spectra_viewer)
+
+
+def test_spectra_url_sharing_basic(live_server: LiveServer, page: Page) -> None:
+    """Test basic URL sharing functionality in spectra viewer.
+
+    Verifies:
+    1. Share button opens dialog with generated URL
+    2. Generated URL contains all chart state parameters
+    """
+    create_egfp()
+
+    # Navigate to spectra viewer
+    url = f"{live_server.url}{reverse('proteins:spectra')}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+
+    # Add EGFP using spacebar shortcut
+    page.keyboard.press("Space")
+    modal = page.get_by_role("presentation").filter(has_text="Quick Entry")
+    expect(modal).to_be_attached()
+
+    search_input = modal.get_by_role("combobox").first
+    expect(search_input).to_be_visible()
+    search_input.type("EGFP")
+    page.keyboard.press("Enter")
+
+    # Wait for EGFP to be added to the selector list
+    tab_wrapper = page.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    # Wait for chart to load with data
+    chart = page.locator(".highcharts-container")
+    expect(chart).to_be_visible()
+    # Wait for series to render
+    page.locator(".highcharts-series").first.wait_for(state="attached")
+
+    # Click share button using aria attributes for reliability
+    page.wait_for_load_state("networkidle")
+    share_button = page.locator('button[aria-controls="simple-menu"]')
+    expect(share_button).to_be_visible()
+    share_button.click()
+
+    # Wait for menu to appear and click "Share chart as URL"
+    share_menu_item = page.get_by_role("menuitem", name="Share chart as URL")
+    expect(share_menu_item).to_be_visible(timeout=10000)
+    share_menu_item.click()
+
+    # Verify share dialog is open
+    dialog = page.get_by_role("dialog", name=re.compile("recreate the current graph"))
+    expect(dialog).to_be_visible()
+
+    # Get the URL from the textbox
+    url_textbox = dialog.get_by_role("textbox", name="URL")
+    expect(url_textbox).to_be_visible()
+
+    shared_url = url_textbox.input_value()
+
+    # Verify URL contains spectra ID parameter with at least one ID
+    assert "s=" in shared_url, "Shared URL should contain spectra ID parameter"
+    # Extract spectrum IDs from URL (format: ?s=123,456 or ?s=123)
+    match = re.search(r"[?&]s=([0-9,]+)", shared_url)
+    assert match, f"Could not find spectrum IDs in URL: {shared_url}"
+    spectrum_ids = match.group(1).split(",")
+    assert len(spectrum_ids) > 0, "Shared URL should contain at least one spectrum ID"
+    # Verify IDs are numeric
+    assert all(sid.isdigit() for sid in spectrum_ids), f"Invalid spectrum IDs: {spectrum_ids}"
+
+
+def test_spectra_url_params_parsing(live_server: LiveServer, page: Page) -> None:
+    """Test that URL parameters are correctly parsed and applied to spectra viewer.
+
+    Verifies:
+    1. URL with chart options is parsed correctly
+    2. Chart state matches URL parameters
+    3. Backwards compatibility with legacy URL formats
+    """
+    egfp = create_egfp()
+    ex_id = egfp.default_state.ex_spectrum.id
+    em_id = egfp.default_state.em_spectrum.id
+
+    # Navigate with URL parameters (testing backwards-compatible format)
+    url = (
+        f"{live_server.url}{reverse('proteins:spectra')}"
+        f"?s={ex_id},{em_id}"
+        "&showY=1&showX=1&showGrid=1&areaFill=1"
+        "&logScale=0&scaleEC=0&scaleQY=0&shareTooltip=1"
+        "&palette=wavelength&xMin=400&xMax=600"
+    )
+    page.goto(url)
+
+    # Wait for chart to load
+    chart = page.locator(".highcharts-container")
+    expect(chart).to_be_visible()
+
+    # Verify chart loaded with spectra
+    chart_text = page.locator(".highcharts-series").first
+    expect(chart_text).to_be_attached()
+
+    # Verify extremes were applied (check input boxes)
+    min_input = page.locator('input[name="min"]')
+    max_input = page.locator('input[name="max"]')
+    expect(min_input).to_have_value("400")
+    expect(max_input).to_have_value("600")
+
+
+def test_qy_ec_scaling_invertibility(spectra_viewer: Page) -> None:
+    """Test that QY and EC scaling transformations are invertible.
+
+    Regression test for bug where toggling QY/EC scaling multiple times
+    would compound transformations instead of applying them idempotently.
+    """
+
+    spectra_viewer.keyboard.press("Space")
+    modal = spectra_viewer.get_by_role("presentation").filter(has_text="Quick Entry")
+    search_input = modal.get_by_role("combobox").first
+    search_input.type("EGFP")
+    spectra_viewer.keyboard.press("Enter")
+
+    # Wait for EGFP to be added
+    expect(spectra_viewer.locator(".tab-wrapper").get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    def _test_scaling_toggle_indempotent(page: Page, series: int, key: str, timeout: int = 200) -> None:
+        _ser = page.locator(f"g.highcharts-series.highcharts-series-{series}")
+        line = _ser.locator("path.highcharts-tracker-line")
+        expect(line).to_be_visible()
+        d = []
+        for _ in range(2):
+            d.append(line.get_attribute("d"))
+            page.keyboard.press(f"Key{key}")
+            page.wait_for_timeout(timeout)
+        d.append(line.get_attribute("d"))
+        d_0, d_1, d_2 = d
+        assert d_0 != d_1, "scaling toggle did not change state on first toggle"
+        assert d_0 == d_2, "scaling toggle did not return to original state after 2 toggles"
+
+    _test_scaling_toggle_indempotent(spectra_viewer, series=0, key="Q")
+    _test_scaling_toggle_indempotent(spectra_viewer, series=1, key="E")
+
+
+def test_custom_laser_exnorm_persistence(live_server: LiveServer, page: Page) -> None:
+    """Test that custom laser exNorm checkbox state persists across page refresh.
+
+    Regression test for bug where "Norm em. to this" checkbox state
+    was not saved to sessionStorage.
+
+    Verifies:
+    1. Custom laser exNorm checkbox can be checked
+    2. Checkbox state persists after page refresh
+    """
+    create_egfp()
+
+    # Navigate to spectra viewer
+    url = f"{live_server.url}{reverse('proteins:spectra')}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+
+    # Add EGFP
+    page.keyboard.press("Space")
+    modal = page.get_by_role("presentation").filter(has_text="Quick Entry")
+    search_input = modal.get_by_role("combobox").first
+    search_input.type("EGFP")
+    page.keyboard.press("Enter")
+
+    # Wait for EGFP to be added
+    tab_wrapper = page.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    # Navigate to Light Sources tab
+    page.get_by_role("tab", name=re.compile("Light Sources")).click()
+
+    # Click "Add Laser" button
+    page.get_by_role("button", name="Add Laser").click()
+    page.wait_for_timeout(200)  # Wait for laser to be added
+
+    # Find and check the "Norm em. to this" checkbox
+    exnorm_checkbox = page.get_by_role("checkbox", name="Norm em. to this")
+    expect(exnorm_checkbox).to_be_visible()
+    expect(exnorm_checkbox).not_to_be_checked()
+
+    # Check the checkbox
+    exnorm_checkbox.click()
+    expect(exnorm_checkbox).to_be_checked()
+
+    # Refresh the page
+    page.reload()
+    page.wait_for_load_state("networkidle")
+
+    # Verify laser is still there and checkbox is still checked
+    page.get_by_role("tab", name=re.compile("Light Sources")).click()
+    exnorm_checkbox = page.get_by_role("checkbox", name="Norm em. to this")
+    expect(exnorm_checkbox).to_be_visible()
+    expect(exnorm_checkbox).to_be_checked()
+
+
+def test_hidden_spectra_in_share_url(live_server: LiveServer, page: Page) -> None:
+    """Test that hidden spectra state is included in shared URLs.
+
+    Regression test for bug where hiddenSpectra was not serialized
+    into share URLs.
+
+    This test verifies that hiddenSpectra from the store is properly
+    serialized into share URLs when loaded from URL parameters.
+
+    Verifies:
+    1. URL with hidden spectra parameter loads correctly
+    2. Share URL preserves hidden spectra parameter
+    """
+    egfp = create_egfp()
+    ex_id = str(egfp.default_state.ex_spectrum.id)
+    em_id = str(egfp.default_state.em_spectrum.id)
+
+    # Navigate with both spectra, with EX marked as hidden
+    url = (
+        f"{live_server.url}{reverse('proteins:spectra')}"
+        f"?s={ex_id},{em_id}"
+        f"&h={ex_id}"  # Mark EX spectrum as hidden via URL parameter
+    )
+    page.goto(url)
+    page.wait_for_load_state("networkidle")
+
+    # Wait for chart to load - should have at least EM spectrum
+    chart = page.locator(".highcharts-container")
+    expect(chart).to_be_visible()
+
+    # Open share dialog
+    page.wait_for_timeout(500)  # Give time for state to settle
+    share_button = page.locator('button[aria-controls="simple-menu"]')
+    expect(share_button).to_be_visible()
+    share_button.click()
+
+    share_menu_item = page.get_by_role("menuitem", name="Share chart as URL")
+    expect(share_menu_item).to_be_visible(timeout=10000)
+    share_menu_item.click()
+
+    # Get the shared URL
+    dialog = page.get_by_role("dialog", name=re.compile("recreate the current graph"))
+    expect(dialog).to_be_visible()
+
+    url_textbox = dialog.get_by_role("textbox", name="URL")
+    expect(url_textbox).to_be_visible()
+    shared_url = url_textbox.input_value()
+
+    # Verify URL contains hidden spectra parameter
+    # This is the key test: hiddenSpectra from store should be serialized
+    assert "h=" in shared_url, "Shared URL should contain hidden spectra parameter"
+    assert ex_id in shared_url, f"Shared URL should contain hidden EX spectrum ID: {ex_id}"
+
+
+def test_spectra_graph(live_server: LiveServer, page: Page):
+    egfp = create_egfp()
+
+    ids = ",".join([str(s.id) for s in egfp.default_state.spectra.all()])
+    url = f"{live_server.url}{reverse('proteins:spectra_graph')}?s={ids}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+
+    spectra_viewer = page.locator("#spectra-viewer")
+    expect(spectra_viewer).to_be_visible()
+
+    series_paths = spectra_viewer.locator(".highcharts-series-group path.highcharts-area")
+    expect(series_paths).to_have_count(2)

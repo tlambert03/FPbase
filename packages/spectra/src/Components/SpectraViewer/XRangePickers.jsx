@@ -1,10 +1,9 @@
-import { useMutation, useQuery } from "@apollo/client"
 import { Tooltip } from "@mui/material"
 import Input from "@mui/material/Input"
 import { withStyles } from "@mui/styles"
-import gql from "graphql-tag"
 import React, { useEffect, useRef } from "react"
 import { useAxis, useHighcharts } from "react-jsx-highcharts"
+import { useSpectraStore } from "../../store/spectraStore"
 
 const LightTooltip = withStyles((theme) => ({
   tooltip: {
@@ -33,32 +32,13 @@ const CLASSES = {
   },
 }
 
-const MUTATE_CHART_EXTREMES = gql`
-  mutation SetChartExtremes($extremes: [Float]!) {
-    setChartExtremes(extremes: $extremes) @client
-  }
-`
-
-const GET_CHART_EXTREMES = gql`
-  {
-    chartOptions @client {
-      extremes
-    }
-  }
-`
-
 let counter = 0
 const XRangePickers = ({ visible }) => {
   const axis = useAxis()
   const Highcharts = useHighcharts()
-  const {
-    data: {
-      chartOptions: {
-        extremes: [min, max],
-      },
-    },
-  } = useQuery(GET_CHART_EXTREMES)
-  const [mutateExtremes] = useMutation(MUTATE_CHART_EXTREMES)
+  const extremes = useSpectraStore((state) => state.chartOptions.extremes)
+  const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+  const [min, max] = extremes || [null, null]
   const minNode = useRef()
   const maxNode = useRef()
   const forceUpdate = React.useState()[1]
@@ -66,12 +46,23 @@ const XRangePickers = ({ visible }) => {
   useEffect(() => {
     if (!axis || !axis.object) return
     if (min || max) {
-      axis.setExtremes(min && Math.round(min), max && Math.round(max))
-      if (min && max) {
-        axis.object.chart.showResetZoom()
+      // Only call setExtremes if the values are actually different from current axis extremes
+      // This prevents infinite loop with handleAfterSetExtremes
+      const current = axis.object.getExtremes()
+      const targetMin = min && Math.round(min)
+      const targetMax = max && Math.round(max)
+      const currentMin = current.userMin && Math.round(current.min)
+      const currentMax = current.userMax && Math.round(current.max)
+
+      // Only update if the extremes have actually changed
+      if (targetMin !== currentMin || targetMax !== currentMax) {
+        axis.setExtremes(targetMin, targetMax)
+        if (min && max) {
+          axis.object.chart.showResetZoom()
+        }
       }
     }
-  }, [axis, min, max]) // Added proper dependencies
+  }, [axis, min, max])
 
   useEffect(() => {
     if (!axis || !axis.object || !Highcharts) return
@@ -79,9 +70,12 @@ const XRangePickers = ({ visible }) => {
     function handleAfterSetExtremes() {
       const e = axis.object.getExtremes()
       if (e) {
-        const extremes = [e.userMin && Math.round(e.min), e.userMax && Math.round(e.max)]
-        // this seems to be causing a bug with the inputs
-        mutateExtremes({ variables: { extremes } })
+        const newExtremes = [e.userMin && Math.round(e.min), e.userMax && Math.round(e.max)]
+        // Only update store if extremes actually changed (prevents infinite loop)
+        const currentExtremes = useSpectraStore.getState().chartOptions.extremes || [null, null]
+        if (newExtremes[0] !== currentExtremes[0] || newExtremes[1] !== currentExtremes[1]) {
+          updateChartOptions({ extremes: newExtremes })
+        }
         forceUpdate(counter++)
       }
     }
@@ -132,7 +126,7 @@ const XRangePickers = ({ visible }) => {
         }
       }
     }
-  }, [axis, Highcharts, mutateExtremes, forceUpdate]) // Added missing dependencies
+  }, [axis, Highcharts, updateChartOptions, forceUpdate]) // Added missing dependencies
 
   const updateRange = () => {
     if (!axis) return
@@ -155,15 +149,15 @@ const XRangePickers = ({ visible }) => {
 
   if (!axis) return null
 
-  const extremes = axis.getExtremes()
-  const minColor = !extremes.userMin
+  const axisExtremes = axis.getExtremes()
+  const minColor = !axisExtremes.userMin
     ? "444"
-    : extremes.dataMin < extremes.min
+    : axisExtremes.dataMin < axisExtremes.min
       ? "#B1191E"
       : "#5F67CE"
-  const maxColor = !extremes.userMax
+  const maxColor = !axisExtremes.userMax
     ? "444"
-    : extremes.dataMax > extremes.max
+    : axisExtremes.dataMax > axisExtremes.max
       ? "#B1191E"
       : "#5F67CE"
 
@@ -185,10 +179,10 @@ const XRangePickers = ({ visible }) => {
         <Input
           name="min"
           type="text"
-          placeholder={`${extremes.dataMin || ""}`}
+          placeholder={`${axisExtremes.dataMin || ""}`}
           value={Math.round(min) || ""}
           inputRef={minNode}
-          onChange={(e) => mutateExtremes({ variables: { extremes: [e.target.value, max] } })}
+          onChange={(e) => updateChartOptions({ extremes: [e.target.value, max] })}
           onKeyPress={handleKeyPress}
           onBlur={updateRange}
           style={{ ...CLASSES.minInput, color: minColor }}
@@ -203,10 +197,10 @@ const XRangePickers = ({ visible }) => {
         <Input
           name="max"
           type="text"
-          placeholder={`${extremes.dataMax || ""}`}
+          placeholder={`${axisExtremes.dataMax || ""}`}
           value={Math.round(max) || ""}
           inputRef={maxNode}
-          onChange={(e) => mutateExtremes({ variables: { extremes: [min, e.target.value] } })}
+          onChange={(e) => updateChartOptions({ extremes: [min, e.target.value] })}
           onKeyPress={handleKeyPress}
           onBlur={updateRange}
           style={{ ...CLASSES.maxInput, color: maxColor }}

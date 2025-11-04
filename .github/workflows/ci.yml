@@ -33,6 +33,22 @@ jobs:
       - name: Run basedpyright
         run: uv run --group typing --no-dev basedpyright
 
+  typing-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: "pnpm"
+      - name: Install node Dependencies
+        run: pnpm install
+      - name: Run TypeScript type checking
+        run: pnpm typecheck
+
   test:
     runs-on: ubuntu-latest
     services:

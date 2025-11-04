@@ -1,11 +1,8 @@
-import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import Box from "@mui/material/Box"
-import gql from "graphql-tag"
-import update from "immutability-helper"
-import PropTypes from "prop-types"
 import React, { useCallback, useEffect } from "react"
 import { components } from "react-select"
-import { GET_OWNER_OPTIONS, GET_SPECTRUM } from "../client/queries"
+import { useSpectrum } from "../hooks/useSpectraQueries"
+import { useSpectraStore } from "../store/spectraStore"
 import ProductLink from "./ProductLink"
 import SortableWindowedSelect from "./SortableWindowedSelect"
 import SubtypeSelector from "./SubtypeSelector"
@@ -26,36 +23,27 @@ const customStyles = {
 }
 
 const SingleValue = ({ children, data, ...props }) => {
-  const client = useApolloClient()
   const [extra, setExtra] = React.useState("")
+  const spectrumId = data.category === "P" || data.category === "D" ? data.spectra[0]?.id : null
+  const { data: spectrum } = useSpectrum(spectrumId)
+
   useEffect(() => {
-    async function fetchQeEc(id) {
-      const {
-        data: { spectrum },
-      } = await client.query({
-        query: GET_SPECTRUM,
-        variables: { id: +id },
-      })
-      if (spectrum.owner) {
-        const { qy, extCoeff } = spectrum.owner
-        if (qy || extCoeff) {
-          let val = "("
-          if (qy) {
-            val += `QY: ${qy}`
-            if (extCoeff) val += " / "
-          }
-          if (extCoeff) val += `EC: ${extCoeff.toLocaleString()}`
-          val += ")"
-          setExtra(val)
-        } else {
-          setExtra("")
+    if (spectrum?.owner) {
+      const { qy, extCoeff } = spectrum.owner
+      if (qy || extCoeff) {
+        let val = "("
+        if (qy) {
+          val += `QY: ${qy}`
+          if (extCoeff) val += " / "
         }
+        if (extCoeff) val += `EC: ${extCoeff.toLocaleString()}`
+        val += ")"
+        setExtra(val)
+      } else {
+        setExtra("")
       }
     }
-    if (data.category === "P" || data.category === "D") {
-      fetchQeEc(data.spectra[0].id)
-    }
-  }, [client, data.spectra, data.category])
+  }, [spectrum])
 
   return (
     <components.SingleValue {...props}>
@@ -77,16 +65,9 @@ const SingleValue = ({ children, data, ...props }) => {
 }
 const SINGLE = { SingleValue }
 
-const COMBO_MUTATE = gql`
-  mutation comboMutate($add: [String], $remove: [String], $selector: Selector) {
-    updateActiveSpectra(add: $add, remove: $remove) @client
-    updateSelector(selector: $selector) @client
-  }
-`
-
 const SpectrumSelector = React.memo(function SpectrumSelector({
   options,
-  allOwners,
+  disabledOwners,
   showCategoryIcon,
   selector,
   ownerInfo,
@@ -98,73 +79,44 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   }, [ownerInfo, selector])
 
   const subtypes = value?.spectra || []
-  // const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
 
-  const { data } = useQuery(GET_OWNER_OPTIONS)
-  const excludeSubtypes = data?.excludeSubtypes || []
+  // Get Zustand store actions and state
+  const excludeSubtypes = useSpectraStore((state) => state.excludeSubtypes)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
 
-  // new Spectra get added in the handleOwnerChange handler in SpectrumSelector.jsx
-  // const [updateSelector] = useMutation(UPDATE_SELECTOR)
-
-  const [comboMutate] = useMutation(COMBO_MUTATE)
   // when the spectrum selector changes
   const handleOwnerChange = useCallback(
     (newValue) => {
       // if it's the same as the previous value do nothing
       if (value === newValue) return
-      // setValue(newValue)
-      // onChange(newValue && newValue.value)
       const newOwner = newValue?.value
       setValue(newOwner && ownerInfo[newOwner]) // FIXME: replace with optimistic UI?
 
-      comboMutate({
-        variables: {
-          add: newValue?.spectra
-            .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
-            .map(({ id }) => id),
-          remove: value?.spectra.map(({ id }) => id),
-          selector: {
-            id: +selector.id,
-            owner: newOwner,
-            category: ownerInfo[newOwner]?.category,
-          },
-        },
-      })
+      // Update active spectra - selectors will be derived automatically
+      const spectraToAdd = newValue?.spectra
+        .filter(({ subtype }) => !excludeSubtypes.includes(subtype))
+        .map(({ id }) => id)
+      const spectraToRemove = value?.spectra.map(({ id }) => id)
+
+      updateActiveSpectra(spectraToAdd, spectraToRemove)
     },
-    [excludeSubtypes, ownerInfo, selector.id, value, comboMutate] // eslint-disable-line
+    [excludeSubtypes, ownerInfo, value, updateActiveSpectra]
   )
 
-  // disable options that are already claimed by other selectors
-
-  const [myOptions, setMyOptions] = React.useState(options)
-
-  useEffect(() => {
-    const otherOwners = allOwners.filter((i) => i !== selector.owner)
-    if (!otherOwners) return
-    let newOptions = myOptions
-    options.forEach((option, index) => {
-      if (otherOwners.includes(option.value)) {
-        if (!newOptions[index].isDisabled) {
-          newOptions = update(newOptions, {
-            [index]: {
-              isDisabled: { $set: true },
-              label: { $set: `${newOptions[index].label} (already selected)` },
-            },
-          })
+  // Disable options that are already claimed by other selectors
+  // Uses Set for O(1) lookup instead of O(N) with array.includes()
+  const myOptions = React.useMemo(
+    () =>
+      options.map((option) => {
+        const shouldDisable = disabledOwners.has(option.value) && option.value !== selector.owner
+        return {
+          ...option,
+          isDisabled: shouldDisable,
+          label: shouldDisable ? `${option.label} (already selected)` : option.label,
         }
-      } else if (newOptions[index].isDisabled) {
-        newOptions = update(newOptions, {
-          [index]: {
-            isDisabled: { $set: false },
-            label: { $set: option.label },
-          },
-        })
-      }
-    })
-    if (newOptions !== myOptions) {
-      setMyOptions(newOptions)
-    }
-  }, [allOwners, myOptions, options, selector.owner])
+      }),
+    [options, disabledOwners, selector.owner]
+  )
 
   return (
     <Box display="flex">
@@ -187,9 +139,5 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
     </Box>
   )
 })
-
-SpectrumSelector.propTypes = {
-  options: PropTypes.arrayOf(PropTypes.object).isRequired,
-}
 
 export default SpectrumSelector

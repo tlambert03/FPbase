@@ -96,21 +96,6 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert
     assert_snapshot(page)
 
 
-def test_spectra_viewer_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
-    """Test the spectra viewer page loads without console errors."""
-    ProteinFactory.create()
-
-    url = f"{live_server.url}{reverse('proteins:spectra')}"
-    page.goto(url)
-    expect(page).to_have_url(url)
-
-    spectra_viewer = page.locator("#spectra-viewer")
-    expect(spectra_viewer).to_be_attached()
-
-    # Visual snapshot: capture spectra viewer initial state
-    assert_snapshot(page)
-
-
 def test_spectrum_submission_preview_manual_data(
     auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
 ) -> None:
@@ -350,9 +335,12 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
     expect(page.locator("#QYA")).to_be_attached()
     expect(page.locator("#overlapIntgrl")).to_be_attached()
 
+    # Verify chart has 5 series: donor ex, donor em, acceptor ex, acceptor em, overlap
     svg = page.locator("#spectra svg")
     expect(svg).to_be_visible()
     expect(svg.locator("g.highcharts-series")).to_have_count(5)
+    # verify table is visible
+    expect(page.locator(".table-wrapper")).to_be_visible()
 
     # Visual snapshot: FRET calculation complete with chart
     if not hasattr(assert_snapshot, "NOOP"):
@@ -628,6 +616,8 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
     expect(chem_title).to_be_visible()
     expect(chem_title).to_contain_text("Crystal structure of enhanced Green Fluorescent Protein")
     expect(page.locator("img#smilesImg")).to_be_visible()
+
+    page.wait_for_load_state("networkidle")
     assert_snapshot(page)
 
 
@@ -691,7 +681,6 @@ def test_favorite_button_interaction(
         "proteins:problems-gaps",
         "proteins:problems-inconsistencies",
         "proteins:spectrum_submitted",
-        "proteins:spectra",
         "proteins:spectra_graph",
         "proteins:spectra_csv",
         "proteins:fret",

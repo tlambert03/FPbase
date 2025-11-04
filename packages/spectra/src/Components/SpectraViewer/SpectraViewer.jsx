@@ -1,4 +1,3 @@
-import { useQuery } from "@apollo/client"
 import Highcharts from "highcharts"
 import React, { memo, useEffect } from "react"
 import {
@@ -19,11 +18,10 @@ import "highcharts/modules/pattern-fill"
 import "highcharts/modules/export-data"
 import "highcharts/modules/accessibility"
 import "highcharts/modules/boost"
-import { css } from "@emotion/react"
-import gql from "graphql-tag"
-import update from "immutability-helper"
-import { BarLoader } from "react-spinners"
-import useSpectraData from "../useSpectraData"
+import LinearProgress from "@mui/material/LinearProgress"
+import { defaultChartOptions } from "../../defaults"
+import useSpectraData from "../../hooks/useSpectraData"
+import { useSpectraStore } from "../../store/spectraStore"
 import useWindowWidth from "../useWindowWidth"
 import DEFAULT_OPTIONS from "./ChartOptions"
 import fixLogScale from "./fixLogScale"
@@ -32,15 +30,6 @@ import SpectrumSeries from "./SpectrumSeries"
 import XRangePickers from "./XRangePickers"
 
 fixLogScale(Highcharts)
-
-const override = css`
-  display: block;
-  position: absolute;
-  left: 40%;
-  top: 50%;
-  width: 20%;
-  z-index: 10;
-`
 
 const calcHeight = (width) => {
   if (width < 600) return 275
@@ -64,69 +53,62 @@ const {
 
 const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContainer({
   ownerInfo,
-  provideOptions,
-  provideSpectra,
-  provideOverlaps,
-  provideHidden = [],
+  provideState,
 }) {
-  const { data } = useQuery(
-    gql`
-        query ChartOptions {
-          chartOptions @client {
-            showY
-            showX
-            showGrid
-            areaFill
-            logScale
-            scaleEC
-            scaleQY
-            extremes
-            shareTooltip
-            palette
-          }
-          exNorm @client
-        }
-      `,
-    { skip: provideOptions }
-  )
+  // Get state from Zustand store or use provided state
+  const storeActiveSpectra = useSpectraStore((state) => state.activeSpectra)
+  const storeActiveOverlaps = useSpectraStore((state) => state.activeOverlaps)
+  const storeHiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
+  const storeChartOptions = useSpectraStore((state) => state.chartOptions)
+  const storeExNorm = useSpectraStore((state) => state.exNorm)
+
+  // Use provided state or fall back to store
+  const activeSpectra = provideState?.activeSpectra ?? storeActiveSpectra
+  const activeOverlaps = provideState?.activeOverlaps ?? storeActiveOverlaps
+  const hiddenSpectra = provideState?.hiddenSpectra ?? storeHiddenSpectra
+
+  // Merge provided chartOptions with defaults to ensure all required fields are present
+  const chartOptions = provideState?.chartOptions
+    ? { ...defaultChartOptions, ...provideState.chartOptions }
+    : storeChartOptions
 
   // Always call useSpectraData hook before any returns (Rules of Hooks)
-  const spectraldata = useSpectraData(provideSpectra, provideOverlaps)
+  const spectraldata = useSpectraData(activeSpectra, activeOverlaps)
 
-  let chartOptions
+  // Safely extract normWave from exNorm array, handling non-array values
+  // exNorm should be [normWave, normID] but may be corrupted/malformed
   let normWave
-  if (provideOptions) {
-    chartOptions = provideOptions
+  if (provideState?.chartOptions) {
+    // If state is provided, don't use exNorm from store
     normWave = undefined
-  } else if (data?.chartOptions) {
-    chartOptions = data.chartOptions
-    // Safely extract normWave from exNorm array, handling non-array values
-    // exNorm should be [normWave, normID] but may be corrupted/malformed
-    if (Array.isArray(data.exNorm)) {
-      ;[normWave] = data.exNorm
-    } else {
-      normWave = null
-    }
+  } else if (Array.isArray(storeExNorm)) {
+    ;[normWave] = storeExNorm
   } else {
-    // Data not loaded yet, return null after all hooks are called
-    return null
+    normWave = null
   }
 
-  const yAxis = update(_yAxis, {
+  const yAxis = {
+    ..._yAxis,
     labels: {
-      enabled: { $set: chartOptions.showY || chartOptions.logScale },
+      ..._yAxis.labels,
+      enabled: chartOptions.showY || chartOptions.logScale,
     },
-    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
-  })
+    gridLineWidth: chartOptions.showGrid ? 1 : 0,
+  }
 
-  const xAxis = update(_xAxis, {
-    labels: { enabled: { $set: chartOptions.showX } },
-    gridLineWidth: { $set: chartOptions.showGrid ? 1 : 0 },
-  })
+  const xAxis = {
+    ..._xAxis,
+    labels: {
+      ..._xAxis.labels,
+      enabled: chartOptions.showX,
+    },
+    gridLineWidth: chartOptions.showGrid ? 1 : 0,
+  }
 
-  const tooltip = update(_tooltip, {
-    shared: { $set: chartOptions.shareTooltip },
-  })
+  const tooltip = {
+    ..._tooltip,
+    shared: chartOptions.shareTooltip,
+  }
 
   return (
     <BaseSpectraViewer
@@ -137,7 +119,7 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
       chartOptions={chartOptions}
       exNorm={+normWave}
       ownerInfo={ownerInfo}
-      hidden={provideHidden}
+      hidden={hiddenSpectra}
     />
   )
 })
@@ -154,11 +136,13 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
 }) {
   const windowWidth = useWindowWidth()
   const numSpectra = data.length
-  const owners = [...new Set(data.map((item) => item.owner.slug))]
+  const owners = [
+    ...new Set(data.map((item) => item.owner?.slug).filter((slug) => slug !== undefined)),
+  ]
   const exData = data.filter((i) => i.subtype === "EX" || i.subtype === "AB")
   const nonExData = data.filter((i) => i.subtype !== "EX" && i.subtype !== "AB")
 
-  let height = calcHeight(windowWidth) * (chartOptions.height || 1)
+  const height = calcHeight(windowWidth) * (chartOptions.height || 1)
   let showPickers = numSpectra > 0 && !chartOptions.simpleMode
   if (chartOptions.zoomType !== undefined) {
     _chart.zoomType = chartOptions.zoomType
@@ -168,12 +152,8 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
     xAxis.min = chartOptions.extremes[0]
     xAxis.max = chartOptions.extremes[1]
   }
-  const hChart = Highcharts.charts[0]
-  let legendHeight
-  if (hChart) {
-    legendHeight = Highcharts.charts[0].legend.legendHeight || 0
-    height += legendHeight
-  }
+  // Note: legendHeight is already accounted for by Highcharts internally
+  // Adding it here causes reflow issues when toggling series visibility
 
   return (
     <div className="spectra-viewer" style={{ position: "relative", height: height }}>
@@ -194,7 +174,16 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
       {numSpectra === 0 &&
         (chartOptions.simpleMode ? (
           <div className="sweet-loading">
-            <BarLoader css={override} height={4} width="100px" color="#ccc" loading />
+            <LinearProgress
+              sx={{
+                position: "absolute",
+                left: "40%",
+                top: "50%",
+                width: "20%",
+                height: 4,
+                zIndex: 10,
+              }}
+            />
           </div>
         ) : (
           <NoData height={height} />
@@ -237,7 +226,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
                 key={spectrum.id}
                 visible={!hidden.includes(spectrum.id)}
                 ownerInfo={ownerInfo}
-                ownerIndex={owners.indexOf(spectrum.owner.slug)}
+                ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
                 {...chartOptions}
               />
             ))}
@@ -266,7 +255,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
               <SpectrumSeries
                 spectrum={spectrum}
                 key={spectrum.id}
-                ownerIndex={owners.indexOf(spectrum.owner.slug)}
+                ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
                 {...chartOptions}
               />
             ))}

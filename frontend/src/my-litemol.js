@@ -399,12 +399,30 @@ async function getPDBinfo(pdbIds) {
 
     const select = $("#pdb_select")
 
-    // Sort by resolution (best first)
-    pdbIds.sort((a, b) => (pdbInfo[a].resolution > pdbInfo[b].resolution ? 1 : -1))
+    // Sort by resolution (best first), handling missing resolution data
+    // Entries without resolution (e.g., NMR structures) are sorted to the end
+    pdbIds.sort((a, b) => {
+      const resA = pdbInfo[a]?.resolution
+      const resB = pdbInfo[b]?.resolution
+
+      // If both have resolution, sort by value (lower is better)
+      if (resA !== undefined && resB !== undefined) {
+        return resA - resB
+      }
+      // If only A has resolution, it comes first
+      if (resA !== undefined) return -1
+      // If only B has resolution, it comes first
+      if (resB !== undefined) return 1
+      // If neither has resolution, maintain original order
+      return 0
+    })
 
     // Populate dropdown
     pdbIds.forEach((id) => {
-      select.append($("<option>", { value: id }).html(`${id} (${pdbInfo[id].resolution} Å)`))
+      const resolution = pdbInfo[id]?.resolution
+      const displayText =
+        resolution !== undefined ? `${id} (${resolution.toFixed(2)} Å)` : `${id} (resolution N/A)`
+      select.append($("<option>", { value: id }).html(displayText))
     })
 
     initLiteMol("#litemol-viewer", select)

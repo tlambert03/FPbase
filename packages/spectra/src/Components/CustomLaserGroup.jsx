@@ -1,68 +1,67 @@
-import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
 import React, { useEffect, useRef, useState } from "react"
-import { GET_EX_NORM, SET_EX_NORM, UPDATE_ACTIVE_SPECTRA } from "../client/queries"
+import { useSpectraStore } from "../store/spectraStore"
 import CustomLaserCreator from "./CustomLaserCreator"
 import { categoryIcon } from "./FaIcon"
 
-const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra }) {
+const CustomLaserGroup = React.memo(function CustomLaserGroup({
+  activeSpectra,
+  showAddButton = true,
+}) {
   const laserCounter = useRef(0)
   const [customLasers, setLasers] = useState([])
-  const [updateSpectra] = useMutation(UPDATE_ACTIVE_SPECTRA)
-  const {
-    data: {
-      exNorm: [, normID],
-    },
-  } = useQuery(GET_EX_NORM)
+  const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
+  const addCustomLaser = useSpectraStore((state) => state.addCustomLaser)
+  const removeCustomLaser = useSpectraStore((state) => state.removeCustomLaser)
+  const exNorm = useSpectraStore((state) => state.exNorm)
+  const setExNormStore = useSpectraStore((state) => state.setExNorm)
+  const normID = exNorm?.[1]
 
-  const client = useApolloClient()
-  const setExNorm = React.useCallback(
-    (data) => client.mutate({ mutation: SET_EX_NORM, variables: { data } }),
-    [client]
-  )
+  const setExNorm = React.useCallback((data) => setExNormStore(data), [setExNormStore])
 
-  const clearNorm = React.useCallback(
-    () =>
-      client.mutate({
-        mutation: SET_EX_NORM,
-        variables: { data: [null, null] },
-      }),
-    [client]
-  )
+  const clearNorm = React.useCallback(() => setExNormStore([null, null]), [setExNormStore])
 
+  // Sync with activeSpectra (bidirectional: detect additions AND removals)
   useEffect(() => {
-    if (activeSpectra && activeSpectra.length > 0) {
-      const newLasers = activeSpectra.filter(
-        (as) =>
-          as.startsWith("$cl") && !customLasers.find((item) => item.startsWith(as.split("_")[0]))
-      )
-      if (newLasers.length) {
-        const inds = newLasers.map((id) => +id.split("_")[0].replace("$cl", ""))
-        laserCounter.current = Math.max(...inds) + 1
-        setLasers([...customLasers, ...newLasers])
-      }
+    const activeLasers = activeSpectra.filter((id) => id.startsWith("$cl"))
+
+    // Detect new lasers added from URL
+    const newLasers = activeLasers.filter((id) => !customLasers.includes(id))
+    if (newLasers.length) {
+      const inds = newLasers.map((id) => Number.parseInt(id.replace("$cl", ""), 10))
+      laserCounter.current = Math.max(...inds, laserCounter.current) + 1
+    }
+
+    // Detect removed lasers (e.g., from clearAllSpectra)
+    const removedLasers = customLasers.filter((id) => !activeLasers.includes(id))
+
+    // Update local state if there are changes
+    if (newLasers.length > 0 || removedLasers.length > 0) {
+      setLasers(activeLasers)
     }
   }, [activeSpectra, customLasers]) // eslint-disable-line
 
   const addRow = () => {
-    setLasers([...customLasers, `$cl${laserCounter.current++}`])
+    const newId = `$cl${laserCounter.current++}`
+    // Add to store with default params
+    addCustomLaser(newId, { wavelength: 488 })
+    // Add to active spectra
+    updateActiveSpectra([newId])
+    // Add to local list
+    setLasers([...customLasers, newId])
   }
 
-  const removeRow = (laser) => {
-    const laserID = laser.split("_")[0]
-    if (laserID === normID) {
-      clearNorm()
-    }
-    setLasers(customLasers.filter((id) => !id.startsWith(laserID)))
-    updateSpectra({
-      variables: {
-        remove: [laserID],
-      },
-    })
+  const removeRow = (laserId) => {
+    // Remove from local list
+    setLasers(customLasers.filter((id) => id !== laserId))
+    // Remove from store (this automatically clears exNorm if needed)
+    removeCustomLaser(laserId)
+    // Remove from active spectra
+    updateActiveSpectra([], [laserId])
   }
 
   return (
@@ -81,7 +80,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
             })}
             <Box flexGrow={1}>
               <CustomLaserCreator
-                key={laser.split("_")[0]}
+                key={laser}
                 id={laser}
                 setExNorm={setExNorm}
                 clearNorm={clearNorm}
@@ -106,15 +105,17 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({ activeSpectra })
           </Box>
         </div>
       ))}
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => addRow()}
-        style={{ marginTop: 8, marginLeft: 34 }}
-      >
-        <AddIcon />
-        {`Add Laser`}
-      </Button>
+      {showAddButton && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => addRow()}
+          style={{ marginTop: 8, marginLeft: 34 }}
+        >
+          <AddIcon />
+          {`Add Laser`}
+        </Button>
+      )}
     </div>
   )
 })

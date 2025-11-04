@@ -1,15 +1,25 @@
-import { useApolloClient, useMutation, useQuery } from "@apollo/client"
 import SaveAlt from "@mui/icons-material/SaveAlt"
 import Shuffle from "@mui/icons-material/Shuffle"
-import { Box, IconButton, Typography } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Toolbar,
+  Typography,
+} from "@mui/material"
 import Button from "@mui/material/Button"
 import { makeStyles } from "@mui/styles"
-import gql from "graphql-tag"
-import { MaterialReactTable } from "material-react-table"
 import React, { useEffect, useMemo, useState } from "react"
-import { GET_ACTIVE_OVERLAPS } from "../client/queries"
-import { trapz } from "../util"
-import useSpectralData from "./useSpectraData"
+import useSpectralData from "../hooks/useSpectraData"
+import { useSpectraStore } from "../store/spectraStore"
+import { computeOverlap } from "../utils/spectraUtils"
 
 class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(_error) {
@@ -32,83 +42,52 @@ const useStyles = makeStyles((_theme) => ({
   description: {
     padding: "8px 20px",
   },
+  toolbar: {
+    display: "flex",
+    gap: "1rem",
+    alignItems: "center",
+    padding: "8px 16px",
+  },
 }))
 
-window.OverlapCache = {}
+/**
+ * Get or compute overlap spectrum with caching
+ * Uses shared computeOverlap utility and spectraStore cache
+ */
+function getOverlap(store, ...spectra) {
+  // Generate consistent ID for caching
+  const sorted = [...spectra].sort((a, b) => {
+    const aId = a.customId || a.id
+    const bId = b.customId || b.id
+    return String(aId).localeCompare(String(bId))
+  })
+  const idString = sorted.map((s) => s.customId || s.id).join("_")
 
-function numStringSort(a, b) {
-  if (Number.isNaN(parseFloat(a))) {
-    if (Number.isNaN(parseFloat(b))) {
-      return a - b
-    }
-    return -1
-  }
-  return a - b
-}
+  // Check cache first
+  const cached = store.overlapCache[idString]
+  if (cached) return cached
 
-function spectraProduct(ar1, ar2) {
-  // calculate product of two spectra.values
-  // these assume monotonic increase w/ step = 1
-  const output = []
-  const left = Math.max(ar1[0][0], ar2[0][0]) // the min wavelength shared by both arrays
-  const right = Math.min(ar1[ar1.length - 1][0], ar2[ar2.length - 1][0]) // the max wavelength shared by both arrays
-  if (left >= right) return []
-
-  const offsetA1 = left - ar1[0][0]
-  const offsetA2 = left - ar2[0][0]
-  for (let i = 0; i < right - left; i++) {
-    output.push([left + i, ar1[offsetA1 + i][1] * ar2[offsetA2 + i][1]])
-  }
-  return output
-}
-
-function getOverlap(...args) {
-  const idString = args
-    .map((arg) => arg.customId || arg.id)
-    .sort(numStringSort)
-    .join("_")
-
-  const ownerName = args.map(({ owner }) => owner.name).join(" & ")
-  const ownerID = args
-    .map(({ owner }) => owner.id)
-    .sort(numStringSort)
-    .join("_")
-  const qy = args.reduce((acc, next) => next.owner.qy || acc, null)
-  const slug = args.reduce(
-    (acc, next) => (["P", "D"].includes(next.category) ? next.owner.slug : acc),
-    null
-  )
-
-  if (!(idString in window.OverlapCache)) {
-    const product = spectraProduct(...args.map(({ data }) => data))
-    window.OverlapCache[idString] = {
-      data: product,
-      area: trapz(product),
-      id: idString,
-      category: "O",
-      subtype: "O",
-      color: "#000000",
-      owner: { id: ownerID, name: ownerName, qy, slug },
-    }
-  }
-  return window.OverlapCache[idString]
+  // Compute and cache
+  const overlap = computeOverlap(...spectra)
+  store.setOverlapCache(idString, overlap)
+  return overlap
 }
 
 const EfficiencyTable = ({ initialTranspose }) => {
   const [transposed, setTransposed] = useState(initialTranspose)
   const [rows, setRows] = useState([])
+  const [orderBy, setOrderBy] = useState("field")
+  const [order, setOrder] = useState("asc")
   const classes = useStyles()
   const spectraData = useSpectralData()
-  const client = useApolloClient()
+  const setActiveOverlaps = useSpectraStore((state) => state.setActiveOverlaps)
+  const spectraStore = useSpectraStore()
 
   useEffect(() => {
     return () => {
-      client.writeQuery({
-        query: GET_ACTIVE_OVERLAPS,
-        data: { activeOverlaps: [] },
-      })
+      setActiveOverlaps([])
     }
-  }, [client])
+  }, [setActiveOverlaps])
 
   // Generate table data
   useEffect(() => {
@@ -136,7 +115,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
           _transposed: transposed,
         }
         colItems.forEach((colItem) => {
-          const overlap = getOverlap(rowItem, colItem)
+          const overlap = getOverlap(spectraStore, rowItem, colItem)
           const fluor = transposed ? rowItem : colItem
           row[colItem.owner.id] = ((100 * overlap.area) / fluor.area).toFixed(1)
           row[`${colItem.owner.id}_overlapID`] = overlap.id
@@ -147,7 +126,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
     }
 
     updateTableData()
-  }, [spectraData, transposed])
+  }, [spectraData, transposed, spectraStore])
 
   // Generate columns using useMemo
   const columns = useMemo(() => {
@@ -172,15 +151,60 @@ const EfficiencyTable = ({ initialTranspose }) => {
         accessorKey: owner.id,
         header: owner.name,
         size: 100,
-        Cell: ({ row }) => {
-          const overlapID = row.original[`${owner.id}_overlapID`]
-          return <OverlapToggle id={overlapID}>{row.original[owner.id]}</OverlapToggle>
-        },
       })
     })
 
     return cols
   }, [spectraData, transposed, rows.length])
+
+  // Sorting logic
+  const handleSort = (columnId) => {
+    const isAsc = orderBy === columnId && order === "asc"
+    setOrder(isAsc ? "desc" : "asc")
+    setOrderBy(columnId)
+  }
+
+  const sortedRows = useMemo(() => {
+    if (!orderBy) return rows
+
+    return [...rows].sort((a, b) => {
+      const aValue = a[orderBy]
+      const bValue = b[orderBy]
+
+      // Handle numeric values
+      const aNum = Number.parseFloat(aValue)
+      const bNum = Number.parseFloat(bValue)
+      if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+        return order === "asc" ? aNum - bNum : bNum - aNum
+      }
+
+      // Handle string values
+      const aStr = String(aValue || "")
+      const bStr = String(bValue || "")
+      const comparison = aStr.localeCompare(bStr)
+      return order === "asc" ? comparison : -comparison
+    })
+  }, [rows, orderBy, order])
+
+  // CSV Export
+  const handleExportCSV = () => {
+    const csvContent = [
+      // Header row
+      columns
+        .map((col) => col.header)
+        .join(","),
+      // Data rows
+      ...sortedRows.map((row) => columns.map((col) => row[col.accessorKey] || "").join(",")),
+    ].join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv" })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "efficiency-table.csv"
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
 
   if (rows.length < 1 || columns.length < 2) {
     return (
@@ -198,60 +222,54 @@ const EfficiencyTable = ({ initialTranspose }) => {
   return (
     <Box className="efficiency-table">
       <ErrorBoundary>
-        <MaterialReactTable
-          columns={columns}
-          data={rows}
-          enablePagination={false}
-          enableColumnActions={false}
-          enableTopToolbar={true}
-          enableBottomToolbar={false}
-          enableSorting={true}
-          enableFilters={false}
-          enableGlobalFilter={false}
-          muiTableProps={{
-            sx: {
-              tableLayout: "auto",
-            },
-          }}
-          muiTableBodyCellProps={{
-            sx: {
-              fontSize: "1rem",
-            },
-          }}
-          renderTopToolbarCustomActions={() => (
-            <Box sx={{ display: "flex", gap: "1rem", alignItems: "center", p: 1 }}>
-              <Typography variant="h6">Collection Efficiency (%)</Typography>
-              <IconButton onClick={() => setTransposed((prev) => !prev)} title="Transpose">
-                <Shuffle />
-              </IconButton>
-              <IconButton
-                onClick={() => {
-                  const csvContent = [
-                    // Header row
-                    columns
-                      .map((col) => col.header)
-                      .join(","),
-                    // Data rows
-                    ...rows.map((row) =>
-                      columns.map((col) => row[col.accessorKey] || "").join(",")
-                    ),
-                  ].join("\n")
+        <Paper>
+          <Toolbar className={classes.toolbar}>
+            <Typography variant="h6">Collection Efficiency (%)</Typography>
+            <IconButton onClick={() => setTransposed((prev) => !prev)} title="Transpose">
+              <Shuffle />
+            </IconButton>
+            <IconButton onClick={handleExportCSV} title="Export to CSV">
+              <SaveAlt />
+            </IconButton>
+          </Toolbar>
 
-                  const blob = new Blob([csvContent], { type: "text/csv" })
-                  const url = window.URL.createObjectURL(blob)
-                  const a = document.createElement("a")
-                  a.href = url
-                  a.download = "efficiency-table.csv"
-                  a.click()
-                  window.URL.revokeObjectURL(url)
-                }}
-                title="Export to CSV"
-              >
-                <SaveAlt />
-              </IconButton>
-            </Box>
-          )}
-        />
+          <TableContainer>
+            <Table className={classes.table} sx={{ tableLayout: "auto" }} size="small">
+              <TableHead>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell key={column.accessorKey} sx={{ width: column.size }}>
+                      <TableSortLabel
+                        active={orderBy === column.accessorKey}
+                        direction={orderBy === column.accessorKey ? order : "asc"}
+                        onClick={() => handleSort(column.accessorKey)}
+                      >
+                        {column.header}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedRows.map((row) => (
+                  <TableRow key={row.field} hover>
+                    {columns.map((column) => (
+                      <TableCell key={column.accessorKey} sx={{ fontSize: "1rem" }}>
+                        {column.accessorKey === "field" ? (
+                          row[column.accessorKey]
+                        ) : (
+                          <OverlapToggle id={row[`${column.accessorKey}_overlapID`]}>
+                            {row[column.accessorKey]}
+                          </OverlapToggle>
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
       </ErrorBoundary>
     </Box>
   )
@@ -259,25 +277,20 @@ const EfficiencyTable = ({ initialTranspose }) => {
 
 const OverlapToggle = ({ children, id, isActive }) => {
   const [active, setActive] = useState(isActive)
-  const {
-    data: { activeOverlaps },
-  } = useQuery(GET_ACTIVE_OVERLAPS)
+  const activeOverlaps = useSpectraStore((state) => state.activeOverlaps)
+  const updateActiveOverlaps = useSpectraStore((state) => state.updateActiveOverlaps)
 
   useEffect(() => {
     setActive(activeOverlaps.includes(id))
   }, [activeOverlaps, id])
 
-  const [setOverlaps] = useMutation(gql`
-    mutation updateActiveOverlaps($add: [String], $remove: [String]) {
-      updateActiveOverlaps(add: $add, remove: $remove) @client
-    }
-  `)
-
   const handleClick = () => {
     const checked = !active
-    const variables = {}
-    variables[checked ? "add" : "remove"] = [id]
-    setOverlaps({ variables })
+    if (checked) {
+      updateActiveOverlaps([id])
+    } else {
+      updateActiveOverlaps(undefined, [id])
+    }
     setActive(checked)
   }
 

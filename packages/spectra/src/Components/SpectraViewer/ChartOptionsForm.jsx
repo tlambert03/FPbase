@@ -1,36 +1,45 @@
-import { useMutation, useQuery } from "@apollo/client"
 import Grid from "@mui/material/Grid"
 import List from "@mui/material/List"
 import MenuItem from "@mui/material/MenuItem"
 import Select from "@mui/material/Select"
-import gql from "graphql-tag"
-import { memo } from "react"
-import { GET_CHART_OPTIONS } from "../../client/queries"
+import { memo, useCallback } from "react"
 import PALETTES from "../../palettes"
+import { useSpectraStore } from "../../store/spectraStore"
 import ListCheckbox from "../ListCheckbox"
 
-const toggleMut = (param) => gql`
-mutation Toggle${param} {
-  toggle${param} @client
-}
-`
-const MUTATE_PALETTE = gql`
-  mutation SetPalette($palette: String!) {
-    setPalette(palette: $palette) @client
-  }
-`
-
 const ChartOptionsForm = memo(function ChartOptionsForm() {
-  const [toggleY] = useMutation(toggleMut("YAxis"))
-  const [toggleX] = useMutation(toggleMut("XAxis"))
-  const [toggleGrid] = useMutation(toggleMut("Grid"))
-  const [toggleScaleEC] = useMutation(toggleMut("ScaleEC"))
-  const [toggleScaleQY] = useMutation(toggleMut("ScaleQY"))
-  const [toggleShareTooltip] = useMutation(toggleMut("ShareTooltip"))
-  const [toggleAreaFill] = useMutation(toggleMut("AreaFill"))
-  const [mutatePalette] = useMutation(MUTATE_PALETTE)
-  const { data } = useQuery(GET_CHART_OPTIONS)
-  const chartOptions = data?.chartOptions
+  const chartOptions = useSpectraStore((state) => state.chartOptions)
+  const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+
+  const toggleY = useCallback(
+    () => updateChartOptions({ showY: !chartOptions.showY }),
+    [chartOptions.showY, updateChartOptions]
+  )
+  const toggleX = useCallback(
+    () => updateChartOptions({ showX: !chartOptions.showX }),
+    [chartOptions.showX, updateChartOptions]
+  )
+  const toggleGrid = useCallback(
+    () => updateChartOptions({ showGrid: !chartOptions.showGrid }),
+    [chartOptions.showGrid, updateChartOptions]
+  )
+  const toggleScaleEC = useCallback(
+    () => updateChartOptions({ scaleEC: !chartOptions.scaleEC }),
+    [chartOptions.scaleEC, updateChartOptions]
+  )
+  const toggleScaleQY = useCallback(
+    () => updateChartOptions({ scaleQY: !chartOptions.scaleQY }),
+    [chartOptions.scaleQY, updateChartOptions]
+  )
+  const toggleShareTooltip = useCallback(
+    () => updateChartOptions({ shareTooltip: !chartOptions.shareTooltip }),
+    [chartOptions.shareTooltip, updateChartOptions]
+  )
+  const toggleAreaFill = useCallback(
+    () => updateChartOptions({ areaFill: !chartOptions.areaFill }),
+    [chartOptions.areaFill, updateChartOptions]
+  )
+  const setPalette = useCallback((palette) => updateChartOptions({ palette }), [updateChartOptions])
 
   if (!chartOptions) return null
 
@@ -114,7 +123,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             <span style={{ marginRight: 14, marginLeft: 14 }}>Color palette:</span>
             <Select
               value={chartOptions.palette}
-              onChange={(e) => mutatePalette({ variables: { palette: e.target.value } })}
+              onChange={(e) => setPalette(e.target.value)}
               inputProps={{
                 name: "color-palette",
                 id: "color-palette-select",

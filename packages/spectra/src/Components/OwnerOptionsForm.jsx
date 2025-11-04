@@ -1,24 +1,20 @@
-import { useMutation, useQuery } from "@apollo/client"
 import { Box } from "@mui/material"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
-import gql from "graphql-tag"
-import { GET_OWNER_OPTIONS } from "../client/queries"
-
-const MUTATE_OWNER_OPTIONS = gql`
-  mutation SetExcludeSubtypes($subtypes: [String]) {
-    setExcludeSubtypes(excludeSubtypes: $subtypes) @client
-  }
-`
+import { useCallback } from "react"
+import { useSpectraStore } from "../store/spectraStore"
 
 const OwnerOptionsForm = () => {
-  const [setSubtypes] = useMutation(MUTATE_OWNER_OPTIONS)
-  const { data } = useQuery(GET_OWNER_OPTIONS)
-  const excludeSubtypes = data?.excludeSubtypes || []
+  const excludeSubtypes = useSpectraStore((state) => state.excludeSubtypes)
+  const setExcludeSubtypes = useSpectraStore((state) => state.setExcludeSubtypes)
 
-  const handleChange = (_e, subtypes) => {
-    setSubtypes({ variables: { subtypes } })
-  }
+  const handleChange = useCallback(
+    (_e, subtypes) => {
+      setExcludeSubtypes(subtypes)
+    },
+    [setExcludeSubtypes]
+  )
+
   return (
     <Box style={{ marginTop: 8 }}>
       <span style={{ marginRight: 8 }}>Exclude subtypes:</span>
