@@ -16,26 +16,35 @@ export const useSpectraStore = create<SpectraStore>()(
       customFilters: {},
       customLasers: {},
       overlapCache: {}, // Computed data, not persisted (see partialize)
-      hasLoadedFromUrl: false,
+      _urlInitialized: false,
 
       // Spectra management
       setActiveSpectra: (ids) => set({ activeSpectra: ids }),
 
       updateActiveSpectra: (add = [], remove = []) =>
         set((state) => {
-          const activeSet = new Set(state.activeSpectra)
+          let newSpectra = [...state.activeSpectra]
 
-          for (const id of remove) activeSet.delete(id)
-          for (const id of add) activeSet.add(id)
+          // Remove spectra
+          if (remove.length > 0) {
+            newSpectra = newSpectra.filter((id) => !remove.includes(id))
+          }
 
-          const newSpectra = [...activeSet]
+          // Add spectra (avoid duplicates)
+          if (add.length > 0) {
+            const toAdd = add.filter((id) => !newSpectra.includes(id))
+            newSpectra = [...newSpectra, ...toAdd]
+          }
 
           // Auto-cleanup: clear exNorm if removing the normed spectrum
-          const shouldClearExNorm = state.exNorm?.[1] && remove.includes(state.exNorm[1])
+          const newExNorm =
+            remove.length > 0 && state.exNorm?.[1] && remove.includes(state.exNorm[1])
+              ? defaults.exNorm
+              : state.exNorm
 
           return {
             activeSpectra: newSpectra,
-            exNorm: shouldClearExNorm ? defaults.exNorm : state.exNorm,
+            exNorm: newExNorm,
           }
         }),
 
@@ -168,7 +177,7 @@ export const useSpectraStore = create<SpectraStore>()(
         }),
 
       // URL initialization tracking
-      setUrlInitialized: (value) => set({ hasLoadedFromUrl: value }),
+      setUrlInitialized: (value) => set({ _urlInitialized: value }),
 
       // Atomically replace state (single render, no mixing with existing state)
       replace: (state) =>
@@ -184,14 +193,14 @@ export const useSpectraStore = create<SpectraStore>()(
           customFilters: state.customFilters ?? {},
           customLasers: state.customLasers ?? {},
           overlapCache: state.overlapCache ?? {},
-          hasLoadedFromUrl: state.hasLoadedFromUrl ?? false,
+          _urlInitialized: state._urlInitialized ?? false,
         }),
     }),
     {
       name: "fpbase-spectra-storage",
       version: 1, // Increment this to invalidate old stored state
       storage: createJSONStorage(() => sessionStorage),
-      // Only persist certain fields (hasLoadedFromUrl is intentionally excluded)
+      // Only persist certain fields (_urlInitialized is intentionally excluded)
       partialize: (state) => ({
         activeSpectra: state.activeSpectra,
         hiddenSpectra: state.hiddenSpectra,

@@ -187,7 +187,7 @@ export interface SpectraState {
   overlapCache: Record<string, Spectrum>
 
   // URL initialization tracking (not persisted)
-  hasLoadedFromUrl: boolean
+  _urlInitialized: boolean
 }
 
 // Actions
@@ -243,7 +243,7 @@ export interface SpectraActions {
     customFilters?: Record<string, CustomFilterParams>
     customLasers?: Record<string, CustomLaserParams>
     overlapCache?: Record<string, Spectrum>
-    hasLoadedFromUrl?: boolean
+    _urlInitialized?: boolean
   }) => void
 }
 

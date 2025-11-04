@@ -19,7 +19,7 @@ import { makeStyles } from "@mui/styles"
 import React, { useEffect, useMemo, useState } from "react"
 import useSpectralData from "../hooks/useSpectraData"
 import { useSpectraStore } from "../store/spectraStore"
-import { computeOverlap, sortSpectraById } from "../utils/spectraUtils"
+import { computeOverlap } from "../utils/spectraUtils"
 
 class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(_error) {
@@ -56,7 +56,11 @@ const useStyles = makeStyles((_theme) => ({
  */
 function getOverlap(store, ...spectra) {
   // Generate consistent ID for caching
-  const sorted = sortSpectraById(spectra)
+  const sorted = [...spectra].sort((a, b) => {
+    const aId = a.customId || a.id
+    const bId = b.customId || b.id
+    return String(aId).localeCompare(String(bId))
+  })
   const idString = sorted.map((s) => s.customId || s.id).join("_")
 
   // Check cache first
@@ -207,8 +211,9 @@ const EfficiencyTable = ({ initialTranspose }) => {
       <div className={classes.description}>
         <Typography variant="h6">Efficiency Table</Typography>
         <Typography variant="body1">
-          Add at least one filter and one fluorophore, and this tab will show a table of collection
-          efficiency (sometimes called "spillover") for each filter/fluorophore combination.
+          Add at least on filter and one fluorophore, and this tab will show a table of collection
+          efficiency (sometimes called &quot;spillover&quot;) for each filter/fluorophore
+          combination
         </Typography>
       </div>
     )
@@ -289,9 +294,6 @@ const OverlapToggle = ({ children, id, isActive }) => {
     setActive(checked)
   }
 
-  const value = Number(children)
-  const color = value > 50 ? "primary" : value > 5 ? "inherit" : "secondary"
-
   return (
     <Button
       size="small"
@@ -299,7 +301,7 @@ const OverlapToggle = ({ children, id, isActive }) => {
       value={id}
       checked={active}
       variant={active ? "contained" : "outlined"}
-      color={color}
+      color={+children > 50 ? "primary" : +children > 5 ? "inherit" : "secondary"}
     >
       {children}
     </Button>

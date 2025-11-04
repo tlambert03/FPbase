@@ -69,7 +69,14 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
 
   // Safely extract normWave from exNorm array, handling non-array values
   // exNorm should be [normWave, normID] but may be corrupted/malformed
-  const normWave = provideOptions ? undefined : (storeExNorm?.[0] ?? null)
+  let normWave
+  if (provideOptions) {
+    normWave = undefined
+  } else if (Array.isArray(storeExNorm)) {
+    ;[normWave] = storeExNorm
+  } else {
+    normWave = null
+  }
 
   const yAxis = {
     ..._yAxis,
@@ -120,13 +127,11 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
 }) {
   const windowWidth = useWindowWidth()
   const numSpectra = data.length
-  const owners = [...new Set(data.map((item) => item.owner?.slug).filter(Boolean))]
-
-  const [exData, nonExData] = data.reduce(
-    ([ex, nonEx], item) =>
-      ["EX", "AB"].includes(item.subtype) ? [[...ex, item], nonEx] : [ex, [...nonEx, item]],
-    [[], []]
-  )
+  const owners = [
+    ...new Set(data.map((item) => item.owner?.slug).filter((slug) => slug !== undefined)),
+  ]
+  const exData = data.filter((i) => i.subtype === "EX" || i.subtype === "AB")
+  const nonExData = data.filter((i) => i.subtype !== "EX" && i.subtype !== "AB")
 
   const height = calcHeight(windowWidth) * (chartOptions.height || 1)
   let showPickers = numSpectra > 0 && !chartOptions.simpleMode
@@ -288,17 +293,8 @@ export const XAxisWithRange = memo(function XAxisWithRange({ options, showPicker
 })
 
 const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerInfo }) {
-  if (!Object.keys(ownerInfo).length) return null
-
-  const parts = []
-  if (ecNorm) parts.push("EX NORMED TO EXT COEFF")
-  if (exNorm || qyNorm) parts.push("EM NORMED TO")
-  if (exNorm) parts.push(`${exNorm} EX`)
-  if (qyNorm) parts.push("QY")
-
-  const message = parts.join(" & ")
-  if (!message) return null
-
+  const exNormed = ecNorm && Object.keys(ownerInfo).length > 0
+  const emNormed = (exNorm || qyNorm) && Object.keys(ownerInfo).length > 0
   return (
     <div
       style={{
@@ -312,7 +308,10 @@ const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerI
         height: 0,
       }}
     >
-      {message}
+      {exNormed ? `EX NORMED TO EXT COEFF ${emNormed ? " & " : ""}` : ""}
+      {emNormed && "EM NORMED TO "}
+      {exNorm ? `${exNorm} EX${qyNorm ? " & " : ""}` : ""}
+      {qyNorm && "QY"}
     </div>
   )
 })

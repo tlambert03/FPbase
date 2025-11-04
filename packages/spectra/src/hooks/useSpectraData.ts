@@ -126,19 +126,27 @@ function computeVisibleSpectra(
   const customIds = activeSpectra.filter((id) => id?.startsWith("$c"))
 
   // Generate custom spectra from stored parameters
-  const customSpectra: Spectrum[] = customIds.flatMap((id) => {
-    if (id.startsWith("$cf")) {
-      const params = customFilters[id]
-      return params
-        ? [generateCustomFilter(id, params.type, params.center, params.width, params.transmission)]
-        : []
-    }
-    if (id.startsWith("$cl")) {
-      const params = customLasers[id]
-      return params ? [generateCustomLaser(id, params.wavelength)] : []
-    }
-    return []
-  })
+  const customSpectra: Spectrum[] = customIds
+    .map((id) => {
+      if (id.startsWith("$cf")) {
+        const params = customFilters[id]
+        if (!params) return null
+        return generateCustomFilter(
+          id,
+          params.type,
+          params.center,
+          params.width,
+          params.transmission
+        )
+      }
+      if (id.startsWith("$cl")) {
+        const params = customLasers[id]
+        if (!params) return null
+        return generateCustomLaser(id, params.wavelength)
+      }
+      return null
+    })
+    .filter((s): s is Spectrum => s !== null)
 
   // Add area calculation to API spectra
   const apiSpectraWithArea: Spectrum[] = (apiSpectra || []).map((s) => ({
