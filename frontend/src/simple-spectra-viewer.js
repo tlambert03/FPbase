@@ -15,15 +15,40 @@ const elem = document.getElementById("spectra-viewer")
 
 window.addEventListener("load", () => {
   const root = createRoot(elem)
+
+  // Check if data attributes are present (protein_detail.html)
+  const hasDataAttrs = elem.hasAttribute("data-spectra")
+
+  let props
+  if (hasDataAttrs) {
+    // Use data attributes from template (protein_detail.html, compare.html)
+    // CRITICAL: This ensures protein pages always show their specific spectra,
+    // ignoring any URL params or session storage
+
+    // Parse and ensure IDs are strings (Django templates may output numbers)
+    const activeSpectra = JSON.parse(elem.getAttribute("data-spectra")).map(String)
+    const hiddenSpectra = (JSON.parse(elem.getAttribute("data-hidden")) || []).map(String)
+
+    props = {
+      state: {
+        activeSpectra,
+        hiddenSpectra,
+        chartOptions: JSON.parse(elem.getAttribute("data-options")),
+      },
+      fromUrl: false,
+    }
+  } else {
+    // No data attributes - load from URL (spectra_graph.html)
+    props = {
+      fromUrl: true,
+    }
+  }
+
   root.render(
     createElement(
       SentryErrorBoundary,
       { name: "SimpleSpectraViewer" },
-      createElement(SimpleSpectraViewer, {
-        ids: JSON.parse(elem.getAttribute("data-spectra")),
-        options: JSON.parse(elem.getAttribute("data-options")),
-        hidden: JSON.parse(elem.getAttribute("data-hidden")) || [],
-      })
+      createElement(SimpleSpectraViewer, props)
     )
   )
 })

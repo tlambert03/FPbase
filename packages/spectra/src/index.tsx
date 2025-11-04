@@ -5,10 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import App from "./App"
 import { SpectraViewerContainer } from "./Components/SpectraViewer"
 import theme from "./Components/theme"
-import { defaultChartOptions } from "./defaults"
 import { queryClientConfig } from "./hooks/useSpectraQueries"
-import { useSpectraStore } from "./store/spectraStore"
-import type { ChartOptions } from "./types"
+import type { SpectraState } from "./types"
+import { parseURLParams } from "./utils/urlParams"
 
 // Lazy load devtools only in development - completely excluded from production bundle
 const ReactQueryDevtools =
@@ -41,59 +40,45 @@ const AppWrapper = () => {
 
 export default AppWrapper
 
-interface SimpleSpectraViewerProps {
-  ids?: string[] | number[]
-  overlaps?: string[] | number[]
-  options?: Partial<ChartOptions>
-  hidden?: string[] | number[]
-}
-
-const SimpleSpectraViewer = ({ ids, overlaps, options, hidden }: SimpleSpectraViewerProps) => {
+/**
+ * SimpleSpectraViewer - A simplified, view-only version of the spectra viewer.
+ *
+ * Usage:
+ * - `<SimpleSpectraViewer />` or `<SimpleSpectraViewer fromUrl />` - loads from URL (default)
+ * - `<SimpleSpectraViewer state={{activeSpectra: ['1', '2'], ...}} />` - uses provided state
+ *
+ * This component is used for embedding (e.g., spectra_graph.html) and has no UI controls.
+ * Must provide EITHER state OR fromUrl, but not both.
+ *
+ * CRITICAL: This component does NOT use the session-persisted store. It passes state
+ * directly to SpectraViewerContainer via props to remain completely isolated and
+ * side-effect-free. This ensures navigating to the full app doesn't inherit state.
+ */
+const SimpleSpectraViewer = ({
+  state,
+  fromUrl = true,
+}: {
+  state?: Partial<SpectraState>
+  fromUrl?: boolean
+}) => {
   const queryClient = useMemo(() => new QueryClient(queryClientConfig), [])
+
+  // Determine what state to use (does not modify store)
+  if (state && fromUrl) {
+    throw new Error("SimpleSpectraViewer: Cannot provide both 'state' and 'fromUrl=true'")
+  }
+
+  const viewerState = state || (fromUrl ? parseURLParams(window.location.search) : {})
 
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
-          <Inner ids={ids} overlaps={overlaps} options={options} hidden={hidden} />
+          <SpectraViewerContainer provideState={viewerState as Partial<SpectraState>} />
           {/* Devtools disabled for SimpleSpectraViewer to prevent unwanted padding-bottom */}
         </QueryClientProvider>
       </ThemeProvider>
     </StyledEngineProvider>
-  )
-}
-
-interface InnerProps {
-  ids?: string[] | number[]
-  overlaps?: string[] | number[]
-  options?: Partial<ChartOptions>
-  hidden?: string[] | number[]
-}
-
-const Inner = ({ ids, overlaps, options, hidden }: InnerProps) => {
-  // Normalize inputs
-  let normalizedIds = Array.isArray(ids) ? ids.map(String) : []
-  const normalizedOverlaps = Array.isArray(overlaps) ? overlaps.map(String) : []
-  const normalizedHidden = Array.isArray(hidden) ? hidden.map(String) : []
-
-  // Start with default chart options and merge provided options on top
-  let normalizedOptions = { ...defaultChartOptions, ...options }
-
-  // If no IDs provided, use store's state (may be from URL or session storage)
-  if (normalizedIds.length === 0) {
-    const store = useSpectraStore.getState()
-    normalizedIds = store.activeSpectra
-    // Use store's chart options (which may have been persisted/modified)
-    normalizedOptions = { ...store.chartOptions, ...options }
-  }
-
-  return (
-    <SpectraViewerContainer
-      provideSpectra={normalizedIds}
-      provideOverlaps={normalizedOverlaps}
-      provideOptions={normalizedOptions}
-      provideHidden={normalizedHidden}
-    />
   )
 }
 
