@@ -24,7 +24,7 @@ export const useStyles = makeStyles((theme) => ({
 const SettingsDrawer = () => {
   const classes = useStyles()
   const [drawerOpen, setDrawerOpen] = React.useState(false)
-  const setActiveSpectra = useSpectraStore((state) => state.setActiveSpectra)
+  const clearAllSpectra = useSpectraStore((state) => state.clearAllSpectra)
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -49,7 +49,7 @@ const SettingsDrawer = () => {
   }, [drawerOpen])
 
   const handleClearForm = () => {
-    setActiveSpectra([])
+    clearAllSpectra()
     setDrawerOpen(false)
   }
   return (

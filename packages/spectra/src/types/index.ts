@@ -225,6 +225,9 @@ export interface SpectraActions {
   setOverlapCache: (id: string, spectrum: Spectrum) => void
   clearOverlapCache: () => void
 
+  // Clear all spectra and related state
+  clearAllSpectra: () => void
+
   // URL initialization tracking
   setUrlInitialized: (value: boolean) => void
 

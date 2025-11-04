@@ -25,17 +25,23 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({
 
   const clearNorm = React.useCallback(() => setExNormStore([null, null]), [setExNormStore])
 
-  // Sync with activeSpectra to detect lasers added from URL
+  // Sync with activeSpectra (bidirectional: detect additions AND removals)
   useEffect(() => {
-    if (activeSpectra && activeSpectra.length > 0) {
-      const newLasers = activeSpectra.filter(
-        (id) => id.startsWith("$cl") && !customLasers.includes(id)
-      )
-      if (newLasers.length) {
-        const inds = newLasers.map((id) => Number.parseInt(id.replace("$cl", ""), 10))
-        laserCounter.current = Math.max(...inds, laserCounter.current) + 1
-        setLasers([...customLasers, ...newLasers])
-      }
+    const activeLasers = activeSpectra.filter((id) => id.startsWith("$cl"))
+
+    // Detect new lasers added from URL
+    const newLasers = activeLasers.filter((id) => !customLasers.includes(id))
+    if (newLasers.length) {
+      const inds = newLasers.map((id) => Number.parseInt(id.replace("$cl", ""), 10))
+      laserCounter.current = Math.max(...inds, laserCounter.current) + 1
+    }
+
+    // Detect removed lasers (e.g., from clearAllSpectra)
+    const removedLasers = customLasers.filter((id) => !activeLasers.includes(id))
+
+    // Update local state if there are changes
+    if (newLasers.length > 0 || removedLasers.length > 0) {
+      setLasers(activeLasers)
     }
   }, [activeSpectra, customLasers]) // eslint-disable-line
 
@@ -50,12 +56,9 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({
   }
 
   const removeRow = (laserId) => {
-    if (laserId === normID) {
-      clearNorm()
-    }
     // Remove from local list
     setLasers(customLasers.filter((id) => id !== laserId))
-    // Remove from store
+    // Remove from store (this automatically clears exNorm if needed)
     removeCustomLaser(laserId)
     // Remove from active spectra
     updateActiveSpectra([], [laserId])

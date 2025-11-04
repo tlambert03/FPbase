@@ -15,17 +15,20 @@ const filterOptions = (query, label) => {
 
 const querySorter = (query) => {
   const lowerquery = query.trimRight().toLowerCase()
-  return function sortOptions(a, b) {
-    const alabel = a.label.replace(/^m/, "").toLowerCase()
-    const blabel = b.label.replace(/^m/, "").toLowerCase()
-    if (alabel.startsWith(lowerquery)) {
-      if (blabel.startsWith(lowerquery)) {
-        return alabel < blabel ? -1 : 1
-      }
-      return -1
-    }
-    if (blabel.startsWith(lowerquery)) return 1
-    return alabel < blabel ? -1 : 1
+  return (a, b) => {
+    const aLabel = a.label.toLowerCase()
+    const bLabel = b.label.toLowerCase()
+    const aStarts = aLabel.startsWith(lowerquery)
+    const bStarts = bLabel.startsWith(lowerquery)
+
+    // Prefix matches come first
+    if (aStarts !== bStarts) return aStarts ? -1 : 1
+
+    // Both match (or both don't): alphabetical sort
+    // Strip leading 'm' for fallback to group m-proteins together
+    const aSort = aStarts ? aLabel : aLabel.replace(/^m/, "")
+    const bSort = bStarts ? bLabel : bLabel.replace(/^m/, "")
+    return aSort < bSort ? -1 : 1
   }
 }
 

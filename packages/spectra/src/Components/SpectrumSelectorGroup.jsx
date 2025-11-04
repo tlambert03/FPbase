@@ -45,6 +45,8 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   // Optional map of extras to render after each category group in the "All" view
   // e.g. { F: <CustomFilterGroup ... />, L: <CustomLaserGroup ... /> }
   categoryExtras = {},
+  // Active spectra to check if custom items exist
+  activeSpectra = [],
 }) {
   const classes = useStyles()
   const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [selectors])
@@ -94,12 +96,23 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   }, [mySelectors])
 
   // Determine which categories have extras but no selectors
+  // Only show if the extras will actually render content
   const categoriesWithExtrasOnly = useMemo(() => {
     if (!category && Object.keys(categoryExtras).length > 0) {
-      return Object.keys(categoryExtras).filter((cat) => !renderedCategories.has(cat))
+      return Object.keys(categoryExtras).filter((cat) => {
+        // Only include category if it has no database selectors
+        if (renderedCategories.has(cat)) return false
+
+        // Check if there are custom items for this category
+        const prefix = cat === "F" ? "$cf" : cat === "L" ? "$cl" : null
+        if (!prefix) return false
+
+        // Only show header if there are active custom items with this prefix
+        return activeSpectra.some((id) => id.startsWith(prefix))
+      })
     }
     return []
-  }, [category, categoryExtras, renderedCategories])
+  }, [category, categoryExtras, renderedCategories, activeSpectra])
 
   return (
     <>

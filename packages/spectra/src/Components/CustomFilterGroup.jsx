@@ -34,18 +34,23 @@ const CustomFilterGroup = ({ activeSpectra, showAddButton = true }) => {
     updateActiveSpectra([], [filterId])
   }
 
-  // Sync with activeSpectra to detect filters added from URL
+  // Sync with activeSpectra (bidirectional: detect additions AND removals)
   useEffect(() => {
-    if (activeSpectra && activeSpectra.length > 0) {
-      const newFilters = activeSpectra.filter(
-        (id) => id.startsWith("$cf") && !customFilters.includes(id)
-      )
+    const activeFilters = activeSpectra.filter((id) => id.startsWith("$cf"))
 
-      if (newFilters.length) {
-        const inds = newFilters.map((id) => Number.parseInt(id.replace("$cf", ""), 10))
-        filterCounter.current = Math.max(...inds, filterCounter.current) + 1
-        setFilters([...customFilters, ...newFilters])
-      }
+    // Detect new filters added from URL
+    const newFilters = activeFilters.filter((id) => !customFilters.includes(id))
+    if (newFilters.length) {
+      const inds = newFilters.map((id) => Number.parseInt(id.replace("$cf", ""), 10))
+      filterCounter.current = Math.max(...inds, filterCounter.current) + 1
+    }
+
+    // Detect removed filters (e.g., from clearAllSpectra)
+    const removedFilters = customFilters.filter((id) => !activeFilters.includes(id))
+
+    // Update local state if there are changes
+    if (newFilters.length > 0 || removedFilters.length > 0) {
+      setFilters(activeFilters)
     }
   }, [activeSpectra, customFilters]) // eslint-disable-line
 

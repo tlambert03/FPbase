@@ -36,7 +36,16 @@ export const useSpectraStore = create<SpectraStore>()(
             newSpectra = [...newSpectra, ...toAdd]
           }
 
-          return { activeSpectra: newSpectra }
+          // Auto-cleanup: clear exNorm if removing the normed spectrum
+          const newExNorm =
+            remove.length > 0 && state.exNorm?.[1] && remove.includes(state.exNorm[1])
+              ? defaults.exNorm
+              : state.exNorm
+
+          return {
+            activeSpectra: newSpectra,
+            exNorm: newExNorm,
+          }
         }),
 
       // Overlaps management
@@ -137,7 +146,14 @@ export const useSpectraStore = create<SpectraStore>()(
       removeCustomLaser: (id) =>
         set((state) => {
           const { [id]: _removed, ...rest } = state.customLasers
-          return { customLasers: rest }
+
+          // Auto-cleanup: clear exNorm if it references this laser
+          const newExNorm = state.exNorm?.[1] === id ? defaults.exNorm : state.exNorm
+
+          return {
+            customLasers: rest,
+            exNorm: newExNorm,
+          }
         }),
 
       // Overlap cache management
@@ -147,6 +163,18 @@ export const useSpectraStore = create<SpectraStore>()(
         })),
 
       clearOverlapCache: () => set({ overlapCache: {} }),
+
+      // Clear all spectra and related state
+      clearAllSpectra: () =>
+        set({
+          activeSpectra: [],
+          activeOverlaps: [],
+          hiddenSpectra: [],
+          exNorm: defaults.exNorm,
+          customFilters: {},
+          customLasers: {},
+          overlapCache: {},
+        }),
 
       // URL initialization tracking
       setUrlInitialized: (value) => set({ _urlInitialized: value }),
