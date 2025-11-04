@@ -37,7 +37,20 @@ const VERT_LINES = {
 // ErrorBoundary removed - was non-functional (all logic commented out)
 // If error handling is needed in the future, implement a proper error boundary
 
-const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
+/**
+ * Hook that applies all data transformations to spectrum data
+ * Ensures all transformations are computed from the original spectrum.data
+ * with proper memoization dependencies, making transformations invertible
+ */
+const useTransformedSpectrumData = ({
+  spectrum,
+  ownerInfo,
+  exNorm,
+  scaleEC,
+  scaleQY,
+  inverted,
+  logScale,
+}) => {
   // Determine if we need to fetch EX spectrum for normalization
   const needsExNorm = (spectrum.subtype === "EM" || spectrum.subtype === "O") && exNorm
 
@@ -57,23 +70,67 @@ const useExNormedData = ({ exNorm, spectrum, ownerInfo }) => {
   // Fetch the EX spectrum data if needed
   const { data: exSpectrumData } = useSpectrum(exSpectrumId)
 
-  // Calculate normalized series
-  const serie = useMemo(() => {
-    if (!needsExNorm || !exSpectrumData) {
-      return [...spectrum.data]
+  // Determine if transformations should be applied
+  const willScaleEC = Boolean(
+    (spectrum.subtype === "EX" || spectrum.subtype === "AB") && scaleEC && spectrum.owner?.extCoeff
+  )
+  const willScaleQY = Boolean(
+    (spectrum.subtype === "EM" || spectrum.subtype === "O") && scaleQY && spectrum.owner?.qy
+  )
+
+  // Apply ALL transformations in a single memoized pipeline
+  // This ensures transformations are always computed from the original spectrum.data,
+  // making them properly invertible when toggled
+  const transformedData = useMemo(() => {
+    // Start fresh from original data
+    let data = [...spectrum.data]
+
+    // 1. ExNorm transformation (if applicable)
+    if (needsExNorm && exSpectrumData) {
+      // Find the scalar value at the exNorm wavelength
+      let scalar = 0
+      const exEfficiency = exSpectrumData.data.find(([x]) => x === exNorm)
+      if (exEfficiency) {
+        ;[, scalar] = exEfficiency
+      }
+      data = data.map(([a, b]) => [a, b * scalar])
     }
 
-    // Find the scalar value at the exNorm wavelength
-    let scalar = 0
-    const exEfficiency = exSpectrumData.data.find(([x]) => x === exNorm)
-    if (exEfficiency) {
-      ;[, scalar] = exEfficiency
+    // 2. Extinction Coefficient scaling (for EX/AB spectra)
+    if (willScaleEC) {
+      data = data.map(([a, b]) => [a, b * spectrum.owner.extCoeff])
     }
 
-    return spectrum.data.map(([a, b]) => [a, b * scalar])
-  }, [needsExNorm, exSpectrumData, spectrum.data, exNorm])
+    // 3. Quantum Yield scaling (for EM/O spectra)
+    if (willScaleQY) {
+      data = data.map(([a, b]) => [a, b * spectrum.owner.qy])
+    }
 
-  return serie
+    // 4. Inversion transformation
+    if (inverted) {
+      data = data.map(([a, b]) => [a, 1 - b])
+    }
+
+    // 5. Log scale transformation
+    if (logScale) {
+      data = data.map(([a, b]) => [a, OD(b)])
+    }
+
+    return data
+  }, [
+    spectrum.data,
+    spectrum.owner?.extCoeff,
+    spectrum.owner?.qy,
+    needsExNorm,
+    exSpectrumData,
+    exNorm,
+    willScaleEC,
+    willScaleQY,
+    inverted,
+    logScale,
+  ])
+
+  return transformedData
 }
 
 const SpectrumSeries = memo(function SpectrumSeries({
@@ -89,26 +146,27 @@ const SpectrumSeries = memo(function SpectrumSeries({
   ownerInfo,
   visible = true,
 }) {
-  let serie = useExNormedData({ exNorm, spectrum, ownerInfo })
+  // All transformations are now handled in the hook with proper memoization
+  // Note: Hook must be called before any conditional returns (Rules of Hooks)
+  const serie = useTransformedSpectrumData({
+    spectrum,
+    ownerInfo,
+    exNorm,
+    scaleEC,
+    scaleQY,
+    inverted,
+    logScale,
+  })
+
   if (!spectrum) return null
+
+  // Determine if scaling was applied (for display purposes)
   const willScaleEC = Boolean(
-    (spectrum.subtype === "EX" || spectrum.subtype === "AB") && scaleEC && spectrum.owner.extCoeff
+    (spectrum.subtype === "EX" || spectrum.subtype === "AB") && scaleEC && spectrum.owner?.extCoeff
   )
   const willScaleQY = Boolean(
-    (spectrum.subtype === "EM" || spectrum.subtype === "O") && scaleQY && spectrum.owner.qy
+    (spectrum.subtype === "EM" || spectrum.subtype === "O") && scaleQY && spectrum.owner?.qy
   )
-  if (willScaleEC) {
-    serie = serie.map(([a, b]) => [a, b * spectrum.owner.extCoeff])
-  }
-  if (willScaleQY) {
-    serie = serie.map(([a, b]) => [a, b * spectrum.owner.qy])
-  }
-  if (inverted) {
-    serie = serie.map(([a, b]) => [a, 1 - b])
-  }
-  if (logScale) {
-    serie = serie.map(([a, b]) => [a, OD(b)])
-  }
 
   let name = `${spectrum.owner.name}`
   if (["EX", "EM", "2P", "AB"].includes(spectrum.subtype)) {

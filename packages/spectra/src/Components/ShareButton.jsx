@@ -42,6 +42,7 @@ function ShareLinkAlert({ open, setOpen }) {
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
   const activeOverlaps = useSpectraStore((state) => state.activeOverlaps)
+  const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
   const chartOptions = useSpectraStore((state) => state.chartOptions)
   const exNorm = useSpectraStore((state) => state.exNorm)
   const customFilters = useSpectraStore((state) => state.customFilters)
@@ -52,6 +53,7 @@ function ShareLinkAlert({ open, setOpen }) {
     const searchParams = serializeURLParams({
       activeSpectra,
       activeOverlaps,
+      hiddenSpectra,
       chartOptions,
       exNorm,
       customFilters,
@@ -69,7 +71,15 @@ function ShareLinkAlert({ open, setOpen }) {
       qString: cleanParams ? `${baseUrl}?${cleanParams}` : "",
       qStringEncoded: searchParams ? `${baseUrl}?${searchParams}` : "",
     }
-  }, [activeSpectra, activeOverlaps, chartOptions, exNorm, customFilters, customLasers])
+  }, [
+    activeSpectra,
+    activeOverlaps,
+    hiddenSpectra,
+    chartOptions,
+    exNorm,
+    customFilters,
+    customLasers,
+  ])
 
   const [tooltipOpen, setTooltipOpen] = React.useState(false)
 

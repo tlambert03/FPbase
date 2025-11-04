@@ -192,3 +192,146 @@ def test_spectra_url_params_parsing(live_server: LiveServer, page: Page) -> None
     max_input = page.locator('input[name="max"]')
     expect(min_input).to_have_value("400")
     expect(max_input).to_have_value("600")
+
+
+def test_qy_ec_scaling_invertibility(spectra_viewer: Page) -> None:
+    """Test that QY and EC scaling transformations are invertible.
+
+    Regression test for bug where toggling QY/EC scaling multiple times
+    would compound transformations instead of applying them idempotently.
+    """
+
+    spectra_viewer.keyboard.press("Space")
+    modal = spectra_viewer.get_by_role("presentation").filter(has_text="Quick Entry")
+    search_input = modal.get_by_role("combobox").first
+    search_input.type("EGFP")
+    spectra_viewer.keyboard.press("Enter")
+
+    # Wait for EGFP to be added
+    expect(spectra_viewer.locator(".tab-wrapper").get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    def _test_scaling_toggle_indempotent(page: Page, series: int, key: str, timeout: int = 200) -> None:
+        _ser = page.locator(f"g.highcharts-series.highcharts-series-{series}")
+        line = _ser.locator("path.highcharts-tracker-line")
+        expect(line).to_be_visible()
+        d = []
+        for _ in range(2):
+            d.append(line.get_attribute("d"))
+            page.keyboard.press(f"Key{key}")
+            page.wait_for_timeout(timeout)
+        d.append(line.get_attribute("d"))
+        d_0, d_1, d_2 = d
+        assert d_0 != d_1, "scaling toggle did not change state on first toggle"
+        assert d_0 == d_2, "scaling toggle did not return to original state after 2 toggles"
+
+    _test_scaling_toggle_indempotent(spectra_viewer, series=0, key="Q")
+    _test_scaling_toggle_indempotent(spectra_viewer, series=1, key="E")
+
+
+def test_custom_laser_exnorm_persistence(live_server: LiveServer, page: Page) -> None:
+    """Test that custom laser exNorm checkbox state persists across page refresh.
+
+    Regression test for bug where "Norm em. to this" checkbox state
+    was not saved to sessionStorage.
+
+    Verifies:
+    1. Custom laser exNorm checkbox can be checked
+    2. Checkbox state persists after page refresh
+    """
+    create_egfp()
+
+    # Navigate to spectra viewer
+    url = f"{live_server.url}{reverse('proteins:spectra')}"
+    page.goto(url)
+    expect(page).to_have_url(url)
+
+    # Add EGFP
+    page.keyboard.press("Space")
+    modal = page.get_by_role("presentation").filter(has_text="Quick Entry")
+    search_input = modal.get_by_role("combobox").first
+    search_input.type("EGFP")
+    page.keyboard.press("Enter")
+
+    # Wait for EGFP to be added
+    tab_wrapper = page.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    # Navigate to Light Sources tab
+    page.get_by_role("tab", name=re.compile("Light Sources")).click()
+
+    # Click "Add Laser" button
+    page.get_by_role("button", name="Add Laser").click()
+    page.wait_for_timeout(200)  # Wait for laser to be added
+
+    # Find and check the "Norm em. to this" checkbox
+    exnorm_checkbox = page.get_by_role("checkbox", name="Norm em. to this")
+    expect(exnorm_checkbox).to_be_visible()
+    expect(exnorm_checkbox).not_to_be_checked()
+
+    # Check the checkbox
+    exnorm_checkbox.click()
+    expect(exnorm_checkbox).to_be_checked()
+
+    # Refresh the page
+    page.reload()
+    page.wait_for_load_state("networkidle")
+
+    # Verify laser is still there and checkbox is still checked
+    page.get_by_role("tab", name=re.compile("Light Sources")).click()
+    exnorm_checkbox = page.get_by_role("checkbox", name="Norm em. to this")
+    expect(exnorm_checkbox).to_be_visible()
+    expect(exnorm_checkbox).to_be_checked()
+
+
+def test_hidden_spectra_in_share_url(live_server: LiveServer, page: Page) -> None:
+    """Test that hidden spectra state is included in shared URLs.
+
+    Regression test for bug where hiddenSpectra was not serialized
+    into share URLs.
+
+    This test verifies that hiddenSpectra from the store is properly
+    serialized into share URLs when loaded from URL parameters.
+
+    Verifies:
+    1. URL with hidden spectra parameter loads correctly
+    2. Share URL preserves hidden spectra parameter
+    """
+    egfp = create_egfp()
+    ex_id = str(egfp.default_state.ex_spectrum.id)
+    em_id = str(egfp.default_state.em_spectrum.id)
+
+    # Navigate with both spectra, with EX marked as hidden
+    url = (
+        f"{live_server.url}{reverse('proteins:spectra')}"
+        f"?s={ex_id},{em_id}"
+        f"&h={ex_id}"  # Mark EX spectrum as hidden via URL parameter
+    )
+    page.goto(url)
+    page.wait_for_load_state("networkidle")
+
+    # Wait for chart to load - should have at least EM spectrum
+    chart = page.locator(".highcharts-container")
+    expect(chart).to_be_visible()
+
+    # Open share dialog
+    page.wait_for_timeout(500)  # Give time for state to settle
+    share_button = page.locator('button[aria-controls="simple-menu"]')
+    expect(share_button).to_be_visible()
+    share_button.click()
+
+    share_menu_item = page.get_by_role("menuitem", name="Share chart as URL")
+    expect(share_menu_item).to_be_visible(timeout=10000)
+    share_menu_item.click()
+
+    # Get the shared URL
+    dialog = page.get_by_role("dialog", name=re.compile("recreate the current graph"))
+    expect(dialog).to_be_visible()
+
+    url_textbox = dialog.get_by_role("textbox", name="URL")
+    expect(url_textbox).to_be_visible()
+    shared_url = url_textbox.input_value()
+
+    # Verify URL contains hidden spectra parameter
+    # This is the key test: hiddenSpectra from store should be serialized
+    assert "h=" in shared_url, "Shared URL should contain hidden spectra parameter"
+    assert ex_id in shared_url, f"Shared URL should contain hidden EX spectrum ID: {ex_id}"

@@ -177,6 +177,7 @@ export const useSpectraStore = create<SpectraStore>()(
         activeSpectra: state.activeSpectra,
         hiddenSpectra: state.hiddenSpectra,
         excludeSubtypes: state.excludeSubtypes,
+        exNorm: state.exNorm,
         chartOptions: state.chartOptions,
         customFilters: state.customFilters,
         customLasers: state.customLasers,
