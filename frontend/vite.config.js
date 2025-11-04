@@ -67,7 +67,7 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
-        "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.jsx"),
+        "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.tsx"),
         "@fpbase/blast": path.resolve(__dirname, "../packages/blast/src/index.js"),
         "@fpbase/protein-table": path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
         // jQuery loaded from CDN - no alias needed
@@ -133,9 +133,9 @@ export default defineConfig(({ mode }) => {
       "process.env.HEROKU_SLUG_COMMIT": JSON.stringify(process.env.HEROKU_SLUG_COMMIT || ""),
     },
 
-    // Configure esbuild to handle JSX in .js and .jsx files
+    // Configure esbuild to handle JSX/TSX in .js, .jsx, .ts, and .tsx files
     esbuild: {
-      loader: "jsx",
+      loader: "tsx",
       include: /src\/.*\.[jt]sx?$/,
       exclude: [],
     },
@@ -146,9 +146,10 @@ export default defineConfig(({ mode }) => {
       exclude: ["jquery"],
       include: ["process/browser"],
       esbuildOptions: {
-        // Handle JSX in .js files during dependency scanning
+        // Handle JSX/TSX in .js and .ts files during dependency scanning
         loader: {
           ".js": "jsx",
+          ".ts": "tsx",
         },
         define: {
           global: "globalThis",
