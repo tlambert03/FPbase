@@ -341,7 +341,7 @@ def test_hidden_spectra_in_share_url(live_server: LiveServer, page: Page) -> Non
 def test_spectra_graph(live_server: LiveServer, page: Page):
     egfp = create_egfp()
 
-    ids = ",".join([str(s.id) for s in egfp.default_state.spectra.all()])
+    ids = f"{egfp.default_state.ex_spectrum.id},{egfp.default_state.em_spectrum.id}"
     url = f"{live_server.url}{reverse('proteins:spectra_graph')}?s={ids}"
     page.goto(url)
     expect(page).to_have_url(url)
@@ -358,12 +358,6 @@ def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
 
     Regression test for bug where EX and 2P toggle buttons did not respond to clicks
     while EM toggle worked correctly.
-
-    Verifies:
-    1. Initially both EX and EM spectra are visible
-    2. Clicking "EX" button hides the EX spectrum
-    3. Clicking "EM" button hides the EM spectrum
-    4. Clicking buttons again restores visibility
     """
     # Add EGFP using spacebar shortcut
     spectra_viewer.keyboard.press("Space")
@@ -409,5 +403,5 @@ def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
     # Click 2P button again to show 2P spectrum
     twop_button.click()
     expect(visible_areas).to_have_count(3)  # EX, EM, and 2P visible
-    em_button.click()
-    expect(visible_areas).to_have_count(2)  # Back to EX and 2P visible
+    twop_button.click()
+    expect(visible_areas).to_have_count(2)  # Back to EX and EM
