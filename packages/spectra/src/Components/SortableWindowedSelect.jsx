@@ -1,7 +1,11 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useRef } from "react"
 import Select, { components } from "react-select"
 import { categoryIcon } from "./FaIcon"
 import WindowedMenuList from "./WindowedMenuList"
+
+// Maximum results to show for short queries (prevents lag on first character)
+const MAX_RESULTS_SHORT_QUERY = 500
+const SHORT_QUERY_THRESHOLD = 2
 
 const filterOptions = (query, label) => {
   const words = query.toLowerCase().split(" ")
@@ -47,33 +51,43 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
 }) {
   const [dynamicOptions, setOptions] = React.useState(options)
   const [inputValue, setInputValue] = React.useState("")
+  const [isLimited, setIsLimited] = React.useState(false)
+  const debounceTimerRef = useRef(null)
+  const selectRef = useRef()
 
-  useEffect(() => {
-    setOptions(options)
-  }, [options])
+  useEffect(() => setOptions(options), [options])
 
-  // blur the select element when the escape key is pressed
-  const selectRef = React.useRef()
+  // Escape key blur + cleanup debounce on unmount
   useEffect(() => {
-    const blurme = (e) => (e.code === "Escape" ? selectRef.current.blur() : null)
-    document.addEventListener("keydown", blurme)
+    const handleKeyDown = (e) => e.code === "Escape" && selectRef.current?.blur()
+    document.addEventListener("keydown", handleKeyDown)
     return () => {
-      document.removeEventListener("keydown", blurme)
+      document.removeEventListener("keydown", handleKeyDown)
+      clearTimeout(debounceTimerRef.current)
     }
   }, [])
 
   const handleInputChange = React.useCallback(
     (query, { action }) => {
       setInputValue(query)
+
       if (action === "input-change") {
-        if (query) {
-          const newOpts = (options || [])
-            .filter(({ label }) => filterOptions(query, label))
-            .sort(querySorter(query))
-          setOptions(newOpts)
-        } else {
-          setOptions(options)
-        }
+        clearTimeout(debounceTimerRef.current)
+        debounceTimerRef.current = setTimeout(() => {
+          if (!query) {
+            setOptions(options)
+            setIsLimited(false)
+            return
+          }
+
+          const filtered = options.filter(({ label }) => filterOptions(query, label))
+          const sorted = filtered.sort(querySorter(query))
+          const shouldLimit =
+            query.length < SHORT_QUERY_THRESHOLD && sorted.length > MAX_RESULTS_SHORT_QUERY
+
+          setOptions(shouldLimit ? sorted.slice(0, MAX_RESULTS_SHORT_QUERY) : sorted)
+          setIsLimited(shouldLimit)
+        }, 150)
       } else if (action === "menu-close") {
         setOptions(options)
       }
@@ -89,6 +103,15 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
     }),
     [components, showIcon]
   )
+
+  // Custom message when results are limited
+  const noOptionsMessage = React.useCallback(() => {
+    if (isLimited) {
+      return `Showing first ${MAX_RESULTS_SHORT_QUERY} results. Type more characters to refine search.`
+    }
+    return "No options"
+  }, [isLimited])
+
   return (
     <Select
       {...otherprops}
@@ -98,6 +121,7 @@ const SortableWindowedSelect = React.memo(function SortableWindowedSelect({
       onInputChange={handleInputChange}
       filterOption={emptyFilter}
       components={memoizedComponents}
+      noOptionsMessage={noOptionsMessage}
     />
   )
 })
