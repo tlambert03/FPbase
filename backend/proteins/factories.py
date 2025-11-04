@@ -126,6 +126,8 @@ def _build_spectral_data(resolver: factory.builder.Resolver):
             return _mock_spectrum(owner_state.ex_max, type="ex")
         elif subtype == "em":
             return _mock_spectrum(owner_state.em_max, type="em")
+        elif subtype == "2p":
+            return _mock_spectrum(owner_state.twop_ex_max, type="ex", min_wave=600, max_wave=1100)
 
     if (owner_filter := getattr(resolver, "owner_filter", None)) is not None:
         owner_filter = cast("Filter", owner_filter)
@@ -198,6 +200,12 @@ class StateFactory(FluorophoreFactory):
         "proteins.factories.SpectrumFactory",
         factory_related_name="owner_state",
         subtype="em",
+        category="p",
+    )
+    twop_spectrum = factory.RelatedFactory(
+        "proteins.factories.SpectrumFactory",
+        factory_related_name="owner_state",
+        subtype="2p",
         category="p",
     )
 
@@ -358,6 +366,8 @@ def create_egfp() -> Protein:
         default_state__pka=6.0,
         default_state__maturation=25,
         default_state__lifetime=2.8,
+        default_state__twop_ex_max=927,
+        default_state__twop_peakGM=39.64,
     )
 
     return egfp

@@ -351,3 +351,63 @@ def test_spectra_graph(live_server: LiveServer, page: Page):
 
     series_paths = spectra_viewer.locator(".highcharts-series-group path.highcharts-area")
     expect(series_paths).to_have_count(2)
+
+
+def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
+    """Test that clicking subtype toggle buttons (EX, EM, 2P) changes spectrum visibility.
+
+    Regression test for bug where EX and 2P toggle buttons did not respond to clicks
+    while EM toggle worked correctly.
+
+    Verifies:
+    1. Initially both EX and EM spectra are visible
+    2. Clicking "EX" button hides the EX spectrum
+    3. Clicking "EM" button hides the EM spectrum
+    4. Clicking buttons again restores visibility
+    """
+    # Add EGFP using spacebar shortcut
+    spectra_viewer.keyboard.press("Space")
+    modal = spectra_viewer.get_by_role("presentation").filter(has_text="Quick Entry")
+    search_input = modal.get_by_role("combobox").first
+    search_input.type("EGFP")
+    spectra_viewer.keyboard.press("Enter")
+
+    # Wait for EGFP to be added
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    # Wait for chart to load with spectra
+    visible_areas = spectra_viewer.locator(".highcharts-series-group path.highcharts-area:visible")
+    expect(visible_areas).to_have_count(2)  # EGFP has EX and EM spectra
+
+    # Find the subtype toggle buttons within the EGFP selector group
+    ex_button = tab_wrapper.get_by_role("button", name="EX", exact=True)
+    em_button = tab_wrapper.get_by_role("button", name="EM", exact=True)
+    twop_button = tab_wrapper.get_by_role("button", name="2P", exact=True)
+
+    # Verify both buttons are visible
+    expect(ex_button).to_be_visible()
+    expect(em_button).to_be_visible()
+    expect(twop_button).to_be_visible()
+
+    # Click EX button to hide EX spectrum
+    ex_button.click()
+    expect(visible_areas).to_have_count(1)  # Only EM should be visible
+
+    # Click EM button to hide EM spectrum
+    em_button.click()
+    expect(visible_areas).to_have_count(0)  # No spectra visible
+
+    # Click EX button again to show EX spectrum
+    ex_button.click()
+    expect(visible_areas).to_have_count(1)  # EX is visible again
+
+    # Click EM button again to show EM spectrum
+    em_button.click()
+    expect(visible_areas).to_have_count(2)  # Both EX and EM visible again
+
+    # Click 2P button again to show 2P spectrum
+    twop_button.click()
+    expect(visible_areas).to_have_count(3)  # EX, EM, and 2P visible
+    em_button.click()
+    expect(visible_areas).to_have_count(2)  # Back to EX and 2P visible
