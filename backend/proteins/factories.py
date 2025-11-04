@@ -81,7 +81,7 @@ def _skewed_gaussian(x, mean, sigma: float = 50, skewness: float = 0, amplitude:
 def _mock_spectrum(mean, sigma: float = 40, min_wave=300, max_wave=900, type="ex"):
     """Return a mock spectrum in the form [[x1, y1], [x2, y2], ...]."""
     match type:
-        case "ex":
+        case "ex", "2p":
             skewness = -3.3
             mean += 17
         case "em":
@@ -126,7 +126,7 @@ def _build_spectral_data(resolver: factory.builder.Resolver):
             return _mock_spectrum(owner_state.ex_max, type="ex")
         elif subtype == "em":
             return _mock_spectrum(owner_state.em_max, type="em")
-        elif subtype == "2p":
+        elif subtype == "2p" and owner_state.twop_ex_max:
             return _mock_spectrum(owner_state.twop_ex_max, type="ex", min_wave=600, max_wave=1100)
 
     if (owner_filter := getattr(resolver, "owner_filter", None)) is not None:
