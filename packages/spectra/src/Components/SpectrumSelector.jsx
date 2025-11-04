@@ -31,14 +31,10 @@ const SingleValue = ({ children, data, ...props }) => {
     if (spectrum?.owner) {
       const { qy, extCoeff } = spectrum.owner
       if (qy || extCoeff) {
-        let val = "("
-        if (qy) {
-          val += `QY: ${qy}`
-          if (extCoeff) val += " / "
-        }
-        if (extCoeff) val += `EC: ${extCoeff.toLocaleString()}`
-        val += ")"
-        setExtra(val)
+        const parts = []
+        if (qy) parts.push(`QY: ${qy}`)
+        if (extCoeff) parts.push(`EC: ${extCoeff.toLocaleString()}`)
+        setExtra(`(${parts.join(" / ")})`)
       } else {
         setExtra("")
       }

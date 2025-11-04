@@ -105,18 +105,14 @@ export function parseURLParams(search: string): SpectraURLState {
   const overlapParam = params.get("o")
   if (overlapParam) {
     const overlapIds = overlapParam.split(",").filter(Boolean)
-    if (overlapIds.length > 0) {
-      result.activeOverlaps = overlapIds
-    }
+    if (overlapIds.length) result.activeOverlaps = overlapIds
   }
 
   // Parse hidden spectra IDs (comma-separated string)
   const hiddenParam = params.get("h")
   if (hiddenParam) {
     const hiddenIds = hiddenParam.split(",").filter(Boolean)
-    if (hiddenIds.length > 0) {
-      result.hiddenSpectra = hiddenIds
-    }
+    if (hiddenIds.length) result.hiddenSpectra = hiddenIds
   }
 
   // Parse excitation normalization (support both new 'ex' and legacy 'normWave'+'normID' formats)
@@ -240,19 +236,16 @@ export function serializeURLParams(state: SpectraURLState): string {
     // Extremes - use xMin/xMax for backwards compatibility
     if (state.chartOptions.extremes && Array.isArray(state.chartOptions.extremes)) {
       const [xMin, xMax] = state.chartOptions.extremes
-      if (xMin !== null && xMin !== undefined) {
-        params.set("xMin", String(xMin))
-      }
-      if (xMax !== null && xMax !== undefined) {
-        params.set("xMax", String(xMax))
-      }
+      if (xMin != null) params.set("xMin", String(xMin))
+      if (xMax != null) params.set("xMax", String(xMax))
     }
   }
 
   // Add excitation normalization - use normWave/normID for backwards compatibility
-  if (state.exNorm && state.exNorm[0] !== null && state.exNorm[1] !== null) {
-    params.set("normWave", String(state.exNorm[0]))
-    params.set("normID", String(state.exNorm[1]))
+  const [wave, id] = state.exNorm ?? []
+  if (wave != null && id != null) {
+    params.set("normWave", String(wave))
+    params.set("normID", String(id))
   }
 
   return params.toString()

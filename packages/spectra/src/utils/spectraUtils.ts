@@ -58,7 +58,7 @@ export function spectraProduct(
 ): [number, number][] {
   const output: [number, number][] = []
   const left = Math.max(ar1[0]![0], ar2[0]![0])
-  const right = Math.min(ar1[ar1.length - 1]![0], ar2[ar2.length - 1]![0])
+  const right = Math.min(ar1.at(-1)![0], ar2.at(-1)![0])
 
   const idx1 = ar1.findIndex((x) => x[0] >= left)
   const idx2 = ar2.findIndex((x) => x[0] >= left)
@@ -70,43 +70,17 @@ export function spectraProduct(
 }
 
 /**
- * Debounce a function
+ * Sort spectra by ID for consistent ordering
+ * Handles both regular IDs and custom IDs (from custom filters/lasers)
  */
-// biome-ignore lint/suspicious/noExplicitAny: Generic function type requires any
-export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  time: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null
-
-  return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => fn(...args), time)
-  }
-}
-
-/**
- * Check if device is touch-enabled
- */
-export function isTouchDevice(): boolean {
-  try {
-    const prefixes = " -webkit- -moz- -o- -ms- ".split(" ")
-    const mq = (query: string) => window.matchMedia(query).matches
-
-    if ("ontouchstart" in window) {
-      return true
-    }
-
-    // Legacy DocumentTouch check (non-standard)
-    const DocumentTouch = (window as typeof window & { DocumentTouch?: unknown }).DocumentTouch
-    if (DocumentTouch && document instanceof (DocumentTouch as { new (): Document })) {
-      return true
-    }
-
-    return mq(["(", prefixes.join("touch-enabled),("), "heartz", ")"].join(""))
-  } catch (_e) {
-    return false
-  }
+export function sortSpectraById<T extends { id: string | number; customId?: string }>(
+  spectra: T[]
+): T[] {
+  return [...spectra].sort((a, b) => {
+    const aId = String(a.customId ?? a.id)
+    const bId = String(b.customId ?? b.id)
+    return aId.localeCompare(bId)
+  })
 }
 
 /**
@@ -120,11 +94,7 @@ export function computeOverlap(
   ...spectra: Array<Spectrum & { owner: NonNullable<Spectrum["owner"]> }>
 ): Spectrum {
   // Sort for consistent ID generation
-  const sorted = [...spectra].sort((a, b) => {
-    const aId = a.customId || a.id
-    const bId = b.customId || b.id
-    return String(aId).localeCompare(String(bId))
-  })
+  const sorted = sortSpectraById(spectra)
 
   const idString = sorted.map((s) => s.customId || s.id).join("_")
 

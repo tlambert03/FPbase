@@ -176,15 +176,12 @@ const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectra
     }
   }, [])
 
+  const CUSTOM_PREFIX = { F: "$cf", L: "$cl" }
+
   const isPopulated = (cat) => {
-    let populated = selectors.filter(({ owner, category }) => category === cat && owner).length > 0
-    if (cat === "F") {
-      populated = populated || activeSpectra.some((s) => s.startsWith("$cf"))
-    }
-    if (cat === "L") {
-      populated = populated || activeSpectra.some((s) => s.startsWith("$cl"))
-    }
-    return populated
+    const hasDbItems = selectors.some(({ owner, category }) => category === cat && owner)
+    const prefix = CUSTOM_PREFIX[cat]
+    return hasDbItems || (prefix && activeSpectra.some((s) => s.startsWith(prefix)))
   }
 
   const smartLabel = (label, cats) => {
