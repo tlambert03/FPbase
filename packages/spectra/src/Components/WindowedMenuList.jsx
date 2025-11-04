@@ -1,7 +1,7 @@
 import React from "react"
 import { List } from "react-window"
 
-const ITEM_HEIGHT = 35
+const ITEM_HEIGHT = 50
 const MAX_WINDOW_HEIGHT = 300
 
 /**

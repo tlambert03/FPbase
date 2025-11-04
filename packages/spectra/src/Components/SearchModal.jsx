@@ -3,13 +3,13 @@ import FormControlLabel from "@mui/material/FormControlLabel"
 import Modal from "@mui/material/Modal"
 import Typography from "@mui/material/Typography"
 import { makeStyles } from "@mui/styles"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { components } from "react-select"
 import { fetchGraphQL } from "../api/client"
 import { GET_OPTICAL_CONFIG } from "../api/queries"
+import { useOpticalConfigs } from "../hooks/useOpticalConfigs"
 import { useSpectraInfo } from "../store/metadataStore"
 import { useSpectraStore } from "../store/spectraStore"
-import { useCachedFetch } from "../useCachedQuery"
 import MuiReactSelect from "./MuiReactSelect"
 
 /**
@@ -93,19 +93,16 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
   const classes = useStyles()
 
   const spectraInfo = useSpectraInfo()
-  const [ocOptions, setOcOptions] = useState([])
-  const stash = useCachedFetch("/api/proteins/ocinfo/", "_FPbaseOCStash", 10 * 60)
-  // const stash = useCachedQuery(OPTICAL_CONFIG_LIST, "_FPbaseOCStash", 5 * 60)
-  useEffect(() => {
-    if (stash) {
-      const newOpts = stash.opticalConfigs.map(({ id, name, microscope, comments }) => ({
-        label: `${name} (${microscope.name})`,
-        value: id,
-        comments: comments,
-      }))
-      setOcOptions(newOpts)
-    }
-  }, [stash])
+  const { data: opticalConfigs, isLoading: isLoadingConfigs } = useOpticalConfigs()
+
+  const ocOptions = useMemo(() => {
+    if (!opticalConfigs) return []
+    return opticalConfigs.map(({ id, name, microscope, comments }) => ({
+      label: `${name} (${microscope.name})`,
+      value: id,
+      comments: comments,
+    }))
+  }, [opticalConfigs])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -152,7 +149,9 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
   }
   const [preserveFluors, setPreserveFluors] = useState(true)
   const handleOCChange = async ({ value }) => {
-    const { opticalConfig } = await fetchGraphQL(GET_OPTICAL_CONFIG, { id: value })
+    // Ensure ID is a number (GraphQL expects Int!)
+    const id = typeof value === "number" ? value : Number.parseInt(value, 10)
+    const { opticalConfig } = await fetchGraphQL(GET_OPTICAL_CONFIG, { id })
     const newSpectra = []
     opticalConfig.filters &&
       newSpectra.push(...opticalConfig.filters.map(({ spectrum }) => spectrum.id))
@@ -188,8 +187,7 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
           Optical Config Lookup
         </Typography>
         <MuiReactSelect
-          paginate={false}
-          isLoading={ocOptions.length === 0}
+          isLoading={isLoadingConfigs}
           options={ocOptions}
           onChange={handleOCChange}
           className={classes.select}

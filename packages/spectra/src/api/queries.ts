@@ -125,7 +125,6 @@ export const OPTICAL_CONFIG_LIST = `
       name
       comments
       microscope {
-        id
         name
       }
     }
