@@ -11,8 +11,6 @@
     "includes": [
       "frontend/**",
       "packages/**",
-      "!!frontend/src/css/litemol",
-      "!!frontend/src/js/pdb/LiteMol-plugin.js",
       "!!packages/spectra/src/index.css"
     ]
   },

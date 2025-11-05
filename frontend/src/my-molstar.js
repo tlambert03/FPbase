@@ -5,15 +5,13 @@ import "vite/modulepreload-polyfill"
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
-import "./css/litemol/LiteMol-plugin-blue.css"
-
-// Import UMD bundle - it sets window.LiteMol global
-import "./js/pdb/LiteMol-plugin"
-const LiteMol = window.LiteMol
+// Import Mol* (pdbe-molstar) plugin
+import { PDBeMolstarPlugin } from "pdbe-molstar/lib/viewer"
+import "pdbe-molstar/build/pdbe-molstar.css"
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}
-window.FPBASE.currentBundle = "litemol"
+window.FPBASE.currentBundle = "molstar"
 
 // populated by downloadPDBMeta.success
 const pdbInfo = {}
@@ -161,88 +159,79 @@ function loadChemInfo(pdbid) {
 }
 
 /**
- * Initialize LiteMol molecular visualization plugin.
+ * Initialize Mol* (pdbe-molstar) molecular visualization plugin.
  *
  * @param {string} selection - CSS selector for the container element
  * @param {jQuery} changer - jQuery object for the PDB selector dropdown
  */
-function initLiteMol(selection, changer) {
-  const PluginSpec = LiteMol.Plugin.getDefaultSpecification()
-  const { LayoutRegion } = LiteMol.Bootstrap.Components
-  const { Components } = LiteMol.Plugin
-  PluginSpec.components = [
-    Components.Visualization.HighlightInfo(LayoutRegion.Main, true),
-    Components.Entity.Current("LiteMol", LiteMol.Plugin.VERSION.number)(LayoutRegion.Right, true),
-    Components.Transform.View(LayoutRegion.Right),
-    Components.Context.Overlay(LayoutRegion.Root),
-    Components.Context.BackgroundTasks(LayoutRegion.Main, true),
-  ]
-
-  try {
-    const plugin = LiteMol.Plugin.create({
-      customSpecification: PluginSpec,
-      target: selection,
-      viewportBackground: "#fff",
-      layoutState: {
-        hideControls: true,
-        isExpanded: false,
-      },
-      allowAnalytics: true,
-    })
-
-    // Cache PDB data promises to avoid redundant fetches
-    const dataCache = new Map()
-    let currentRequest = null
-
-    changer.change(async function () {
-      const id = this.value
-      const requestId = Symbol("request")
-      currentRequest = requestId
-
-      // Get or create cached promise
-      if (!dataCache.has(id)) {
-        dataCache.set(id, getPDBbinary(id))
-      }
-
-      plugin.clear()
-
-      try {
-        const data = await dataCache.get(id)
-
-        // Only load if this is still the active request
-        if (currentRequest === requestId) {
-          plugin.loadMolecule({ data, id })
-        }
-      } catch (error) {
-        // Only show error if this is still the active request
-        if (currentRequest === requestId) {
-          $(selection).html(
-            '<span class="text-danger muted">Failed to retrieve molecular structure. Please refresh.</span>'
-          )
-          if (window.Sentry) {
-            window.Sentry.captureException(error, {
-              tags: { pdbId: id, component: "litemol" },
-            })
-          }
-        }
-      }
-    })
-
-    // Close side panel when clicking outside (use namespace to prevent leaks)
-    $("body")
-      .off("click.litemol")
-      .on("click.litemol", (e) => {
-        if ($(".lm-layout-right").length && $(e.target).closest("#litemol-viewer").length === 0) {
-          plugin.setLayoutState({ hideControls: true })
-        }
-      })
-  } catch (err) {
-    if (window.Sentry) {
-      window.Sentry.captureException(err, {
-        tags: { component: "litemol-init" },
-      })
-    }
+function initMolstar(selection, changer) {
+  const viewerContainer = document.querySelector(selection)
+  if (!viewerContainer) {
+    console.error(`Mol* viewer container not found: ${selection}`)
+    return
   }
+
+  // Create plugin instance
+  const plugin = new PDBeMolstarPlugin()
+
+  // Cache PDB data promises to avoid redundant fetches
+  const dataCache = new Map()
+  let currentRequest = null
+  let currentPluginInstance = null
+
+  changer.change(async function () {
+    const id = this.value
+    const requestId = Symbol("request")
+    currentRequest = requestId
+
+    // Get or create cached promise
+    if (!dataCache.has(id)) {
+      dataCache.set(id, getPDBbinary(id))
+    }
+
+    // Clear previous structure
+    if (currentPluginInstance) {
+      // Clear the container for re-rendering
+      viewerContainer.innerHTML = ""
+    }
+
+    try {
+      const data = await dataCache.get(id)
+
+      // Only load if this is still the active request
+      if (currentRequest === requestId) {
+        // Render the plugin with the structure data
+        const options = {
+          customData: {
+            data: data,
+            format: "cif",
+          },
+          bgColor: { r: 255, g: 255, b: 255 },
+          hideControls: false,
+          sequencePanel: false,
+          expanded: false,
+          reactive: true,
+          selectInteraction: true,
+          hideCanvasControls: ["selection", "animation"],
+        }
+
+        plugin.render(viewerContainer, options)
+        currentPluginInstance = plugin
+      }
+    } catch (error) {
+      // Only show error if this is still the active request
+      if (currentRequest === requestId) {
+        $(selection).html(
+          '<span class="text-danger muted">Failed to retrieve molecular structure. Please refresh.</span>'
+        )
+        if (window.Sentry) {
+          window.Sentry.captureException(error, {
+            tags: { pdbId: id, component: "molstar" },
+          })
+        }
+      }
+    }
+  })
 
   // Update external link and load metadata when selection changes
   changer
@@ -389,7 +378,7 @@ function downloadPDBMeta(pdbIds) {
 }
 
 /**
- * Fetch PDB metadata and initialize LiteMol viewer.
+ * Fetch PDB metadata and initialize Mol* viewer.
  *
  * @param {string[]} pdbIds - Array of PDB identifiers
  */
@@ -425,7 +414,7 @@ async function getPDBinfo(pdbIds) {
       select.append($("<option>", { value: id }).html(displayText))
     })
 
-    initLiteMol("#litemol-viewer", select)
+    initMolstar("#molstar-viewer", select)
   } catch (error) {
     // Log error to Sentry for monitoring
     if (window.Sentry) {
