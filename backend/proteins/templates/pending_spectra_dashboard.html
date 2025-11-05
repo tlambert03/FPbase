@@ -1,0 +1,635 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pending Spectra Dashboard - FPbase Admin{% endblock %}
+
+{% block extrahead %}
+<style>
+:root {
+    --toast-bg-default: #333;
+    --toast-bg-success: #28a745;
+    --toast-bg-warning: #ffc107;
+    --toast-bg-error: #dc3545;
+    --toast-text-light: white;
+    --toast-text-dark: #333;
+}
+
+.spectrum-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s;
+}
+
+.spectrum-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.spectrum-card.selected {
+    border-color: #007bff;
+    background-color: #f0f8ff;
+}
+
+.spectrum-preview {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: white;
+    padding: 10px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+.spectrum-preview svg {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100%;
+    display: block;
+}
+
+.spectrum-info label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 0.2rem !important;
+}
+.action-buttons .btn {
+    font-size: 0.82rem;
+}
+
+.bulk-actions {
+    position: sticky;
+    top: 70px;
+    background: #fff;
+    padding: 15px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 100;
+    display: none;
+}
+
+.bulk-actions.show {
+    display: block;
+}
+
+.checkbox-large {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.spectrum-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.spectrum-header h4 {
+    margin: 0;
+    flex-grow: 1;
+}
+
+.badge-status {
+    font-size: 0.9em;
+}
+
+/* Toast Notifications */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notification-toast {
+    background: var(--toast-bg-default);
+    color: var(--toast-text-light);
+    padding: 12px 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    animation: slideIn 0.3s ease-out forwards;
+    white-space: nowrap;
+    min-width: fit-content;
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 400px;
+}
+
+.notification-toast.success {
+    background: var(--toast-bg-success);
+}
+
+.notification-toast.warning {
+    background: var(--toast-bg-warning);
+    color: var(--toast-text-dark);
+}
+
+.notification-toast.error {
+    background: var(--toast-bg-error);
+}
+
+.notification-toast.slide-out {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+.toast-message {
+    flex: 0 1 auto;
+    margin: 0;
+    line-height: inherit;
+}
+
+.toast-undo {
+    background: rgba(255,255,255,0.3);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: var(--toast-text-light);
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.notification-toast.warning .toast-undo {
+    color: var(--toast-text-dark);
+    border-color: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.1);
+}
+
+.toast-undo:hover {
+    background: rgba(255,255,255,0.4);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Pending Spectra Dashboard</h1>
+        </div>
+        <div class="col-auto">
+            <span class="badge badge-primary badge-pill" style="font-size: 1.2em;">
+                {{ count }} pending
+            </span>
+        </div>
+    </div>
+
+    {% if count == 0 %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> No pending spectra! Great job.
+    </div>
+    {% else %}
+
+    <!-- Bulk Actions Bar (shown when items are selected) -->
+    <div id="bulk-actions-bar" class="bulk-actions">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong><span id="selected-count">0</span> spectra selected</strong>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-success" onclick="bulkAction('accept')">
+                    <i class="fas fa-check"></i> Accept Selected
+                </button>
+                <button type="button" class="btn btn-warning" onclick="bulkAction('reject')">
+                    <i class="fas fa-times"></i> Reject Selected
+                </button>
+                <button type="button" class="btn btn-danger" onclick="bulkAction('delete')">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="clearSelection()">
+                    <i class="fas fa-undo"></i> Clear Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Select All -->
+    <div class="mb-3">
+        <label>
+            <input type="checkbox" id="select-all" class="checkbox-large" onchange="toggleSelectAll(this)">
+            <strong>Select All</strong>
+        </label>
+    </div>
+
+    <!-- Spectra Cards -->
+    {% for spectrum in spectra %}
+    <div class="spectrum-card" data-spectrum-id="{{ spectrum.id }}">
+        <div class="spectrum-header">
+            <input type="checkbox" class="spectrum-checkbox checkbox-large" data-spectrum-id="{{ spectrum.id }}" onchange="updateSelection()">
+            <h4 onclick="this.previousElementSibling.click()" style="cursor: pointer;">{{ spectrum.name }}</h4>
+            <a href="{{ spectrum.admin_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-external-link-alt"></i> Admin
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Spectrum Preview -->
+                {% if spectrum.svg_preview %}
+                <div class="spectrum-preview">
+                    {{ spectrum.svg_preview|safe }}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">No preview available</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4">
+                <!-- Spectrum Info -->
+                <div class="spectrum-info">
+                    <label>Owner:</label>
+                    <span>{{ spectrum.owner|default:"N/A" }} ({{ spectrum.owner_type }})</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Type:</label>
+                    <span class="badge badge-info">{{ spectrum.category }}</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Subtype:</label>
+                    <span class="badge badge-secondary">{{ spectrum.subtype }}</span>
+                </div>
+
+                {% comment %} <div class="spectrum-info">
+                    <label>Source:</label>
+                    <span>{{ spectrum.source }}</span>
+                </div> {% endcomment %}
+
+                <div class="spectrum-info">
+                    <label>Submitted:</label>
+                    <span>{{ spectrum.created|date:"Y-m-d H:i" }}</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Submitter:</label>
+                    <span>
+                        {% if spectrum.created_by %}
+                        {{ spectrum.created_by.username }}
+                        {% if spectrum.created_by_email %}
+                        <small class="text-muted">&nbsp; &lt;{{ spectrum.created_by_email }}&gt;</small>
+                        {% endif %}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons mt-3">
+                    <button type="button" class="btn btn-success btn-sm" onclick="singleAction({{ spectrum.id }}, 'accept')">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="singleAction({{ spectrum.id }}, 'reject')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="singleAction({{ spectrum.id }}, 'delete')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    {% if spectrum.created_by_email %}
+                    <a href="mailto:{{ spectrum.created_by_email }}?subject=Regarding%20your%20FPBase%20spectrum%20submission%3A%20{{ spectrum.name|urlencode }}" class="btn btn-info btn-sm">
+                        <i class="fas fa-envelope"></i> Email
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+// CSRF token for AJAX requests
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// Constants
+const TOAST_DURATION = 6000;
+const TOAST_ANIMATION_DURATION = 300;
+
+// Toast notification system
+function showToast(message, type = 'success', showUndo = false, undoCallback = null) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `notification-toast ${type}`;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'toast-message';
+    messageDiv.textContent = message;
+    toast.appendChild(messageDiv);
+
+    if (showUndo && undoCallback) {
+        const undoBtn = document.createElement('button');
+        undoBtn.className = 'toast-undo';
+        undoBtn.textContent = 'Undo';
+        undoBtn.onclick = () => {
+            undoCallback();
+            toast.remove();
+        };
+        toast.appendChild(undoBtn);
+    }
+
+    container.appendChild(toast);
+
+    // Auto-remove after configured duration
+    setTimeout(() => {
+        toast.classList.add('slide-out');
+        setTimeout(() => toast.remove(), TOAST_ANIMATION_DURATION);
+    }, TOAST_DURATION);
+}
+
+// Get selected spectrum IDs
+function getSelectedIds() {
+    const checkboxes = document.querySelectorAll('.spectrum-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.dataset.spectrumId);
+}
+
+// Update selection UI
+function updateSelection() {
+    const selectedIds = getSelectedIds();
+    const count = selectedIds.length;
+
+    document.getElementById('selected-count').textContent = count;
+
+    if (count > 0) {
+        document.getElementById('bulk-actions-bar').classList.add('show');
+    } else {
+        document.getElementById('bulk-actions-bar').classList.remove('show');
+    }
+
+    // Update card styling
+    document.querySelectorAll('.spectrum-card').forEach(card => {
+        const checkbox = card.querySelector('.spectrum-checkbox');
+        if (checkbox.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+
+    // Update select-all checkbox
+    const allCheckboxes = document.querySelectorAll('.spectrum-checkbox');
+    const selectAllCheckbox = document.getElementById('select-all');
+    selectAllCheckbox.checked = allCheckboxes.length > 0 && selectedIds.length === allCheckboxes.length;
+}
+
+// Toggle select all
+function toggleSelectAll(checkbox) {
+    document.querySelectorAll('.spectrum-checkbox').forEach(cb => {
+        cb.checked = checkbox.checked;
+    });
+    updateSelection();
+}
+
+// Clear selection
+function clearSelection() {
+    document.querySelectorAll('.spectrum-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    document.getElementById('select-all').checked = false;
+    updateSelection();
+}
+
+// Confirm delete action
+function confirmDelete(count) {
+    const message = count === 1
+        ? 'Are you sure you want to DELETE this spectrum? This cannot be undone.'
+        : `Are you sure you want to DELETE ${count} spectra? This cannot be undone.`;
+    return confirm(message);
+}
+
+// Perform action on single spectrum
+function singleAction(spectrumId, action) {
+    // Only confirm for delete (irreversible)
+    if (action === 'delete' && !confirmDelete(1)) {
+        return;
+    }
+
+    performAction([spectrumId], action);
+}
+
+// Perform bulk action
+function bulkAction(action) {
+    const selectedIds = getSelectedIds();
+
+    if (selectedIds.length === 0) {
+        showToast('Please select at least one spectrum.', 'warning');
+        return;
+    }
+
+    // Only confirm for delete (irreversible)
+    if (action === 'delete' && !confirmDelete(selectedIds.length)) {
+        return;
+    }
+
+    performAction(selectedIds, action);
+}
+
+// Perform action via AJAX
+function performAction(spectrumIds, action) {
+    const formData = new FormData();
+    spectrumIds.forEach(id => formData.append('spectrum_ids[]', id));
+    formData.append('action', action);
+
+    // Store cards for undo (only for accept/reject)
+    const savedCards = {};
+    if (action === 'accept' || action === 'reject') {
+        spectrumIds.forEach(id => {
+            const card = document.querySelector(`.spectrum-card[data-spectrum-id="${id}"]`);
+            if (card) {
+                savedCards[id] = {
+                    element: card.cloneNode(true),
+                    previousSibling: card.previousElementSibling
+                };
+            }
+        });
+    }
+
+    fetch('{% url "proteins:pending_spectrum_action" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove processed spectra from DOM
+            spectrumIds.forEach(id => {
+                const card = document.querySelector(`.spectrum-card[data-spectrum-id="${id}"]`);
+                if (card) card.remove();
+            });
+
+            // Update count
+            const countBadge = document.querySelector('.badge-primary');
+            const currentCount = parseInt(countBadge.textContent);
+            const newCount = currentCount - data.count;
+            countBadge.textContent = `${newCount} pending`;
+
+            clearSelection();
+
+            // Show success message if no more pending
+            if (newCount === 0) {
+                // Clear any active toasts with undo buttons since DOM is being destroyed
+                document.getElementById('toast-container').innerHTML = '';
+
+                document.querySelector('.container-fluid').innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> No pending spectra! Great job.
+                    </div>
+                `;
+            }
+
+            // Show toast with undo for accept/reject
+            if (action === 'accept' || action === 'reject') {
+                const toastType = action === 'accept' ? 'success' : 'warning';
+                const actionVerb = action === 'accept' ? 'Accepted' : 'Rejected';
+                showToast(
+                    `${actionVerb} ${data.count} spectrum(s)`,
+                    toastType,
+                    true,
+                    () => undoAction(spectrumIds, savedCards)
+                );
+            } else {
+                // Delete - just show success without undo
+                showToast(data.message, 'success');
+            }
+        } else {
+            showToast('Error: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showToast('An error occurred: ' + error, 'error');
+        console.error('Error:', error);
+    });
+}
+
+// Undo action - revert spectra back to pending
+function undoAction(spectrumIds, savedCards) {
+    const formData = new FormData();
+    spectrumIds.forEach(id => formData.append('spectrum_ids[]', id));
+    formData.append('action', 'revert');
+
+    fetch('{% url "proteins:pending_spectrum_action" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Restore cards to DOM
+            // Find the first valid insertion point (a previousSibling that's still in the DOM)
+            let insertionPoint = null;
+            for (const id of spectrumIds) {
+                const savedCard = savedCards[id];
+                if (savedCard && savedCard.previousSibling && document.contains(savedCard.previousSibling)) {
+                    insertionPoint = savedCard.previousSibling;
+                    break;
+                }
+            }
+
+            // If no valid insertion point found, insert after select-all
+            if (!insertionPoint) {
+                insertionPoint = document.querySelector('.mb-3');
+            }
+
+            // Insert all cards after the insertion point in order
+            spectrumIds.forEach(id => {
+                const savedCard = savedCards[id];
+                if (savedCard) {
+                    insertionPoint.after(savedCard.element);
+                    // Update insertion point for next card to maintain order
+                    insertionPoint = savedCard.element;
+                }
+            });
+
+            // Update selection UI to reflect restored cards (keeps them checked)
+            updateSelection();
+
+            // Update count (use server's count for accuracy)
+            const countBadge = document.querySelector('.badge-primary');
+            const currentCount = parseInt(countBadge.textContent);
+            const newCount = currentCount + data.count;
+            countBadge.textContent = `${newCount} pending`;
+
+            showToast(`Reverted ${data.count} spectrum(s) back to pending`, 'success');
+        } else {
+            showToast('Failed to undo: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Failed to undo: ' + error, 'error');
+        console.error('Error:', error);
+    });
+}
+</script>
+{% endblock %}
