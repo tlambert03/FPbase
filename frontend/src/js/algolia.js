@@ -311,7 +311,11 @@ export default async function initAutocomplete() {
           templates: {
             suggestion: (suggestion) => {
               var str = suggestion._highlightResult.name.value
-              str = str + "<img class='type microscope' src='" + window.FPBASE.imageDir + "microscope_icon.png'>"
+              str =
+                str +
+                "<img class='type microscope' src='" +
+                window.FPBASE.imageDir +
+                "microscope_icon.png'>"
               str = str + highlightHits(suggestion._highlightResult)
               return `<a href='${suggestion.url}'><div>${str}</div></a>`
             },
