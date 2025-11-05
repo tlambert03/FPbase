@@ -10,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig(({ mode }) => {
   const isDev = mode === "development"
+  const isTestBuild = process.env.TEST_BUILD === "1"
 
   return {
     // Match Django STATIC_URL
@@ -26,8 +27,11 @@ export default defineConfig(({ mode }) => {
       // Generate manifest.json for django-vite
       manifest: "manifest.json",
 
-      // Source maps for Sentry
-      sourcemap: true,
+      // Source maps: inline for tests (easier debugging), external for production (Sentry upload)
+      sourcemap: isTestBuild ? "inline" : true,
+
+      // Minification: disabled for test builds to preserve function names and line numbers
+      minify: isTestBuild ? false : "esbuild",
 
       // Chunk size warnings (increased for large vendor chunks)
       chunkSizeWarningLimit: 1000, // 1MB (we have large MUI/Highcharts chunks)
