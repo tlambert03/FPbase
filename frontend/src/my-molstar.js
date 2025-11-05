@@ -62,10 +62,7 @@ async function getPDBUrl(id) {
     try {
       await $.ajax({ url, method: "HEAD", timeout: TIMEOUT })
       return url // This URL works!
-    } catch (error) {
-      // This URL failed, try the next one
-      continue
-    }
+    } catch (error) {}
   }
 
   // All URLs failed - return the first one and let pdbe-molstar try

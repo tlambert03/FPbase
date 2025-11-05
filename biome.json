@@ -8,11 +8,7 @@
     }
   },
   "files": {
-    "includes": [
-      "frontend/**",
-      "packages/**",
-      "!!packages/spectra/src/index.css"
-    ]
+    "includes": ["frontend/**", "packages/**", "!!packages/spectra/src/index.css"]
   },
   "formatter": {
     "indentStyle": "space",
