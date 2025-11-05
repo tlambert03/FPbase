@@ -8,6 +8,7 @@ Django web app for <https://www.fpbase.org> with React frontend. PostgreSQL data
 - unless explicitly told otherwise, don't run `git commit`, let me review changes.
 - avoid nested imports unless specifically used to avoid circular imports or delay heavy imports.
 - avoid arbitrary time.sleep() calls in tests; use proper waits on a specific condition instead.
+- the current year is 2025 (not 2024), for web-searches
 
 ## Tech Stack
 

@@ -1,8 +1,32 @@
-import * as d3 from "d3"
+// Use modular D3 imports for tree-shaking (only in d3Charts bundle)
+
+import { max, min } from "d3-array"
+import { axisBottom, axisLeft, axisRight, axisTop } from "d3-axis"
+import { hsl } from "d3-color"
+import { drag } from "d3-drag"
+import { scaleLinear, scaleLog } from "d3-scale"
+import { select } from "d3-selection"
+import { zoom } from "d3-zoom"
 
 const $ = window.jQuery // jQuery loaded from CDN
 
 import noUiSlider from "nouislider"
+
+// Create d3 namespace for backward compatibility with existing code
+const d3 = {
+  select,
+  scaleLinear,
+  scaleLog,
+  axisBottom,
+  axisLeft,
+  axisTop,
+  axisRight,
+  hsl,
+  max,
+  min,
+  zoom,
+  drag,
+}
 
 export default function FPPropChart() {
   const margin = { top: 20, right: 30, bottom: 20, left: 68 }

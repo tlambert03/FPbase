@@ -1,6 +1,13 @@
-import * as d3 from "d3"
+// Use modular D3 imports for tree-shaking (only in d3Charts bundle)
+
+import { max, min } from "d3-array"
+import { cluster, hierarchy, tree } from "d3-hierarchy"
+import { select, selectAll } from "d3-selection"
 
 const $ = window.jQuery // jQuery loaded from CDN
+
+// Create d3 namespace for backward compatibility with existing code
+const d3 = { select, selectAll, hierarchy, tree, cluster, max, min }
 
 function n_sibs(node) {
   return node.parent ? node.parent.children.length - 1 : 0
