@@ -998,7 +998,6 @@ def _get_protein_changes(protein):
     - lineage: Lineage changes
     - references: Reference changes
     """
-    from collections import defaultdict
     from reversion.models import Version
 
     changes = {
@@ -1321,7 +1320,7 @@ def pending_proteins_dashboard(request):
     try:
         ga_data = cached_ga_popular()
         # Use month data for view counts
-        for slug, name, views in ga_data.get("month", []):
+        for slug, _name, views in ga_data.get("month", []):
             view_data[slug] = views
     except Exception as e:
         logger.warning(f"Could not fetch GA data: {e}")
@@ -1377,7 +1376,6 @@ def pending_proteins_dashboard(request):
 @reversion.create_revision()
 def pending_protein_action(request):
     """Handle actions (approve/reject) on pending proteins."""
-    from django.views.decorators.http import require_POST
     from django.http import JsonResponse
 
     if request.method != "POST":
