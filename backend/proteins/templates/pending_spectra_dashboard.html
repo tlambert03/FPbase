@@ -107,7 +107,7 @@
     gap: 10px;
 }
 
-.toast {
+.notification-toast {
     background: #333;
     color: white;
     padding: 12px 20px;
@@ -120,27 +120,32 @@
     animation: slideIn 0.3s ease-out forwards;
     white-space: nowrap;
     min-width: fit-content;
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 400px;
 }
 
-.toast.success {
+.notification-toast.success {
     background: #28a745;
 }
 
-.toast.warning {
+.notification-toast.warning {
     background: #ffc107;
     color: #333;
 }
 
-.toast.error {
+.notification-toast.error {
     background: #dc3545;
 }
 
-.toast.slide-out {
+.notification-toast.slide-out {
     animation: slideOut 0.3s ease-in forwards;
 }
 
 .toast-message {
     flex: 0 1 auto;
+    margin: 0;
+    line-height: inherit;
 }
 
 .toast-undo {
@@ -153,9 +158,11 @@
     font-size: 0.9em;
     white-space: nowrap;
     flex-shrink: 0;
+    margin: 0;
+    line-height: 1.4;
 }
 
-.toast.warning .toast-undo {
+.notification-toast.warning .toast-undo {
     color: #333;
     border-color: rgba(0,0,0,0.3);
     background: rgba(0,0,0,0.1);
@@ -193,8 +200,7 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col">
-            <h1><i class="fas fa-chart-line"></i> Pending Spectra Dashboard</h1>
-            <p class="text-muted">Review and manage pending spectrum submissions</p>
+            <h1>Pending Spectra Dashboard</h1>
         </div>
         <div class="col-auto">
             <span class="badge badge-primary badge-pill" style="font-size: 1.2em;">
@@ -245,7 +251,7 @@
     <div class="spectrum-card" data-spectrum-id="{{ spectrum.id }}">
         <div class="spectrum-header">
             <input type="checkbox" class="spectrum-checkbox checkbox-large" data-spectrum-id="{{ spectrum.id }}" onchange="updateSelection()">
-            <h4>{{ spectrum.name }}</h4>
+            <h4 onclick="this.previousElementSibling.click()" style="cursor: pointer;">{{ spectrum.name }}</h4>
             <a href="{{ spectrum.admin_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
                 <i class="fas fa-external-link-alt"></i> Admin
             </a>
@@ -316,7 +322,7 @@
                         <i class="fas fa-trash"></i> Delete
                     </button>
                     {% if spectrum.created_by_email %}
-                    <a href="mailto:{{ spectrum.created_by_email }}?subject=Regarding%20your%20spectrum%20submission%3A%20{{ spectrum.name|urlencode }}" class="btn btn-info btn-sm">
+                    <a href="mailto:{{ spectrum.created_by_email }}?subject=Regarding%20your%20FPBase%20spectrum%20submission%3A%20{{ spectrum.name|urlencode }}" class="btn btn-info btn-sm">
                         <i class="fas fa-envelope"></i> Email
                     </a>
                     {% endif %}
@@ -360,7 +366,7 @@ let undoState = null;
 function showToast(message, type = 'success', showUndo = false, undoCallback = null) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    toast.className = `notification-toast ${type}`;
 
     const messageDiv = document.createElement('div');
     messageDiv.className = 'toast-message';
@@ -380,11 +386,11 @@ function showToast(message, type = 'success', showUndo = false, undoCallback = n
 
     container.appendChild(toast);
 
-    // Auto-remove after 5 seconds
+    // Auto-remove after 6 seconds
     setTimeout(() => {
         toast.classList.add('slide-out');
         setTimeout(() => toast.remove(), 300);
-    }, 5000);
+    }, 6000);
 }
 
 // Get selected spectrum IDs
@@ -564,21 +570,33 @@ function undoAction(spectrumIds, savedCards) {
     .then(data => {
         if (data.success) {
             // Restore cards to DOM
+            // Find the first valid insertion point (a previousSibling that's still in the DOM)
+            let insertionPoint = null;
+            for (const id of spectrumIds) {
+                const savedCard = savedCards[id];
+                if (savedCard && savedCard.previousSibling && document.contains(savedCard.previousSibling)) {
+                    insertionPoint = savedCard.previousSibling;
+                    break;
+                }
+            }
+
+            // If no valid insertion point found, insert after select-all
+            if (!insertionPoint) {
+                insertionPoint = document.querySelector('.mb-3');
+            }
+
+            // Insert all cards after the insertion point in order
             spectrumIds.forEach(id => {
                 const savedCard = savedCards[id];
                 if (savedCard) {
-                    const container = document.querySelector('.container-fluid');
-                    const cardsContainer = container.querySelector('.row') ? container : container;
-
-                    if (savedCard.previousSibling) {
-                        savedCard.previousSibling.after(savedCard.element);
-                    } else {
-                        // Insert after the select-all row
-                        const selectAllRow = document.querySelector('.mb-3');
-                        selectAllRow.after(savedCard.element);
-                    }
+                    insertionPoint.after(savedCard.element);
+                    // Update insertion point for next card to maintain order
+                    insertionPoint = savedCard.element;
                 }
             });
+
+            // Update selection UI to reflect restored cards (keeps them checked)
+            updateSelection();
 
             // Update count
             const countBadge = document.querySelector('.badge-primary');
