@@ -62,8 +62,14 @@ window.FPBASE = {
 // Also expose initSearch globally for legacy inline scripts
 window.initSearch = initSearch
 
-// Auto-initialization: Look for elements with data-fpbase-init attribute
+// Initialize autocomplete search when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize autocomplete if search input exists
+  if (document.getElementById("algolia-search-input")) {
+    initAutocomplete()
+  }
+
+  // Auto-initialization: Look for elements with data-fpbase-init attribute
   document.querySelectorAll("[data-fpbase-init]").forEach((element) => {
     const initType = element.dataset.fpbaseInit
 
@@ -76,9 +82,6 @@ document.addEventListener("DOMContentLoaded", () => {
           initSearch(fields, operators, labels)
           break
         }
-        case "autocomplete":
-          initAutocomplete()
-          break
         case "litemol": {
           // Lazy load LiteMol only when the structure section becomes visible
           const pdbIds = JSON.parse(element.dataset.pdbIds || "[]")
@@ -151,11 +154,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
 })
-
-// Dispatch custom event to signal bundle is ready
-// This runs immediately - no need to wait for DOMContentLoaded
-window.dispatchEvent(
-  new CustomEvent("fpbase:ready", {
-    detail: { bundle: "main", version: window.FPBASE },
-  })
-)

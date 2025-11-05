@@ -87,8 +87,7 @@
   </head>
 
   <body class="{% block body-class %}{% endblock %}">
-    {% block bodyopen %}
-    {% endblock bodyopen %}
+    {% block bodyopen %}{% endblock bodyopen %}
 
     {% block body %}
     <div>
@@ -105,7 +104,6 @@
 
     <div class="{% block container-class %}container{% endblock %} mt-4">
 
-
       {% block messages %}
         {% if messages %}
           <div class="container">
@@ -120,8 +118,7 @@
         {% endif %}
       {% endblock messages %}
 
-      {% block content %}
-      {% endblock content %}
+      {% block content %}{% endblock content %}
 
     </div> <!-- /container -->
 
@@ -148,23 +145,7 @@
 
     {% endblock body %}
 
-      <!-- place project specific Javascript -->
-      <script>
-        // Listen for bundle ready event (dispatched from frontend/src/index.js)
-        window.addEventListener('fpbase:ready', function() {
-          if (window.FPBASE && typeof window.FPBASE.initAutocomplete === 'function') {
-            window.FPBASE.initAutocomplete();
-          }
-        });
-
-        // Handle case where bundle already loaded before listener attached
-        if (window.FPBASE && typeof window.FPBASE.initAutocomplete === 'function') {
-          window.FPBASE.initAutocomplete();
-        }
-      </script>
-
-
-      {% block javascript %}{% endblock %}
+    {% block javascript %}{% endblock %}
 
   </body>
 </html>

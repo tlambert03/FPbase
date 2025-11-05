@@ -138,27 +138,56 @@ function highlightRefHits(high) {
   return str
 }
 
-export default async function initAutocomplete() {
-  // autocomplete.jquery.js loaded from CDN in base.html with defer
-  // Wait for autocomplete plugin to be available
-  const MAX_RETRIES = 20 // 20 * 50ms = 1 second max wait
+// Guard to prevent double initialization
+let isInitialized = false
 
-  if (typeof $.fn.autocomplete === "undefined") {
-    if (retryCount >= MAX_RETRIES) {
-      console.error("Autocomplete plugin failed to load after 1 second")
-      if (window.Sentry) {
-        Sentry.captureMessage("Autocomplete CDN script failed to load", "warning")
-      }
-      return
+/**
+ * Wait for autocomplete.js library to be available
+ * @param {number} maxWaitMs - Maximum time to wait in milliseconds
+ * @returns {Promise<boolean>} - Resolves to true if available, false if timeout
+ */
+async function waitForAutocomplete(maxWaitMs = 2000) {
+  const startTime = Date.now()
+  const checkInterval = 50
+
+  while (Date.now() - startTime < maxWaitMs) {
+    if (typeof $.fn.autocomplete !== "undefined") {
+      return true
     }
+    await new Promise((resolve) => setTimeout(resolve, checkInterval))
+  }
+  return false
+}
 
-    setTimeout(() => {
-      if (window.FPBASE && typeof window.FPBASE.initAutocomplete === "function") {
-        window.FPBASE.initAutocomplete(retryCount + 1)
-      }
-    }, 50)
+/**
+ * Initialize Algolia autocomplete search
+ * Must be called after DOM is ready and autocomplete.js is loaded
+ */
+export default async function initAutocomplete() {
+  // Prevent double initialization
+  if (isInitialized) {
     return
   }
+
+  // Wait for search input to be available in DOM
+  const $searchInput = $("#algolia-search-input")
+  if (!$searchInput.length) {
+    console.warn("Algolia search input not found in DOM")
+    return
+  }
+
+  // Wait for autocomplete.js library (loaded from CDN with defer)
+  const autocompleteAvailable = await waitForAutocomplete()
+  if (!autocompleteAvailable) {
+    console.error("Autocomplete plugin failed to load after 2 seconds")
+    if (window.Sentry) {
+      Sentry.captureMessage("Autocomplete CDN script failed to load", "warning")
+    }
+    return
+  }
+
+  // Mark as initialized before async import
+  isInitialized = true
 
   const { default: algoliasearch } = await import("algoliasearch")
 
@@ -179,7 +208,8 @@ export default async function initAutocomplete() {
       return '<div class="empty"><span class="nohits"></span>No results... try the <a href="/search/">advanced search</a></div>'
     }
   }
-  const $searchInput = $("#algolia-search-input")
+
+  // Initialize autocomplete on the search input
   $searchInput
     .autocomplete(
       {
