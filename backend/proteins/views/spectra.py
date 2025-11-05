@@ -345,11 +345,10 @@ def pending_spectra_dashboard(request):
     spectra_data = []
     for spectrum in pending_spectra:
         svg_preview = None
-        if spectrum.data:
+        if spectrum.data is not None:
             try:
-                output = io.BytesIO()
-                spectrum.spectrum_img(fmt="svg", output=output, xlabels=True, ylabels=True, figsize=(10, 3))
-                svg_preview = output.read().decode("utf-8")
+                buffer = spectrum.spectrum_img(fmt="svg", xlabels=True, ylabels=True, figsize=(10, 3))
+                svg_preview = buffer.getvalue().decode("utf-8")
             except Exception:
                 svg_preview = None
 
