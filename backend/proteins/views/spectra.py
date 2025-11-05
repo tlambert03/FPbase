@@ -358,7 +358,7 @@ def pending_spectra_dashboard(request):
                 "id": spectrum.id,
                 "name": spectrum.name,
                 "owner": spectrum.owner,
-                "owner_type": spectrum.category_name,
+                "owner_type": spectrum.get_category_display(),
                 "category": spectrum.get_category_display(),
                 "subtype": spectrum.get_subtype_display(),
                 "source": spectrum.source or "N/A",

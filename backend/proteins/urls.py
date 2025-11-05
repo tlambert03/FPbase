@@ -296,7 +296,7 @@ urlpatterns = [
         name="spectrum_preview",
     ),
     path(
-        "admin/pending-spectra/",
+        "pending-spectra/",
         views.pending_spectra_dashboard,
         name="pending_spectra_dashboard",
     ),
