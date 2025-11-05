@@ -14,6 +14,12 @@
     {% endblock ga %}
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    {% if not debug %}
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
+    {% endif %}
+    <link rel="preconnect" href="https://9wawqmvntb-dsn.algolia.net" crossorigin>
+    <link rel="dns-prefetch" href="https://9wawqmvntb-dsn.algolia.net">
 
     <meta charset="utf-8">
     <meta http-equiv="Content-Language" content="en">
