@@ -37,6 +37,43 @@ function loadSmiles(pdbid) {
 }
 
 /**
+ * Get PDB structure URL with cascading fallback.
+ *
+ * Returns the first available URL from multiple mirror sources.
+ * Tries in order: wwPDB → RCSB → EBI
+ *
+ * @param {string} id - PDB identifier (e.g., '6GP0')
+ * @returns {Promise<string>} URL to fetch CIF structure data
+ * @throws {Error} If all endpoints fail
+ * @see https://www.rcsb.org/docs/programmatic-access/file-download-services
+ */
+async function getPDBUrl(id) {
+  const TIMEOUT = 5000 // 5 second timeout per request
+
+  // Try URLs in order of preference
+  const urls = [
+    `https://files.wwpdb.org/download/${id}.cif`,
+    `https://files.rcsb.org/download/${id}.cif`,
+    `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`,
+  ]
+
+  // Test each URL with a HEAD request to see if it's available
+  for (const url of urls) {
+    try {
+      await $.ajax({ url, method: "HEAD", timeout: TIMEOUT })
+      return url // This URL works!
+    } catch (error) {
+      // This URL failed, try the next one
+      continue
+    }
+  }
+
+  // All URLs failed - return the first one and let pdbe-molstar try
+  // (it will show its own error message)
+  return urls[0]
+}
+
+/**
  * Load and display chemical information for a PDB entry.
  *
  * @param {string} pdbid - PDB identifier
@@ -104,7 +141,7 @@ function initMolstar(selection, changer) {
 
   let currentPluginInstance = null
 
-  changer.change(function () {
+  changer.change(async function () {
     const id = this.value
 
     // Clear previous structure
@@ -114,9 +151,15 @@ function initMolstar(selection, changer) {
     }
 
     try {
-      // Render the plugin with PDB ID - pdbe-molstar will fetch the structure
+      // Get a working URL with cascading fallback
+      const url = await getPDBUrl(id)
+
+      // Render the plugin with custom data URL
       const options = {
-        moleculeId: id,
+        customData: {
+          url: url,
+          format: "cif",
+        },
         bgColor: { r: 255, g: 255, b: 255 },
         hideControls: false,
         sequencePanel: false,
