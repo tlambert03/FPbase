@@ -345,7 +345,6 @@ tags
 [Ll]ib
 [Ll]ib64
 [Ll]ocal
-[Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json
 
@@ -386,3 +385,4 @@ memray_*/
 test_fix*.bin
 __snapshots__/
 snapshot_failures/
+frontend/stats.html
