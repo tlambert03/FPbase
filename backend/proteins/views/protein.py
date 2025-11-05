@@ -1021,15 +1021,15 @@ def _get_protein_changes(protein):
 
     changes["is_new"] = False
 
-    # If last_approved is a Version object, we need to restore the protein from it
+    # Handle Version object vs Protein instance
     if isinstance(last_approved_version, Version):
-        # Use the old_object helper from history.py to restore the protein
-        from proteins.util.history import old_object
-
-        last_approved = old_object(last_approved_version)
+        # Use field_dict to avoid transaction issues with old_object()
+        old_data = last_approved_version.field_dict
+        use_field_dict = True
     else:
         # It's already a Protein instance (when status == "approved")
-        last_approved = last_approved_version
+        old_data = last_approved_version
+        use_field_dict = False
 
     # Compare protein-level fields
     field_map = {
@@ -1055,7 +1055,10 @@ def _get_protein_changes(protein):
     }
 
     for field, label in field_map.items():
-        old_val = getattr(last_approved, field, None)
+        if use_field_dict:
+            old_val = old_data.get(field)
+        else:
+            old_val = getattr(old_data, field, None)
         new_val = getattr(protein, field, None)
 
         # Special handling for different field types
@@ -1076,28 +1079,43 @@ def _get_protein_changes(protein):
                     }
         elif field == "agg":
             if old_val != new_val:
-                old_display = last_approved.get_agg_display() if old_val else None
+                # Get display values for choice fields
+                if use_field_dict:
+                    old_display = dict(Protein.AGG_CHOICES).get(old_val, old_val) if old_val else None
+                else:
+                    old_display = old_data.get_agg_display() if old_val else None
                 new_display = protein.get_agg_display() if new_val else None
                 if old_display != new_display:
                     changes["protein_fields"][label] = {"old": old_display, "new": new_display}
         elif field == "switch_type":
             if old_val != new_val:
-                old_display = last_approved.get_switch_type_display() if old_val else None
+                if use_field_dict:
+                    old_display = dict(Protein.SWITCHING_CHOICES).get(old_val, old_val) if old_val else None
+                else:
+                    old_display = old_data.get_switch_type_display() if old_val else None
                 new_display = protein.get_switch_type_display() if new_val else None
                 if old_display != new_display:
                     changes["protein_fields"][label] = {"old": old_display, "new": new_display}
         elif field == "cofactor":
             if old_val != new_val:
-                old_display = last_approved.get_cofactor_display() if old_val else None
+                if use_field_dict:
+                    old_display = dict(Protein.COFACTOR_CHOICES).get(old_val, old_val) if old_val else None
+                else:
+                    old_display = old_data.get_cofactor_display() if old_val else None
                 new_display = protein.get_cofactor_display() if new_val else None
                 if old_display != new_display:
                     changes["protein_fields"][label] = {"old": old_display, "new": new_display}
         elif field == "parent_organism_id":
             if old_val != new_val:
-                old_org = last_approved.parent_organism if old_val else None
+                if use_field_dict:
+                    # For field_dict, just show the ID
+                    old_org_str = f"Organism ID: {old_val}" if old_val else None
+                else:
+                    old_org = old_data.parent_organism if old_val else None
+                    old_org_str = str(old_org) if old_org else None
                 new_org = protein.parent_organism if new_val else None
                 changes["protein_fields"][label] = {
-                    "old": str(old_org) if old_org else None,
+                    "old": old_org_str,
                     "new": str(new_org) if new_org else None,
                 }
         elif field in ["primary_reference_id", "default_state_id"]:
@@ -1107,8 +1125,14 @@ def _get_protein_changes(protein):
             if old_val != new_val:
                 changes["protein_fields"][label] = {"old": old_val, "new": new_val}
 
-    # Compare states
-    old_states = {s.id: s for s in last_approved.states.all()}
+    # Skip related object comparisons when using field_dict (to avoid transaction issues)
+    if use_field_dict:
+        # Clean up empty sections
+        changes = {k: v for k, v in changes.items() if v and (not isinstance(v, dict) or any(v.values()))}
+        return changes
+
+    # Compare states (only when we have a Protein instance)
+    old_states = {s.id: s for s in old_data.states.all()}
     new_states = {s.id: s for s in protein.states.all()}
 
     # Find added states (states that exist now but didn't before)
@@ -1195,7 +1219,7 @@ def _get_protein_changes(protein):
             changes["states"]["modified"][str(new_state)] = state_changes
 
     # Compare references
-    old_refs = set(last_approved.references.values_list("id", flat=True))
+    old_refs = set(old_data.references.values_list("id", flat=True))
     new_refs = set(protein.references.values_list("id", flat=True))
 
     added_refs = new_refs - old_refs
@@ -1217,7 +1241,7 @@ def _get_protein_changes(protein):
 
     # Compare lineage
     try:
-        old_lineage = last_approved.lineage
+        old_lineage = old_data.lineage
         new_lineage = protein.lineage
         lineage_fields = {"parent": "Parent", "mutation": "Mutation", "reference": "Reference"}
 
@@ -1234,7 +1258,7 @@ def _get_protein_changes(protein):
         pass
 
     # Compare OSER measurements
-    old_osers = {o.id: o for o in last_approved.oser_measurements.all()}
+    old_osers = {o.id: o for o in old_data.oser_measurements.all()}
     new_osers = {o.id: o for o in protein.oser_measurements.all()}
 
     for oser_id in set(new_osers.keys()) - set(old_osers.keys()):
@@ -1246,7 +1270,7 @@ def _get_protein_changes(protein):
         changes["oser"]["removed"].append(str(oser))
 
     # Compare transitions
-    old_transitions = {t.id: t for t in last_approved.transitions.all()}
+    old_transitions = {t.id: t for t in old_data.transitions.all()}
     new_transitions = {t.id: t for t in protein.transitions.all()}
 
     for trans_id in set(new_transitions.keys()) - set(old_transitions.keys()):
