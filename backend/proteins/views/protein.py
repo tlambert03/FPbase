@@ -1290,7 +1290,10 @@ def _get_protein_changes(protein):
 @staff_member_required
 def pending_proteins_dashboard(request):
     """Dashboard for reviewing pending protein submissions and changes."""
-    from django.contrib.auth.decorators import permission_required
+    from collections import Counter
+
+    from favit.models import Favorite
+    from proteins.extrest.ga import cached_ga_popular
 
     # Get all pending proteins
     pending_proteins = (
@@ -1312,6 +1315,25 @@ def pending_proteins_dashboard(request):
         )
         .order_by("-modified")
     )
+
+    # Get view data (from Google Analytics)
+    view_data = {}
+    try:
+        ga_data = cached_ga_popular()
+        # Use month data for view counts
+        for slug, name, views in ga_data.get("month", []):
+            view_data[slug] = views
+    except Exception as e:
+        logger.warning(f"Could not fetch GA data: {e}")
+
+    # Get favorite counts
+    favorite_data = {}
+    try:
+        fave_qs = Favorite.objects.for_model(Protein)
+        fave_counts = Counter(fave_qs.values_list("target_object_id", flat=True))
+        favorite_data = dict(fave_counts)
+    except Exception as e:
+        logger.warning(f"Could not fetch favorite data: {e}")
 
     proteins_data = []
     for protein in pending_proteins:
@@ -1335,6 +1357,11 @@ def pending_proteins_dashboard(request):
                     "changes": changes,
                     "admin_url": f"/admin/proteins/protein/{protein.id}/change/",
                     "detail_url": protein.get_absolute_url(),
+                    "view_count": view_data.get(protein.slug, 0),
+                    "favorite_count": favorite_data.get(protein.id, 0),
+                    # Add ISO format for JavaScript sorting
+                    "created_iso": protein.created.isoformat() if protein.created else "",
+                    "modified_iso": protein.modified.isoformat() if protein.modified else "",
                 }
             )
 
