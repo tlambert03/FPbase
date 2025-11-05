@@ -1,0 +1,530 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pending Spectra Dashboard - FPbase Admin{% endblock %}
+
+{% block extrahead %}
+<style>
+.spectrum-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s;
+}
+
+.spectrum-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.spectrum-card.selected {
+    border-color: #007bff;
+    background-color: #f0f8ff;
+}
+
+.spectrum-preview {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: white;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.spectrum-info {
+    margin-bottom: 10px;
+}
+
+.spectrum-info label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.bulk-actions {
+    position: sticky;
+    top: 70px;
+    background: #fff;
+    padding: 15px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 100;
+    display: none;
+}
+
+.bulk-actions.show {
+    display: block;
+}
+
+.checkbox-large {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.spectrum-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.spectrum-header h4 {
+    margin: 0;
+    flex-grow: 1;
+}
+
+.email-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.email-modal.show {
+    display: flex;
+}
+
+.email-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.badge-status {
+    font-size: 0.9em;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="fas fa-chart-line"></i> Pending Spectra Dashboard</h1>
+            <p class="text-muted">Review and manage pending spectrum submissions</p>
+        </div>
+        <div class="col-auto">
+            <span class="badge badge-primary badge-pill" style="font-size: 1.2em;">
+                {{ count }} pending
+            </span>
+        </div>
+    </div>
+
+    {% if count == 0 %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> No pending spectra! Great job.
+    </div>
+    {% else %}
+
+    <!-- Bulk Actions Bar (shown when items are selected) -->
+    <div id="bulk-actions-bar" class="bulk-actions">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong><span id="selected-count">0</span> spectra selected</strong>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-success" onclick="bulkAction('accept')">
+                    <i class="fas fa-check"></i> Accept Selected
+                </button>
+                <button type="button" class="btn btn-warning" onclick="bulkAction('reject')">
+                    <i class="fas fa-times"></i> Reject Selected
+                </button>
+                <button type="button" class="btn btn-danger" onclick="bulkAction('delete')">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+                <button type="button" class="btn btn-info" onclick="showEmailModal()">
+                    <i class="fas fa-envelope"></i> Email Submitter(s)
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="clearSelection()">
+                    <i class="fas fa-undo"></i> Clear Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Select All -->
+    <div class="mb-3">
+        <label>
+            <input type="checkbox" id="select-all" class="checkbox-large" onchange="toggleSelectAll(this)">
+            <strong>Select All</strong>
+        </label>
+    </div>
+
+    <!-- Spectra Cards -->
+    {% for spectrum in spectra %}
+    <div class="spectrum-card" data-spectrum-id="{{ spectrum.id }}">
+        <div class="spectrum-header">
+            <input type="checkbox" class="spectrum-checkbox checkbox-large" data-spectrum-id="{{ spectrum.id }}" onchange="updateSelection()">
+            <h4>{{ spectrum.name }}</h4>
+            <a href="{{ spectrum.admin_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-external-link-alt"></i> Admin
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Spectrum Preview -->
+                {% if spectrum.svg_preview %}
+                <div class="spectrum-preview">
+                    {{ spectrum.svg_preview|safe }}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">No preview available</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4">
+                <!-- Spectrum Info -->
+                <div class="spectrum-info">
+                    <label>ID:</label>
+                    <span>{{ spectrum.id }}</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Owner:</label>
+                    <span>{{ spectrum.owner|default:"N/A" }} ({{ spectrum.owner_type }})</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Type:</label>
+                    <span class="badge badge-info">{{ spectrum.category }}</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Subtype:</label>
+                    <span class="badge badge-secondary">{{ spectrum.subtype }}</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Source:</label>
+                    <span>{{ spectrum.source }}</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Submitted:</label>
+                    <span>{{ spectrum.created|date:"Y-m-d H:i" }}</span>
+                </div>
+
+                <div class="spectrum-info">
+                    <label>Submitter:</label>
+                    <span>
+                        {% if spectrum.created_by %}
+                        {{ spectrum.created_by.username }}
+                        {% if spectrum.created_by_email %}
+                        <br><small class="text-muted">{{ spectrum.created_by_email }}</small>
+                        {% endif %}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons mt-3">
+                    <button type="button" class="btn btn-success btn-sm" onclick="singleAction({{ spectrum.id }}, 'accept')">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="singleAction({{ spectrum.id }}, 'reject')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="singleAction({{ spectrum.id }}, 'delete')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    {% if spectrum.created_by_email %}
+                    <button type="button" class="btn btn-info btn-sm" onclick="emailSingle({{ spectrum.id }})">
+                        <i class="fas fa-envelope"></i> Email
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Email Modal -->
+<div id="email-modal" class="email-modal">
+    <div class="email-modal-content">
+        <h3>Send Email to Submitter(s)</h3>
+        <p>Send an email to the submitter(s) of the selected spectra.</p>
+
+        <form id="email-form">
+            <div class="form-group">
+                <label for="email-subject">Subject:</label>
+                <input type="text" class="form-control" id="email-subject" required
+                       placeholder="e.g., Regarding your spectrum submission">
+            </div>
+
+            <div class="form-group">
+                <label for="email-body">Message:</label>
+                <textarea class="form-control" id="email-body" rows="8" required
+                          placeholder="Your message here..."></textarea>
+                <small class="form-text text-muted">
+                    Each submitter will receive a personalized email with their spectrum(s) listed.
+                </small>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2" style="gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="hideEmailModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send Email(s)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+// CSRF token for AJAX requests
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// Get selected spectrum IDs
+function getSelectedIds() {
+    const checkboxes = document.querySelectorAll('.spectrum-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.dataset.spectrumId);
+}
+
+// Update selection UI
+function updateSelection() {
+    const selectedIds = getSelectedIds();
+    const count = selectedIds.length;
+
+    document.getElementById('selected-count').textContent = count;
+
+    if (count > 0) {
+        document.getElementById('bulk-actions-bar').classList.add('show');
+    } else {
+        document.getElementById('bulk-actions-bar').classList.remove('show');
+    }
+
+    // Update card styling
+    document.querySelectorAll('.spectrum-card').forEach(card => {
+        const checkbox = card.querySelector('.spectrum-checkbox');
+        if (checkbox.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+
+    // Update select-all checkbox
+    const allCheckboxes = document.querySelectorAll('.spectrum-checkbox');
+    const selectAllCheckbox = document.getElementById('select-all');
+    selectAllCheckbox.checked = allCheckboxes.length > 0 && selectedIds.length === allCheckboxes.length;
+}
+
+// Toggle select all
+function toggleSelectAll(checkbox) {
+    document.querySelectorAll('.spectrum-checkbox').forEach(cb => {
+        cb.checked = checkbox.checked;
+    });
+    updateSelection();
+}
+
+// Clear selection
+function clearSelection() {
+    document.querySelectorAll('.spectrum-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    document.getElementById('select-all').checked = false;
+    updateSelection();
+}
+
+// Perform action on single spectrum
+function singleAction(spectrumId, action) {
+    const actionNames = {
+        'accept': 'accept',
+        'reject': 'reject',
+        'delete': 'delete'
+    };
+
+    const confirmMessage = action === 'delete'
+        ? 'Are you sure you want to DELETE this spectrum? This cannot be undone.'
+        : `Are you sure you want to ${action} this spectrum?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    performAction([spectrumId], action);
+}
+
+// Perform bulk action
+function bulkAction(action) {
+    const selectedIds = getSelectedIds();
+
+    if (selectedIds.length === 0) {
+        alert('Please select at least one spectrum.');
+        return;
+    }
+
+    const confirmMessage = action === 'delete'
+        ? `Are you sure you want to DELETE ${selectedIds.length} spectra? This cannot be undone.`
+        : `Are you sure you want to ${action} ${selectedIds.length} spectra?`;
+
+    if (!confirm(confirmMessage)) return;
+
+    performAction(selectedIds, action);
+}
+
+// Perform action via AJAX
+function performAction(spectrumIds, action) {
+    const formData = new FormData();
+    spectrumIds.forEach(id => formData.append('spectrum_ids[]', id));
+    formData.append('action', action);
+
+    fetch('{% url "proteins:pending_spectrum_action" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // Remove processed spectra from DOM
+            spectrumIds.forEach(id => {
+                const card = document.querySelector(`.spectrum-card[data-spectrum-id="${id}"]`);
+                if (card) card.remove();
+            });
+            // Update count
+            const countBadge = document.querySelector('.badge-primary');
+            const currentCount = parseInt(countBadge.textContent);
+            const newCount = currentCount - data.count;
+            countBadge.textContent = `${newCount} pending`;
+
+            clearSelection();
+
+            // Show success message if no more pending
+            if (newCount === 0) {
+                document.querySelector('.container-fluid').innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> No pending spectra! Great job.
+                    </div>
+                `;
+            }
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('An error occurred: ' + error);
+        console.error('Error:', error);
+    });
+}
+
+// Email modal functions
+function showEmailModal() {
+    const selectedIds = getSelectedIds();
+    if (selectedIds.length === 0) {
+        alert('Please select at least one spectrum.');
+        return;
+    }
+    document.getElementById('email-modal').classList.add('show');
+}
+
+function hideEmailModal() {
+    document.getElementById('email-modal').classList.remove('show');
+    document.getElementById('email-form').reset();
+}
+
+function emailSingle(spectrumId) {
+    // Select the checkbox for this spectrum
+    const checkbox = document.querySelector(`.spectrum-checkbox[data-spectrum-id="${spectrumId}"]`);
+
+    // Clear all other selections
+    document.querySelectorAll('.spectrum-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+
+    // Check only this one
+    checkbox.checked = true;
+    updateSelection();
+
+    // Show email modal
+    showEmailModal();
+}
+
+// Handle email form submission
+document.getElementById('email-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const selectedIds = getSelectedIds();
+    const subject = document.getElementById('email-subject').value;
+    const body = document.getElementById('email-body').value;
+
+    const formData = new FormData();
+    selectedIds.forEach(id => formData.append('spectrum_ids[]', id));
+    formData.append('subject', subject);
+    formData.append('body', body);
+
+    fetch('{% url "proteins:pending_spectrum_email" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            hideEmailModal();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('An error occurred: ' + error);
+        console.error('Error:', error);
+    });
+});
+
+// Close modal when clicking outside
+document.getElementById('email-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideEmailModal();
+    }
+});
+</script>
+{% endblock %}

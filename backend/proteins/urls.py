@@ -296,6 +296,21 @@ urlpatterns = [
         name="spectrum_preview",
     ),
     path(
+        "admin/pending-spectra/",
+        views.pending_spectra_dashboard,
+        name="pending_spectra_dashboard",
+    ),
+    path(
+        "ajax/pending_spectrum_action/",
+        views.pending_spectrum_action,
+        name="pending_spectrum_action",
+    ),
+    path(
+        "ajax/pending_spectrum_email/",
+        views.pending_spectrum_email,
+        name="pending_spectrum_email",
+    ),
+    path(
         "ajax/remove_from_collection/",
         views.collection_remove,
         name="collection-remove",

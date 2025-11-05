@@ -9,12 +9,14 @@ from textwrap import dedent
 # from django.views.decorators.vary import vary_on_cookie
 from django import forms
 from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.mail import EmailMessage
 from django.http import Http404, HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 
 from fpbase.util import is_ajax, uncache_protein_page
@@ -320,3 +322,179 @@ def filter_import(request, brand):
             if errors[0][1].as_data()["owner"][0].code == "owner_exists":
                 response["message"] = f"{part} already appears to be imported"
     return JsonResponse(response)
+
+
+@staff_member_required
+def pending_spectra_dashboard(request):
+    """Admin dashboard for reviewing pending spectra submissions."""
+    pending_spectra = (
+        Spectrum.objects.all_objects()
+        .filter(status=Spectrum.STATUS.pending)
+        .select_related(
+            "created_by",
+            "owner_state__protein",
+            "owner_dye",
+            "owner_filter",
+            "owner_camera",
+            "owner_light",
+        )
+        .order_by("-created")
+    )
+
+    # Generate preview SVGs for each spectrum
+    spectra_data = []
+    for spectrum in pending_spectra:
+        svg_preview = None
+        if spectrum.data:
+            try:
+                output = io.BytesIO()
+                spectrum.spectrum_img(fmt="svg", output=output, xlabels=True, ylabels=True, figsize=(10, 3))
+                svg_preview = output.read().decode("utf-8")
+            except Exception:
+                svg_preview = None
+
+        spectra_data.append(
+            {
+                "id": spectrum.id,
+                "name": spectrum.name,
+                "owner": spectrum.owner,
+                "owner_type": spectrum.category_name,
+                "category": spectrum.get_category_display(),
+                "subtype": spectrum.get_subtype_display(),
+                "source": spectrum.source or "N/A",
+                "created": spectrum.created,
+                "created_by": spectrum.created_by,
+                "created_by_email": spectrum.created_by.email if spectrum.created_by else None,
+                "svg_preview": svg_preview,
+                "admin_url": f"/admin/proteins/spectrum/{spectrum.id}/change/",
+            }
+        )
+
+    context = {
+        "spectra": spectra_data,
+        "count": len(spectra_data),
+    }
+
+    return render(request, "pending_spectra_dashboard.html", context)
+
+
+@staff_member_required
+@require_POST
+def pending_spectrum_action(request):
+    """Handle actions (accept/reject/delete) on pending spectra."""
+    try:
+        spectrum_ids = request.POST.getlist("spectrum_ids[]")
+        action = request.POST.get("action")
+
+        if not spectrum_ids or not action:
+            return JsonResponse({"success": False, "error": "Missing spectrum_ids or action"}, status=400)
+
+        spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
+
+        if not spectra.exists():
+            return JsonResponse({"success": False, "error": "No pending spectra found with provided IDs"}, status=404)
+
+        count = spectra.count()
+
+        if action == "accept":
+            spectra.update(status=Spectrum.STATUS.approved)
+            # Clear cache for affected protein pages
+            for spectrum in spectra:
+                with contextlib.suppress(Exception):
+                    if spectrum.owner_state:
+                        uncache_protein_page(spectrum.owner_state.protein.slug, request)
+            message = f"Accepted {count} spectrum(s)"
+
+        elif action == "reject":
+            spectra.update(status=Spectrum.STATUS.rejected)
+            message = f"Rejected {count} spectrum(s)"
+
+        elif action == "delete":
+            spectra.delete()
+            message = f"Deleted {count} spectrum(s)"
+
+        else:
+            return JsonResponse({"success": False, "error": f"Unknown action: {action}"}, status=400)
+
+        return JsonResponse({"success": True, "message": message, "count": count})
+
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.exception("Error in pending_spectrum_action: %s", e)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@staff_member_required
+@require_POST
+def pending_spectrum_email(request):
+    """Send email to submitter(s) of pending spectra."""
+    try:
+        spectrum_ids = request.POST.getlist("spectrum_ids[]")
+        email_subject = request.POST.get("subject", "")
+        email_body = request.POST.get("body", "")
+
+        if not spectrum_ids or not email_subject or not email_body:
+            return JsonResponse(
+                {"success": False, "error": "Missing spectrum_ids, subject, or body"},
+                status=400,
+            )
+
+        spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
+
+        if not spectra.exists():
+            return JsonResponse({"success": False, "error": "No pending spectra found with provided IDs"}, status=404)
+
+        # Get unique submitters
+        submitters = {}
+        for spectrum in spectra:
+            if spectrum.created_by and spectrum.created_by.email:
+                if spectrum.created_by.email not in submitters:
+                    submitters[spectrum.created_by.email] = {
+                        "user": spectrum.created_by,
+                        "spectra": [],
+                    }
+                submitters[spectrum.created_by.email]["spectra"].append(spectrum)
+
+        if not submitters:
+            return JsonResponse({"success": False, "error": "No submitters with email addresses found"}, status=400)
+
+        # Send individual emails to each submitter
+        emails_sent = 0
+        for email_address, data in submitters.items():
+            user = data["user"]
+            user_spectra = data["spectra"]
+
+            # Personalize email body with spectrum list
+            spectrum_list = "\n".join([f"- {s.name} (ID: {s.id})" for s in user_spectra])
+            personalized_body = f"""Hi {user.username},
+
+{email_body}
+
+Spectrum(s) in question:
+{spectrum_list}
+
+Best regards,
+The FPbase Team
+"""
+
+            EmailMessage(
+                subject=f"[FPbase] {email_subject}",
+                body=personalized_body,
+                to=[email_address],
+                reply_to=[a[1] for a in settings.ADMINS],
+                headers={"X-Mailgun-Track": "no"},
+            ).send()
+            emails_sent += 1
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": f"Sent {emails_sent} email(s) to {emails_sent} submitter(s)",
+                "emails_sent": emails_sent,
+            }
+        )
+
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.exception("Error in pending_spectrum_email: %s", e)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
