@@ -5,4 +5,17 @@
 
 {% block sidebar %}
 {{ block.super }}
+
+<div class="module">
+  <table>
+    <caption>
+      <a href="{% url 'version' %}">Deployment Information</a>
+    </caption>
+    <tr>
+      <td>
+        <a href="{% url 'version' %}">View current deployment version</a>
+      </td>
+    </tr>
+  </table>
+</div>
 {% endblock sidebar %}
