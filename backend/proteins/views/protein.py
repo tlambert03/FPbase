@@ -1013,13 +1013,23 @@ def _get_protein_changes(protein):
     }
 
     # Get last approved version
-    last_approved = protein.last_approved_version()
-    if not last_approved:
+    last_approved_version = protein.last_approved_version()
+    if not last_approved_version:
         # No approved version - this is a new protein submission
         changes["is_new"] = True
         return changes
 
     changes["is_new"] = False
+
+    # If last_approved is a Version object, we need to restore the protein from it
+    if isinstance(last_approved_version, Version):
+        # Use the old_object helper from history.py to restore the protein
+        from proteins.util.history import old_object
+
+        last_approved = old_object(last_approved_version)
+    else:
+        # It's already a Protein instance (when status == "approved")
+        last_approved = last_approved_version
 
     # Compare protein-level fields
     field_map = {
