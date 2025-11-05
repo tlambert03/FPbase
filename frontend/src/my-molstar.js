@@ -174,20 +174,10 @@ function initMolstar(selection, changer) {
   // Create plugin instance
   const plugin = new PDBeMolstarPlugin()
 
-  // Cache PDB data promises to avoid redundant fetches
-  const dataCache = new Map()
-  let currentRequest = null
   let currentPluginInstance = null
 
-  changer.change(async function () {
+  changer.change(function () {
     const id = this.value
-    const requestId = Symbol("request")
-    currentRequest = requestId
-
-    // Get or create cached promise
-    if (!dataCache.has(id)) {
-      dataCache.set(id, getPDBbinary(id))
-    }
 
     // Clear previous structure
     if (currentPluginInstance) {
@@ -196,35 +186,24 @@ function initMolstar(selection, changer) {
     }
 
     try {
-      const data = await dataCache.get(id)
-
-      // Only load if this is still the active request
-      if (currentRequest === requestId) {
-        // Render the plugin with the structure data
-        const options = {
-          customData: {
-            data: data,
-            format: "cif",
-          },
-          bgColor: { r: 255, g: 255, b: 255 },
-          hideControls: false,
-          sequencePanel: false,
-        }
-
-        plugin.render(viewerContainer, options)
-        currentPluginInstance = plugin
+      // Render the plugin with PDB ID - pdbe-molstar will fetch the structure
+      const options = {
+        moleculeId: id,
+        bgColor: { r: 255, g: 255, b: 255 },
+        hideControls: false,
+        sequencePanel: false,
       }
+
+      plugin.render(viewerContainer, options)
+      currentPluginInstance = plugin
     } catch (error) {
-      // Only show error if this is still the active request
-      if (currentRequest === requestId) {
-        $(selection).html(
-          '<span class="text-danger muted">Failed to retrieve molecular structure. Please refresh.</span>'
-        )
-        if (window.Sentry) {
-          window.Sentry.captureException(error, {
-            tags: { pdbId: id, component: "molstar" },
-          })
-        }
+      $(selection).html(
+        '<span class="text-danger muted">Failed to retrieve molecular structure. Please refresh.</span>'
+      )
+      if (window.Sentry) {
+        window.Sentry.captureException(error, {
+          tags: { pdbId: id, component: "molstar" },
+        })
       }
     }
   })
