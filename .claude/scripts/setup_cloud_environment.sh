@@ -99,6 +99,12 @@ uv sync
 echo "📦 Installing Node dependencies..."
 pnpm install
 
+# Install Heroku CLI if not present
+if ! command -v heroku &> /dev/null; then
+    echo "☁️  Installing Heroku CLI..."
+    curl https://cli-assets.heroku.com/install.sh | sh
+fi
+
 # Install Playwright browsers for e2e tests (optional, can be slow)
 echo "🎭 Installing Playwright browsers (this may take a while)..."
 uv run playwright install chromium webkit 2>&1 | tail -5 || echo "⚠️  Warning: Playwright browser installation had issues, e2e tests may not work"
