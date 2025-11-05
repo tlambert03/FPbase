@@ -292,8 +292,15 @@ class console_errors_raised:
 
     def on_page_error(self, error: Exception) -> None:
         """Collect uncaught JavaScript exceptions (ReferenceError, TypeError, etc)."""
-        if not self._should_ignore(str(error)):
-            self.page_errors.append(error)
+        error_text = str(error)
+        if not self._should_ignore(error_text):
+            # Apply source maps to stack traces in page errors
+            if hasattr(error, "stack") and error.stack:
+                # Create a wrapper since error.stack is read-only
+                mapped_error = SimpleNamespace(stack=_apply_source_maps_to_stack(error.stack), message=str(error))
+                self.page_errors.append(mapped_error)
+            else:
+                self.page_errors.append(error)
 
     def on_request_failed(self, request: Request) -> None:
         """Collect failed network requests (DNS errors, connection refused, etc)."""
