@@ -99,6 +99,7 @@ export default function initFRET() {
       },
     },
     credits: { enabled: false },
+    accessibility: { enabled: false },
   })
 
   // Add resize handler

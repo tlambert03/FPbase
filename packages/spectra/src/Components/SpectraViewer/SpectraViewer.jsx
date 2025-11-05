@@ -200,6 +200,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
           navigation={_navigation}
           exporting={_exporting}
           lang={{ noData: "" }}
+          accessibility={{ enabled: false }}
         >
           <Chart {..._chart} height={height} />
           <Legend {..._legend} />

@@ -597,6 +597,7 @@ $.fn.extend({
           },
         },
         credits: { enabled: false },
+        accessibility: { enabled: false },
       })
 
       // Add resize handler

@@ -48,30 +48,6 @@ function highlightHits(high) {
   }
 }
 
-// function highlightRefHits(high) {
-//   var str = '';
-//   for (var prop in high) {
-//     if (high.hasOwnProperty(prop) && prop !== 'name' && prop !== 'citation' ) {
-//       if (high[prop].constructor === Array) {
-//         for (var i = 0; i < high[prop].length; i++) {
-//           if (typeof high[prop][i] === 'object'){
-//             str = checkObject(high[prop][i], prop, str)
-//           }
-//         }
-//       } else {
-//         if (typeof high[prop] === 'object'){
-//           str = checkObject(high[prop], prop, str)
-//         }
-//       }
-//     }
-//   }
-//   if (str){
-//     return "<span class='highlighted-hits'>(" + str + ")</span>";
-//   } else {
-//     return ''
-//   }
-// }
-
 function highlightRefHits(high) {
   function recurseMatches(obj) {
     var results = {}
@@ -163,13 +139,22 @@ function highlightRefHits(high) {
 }
 
 export default async function initAutocomplete() {
-  // autocomplete.jquery.js loaded from CDN in base.html
+  // autocomplete.jquery.js loaded from CDN in base.html with defer
   // Wait for autocomplete plugin to be available
+  const MAX_RETRIES = 20 // 20 * 50ms = 1 second max wait
+
   if (typeof $.fn.autocomplete === "undefined") {
-    // Retry after a short delay
+    if (retryCount >= MAX_RETRIES) {
+      console.error("Autocomplete plugin failed to load after 1 second")
+      if (window.Sentry) {
+        Sentry.captureMessage("Autocomplete CDN script failed to load", "warning")
+      }
+      return
+    }
+
     setTimeout(() => {
       if (window.FPBASE && typeof window.FPBASE.initAutocomplete === "function") {
-        window.FPBASE.initAutocomplete()
+        window.FPBASE.initAutocomplete(retryCount + 1)
       }
     }, 50)
     return
