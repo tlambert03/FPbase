@@ -40,7 +40,7 @@ export default defineConfig({
     sourcemap: true,
     // Enable minification
     minify: "esbuild",
-    target: "es2020",
+    target: ["es2015", "safari13"],
   },
   server: {
     proxy: {
