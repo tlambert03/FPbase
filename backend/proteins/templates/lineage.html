@@ -29,24 +29,36 @@
 {% block javascript %}
 
 <script>
+  // Wait for FPBASE to be ready, then load D3 charts
+  if (window.FPBASE && window.FPBASE.loadD3Charts) {
+    initLineage()
+  } else {
+    window.addEventListener('fpbase:ready', initLineage)
+  }
 
-
-$('.lineage').each(function(i, el){
-  $(el).html('<p>loading lineage info... <img src="' + '{% static 'images/GFP_spinner.gif' %}' + '">');
-  $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
-    $(el).empty();
-    var chart = window.FPBASE.LineageChart({
-      withSearch: true,
-      withToolbar: true,
-      withTopScroll: true,
-    }).data(data);
-    chart.heightScalar(52);
-    d3.select(el).call(chart);
-    chart.duration(100);
-  })
-});
-
-
+  function initLineage() {
+    window.FPBASE.loadD3Charts()
+      .then(({ LineageChart }) => {
+        $('.lineage').each(function(i, el){
+          $(el).html('<p>loading lineage info... <img src="' + '{% static 'images/GFP_spinner.gif' %}' + '">');
+          $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
+            $(el).empty();
+            var chart = LineageChart({
+              withSearch: true,
+              withToolbar: true,
+              withTopScroll: true,
+            }).data(data);
+            chart.heightScalar(52);
+            d3.select(el).call(chart);
+            chart.duration(100);
+          })
+        });
+      })
+      .catch(function(error){
+        console.error("Error loading D3 charts:", error);
+        $('.lineage').html('<div class="alert alert-danger">Failed to load lineage viewer. Please refresh the page.</div>');
+      });
+  }
 </script>
 
 

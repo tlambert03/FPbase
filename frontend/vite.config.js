@@ -36,6 +36,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, "src/index.js"),
+          d3Charts: path.resolve(__dirname, "src/d3-charts.js"), // D3 + chart components (lazy-loaded)
           embedscope: path.resolve(__dirname, "src/embedscope.js"),
           litemol: path.resolve(__dirname, "src/my-litemol.js"),
           spectraViewer: path.resolve(__dirname, "src/spectra-viewer.js"),

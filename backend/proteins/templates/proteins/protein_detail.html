@@ -521,24 +521,40 @@
     $(window).on('load', function() {
       $('.lineage').each(function(i, el) {
         var slug = $(el).data('slug') || '';
-        $.getJSON('/ajax/lineage/' + slug + '/', function(data) {
-          window._lastLineageData = data;
-          if (!data.children || data.children.length === 0){
-            return
-          }
-          var linchart = window.FPBASE.LineageChart({slug: slug}).data(data);
-          var lineage = d3.select(el);
-          lineage.call(linchart);
-          linchart.duration(200);
-          if (slug && $('.lineage-wrapper')){
-            var node = d3.select("#node_" + slug);
-            if (!node.empty()) {
-              var slugpos = node.datum().y;
-              $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
-            }
-          }
 
-        });
+        // Wait for FPBASE to be ready, then load D3 charts
+        function initLineage() {
+          window.FPBASE.loadD3Charts()
+            .then(({ LineageChart }) => {
+              $.getJSON('/ajax/lineage/' + slug + '/', function(data) {
+                window._lastLineageData = data;
+                if (!data.children || data.children.length === 0){
+                  return
+                }
+                var linchart = LineageChart({slug: slug}).data(data);
+                var lineage = d3.select(el);
+                lineage.call(linchart);
+                linchart.duration(200);
+                if (slug && $('.lineage-wrapper')){
+                  var node = d3.select("#node_" + slug);
+                  if (!node.empty()) {
+                    var slugpos = node.datum().y;
+                    $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
+                  }
+                }
+              });
+            })
+            .catch(function(error){
+              console.error("Error loading D3 charts:", error);
+              $(el).html('<div class="alert alert-danger">Failed to load lineage viewer. Please refresh the page.</div>');
+            });
+        }
+
+        if (window.FPBASE && window.FPBASE.loadD3Charts) {
+          initLineage()
+        } else {
+          window.addEventListener('fpbase:ready', initLineage)
+        }
       });
     });
 

@@ -3,6 +3,7 @@
 // Bootstrap loaded from CDN in base.html for jQuery compatibility
 // microscope.js loaded separately via CDN on microscope pages
 // scope_report.js and fret.js moved to separate bundles to avoid loading Highcharts on all pages
+// D3 and chart components moved to separate bundle (d3-charts.js) to avoid loading D3 on all pages
 
 // Vite modulepreload polyfill (must be first)
 import "vite/modulepreload-polyfill"
@@ -13,7 +14,7 @@ import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
-import "nouislider/distribute/nouislider.min.css"
+// NOTE: nouislider CSS moved to d3-charts.js since it's only used on ichart page
 import "./css/style.scss"
 
 import "./js/project.js"
@@ -23,27 +24,39 @@ import "./js/favit.js"
 import "./js/jquery.formset.js"
 import "./js/onload.js"
 
-import * as d3 from "d3"
+// D3 and chart components removed - now lazy-loaded via d3-charts.js
 import initAutocomplete from "./js/algolia.js"
-import FPPropChart from "./js/ichart.js"
-import LineageChart from "./js/lineage.js"
 
 // Mark this bundle for Sentry context
-// Save D3 v7 to a separate variable and set as default if no other d3 is loaded
-// This allows microscope pages to load D3 v3 from CDN without conflict
-window.d3v7 = d3
-if (!window.d3) {
-  window.d3 = d3
-}
-
 window.FPBASE = window.FPBASE || {}
 window.FPBASE = {
   ...window.FPBASE,
   currentBundle: "main",
   initAutocomplete,
   initSearch,
-  FPPropChart,
-  LineageChart,
+
+  // Lazy-load D3 charts only when needed
+  _d3ChartsPromise: null,
+  async loadD3Charts() {
+    if (!this._d3ChartsPromise) {
+      this._d3ChartsPromise = import("./d3-charts.js")
+        .then((module) => {
+          this.FPPropChart = module.FPPropChart
+          this.LineageChart = module.LineageChart
+          return module
+        })
+        .catch((error) => {
+          console.error("Failed to load D3 charts:", error)
+          if (window.Sentry) {
+            window.Sentry.captureException(error, {
+              tags: { component: "d3-charts-lazy-load" },
+            })
+          }
+          throw error
+        })
+    }
+    return this._d3ChartsPromise
+  },
 }
 
 // Also expose initSearch globally for legacy inline scripts
