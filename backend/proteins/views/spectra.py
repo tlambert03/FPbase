@@ -9,12 +9,14 @@ from textwrap import dedent
 # from django.views.decorators.vary import vary_on_cookie
 from django import forms
 from django.conf import settings
+from django.contrib.auth.decorators import permission_required
 from django.core.mail import EmailMessage
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 
 from fpbase.util import is_ajax, uncache_protein_page
@@ -320,3 +322,118 @@ def filter_import(request, brand):
             if errors[0][1].as_data()["owner"][0].code == "owner_exists":
                 response["message"] = f"{part} already appears to be imported"
     return JsonResponse(response)
+
+
+@permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
+def pending_spectra_dashboard(request):
+    """Dashboard for reviewing pending spectra submissions."""
+    pending_spectra = (
+        Spectrum.objects.all_objects()
+        .filter(status=Spectrum.STATUS.pending)
+        .select_related(
+            "created_by",
+            "owner_state__protein",
+            "owner_dye",
+            "owner_filter",
+            "owner_camera",
+            "owner_light",
+        )
+        .order_by("-created")
+    )
+
+    # Generate preview SVGs for each spectrum
+    spectra_data = []
+    for spectrum in pending_spectra:
+        svg_preview = None
+        if spectrum.data is not None:
+            try:
+                buffer = spectrum.spectrum_img(fmt="svg", xlabels=True, ylabels=True, figsize=(10, 3))
+                svg_preview = buffer.getvalue().decode("utf-8")
+            except Exception:
+                svg_preview = None
+
+        spectra_data.append(
+            {
+                "id": spectrum.id,
+                "name": spectrum.name,
+                "owner": spectrum.owner,
+                "owner_type": spectrum.get_category_display(),
+                "category": spectrum.get_category_display(),
+                "subtype": spectrum.get_subtype_display(),
+                "source": spectrum.source or "N/A",
+                "created": spectrum.created,
+                "created_by": spectrum.created_by,
+                "created_by_email": spectrum.created_by.email if spectrum.created_by else None,
+                "svg_preview": svg_preview,
+                "admin_url": f"/admin/proteins/spectrum/{spectrum.id}/change/",
+            }
+        )
+
+    context = {
+        "spectra": spectra_data,
+        "count": len(spectra_data),
+    }
+
+    return render(request, "pending_spectra_dashboard.html", context)
+
+
+@permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
+@require_POST
+def pending_spectrum_action(request):
+    """Handle actions (accept/reject/delete) on pending spectra."""
+    try:
+        spectrum_ids = request.POST.getlist("spectrum_ids[]")
+        action = request.POST.get("action")
+
+        if not spectrum_ids or not action:
+            return JsonResponse({"success": False, "error": "Missing spectrum_ids or action"}, status=400)
+
+        # For revert (undo), we need to find spectra regardless of status
+        if action == "revert":
+            spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids)
+            if not spectra.exists():
+                return JsonResponse({"success": False, "error": "No spectra found with provided IDs"}, status=404)
+            count = spectra.count()
+            spectra.update(status=Spectrum.STATUS.pending)
+            message = f"Reverted {count} spectrum(s) to pending"
+        else:
+            # For other actions, only work with pending spectra
+            spectra = (
+                Spectrum.objects.all_objects()
+                .filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
+                .select_related("owner_state__protein")
+            )
+
+            if not spectra.exists():
+                return JsonResponse(
+                    {"success": False, "error": "No pending spectra found with provided IDs"}, status=404
+                )
+
+            count = spectra.count()
+
+            if action == "accept":
+                spectra.update(status=Spectrum.STATUS.approved)
+                # Clear cache for affected protein pages
+                for spectrum in spectra:
+                    with contextlib.suppress(Exception):
+                        if spectrum.owner_state:
+                            uncache_protein_page(spectrum.owner_state.protein.slug, request)
+                message = f"Accepted {count} spectrum(s)"
+
+            elif action == "reject":
+                spectra.update(status=Spectrum.STATUS.rejected)
+                message = f"Rejected {count} spectrum(s)"
+
+            elif action == "delete":
+                spectra.delete()
+                message = f"Deleted {count} spectrum(s)"
+
+            else:
+                return JsonResponse({"success": False, "error": f"Unknown action: {action}"}, status=400)
+
+        return JsonResponse({"success": True, "message": message, "count": count})
+
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.exception("Error in pending_spectrum_action: %s", e)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
