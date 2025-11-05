@@ -306,6 +306,16 @@ urlpatterns = [
         name="pending_spectrum_action",
     ),
     path(
+        "pending-proteins/",
+        views.pending_proteins_dashboard,
+        name="pending_proteins_dashboard",
+    ),
+    path(
+        "ajax/pending_protein_action/",
+        views.pending_protein_action,
+        name="pending_protein_action",
+    ),
+    path(
         "ajax/remove_from_collection/",
         views.collection_remove,
         name="collection-remove",
