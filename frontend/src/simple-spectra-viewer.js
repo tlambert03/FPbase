@@ -17,9 +17,18 @@ import { SentryErrorBoundary } from "./js/sentry-error-boundary"
 window.FPBASE = window.FPBASE || {}
 window.FPBASE.currentBundle = "simpleSpectraViewer"
 
-const elem = document.getElementById("spectra-viewer")
+/**
+ * Initialize the SimpleSpectraViewer React component
+ * Called when DOM is ready (not waiting for full page load)
+ */
+function initSpectraViewer() {
+  const elem = document.getElementById("spectra-viewer")
 
-window.addEventListener("load", () => {
+  // Element might not exist on this page
+  if (!elem) {
+    return
+  }
+
   const root = createRoot(elem)
 
   // Check if data attributes are present (protein_detail.html)
@@ -57,4 +66,13 @@ window.addEventListener("load", () => {
       createElement(SimpleSpectraViewer, props)
     )
   )
-})
+}
+
+// Initialize on DOMContentLoaded (or immediately if already loaded)
+// This is faster than waiting for window.load and utilizes preloaded modules sooner
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSpectraViewer)
+} else {
+  // DOM already loaded (e.g., if this script is loaded with defer)
+  initSpectraViewer()
+}
