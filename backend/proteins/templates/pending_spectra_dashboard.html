@@ -105,21 +105,21 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-width: 400px;
 }
 
 .toast {
     background: #333;
     color: white;
-    padding: 15px 20px;
-    border-radius: 8px;
+    padding: 12px 20px;
+    border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 15px;
-    animation: slideIn 0.3s ease-out;
-    min-width: 300px;
+    animation: slideIn 0.3s ease-out forwards;
+    white-space: nowrap;
+    min-width: fit-content;
 }
 
 .toast.success {
@@ -135,19 +135,24 @@
     background: #dc3545;
 }
 
+.toast.slide-out {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
 .toast-message {
-    flex: 1;
+    flex: 0 1 auto;
 }
 
 .toast-undo {
     background: rgba(255,255,255,0.3);
     border: 1px solid rgba(255,255,255,0.5);
     color: white;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9em;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .toast.warning .toast-undo {
@@ -168,6 +173,17 @@
     to {
         transform: translateX(0);
         opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
     }
 }
 </style>
@@ -366,8 +382,7 @@ function showToast(message, type = 'success', showUndo = false, undoCallback = n
 
     // Auto-remove after 5 seconds
     setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(400px)';
+        toast.classList.add('slide-out');
         setTimeout(() => toast.remove(), 300);
     }, 5000);
 }
