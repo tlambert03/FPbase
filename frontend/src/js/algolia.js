@@ -14,6 +14,10 @@ function checkObject(val, prop, str) {
     _excerpts: "Excerpt",
     prot_primary: "Protein",
     prot_secondary: "Protein",
+    manufacturer: "Manufacturer",
+    part: "Part #",
+    slug: "Slug",
+    owner_name: "Owner",
   }
   if (val.matchLevel === "full" || val.matchLevel === "partial") {
     if (str.length > 0) {
@@ -172,6 +176,8 @@ export default async function initAutocomplete() {
   var proteinIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.proteinIndex)
   var organismIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.organismIndex)
   var referenceIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.referenceIndex)
+  var dyeIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.dyeIndex)
+  var microscopeIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.microscopeIndex)
 
   function empty(context) {
     if (Object.hasOwn(context, "query")) {
@@ -274,6 +280,39 @@ export default async function initAutocomplete() {
                 window.FPBASE.imageDir +
                 "organism_icon.png" +
                 "'>"
+              return `<a href='${suggestion.url}'><div>${str}</div></a>`
+            },
+          },
+        },
+        {
+          source: $.fn.autocomplete.sources.hits(dyeIndex, {
+            hitsPerPage: 3,
+          }),
+          displayKey: "name",
+          templates: {
+            suggestion: (suggestion) => {
+              var str = suggestion._highlightResult.name.value
+              str = str + "<img class='type dye' src='" + window.FPBASE.imageDir + "dye_icon.png'>"
+              str = str + highlightHits(suggestion._highlightResult)
+              var info = ""
+              if (suggestion.ex_max && suggestion.em_max) {
+                info = `${suggestion.ex_max}/${suggestion.em_max}`
+              }
+              str = `${str}<span class='info'>${info}</span>`
+              return `<a href='${suggestion.url}'><div>${str}</div></a>`
+            },
+          },
+        },
+        {
+          source: $.fn.autocomplete.sources.hits(microscopeIndex, {
+            hitsPerPage: 2,
+          }),
+          displayKey: "name",
+          templates: {
+            suggestion: (suggestion) => {
+              var str = suggestion._highlightResult.name.value
+              str = str + "<img class='type microscope' src='" + window.FPBASE.imageDir + "microscope_icon.png'>"
+              str = str + highlightHits(suggestion._highlightResult)
               return `<a href='${suggestion.url}'><div>${str}</div></a>`
             },
           },

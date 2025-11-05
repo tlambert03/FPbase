@@ -182,6 +182,13 @@ class Dye(Fluorophore, Product):
     objects = FluorophoreManager()
     oc_eff = GenericRelation("OcFluorEff", related_query_name="dye")
 
+    @property
+    def url(self):
+        """Return URL to spectra viewer showing this dye."""
+        from django.urls import reverse
+
+        return reverse("proteins:spectra", args=[self.slug])
+
 
 class State(Fluorophore):
     DEFAULT_NAME = "default"

@@ -1,7 +1,7 @@
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django.decorators import register
 
-from .models import Organism, Protein
+from .models import Dye, Microscope, Organism, Protein
 
 
 @register(Protein)
@@ -43,3 +43,33 @@ class ProteinIndex(AlgoliaIndex):
 @register(Organism)
 class OrganismIndex(AlgoliaIndex):
     fields = ("scientific_name", "division", "url")
+
+
+@register(Dye)
+class DyeIndex(AlgoliaIndex):
+    fields = (
+        "name",
+        "slug",
+        "url",
+        "ex_max",
+        "em_max",
+        "qy",
+        "ext_coeff",
+        "brightness",
+        "pka",
+        "manufacturer",
+        "part",
+        "created",
+    )
+
+
+@register(Microscope)
+class MicroscopeIndex(AlgoliaIndex):
+    fields = (
+        "name",
+        "description",
+        "id",
+        "url",
+        "created",
+        "owner_name",
+    )

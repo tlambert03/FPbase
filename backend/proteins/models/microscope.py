@@ -105,6 +105,18 @@ class Microscope(OwnedCollection):
     def get_absolute_url(self):
         return reverse("proteins:microscope-detail", args=[self.id])
 
+    @property
+    def url(self):
+        """Alias for get_absolute_url for consistency with other models."""
+        return self.get_absolute_url()
+
+    @property
+    def owner_name(self):
+        """Return owner's display name for search indexing."""
+        if self.owner:
+            return self.owner.get_full_name() or self.owner.email
+        return ""
+
     @cached_property
     def lights(self):
         oclights = Light.objects.filter(id__in=self.optical_configs.values("light"))
