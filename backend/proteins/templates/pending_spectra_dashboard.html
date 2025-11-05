@@ -5,6 +5,15 @@
 
 {% block extrahead %}
 <style>
+:root {
+    --toast-bg-default: #333;
+    --toast-bg-success: #28a745;
+    --toast-bg-warning: #ffc107;
+    --toast-bg-error: #dc3545;
+    --toast-text-light: white;
+    --toast-text-dark: #333;
+}
+
 .spectrum-card {
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -108,8 +117,8 @@
 }
 
 .notification-toast {
-    background: #333;
-    color: white;
+    background: var(--toast-bg-default);
+    color: var(--toast-text-light);
     padding: 12px 20px;
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -126,16 +135,16 @@
 }
 
 .notification-toast.success {
-    background: #28a745;
+    background: var(--toast-bg-success);
 }
 
 .notification-toast.warning {
-    background: #ffc107;
-    color: #333;
+    background: var(--toast-bg-warning);
+    color: var(--toast-text-dark);
 }
 
 .notification-toast.error {
-    background: #dc3545;
+    background: var(--toast-bg-error);
 }
 
 .notification-toast.slide-out {
@@ -151,7 +160,7 @@
 .toast-undo {
     background: rgba(255,255,255,0.3);
     border: 1px solid rgba(255,255,255,0.5);
-    color: white;
+    color: var(--toast-text-light);
     padding: 6px 14px;
     border-radius: 4px;
     cursor: pointer;
@@ -163,7 +172,7 @@
 }
 
 .notification-toast.warning .toast-undo {
-    color: #333;
+    color: var(--toast-text-dark);
     border-color: rgba(0,0,0,0.3);
     background: rgba(0,0,0,0.1);
 }
@@ -359,8 +368,9 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
-// Store undo state
-let undoState = null;
+// Constants
+const TOAST_DURATION = 6000;
+const TOAST_ANIMATION_DURATION = 300;
 
 // Toast notification system
 function showToast(message, type = 'success', showUndo = false, undoCallback = null) {
@@ -386,11 +396,11 @@ function showToast(message, type = 'success', showUndo = false, undoCallback = n
 
     container.appendChild(toast);
 
-    // Auto-remove after 6 seconds
+    // Auto-remove after configured duration
     setTimeout(() => {
         toast.classList.add('slide-out');
-        setTimeout(() => toast.remove(), 300);
-    }, 6000);
+        setTimeout(() => toast.remove(), TOAST_ANIMATION_DURATION);
+    }, TOAST_DURATION);
 }
 
 // Get selected spectrum IDs
@@ -445,13 +455,19 @@ function clearSelection() {
     updateSelection();
 }
 
+// Confirm delete action
+function confirmDelete(count) {
+    const message = count === 1
+        ? 'Are you sure you want to DELETE this spectrum? This cannot be undone.'
+        : `Are you sure you want to DELETE ${count} spectra? This cannot be undone.`;
+    return confirm(message);
+}
+
 // Perform action on single spectrum
 function singleAction(spectrumId, action) {
     // Only confirm for delete (irreversible)
-    if (action === 'delete') {
-        if (!confirm('Are you sure you want to DELETE this spectrum? This cannot be undone.')) {
-            return;
-        }
+    if (action === 'delete' && !confirmDelete(1)) {
+        return;
     }
 
     performAction([spectrumId], action);
@@ -467,10 +483,8 @@ function bulkAction(action) {
     }
 
     // Only confirm for delete (irreversible)
-    if (action === 'delete') {
-        if (!confirm(`Are you sure you want to DELETE ${selectedIds.length} spectra? This cannot be undone.`)) {
-            return;
-        }
+    if (action === 'delete' && !confirmDelete(selectedIds.length)) {
+        return;
     }
 
     performAction(selectedIds, action);
@@ -522,6 +536,9 @@ function performAction(spectrumIds, action) {
 
             // Show success message if no more pending
             if (newCount === 0) {
+                // Clear any active toasts with undo buttons since DOM is being destroyed
+                document.getElementById('toast-container').innerHTML = '';
+
                 document.querySelector('.container-fluid').innerHTML = `
                     <div class="alert alert-success">
                         <i class="fas fa-check-circle"></i> No pending spectra! Great job.
@@ -598,13 +615,13 @@ function undoAction(spectrumIds, savedCards) {
             // Update selection UI to reflect restored cards (keeps them checked)
             updateSelection();
 
-            // Update count
+            // Update count (use server's count for accuracy)
             const countBadge = document.querySelector('.badge-primary');
             const currentCount = parseInt(countBadge.textContent);
-            const newCount = currentCount + spectrumIds.length;
+            const newCount = currentCount + data.count;
             countBadge.textContent = `${newCount} pending`;
 
-            showToast(`Reverted ${spectrumIds.length} spectrum(s) back to pending`, 'success');
+            showToast(`Reverted ${data.count} spectrum(s) back to pending`, 'success');
         } else {
             showToast('Failed to undo: ' + data.error, 'error');
         }

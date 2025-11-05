@@ -9,7 +9,7 @@ from textwrap import dedent
 # from django.views.decorators.vary import vary_on_cookie
 from django import forms
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import permission_required
 from django.core.mail import EmailMessage
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -324,9 +324,9 @@ def filter_import(request, brand):
     return JsonResponse(response)
 
 
-@staff_member_required
+@permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
 def pending_spectra_dashboard(request):
-    """Admin dashboard for reviewing pending spectra submissions."""
+    """Dashboard for reviewing pending spectra submissions."""
     pending_spectra = (
         Spectrum.objects.all_objects()
         .filter(status=Spectrum.STATUS.pending)
@@ -377,7 +377,7 @@ def pending_spectra_dashboard(request):
     return render(request, "pending_spectra_dashboard.html", context)
 
 
-@staff_member_required
+@permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
 @require_POST
 def pending_spectrum_action(request):
     """Handle actions (accept/reject/delete) on pending spectra."""
@@ -398,7 +398,11 @@ def pending_spectrum_action(request):
             message = f"Reverted {count} spectrum(s) to pending"
         else:
             # For other actions, only work with pending spectra
-            spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
+            spectra = (
+                Spectrum.objects.all_objects()
+                .filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
+                .select_related("owner_state__protein")
+            )
 
             if not spectra.exists():
                 return JsonResponse(
@@ -432,80 +436,4 @@ def pending_spectrum_action(request):
     except Exception as e:
         logger = logging.getLogger(__name__)
         logger.exception("Error in pending_spectrum_action: %s", e)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
-
-
-@staff_member_required
-@require_POST
-def pending_spectrum_email(request):
-    """Send email to submitter(s) of pending spectra."""
-    try:
-        spectrum_ids = request.POST.getlist("spectrum_ids[]")
-        email_subject = request.POST.get("subject", "")
-        email_body = request.POST.get("body", "")
-
-        if not spectrum_ids or not email_subject or not email_body:
-            return JsonResponse(
-                {"success": False, "error": "Missing spectrum_ids, subject, or body"},
-                status=400,
-            )
-
-        spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
-
-        if not spectra.exists():
-            return JsonResponse({"success": False, "error": "No pending spectra found with provided IDs"}, status=404)
-
-        # Get unique submitters
-        submitters = {}
-        for spectrum in spectra:
-            if spectrum.created_by and spectrum.created_by.email:
-                if spectrum.created_by.email not in submitters:
-                    submitters[spectrum.created_by.email] = {
-                        "user": spectrum.created_by,
-                        "spectra": [],
-                    }
-                submitters[spectrum.created_by.email]["spectra"].append(spectrum)
-
-        if not submitters:
-            return JsonResponse({"success": False, "error": "No submitters with email addresses found"}, status=400)
-
-        # Send individual emails to each submitter
-        emails_sent = 0
-        for email_address, data in submitters.items():
-            user = data["user"]
-            user_spectra = data["spectra"]
-
-            # Personalize email body with spectrum list
-            spectrum_list = "\n".join([f"- {s.name} (ID: {s.id})" for s in user_spectra])
-            personalized_body = f"""Hi {user.username},
-
-{email_body}
-
-Spectrum(s) in question:
-{spectrum_list}
-
-Best regards,
-The FPbase Team
-"""
-
-            EmailMessage(
-                subject=f"[FPbase] {email_subject}",
-                body=personalized_body,
-                to=[email_address],
-                reply_to=[a[1] for a in settings.ADMINS],
-                headers={"X-Mailgun-Track": "no"},
-            ).send()
-            emails_sent += 1
-
-        return JsonResponse(
-            {
-                "success": True,
-                "message": f"Sent {emails_sent} email(s) to {emails_sent} submitter(s)",
-                "emails_sent": emails_sent,
-            }
-        )
-
-    except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.exception("Error in pending_spectrum_email: %s", e)
         return JsonResponse({"success": False, "error": str(e)}, status=500)
