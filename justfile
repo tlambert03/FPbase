@@ -89,6 +89,7 @@ clean: clean-static clean-env clean-db
     rm -f coverage.xml
     rm -rf __snapshots__
     rm -rf snapshot_failures
+    rm -rf playwright
 
 dump-fixture:
     uv run backend/manage.py dumpfixture
