@@ -396,6 +396,17 @@ class MicroscopeDetailView(DetailView):
             data["scopespectra"] = json.dumps(self.object.spectra_d3())
         else:
             data["scopespectra"] = {}
+
+        # Pass microscope configuration for data-fpbase-init pattern
+        data["scopecfg"] = json.dumps(
+            {
+                "calcEff": self.object.cfg_calc_efficiency,
+                "minwave": self.object.cfg_min_wave,
+                "maxwave": self.object.cfg_max_wave,
+                "focusEnable": self.object.cfg_enable_pan_zoom,
+                "showArea": self.object.cfg_fill_area,
+            }
+        )
         return data
 
 

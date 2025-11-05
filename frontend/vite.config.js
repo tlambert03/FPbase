@@ -4,7 +4,6 @@ import { sentryVitePlugin } from "@sentry/vite-plugin"
 import react from "@vitejs/plugin-react"
 import { visualizer } from "rollup-plugin-visualizer"
 import { defineConfig } from "vite"
-import { viteStaticCopy } from "vite-plugin-static-copy"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -45,6 +44,7 @@ export default defineConfig(({ mode }) => {
           litemol: path.resolve(__dirname, "src/my-litemol.js"),
           spectraViewer: path.resolve(__dirname, "src/spectra-viewer.js"),
           simpleSpectraViewer: path.resolve(__dirname, "src/simple-spectra-viewer.js"),
+          microscope: path.resolve(__dirname, "src/microscope.js"), // Legacy script with CDN deps (d3 v3, nvd3)
           microscopeForm: path.resolve(__dirname, "src/microscope-form.js"),
           blast: path.resolve(__dirname, "src/blast-app.js"),
           proteinTable: path.resolve(__dirname, "src/protein-table.js"),
@@ -85,16 +85,6 @@ export default defineConfig(({ mode }) => {
       react({
         // Include .js files for JSX processing (not just .jsx)
         include: /\.(jsx|js|tsx|ts)$/,
-      }),
-
-      // Copy static files (microscope.js)
-      viteStaticCopy({
-        targets: [
-          {
-            src: "../backend/fpbase/static/js/microscope.js",
-            dest: "js",
-          },
-        ],
       }),
 
       // Sentry source map upload (production only, and only if auth token is set)

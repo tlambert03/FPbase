@@ -7,13 +7,14 @@
 <html lang="en">
   <head>
     {% vite_hmr_client %}
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://{{ algolia_app_id|lower }}-dsn.algolia.net" crossorigin>
     {% block ga %}
-      {% if not debug %}
+    {% if not debug %}
+        <link rel="preconnect" href="https://www.googletagmanager.com">
         {% include "_ga.html" %}
       {% endif %}
     {% endblock ga %}
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
     <meta charset="utf-8">
     <meta http-equiv="Content-Language" content="en">

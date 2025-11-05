@@ -47,15 +47,6 @@
   {% vite_asset 'src/embedscope.js' %}
 
 </body>
-<script type="text/javascript">
-  var scopespectra = {{ scopespectra|safe }};
-  var scopecfg = {
-    calcEff: {{ microscope.cfg_calc_efficiency|yesno:"true,false" }},
-    minwave: {{ microscope.cfg_min_wave }},
-    maxwave: {{ microscope.cfg_max_wave }},
-    focusEnable: {{ microscope.cfg_enable_pan_zoom|yesno:"true,false" }},
-    showArea: {{ microscope.cfg_fill_area|yesno:"true,false" }},
-  }
-</script>
-<script src="{% static 'js/microscope.js' %}"></script>
+<!-- microscope.js loaded via Vite, initialized via data-fpbase-init pattern -->
+{% vite_asset 'src/microscope.js' %}
 </html>
