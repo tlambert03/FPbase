@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.mail import EmailMessage
 from django.http import Http404, HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
