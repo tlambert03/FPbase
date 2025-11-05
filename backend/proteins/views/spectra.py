@@ -401,7 +401,9 @@ def pending_spectrum_action(request):
             spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
 
             if not spectra.exists():
-                return JsonResponse({"success": False, "error": "No pending spectra found with provided IDs"}, status=404)
+                return JsonResponse(
+                    {"success": False, "error": "No pending spectra found with provided IDs"}, status=404
+                )
 
             count = spectra.count()
 
