@@ -1,4 +1,4 @@
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 
 function checkObject(val, prop, str) {
   var propDict = {
@@ -47,30 +47,6 @@ function highlightHits(high) {
     return ""
   }
 }
-
-// function highlightRefHits(high) {
-//   var str = '';
-//   for (var prop in high) {
-//     if (high.hasOwnProperty(prop) && prop !== 'name' && prop !== 'citation' ) {
-//       if (high[prop].constructor === Array) {
-//         for (var i = 0; i < high[prop].length; i++) {
-//           if (typeof high[prop][i] === 'object'){
-//             str = checkObject(high[prop][i], prop, str)
-//           }
-//         }
-//       } else {
-//         if (typeof high[prop] === 'object'){
-//           str = checkObject(high[prop], prop, str)
-//         }
-//       }
-//     }
-//   }
-//   if (str){
-//     return "<span class='highlighted-hits'>(" + str + ")</span>";
-//   } else {
-//     return ''
-//   }
-// }
 
 function highlightRefHits(high) {
   function recurseMatches(obj) {
@@ -162,11 +138,58 @@ function highlightRefHits(high) {
   return str
 }
 
+// Guard to prevent double initialization
+let isInitialized = false
+
+/**
+ * Wait for autocomplete.js library to be available
+ * @param {number} maxWaitMs - Maximum time to wait in milliseconds
+ * @returns {Promise<boolean>} - Resolves to true if available, false if timeout
+ */
+async function waitForAutocomplete(maxWaitMs = 2000) {
+  const startTime = Date.now()
+  const checkInterval = 50
+
+  while (Date.now() - startTime < maxWaitMs) {
+    if (typeof $.fn.autocomplete !== "undefined") {
+      return true
+    }
+    await new Promise((resolve) => setTimeout(resolve, checkInterval))
+  }
+  return false
+}
+
+/**
+ * Initialize Algolia autocomplete search
+ * Must be called after DOM is ready and autocomplete.js is loaded
+ */
 export default async function initAutocomplete() {
-  const [{ default: algoliasearch }] = await Promise.all([
-    import("algoliasearch"),
-    import("autocomplete.js/dist/autocomplete.jquery.js"),
-  ])
+  // Prevent double initialization
+  if (isInitialized) {
+    return
+  }
+
+  // Wait for search input to be available in DOM
+  const $searchInput = $("#algolia-search-input")
+  if (!$searchInput.length) {
+    console.warn("Algolia search input not found in DOM")
+    return
+  }
+
+  // Wait for autocomplete.js library (loaded from CDN with defer)
+  const autocompleteAvailable = await waitForAutocomplete()
+  if (!autocompleteAvailable) {
+    console.error("Autocomplete plugin failed to load after 2 seconds")
+    if (window.Sentry) {
+      Sentry.captureMessage("Autocomplete CDN script failed to load", "warning")
+    }
+    return
+  }
+
+  // Mark as initialized before async import
+  isInitialized = true
+
+  const { default: algoliasearch } = await import("algoliasearch")
 
   var algoliaClient = algoliasearch(window.FPBASE.ALGOLIA.appID, window.FPBASE.ALGOLIA.publicKey)
   var proteinIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.proteinIndex)
@@ -185,7 +208,9 @@ export default async function initAutocomplete() {
       return '<div class="empty"><span class="nohits"></span>No results... try the <a href="/search/">advanced search</a></div>'
     }
   }
-  $("#algolia-search-input")
+
+  // Initialize autocomplete on the search input
+  $searchInput
     .autocomplete(
       {
         getRankingInfo: false,
@@ -307,4 +332,10 @@ export default async function initAutocomplete() {
       // Change the page, for example, on other events
       window.location.assign(suggestion.url)
     })
+
+  const $hintInput = $searchInput.parent().find(".aa-hint")
+  if ($hintInput.length) {
+    $hintInput.attr("name", "search-hint")
+    $hintInput.attr("id", "algolia-search-hint")
+  }
 }

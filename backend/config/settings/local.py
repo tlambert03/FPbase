@@ -1,7 +1,5 @@
 """Local settings for FPbase project."""
 
-import os
-
 import structlog
 
 from .base import *  # noqa
@@ -9,7 +7,7 @@ from .base import *  # noqa
 # STATIC FILES - Add backend static directory for development
 # ------------------------------------------------------------------------------
 # Include backend/fpbase/static so Django can serve microscope.js and other
-# static files that don't go through webpack
+# static files that don't go through vite
 STATICFILES_DIRS = [*STATICFILES_DIRS, str(ROOT_DIR / "fpbase" / "static")]
 
 # DEBUG
@@ -18,6 +16,10 @@ DEBUG = env.bool("DJANGO_DEBUG", default=True)
 TEMPLATES[0]["OPTIONS"]["debug"] = DEBUG
 
 CRISPY_FAIL_SILENTLY = not DEBUG
+
+# DJANGO_VITE - Enable dev mode for local development
+# ------------------------------------------------------------------------------
+DJANGO_VITE["default"]["dev_mode"] = True
 
 # CSRF_COOKIE_HTTPONLY = True
 
@@ -83,7 +85,6 @@ SHELL_PLUS_POST_IMPORTS = [
 ]
 
 # Structlog Configuration for Local Development
-# Reconfigure to add dev-specific processors (set_exc_info for better tracebacks)
 structlog.configure(
     processors=[
         *STRUCTLOG_SHARED_PROCESSORS,
@@ -127,74 +128,13 @@ LOGGING = {
         "level": "INFO",
     },
     "loggers": {
-        # Application loggers - DEBUG in local
-        "fpbase": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+        "django.server": {
+            "level": "WARNING",  # Hide normal requests, use structlog instead
             "propagate": False,
         },
-        "proteins": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
-        "references": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
-        "favit": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
-        "celery": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": False,
-        },
-        # Django framework
-        "django": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
-        },
-        "django.db.backends": {
-            "handlers": ["console"],
-            "level": "INFO",  # Set to DEBUG to see SQL queries
-            "propagate": False,
-        },
-        # django-structlog
-        "django_structlog": {
-            "handlers": ["console"],
-            "level": "INFO",
+        "debug_toolbar": {
+            "level": "WARNING",  # Hide debug toolbar noise
             "propagate": False,
         },
     },
 }
-
-# Optional: Desktop logging for specific debugging
-if os.getenv("DESKTOP_LOG"):
-    from pathlib import Path
-
-    LOGGING["handlers"]["file"] = {
-        "level": "DEBUG",
-        "class": "logging.FileHandler",
-        "filename": str(Path.home() / "Desktop/fpbase.log"),
-        "formatter": "colored",
-    }
-    LOGGING["loggers"].update(
-        {
-            "django.template": {
-                "handlers": ["file"],
-                "level": "INFO",
-                "propagate": True,
-            },
-            "django.utils": {
-                "handlers": ["file"],
-                "level": "INFO",
-                "propagate": True,
-            },
-        }
-    )
-    LOGGING["loggers"]["django"]["handlers"].append("file")

@@ -15,6 +15,11 @@ from .base import *  # noqa
 DEBUG = False
 TEMPLATES[0]["OPTIONS"]["debug"] = True
 
+# ALLOWED_HOSTS
+# ------------------------------------------------------------------------------
+# Allow all hosts for testing (live_server uses random ports)
+ALLOWED_HOSTS = ["*"]
+
 # SECRET CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
@@ -94,3 +99,12 @@ TEMPLATES[0]["OPTIONS"]["loaders"] = [
         ],
     ],
 ]
+
+
+# django-vite in test mode uses manifest (never dev server)
+DJANGO_VITE = {
+    "default": {
+        "dev_mode": False,
+        "manifest_path": str(ROOT_DIR.parent / "frontend" / "dist" / "manifest.json"),
+    }
+}

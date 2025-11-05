@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load favit_tags %}
 {% load webp_picture from protein_tags %}
+{% load django_vite %}
 
 {% block title %}FPbase FRET Calculator{% endblock %}
 {% block meta-description %}An interactive fluorescence spectra viewer and Förster radius calculator to visualize
@@ -29,18 +30,6 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
       <div class="svg-container">
         <svg id="spectrasvg"></svg>
       </div>
-      <!--
-      <div class="focusnote">click and drag to zoom</div>
-      <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-toggle="buttons">
-        <label class="btn btn-info active">
-          <input type="radio" id="setLinearScale" autocomplete="off" checked value='linear'> linear
-        </label>
-        <label class="btn btn-info">
-          <input type="radio" id="setLogScale" autocomplete="off" value='log'> log
-        </label>
-      </div>
-      <div class="float-right mr-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div> -->
-
     </div>
   </div>
 </div>
@@ -223,13 +212,13 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
         <ul class='small'>
           <li>Wu &amp; Brand (1994). Resonance Energy Transfer: Methods and Applications. <em>Analytical Biochem.
             </em><strong>218(1)</strong><a target="_blank" rel="noopener"
-              href="https://doi.org/10.1006/abio.1994.1134"><i class="fas fa-external-link-alt ml-2 small"></i></a></li>
+              href="https://doi.org/10.1006/abio.1994.1134"><i class="fas fa-external-link-alt ml-2" style="font-size: 0.8rem;"></i></a></li>
           <li>Bajar et al. (2016). A Guide to Fluorescent Protein FRET Pairs. <em>Sensors</em> <strong>16(9)</strong><a
               target="_blank" rel="noopener" href="https://doi.org/10.3390/s16091488"><i
-                class="fas fa-external-link-alt ml-2 small"></i></a></li>
+                class="fas fa-external-link-alt ml-2" style="font-size: 0.8rem;"></i></a></li>
           <li>Mastop et al. (2017). Characterization of a spectrally diverse set of fluorescent proteins as FRET
             acceptors for mTurquoise2. <em>Sci. Rep. </em><strong>7(1)</strong><a target="_blank" rel="noopener"
-              href="https://doi.org/10.1038/s41598-017-12212-x"><i class="fas fa-external-link-alt ml-2 small"></i></a>
+              href="https://doi.org/10.1038/s41598-017-12212-x"><i class="fas fa-external-link-alt ml-2" style="font-size: 0.8rem;"></i></a>
           </li>
         </ul>
 
@@ -239,18 +228,16 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
     </div>
   </div>
 </div>
+
 {% endblock content %}
 
 
 {% block javascript %}
-<script type="text/javascript"
+{% vite_asset 'src/fret.js' %}
+
+<script defer type="text/javascript"
   src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js">
 </script>
-<script type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
-
-<script>
-  $(window).on('load', function () {
-    window.FPBASE.initFRET()
-  })
-</script>
+<script defer type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
+{# FRET initialization handled automatically by the fret.js bundle #}
 {% endblock javascript %}

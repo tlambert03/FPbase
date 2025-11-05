@@ -101,30 +101,44 @@
 
 {% block javascript %}
 <script>
+  // Wait for FPBASE to be ready, then load D3 charts
+  if (window.FPBASE && window.FPBASE.loadD3Charts) {
+    initChart()
+  } else {
+    window.addEventListener('fpbase:ready', initChart)
+  }
 
-  fetch("{% url 'api:basic-protein-api' %}", {
-    headers: {
-      'Accept': 'application/json'
-    }
-  })
-  .then(response => response.json())
-  .then(function(data){
-    if (data == null || !Array.isArray(data)){
-      $('.loadinggif').hide();
-      //$('#errorModal').modal()
-      $('#errorModal').modal('show');
-      return;
-    }
+  function initChart() {
+    window.FPBASE.loadD3Charts()
+      .then(({ FPPropChart }) => {
+        fetch("{% url 'api:basic-protein-api' %}", {
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(function(data){
+          if (data == null || !Array.isArray(data)){
+            $('.loadinggif').hide();
+            $('#errorModal').modal('show');
+            return;
+          }
 
-    // Data is already in the correct format from the basic API
-    fpchart = window.FPBASE.FPPropChart().data(data);
-    d3.select('#graph').call(fpchart);
-    $('.loadinggif').hide();
-  }).catch(function(error){
-    console.error("Error loading data:", error);
-    $('.loadinggif').hide();
-    $('#errorModal').modal('show');
-  });
-
+          // Data is already in the correct format from the basic API
+          const fpchart = FPPropChart().data(data);
+          d3.select('#graph').call(fpchart);
+          $('.loadinggif').hide();
+        }).catch(function(error){
+          console.error("Error loading data:", error);
+          $('.loadinggif').hide();
+          $('#errorModal').modal('show');
+        });
+      })
+      .catch(function(error){
+        console.error("Error loading D3 charts:", error);
+        $('.loadinggif').hide();
+        $('#errorModal').modal('show');
+      });
+  }
 </script>
 {% endblock	%}

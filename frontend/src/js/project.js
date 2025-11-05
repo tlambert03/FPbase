@@ -1,5 +1,15 @@
-import $ from "jquery"
+const $ = window.jQuery // jQuery loaded from CDN
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
+
+// Helper to wait for Bootstrap plugins to be available
+function waitForBootstrap(callback) {
+  if (typeof $.fn.tooltip !== "undefined" && typeof $.fn.popover !== "undefined") {
+    callback()
+  } else {
+    // Retry after a short delay
+    setTimeout(() => waitForBootstrap(callback), 50)
+  }
+}
 
 window.mobilecheck = () => {
   var check = false
@@ -624,9 +634,12 @@ function formatAAseq(elem, breakpoint) {
     }
   }
   elem.show()
-  $('[data-toggle="tooltip"]').tooltip({
-    trigger: "hover",
-    delay: { show: 200 },
+  // Wait for Bootstrap to be available before initializing tooltips
+  waitForBootstrap(() => {
+    $('[data-toggle="tooltip"]').tooltip({
+      trigger: "hover",
+      delay: { show: 200 },
+    })
   })
 }
 
@@ -661,21 +674,32 @@ $("#refModalForm").submit(function (e) {
   e.preventDefault() // avoid to execute the actual submit of the form.
 })
 
-$("#excerptModalForm").submit(function (e) {
-  var form = $(this).closest("form")
-  $.ajax({
-    type: "POST",
-    url: form.attr("data-action-url"),
-    data: form.serialize(),
-    dataType: "json",
-    success: (data) => {
-      if (data.status === "success") {
-        window.location.reload()
-      }
-    },
+$("#excerptModalForm")
+  .off("submit")
+  .on("submit", function (e) {
+    e.preventDefault() // Prevent default FIRST
+    var form = $(this).closest("form")
+    var $submitBtn = form.find('button[type="submit"]')
+
+    // Prevent double submission
+    if ($submitBtn.prop("disabled")) return
+    $submitBtn.prop("disabled", true)
+
+    $.ajax({
+      type: "POST",
+      url: form.attr("data-action-url"),
+      data: form.serialize(),
+      dataType: "json",
+      success: (data) => {
+        if (data.status === "success") {
+          window.location.reload()
+        }
+      },
+      error: () => {
+        $submitBtn.prop("disabled", false) // Re-enable on error
+      },
+    })
   })
-  e.preventDefault() // avoid to execute the actual submit of the form.
-})
 
 function register_transition_form() {
   $(".trans_formset_div").formset({

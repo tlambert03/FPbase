@@ -8,11 +8,12 @@ Django web app for <https://www.fpbase.org> with React frontend. PostgreSQL data
 - unless explicitly told otherwise, don't run `git commit`, let me review changes.
 - avoid nested imports unless specifically used to avoid circular imports or delay heavy imports.
 - avoid arbitrary time.sleep() calls in tests; use proper waits on a specific condition instead.
+- the current year is 2025 (not 2024), for web-searches
 
 ## Tech Stack
 
 **Backend**: Django, Python, DRF, GraphQL (graphene-django), PostgreSQL, Celery + Redis
-**Frontend**: React, Webpack, pnpm monorepo (packages: spectra, blast use Vite)
+**Frontend**: React, vite, pnpm monorepo (packages: spectra, blast use Vite)
 **Science**: BioPython, NumPy, Pandas, SciPy, Matplotlib
 
 ## Key Overrides
@@ -29,7 +30,7 @@ uv sync                                # Install/update Python deps
 pnpm install                           # Install Node deps
 
 # Development
-pnpm dev                               # Start webpack + Django dev server
+pnpm dev                               # Start vite + Django dev server
 uv run backend/manage.py shell_plus    # Interactive shell with auto-imports
 
 # Testing

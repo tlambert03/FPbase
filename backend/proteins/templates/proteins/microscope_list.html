@@ -51,7 +51,7 @@ collections
   <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
                           text-muted ml-2'><small>{{object.description}}</small></span><a
       href="{% url 'proteins:microscope-report' object.id %}" class="text-primary"
-      title='fluorophore efficiency report'><i class="fa fa-table small ml-2" style="margin-bottom: 2px"></i>
+      title='fluorophore efficiency report'><i class="fa fa-table ml-2" style="margin-bottom: 2px; font-size: 0.8rem;"></i>
     </a></li>
   {% endfor %}
 </ul>
@@ -71,7 +71,7 @@ collections
         class="fa fa-trash-alt small" style="margin-bottom: 2px"></i></a>{% endif%}
     <a href="{% url 'proteins:microscope-report' object.id %}" class="text-primary ml-1"
       title='fluorophore efficiency report'>
-      <i class="fa fa-table small" style="margin-bottom: 2px"></i>
+      <i class="fa fa-table" style="margin-bottom: 2px; font-size: 0.8rem;"></i>
     </a></li>
   {% empty %}
   {% if owner %}
@@ -94,12 +94,12 @@ collections
                 text-muted ml-2'><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>
     {% if request.user.username == owner %}
     <a href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'>
-      <i class="fa fa-wrench small mr-2 ml-2" style="margin-bottom: 2px"></i>
+      <i class="fa fa-wrench mr-2 ml-2" style="margin-bottom: 2px; font-size: 0.8rem;"></i>
     </a>
     {% endif%}
     <a href="{% url 'proteins:microscope-report' object.id %}" class="text-primary"
       title='fluorophore efficiency report'>
-      <i class="fa fa-table small" style="margin-bottom: 2px"></i>
+      <i class="fa fa-table" style="margin-bottom: 2px; font-size: 0.8rem;"></i>
     </a>
   </li>
   {% endfor %}

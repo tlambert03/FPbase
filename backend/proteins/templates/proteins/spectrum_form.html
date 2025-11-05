@@ -128,6 +128,16 @@
     }
   });
 
+  // Helper to wait for Bootstrap plugins to be available
+  function waitForBootstrap(callback) {
+    if (typeof $.fn.tab !== 'undefined') {
+      callback();
+    } else {
+      // Retry after a short delay
+      setTimeout(function() { waitForBootstrap(callback); }, 50);
+    }
+  }
+
   // Create tabs immediately when DOM is ready
   $(document).ready(function() {
     // Find the file and data fields in the crispy form and wrap them with tabs
@@ -168,7 +178,11 @@
     // Manually initialize Bootstrap tabs
     $('#data-source-tabs a[data-toggle="tab"]').on('click', function (e) {
       e.preventDefault();
-      $(this).tab('show');
+      var $this = $(this);
+      // Wait for Bootstrap to be available before calling .tab()
+      waitForBootstrap(function() {
+        $this.tab('show');
+      });
     });
   });
 
@@ -342,7 +356,12 @@
         }
       },
       error: function(xhr) {
-        var response = JSON.parse(xhr.responseText || '{}');
+        var response = {};
+        try {
+          response = JSON.parse(xhr.responseText || '{}');
+        } catch(e) {
+          // Ignore parse errors
+        }
         var errorMsg = response.error || 'Failed to generate preview';
         var details = response.details || '';
         var formErrors = response.form_errors || {};
@@ -359,7 +378,8 @@
     var preview = response.preview;
 
     // Clear any previous validation error alerts since preview was successful
-    $('.alert-danger.alert-dismissible').alert('close');
+    // Use remove() instead of Bootstrap's alert('close') for better compatibility
+    $('.alert-danger.alert-dismissible').remove();
 
     // Update message based on whether file was processed
     var message = response.message;
@@ -411,7 +431,9 @@
   function hidePreview() {
     if (currentPreviewData) {
       // Switch to manual data tab
-      $("#manual-tab").tab('show');
+      waitForBootstrap(function() {
+        $("#manual-tab").tab('show');
+      });
 
       // Clear the file input completely
       var fileInput = $("#id_file");
@@ -501,6 +523,8 @@
   // Initialize submit button text
   $(document).ready(function() {
     updateSubmitButton();
+    // Mark form as ready for E2E tests
+    $("#spectrum-submit-form").attr("data-form-ready", "true");
   });
 
 </script>

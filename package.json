@@ -1,7 +1,9 @@
 {
   "scripts": {
-    "dev": "concurrently -n webpack,django -c \"blue.bold,green.bold\" \"pnpm --stream -r start\" \"uv run backend/manage.py runserver\"",
-    "start": "pnpm --stream -r start",
+    "dev:kill-ports": "lsof -ti:5173 | xargs kill -9 2>/dev/null || true && lsof -ti:8000 | xargs kill -9 2>/dev/null || true",
+    "dev:open": "node --input-type=module -e \"import{exec}from'child_process';import{get}from'http';const c=p=>new Promise(r=>{get('http://localhost:'+p,()=>r(1)).on('error',()=>r(0)).setTimeout(99)});(async()=>{for(let i=0;i<60;i++){if(await c(5173)&&await c(8000)){console.log('✅ Servers ready! Opening browser...');exec('open http://localhost:8000');process.exit(0)}await new Promise(r=>setTimeout(r,500))}process.exit(1)})()\"",
+    "dev": "pnpm dev:kill-ports && (pnpm dev:open &) && concurrently -n vite,django -c \"blue.bold,green.bold\" \"pnpm --filter fpbase dev\" \"PYTHONUNBUFFERED=1 uv run backend/manage.py runserver\"",
+    "start": "pnpm dev",
     "build": "pnpm -r --parallel build",
     "heroku-postbuild": "CI=true pnpm --filter fpbase build",
     "heroku-cleanup": "rm -rf node_modules _resources .github backend/tests backend/tests_e2e",
@@ -23,6 +25,11 @@
     "packages/*",
     "frontend"
   ],
+  "pnpm": {
+    "overrides": {
+      "react-is": "^19.0.0"
+    }
+  },
   "engines": {
     "node": "22.x"
   },

@@ -1,5 +1,6 @@
 import contextlib
 import io
+import json
 import logging
 import operator
 from functools import reduce
@@ -9,6 +10,7 @@ import django.forms
 import django.forms.formsets
 import reversion
 from django.apps import apps
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
@@ -37,7 +39,6 @@ from reversion.models import Revision, Version
 from fpbase.util import is_ajax, uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
 from proteins.extrest.ga import cached_ga_popular
-from proteins.forms.forms import BaseStateFormSet
 from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
 from proteins.util.spectra import spectra2csv
@@ -56,6 +57,8 @@ from ..models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, St
 
 if TYPE_CHECKING:
     import maxminddb
+
+    from proteins.forms.forms import BaseStateFormSet
 
 logger = logging.getLogger(__name__)
 
@@ -211,10 +214,13 @@ class ProteinDetailView(DetailView):
         .select_related("primary_reference")
     )
 
-    @method_decorator(cache_page(60 * 30))
-    @method_decorator(vary_on_cookie)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+    # Only enable caching in production (when DEBUG=False)
+    if not settings.DEBUG:
+        dispatch = method_decorator(cache_page(60 * 30))(dispatch)
+        dispatch = method_decorator(vary_on_cookie)(dispatch)
 
     def version_view(self, request, version, *args, **kwargs):
         try:
@@ -311,6 +317,10 @@ class ProteinDetailView(DetailView):
             data["country_code"] = get_country_code(self.request)
         except Exception:
             data["country_code"] = ""
+
+        # Serialize PDB IDs as JSON for JavaScript
+        if self.object.pdb:
+            data["pdb_ids_json"] = json.dumps(self.object.pdb)
 
         return data
 

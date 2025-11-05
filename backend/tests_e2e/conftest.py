@@ -75,28 +75,6 @@ os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 pytestmark = pytest.mark.django_db(transaction=True)
 
 
-def _frontend_assets_need_rebuild(stats_file) -> bool:
-    """Check if frontend assets need to be rebuilt."""
-    if not stats_file.is_file():
-        return True
-
-    assets = json.loads(stats_file.read_bytes())
-    if assets.get("status") != "done" or not assets.get("chunks") or ("localhost" in assets.get("publicPath", "")):
-        return True
-
-    # Stats are valid - check if source files are newer
-    stats_mtime = stats_file.stat().st_mtime
-    frontend_src = Path(__file__).parent.parent.parent / "frontend" / "src"
-    sources = list(frontend_src.rglob("*"))
-    packages = Path(__file__).parent.parent.parent / "packages"
-    sources += list(packages.rglob("src/**/*"))
-    if any(f.stat().st_mtime > stats_mtime for f in sources if f.is_file() and not f.name.startswith(".")):
-        return True
-
-    # Everything is up to date
-    return False
-
-
 def pytest_configure(config: pytest.Config) -> None:
     """Build frontend assets before test collection when running e2e tests.
 
@@ -121,8 +99,7 @@ def pytest_configure(config: pytest.Config) -> None:
                 return f"\033[{color_code}m{text}\033[0m"
         return text
 
-    manifest_file = Path(django.conf.settings.WEBPACK_LOADER["DEFAULT"]["STATS_FILE"])
-
+    manifest_file = Path(django.conf.settings.DJANGO_VITE["default"]["manifest_path"])
     lock_file = manifest_file.parent / ".build.lock"
     lock_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -148,8 +125,43 @@ def pytest_configure(config: pytest.Config) -> None:
 
             django.conf.settings.STATICFILES_DIRS.append(str(manifest_file.parent))
 
+            # Clear django-vite's cached manifest so it reloads the new one
+            # This is necessary because Django may have already loaded the old manifest
+            import django_vite.core.asset_loader
+
+            django_vite.core.asset_loader.DjangoViteAssetLoader._instance = None
         else:
             print(_color_text("✅ Frontend assets are up to date", GREEN), flush=True)
+
+
+def _frontend_assets_need_rebuild(manifest_file) -> bool:
+    """Check if frontend assets need to be rebuilt."""
+    if not manifest_file.is_file():
+        return True
+
+    # Check if manifest is valid JSON
+    try:
+        manifest = json.loads(manifest_file.read_bytes())
+        if not manifest:
+            return True
+    except (json.JSONDecodeError, ValueError):
+        return True
+
+    # Manifest is valid - check if source files are newer
+    manifest_mtime = manifest_file.stat().st_mtime
+    frontend_src = Path(__file__).parent.parent.parent / "frontend" / "src"
+    sources = list(frontend_src.rglob("*"))
+    packages = Path(__file__).parent.parent.parent / "packages"
+    sources += list(packages.rglob("src/**/*"))
+    if any(f.stat().st_mtime > manifest_mtime for f in sources if f.is_file() and not f.name.startswith(".")):
+        return True
+
+    # Everything is up to date
+    return False
+
+
+# Frontend assets are built in pytest_configure hook (runs before Django import)
+# No fixture needed here since assets are guaranteed to exist before workers start
 
 
 @pytest.fixture
@@ -172,7 +184,10 @@ _SOURCE_MAP_CACHE: dict[str, SourceMapIndex] = {}
 
 
 def _apply_source_maps_to_stack(stack_trace: str) -> str:
-    """Apply inline source maps to transform bundle paths into source file locations."""
+    """Apply inline source maps to transform bundle paths into source file locations.
+
+    Works with both Webpack and Vite inline source maps.
+    """
     static_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
 
     def replace_location(match: re.Match) -> str:
@@ -196,7 +211,16 @@ def _apply_source_maps_to_stack(stack_trace: str) -> str:
                 token: sourcemap.objects.Token
                 token = source_map.lookup(line=int(line_str) - 1, column=int(column_str))
                 if token and token.src:
-                    src = token.src.replace("file:///", "").replace("webpack://fpbase/", "").lstrip("./")
+                    # Clean up source paths from both Webpack and Vite
+                    src = (
+                        token.src.replace("file:///", "")
+                        .replace("webpack://fpbase/", "")  # Webpack format
+                        .replace("../../", "")  # Vite relative paths from dist/assets/
+                        .lstrip("./")
+                    )
+                    # Remove leading "../" patterns that might remain
+                    while src.startswith("../"):
+                        src = src[3:]
                     return f"{src}:{token.src_line + 1}:{token.src_col}"
             except Exception:
                 pass
@@ -268,8 +292,15 @@ class console_errors_raised:
 
     def on_page_error(self, error: Exception) -> None:
         """Collect uncaught JavaScript exceptions (ReferenceError, TypeError, etc)."""
-        if not self._should_ignore(str(error)):
-            self.page_errors.append(error)
+        error_text = str(error)
+        if not self._should_ignore(error_text):
+            # Apply source maps to stack traces in page errors
+            if hasattr(error, "stack") and error.stack:
+                # Create a wrapper since error.stack is read-only
+                mapped_error = SimpleNamespace(stack=_apply_source_maps_to_stack(error.stack), message=str(error))
+                self.page_errors.append(mapped_error)
+            else:
+                self.page_errors.append(error)
 
     def on_request_failed(self, request: Request) -> None:
         """Collect failed network requests (DNS errors, connection refused, etc)."""

@@ -53,6 +53,7 @@ test-e2e:
 
 test-py:
     uv run pytest -v -n=6
+    uv run pytest backend/tests_e2e/ -v -n=6
 
 snapshots-update:
     uv run pytest backend/tests_e2e/ --visual-snapshots -n 4 --update-snapshots
@@ -88,6 +89,7 @@ clean: clean-static clean-env clean-db
     rm -f coverage.xml
     rm -rf __snapshots__
     rm -rf snapshot_failures
+    rm -rf playwright
 
 dump-fixture:
     uv run backend/manage.py dumpfixture

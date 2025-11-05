@@ -37,23 +37,36 @@
 {% block javascript %}
 
 <script>
+  // Wait for FPBASE to be ready, then load D3 charts
+  if (window.FPBASE && window.FPBASE.loadD3Charts) {
+    initLineage()
+  } else {
+    window.addEventListener('fpbase:ready', initLineage)
+  }
 
-$('.lineage').each(function(i, el){
-  $.getJSON("{% url 'proteins:get-org-lineage' object.pk %}", function(data){
-    if(!$.isEmptyObject(data)){
-      $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
-      var chart = window.FPBASE.LineageChart({
-        withToolbar: true,
-        withSearch: true,
-        withTopScroll: true,
-      }).data(data);
-      d3.select(el).call(chart);
-      chart.duration(100);
-    }
-  })
-});
-
-
+  function initLineage() {
+    window.FPBASE.loadD3Charts()
+      .then(({ LineageChart }) => {
+        $('.lineage').each(function(i, el){
+          $.getJSON("{% url 'proteins:get-org-lineage' object.pk %}", function(data){
+            if(!$.isEmptyObject(data)){
+              $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
+              var chart = LineageChart({
+                withToolbar: true,
+                withSearch: true,
+                withTopScroll: true,
+              }).data(data);
+              d3.select(el).call(chart);
+              chart.duration(100);
+            }
+          })
+        });
+      })
+      .catch(function(error){
+        console.error("Error loading D3 charts:", error);
+        $('.lineage').html('<div class="alert alert-danger">Failed to load lineage viewer. Please refresh the page.</div>');
+      });
+  }
 </script>
 
 

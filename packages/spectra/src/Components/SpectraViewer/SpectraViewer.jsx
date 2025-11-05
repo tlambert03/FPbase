@@ -16,7 +16,6 @@ import "highcharts/modules/exporting"
 import "highcharts/modules/offline-exporting"
 import "highcharts/modules/pattern-fill"
 import "highcharts/modules/export-data"
-import "highcharts/modules/accessibility"
 import "highcharts/modules/boost"
 import LinearProgress from "@mui/material/LinearProgress"
 import { defaultChartOptions } from "../../defaults"
@@ -196,7 +195,13 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
         qyNorm={chartOptions.scaleQY}
       />
       <HighchartsProvider Highcharts={Highcharts}>
-        <HighchartsChart plotOptions={_plotOptions} navigation={_navigation} exporting={_exporting}>
+        <HighchartsChart
+          plotOptions={_plotOptions}
+          navigation={_navigation}
+          exporting={_exporting}
+          lang={{ noData: "" }}
+          accessibility={{ enabled: false }}
+        >
           <Chart {..._chart} height={height} />
           <Legend {..._legend} />
           <Tooltip {...tooltip} />

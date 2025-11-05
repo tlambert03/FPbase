@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 <html lang="en">
   <head>
     {% block ga %}
@@ -24,5 +24,5 @@
       <div id="spectra-viewer"></div>
     </div>
   </body>
-  {% render_bundle 'simpleSpectraViewer' %}
+  {% vite_asset 'src/simple-spectra-viewer.js' %}
 </html>

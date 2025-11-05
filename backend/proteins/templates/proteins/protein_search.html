@@ -18,6 +18,11 @@
 
 {% block content %}
 
+<div data-fpbase-init="search"
+     data-filter-fields='{{filter_fields|safe}}'
+     data-filter-operators='{{filter_operators|safe}}'
+     data-filter-labels='{{filter_labels|safe}}'>
+
 <h2>Advanced Protein Search</h2>
 
 <p class="text-muted">Add additional rows to refine your search.  Each row is considered as an 'AND' clause in the search.  If a given search parameter is unknown for a protein in the database, that protein will be excluded from the results. If you find that you are not getting results, relax your query.</p>
@@ -103,14 +108,6 @@
             {% endif %}
         </div>
     {% endif %}
+
+</div><!-- end data-fpbase-init -->
 {% endblock %}
-
-{% block javascript %}
-
-<script>
-  $(function(){
-    initSearch(JSON.parse('{{filter_fields|safe}}'), JSON.parse('{{filter_operators|safe}}'), JSON.parse('{{filter_labels|safe}}'))
-  });
-</script>
-
-{% endblock javascript %}

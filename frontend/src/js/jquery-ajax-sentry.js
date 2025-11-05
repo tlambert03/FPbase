@@ -14,7 +14,8 @@
  */
 
 import * as Sentry from "@sentry/browser"
-import $ from "jquery"
+
+const $ = window.jQuery // jQuery loaded from CDN
 
 /**
  * Setup global jQuery AJAX error tracking

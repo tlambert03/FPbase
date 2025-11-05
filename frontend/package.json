@@ -11,64 +11,44 @@
   "dependencies": {
     "@fpbase/blast": "workspace:*",
     "@fpbase/spectra": "workspace:*",
-    "@popperjs/core": "^2.4.0",
     "@sentry/browser": "^10.22.0",
     "algoliasearch": "^3.35.1",
     "autocomplete.js": "^0.36.0",
-    "d3": "^7.9.0",
+    "d3-array": "^3.2.4",
+    "d3-axis": "^3.0.0",
+    "d3-color": "^3.1.0",
+    "d3-drag": "^3.0.0",
+    "d3-hierarchy": "^3.1.2",
+    "d3-scale": "^4.0.2",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
     "highcharts": "^12.4.0",
-    "jquery": "^3.7.0",
     "nouislider": "^14.7.0",
     "process": "^0.11.10",
     "progressbar.js": "^1.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "regenerator-runtime": "^0.13.5",
     "select2": "^4.0.13",
-    "select2-theme-bootstrap4": "^0.2.0-beta.6",
-    "url": "^0.11.0"
+    "select2-theme-bootstrap4": "^0.2.0-beta.6"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.7",
-    "@babel/plugin-syntax-dynamic-import": "^7.7.4",
-    "@babel/preset-env": "^7.7.7",
-    "@babel/preset-react": "^7.7.4",
-    "@babel/preset-typescript": "^7.28.5",
     "@sentry/cli": "^2.57.0",
-    "@sentry/webpack-plugin": "^4.5.0",
+    "@sentry/vite-plugin": "^4.6.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.1.0",
     "autoprefixer": "^10.4.21",
-    "babel-loader": "^10.0.0",
-    "babel-plugin-transform-imports": "^2.0.0",
     "bootstrap": "^4.6.2",
-    "clean-webpack-plugin": "^4.0.0",
-    "copy-webpack-plugin": "^13.0.1",
-    "css-loader": "^7.1.2",
-    "css-minimizer-webpack-plugin": "^7.0.2",
     "cssnano": "^7.1.1",
-    "mini-css-extract-plugin": "^2.9.4",
-    "postcss-loader": "^8.2.0",
+    "rollup-plugin-visualizer": "^6.0.5",
     "sass": "1.93.2",
-    "sass-loader": "16.0.6",
-    "terser-webpack-plugin": "^5.3.14",
-    "webpack": "^5.102.1",
-    "webpack-bundle-analyzer": "^4.9.0",
-    "webpack-bundle-tracker": "3.2.1",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2"
+    "vite": "^7.1.12",
+    "vite-plugin-static-copy": "^3.1.4"
   },
   "scripts": {
-    "start": "HOT_RELOAD=1 webpack-dev-server --mode development",
-    "build": "NODE_ENV=production webpack --mode production",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "clean": "pnpm exec -- rm -rf dist"
-  },
-  "browserslist": {
-    "production": [
-      "defaults"
-    ],
-    "development": [
-      "last 1 version"
-    ]
   }
 }

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n favit_tags %}
 {% load flag_object from protein_tags %}
-{% load render_bundle from webpack_loader %}
+{% load django_vite %}
 
 {% block title %}{{ protein.name|safe  }} :: Fluorescent Protein Database {% endblock %}
 {% block meta-description %}{{ protein.description }}{% endblock %}
@@ -15,6 +15,9 @@
 {% block extrahead %}
 {% include 'proteins/_structured_data.html' with protein=protein %}
 {% if protein.pdb %}
+  {# Preconnect to PDB data sources for faster loading #}
+  <link rel="preconnect" href="https://files.wwpdb.org">
+  <link rel="preconnect" href="https://data.rcsb.org">
   <link rel="preconnect" href="https://www.ebi.ac.uk">
 {% endif %}
 {% endblock extrahead %}
@@ -180,7 +183,7 @@
       </table>
     </div>
 
-    <h3 class="fpbase-id"><a tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>"><i class="fas fa-info-circle ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a>FPbase ID: <span style="font-weight:400;">
+    <h3 class="fpbase-id"><button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>"><i class="fas fa-info-circle ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></button>FPbase ID: <span style="font-weight:400;">
       <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}' class="text-muted">{{ protein.uuid }}</a></span></h3>
 
 
@@ -283,7 +286,7 @@
               {% if protein.seq_validated %}
                 <span id='seq-badge' data-toggle="tooltip" data-placement="right" title="This sequence has been moderated, and matches the original publication"><i class="fas fa-check" title='sequence validated'></i></span>
               {% else %}
-                <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></a>
+                <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></button>
               {% endif %}
             {% endif %}
         </div>
@@ -292,9 +295,19 @@
       <div class="float-sm-right text-info"><a href="{% url 'proteins:blast' %}?query={{protein.seq}}">BLAST</a></div>
       {% endif %}
       {% if protein.lineage and protein.lineage.parent %}
-      <p class="text-muted">{{protein.name | safe}} was derived from <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a> with the following mutations: <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span><span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
-          {% if protein.lineage.root_node != protein.lineage.parent and protein.lineage.mutation != protein.lineage.rootmut %}<span class="small">
-          amino acid numbers relative to <span class="mut-rel-parent hidden">{{protein.lineage.parent.protein}}</span><span class="mut-rel-root">{{protein.lineage.root_node}}</span>. <a href="" onclick="myFunction(event)" class="mut-rel-parent hidden text-secondary">show relative to {{protein.lineage.root_node}}</a><a href="" onclick="myFunction(event)" class="mut-rel-root text-secondary">show relative to {{protein.lineage.parent.protein}}</a></span>
+      <p class="text-muted">{{protein.name | safe}} was derived from
+          <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a>
+          with the following mutations:
+          <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span>
+          <span class="mut-rel-root">{{protein.lineage.rootmut}}</span><br>
+          {% if protein.lineage.root_node != protein.lineage.parent and protein.lineage.mutation != protein.lineage.rootmut %}
+          <span class="small">
+            amino acid numbers relative to
+            <span class="mut-rel-parent hidden">{{protein.lineage.parent.protein}}</span>
+            <span class="mut-rel-root">{{protein.lineage.root_node}}</span>.
+            <span style="cursor: pointer;" onclick="myFunction(event)" class="mut-rel-parent hidden text-secondary">show relative to {{protein.lineage.root_node}}</span>
+            <span style="cursor: pointer;" onclick="myFunction(event)" class="mut-rel-root text-secondary">show relative to {{protein.lineage.parent.protein}}</span>
+          </span>
           {% endif %}
           </p>
           <script>
@@ -361,7 +374,7 @@
     {% endif %}
 
     <div class="excerpts">
-      <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
+      <h3>Excerpts <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></button></h3>
       {% if excerpts %}
         {% for excerpt in excerpts  %}
           {% if excerpt.status != 'rejected' %}
@@ -371,7 +384,12 @@
             </div>
             <p class='excerpt-content'>{{excerpt.content}}</p>
             {% if excerpt.reference %}
-              <a href="{{excerpt.reference.get_absolute_url}}"><h4>{{excerpt.reference.citation}}<a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt text-info small ml-2"></i></a></h4></a>
+              <h4>
+                <a href="{{excerpt.reference.get_absolute_url}}">{{excerpt.reference.citation}}</a>
+                <a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank" rel="noopener">
+                  <i class="fas fa-external-link-alt text-info ml-2" style="font-size: 0.8rem;"></i>
+                </a>
+              </h4>
             {% endif %}
           </blockquote>
           {% endif %}
@@ -381,7 +399,7 @@
         <p class='text-muted'>No excerpts have been added for {{protein.name | safe }}<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
       {% endif %}
-      <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i>Add an excerpt</button></a>
+      <button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#excerptModal"><i class="fas fa-quote-left mr-2"></i>Add an excerpt</button>
     </div>
 
 
@@ -402,7 +420,7 @@
 				{% else %}
 				    <p style='color: #888;'>No additional references have been added.<p>
 				{% endif %}
-				<a class='text-info' data-toggle="modal" data-target="#referenceModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-book mr-2"></i>Add a reference</button></a>
+				<button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#referenceModal"><i class="fas fa-book mr-2"></i>Add a reference</button>
 			</ol>
 		</div>
 
@@ -491,16 +509,7 @@
   <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
 
   {% if protein.has_spectra %}
-  {% render_bundle 'simpleSpectraViewer' %}
-  {% endif %}
-
-  {% if protein.pdb %}
-    {% render_bundle 'litemol' attrs='defer' %}
-    <script type="text/javascript">
-    $(window).on('load', function() {
-      initPDB({{protein.pdb|safe}});
-    });
-    </script>
+  {% vite_asset 'src/simple-spectra-viewer.js' %}
   {% endif %}
 
   <script type="text/javascript">
@@ -512,24 +521,40 @@
     $(window).on('load', function() {
       $('.lineage').each(function(i, el) {
         var slug = $(el).data('slug') || '';
-        $.getJSON('/ajax/lineage/' + slug + '/', function(data) {
-          window._lastLineageData = data;
-          if (!data.children || data.children.length === 0){
-            return
-          }
-          var linchart = window.FPBASE.LineageChart({slug: slug}).data(data);
-          var lineage = d3.select(el);
-          lineage.call(linchart);
-          linchart.duration(200);
-          if (slug && $('.lineage-wrapper')){
-            var node = d3.select("#node_" + slug);
-            if (!node.empty()) {
-              var slugpos = node.datum().y;
-              $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
-            }
-          }
 
-        });
+        // Wait for FPBASE to be ready, then load D3 charts
+        function initLineage() {
+          window.FPBASE.loadD3Charts()
+            .then(({ LineageChart }) => {
+              $.getJSON('/ajax/lineage/' + slug + '/', function(data) {
+                window._lastLineageData = data;
+                if (!data.children || data.children.length === 0){
+                  return
+                }
+                var linchart = LineageChart({slug: slug}).data(data);
+                var lineage = d3.select(el);
+                lineage.call(linchart);
+                linchart.duration(200);
+                if (slug && $('.lineage-wrapper')){
+                  var node = d3.select("#node_" + slug);
+                  if (!node.empty()) {
+                    var slugpos = node.datum().y;
+                    $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
+                  }
+                }
+              });
+            })
+            .catch(function(error){
+              console.error("Error loading D3 charts:", error);
+              $(el).html('<div class="alert alert-danger">Failed to load lineage viewer. Please refresh the page.</div>');
+            });
+        }
+
+        if (window.FPBASE && window.FPBASE.loadD3Charts) {
+          initLineage()
+        } else {
+          window.addEventListener('fpbase:ready', initLineage)
+        }
       });
     });
 

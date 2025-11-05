@@ -919,12 +919,15 @@ wheels = [
 ]
 
 [[package]]
-name = "django-webpack-loader"
-version = "3.2.1"
+name = "django-vite"
+version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/64/e3/7c824814222d8411e5b2a72f4650e0181893bafa8324c33a5f77dd41db42/django_webpack_loader-3.2.1.tar.gz", hash = "sha256:d4bfaca9a640f087e7feeeb2ca6afd3d0a644bce3925b3d430448989c1673774", size = 17855, upload-time = "2025-06-16T12:33:24.353Z" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/fe/4be07f538bbf9bf8bf73b045552ec2a1b4fba67e3176abb30490b643368e/django_vite-3.1.0.tar.gz", hash = "sha256:8b4ffe4a9fa81ff568bfb195e74dde8694aaf13fd4b656ae60bf59cce08b85e8", size = 25434, upload-time = "2025-02-23T15:32:07.914Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/79/dc/216df230d008495613b6fa3fe6f5f38c99c8516e81acda8cbe73a3c0f14c/django_webpack_loader-3.2.1-py2.py3-none-any.whl", hash = "sha256:b7e505bcdf7af8f75433f13d54010e0a95c61a8b80890a700a598602656e09bf", size = 20806, upload-time = "2025-06-16T12:33:22.672Z" },
+    { url = "https://files.pythonhosted.org/packages/30/59/7df4b1077fa41b43b4e542696d75138dbb86a65f44248c607b3e0f1014ce/django_vite-3.1.0-py3-none-any.whl", hash = "sha256:4e46572bd6b1ce70784be129205dc2ffcbc7a3c19fea50bebfb72b327bbde5fc", size = 23579, upload-time = "2025-02-23T15:32:06.603Z" },
 ]
 
 [[package]]
@@ -1103,7 +1106,7 @@ dependencies = [
     { name = "django-reversion-compare" },
     { name = "django-storages", extra = ["boto3"] },
     { name = "django-structlog" },
-    { name = "django-webpack-loader" },
+    { name = "django-vite" },
     { name = "djangorestframework" },
     { name = "djangorestframework-csv" },
     { name = "dnspython" },
@@ -1208,7 +1211,7 @@ requires-dist = [
     { name = "django-reversion-compare", specifier = ">=0.19.0" },
     { name = "django-storages", extras = ["boto3"], specifier = ">=1.13.2" },
     { name = "django-structlog", specifier = ">=8.1.0" },
-    { name = "django-webpack-loader", specifier = ">=2.0.1" },
+    { name = "django-vite", specifier = ">=3.1.0" },
     { name = "djangorestframework", specifier = ">=3.14.0" },
     { name = "djangorestframework-csv", specifier = ">=2.1.1" },
     { name = "dnspython", specifier = ">=2.6.1" },

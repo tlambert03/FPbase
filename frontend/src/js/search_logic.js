@@ -1,4 +1,6 @@
-window.initSearch = (filterfields, operatorLookup, labelLookup) => {
+const $ = window.jQuery // jQuery loaded from CDN
+
+export default function initSearch(filterfields, operatorLookup, labelLookup) {
   var fields = {}
 
   for (var key in filterfields) {
@@ -40,6 +42,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
   function operator_options(ops) {
     var out = ""
     for (const o of ops) {
+      let op
       if (o in operatorLookup) {
         op = operatorLookup[o]
       } else {
@@ -68,6 +71,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     // hide the current input field by putting it in the hidden #crispy-form
     // FIXME: change this to a variable selector
     var inputcol = row.find(".input-col")
+    let value
     if (keepValue) {
       value = inputcol.find("input").val()
     }
@@ -112,16 +116,16 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
   }
 
   function addRow(target, filter, operator) {
-    newrow = $(queryRow(i)).appendTo(target)
+    const newrow = $(queryRow(i)).appendTo(target)
 
     if (filter) {
       newrow.find(".filter-select").val(filter)
     }
 
-    filterSelector = newrow.find(".filter-select")
-    filterName = filterSelector.val()
+    const filterSelector = newrow.find(".filter-select")
+    const filterName = filterSelector.val()
 
-    operatorSelect = newrow.find(".operator-select")
+    const operatorSelect = newrow.find(".operator-select")
     operatorSelect.html(operator_options(fields[filterName]))
     operatorSelect.removeClass()
     operatorSelect.addClass(`form-control operator-select ${filterName}_operator`)
@@ -154,7 +158,7 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
 
   function updateOperators(filterName, sender) {
     // where sender is the operatorSelect that sent the update command
-    selector = $(`.${filterName}_operator`).not(sender)
+    const selector = $(`.${filterName}_operator`).not(sender)
     if (selector.length > 0) {
       selector.find("option").not(":selected").remove()
       selector.append(operator_options(fields[filterName]))
@@ -176,13 +180,13 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
   })
 
   $("body").on("click", ".remove-row-btn", function () {
-    thisrow = $(this).closest(".query-row")
-    filterName = thisrow.find(".filter-select").val()
-    operatorSelect = thisrow.find(".operator-select")
+    const thisrow = $(this).closest(".query-row")
+    const filterName = thisrow.find(".filter-select").val()
+    const operatorSelect = thisrow.find(".operator-select")
     enableOperator(filterName, operatorSelect.val())
     updateOperators(filterName, operatorSelect)
 
-    inputfield = thisrow.find(".input-col").find(".form-group")
+    const inputfield = thisrow.find(".input-col").find(".form-group")
     inputfield.appendTo("#crispy-form")
 
     thisrow.remove()
@@ -191,13 +195,13 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
 
   $("body").on("change", ".filter-select", function () {
     //when the filter name selector gets changed (or added)
-    dropdownSelect = $(this)
-    filterName = dropdownSelect.val()
+    const dropdownSelect = $(this)
+    const filterName = dropdownSelect.val()
 
-    thisrow = $(this).closest(".query-row")
+    const thisrow = $(this).closest(".query-row")
 
     // remove the old operator dropdown and add the new one
-    operatorSelect = thisrow.find(".operator-select")
+    const operatorSelect = thisrow.find(".operator-select")
     operatorSelect.empty()
     operatorSelect.html(operator_options(fields[filterName]))
     operatorSelect.removeClass()
@@ -216,8 +220,8 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
   })
 
   $("body").on("change", ".operator-select", function () {
-    thisrow = $(this).closest(".query-row")
-    filterName = thisrow.find(".filter-select").val()
+    const thisrow = $(this).closest(".query-row")
+    const filterName = thisrow.find(".filter-select").val()
     enableOperator(filterName, prevOperator)
     disableOperator(filterName, this.value)
     updateOperators(filterName)
@@ -227,17 +231,18 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
   })
 
   function loadState(state) {
-    for (key in state) {
-      value = state[key]
+    for (const key in state) {
+      const value = state[key]
       if (key === "display") {
         $(`#${value}button`).click()
         continue
       }
+      let filter, operator
       if (key in fields) {
         filter = key
         operator = "exact"
       } else {
-        splits = key.split("__")
+        const splits = key.split("__")
         filter = splits.slice(0, splits.length - 1).join("__")
         operator = splits[splits.length - 1]
       }
@@ -275,9 +280,12 @@ window.initSearch = (filterfields, operatorLookup, labelLookup) => {
     }
 
     $(".displaybuttons input").change(function () {
-      var display_type = $(this).val()
-      $(`#${display_type}display`).show()
-      $(`#${display_type}display`).siblings("div").hide()
+      const display_type = $(this).val()
+      $(`#${display_type}display`).removeClass("hidden")
+      $(`#${display_type}display`).siblings("div").addClass("hidden")
     })
+
+    // Mark the form as ready for E2E tests
+    $("#query_builder").attr("data-search-ready", "true")
   })
 }
