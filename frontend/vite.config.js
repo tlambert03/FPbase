@@ -102,6 +102,15 @@ export default defineConfig(({ mode }) => {
           authToken: process.env.SENTRY_AUTH_TOKEN,
           release: process.env.HEROKU_SLUG_COMMIT,
           telemetry: false,
+
+          // Tree-shake optional Sentry code to reduce bundle size
+          bundleSizeOptimizations: {
+            excludeDebugStatements: true, // Remove debug logging (dev-only code)
+            excludePerformanceMonitoring: false, // Keep - we use browserTracingIntegration
+            excludeReplayIframe: true, // Remove - we don't record iframes
+            excludeReplayShadowDom: true, // Remove - we don't use shadow DOM
+            excludeReplayWorker: true, // Use main thread compression (smaller bundle)
+          },
         }),
 
       // Bundle analyzer (production only, use `ANALYZE=1 pnpm build` to generate stats.html)
