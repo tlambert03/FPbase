@@ -15,8 +15,7 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
 {% endblock vendorcss %}
 
 {% block extrahead %}
-<link rel="stylesheet" type="text/css"
-  href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css" />
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css" />
 {% endblock extrahead %}
 
 {% block container-class %}container-fluid spectrumpage fretpage{% endblock %}
@@ -235,9 +234,7 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
 {% block javascript %}
 {% vite_asset 'src/fret.js' %}
 
-<script defer type="text/javascript"
-  src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js">
-</script>
+<script defer type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
 <script defer type="text/javascript" src="https://cdn.datatables.net/plug-ins/1.10.19/sorting/absolute.js"></script>
 {# FRET initialization handled automatically by the fret.js bundle #}
 {% endblock javascript %}
