@@ -388,32 +388,42 @@ def pending_spectrum_action(request):
         if not spectrum_ids or not action:
             return JsonResponse({"success": False, "error": "Missing spectrum_ids or action"}, status=400)
 
-        spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
-
-        if not spectra.exists():
-            return JsonResponse({"success": False, "error": "No pending spectra found with provided IDs"}, status=404)
-
-        count = spectra.count()
-
-        if action == "accept":
-            spectra.update(status=Spectrum.STATUS.approved)
-            # Clear cache for affected protein pages
-            for spectrum in spectra:
-                with contextlib.suppress(Exception):
-                    if spectrum.owner_state:
-                        uncache_protein_page(spectrum.owner_state.protein.slug, request)
-            message = f"Accepted {count} spectrum(s)"
-
-        elif action == "reject":
-            spectra.update(status=Spectrum.STATUS.rejected)
-            message = f"Rejected {count} spectrum(s)"
-
-        elif action == "delete":
-            spectra.delete()
-            message = f"Deleted {count} spectrum(s)"
-
+        # For revert (undo), we need to find spectra regardless of status
+        if action == "revert":
+            spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids)
+            if not spectra.exists():
+                return JsonResponse({"success": False, "error": "No spectra found with provided IDs"}, status=404)
+            count = spectra.count()
+            spectra.update(status=Spectrum.STATUS.pending)
+            message = f"Reverted {count} spectrum(s) to pending"
         else:
-            return JsonResponse({"success": False, "error": f"Unknown action: {action}"}, status=400)
+            # For other actions, only work with pending spectra
+            spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
+
+            if not spectra.exists():
+                return JsonResponse({"success": False, "error": "No pending spectra found with provided IDs"}, status=404)
+
+            count = spectra.count()
+
+            if action == "accept":
+                spectra.update(status=Spectrum.STATUS.approved)
+                # Clear cache for affected protein pages
+                for spectrum in spectra:
+                    with contextlib.suppress(Exception):
+                        if spectrum.owner_state:
+                            uncache_protein_page(spectrum.owner_state.protein.slug, request)
+                message = f"Accepted {count} spectrum(s)"
+
+            elif action == "reject":
+                spectra.update(status=Spectrum.STATUS.rejected)
+                message = f"Rejected {count} spectrum(s)"
+
+            elif action == "delete":
+                spectra.delete()
+                message = f"Deleted {count} spectrum(s)"
+
+            else:
+                return JsonResponse({"success": False, "error": f"Unknown action: {action}"}, status=400)
 
         return JsonResponse({"success": True, "message": message, "count": count})
 

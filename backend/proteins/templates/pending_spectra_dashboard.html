@@ -92,35 +92,83 @@
     flex-grow: 1;
 }
 
-.email-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-
-.email-modal.show {
-    display: flex;
-}
-
-.email-modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
 .badge-status {
     font-size: 0.9em;
+}
+
+/* Toast Notifications */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px;
+}
+
+.toast {
+    background: #333;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    animation: slideIn 0.3s ease-out;
+    min-width: 300px;
+}
+
+.toast.success {
+    background: #28a745;
+}
+
+.toast.warning {
+    background: #ffc107;
+    color: #333;
+}
+
+.toast.error {
+    background: #dc3545;
+}
+
+.toast-message {
+    flex: 1;
+}
+
+.toast-undo {
+    background: rgba(255,255,255,0.3);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.toast.warning .toast-undo {
+    color: #333;
+    border-color: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.1);
+}
+
+.toast-undo:hover {
+    background: rgba(255,255,255,0.4);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 </style>
 {% endblock %}
@@ -160,9 +208,6 @@
                 </button>
                 <button type="button" class="btn btn-danger" onclick="bulkAction('delete')">
                     <i class="fas fa-trash"></i> Delete Selected
-                </button>
-                <button type="button" class="btn btn-info" onclick="showEmailModal()">
-                    <i class="fas fa-envelope"></i> Email Submitter(s)
                 </button>
                 <button type="button" class="btn btn-secondary" onclick="clearSelection()">
                     <i class="fas fa-undo"></i> Clear Selection
@@ -255,9 +300,9 @@
                         <i class="fas fa-trash"></i> Delete
                     </button>
                     {% if spectrum.created_by_email %}
-                    <button type="button" class="btn btn-info btn-sm" onclick="emailSingle({{ spectrum.id }})">
+                    <a href="mailto:{{ spectrum.created_by_email }}?subject=Regarding%20your%20spectrum%20submission%3A%20{{ spectrum.name|urlencode }}" class="btn btn-info btn-sm">
                         <i class="fas fa-envelope"></i> Email
-                    </button>
+                    </a>
                     {% endif %}
                 </div>
             </div>
@@ -267,37 +312,8 @@
     {% endif %}
 </div>
 
-<!-- Email Modal -->
-<div id="email-modal" class="email-modal">
-    <div class="email-modal-content">
-        <h3>Send Email to Submitter(s)</h3>
-        <p>Send an email to the submitter(s) of the selected spectra.</p>
-
-        <form id="email-form">
-            <div class="form-group">
-                <label for="email-subject">Subject:</label>
-                <input type="text" class="form-control" id="email-subject" required
-                       placeholder="e.g., Regarding your spectrum submission">
-            </div>
-
-            <div class="form-group">
-                <label for="email-body">Message:</label>
-                <textarea class="form-control" id="email-body" rows="8" required
-                          placeholder="Your message here..."></textarea>
-                <small class="form-text text-muted">
-                    Each submitter will receive a personalized email with their spectrum(s) listed.
-                </small>
-            </div>
-
-            <div class="d-flex justify-content-end gap-2" style="gap: 10px;">
-                <button type="button" class="btn btn-secondary" onclick="hideEmailModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-paper-plane"></i> Send Email(s)
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+<!-- Toast Container -->
+<div id="toast-container"></div>
 
 {% endblock %}
 
@@ -320,6 +336,41 @@ function getCookie(name) {
 }
 
 const csrftoken = getCookie('csrftoken');
+
+// Store undo state
+let undoState = null;
+
+// Toast notification system
+function showToast(message, type = 'success', showUndo = false, undoCallback = null) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'toast-message';
+    messageDiv.textContent = message;
+    toast.appendChild(messageDiv);
+
+    if (showUndo && undoCallback) {
+        const undoBtn = document.createElement('button');
+        undoBtn.className = 'toast-undo';
+        undoBtn.textContent = 'Undo';
+        undoBtn.onclick = () => {
+            undoCallback();
+            toast.remove();
+        };
+        toast.appendChild(undoBtn);
+    }
+
+    container.appendChild(toast);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(400px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
 
 // Get selected spectrum IDs
 function getSelectedIds() {
@@ -375,17 +426,12 @@ function clearSelection() {
 
 // Perform action on single spectrum
 function singleAction(spectrumId, action) {
-    const actionNames = {
-        'accept': 'accept',
-        'reject': 'reject',
-        'delete': 'delete'
-    };
-
-    const confirmMessage = action === 'delete'
-        ? 'Are you sure you want to DELETE this spectrum? This cannot be undone.'
-        : `Are you sure you want to ${action} this spectrum?`;
-
-    if (!confirm(confirmMessage)) return;
+    // Only confirm for delete (irreversible)
+    if (action === 'delete') {
+        if (!confirm('Are you sure you want to DELETE this spectrum? This cannot be undone.')) {
+            return;
+        }
+    }
 
     performAction([spectrumId], action);
 }
@@ -395,15 +441,16 @@ function bulkAction(action) {
     const selectedIds = getSelectedIds();
 
     if (selectedIds.length === 0) {
-        alert('Please select at least one spectrum.');
+        showToast('Please select at least one spectrum.', 'warning');
         return;
     }
 
-    const confirmMessage = action === 'delete'
-        ? `Are you sure you want to DELETE ${selectedIds.length} spectra? This cannot be undone.`
-        : `Are you sure you want to ${action} ${selectedIds.length} spectra?`;
-
-    if (!confirm(confirmMessage)) return;
+    // Only confirm for delete (irreversible)
+    if (action === 'delete') {
+        if (!confirm(`Are you sure you want to DELETE ${selectedIds.length} spectra? This cannot be undone.`)) {
+            return;
+        }
+    }
 
     performAction(selectedIds, action);
 }
@@ -413,6 +460,20 @@ function performAction(spectrumIds, action) {
     const formData = new FormData();
     spectrumIds.forEach(id => formData.append('spectrum_ids[]', id));
     formData.append('action', action);
+
+    // Store cards for undo (only for accept/reject)
+    const savedCards = {};
+    if (action === 'accept' || action === 'reject') {
+        spectrumIds.forEach(id => {
+            const card = document.querySelector(`.spectrum-card[data-spectrum-id="${id}"]`);
+            if (card) {
+                savedCards[id] = {
+                    element: card.cloneNode(true),
+                    previousSibling: card.previousElementSibling
+                };
+            }
+        });
+    }
 
     fetch('{% url "proteins:pending_spectrum_action" %}', {
         method: 'POST',
@@ -424,12 +485,12 @@ function performAction(spectrumIds, action) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
             // Remove processed spectra from DOM
             spectrumIds.forEach(id => {
                 const card = document.querySelector(`.spectrum-card[data-spectrum-id="${id}"]`);
                 if (card) card.remove();
             });
+
             // Update count
             const countBadge = document.querySelector('.badge-primary');
             const currentCount = parseInt(countBadge.textContent);
@@ -446,62 +507,38 @@ function performAction(spectrumIds, action) {
                     </div>
                 `;
             }
+
+            // Show toast with undo for accept/reject
+            if (action === 'accept' || action === 'reject') {
+                const toastType = action === 'accept' ? 'success' : 'warning';
+                const actionVerb = action === 'accept' ? 'Accepted' : 'Rejected';
+                showToast(
+                    `${actionVerb} ${data.count} spectrum(s)`,
+                    toastType,
+                    true,
+                    () => undoAction(spectrumIds, savedCards)
+                );
+            } else {
+                // Delete - just show success without undo
+                showToast(data.message, 'success');
+            }
         } else {
-            alert('Error: ' + data.error);
+            showToast('Error: ' + data.error, 'error');
         }
     })
     .catch(error => {
-        alert('An error occurred: ' + error);
+        showToast('An error occurred: ' + error, 'error');
         console.error('Error:', error);
     });
 }
 
-// Email modal functions
-function showEmailModal() {
-    const selectedIds = getSelectedIds();
-    if (selectedIds.length === 0) {
-        alert('Please select at least one spectrum.');
-        return;
-    }
-    document.getElementById('email-modal').classList.add('show');
-}
-
-function hideEmailModal() {
-    document.getElementById('email-modal').classList.remove('show');
-    document.getElementById('email-form').reset();
-}
-
-function emailSingle(spectrumId) {
-    // Select the checkbox for this spectrum
-    const checkbox = document.querySelector(`.spectrum-checkbox[data-spectrum-id="${spectrumId}"]`);
-
-    // Clear all other selections
-    document.querySelectorAll('.spectrum-checkbox').forEach(cb => {
-        cb.checked = false;
-    });
-
-    // Check only this one
-    checkbox.checked = true;
-    updateSelection();
-
-    // Show email modal
-    showEmailModal();
-}
-
-// Handle email form submission
-document.getElementById('email-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const selectedIds = getSelectedIds();
-    const subject = document.getElementById('email-subject').value;
-    const body = document.getElementById('email-body').value;
-
+// Undo action - revert spectra back to pending
+function undoAction(spectrumIds, savedCards) {
     const formData = new FormData();
-    selectedIds.forEach(id => formData.append('spectrum_ids[]', id));
-    formData.append('subject', subject);
-    formData.append('body', body);
+    spectrumIds.forEach(id => formData.append('spectrum_ids[]', id));
+    formData.append('action', 'revert');
 
-    fetch('{% url "proteins:pending_spectrum_email" %}', {
+    fetch('{% url "proteins:pending_spectrum_action" %}', {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrftoken,
@@ -511,23 +548,38 @@ document.getElementById('email-form').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
-            hideEmailModal();
+            // Restore cards to DOM
+            spectrumIds.forEach(id => {
+                const savedCard = savedCards[id];
+                if (savedCard) {
+                    const container = document.querySelector('.container-fluid');
+                    const cardsContainer = container.querySelector('.row') ? container : container;
+
+                    if (savedCard.previousSibling) {
+                        savedCard.previousSibling.after(savedCard.element);
+                    } else {
+                        // Insert after the select-all row
+                        const selectAllRow = document.querySelector('.mb-3');
+                        selectAllRow.after(savedCard.element);
+                    }
+                }
+            });
+
+            // Update count
+            const countBadge = document.querySelector('.badge-primary');
+            const currentCount = parseInt(countBadge.textContent);
+            const newCount = currentCount + spectrumIds.length;
+            countBadge.textContent = `${newCount} pending`;
+
+            showToast(`Reverted ${spectrumIds.length} spectrum(s) back to pending`, 'success');
         } else {
-            alert('Error: ' + data.error);
+            showToast('Failed to undo: ' + data.error, 'error');
         }
     })
     .catch(error => {
-        alert('An error occurred: ' + error);
+        showToast('Failed to undo: ' + error, 'error');
         console.error('Error:', error);
     });
-});
-
-// Close modal when clicking outside
-document.getElementById('email-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        hideEmailModal();
-    }
-});
+}
 </script>
 {% endblock %}
