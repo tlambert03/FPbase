@@ -42,10 +42,6 @@
     display: block;
 }
 
-.spectrum-info {
-    margin-bottom: 10px;
-}
-
 .spectrum-info label {
     font-weight: bold;
     margin-right: 5px;
@@ -55,6 +51,10 @@
     display: flex;
     gap: 5px;
     flex-wrap: wrap;
+    margin-top: 0.2rem !important;
+}
+.action-buttons .btn {
+    font-size: 0.82rem;
 }
 
 .bulk-actions {
@@ -205,11 +205,6 @@
             <div class="col-md-4">
                 <!-- Spectrum Info -->
                 <div class="spectrum-info">
-                    <label>ID:</label>
-                    <span>{{ spectrum.id }}</span>
-                </div>
-
-                <div class="spectrum-info">
                     <label>Owner:</label>
                     <span>{{ spectrum.owner|default:"N/A" }} ({{ spectrum.owner_type }})</span>
                 </div>
@@ -224,10 +219,10 @@
                     <span class="badge badge-secondary">{{ spectrum.subtype }}</span>
                 </div>
 
-                <div class="spectrum-info">
+                {% comment %} <div class="spectrum-info">
                     <label>Source:</label>
                     <span>{{ spectrum.source }}</span>
-                </div>
+                </div> {% endcomment %}
 
                 <div class="spectrum-info">
                     <label>Submitted:</label>
@@ -240,7 +235,7 @@
                         {% if spectrum.created_by %}
                         {{ spectrum.created_by.username }}
                         {% if spectrum.created_by_email %}
-                        <br><small class="text-muted">{{ spectrum.created_by_email }}</small>
+                        <small class="text-muted">&nbsp; &lt;{{ spectrum.created_by_email }}&gt;</small>
                         {% endif %}
                         {% else %}
                         N/A
