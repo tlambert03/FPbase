@@ -209,10 +209,6 @@ function initMolstar(selection, changer) {
           bgColor: { r: 255, g: 255, b: 255 },
           hideControls: false,
           sequencePanel: false,
-          expanded: false,
-          reactive: true,
-          selectInteraction: true,
-          hideCanvasControls: ["selection", "animation"],
         }
 
         plugin.render(viewerContainer, options)
