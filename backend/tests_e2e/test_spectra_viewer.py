@@ -405,3 +405,131 @@ def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
     # expect(visible_areas).to_have_count(3)  # EX, EM, and 2P visible
     # twop_button.click()
     # expect(visible_areas).to_have_count(2)  # Back to EX and EM
+
+
+def test_x_range_pickers(spectra_viewer: Page) -> None:
+    """Test that X range picker inputs correctly set chart zoom.
+
+    Verifies:
+    1. Range picker inputs are visible when spectra are loaded
+    2. Typing new min/max values and pressing Enter updates the chart
+    3. Chart extremes reflect the entered values
+    4. Values persist across page refresh
+    5. URL parameters (xMin/xMax) correctly set initial range
+    """
+    # Add EGFP using spacebar shortcut
+    spectra_viewer.keyboard.press("Space")
+    modal = spectra_viewer.get_by_role("presentation").filter(has_text="Quick Entry")
+    search_input = modal.get_by_role("combobox").first
+    search_input.type("EGFP")
+    spectra_viewer.keyboard.press("Enter")
+
+    # Wait for EGFP to be added
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+
+    # Wait for chart to load
+    chart = spectra_viewer.locator(".highcharts-container")
+    expect(chart).to_be_visible()
+
+    # Range pickers should be visible
+    min_input = spectra_viewer.locator('input[name="min"]')
+    max_input = spectra_viewer.locator('input[name="max"]')
+    expect(min_input).to_be_visible()
+    expect(max_input).to_be_visible()
+
+    # Get initial values (should be autoscaled)
+    initial_min = min_input.input_value()
+    initial_max = max_input.input_value()
+    assert initial_min, "Min input should have a value"
+    assert initial_max, "Max input should have a value"
+
+    # Set min to 400
+    min_input.click()
+    min_input.fill("400")
+    min_input.press("Enter")
+    spectra_viewer.wait_for_timeout(200)  # Wait for chart to update
+
+    # Verify min input shows new value
+    expect(min_input).to_have_value("400")
+
+    # Set max to 600
+    max_input.click()
+    max_input.fill("600")
+    max_input.press("Enter")
+    spectra_viewer.wait_for_timeout(200)  # Wait for chart to update
+
+    # Verify max input shows new value
+    expect(max_input).to_have_value("600")
+
+    # Verify chart has zoomed by checking x-axis labels
+    # Should see labels around 400-600 range, not the original full range
+    x_axis_labels = spectra_viewer.locator(".highcharts-xaxis-labels text")
+    # Note: Some labels may be hidden by XRangePickers positioning logic
+    # Get all label values (including hidden ones) and verify they're in the expected range
+    label_texts = x_axis_labels.all_text_contents()
+    label_values = [int(text) for text in label_texts if text.strip() and text.strip().isdigit()]
+    assert len(label_values) > 0, "Should have numeric x-axis labels"
+    assert min(label_values) >= 400, f"Min label {min(label_values)} should be >= 400"
+    assert max(label_values) <= 600, f"Max label {max(label_values)} should be <= 600"
+
+    # Test persistence: refresh the page and verify values are restored
+    spectra_viewer.reload()
+    spectra_viewer.wait_for_load_state("networkidle")
+
+    # Wait for chart to reload
+    expect(chart).to_be_visible()
+    expect(min_input).to_be_visible()
+    expect(max_input).to_be_visible()
+
+    # Verify values persisted
+    expect(min_input).to_have_value("400")
+    expect(max_input).to_have_value("600")
+
+    # Verify chart is still zoomed after reload
+    label_texts_after = x_axis_labels.all_text_contents()
+    label_values_after = [int(text) for text in label_texts_after if text.strip() and text.strip().isdigit()]
+    assert len(label_values_after) > 0, "Should have numeric x-axis labels after reload"
+    min_label_after = min(label_values_after)
+    max_label_after = max(label_values_after)
+    assert min_label_after >= 400, f"Min label after reload {min_label_after} should be >= 400"
+    assert max_label_after <= 600, f"Max label after reload {max_label_after} should be <= 600"
+
+
+def test_x_range_url_parameters(live_server: LiveServer, page: Page) -> None:
+    """Test that xMin and xMax URL parameters correctly set initial chart range.
+
+    Verifies:
+    1. URL with xMin/xMax parameters loads correctly
+    2. Chart range matches URL parameters
+    3. Range picker inputs show correct values
+    """
+    egfp = create_egfp()
+    ex_id = egfp.default_state.ex_spectrum.id
+    em_id = egfp.default_state.em_spectrum.id
+
+    # Navigate with URL parameters including xMin and xMax
+    url = f"{live_server.url}{reverse('proteins:spectra')}?s={ex_id},{em_id}&xMin=420&xMax=580"
+    page.goto(url)
+    page.wait_for_load_state("networkidle")
+
+    # Wait for chart to load
+    chart = page.locator(".highcharts-container")
+    expect(chart).to_be_visible()
+
+    # Verify range picker inputs show the URL parameter values
+    min_input = page.locator('input[name="min"]')
+    max_input = page.locator('input[name="max"]')
+    expect(min_input).to_be_visible()
+    expect(max_input).to_be_visible()
+    expect(min_input).to_have_value("420")
+    expect(max_input).to_have_value("580")
+
+    # Verify chart is zoomed by checking x-axis labels
+    x_axis_labels = page.locator(".highcharts-xaxis-labels text")
+
+    label_texts = x_axis_labels.all_text_contents()
+    label_values = [int(text) for text in label_texts if text.strip() and text.strip().isdigit()]
+    assert len(label_values) > 0, "Should have numeric x-axis labels"
+    assert min(label_values) >= 420, f"Min label {min(label_values)} should be >= 420"
+    assert max(label_values) <= 580, f"Max label {max(label_values)} should be <= 580"

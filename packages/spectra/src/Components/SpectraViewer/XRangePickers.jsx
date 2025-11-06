@@ -33,6 +33,7 @@ const CLASSES = {
 const XRangePickers = ({ visible }) => {
   const axis = useAxis()
   const Highcharts = useHighcharts()
+  const storeExtremes = useSpectraStore((state) => state.chartOptions.extremes)
   const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
 
   // Local state for input values (allows typing without immediate updates)
@@ -43,20 +44,35 @@ const XRangePickers = ({ visible }) => {
   const minNode = useRef()
   const maxNode = useRef()
 
+  // Initialize from store extremes on mount or when store extremes change
+  useEffect(() => {
+    if (!storeExtremes) return
+    const [min, max] = storeExtremes
+    if (min || max) {
+      setMinValue(min || "")
+      setMaxValue(max || "")
+    }
+  }, [storeExtremes])
+
   // Sync local state with axis extremes when axis changes (from zooming, etc)
   useEffect(() => {
     if (!axis?.object) return
 
     const handleExtremesChange = () => {
       const extremes = axis.object.getExtremes()
-      const min = extremes.userMin ? Math.round(extremes.min) : null
-      const max = extremes.userMax ? Math.round(extremes.max) : null
+      // Store user-set extremes (null if autoscaled)
+      const userMin = extremes.userMin ? Math.round(extremes.min) : null
+      const userMax = extremes.userMax ? Math.round(extremes.max) : null
 
-      setMinValue(min || "")
-      setMaxValue(max || "")
+      // Display current extremes (whether user-set or autoscaled)
+      const displayMin = Math.round(extremes.min)
+      const displayMax = Math.round(extremes.max)
 
-      // Update store for persistence
-      updateChartOptions({ extremes: [min, max] })
+      setMinValue(String(displayMin))
+      setMaxValue(String(displayMax))
+
+      // Update store for persistence (null means autoscaled)
+      updateChartOptions({ extremes: [userMin, userMax] })
     }
 
     const handleRedraw = () => {

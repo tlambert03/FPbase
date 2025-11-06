@@ -150,6 +150,10 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
     xAxis.events.afterSetExtremes = () => {}
     xAxis.min = chartOptions.extremes[0]
     xAxis.max = chartOptions.extremes[1]
+  } else if (chartOptions.extremes && (chartOptions.extremes[0] || chartOptions.extremes[1])) {
+    // Apply extremes from store/URL if they exist
+    xAxis.min = chartOptions.extremes[0]
+    xAxis.max = chartOptions.extremes[1]
   }
   // Note: legendHeight is already accounted for by Highcharts internally
   // Adding it here causes reflow issues when toggling series visibility
