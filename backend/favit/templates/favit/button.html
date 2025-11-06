@@ -1,10 +1,11 @@
 {% load i18n %}
+{% load icon_tags %}
 {% if authenticated %}
   <div class="favit" data-toggle="tooltip" data-placement="top" title="Add to favorites" >
   	<a class="btn favorite" id="add_remove_favorite" href="" data-action-url="{% url 'favit:add_or_remove' %}" data-model="{{ target_model }}" data-target="target_{{ target_object_id }}">
-  	  <i class="fa{% if not undo %}r{% else %}s{% endif %} fa-heart d-none d-sm-inline"></i>
+  	  {% if undo %}{% icon 'heart' class='d-none d-sm-inline favorite-icon' %}{% else %}{% icon 'heart-o' class='d-none d-sm-inline favorite-icon' %}{% endif %}
       <button type="button" class="btn btn-info btn-block d-block d-sm-none">
-          <i class="fa{% if not undo %}r{% else %}s{% endif %} fa-heart"></i>
+          {% if undo %}{% icon 'heart' class='favorite-icon' %}{% else %}{% icon 'heart-o' class='favorite-icon' %}{% endif %}
           <span>{% if not undo %}Add to{% else %}Remove from{% endif %} favorites</span>
       </button>
   	</a>
@@ -14,9 +15,9 @@
 {% else %}
   <div class="favit" data-toggle="tooltip" data-placement="top" title="Log in to add favorites" >
   	<a class="btn favorite" href="{% url 'account_login' %}?next={% firstof path '/' %}">
-  	  <i class="far fa-heart d-none d-sm-inline"></i>
+  	  {% icon 'heart-o' class='d-none d-sm-inline favorite-icon' %}
       <button type="button" class="btn btn-info btn-block d-block d-sm-none mt-2">
-          <i class="fa{% if not undo %}r{% else %}s{% endif %} fa-heart"></i>
+          {% icon 'heart-o' class='favorite-icon' %}
           <span>{% if not undo %}Add to{% else %}Remove from{% endif %} favorites</span>
       </button>
   	</a>

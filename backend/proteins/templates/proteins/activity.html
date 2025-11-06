@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load icon_tags %}
 
 {% block title %}Recent Activity on FPbase{% endblock %}
 {% block meta-description %}Find the most recently published fluorescent proteins on FPbase, or those that have been recently added to the datbase.  Also: see which protein searches are trending and what are the most favorited proteins.{% endblock %}
@@ -116,8 +117,8 @@
                   <p class='small mt-1 mb-0'>
                     {{ref.citation}} {{ref.title}}.
 
-                   <span style="font-size: 0.7rem;"><em>{{ ref.journal }}</em>. doi:{{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener" class="text-secondary"><i class="fas fa-external-link-alt mr-2 ml-1"></i>Article</a>
-                    {% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank" rel="noopener" class="text-secondary"><i class="fas fa-external-link-alt mr-2"></i>Pubmed</a>{% endif %}</span>
+                   <span style="font-size: 0.7rem;"><em>{{ ref.journal }}</em>. doi:{{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener" class="text-secondary">{% icon 'external-link-alt' class='mr-2 ml-1' %}Article</a>
+                    {% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank" rel="noopener" class="text-secondary">{% icon 'external-link-alt' class='mr-2' %}Pubmed</a>{% endif %}</span>
                   </p>
                 {% endwith %}
               {% endif %}
@@ -143,8 +144,8 @@
                 <p class='small mt-1 mb-0'>
                   {{ref.citation}} {{ref.title}}.
 
-                 <span style="font-size: 0.7rem;"><em>{{ ref.journal }}</em>. doi:{{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener" class="text-secondary"><i class="fas fa-external-link-alt mr-2 ml-1"></i>Article</a>
-                  {% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank" rel="noopener" class="text-secondary"><i class="fas fa-external-link-alt mr-2"></i>Pubmed</a>{% endif %}</span>
+                 <span style="font-size: 0.7rem;"><em>{{ ref.journal }}</em>. doi:{{ ref.doi | lower }}. <a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener" class="text-secondary">{% icon 'external-link-alt' class='mr-2 ml-1' %}Article</a>
+                  {% if ref.pmid %}&nbsp;&nbsp;<a href="https://www.ncbi.nlm.nih.gov/pubmed/{{ ref.pmid }}" target="_blank" rel="noopener" class="text-secondary">{% icon 'external-link-alt' class='mr-2' %}Pubmed</a>{% endif %}</span>
                 </p>
               {% endwith %}
             {% endif %}

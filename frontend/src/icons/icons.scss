@@ -1,0 +1,81 @@
+/**
+ * SVG Icon Styles
+ * Replaces Font Awesome font-based icons with inline SVGs
+ */
+
+/* Base SVG icon styles */
+svg[aria-hidden="true"] {
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+  vertical-align: -0.125em;
+  overflow: visible;
+}
+
+/* Size modifiers (matching Font Awesome) */
+.fa-lg {
+  font-size: 1.33333em;
+  line-height: 0.75em;
+  vertical-align: -0.0667em;
+}
+
+.fa-2x {
+  font-size: 2em;
+}
+
+.fa-3x {
+  font-size: 3em;
+}
+
+.fa-4x {
+  font-size: 4em;
+}
+
+.fa-5x {
+  font-size: 5em;
+}
+
+/* Fixed width (useful for aligning icons in lists) */
+.fa-fw {
+  text-align: center;
+  width: 1.25em;
+}
+
+/* Spinning animation */
+.fa-spin {
+  animation: fa-spin 2s infinite linear;
+}
+
+.fa-pulse {
+  animation: fa-spin 1s infinite steps(8);
+}
+
+@keyframes fa-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Margin utilities (common FA usage patterns) */
+.fa-mr-1,
+.mr-1 {
+  margin-right: 0.25rem;
+}
+
+.fa-mr-2,
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.fa-ml-1,
+.ml-1 {
+  margin-left: 0.25rem;
+}
+
+.fa-ml-2,
+.ml-2 {
+  margin-left: 0.5rem;
+}

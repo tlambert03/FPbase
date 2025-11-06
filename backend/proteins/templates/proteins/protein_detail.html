@@ -2,6 +2,7 @@
 {% load i18n favit_tags %}
 {% load flag_object from protein_tags %}
 {% load django_vite %}
+{% load icon_tags %}
 
 {% block title %}{{ protein.name|safe  }} :: Fluorescent Protein Database {% endblock %}
 {% block meta-description %}{{ protein.description }}{% endblock %}
@@ -53,7 +54,7 @@
 
 			{% if version %}
 				<div class="alert alert-warning clearfix" role="alert">
-					<strong><i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i></strong>You are viewing an older revision of this protein, from {{ version.revision.date_created|date:"M j, Y H:i:s"}}.  <a href="{{ protein.get_absolute_url }}" class="alert-link">Click here</a> to view the current version.
+					<strong>{% icon 'exclamation-circle' class='mr-2' %}</strong>You are viewing an older revision of this protein, from {{ version.revision.date_created|date:"M j, Y H:i:s"}}.  <a href="{{ protein.get_absolute_url }}" class="alert-link">Click here</a> to view the current version.
 
 				    {% if request.user.is_staff %}
 					<form id="adminRevert" class='float-sm-right' data-action-url="{% url 'proteins:admin_revert_version' ver=version.id %}" data-success="{{ protein.get_absolute_url }}">
@@ -69,13 +70,13 @@
           {% if protein.status == 'hidden'  %}
 
             <div class="d-inline-block align-middle">
-              <strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>This protein page is not visible to the public.  Only the creator of this protein and FPbase staff can view or edit this protein.
+              <strong>{% icon 'info-circle' class='mr-2' %}</strong>This protein page is not visible to the public.  Only the creator of this protein and FPbase staff can view or edit this protein.
             </div>
 
           {% else %}
 
             <div class="d-inline-block align-middle">
-              <strong><i class="fas fa-info-circle mr-2" aria-hidden="true"></i></strong>This protein has unmoderated changes.
+              <strong>{% icon 'info-circle' class='mr-2' %}</strong>This protein has unmoderated changes.
               {% if last_approved %}
                  <a href="{% url 'proteins:protein-detail' slug=protein.slug ver=last_approved.id %}" class="alert-link">Click here</a>
                  to view the last moderated version of this protein from {{ last_approved.revision.date_created|date:"M j, Y H:i:s" }}.
@@ -97,8 +98,8 @@
 			<div class="like_buttons float-sm-right">
 				<div class="container-button" data-toggle="tooltip" data-placement="top" title="Add to collection">
 					<a class="btn collection-add-button" href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal">
-					  <i class="fas fa-book d-none d-sm-inline"></i>
-					  	<a class='collection-add-button d-block d-sm-none' href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal" style="text-decoration: none;"><button type="button" class="btn btn-info btn-block"><i class="fas fa-book mr-2"></i>Add to collection</button>
+					  {% icon 'book' class='d-none d-sm-inline' %}
+					  	<a class='collection-add-button d-block d-sm-none' href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal" style="text-decoration: none;"><button type="button" class="btn btn-info btn-block">{% icon 'book' class='mr-2' %}Add to collection</button>
 					  	</a>
 					</a>
 				</div>
@@ -123,14 +124,11 @@
 		  <div id="spectra">
 		    <div class="spectra-overlay-div">
 		      <span data-toggle="tooltip" data-placement="top" title="Download spectra as csv"><a
-		          href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link'><i
-		            class="fas fa-download"></i></a></span>
+		          href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link'>{% icon 'download' %}</a></span>
 		      <span data-toggle="tooltip" data-placement="top" title="Generate spectra image/url" class='ml-2'><a href="#"
-		          class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal"><i
-		            class="fas fa-link"></i></a></span>
+		          class='text-secondary spectra-overlay-link' data-toggle="modal" data-target="#spectraURLModal">{% icon 'link' %}</a></span>
 		      <span data-toggle="tooltip" data-placement="top" title="Add another spectrum" class='ml-2'><a
-		          href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary spectra-overlay-link'><i
-		            class="fas fa-chart-area"></i><sup>+</sup></a></span>
+		          href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary spectra-overlay-link'>{% icon 'chart-area' %}<sup>+</sup></a></span>
 		    </div>
 
 		    <div id="spectra-viewer" data-spectra='[{{spectra_ids}}]' data-hidden='[{{hidden_spectra}}]'
@@ -183,7 +181,7 @@
       </table>
     </div>
 
-    <h3 class="fpbase-id"><button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>"><i class="fas fa-info-circle ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></button>FPbase ID: <span style="font-weight:400;">
+    <h3 class="fpbase-id"><button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>">{% icon 'info-circle' class='ml-1 mr-2 text-muted' %}</button>FPbase ID: <span style="font-weight:400;">
       <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}' class="text-muted">{{ protein.uuid }}</a></span></h3>
 
 
@@ -219,7 +217,7 @@
 				<div class="align-self-end text-sm-right mt-1">
 					<a href="#" class='text-info' data-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
 						<small class="d-none d-sm-inline">Edit state transitions</small>
-						<button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none"><i class="fas fa-exchange-alt mr-2"></i>Edit state transitions</button>
+						<button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none">{% icon 'exchange-alt' class='mr-2' %}Edit state transitions</button>
 					</a>
 				</div>
 			</div>
@@ -229,7 +227,7 @@
       <div class="align-self-end text-sm-right mt-1">
         <a href="#" class='text-info' data-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
           <small class="d-none d-sm-inline">Edit state transitions</small>
-          <button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none"><i class="fas fa-exchange-alt mr-2"></i>Edit state transitions</button>
+          <button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none">{% icon 'exchange-alt' class='mr-2' %}Edit state transitions</button>
         </a>
       </div>
     {% endif %}
@@ -237,7 +235,7 @@
 
     {% if protein.oser_measurements.count %}
     <div class="attributes mt-1">
-      <h3>{{protein.name | safe}} OSER Measurements <a href="{{ HELP_URL }}glossary#oser" target="_blank"><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
+      <h3>{{protein.name | safe}} OSER Measurements <a href="{{ HELP_URL }}glossary#oser" target="_blank">{% icon 'info-circle' class='ml-2 text-muted' %}</a></h3>
         <table class="table table-striped flip-scroll">
           <thead>
             <tr class="table-header">
@@ -258,7 +256,7 @@
                 <td class='small'>
                   {% if oserm.reference %}
                     <a href="{{oserm.reference.get_absolute_url}}">{{oserm.reference}}</a>
-                    <a href="https://doi.org/{{ oserm.reference.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt text-info"></i></a>
+                    <a href="https://doi.org/{{ oserm.reference.doi }}" target="_blank" rel="noopener">{% icon 'external-link-alt' class='text-info' %}</a>
                   {% endif %}
                 </td>
               </tr>
@@ -284,9 +282,9 @@
 				  <h3 class='d-inline'>{{ protein.name | safe }} Sequence</h3>
             {% if protein.seq %}
               {% if protein.seq_validated %}
-                <span id='seq-badge' data-toggle="tooltip" data-placement="right" title="This sequence has been moderated, and matches the original publication"><i class="fas fa-check" title='sequence validated'></i></span>
+                <span id='seq-badge' data-toggle="tooltip" data-placement="right" title="This sequence has been moderated, and matches the original publication">{% icon 'check' %}</span>
               {% else %}
-                <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error."><i class="fas fa-exclamation-triangle ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;'></i></button>
+                <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error.">{% icon 'exclamation-triangle' class='ml-2 text-muted' %}</button>
               {% endif %}
             {% endif %}
         </div>
@@ -374,7 +372,7 @@
     {% endif %}
 
     <div class="excerpts">
-      <h3>Excerpts <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></button></h3>
+      <h3>Excerpts <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon 'info-circle' class='ml-2 text-muted' %}</button></h3>
       {% if excerpts %}
         {% for excerpt in excerpts  %}
           {% if excerpt.status != 'rejected' %}
@@ -387,7 +385,7 @@
               <h4>
                 <a href="{{excerpt.reference.get_absolute_url}}">{{excerpt.reference.citation}}</a>
                 <a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank" rel="noopener">
-                  <i class="fas fa-external-link-alt text-info ml-2" style="font-size: 0.8rem;"></i>
+                  {% icon 'external-link-alt' class='text-info ml-2' %}
                 </a>
               </h4>
             {% endif %}
@@ -399,7 +397,7 @@
         <p class='text-muted'>No excerpts have been added for {{protein.name | safe }}<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
       {% endif %}
-      <button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#excerptModal"><i class="fas fa-quote-left mr-2"></i>Add an excerpt</button>
+      <button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#excerptModal">{% icon 'quote-left' class='mr-2' %}Add an excerpt</button>
     </div>
 
 
@@ -420,7 +418,7 @@
 				{% else %}
 				    <p style='color: #888;'>No additional references have been added.<p>
 				{% endif %}
-				<button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#referenceModal"><i class="fas fa-book mr-2"></i>Add a reference</button>
+				<button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#referenceModal">{% icon 'book' class='mr-2' %}Add a reference</button>
 			</ol>
 		</div>
 
@@ -442,7 +440,7 @@
       <a href="{% url 'proteins:protein-history' slug=protein.slug %}" class="text-muted">Change history</a>
 			 <p>Something missing or incorrect?
         <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary d-none d-sm-inline'>Submit a change</a>
-        <a role="button" href="{% url 'proteins:update' slug=protein.slug %}" class="btn btn-info btn-block mt-2 mb-3 d-block d-sm-none text-white"><i class="fas fa-upload mr-2"></i>Submit a change</a>
+        <a role="button" href="{% url 'proteins:update' slug=protein.slug %}" class="btn btn-info btn-block mt-2 mb-3 d-block d-sm-none text-white">{% icon 'upload' class='mr-2' %}Submit a change</a>
        </p>
 		</div>
 

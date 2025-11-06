@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load django_vite %}
+{% load icon_tags %}
 
 {% block title %}FPbase :: Table of Fluorescent Protein Properties{% endblock %}
 {% block meta-description %}A comprehensive, sortable, searchable table of all the fluorescent proteins in the fluorescent protein database.{% endblock %}
@@ -23,7 +24,7 @@
     This is a comprehensive table of all proteins in the database. You may sort by clicking the column headers (shift-click for multi-sort), or search protein names by typing in the search field.
   </p>
   <p class="small text-muted mb-2 mt-3 container text-center">
-  <em><strong>Tip:</strong> click the <i class="fas fa-plus-circle"></i> button to add a protein to the comparison tab on right.</em>
+  <em><strong>Tip:</strong> click the {% icon 'plus-circle' %} button to add a protein to the comparison tab on right.</em>
   </p>
 </div>
 

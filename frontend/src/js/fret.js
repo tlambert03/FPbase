@@ -1,6 +1,13 @@
 import Highcharts from "highcharts"
 import "highcharts/modules/no-data-to-display"
+import { fasEye } from "../icons/fa-icons.ts"
+
 const $ = window.jQuery // jQuery loaded from CDN
+
+// Helper to create SVG icon HTML string
+function createIconHTML(icon, className = "") {
+  return `<svg viewBox="0 0 ${icon.width} ${icon.height}" fill="currentColor" aria-hidden="true" class="${className}"><path d="${icon.path}"/></svg>`
+}
 
 export default function initFRET() {
   var chart
@@ -443,7 +450,7 @@ export default function initFRET() {
       columns: [
         {
           data: () =>
-            '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>',
+            `<button class="btn btn-sm btn-outline bg-transparent load-button">${createIconHTML(fasEye, "text-secondary")} </button>`,
           width: "1px",
           orderable: false,
         },

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load icon_tags %}
 
 {% block title %}FPbase: Advanced Fluorescent Protein Search{% endblock %}
 {% block meta-description %}Build complex queries to search for fluorescent proteins in FPbase using multiple filters.{% endblock %}
@@ -35,16 +36,16 @@
 <form action="" method="get" class="mb-2">
     <div id="query_builder">Building form... <img width=60 src="{% static 'images/GFP_spinner.gif' %}"></i></div>
     <div class='clearfix button-row'>
-    <button type="submit" class="btn btn-sm btn-primary form-group"><i class="fas fa-search"></i> Search</button>
-    <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn"><i class="fas fa-filter"></i> Add Filter</button>
+    <button type="submit" class="btn btn-sm btn-primary form-group">{% icon 'search' %} Search</button>
+    <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn">{% icon 'filter' %} Add Filter</button>
 
     {% if request.GET %}
     <div class="btn-group float-sm-right displaybuttons btn-group-toggle mb-3" data-toggle="buttons" >
       <label class="btn btn-info btn-sm btn-secondary active">
-        <input type="radio" name="display" id="lbutton" autocomplete="off" checked value='l'><i class="fas fa-th"></i> display blocks
+        <input type="radio" name="display" id="lbutton" autocomplete="off" checked value='l'>{% icon 'th' %} display blocks
       </label>
       <label class="btn btn-info btn-sm btn-secondary">
-        <input type="radio" name="display" id="tbutton" autocomplete="off" value='t'><i class="fas fa-table"></i> display table
+        <input type="radio" name="display" id="tbutton" autocomplete="off" value='t'>{% icon 'table' %} display table
       </label>
     </div>
     </div>

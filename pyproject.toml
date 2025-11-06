@@ -139,6 +139,7 @@ ignore = [
 ]
 [tool.ruff.lint.per-file-ignores]
 "backend/config/settings/*" = ["F405"]
+"backend/fpbase/icons.py" = ["E501"]
 
 [tool.django-stubs]
 django_settings_module = "config.settings.test"

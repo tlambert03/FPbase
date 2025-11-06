@@ -14,6 +14,21 @@
 
 import * as Sentry from "@sentry/browser"
 import { Component } from "react"
+import { fasExclamationTriangle } from "../icons/fa-icons.ts"
+
+// Simple SVG icon component for React
+function Icon({ icon, style = {} }) {
+  return (
+    <svg
+      viewBox={`0 0 ${icon.width} ${icon.height}`}
+      fill="currentColor"
+      aria-hidden="true"
+      style={style}
+    >
+      <path d={icon.path} />
+    </svg>
+  )
+}
 
 /**
  * Default fallback component shown when an error occurs
@@ -32,7 +47,7 @@ function DefaultErrorFallback({ error, errorInfo, resetError }) {
       }}
     >
       <h2 style={{ marginTop: 0 }}>
-        <i className="fas fa-exclamation-triangle" style={{ marginRight: "0.5rem" }}></i>
+        <Icon icon={fasExclamationTriangle} style={{ marginRight: "0.5rem" }} />
         Something Went Wrong
       </h2>
       <p>We're sorry, but something unexpected happened. Our team has been notified.</p>

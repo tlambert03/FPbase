@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load django_vite %}
+{% load icon_tags %}
 
 {% block title %}{% if object %}{{object}} Microscope{% else %}Create a Microscope{% endif %} on FPbase{% endblock %}
 {% block meta-description %}Create and save your own microscope configuration (filters, light sources, detectors) and
@@ -30,7 +31,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">&times;</span>
   </button>
-  <p><i class="fas fa-info-circle mr-2 "></i>For more information on {% if object %}updating{%else%}creating{%endif%}
+  <p>{% icon 'info-circle' class='mr-2' %}For more information on {% if object %}updating{%else%}creating{%endif%}
     microscope pages, see the <a class="alert-link"
       href="https://help.fpbase.org/tools/microscopes/create-microscope">documentation</a></p>
 </div>
@@ -105,8 +106,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
           {{ form.optical_configs|as_crispy_field }}
 
           <div class="alert alert-info alert-dismissible mb-0" role="alert">
-            <div class="alert-icon" style="font-size: 1.6rem"><span
-                class="fas fa-question-circle float-left mr-3 mt-2"></span></div>
+            <div class="alert-icon" style="font-size: 1.6rem">{% icon 'question-circle' class='float-left mr-3 mt-2' %}</div>
             <h4 class="alert-heading mb-3 mt-2"><strong>Adding Optical Configurations in Bulk</strong></h4>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -185,7 +185,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
             </div>
             {% endfor %}
             <a href="#" class='text-primary' data-toggle="modal" data-target="#importModal"><button
-                class='btn btn-sm btn-danger mb-1'><i class="fas fa-download mr-2"></i>Import Commercial
+                class='btn btn-sm btn-danger mb-1'>{% icon 'download' class='mr-2' %}Import Commercial
                 Filter</button></a>
           </div>
 
@@ -223,8 +223,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
   {% endif %}
   <input type="submit" class="btn btn-primary mb-2 mt-3" value="Submit" />
   <div class="text-primary ml-3 hidden" id="spinner" style="top: 5px; position: relative;">
-    <i class="fas fa-cog fa-spin mr-2"
-      style="font-size: 1.7rem; top: 6px; position: relative;"></i>{% if object %}Updating{% else %}Building{% endif %}
+    {% icon 'cog' class='fa-spin mr-2' %}{% if object %}Updating{% else %}Building{% endif %}
     your configuration...
   </div>
 </form>

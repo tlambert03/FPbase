@@ -16,6 +16,10 @@ import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
 // NOTE: nouislider CSS moved to d3-charts.js since it's only used on ichart page
 import "./css/style.scss"
+import "./icons/icons.scss"
+
+// Icon replacement system removed - now using Django template tags
+// See backend/fpbase/ICONS.md for usage
 
 import "./js/project.js"
 import initSearch from "./js/search_logic.js"
@@ -24,8 +28,14 @@ import "./js/favit.js"
 import "./js/jquery.formset.js"
 import "./js/onload.js"
 
+import { fasExclamationTriangle } from "./icons/fa-icons.ts"
 // D3 and chart components removed - now lazy-loaded via d3-charts.js
 import initAutocomplete from "./js/algolia.js"
+
+// Helper to create SVG icon HTML string
+function createIconSVG(icon, className = "") {
+  return `<svg viewBox="0 0 ${icon.width} ${icon.height}" fill="currentColor" aria-hidden="true" class="${className}"><path d="${icon.path}"/></svg>`
+}
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}
@@ -119,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="col-12">
                           <div class="alert alert-warning" role="alert">
                             <h5 class="alert-heading">
-                              <i class="fas fa-exclamation-triangle mr-2"></i>
+                              ${createIconSVG(fasExclamationTriangle, "mr-2")}
                               Unable to Load 3D Structure Viewer
                             </h5>
                             <p class="mb-2">The molecular structure viewer failed to load. This may be due to a network issue or browser compatibility problem.</p>

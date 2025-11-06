@@ -1,9 +1,10 @@
 {% load i18n %}
+{% load icon_tags %}
 
 <p class='small text-muted'>Dynamically generated spectral images in a variety of formats can be downloaded or embedded elsewhere.  This form assists in building the url parameters to retrieve the spectral image that you want.</p>
 <div class="container text-center mb-4 px-0">
   <img src="" width="100%" id="activeImg" class='img-fluid mb-2 mt-2'>
-  <span class="small text-muted" style="word-wrap: break-word;"><i class="fas fa-share mr-2"></i>Image link: <a href="#" id="linktext" class="text-secondary" style="text-decoration: none"></a></span>
+  <span class="small text-muted" style="word-wrap: break-word;">{% icon 'share' class='mr-2' %}Image link: <a href="#" id="linktext" class="text-secondary" style="text-decoration: none"></a></span>
 </div>
 
 <form id="spectra_url_form">

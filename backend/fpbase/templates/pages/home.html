@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load webp_picture from protein_tags %}
 {% load static %}
+{% load icon_tags %}
 
 {% block meta-description %}FPbase is a moderated, user-editable fluorescent protein database designed by microscopists.  Search, share, and organize information about fluorescent proteins and their characteristics.{% endblock %}
 
@@ -57,7 +58,7 @@
           {% webp_picture 'images/gfp_white_40.png' 'gfpicon' 'white gfp icon' %}{{stats.proteins}} <a href="{% url 'proteins:table' %}" class='text-white'>Proteins</a>
         </span>
         <span>
-          <i class="fas fa-chart-area mr-2" ></i>{{stats.protspectra}} <a href="{% url 'proteins:spectra' %}" class='text-white'>FP Spectra</a>
+          {% icon 'chart-area' class='mr-2' %}{{stats.protspectra}} <a href="{% url 'proteins:spectra' %}" class='text-white'>FP Spectra</a>
         </span>
     </div>
 

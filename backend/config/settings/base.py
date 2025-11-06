@@ -82,6 +82,8 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     # custom users app
     "fpbase.users.apps.UsersConfig",
+    # FPbase core app (for template tags, middleware, etc.)
+    "fpbase.apps.FPbaseConfig",
     # Your stuff: custom apps go here
     "proteins.apps.ProteinsConfig",
     "references.apps.ReferencesConfig",

@@ -1,3 +1,23 @@
+import { farHeart, fasHeart } from "../icons/fa-icons.ts"
+
+// Helper to create SVG icon element
+function createHeartIcon(isFilled, className = "") {
+  const icon = isFilled ? fasHeart : farHeart
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+  svg.setAttribute("viewBox", `0 0 ${icon.width} ${icon.height}`)
+  svg.setAttribute("fill", "currentColor")
+  svg.setAttribute("aria-hidden", "true")
+  if (className) {
+    svg.className.baseVal = className
+  }
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
+  path.setAttribute("d", icon.path)
+  svg.appendChild(path)
+
+  return svg
+}
+
 $(document).ready(() => {
   $("#add_remove_favorite").click(function (e) {
     var $obj = $(this)
@@ -13,10 +33,18 @@ $(document).ready(() => {
       },
       success: (response) => {
         if (response.status === "added") {
-          $obj.find("i").removeClass("far").addClass("fas")
+          // Replace outline hearts with filled hearts
+          $obj.find("svg.favorite-icon").each(function () {
+            const classes = this.getAttribute("class")
+            $(this).replaceWith(createHeartIcon(true, classes))
+          })
           $obj.find("span").text("Remove from favorites")
         } else if (response.status === "deleted") {
-          $obj.find("i").removeClass("fas").addClass("far")
+          // Replace filled hearts with outline hearts
+          $obj.find("svg.favorite-icon").each(function () {
+            const classes = this.getAttribute("class")
+            $(this).replaceWith(createHeartIcon(false, classes))
+          })
           $obj.find("span").text("Add to favorites")
         } else {
           console.warn("Unexpected response status:", response.status)

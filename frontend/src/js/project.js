@@ -1,5 +1,11 @@
 const $ = window.jQuery // jQuery loaded from CDN
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
+import { fasMinusCircle } from "../icons/fa-icons.ts"
+
+// Helper to create SVG icon HTML string
+function createIconHTML(icon) {
+  return `<svg viewBox="0 0 ${icon.width} ${icon.height}" fill="currentColor" aria-hidden="true"><path d="${icon.path}"/></svg>`
+}
 
 // Helper to wait for Bootstrap plugins to be available
 function waitForBootstrap(callback) {
@@ -706,7 +712,7 @@ function register_transition_form() {
     addText: "Add Transition",
     addCssClass: "btn btn-info mb-4",
     deleteCssClass: "transDelete",
-    deleteText: '<i class="fas fa-minus-circle"></i>',
+    deleteText: createIconHTML(fasMinusCircle),
     prefix: "transitions",
     processHidden: true, // I added this to
   })

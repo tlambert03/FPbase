@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load icon_tags %}
 <a class="btn unfave" href='' data-action-url="{% url 'favit:remove' %}" data-model="{{ target_model }}" data-id="{{ target_object_id }}">
-  <i class="fas fa-times-circle text-danger"></i>
+  {% icon 'times-circle' class='text-danger' %}
 </a>

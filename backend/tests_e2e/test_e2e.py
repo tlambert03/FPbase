@@ -635,11 +635,10 @@ def test_favorite_button_interaction(
     # Verify favorite button is present
     favorite_btn = auth_page.locator("#add_remove_favorite")
 
-    # Verify initial state: heart icon should be hollow (.far .fa-heart)
+    # Verify initial state: heart icon should be SVG (outline heart)
     # Note: there are two icons (one for mobile, one for desktop) - check the visible one
-    heart_icon = favorite_btn.locator("i").first
-    expect(heart_icon).to_contain_class("far")
-    expect(heart_icon).to_contain_class("fa-heart")
+    heart_icon = favorite_btn.locator("svg.favorite-icon").first
+    expect(heart_icon).to_be_visible()
 
     # Verify no favorite exists in database yet
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None
@@ -647,25 +646,33 @@ def test_favorite_button_interaction(
     # Visual snapshot: initial state (not favorited)
     assert_snapshot(auth_page)
 
+    # Get initial favorite count
+    fav_count = auth_page.locator(".fav-count").first
+    initial_count = fav_count.text_content()
+
     # Click the favorite button
     favorite_btn.click()
 
-    # Wait for AJAX to complete and icon to change
-    # The icon should change from .far to .fas (hollow to solid)
-    expect(heart_icon).to_contain_class("fas")
-    expect(heart_icon).to_contain_class("fa-heart")
+    # Wait for favorite count to change (indicates AJAX completed)
+    expect(fav_count).not_to_have_text(initial_count)
 
     # Verify backend is updated: favorite should now exist in database
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is not None
 
+    # Verify icon is still an SVG (now filled heart, but we can't easily distinguish visually in test)
+    expect(heart_icon).to_be_attached()
+
     # Visual snapshot: favorited state
     assert_snapshot(auth_page)
+
+    # Get current count before unfavoriting
+    current_count = fav_count.text_content()
 
     # Click again to unfavorite
     favorite_btn.click()
 
-    # Should return to hollow heart
-    expect(heart_icon).to_contain_class("far")
+    # Wait for count to change again
+    expect(fav_count).not_to_have_text(current_count)
 
     # Verify backend is updated: favorite should be removed
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None

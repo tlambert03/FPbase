@@ -2,6 +2,7 @@
 
 {% load i18n %}
 {% load account socialaccount %}
+{% load icon_tags %}
 {% providers_media_js %}
 {% load crispy_forms_tags %}
 
@@ -22,11 +23,11 @@ of your existing third party accounts. {% endblocktrans %}</p>
   <div class="socialaccount_providers">
     {% for provider in socialaccount_providers %}
       {% if provider.id == "google" %}
-        <a href="{% provider_login_url 'google' %}" class="btn btn-google btn-block"><i class="fab fa-google"></i> &nbsp; Log in with Google</a>
+        <a href="{% provider_login_url 'google' %}" class="btn btn-google btn-block">{% icon 'google' %} &nbsp; Log in with Google</a>
       {% elif provider.id == "orcid" %}
-        <a href="{% provider_login_url 'orcid' %}" class="btn btn-orcid btn-block"><i class="fab fa-orcid"></i> &nbsp; Log in with ORCID</a>
+        <a href="{% provider_login_url 'orcid' %}" class="btn btn-orcid btn-block">{% icon 'orcid' %} &nbsp; Log in with ORCID</a>
       {% elif provider.id == "twitter" %}
-        <a href="{% provider_login_url 'twitter'%}" class="btn btn-twitter btn-block"><i class="fab fa-x-twitter"></i> &nbsp; Log in with X</a>
+        <a href="{% provider_login_url 'twitter'%}" class="btn btn-twitter btn-block">{% icon 'x-twitter' %} &nbsp; Log in with X</a>
       {% endif %}
     {% endfor %}
 

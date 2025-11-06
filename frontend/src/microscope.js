@@ -7,6 +7,13 @@
 // Dependencies (d3 v3, nvd3, jQuery, noUiSlider) are loaded via CDN and available as globals.
 // See microscope_detail.html and microscope_embed.html templates.
 
+import { fasQuestionCircle } from "./icons/fa-icons.ts"
+
+// Helper to create SVG icon HTML string
+function createIconHTML(icon, className = "") {
+  return `<svg viewBox="0 0 ${icon.width} ${icon.height}" fill="currentColor" aria-hidden="true" class="${className}"><path d="${icon.path}"/></svg>`
+}
+
 // Expose init function globally for data-fpbase-init pattern
 window.initMicroscope = () => {
   if (!document.querySelector(".microscope-wrapper #spectra svg")) {
@@ -113,7 +120,7 @@ window.initMicroscope = () => {
       },
       exEffBroadband: {
         type: "checkbox",
-        msg: '"Broadband" excitation efficiency mode <a href="https://help.fpbase.org/tools/microscopes/efficiency#broadband" target="_blank"><i class="fa fa-question-circle text-muted"></i></a>',
+        msg: `"Broadband" excitation efficiency mode <a href="https://help.fpbase.org/tools/microscopes/efficiency#broadband" target="_blank">${createIconHTML(fasQuestionCircle, "text-muted")}</a>`,
       },
     }
 

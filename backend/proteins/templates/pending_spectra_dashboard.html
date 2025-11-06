@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load icon_tags %}
 
 {% block title %}Pending Spectra Dashboard - FPbase Admin{% endblock %}
 
@@ -220,7 +221,7 @@
 
     {% if count == 0 %}
     <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i> No pending spectra! Great job.
+        {% icon 'check-circle' %} No pending spectra! Great job.
     </div>
     {% else %}
 
@@ -232,16 +233,16 @@
             </div>
             <div class="action-buttons">
                 <button type="button" class="btn btn-success" onclick="bulkAction('accept')">
-                    <i class="fas fa-check"></i> Accept Selected
+                    {% icon 'check' %} Accept Selected
                 </button>
                 <button type="button" class="btn btn-warning" onclick="bulkAction('reject')">
-                    <i class="fas fa-times"></i> Reject Selected
+                    {% icon 'times' %} Reject Selected
                 </button>
                 <button type="button" class="btn btn-danger" onclick="bulkAction('delete')">
-                    <i class="fas fa-trash"></i> Delete Selected
+                    {% icon 'trash' %} Delete Selected
                 </button>
                 <button type="button" class="btn btn-secondary" onclick="clearSelection()">
-                    <i class="fas fa-undo"></i> Clear Selection
+                    {% icon 'undo' %} Clear Selection
                 </button>
             </div>
         </div>
@@ -262,7 +263,7 @@
             <input type="checkbox" class="spectrum-checkbox checkbox-large" data-spectrum-id="{{ spectrum.id }}" onchange="updateSelection()">
             <h4 onclick="this.previousElementSibling.click()" style="cursor: pointer;">{{ spectrum.name }}</h4>
             <a href="{{ spectrum.admin_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-external-link-alt"></i> Admin
+                {% icon 'external-link-alt' %} Admin
             </a>
         </div>
 
@@ -322,17 +323,17 @@
                 <!-- Action Buttons -->
                 <div class="action-buttons mt-3">
                     <button type="button" class="btn btn-success btn-sm" onclick="singleAction({{ spectrum.id }}, 'accept')">
-                        <i class="fas fa-check"></i> Accept
+                        {% icon 'check' %} Accept
                     </button>
                     <button type="button" class="btn btn-warning btn-sm" onclick="singleAction({{ spectrum.id }}, 'reject')">
-                        <i class="fas fa-times"></i> Reject
+                        {% icon 'times' %} Reject
                     </button>
                     <button type="button" class="btn btn-danger btn-sm" onclick="singleAction({{ spectrum.id }}, 'delete')">
-                        <i class="fas fa-trash"></i> Delete
+                        {% icon 'trash' %} Delete
                     </button>
                     {% if spectrum.created_by_email %}
                     <a href="mailto:{{ spectrum.created_by_email }}?subject=Regarding%20your%20FPBase%20spectrum%20submission%3A%20{{ spectrum.name|urlencode }}" class="btn btn-info btn-sm">
-                        <i class="fas fa-envelope"></i> Email
+                        {% icon 'envelope' %} Email
                     </a>
                     {% endif %}
                 </div>
@@ -541,7 +542,7 @@ function performAction(spectrumIds, action) {
 
                 document.querySelector('.container-fluid').innerHTML = `
                     <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i> No pending spectra! Great job.
+                        {% icon 'check-circle' %} No pending spectra! Great job.
                     </div>
                 `;
             }
