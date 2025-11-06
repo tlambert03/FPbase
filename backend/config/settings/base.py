@@ -379,9 +379,8 @@ ALGOLIA = {
     "API_KEY": env("ALGOLIA_API_KEY", default=""),
     "INDEX_SUFFIX": ALGOLIA_SUFFIX,
 }
-
-if ALGOLIA["API_KEY"]:
-    INSTALLED_APPS += ["algoliasearch_django"]
+# Note: No longer using algoliasearch-django wrapper - we use the direct Python client
+# with custom indexing service in proteins/algolia.py
 
 REDIS_URL = env("REDIS_URL", default="redis://localhost/")
 if REDIS_URL.startswith("rediss://"):
