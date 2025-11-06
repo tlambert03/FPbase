@@ -1,7 +1,10 @@
 from celery import shared_task
 from sentry_sdk import capture_exception
+import structlog
 
 from .util.helpers import forster_list
+
+logger = structlog.get_logger(__name__)
 
 
 @shared_task
@@ -86,3 +89,165 @@ def calculate_scope_report(self, scope_id, outdated_ids=None, fluor_collection=N
                     except Exception as e:
                         capture_exception(e)
             gc.collect()
+
+
+# ============================================================================
+# Algolia Indexing Tasks
+# ============================================================================
+
+
+@shared_task(bind=True, max_retries=3)
+def index_protein_task(self, protein_id: int):
+    """Async task to index a single protein in Algolia."""
+    from proteins.models import Protein
+    from proteins.algolia import protein_indexer
+
+    try:
+        protein = Protein.objects.select_related(
+            'default_state', 'primary_reference'
+        ).get(id=protein_id)
+        protein_indexer.index_protein(protein)
+        logger.info("protein_indexing_task_completed", protein_id=protein_id, protein_name=protein.name)
+    except Protein.DoesNotExist:
+        logger.warning("protein_not_found_for_indexing", protein_id=protein_id)
+    except Exception as exc:
+        logger.error("protein_indexing_task_failed", protein_id=protein_id, error=str(exc), exc_info=True)
+        # Retry with exponential backoff (60s, 120s, 240s)
+        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+
+
+@shared_task(bind=True, max_retries=3)
+def delete_protein_task(self, protein_uuid: str):
+    """Async task to delete a protein from Algolia index."""
+    from proteins.algolia import protein_indexer
+
+    try:
+        # Create a temporary object just for deletion
+        class TempProtein:
+            def __init__(self, uuid):
+                self.uuid = uuid
+
+        protein_indexer.delete_protein(TempProtein(protein_uuid))
+        logger.info("protein_deletion_task_completed", protein_uuid=protein_uuid)
+    except Exception as exc:
+        logger.error("protein_deletion_task_failed", protein_uuid=protein_uuid, error=str(exc))
+        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+
+
+@shared_task
+def reindex_all_proteins():
+    """Reindex all approved proteins in batches."""
+    from proteins.models import Protein
+    from proteins.algolia import protein_indexer
+
+    logger.info("reindex_all_proteins_started")
+
+    try:
+        proteins = Protein.objects.filter(
+            status='approved'
+        ).select_related(
+            'default_state', 'primary_reference'
+        ).order_by('id')
+
+        batch_size = 100
+        total = proteins.count()
+
+        logger.info("reindex_total_count", total=total)
+
+        for i in range(0, total, batch_size):
+            batch = list(proteins[i:i + batch_size])
+            protein_indexer.index_proteins_batch(batch)
+            logger.info("batch_indexed", batch_start=i, batch_size=len(batch), total=total)
+
+        logger.info("reindex_all_proteins_completed", total_indexed=total)
+        return {'total_indexed': total}
+
+    except Exception as exc:
+        logger.error("reindex_all_proteins_failed", error=str(exc), exc_info=True)
+        raise
+
+
+@shared_task
+def configure_protein_index():
+    """Configure protein index with proper settings and replicas."""
+    from proteins.algolia import protein_indexer
+
+    logger.info("configuring_protein_index")
+
+    try:
+        protein_indexer.configure_index()
+        logger.info("protein_index_configured")
+        return {'status': 'configured'}
+    except Exception as exc:
+        logger.error("protein_index_configuration_failed", error=str(exc), exc_info=True)
+        raise
+
+
+@shared_task
+def index_organism_task(organism_id: int):
+    """Async task to index a single organism in Algolia."""
+    from proteins.models import Organism
+    from proteins.algolia import organism_indexer
+
+    try:
+        organism = Organism.objects.get(id=organism_id)
+        organism_indexer.index_organism(organism)
+        logger.info("organism_indexed", organism_id=organism_id)
+    except Organism.DoesNotExist:
+        logger.warning("organism_not_found", organism_id=organism_id)
+    except Exception as exc:
+        logger.error("organism_indexing_failed", organism_id=organism_id, error=str(exc))
+        raise
+
+
+@shared_task
+def index_reference_task(reference_id: int):
+    """Async task to index a single reference in Algolia."""
+    from references.models import Reference
+    from proteins.algolia import reference_indexer
+
+    try:
+        reference = Reference.objects.prefetch_related(
+            'primary_proteins', 'proteins'
+        ).get(id=reference_id)
+        reference_indexer.index_reference(reference)
+        logger.info("reference_indexed", reference_id=reference_id)
+    except Reference.DoesNotExist:
+        logger.warning("reference_not_found", reference_id=reference_id)
+    except Exception as exc:
+        logger.error("reference_indexing_failed", reference_id=reference_id, error=str(exc))
+        raise
+
+
+@shared_task
+def configure_all_indices():
+    """Configure all Algolia indices with proper settings."""
+    from proteins.algolia import protein_indexer, organism_indexer, reference_indexer
+
+    logger.info("configuring_all_indices")
+
+    results = {}
+
+    try:
+        protein_indexer.configure_index()
+        results['protein'] = 'configured'
+    except Exception as exc:
+        logger.error("protein_index_config_failed", error=str(exc))
+        results['protein'] = f'failed: {exc}'
+
+    try:
+        organism_indexer.configure_index()
+        results['organism'] = 'configured'
+    except Exception as exc:
+        logger.error("organism_index_config_failed", error=str(exc))
+        results['organism'] = f'failed: {exc}'
+
+    try:
+        reference_indexer.configure_index()
+        results['reference'] = 'configured'
+    except Exception as exc:
+        logger.error("reference_index_config_failed", error=str(exc))
+        results['reference'] = f'failed: {exc}'
+
+    logger.info("all_indices_configured", results=results)
+    return results
