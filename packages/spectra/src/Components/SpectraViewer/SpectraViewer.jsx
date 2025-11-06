@@ -26,7 +26,6 @@ import DEFAULT_OPTIONS from "./ChartOptions"
 import fixLogScale from "./fixLogScale"
 import NoData from "./NoData"
 import SpectrumSeries from "./SpectrumSeries"
-import XRangePickers from "./XRangePickers"
 
 fixLogScale(Highcharts)
 
@@ -142,10 +141,8 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   const nonExData = data.filter((i) => i.subtype !== "EX" && i.subtype !== "AB")
 
   const height = calcHeight(windowWidth) * (chartOptions.height || 1)
-  let showPickers = numSpectra > 0 && !chartOptions.simpleMode
   if (chartOptions.zoomType !== undefined) {
     _chart.zoomType = chartOptions.zoomType
-    showPickers = chartOptions.zoomType !== null
     // convert to no-op function
     xAxis.events.afterSetExtremes = () => {}
     xAxis.min = chartOptions.extremes[0]
@@ -263,7 +260,9 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
             <MyCredits hide={numSpectra < 1 || chartOptions.simpleMode} />
           </YAxis>
 
-          <XAxisWithRange options={xAxis} showPickers={showPickers} />
+          <XAxis {...xAxis} id="xAxis">
+            <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
+          </XAxis>
         </HighchartsChart>
       </HighchartsProvider>
     </div>
@@ -298,11 +297,10 @@ const MyCredits = function MyCredits({ hide }) {
   )
 }
 
-export const XAxisWithRange = memo(function XAxisWithRange({ options, showPickers }) {
+export const XAxisWithRange = memo(function XAxisWithRange({ options }) {
   return (
-    <XAxis {...options} lineWidth={showPickers ? 1 : 0} id="xAxis">
+    <XAxis {...options} id="xAxis">
       <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
-      {showPickers && <XRangePickers visible={showPickers && options.labels.enabled} />}
     </XAxis>
   )
 })
