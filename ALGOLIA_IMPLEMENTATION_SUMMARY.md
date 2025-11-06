@@ -47,6 +47,8 @@
    - ❌ Removed deprecated `autocomplete.js@0.36.0`
    - ❌ Removed outdated `algoliasearch@3.35.1`
    - ✅ Added `@algolia/autocomplete-js@1.19.4` (modern, actively maintained)
+   - ✅ Added `@algolia/autocomplete-plugin-recent-searches@1.19.4` (recent searches)
+   - ✅ Added `@algolia/autocomplete-theme-classic@1.19.4` (styling)
    - ✅ Added `algoliasearch@5.17.0` (latest version)
    - ✅ Added `react-instantsearch@7.17.0` (for future advanced search page)
    - ✅ Added `instantsearch.css@8.5.0` (styling)
@@ -82,6 +84,8 @@
 8. `0e3ea87` - Add modern SearchAutocomplete component
 9. `f380a62` - Update frontend to use new SearchAutocomplete component
 10. `24a9ce7` - Remove deprecated algolia.js
+11. `168e6fd` - Add implementation summary document
+12. `77e7f1c` - Add missing Algolia autocomplete dependencies (fixes build)
 
 ## Testing Instructions
 
