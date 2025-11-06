@@ -235,6 +235,7 @@ IGNORE_PATTERNS = [
     "Content Security Policy",  # Webkit Content Security Policy reports
     "ERR_ABORTED",  # Navigation aborts (PDF downloads, autocomplete)
     "Frame load interrupted",  # WebKit: PDF downloads interrupt navigation
+    "googleapis.com",  # Google Fonts/APIs blocked in cloud environment
     "googletagmanager.com",
     "recaptcha",  # Test key returns 401
     "sentry",
