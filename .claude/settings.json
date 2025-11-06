@@ -26,12 +26,10 @@
     "sentry": {
       "command": "npx",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-sentry"
+        "@sentry/mcp-server@latest"
       ],
       "env": {
-        "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}",
-        "SENTRY_ORG": "${SENTRY_ORG}"
+        "SENTRY_ACCESS_TOKEN": "${SENTRY_AUTH_TOKEN}"
       }
     },
     "playwright": {
