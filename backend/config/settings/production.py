@@ -193,7 +193,6 @@ CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 # Sentry Configuration
 
 SENTRY_DSN = env("SENTRY_DSN")
-HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[
