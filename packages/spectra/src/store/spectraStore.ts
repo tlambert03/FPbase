@@ -223,9 +223,7 @@ export const useSpectraStore = create<SpectraStore>()(
           activeOverlaps: Array.isArray(persisted.activeOverlaps)
             ? persisted.activeOverlaps
             : defaults.activeOverlaps,
-          hiddenSpectra: Array.isArray(persisted.hiddenSpectra)
-            ? persisted.hiddenSpectra
-            : [],
+          hiddenSpectra: Array.isArray(persisted.hiddenSpectra) ? persisted.hiddenSpectra : [],
           excludeSubtypes: Array.isArray(persisted.excludeSubtypes)
             ? persisted.excludeSubtypes
             : defaults.excludeSubtypes,

@@ -214,7 +214,8 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
   // Defensive: ensure activeSpectra, activeOverlaps, and hiddenSpectra are always arrays
   // Corrupted sessionStorage data can cause these to be non-arrays
   const activeSpectra = providedIds ?? (Array.isArray(storeActiveSpectra) ? storeActiveSpectra : [])
-  const activeOverlaps = providedOverlaps ?? (Array.isArray(storeActiveOverlaps) ? storeActiveOverlaps : [])
+  const activeOverlaps =
+    providedOverlaps ?? (Array.isArray(storeActiveOverlaps) ? storeActiveOverlaps : [])
   const hiddenSpectra = Array.isArray(storeHiddenSpectra) ? storeHiddenSpectra : []
 
   // Separate real IDs for batch fetching
