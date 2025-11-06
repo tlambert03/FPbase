@@ -25,7 +25,7 @@ import "./js/jquery.formset.js"
 import "./js/onload.js"
 
 // D3 and chart components removed - now lazy-loaded via d3-charts.js
-import initAutocomplete from "./js/algolia.js"
+import { initAutocomplete } from "./components/SearchAutocomplete.jsx"
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}
