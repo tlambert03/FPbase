@@ -1,29 +1,9 @@
-import React, { createElement, Fragment, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { autocomplete } from '@algolia/autocomplete-js';
 import { createLocalStorageRecentSearchesPlugin } from '@algolia/autocomplete-plugin-recent-searches';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
 import '@algolia/autocomplete-theme-classic';
-
-const ALGOLIA_CONFIG = window.FPBASE.ALGOLIA;
-const searchClient = algoliasearch(ALGOLIA_CONFIG.appID, ALGOLIA_CONFIG.publicKey);
-
-// Recent searches plugin
-const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
-  key: 'fpbase-search',
-  limit: 5,
-  transformSource({ source }) {
-    return {
-      ...source,
-      templates: {
-        ...source.templates,
-        header() {
-          return <div className="aa-SourceHeader">Recent Searches</div>;
-        },
-      },
-    };
-  },
-});
 
 function ProteinHit({ hit, components }) {
   let iconColor = 'gray50';
@@ -111,6 +91,32 @@ export function SearchAutocomplete({ container }) {
 
   useEffect(() => {
     if (!container) return;
+
+    // Initialize Algolia config and clients inside useEffect to avoid module-level window access
+    const ALGOLIA_CONFIG = window.FPBASE?.ALGOLIA;
+    if (!ALGOLIA_CONFIG) {
+      console.error('Algolia configuration not found on window.FPBASE.ALGOLIA');
+      return;
+    }
+
+    const searchClient = algoliasearch(ALGOLIA_CONFIG.appID, ALGOLIA_CONFIG.publicKey);
+
+    // Recent searches plugin
+    const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
+      key: 'fpbase-search',
+      limit: 5,
+      transformSource({ source }) {
+        return {
+          ...source,
+          templates: {
+            ...source.templates,
+            header() {
+              return <div className="aa-SourceHeader">Recent Searches</div>;
+            },
+          },
+        };
+      },
+    });
 
     autocompleteRef.current = autocomplete({
       container,
