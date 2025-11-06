@@ -72,6 +72,16 @@ window.FPBASE = {
 // Also expose initSearch globally for legacy inline scripts
 window.initSearch = initSearch
 
+// Notify that FPBASE is ready for use by inline scripts
+// This is needed because vite bundles load with defer, so inline scripts
+// at the end of <body> may execute before this module
+window.dispatchEvent(
+  new CustomEvent("fpbase:ready", {
+    bubbles: true,
+    detail: { FPBASE: window.FPBASE },
+  })
+)
+
 // Initialize autocomplete search when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize autocomplete if search input exists
@@ -185,6 +195,60 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           initWhenReady()
+          break
+        }
+        case "ichart": {
+          // Lazy-load D3 charts and initialize interactive chart
+          const apiUrl = element.dataset.apiUrl
+
+          if (!apiUrl) {
+            console.error("ichart init: No API URL provided")
+            break
+          }
+
+          window.FPBASE.loadD3Charts()
+            .then(({ FPPropChart }) => {
+              return fetch(apiUrl, {
+                headers: { Accept: "application/json" },
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data == null || !Array.isArray(data)) {
+                    throw new Error("Invalid data format from API")
+                  }
+
+                  // Initialize chart with data
+                  const fpchart = FPPropChart().data(data)
+                  window.d3v7.select("#graph").call(fpchart)
+
+                  // Hide loading indicator
+                  const loadingGif = element.querySelector(".loadinggif")
+                  if (loadingGif) {
+                    loadingGif.style.display = "none"
+                  }
+                })
+            })
+            .catch((error) => {
+              console.error("Error loading interactive chart:", error)
+
+              // Hide loading indicator
+              const loadingGif = element.querySelector(".loadinggif")
+              if (loadingGif) {
+                loadingGif.style.display = "none"
+              }
+
+              // Show error modal if available
+              const errorModal = document.getElementById("errorModal")
+              if (errorModal && window.$ && window.$.fn.modal) {
+                window.$(errorModal).modal("show")
+              }
+
+              if (window.Sentry) {
+                window.Sentry.captureException(error, {
+                  tags: { component: "ichart-init" },
+                })
+              }
+            })
           break
         }
         default:

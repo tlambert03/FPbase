@@ -411,6 +411,25 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
     page.goto(url)
     expect(page).to_have_url(url)
 
+    # Verify the "loading data..." message disappears
+    # This ensures the vite bundle loaded correctly and dispatched fpbase:ready
+    loading_gif = page.locator(".loadinggif")
+    expect(loading_gif).to_be_hidden(timeout=10000)
+
+    # Verify the D3 chart SVG is rendered with data points
+    chart_svg = page.locator("#mainchart")
+    expect(chart_svg).to_be_visible()
+
+    # Verify chart has circle elements (data points)
+    circles = chart_svg.locator("circle.FP")
+    expect(circles.first).to_be_visible()
+    # Should have at least 2 circles (one for each protein)
+    assert circles.count() >= 2, f"Expected at least 2 circles, but got {circles.count()}"
+
+    # Verify axes are rendered
+    expect(chart_svg.locator(".x.axis.bottom")).to_be_visible()
+    expect(chart_svg.locator(".y.axis.left")).to_be_visible()
+
     # Visual snapshot: chart with custom axes
     if hasattr(assert_snapshot, "NOOP"):
         page.wait_for_load_state("networkidle")

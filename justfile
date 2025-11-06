@@ -8,7 +8,7 @@ setup:
     uv sync
 
 # start both frontend and backend servers
-serve:
+serve: setup
     pnpm dev
 
 shell:

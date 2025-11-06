@@ -32,10 +32,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 })
-
-// Dispatch custom event to signal bundle is ready
-window.dispatchEvent(
-  new CustomEvent("fpbase:ready", {
-    detail: { bundle: "fret", version: window.FPBASE },
-  })
-)

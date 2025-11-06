@@ -37,6 +37,8 @@ if READ_DOT_ENV_FILE:
     if "amazonaws.com" in env("DATABASE_URL", default=""):
         print("\n##################\nWARNING: Using AWS database\n##################\n")
 
+HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
+
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
