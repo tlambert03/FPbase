@@ -32,7 +32,6 @@ const CLASSES = {
   },
 }
 
-let counter = 0
 const XRangePickers = ({ visible }) => {
   const axis = useAxis()
   const Highcharts = useHighcharts()
@@ -41,7 +40,6 @@ const XRangePickers = ({ visible }) => {
   const [min, max] = extremes || [null, null]
   const minNode = useRef()
   const maxNode = useRef()
-  const forceUpdate = React.useState()[1]
 
   useEffect(() => {
     if (!axis || !axis.object) return
@@ -76,7 +74,6 @@ const XRangePickers = ({ visible }) => {
         if (newExtremes[0] !== currentExtremes[0] || newExtremes[1] !== currentExtremes[1]) {
           updateChartOptions({ extremes: newExtremes })
         }
-        forceUpdate(counter++)
       }
     }
 
@@ -126,7 +123,7 @@ const XRangePickers = ({ visible }) => {
         }
       }
     }
-  }, [axis, Highcharts, updateChartOptions, forceUpdate]) // Added missing dependencies
+  }, [axis, Highcharts, updateChartOptions]) // Added missing dependencies
 
   const updateRange = () => {
     if (!axis) return
