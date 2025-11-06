@@ -51,8 +51,15 @@ const XRangePickers = ({ visible }) => {
     if (min || max) {
       setMinValue(min || "")
       setMaxValue(max || "")
+
+      // Apply extremes to axis and show reset zoom button
+      // This handles the case when extremes are restored from sessionStorage on page load
+      if (axis?.object && min && max) {
+        axis.setExtremes(min, max)
+        axis.object.chart.showResetZoom()
+      }
     }
-  }, [storeExtremes])
+  }, [storeExtremes, axis])
 
   // Sync local state with axis extremes when axis changes (from zooming, etc)
   useEffect(() => {
@@ -71,8 +78,10 @@ const XRangePickers = ({ visible }) => {
       setMinValue(String(displayMin))
       setMaxValue(String(displayMax))
 
-      // Update store for persistence (null means autoscaled)
-      updateChartOptions({ extremes: [userMin, userMax] })
+      // Update store for persistence
+      // Normalize [null, null] to just null (no zoom = null, not [null, null])
+      const newExtremes = userMin === null && userMax === null ? null : [userMin, userMax]
+      updateChartOptions({ extremes: newExtremes })
     }
 
     const handleRedraw = () => {
