@@ -46,18 +46,22 @@ const XRangePickers = ({ visible }) => {
 
   // Initialize from store extremes on mount or when store extremes change
   useEffect(() => {
-    if (!storeExtremes) return
+    if (!axis?.object) return
+
+    if (!storeExtremes) {
+      // No extremes stored - ensure reset button is hidden
+      return
+    }
+
     const [min, max] = storeExtremes
-    if (min || max) {
+    if (min && max) {
       setMinValue(min || "")
       setMaxValue(max || "")
 
-      // Apply extremes to axis and show reset zoom button
-      // This handles the case when extremes are restored from sessionStorage on page load
-      if (axis?.object && min && max) {
-        axis.setExtremes(min, max)
-        axis.object.chart.showResetZoom()
-      }
+      // Show reset zoom button when extremes are restored from sessionStorage
+      // SpectraViewer.jsx handles applying the extremes via xAxis config
+      // We just need to make the button visible
+      axis.object.chart.showResetZoom()
     }
   }, [storeExtremes, axis])
 
