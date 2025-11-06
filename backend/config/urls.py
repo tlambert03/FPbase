@@ -124,7 +124,6 @@ urlpatterns = [  # noqa: RUF005
     path("fav/", include("favit.urls")),
     path("avatar/", include("avatar.urls")),
     re_path(r"^test500/", fpbase.views.test500),
-    path("admin/version/", fpbase.views.version_info, name="version"),
     # GraphQL endpoints with rate limiting (30 requests/min per IP)
     path("graphql/", csrf_exempt(fpbase.views.RateLimitedGraphQLView.as_view(graphiql=True))),
     path("graphql/batch/", csrf_exempt(fpbase.views.RateLimitedGraphQLView.as_view(batch=True))),

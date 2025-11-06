@@ -13,7 +13,6 @@ from rest_framework.throttling import AnonRateThrottle
 from sentry_sdk import last_event_id
 
 from fpbase.forms import ContactForm
-from fpbase.version import get_git_sha, get_git_sha_short, get_github_url
 from proteins.models import Protein, Spectrum
 
 logger = logging.getLogger(__name__)
@@ -182,22 +181,4 @@ def server_error(request, *args, **argv):
             "sentry_dsn": getattr(settings, "SENTRY_DSN", ""),
         },
         status=500,
-    )
-
-
-@staff_member_required
-def version_info(request):
-    """Display version information for admins only."""
-    sha = get_git_sha()
-    sha_short = get_git_sha_short()
-    github_url = get_github_url(sha)
-
-    return render(
-        request,
-        "pages/version.html",
-        {
-            "git_sha": sha,
-            "git_sha_short": sha_short,
-            "github_url": github_url,
-        },
     )

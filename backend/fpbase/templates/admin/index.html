@@ -6,16 +6,9 @@
 {% block sidebar %}
 {{ block.super }}
 
-<div class="module">
-  <table>
-    <caption>
-      <a href="{% url 'version' %}">Deployment Information</a>
-    </caption>
-    <tr>
-      <td>
-        <a href="{% url 'version' %}">View current deployment version</a>
-      </td>
-    </tr>
-  </table>
-</div>
+<p style="margin-top: 20px; color: #666; font-size: 0.9em;">version:
+    <a href="{{DEPLOYMENT_SOURCE_URL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+        {{ DEPLOYMENT_VERSION }}
+    </a>
+</p>
 {% endblock sidebar %}
