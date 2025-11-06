@@ -74,17 +74,17 @@ window.dispatchEvent(
 
 // Initialize autocomplete search when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize autocomplete if search input exists
-  if (document.getElementById("algolia-search-input")) {
-    initAutocomplete()
-  }
-
   // Auto-initialization: Look for elements with data-fpbase-init attribute
   document.querySelectorAll("[data-fpbase-init]").forEach((element) => {
     const initType = element.dataset.fpbaseInit
 
     try {
       switch (initType) {
+        case "autocomplete": {
+          // Initialize Algolia autocomplete search
+          initAutocomplete()
+          break
+        }
         case "search": {
           const fields = JSON.parse(element.dataset.filterFields || "{}")
           const operators = JSON.parse(element.dataset.filterOperators || "{}")

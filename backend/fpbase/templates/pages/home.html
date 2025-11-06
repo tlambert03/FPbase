@@ -37,7 +37,7 @@
             <div class="col-md-7 mt-lg-5 search-col order-sm-2 search-col">
               <h1 class="cover-heading text-center mb-4">Find a Protein</h1>
                 <form class="input-group" method="get" action="/search/">
-                  <input class="form-control algolia-searchbar" id="algolia-search-input" name="q" type="search" placeholder='Search' autocomplete="off"/>
+                  <input class="form-control algolia-searchbar" id="algolia-search-input" name="q" type="search" placeholder='Search' autocomplete="off" data-fpbase-init="autocomplete"/>
                 </form>
                 <p class="m-t-4 advanced-search"><a href="{% url 'proteins:search' %}">advanced search</a></p>
             </div>
