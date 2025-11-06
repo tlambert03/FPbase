@@ -1,7 +1,7 @@
 import { Tooltip } from "@mui/material"
 import Input from "@mui/material/Input"
 import { withStyles } from "@mui/styles"
-import React, { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useAxis, useHighcharts } from "react-jsx-highcharts"
 import { useSpectraStore } from "../../store/spectraStore"
 
@@ -20,7 +20,6 @@ const CLASSES = {
     fontWeight: "bold",
     fontSize: "0.75rem",
     width: 30,
-    color: "#444",
     position: "absolute",
   },
   maxInput: {
@@ -28,135 +27,135 @@ const CLASSES = {
     fontWeight: "bold",
     fontSize: "0.75rem",
     width: 30,
-    color: "#444",
   },
 }
 
-let counter = 0
 const XRangePickers = ({ visible }) => {
   const axis = useAxis()
   const Highcharts = useHighcharts()
-  const extremes = useSpectraStore((state) => state.chartOptions.extremes)
   const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
-  const [min, max] = extremes || [null, null]
+
+  // Local state for input values (allows typing without immediate updates)
+  const [minValue, setMinValue] = useState("")
+  const [maxValue, setMaxValue] = useState("")
+
+  // Refs for positioning
   const minNode = useRef()
   const maxNode = useRef()
-  const forceUpdate = React.useState()[1]
 
+  // Sync local state with axis extremes when axis changes (from zooming, etc)
   useEffect(() => {
-    if (!axis || !axis.object) return
-    if (min || max) {
-      // Only call setExtremes if the values are actually different from current axis extremes
-      // This prevents infinite loop with handleAfterSetExtremes
-      const current = axis.object.getExtremes()
-      const targetMin = min && Math.round(min)
-      const targetMax = max && Math.round(max)
-      const currentMin = current.userMin && Math.round(current.min)
-      const currentMax = current.userMax && Math.round(current.max)
+    if (!axis?.object) return
 
-      // Only update if the extremes have actually changed
-      if (targetMin !== currentMin || targetMax !== currentMax) {
-        axis.setExtremes(targetMin, targetMax)
-        if (min && max) {
-          axis.object.chart.showResetZoom()
-        }
-      }
-    }
-  }, [axis, min, max])
+    const handleExtremesChange = () => {
+      const extremes = axis.object.getExtremes()
+      const min = extremes.userMin ? Math.round(extremes.min) : null
+      const max = extremes.userMax ? Math.round(extremes.max) : null
 
-  useEffect(() => {
-    if (!axis || !axis.object || !Highcharts) return
+      setMinValue(min || "")
+      setMaxValue(max || "")
 
-    function handleAfterSetExtremes() {
-      const e = axis.object.getExtremes()
-      if (e) {
-        const newExtremes = [e.userMin && Math.round(e.min), e.userMax && Math.round(e.max)]
-        // Only update store if extremes actually changed (prevents infinite loop)
-        const currentExtremes = useSpectraStore.getState().chartOptions.extremes || [null, null]
-        if (newExtremes[0] !== currentExtremes[0] || newExtremes[1] !== currentExtremes[1]) {
-          updateChartOptions({ extremes: newExtremes })
-        }
-        forceUpdate(counter++)
-      }
+      // Update store for persistence
+      updateChartOptions({ extremes: [min, max] })
     }
 
-    function positionInputs() {
-      if (axis.object.labelGroup && minNode.current) {
-        let leftPad = -5
-        if (axis.object.chart.get("yAx1")) {
-          leftPad += +axis.object.chart.get("yAx1").axisTitleMargin
-        }
-        let rightPad = 0
-        if (axis.object.chart.get("yAx2")) {
-          rightPad += +axis.object.chart.get("yAx2").axisTitleMargin
-        }
-        minNode.current.parentElement.style.left = `${leftPad}px`
-        maxNode.current.parentElement.style.right = `${rightPad}px`
-        axis.object.labelGroup.element.childNodes.forEach((node) => {
-          node.style.display = "block"
-        })
-        const { min: exMin, max: exMax } = axis.getExtremes()
-        axis.object.labelGroup.element.childNodes.forEach((node) => {
-          if (
-            Math.min(Math.abs(node.textContent - exMin), Math.abs(node.textContent - exMax)) <
-            0.43 * axis.object.tickInterval
-          ) {
-            node.style.display = "none"
-          }
-        })
-      }
+    const handleRedraw = () => {
+      // Position inputs relative to y-axis margins
+      if (!axis.object.labelGroup || !minNode.current) return
+
+      let leftPad = -5
+      const yAx1 = axis.object.chart.get("yAx1")
+      if (yAx1) leftPad += yAx1.axisTitleMargin
+
+      let rightPad = 0
+      const yAx2 = axis.object.chart.get("yAx2")
+      if (yAx2) rightPad += yAx2.axisTitleMargin
+
+      minNode.current.parentElement.style.left = `${leftPad}px`
+      maxNode.current.parentElement.style.right = `${rightPad}px`
+
+      // Hide axis labels that are too close to our inputs
+      const extremes = axis.object.getExtremes()
+      const threshold = 0.43 * axis.object.tickInterval
+
+      axis.object.labelGroup.element.childNodes.forEach((node) => {
+        const value = Number.parseFloat(node.textContent)
+        const minDist = Math.abs(value - extremes.min)
+        const maxDist = Math.abs(value - extremes.max)
+        node.style.display = Math.min(minDist, maxDist) < threshold ? "none" : "block"
+      })
     }
 
-    Highcharts.addEvent(axis.object.chart, "redraw", positionInputs)
-    Highcharts.addEvent(axis.object, "afterSetExtremes", handleAfterSetExtremes)
-    Highcharts.addEvent(axis.object.chart, "redraw", handleAfterSetExtremes)
+    if (!Highcharts) return
 
-    handleAfterSetExtremes()
-    positionInputs()
+    Highcharts.addEvent(axis.object, "afterSetExtremes", handleExtremesChange)
+    Highcharts.addEvent(axis.object.chart, "redraw", handleRedraw)
 
-    // Cleanup: remove ALL three event listeners
+    // Initialize values
+    handleExtremesChange()
+    handleRedraw()
+
     return () => {
-      if (axis?.object?.chart && Highcharts) {
-        try {
-          Highcharts.removeEvent(axis.object.chart, "redraw", positionInputs)
-          Highcharts.removeEvent(axis.object, "afterSetExtremes", handleAfterSetExtremes)
-          Highcharts.removeEvent(axis.object.chart, "redraw", handleAfterSetExtremes)
-        } catch (_e) {
-          // Ignore errors during cleanup if objects have been destroyed
-        }
+      try {
+        Highcharts.removeEvent(axis.object, "afterSetExtremes", handleExtremesChange)
+        Highcharts.removeEvent(axis.object.chart, "redraw", handleRedraw)
+      } catch {
+        // Axis/chart may be destroyed
       }
     }
-  }, [axis, Highcharts, updateChartOptions, forceUpdate]) // Added missing dependencies
+  }, [axis, Highcharts, updateChartOptions])
 
-  const updateRange = () => {
-    if (!axis) return
-    const extremes = [+minNode.current.value || null, +maxNode.current.value || null]
-    axis.setExtremes(...extremes)
+  // Apply extremes to the axis
+  const applyExtremes = (newMin, newMax) => {
+    if (!axis?.object) return
+
+    const min = newMin ? Number(newMin) : null
+    const max = newMax ? Number(newMax) : null
+
+    axis.setExtremes(min, max)
+
+    // Show reset zoom button if both are set
+    if (min && max) {
+      axis.object.chart.showResetZoom()
+    }
   }
-  const handleKeyPress = (e) => {
+
+  const handleMinChange = (e) => {
+    setMinValue(e.target.value)
+  }
+
+  const handleMaxChange = (e) => {
+    setMaxValue(e.target.value)
+  }
+
+  const handleMinBlur = () => {
+    applyExtremes(minValue, maxValue)
+  }
+
+  const handleMaxBlur = () => {
+    applyExtremes(minValue, maxValue)
+  }
+
+  const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      updateRange()
+      applyExtremes(minValue, maxValue)
       e.target.select()
-    } else {
-      if (e.target.name === "min") {
-        minNode.current.value = e.target.value
-      }
-      if (e.target.name === "max") {
-        maxNode.current.value = e.target.value
-      }
     }
   }
 
-  if (!axis) return null
+  if (!axis?.object) return null
 
   const axisExtremes = axis.getExtremes()
+
+  // Color logic: gray if autoscaled, red if cropping data, blue if zoomed but showing all data
   const minColor = !axisExtremes.userMin
-    ? "444"
+    ? "#444"
     : axisExtremes.dataMin < axisExtremes.min
       ? "#B1191E"
       : "#5F67CE"
+
   const maxColor = !axisExtremes.userMax
-    ? "444"
+    ? "#444"
     : axisExtremes.dataMax > axisExtremes.max
       ? "#B1191E"
       : "#5F67CE"
@@ -179,12 +178,12 @@ const XRangePickers = ({ visible }) => {
         <Input
           name="min"
           type="text"
-          placeholder={`${axisExtremes.dataMin || ""}`}
-          value={Math.round(min) || ""}
+          placeholder={`${Math.round(axisExtremes.dataMin) || ""}`}
+          value={minValue}
           inputRef={minNode}
-          onChange={(e) => updateChartOptions({ extremes: [e.target.value, max] })}
-          onKeyPress={handleKeyPress}
-          onBlur={updateRange}
+          onChange={handleMinChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleMinBlur}
           style={{ ...CLASSES.minInput, color: minColor }}
           inputProps={{ style: { textAlign: "center" } }}
         />
@@ -197,12 +196,12 @@ const XRangePickers = ({ visible }) => {
         <Input
           name="max"
           type="text"
-          placeholder={`${axisExtremes.dataMax || ""}`}
-          value={Math.round(max) || ""}
+          placeholder={`${Math.round(axisExtremes.dataMax) || ""}`}
+          value={maxValue}
           inputRef={maxNode}
-          onChange={(e) => updateChartOptions({ extremes: [min, e.target.value] })}
-          onKeyPress={handleKeyPress}
-          onBlur={updateRange}
+          onChange={handleMaxChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleMaxBlur}
           style={{ ...CLASSES.maxInput, color: maxColor }}
           inputProps={{ style: { textAlign: "center" } }}
         />
@@ -210,4 +209,5 @@ const XRangePickers = ({ visible }) => {
     </div>
   )
 }
+
 export default XRangePickers
