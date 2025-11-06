@@ -146,6 +146,37 @@ document.addEventListener("DOMContentLoaded", () => {
           observer.observe(element)
           break
         }
+        case "microscope": {
+          // Microscope.js is loaded as a legacy script (not ES module)
+          // It defines window.initMicroscope when ready
+          // Wait for both DOM and dependencies (d3, nvd3, jQuery) from CDN
+
+          const initWhenReady = () => {
+            if (
+              typeof window.initMicroscope === "function" &&
+              typeof nv !== "undefined" &&
+              typeof d3 !== "undefined" &&
+              typeof $ !== "undefined"
+            ) {
+              // Set global variables that microscope.js expects
+              if (element.dataset.scopeSpectra) {
+                window.scopespectra = JSON.parse(element.dataset.scopeSpectra)
+              }
+              if (element.dataset.scopeConfig) {
+                window.scopecfg = JSON.parse(element.dataset.scopeConfig)
+              }
+
+              window.initMicroscope()
+            } else {
+              // Dependencies not ready yet, retry
+              console.warn("Microscope dependencies not loaded yet, retrying...")
+              setTimeout(initWhenReady, 500)
+            }
+          }
+
+          initWhenReady()
+          break
+        }
         default:
           console.warn(`Unknown init type: ${initType}`)
       }

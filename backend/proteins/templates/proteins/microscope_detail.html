@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load static i18n %}
+{% load django_vite %}
 
 {% block extrahead %}
 <!-- Legacy d3 v3 + nvd3 for microscope charts (isolated from main bundle) -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.css" integrity="sha512-5HktH3p+qBNLzxpOLnpICH2uwArYE/Fi7fdKCQee15piDqN3X3Q1iqo8D43oc8DJgYP4xxA7sdEjNCfmeLLYeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.css" integrity="sha512-GO0Bt4SUuPhCKOeRbcJW07aHXw1bmQyFr6FQKN/48yZweIL0AYqeshxEmxtkxTpB0QJO+blGT9SUSF3X8untPg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% endblock extrahead %}
 
 {% block title %}{{ microscope.name }} on FPbase{% endblock %}
@@ -35,20 +36,11 @@
 {{ block.super }}
 
 <!-- Legacy d3 v3 + nvd3 + noUiSlider for microscope charts (isolated from main bundle) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha512-oJp0DdQuQQrRsKVly+Ww6fAN1GwJN7d1bi8UubpEbzDUh84WrJ2CFPBnT4LqBCcfqTcHR5OGXFFhaPe3g1/bzQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js" integrity="sha512-ldXL88WIgBA+vAsJu2PepKp3VUvwuyqmXKEbcf8rKeAI56K8GZMb2jfKSm1a36m5AfUzyDp3TIY0iVKY8ciqSg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/10.1.0/nouislider.min.js" integrity="sha512-jxfybZkJ95fmiIpwLlN3XNLmZjrpcXUTFlsidyVS+G7XuaTFUH163q9Sp6qSA75Ptt3zSTnq28isT7B9Et/Rig==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<script type="text/javascript">
-  var scopespectra = {{ scopespectra|safe }};
-  var scopecfg = {
-    calcEff: {{ microscope.cfg_calc_efficiency|yesno:"true,false" }},
-    minwave: {{ microscope.cfg_min_wave }},
-    maxwave: {{ microscope.cfg_max_wave }},
-    focusEnable: {{ microscope.cfg_enable_pan_zoom|yesno:"true,false" }},
-    showArea: {{ microscope.cfg_fill_area|yesno:"true,false" }},
-  }
-</script>
-<script src="{% static 'js/microscope.js' %}"></script>
+<!-- microscope.js loaded via Vite, initialized via data-fpbase-init pattern -->
+{% vite_asset 'src/microscope.js' %}
 
 {% endblock javascript %}
