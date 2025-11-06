@@ -210,6 +210,27 @@ export const useSpectraStore = create<SpectraStore>()(
         customFilters: state.customFilters,
         customLasers: state.customLasers,
       }),
+      // Validate and fix corrupted data when loading from storage
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<SpectraStore>
+        return {
+          ...currentState,
+          ...persisted,
+          // Ensure arrays are always arrays, never null/undefined/objects
+          activeSpectra: Array.isArray(persisted.activeSpectra)
+            ? persisted.activeSpectra
+            : defaults.activeSpectra,
+          activeOverlaps: Array.isArray(persisted.activeOverlaps)
+            ? persisted.activeOverlaps
+            : defaults.activeOverlaps,
+          hiddenSpectra: Array.isArray(persisted.hiddenSpectra)
+            ? persisted.hiddenSpectra
+            : [],
+          excludeSubtypes: Array.isArray(persisted.excludeSubtypes)
+            ? persisted.excludeSubtypes
+            : defaults.excludeSubtypes,
+        }
+      },
     }
   )
 )

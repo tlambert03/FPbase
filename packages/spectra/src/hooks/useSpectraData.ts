@@ -205,14 +205,17 @@ export function useSpectraData(providedIds?: string[], providedOverlaps?: string
   // Get active spectra from store if not provided
   const storeActiveSpectra = useSpectraStore((state) => state.activeSpectra)
   const storeActiveOverlaps = useSpectraStore((state) => state.activeOverlaps)
-  const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
+  const storeHiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)
   const overlapCache = useSpectraStore((state) => state.overlapCache)
   const setOverlapCache = useSpectraStore((state) => state.setOverlapCache)
   const customFilters = useSpectraStore((state) => state.customFilters)
   const customLasers = useSpectraStore((state) => state.customLasers)
 
-  const activeSpectra = providedIds ?? storeActiveSpectra
-  const activeOverlaps = providedOverlaps ?? storeActiveOverlaps
+  // Defensive: ensure activeSpectra, activeOverlaps, and hiddenSpectra are always arrays
+  // Corrupted sessionStorage data can cause these to be non-arrays
+  const activeSpectra = providedIds ?? (Array.isArray(storeActiveSpectra) ? storeActiveSpectra : [])
+  const activeOverlaps = providedOverlaps ?? (Array.isArray(storeActiveOverlaps) ? storeActiveOverlaps : [])
+  const hiddenSpectra = Array.isArray(storeHiddenSpectra) ? storeHiddenSpectra : []
 
   // Separate real IDs for batch fetching
   const realIds = useMemo(
