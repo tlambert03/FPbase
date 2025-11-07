@@ -2,7 +2,7 @@ import Input from "@mui/material/Input"
 import Tooltip from "@mui/material/Tooltip"
 import Highcharts from "highcharts"
 import type React from "react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useAxis } from "react-jsx-highcharts"
 import { useSpectraStore } from "../../store/spectraStore"
@@ -270,6 +270,33 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
     }
   }, [])
 
+  // Calculate input colors based on clipping state
+  // Gray = autoscale, Red = clipping data, Blue = user zoom (no clipping)
+  // IMPORTANT: Must be before early return to satisfy Rules of Hooks
+  const minColor = useMemo(() => {
+    if (!extremes || extremes[0] === null) return "#444" // Autoscale
+    if (!axis?.object) return "#444"
+    // biome-ignore lint/suspicious/noExplicitAny: dataMin/dataMax not in Highcharts type definitions
+    const axisObj = axis.object as any
+    const isClipping =
+      axisObj.dataMin !== undefined &&
+      axis.object.min !== undefined &&
+      axisObj.dataMin < axis.object.min
+    return isClipping ? "#B1191E" : "#5F67CE"
+  }, [extremes, axis])
+
+  const maxColor = useMemo(() => {
+    if (!extremes || extremes[1] === null) return "#444" // Autoscale
+    if (!axis?.object) return "#444"
+    // biome-ignore lint/suspicious/noExplicitAny: dataMin/dataMax not in Highcharts type definitions
+    const axisObj = axis.object as any
+    const isClipping =
+      axisObj.dataMax !== undefined &&
+      axis.object.max !== undefined &&
+      axisObj.dataMax > axis.object.max
+    return isClipping ? "#B1191E" : "#5F67CE"
+  }, [extremes, axis])
+
   if (!enabled || !container) return null
 
   // Shared tooltip configuration
@@ -292,7 +319,6 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
     width: 30,
     fontWeight: "bold",
     fontSize: "0.75rem",
-    color: "#444",
     pointerEvents: "auto" as const,
     "& input": {
       textAlign: "center" as const,
@@ -320,7 +346,7 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
           onBlur={handleMinBlur}
           onKeyDown={handleKeyDown}
           type="text"
-          sx={{ ...baseInputSx, left: `${leftPad}px` }}
+          sx={{ ...baseInputSx, left: `${leftPad}px`, color: minColor }}
         />
       </Tooltip>
 
@@ -336,7 +362,7 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
           onChange={handleMaxChange}
           onBlur={handleMaxBlur}
           onKeyDown={handleKeyDown}
-          sx={{ ...baseInputSx, right: `${rightPad}px` }}
+          sx={{ ...baseInputSx, right: `${rightPad}px`, color: maxColor }}
         />
       </Tooltip>
     </div>
