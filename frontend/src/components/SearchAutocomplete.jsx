@@ -1,6 +1,4 @@
-import * as React from 'react';
 import { useEffect, useRef } from 'react';
-import { createRoot } from 'react-dom/client';
 import { autocomplete } from '@algolia/autocomplete-js';
 import { createLocalStorageRecentSearchesPlugin } from '@algolia/autocomplete-plugin-recent-searches';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
@@ -220,30 +218,6 @@ export function SearchAutocomplete({ container }) {
         navigate({ itemUrl }) {
           window.location.assign(itemUrl);
         },
-      },
-
-      render({ children, state }, root) {
-        // Custom render to use React 18 createRoot
-        if (!root.__root) {
-          root.__root = createRoot(root);
-        }
-        root.__root.render(children);
-      },
-
-      renderNoResults({ state }, root) {
-        const query = state.query;
-        if (!root.__root) {
-          root.__root = createRoot(root);
-        }
-        root.__root.render(
-          <div className="aa-NoResults">
-            <div className="aa-NoResultsIcon">🔍</div>
-            <div>No results for "{query}"</div>
-            <a href={`/search/?q=${encodeURIComponent(query)}`} className="aa-NoResultsLink">
-              Try advanced search →
-            </a>
-          </div>
-        );
       },
     });
 
