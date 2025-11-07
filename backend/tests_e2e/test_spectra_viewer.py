@@ -320,7 +320,14 @@ def test_hidden_spectra_in_share_url(live_server: LiveServer, page: Page) -> Non
     assert ex_id in shared_url, f"Shared URL should contain hidden EX spectrum ID: {ex_id}"
 
 
-@pytest.mark.parametrize("params", [{}, {"xMin": 400, "xMax": 600}])
+@pytest.mark.parametrize(
+    "params",
+    [
+        {},
+        {"xMin": 400, "xMax": 600},
+        {"xMin": 400, "xMax": 600, "scaleEC": 1},
+    ],
+)
 def test_spectra_graph(live_server: LiveServer, page: Page, params: dict) -> None:
     egfp = create_egfp()
 

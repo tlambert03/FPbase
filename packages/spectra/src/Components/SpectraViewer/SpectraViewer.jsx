@@ -374,7 +374,7 @@ export const XAxisWithRange = memo(function XAxisWithRange({ options }) {
   )
 })
 
-const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerInfo }) {
+const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerInfo = {} }) {
   const exNormed = ecNorm && Object.keys(ownerInfo).length > 0
   const emNormed = (exNorm || qyNorm) && Object.keys(ownerInfo).length > 0
   return (

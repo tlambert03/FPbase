@@ -244,13 +244,14 @@ export function serializeURLParams(state: SpectraURLState): string {
     }
 
     // Extremes - use xMin/xMax for backwards compatibility
+    // Always round to integers to avoid floating point values in URLs
     if (state.chartOptions.extremes && Array.isArray(state.chartOptions.extremes)) {
       const [xMin, xMax] = state.chartOptions.extremes
       if (xMin !== null && xMin !== undefined) {
-        params.set("xMin", String(xMin))
+        params.set("xMin", String(Math.round(xMin)))
       }
       if (xMax !== null && xMax !== undefined) {
-        params.set("xMax", String(xMax))
+        params.set("xMax", String(Math.round(xMax)))
       }
     }
   }
