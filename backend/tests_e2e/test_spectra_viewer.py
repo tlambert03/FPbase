@@ -34,23 +34,24 @@ def spectra_viewer(live_server: LiveServer, page: Page) -> Iterator[Page]:
     page.wait_for_timeout(100)
 
 
-def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Callable) -> None:
-    """Test the spectra viewer page loads without console errors."""
-    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+def _add_egfp_to_viewer(page: Page) -> None:
+    tab_wrapper = page.locator(".tab-wrapper")
     expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
     search_input = tab_wrapper.get_by_role("combobox")
     search_input.click()
-    search_input.type("EGF")
-
+    search_input.type("EGFP")
     egfp_option = tab_wrapper.get_by_role("option", name="EGFP", exact=True)
     expect(egfp_option).to_be_visible()
     egfp_option.click()
-
-    # a selector for EGFP should now be visible
     expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
-    # a NEW search input should appear after selecting a protein
-    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
 
+
+def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Callable) -> None:
+    """Test the spectra viewer page loads without console errors."""
+    _add_egfp_to_viewer(spectra_viewer)
+    # a NEW search input should appear after selecting a protein
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
     assert_snapshot(spectra_viewer)
 
 
@@ -106,19 +107,8 @@ def test_spectra_url_sharing_basic(live_server: LiveServer, page: Page) -> None:
     page.goto(url)
     expect(page).to_have_url(url)
 
-    # Add EGFP using spacebar shortcut
-    page.keyboard.press("Space")
-    modal = page.get_by_role("presentation").filter(has_text="Quick Entry")
-    expect(modal).to_be_attached()
-
-    search_input = modal.get_by_role("combobox").first
-    expect(search_input).to_be_visible()
-    search_input.type("EGFP")
-    page.keyboard.press("Enter")
-
-    # Wait for EGFP to be added to the selector list
-    tab_wrapper = page.locator(".tab-wrapper")
-    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+    # Add EGFP to the viewer
+    _add_egfp_to_viewer(page)
 
     # Wait for chart to load with data
     chart = page.locator(".highcharts-container")
@@ -246,16 +236,8 @@ def test_custom_laser_exnorm_persistence(live_server: LiveServer, page: Page) ->
     page.goto(url)
     expect(page).to_have_url(url)
 
-    # Add EGFP
-    page.keyboard.press("Space")
-    modal = page.get_by_role("presentation").filter(has_text="Quick Entry")
-    search_input = modal.get_by_role("combobox").first
-    search_input.type("EGFP")
-    page.keyboard.press("Enter")
-
-    # Wait for EGFP to be added
-    tab_wrapper = page.locator(".tab-wrapper")
-    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+    # Add EGFP to the viewer
+    _add_egfp_to_viewer(page)
 
     # Navigate to Light Sources tab
     page.get_by_role("tab", name=re.compile("Light Sources")).click()
@@ -338,11 +320,13 @@ def test_hidden_spectra_in_share_url(live_server: LiveServer, page: Page) -> Non
     assert ex_id in shared_url, f"Shared URL should contain hidden EX spectrum ID: {ex_id}"
 
 
-def test_spectra_graph(live_server: LiveServer, page: Page):
+@pytest.mark.parametrize("params", [{}, {"xMin": 400, "xMax": 600}])
+def test_spectra_graph(live_server: LiveServer, page: Page, params: dict) -> None:
     egfp = create_egfp()
 
     ids = f"{egfp.default_state.ex_spectrum.id},{egfp.default_state.em_spectrum.id}"
-    url = f"{live_server.url}{reverse('proteins:spectra_graph')}?s={ids}"
+    query = f"?s={ids}" + "".join(f"&{k}={v}" for k, v in params.items())
+    url = f"{live_server.url}{reverse('proteins:spectra_graph')}{query}"
     page.goto(url)
     expect(page).to_have_url(url)
 
@@ -352,6 +336,14 @@ def test_spectra_graph(live_server: LiveServer, page: Page):
     series_paths = spectra_viewer.locator(".highcharts-series-group path.highcharts-area")
     expect(series_paths).to_have_count(2)
 
+    if "xMin" in params and "xMax" in params:
+        # Verify that x-axis extremes match the parameters
+        x_axis_labels = spectra_viewer.locator(".highcharts-xaxis-labels text")
+        label_texts = x_axis_labels.all_text_contents()
+        label_values = [int(text) for text in label_texts if text.strip() and text.strip().isdigit()]
+        assert min(label_values) >= params["xMin"], f"Min label {min(label_values)} should be >= {params['xMin']}"
+        assert max(label_values) <= params["xMax"], f"Max label {max(label_values)} should be <= {params['xMax']}"
+
 
 def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
     """Test that clicking subtype toggle buttons (EX, EM, 2P) changes spectrum visibility.
@@ -359,22 +351,15 @@ def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
     Regression test for bug where EX and 2P toggle buttons did not respond to clicks
     while EM toggle worked correctly.
     """
-    # Add EGFP using spacebar shortcut
-    spectra_viewer.keyboard.press("Space")
-    modal = spectra_viewer.get_by_role("presentation").filter(has_text="Quick Entry")
-    search_input = modal.get_by_role("combobox").first
-    search_input.type("EGFP")
-    spectra_viewer.keyboard.press("Enter")
-
-    # Wait for EGFP to be added
-    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
-    expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+    # Add EGFP to the viewer
+    _add_egfp_to_viewer(spectra_viewer)
 
     # Wait for chart to load with spectra
     visible_areas = spectra_viewer.locator(".highcharts-series-group path.highcharts-area:visible")
     expect(visible_areas).to_have_count(2)  # EGFP has EX and EM spectra
 
     # Find the subtype toggle buttons within the EGFP selector group
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
     ex_button = tab_wrapper.get_by_role("button", name="EX", exact=True)
     em_button = tab_wrapper.get_by_role("button", name="EM", exact=True)
     twop_button = tab_wrapper.get_by_role("button", name="2P", exact=True)
@@ -405,3 +390,159 @@ def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
     # expect(visible_areas).to_have_count(3)  # EX, EM, and 2P visible
     # twop_button.click()
     # expect(visible_areas).to_have_count(2)  # Back to EX and EM
+
+
+def test_x_range_pickers(spectra_viewer: Page) -> None:
+    """Test that X range picker inputs correctly set chart zoom.
+
+    Verifies:
+    1. Range picker inputs are visible when spectra are loaded
+    2. Typing new min/max values and pressing Enter updates the chart
+    3. Chart extremes reflect the entered values
+    4. Values persist across page refresh
+    5. URL parameters (xMin/xMax) correctly set initial range
+    """
+    # Add EGFP to the viewer
+    _add_egfp_to_viewer(spectra_viewer)
+
+    # Wait for chart to load
+    chart = spectra_viewer.locator(".highcharts-container")
+    expect(chart).to_be_visible()
+
+    # Range pickers should be visible
+    min_input = spectra_viewer.locator('input[name="min"]')
+    max_input = spectra_viewer.locator('input[name="max"]')
+    expect(min_input).to_be_visible()
+    expect(max_input).to_be_visible()
+
+    # Get initial values (should be autoscaled)
+    initial_min = min_input.input_value()
+    initial_max = max_input.input_value()
+    assert initial_min, "Min input should have a value"
+    assert initial_max, "Max input should have a value"
+    # Set min to 400
+    min_input.click()
+    min_input.fill("400")
+    min_input.press("Enter")
+    expect(min_input).to_have_value("400")
+
+    # Set max to 600
+    max_input.click()
+    max_input.fill("600")
+    max_input.press("Enter")
+    expect(max_input).to_have_value("600")
+
+    # Verify chart has zoomed by checking x-axis labels
+    # Should see labels around 400-600 range, not the original full range
+    x_axis_labels = spectra_viewer.locator(".highcharts-xaxis-labels text")
+    # Note: Some labels may be hidden by XRangePickers positioning logic
+    # Get all label values (including hidden ones) and verify they're in the expected range
+    label_texts = x_axis_labels.all_text_contents()
+    label_values = [int(text) for text in label_texts if text.strip() and text.strip().isdigit()]
+    assert len(label_values) > 0, "Should have numeric x-axis labels"
+    assert min(label_values) >= 400, f"Min label {min(label_values)} should be >= 400"
+    assert max(label_values) <= 600, f"Max label {max(label_values)} should be <= 600"
+
+    # Test persistence: refresh the page and verify values are restored
+    spectra_viewer.reload()
+    spectra_viewer.wait_for_load_state("networkidle")
+
+    # Wait for chart to reload
+    expect(chart).to_be_visible()
+    expect(min_input).to_be_visible()
+    expect(max_input).to_be_visible()
+
+    # Verify values persisted
+    expect(min_input).to_have_value("400")
+    expect(max_input).to_have_value("600")
+
+    # Verify chart is still zoomed after reload
+    label_texts_after = x_axis_labels.all_text_contents()
+    label_values_after = [int(text) for text in label_texts_after if text.strip() and text.strip().isdigit()]
+    min_label_after = min(label_values_after)
+    max_label_after = max(label_values_after)
+    assert min_label_after >= 400, f"Min label after reload {min_label_after} should be >= 400"
+    assert max_label_after <= 600, f"Max label after reload {max_label_after} should be <= 600"
+
+    # click the reset zoom button to return to full range
+    zoom_btn = spectra_viewer.locator("g.highcharts-reset-zoom").first
+    expect(zoom_btn).to_be_visible()
+    zoom_btn.click()
+    expect(min_input).to_have_value(initial_min)
+    expect(max_input).to_have_value(initial_max)
+
+    # verify chart is back to full range
+    label_texts_full = x_axis_labels.all_text_contents()
+    label_values_full = [int(text) for text in label_texts_full if text.strip() and text.strip().isdigit()]
+    assert min(label_values_full) == 300
+    assert max(label_values_full) == 900
+
+
+def test_x_range_url_parameters(live_server: LiveServer, page: Page) -> None:
+    """Test that xMin and xMax URL parameters correctly set initial chart range.
+
+    Verifies:
+    1. URL with xMin/xMax parameters loads correctly
+    2. Chart range matches URL parameters
+    3. Range picker inputs show correct values
+    """
+    egfp = create_egfp()
+    ex_id = egfp.default_state.ex_spectrum.id
+    em_id = egfp.default_state.em_spectrum.id
+
+    # Navigate with URL parameters including xMin and xMax
+    url = f"{live_server.url}{reverse('proteins:spectra')}?s={ex_id},{em_id}&xMin=420&xMax=580"
+    page.goto(url)
+    page.wait_for_load_state("networkidle")
+
+    # Wait for chart to load
+    chart = page.locator(".highcharts-container")
+    expect(chart).to_be_visible()
+
+    # Verify range picker inputs show the URL parameter values
+    min_input = page.locator('input[name="min"]')
+    max_input = page.locator('input[name="max"]')
+    expect(min_input).to_be_visible()
+    expect(max_input).to_be_visible()
+    expect(min_input).to_have_value("420")
+    expect(max_input).to_have_value("580")
+
+    # Verify chart is zoomed by checking x-axis labels
+    x_axis_labels = page.locator(".highcharts-xaxis-labels text")
+
+    label_texts = x_axis_labels.all_text_contents()
+    label_values = [int(text) for text in label_texts if text.strip() and text.strip().isdigit()]
+    assert len(label_values) > 0, "Should have numeric x-axis labels"
+    assert min(label_values) >= 420, f"Min label {min(label_values)} should be >= 420"
+    assert max(label_values) <= 580, f"Max label {max(label_values)} should be <= 580"
+
+
+def test_remove_all_spectra(spectra_viewer: Page) -> None:
+    """Test that removing all spectra from the viewer works correctly."""
+    # Add EGFP to the viewer
+    x_axis_labels = spectra_viewer.locator(".highcharts-xaxis-labels")
+    zoom_button = spectra_viewer.locator("text").filter(has_text="Reset zoom")
+    expect(x_axis_labels).not_to_be_visible()
+    expect(zoom_button).not_to_be_visible()
+
+    _add_egfp_to_viewer(spectra_viewer)
+
+    # manually set the xMax
+    max_input = spectra_viewer.locator('input[name="max"]')
+    max_input.click()
+    max_input.fill("600")
+    max_input.press("Enter")
+    expect(max_input).to_have_value("600")
+    expect(x_axis_labels).to_be_visible()
+    expect(zoom_button).to_be_visible()
+
+    # blur the input to ensure the value is set
+    max_input.blur()
+
+    # open config drawer with ","
+    spectra_viewer.keyboard.press("Comma")
+    reset_btn = spectra_viewer.locator('button:has-text("Remove All Spectra")')
+    expect(reset_btn).to_be_visible()
+    reset_btn.click()
+    expect(x_axis_labels).not_to_be_visible()
+    expect(zoom_button).not_to_be_visible()

@@ -114,7 +114,16 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
 
         const { min, max, userMin, userMax, dataMin, dataMax, trigger } = event
 
-        // Handle reset case: both min and max are null OR extremes match full data range
+        // Only process user-initiated zoom events (not programmatic updates)
+        // event.trigger can be: 'zoom', 'navigator', 'rangeSelectorButton', 'rangeSelectorInput', undefined
+        // This check MUST come first to prevent programmatic updates (like restoring from sessionStorage)
+        // from incorrectly clearing extremes
+        const isUserZoom = trigger === "zoom"
+        if (!isUserZoom) {
+          return
+        }
+
+        // Handle reset case: both min and max are null
         if (min === null && max === null) {
           if (chartOptions.extremes !== null) {
             updateChartOptions({ extremes: null })
@@ -123,7 +132,7 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
         }
 
         // If extremes match the full data range (with tolerance for Highcharts padding), treat as "no zoom" (reset)
-        // This handles the case where Highcharts reset button sets extremes to data range with padding
+        // This handles the case where user zooms out to full range or clicks reset zoom button
         const dataRange = dataMax - dataMin
         const tolerance = dataRange * 0.02 // 2% tolerance for padding
         const isFullDataRange =
@@ -132,14 +141,6 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
           if (chartOptions.extremes !== null) {
             updateChartOptions({ extremes: null })
           }
-          return
-        }
-
-        // Only save extremes if this was a user-initiated zoom
-        // Skip auto-fitting and programmatic updates (our own XAxisRangeInputs component)
-        // event.trigger can be: 'zoom', 'navigator', 'rangeSelectorButton', 'rangeSelectorInput', undefined
-        const isUserZoom = trigger === "zoom"
-        if (!isUserZoom) {
           return
         }
 
@@ -326,7 +327,10 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
 
           <XAxis {...xAxis} lineWidth={numSpectra > 0 ? 1 : 0} id="xAxis">
             <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
-            <XAxisRangeInputs enabled={chartOptions.showX && numSpectra > 0} />
+            <XAxisRangeInputs
+              enabled={chartOptions.showX && numSpectra > 0}
+              extremes={chartOptions.extremes}
+            />
           </XAxis>
         </HighchartsChart>
       </HighchartsProvider>

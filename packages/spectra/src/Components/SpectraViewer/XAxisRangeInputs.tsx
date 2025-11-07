@@ -10,6 +10,7 @@ import { useSpectraStore } from "../../store/spectraStore"
 interface XAxisRangeInputsProps {
   enabled?: boolean
   containerId?: string
+  extremes?: [number | null, number | null] | null
 }
 
 /**
@@ -20,10 +21,15 @@ interface XAxisRangeInputsProps {
 export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
   enabled = true,
   containerId = "spectra-viewer-container",
+  extremes: extremesProp,
 }) => {
   const axis = useAxis()
-  const extremes = useSpectraStore((state) => state.chartOptions.extremes)
+  const storeExtremes = useSpectraStore((state) => state.chartOptions.extremes)
   const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+
+  // Use provided extremes prop if available (for SimpleSpectraViewer with provideState)
+  // Otherwise fall back to store extremes (for main app)
+  const extremes = extremesProp !== undefined ? extremesProp : storeExtremes
   const [container, setContainer] = useState<HTMLElement | null>(null)
 
   // Local state for input values (controlled inputs with validation on blur)
@@ -153,15 +159,24 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
 
   // Apply extremes from store to chart
   useEffect(() => {
-    if (!axis?.object || !enabled) return
+    if (!axis?.object) return
 
     const chart = axis.object.chart
 
     if (extremes === null) {
       // Reset zoom - Highcharts expects undefined (not null) for full reset
-      axis.object.setExtremes(undefined, undefined, true, false)
-    } else {
-      // Apply extremes (allow individual min/max)
+      if (enabled) {
+        axis.object.setExtremes(undefined, undefined, true, false)
+      }
+      // Always hide reset zoom button when extremes are null, even if component is disabled
+      // This ensures the button disappears when "Remove All Spectra" is clicked
+      // biome-ignore lint/suspicious/noExplicitAny: Highcharts resetZoomButton not typed
+      if (chart && (chart as any).resetZoomButton) {
+        // biome-ignore lint/suspicious/noExplicitAny: Highcharts resetZoomButton not typed
+        ;(chart as any).resetZoomButton = (chart as any).resetZoomButton.destroy()
+      }
+    } else if (enabled) {
+      // Only apply extremes if component is enabled
       // undefined means "use default/autoscale", null in our store means "unset"
       const minValue = extremes[0] === null ? undefined : extremes[0]
       const maxValue = extremes[1] === null ? undefined : extremes[1]
@@ -277,6 +292,7 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
         }}
       >
         <Input
+          name="min"
           value={minInput}
           onChange={handleMinChange}
           onBlur={handleMinBlur}
@@ -315,6 +331,7 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
       >
         <Input
           type="text"
+          name="max"
           value={maxInput}
           onChange={handleMaxChange}
           onBlur={handleMaxBlur}
