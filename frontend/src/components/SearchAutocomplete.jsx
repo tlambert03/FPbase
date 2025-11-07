@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import * as React from 'react';
+import { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { autocomplete } from '@algolia/autocomplete-js';
 import { createLocalStorageRecentSearchesPlugin } from '@algolia/autocomplete-plugin-recent-searches';
@@ -252,30 +253,4 @@ export function SearchAutocomplete({ container }) {
   }, [container]);
 
   return null;
-}
-
-// Export function to initialize on existing input
-export function initAutocomplete() {
-  // Find the search form
-  const searchForm = document.querySelector('.nav-search');
-  if (!searchForm) {
-    console.warn('Search form not found');
-    return;
-  }
-
-  // Find the input
-  const searchInput = searchForm.querySelector('#algolia-search-input');
-  if (!searchInput) {
-    console.warn('Search input not found');
-    return;
-  }
-
-  // Replace the input with autocomplete container
-  const container = document.createElement('div');
-  container.className = 'autocomplete-container';
-  searchInput.parentElement.replaceChild(container, searchInput);
-
-  // Initialize autocomplete
-  const root = createRoot(container);
-  root.render(<SearchAutocomplete container={container} />);
 }
