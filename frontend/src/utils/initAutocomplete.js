@@ -4,17 +4,10 @@ import { SearchAutocomplete } from '../components/SearchAutocomplete.jsx';
 
 // Export function to initialize autocomplete on existing input
 export function initAutocomplete() {
-  // Find the search form
-  const searchForm = document.querySelector('.nav-search');
-  if (!searchForm) {
-    console.warn('Search form not found');
-    return;
-  }
-
-  // Find the input
-  const searchInput = searchForm.querySelector('#algolia-search-input');
+  // Find the search input (exists on both home page and navbar)
+  const searchInput = document.querySelector('#algolia-search-input');
   if (!searchInput) {
-    console.warn('Search input not found');
+    console.warn('Search input #algolia-search-input not found');
     return;
   }
 
