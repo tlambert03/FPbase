@@ -1,6 +1,7 @@
 /** @jsx h */
 import { useEffect, useRef } from 'react';
-import { autocomplete, createElement as h, Fragment } from '@algolia/autocomplete-js';
+import { h, Fragment } from 'preact';
+import { autocomplete } from '@algolia/autocomplete-js';
 import { createLocalStorageRecentSearchesPlugin } from '@algolia/autocomplete-plugin-recent-searches';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
 import '@algolia/autocomplete-theme-classic';
