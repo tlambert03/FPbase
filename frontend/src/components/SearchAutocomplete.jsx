@@ -3,173 +3,7 @@ import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-pl
 import { liteClient } from "algoliasearch/lite"
 import { useEffect, useRef } from "react"
 import "@algolia/autocomplete-theme-classic"
-
-// Inject autocomplete styles
-const styles = `
-  /* Container */
-  .autocomplete-container {
-    width: 100%;
-    flex: 1;
-  }
-
-  /* Input styling */
-  .algolia-searchbar,
-  .algolia-searchbar:focus {
-    border: solid 1px rgba(255, 255, 255, 0.5);
-    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2), 0 2px 4px 0 rgba(0, 0, 0, 0.1);
-    color: #60a263;
-    font-family: "Raleway", "Helvetica Neue", helvetica;
-    height: 50px;
-    padding-left: 16px;
-    padding-right: 16px;
-    border-radius: 4px;
-    font-weight: 500;
-    font-size: 1rem;
-  }
-
-  .algolia-searchbar::placeholder {
-    color: #888;
-    font-size: 1rem;
-  }
-
-  /* Autocomplete panel */
-  .aa-Autocomplete,
-  .aa-Form {
-    width: 100%;
-  }
-
-  .aa-Panel {
-    width: 600px !important;
-    max-width: 90vw;
-  }
-
-  @media (max-width: 768px) {
-    .aa-Panel {
-      width: 100% !important;
-    }
-  }
-
-  .aa-PanelLayout {
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-  /* Source headers (Proteins, References, etc.) */
-  .aa-SourceHeader {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #666;
-    padding: 8px 12px 4px;
-    border-top: 1px solid #eee;
-  }
-
-  .aa-SourceHeader:first-child {
-    border-top: none;
-  }
-
-  /* Items */
-  .aa-Item {
-    border-bottom: 1px solid #f5f5f5;
-  }
-
-  .aa-Item:last-child {
-    border-bottom: none;
-  }
-
-  .aa-Item[aria-selected="true"] .aa-ItemContent {
-    background-color: #eee;
-  }
-
-  .aa-ItemLink {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-  }
-
-  /* Item content grid layout */
-  .aa-ItemContent {
-    display: grid;
-    grid-template-columns: 32px 1fr auto auto;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    min-height: 44px;
-  }
-
-  .aa-ItemContent:hover {
-    background-color: #f5f5f5;
-  }
-
-  .aa-ItemIcon {
-    grid-column: 1;
-    width: 32px;
-    height: 32px;
-    opacity: 0.75;
-  }
-
-  .aa-ItemIcon--protein {
-    opacity: 0.9;
-  }
-
-  .aa-ItemBody {
-    grid-column: 2;
-    min-width: 0;
-    line-height: 1.4;
-  }
-
-  .aa-ItemTitle {
-    font-weight: 500;
-    font-size: 0.95rem;
-  }
-
-  .aa-ItemTitle em {
-    font-weight: 700;
-    font-style: normal;
-  }
-
-  .aa-ItemAliases {
-    font-size: 0.75rem;
-    color: #777;
-    margin-top: 1px;
-  }
-
-  .aa-ItemAliases em {
-    font-weight: 600;
-    font-style: normal;
-  }
-
-  .aa-ItemInfo {
-    grid-column: 3;
-    font-size: 0.7rem;
-    color: #888;
-    white-space: nowrap;
-    padding-right: 8px;
-  }
-
-  .aa-ItemSpectra {
-    grid-column: 4;
-    width: 120px;
-    height: 36px;
-    object-fit: contain;
-    opacity: 0.7;
-    filter: grayscale(50%);
-  }
-
-  .aa-Item[aria-selected="true"] .aa-ItemSpectra {
-    opacity: 0.95;
-    filter: grayscale(20%);
-  }
-`
-
-if (typeof document !== "undefined") {
-  const styleId = "autocomplete-styles"
-  if (!document.getElementById(styleId)) {
-    const styleTag = document.createElement("style")
-    styleTag.id = styleId
-    styleTag.textContent = styles
-    document.head.appendChild(styleTag)
-  }
-}
+import "./SearchAutocomplete.css"
 
 function ProteinHit({ hit, html }) {
   const imageDir = window.FPBASE?.imageDir || "/static/images/"
@@ -183,13 +17,11 @@ function ProteinHit({ hit, html }) {
 
   return html`
     <a href="${hit.url}" class="aa-ItemLink">
-      <div class="aa-ItemContent">
+      <div class="aa-ItemContent aa-ItemContent--protein">
         <img
           src="${imageDir}gfp_${iconColor}_40.png"
           alt="Protein icon"
           class="aa-ItemIcon aa-ItemIcon--protein"
-          width="40"
-          height="40"
           loading="lazy"
         />
         <div class="aa-ItemBody">
@@ -199,36 +31,39 @@ function ProteinHit({ hit, html }) {
               __html: hit._highlightResult?.name?.value || hit.name,
             }}
           ></div>
-          ${
-            hit.aliases && hit.aliases.length > 0
+          ${(() => {
+            // Only show aliases if they contain a match (have <em> tags in highlight)
+            const matchedAliases = hit._highlightResult?.aliases
+              ? hit._highlightResult.aliases.filter((a) => a.value.includes("<em>"))
+              : []
+
+            return matchedAliases.length > 0
               ? html`<div
                   class="aa-ItemAliases"
                   dangerouslySetInnerHTML=${{
                     __html:
                       "aka: " +
-                      (hit._highlightResult?.aliases
-                        ? hit._highlightResult.aliases
-                            .slice(0, 3)
-                            .map((a) => a.value)
-                            .join(", ")
-                        : hit.aliases.slice(0, 3).join(", ")),
+                      matchedAliases
+                        .slice(0, 3)
+                        .map((a) => a.value)
+                        .join(", "),
                   }}
                 ></div>`
               : null
-          }
+          })()}
         </div>
-        ${hit.ex && hit.em ? html`<span class="aa-ItemInfo">${hit.ex}/${hit.em}</span>` : null}
         ${
           hit.img_url
             ? html`<img
-                src="${hit.img_url}"
-                alt="${hit.name} spectrum"
-                class="aa-ItemSpectra"
-                loading="lazy"
-              />`
+          src="${hit.img_url}"
+          alt="${hit.name} spectrum"
+          class="aa-ItemSpectra"
+          loading="lazy"
+          />`
             : null
         }
-      </div>
+        ${hit.ex && hit.em ? html`<span class="aa-ItemInfo">${hit.ex}/${hit.em}</span>` : null}
+        </div>
     </a>
   `
 }
@@ -238,7 +73,7 @@ function ReferenceHit({ hit, html }) {
 
   return html`
     <a href="${hit.url}" class="aa-ItemLink">
-      <article class="aa-ItemContent">
+      <article class="aa-ItemContent aa-ItemContent--reference">
         <div class="aa-ItemIcon">
           <img
             src="${imageDir}ref.png"
@@ -258,13 +93,13 @@ function ReferenceHit({ hit, html }) {
           ${
             hit.title
               ? html`
-            <div
-              class="aa-ItemContentDescription"
-              dangerouslySetInnerHTML=${{
-                __html: hit._highlightResult?.title?.value || hit.title,
-              }}
-            ></div>
-          `
+                <div
+                  class="aa-ItemContentDescription"
+                  dangerouslySetInnerHTML=${{
+                    __html: hit._highlightResult?.title?.value || hit.title,
+                  }}
+                ></div>
+              `
               : null
           }
         </div>
@@ -278,7 +113,7 @@ function OrganismHit({ hit, html }) {
 
   return html`
     <a href="${hit.url}" class="aa-ItemLink">
-      <article class="aa-ItemContent">
+      <article class="aa-ItemContent aa-ItemContent--organism">
         <div class="aa-ItemIcon">
           <img
             src="${imageDir}organism_icon.png"
@@ -300,7 +135,7 @@ function OrganismHit({ hit, html }) {
   `
 }
 
-export function SearchAutocomplete({ container }) {
+export function SearchAutocomplete({ container, debug = true }) {
   const autocompleteRef = useRef(null)
 
   useEffect(() => {
@@ -339,9 +174,16 @@ export function SearchAutocomplete({ container }) {
       plugins: [recentSearchesPlugin],
       detachedMediaQuery: "(max-width: 768px)", // Mobile: full-screen overlay
       insights: true, // Enable insights for analytics
+      initialState: debug
+        ? {
+            query: "egf",
+            isOpen: true,
+          }
+        : undefined,
 
       getSources({ query }) {
-        if (!query) return []
+        if (!query && !debug) return []
+        const searchQuery = query || "GFP" // Use GFP as default in debug mode
 
         return [
           // Proteins
@@ -352,7 +194,7 @@ export function SearchAutocomplete({ container }) {
                 .search([
                   {
                     indexName: ALGOLIA_CONFIG.proteinIndex,
-                    query,
+                    query: searchQuery,
                     params: {
                       hitsPerPage: 5,
                       attributesToRetrieve: [
@@ -400,7 +242,7 @@ export function SearchAutocomplete({ container }) {
                 .search([
                   {
                     indexName: ALGOLIA_CONFIG.referenceIndex,
-                    query,
+                    query: searchQuery,
                     params: {
                       hitsPerPage: 3,
                       attributesToHighlight: ["citation", "title"],
@@ -434,7 +276,7 @@ export function SearchAutocomplete({ container }) {
                 .search([
                   {
                     indexName: ALGOLIA_CONFIG.organismIndex,
-                    query,
+                    query: searchQuery,
                     params: {
                       hitsPerPage: 2,
                       attributesToHighlight: ["scientific_name"],
@@ -478,10 +320,22 @@ export function SearchAutocomplete({ container }) {
       },
     })
 
+    // In debug mode, keep the panel open by simulating focus
+    if (debug) {
+      setTimeout(() => {
+        const input = container.querySelector(".aa-Input")
+        if (input) {
+          input.focus()
+          // Trigger input event to force panel to open with results
+          input.dispatchEvent(new Event("input", { bubbles: true }))
+        }
+      }, 100)
+    }
+
     return () => {
       autocompleteRef.current?.destroy()
     }
-  }, [container])
+  }, [container, debug])
 
   return null
 }
