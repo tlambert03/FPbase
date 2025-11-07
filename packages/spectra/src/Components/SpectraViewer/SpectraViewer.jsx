@@ -324,9 +324,9 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
             <MyCredits hide={numSpectra < 1 || chartOptions.simpleMode} />
           </YAxis>
 
-          <XAxis {...xAxis} id="xAxis">
+          <XAxis {...xAxis} lineWidth={numSpectra > 0 ? 1 : 0} id="xAxis">
             <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
-            <XAxisRangeInputs enabled={chartOptions.showX} />
+            <XAxisRangeInputs enabled={chartOptions.showX && numSpectra > 0} />
           </XAxis>
         </HighchartsChart>
       </HighchartsProvider>
