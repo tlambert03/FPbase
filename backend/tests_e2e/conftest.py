@@ -280,6 +280,9 @@ class console_errors_raised:
     def on_console(self, msg: ConsoleMessage) -> None:
         """Collect console messages unless they match ignore patterns."""
         url = (msg.location or {}).get("url", "")
+        if msg.type in {"debug", "log"}:
+            print(f"[Console {msg.type}] {msg.text} (at {url})")
+            return
         if msg.type == "error" and "at " in msg.text:
             text = _apply_source_maps_to_stack(msg.text)
         else:

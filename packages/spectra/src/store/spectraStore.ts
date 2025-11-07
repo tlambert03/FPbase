@@ -166,15 +166,19 @@ export const useSpectraStore = create<SpectraStore>()(
 
       // Clear all spectra and related state
       clearAllSpectra: () =>
-        set({
+        set((state) => ({
           activeSpectra: [],
           activeOverlaps: [],
           hiddenSpectra: [],
           exNorm: defaults.exNorm,
+          chartOptions: {
+            ...state.chartOptions,
+            extremes: null,
+          },
           customFilters: {},
           customLasers: {},
           overlapCache: {},
-        }),
+        })),
 
       // URL initialization tracking
       setUrlInitialized: (value) => set({ _urlInitialized: value }),

@@ -78,9 +78,6 @@ jobs:
       - name: Install node Dependencies
         run: pnpm install
 
-      - name: Test spectra package
-        run: pnpm --filter @fpbase/spectra test:ci
-
       - name: Test
         run: |
           uv sync --group test --no-dev

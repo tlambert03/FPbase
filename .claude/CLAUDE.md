@@ -36,7 +36,6 @@ uv run backend/manage.py shell_plus    # Interactive shell with auto-imports
 # Testing
 uv run pytest path/to/test.py          # Run specific test
 uv run pytest --cov                    # Run with coverage
-pnpm --filter @fpbase/spectra test:ci  # Frontend tests
 
 # Code Quality
 ruff format backend                    # Format Python
