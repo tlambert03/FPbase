@@ -6,6 +6,8 @@ import { liteClient as algoliasearch } from 'algoliasearch/lite';
 import '@algolia/autocomplete-theme-classic';
 
 function ProteinHit({ hit, components }) {
+  const imageDir = window.FPBASE?.imageDir || '/static/images/';
+
   let iconColor = 'gray50';
   if (hit.switchType && hit.switchType !== 'Basic') {
     iconColor = 'rainbow';
@@ -18,7 +20,7 @@ function ProteinHit({ hit, components }) {
       <div className="aa-ItemContent">
         <div className="aa-ItemIcon aa-ItemIcon--protein">
           <img
-            src={`${window.FPBASE.imageDir}gfp_${iconColor}_40.png`}
+            src={`${imageDir}gfp_${iconColor}_40.png`}
             alt=""
           />
         </div>
@@ -50,11 +52,13 @@ function ProteinHit({ hit, components }) {
 }
 
 function ReferenceHit({ hit, components }) {
+  const imageDir = window.FPBASE?.imageDir || '/static/images/';
+
   return (
     <a href={hit.url} className="aa-ItemLink">
       <div className="aa-ItemContent">
         <div className="aa-ItemIcon">
-          <img src={`${window.FPBASE.imageDir}ref.png`} alt="" />
+          <img src={`${imageDir}ref.png`} alt="" />
         </div>
         <div className="aa-ItemContentBody">
           <div className="aa-ItemContentTitle">
@@ -72,11 +76,13 @@ function ReferenceHit({ hit, components }) {
 }
 
 function OrganismHit({ hit, components }) {
+  const imageDir = window.FPBASE?.imageDir || '/static/images/';
+
   return (
     <a href={hit.url} className="aa-ItemLink">
       <div className="aa-ItemContent">
         <div className="aa-ItemIcon">
-          <img src={`${window.FPBASE.imageDir}organism_icon.png`} alt="" />
+          <img src={`${imageDir}organism_icon.png`} alt="" />
         </div>
         <div className="aa-ItemContentBody">
           <components.Highlight hit={hit} attribute="scientific_name" />
