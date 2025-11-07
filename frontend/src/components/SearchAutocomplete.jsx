@@ -1,12 +1,10 @@
-/** @jsx h */
 import { useEffect, useRef } from 'react';
-import { h, Fragment } from 'preact';
 import { autocomplete } from '@algolia/autocomplete-js';
 import { createLocalStorageRecentSearchesPlugin } from '@algolia/autocomplete-plugin-recent-searches';
 import { liteClient as algoliasearch } from 'algoliasearch/lite';
 import '@algolia/autocomplete-theme-classic';
 
-function ProteinHit({ hit, components }) {
+function ProteinHit({ hit, html }) {
   const imageDir = window.FPBASE?.imageDir || '/static/images/';
 
   let iconColor = 'gray50';
@@ -16,81 +14,64 @@ function ProteinHit({ hit, components }) {
     iconColor = hit.color.toLowerCase().replace(/ |\//g, '_');
   }
 
-  return (
-    <a href={hit.url} className="aa-ItemLink">
-      <div className="aa-ItemContent">
-        <div className="aa-ItemIcon aa-ItemIcon--protein">
-          <img
-            src={`${imageDir}gfp_${iconColor}_40.png`}
-            alt=""
-          />
+  return html`
+    <a href="${hit.url}" class="aa-ItemLink">
+      <div class="aa-ItemContent">
+        <div class="aa-ItemIcon aa-ItemIcon--protein">
+          <img src="${imageDir}gfp_${iconColor}_40.png" alt="" />
         </div>
-        <div className="aa-ItemContentBody">
-          <div className="aa-ItemContentTitle">
-            <components.Highlight hit={hit} attribute="name" />
-          </div>
-          {hit.aliases && hit.aliases.length > 0 && (
-            <div className="aa-ItemContentDescription">
-              aka: {hit.aliases.slice(0, 3).join(', ')}
-            </div>
-          )}
-          {hit.ex && hit.em && (
-            <div className="aa-ItemContentSubtitle">
-              {hit.ex}/{hit.em} nm
-            </div>
-          )}
+        <div class="aa-ItemContentBody">
+          <div class="aa-ItemContentTitle">${hit.name}</div>
+          ${hit.aliases && hit.aliases.length > 0 ? html`
+            <div class="aa-ItemContentDescription">aka: ${hit.aliases.slice(0, 3).join(', ')}</div>
+          ` : null}
+          ${hit.ex && hit.em ? html`
+            <div class="aa-ItemContentSubtitle">${hit.ex}/${hit.em} nm</div>
+          ` : null}
         </div>
-        {hit.img_url && (
-          <img
-            src={hit.img_url}
-            alt="spectrum"
-            className="aa-ItemContentSpectra"
-          />
-        )}
+        ${hit.img_url ? html`
+          <img src="${hit.img_url}" alt="spectrum" class="aa-ItemContentSpectra" />
+        ` : null}
       </div>
     </a>
-  );
+  `;
 }
 
-function ReferenceHit({ hit, components }) {
+function ReferenceHit({ hit, html }) {
   const imageDir = window.FPBASE?.imageDir || '/static/images/';
 
-  return (
-    <a href={hit.url} className="aa-ItemLink">
-      <div className="aa-ItemContent">
-        <div className="aa-ItemIcon">
-          <img src={`${imageDir}ref.png`} alt="" />
+  return html`
+    <a href="${hit.url}" class="aa-ItemLink">
+      <div class="aa-ItemContent">
+        <div class="aa-ItemIcon">
+          <img src="${imageDir}ref.png" alt="" />
         </div>
-        <div className="aa-ItemContentBody">
-          <div className="aa-ItemContentTitle">
-            <components.Highlight hit={hit} attribute="citation" />
-          </div>
-          {hit._highlightResult?.title && (
-            <div className="aa-ItemContentDescription">
-              <components.Highlight hit={hit} attribute="title" />
-            </div>
-          )}
+        <div class="aa-ItemContentBody">
+          <div class="aa-ItemContentTitle">${hit.citation}</div>
+          ${hit.title ? html`
+            <div class="aa-ItemContentDescription">${hit.title}</div>
+          ` : null}
         </div>
       </div>
     </a>
-  );
+  `;
 }
 
-function OrganismHit({ hit, components }) {
+function OrganismHit({ hit, html }) {
   const imageDir = window.FPBASE?.imageDir || '/static/images/';
 
-  return (
-    <a href={hit.url} className="aa-ItemLink">
-      <div className="aa-ItemContent">
-        <div className="aa-ItemIcon">
-          <img src={`${imageDir}organism_icon.png`} alt="" />
+  return html`
+    <a href="${hit.url}" class="aa-ItemLink">
+      <div class="aa-ItemContent">
+        <div class="aa-ItemIcon">
+          <img src="${imageDir}organism_icon.png" alt="" />
         </div>
-        <div className="aa-ItemContentBody">
-          <components.Highlight hit={hit} attribute="scientific_name" />
+        <div class="aa-ItemContentBody">
+          ${hit.scientific_name}
         </div>
       </div>
     </a>
-  );
+  `;
 }
 
 export function SearchAutocomplete({ container }) {
@@ -117,8 +98,8 @@ export function SearchAutocomplete({ container }) {
           ...source,
           templates: {
             ...source.templates,
-            header() {
-              return <div className="aa-SourceHeader">Recent Searches</div>;
+            header({ html }) {
+              return html`<div class="aa-SourceHeader">Recent Searches</div>`;
             },
           },
         };
@@ -153,14 +134,14 @@ export function SearchAutocomplete({ container }) {
               }]).then(({ results }) => results[0].hits);
             },
             templates: {
-              header() {
-                return <div className="aa-SourceHeader">Proteins</div>;
+              header({ html }) {
+                return html`<div class="aa-SourceHeader">Proteins</div>`;
               },
-              item({ item, components }) {
-                return <ProteinHit hit={item} components={components} />;
+              item({ item, html }) {
+                return ProteinHit({ hit: item, html });
               },
-              noResults() {
-                return <div className="aa-ItemContent">No proteins found</div>;
+              noResults({ html }) {
+                return html`<div class="aa-ItemContent">No proteins found</div>`;
               },
             },
             getItemUrl({ item }) {
@@ -179,11 +160,11 @@ export function SearchAutocomplete({ container }) {
               }]).then(({ results }) => results[0].hits);
             },
             templates: {
-              header() {
-                return <div className="aa-SourceHeader">References</div>;
+              header({ html }) {
+                return html`<div class="aa-SourceHeader">References</div>`;
               },
-              item({ item, components }) {
-                return <ReferenceHit hit={item} components={components} />;
+              item({ item, html }) {
+                return ReferenceHit({ hit: item, html });
               },
             },
             getItemUrl({ item }) {
@@ -202,11 +183,11 @@ export function SearchAutocomplete({ container }) {
               }]).then(({ results }) => results[0].hits);
             },
             templates: {
-              header() {
-                return <div className="aa-SourceHeader">Organisms</div>;
+              header({ html }) {
+                return html`<div class="aa-SourceHeader">Organisms</div>`;
               },
-              item({ item, components }) {
-                return <OrganismHit hit={item} components={components} />;
+              item({ item, html }) {
+                return OrganismHit({ hit: item, html });
               },
             },
             getItemUrl({ item }) {

@@ -80,9 +80,6 @@ importers:
       nouislider:
         specifier: ^14.7.0
         version: 14.7.0
-      preact:
-        specifier: ^10.27.2
-        version: 10.27.2
       process:
         specifier: ^0.11.10
         version: 0.11.10

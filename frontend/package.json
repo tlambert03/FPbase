@@ -27,7 +27,6 @@
     "highcharts": "^12.4.0",
     "instantsearch.css": "^8.5.0",
     "nouislider": "^14.7.0",
-    "preact": "^10.27.2",
     "process": "^0.11.10",
     "progressbar.js": "^1.1.0",
     "react": "^19.2.0",
