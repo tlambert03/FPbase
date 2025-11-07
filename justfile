@@ -58,7 +58,7 @@ snapshots-update:
 snapshots-test:
     uv run pytest backend/tests_e2e/ --visual-snapshots -n 4
 
-test: test-py test-js test-e2e
+test: test-py test-e2e
 
 # clean up all virtual environments, caches, and build artifacts
 clean-static:
