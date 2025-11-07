@@ -366,14 +366,6 @@ const MyCredits = function MyCredits({ hide }) {
   )
 }
 
-export const XAxisWithRange = memo(function XAxisWithRange({ options }) {
-  return (
-    <XAxis {...options} id="xAxis">
-      <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
-    </XAxis>
-  )
-})
-
 const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerInfo = {} }) {
   const exNormed = ecNorm && Object.keys(ownerInfo).length > 0
   const emNormed = (exNorm || qyNorm) && Object.keys(ownerInfo).length > 0
