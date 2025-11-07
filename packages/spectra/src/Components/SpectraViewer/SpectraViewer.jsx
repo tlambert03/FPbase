@@ -26,6 +26,7 @@ import DEFAULT_OPTIONS from "./ChartOptions"
 import fixLogScale from "./fixLogScale"
 import NoData from "./NoData"
 import SpectrumSeries from "./SpectrumSeries"
+import { XAxisRangeInputs } from "./XAxisRangeInputs"
 
 fixLogScale(Highcharts)
 
@@ -94,13 +95,69 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
     gridLineWidth: chartOptions.showGrid ? 1 : 0,
   }
 
+  const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+
   const xAxis = {
     ..._xAxis,
     labels: {
       ..._xAxis.labels,
-      enabled: chartOptions.showX,
+      enabled: chartOptions.showX && activeSpectra.length > 0,
     },
     gridLineWidth: chartOptions.showGrid ? 1 : 0,
+    events: {
+      ..._xAxis.events,
+      afterSetExtremes: (event) => {
+        // Call original handler for zoom-info display
+        if (_xAxis.events?.afterSetExtremes) {
+          _xAxis.events.afterSetExtremes(event)
+        }
+
+        const { min, max, userMin, userMax, dataMin, dataMax, trigger } = event
+
+        // Handle reset case: both min and max are null OR extremes match full data range
+        if (min === null && max === null) {
+          if (chartOptions.extremes !== null) {
+            updateChartOptions({ extremes: null })
+          }
+          return
+        }
+
+        // If extremes match the full data range (with tolerance for Highcharts padding), treat as "no zoom" (reset)
+        // This handles the case where Highcharts reset button sets extremes to data range with padding
+        const dataRange = dataMax - dataMin
+        const tolerance = dataRange * 0.02 // 2% tolerance for padding
+        const isFullDataRange =
+          Math.abs(min - dataMin) <= tolerance && Math.abs(max - dataMax) <= tolerance
+        if (isFullDataRange) {
+          if (chartOptions.extremes !== null) {
+            updateChartOptions({ extremes: null })
+          }
+          return
+        }
+
+        // Only save extremes if this was a user-initiated zoom
+        // Skip auto-fitting and programmatic updates (our own XAxisRangeInputs component)
+        // event.trigger can be: 'zoom', 'navigator', 'rangeSelectorButton', 'rangeSelectorInput', undefined
+        const isUserZoom = trigger === "zoom"
+        if (!isUserZoom) {
+          return
+        }
+
+        // Zoom case - use userMin/userMax (actual zoom values set by user)
+        const newMin = userMin ?? min
+        const newMax = userMax ?? max
+
+        // Only update if extremes actually changed (prevents infinite loops)
+        const currentMin = chartOptions.extremes?.[0]
+        const currentMax = chartOptions.extremes?.[1]
+
+        if (currentMin !== newMin || currentMax !== newMax) {
+          updateChartOptions({
+            extremes: [newMin ?? null, newMax ?? null],
+          })
+        }
+      },
+    },
   }
 
   const tooltip = {
@@ -145,14 +202,21 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
     _chart.zoomType = chartOptions.zoomType
     // convert to no-op function
     xAxis.events.afterSetExtremes = () => {}
-    xAxis.min = chartOptions.extremes[0]
-    xAxis.max = chartOptions.extremes[1]
+    // Handle new extremes format: [number | null, number | null] | null
+    if (chartOptions.extremes) {
+      xAxis.min = chartOptions.extremes[0] ?? undefined
+      xAxis.max = chartOptions.extremes[1] ?? undefined
+    }
   }
   // Note: legendHeight is already accounted for by Highcharts internally
   // Adding it here causes reflow issues when toggling series visibility
 
   return (
-    <div className="spectra-viewer" style={{ position: "relative", height: height }}>
+    <div
+      id="spectra-viewer-container"
+      className="spectra-viewer"
+      style={{ position: "relative", height: height }}
+    >
       <span
         id="zoom-info"
         style={{
@@ -262,6 +326,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
 
           <XAxis {...xAxis} id="xAxis">
             <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
+            <XAxisRangeInputs enabled={chartOptions.showX} />
           </XAxis>
         </HighchartsChart>
       </HighchartsProvider>

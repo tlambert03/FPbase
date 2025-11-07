@@ -164,13 +164,19 @@ export function parseURLParams(search: string): SpectraURLState {
   }
 
   // Extremes (support both 'min'+'max' and legacy 'xMin'+'xMax' formats)
+  // Allow individual extremes to be set (e.g., only min or only max)
   const minParam = params.get("min") || params.get("xMin")
   const maxParam = params.get("max") || params.get("xMax")
-  if (minParam !== null && maxParam !== null) {
-    const min = Number.parseFloat(minParam)
-    const max = Number.parseFloat(maxParam)
-    if (!Number.isNaN(min) && !Number.isNaN(max)) {
-      chartOptions.extremes = [min, max]
+  if (minParam !== null || maxParam !== null) {
+    const min = minParam !== null ? Number.parseFloat(minParam) : null
+    const max = maxParam !== null ? Number.parseFloat(maxParam) : null
+
+    // Only set extremes if at least one valid number was parsed
+    if ((min !== null && !Number.isNaN(min)) || (max !== null && !Number.isNaN(max))) {
+      chartOptions.extremes = [
+        min !== null && !Number.isNaN(min) ? min : null,
+        max !== null && !Number.isNaN(max) ? max : null,
+      ]
       hasChartOptions = true
     }
   }
