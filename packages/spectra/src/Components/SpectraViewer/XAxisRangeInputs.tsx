@@ -78,6 +78,7 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
   // Position inputs and hide overlapping axis labels
   const [leftPad, setLeftPad] = useState(-5)
   const [rightPad, setRightPad] = useState(0)
+  const prevPaddingRef = useRef({ left: -5, right: 0 })
 
   const positionInputsAndHideLabels = useCallback(() => {
     if (!axis?.object) return
@@ -100,8 +101,15 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
       right += Number(yAx2.axisTitleMargin)
     }
 
-    setLeftPad(left)
-    setRightPad(right)
+    // Only update state if values changed
+    if (left !== prevPaddingRef.current.left) {
+      setLeftPad(left)
+      prevPaddingRef.current.left = left
+    }
+    if (right !== prevPaddingRef.current.right) {
+      setRightPad(right)
+      prevPaddingRef.current.right = right
+    }
 
     // Hide axis labels that overlap with our inputs
     // biome-ignore lint/suspicious/noExplicitAny: Highcharts internal axis properties not typed
@@ -197,6 +205,44 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
     }
   }, [axis, extremes, enabled])
 
+  // Shared blur handler logic for min/max inputs
+  const handleRangeBlur = useCallback(
+    (
+      isMin: boolean,
+      inputValue: string,
+      setInputValue: (value: string) => void,
+      axisValue: number | undefined
+    ) => {
+      if (!inputValue.trim()) {
+        // Empty input = clear this extreme (keep the other)
+        const newExtremes: [number | null, number | null] | null = extremes
+          ? isMin
+            ? [null, extremes[1]]
+            : [extremes[0], null]
+          : null
+        updateChartOptions({ extremes: newExtremes })
+        return
+      }
+
+      const numValue = parseFloat(inputValue)
+      if (Number.isNaN(numValue)) {
+        // Invalid - reset to current value from extremes or axis
+        if (axisValue === undefined) return
+        const fallbackValue = isMin ? (extremes?.[0] ?? axisValue) : (extremes?.[1] ?? axisValue)
+        setInputValue(Math.round(fallbackValue).toString())
+        return
+      }
+
+      // Valid - round to integer and update store
+      const roundedValue = Math.round(numValue)
+      const newExtremes: [number | null, number | null] = isMin
+        ? [roundedValue, extremes?.[1] ?? null]
+        : [extremes?.[0] ?? null, roundedValue]
+      updateChartOptions({ extremes: newExtremes })
+    },
+    [extremes, updateChartOptions]
+  )
+
   // Handle min input change
   const handleMinChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setMinInput(e.target.value)
@@ -204,28 +250,8 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
 
   // Handle min input blur (validation and commit)
   const handleMinBlur = useCallback(() => {
-    if (!minInput.trim()) {
-      // Empty input = clear min (keep max)
-      updateChartOptions({
-        extremes: extremes ? [null, extremes[1]] : null,
-      })
-      return
-    }
-
-    const numValue = parseFloat(minInput)
-    if (Number.isNaN(numValue)) {
-      // Invalid - reset to current value from extremes or axis
-      if (!axis?.object || axis.object.min === undefined) return
-      const minValue = extremes?.[0] ?? axis.object.min
-      setMinInput(Math.round(minValue).toString())
-      return
-    }
-
-    // Valid - round to integer and update store
-    const roundedValue = Math.round(numValue)
-    const currentMax = extremes?.[1] ?? null
-    updateChartOptions({ extremes: [roundedValue, currentMax] })
-  }, [minInput, extremes, updateChartOptions, axis])
+    handleRangeBlur(true, minInput, setMinInput, axis?.object?.min)
+  }, [handleRangeBlur, minInput, axis])
 
   // Handle max input change
   const handleMaxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,28 +260,8 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
 
   // Handle max input blur (validation and commit)
   const handleMaxBlur = useCallback(() => {
-    if (!maxInput.trim()) {
-      // Empty input = clear max (keep min)
-      updateChartOptions({
-        extremes: extremes ? [extremes[0], null] : null,
-      })
-      return
-    }
-
-    const numValue = parseFloat(maxInput)
-    if (Number.isNaN(numValue)) {
-      // Invalid - reset to current value from extremes or axis
-      if (!axis?.object || axis.object.max === undefined) return
-      const maxValue = extremes?.[1] ?? axis.object.max
-      setMaxInput(Math.round(maxValue).toString())
-      return
-    }
-
-    // Valid - round to integer and update store
-    const roundedValue = Math.round(numValue)
-    const currentMin = extremes?.[0] ?? null
-    updateChartOptions({ extremes: [currentMin, roundedValue] })
-  }, [maxInput, extremes, updateChartOptions, axis])
+    handleRangeBlur(false, maxInput, setMaxInput, axis?.object?.max)
+  }, [handleRangeBlur, maxInput, axis])
 
   // Handle Enter key to commit input
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -265,6 +271,33 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
   }, [])
 
   if (!enabled || !container) return null
+
+  // Shared tooltip configuration
+  const tooltipSlotProps = {
+    transition: { timeout: { enter: 150, exit: 400 } },
+    tooltip: {
+      sx: {
+        backgroundColor: "white",
+        color: "rgba(0, 0, 0, 0.87)",
+        boxShadow: 1,
+        fontSize: 12,
+        margin: "0 13px 7px",
+      },
+    },
+  }
+
+  // Shared input styles (position-specific styles applied inline)
+  const baseInputSx = {
+    position: "absolute" as const,
+    width: 30,
+    fontWeight: "bold",
+    fontSize: "0.75rem",
+    color: "#444",
+    pointerEvents: "auto" as const,
+    "& input": {
+      textAlign: "center" as const,
+    },
+  }
 
   const inputsElement = (
     <div
@@ -278,18 +311,7 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
       <Tooltip
         title="Type to change min, clear to autoscale"
         placement="top-end"
-        slotProps={{
-          transition: { timeout: { enter: 150, exit: 400 } },
-          tooltip: {
-            sx: {
-              backgroundColor: "white",
-              color: "rgba(0, 0, 0, 0.87)",
-              boxShadow: 1,
-              fontSize: 12,
-              margin: "0 13px 7px",
-            },
-          },
-        }}
+        slotProps={tooltipSlotProps}
       >
         <Input
           name="min"
@@ -298,36 +320,14 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
           onBlur={handleMinBlur}
           onKeyDown={handleKeyDown}
           type="text"
-          sx={{
-            position: "absolute",
-            left: `${leftPad}px`,
-            width: 30,
-            fontWeight: "bold",
-            fontSize: "0.75rem",
-            color: "#444",
-            pointerEvents: "auto",
-            "& input": {
-              textAlign: "center",
-            },
-          }}
+          sx={{ ...baseInputSx, left: `${leftPad}px` }}
         />
       </Tooltip>
 
       <Tooltip
         title="Type to change max, clear to autoscale"
         placement="top-start"
-        slotProps={{
-          transition: { timeout: { enter: 150, exit: 400 } },
-          tooltip: {
-            sx: {
-              backgroundColor: "white",
-              color: "rgba(0, 0, 0, 0.87)",
-              boxShadow: 1,
-              fontSize: 12,
-              margin: "0 13px 7px",
-            },
-          },
-        }}
+        slotProps={tooltipSlotProps}
       >
         <Input
           type="text"
@@ -336,18 +336,7 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
           onChange={handleMaxChange}
           onBlur={handleMaxBlur}
           onKeyDown={handleKeyDown}
-          sx={{
-            position: "absolute",
-            right: `${rightPad}px`,
-            width: 30,
-            fontWeight: "bold",
-            fontSize: "0.75rem",
-            color: "#444",
-            pointerEvents: "auto",
-            "& input": {
-              textAlign: "center",
-            },
-          }}
+          sx={{ ...baseInputSx, right: `${rightPad}px` }}
         />
       </Tooltip>
     </div>
