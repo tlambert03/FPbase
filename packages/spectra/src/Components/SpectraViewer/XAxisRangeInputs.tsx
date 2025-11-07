@@ -1,4 +1,5 @@
 import Input from "@mui/material/Input"
+import Tooltip from "@mui/material/Tooltip"
 import Highcharts from "highcharts"
 import type React from "react"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -68,6 +69,59 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
     setContainer(element)
   }, [containerId])
 
+  // Position inputs and hide overlapping axis labels
+  const [leftPad, setLeftPad] = useState(-5)
+  const [rightPad, setRightPad] = useState(0)
+
+  const positionInputsAndHideLabels = useCallback(() => {
+    if (!axis?.object) return
+
+    const chart = axis.object.chart
+    if (!chart) return
+
+    // Calculate padding based on Y-axis title margins
+    let left = -5
+    // biome-ignore lint/suspicious/noExplicitAny: Highcharts internal axis properties not typed
+    const yAx1 = chart.get("yAx1") as any
+    if (yAx1?.axisTitleMargin) {
+      left += Number(yAx1.axisTitleMargin)
+    }
+
+    let right = 0
+    // biome-ignore lint/suspicious/noExplicitAny: Highcharts internal axis properties not typed
+    const yAx2 = chart.get("yAx2") as any
+    if (yAx2?.axisTitleMargin) {
+      right += Number(yAx2.axisTitleMargin)
+    }
+
+    setLeftPad(left)
+    setRightPad(right)
+
+    // Hide axis labels that overlap with our inputs
+    // biome-ignore lint/suspicious/noExplicitAny: Highcharts internal axis properties not typed
+    const axisObj = axis.object as any
+    if (axisObj.labelGroup?.element?.childNodes) {
+      const { min: exMin, max: exMax } = axis.object.getExtremes()
+      const tickInterval = axisObj.tickInterval
+
+      axisObj.labelGroup.element.childNodes.forEach((node: Element) => {
+        const htmlNode = node as HTMLElement
+        // Show all labels first
+        htmlNode.style.display = "block"
+
+        // Hide labels that are close to min or max extremes
+        const labelValue = Number(htmlNode.textContent)
+        const distToMin = Math.abs(labelValue - exMin)
+        const distToMax = Math.abs(labelValue - exMax)
+        const minDist = Math.min(distToMin, distToMax)
+
+        if (minDist < 0.43 * tickInterval) {
+          htmlNode.style.display = "none"
+        }
+      })
+    }
+  }, [axis])
+
   // Listen to chart redraw and update inputs directly
   useEffect(() => {
     if (!axis?.object) return
@@ -75,22 +129,27 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
     const chart = axis.object.chart
     if (!chart) return
 
+    const handleUpdate = () => {
+      updateInputsFromAxis()
+      positionInputsAndHideLabels()
+    }
+
     // Listen to both redraw and afterSetExtremes to catch all axis changes
-    const removeRedraw = Highcharts.addEvent(chart, "redraw", updateInputsFromAxis)
+    const removeRedraw = Highcharts.addEvent(chart, "redraw", handleUpdate)
     const removeAfterSetExtremes = Highcharts.addEvent(
       axis.object,
       "afterSetExtremes",
-      updateInputsFromAxis
+      handleUpdate
     )
 
     // Trigger initial update
-    updateInputsFromAxis()
+    handleUpdate()
 
     return () => {
       removeRedraw()
       removeAfterSetExtremes()
     }
-  }, [axis, updateInputsFromAxis])
+  }, [axis, updateInputsFromAxis, positionInputsAndHideLabels])
 
   // Apply extremes from store to chart
   useEffect(() => {
@@ -195,69 +254,85 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
   const inputsElement = (
     <div
       style={{
-        position: "absolute",
-        bottom: 2,
-        left: 10,
-        right: 10,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        gap: 8,
-        zIndex: 100,
-        pointerEvents: "none", // Allow chart interactions through the div
+        height: 0,
+        position: "relative",
+        bottom: 38,
+        pointerEvents: "none",
       }}
     >
-      <Input
-        value={minInput}
-        onChange={handleMinChange}
-        onBlur={handleMinBlur}
-        onKeyDown={handleKeyDown}
-        size="small"
-        type="text"
-        inputProps={{
-          step: 1,
-          min: 300,
-          max: 1000,
+      <Tooltip
+        title="Type to change min, clear to autoscale"
+        placement="top-end"
+        slotProps={{
+          transition: { timeout: { enter: 150, exit: 400 } },
+          tooltip: {
+            sx: {
+              backgroundColor: "white",
+              color: "rgba(0, 0, 0, 0.87)",
+              boxShadow: 1,
+              fontSize: 12,
+              margin: "0 13px 7px",
+            },
+          },
         }}
-        sx={{
-          width: 80,
-          pointerEvents: "auto", // Re-enable for input
-          "& input": {
+      >
+        <Input
+          value={minInput}
+          onChange={handleMinChange}
+          onBlur={handleMinBlur}
+          onKeyDown={handleKeyDown}
+          type="text"
+          sx={{
+            position: "absolute",
+            left: `${leftPad}px`,
+            width: 30,
+            fontWeight: "bold",
             fontSize: "0.75rem",
-            padding: "4px 8px",
-            textAlign: "center",
-          },
-          "& .MuiOutlinedInput-root": {
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-          },
-        }}
-      />
+            color: "#444",
+            pointerEvents: "auto",
+            "& input": {
+              textAlign: "center",
+            },
+          }}
+        />
+      </Tooltip>
 
-      <Input
-        type="text"
-        value={maxInput}
-        onChange={handleMaxChange}
-        onBlur={handleMaxBlur}
-        onKeyDown={handleKeyDown}
-        size="small"
-        inputProps={{
-          step: 1,
-          min: 300,
-          max: 1000,
+      <Tooltip
+        title="Type to change max, clear to autoscale"
+        placement="top-start"
+        slotProps={{
+          transition: { timeout: { enter: 150, exit: 400 } },
+          tooltip: {
+            sx: {
+              backgroundColor: "white",
+              color: "rgba(0, 0, 0, 0.87)",
+              boxShadow: 1,
+              fontSize: 12,
+              margin: "0 13px 7px",
+            },
+          },
         }}
-        sx={{
-          width: 80,
-          pointerEvents: "auto",
-          "& input": {
+      >
+        <Input
+          type="text"
+          value={maxInput}
+          onChange={handleMaxChange}
+          onBlur={handleMaxBlur}
+          onKeyDown={handleKeyDown}
+          sx={{
+            position: "absolute",
+            right: `${rightPad}px`,
+            width: 30,
+            fontWeight: "bold",
             fontSize: "0.75rem",
-            padding: "4px 8px",
-            textAlign: "center",
-          },
-          "& .MuiOutlinedInput-root": {
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-          },
-        }}
-      />
+            color: "#444",
+            pointerEvents: "auto",
+            "& input": {
+              textAlign: "center",
+            },
+          }}
+        />
+      </Tooltip>
     </div>
   )
 
