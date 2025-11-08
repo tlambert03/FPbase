@@ -1,4 +1,5 @@
 import json
+import logging
 from collections import defaultdict
 from urllib.parse import quote
 
@@ -49,6 +50,8 @@ from ..models.efficiency import OcFluorEff
 from ..tasks import calculate_scope_report
 from .mixins import OwnableObject
 
+logger = logging.getLogger(__name__)
+
 
 def update_scope_report(request):
     job_id = request.POST.get("job_id")
@@ -94,41 +97,20 @@ def update_scope_report(request):
 
 
 def scope_report_json(request, pk):
-    microscope = Microscope.objects.get(id=pk)
-    oclist = microscope.optical_configs.values_list("id")
+    try:
+        microscope = Microscope.objects.get(id=pk)
+        oclist = microscope.optical_configs.values_list("id")
 
-    state_ct = ContentType.objects.get_for_model(State)
-    dye_ct = ContentType.objects.get_for_model(Dye)
+        state_ct = ContentType.objects.get_for_model(State)
+        dye_ct = ContentType.objects.get_for_model(Dye)
 
-    effs = list(
-        OcFluorEff.objects.exclude(ex_eff=None)
-        .filter(content_type=state_ct, oc__in=oclist)
-        .annotate(
-            fluor_id=F("state__protein__uuid"),
-            fluor_slug=F("state__slug"),
-            type=Value("p", CharField()),
-        )
-        .values(
-            "fluor_id",
-            "fluor_name",
-            "fluor_slug",
-            "ex_eff",
-            "em_eff",
-            "ex_eff_broad",
-            "brightness",
-            "type",
-            "oc__name",
-        )
-    )
-
-    effs.extend(
-        list(
+        effs = list(
             OcFluorEff.objects.exclude(ex_eff=None)
-            .filter(content_type=dye_ct, oc__in=oclist)
+            .filter(content_type=state_ct, oc__in=oclist)
             .annotate(
-                fluor_id=F("dye__id"),
-                fluor_slug=F("dye__slug"),
-                type=Value("d", CharField()),
+                fluor_id=F("state__protein__uuid"),
+                fluor_slug=F("state__slug"),
+                type=Value("p", CharField()),
             )
             .values(
                 "fluor_id",
@@ -142,57 +124,57 @@ def scope_report_json(request, pk):
                 "oc__name",
             )
         )
-    )
 
-    data = defaultdict(list)
-    for item in effs:
-        if not (item["ex_eff"] and item["em_eff"]):
-            continue
-        data[item["oc__name"]].append(
-            {
-                "fluor": item["fluor_name"],
-                "fluor_slug": item["fluor_slug"],
-                "fluor_id": item["fluor_id"],
-                "ex_eff": item["ex_eff"],
-                "ex_eff_broad": item["ex_eff_broad"],
-                "em_eff": item["em_eff"],
-                "brightness": item["brightness"] or None,
-                "shape": "circle" if item["type"] == "p" else "square",
-                "url": microscope.get_absolute_url()
-                + "?c={}&p={}".format(quote(item["oc__name"]), quote(item["fluor_slug"])),
-            }
+        effs.extend(
+            list(
+                OcFluorEff.objects.exclude(ex_eff=None)
+                .filter(content_type=dye_ct, oc__in=oclist)
+                .annotate(
+                    fluor_id=F("dye__id"),
+                    fluor_slug=F("dye__slug"),
+                    type=Value("d", CharField()),
+                )
+                .values(
+                    "fluor_id",
+                    "fluor_name",
+                    "fluor_slug",
+                    "ex_eff",
+                    "em_eff",
+                    "ex_eff_broad",
+                    "brightness",
+                    "type",
+                    "oc__name",
+                )
+            )
         )
 
-    states = State.objects.with_spectra().prefetch_related("protein")
-    fluors = {
-        i["slug"]: i
-        for i in states.annotate(
-            agg=F("protein__agg"),
-            type=Value("p", CharField()),
-            switch_type=F("protein__switch_type"),
-            uuid=F("protein__uuid"),
-        ).values(
-            "slug",
-            "ext_coeff",
-            "qy",
-            "agg",
-            "emhex",
-            "ex_max",
-            "em_max",
-            "type",
-            "switch_type",
-            "uuid",
-        )
-    }
-    dyes = Dye.objects.with_spectra()
-    fluors.update(
-        {
+        data = defaultdict(list)
+        for item in effs:
+            if not (item["ex_eff"] and item["em_eff"]):
+                continue
+            data[item["oc__name"]].append(
+                {
+                    "fluor": item["fluor_name"],
+                    "fluor_slug": item["fluor_slug"],
+                    "fluor_id": item["fluor_id"],
+                    "ex_eff": item["ex_eff"],
+                    "ex_eff_broad": item["ex_eff_broad"],
+                    "em_eff": item["em_eff"],
+                    "brightness": item["brightness"] or None,
+                    "shape": "circle" if item["type"] == "p" else "square",
+                    "url": microscope.get_absolute_url()
+                    + "?c={}&p={}".format(quote(item["oc__name"]), quote(item["fluor_slug"])),
+                }
+            )
+
+        states = State.objects.with_spectra().prefetch_related("protein")
+        fluors = {
             i["slug"]: i
-            for i in dyes.annotate(
-                uuid=F("id"),
-                agg=Value("", CharField()),
-                type=Value("d", CharField()),
-                switch_type=Value("", CharField()),
+            for i in states.annotate(
+                agg=F("protein__agg"),
+                type=Value("p", CharField()),
+                switch_type=F("protein__switch_type"),
+                uuid=F("protein__uuid"),
             ).values(
                 "slug",
                 "ext_coeff",
@@ -206,14 +188,42 @@ def scope_report_json(request, pk):
                 "uuid",
             )
         }
-    )
-    return JsonResponse(
-        {
-            "microscope": pk,
-            "report": [{"key": k, "values": v} for k, v in data.items()],
-            "fluors": fluors,
-        }
-    )
+        dyes = Dye.objects.with_spectra()
+        fluors.update(
+            {
+                i["slug"]: i
+                for i in dyes.annotate(
+                    uuid=F("id"),
+                    agg=Value("", CharField()),
+                    type=Value("d", CharField()),
+                    switch_type=Value("", CharField()),
+                ).values(
+                    "slug",
+                    "ext_coeff",
+                    "qy",
+                    "agg",
+                    "emhex",
+                    "ex_max",
+                    "em_max",
+                    "type",
+                    "switch_type",
+                    "uuid",
+                )
+            }
+        )
+        return JsonResponse(
+            {
+                "microscope": pk,
+                "report": [{"key": k, "values": v} for k, v in data.items()],
+                "fluors": fluors,
+            }
+        )
+    except Microscope.DoesNotExist:
+        logger.exception("Microscope not found: %s", pk)
+        return JsonResponse({"error": "Microscope not found"}, status=404)
+    except Exception:
+        logger.exception("Error generating scope report for microscope %s", pk)
+        return JsonResponse({"error": "Internal server error"}, status=500)
 
 
 class ScopeReportView(DetailView):

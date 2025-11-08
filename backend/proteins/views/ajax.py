@@ -47,18 +47,31 @@ def serialize_comparison(request):
 def update_comparison(request):
     if not is_ajax(request):
         return HttpResponseNotAllowed([])
-    current = set(request.session.get("comparison", []))
-    if request.POST.get("operation") == "add":
-        current.add(request.POST.get("object"))
-    elif request.POST.get("operation") == "remove":
+
+    try:
+        current = set(request.session.get("comparison", []))
+        if request.POST.get("operation") == "add":
+            current.add(request.POST.get("object"))
+        elif request.POST.get("operation") == "remove":
+            try:
+                current.remove(request.POST.get("object"))
+            except KeyError:
+                pass
+        elif request.POST.get("operation") == "clear":
+            current.clear()
+        request.session["comparison"] = list(current)
+
+        # Serialize with error handling
         try:
-            current.remove(request.POST.get("object"))
-        except KeyError:
-            pass
-    elif request.POST.get("operation") == "clear":
-        current.clear()
-    request.session["comparison"] = list(current)
-    return JsonResponse({"status": 200, "comparison_set": serialize_comparison(request)})
+            comparison_set = serialize_comparison(request)
+        except Exception:
+            logger.exception("Failed to serialize comparison set")
+            comparison_set = []
+
+        return JsonResponse({"status": 200, "comparison_set": comparison_set})
+    except Exception:
+        logger.exception("Error in update_comparison")
+        return JsonResponse({"status": "error", "message": "Failed to update comparison"}, status=500)
 
 
 @login_required
@@ -239,46 +252,56 @@ def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
 
 @cache_page(60 * 5)
 def get_lineage(request, slug=None, org=None):
-    # if not is_ajax(request):
-    #     return HttpResponseNotAllowed([])
-    if org:
-        _ids = list(Lineage.objects.filter(protein__parent_organism=org, parent=None))
-        ids = []
-        for item in _ids:
-            ids.extend([i.pk for i in item.get_family()])
-        if not ids:
-            return JsonResponse({})
-    elif slug:
-        item = Lineage.objects.get(protein__slug=slug)
-        ids = item.get_family()
-    else:
-        ids = Lineage.objects.all().values_list("id", flat=True)
-    # cache upfront everything we're going to need
-    stateprefetch = Prefetch("protein__states", queryset=State.objects.order_by("-is_dark", "em_max"))
-    root_nodes = (
-        Lineage.objects.filter(id__in=ids)
-        .select_related("protein", "reference", "protein__default_state")
-        .prefetch_related(stateprefetch)
-        .get_cached_trees()
-    )
+    try:
+        if org:
+            _ids = list(Lineage.objects.filter(protein__parent_organism=org, parent=None))
+            ids = []
+            for item in _ids:
+                ids.extend([i.pk for i in item.get_family()])
+            if not ids:
+                return JsonResponse({})
+        elif slug:
+            try:
+                item = Lineage.objects.get(protein__slug=slug)
+                ids = item.get_family()
+            except Lineage.DoesNotExist:
+                logger.warning("No lineage found for protein slug: %s", slug)
+                return JsonResponse({"error": "Lineage not found"}, status=404)
+            except Lineage.MultipleObjectsReturned:
+                logger.error("Multiple lineages found for protein slug: %s", slug)
+                return JsonResponse({"error": "Multiple lineages found"}, status=500)
+        else:
+            ids = Lineage.objects.all().values_list("id", flat=True)
 
-    d = {"name": "fakeroot", "children": [], "widths": defaultdict(int)}
-    for n in sorted(root_nodes, key=lambda x: x.protein.name.lower()):
-        result, d["widths"] = recursive_node_to_dict(
-            n,
-            d["widths"],
-            n.protein,
-            request.GET.get("validate", "").lower() in ("1", "true"),
+        # cache upfront everything we're going to need
+        stateprefetch = Prefetch("protein__states", queryset=State.objects.order_by("-is_dark", "em_max"))
+        root_nodes = (
+            Lineage.objects.filter(id__in=ids)
+            .select_related("protein", "reference", "protein__default_state")
+            .prefetch_related(stateprefetch)
+            .get_cached_trees()
         )
-        if "children" in result:
-            d["children"].append(result)
-    d["max_width"] = max(d["widths"].values())
-    d["max_depth"] = max(d["widths"])
-    d["tot_nodes"] = sum(d["widths"].values())
 
-    # data['tree'] = json.dumps(D)
+        d = {"name": "fakeroot", "children": [], "widths": defaultdict(int)}
+        for n in sorted(root_nodes, key=lambda x: x.protein.name.lower()):
+            result, d["widths"] = recursive_node_to_dict(
+                n,
+                d["widths"],
+                n.protein,
+                request.GET.get("validate", "").lower() in ("1", "true"),
+            )
+            if "children" in result:
+                d["children"].append(result)
 
-    return JsonResponse(d)
+        # Handle empty widths safely
+        d["max_width"] = max(d["widths"].values()) if d["widths"] else 0
+        d["max_depth"] = max(d["widths"]) if d["widths"] else 0
+        d["tot_nodes"] = sum(d["widths"].values())
+
+        return JsonResponse(d)
+    except Exception:
+        logger.exception("Error in get_lineage for slug=%s, org=%s", slug, org)
+        return JsonResponse({"error": "Internal server error"}, status=500)
 
 
 class Widget(DetailView):

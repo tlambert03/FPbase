@@ -26,6 +26,8 @@ from ..models import Filter, Protein, Spectrum, State
 from ..util.importers import add_filter_to_database
 from ..util.spectra import spectra2csv
 
+logger = logging.getLogger(__name__)
+
 
 # @cache_page(60 * 10)
 # @vary_on_cookie
@@ -39,10 +41,25 @@ def protein_spectra(request, slug=None):
         function returns an array containing ALL of the spectra
         belonging to that owner
         """
-        owner = Spectrum.objects.filter_owner(slug)
-        if owner.count():
-            return JsonResponse({"spectra": [s.d3dict() for s in owner]})
-        raise Http404
+        try:
+            owner = Spectrum.objects.filter_owner(slug)
+            if owner.count():
+                spectra_list = []
+                for s in owner:
+                    try:
+                        spectra_list.append(s.d3dict())
+                    except Exception:
+                        logger.exception("Failed to serialize spectrum %s", s.id)
+                        continue
+                return JsonResponse({"spectra": spectra_list})
+
+            logger.warning("No spectra owner found for slug: %s", slug)
+            raise Http404(f"No spectra found for {slug}")
+        except Http404:
+            raise
+        except Exception:
+            logger.exception("Error fetching spectra for slug: %s", slug)
+            return JsonResponse({"error": "Failed to fetch spectra"}, status=500)
 
     return render(request, template)
 
@@ -157,7 +174,6 @@ def spectrum_preview(request) -> JsonResponse:
     AJAX endpoint to preview spectrum data with server-side normalization
     before final submission.
     """
-    logger = logging.getLogger(__name__)
     if request.method != "POST":
         return JsonResponse({"error": "POST required"}, status=405)
 
