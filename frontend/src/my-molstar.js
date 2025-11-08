@@ -37,40 +37,6 @@ function loadSmiles(pdbid) {
 }
 
 /**
- * Get PDB structure URL with cascading fallback.
- *
- * Returns the first available URL from multiple mirror sources.
- * Tries in order: wwPDB → RCSB → EBI
- *
- * @param {string} id - PDB identifier (e.g., '6GP0')
- * @returns {Promise<string>} URL to fetch CIF structure data
- * @throws {Error} If all endpoints fail
- * @see https://www.rcsb.org/docs/programmatic-access/file-download-services
- */
-async function getPDBUrl(id) {
-  const TIMEOUT = 5000 // 5 second timeout per request
-
-  // Try URLs in order of preference
-  const urls = [
-    `https://files.wwpdb.org/download/${id}.cif`,
-    `https://files.rcsb.org/download/${id}.cif`,
-    `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`,
-  ]
-
-  // Test each URL with a HEAD request to see if it's available
-  for (const url of urls) {
-    try {
-      await $.ajax({ url, method: "HEAD", timeout: TIMEOUT })
-      return url // This URL works!
-    } catch (error) {}
-  }
-
-  // All URLs failed - return the first one and let pdbe-molstar try
-  // (it will show its own error message)
-  return urls[0]
-}
-
-/**
  * Load and display chemical information for a PDB entry.
  *
  * @param {string} pdbid - PDB identifier
@@ -123,8 +89,27 @@ function loadChemInfo(pdbid) {
 /**
  * Initialize Mol* (pdbe-molstar) molecular visualization plugin.
  *
+ * CORS & Data Source Notes:
+ * -------------------------
+ * pdbe-molstar's default `moleculeId` option uses EBI's entry-files endpoint
+ * (https://www.ebi.ac.uk/pdbe/entry-files/download/{id}.bcif) which:
+ *   - Returns 404 for many structures
+ *   - Has NO CORS headers (Access-Control-Allow-Origin)
+ *   - Was designed for same-origin usage on EBI's website
+ *
+ * Instead, we use `customData` with RCSB Models Server which provides:
+ *   - Binary CIF (bcif) format for optimal performance
+ *   - Full CORS support (access-control-allow-origin: *)
+ *   - Reliable availability for all PDB structures
+ *   - Source: https://models.rcsb.org/{id}.bcif
+ *
+ * Alternative CORS-enabled endpoints (CIF format):
+ *   - https://files.wwpdb.org/download/{id}.cif
+ *   - https://files.rcsb.org/download/{id}.cif
+ *
  * @param {string} selection - CSS selector for the container element
  * @param {jQuery} changer - jQuery object for the PDB selector dropdown
+ * @see https://www.rcsb.org/docs/programmatic-access/file-download-services
  */
 function initMolstar(selection, changer) {
   const viewerContainer = document.querySelector(selection)
@@ -148,12 +133,13 @@ function initMolstar(selection, changer) {
     }
 
     try {
-      // Get a working URL with cascading fallback
-      const url = await getPDBUrl(id)
+      // Use RCSB Models Server with bcif format for optimal performance and CORS support
+      // See: https://www.rcsb.org/docs/programmatic-access/file-download-services
+      const url = `https://models.rcsb.org/${id}.bcif`
 
       // Render the plugin with custom data URL
       const options = {
-        customData: { url: url, format: "cif" },
+        customData: { url: url, format: "bcif", binary: true },
         bgColor: { r: 255, g: 255, b: 255 },
         hideControls: true,
         sequencePanel: true,
