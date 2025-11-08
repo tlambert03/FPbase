@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load fpbase_tags %}
 {% load webp_picture from protein_tags %}
 {% load static %}
 
@@ -66,7 +67,7 @@
 </div>
 
 <h5 class='mt-4'><strong>Collect</strong></h5>
-<p>Click the heart (<a class="btn example-like-button"><i class="fas fa-heart"></i></a>) icon at the top right of any protein page to quickly add it to your favorites, which can be seen on your profile page.  You may also <a href="{% url 'proteins:newcollection' %}">create collections of fluorescent proteins</a> for private use or for sharing publicly.  You may view your own collections in your profile, or <a href='{% url 'proteins:collections' %}'>view all public collections</a> created on FPbase.  On each protein page, you can click the book icon (<a class="btn example-like-button"><i class="fas fa-book"></i></a>) to add the current protein to one of your collections.</p>
+<p>Click the heart (<a class="btn example-like-button">{% icon "heart" %}</a>) icon at the top right of any protein page to quickly add it to your favorites, which can be seen on your profile page.  You may also <a href="{% url 'proteins:newcollection' %}">create collections of fluorescent proteins</a> for private use or for sharing publicly.  You may view your own collections in your profile, or <a href='{% url 'proteins:collections' %}'>view all public collections</a> created on FPbase.  On each protein page, you can click the book icon (<a class="btn example-like-button">{% icon "book" %}</a>) to add the current protein to one of your collections.</p>
 
 <h5 class='mt-4'><strong>Contribute</strong></h5>
 <p>If you would like to help expand the FPbase database, please consider contributing information to the database.  This can be as small as adding an additional reference to a protein, or creating new protein records altogether.  Please read the <a href="{% url "contributing" %}">guide to contributing</a> for more information.</p>

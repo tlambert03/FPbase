@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load fpbase_tags %}
 
 {% block title %}FPbase Collection: {{ object.name }}{% endblock %}
 {% block meta-description %}A custom fluorescent protein collection on FPbase: {{object.description}}{% endblock %}
@@ -41,10 +42,10 @@
         <div class='col mb-3'>
           <div class="btn-group float-sm-right pt-2 pt-sm-0 displaybuttons btn-group-toggle" data-toggle="buttons" >
             <label class="btn btn-info btn-sm btn-secondary">
-              <input type="radio" name="display" id="lbutton" autocomplete="off" value='l'><i class="fas fa-th"></i> display lozenges
+              <input type="radio" name="display" id="lbutton" autocomplete="off" value='l'>{% icon "th" %} display lozenges
             </label>
             <label class="btn btn-info btn-sm btn-secondary active">
-              <input type="radio" name="display" id="tbutton" autocomplete="off" checked value='t'><i class="fas fa-table"></i> display table
+              <input type="radio" name="display" id="tbutton" autocomplete="off" checked value='t'>{% icon "table" %} display table
             </label>
           </div>
 

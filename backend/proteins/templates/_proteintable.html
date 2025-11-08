@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load fpbase_tags %}
 {% comment %}
 	variables:
 		showbleach [Bool]: whether to show the bleach column,
@@ -31,7 +32,7 @@
   			<th class='hidden switch_type'>Switch Type</th>
         <td class='hidden'>Aliases</td>
         {% if comparison %}
-        <th><span class="d-none d-lg-inline">Compare</span><span class="d-block d-lg-none"><i class="fas fa-plus ml-1"></i></span></th>{% endif %}
+        <th><span class="d-none d-lg-inline">Compare</span><span class="d-block d-lg-none">{% icon "plus" class_="ml-1" %}</span></th>{% endif %}
 		</tr>
 	</thead>
 	<tbody>
@@ -66,7 +67,7 @@
             <td class='hidden'>{{ state.protein.aliases }}</td>
             {% if comparison %}
             <td class="text-center">
-              <button class="btn btn-sm btn-outline-info btn-circle comparison-btn" data-flash='1' data-action-url="{% url 'proteins:update-comparison' %}" data-object='{{protein.slug}}' data-op='add'><i class="fas fa-plus"></i></button>
+              <button class="btn btn-sm btn-outline-info btn-circle comparison-btn" data-flash='1' data-action-url="{% url 'proteins:update-comparison' %}" data-object='{{protein.slug}}' data-op='add'>{% icon "plus" %}</button>
             </td>
             {% endif %}
 					</tr>
@@ -97,7 +98,7 @@
                   <td class='hidden'>{{ state.protein.aliases }}</td>
                   {% if comparison %}
                   <td class="text-center">
-                    <button class="btn btn-sm btn-outline-info btn-circle comparison-btn" data-flash='1' data-action-url="{% url 'proteins:update-comparison' %}" data-object='{{protein.slug}}' data-op='add'><i class="fas fa-plus"></i></button>
+                    <button class="btn btn-sm btn-outline-info btn-circle comparison-btn" data-flash='1' data-action-url="{% url 'proteins:update-comparison' %}" data-object='{{protein.slug}}' data-op='add'>{% icon "plus" %}</button>
                   </td>
                   {% endif %}
                 </tr>
