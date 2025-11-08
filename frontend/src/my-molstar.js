@@ -156,11 +156,16 @@ function initMolstar(selection, changer) {
       })
 
       // Monitor layout state changes to enforce controls visibility rules
-      // In standard (non-expanded) mode, controls must remain hidden
       plugin.plugin.layout.events.updated.subscribe(() => {
         const state = plugin.plugin.layout.state
+
+        // When entering expanded mode, automatically show controls
+        if (state.isExpanded && !state.showControls) {
+          plugin.canvas.toggleControls(true)
+        }
+
+        // When exiting expanded mode, automatically hide controls
         if (!state.isExpanded && state.showControls) {
-          // User exited expanded mode but controls are visible - hide them
           plugin.canvas.toggleControls(false)
         }
       })
