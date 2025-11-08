@@ -153,16 +153,32 @@ function initMolstar(selection, changer) {
 
       // Render the plugin with custom data URL
       const options = {
-        customData: {
-          url: url,
-          format: "cif",
-        },
+        customData: { url: url, format: "cif" },
         bgColor: { r: 255, g: 255, b: 255 },
-        hideControls: false,
-        sequencePanel: false,
+        hideControls: true,
+        sequencePanel: true,
+        hideStructure: ["het", "water", "carbs"],
       }
 
-      plugin.render(viewerContainer, options)
+      await plugin.render(viewerContainer, options)
+
+      // Hide the axis helper (XYZ indicator) at bottom left
+      plugin.plugin.canvas3d?.setProps({
+        camera: {
+          helper: { axes: { name: "off", params: {} } },
+        },
+      })
+
+      // Monitor layout state changes to enforce controls visibility rules
+      // In standard (non-expanded) mode, controls must remain hidden
+      plugin.plugin.layout.events.updated.subscribe(() => {
+        const state = plugin.plugin.layout.state
+        if (!state.isExpanded && state.showControls) {
+          // User exited expanded mode but controls are visible - hide them
+          plugin.canvas.toggleControls(false)
+        }
+      })
+
       currentPluginInstance = plugin
     } catch (error) {
       $(selection).html(

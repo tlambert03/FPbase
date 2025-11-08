@@ -13,8 +13,24 @@
   position: relative;
 
   // pdbe-molstar plugin container
-  > div {
+  >div {
     width: 100% !important;
     height: 100% !important;
   }
+}
+
+/* hide black window borders */
+.msp-plugin .msp-plugin-content.msp-layout-standard {
+  border: none;
+}
+
+#molstar-viewer {
+  /* Higher than the comparison slider's z-index (100) */
+  z-index: 150;
+}
+
+// Hide certain controls in the simple standard view
+// Hide the "Toggle Controls Panel" button (wrench icon)
+.msp-layout-standard button[title="Toggle Controls Panel"] {
+  display: none;
 }
