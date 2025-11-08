@@ -8,7 +8,7 @@ setup:
     uv sync
 
 # start both frontend and backend servers
-serve:
+serve: setup
     pnpm dev
 
 shell:
@@ -43,9 +43,6 @@ prod-local:
     echo "⚠️  Using production-like config with local resources (see config/settings/production_local.py)"
     DJANGO_SETTINGS_MODULE=config.settings.production_local \
         uv run gunicorn --chdir backend --workers 2 --worker-class sync --timeout 30 --bind 127.0.0.1:8000 config.wsgi:application
-
-test-js:
-    pnpm --filter @fpbase/spectra test:ci
 
 test-e2e:
     uv run pytest backend/tests_e2e/ -v -n=6 --browser chromium

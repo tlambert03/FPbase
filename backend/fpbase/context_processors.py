@@ -11,9 +11,12 @@ def api_keys(request):
 
 
 def canonical(request):
+    sha = settings.HEROKU_SLUG_COMMIT
     return {
         "CANONICAL_URL": settings.CANONICAL_URL,
         "HELP_URL": "https://help.fpbase.org/",
         "ABSOLUTE_ROOT": request.build_absolute_uri("/")[:-1].strip("/"),
         "ABSOLUTE_ROOT_URL": request.build_absolute_uri("/").strip("/"),
+        "DEPLOYMENT_VERSION": sha,
+        "DEPLOYMENT_SOURCE_URL": f"https://github.com/tlambert03/FPbase/tree/{sha}" if sha else "",
     }

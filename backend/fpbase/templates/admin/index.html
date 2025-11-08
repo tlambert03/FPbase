@@ -5,4 +5,10 @@
 
 {% block sidebar %}
 {{ block.super }}
+
+<p style="margin-top: 20px; color: #666; font-size: 0.9em;">version:
+    <a href="{{DEPLOYMENT_SOURCE_URL}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+        {{ DEPLOYMENT_VERSION }}
+    </a>
+</p>
 {% endblock sidebar %}

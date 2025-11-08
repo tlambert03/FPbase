@@ -4,12 +4,6 @@ import structlog
 
 from .base import *  # noqa
 
-# STATIC FILES - Add backend static directory for development
-# ------------------------------------------------------------------------------
-# Include backend/fpbase/static so Django can serve microscope.js and other
-# static files that don't go through vite
-STATICFILES_DIRS = [*STATICFILES_DIRS, str(ROOT_DIR / "fpbase" / "static")]
-
 # DEBUG
 # ------------------------------------------------------------------------------
 DEBUG = env.bool("DJANGO_DEBUG", default=True)

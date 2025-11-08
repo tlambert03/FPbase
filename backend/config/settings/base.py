@@ -37,6 +37,8 @@ if READ_DOT_ENV_FILE:
     if "amazonaws.com" in env("DATABASE_URL", default=""):
         print("\n##################\nWARNING: Using AWS database\n##################\n")
 
+HEROKU_SLUG_COMMIT = env("HEROKU_SLUG_COMMIT", default=None)
+
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
@@ -94,6 +96,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIDDLEWARE CONFIGURATION
 # ------------------------------------------------------------------------------
 MIDDLEWARE = [
+    "django.middleware.gzip.GZipMiddleware",  # important for large JSON APIs
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "fpbase.middleware.BlackListMiddleware",

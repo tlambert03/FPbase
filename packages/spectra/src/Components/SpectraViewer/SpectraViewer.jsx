@@ -26,7 +26,7 @@ import DEFAULT_OPTIONS from "./ChartOptions"
 import fixLogScale from "./fixLogScale"
 import NoData from "./NoData"
 import SpectrumSeries from "./SpectrumSeries"
-import XRangePickers from "./XRangePickers"
+import { XAxisRangeInputs } from "./XAxisRangeInputs"
 
 fixLogScale(Highcharts)
 
@@ -95,13 +95,70 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
     gridLineWidth: chartOptions.showGrid ? 1 : 0,
   }
 
+  const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+
   const xAxis = {
     ..._xAxis,
     labels: {
       ..._xAxis.labels,
-      enabled: chartOptions.showX,
+      enabled: chartOptions.showX && activeSpectra.length > 0,
     },
     gridLineWidth: chartOptions.showGrid ? 1 : 0,
+    events: {
+      ..._xAxis.events,
+      afterSetExtremes: (event) => {
+        // Call original handler for zoom-info display
+        if (_xAxis.events?.afterSetExtremes) {
+          _xAxis.events.afterSetExtremes(event)
+        }
+
+        const { min, max, userMin, userMax, dataMin, dataMax, trigger } = event
+
+        // Only process user-initiated zoom events (not programmatic updates)
+        // event.trigger can be: 'zoom', 'navigator', 'rangeSelectorButton', 'rangeSelectorInput', undefined
+        // This check MUST come first to prevent programmatic updates (like restoring from sessionStorage)
+        // from incorrectly clearing extremes
+        const isUserZoom = trigger === "zoom"
+        if (!isUserZoom) {
+          return
+        }
+
+        // Handle reset case: both min and max are null
+        if (min === null && max === null) {
+          if (chartOptions.extremes !== null) {
+            updateChartOptions({ extremes: null })
+          }
+          return
+        }
+
+        // If extremes match the full data range (with tolerance for Highcharts padding), treat as "no zoom" (reset)
+        // This handles the case where user zooms out to full range or clicks reset zoom button
+        const dataRange = dataMax - dataMin
+        const tolerance = dataRange * 0.02 // 2% tolerance for padding
+        const isFullDataRange =
+          Math.abs(min - dataMin) <= tolerance && Math.abs(max - dataMax) <= tolerance
+        if (isFullDataRange) {
+          if (chartOptions.extremes !== null) {
+            updateChartOptions({ extremes: null })
+          }
+          return
+        }
+
+        // Zoom case - use userMin/userMax (actual zoom values set by user)
+        const newMin = userMin ?? min
+        const newMax = userMax ?? max
+
+        // Only update if extremes actually changed (prevents infinite loops)
+        const currentMin = chartOptions.extremes?.[0]
+        const currentMax = chartOptions.extremes?.[1]
+
+        if (currentMin !== newMin || currentMax !== newMax) {
+          updateChartOptions({
+            extremes: [newMin ?? null, newMax ?? null],
+          })
+        }
+      },
+    },
   }
 
   const tooltip = {
@@ -142,20 +199,25 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   const nonExData = data.filter((i) => i.subtype !== "EX" && i.subtype !== "AB")
 
   const height = calcHeight(windowWidth) * (chartOptions.height || 1)
-  let showPickers = numSpectra > 0 && !chartOptions.simpleMode
   if (chartOptions.zoomType !== undefined) {
     _chart.zoomType = chartOptions.zoomType
-    showPickers = chartOptions.zoomType !== null
     // convert to no-op function
     xAxis.events.afterSetExtremes = () => {}
-    xAxis.min = chartOptions.extremes[0]
-    xAxis.max = chartOptions.extremes[1]
+    // Handle new extremes format: [number | null, number | null] | null
+    if (chartOptions.extremes) {
+      xAxis.min = chartOptions.extremes[0] ?? undefined
+      xAxis.max = chartOptions.extremes[1] ?? undefined
+    }
   }
   // Note: legendHeight is already accounted for by Highcharts internally
   // Adding it here causes reflow issues when toggling series visibility
 
   return (
-    <div className="spectra-viewer" style={{ position: "relative", height: height }}>
+    <div
+      id="spectra-viewer-container"
+      className="spectra-viewer"
+      style={{ position: "relative", height: height }}
+    >
       <span
         id="zoom-info"
         style={{
@@ -263,7 +325,13 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
             <MyCredits hide={numSpectra < 1 || chartOptions.simpleMode} />
           </YAxis>
 
-          <XAxisWithRange options={xAxis} showPickers={showPickers} />
+          <XAxis {...xAxis} lineWidth={numSpectra > 0 ? 1 : 0} id="xAxis">
+            <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
+            <XAxisRangeInputs
+              enabled={chartOptions.showX && numSpectra > 0}
+              extremes={chartOptions.extremes}
+            />
+          </XAxis>
         </HighchartsChart>
       </HighchartsProvider>
     </div>
@@ -298,16 +366,7 @@ const MyCredits = function MyCredits({ hide }) {
   )
 }
 
-export const XAxisWithRange = memo(function XAxisWithRange({ options, showPickers }) {
-  return (
-    <XAxis {...options} lineWidth={showPickers ? 1 : 0} id="xAxis">
-      <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
-      {showPickers && <XRangePickers visible={showPickers && options.labels.enabled} />}
-    </XAxis>
-  )
-})
-
-const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerInfo }) {
+const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerInfo = {} }) {
   const exNormed = ecNorm && Object.keys(ownerInfo).length > 0
   const emNormed = (exNorm || qyNorm) && Object.keys(ownerInfo).length > 0
   return (
