@@ -210,57 +210,72 @@ $(() => {
 
 /////////////////. Spectra Image URL Builder
 
-// Only initialize Select2 if not already initialized (fixes duplicate select boxes)
-if (!$("#proteinSlug").hasClass("select2-hidden-accessible")) {
-  $("#proteinSlug").select2({
-    theme: "bootstrap",
-    width: "80%",
-    ajax: {
-      theme: "bootstrap",
-      containerCssClass: ":all:",
-      width: "auto",
+// Helper to wait for select2 plugin to be available
+function waitForSelect2(callback) {
+  if (typeof $.fn.select2 !== "undefined") {
+    callback()
+  } else {
+    // Retry after a short delay
+    setTimeout(() => waitForSelect2(callback), 50)
+  }
+}
 
-      url: "/autocomplete-protein",
-      dataType: "json",
-      cache: true,
-      data: (params) => {
-        var query = {
-          q: params.term,
-          type: "spectra",
-          page: params.page,
-          _type: params._type,
-        }
-        return query
+// Only initialize Select2 if the element exists on the page and not already initialized
+if (
+  document.getElementById("proteinSlug") &&
+  !$("#proteinSlug").hasClass("select2-hidden-accessible")
+) {
+  waitForSelect2(() => {
+    $("#proteinSlug").select2({
+      theme: "bootstrap",
+      width: "80%",
+      ajax: {
+        theme: "bootstrap",
+        containerCssClass: ":all:",
+        width: "auto",
+
+        url: "/autocomplete-protein",
+        dataType: "json",
+        cache: true,
+        data: (params) => {
+          var query = {
+            q: params.term,
+            type: "spectra",
+            page: params.page,
+            _type: params._type,
+          }
+          return query
+        },
+        processResults: (data) => {
+          // Ensure all results have an id property (fixes FPBASE-5H3)
+          // The autocomplete endpoint returns results, but we need to ensure
+          // each item has an id that can be safely converted to string
+          if (data.results) {
+            data.results = data.results.map((item) => {
+              // If item doesn't have an id, use text as fallback
+              if (!item.id && item.text) {
+                item.id = item.text
+              }
+              return item
+            })
+          }
+          return data
+        },
       },
-      processResults: (data) => {
-        // Ensure all results have an id property (fixes FPBASE-5H3)
-        // The autocomplete endpoint returns results, but we need to ensure
-        // each item has an id that can be safely converted to string
-        if (data.results) {
-          data.results = data.results.map((item) => {
-            // If item doesn't have an id, use text as fallback
-            if (!item.id && item.text) {
-              item.id = item.text
-            }
-            return item
-          })
+      // Safely handle cases where id might still be undefined
+      templateResult: (item) => {
+        if (!item.id) {
+          return item.text
         }
-        return data
+        return item.text || item.id
       },
-    },
-    // Safely handle cases where id might still be undefined
-    templateResult: (item) => {
-      if (!item.id) {
-        return item.text
-      }
-      return item.text || item.id
-    },
-    templateSelection: (item) => {
-      if (!item.id) {
-        return item.text
-      }
-      return item.text || item.id
-    },
+      templateSelection: (item) => {
+        if (!item.id) {
+          return item.text
+        }
+        return item.text || item.id
+      },
+    })
   })
 }
 
