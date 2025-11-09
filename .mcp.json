@@ -1,0 +1,40 @@
+{
+    "mcpServers": {
+        "context7": {
+            "type": "http",
+            "url": "https://mcp.context7.com/mcp",
+            "headers": {
+                "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+            }
+        },
+        "playwright": {
+            "type": "stdio",
+            "command": "bunx",
+            "args": [
+                "@playwright/mcp@latest"
+            ]
+        },
+        "sentry": {
+            "type": "http",
+            "url": "https://mcp.sentry.dev/mcp"
+        },
+        "betterstack": {
+            "type": "http",
+            "url": "https://mcp.betterstack.com",
+            "headers": {
+                "Authorization": "Bearer ${BETTERSTACK_API_KEY}"
+            }
+        },
+        "analytics-mcp": {
+            "type": "stdio",
+            "command": "uvx",
+            "args": [
+                "analytics-mcp"
+            ],
+            "env": {
+                "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/gcloud/analytics-mcp-service-account.json",
+                "GOOGLE_PROJECT_ID": "fp-base"
+            }
+        }
+    }
+}

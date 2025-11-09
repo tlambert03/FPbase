@@ -94,30 +94,3 @@ blockquote {
     }
   }
 }
-
-
-a.object-flag{
-  opacity: 0.3;
-  &:hover{
-    opacity: 1;
-  }
-  &:focus {
-    box-shadow: none;
-  }
-  &:active {
-    box-shadow: none;
-    drop-shadow: none;
-    outline: 0;
-  }
-  &:active:focus {
-    box-shadow: none;
-    drop-shadow: none;
-    outline: 0;
-  }
-}
-
-.flagicon{
-  color: $danger;
-  margin-left:10px;
-  font-size: 1.1rem;
-}

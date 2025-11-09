@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load fpbase_tags %}
 
 {% block title %}Fluorescent Protein References{% endblock %}
 {% block meta-description %}A list of all publications referenced at FPbase, the Fluorescent Protein Database{% endblock %}
@@ -24,7 +25,7 @@
 <div class='reftable-wrapper'>
   <h2 class='text-center'>FPbase Reference List</h2>
   <div class="mb-3">
-    <p class="small mb-2 mt-3">This is a table of all articles referenced on at least one page at FPbase.  Use the search field to search for any text in the table, including protein name, author name, journal name, publication year, or title contents.  1˚ proteins are intended to be proteins that were introduced by that reference, whereas 2˚ proteins were further characterized by that reference.  Click on any title, author, or protein, to see more info for that item at FPbase, or click on the "Link" <i class="fa fa-external-link-alt mx-1"></i> button to go to the publisher's website. </p>
+    <p class="small mb-2 mt-3">This is a table of all articles referenced on at least one page at FPbase.  Use the search field to search for any text in the table, including protein name, author name, journal name, publication year, or title contents.  1˚ proteins are intended to be proteins that were introduced by that reference, whereas 2˚ proteins were further characterized by that reference.  Click on any title, author, or protein, to see more info for that item at FPbase, or click on the "Link" {% icon "external-link" class_="mx-1" %} button to go to the publisher's website. </p>
   </div>
 
   <table class="table table-striped mt-4" id="referenceTable" style="width: 100%;">
@@ -42,7 +43,7 @@
     <tbody>
       {% for ref in reference_list  %}
         <tr>
-          <td class='text-center'><a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt text-secondary font-weight-bold"></i></a></td>
+          <td class='text-center'><a href="https://doi.org/{{ ref.doi }}" target="_blank" rel="noopener">{% icon "external-link" class_="text-secondary font-weight-bold" %}</a></td>
           <td class='text-center'>{{ref.year}}</td>
           <td>{{ ref.journal }}</td>
           <td><a href="{{ ref.get_absolute_url }}">{{ ref.title }}</a></td>

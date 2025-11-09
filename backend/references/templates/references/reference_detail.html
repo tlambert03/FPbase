@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load fpbase_tags %}
 {% load flag_object from protein_tags %}
 
 {% block title %}{{ reference.citation  }} :: Fluorescent Protein Database {% endblock %}
@@ -57,9 +58,9 @@
             <td>{{measurement.get_light_display}}</td>
             <td>{{measurement.get_modality_display}}</td>
             <td class='text-muted small'>{% if measurement.in_cell == 0 %}
-              <i class="fas fa-times">
+              {% icon "close" %}
             {% elif measurement.in_cell == 1 %}
-              <i class="fas fa-check">
+              {% icon "check" %}
             {% else %}
             {% endif %}</td>
             <td>{{measurement.fusion}}</td>
@@ -74,7 +75,7 @@
     <a href="{% url 'proteins:bleach-comparison' pk=reference.pk %}" class='text-info'>
       <div class="">
           <small class="d-none d-sm-inline float-right mt-1">Add photostability measurements</small>
-          <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none"><i class="fas fa-clock mr-2"></i>Add photostability measurements</button>
+          <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none">{% icon "clock" class_="mr-2" %}Add photostability measurements</button>
       </div>
     </a>
   </div>
@@ -82,7 +83,7 @@
       <a href="{% url 'proteins:bleach-comparison' pk=reference.pk %}" class='text-info'>
         <div class="mt-4">
             <small class="d-none d-sm-inline mt-1">Add photostability measurements</small>
-            <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none"><i class="fas fa-clock mr-2"></i>Add photostability measurements</button>
+            <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none">{% icon "clock" class_="mr-2" %}Add photostability measurements</button>
         </div>
       </a>
 {% endif %}
@@ -123,7 +124,7 @@
 
 
 <div class="excerpts mt-3">
-  <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in."><i class="fas fa-info-circle ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;'></i></a></h3>
+  <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info" class_="ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
   {% if excerpts %}
     {% for excerpt in excerpts %}
       {% if excerpt.status != 'rejected' %}
@@ -140,7 +141,7 @@
     <p class='text-muted'>No excerpts have been added from this reference.<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
   {% endif %}
-  <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'><i class="fas fa-quote-left mr-2"></i></i>Add an excerpt</button></a>
+  <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'>{% icon "quote" class_="mr-2" %}Add an excerpt</button></a>
 </div>
 
 {% endblock content %}

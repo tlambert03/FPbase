@@ -11,3 +11,9 @@
     background-color: #fafafa;
     border: 1px solid #d4d4d4;
 }
+
+// Favorite button uses unified icon-dual-toggle pattern from _main.scss
+.icon-toggle {
+    @extend .icon-dual-toggle;
+    // No additional styling needed - inherits from unified pattern
+}

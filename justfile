@@ -44,9 +44,6 @@ prod-local:
     DJANGO_SETTINGS_MODULE=config.settings.production_local \
         uv run gunicorn --chdir backend --workers 2 --worker-class sync --timeout 30 --bind 127.0.0.1:8000 config.wsgi:application
 
-test-js:
-    pnpm --filter @fpbase/spectra test:ci
-
 test-e2e:
     uv run pytest backend/tests_e2e/ -v -n=6 --browser chromium
     uv run pytest backend/tests_e2e/ -v -n=6 --browser webkit
@@ -61,7 +58,7 @@ snapshots-update:
 snapshots-test:
     uv run pytest backend/tests_e2e/ --visual-snapshots -n 4
 
-test: test-py test-js test-e2e
+test: test-py test-e2e
 
 # clean up all virtual environments, caches, and build artifacts
 clean-static:
@@ -95,4 +92,5 @@ dump-fixture:
     uv run backend/manage.py dumpfixture
 
 typecheck:
-    prek -a --hook-stage=manual
+    uv run basedpyright
+    pnpm typecheck

@@ -101,7 +101,7 @@ export interface ChartOptions {
   logScale: boolean
   scaleEC: boolean
   scaleQY: boolean
-  extremes: [number, number] | null
+  extremes: [number | null, number | null] | null
   shareTooltip: boolean
   palette: string
 }

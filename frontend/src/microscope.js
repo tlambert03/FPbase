@@ -1442,20 +1442,67 @@ window.initMicroscope = () => {
     function spectral_product(ar1, ar2) {
       // calculate product of two spectra.values
       const output = []
-      const _step = ar1[1].x - ar1[0].x
+
+      // Guard against empty or invalid arrays
+      if (!ar1 || !ar2 || ar1.length < 1 || ar2.length < 1) {
+        console.warn("spectral_product: invalid or empty input arrays", {
+          ar1_length: ar1?.length,
+          ar2_length: ar2?.length,
+        })
+        return output
+      }
+
+      // Find overlapping wavelength range
       const left = Math.max(ar1[0].x, ar2[0].x)
       const right = Math.min(ar1[ar1.length - 1].x, ar2[ar2.length - 1].x)
 
-      const a1 = ar1.slice(
-        ar1.findIndex((i) => i.x === left),
-        ar1.findIndex((i) => i.x === right)
-      )
-      const a2 = ar2.slice(
-        ar2.findIndex((i) => i.x === left),
-        ar2.findIndex((i) => i.x === right)
-      )
-      for (let i = 0; i < a1.length; i++) {
-        output.push({ x: a1[i].x, y: a1[i].y * a2[i].y })
+      // If no overlap, return empty array
+      if (left > right) {
+        console.warn("spectral_product: no wavelength overlap", {
+          ar1_range: [ar1[0].x, ar1[ar1.length - 1].x],
+          ar2_range: [ar2[0].x, ar2[ar2.length - 1].x],
+        })
+        return output
+      }
+
+      // Find indices based on wavelength ranges, not exact matches
+      // This handles spectra with different step sizes or missing wavelengths
+      const start1 = ar1.findIndex((i) => i.x >= left)
+      const end1 = ar1.findLastIndex((i) => i.x <= right)
+      const start2 = ar2.findIndex((i) => i.x >= left)
+      const end2 = ar2.findLastIndex((i) => i.x <= right)
+
+      // Verify we found valid indices
+      if (start1 === -1 || end1 === -1 || start2 === -1 || end2 === -1) {
+        console.warn("spectral_product: could not find wavelength indices", {
+          start1,
+          end1,
+          start2,
+          end2,
+          left,
+        })
+        return output
+      }
+
+      const a1 = ar1.slice(start1, end1 + 1)
+      const a2 = ar2.slice(start2, end2 + 1)
+
+      // If either sliced array is empty, return empty output
+      if (a1.length === 0 || a2.length === 0) {
+        console.warn("spectral_product: empty sliced arrays", {
+          a1_length: a1.length,
+          a2_length: a2.length,
+        })
+        return output
+      }
+
+      // Multiply spectra point by point using the shorter array's wavelengths
+      // For each point in the shorter array, find the closest point in the longer array
+      const minLength = Math.min(a1.length, a2.length)
+      for (let i = 0; i < minLength; i++) {
+        if (a1[i] && a2[i]) {
+          output.push({ x: a1[i].x, y: a1[i].y * a2[i].y })
+        }
       }
 
       // var offsetA1 = (left - ar1[0].x) / step; // these assume monotonic increase w/ step = 1
@@ -1511,7 +1558,27 @@ window.initMicroscope = () => {
     function combineSpectra(pathlist) {
       return pathlist.reduce((acc, cur) => {
         if (acc) {
-          return spectral_product(acc, cur.values)
+          const product = spectral_product(acc, cur.values)
+          // If spectral_product returns empty (no overlap or data issue),
+          // keep the accumulator to avoid losing all data
+          if (product.length === 0) {
+            const msg = `Failed to combine spectrum: ${cur.key || "unknown"}`
+            console.error(msg, { cur })
+            // Log to Sentry for debugging
+            if (window.Sentry) {
+              window.Sentry.captureMessage(msg, {
+                level: "warning",
+                extra: {
+                  spectrum_key: cur.key,
+                  spectrum_slug: cur.slug,
+                  accumulator_length: acc.length,
+                  current_values_length: cur.values?.length,
+                },
+              })
+            }
+            return acc
+          }
+          return product
         }
         return cur.values
       }, null)
