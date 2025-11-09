@@ -1,0 +1,10 @@
+{# Polyfills for browser compatibility - loaded before all other scripts #}
+<script>
+  // Object.hasOwn (ES2022) - not supported in Safari < 15.4, Chrome < 93, Firefox < 92
+  // Must be defined before CDN scripts (like autocomplete.js) that use it
+  if (!Object.hasOwn) {
+    Object.hasOwn = function(obj, prop) {
+      return Object.prototype.hasOwnProperty.call(obj, prop);
+    };
+  }
+</script>
