@@ -389,36 +389,70 @@ pre .mismatch {
 }
 
 
-// Dual-render CSS toggle for flag icons
-.flag-icon-toggle {
+// Unified dual-render CSS toggle pattern for icons
+// Used for favorite hearts, flags, and other togglable icons
+.icon-dual-toggle {
   display: inline-block;
+  position: relative;
 
-  .icon-outline {
-    display: inline-block;
-    color: $danger;
-    margin-left: 10px;
-    font-size: 1.1rem;
+  // Default state: show outline, hide filled
+  // Use !important to override .svg-inline-icon
+  > svg.icon-outline {
+    display: inline-block !important;
   }
 
-  .icon-filled {
-    display: none;
-    color: $danger;
-    margin-left: 10px;
-    font-size: 1.1rem;
+  > svg.icon-filled {
+    display: none !important;
   }
 
-  .is-flagged & {
-    .icon-outline {
-      display: none;
+  // Toggled state: hide outline, show filled
+  // Support multiple state classes for different contexts
+  :where(.is-toggled, .is-favorited, .is-flagged) & {
+    > svg.icon-outline {
+      display: none !important;
     }
 
-    .icon-filled {
-      display: inline-block;
+    > svg.icon-filled {
+      display: inline-block !important;
     }
   }
 }
 
-// When flagged, show at full opacity
+// Flag-specific styling (uses unified toggle pattern)
+.flag-icon-toggle {
+  @extend .icon-dual-toggle;
+
+  .icon-outline,
+  .icon-filled {
+    color: $danger;
+    margin-left: 10px;
+    font-size: 1.1rem;
+  }
+}
+
+// Flag button opacity states
+a.object-flag {
+  opacity: 0.3;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:focus {
+    box-shadow: none;
+  }
+
+  &:active {
+    box-shadow: none;
+    outline: 0;
+  }
+
+  &:active:focus {
+    box-shadow: none;
+    outline: 0;
+  }
+}
+
 .object-flag-wrapper.is-flagged a.object-flag {
   opacity: 1;
 }
