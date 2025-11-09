@@ -654,12 +654,12 @@ def test_favorite_button_interaction(
     # Verify favorite button is present
     favorite_btn = auth_page.locator("#add_remove_favorite")
 
-    # Verify initial state: heart icon should be hollow (.far .fa-heart)
-    # Note: there are two icons (one for mobile, one for desktop) - check the visible one
-    heart_icon = favorite_btn.locator("i").first
-    expect(heart_icon).to_be_visible()
-    expect(heart_icon).to_contain_class("far")
-    expect(heart_icon).to_contain_class("fa-heart")
+    # Verify initial state: outline heart should be visible, filled should be hidden
+    # We use dual-render CSS toggle pattern
+    outline_icon = favorite_btn.locator(".icon-outline").first
+    filled_icon = favorite_btn.locator(".icon-filled").first
+    expect(outline_icon).to_be_visible()
+    expect(filled_icon).to_be_hidden()
 
     # Verify no favorite exists in database yet
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None
@@ -671,9 +671,9 @@ def test_favorite_button_interaction(
     favorite_btn.click()
 
     # Wait for AJAX to complete and icon to change
-    # The icon should change from .far to .fas (hollow to solid)
-    expect(heart_icon).to_contain_class("fas")
-    expect(heart_icon).to_contain_class("fa-heart")
+    # The filled icon should now be visible, outline should be hidden
+    expect(filled_icon).to_be_visible()
+    expect(outline_icon).to_be_hidden()
 
     # Verify backend is updated: favorite should now exist in database
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is not None
@@ -685,7 +685,8 @@ def test_favorite_button_interaction(
     favorite_btn.click()
 
     # Should return to hollow heart
-    expect(heart_icon).to_contain_class("far")
+    expect(outline_icon).to_be_visible()
+    expect(filled_icon).to_be_hidden()
 
     # Verify backend is updated: favorite should be removed
     assert Favorite.objects.get_favorite(auth_user, protein.id, "proteins.Protein") is None

@@ -6,7 +6,9 @@ class for icon extractors.
 
 from __future__ import annotations
 
+import json
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Required, TypedDict
 
 
@@ -27,15 +29,35 @@ class IconPath(TypedDict, total=False):
     strokeLinejoin: str  # Stroke linejoin (e.g., "round")
 
 
-class IconData(TypedDict):
+class IconData(TypedDict, total=False):
     """Standard icon data format for FPbase.
 
     This format is library-agnostic and allows easy switching between
     icon libraries.
     """
 
-    viewBox: str  # SVG viewBox attribute (e.g., "0 0 24 24")
-    paths: list[IconPath]  # List of SVG paths
+    viewBox: Required[str]  # SVG viewBox attribute (e.g., "0 0 24 24")
+    paths: Required[list[IconPath]]  # List of SVG paths
+
+    # Optional SVG-level attributes (used by stroke-based icons like Lucide)
+    # These apply to all paths unless overridden at the path level
+    stroke: str  # Default stroke color
+    strokeWidth: str  # Default stroke width
+    strokeLinecap: str  # Default stroke linecap
+    strokeLinejoin: str  # Default stroke linejoin
+    fill: str  # Default fill color
+
+
+class IconLibrary(TypedDict, total=False):
+    """Top-level structure for icon library JSON files.
+
+    This allows each library to specify its own defaults while keeping
+    the template tag implementation library-agnostic.
+    """
+
+    icons: Required[dict[str, IconData]]  # Icon name -> icon data mapping
+    defaults: dict[str, str]  # Default SVG attributes for this library
+    scale: str  # Optional scale override (e.g., "1.1em" for Lucide)
 
 
 class IconExtractor(ABC):
@@ -44,6 +66,14 @@ class IconExtractor(ABC):
     Each icon library (FontAwesome, Lucide, etc.) should implement this
     interface to extract icons into the standard IconData format.
     """
+
+    @classmethod
+    def extract_to(cls, output_file: Path) -> None:
+        self = cls()
+        library_data = self.extract_library()
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(json.dumps(library_data, indent=2))
+        print(f"\n✓ Extracted {len(library_data['icons'])} icons to {output_file}")
 
     @abstractmethod
     def extract_icon(self, icon_name: str) -> IconData | None:
@@ -69,6 +99,21 @@ class IconExtractor(ABC):
         -------
         list[str]
             List of icon names available in this library
+        """
+        pass
+
+    @abstractmethod
+    def extract_library(self) -> IconLibrary:
+        """Extract all icons for this library.
+
+        This method should extract all icons defined in the library's
+        ICON_MAP and return a complete IconLibrary structure ready to
+        be written to JSON.
+
+        Returns
+        -------
+        IconLibrary
+            Complete library data including icons, defaults, and optional scale
         """
         pass
 

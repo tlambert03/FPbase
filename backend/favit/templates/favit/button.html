@@ -1,11 +1,17 @@
-{% load i18n %}
+{% load i18n fpbase_tags %}
 {% if authenticated %}
-  <div class="favit" data-toggle="tooltip" data-placement="top" title="Add to favorites" >
+  <div class="favit{% if undo %} is-favorited{% endif %}" data-toggle="tooltip" data-placement="top" title="{% if undo %}Remove from{% else %}Add to{% endif %} favorites" >
   	<a class="btn favorite" id="add_remove_favorite" href="" data-action-url="{% url 'favit:add_or_remove' %}" data-model="{{ target_model }}" data-target="target_{{ target_object_id }}">
-  	  <i class="fa{% if not undo %}r{% else %}s{% endif %} fa-heart d-none d-sm-inline"></i>
+  	  <span class="icon-toggle d-none d-sm-inline">
+        {% icon "heart" class_="icon-filled" %}
+        {% icon "heart-outline" class_="icon-outline" %}
+      </span>
       <button type="button" class="btn btn-info btn-block d-block d-sm-none">
-          <i class="fa{% if not undo %}r{% else %}s{% endif %} fa-heart"></i>
-          <span>{% if not undo %}Add to{% else %}Remove from{% endif %} favorites</span>
+          <span class="icon-toggle">
+            {% icon "heart" class_="icon-filled" %}
+            {% icon "heart-outline" class_="icon-outline" %}
+          </span>
+          <span class="favorite-text">{% if not undo %}Add to{% else %}Remove from{% endif %} favorites</span>
       </button>
   	</a>
   	<span class="fav-count badge badge-warning d-none d-sm-inline" >{{ fav_count }}</span>
@@ -14,10 +20,16 @@
 {% else %}
   <div class="favit" data-toggle="tooltip" data-placement="top" title="Log in to add favorites" >
   	<a class="btn favorite" href="{% url 'account_login' %}?next={% firstof path '/' %}">
-  	  <i class="far fa-heart d-none d-sm-inline"></i>
+  	  <span class="icon-toggle d-none d-sm-inline">
+        {% icon "heart" class_="icon-filled" %}
+        {% icon "heart-outline" class_="icon-outline" %}
+      </span>
       <button type="button" class="btn btn-info btn-block d-block d-sm-none mt-2">
-          <i class="fa{% if not undo %}r{% else %}s{% endif %} fa-heart"></i>
-          <span>{% if not undo %}Add to{% else %}Remove from{% endif %} favorites</span>
+          <span class="icon-toggle">
+            {% icon "heart" class_="icon-filled" %}
+            {% icon "heart-outline" class_="icon-outline" %}
+          </span>
+          <span class="favorite-text">Add to favorites</span>
       </button>
   	</a>
   	<span class="fav-count badge badge-warning d-none d-sm-inline" >{{ fav_count }}</span>

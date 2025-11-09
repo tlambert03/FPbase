@@ -30,11 +30,55 @@ Use the `{% icon %}` template tag with semantic icon names:
 {% icon "download" class_="icon-lg" aria_hidden="true" title="Download" %}
 ```
 
+### Togglable Icons (e.g., Favorite Button)
+
+For icons that need to toggle between states (like filled/outline hearts), use the **dual-render** pattern:
+
+```django
+{# Render both icon states #}
+<div class="container{% if is_active %} is-active{% endif %}">
+  <span class="icon-toggle">
+    {% icon "heart" class_="icon-filled" %}
+    {% icon "heart-outline" class_="icon-outline" %}
+  </span>
+</div>
+```
+
+Then use CSS to control visibility:
+
+```scss
+.icon-toggle {
+    // By default, show outline
+    .icon-outline { display: inline-block; }
+    .icon-filled { display: none; }
+
+    // When active, show filled
+    .is-active & {
+        .icon-outline { display: none; }
+        .icon-filled { display: inline-block; }
+    }
+}
+```
+
+JavaScript toggles the parent class:
+
+```javascript
+// Toggle favorite state
+$container.toggleClass('is-active')
+```
+
+This approach is:
+
+- **Performant**: No DOM manipulation needed
+- **Accessible**: Both states rendered for screen readers
+- **Simple**: Just toggle a CSS class
+- **Standard**: Used by modern icon libraries (Lucide, Heroicons)
+
 ## Available Icons
 
 The following semantic icon names are available:
 
-- **UI & Navigation**: info, warning, alert, help, question, close, remove, menu, grid, search, filter, view, settings, edit, delete, trash, undo, check, success, selected, unselected, heart
+- **UI & Navigation**: info, warning, alert, help, question, close, remove, menu, grid, search, filter, view, settings, edit, delete, trash, undo, check, success, selected, unselected, heart, heart-outline
 - **Actions**: add, add-item, download, upload, share, share-square, link, external-link, exchange
 - **Content**: book, collection, quote, photo, chart, table, flag, flag-outline
 - **Time & Status**: clock, spinner, lightbulb, sun
@@ -42,24 +86,13 @@ The following semantic icon names are available:
 - **Tools**: wrench, keyboard
 - **Social/External**: google, twitter, orcid
 
-## Switching Icon Libraries
+### Lucide Filled Icons
 
-FPbase currently supports two icon libraries:
+Since Lucide is primarily a stroke-based icon library, filled variants (like `heart`) are created using [Lucide's recommended workaround](https://lucide.dev/guide/advanced/filled-icons):
 
-1. **FontAwesome** (default) - Filled icons, supports brand icons
-2. **Lucide** - Outline/stroke icons, no brand icons
-
-To switch libraries, set the `FPBASE_ICON_LIBRARY` environment variable:
-
-```bash
-export FPBASE_ICON_LIBRARY=lucide
-```
-
-Or update `backend/config/settings/base.py`:
-
-```python
-FPBASE_ICON_LIBRARY = "lucide"
-```
+- Set `fill="currentColor"` and `strokeWidth="0"`
+- This works well for icons with closed paths (heart, checkboxes, etc.)
+- The extraction script automatically applies this for icons in the `FILLED_ICONS` set
 
 ## Adding a New Icon Library
 

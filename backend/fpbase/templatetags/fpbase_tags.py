@@ -12,14 +12,16 @@ register = template.Library()
 
 # Load icon data from JSON file based on configured library
 LIBRARY = "lucide"
-ICON_SCALE = "1.1em"  # Default size for icons
 icon_file = Path(settings.APPS_DIR) / "static" / "icons" / f"{LIBRARY}.json"
 if not icon_file.exists():
     raise FileNotFoundError(
         f"Icon data file not found: {icon_file}. Run 'python scripts/extract_icons.py {LIBRARY}' to generate it."
     )
 
-ICON_DATA = json.loads(icon_file.read_text())
+ICON_LIBRARY = json.loads(icon_file.read_text())
+ICON_DATA = ICON_LIBRARY.get("icons", {})
+LIBRARY_DEFAULTS = ICON_LIBRARY.get("defaults", {})
+ICON_SCALE = ICON_LIBRARY.get("scale", "1em")
 
 
 # Available icon names (for validation and error messages)
@@ -46,6 +48,7 @@ AVAILABLE_ICONS = {
     "selected",
     "unselected",
     "heart",
+    "heart-outline",
     "add",
     "add-item",
     "download",
@@ -111,12 +114,9 @@ def icon(name, class_="", style="", **attrs):
 
     # Load icon data
     if name not in ICON_DATA:
-        # This could happen if an icon is in AVAILABLE_ICONS but not in the JSON
-        # (e.g., brand icons when using Lucide)
-        library = getattr(settings, "FPBASE_ICON_LIBRARY", "fontawesome")
         raise ValueError(
-            f"Icon '{name}' not available in {library} library. "
-            f"Try switching to a different library or use an alternative icon."
+            f"Icon '{name}' not available in {LIBRARY} library. "
+            "Try switching to a different library or use an alternative icon."
         )
 
     icon_svg = ICON_DATA[name]
@@ -144,6 +144,35 @@ def icon(name, class_="", style="", **attrs):
                 attrs_str += f" {attr_name}"
         else:
             attrs_str += f' {attr_name}="{escape(str(value))}"'
+
+    # Merge library defaults with icon-specific attributes
+    # Icon-specific attributes override defaults
+    merged_attrs = {
+        **LIBRARY_DEFAULTS,
+        **{
+            k: v
+            for k, v in icon_svg.items()
+            if k in ("stroke", "strokeWidth", "strokeLinecap", "strokeLinejoin", "fill")
+        },
+    }
+
+    # Extract SVG-level attributes (for stroke-based icons like Lucide)
+    svg_attrs = []
+    for attr_name in ("stroke", "strokeWidth", "strokeLinecap", "strokeLinejoin", "fill"):
+        if attr_name in merged_attrs:
+            # Convert camelCase to kebab-case
+            kebab_name = (
+                "stroke-width"
+                if attr_name == "strokeWidth"
+                else "stroke-linecap"
+                if attr_name == "strokeLinecap"
+                else "stroke-linejoin"
+                if attr_name == "strokeLinejoin"
+                else attr_name
+            )
+            svg_attrs.append(f'{kebab_name}="{escape(str(merged_attrs[attr_name]))}"')
+
+    svg_attrs_str = " " + " ".join(svg_attrs) if svg_attrs else ""
 
     # Build path elements
     path_elements = []
@@ -173,8 +202,7 @@ def icon(name, class_="", style="", **attrs):
         f'xmlns="http://www.w3.org/2000/svg" '
         f'viewBox="{viewBox}" '
         f'width="{ICON_SCALE}" '
-        f'height="{ICON_SCALE}" '
-        f'fill="currentColor" '
+        f'height="{ICON_SCALE}"{svg_attrs_str} '
         f'aria-hidden="true"{attrs_str}>'
         f"{''.join(path_elements)}"
         f"</svg>"

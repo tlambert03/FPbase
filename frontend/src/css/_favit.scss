@@ -11,3 +11,27 @@
     background-color: #fafafa;
     border: 1px solid #d4d4d4;
 }
+
+// Icon toggle for favorite button
+.icon-toggle {
+    display: inline-block;
+    position: relative;
+
+    // By default, show outline and hide filled
+    .icon-outline {
+        display: inline-block;
+    }
+    .icon-filled {
+        display: none;
+    }
+
+    // When parent has is-favorited class, show filled and hide outline
+    .is-favorited & {
+        .icon-outline {
+            display: none;
+        }
+        .icon-filled {
+            display: inline-block;
+        }
+    }
+}
