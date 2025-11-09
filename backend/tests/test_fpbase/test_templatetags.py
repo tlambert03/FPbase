@@ -115,6 +115,7 @@ class TestIconTemplateTag:
             "chart",
             "table",
             "flag",
+            "flag-outline",
             "clock",
             "spinner",
             "lightbulb",
@@ -184,3 +185,27 @@ class TestIconTemplateTag:
         t = Template('{% load fpbase_tags %}{% icon "info" data_toggle="tooltip" %}')
         html = t.render(Context({}))
         assert 'data-toggle="tooltip"' in html
+
+    def test_icon_keyboard_uses_far(self):
+        """Test that keyboard icon uses far (regular) style."""
+        t = Template('{% load fpbase_tags %}{% icon "keyboard" %}')
+        html = t.render(Context({}))
+        assert "far" in html
+        assert "fa-keyboard" in html
+        assert 'class="far fa-keyboard"' in html
+
+    def test_icon_flag_outline_uses_far(self):
+        """Test that flag-outline icon uses far (regular) style."""
+        t = Template('{% load fpbase_tags %}{% icon "flag-outline" %}')
+        html = t.render(Context({}))
+        assert "far" in html
+        assert "fa-flag" in html
+        assert 'class="far fa-flag"' in html
+
+    def test_icon_flag_solid_uses_fas(self):
+        """Test that flag icon uses fas (solid) style."""
+        t = Template('{% load fpbase_tags %}{% icon "flag" %}')
+        html = t.render(Context({}))
+        assert "fas" in html
+        assert "fa-flag" in html
+        assert 'class="fas fa-flag"' in html

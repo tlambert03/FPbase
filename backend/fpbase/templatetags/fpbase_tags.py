@@ -50,6 +50,7 @@ ICON_MAP = {
     "chart": ("fas", "chart-area"),
     "table": ("fas", "table"),
     "flag": ("fas", "flag"),
+    "flag-outline": ("far", "flag"),
     # Time & Status
     "clock": ("fas", "clock"),
     "spinner": ("fas", "spinner"),
@@ -59,7 +60,7 @@ ICON_MAP = {
     "email": ("fas", "envelope"),
     # Tools
     "wrench": ("fas", "wrench"),
-    "keyboard": ("fas", "keyboard"),
+    "keyboard": ("far", "keyboard"),
     # Social/External
     "google": ("fab", "google"),
     "twitter": ("fab", "x-twitter"),
