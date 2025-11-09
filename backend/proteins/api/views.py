@@ -12,9 +12,12 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.settings import api_settings
 from rest_framework_csv import renderers as r
 
+from fpbase.api_mixins import ETagMixin
+from fpbase.decorators import etag_cached
+
 from ..filters import ProteinFilter, SpectrumFilter, StateFilter
 from ..models import Protein, State, StateTransition
-from ..models.microscope import get_cached_optical_configs
+from ..models.microscope import OpticalConfig, get_cached_optical_configs
 from ..models.spectrum import Spectrum, get_cached_spectra_info
 from .serializers import (
     BasicProteinSerializer,
@@ -27,12 +30,16 @@ from .serializers import (
 )
 
 
+@etag_cached(Spectrum)
 def spectraslugs(request):
+    """Return list of all spectra with ETag support for conditional requests."""
     spectrainfo = get_cached_spectra_info()
     return HttpResponse(spectrainfo, content_type="application/json")
 
 
+@etag_cached(OpticalConfig)
 def ocinfo(request):
+    """Return optical configuration info with ETag support."""
     ocinfo = get_cached_optical_configs()
     return HttpResponse(ocinfo, content_type="application/json")
 
@@ -131,12 +138,17 @@ class ProteinSpectraListAPIView(ListAPIView):
     queryset = Protein.objects.with_spectra().prefetch_related("states")
 
 
-class ProteinTableAPIView(ListAPIView):
+class ProteinTableAPIView(ETagMixin, ListAPIView):
     """Optimized API endpoint for the protein table view.
 
     Includes efficient queries with prefetch_related and select_related to
     avoid N+1 query problems. Only returns visible proteins with their states.
+
+    Uses ETag-based caching for conditional requests (304 Not Modified).
+    Client-side caching via ETags replaces server-side cache_page.
     """
+
+    etag_models = [Protein, State]  # ETag based on protein and state versions
 
     queryset = (
         Protein.visible.all()
@@ -152,6 +164,5 @@ class ProteinTableAPIView(ListAPIView):
     filterset_class = ProteinFilter
 
     @method_decorator(cache_control(public=True, max_age=600))
-    @method_decorator(cache_page(60 * 10))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
