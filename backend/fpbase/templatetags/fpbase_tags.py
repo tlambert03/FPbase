@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django import template
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 register = template.Library()
@@ -13,6 +14,7 @@ ICON_MAP = {
     "warning": ("fas", "exclamation-circle"),
     "alert": ("fas", "exclamation-triangle"),
     "help": ("fas", "info-circle"),
+    "question": ("fas", "question-circle"),
     "close": ("fas", "times"),
     "remove": ("fas", "times-circle"),
     "menu": ("fas", "list"),
@@ -29,6 +31,7 @@ ICON_MAP = {
     "success": ("fas", "check-circle"),
     "selected": ("far", "check-square"),
     "unselected": ("far", "square"),
+    "heart": ("fas", "heart"),
     # Actions
     "add": ("fas", "plus"),
     "add-item": ("fas", "plus-circle"),
@@ -49,7 +52,7 @@ ICON_MAP = {
     "flag": ("fas", "flag"),
     # Time & Status
     "clock": ("fas", "clock"),
-    "spinner": ("fas", "spin"),
+    "spinner": ("fas", "spinner"),
     "lightbulb": ("fas", "lightbulb"),
     "sun": ("fas", "sun"),
     # Communication
@@ -101,7 +104,7 @@ def icon(name, class_="", style="", **attrs):
 
     Raises
     ------
-    KeyError
+    ValueError
         If the icon name is not found in ICON_MAP
     """
     if name not in ICON_MAP:
@@ -112,15 +115,15 @@ def icon(name, class_="", style="", **attrs):
     # Get the icon library implementation (currently FontAwesome)
     fa_style, fa_icon_name = ICON_MAP[name]
 
-    # Build the class list
+    # Build the class list (escape class_ to prevent XSS)
     classes = [fa_style, f"fa-{fa_icon_name}"]
     if class_:
-        classes.append(class_)
+        classes.append(escape(class_))
 
-    # Build the attributes string
+    # Build the attributes string (with XSS protection via escaping)
     attrs_str = ""
     if style:
-        attrs_str += f' style="{style}"'
+        attrs_str += f' style="{escape(style)}"'
 
     for key, value in attrs.items():
         # Convert underscores to hyphens for data attributes (data_toggle -> data-toggle)
@@ -130,6 +133,6 @@ def icon(name, class_="", style="", **attrs):
             if value:
                 attrs_str += f" {attr_name}"
         else:
-            attrs_str += f' {attr_name}="{value}"'
+            attrs_str += f' {attr_name}="{escape(str(value))}"'
 
     return mark_safe(f'<i class="{" ".join(classes)}"{attrs_str}></i>')
