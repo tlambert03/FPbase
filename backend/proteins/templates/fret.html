@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load fpbase_tags %}
 {% load favit_tags %}
 {% load webp_picture from protein_tags %}
 {% load django_vite %}
@@ -119,8 +120,7 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
 <div class="container">
   <h5 class='text-center mt-2 mb-4' style='font-weight: 300;'>Förster Radii for all <em>monomeric</em> FP pairs in the
     database
-    <button type="button" data-toggle="modal" data-target="#fretInfoModal" class='btn btn-info btn-circle ml-1'><i
-        class="fas fa-info"></i></button></h5>
+    <button type="button" data-toggle="modal" data-target="#fretInfoModal" class='btn btn-info btn-circle ml-1'>{% icon "info" %}</button></h5>
   <table id="fret_report" class="display table table-sm table-striped" style="width:100%">
     <thead>
       <tr>
@@ -211,13 +211,12 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
         <ul class='small'>
           <li>Wu &amp; Brand (1994). Resonance Energy Transfer: Methods and Applications. <em>Analytical Biochem.
             </em><strong>218(1)</strong><a target="_blank" rel="noopener"
-              href="https://doi.org/10.1006/abio.1994.1134"><i class="fas fa-external-link-alt ml-2" style="font-size: 0.8rem;"></i></a></li>
+              href="https://doi.org/10.1006/abio.1994.1134">{% icon "external-link" class_="ml-2" style='font-size: 0.8rem;' %}</a></li>
           <li>Bajar et al. (2016). A Guide to Fluorescent Protein FRET Pairs. <em>Sensors</em> <strong>16(9)</strong><a
-              target="_blank" rel="noopener" href="https://doi.org/10.3390/s16091488"><i
-                class="fas fa-external-link-alt ml-2" style="font-size: 0.8rem;"></i></a></li>
+              target="_blank" rel="noopener" href="https://doi.org/10.3390/s16091488">{% icon "external-link" class_="ml-2" style='font-size: 0.8rem;' %}</a></li>
           <li>Mastop et al. (2017). Characterization of a spectrally diverse set of fluorescent proteins as FRET
             acceptors for mTurquoise2. <em>Sci. Rep. </em><strong>7(1)</strong><a target="_blank" rel="noopener"
-              href="https://doi.org/10.1038/s41598-017-12212-x"><i class="fas fa-external-link-alt ml-2" style="font-size: 0.8rem;"></i></a>
+              href="https://doi.org/10.1038/s41598-017-12212-x">{% icon "external-link" class_="ml-2" style='font-size: 0.8rem;' %}</a>
           </li>
         </ul>
 

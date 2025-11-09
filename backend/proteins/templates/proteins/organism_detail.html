@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load fpbase_tags %}
 {% load static i18n favit_tags %}
 
 {% block title %}{{ object }} in the Fluorescent Protein Database {% endblock %}
@@ -8,7 +9,7 @@
 
 			<h1 class="name text-center mb-4">{{ object }}</h1>
 
-			<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View on Pubmed Taxonomy Browser</a>
+			<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" rel="noopener">{% icon "external-link" %} View on Pubmed Taxonomy Browser</a>
 
 			<div class="row mt-2">
 				<dt class="col-sm-3">scientific_name</dt>
