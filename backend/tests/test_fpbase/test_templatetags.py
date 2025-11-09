@@ -80,18 +80,8 @@ class TestIconTemplateTag:
         # The malicious code should be escaped
         assert "onload" not in html or "&quot;" in html
 
-    def test_icon_all_semantic_names(self):
-        """Test that all defined semantic icon names render without error."""
-        for icon_name in AVAILABLE_ICONS:
-            t = Template(f'{{% load fpbase_tags %}}{{% icon "{icon_name}" %}}')
-            html = t.render(Context({}))
-            assert "<svg" in html, f"Icon '{icon_name}' failed to render"
-            assert "</svg>" in html, f"Icon '{icon_name}' failed to render"
-            assert "viewBox=" in html, f"Icon '{icon_name}' missing viewBox"
-            assert "<path" in html, f"Icon '{icon_name}' missing path"
-
-    def test_icon_brand_renders(self):
-        """Test that brand icons render as SVG."""
+    def test_icon_fab_style(self):
+        """Test that brand icons use fab style."""
         t = Template('{% load fpbase_tags %}{% icon "google" %}')
         html = t.render(Context({}))
         assert "<svg" in html

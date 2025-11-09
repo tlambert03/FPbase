@@ -27,7 +27,7 @@ ICON_SCALE = ICON_LIBRARY.get("scale", "1em")
 # Available icon names (for validation and error messages)
 AVAILABLE_ICONS = {
     "info",
-    "info-circle",
+    "info-i",
     "warning",
     "alert",
     "help",
