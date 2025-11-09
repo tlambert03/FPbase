@@ -58,7 +58,7 @@
             <td>{{measurement.get_light_display}}</td>
             <td>{{measurement.get_modality_display}}</td>
             <td class='text-muted small'>{% if measurement.in_cell == 0 %}
-              {% icon "times" %}
+              {% icon "close" %}
             {% elif measurement.in_cell == 1 %}
               {% icon "check" %}
             {% else %}
@@ -124,7 +124,7 @@
 
 
 <div class="excerpts mt-3">
-  <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info-circle" class_="ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
+  <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info" class_="ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
   {% if excerpts %}
     {% for excerpt in excerpts %}
       {% if excerpt.status != 'rejected' %}
@@ -141,7 +141,7 @@
     <p class='text-muted'>No excerpts have been added from this reference.<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
   {% endif %}
-  <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'>{% icon "quote-left" class_="mr-2" %}Add an excerpt</button></a>
+  <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'>{% icon "quote" class_="mr-2" %}Add an excerpt</button></a>
 </div>
 
 {% endblock content %}

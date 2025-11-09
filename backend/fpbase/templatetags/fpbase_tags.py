@@ -5,23 +5,83 @@ from django.utils.safestring import mark_safe
 
 register = template.Library()
 
+# FPbase icon vocabulary mapped to FontAwesome
+# This allows us to swap icon libraries in the future without changing templates
+ICON_MAP = {
+    # UI & Navigation
+    "info": ("fas", "info-circle"),
+    "warning": ("fas", "exclamation-circle"),
+    "alert": ("fas", "exclamation-triangle"),
+    "help": ("fas", "info-circle"),
+    "close": ("fas", "times"),
+    "remove": ("fas", "times-circle"),
+    "menu": ("fas", "list"),
+    "grid": ("fas", "th"),
+    "search": ("fas", "search"),
+    "filter": ("fas", "filter"),
+    "view": ("fas", "eye"),
+    "settings": ("fas", "cog"),
+    "edit": ("fas", "edit"),
+    "delete": ("fas", "trash-alt"),
+    "trash": ("fas", "trash"),
+    "undo": ("fas", "undo"),
+    "check": ("fas", "check"),
+    "success": ("fas", "check-circle"),
+    "selected": ("far", "check-square"),
+    "unselected": ("far", "square"),
+    # Actions
+    "add": ("fas", "plus"),
+    "add-item": ("fas", "plus-circle"),
+    "download": ("fas", "download"),
+    "upload": ("fas", "upload"),
+    "share": ("fas", "share"),
+    "share-square": ("fas", "share-square"),
+    "link": ("fas", "link"),
+    "external-link": ("fas", "external-link-alt"),
+    "exchange": ("fas", "exchange-alt"),
+    # Content
+    "book": ("fas", "book"),
+    "collection": ("fas", "book"),
+    "quote": ("fas", "quote-left"),
+    "photo": ("fas", "camera"),
+    "chart": ("fas", "chart-area"),
+    "table": ("fas", "table"),
+    "flag": ("fas", "flag"),
+    # Time & Status
+    "clock": ("fas", "clock"),
+    "spinner": ("fas", "spin"),
+    "lightbulb": ("fas", "lightbulb"),
+    "sun": ("fas", "sun"),
+    # Communication
+    "email": ("fas", "envelope"),
+    # Tools
+    "wrench": ("fas", "wrench"),
+    "keyboard": ("fas", "keyboard"),
+    # Social/External
+    "google": ("fab", "google"),
+    "twitter": ("fab", "x-twitter"),
+    "orcid": ("fab", "orcid"),
+}
+
 
 @register.simple_tag
-def icon(name, fa_style="fas", class_="", css_style="", **attrs):
-    """Render a FontAwesome icon.
+def icon(name, class_="", style="", **attrs):
+    """Render an icon using FPbase's icon vocabulary.
+
+    This abstraction allows FPbase to use semantic icon names that can be mapped
+    to any icon library (currently FontAwesome, but could be Lucide, etc. in the future).
 
     Parameters
     ----------
     name : str
-        The icon name (without 'fa-' prefix). E.g., 'heart', 'external-link-alt'
-    fa_style : str, optional
-        The FontAwesome style prefix ('fas', 'far', 'fab', 'fa'), by default 'fas'
+        The FPbase icon name (e.g., 'info', 'warning', 'external-link')
+        See ICON_MAP for available icons.
     class_ : str, optional
         Additional CSS classes to apply, by default ''
-    css_style : str, optional
+    style : str, optional
         Inline CSS styles, by default ''
     **attrs
-        Additional HTML attributes (e.g., title, data-toggle)
+        Additional HTML attributes (e.g., title, data_toggle, aria_hidden)
 
     Returns
     -------
@@ -30,27 +90,37 @@ def icon(name, fa_style="fas", class_="", css_style="", **attrs):
 
     Examples
     --------
-    >>> {% icon "heart" %}
-    <i class="fas fa-heart"></i>
+    >>> {% icon "info" %}
+    <i class="fas fa-info-circle"></i>
 
-    >>> {% icon "heart" fa_style="far" %}
-    <i class="far fa-heart"></i>
+    >>> {% icon "warning" class_="mr-2" %}
+    <i class="fas fa-exclamation-circle mr-2"></i>
 
-    >>> {% icon "heart" class_="mr-2 text-info" %}
-    <i class="fas fa-heart mr-2 text-info"></i>
-
-    >>> {% icon "external-link-alt" class_="ml-2" css_style="font-size: 0.8rem;" %}
+    >>> {% icon "external-link" class_="ml-2" style="font-size: 0.8rem;" %}
     <i class="fas fa-external-link-alt ml-2" style="font-size: 0.8rem;"></i>
+
+    Raises
+    ------
+    KeyError
+        If the icon name is not found in ICON_MAP
     """
+    if name not in ICON_MAP:
+        raise ValueError(
+            f"Icon '{name}' not found in FPbase icon vocabulary. Available icons: {', '.join(sorted(ICON_MAP.keys()))}"
+        )
+
+    # Get the icon library implementation (currently FontAwesome)
+    fa_style, fa_icon_name = ICON_MAP[name]
+
     # Build the class list
-    classes = [fa_style, f"fa-{name}"]
+    classes = [fa_style, f"fa-{fa_icon_name}"]
     if class_:
         classes.append(class_)
 
     # Build the attributes string
     attrs_str = ""
-    if css_style:
-        attrs_str += f' style="{css_style}"'
+    if style:
+        attrs_str += f' style="{style}"'
 
     for key, value in attrs.items():
         # Convert underscores to hyphens for data attributes (data_toggle -> data-toggle)

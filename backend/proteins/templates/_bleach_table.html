@@ -27,7 +27,7 @@
 					<td>{{measurement.get_modality_display}}</td>
 					<td class='text-muted small'>
 					{% if measurement.in_cell == 0 %}
-						{% icon "times" %}
+						{% icon "close" %}
 					{% elif measurement.in_cell == 1 %}
 
 						{% if measurement.cell_type %}
@@ -45,7 +45,7 @@
 					<td class='small'>
 						{% if measurement.reference %}
 							<a href="{{measurement.reference.get_absolute_url}}">{{measurement.reference}}</a>
-							<a href="https://doi.org/{{ measurement.reference.doi }}" target="_blank" rel="noopener">{% icon "external-link-alt" class_="text-info" %}</a>
+							<a href="https://doi.org/{{ measurement.reference.doi }}" target="_blank" rel="noopener">{% icon "external-link" class_="text-info" %}</a>
 						{% endif %}
 					</td>
 				</tr>

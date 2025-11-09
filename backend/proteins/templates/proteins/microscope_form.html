@@ -31,7 +31,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
     <span aria-hidden="true">&times;</span>
   </button>
-  <p>{% icon "info-circle" class_="mr-2" %}For more information on {% if object %}updating{%else%}creating{%endif%}
+  <p>{% icon "info" class_="mr-2" %}For more information on {% if object %}updating{%else%}creating{%endif%}
     microscope pages, see the <a class="alert-link"
       href="https://help.fpbase.org/tools/microscopes/create-microscope">documentation</a></p>
 </div>
@@ -224,7 +224,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
   {% endif %}
   <input type="submit" class="btn btn-primary mb-2 mt-3" value="Submit" />
   <div class="text-primary ml-3 hidden" id="spinner" style="top: 5px; position: relative;">
-    {% icon "spin" class_="mr-2" style='font-size: 1.7rem; top: 6px; position: relative;' %}{% if object %}Updating{% else %}Building{% endif %}
+    {% icon "spinner" class_="mr-2" style='font-size: 1.7rem; top: 6px; position: relative;' %}{% if object %}Updating{% else %}Building{% endif %}
     your configuration...
   </div>
 </form>

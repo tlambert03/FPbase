@@ -65,10 +65,10 @@
 
   <div class="tab-content">
     <div class="tab-pane active" id="proteintab">
-      <h6 class='pt-3 text-info'>Proteins<button type="button" class="btn btn-info btn-xs addFormItem ml-3" value='p'>{% icon "plus" class_="mr-2" %}Add protein</button></h6>
+      <h6 class='pt-3 text-info'>Proteins<button type="button" class="btn btn-info btn-xs addFormItem ml-3" value='p'>{% icon "add" class_="mr-2" %}Add protein</button></h6>
       <div class='spectra-form' id='protein-table'></div>
 
-      <h6 class='text-info mt-4'>Dyes &amp; Other Probes<button type="button" class="btn btn-info btn-xs addFormItem ml-3" value='d'>{% icon "plus" class_="mr-2" %}Add probe</button></h6>
+      <h6 class='text-info mt-4'>Dyes &amp; Other Probes<button type="button" class="btn btn-info btn-xs addFormItem ml-3" value='d'>{% icon "add" class_="mr-2" %}Add probe</button></h6>
       <div class='spectra-form' id='dye-table'></div>
 
       <div class="form-inline row mt-2" id='toggle_alls'>
@@ -89,21 +89,21 @@
 
     </div>
     <div class="tab-pane" id="extab">
-      <h6 class='pt-3 text-info'>Light Sources <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='l' data-stype='pd'>{% icon "plus" class_="mr-2" %}Add Light Source</button></h6>
+      <h6 class='pt-3 text-info'>Light Sources <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='l' data-stype='pd'>{% icon "add" class_="mr-2" %}Add Light Source</button></h6>
       <div class='spectra-form' id='light-table'></div>
 
-      <h6 class='text-info mt-4'>Excitation Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bx'>{% icon "plus" class_="mr-2" %}Add Excitation Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'>{% icon "download" class_="mr-2" %}Import Commercial Filter</button></a></h6>
+      <h6 class='text-info mt-4'>Excitation Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bx'>{% icon "add" class_="mr-2" %}Add Excitation Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'>{% icon "download" class_="mr-2" %}Import Commercial Filter</button></a></h6>
       <div class='spectra-form' id='exfilter-table'></div>
     </div>
 <!--     <div class="tab-pane" id="dichroictab">
       <div class='spectra-form' id='dichroic-table'></div>
       <p>not yet implemented...</p>
-      <button type="button" class="btn btn-info btn-xs" id="addexcitationbutton">{% icon "square" fa_style="far" class_="mr-2" %}Add dichroic</button>
+      <button type="button" class="btn btn-info btn-xs" id="addexcitationbutton">{% icon "unselected" class_="mr-2" %}Add dichroic</button>
     </div> -->
     <div class="tab-pane" id="emtab">
-      <h6 class='text-info pt-3'>Emission Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bm'>{% icon "plus" class_="mr-2" %}Add Emission Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'>{% icon "download" class_="mr-2" %}Import Commercial Filter</button></a></h6>
+      <h6 class='text-info pt-3'>Emission Filters <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='f' data-stype='bm'>{% icon "add" class_="mr-2" %}Add Emission Filter</button><a href="#" class='text-primary ml-2' data-toggle="modal" data-target="#importModal"><button class='btn btn-xs btn-danger'>{% icon "download" class_="mr-2" %}Import Commercial Filter</button></a></h6>
       <div class='spectra-form' id='emfilter-table'></div>
-      <h6 class='text-info mt-4'>Camera QE <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='c' data-stype='c'>{% icon "camera" class_="mr-2" %}Add Camera QE</button></h6>
+      <h6 class='text-info mt-4'>Camera QE <button type="button" class="btn btn-info btn-xs addFormItem ml-2" value='c' data-stype='c'>{% icon "photo" class_="mr-2" %}Add Camera QE</button></h6>
       <div class='spectra-form' id='camqe-table'></div>
     </div>
     <div class="tab-pane" id="efftab">
@@ -117,7 +117,7 @@
       </div>
       <div class='efftab_help mt-3 ml-3'>
         <p>Collection efficiency is shown as a pair of numbers: <code>abs / (rel %)</code>.  Where <code>abs</code> is the absolute collection efficiency of that fluorophore/filter pair (arbitrary units), taking any scaling into account (e.g. excitation efficiency, extinction coefficient, quantum yield), and <code>rel %</code> is the predicted percent of total emission photons that are collected for that given fluorophore.
-        <p class='efftab_help text-muted hidden'><em>Tip: click and hold on the {% icon "eye" %} buttons to reveal the collection efficiency on the graph</em></p>
+        <p class='efftab_help text-muted hidden'><em>Tip: click and hold on the {% icon "view" %} buttons to reveal the collection efficiency on the graph</em></p>
       </div>
       <table class='table table-bordered' id='efficiency-table'>
         <thead>
@@ -139,7 +139,7 @@
     <div class="tab-pane" id="helptab">
       <div class="container mt-3">
         <p class='text-justify'>Add items to the spectra viewer by clicking the corresponding <strong class='text-info'>add...</strong> button for the type of item you would like to add (e.g. fluorescent protein, filter, etc...).  Remove items by clicking the red <span class='text-danger'><strong>&times;</strong></span> button next to the item you wish to remove.  Add chroma/semrock filters to the viewer by using the "import commercial filter" buttons. Scale excitation spectra to EC or emission spectra to QY using the corresponding options in the options tab (note, not all dyes have EC/QY information and some will disappear from the graph).  If you add a custom laser in the excitation/light tab, you can scale all emission spectra to their relative excitation at that particular laser line.  If you add at least one fluorophore and one emission filter, you can use the collection efficiency tab to evaluate how well each emission filter collects emission from each probe (and evaluate potential bleedthrough).</p>
-        <h5 class=' pb-2'>{% icon "keyboard" fa_style="far" class_="mr-2" %}<strong>Keyboard Shortcuts</strong></h5>
+        <h5 class=' pb-2'>{% icon "keyboard" class_="mr-2" %}<strong>Keyboard Shortcuts</strong></h5>
         <div class="container">
           <dl class="row no-gutters">
             <dt class="col-sm-2 key-shortcut">Shift + P</dt>
@@ -183,8 +183,8 @@
 
 <input class="form-check-input hidden" type="radio" name="exnormRadio" id="exnormRadioOFF" value="0" checked>
 
-<div class="hidden" id='eyeSVG'>{% icon "eye" %}</div>
-<div class="hidden" id='linkSVG'>{% icon "external-link-alt" %}</div>
+<div class="hidden" id='eyeSVG'>{% icon "view" %}</div>
+<div class="hidden" id='linkSVG'>{% icon "external-link" %}</div>
 <svg height="8" width="8" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="crosshatch" patternUnits="userSpaceOnUse" width="8" height="8"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc4JyBoZWlnaHQ9JzgnPgogIDxyZWN0IHdpZHRoPSc4JyBoZWlnaHQ9JzgnIGZpbGw9JyNmZmYnLz4KICA8cGF0aCBkPSdNMCAwTDggOFpNOCAwTDAgOFonIHN0cm9rZS13aWR0aD0nMC41JyBzdHJva2U9JyNhYWEnLz4KPC9zdmc+Cg==" x="0" y="0" width="8" height="8"> </image> </pattern> </defs> </svg>
 <svg height="5" width="5" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <pattern id="lightstripe" patternUnits="userSpaceOnUse" width="5" height="5"> <image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1JyBoZWlnaHQ9JzUnPgogIDxyZWN0IHdpZHRoPSc1JyBoZWlnaHQ9JzUnIGZpbGw9J3doaXRlJy8+CiAgPHBhdGggZD0nTTAgNUw1IDBaTTYgNEw0IDZaTS0xIDFMMSAtMVonIHN0cm9rZT0nIzg4OCcgc3Ryb2tlLXdpZHRoPScxJy8+Cjwvc3ZnPg==" x="0" y="0" width="5" height="5"> </image> </pattern> </defs> </svg>
 
