@@ -1,5 +1,9 @@
 const $ = window.jQuery // jQuery loaded from CDN
 
+// Algolia has a 512 byte limit for query strings
+// Use 500 to be safe (accounting for multi-byte characters)
+const MAX_QUERY_LENGTH = 500
+
 function checkObject(val, prop, str) {
   var propDict = {
     genbank: "GenBank",
@@ -209,6 +213,17 @@ export default async function initAutocomplete() {
     }
   }
 
+  // Helper function to truncate queries that exceed Algolia's limit
+  function createLimitedSource(index, options) {
+    const originalSource = $.fn.autocomplete.sources.hits(index, options)
+    return (query, callback) => {
+      // Truncate query if it exceeds the limit
+      const truncatedQuery =
+        query.length > MAX_QUERY_LENGTH ? query.substring(0, MAX_QUERY_LENGTH) : query
+      return originalSource(truncatedQuery, callback)
+    }
+  }
+
   // Initialize autocomplete on the search input
   $searchInput
     .autocomplete(
@@ -224,7 +239,7 @@ export default async function initAutocomplete() {
       [
         {
           // add {attributesToRetrieve: }
-          source: $.fn.autocomplete.sources.hits(proteinIndex, {
+          source: createLimitedSource(proteinIndex, {
             hitsPerPage: 5,
           }),
           displayKey: "name",
@@ -272,7 +287,7 @@ export default async function initAutocomplete() {
           },
         },
         {
-          source: $.fn.autocomplete.sources.hits(referenceIndex, {
+          source: createLimitedSource(referenceIndex, {
             hitsPerPage: 3,
           }),
           displayKey: "citation",
@@ -286,7 +301,7 @@ export default async function initAutocomplete() {
           },
         },
         {
-          source: $.fn.autocomplete.sources.hits(organismIndex, {
+          source: createLimitedSource(organismIndex, {
             hitsPerPage: 2,
           }),
           displayKey: "scientific_name",
