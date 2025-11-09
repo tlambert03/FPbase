@@ -11,7 +11,7 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 # Load icon data from JSON file based on configured library
-LIBRARY = "lucide"
+LIBRARY = "fontawesome"
 icon_file = Path(settings.APPS_DIR) / "static" / "icons" / f"{LIBRARY}.json"
 if not icon_file.exists():
     raise FileNotFoundError(
@@ -27,6 +27,7 @@ ICON_SCALE = ICON_LIBRARY.get("scale", "1em")
 # Available icon names (for validation and error messages)
 AVAILABLE_ICONS = {
     "info",
+    "info-circle",
     "warning",
     "alert",
     "help",

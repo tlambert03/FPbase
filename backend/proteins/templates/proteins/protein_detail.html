@@ -181,7 +181,13 @@
       </table>
     </div>
 
-    <h3 class="fpbase-id"><button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>">{% icon "info" class_="ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</button>FPbase ID: <span style="font-weight:400;">
+    <h3 class="fpbase-id">
+      <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover"
+        data-trigger="focus" data-placement="right"
+        data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>">
+          {% icon "info" class_="ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}
+      </button>
+      FPbase ID: <span style="font-weight:400;">
       <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}' class="text-muted">{{ protein.uuid }}</a></span></h3>
 
 

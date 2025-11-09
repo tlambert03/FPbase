@@ -17,6 +17,7 @@ from . import IconData, IconExtractor, IconLibrary, IconPath
 ICON_MAP = {
     # UI & Navigation
     "info": ("fas", "info"),
+    "info-circle": ("fas", "info-circle"),
     "warning": ("fas", "exclamation-circle"),
     "alert": ("fas", "exclamation-triangle"),
     "help": ("fas", "info-circle"),

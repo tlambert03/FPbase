@@ -784,6 +784,7 @@ $(document).ready(() => {
   $("a.object-flag").click(function (e) {
     e.preventDefault()
     var button = $(this)
+    var wrapper = button.closest(".object-flag-wrapper")
 
     $.post({
       url: button.data("action-url"),
@@ -796,16 +797,12 @@ $(document).ready(() => {
       success: (response) => {
         if (response.status === "flagged") {
           button.data("flagged", 1)
-          button.find(".flagicon").removeClass("far")
-          button.find(".flagicon").addClass("fas")
-          button.data("original-title", "This excerpt has been flagged for review")
-          button.css("opacity", 1)
+          wrapper.addClass("is-flagged")
+          button.data("original-title", "Admin: unflag")
         } else if (response.status === "unflagged") {
           button.data("flagged", 0)
-          button.find(".flagicon").removeClass("fas")
-          button.find(".flagicon").addClass("far")
+          wrapper.removeClass("is-flagged")
           button.data("original-title", "Flag this excerpt for review")
-          button.css("opacity", 0.3)
         }
       },
     })

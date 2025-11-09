@@ -15,6 +15,7 @@ from . import IconData, IconExtractor, IconLibrary, IconPath
 ICON_MAP = {
     # UI & Navigation
     "info": "info",
+    "info-circle": "info",
     "warning": "alert-circle",
     "alert": "alert-triangle",
     "help": "help-circle",
@@ -76,7 +77,7 @@ ICON_MAP = {
 # Lucide's recommended workaround: https://lucide.dev/guide/advanced/filled-icons
 # Uses fill="currentColor" and strokeWidth="0" instead of stroke
 # Works best for icons with closed paths (heart, checkboxes, etc.)
-FILLED_ICONS = {"heart", "selected"}
+FILLED_ICONS = {"heart", "selected", "flag"}
 
 # Lucide default SVG attributes
 DEFAULTS = {
