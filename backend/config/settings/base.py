@@ -392,6 +392,19 @@ if REDIS_URL.startswith("rediss://"):
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 
+# Periodic Tasks with Celery Beat
+# To enable periodic link validation, uncomment and configure the schedule below:
+# from celery.schedules import crontab
+# CELERY_BEAT_SCHEDULE = {
+#     'validate-links-weekly': {
+#         'task': 'fpbase.tasks.validate_outgoing_links',
+#         'schedule': crontab(hour=2, minute=0, day_of_week=1),  # Every Monday at 2 AM
+#         'kwargs': {'sources': ['database']},
+#     },
+# }
+# Then add a beat process to your Procfile:
+# beat: celery --workdir backend --app fpbase beat --loglevel=info
+
 
 INSTALLED_APPS += ["graphene_django"]
 GRAPHENE = {"SCHEMA": "fpbase.schema.schema"}
