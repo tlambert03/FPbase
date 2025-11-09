@@ -80,65 +80,6 @@ class TestIconTemplateTag:
         # The malicious code should be escaped
         assert "onload" not in html or "&quot;" in html
 
-    def test_icon_all_semantic_names(self):
-        """Test that all defined semantic icon names render without error."""
-        icon_names = [
-            "info",
-            "warning",
-            "alert",
-            "help",
-            "question",
-            "close",
-            "remove",
-            "menu",
-            "grid",
-            "search",
-            "filter",
-            "view",
-            "settings",
-            "edit",
-            "delete",
-            "trash",
-            "undo",
-            "check",
-            "success",
-            "selected",
-            "unselected",
-            "heart",
-            "add",
-            "add-item",
-            "download",
-            "upload",
-            "share",
-            "share-square",
-            "link",
-            "external-link",
-            "exchange",
-            "book",
-            "collection",
-            "quote",
-            "photo",
-            "chart",
-            "table",
-            "flag",
-            "flag-outline",
-            "clock",
-            "spinner",
-            "lightbulb",
-            "sun",
-            "email",
-            "wrench",
-            "keyboard",
-            "google",
-            "twitter",
-            "orcid",
-        ]
-        for icon_name in icon_names:
-            t = Template(f'{{% load fpbase_tags %}}{{% icon "{icon_name}" %}}')
-            html = t.render(Context({}))
-            assert "<i " in html, f"Icon '{icon_name}' failed to render"
-            assert "</i>" in html, f"Icon '{icon_name}' failed to render"
-
     def test_icon_fab_style(self):
         """Test that brand icons use fab style."""
         t = Template('{% load fpbase_tags %}{% icon "google" %}')

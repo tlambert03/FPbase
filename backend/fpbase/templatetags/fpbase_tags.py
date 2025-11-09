@@ -10,10 +10,10 @@ register = template.Library()
 # This allows us to swap icon libraries in the future without changing templates
 ICON_MAP = {
     # UI & Navigation
-    "info": ("fas", "info"),
+    "info": ("fas", "info-circle"),
+    "info-i": ("fas", "info"),
     "warning": ("fas", "exclamation-circle"),
     "alert": ("fas", "exclamation-triangle"),
-    "help": ("fas", "info-circle"),
     "question": ("fas", "question-circle"),
     "close": ("fas", "times"),
     "remove": ("fas", "times-circle"),
