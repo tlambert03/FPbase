@@ -1,78 +1,67 @@
-# FPbase - Fluorescent Protein Database
+# Overview
 
-Django web app for <https://www.fpbase.org> with React frontend. PostgreSQL database, REST + GraphQL APIs, Celery background tasks.
+This repo is a Django web app for <https://www.fpbase.org> with:
 
-## Important instructions
+- PostgreSQL database
+- both REST + GraphQL APIs (preferring GraphQL for new code)
+- Celery background tasks (using Redis as a broker in production)
+- React frontend (but lots of legacy code and a mishmash of patterns being used)
+- deployed on Heroku
 
-- don't auto-deploy to heroku from this local git repo.  All deployments must go through github PRs.
-- unless explicitly told otherwise, don't run `git commit`, let me review changes.
+## Main tooling
+
+- `uv` for all python dependencies (defined in `pyproject.toml`)
+- `pnpm` for all JS dependencies (defined in `package.json`, with additional `package.json` files in frontend/ and packages/*)
+- `vite` as the frontend build tool (configured in `frontend/vite.config.ts`)
+- `biome` for JS/TS linting and formatting (configured in `biome.json`)
+- `prek` (modern replacement of pre-commit) for git hooks (configured in `.pre-commit-config.yaml`).
+- `pytest` for Python testing, which covers both backend and frontend (end-to-end tests using Playwright)
+- `just` for task running (configured in `justfile`)
+- `django_vite` is used to add our Vite-built frontend assets into Django templates
+- `gh` CLI for querying the GitHub API from the command line (prefer this over MCP)
+
+## Bash commands
+
+- `pnpm install && uv sync`: Install all dependencies - call whenever you checkout a new branch or pull changes
+- `uv run pytest`: Run Python backend unit tests
+- `uv run pytest backend/tests_e2e/ -n 6`: Run end-to-end tests with playwright.
+  *this will autobuild the frontend first if needed!  no need to call pnpm build first*
+- `pnpm build`: Build static frontend assets
+- `pnpm dev`: Run *both* the React frontend dev server with HMR and Django backend dev server.
+  *use this for rapid development! and visit localhost:8000 with playwright. vite takes care of rebuilding assets as needed*
+
+- `prek -a`: Run all pre-commit hooks on all files (takes care of linting/formatting for both Python and JS/TS)
+- `uv run basedpyright`: Run Python typecheck
+- `pnpm typecheck`: Run TypeScript typecheck
+
+- `uv run backend/manage.py shell_plus` : Open a Django shell with all models pre-imported
+
+## Code style
+
+- Use type hints in Python code wherever possible (though much of the codebase is not yet typed)
+- prefer functional pytest style over class-based tests
+- Use ES modules (import/export) syntax, not CommonJS (require)
+- Destructure imports when possible (eg. import { foo } from 'bar')
+- Use biome for JS/TS linting and formatting
+- Use ruff for Python linting and formatting
+- DO NOT use `time.sleep()` or `page.wait_for_timeout()` in tests; use proper waits on a specific condition instead.
 - avoid nested imports unless specifically used to avoid circular imports or delay heavy imports.
-- avoid arbitrary time.sleep() calls in tests; use proper waits on a specific condition instead.
+
+## Workflow
+
+- NEVER commit directly to main branch
+- Be sure to typecheck when you’re done making a series of code changes
+- Be sure to run all tests (unit + e2e) before pushing code
+- Tests use `--reuse-db` by default (from pyproject.toml). If you see DB errors in tests, try rerunning, or `uv run pytest --create-db`.
+- When fixing Sentry issues, do NOT just silence errors - you MUST fix the root cause!
 - the current year is 2025 (not 2024), for web-searches
 
-## Tech Stack
+## Agent tips
 
-**Backend**: Django, Python, DRF, GraphQL (graphene-django), PostgreSQL, Celery + Redis
-**Frontend**: React, vite, pnpm monorepo (packages: spectra, blast use Vite)
-**Science**: BioPython, NumPy, Pandas, SciPy, Matplotlib
-
-## Key Overrides
-
-- **Line length: 119 chars** (not 88) - configured in pyproject.toml
-- Frontend uses pnpm, not npm
-- Python uses `uv` for virtualenv management and running commands
-
-## Common Commands
-
-```bash
-# Setup
-uv sync                                # Install/update Python deps
-pnpm install                           # Install Node deps
-
-# Development
-pnpm dev                               # Start vite + Django dev server
-uv run backend/manage.py shell_plus    # Interactive shell with auto-imports
-
-# Testing
-uv run pytest path/to/test.py          # Run specific test
-uv run pytest --cov                    # Run with coverage
-
-# Code Quality
-ruff format backend                    # Format Python
-ruff check --fix backend               # Auto-fix linting
-uv run mypy backend                    # Type check
-prek run --all-files                   # Run all hooks
-
-# Build
-pnpm build                             # Build all frontend packages
-```
-
-## Testing Notes
-
-- Tests colocated with apps: `proteins/tests/`, `fpbase/tests/`
-- pytest with Django plugin, --reuse-db enabled
-- factory-boy for test data
-- Selenium + Playwright for browser tests
-- Settings: `config.settings.test`
-- Coverage target: 100% (soft), PRs: 5% for new code
-
-## Important Tools
-
-- **django-extensions**: `shell_plus` auto-imports models
-- **django-reversion**: Model history tracking enabled
-- **Algolia**: Full-text search integration
-- **Sentry**: Error tracking (production)
-- **Celery**: Background tasks (e.g., BLAST searches)
-
-## Development Notes
-
-- Django settings via django-environ (loads from .env)
-- Pre-commit hooks auto-run (ruff format, ruff check --fix, django-upgrade)
-- Database: PostgreSQL required (not SQLite)
-- Dual APIs: REST (drf-spectacular docs) + GraphQL (JWT auth)
-- Static files: WhiteNoise with Brotli compression
-- Deployment: Heroku (Procfile: web=gunicorn, worker=celery)
-
-## Gotchas
-
-- Migrations in proteins/ are extensive - review carefully before changing models
+- If you don't know something, prioritize using WebSearch (or the context7 mcp) to find the answer.
+  Don't make up answers or waste too much time guessing and checking.
+- when writing code, don't be overly defensive unless the application warrants it. don't add
+  extra error handling "just in case".
+- if I ask you a question like "what do you think..." or "how do you recommend...", then DON'T just
+  immediately start modifying code. Instead, collect your thoughts and provide a concise answer first.
+  Then wait for me to respond before proceeding.

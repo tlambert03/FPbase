@@ -1,3 +1,5 @@
+import { icon } from "./icons.js"
+
 const $ = window.jQuery // jQuery loaded from CDN
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
@@ -210,57 +212,72 @@ $(() => {
 
 /////////////////. Spectra Image URL Builder
 
-// Only initialize Select2 if not already initialized (fixes duplicate select boxes)
-if (!$("#proteinSlug").hasClass("select2-hidden-accessible")) {
-  $("#proteinSlug").select2({
-    theme: "bootstrap",
-    width: "80%",
-    ajax: {
-      theme: "bootstrap",
-      containerCssClass: ":all:",
-      width: "auto",
+// Helper to wait for select2 plugin to be available
+function waitForSelect2(callback) {
+  if (typeof $.fn.select2 !== "undefined") {
+    callback()
+  } else {
+    // Retry after a short delay
+    setTimeout(() => waitForSelect2(callback), 50)
+  }
+}
 
-      url: "/autocomplete-protein",
-      dataType: "json",
-      cache: true,
-      data: (params) => {
-        var query = {
-          q: params.term,
-          type: "spectra",
-          page: params.page,
-          _type: params._type,
-        }
-        return query
+// Only initialize Select2 if the element exists on the page and not already initialized
+if (
+  document.getElementById("proteinSlug") &&
+  !$("#proteinSlug").hasClass("select2-hidden-accessible")
+) {
+  waitForSelect2(() => {
+    $("#proteinSlug").select2({
+      theme: "bootstrap",
+      width: "80%",
+      ajax: {
+        theme: "bootstrap",
+        containerCssClass: ":all:",
+        width: "auto",
+
+        url: "/autocomplete-protein",
+        dataType: "json",
+        cache: true,
+        data: (params) => {
+          var query = {
+            q: params.term,
+            type: "spectra",
+            page: params.page,
+            _type: params._type,
+          }
+          return query
+        },
+        processResults: (data) => {
+          // Ensure all results have an id property (fixes FPBASE-5H3)
+          // The autocomplete endpoint returns results, but we need to ensure
+          // each item has an id that can be safely converted to string
+          if (data.results) {
+            data.results = data.results.map((item) => {
+              // If item doesn't have an id, use text as fallback
+              if (!item.id && item.text) {
+                item.id = item.text
+              }
+              return item
+            })
+          }
+          return data
+        },
       },
-      processResults: (data) => {
-        // Ensure all results have an id property (fixes FPBASE-5H3)
-        // The autocomplete endpoint returns results, but we need to ensure
-        // each item has an id that can be safely converted to string
-        if (data.results) {
-          data.results = data.results.map((item) => {
-            // If item doesn't have an id, use text as fallback
-            if (!item.id && item.text) {
-              item.id = item.text
-            }
-            return item
-          })
+      // Safely handle cases where id might still be undefined
+      templateResult: (item) => {
+        if (!item.id) {
+          return item.text
         }
-        return data
+        return item.text || item.id
       },
-    },
-    // Safely handle cases where id might still be undefined
-    templateResult: (item) => {
-      if (!item.id) {
-        return item.text
-      }
-      return item.text || item.id
-    },
-    templateSelection: (item) => {
-      if (!item.id) {
-        return item.text
-      }
-      return item.text || item.id
-    },
+      templateSelection: (item) => {
+        if (!item.id) {
+          return item.text
+        }
+        return item.text || item.id
+      },
+    })
   })
 }
 
@@ -702,13 +719,15 @@ $("#excerptModalForm")
   })
 
 function register_transition_form() {
-  $(".trans_formset_div").formset({
+  // Call formset plugin on the form elements inside the container
+  $(".trans_formset_div .formset-form").formset({
     addText: "Add Transition",
     addCssClass: "btn btn-info mb-4",
     deleteCssClass: "transDelete",
-    deleteText: '<i class="fas fa-minus-circle"></i>',
+    deleteText: icon("remove"),
     prefix: "transitions",
-    processHidden: true, // I added this to
+    formCssClass: "formset-form",
+    processHidden: true,
   })
 }
 
@@ -722,8 +741,20 @@ $(() => {
       cache: false,
       success: (data, _status) => {
         $("#transitionForm").html(data)
-        register_transition_form()
-        $("#transitionModal").modal()
+
+        // Use Bootstrap's shown.bs.modal event to ensure modal is fully visible
+        const $modal = $("#transitionModal")
+        // Remove any previous handlers to avoid duplicates
+        $modal.off("shown.bs.modal")
+        // Register formset AFTER modal is fully shown
+        $modal.one("shown.bs.modal", () => {
+          register_transition_form()
+        })
+        // Now show the modal (which will trigger the event above)
+        $modal.modal()
+      },
+      error: (_xhr, status, error) => {
+        console.error("Transition form AJAX error:", status, error)
       },
     })
   })
@@ -769,6 +800,7 @@ $(document).ready(() => {
   $("a.object-flag").click(function (e) {
     e.preventDefault()
     var button = $(this)
+    var wrapper = button.closest(".object-flag-wrapper")
 
     $.post({
       url: button.data("action-url"),
@@ -781,16 +813,12 @@ $(document).ready(() => {
       success: (response) => {
         if (response.status === "flagged") {
           button.data("flagged", 1)
-          button.find(".flagicon").removeClass("far")
-          button.find(".flagicon").addClass("fas")
-          button.data("original-title", "This excerpt has been flagged for review")
-          button.css("opacity", 1)
+          wrapper.addClass("is-flagged")
+          button.data("original-title", "Admin: unflag")
         } else if (response.status === "unflagged") {
           button.data("flagged", 0)
-          button.find(".flagicon").removeClass("fas")
-          button.find(".flagicon").addClass("far")
+          wrapper.removeClass("is-flagged")
           button.data("original-title", "Flag this excerpt for review")
-          button.css("opacity", 0.3)
         }
       },
     })

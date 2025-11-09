@@ -92,4 +92,5 @@ dump-fixture:
     uv run backend/manage.py dumpfixture
 
 typecheck:
-    prek -a --hook-stage=manual
+    uv run basedpyright
+    pnpm typecheck

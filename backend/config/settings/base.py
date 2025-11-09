@@ -84,6 +84,8 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     # custom users app
     "fpbase.users.apps.UsersConfig",
+    # fpbase core app
+    "fpbase.apps.FPbaseConfig",
     # Your stuff: custom apps go here
     "proteins.apps.ProteinsConfig",
     "references.apps.ReferencesConfig",
@@ -96,6 +98,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIDDLEWARE CONFIGURATION
 # ------------------------------------------------------------------------------
 MIDDLEWARE = [
+    "django.middleware.gzip.GZipMiddleware",  # important for large JSON APIs
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "fpbase.middleware.BlackListMiddleware",

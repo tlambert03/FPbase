@@ -1,7 +1,7 @@
 $(document).ready(() => {
   $("#add_remove_favorite").click(function (e) {
     var $obj = $(this)
-    var _target_id = $obj.data("target").split("_")[1]
+    var $favit = $obj.closest(".favit")
     $obj.prop("disabled", true)
     $.ajax({
       url: $obj.attr("data-action-url"),
@@ -13,15 +13,17 @@ $(document).ready(() => {
       },
       success: (response) => {
         if (response.status === "added") {
-          $obj.find("i").removeClass("far").addClass("fas")
-          $obj.find("span").text("Remove from favorites")
+          $favit.addClass("is-favorited")
+          $favit.attr("data-original-title", "Remove from favorites")
+          $obj.find(".favorite-text").text("Remove from favorites")
         } else if (response.status === "deleted") {
-          $obj.find("i").removeClass("fas").addClass("far")
-          $obj.find("span").text("Add to favorites")
+          $favit.removeClass("is-favorited")
+          $favit.attr("data-original-title", "Add to favorites")
+          $obj.find(".favorite-text").text("Add to favorites")
         } else {
           console.warn("Unexpected response status:", response.status)
         }
-        $obj.parent(".favit").children(".fav-count").text(response.fav_count)
+        $favit.children(".fav-count").text(response.fav_count)
         $obj.prop("disabled", false)
       },
       error: (_xhr, _status, error) => {

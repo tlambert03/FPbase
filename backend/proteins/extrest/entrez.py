@@ -167,6 +167,8 @@ def _fetch_gb_seqs(gbids):
     """Retrieve protein sequence for multiple genbank IDs, (regardless of accession type)"""
     prots = []
     nucs = []
+    invalid_accessions = []
+
     for id in gbids:
         db = _check_accession_type(id)
         if db == "protein":
@@ -174,17 +176,39 @@ def _fetch_gb_seqs(gbids):
         elif db == "nuccore":
             nucs.append(id)
         else:
-            prots.append(id)
-            logger.error("Could not determine accession type for %s", id)
+            # Skip invalid accessions (e.g., deprecated GI numbers)
+            # and track them for reporting
+            invalid_accessions.append(id)
+            logger.error(
+                "Invalid GenBank accession '%s' in database. "
+                "This entry must be updated with a valid accession number. ",
+                id,
+                extra={"accession": id, "reason": "deprecated_gi_number" if id.isdigit() else "unrecognized_format"},
+            )
+
     records = {}
     if len(nucs):
-        with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
-            records.update(
-                {x.id.split(".")[0]: str(x.translate().seq).strip("*") for x in SeqIO.parse(handle, "fasta")}
+        try:
+            with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
+                records.update(
+                    {x.id.split(".")[0]: str(x.translate().seq).strip("*") for x in SeqIO.parse(handle, "fasta")}
+                )
+        except Exception as e:
+            logger.error(
+                "Failed to fetch nucleotide sequences from NCBI: %s",
+                str(e),
+                extra={"accessions": nucs, "db": "nuccore", "error": str(e)},
             )
     if len(prots):
-        with Entrez.efetch(db="protein", id=prots, rettype="fasta", retmode="text") as handle:
-            records.update({x.id.split(".")[0]: str(x.seq).strip("*") for x in SeqIO.parse(handle, "fasta")})
+        try:
+            with Entrez.efetch(db="protein", id=prots, rettype="fasta", retmode="text") as handle:
+                records.update({x.id.split(".")[0]: str(x.seq).strip("*") for x in SeqIO.parse(handle, "fasta")})
+        except Exception as e:
+            logger.error(
+                "Failed to fetch protein sequences from NCBI. Error: %s",
+                str(e),
+                extra={"accessions": prots, "db": "protein", "error": str(e)},
+            )
     return records
 
 
