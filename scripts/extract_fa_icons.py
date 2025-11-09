@@ -11,6 +11,9 @@ import requests
 VERSION = "7.1.0"
 URL = f"https://github.com/FortAwesome/Font-Awesome/releases/download/{VERSION}/fontawesome-free-{VERSION}-web.zip"
 
+# Mapping of FPbase icon names to (style, glyph name) in Font Awesome
+# these keys MUST match those used in {% icon %} template tags
+# this is tested in test_templatetags.py:test_all_template_icons_are_valid
 ICON_MAP = {
     # UI & Navigation
     "info": ("solid", "info-circle"),
