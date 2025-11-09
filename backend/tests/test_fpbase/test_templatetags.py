@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from django.template import Context, Template
 
-from fpbase.templatetags.fpbase_tags import AVAILABLE_ICONS
+from fpbase.templatetags.fpbase_tags import ICON_KEYS
 
 
 class TestIconTemplateTag:
@@ -28,7 +28,7 @@ class TestIconTemplateTag:
         """Test icon rendering with additional CSS class."""
         t = Template('{% load fpbase_tags %}{% icon "info" class_="mr-2" %}')
         html = t.render(Context({}))
-        assert 'class="mr-2"' in html
+        assert 'class="mr-2' in html
         assert "<svg" in html
 
     def test_icon_with_style(self):
@@ -47,7 +47,7 @@ class TestIconTemplateTag:
         """Test icon rendering with multiple attributes."""
         t = Template('{% load fpbase_tags %}{% icon "warning" class_="mr-2" style="color: red;" aria_hidden="true" %}')
         html = t.render(Context({}))
-        assert 'class="mr-2"' in html
+        assert 'class="mr-2' in html
         assert 'style="color: red;"' in html
         assert 'aria-hidden="true"' in html
         assert "<svg" in html
@@ -156,10 +156,10 @@ class TestIconTemplateTag:
         assert "<path" in html
 
     def test_all_template_icons_are_valid(self):
-        """Test that all icon names used in templates exist in AVAILABLE_ICONS.
+        """Test that all icon names used in templates exist in ICON_KEYS.
 
         This test scans all .html templates in the backend directory and verifies
-        that every {% icon "..." %} tag uses a valid icon name from AVAILABLE_ICONS.
+        that every {% icon "..." %} tag uses a valid icon name from ICON_KEYS.
         """
         # Get the backend directory (parent of tests directory)
         backend_dir = Path(__file__).parent.parent.parent
@@ -180,8 +180,8 @@ class TestIconTemplateTag:
                 icon_name = match.group(1)
                 icon_usages[icon_name].append(str(template_file.relative_to(backend_dir)))
 
-                # Check if icon exists in AVAILABLE_ICONS
-                if icon_name not in AVAILABLE_ICONS:
+                # Check if icon exists in ICON_KEYS
+                if icon_name not in ICON_KEYS:
                     # Get line number for better error reporting
                     line_num = content[: match.start()].count("\n") + 1
                     invalid_icons.append(
@@ -196,11 +196,7 @@ class TestIconTemplateTag:
         if invalid_icons:
             error_lines = ["Found icon tags with invalid icon names:"]
             for item in invalid_icons:
-                error_lines.append(f"  - '{item['icon']}' in {item['file']}:{item['line']}")
-            error_lines.append("")
-            error_lines.append("Available icons in AVAILABLE_ICONS:")
-            error_lines.append(f"  {', '.join(sorted(AVAILABLE_ICONS))}")
-
+                error_lines.append(f"  - '{item['icon']}' used in {item['file']}:{item['line']}")
             pytest.fail("\n".join(error_lines))
 
         # Also verify we found at least some icon usages (sanity check)

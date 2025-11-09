@@ -2,6 +2,7 @@ body {
   -webkit-font-smoothing: antialiased !important;
   -moz-osx-font-smoothing: grayscale !important;
   padding-bottom: 2rem;
+
   &.home-body {
     padding-bottom: 0;
   }
@@ -15,15 +16,19 @@ footer {
   background: $footer-background;
   color: $footer-color;
   box-shadow: 0px 700px 0px 700px $footer-background;
+
   a {
     color: $footer-color;
+
     &:hover {
       color: lighten($footer-color, 5);
     }
   }
+
   #licenselink {
     img {
       opacity: 0.6;
+
       &:hover {
         opacity: 0.9;
       }
@@ -53,8 +58,10 @@ a.twitter-share-button {
   position: relative;
   top: 14px;
   left: -4px;
+
   .fa-twitter {
     color: rgba(white, 0.7);
+
     &:hover {
       color: rgba(white, 0.9);
     }
@@ -63,6 +70,7 @@ a.twitter-share-button {
 
 // for definition lists, like on the schema page
 .description-list {
+
   h1,
   h2,
   h3,
@@ -74,13 +82,16 @@ a.twitter-share-button {
       margin-top: 1.5rem;
     }
   }
+
   //@include media-breakpoint-down(xs) { font-size: 0.9rem;}
   dd {
     dt {
       color: darken($primary, 15%);
+
       @include media-breakpoint-up(xs) {
         font-size: 0.85rem;
       }
+
       @include media-breakpoint-up(sm) {
         font-size: 1rem;
       }
@@ -111,9 +122,11 @@ a.twitter-share-button {
 
 .modal-lg {
   max-width: 85%;
+
   .container {
     padding: 0 2.5rem 0 2rem;
   }
+
   @include media-breakpoint-down(xs) {
     max-width: 100%;
   }
@@ -121,8 +134,10 @@ a.twitter-share-button {
 
 .example-like-button {
   padding: 0;
+
   svg {
     color: $yellow;
+
     &:hover {
       color: orange;
       box-shadow: none !important;
@@ -132,35 +147,43 @@ a.twitter-share-button {
 
 .like_buttons {
   padding-left: 1rem;
+
   @include media-breakpoint-down(xs) {
     padding-left: 0rem;
   }
+
   div {
     display: inline;
   }
+
   a,
   a.active {
     color: $yellow;
     font-size: 1.4rem;
     padding: 0;
     box-shadow: none !important;
+
     &:hover {
       color: orange;
     }
   }
 
   .favit {
+
     // fix slight shift when clicking icon
     svg[data-prefix="fas"] {
       margin-right: 0.1rem;
     }
+
     .favorite,
     .favorite:active {
       box-shadow: none !important;
+
       @include media-breakpoint-up(sm) {
         padding: 0;
       }
     }
+
     .badge {
       position: relative;
       bottom: -0.7rem;
@@ -186,15 +209,19 @@ a.twitter-share-button {
     color: $tooltip-text;
     background-color: $tooltip-color;
   }
+
   &.bs-tooltip-top .arrow:before {
     border-top-color: $tooltip-color !important;
   }
+
   &.bs-tooltip-right .arrow:before {
     border-right-color: $tooltip-color !important;
   }
+
   &.bs-tooltip-left .arrow:before {
     border-left-color: $tooltip-color !important;
   }
+
   &.bs-tooltip-bottom .arrow:before {
     border-bottom-color: $tooltip-color !important;
   }
@@ -221,11 +248,13 @@ a:focus {
       padding-right: 10%;
     }
   }
+
   @include media-breakpoint-up(sm) {
     dt {
       text-align: right;
     }
   }
+
   dd {
     margin-bottom: 1.2rem;
   }
@@ -233,12 +262,15 @@ a:focus {
 
 .reftable-wrapper {
   margin: 10px 0px;
+
   @include media-breakpoint-up(sm) {
     margin: 10px 10px;
   }
+
   @include media-breakpoint-up(md) {
     margin: 10px 30px;
   }
+
   @include media-breakpoint-up(lg) {
     margin: 10px 40px;
   }
@@ -253,15 +285,19 @@ a:focus {
 
   tbody {
     font-size: 0.85rem;
+
     .doi {
       font-size: 0.7rem;
     }
+
     td,
     tr {
       padding: 8px 8px;
     }
+
     a {
       color: darken($primary, 7);
+
       &:hover {
         color: darken($primary, 20);
       }
@@ -274,7 +310,7 @@ a:focus {
   cursor: not-allowed;
 }
 
-select[readonly].select2-hidden-accessible + .select2-container {
+select[readonly].select2-hidden-accessible+.select2-container {
   pointer-events: none;
   touch-action: none;
 
@@ -299,7 +335,9 @@ a.help-link {
   abbr {
     text-decoration: none;
   }
+
   color: inherit;
+
   &:hover {
     text-decoration: none;
     cursor: help;
@@ -329,4 +367,14 @@ pre .mismatch {
   margin: 0 0.2em;
   box-shadow: 0 1px 0px rgba(0, 0, 0, 0.2), 0 0 0 2px #fff inset;
   background-color: #f7f7f7;
+}
+
+// Class applied in template tag
+.svg-inline-icon {
+  box-sizing: content-box;
+  display: inline-block;
+  height: 1em;
+  overflow: visible;
+  vertical-align: -0.125em;
+  width: 1em;
 }

@@ -79,6 +79,7 @@ typing = [
 dev = [
     { include-group = "typing" },
     "django-extensions>=3.2.3",
+    "fontawesomefree>=6.6.0",
     "ipython>=8.32.0",
     "pandas>=2.0.3",
     "pdbpp>=0.10.3",

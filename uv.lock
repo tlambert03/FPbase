@@ -1062,6 +1062,14 @@ wheels = [
 ]
 
 [[package]]
+name = "fontawesomefree"
+version = "6.6.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bb/e9/d43f5133b73e7ef9047bda28daaa6905e00b7d39f093b547f7e78ee2fc40/fontawesomefree-6.6.0-py3-none-any.whl", hash = "sha256:599b574431c9bd92ed5fc054d1045a07c42335da36c17884f2b934755eef9089", size = 25645298, upload-time = "2024-07-16T18:35:44.818Z" },
+]
+
+[[package]]
 name = "fonttools"
 version = "4.60.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1156,6 +1164,7 @@ dev = [
     { name = "django-types" },
     { name = "djangorestframework-stubs" },
     { name = "factory-boy" },
+    { name = "fontawesomefree" },
     { name = "ipython" },
     { name = "pandas" },
     { name = "pdbpp" },
@@ -1262,6 +1271,7 @@ dev = [
     { name = "django-types", specifier = ">=0.22.0" },
     { name = "djangorestframework-stubs", specifier = ">=3.15.2" },
     { name = "factory-boy", specifier = ">=3.2.0" },
+    { name = "fontawesomefree", specifier = ">=6.6.0" },
     { name = "ipython", specifier = ">=8.32.0" },
     { name = "pandas", specifier = ">=2.0.3" },
     { name = "pdbpp", specifier = ">=0.10.3" },
