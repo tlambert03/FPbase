@@ -45,6 +45,6 @@
 	{% if request.user.username == owner %}
 	<a href="{% url 'proteins:newcollection' %}"><button class='btn btn-primary btn-sm'>Create collection</button></a>
 	{% elif request.user.is_authenticated  %}
-	<small css_style='color: gray'><em>Note: bolded collections are owned by you, and only visible to others if the collection is public.</em></small>
+	<small style='color: gray'><em>Note: bolded collections are owned by you, and only visible to others if the collection is public.</em></small>
 	{% endif %}
 {% endblock content %}

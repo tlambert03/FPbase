@@ -1,7 +1,7 @@
 {% load favit_tags %}
 {% user_favorites user "proteins.Protein" as favorite_list %}
 {% if favorite_list %}
-<ul css_style='list-style: none;'>
+<ul style='list-style: none;'>
 {% for fav_obj in favorite_list %}
   {% with protein=fav_obj|get_object %}
       {% if protein %}

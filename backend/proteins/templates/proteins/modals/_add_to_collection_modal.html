@@ -21,7 +21,7 @@
           <input type="hidden" name="protein" class='hidden' value="{{ protein.id }}">
           {% csrf_token %}
     		</form>
-        <p class='mb-2 mt-3 small' css_style='color:gray'><em> <a href="{% url 'proteins:newcollection' %}?next={% firstof request.path '/' %}">Create a new collection</a> or edit your collections on <a href="{% url 'users:detail' request.user.username %}">your profile</a></em></p>
+        <p class='mb-2 mt-3 small' style='color:gray'><em> <a href="{% url 'proteins:newcollection' %}?next={% firstof request.path '/' %}">Create a new collection</a> or edit your collections on <a href="{% url 'users:detail' request.user.username %}">your profile</a></em></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

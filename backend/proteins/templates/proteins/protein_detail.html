@@ -181,7 +181,7 @@
       </table>
     </div>
 
-    <h3 class="fpbase-id"><button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>">{% icon "info-circle" class_="ml-1 mr-2 text-muted" css_style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</button>FPbase ID: <span style="font-weight:400;">
+    <h3 class="fpbase-id"><button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" data-placement="right" data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>">{% icon "info-circle" class_="ml-1 mr-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</button>FPbase ID: <span style="font-weight:400;">
       <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}' class="text-muted">{{ protein.uuid }}</a></span></h3>
 
 
@@ -235,7 +235,7 @@
 
     {% if protein.oser_measurements.count %}
     <div class="attributes mt-1">
-      <h3>{{protein.name | safe}} OSER Measurements <a href="{{ HELP_URL }}glossary#oser" target="_blank">{% icon "info-circle" class_="ml-2 text-muted" css_style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
+      <h3>{{protein.name | safe}} OSER Measurements <a href="{{ HELP_URL }}glossary#oser" target="_blank">{% icon "info-circle" class_="ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
         <table class="table table-striped flip-scroll">
           <thead>
             <tr class="table-header">
@@ -284,7 +284,7 @@
               {% if protein.seq_validated %}
                 <span id='seq-badge' data-toggle="tooltip" data-placement="right" title="This sequence has been moderated, and matches the original publication">{% icon "check" title="sequence validated" %}</span>
               {% else %}
-                <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error.">{% icon "exclamation-triangle" class_="ml-2 text-muted" css_style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;' %}</button>
+                <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error.">{% icon "exclamation-triangle" class_="ml-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;' %}</button>
               {% endif %}
             {% endif %}
         </div>
@@ -372,7 +372,7 @@
     {% endif %}
 
     <div class="excerpts">
-      <h3>Excerpts <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info-circle" class_="ml-2 text-muted" css_style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</button></h3>
+      <h3>Excerpts <button type="button" class="btn btn-link p-0" tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info-circle" class_="ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</button></h3>
       {% if excerpts %}
         {% for excerpt in excerpts  %}
           {% if excerpt.status != 'rejected' %}
@@ -385,7 +385,7 @@
               <h4>
                 <a href="{{excerpt.reference.get_absolute_url}}">{{excerpt.reference.citation}}</a>
                 <a href="https://doi.org/{{ excerpt.reference.doi }}" target="_blank" rel="noopener">
-                  {% icon "external-link-alt" class_="text-info ml-2" css_style='font-size: 0.8rem;' %}
+                  {% icon "external-link-alt" class_="text-info ml-2" style='font-size: 0.8rem;' %}
                 </a>
               </h4>
             {% endif %}
@@ -416,7 +416,7 @@
 					<li class="mt-2 mb-2">{% include "_reference.html" %}</li>
 				{% endfor %}
 				{% else %}
-				    <p css_style='color: #888;'>No additional references have been added.<p>
+				    <p style='color: #888;'>No additional references have been added.<p>
 				{% endif %}
 				<button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#referenceModal">{% icon "book" class_="mr-2" %}Add a reference</button>
 			</ol>

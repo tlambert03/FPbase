@@ -124,7 +124,7 @@
 
 
 <div class="excerpts mt-3">
-  <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info-circle" class_="ml-2 text-muted" css_style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
+  <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info-circle" class_="ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
   {% if excerpts %}
     {% for excerpt in excerpts %}
       {% if excerpt.status != 'rejected' %}
