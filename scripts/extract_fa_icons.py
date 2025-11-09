@@ -145,8 +145,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--keep-existing",
+        default=False,
         action="store_true",
-        help="If set, existing SVGs in the output directory will not be overwritten",
+        help="If set, existing SVGs in the output directory will be kept.",
     )
     args = parser.parse_args()
 

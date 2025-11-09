@@ -12,7 +12,7 @@ _ICON_CACHE: dict[str, str] = {}
 
 ICON_DIR = Path(__file__).parent.parent / "static" / "icons"
 assert ICON_DIR.exists(), (
-    f"Icon directory does not exist: {ICON_DIR}. Please run 'python scripts/extract_icons.py' to generate it."
+    f"Icon directory does not exist: {ICON_DIR}. Please run 'python scripts/extract_fa_icons.py' to generate it."
 )
 
 ICON_KEYS = {svg.stem for svg in ICON_DIR.glob("*.svg")}
@@ -57,7 +57,7 @@ def icon(name, class_="", style="", **attrs):
 
     # Build the class attribute (escape to prevent XSS)
     # Build the style attribute (escape to prevent XSS)
-    class_ += " svg-inline-icon"
+    class_ += (class_ + " svg-inline-icon").strip()
     class_attr = f' class="{escape(class_)}"'
     style_attr = f' style="{escape(style)}"' if style else ""
 
@@ -73,5 +73,5 @@ def icon(name, class_="", style="", **attrs):
         else:
             attrs_str += f' {attr_name}="{escape(str(value))}"'
 
-    svg = icon_svg.replace("<svg", f"<svg{class_attr}{style_attr}{attrs_str}", 1)
+    svg = icon_svg.replace("<svg", f"<svg {class_attr}{style_attr}{attrs_str}", 1)
     return mark_safe(svg)
