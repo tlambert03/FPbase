@@ -10,7 +10,7 @@ register = template.Library()
 # This allows us to swap icon libraries in the future without changing templates
 ICON_MAP = {
     # UI & Navigation
-    "info": ("fas", "info-circle"),
+    "info": ("fas", "info"),
     "warning": ("fas", "exclamation-circle"),
     "alert": ("fas", "exclamation-triangle"),
     "help": ("fas", "info-circle"),
@@ -86,22 +86,6 @@ def icon(name, class_="", style="", **attrs):
         Inline CSS styles, by default ''
     **attrs
         Additional HTML attributes (e.g., title, data_toggle, aria_hidden)
-
-    Returns
-    -------
-    str
-        Safe HTML string for the icon
-
-    Examples
-    --------
-    >>> {% icon "info" %}
-    <i class="fas fa-info-circle"></i>
-
-    >>> {% icon "warning" class_="mr-2" %}
-    <i class="fas fa-exclamation-circle mr-2"></i>
-
-    >>> {% icon "external-link" class_="ml-2" style="font-size: 0.8rem;" %}
-    <i class="fas fa-external-link-alt ml-2" style="font-size: 0.8rem;"></i>
 
     Raises
     ------
