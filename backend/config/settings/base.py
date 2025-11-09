@@ -171,6 +171,12 @@ USE_I18N = True
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
 
+# FPBASE CONFIGURATION
+# ------------------------------------------------------------------------------
+# Icon library to use for rendering icons in templates
+# Options: "fontawesome", "lucide"
+FPBASE_ICON_LIBRARY = env("FPBASE_ICON_LIBRARY", default="fontawesome")
+
 # TEMPLATE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#templates

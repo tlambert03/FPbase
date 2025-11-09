@@ -56,6 +56,15 @@ This repo is a Django web app for <https://www.fpbase.org> with:
 - When fixing Sentry issues, do NOT just silence errors - you MUST fix the root cause!
 - the current year is 2025 (not 2024), for web-searches
 
+## Icon System
+
+FPbase uses an inline SVG icon system with library abstraction:
+- Icons are rendered via `{% icon "name" %}` template tag
+- SVG data is extracted from npm packages (FontAwesome, Lucide) into JSON files
+- To switch libraries: set `FPBASE_ICON_LIBRARY=lucide` environment variable
+- To add new icons: update `scripts/extract_icons.py` mappings and run `python scripts/extract_icons.py all`
+- See `docs/icons.md` for full documentation
+
 ## Agent tips
 
 - If you don't know something, prioritize using WebSearch (or the context7 mcp) to find the answer.

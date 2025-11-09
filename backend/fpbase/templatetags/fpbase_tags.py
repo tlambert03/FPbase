@@ -1,70 +1,78 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from django import template
+from django.conf import settings
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 register = template.Library()
 
-# FPbase icon vocabulary mapped to FontAwesome
-# This allows us to swap icon libraries in the future without changing templates
-ICON_MAP = {
-    # UI & Navigation
-    "info": ("fas", "info"),
-    "warning": ("fas", "exclamation-circle"),
-    "alert": ("fas", "exclamation-triangle"),
-    "help": ("fas", "info-circle"),
-    "question": ("fas", "question-circle"),
-    "close": ("fas", "times"),
-    "remove": ("fas", "times-circle"),
-    "menu": ("fas", "list"),
-    "grid": ("fas", "th"),
-    "search": ("fas", "search"),
-    "filter": ("fas", "filter"),
-    "view": ("fas", "eye"),
-    "settings": ("fas", "cog"),
-    "edit": ("fas", "edit"),
-    "delete": ("fas", "trash-alt"),
-    "trash": ("fas", "trash"),
-    "undo": ("fas", "undo"),
-    "check": ("fas", "check"),
-    "success": ("fas", "check-circle"),
-    "selected": ("far", "check-square"),
-    "unselected": ("far", "square"),
-    "heart": ("fas", "heart"),
-    # Actions
-    "add": ("fas", "plus"),
-    "add-item": ("fas", "plus-circle"),
-    "download": ("fas", "download"),
-    "upload": ("fas", "upload"),
-    "share": ("fas", "share"),
-    "share-square": ("fas", "share-square"),
-    "link": ("fas", "link"),
-    "external-link": ("fas", "external-link-alt"),
-    "exchange": ("fas", "exchange-alt"),
-    # Content
-    "book": ("fas", "book"),
-    "collection": ("fas", "book"),
-    "quote": ("fas", "quote-left"),
-    "photo": ("fas", "camera"),
-    "chart": ("fas", "chart-area"),
-    "table": ("fas", "table"),
-    "flag": ("fas", "flag"),
-    "flag-outline": ("far", "flag"),
-    # Time & Status
-    "clock": ("fas", "clock"),
-    "spinner": ("fas", "spinner"),
-    "lightbulb": ("fas", "lightbulb"),
-    "sun": ("fas", "sun"),
-    # Communication
-    "email": ("fas", "envelope"),
-    # Tools
-    "wrench": ("fas", "wrench"),
-    "keyboard": ("far", "keyboard"),
-    # Social/External
-    "google": ("fab", "google"),
-    "twitter": ("fab", "x-twitter"),
-    "orcid": ("fab", "orcid"),
+# Load icon data from JSON file based on configured library
+LIBRARY = "lucide"
+ICON_SCALE = "1.1em"  # Default size for icons
+icon_file = Path(settings.APPS_DIR) / "static" / "icons" / f"{LIBRARY}.json"
+if not icon_file.exists():
+    raise FileNotFoundError(
+        f"Icon data file not found: {icon_file}. Run 'python scripts/extract_icons.py {LIBRARY}' to generate it."
+    )
+
+ICON_DATA = json.loads(icon_file.read_text())
+
+
+# Available icon names (for validation and error messages)
+AVAILABLE_ICONS = {
+    "info",
+    "warning",
+    "alert",
+    "help",
+    "question",
+    "close",
+    "remove",
+    "menu",
+    "grid",
+    "search",
+    "filter",
+    "view",
+    "settings",
+    "edit",
+    "delete",
+    "trash",
+    "undo",
+    "check",
+    "success",
+    "selected",
+    "unselected",
+    "heart",
+    "add",
+    "add-item",
+    "download",
+    "upload",
+    "share",
+    "share-square",
+    "link",
+    "external-link",
+    "exchange",
+    "book",
+    "collection",
+    "quote",
+    "photo",
+    "chart",
+    "table",
+    "flag",
+    "flag-outline",
+    "clock",
+    "spinner",
+    "lightbulb",
+    "sun",
+    "email",
+    "wrench",
+    "keyboard",
+    "google",
+    "twitter",
+    "orcid",
 }
 
 
@@ -72,16 +80,15 @@ ICON_MAP = {
 def icon(name, class_="", style="", **attrs):
     """Render an icon using FPbase's icon vocabulary.
 
-    This abstraction allows FPbase to use semantic icon names that can be mapped
-    to any icon library (currently FontAwesome, but could be Lucide, etc. in the future).
+    This renders inline SVG icons from the configured icon library, eliminating
+    the need for external icon font CDNs.
 
     Parameters
     ----------
     name : str
         The FPbase icon name (e.g., 'info', 'warning', 'external-link')
-        See ICON_MAP for available icons.
     class_ : str, optional
-        Additional CSS classes to apply, by default ''
+        Additional CSS classes to apply to the SVG, by default ''
     style : str, optional
         Inline CSS styles, by default ''
     **attrs
@@ -90,26 +97,44 @@ def icon(name, class_="", style="", **attrs):
     Raises
     ------
     ValueError
-        If the icon name is not found in ICON_MAP
+        If the icon name is not found in the icon data
+
+    Returns
+    -------
+    str
+        Safe HTML string containing the SVG icon
     """
-    if name not in ICON_MAP:
+    if name not in AVAILABLE_ICONS:
         raise ValueError(
-            f"Icon '{name}' not found in FPbase icon vocabulary. Available icons: {', '.join(sorted(ICON_MAP.keys()))}"
+            f"Icon '{name}' not found in FPbase icon vocabulary. Available icons: {', '.join(sorted(AVAILABLE_ICONS))}"
         )
 
-    # Get the icon library implementation (currently FontAwesome)
-    fa_style, fa_icon_name = ICON_MAP[name]
+    # Load icon data
+    if name not in ICON_DATA:
+        # This could happen if an icon is in AVAILABLE_ICONS but not in the JSON
+        # (e.g., brand icons when using Lucide)
+        library = getattr(settings, "FPBASE_ICON_LIBRARY", "fontawesome")
+        raise ValueError(
+            f"Icon '{name}' not available in {library} library. "
+            f"Try switching to a different library or use an alternative icon."
+        )
 
-    # Build the class list (escape class_ to prevent XSS)
-    classes = [fa_style, f"fa-{fa_icon_name}"]
+    icon_svg = ICON_DATA[name]
+    viewBox = icon_svg["viewBox"]
+    paths = icon_svg["paths"]
+
+    # Build the class attribute (escape to prevent XSS)
+    class_attr = ""
     if class_:
-        classes.append(escape(class_))
+        class_attr = f' class="{escape(class_)}"'
 
-    # Build the attributes string (with XSS protection via escaping)
-    attrs_str = ""
+    # Build the style attribute (escape to prevent XSS)
+    style_attr = ""
     if style:
-        attrs_str += f' style="{escape(style)}"'
+        style_attr = f' style="{escape(style)}"'
 
+    # Build additional attributes (with XSS protection)
+    attrs_str = ""
     for key, value in attrs.items():
         # Convert underscores to hyphens for data attributes (data_toggle -> data-toggle)
         attr_name = key.replace("_", "-")
@@ -120,4 +145,39 @@ def icon(name, class_="", style="", **attrs):
         else:
             attrs_str += f' {attr_name}="{escape(str(value))}"'
 
-    return mark_safe(f'<i class="{" ".join(classes)}"{attrs_str}></i>')
+    # Build path elements
+    path_elements = []
+    for path in paths:
+        path_attrs = []
+        for key, value in path.items():
+            # Convert camelCase to kebab-case for SVG attributes
+            if key == "fillRule":
+                attr_name = "fill-rule"
+            elif key == "clipRule":
+                attr_name = "clip-rule"
+            elif key == "strokeWidth":
+                attr_name = "stroke-width"
+            elif key == "strokeLinecap":
+                attr_name = "stroke-linecap"
+            elif key == "strokeLinejoin":
+                attr_name = "stroke-linejoin"
+            else:
+                attr_name = key
+
+            path_attrs.append(f'{attr_name}="{escape(str(value))}"')
+
+        path_elements.append(f"<path {' '.join(path_attrs)}/>")
+
+    svg = (
+        f"<svg{class_attr}{style_attr} "
+        f'xmlns="http://www.w3.org/2000/svg" '
+        f'viewBox="{viewBox}" '
+        f'width="{ICON_SCALE}" '
+        f'height="{ICON_SCALE}" '
+        f'fill="currentColor" '
+        f'aria-hidden="true"{attrs_str}>'
+        f"{''.join(path_elements)}"
+        f"</svg>"
+    )
+
+    return mark_safe(svg)

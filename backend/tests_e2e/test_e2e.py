@@ -657,6 +657,7 @@ def test_favorite_button_interaction(
     # Verify initial state: heart icon should be hollow (.far .fa-heart)
     # Note: there are two icons (one for mobile, one for desktop) - check the visible one
     heart_icon = favorite_btn.locator("i").first
+    expect(heart_icon).to_be_visible()
     expect(heart_icon).to_contain_class("far")
     expect(heart_icon).to_contain_class("fa-heart")
 

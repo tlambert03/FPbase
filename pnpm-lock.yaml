@@ -14,12 +14,18 @@ importers:
       '@biomejs/biome':
         specifier: ^2.3.2
         version: 2.3.2
+      '@fortawesome/fontawesome-free':
+        specifier: ^7.1.0
+        version: 7.1.0
       '@playwright/test':
         specifier: ^1.56.1
         version: 1.56.1
       concurrently:
         specifier: ^8.2.0
         version: 8.2.2
+      lucide-static:
+        specifier: ^0.553.0
+        version: 0.553.0
       playwright:
         specifier: ^1.56.1
         version: 1.56.1
@@ -1013,6 +1019,10 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@fortawesome/fontawesome-free@7.1.0':
+    resolution: {integrity: sha512-+WxNld5ZCJHvPQCr/GnzCTVREyStrAJjisUPtUxG5ngDA8TMlPnKp6dddlTpai4+1GNmltAeuk1hJEkBohwZYA==}
+    engines: {node: '>=6'}
 
   '@inquirer/ansi@1.0.1':
     resolution: {integrity: sha512-yqq0aJW/5XPhi5xOAL1xRCpe1eh8UFVgYFpFsjEqmIR8rKLyP+HINvFXwUaxYICflJrVlxnp7lLN6As735kVpw==}
@@ -2439,6 +2449,9 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-static@0.553.0:
+    resolution: {integrity: sha512-HzUDs6+Eq4Tm9N/EvzQT1YzV7rpLF3yn/WSWEw1RLb/yZwUvOo8+0BMIm1p2V+tGlwlcrLnSR9SpSinToNULGA==}
 
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
@@ -3972,6 +3985,8 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
+  '@fortawesome/fontawesome-free@7.1.0': {}
+
   '@inquirer/ansi@1.0.1': {}
 
   '@inquirer/confirm@5.1.19(@types/node@24.9.2)':
@@ -5429,6 +5444,8 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-static@0.553.0: {}
 
   lz-string@1.5.0: {}
 
