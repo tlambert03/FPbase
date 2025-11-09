@@ -1,3 +1,5 @@
+import { icon } from "./icons.js"
+
 const $ = window.jQuery // jQuery loaded from CDN
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
@@ -717,13 +719,15 @@ $("#excerptModalForm")
   })
 
 function register_transition_form() {
-  $(".trans_formset_div").formset({
+  // Call formset plugin on the form elements inside the container
+  $(".trans_formset_div .formset-form").formset({
     addText: "Add Transition",
     addCssClass: "btn btn-info mb-4",
     deleteCssClass: "transDelete",
-    deleteText: '<i class="fas fa-minus-circle"></i>',
+    deleteText: icon("remove"),
     prefix: "transitions",
-    processHidden: true, // I added this to
+    formCssClass: "formset-form",
+    processHidden: true,
   })
 }
 
@@ -737,8 +741,20 @@ $(() => {
       cache: false,
       success: (data, _status) => {
         $("#transitionForm").html(data)
-        register_transition_form()
-        $("#transitionModal").modal()
+
+        // Use Bootstrap's shown.bs.modal event to ensure modal is fully visible
+        const $modal = $("#transitionModal")
+        // Remove any previous handlers to avoid duplicates
+        $modal.off("shown.bs.modal")
+        // Register formset AFTER modal is fully shown
+        $modal.one("shown.bs.modal", () => {
+          register_transition_form()
+        })
+        // Now show the modal (which will trigger the event above)
+        $modal.modal()
+      },
+      error: (_xhr, status, error) => {
+        console.error("Transition form AJAX error:", status, error)
       },
     })
   })

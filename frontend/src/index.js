@@ -11,6 +11,7 @@ import "vite/modulepreload-polyfill"
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
+import { icon } from "./js/icons.js" // Icon helper for dynamic HTML
 
 import "select2/dist/css/select2.css"
 import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
@@ -129,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="col-12">
                           <div class="alert alert-warning" role="alert">
                             <h5 class="alert-heading">
-                              <i class="fas fa-exclamation-triangle mr-2"></i>
+                              ${icon("alert", "mr-2")}
                               Unable to Load 3D Structure Viewer
                             </h5>
                             <p class="mb-2">The molecular structure viewer failed to load. This may be due to a network issue or browser compatibility problem.</p>
