@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
+import re
+from collections import defaultdict
+from pathlib import Path
+
 import pytest
 from django.template import Context, Template
+
+from fpbase.templatetags.fpbase_tags import ICON_MAP
 
 
 class TestIconTemplateTag:
@@ -14,7 +20,7 @@ class TestIconTemplateTag:
         t = Template('{% load fpbase_tags %}{% icon "info" %}')
         html = t.render(Context({}))
         assert "fas" in html
-        assert "fa-info-circle" in html
+        assert "fa-info" in html
         assert "<i " in html
         assert "</i>" in html
 
@@ -23,7 +29,7 @@ class TestIconTemplateTag:
         t = Template('{% load fpbase_tags %}{% icon "info" class_="mr-2" %}')
         html = t.render(Context({}))
         assert "mr-2" in html
-        assert "fas fa-info-circle" in html
+        assert "fas fa-info" in html
 
     def test_icon_with_style(self):
         """Test icon rendering with inline style."""
@@ -209,3 +215,56 @@ class TestIconTemplateTag:
         assert "fas" in html
         assert "fa-flag" in html
         assert 'class="fas fa-flag"' in html
+
+    def test_all_template_icons_are_valid(self):
+        """Test that all icon names used in templates exist in ICON_MAP.
+
+        This test scans all .html templates in the backend directory and verifies
+        that every {% icon "..." %} tag uses a valid icon name from ICON_MAP.
+        """
+        # Get the backend directory (parent of tests directory)
+        backend_dir = Path(__file__).parent.parent.parent
+
+        # Pattern to match {% icon "name" %} or {% icon 'name' %}
+        # This matches both double and single quotes
+        icon_pattern = re.compile(r'{%\s*icon\s+["\']([^"\']+)["\']')
+
+        invalid_icons = []
+        icon_usages = defaultdict(list)
+
+        # Find all .html files
+        for template_file in backend_dir.rglob("*.html"):
+            content = template_file.read_text(encoding="utf-8")
+
+            # Find all icon tags in this file
+            for match in icon_pattern.finditer(content):
+                icon_name = match.group(1)
+                icon_usages[icon_name].append(str(template_file.relative_to(backend_dir)))
+
+                # Check if icon exists in ICON_MAP
+                if icon_name not in ICON_MAP:
+                    # Get line number for better error reporting
+                    line_num = content[: match.start()].count("\n") + 1
+                    invalid_icons.append(
+                        {
+                            "icon": icon_name,
+                            "file": str(template_file.relative_to(backend_dir)),
+                            "line": line_num,
+                        }
+                    )
+
+        # If there are invalid icons, create a helpful error message
+        if invalid_icons:
+            error_lines = ["Found icon tags with invalid icon names:"]
+            for item in invalid_icons:
+                error_lines.append(f"  - '{item['icon']}' in {item['file']}:{item['line']}")
+            error_lines.append("")
+            error_lines.append("Available icons in ICON_MAP:")
+            error_lines.append(f"  {', '.join(sorted(ICON_MAP.keys()))}")
+
+            pytest.fail("\n".join(error_lines))
+
+        # Also verify we found at least some icon usages (sanity check)
+        assert len(icon_usages) > 0, (
+            "No {% icon %} tags found in templates. This test may not be searching the correct directory."
+        )

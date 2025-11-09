@@ -56,7 +56,9 @@ This repo is a Django web app for <https://www.fpbase.org> with:
 - When fixing Sentry issues, do NOT just silence errors - you MUST fix the root cause!
 - the current year is 2025 (not 2024), for web-searches
 
-## Agent skills
+## Agent tips
 
 - If you don't know something, prioritize using WebSearch (or the context7 mcp) to find the answer.
   Don't make up answers or waste too much time guessing and checking.
+- when writing code, don't be overly defensive unless the application warrants it. don't add
+  extra error handling "just in case".
