@@ -64,6 +64,7 @@ ICON_MAP = {
     "email": ("solid", "envelope"),
     "wrench": ("solid", "wrench"),
     "keyboard": ("regular", "keyboard"),
+    "thumbtack": ("solid", "thumbtack"),
     "google": ("brands", "google"),
     "twitter": ("brands", "twitter"),
     "orcid": ("brands", "orcid"),

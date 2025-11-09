@@ -169,16 +169,9 @@ a.twitter-share-button {
   }
 
   .favit {
-
-    // fix slight shift when clicking icon
-    svg[data-prefix="fas"] {
-      margin-right: 0.1rem;
-    }
-
     .favorite,
     .favorite:active {
       box-shadow: none !important;
-
       @include media-breakpoint-up(sm) {
         padding: 0;
       }
@@ -379,6 +372,20 @@ pre .mismatch {
   overflow: visible;
   vertical-align: -0.125em;
   width: 1em;
+}
+
+// Spinner animation
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
 }
 
 
