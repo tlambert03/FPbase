@@ -62,3 +62,6 @@ This repo is a Django web app for <https://www.fpbase.org> with:
   Don't make up answers or waste too much time guessing and checking.
 - when writing code, don't be overly defensive unless the application warrants it. don't add
   extra error handling "just in case".
+- if I ask you a question like "what do you think..." or "how do you recommend...", then DON'T just
+  immediately start modifying code. Instead, collect your thoughts and provide a concise answer first.
+  Then wait for me to respond before proceeding.

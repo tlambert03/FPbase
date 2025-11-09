@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from django.template import Context, Template
 
-from fpbase.templatetags.fpbase_tags import ICON_MAP
+from fpbase.templatetags.fpbase_tags import ICON_KEYS
 
 
 class TestIconTemplateTag:
@@ -19,17 +19,17 @@ class TestIconTemplateTag:
         """Test basic icon rendering."""
         t = Template('{% load fpbase_tags %}{% icon "info" %}')
         html = t.render(Context({}))
-        assert "fas" in html
-        assert "fa-info" in html
-        assert "<i " in html
-        assert "</i>" in html
+        assert "<svg" in html
+        assert "</svg>" in html
+        assert "viewBox=" in html
+        assert "<path" in html
 
     def test_icon_with_class(self):
         """Test icon rendering with additional CSS class."""
         t = Template('{% load fpbase_tags %}{% icon "info" class_="mr-2" %}')
         html = t.render(Context({}))
-        assert "mr-2" in html
-        assert "fas fa-info" in html
+        assert 'class="mr-2' in html
+        assert "<svg" in html
 
     def test_icon_with_style(self):
         """Test icon rendering with inline style."""
@@ -47,10 +47,10 @@ class TestIconTemplateTag:
         """Test icon rendering with multiple attributes."""
         t = Template('{% load fpbase_tags %}{% icon "warning" class_="mr-2" style="color: red;" aria_hidden="true" %}')
         html = t.render(Context({}))
-        assert "mr-2" in html
+        assert 'class="mr-2' in html
         assert 'style="color: red;"' in html
         assert 'aria-hidden="true"' in html
-        assert "fas fa-exclamation-circle" in html
+        assert "<svg" in html
 
     def test_icon_invalid_name(self):
         """Test that invalid icon names raise ValueError."""
@@ -84,35 +84,36 @@ class TestIconTemplateTag:
         """Test that brand icons use fab style."""
         t = Template('{% load fpbase_tags %}{% icon "google" %}')
         html = t.render(Context({}))
-        assert "fab" in html
-        assert "fa-google" in html
+        assert "<svg" in html
+        assert "<path" in html
 
-    def test_icon_far_style(self):
-        """Test that regular icons use far style."""
+    def test_icon_unselected_renders(self):
+        """Test that unselected icon renders as SVG."""
         t = Template('{% load fpbase_tags %}{% icon "unselected" %}')
         html = t.render(Context({}))
-        assert "far" in html
-        assert "fa-square" in html
+        assert "<svg" in html
+        assert "<path" in html
 
     def test_icon_spinner_renders_correctly(self):
-        """Test that spinner icon uses correct FontAwesome icon name."""
+        """Test that spinner icon renders as SVG."""
         t = Template('{% load fpbase_tags %}{% icon "spinner" %}')
         html = t.render(Context({}))
-        assert "fa-spinner" in html
-        # Make sure we're using fa-spinner icon, not fa-spin (which is a CSS class, not an icon)
-        assert 'class="fas fa-spinner"' in html
+        assert "<svg" in html
+        assert "<path" in html
 
     def test_icon_heart_exists(self):
         """Test that heart icon is available."""
         t = Template('{% load fpbase_tags %}{% icon "heart" %}')
         html = t.render(Context({}))
-        assert "fa-heart" in html
+        assert "<svg" in html
+        assert "<path" in html
 
     def test_icon_question_exists(self):
         """Test that question icon is available."""
         t = Template('{% load fpbase_tags %}{% icon "question" %}')
         html = t.render(Context({}))
-        assert "fa-question-circle" in html
+        assert "<svg" in html
+        assert "<path" in html
 
     def test_icon_boolean_attribute(self):
         """Test that boolean attributes are handled correctly."""
@@ -133,35 +134,32 @@ class TestIconTemplateTag:
         html = t.render(Context({}))
         assert 'data-toggle="tooltip"' in html
 
-    def test_icon_keyboard_uses_far(self):
-        """Test that keyboard icon uses far (regular) style."""
+    def test_icon_keyboard_renders(self):
+        """Test that keyboard icon renders as SVG."""
         t = Template('{% load fpbase_tags %}{% icon "keyboard" %}')
         html = t.render(Context({}))
-        assert "far" in html
-        assert "fa-keyboard" in html
-        assert 'class="far fa-keyboard"' in html
+        assert "<svg" in html
+        assert "<path" in html
 
-    def test_icon_flag_outline_uses_far(self):
-        """Test that flag-outline icon uses far (regular) style."""
+    def test_icon_flag_outline_renders(self):
+        """Test that flag-outline icon renders as SVG."""
         t = Template('{% load fpbase_tags %}{% icon "flag-outline" %}')
         html = t.render(Context({}))
-        assert "far" in html
-        assert "fa-flag" in html
-        assert 'class="far fa-flag"' in html
+        assert "<svg" in html
+        assert "<path" in html
 
-    def test_icon_flag_solid_uses_fas(self):
-        """Test that flag icon uses fas (solid) style."""
+    def test_icon_flag_solid_renders(self):
+        """Test that flag icon renders as SVG."""
         t = Template('{% load fpbase_tags %}{% icon "flag" %}')
         html = t.render(Context({}))
-        assert "fas" in html
-        assert "fa-flag" in html
-        assert 'class="fas fa-flag"' in html
+        assert "<svg" in html
+        assert "<path" in html
 
     def test_all_template_icons_are_valid(self):
-        """Test that all icon names used in templates exist in ICON_MAP.
+        """Test that all icon names used in templates exist in ICON_KEYS.
 
         This test scans all .html templates in the backend directory and verifies
-        that every {% icon "..." %} tag uses a valid icon name from ICON_MAP.
+        that every {% icon "..." %} tag uses a valid icon name from ICON_KEYS.
         """
         # Get the backend directory (parent of tests directory)
         backend_dir = Path(__file__).parent.parent.parent
@@ -182,8 +180,8 @@ class TestIconTemplateTag:
                 icon_name = match.group(1)
                 icon_usages[icon_name].append(str(template_file.relative_to(backend_dir)))
 
-                # Check if icon exists in ICON_MAP
-                if icon_name not in ICON_MAP:
+                # Check if icon exists in ICON_KEYS
+                if icon_name not in ICON_KEYS:
                     # Get line number for better error reporting
                     line_num = content[: match.start()].count("\n") + 1
                     invalid_icons.append(
@@ -196,13 +194,12 @@ class TestIconTemplateTag:
 
         # If there are invalid icons, create a helpful error message
         if invalid_icons:
-            error_lines = ["Found icon tags with invalid icon names:"]
+            error_lines = [
+                "Found icon tags with invalid icon names."
+                "Either fix the template or add it to ICON_MAP in scripts/extract_fa_icons.py and re-run it."
+            ]
             for item in invalid_icons:
-                error_lines.append(f"  - '{item['icon']}' in {item['file']}:{item['line']}")
-            error_lines.append("")
-            error_lines.append("Available icons in ICON_MAP:")
-            error_lines.append(f"  {', '.join(sorted(ICON_MAP.keys()))}")
-
+                error_lines.append(f"  - '{item['icon']}' used in {item['file']}:{item['line']}")
             pytest.fail("\n".join(error_lines))
 
         # Also verify we found at least some icon usages (sanity check)

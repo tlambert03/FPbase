@@ -1,5 +1,7 @@
 import Highcharts from "highcharts"
 import "highcharts/modules/no-data-to-display"
+import { icon } from "./icons.js"
+
 const $ = window.jQuery // jQuery loaded from CDN
 
 export default function initFRET() {
@@ -443,7 +445,7 @@ export default function initFRET() {
       columns: [
         {
           data: () =>
-            '<button class="btn btn-sm btn-outline bg-transparent load-button"><i class="far fa-eye text-secondary"></i> </button>',
+            `<button class="btn btn-sm btn-outline bg-transparent load-button">${icon("view", "text-secondary")}</button>`,
           width: "1px",
           orderable: false,
         },

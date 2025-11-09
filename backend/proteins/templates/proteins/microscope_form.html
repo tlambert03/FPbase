@@ -68,8 +68,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
     <div class="col">
       <p class='text-muted small font-italic'>Remember that you can always submit spectra for any filter, light source,
         camera, protein or dye that are not already in the database with the <a
-          href="{% url 'proteins:submit-spectra' %}">spectrum submission form</a>. (Though Chroma and Semrock filter
-        part numbers entered in the bulk config tab below will be automatically imported if possible)</p>
+          href="{% url 'proteins:submit-spectra' %}">spectrum submission form</a>.</p>
     </div>
   </div>
 
@@ -106,8 +105,9 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
           {{ form.optical_configs|as_crispy_field }}
 
           <div class="alert alert-info alert-dismissible mb-0" role="alert">
-            <div class="alert-icon" style="font-size: 1.6rem"><span
-                class="fas fa-question-circle float-left mr-3 mt-2"></span></div>
+            <div class="alert-icon" style="font-size: 1.6rem">
+                {% icon "question" class_="float-left mr-3 mt-2" %}
+            </div>
             <h4 class="alert-heading mb-3 mt-2"><strong>Adding Optical Configurations in Bulk</strong></h4>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
               <span aria-hidden="true">&times;</span>
@@ -185,9 +185,10 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
               </div>
             </div>
             {% endfor %}
-            <a href="#" class='text-primary' data-toggle="modal" data-target="#importModal"><button
-                class='btn btn-sm btn-danger mb-1'>{% icon "download" class_="mr-2" %}Import Commercial
-                Filter</button></a>
+            {% comment %}
+            this feature is broken...
+            <a href="#" class='text-primary' data-toggle="modal" data-target="#importModal"><button class='btn btn-sm btn-danger mb-1'>{% icon "download" class_="mr-2" %}Import Commercial Filter</button></a>
+            {% endcomment %}
           </div>
 
         </div>
@@ -224,7 +225,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
   {% endif %}
   <input type="submit" class="btn btn-primary mb-2 mt-3" value="Submit" />
   <div class="text-primary ml-3 hidden" id="spinner" style="top: 5px; position: relative;">
-    {% icon "settings" class_="fa-spin mr-2" style='font-size: 1.7rem; top: 6px; position: relative;' %}{% if object %}Updating{% else %}Building{% endif %}
+    {% icon "settings" class_="spinner-icon mr-2" style='font-size: 1.7rem; top: 6px; position: relative;' %}{% if object %}Updating{% else %}Building{% endif %}
     your configuration...
   </div>
 </form>
@@ -254,7 +255,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 </div>
 
 <!-- Modals -->
-{% include 'proteins/modals/_import_spectrum_modal.html' with user=user %}
+{% comment %} {% include 'proteins/modals/_import_spectrum_modal.html' with user=user %} {% endcomment %}
 
 
 {% endblock content %}

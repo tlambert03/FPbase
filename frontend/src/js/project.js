@@ -1,3 +1,5 @@
+import { icon } from "./icons.js"
+
 const $ = window.jQuery // jQuery loaded from CDN
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
@@ -717,13 +719,15 @@ $("#excerptModalForm")
   })
 
 function register_transition_form() {
-  $(".trans_formset_div").formset({
+  // Call formset plugin on the form elements inside the container
+  $(".trans_formset_div .formset-form").formset({
     addText: "Add Transition",
     addCssClass: "btn btn-info mb-4",
     deleteCssClass: "transDelete",
-    deleteText: '<i class="fas fa-minus-circle"></i>',
+    deleteText: icon("remove"),
     prefix: "transitions",
-    processHidden: true, // I added this to
+    formCssClass: "formset-form",
+    processHidden: true,
   })
 }
 
@@ -737,8 +741,20 @@ $(() => {
       cache: false,
       success: (data, _status) => {
         $("#transitionForm").html(data)
-        register_transition_form()
-        $("#transitionModal").modal()
+
+        // Use Bootstrap's shown.bs.modal event to ensure modal is fully visible
+        const $modal = $("#transitionModal")
+        // Remove any previous handlers to avoid duplicates
+        $modal.off("shown.bs.modal")
+        // Register formset AFTER modal is fully shown
+        $modal.one("shown.bs.modal", () => {
+          register_transition_form()
+        })
+        // Now show the modal (which will trigger the event above)
+        $modal.modal()
+      },
+      error: (_xhr, status, error) => {
+        console.error("Transition form AJAX error:", status, error)
       },
     })
   })
@@ -784,6 +800,7 @@ $(document).ready(() => {
   $("a.object-flag").click(function (e) {
     e.preventDefault()
     var button = $(this)
+    var wrapper = button.closest(".object-flag-wrapper")
 
     $.post({
       url: button.data("action-url"),
@@ -796,16 +813,12 @@ $(document).ready(() => {
       success: (response) => {
         if (response.status === "flagged") {
           button.data("flagged", 1)
-          button.find(".flagicon").removeClass("far")
-          button.find(".flagicon").addClass("fas")
-          button.data("original-title", "This excerpt has been flagged for review")
-          button.css("opacity", 1)
+          wrapper.addClass("is-flagged")
+          button.data("original-title", "Admin: unflag")
         } else if (response.status === "unflagged") {
           button.data("flagged", 0)
-          button.find(".flagicon").removeClass("fas")
-          button.find(".flagicon").addClass("far")
+          wrapper.removeClass("is-flagged")
           button.data("original-title", "Flag this excerpt for review")
-          button.css("opacity", 0.3)
         }
       },
     })
