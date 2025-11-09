@@ -11,9 +11,11 @@ register = template.Library()
 _ICON_CACHE: dict[str, str] = {}
 
 ICON_DIR = Path(__file__).parent.parent / "static" / "icons"
-assert ICON_DIR.exists(), (
-    f"Icon directory does not exist: {ICON_DIR}. Please run 'python scripts/extract_fa_icons.py' to generate it."
-)
+if not ICON_DIR.exists():
+    raise RuntimeError(
+        f"Icon directory does not exist: {ICON_DIR}. Please run 'python scripts/extract_fa_icons.py' to generate it."
+    )
+
 
 ICON_KEYS = {svg.stem for svg in ICON_DIR.glob("*.svg")}
 
