@@ -121,31 +121,3 @@ a.object-flag{
   margin-left:10px;
   font-size: 1.1rem;
 }
-
-// Dual-render CSS toggle for flag icons
-.flag-icon-toggle {
-  display: inline-block;
-
-  .icon-outline {
-    display: inline-block;
-    color: $danger;
-    margin-left: 10px;
-    font-size: 1.1rem;
-  }
-  .icon-filled {
-    display: none;
-    color: $danger;
-    margin-left: 10px;
-    font-size: 1.1rem;
-  }
-
-  .is-flagged & {
-    .icon-outline { display: none; }
-    .icon-filled { display: inline-block; }
-  }
-}
-
-// When flagged, show at full opacity
-.object-flag-wrapper.is-flagged a.object-flag {
-  opacity: 1;
-}

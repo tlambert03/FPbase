@@ -369,6 +369,8 @@ pre .mismatch {
   background-color: #f7f7f7;
 }
 
+// ICON STYLES
+
 // Class applied in template tag
 .svg-inline-icon {
   box-sizing: content-box;
@@ -377,4 +379,39 @@ pre .mismatch {
   overflow: visible;
   vertical-align: -0.125em;
   width: 1em;
+}
+
+
+// Dual-render CSS toggle for flag icons
+.flag-icon-toggle {
+  display: inline-block;
+
+  .icon-outline {
+    display: inline-block;
+    color: $danger;
+    margin-left: 10px;
+    font-size: 1.1rem;
+  }
+
+  .icon-filled {
+    display: none;
+    color: $danger;
+    margin-left: 10px;
+    font-size: 1.1rem;
+  }
+
+  .is-flagged & {
+    .icon-outline {
+      display: none;
+    }
+
+    .icon-filled {
+      display: inline-block;
+    }
+  }
+}
+
+// When flagged, show at full opacity
+.object-flag-wrapper.is-flagged a.object-flag {
+  opacity: 1;
 }
