@@ -103,23 +103,19 @@ class SpectrumManager(models.Manager):
         )
 
     def sluglist(self, filters: dict | None = None):
-        """probably using this one going forward for spectra page"""
+        """Return list of spectra with owner information for spectra page."""
+        # Build values list dynamically from OWNER_FIELD_NAMES
+        vals = ["id", "category", "subtype", "owner_state__protein__name", "owner_state__protein__slug"]
 
-        owners = ["state", "dye", "filter", "light", "camera"]
-        vals = [
-            "id",
-            "category",
-            "subtype",
-            "owner_state__protein__name",
-            "owner_dye__url",
-            "owner_filter__url",
-            "owner_camera__url",
-            "owner_light__url",
-            "owner_state__protein__slug",
-        ]
-        for suffix in ["slug", "id", "name"]:
-            for owner in owners:
+        # Add owner fields and their related fields
+        owner_base_names = ["state", "dye", "filter", "light", "camera"]
+        for owner in owner_base_names:
+            for suffix in ["slug", "id", "name", "url"]:
+                # Special case: state doesn't have url, protein has slug
+                if owner == "state" and suffix == "url":
+                    continue
                 vals.append(f"owner_{owner}__{suffix}")
+
         Q = self.get_queryset()
         if filters:
             Q = Q.filter(**filters)
@@ -127,40 +123,24 @@ class SpectrumManager(models.Manager):
 
         out = []
         for v in Q:
-            slug = (
-                v["owner_state__slug"]
-                or v["owner_dye__slug"]
-                or v["owner_filter__slug"]
-                or v["owner_light__slug"]
-                or v["owner_camera__slug"]
+            # Extract owner info using OR chain (only one will be non-null)
+            slug = next(
+                (v[f"owner_{owner}__slug"] for owner in owner_base_names if v.get(f"owner_{owner}__slug")), None
             )
-            name = (
-                v["owner_dye__name"]
-                or v["owner_filter__name"]
-                or v["owner_light__name"]
-                or v["owner_camera__name"]
-                or None
-            )
-            url = (
-                v["owner_dye__url"]
-                or v["owner_filter__url"]
-                or v["owner_state__protein__slug"]
-                or v["owner_light__url"]
-                or v["owner_camera__url"]
-                or None
-            )
-            owner_id = (
-                v["owner_state__id"]
-                or v["owner_dye__id"]
-                or v["owner_filter__id"]
-                or v["owner_light__id"]
-                or v["owner_camera__id"]
-                or None
-            )
-            if not name:
+            owner_id = next((v[f"owner_{owner}__id"] for owner in owner_base_names if v.get(f"owner_{owner}__id")), None)
+
+            # Name: handle special case for protein states
+            name = next((v[f"owner_{owner}__name"] for owner in owner_base_names[1:] if v.get(f"owner_{owner}__name")), None)
+            if not name:  # Must be a protein state
                 prot = v["owner_state__protein__name"]
                 state = v["owner_state__name"]
                 name = prot if state == "default" else f"{prot} ({state})"
+
+            # URL: handle special case for protein states (use protein slug)
+            url = v.get("owner_state__protein__slug") or next(
+                (v[f"owner_{owner}__url"] for owner in owner_base_names[1:] if v.get(f"owner_{owner}__url")), None
+            )
+
             out.append(
                 {
                     "id": v["id"],
@@ -210,31 +190,35 @@ class SpectrumManager(models.Manager):
         return sorted(out, key=lambda k: k["name"])
 
     def filter_owner(self, slug):
+        """Return spectra for any owner with the given slug."""
         qs = self.none()
-        A = ("owner_state", "owner_dye", "owner_filter", "owner_light", "owner_camera")
-        for ownerclass in A:
-            qs = qs | self.get_queryset().filter(**{ownerclass + "__slug": slug})
+        for field_name in Spectrum.OWNER_FIELD_NAMES:
+            qs = qs | self.get_queryset().filter(**{f"{field_name}__slug": slug})
         return qs
 
     def find_similar_owners(self, query, threshold=0.4):
-        A = (
-            "owner_state__protein__name",
+        """Find owners with names similar to query using trigram similarity."""
+        # Build lookup paths for owner names
+        owner_name_paths = [
+            "owner_state__protein__name",  # Special case: state uses protein name
             "owner_dye__name",
             "owner_filter__name",
             "owner_light__name",
             "owner_camera__name",
-        )
+        ]
+
         qs_list = []
-        for ownerclass in A:
+        for owner_path in owner_name_paths:
             for s in (
-                Spectrum.objects.annotate(similarity=TrigramSimilarity(ownerclass, query))
+                Spectrum.objects.annotate(similarity=TrigramSimilarity(owner_path, query))
                 .filter(similarity__gt=threshold)
-                .order_by("-similarity", ownerclass)
-                .distinct("similarity", ownerclass)
+                .order_by("-similarity", owner_path)
+                .distinct("similarity", owner_path)
             ):
                 qs_list.append((s.similarity, s.owner))
+
         if qs_list:
-            max_sim = max([s[0] for s in qs_list])
+            max_sim = max(s[0] for s in qs_list)
             qs_list = [i[1] for i in qs_list if max_sim - i[0] < 0.05]
         return qs_list
 
@@ -344,7 +328,38 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         LIGHT: [PD],
     }
 
+    # Centralized owner field configuration to reduce duplication
+    # Maps category code to (field_name, model_name, related_name)
+    OWNER_FIELD_CONFIG = {
+        PROTEIN: ("owner_state", "State", "spectra"),
+        DYE: ("owner_dye", "Dye", "spectra"),
+        FILTER: ("owner_filter", "Filter", "spectrum"),
+        LIGHT: ("owner_light", "Light", "spectrum"),
+        CAMERA: ("owner_camera", "Camera", "spectrum"),
+    }
+
+    # Owner field names for iteration
+    OWNER_FIELD_NAMES = ("owner_state", "owner_dye", "owner_filter", "owner_light", "owner_camera")
+
+    @classmethod
+    def get_owner_field_name(cls, category: str) -> str:
+        """Get the owner field name for a given category."""
+        field_name, _, _ = cls.OWNER_FIELD_CONFIG[category]
+        return field_name
+
+    @classmethod
+    def get_category_for_owner_field(cls, field_name: str) -> str | None:
+        """Get the category code for a given owner field name."""
+        for cat, (fname, _, _) in cls.OWNER_FIELD_CONFIG.items():
+            if fname == field_name:
+                return cat
+        return None
+
     data = SpectrumData()
+    # NOTE: category is redundant (derivable from which owner field is set) but kept for:
+    # 1. API backward compatibility
+    # 2. Simpler queries/filtering
+    # It's auto-populated in save() from the owner field
     category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True)
     subtype = models.CharField(
         max_length=2,
@@ -355,8 +370,12 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     ph = models.FloatField(null=True, blank=True, verbose_name="pH")  # pH of measurement
     solvent = models.CharField(max_length=128, blank=True)
 
-    # I was swayed to avoid Generic Foreign Keys by this article
-    # https://lukeplant.me.uk/blog/posts/avoid-django-genericforeignkey/
+    # Multiple nullable ForeignKeys pattern (vs GenericForeignKey) for:
+    # - Database-level referential integrity
+    # - Better query performance (proper JOINs, select_related)
+    # - Self-documenting schema
+    # - Different relationship cardinalities (ForeignKey vs OneToOneField)
+    # See: https://lukeplant.me.uk/blog/posts/avoid-django-genericforeignkey/
     owner_state = models.ForeignKey("State", null=True, blank=True, on_delete=models.CASCADE, related_name="spectra")
     owner_dye = models.ForeignKey("Dye", null=True, blank=True, on_delete=models.CASCADE, related_name="spectra")
     owner_filter = models.OneToOneField(
@@ -405,6 +424,50 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             # Index on status for queries that only filter by approval status
             models.Index(fields=["status"], name="spectrum_status_idx"),
         ]
+        constraints = [
+            # Database-level constraint: exactly one owner field must be non-null
+            models.CheckConstraint(
+                check=(
+                    models.Q(
+                        owner_state__isnull=False,
+                        owner_dye__isnull=True,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_state__isnull=True,
+                        owner_dye__isnull=False,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_state__isnull=True,
+                        owner_dye__isnull=True,
+                        owner_filter__isnull=False,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_state__isnull=True,
+                        owner_dye__isnull=True,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=False,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_state__isnull=True,
+                        owner_dye__isnull=True,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=False,
+                    )
+                ),
+                name="spectrum_exactly_one_owner",
+                violation_error_message="Spectrum must have exactly one owner (state, dye, filter, light, or camera)",
+            )
+        ]
 
     def __str__(self):
         if self.owner_state:
@@ -416,11 +479,20 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         # FIXME: figure out why self.full_clean() throws validation error with
         # 'data cannot be null' ... even if data is provided...
         self.full_clean()
-        if not any(self.owner_set):
+
+        # Validate exactly one owner (also enforced by DB constraint)
+        owner_count = sum(bool(getattr(self, field)) for field in self.OWNER_FIELD_NAMES)
+        if owner_count == 0:
             raise ValidationError("Spectrum must have an owner!")
-        if sum(bool(x) for x in self.owner_set) > 1:
+        if owner_count > 1:
             raise ValidationError("Spectrum must have only one owner!")
-        # self.category = self.owner.__class__.__name__.lower()[0]
+
+        # Auto-populate category from owner type
+        for cat, (field_name, _, _) in self.OWNER_FIELD_CONFIG.items():
+            if getattr(self, field_name):
+                self.category = cat
+                break
+
         cache.delete(SPECTRA_CACHE_KEY)
         super().save(*args, **kwargs)
 
@@ -471,19 +543,14 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             raise ValidationError(errors)
 
     @property
-    def owner_set(self):
-        return [
-            self.owner_state,
-            self.owner_dye,
-            self.owner_filter,
-            self.owner_light,
-            self.owner_camera,
-        ]
+    def owner_set(self) -> list:
+        """Return list of all owner field values (most will be None)."""
+        return [getattr(self, field) for field in self.OWNER_FIELD_NAMES]
 
-    @property
+    @cached_property
     def owner(self):
-        return next((x for x in self.owner_set if x), None)
-        #  raise AssertionError("No owner is set")
+        """Return the single non-null owner object."""
+        return next((getattr(self, field) for field in self.OWNER_FIELD_NAMES if getattr(self, field)), None)
 
     @property
     def name(self):
