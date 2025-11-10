@@ -64,50 +64,25 @@ def login_required_message_and_redirect(
 
 
 def etag_cached(*models: type[Model]) -> Callable:
-    """Decorator to add ETag support to function-based views.
-
-    Parameters
-    ----------
-    *models
-        Django model classes to track for version-based ETags.
-
-    Returns
-    -------
-    Callable
-        Decorated view function with ETag support.
-
-    Examples
-    --------
-    >>> @etag_cached(Spectrum, OpticalConfig)
-    ... def my_view(request):
-    ...     data = get_some_json()
-    ...     return HttpResponse(data, content_type="application/json")
-    """
+    """Add ETag support to function-based views."""
 
     def decorator(view_func: Callable) -> Callable:
         @wraps(view_func)
         def wrapper(request: HttpRequest, *args, **kwargs) -> HttpResponse:
-            # Generate ETag from model versions
             current_etag = generate_version_etag(*models)
 
-            # Check if client sent If-None-Match header
             if request.method in ("GET", "HEAD"):
                 if_none_match = request.headers.get("if-none-match")
                 if if_none_match:
                     client_etags = parse_etag_header(if_none_match)
                     if "*" in client_etags or current_etag in client_etags:
-                        # Data hasn't changed, return 304 Not Modified
                         response = HttpResponse(status=304)
                         response["ETag"] = current_etag
                         return response
 
-            # Call the original view function
             response = view_func(request, *args, **kwargs)
-
-            # Add ETag header to successful responses
             if response.status_code == 200:
                 response["ETag"] = current_etag
-
             return response
 
         return wrapper

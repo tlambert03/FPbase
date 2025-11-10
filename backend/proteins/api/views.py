@@ -32,16 +32,12 @@ from .serializers import (
 
 @etag_cached(Spectrum)
 def spectraslugs(request):
-    """Return list of all spectra with ETag support for conditional requests."""
-    spectrainfo = get_cached_spectra_info()
-    return HttpResponse(spectrainfo, content_type="application/json")
+    return HttpResponse(get_cached_spectra_info(), content_type="application/json")
 
 
 @etag_cached(OpticalConfig)
 def ocinfo(request):
-    """Return optical configuration info with ETag support."""
-    ocinfo = get_cached_optical_configs()
-    return HttpResponse(ocinfo, content_type="application/json")
+    return HttpResponse(get_cached_optical_configs(), content_type="application/json")
 
 
 class SpectrumList(ListAPIView):
@@ -139,16 +135,9 @@ class ProteinSpectraListAPIView(ListAPIView):
 
 
 class ProteinTableAPIView(ETagMixin, ListAPIView):
-    """Optimized API endpoint for the protein table view.
+    """Optimized protein table endpoint with ETag support."""
 
-    Includes efficient queries with prefetch_related and select_related to
-    avoid N+1 query problems. Only returns visible proteins with their states.
-
-    Uses ETag-based caching for conditional requests (304 Not Modified).
-    Client-side caching via ETags replaces server-side cache_page.
-    """
-
-    etag_models = [Protein, State]  # ETag based on protein and state versions
+    etag_models = [Protein, State]
 
     queryset = (
         Protein.visible.all()

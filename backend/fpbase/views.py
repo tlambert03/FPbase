@@ -52,21 +52,9 @@ class SameOriginExemptAnonThrottle(AnonRateThrottle):
 
 
 class RateLimitedGraphQLView(GraphQLView):
-    """GraphQL view with rate limiting and ETag support.
+    """GraphQL view with rate limiting and ETag support."""
 
-    Features:
-    - Rate limiting using DRF's throttle infrastructure
-    - ETag-based caching for conditional requests (304 Not Modified)
-    - Automatic cache invalidation when Spectrum or OpticalConfig changes
-
-    The ETag is based on Spectrum and OpticalConfig model versions, since
-    these are the primary data returned by the spectra viewer GraphQL queries.
-    """
-
-    # Use the same throttle classes as the REST API (from settings.REST_FRAMEWORK)
     throttle_classes = api_settings.DEFAULT_THROTTLE_CLASSES
-
-    # Models to track for ETag generation
     etag_models = [Spectrum, OpticalConfig]
 
     def get_throttles(self):
@@ -144,28 +132,19 @@ class RateLimitedGraphQLView(GraphQLView):
 
             return response
 
-        # Check ETag for conditional requests (304 Not Modified)
-        # Only for GET/POST requests (GraphQL uses POST for queries)
         if request.method in ("GET", "POST"):
             current_etag = generate_version_etag(*self.etag_models)
             if_none_match = request.headers.get("if-none-match")
-
             if if_none_match:
                 client_etags = parse_etag_header(if_none_match)
                 if "*" in client_etags or current_etag in client_etags:
-                    # Data hasn't changed, return 304 Not Modified
                     response = HttpResponse(status=304)
                     response["ETag"] = current_etag
                     return response
 
-        # Process the GraphQL request
         response = super().dispatch(request, *args, **kwargs)
-
-        # Add ETag header to successful responses
         if response.status_code == 200 and request.method in ("GET", "POST"):
-            current_etag = generate_version_etag(*self.etag_models)
-            response["ETag"] = current_etag
-
+            response["ETag"] = generate_version_etag(*self.etag_models)
         return response
 
 
