@@ -127,10 +127,14 @@ class SpectrumManager(models.Manager):
             slug = next(
                 (v[f"owner_{owner}__slug"] for owner in owner_base_names if v.get(f"owner_{owner}__slug")), None
             )
-            owner_id = next((v[f"owner_{owner}__id"] for owner in owner_base_names if v.get(f"owner_{owner}__id")), None)
+            owner_id = next(
+                (v[f"owner_{owner}__id"] for owner in owner_base_names if v.get(f"owner_{owner}__id")), None
+            )
 
             # Name: handle special case for protein states
-            name = next((v[f"owner_{owner}__name"] for owner in owner_base_names[1:] if v.get(f"owner_{owner}__name")), None)
+            name = next(
+                (v[f"owner_{owner}__name"] for owner in owner_base_names[1:] if v.get(f"owner_{owner}__name")), None
+            )
             if not name:  # Must be a protein state
                 prot = v["owner_state__protein__name"]
                 state = v["owner_state__name"]
