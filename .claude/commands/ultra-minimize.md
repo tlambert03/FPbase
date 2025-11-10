@@ -20,6 +20,7 @@ DO NOT:
 - change functionality.
 - add new functionality.
 - obfuscate the code or use clever tricks that reduce readability.
+- remove code that existed on main.
 
 IMPORTANT:
 
