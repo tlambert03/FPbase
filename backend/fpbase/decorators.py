@@ -8,7 +8,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 
-from fpbase.etag_utils import check_etag_match, generate_version_etag
+from fpbase.etag_utils import check_etag_match, etagged_response
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -76,13 +76,8 @@ def etag_cached(*models: type[Model]) -> Callable[[ViewFunc], ViewFunc]:
             if not_modified := check_etag_match(request, *models):
                 return not_modified
 
-            # Process the request normally
-            response = view_func(request)
-            # Add ETag header to successful responses
-            if response.status_code == 200:
-                response["ETag"] = generate_version_etag(*models)
-
-            return response
+            # Process the request normally, adding ETag to response
+            return etagged_response(view_func(request), request, *models)
 
         return wrapper
 

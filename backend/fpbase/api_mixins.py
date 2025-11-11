@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from rest_framework.views import APIView
 
-from fpbase.etag_utils import check_etag_match, generate_version_etag
+from fpbase.etag_utils import check_etag_match, etagged_response
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -41,5 +41,4 @@ class ETagMixin(APIView):
             return not_modified
 
         # Otherwise, add ETag to 200 response
-        response["ETag"] = generate_version_etag(*self.etag_models)
-        return response
+        return etagged_response(response, request, *self.etag_models)

@@ -12,7 +12,7 @@ from rest_framework.settings import api_settings
 from rest_framework.throttling import AnonRateThrottle
 from sentry_sdk import last_event_id
 
-from fpbase.etag_utils import check_etag_match, generate_version_etag
+from fpbase.etag_utils import check_etag_match, etagged_response
 from fpbase.forms import ContactForm
 from proteins.models import OpticalConfig, Protein, Spectrum
 
@@ -145,11 +145,7 @@ class RateLimitedGraphQLView(GraphQLView):
             return not_modified
 
         response = super().dispatch(request, *args, **kwargs)
-        if response.status_code == 200 and request.method in ("GET", "POST"):
-            # Add ETag header to successful responses
-            response["ETag"] = generate_version_etag(*self.etag_models)
-
-        return response
+        return etagged_response(response, request, *self.etag_models)
 
 
 class HomeView(TemplateView):

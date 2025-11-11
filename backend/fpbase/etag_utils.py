@@ -27,6 +27,13 @@ def generate_version_etag(*model_classes: type[Model]) -> str:
     return f'W/"{get_model_version(*model_classes)}"'
 
 
+def etagged_response(response: HttpResponse, request: HttpRequest, *etag_models: type[Model]) -> HttpResponse:
+    """Add ETag header to response based on model versions."""
+    if response.status_code == 200 and request.method in ("GET", "POST"):
+        response["ETag"] = generate_version_etag(*etag_models)
+    return response
+
+
 def generate_content_etag(content: str | bytes) -> str:
     """Generate a strong ETag from response content."""
     if isinstance(content, str):
