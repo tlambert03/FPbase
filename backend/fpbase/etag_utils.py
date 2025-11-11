@@ -70,7 +70,8 @@ def check_etag_match(
         return None
 
     # ETags match - return 304 Not Modified
-    response = HttpResponseNotModified(headers={"ETag": current_etag})
+    response = HttpResponseNotModified()
+    response["ETag"] = current_etag
 
     # Copy over caching-related headers if provided
     if base_response:

@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, ClassVar
+
+from rest_framework.views import APIView
 
 from fpbase.etag_utils import check_etag_match, generate_version_etag
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from django.db.models import Model
     from django.http import HttpResponse
     from rest_framework.request import Request
-    from rest_framework.response import Response
+    from rest_framework.response import Response as DRFResponse
 
 
-class ETagMixin:
+class ETagMixin(APIView):
     """Add ETag support to DRF APIView classes.
 
     Usage:
@@ -21,21 +25,21 @@ class ETagMixin:
             etag_models = [Protein, State]
     """
 
-    etag_models: list[type[Model]] = []
+    etag_models: ClassVar[Sequence[type[Model]]] = ()
 
-    def finalize_response(self, request: Request, response: Response, *args, **kwargs) -> Response | HttpResponse:
-        response = super().finalize_response(request, response, *args, **kwargs)  # type: ignore[misc]
-
-        if request.method not in ("GET", "HEAD") or response.status_code != 200 or not self.etag_models:
-            return response
-
-        # Add ETag header
-        current_etag = generate_version_etag(*self.etag_models)
-        response["ETag"] = current_etag
-
+    def finalize_response(
+        self, request: Request, response: DRFResponse, *args: Any, **kwargs: Any
+    ) -> DRFResponse | HttpResponse:
+        response = super().finalize_response(request, response, *args, **kwargs)
         # Check if client's ETag matches and return 304 if so
-        not_modified = check_etag_match(request, *self.etag_models, base_response=response)
-        if not_modified:
+        if (
+            response.status_code == 200
+            and request.method in ("GET", "HEAD")
+            and self.etag_models
+            and (not_modified := check_etag_match(request, *self.etag_models, base_response=response))
+        ):
             return not_modified
 
+        # Otherwise, add ETag to 200 response
+        response["ETag"] = generate_version_etag(*self.etag_models)
         return response
