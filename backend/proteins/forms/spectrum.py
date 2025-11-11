@@ -27,12 +27,10 @@ class SpectrumFormField(forms.CharField):
 
 
 class SpectrumForm(forms.ModelForm):
+    # Use centralized owner field config from Spectrum model
+    # Format: {category: (field_name, model_name)} extracted from OWNER_FIELD_CONFIG
     lookup = {
-        Spectrum.DYE: ("owner_dye", "Dye"),
-        Spectrum.PROTEIN: ("owner_state", "State"),
-        Spectrum.FILTER: ("owner_filter", "Filter"),
-        Spectrum.CAMERA: ("owner_camera", "Camera"),
-        Spectrum.LIGHT: ("owner_light", "Light"),
+        cat: (field_name, model_name) for cat, (field_name, model_name, _) in Spectrum.OWNER_FIELD_CONFIG.items()
     }
 
     owner_state = forms.ModelChoiceField(
