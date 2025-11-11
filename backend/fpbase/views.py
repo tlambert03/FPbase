@@ -2,7 +2,7 @@ import logging
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
@@ -12,7 +12,7 @@ from rest_framework.settings import api_settings
 from rest_framework.throttling import AnonRateThrottle
 from sentry_sdk import last_event_id
 
-from fpbase.etag_utils import generate_version_etag, parse_etag_header
+from fpbase.etag_utils import check_etag_match, generate_version_etag
 from fpbase.forms import ContactForm
 from proteins.models import OpticalConfig, Protein, Spectrum
 
@@ -52,8 +52,16 @@ class SameOriginExemptAnonThrottle(AnonRateThrottle):
 
 
 class RateLimitedGraphQLView(GraphQLView):
-    """GraphQL view with rate limiting and ETag support."""
+    """GraphQL view with rate limiting and ETag support.
 
+    Leverages Django REST Framework's battle-tested throttling system:
+    - Uses DEFAULT_THROTTLE_CLASSES from settings (AnonRateThrottle, UserRateThrottle)
+    - Automatically handles X-Forwarded-For for Heroku deployments
+    - Raises DRF's Throttled exception which includes retry-after information
+    - Converts the exception to GraphQL error format with proper HTTP headers
+    """
+
+    # Use the same throttle classes as the REST API (from settings.REST_FRAMEWORK)
     throttle_classes = api_settings.DEFAULT_THROTTLE_CLASSES
     etag_models = [Spectrum, OpticalConfig]
 
@@ -132,19 +140,15 @@ class RateLimitedGraphQLView(GraphQLView):
 
             return response
 
-        if request.method in ("GET", "POST"):
-            current_etag = generate_version_etag(*self.etag_models)
-            if_none_match = request.headers.get("if-none-match")
-            if if_none_match:
-                client_etags = parse_etag_header(if_none_match)
-                if "*" in client_etags or current_etag in client_etags:
-                    response = HttpResponse(status=304)
-                    response["ETag"] = current_etag
-                    return response
+        # Check if client's ETag matches - return 304 if so
+        if request.method in ("GET", "POST") and (not_modified := check_etag_match(request, *self.etag_models)):
+            return not_modified
 
         response = super().dispatch(request, *args, **kwargs)
         if response.status_code == 200 and request.method in ("GET", "POST"):
+            # Add ETag header to successful responses
             response["ETag"] = generate_version_etag(*self.etag_models)
+
         return response
 
 
