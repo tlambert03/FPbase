@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
 
 from fpbase.etag_utils import check_etag_match, generate_version_etag
 
@@ -13,7 +14,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from django.db.models import Model
-    from django.http import HttpRequest, HttpResponse
 
 
 default_message = "Please log in, in order to see the requested page."
@@ -63,24 +63,21 @@ def login_required_message_and_redirect(
     )
 
 
-def etag_cached(
-    *models: type[Model],
-) -> Callable[[Callable[[HttpRequest], HttpResponse]], Callable[[HttpRequest], HttpResponse]]:
+type ViewFunc = Callable[[HttpRequest], HttpResponse]
+
+
+def etag_cached(*models: type[Model]) -> Callable[[ViewFunc], ViewFunc]:
     """Add ETag support to function-based views."""
 
-    def decorator(
-        view_func: Callable[[HttpRequest], HttpResponse],
-    ) -> Callable[[HttpRequest], HttpResponse]:
+    def decorator(view_func: ViewFunc) -> ViewFunc:
         @wraps(view_func)
         def wrapper(request: HttpRequest) -> HttpResponse:
             # Check if client's ETag matches - return 304 if so
-            not_modified = check_etag_match(request, *models)
-            if not_modified:
+            if not_modified := check_etag_match(request, *models):
                 return not_modified
 
             # Process the request normally
             response = view_func(request)
-
             # Add ETag header to successful responses
             if response.status_code == 200:
                 response["ETag"] = generate_version_etag(*models)
