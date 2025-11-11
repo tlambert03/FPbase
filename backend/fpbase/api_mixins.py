@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from django.http import HttpResponse
-
-from fpbase.etag_utils import generate_version_etag, parse_etag_header
+from fpbase.etag_utils import check_etag_match, generate_version_etag
 
 if TYPE_CHECKING:
     from django.db.models import Model
+    from django.http import HttpResponse
     from rest_framework.request import Request
     from rest_framework.response import Response
 
@@ -30,18 +29,13 @@ class ETagMixin:
         if request.method not in ("GET", "HEAD") or response.status_code != 200 or not self.etag_models:
             return response
 
+        # Add ETag header
         current_etag = generate_version_etag(*self.etag_models)
         response["ETag"] = current_etag
 
-        if_none_match = request.headers.get("if-none-match")
-        if if_none_match:
-            client_etags = parse_etag_header(if_none_match)
-            if "*" in client_etags or current_etag in client_etags:
-                not_modified = HttpResponse(status=304)
-                not_modified["ETag"] = current_etag
-                for header in ("Cache-Control", "Vary", "Expires"):
-                    if header in response:
-                        not_modified[header] = response[header]
-                return not_modified
+        # Check if client's ETag matches and return 304 if so
+        not_modified = check_etag_match(request, *self.etag_models, base_response=response)
+        if not_modified:
+            return not_modified
 
         return response
