@@ -16,7 +16,7 @@ export const FLUOROPHORE_PARTS = `
 
 // Get a single spectrum by ID
 export const GET_SPECTRUM = `
-  query Spectrum($id: Int!) {
+  query _FPB_Spectrum($id: Int!) {
     spectrum(id: $id) {
       id
       data
@@ -58,7 +58,7 @@ export function batchSpectraQuery(ids: string[]): string {
     .join("\n")
 
   return `
-    query BatchSpectra {
+    query _FPB_BatchSpectra {
       ${queries}
     }
     ${FLUOROPHORE_PARTS}
@@ -67,7 +67,7 @@ export function batchSpectraQuery(ids: string[]): string {
 
 // Get optical configuration by ID
 export const GET_OPTICAL_CONFIG = `
-  query OpticalConfig($id: Int!) {
+  query _FPB_OpticalConfig($id: Int!) {
     opticalConfig(id: $id) {
       id
       name
@@ -103,7 +103,7 @@ export const GET_OPTICAL_CONFIG = `
 
 // List all spectra (for search/autocomplete)
 export const SPECTRA_LIST = `
-  query SpectraList {
+  query _FPB_SpectraList {
     spectra {
       id
       category
@@ -120,7 +120,7 @@ export const SPECTRA_LIST = `
 
 // List optical configs (for search modal)
 export const OPTICAL_CONFIG_LIST = `
-  query OpticalConfigList {
+  query _FPB_OpticalConfigList {
     opticalConfigs {
       id
       name

@@ -207,13 +207,33 @@ class RateLimitedGraphQLView(GraphQLView):
             operation_name = request.GET.get("operationName")
             query = request.GET.get("query")
 
+            from rich import print
+
+            print("----------------------HEADERS----------------------")
+            print("Operation Name:", operation_name)
+            print(dict(request.headers))
+            print("----------------------------------------------------")
+
             # Check if this is a whitelisted operation with ETag support
             if operation_name and query and (etag_models := GRAPHQL_OPERATION_ETAG_MODELS.get(operation_name)):
                 # Generate ETag from query hash + model versions
                 current_etag = generate_graphql_etag(query, *etag_models)
+                if_none_match = request.headers.get("if-none-match")
+
+                # DEBUG: log model versions and resulting ETag
+                from django.core.cache import cache
+
+                model_versions = [cache.get(f"model_version:{m._meta.label}") for m in etag_models]
+                print(
+                    f"GraphQL request {operation_name}:\n"
+                    f"   models: {', '.join([m._meta.label for m in etag_models])}\n"
+                    f"   model versions: {model_versions}\n"
+                    f"   generated ETag: {current_etag}\n"
+                    f"   If-None-Match: {if_none_match}"
+                )
 
                 # DEBUG: Log all relevant headers
-                if_none_match = request.headers.get("if-none-match")
+
                 logger.info(
                     "GraphQL request for %s - If-None-Match: %s, User-Agent: %s",
                     operation_name,
@@ -236,7 +256,7 @@ class RateLimitedGraphQLView(GraphQLView):
                         )
                         response = HttpResponseNotModified()
                         response["ETag"] = current_etag
-                        response["Cache-Control"] = "no-cache"
+                        response["Cache-Control"] = "max-age=1"
                         response["Vary"] = "Accept-Encoding"
                         response["Date"] = http_date(time.time())
                         return response
@@ -255,7 +275,7 @@ class RateLimitedGraphQLView(GraphQLView):
                 response = super().dispatch(request, *args, **kwargs)
                 if response.status_code == 200:
                     response["ETag"] = current_etag
-                    response["Cache-Control"] = "no-cache"
+                    response["Cache-Control"] = "max-age=1"
                     response["Vary"] = "Accept-Encoding"
                     response["Date"] = http_date(time.time())
                 return response

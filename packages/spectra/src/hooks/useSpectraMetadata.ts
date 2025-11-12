@@ -31,11 +31,15 @@ export function useSpectraMetadata() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["spectra-list"],
     queryFn: async () => {
-      const response = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST)
+      const response = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST, undefined, {
+        operationName: "_FPB_SpectraList",
+      })
       return response.spectra
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes (formerly cacheTime)
+    staleTime: 0,
+    gcTime: 0,
+    // staleTime: 10 * 60 * 1000, // 10 minutes
+    // gcTime: 30 * 60 * 1000, // 30 minutes (formerly cacheTime)
   })
 
   // Update metadata store when data changes
