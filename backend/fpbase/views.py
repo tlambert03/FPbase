@@ -217,6 +217,7 @@ class RateLimitedGraphQLView(GraphQLView):
                         response = HttpResponseNotModified()
                         response["ETag"] = current_etag
                         response["Cache-Control"] = "public, max-age=600"
+                        response["Vary"] = "Accept-Encoding, Origin"
                         return response
 
                 # Execute query and add ETag to response
@@ -224,6 +225,8 @@ class RateLimitedGraphQLView(GraphQLView):
                 if response.status_code == 200:
                     response["ETag"] = current_etag
                     response["Cache-Control"] = "public, max-age=600"
+                    response["special-note"] = "added for debugging"
+                    response["Vary"] = "Accept-Encoding, Origin"
                 return response
 
         # No ETag support for this request (POST, unknown operation, etc.)

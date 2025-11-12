@@ -36,7 +36,7 @@ from collections import defaultdict
 from contextlib import suppress
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Self, cast
 
 import django.conf
 import pytest
@@ -52,7 +52,17 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, Request, Response, ViewportSize
+    from playwright.sync_api import (
+        Browser,
+        BrowserContext,
+        BrowserType,
+        ConsoleMessage,
+        Page,
+        Playwright,
+        Request,
+        Response,
+        ViewportSize,
+    )
     from sourcemap.decoder import SourceMapIndex
 
 # Register snapshot plugin to make assert_snapshot fixture available
@@ -174,6 +184,29 @@ def page(page: Page) -> Iterator[Page]:
     # Set default timeout for actions (locator clicks, waits, etc)
     page.set_default_timeout(DEFAULT_TIMEOUT)
     # Set consistent viewport size for predictable rendering
+    page.set_viewport_size(VIEWPORT_SIZE)
+    with console_errors_raised(page):
+        yield page
+
+
+@pytest.fixture(scope="session")
+def persistent_context(
+    playwright: Playwright, browser_name: str, tmp_path_factory: pytest.TempPathFactory
+) -> Iterator[BrowserContext]:
+    """Persistent browser context fixture for testing caching behavior."""
+    tmp_path = tmp_path_factory.mktemp("persistent_context")
+    browser_type = cast("BrowserType", getattr(playwright, browser_name))
+    context = browser_type.launch_persistent_context(tmp_path, headless=False)
+    print(tmp_path)
+    yield context
+    context.close()
+
+
+@pytest.fixture
+def persistent_page(persistent_context: BrowserContext) -> Iterator[Page]:
+    """Persistent context page fixture for testing caching behavior."""
+    page = persistent_context.new_page()
+    page.set_default_timeout(DEFAULT_TIMEOUT)
     page.set_viewport_size(VIEWPORT_SIZE)
     with console_errors_raised(page):
         yield page

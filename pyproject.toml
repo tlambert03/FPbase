@@ -140,6 +140,7 @@ ignore = [
 ]
 [tool.ruff.lint.per-file-ignores]
 "backend/config/settings/*" = ["F405"]
+"*/test_*.py" = ["C419", "S101"]
 
 [tool.django-stubs]
 django_settings_module = "config.settings.test"
