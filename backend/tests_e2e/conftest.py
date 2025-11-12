@@ -196,8 +196,17 @@ def persistent_context(
     """Persistent browser context fixture for testing caching behavior."""
     tmp_path = tmp_path_factory.mktemp("persistent_context")
     browser_type = cast("BrowserType", getattr(playwright, browser_name))
-    context = browser_type.launch_persistent_context(tmp_path, headless=False)
-    print(tmp_path)
+
+    # Launch persistent context - WebKit doesn't support all the same options as Chromium
+    launch_options = {
+        "headless": False,
+    }
+
+    # Only add service_workers for Chromium (WebKit doesn't support it)
+    if browser_name == "chromium":
+        launch_options["service_workers"] = "allow"
+
+    context = browser_type.launch_persistent_context(tmp_path, **launch_options)
     yield context
     context.close()
 

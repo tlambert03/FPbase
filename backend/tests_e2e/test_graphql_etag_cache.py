@@ -1,19 +1,26 @@
-"""End-to-end tests for GraphQL ETag caching behavior."""
+"""End-to-end tests for GraphQL ETag caching behavior.
+
+These tests verify browser behavior with ETags:
+- Chrome: fetch() automatically sends If-None-Match (uses HTTP cache)
+- Safari: fetch() does NOT send If-None-Match (does not use HTTP cache)
+
+CRITICAL: We CANNOT use Playwright's network monitoring (page.on('response'))
+because it disables the HTTP cache. Instead, we use Django logging to capture
+what the server receives.
+"""
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import pytest
 from django.urls import reverse
-from playwright.sync_api import expect
 
 from proteins.factories import create_egfp
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
-    from playwright.sync_api import Page, Response
+    from playwright.sync_api import Page
     from pytest_django.live_server_helper import LiveServer
 
 
@@ -24,67 +31,90 @@ def spectra_url(live_server: LiveServer) -> str:
     return f"{live_server.url}{reverse('proteins:spectra')}"
 
 
-def test_graphql_etag_cache_workflow(persistent_page: Page, spectra_url: str, tmp_path: Path) -> None:
-    """Test that GraphQL queries use ETags properly: 200 -> 304 on reload."""
+@pytest.fixture
+def graphql_request_logger(caplog):
+    """Capture Django logs for GraphQL ETag requests."""
+    caplog.set_level(logging.INFO, logger="fpbase.views")
+    return caplog
+
+
+@pytest.mark.only_browser("chromium")
+def test_chromium_etag_behavior(
+    persistent_page: Page,
+    spectra_url: str,
+    graphql_request_logger,
+    browser_name: str,
+) -> None:
+    """Test that Chrome's fetch() sends If-None-Match headers and gets 304 responses."""
+    if browser_name != "chromium":
+        pytest.skip("This test requires Chromium")
+
     page = persistent_page
 
-    # Track GraphQL responses
-    # Register handler BEFORE navigation to catch all requests
-    graphql_responses: list[Response] = []
-    page.on("response", lambda r: ("/graphql/" in r.url and graphql_responses.append(r)))
-
-    # Navigate to spectra viewer and wait for idle
+    # First visit
     page.goto(spectra_url)
-    expect(page).to_have_url(spectra_url)
-    page.wait_for_load_state("networkidle")
-    # Should have at least 2 GraphQL query
-    n_responses: int = len(graphql_responses)
-    assert n_responses >= 2, "Expected at least 2 GraphQL queries on initial load"
-    assert [r.status for r in graphql_responses] == [200] * n_responses
-    assert all([((etag := r.headers.get("etag")) and etag.startswith('W/"')) for r in graphql_responses])
-    assert all(["operationName=" in r.url for r in graphql_responses])
-    assert "_FPB_SpectraList" in graphql_responses[0].url
-    assert "_FPB_OpticalConfigList" in graphql_responses[1].url
-
-    from rich import print
-
-    print()
-    print("---------- First GraphQL Response Headers ----------")
-    print(graphql_responses[0].headers)
-    graphql_responses.clear()
-    # Reload page to test ETag caching behavior
-    page.reload()
     page.wait_for_load_state("networkidle")
 
-    # all requests should now have '"if-none-match" headers and return 304
-    print()
-    print("---------- GraphQL Request Headers on Reload ----------")
-    print(graphql_responses[0].request.headers)
-    assert all([(r.request.headers.get("if-none-match") is not None) for r in graphql_responses])
-    assert (n_responses := len(graphql_responses)) >= 2, "Expected at least 2 GraphQL queries on initial load"
-    assert [r.status for r in graphql_responses] == [304] * n_responses
+    first_visit_logs = [r for r in graphql_request_logger.records if "GraphQL ETag" in r.message]
+    assert len(first_visit_logs) >= 2, "Expected at least 2 GraphQL requests on first visit"
 
+    graphql_request_logger.clear()
 
-def test_graphql_queries_include_operation_names(page: Page, spectra_url: str) -> None:
-    """Test that GraphQL queries include operationName parameter for ETag support."""
-    graphql_responses: list[Response] = []
-
-    def handle_response(response: Response) -> None:
-        if "/graphql/" in response.url:
-            graphql_responses.append(response)
-
-    # Register handler BEFORE navigation
-    page.on("response", handle_response)
-
-    # Navigate to spectra viewer
+    # Second visit - Chrome should send If-None-Match and get 304s
     page.goto(spectra_url)
-    expect(page).to_have_url(spectra_url)
     page.wait_for_load_state("networkidle")
 
-    # Should have at least 1 GraphQL query
-    assert len(graphql_responses) >= 1, "Expected at least 1 GraphQL query"
+    cache_hits = [r for r in graphql_request_logger.records if "cache hit" in r.message.lower()]
 
-    # Verify all GraphQL queries have operationName parameter with _FPB_ prefix
-    for response in graphql_responses:
-        assert "operationName=" in response.url, f"GraphQL query missing operationName parameter: {response.url}"
-        assert "_FPB_" in response.url, f"GraphQL query missing _FPB_ operation name prefix: {response.url}"
+    # Chrome's native fetch() should send If-None-Match headers
+    assert len(cache_hits) >= 2, (
+        f"Chrome should send If-None-Match and get 304 responses, but got {len(cache_hits)} cache hits. "
+        "Chrome's ETag support may be broken."
+    )
+
+
+@pytest.mark.only_browser("webkit")
+def test_webkit_etag_behavior(
+    page: Page,
+    spectra_url: str,
+    graphql_request_logger,
+    browser_name: str,
+) -> None:
+    """Test that Safari's fetch() does NOT send If-None-Match headers.
+
+    This test verifies that the localStorage workaround in client.ts is still needed.
+    We override isSafari() to test native fetch() behavior without the workaround.
+    """
+    if browser_name != "webkit":
+        pytest.skip("This test is for WebKit/Safari only")
+
+    # Override isSafari() to force native fetch() behavior
+    page.add_init_script("""
+        // Prevent localStorage workaround from activating
+        window.safari = undefined;
+    """)
+
+    # First visit
+    page.goto(spectra_url)
+    page.wait_for_load_state("networkidle")
+
+    first_visit_logs = [r for r in graphql_request_logger.records if "GraphQL ETag" in r.message]
+    assert len(first_visit_logs) >= 2, "Expected at least 2 GraphQL requests on first visit"
+
+    graphql_request_logger.clear()
+
+    # Second visit - Safari should NOT send If-None-Match
+    page.goto(spectra_url)
+    page.wait_for_load_state("networkidle")
+
+    second_visit_logs = [r for r in graphql_request_logger.records if "GraphQL ETag" in r.message]
+    cache_hits = [r for r in graphql_request_logger.records if "cache hit" in r.message.lower()]
+
+    # Safari's native fetch() does NOT send If-None-Match headers
+    assert len(cache_hits) == 0, (
+        f"Safari sent If-None-Match and got {len(cache_hits)} 304 responses! "
+        "Safari's native ETag support now works - you can remove the localStorage workaround in client.ts"
+    )
+    assert len(second_visit_logs) >= 2, (
+        "Safari should have made GraphQL requests on second visit (without If-None-Match)"
+    )

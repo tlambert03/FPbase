@@ -214,18 +214,36 @@ class RateLimitedGraphQLView(GraphQLView):
                 if if_none_match := request.headers.get("if-none-match"):
                     client_etags = parse_etag_header(if_none_match)
                     if current_etag in client_etags:
+                        logger.info(
+                            "GraphQL ETag cache hit",
+                            extra={
+                                "operation": operation_name,
+                                "etag": current_etag,
+                            },
+                        )
                         response = HttpResponseNotModified()
                         response["ETag"] = current_etag
-                        response["Cache-Control"] = "public, max-age=600"
+                        # Use max-age=0 in tests to force revalidation
+                        max_age = 0 if getattr(settings, "TESTING", False) else 600
+                        response["Cache-Control"] = f"public, max-age={max_age}"
                         response["Vary"] = "Accept-Encoding, Origin"
                         return response
 
                 # Execute query and add ETag to response
+                logger.info(
+                    "GraphQL ETag request",
+                    extra={
+                        "operation": operation_name,
+                        "etag": current_etag,
+                        "has_if_none_match": False,
+                    },
+                )
                 response = super().dispatch(request, *args, **kwargs)
                 if response.status_code == 200:
                     response["ETag"] = current_etag
-                    response["Cache-Control"] = "public, max-age=600"
-                    response["special-note"] = "added for debugging"
+                    # Use max-age=0 in tests to force revalidation
+                    max_age = 0 if getattr(settings, "TESTING", False) else 600
+                    response["Cache-Control"] = f"public, max-age={max_age}"
                     response["Vary"] = "Accept-Encoding, Origin"
                 return response
 

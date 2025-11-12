@@ -70,6 +70,7 @@ CELERY_RESULT_BACKEND = "cache+memory://"
 # TESTING
 # ------------------------------------------------------------------------------
 TEST_RUNNER = "django.test.runner.DiscoverRunner"
+TESTING = True  # Flag for test-specific behavior
 
 # RECAPTCHA
 # ------------------------------------------------------------------------------
