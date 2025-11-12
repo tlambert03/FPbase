@@ -1,9 +1,12 @@
+import hashlib
 import logging
+import time
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import JsonResponse
+from django.http import HttpResponseNotModified, JsonResponse
 from django.shortcuts import render
+from django.utils.http import http_date
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from graphene_django.views import GraphQLView
@@ -12,10 +15,65 @@ from rest_framework.settings import api_settings
 from rest_framework.throttling import AnonRateThrottle
 from sentry_sdk import last_event_id
 
+from fpbase.cache_utils import get_model_version
+from fpbase.etag_utils import parse_etag_header
 from fpbase.forms import ContactForm
-from proteins.models import Protein, Spectrum
+from proteins.models import (
+    Camera,
+    Dye,
+    Filter,
+    Light,
+    Microscope,
+    OpticalConfig,
+    Protein,
+    Spectrum,
+    State,
+)
 
 logger = logging.getLogger(__name__)
+
+
+# GraphQL operation names to Django models mapping for ETag generation
+# IMPORTANT: These operation names must match the query names in packages/spectra/src/api/queries.ts
+# See test_graphql_operation_names_match_frontend for validation
+GRAPHQL_OPERATION_ETAG_MODELS = {
+    # SpectraList query: Returns list of all spectra with owner info
+    # Owner can be: State (protein), Dye, Camera, Light, or Filter
+    "_FPB_SpectraList": [Spectrum, State, Protein, Dye, Camera, Light, Filter],
+    # OpticalConfigList query: Returns list of optical configs with microscope info
+    "_FPB_OpticalConfigList": [OpticalConfig, Microscope],
+    # Single spectrum query with owner info
+    "_FPB_Spectrum": [Spectrum, State, Protein, Dye, Camera, Light, Filter],
+    # Batch spectra queries
+    "_FPB_BatchSpectra": [Spectrum, State, Protein, Dye, Camera, Light, Filter],
+    # Single optical config with filters, light, camera, microscope
+    "_FPB_OpticalConfig": [OpticalConfig, Microscope, Filter, Light, Camera, Spectrum],
+}
+
+
+def normalize_graphql_query(query: str) -> str:
+    """Normalize GraphQL query for consistent hashing.
+
+    Removes whitespace variations so semantically identical queries hash the same.
+    """
+    return query.strip().replace("\n", " ").replace("\t", " ").replace("  ", " ")
+
+
+def generate_graphql_etag(query: str, *model_classes: type) -> str:
+    """Generate ETag from GraphQL query content + model versions.
+
+    Format: "query_hash-model_version"
+    - query_hash: First 8 chars of MD5 hash of normalized query
+    - model_version: Combined version hash of all models
+
+    This ensures:
+    - Different queries get different ETags (safety)
+    - Same query with unchanged models reuses cache (efficiency)
+    """
+    normalized = normalize_graphql_query(query)
+    query_hash = hashlib.md5(normalized.encode(), usedforsecurity=False).hexdigest()[:8]
+    model_version = get_model_version(*model_classes)
+    return f'W/"{query_hash}-{model_version}"'
 
 
 class SameOriginExemptAnonThrottle(AnonRateThrottle):
@@ -51,14 +109,19 @@ class SameOriginExemptAnonThrottle(AnonRateThrottle):
 
 
 class RateLimitedGraphQLView(GraphQLView):
-    """
-    GraphQL view with rate limiting using DRF's throttle infrastructure.
+    """GraphQL view with rate limiting and ETag support.
 
     Leverages Django REST Framework's battle-tested throttling system:
     - Uses DEFAULT_THROTTLE_CLASSES from settings (AnonRateThrottle, UserRateThrottle)
     - Automatically handles X-Forwarded-For for Heroku deployments
     - Raises DRF's Throttled exception which includes retry-after information
     - Converts the exception to GraphQL error format with proper HTTP headers
+
+    ETag support for specific GraphQL queries:
+    - Uses operation name + query hash + model versions for accurate caching
+    - Only applies to whitelisted operations (see GRAPHQL_OPERATION_ETAG_MODELS)
+    - Safe: Different query bodies always get different ETags
+    - Efficient: Only regenerates when query changes OR models change
     """
 
     # Use the same throttle classes as the REST API (from settings.REST_FRAMEWORK)
@@ -139,6 +202,65 @@ class RateLimitedGraphQLView(GraphQLView):
 
             return response
 
+        # ETag support for specific GraphQL GET queries
+        if request.method == "GET":
+            operation_name = request.GET.get("operationName")
+            query = request.GET.get("query")
+
+            # Check if this is a whitelisted operation with ETag support
+            if operation_name and query and (etag_models := GRAPHQL_OPERATION_ETAG_MODELS.get(operation_name)):
+                # Generate ETag from query hash + model versions
+                current_etag = generate_graphql_etag(query, *etag_models)
+
+                # DEBUG: Log all relevant headers
+                if_none_match = request.headers.get("if-none-match")
+                logger.info(
+                    "GraphQL request for %s - If-None-Match: %s, User-Agent: %s",
+                    operation_name,
+                    if_none_match,
+                    request.headers.get("user-agent", "unknown")[:50],
+                )
+
+                # Check if client's ETag matches - return 304 if so
+                if if_none_match:
+                    client_etags = parse_etag_header(if_none_match)
+                    if current_etag in client_etags:
+                        logger.info(
+                            "GraphQL ETag cache HIT %s in %s",
+                            current_etag,
+                            client_etags,
+                            extra={
+                                "operation": operation_name,
+                                "etag": current_etag,
+                            },
+                        )
+                        response = HttpResponseNotModified()
+                        response["ETag"] = current_etag
+                        response["Cache-Control"] = "no-cache"
+                        response["Vary"] = "Accept-Encoding"
+                        response["Date"] = http_date(time.time())
+                        return response
+
+                # Execute query and add ETag to response
+                logger.info(
+                    "GraphQL ETag request MISS %s (If-None-Match: %s)",
+                    current_etag,
+                    if_none_match or "NOT SENT",
+                    extra={
+                        "operation": operation_name,
+                        "etag": current_etag,
+                        "has_if_none_match": bool(if_none_match),
+                    },
+                )
+                response = super().dispatch(request, *args, **kwargs)
+                if response.status_code == 200:
+                    response["ETag"] = current_etag
+                    response["Cache-Control"] = "no-cache"
+                    response["Vary"] = "Accept-Encoding"
+                    response["Date"] = http_date(time.time())
+                return response
+
+        # No ETag support for this request (POST, unknown operation, etc.)
         return super().dispatch(request, *args, **kwargs)
 
 

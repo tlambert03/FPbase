@@ -1,8 +1,20 @@
+from __future__ import annotations
+
 from functools import wraps
+from typing import TYPE_CHECKING
 
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
+
+from fpbase.etag_utils import check_etag_match, etagged_response
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from django.db.models import Model
+
 
 default_message = "Please log in, in order to see the requested page."
 
@@ -49,3 +61,24 @@ def login_required_message_and_redirect(
     return lambda deferred_function: login_required_message_and_redirect(
         deferred_function, redirect_field_name, login_url, message
     )
+
+
+type ViewFunc = Callable[[HttpRequest], HttpResponse]
+
+
+def etag_cached(*models: type[Model]) -> Callable[[ViewFunc], ViewFunc]:
+    """Add ETag support to function-based views."""
+
+    def decorator(view_func: ViewFunc) -> ViewFunc:
+        @wraps(view_func)
+        def wrapper(request: HttpRequest) -> HttpResponse:
+            # Check if client's ETag matches - return 304 if so
+            if not_modified := check_etag_match(request, *models):
+                return not_modified
+
+            # Process the request normally, adding ETag to response
+            return etagged_response(view_func(request), request, *models)
+
+        return wrapper
+
+    return decorator
