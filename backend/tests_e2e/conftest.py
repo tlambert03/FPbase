@@ -191,22 +191,16 @@ def page(page: Page) -> Iterator[Page]:
 
 @pytest.fixture(scope="session")
 def persistent_context(
-    playwright: Playwright, browser_name: str, tmp_path_factory: pytest.TempPathFactory
+    playwright: Playwright,
+    browser_name: str,
+    tmp_path_factory: pytest.TempPathFactory,
+    browser_type_launch_args: dict[str, object],
 ) -> Iterator[BrowserContext]:
     """Persistent browser context fixture for testing caching behavior."""
     tmp_path = tmp_path_factory.mktemp("persistent_context")
     browser_type = cast("BrowserType", getattr(playwright, browser_name))
-
-    # Launch persistent context - WebKit doesn't support all the same options as Chromium
-    launch_options = {
-        "headless": False,
-    }
-
-    # Only add service_workers for Chromium (WebKit doesn't support it)
-    if browser_name == "chromium":
-        launch_options["service_workers"] = "allow"
-
-    context = browser_type.launch_persistent_context(tmp_path, **launch_options)
+    browser_type_launch_args["headless"] = False
+    context = browser_type.launch_persistent_context(tmp_path, **browser_type_launch_args)
     yield context
     context.close()
 

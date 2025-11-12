@@ -1,10 +1,12 @@
 import hashlib
 import logging
+import time
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponseNotModified, JsonResponse
 from django.shortcuts import render
+from django.utils.http import http_date
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from graphene_django.views import GraphQLView
@@ -210,12 +212,23 @@ class RateLimitedGraphQLView(GraphQLView):
                 # Generate ETag from query hash + model versions
                 current_etag = generate_graphql_etag(query, *etag_models)
 
+                # DEBUG: Log all relevant headers
+                if_none_match = request.headers.get("if-none-match")
+                logger.info(
+                    "GraphQL request for %s - If-None-Match: %s, User-Agent: %s",
+                    operation_name,
+                    if_none_match,
+                    request.headers.get("user-agent", "unknown")[:50],
+                )
+
                 # Check if client's ETag matches - return 304 if so
-                if if_none_match := request.headers.get("if-none-match"):
+                if if_none_match:
                     client_etags = parse_etag_header(if_none_match)
                     if current_etag in client_etags:
                         logger.info(
-                            "GraphQL ETag cache hit",
+                            "GraphQL ETag cache HIT %s in %s",
+                            current_etag,
+                            client_etags,
                             extra={
                                 "operation": operation_name,
                                 "etag": current_etag,
@@ -223,28 +236,28 @@ class RateLimitedGraphQLView(GraphQLView):
                         )
                         response = HttpResponseNotModified()
                         response["ETag"] = current_etag
-                        # Use max-age=0 in tests to force revalidation
-                        max_age = 0 if getattr(settings, "TESTING", False) else 600
-                        response["Cache-Control"] = f"public, max-age={max_age}"
-                        response["Vary"] = "Accept-Encoding, Origin"
+                        response["Cache-Control"] = "no-cache"
+                        response["Vary"] = "Accept-Encoding"
+                        response["Date"] = http_date(time.time())
                         return response
 
                 # Execute query and add ETag to response
                 logger.info(
-                    "GraphQL ETag request",
+                    "GraphQL ETag request MISS %s (If-None-Match: %s)",
+                    current_etag,
+                    if_none_match or "NOT SENT",
                     extra={
                         "operation": operation_name,
                         "etag": current_etag,
-                        "has_if_none_match": False,
+                        "has_if_none_match": bool(if_none_match),
                     },
                 )
                 response = super().dispatch(request, *args, **kwargs)
                 if response.status_code == 200:
                     response["ETag"] = current_etag
-                    # Use max-age=0 in tests to force revalidation
-                    max_age = 0 if getattr(settings, "TESTING", False) else 600
-                    response["Cache-Control"] = f"public, max-age={max_age}"
-                    response["Vary"] = "Accept-Encoding, Origin"
+                    response["Cache-Control"] = "no-cache"
+                    response["Vary"] = "Accept-Encoding"
+                    response["Date"] = http_date(time.time())
                 return response
 
         # No ETag support for this request (POST, unknown operation, etc.)

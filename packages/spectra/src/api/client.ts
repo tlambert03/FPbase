@@ -103,7 +103,8 @@ export async function fetchGraphQL<T>(
 
     url = `/graphql/?${params.toString()}`
 
-    const useSafariWorkaround = isSafari()
+    // const useSafariWorkaround = isSafari()
+    const useSafariWorkaround = false // for TESTING
 
     if (useSafariWorkaround) {
       // Safari: Manual ETag handling with localStorage
