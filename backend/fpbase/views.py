@@ -1,8 +1,9 @@
+import hashlib
 import logging
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import JsonResponse
+from django.http import HttpResponseNotModified, JsonResponse
 from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
@@ -12,11 +13,65 @@ from rest_framework.settings import api_settings
 from rest_framework.throttling import AnonRateThrottle
 from sentry_sdk import last_event_id
 
-from fpbase.etag_utils import check_etag_match, etagged_response
+from fpbase.cache_utils import get_model_version
+from fpbase.etag_utils import parse_etag_header
 from fpbase.forms import ContactForm
-from proteins.models import OpticalConfig, Protein, Spectrum
+from proteins.models import (
+    Camera,
+    Dye,
+    Filter,
+    Light,
+    Microscope,
+    OpticalConfig,
+    Protein,
+    Spectrum,
+    State,
+)
 
 logger = logging.getLogger(__name__)
+
+
+# GraphQL operation names to Django models mapping for ETag generation
+# IMPORTANT: These operation names must match the query names in packages/spectra/src/api/queries.ts
+# See test_graphql_operation_names_match_frontend for validation
+GRAPHQL_OPERATION_ETAG_MODELS = {
+    # SpectraList query: Returns list of all spectra with owner info
+    # Owner can be: State (protein), Dye, Camera, Light, or Filter
+    "_FPB_SpectraList": [Spectrum, State, Protein, Dye, Camera, Light, Filter],
+    # OpticalConfigList query: Returns list of optical configs with microscope info
+    "_FPB_OpticalConfigList": [OpticalConfig, Microscope],
+    # Single spectrum query with owner info
+    "_FPB_Spectrum": [Spectrum, State, Protein, Dye, Camera, Light, Filter],
+    # Batch spectra queries
+    "_FPB_BatchSpectra": [Spectrum, State, Protein, Dye, Camera, Light, Filter],
+    # Single optical config with filters, light, camera, microscope
+    "_FPB_OpticalConfig": [OpticalConfig, Microscope, Filter, Light, Camera, Spectrum],
+}
+
+
+def normalize_graphql_query(query: str) -> str:
+    """Normalize GraphQL query for consistent hashing.
+
+    Removes whitespace variations so semantically identical queries hash the same.
+    """
+    return query.strip().replace("\n", " ").replace("\t", " ").replace("  ", " ")
+
+
+def generate_graphql_etag(query: str, *model_classes: type) -> str:
+    """Generate ETag from GraphQL query content + model versions.
+
+    Format: "query_hash-model_version"
+    - query_hash: First 8 chars of MD5 hash of normalized query
+    - model_version: Combined version hash of all models
+
+    This ensures:
+    - Different queries get different ETags (safety)
+    - Same query with unchanged models reuses cache (efficiency)
+    """
+    normalized = normalize_graphql_query(query)
+    query_hash = hashlib.md5(normalized.encode(), usedforsecurity=False).hexdigest()[:8]
+    model_version = get_model_version(*model_classes)
+    return f'W/"{query_hash}-{model_version}"'
 
 
 class SameOriginExemptAnonThrottle(AnonRateThrottle):
@@ -59,11 +114,16 @@ class RateLimitedGraphQLView(GraphQLView):
     - Automatically handles X-Forwarded-For for Heroku deployments
     - Raises DRF's Throttled exception which includes retry-after information
     - Converts the exception to GraphQL error format with proper HTTP headers
+
+    ETag support for specific GraphQL queries:
+    - Uses operation name + query hash + model versions for accurate caching
+    - Only applies to whitelisted operations (see GRAPHQL_OPERATION_ETAG_MODELS)
+    - Safe: Different query bodies always get different ETags
+    - Efficient: Only regenerates when query changes OR models change
     """
 
     # Use the same throttle classes as the REST API (from settings.REST_FRAMEWORK)
     throttle_classes = api_settings.DEFAULT_THROTTLE_CLASSES
-    etag_models = [Spectrum, OpticalConfig]
 
     def get_throttles(self):
         """Instantiate and return the list of throttles that this view uses."""
@@ -140,12 +200,34 @@ class RateLimitedGraphQLView(GraphQLView):
 
             return response
 
-        # Check if client's ETag matches - return 304 if so
-        if request.method in ("GET", "POST") and (not_modified := check_etag_match(request, *self.etag_models)):
-            return not_modified
+        # ETag support for specific GraphQL GET queries
+        if request.method == "GET":
+            operation_name = request.GET.get("operationName")
+            query = request.GET.get("query")
 
-        response = super().dispatch(request, *args, **kwargs)
-        return etagged_response(response, request, *self.etag_models)
+            # Check if this is a whitelisted operation with ETag support
+            if operation_name and query and (etag_models := GRAPHQL_OPERATION_ETAG_MODELS.get(operation_name)):
+                # Generate ETag from query hash + model versions
+                current_etag = generate_graphql_etag(query, *etag_models)
+
+                # Check if client's ETag matches - return 304 if so
+                if if_none_match := request.headers.get("if-none-match"):
+                    client_etags = parse_etag_header(if_none_match)
+                    if current_etag in client_etags:
+                        response = HttpResponseNotModified()
+                        response["ETag"] = current_etag
+                        response["Cache-Control"] = "public, max-age=600"
+                        return response
+
+                # Execute query and add ETag to response
+                response = super().dispatch(request, *args, **kwargs)
+                if response.status_code == 200:
+                    response["ETag"] = current_etag
+                    response["Cache-Control"] = "public, max-age=600"
+                return response
+
+        # No ETag support for this request (POST, unknown operation, etc.)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class HomeView(TemplateView):

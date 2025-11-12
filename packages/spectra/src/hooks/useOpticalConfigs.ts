@@ -26,7 +26,9 @@ export function useOpticalConfigs() {
   return useQuery({
     queryKey: ["opticalConfigs"],
     queryFn: async (): Promise<OpticalConfig[]> => {
-      const response = await fetchGraphQL<OpticalConfigsResponse>(OPTICAL_CONFIG_LIST)
+      const response = await fetchGraphQL<OpticalConfigsResponse>(OPTICAL_CONFIG_LIST, undefined, {
+        operationName: "_FPB_OpticalConfigList",
+      })
       return response.opticalConfigs
     },
     staleTime: 10 * 60 * 1000, // 10 minutes (matches old cache duration)

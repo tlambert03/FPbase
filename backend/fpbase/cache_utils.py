@@ -53,6 +53,31 @@ def invalidate_optical_config_version(sender, **kwargs):
     invalidate_model_version(sender)
 
 
+@receiver([post_save, post_delete], sender="proteins.Microscope")
+def invalidate_microscope_version(sender, **kwargs):
+    invalidate_model_version(sender)
+
+
+@receiver([post_save, post_delete], sender="proteins.Dye")
+def invalidate_dye_version(sender, **kwargs):
+    invalidate_model_version(sender)
+
+
+@receiver([post_save, post_delete], sender="proteins.Camera")
+def invalidate_camera_version(sender, **kwargs):
+    invalidate_model_version(sender)
+
+
+@receiver([post_save, post_delete], sender="proteins.Light")
+def invalidate_light_version(sender, **kwargs):
+    invalidate_model_version(sender)
+
+
+@receiver([post_save, post_delete], sender="proteins.Filter")
+def invalidate_filter_version(sender, **kwargs):
+    invalidate_model_version(sender)
+
+
 @receiver(m2m_changed)
 def invalidate_on_m2m_change(sender, instance, **kwargs):
     invalidate_model_version(instance.__class__)

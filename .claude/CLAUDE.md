@@ -65,3 +65,5 @@ This repo is a Django web app for <https://www.fpbase.org> with:
 - if I ask you a question like "what do you think..." or "how do you recommend...", then DON'T just
   immediately start modifying code. Instead, collect your thoughts and provide a concise answer first.
   Then wait for me to respond before proceeding.
+- when searching source code for third-party library usage, look in `.venv/lib/pythonX.Y/site-packages/`
+  rather than web-searching.  It's faster and more accurate.

@@ -459,3 +459,220 @@ class TestETagPerformance:
         # This is implicit in Django/DRF - if we return early with 304,
         # the serialization never happens
         pass
+
+
+class TestGraphQLETagWorkflow:
+    """Test the complete ETag workflow for GraphQL queries."""
+
+    def test_spectra_list_etag_workflow(self, api_client, db):
+        """Test SpectraList query: 200 → 304 → 200 on data change."""
+        from proteins.factories import DyeFactory, SpectrumFactory
+        from proteins.models import Spectrum
+
+        # Create initial spectra with owners (dyes)
+        for _ in range(3):
+            dye = DyeFactory.create()
+            SpectrumFactory.create(owner_dye=dye, category=Spectrum.DYE, subtype=Spectrum.EX)
+
+        # GraphQL query for SpectraList
+        query = """
+        query _FPB_SpectraList {
+            spectra {
+                id
+                category
+                subtype
+                owner { id name slug url }
+            }
+        }
+        """
+
+        # First request - should return 200 with ETag
+        response1 = api_client.get(
+            "/graphql/",
+            {"query": query, "operationName": "_FPB_SpectraList"},
+        )
+        assert response1.status_code == 200
+        assert "ETag" in response1
+        assert response1["Cache-Control"] == "public, max-age=600"
+
+        etag1 = response1["ETag"]
+        assert etag1.startswith('W/"')  # Weak ETag
+        assert "-" in etag1  # Format: W/"query_hash-model_version"
+
+        # Second request with same ETag - should return 304
+        response2 = api_client.get(
+            "/graphql/",
+            {"query": query, "operationName": "_FPB_SpectraList"},
+            HTTP_IF_NONE_MATCH=etag1,
+        )
+        assert response2.status_code == 304
+        assert response2["ETag"] == etag1
+        assert len(response2.content) == 0  # No body to save bandwidth
+
+        # Modify data - create new spectrum
+        new_dye = DyeFactory.create()
+        SpectrumFactory.create(owner_dye=new_dye, category=Spectrum.DYE, subtype=Spectrum.EM)
+
+        # Third request - ETag should change, return 200 with new data
+        response3 = api_client.get(
+            "/graphql/",
+            {"query": query, "operationName": "_FPB_SpectraList"},
+            HTTP_IF_NONE_MATCH=etag1,  # Old ETag
+        )
+        assert response3.status_code == 200
+        assert "ETag" in response3
+
+        etag3 = response3["ETag"]
+        assert etag3 != etag1  # ETag changed due to data change
+        assert etag3.startswith('W/"')
+
+    def test_optical_config_list_etag_workflow(self, api_client, db):
+        """Test OpticalConfigList query: 200 → 304 → 200 on data change."""
+        from proteins.factories import MicroscopeFactory, OpticalConfigFactory
+
+        # Create initial data
+        microscope = MicroscopeFactory.create()
+        OpticalConfigFactory.create_batch(2, microscope=microscope)
+
+        query = """
+        query _FPB_OpticalConfigList {
+            opticalConfigs {
+                id
+                name
+                comments
+                microscope { name }
+            }
+        }
+        """
+
+        # First request - 200 with ETag
+        response1 = api_client.get(
+            "/graphql/",
+            {"query": query, "operationName": "_FPB_OpticalConfigList"},
+        )
+        assert response1.status_code == 200
+        assert "ETag" in response1
+        etag1 = response1["ETag"]
+
+        # Second request - 304
+        response2 = api_client.get(
+            "/graphql/",
+            {"query": query, "operationName": "_FPB_OpticalConfigList"},
+            HTTP_IF_NONE_MATCH=etag1,
+        )
+        assert response2.status_code == 304
+
+        # Modify microscope (which OpticalConfig depends on)
+        microscope.name = "Updated Microscope"
+        microscope.save()
+
+        # Third request - 200 with new ETag
+        response3 = api_client.get(
+            "/graphql/",
+            {"query": query, "operationName": "_FPB_OpticalConfigList"},
+            HTTP_IF_NONE_MATCH=etag1,
+        )
+        assert response3.status_code == 200
+        assert response3["ETag"] != etag1
+
+    def test_query_hash_prevents_collision(self, api_client, db):
+        """Different queries with same operation name get different ETags."""
+        from proteins.factories import ProteinFactory
+
+        ProteinFactory.create()
+
+        # Two different queries with the same operation name (hypothetical attack/bug)
+        query1 = """
+        query _FPB_SpectraList {
+            spectra { id category }
+        }
+        """
+
+        query2 = """
+        query _FPB_SpectraList {
+            spectra { id subtype owner { name } }
+        }
+        """
+
+        response1 = api_client.get(
+            "/graphql/",
+            {"query": query1, "operationName": "_FPB_SpectraList"},
+        )
+        response2 = api_client.get(
+            "/graphql/",
+            {"query": query2, "operationName": "_FPB_SpectraList"},
+        )
+
+        # Different query content = different ETags (safety)
+        assert response1["ETag"] != response2["ETag"]
+
+    def test_post_requests_no_etag(self, api_client):
+        """POST requests should not get ETag support."""
+        query = '{"query": "query _FPB_SpectraList { spectra { id } }"}'
+
+        response = api_client.post(
+            "/graphql/",
+            data=query,
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        assert "ETag" not in response  # No ETag for POST
+
+    def test_unknown_operation_no_etag(self, api_client):
+        """Unknown operations should not get ETag support."""
+        query = """
+        query UnknownOperation {
+            __typename
+        }
+        """
+
+        response = api_client.get(
+            "/graphql/",
+            {"query": query, "operationName": "UnknownOperation"},
+        )
+        assert response.status_code == 200
+        assert "ETag" not in response  # No ETag for unknown operations
+
+
+class TestGraphQLOperationNameSync:
+    """Test that frontend and backend operation names are in sync."""
+
+    def test_graphql_operation_names_match_frontend(self):
+        """Ensure backend ETag mapping matches frontend operation names."""
+        import re
+        from pathlib import Path
+
+        from fpbase.views import GRAPHQL_OPERATION_ETAG_MODELS
+
+        # Read frontend queries.ts file
+        frontend_queries_path = (
+            Path(__file__).parent.parent.parent.parent / "packages" / "spectra" / "src" / "api" / "queries.ts"
+        )
+
+        if not frontend_queries_path.exists():
+            # If running in CI or somewhere without frontend code, skip
+            import pytest
+
+            pytest.skip("Frontend code not available")
+
+        queries_content = frontend_queries_path.read_text()
+
+        # Extract all operation names from frontend (pattern: query OperationName)
+        operation_name_pattern = r"query (_FPB_\w+)"
+        frontend_operations = set(re.findall(operation_name_pattern, queries_content))
+
+        # Get backend operation names
+        backend_operations = set(GRAPHQL_OPERATION_ETAG_MODELS.keys())
+
+        # All backend operations should exist in frontend
+        missing_in_frontend = backend_operations - frontend_operations
+        assert not missing_in_frontend, (
+            f"Backend has ETag mappings for operations not found in frontend: {missing_in_frontend}"
+        )
+
+        # All frontend _FPB_ operations should have backend mappings
+        missing_in_backend = frontend_operations - backend_operations
+        assert not missing_in_backend, (
+            f"Frontend has _FPB_ operations without backend ETag mappings: {missing_in_backend}. "
+            f"Either add them to GRAPHQL_OPERATION_ETAG_MODELS or remove _FPB_ prefix."
+        )

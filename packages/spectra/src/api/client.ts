@@ -10,7 +10,7 @@ function normalizeGraphQLQuery(query: string): string {
 export async function fetchGraphQL<T>(
   query: string,
   variables?: Record<string, unknown>,
-  options?: { method?: "GET" | "POST" }
+  options?: { method?: "GET" | "POST"; operationName?: string }
 ): Promise<T> {
   const method = options?.method ?? "GET"
   const isMutation = query.trim().startsWith("mutation")
@@ -23,6 +23,10 @@ export async function fetchGraphQL<T>(
     params.set("query", normalizeGraphQLQuery(query))
     if (variables && Object.keys(variables).length > 0) {
       params.set("variables", JSON.stringify(variables))
+    }
+    // Send operation name for ETag support
+    if (options?.operationName) {
+      params.set("operationName", options.operationName)
     }
     response = await fetch(`/graphql/?${params.toString()}`, {
       method: "GET",
