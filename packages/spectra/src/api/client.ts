@@ -1,27 +1,31 @@
 import type { GraphQLResponse } from "../types"
 
+export interface GraphQLOptions {
+  variables?: Record<string, unknown>
+  method?: "GET" | "POST"
+}
+
 /**
  * Lightweight GraphQL client using native fetch
  * Replaces Apollo Client for server queries
  */
-export async function fetchGraphQL<T>(
-  query: string,
-  variables?: Record<string, unknown>,
-  method: "GET" | "POST" = "POST"
-): Promise<T> {
+export async function fetchGraphQL<T>(query: string, options: GraphQLOptions = {}): Promise<T> {
+  const { variables, method = "POST" } = options
+  const minified_query = query.replace(/\s+/g, " ").trim()
+
   let url = "/graphql/"
   const fetchOptions: RequestInit = {
     method,
     credentials: "same-origin",
   }
+
   if (method === "GET") {
     // Minify and encode query in URL
-    const minified = query.replace(/\s+/g, " ").trim()
-    url = `/graphql/?query=${encodeURIComponent(minified)}`
+    url = `/graphql/?query=${encodeURIComponent(minified_query)}`
   } else {
     // POST with JSON body
     fetchOptions.headers = { "Content-Type": "application/json" }
-    fetchOptions.body = JSON.stringify({ query, variables })
+    fetchOptions.body = JSON.stringify({ query: minified_query, variables })
   }
 
   const response = await fetch(url, fetchOptions)

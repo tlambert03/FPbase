@@ -36,7 +36,7 @@ export function useSpectrum(id: string | null) {
     queryFn: async () => {
       if (!id) return null
       const data = await fetchGraphQL<{ spectrum: Spectrum }>(GET_SPECTRUM, {
-        id: Number.parseInt(id, 10),
+        variables: { id: Number.parseInt(id, 10) },
       })
       return data.spectrum
     },
@@ -57,7 +57,7 @@ export function useSpectraBatch(ids: string[]) {
       if (ids.length === 0) return []
 
       const query = batchSpectraQuery(ids)
-      const data = await fetchGraphQL<Record<string, Spectrum>>(query, {})
+      const data = await fetchGraphQL<Record<string, Spectrum>>(query)
 
       // Convert object to array
       return Object.values(data)
@@ -76,7 +76,9 @@ export function useOpticalConfig(id: number | null) {
     queryKey: ["optical-config", id],
     queryFn: async () => {
       if (!id) return null
-      const data = await fetchGraphQL<{ opticalConfig: OpticalConfig }>(GET_OPTICAL_CONFIG, { id })
+      const data = await fetchGraphQL<{ opticalConfig: OpticalConfig }>(GET_OPTICAL_CONFIG, {
+        variables: { id },
+      })
       return data.opticalConfig
     },
     enabled: !!id,
@@ -91,7 +93,7 @@ export function useSpectraList() {
   return useQuery({
     queryKey: ["spectra-list"],
     queryFn: async () => {
-      const data = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST, {})
+      const data = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST)
       return data.spectra
     },
     select: (data) => data.map(normalizeSubtype),

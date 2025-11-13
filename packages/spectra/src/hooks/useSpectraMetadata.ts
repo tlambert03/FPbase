@@ -15,7 +15,8 @@ export function useSpectraMetadata() {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["spectraList"],
-    queryFn: async () => (await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST, {}, "GET")).spectra,
+    queryFn: async () =>
+      (await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST, { method: "GET" })).spectra,
     staleTime: 5 * 60 * 1000, // 5 minutes - time after which data is considered stale
     gcTime: 60 * 60 * 1000, // 1 hour - time after which unused cache is garbage collected
     refetchOnWindowFocus: false, // Don't refetch on focus
