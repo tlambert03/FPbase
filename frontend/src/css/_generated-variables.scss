@@ -1,0 +1,131 @@
+// ============================================================================
+// AUTO-GENERATED FILE - DO NOT EDIT DIRECTLY
+// ============================================================================
+// This file is generated from frontend/src/theme/tokens.js
+// Run 'pnpm generate-scss' to regenerate
+// ============================================================================
+
+// Font imports
+@import url('https://fonts.googleapis.com/css?family=Raleway:100,500,600');
+
+// ============================================================================
+// Color System
+// ============================================================================
+
+// Base colors
+$white:    #fff;
+$black:    #000;
+
+// Grayscale
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #868e96;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+
+$grays: (
+  "100": $gray-100,
+  "200": $gray-200,
+  "300": $gray-300,
+  "400": $gray-400,
+  "500": $gray-500,
+  "600": $gray-600,
+  "700": $gray-700,
+  "800": $gray-800,
+  "900": $gray-900
+);
+
+// Brand colors
+$blue:    #3085d6;
+$indigo:  #6610f2;
+$purple:  #6f42c1;
+$pink:    #e83e8c;
+$red:     #dc3545;
+$orange:  #fd7e14;
+$yellow:  #ffc107;
+$green:   #419d45;
+$teal:    #20c997;
+$cyan:    #17a2b8;
+
+$colors: (
+  "blue":       $blue,
+  "indigo":     $indigo,
+  "purple":     $purple,
+  "pink":       $pink,
+  "red":        $red,
+  "orange":     $orange,
+  "yellow":     $yellow,
+  "green":      $green,
+  "teal":       $teal,
+  "cyan":       $cyan,
+  "white":      $white,
+  "gray":       $gray-600,
+  "gray-dark":  $gray-800
+);
+
+// Theme colors (Bootstrap semantic colors)
+$primary:       #3CA644;
+$secondary:     #3085d6;
+$success:       #419d45;
+$info:          #17a2b8;
+$warning:       #ffc107;
+$danger:        #dc3545;
+$light:         #f8f9fa;
+$dark:          #343a40;
+
+$theme-colors: (
+  "primary":    $primary,
+  "secondary":  $secondary,
+  "success":    $success,
+  "info":       $info,
+  "warning":    $warning,
+  "danger":     $danger,
+  "light":      $light,
+  "dark":       $dark
+);
+
+// ============================================================================
+// Site-specific Colors
+// ============================================================================
+
+$footer-background: #0C4B33;
+$footer-color:      #2B8C67;
+$navbar-bg:         #0D4B33;
+$logo-color:        #efe;
+
+// ============================================================================
+// Typography
+// ============================================================================
+
+$headings-font-weight: 100;
+$body-font-weight:     400;
+
+// Note: Font family is loaded via @import url() above
+// Bootstrap will use its default font stack unless overridden
+
+// ============================================================================
+// Spacing
+// ============================================================================
+
+$navbar-height: 3.5rem;
+
+// ============================================================================
+// Component Customization
+// ============================================================================
+
+// Dropdowns
+$dropdown-bg: $white;
+$dropdown-link-hover-bg: rgba($primary, 0.3);
+$dropdown-box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+
+// Navbar
+$navbar-dark-color:        rgba($white, 0.8);
+$navbar-dark-hover-color:  rgba($white, 0.95);
+
+// Tooltips
+$tooltip-text: $white;
+$tooltip-color: rgba($footer-background, 0.8);

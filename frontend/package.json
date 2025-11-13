@@ -46,6 +46,9 @@
     "vite-plugin-static-copy": "^3.1.4"
   },
   "scripts": {
+    "generate-scss": "node src/theme/generateScss.js",
+    "prebuild": "pnpm generate-scss",
+    "predev": "pnpm generate-scss",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
