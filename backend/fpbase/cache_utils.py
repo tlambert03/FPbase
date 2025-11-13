@@ -1,9 +1,18 @@
-"""Model version tracking for cache invalidation."""
+"""Unified cache invalidation for model changes.
+
+This module handles ALL cache invalidation across the application:
+- Model version tracking (for ETag generation)
+- Spectra JSON cache (for /api/proteins/spectraslugs/)
+- Optical config cache (for /api/proteins/ocinfo/)
+
+IMPORTANT: This is the ONLY place where post_save/post_delete signals
+should be connected for cache invalidation purposes.
+"""
 
 from __future__ import annotations
 
 import hashlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.apps import apps
 from django.core.cache import cache
@@ -36,37 +45,80 @@ def invalidate_model_version(model_class: type[Model]) -> None:
     cache.set(_model_cache_key(model_class), timezone.now().isoformat())
 
 
-def _invalidate_on_change(sender, **kwargs):
+# Cache keys for JSON endpoints
+SPECTRA_CACHE_KEY = "spectra_sluglist"
+OPTICAL_CONFIG_CACHE_KEY = "optical_configs"
+
+
+def _invalidate_spectra_cache() -> None:
+    """Invalidate the spectra JSON cache."""
+    cache.delete(SPECTRA_CACHE_KEY)
+
+
+def _invalidate_optical_config_cache() -> None:
+    """Invalidate the optical config JSON cache."""
+    cache.delete(OPTICAL_CONFIG_CACHE_KEY)
+
+
+SPECTRUM_OWNER_MODELS = {
+    "proteins.Camera",
+    "proteins.Dye",
+    "proteins.Filter",
+    "proteins.Light",
+    "proteins.Protein",
+    "proteins.Spectrum",
+    "proteins.State",
+}
+OPTICAL_CONFIG_MODELS = {
+    "proteins.Microscope",
+    "proteins.OpticalConfig",
+}
+
+
+def _invalidate_on_change(sender: type[Model], **kwargs: Any) -> None:
+    """Unified cache invalidation handler for model changes.
+
+    This handler:
+    1. Always invalidates model version (for ETags)
+    2. Conditionally invalidates specific JSON caches based on model type
+    """
+    model_label = sender._meta.label
+
+    # Always invalidate model version for ETag tracking
     invalidate_model_version(sender)
 
+    # Invalidate spectra cache for models that affect spectra list
+    if model_label in SPECTRUM_OWNER_MODELS:
+        _invalidate_spectra_cache()
 
-# Register signal handlers for model changes
-for model_label in [
-    "proteins.Spectrum",
-    "proteins.Protein",
-    "proteins.State",
-    "proteins.OpticalConfig",
-    "proteins.Microscope",
-    "proteins.Dye",
-    "proteins.Camera",
-    "proteins.Light",
-    "proteins.Filter",
-]:
-    model_class = apps.get_model(model_label)
-    post_save.connect(
-        _invalidate_on_change,
-        sender=model_class,
-        weak=False,
-        dispatch_uid=f"{model_label}-post_save-invalidate",
-    )
-    post_delete.connect(
-        _invalidate_on_change,
-        sender=model_class,
-        weak=False,
-        dispatch_uid=f"{model_label}-post_delete-invalidate",
-    )
+    # Invalidate optical config cache for models that affect optical configs
+    if model_label in OPTICAL_CONFIG_MODELS:
+        _invalidate_optical_config_cache()
+
+
+def _register_signal_handlers():
+    """Register signal handlers for model changes.
+
+    IMPORTANT: This is the SINGLE place where these signals are connected.
+    Must be called during app ready phase, not at module import time.
+    """
+    for model_label in SPECTRUM_OWNER_MODELS | OPTICAL_CONFIG_MODELS:
+        model_class = apps.get_model(model_label)
+        post_save.connect(
+            _invalidate_on_change,
+            sender=model_class,
+            weak=False,
+            dispatch_uid=f"{model_label}-cache-invalidate",
+        )
+        post_delete.connect(
+            _invalidate_on_change,
+            sender=model_class,
+            weak=False,
+            dispatch_uid=f"{model_label}-cache-invalidate-delete",
+        )
 
 
 @receiver(m2m_changed)
 def invalidate_on_m2m_change(sender, instance, **kwargs):
+    """Invalidate caches on many-to-many relationship changes."""
     invalidate_model_version(instance.__class__)

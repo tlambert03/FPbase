@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { fetchAPI, fetchGraphQL } from "../api/client"
-import { batchSpectraQuery, GET_OPTICAL_CONFIG, GET_SPECTRUM, SPECTRA_LIST } from "../api/queries"
-import type { OpticalConfig, OpticalConfigInfo, SpectraListResponse, Spectrum } from "../types"
+import { batchSpectraQuery, GET_OPTICAL_CONFIG, GET_SPECTRUM } from "../api/queries"
+import type { OpticalConfig, OpticalConfigInfo, Spectrum } from "../types"
 
 /**
  * Normalize spectrum subtype from API
@@ -82,21 +82,6 @@ export function useOpticalConfig(id: number | null) {
       return data.opticalConfig
     },
     enabled: !!id,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  })
-}
-
-/**
- * Fetch list of all spectra (for search/autocomplete)
- */
-export function useSpectraList() {
-  return useQuery({
-    queryKey: ["spectra-list"],
-    queryFn: async () => {
-      const data = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST)
-      return data.spectra
-    },
-    select: (data) => data.map(normalizeSubtype),
     staleTime: 10 * 60 * 1000, // 10 minutes
   })
 }

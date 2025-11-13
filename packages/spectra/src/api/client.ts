@@ -13,6 +13,10 @@ export async function fetchGraphQL<T>(query: string, options: GraphQLOptions = {
   const { variables, method = "POST" } = options
   const minified_query = query.replace(/\s+/g, " ").trim()
 
+  // Extract operation name from query (e.g., "query SpectraList {" -> "SpectraList")
+  const operationMatch = minified_query.match(/^(query|mutation)\s+(\w+)/)
+  const operationName = operationMatch?.[2]
+
   let url = "/graphql/"
   const fetchOptions: RequestInit = {
     method,
@@ -21,11 +25,18 @@ export async function fetchGraphQL<T>(query: string, options: GraphQLOptions = {
 
   if (method === "GET") {
     // Minify and encode query in URL
-    url = `/graphql/?query=${encodeURIComponent(minified_query)}`
+    fetchOptions.headers = { "Content-Type": "application/json" }
+    const params = new URLSearchParams({ query: minified_query })
+    if (operationName) params.set("operationName", operationName)
+    url = `/graphql/?${params.toString()}`
   } else {
     // POST with JSON body
     fetchOptions.headers = { "Content-Type": "application/json" }
-    fetchOptions.body = JSON.stringify({ query: minified_query, variables })
+    fetchOptions.body = JSON.stringify({
+      query: minified_query,
+      variables,
+      ...(operationName && { operationName }),
+    })
   }
 
   const response = await fetch(url, fetchOptions)

@@ -120,7 +120,7 @@ export const SPECTRA_LIST = `
 
 // TODO: autogenerate types from GraphQL schema in backend
 
-interface SpectraSlug {
+export interface SpectraSlug {
   id: string
   category: string
   subtype: string
@@ -130,10 +130,6 @@ interface SpectraSlug {
     slug: string
     url: string | null
   }
-}
-
-export interface SpectraListResponse {
-  spectra: SpectraSlug[]
 }
 
 // List optical configs (for search modal)

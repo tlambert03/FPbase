@@ -264,7 +264,7 @@ export interface SpectraListResponse {
     owner: {
       name: string
       slug: string
-      url: string
+      url: string | null
     }
   }>
 }

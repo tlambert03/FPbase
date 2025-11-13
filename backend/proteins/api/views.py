@@ -1,5 +1,5 @@
 from django.db.models import F, Max, Prefetch
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control, cache_page
 from django_filters import rest_framework as filters
@@ -27,9 +27,27 @@ from .serializers import (
 )
 
 
-def spectraslugs(request):
-    spectrainfo = get_cached_spectra_info()
-    return HttpResponse(spectrainfo, content_type="application/json")
+def spectraslugs(request: HttpRequest) -> HttpResponse:
+    """Return cached spectra slug list with ETag support.
+
+    Uses cache-specific versioning for ETags - the version changes whenever
+    the cache is invalidated and regenerated, not just when models change.
+    """
+    cached = get_cached_spectra_info()
+    etag = f'W/"{cached["version"]}"'
+    headers = {
+        "ETag": etag,
+        "Vary": "Accept-Encoding",
+        "Cache-Control": "public, max-age=600, must-revalidate",  # don't ask for 10 minutes
+    }
+
+    # Check if client's ETag matches current cache version
+    request_etag = request.headers.get("If-None-Match", "").strip()
+    if request_etag == etag:
+        return HttpResponse(status=304, headers=headers)
+
+    # Return cached data with ETag header
+    return HttpResponse(cached["data"], content_type="application/json", headers=headers)
 
 
 def ocinfo(request):
