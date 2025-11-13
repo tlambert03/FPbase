@@ -8,3 +8,7 @@ class FPbaseConfig(AppConfig):
 
     name = "fpbase"
     verbose_name = "FPbase"
+
+    def ready(self):
+        """Import signal handlers when Django starts."""
+        import fpbase.cache_utils  # noqa: F401
