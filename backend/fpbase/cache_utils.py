@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from typing import TYPE_CHECKING
 
+from django.apps import apps
 from django.core.cache import cache
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.dispatch import receiver
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from django.db.models import Model
 
 
-def _cache_key(model_class: type[Model]) -> str:
+def _model_cache_key(model_class: type[Model]) -> str:
     return f"model_version:{model_class._meta.label}"
 
 
@@ -22,20 +23,25 @@ def get_model_version(*model_classes: type[Model]) -> str:
     """Get combined version hash for models."""
     versions = []
     for model_class in model_classes:
-        cache_key = _cache_key(model_class)
+        cache_key = _model_cache_key(model_class)
         if (version := cache.get(cache_key)) is None:
-            cache.set(cache_key, timezone.now().isoformat())
+            version = timezone.now().isoformat()
+            cache.set(cache_key, version)
         versions.append(version)
     return hashlib.blake2b("".join(versions).encode(), digest_size=16).hexdigest()
 
 
 def invalidate_model_version(model_class: type[Model]) -> None:
     """Bump the version for a model class."""
-    cache.set(_cache_key(model_class), timezone.now().isoformat())
+    cache.set(_model_cache_key(model_class), timezone.now().isoformat())
+
+
+def _invalidate_on_change(sender, **kwargs):
+    invalidate_model_version(sender)
 
 
 # Register signal handlers for model changes
-for model_name in [
+for model_label in [
     "proteins.Spectrum",
     "proteins.Protein",
     "proteins.State",
@@ -46,8 +52,19 @@ for model_name in [
     "proteins.Light",
     "proteins.Filter",
 ]:
-    post_save.connect(lambda sender, **_: invalidate_model_version(sender), sender=model_name)
-    post_delete.connect(lambda sender, **_: invalidate_model_version(sender), sender=model_name)
+    model_class = apps.get_model(model_label)
+    post_save.connect(
+        _invalidate_on_change,
+        sender=model_class,
+        weak=False,
+        dispatch_uid=f"{model_label}-post_save-invalidate",
+    )
+    post_delete.connect(
+        _invalidate_on_change,
+        sender=model_class,
+        weak=False,
+        dispatch_uid=f"{model_label}-post_delete-invalidate",
+    )
 
 
 @receiver(m2m_changed)
