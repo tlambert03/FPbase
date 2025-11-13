@@ -1,25 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import { useEffect } from "react"
 import { fetchGraphQL } from "../api/client"
+import type { SpectraListResponse } from "../api/queries"
 import { SPECTRA_LIST } from "../api/queries"
 import { useMetadataStore } from "../store/metadataStore"
 import { reshapeSpectraInfo } from "../utils/spectraUtils"
-
-interface SpectraSlug {
-  id: string
-  category: string
-  subtype: string
-  owner: {
-    id: string
-    name: string
-    slug: string
-    url: string | null
-  }
-}
-
-interface SpectraListResponse {
-  spectra: SpectraSlug[]
-}
 
 /**
  * Fetch and cache spectra metadata using GraphQL
@@ -29,13 +14,12 @@ export function useSpectraMetadata() {
   const { setMetadata } = useMetadataStore()
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["spectra-list"],
-    queryFn: async () => {
-      const response = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST)
-      return response.spectra
-    },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes (formerly cacheTime)
+    queryKey: ["spectraList"],
+    queryFn: async () => (await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST, {}, "GET")).spectra,
+    staleTime: 5 * 60 * 1000, // 5 minutes - time after which data is considered stale
+    gcTime: 60 * 60 * 1000, // 1 hour - time after which unused cache is garbage collected
+    refetchOnWindowFocus: false, // Don't refetch on focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
   })
 
   // Update metadata store when data changes

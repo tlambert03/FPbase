@@ -6,19 +6,25 @@ import type { GraphQLResponse } from "../types"
  */
 export async function fetchGraphQL<T>(
   query: string,
-  variables?: Record<string, unknown>
+  variables?: Record<string, unknown>,
+  method: "GET" | "POST" = "POST"
 ): Promise<T> {
-  const response = await fetch("/graphql/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+  let url = "/graphql/"
+  const fetchOptions: RequestInit = {
+    method,
     credentials: "same-origin",
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  })
+  }
+  if (method === "GET") {
+    // Minify and encode query in URL
+    const minified = query.replace(/\s+/g, " ").trim()
+    url = `/graphql/?query=${encodeURIComponent(minified)}`
+  } else {
+    // POST with JSON body
+    fetchOptions.headers = { "Content-Type": "application/json" }
+    fetchOptions.body = JSON.stringify({ query, variables })
+  }
+
+  const response = await fetch(url, fetchOptions)
 
   if (!response.ok) {
     throw new Error(`GraphQL request failed: ${response.status} ${response.statusText}`)
