@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQueries, useQuery } from "@tanstack/react-query"
 import { fetchGraphQL } from "../api/client"
-import { batchSpectraQuery, GET_OPTICAL_CONFIG, GET_SPECTRUM } from "../api/queries"
+import { GET_OPTICAL_CONFIG, GET_SPECTRUM } from "../api/queries"
 import type { OpticalConfig, Spectrum } from "../types"
 
 /**
@@ -36,25 +36,37 @@ export function useSpectrum(id: string | null) {
 }
 
 /**
- * Batch fetch multiple spectra by IDs
- * More efficient than individual queries
+ * Stable combine function for useSpectraBatch
+ * Extracted to avoid unnecessary re-computations per TanStack Query best practices
+ */
+function combineSpectraResults(results: ReturnType<typeof useQuery<Spectrum | null>>[]) {
+  return {
+    // Mimic the useQuery return structure for backward compatibility
+    data: results.map((result) => result.data).filter((s): s is Spectrum => s !== null),
+    isPending: results.some((result) => result.isPending),
+    isError: results.some((result) => result.isError),
+    error: results.find((result) => result.error)?.error ?? null,
+  }
+}
+
+/**
+ * Fetch multiple spectra by IDs using individual queries
+ * Each spectrum gets its own stable query key for optimal caching
  */
 export function useSpectraBatch(ids: string[]) {
-  return useQuery({
-    queryKey: ["spectra-batch", ids.sort().join(",")],
-    queryFn: async () => {
-      if (ids.length === 0) return []
-
-      const query = batchSpectraQuery(ids)
-      const data = await fetchGraphQL<Record<string, Spectrum>>(query, {})
-
-      // Convert object to array
-      return Object.values(data)
-    },
-    select: (data) => data.map(normalizeSpectrum),
-    enabled: ids.length > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    placeholderData: (previousData) => previousData, // Keep previous data while fetching new batch
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: ["spectrum", id],
+      queryFn: async () => {
+        const data = await fetchGraphQL<{ spectrum: Spectrum }>(GET_SPECTRUM, {
+          id: Number.parseInt(id, 10),
+        })
+        return data.spectrum
+      },
+      select: normalizeSpectrum,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    })),
+    combine: combineSpectraResults,
   })
 }
 

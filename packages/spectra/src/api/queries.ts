@@ -35,6 +35,7 @@ export const GET_SPECTRUM = `
 `
 
 // Batch fetch multiple spectra
+// NOT ACTUALLY USED RIGHT NOW (see useSpectraBatch in hooks/useSpectraQueries.ts)
 export function batchSpectraQuery(ids: string[]): string {
   const queries = ids
     .filter(Boolean)
