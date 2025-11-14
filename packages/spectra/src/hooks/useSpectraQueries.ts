@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { fetchAPI, fetchGraphQL } from "../api/client"
-import { batchSpectraQuery, GET_OPTICAL_CONFIG, GET_SPECTRUM } from "../api/queries"
-import type { OpticalConfig, OpticalConfigInfo, Spectrum } from "../types"
+import { batchSpectraQuery, GET_OPTICAL_CONFIG, GET_SPECTRUM, SPECTRA_LIST } from "../api/queries"
+import type { OpticalConfig, OpticalConfigInfo, SpectraListResponse, Spectrum } from "../types"
 
 /**
  * Normalize spectrum subtype from API
@@ -17,6 +17,17 @@ function normalizeSpectrum<T extends Spectrum | null>(spectrum: T): T {
 }
 
 /**
+ * Normalize subtype for any object with a subtype field
+ * Used for list responses that don't include full spectrum data
+ */
+function normalizeSubtype<T extends { subtype: string }>(item: T): T {
+  return {
+    ...item,
+    subtype: item.subtype === "A_2P" ? "2P" : item.subtype,
+  }
+}
+
+/**
  * Fetch a single spectrum by ID
  */
 export function useSpectrum(id: string | null) {
@@ -25,7 +36,7 @@ export function useSpectrum(id: string | null) {
     queryFn: async () => {
       if (!id) return null
       const data = await fetchGraphQL<{ spectrum: Spectrum }>(GET_SPECTRUM, {
-        variables: { id: Number.parseInt(id, 10) },
+        id: Number.parseInt(id, 10),
       })
       return data.spectrum
     },
@@ -46,7 +57,7 @@ export function useSpectraBatch(ids: string[]) {
       if (ids.length === 0) return []
 
       const query = batchSpectraQuery(ids)
-      const data = await fetchGraphQL<Record<string, Spectrum>>(query)
+      const data = await fetchGraphQL<Record<string, Spectrum>>(query, {})
 
       // Convert object to array
       return Object.values(data)
@@ -65,12 +76,25 @@ export function useOpticalConfig(id: number | null) {
     queryKey: ["optical-config", id],
     queryFn: async () => {
       if (!id) return null
-      const data = await fetchGraphQL<{ opticalConfig: OpticalConfig }>(GET_OPTICAL_CONFIG, {
-        variables: { id },
-      })
+      const data = await fetchGraphQL<{ opticalConfig: OpticalConfig }>(GET_OPTICAL_CONFIG, { id })
       return data.opticalConfig
     },
     enabled: !!id,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  })
+}
+
+/**
+ * Fetch list of all spectra (for search/autocomplete)
+ */
+export function useSpectraList() {
+  return useQuery({
+    queryKey: ["spectra-list"],
+    queryFn: async () => {
+      const data = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST, {})
+      return data.spectra
+    },
+    select: (data) => data.map(normalizeSubtype),
     staleTime: 10 * 60 * 1000, // 10 minutes
   })
 }
