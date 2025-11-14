@@ -14,7 +14,7 @@
         <div class="input-group-prepend">
           <label class="input-group-text" for="proteinSlug">Protein</label>
         </div>
-        <select class="custom-select" id="proteinSlug">
+        <select class="form-select" id="proteinSlug">
           {% if protein %}
             <option value='{{protein.slug}}'>{{protein.name|safe}}</option>
           {% else %}
@@ -28,7 +28,7 @@
         <div class="input-group-prepend">
           <label class="input-group-text" for="fileTypeSelect">Image Format</label>
         </div>
-        <select class="custom-select custom-select-sm" id="fileTypeSelect">
+        <select class="form-select form-select-sm" id="fileTypeSelect">
           <option value='svg'>SVG</option>
           <option value='png'>PNG</option>
           <option value='jpg'>JPG</option>
@@ -39,39 +39,39 @@
   </div>
   <div class="row mb-3">
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="showName">
-        <label class="custom-control-label" for="showName">Show Name</label>
+      <div class="form-check form-check">
+        <input type="checkbox" class="form-check-input" id="showName">
+        <label class="form-check-label" for="showName">Show Name</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="xAxis" checked>
-        <label class="custom-control-label" for="xAxis">Show X Labels</label>
+      <div class="form-check form-check">
+        <input type="checkbox" class="form-check-input" id="xAxis" checked>
+        <label class="form-check-label" for="xAxis">Show X Labels</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="yAxis">
-        <label class="custom-control-label" for="yAxis">Show Y Labels</label>
+      <div class="form-check form-check">
+        <input type="checkbox" class="form-check-input" id="yAxis">
+        <label class="form-check-label" for="yAxis">Show Y Labels</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="grid">
-        <label class="custom-control-label" for="grid">Show Grid</label>
+      <div class="form-check form-check">
+        <input type="checkbox" class="form-check-input" id="grid">
+        <label class="form-check-label" for="grid">Show Grid</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="areaFill" checked>
-        <label class="custom-control-label" for="areaFill">Fill Area Under Curve</label>
+      <div class="form-check form-check">
+        <input type="checkbox" class="form-check-input" id="areaFill" checked>
+        <label class="form-check-label" for="areaFill">Fill Area Under Curve</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="transCheck" checked>
-        <label class="custom-control-label" for="transCheck">Transparent Background</label>
+      <div class="form-check form-check">
+        <input type="checkbox" class="form-check-input" id="transCheck" checked>
+        <label class="form-check-label" for="transCheck">Transparent Background</label>
       </div>
     </div>
   </div>

@@ -528,6 +528,19 @@ wheels = [
 ]
 
 [[package]]
+name = "crispy-bootstrap5"
+version = "2025.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-crispy-forms" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/97/30/36cc4144b6dff91bb54490a3b474897b7469bcda9517bf9f54681ea91011/crispy_bootstrap5-2025.6.tar.gz", hash = "sha256:f1bde7cac074c650fc82f31777d4a4cfd0df2512c68bc4128f259c75d3daada4", size = 23950, upload-time = "2025-06-08T07:43:35.461Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d8/d4/8cf1ba773a91fc17bab1fd46b75bbdef780c4cccbbb8230e617980a0362c/crispy_bootstrap5-2025.6-py3-none-any.whl", hash = "sha256:a343aa128b4383f35f00295b94de2b10862f2a4f24eda21fa6ead45234c07050", size = 24794, upload-time = "2025-06-08T07:43:34.206Z" },
+]
+
+[[package]]
 name = "cryptography"
 version = "46.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -706,11 +719,14 @@ wheels = [
 
 [[package]]
 name = "django-crispy-forms"
-version = "1.13.0"
+version = "2.5"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e9/93/48a4448e96a0c2584874e96f2d5b8d7f80bcef19d597e35635dccd23d1d9/django-crispy-forms-1.13.0.tar.gz", hash = "sha256:4dc9e5263c91c5f51766806a050ca2ec5c349d34c5cd91fcca3a1a0363b5e29e", size = 67036, upload-time = "2021-09-25T19:04:36.204Z" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/79/a1/6a638d13717e4d4f8df169dade0fa51bdc65d9825df39d98ce709a776b49/django_crispy_forms-2.5.tar.gz", hash = "sha256:066e72a8f152a1334f1c811cc37740868efe3265e5a218f79079ef89f848c3d8", size = 1097999, upload-time = "2025-11-06T20:44:01.921Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/b5/8e1ea4b9dfff8956035866b0b528794d5c6d1257c6696afa47c4d48f7c07/django_crispy_forms-1.13.0-py3-none-any.whl", hash = "sha256:9c49d29dd9e98dc2e6e3a8b02670d72deb6edf7bc616986ca412d72c306b36a0", size = 122754, upload-time = "2021-09-25T19:04:34.237Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/58/ac3a11950baaf75c1f3242e3af9dfe45201f6ee10c113dd37a9c000876d2/django_crispy_forms-2.5-py3-none-any.whl", hash = "sha256:adc99d5901baca09479c53bf536b3909e80a9f2bb299438a223de4c106ebf1f9", size = 31464, upload-time = "2025-11-06T20:44:00.795Z" },
 ]
 
 [[package]]
@@ -1103,6 +1119,7 @@ dependencies = [
     { name = "argon2-cffi" },
     { name = "biopython" },
     { name = "celery", extra = ["redis"] },
+    { name = "crispy-bootstrap5" },
     { name = "django" },
     { name = "django-allauth", extra = ["socialaccount"] },
     { name = "django-anymail" },
@@ -1209,13 +1226,14 @@ requires-dist = [
     { name = "argon2-cffi", specifier = ">=21.3.0" },
     { name = "biopython", specifier = ">=1.83" },
     { name = "celery", extras = ["redis"], specifier = "==5.5.3" },
+    { name = "crispy-bootstrap5", specifier = "==2025.6" },
     { name = "django", specifier = ">=5.2,<5.3" },
     { name = "django-allauth", extras = ["socialaccount"], specifier = ">=0.70.0" },
     { name = "django-anymail", specifier = "==10.0" },
     { name = "django-autocomplete-light", specifier = ">=3.11.0" },
     { name = "django-avatar", specifier = ">=8.0.1" },
     { name = "django-cors-headers", specifier = ">=4.2.0" },
-    { name = "django-crispy-forms", specifier = "==1.13.0" },
+    { name = "django-crispy-forms", specifier = ">=2.3" },
     { name = "django-environ", specifier = ">=0.10.0" },
     { name = "django-filter", specifier = ">=23.3" },
     { name = "django-model-utils", specifier = ">=5.0.0" },
