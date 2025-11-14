@@ -71,6 +71,7 @@ SPECTRUM_OWNER_MODELS = {
 OPTICAL_CONFIG_MODELS = {
     "proteins.Microscope",
     "proteins.OpticalConfig",
+    "proteins.FilterPlacement",
 }
 
 

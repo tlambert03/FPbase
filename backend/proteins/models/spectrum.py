@@ -123,7 +123,7 @@ def get_spectra_list(query_set: QuerySet | None = None, **filters: str) -> list[
             ),
             owner_url=NullIf(owner_case("url", state=F("owner_state__protein__slug")), Value("")),
         )
-        .order_by("id")
+        .order_by("owner_name")
         .values("id", "category", "subtype", "owner_id", "owner_slug", "owner_name", "owner_url")
     )
 
