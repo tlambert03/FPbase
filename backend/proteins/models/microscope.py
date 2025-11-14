@@ -182,6 +182,24 @@ def invert(sp):
     return [[a[0], 1 - a[1]] for a in sp]
 
 
+def get_optical_configs_list() -> list[dict]:
+    """Fetch optical configs with microscope info in a single optimized query."""
+    vals = OpticalConfig.objects.values("id", "name", "comments", "microscope__id", "microscope__name")
+
+    return [
+        {
+            "id": val["id"],
+            "name": val["name"],
+            "comments": val["comments"],
+            "microscope": {
+                "id": val["microscope__id"],
+                "name": val["microscope__name"],
+            },
+        }
+        for val in vals
+    ]
+
+
 def get_cached_optical_configs() -> dict[str, str]:
     """Get cached optical configs with version, populating cache if needed.
 
@@ -190,16 +208,7 @@ def get_cached_optical_configs() -> dict[str, str]:
     """
     cached = cache.get(OPTICAL_CONFIG_CACHE_KEY)
     if not cached:
-        vals = OpticalConfig.objects.all().values("id", "name", "comments", "microscope__id", "microscope__name")
-        ocinfo = []
-        for val in vals:
-            scope = {
-                "id": val.pop("microscope__id"),
-                "name": val.pop("microscope__name"),
-            }
-            val["microscope"] = scope
-            ocinfo.append(val)
-        data = json.dumps({"data": {"opticalConfigs": ocinfo}})
+        data = json.dumps({"data": {"opticalConfigs": get_optical_configs_list()}})
         cached = {"data": data, "version": timezone.now().isoformat()}
         cache.set(OPTICAL_CONFIG_CACHE_KEY, cached, None)  # Cache indefinitely, rely on signals for invalidation
     return cached

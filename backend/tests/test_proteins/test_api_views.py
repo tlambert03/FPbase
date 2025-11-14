@@ -105,7 +105,8 @@ class OpticalConfigListAPIViewTests(TestCase):
         self.assertIn("ETag", response)
         self.assertTrue(response["ETag"].startswith('W/"'))
         self.assertIn("Cache-Control", response)
-        self.assertIn("max-age=600", response["Cache-Control"])
+        self.assertIn("max-age=0", response["Cache-Control"])
+        self.assertIn("must-revalidate", response["Cache-Control"])
 
     def test_optical_configs_list_etag_304(self):
         """Test that the endpoint returns 304 when ETag matches."""
