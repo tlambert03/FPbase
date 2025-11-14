@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from django.db.models import F, Max, Prefetch
 from django.http import HttpRequest, HttpResponse
 from django.utils.decorators import method_decorator
@@ -27,50 +29,34 @@ from .serializers import (
 )
 
 
-def spectra_list(request: HttpRequest) -> HttpResponse:
-    """Return cached spectra slug list with ETag support.
+def conditional_cached_json_response(get_cache_func: Callable[[], dict]) -> Callable[[HttpRequest], HttpResponse]:
+    """Decorator to add conditional GET support based on cache versioning."""
 
-    Uses cache-specific versioning for ETags - the version changes whenever
-    the cache is invalidated and regenerated, not just when models change.
-    """
-    cached = get_cached_spectra_info()
-    etag = f'W/"{cached["version"]}"'
-    headers = {
-        "ETag": etag,
-        "Vary": "Accept-Encoding",
-        "Cache-Control": "public, max-age=600, must-revalidate",  # don't ask for 10 minutes
-    }
+    # similar to django.views.decorators.http.condition,
+    # but uses our cache versioning... could be ported over.
 
-    # Check if client's ETag matches current cache version
-    request_etag = request.headers.get("If-None-Match", "").strip()
-    if request_etag == etag:
-        return HttpResponse(status=304, headers=headers)
+    def _conditional_view(request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        cached = get_cache_func()
+        etag = f'W/"{cached["version"]}"'
+        headers = {
+            "ETag": etag,
+            "Vary": "Accept-Encoding",
+            "Cache-Control": "public, max-age=0, must-revalidate",  # don't ask for 10 minutes
+        }
 
-    # Return cached data with ETag header
-    return HttpResponse(cached["data"], content_type="application/json", headers=headers)
+        # Check if client's ETag matches current cache version
+        request_etag = request.headers.get("If-None-Match", "").strip()
+        if request_etag == etag:
+            return HttpResponse(status=304, headers=headers)
+
+        # Return cached data with ETag header
+        return HttpResponse(cached["data"], content_type="application/json", headers=headers)
+
+    return _conditional_view
 
 
-def optical_configs_list(request: HttpRequest) -> HttpResponse:
-    """Return cached optical configs list with ETag support.
-
-    Uses cache-specific versioning for ETags - the version changes whenever
-    the cache is invalidated and regenerated, not just when models change.
-    """
-    cached = get_cached_optical_configs()
-    etag = f'W/"{cached["version"]}"'
-    headers = {
-        "ETag": etag,
-        "Vary": "Accept-Encoding",
-        "Cache-Control": "public, max-age=600, must-revalidate",  # don't ask for 10 minutes
-    }
-
-    # Check if client's ETag matches current cache version
-    request_etag = request.headers.get("If-None-Match", "").strip()
-    if request_etag == etag:
-        return HttpResponse(status=304, headers=headers)
-
-    # Return cached data with ETag header
-    return HttpResponse(cached["data"], content_type="application/json", headers=headers)
+spectra_list = conditional_cached_json_response(get_cached_spectra_info)
+optical_configs_list = conditional_cached_json_response(get_cached_optical_configs)
 
 
 class SpectrumList(ListAPIView):
