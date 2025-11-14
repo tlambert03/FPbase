@@ -7,6 +7,7 @@ from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
 
 from .. import models
 from ..filters import ProteinFilter
+from ..models.spectrum import get_spectra_list
 from . import relay, types
 
 
@@ -105,16 +106,8 @@ class Query(graphene.ObjectType):
             fkwargs["category"] = str(cat).lower()
 
         if "owner" in requested_fields:
-            # owner is complicated ... need to do our own thing
-            # Cache the sluglist result (same strategy as REST endpoint)
-            key_suffix = "_".join(f"{k}_{v}" for k, v in sorted(fkwargs.items()))
-            cache_key = f"_spectra_sluglist_{key_suffix}" if key_suffix else "_spectra_sluglist"
-
-            result = cache.get(cache_key)
-            if not result:
-                result = models.Spectrum.objects.sluglist(filters=fkwargs or None)
-                cache.set(cache_key, result, 60 * 60)  # 1 hour cache (same as REST)
-            return result
+            # Use the optimized get_spectra_list function (no caching for GraphQL)
+            return get_spectra_list(**fkwargs)
         elif fkwargs:
             return models.Spectrum.objects.filter(**fkwargs).values(*requested_fields)
         else:

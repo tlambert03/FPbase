@@ -100,34 +100,3 @@ export const GET_OPTICAL_CONFIG = `
     }
   }
 `
-
-// List all spectra (for search/autocomplete)
-export const SPECTRA_LIST = `
-  query SpectraList {
-    spectra {
-      id
-      category
-      subtype
-      owner {
-        id
-        name
-        slug
-        url
-      }
-    }
-  }
-`
-
-// List optical configs (for search modal)
-export const OPTICAL_CONFIG_LIST = `
-  query OpticalConfigList {
-    opticalConfigs {
-      id
-      name
-      comments
-      microscope {
-        name
-      }
-    }
-  }
-`
