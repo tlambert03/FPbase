@@ -32,7 +32,9 @@ def get_model_version(*model_classes: type[Model]) -> str:
         cache_key = _model_cache_key(model_class)
         if (version := cache.get(cache_key)) is None:
             version = timezone.now().isoformat()
-            cache.set(cache_key, version)
+            if not cache.add(cache_key, version):
+                # Another process set it first; get the value again
+                version = cache.get(cache_key)
         versions.append(version)
     return hashlib.blake2b("".join(versions).encode(), digest_size=16).hexdigest()
 

@@ -210,7 +210,10 @@ def get_cached_optical_configs() -> dict[str, str]:
     if not cached:
         data = json.dumps({"data": {"opticalConfigs": get_optical_configs_list()}})
         cached = {"data": data, "version": timezone.now().isoformat()}
-        cache.set(OPTICAL_CONFIG_CACHE_KEY, cached, None)  # Cache indefinitely, rely on signals for invalidation
+        # Cache indefinitely, rely on signals for invalidation
+        if not cache.add(OPTICAL_CONFIG_CACHE_KEY, cached, None):
+            # Another process set it first; get the value again
+            cached = cache.get(OPTICAL_CONFIG_CACHE_KEY)
     return cached
 
 

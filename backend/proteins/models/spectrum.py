@@ -84,7 +84,10 @@ def get_cached_spectra_info() -> dict[str, str]:
     if not cached:
         spectrainfo = json.dumps({"data": {"spectra": get_spectra_list()}})
         cached = {"data": spectrainfo, "version": timezone.now().isoformat()}
-        cache.set(SPECTRA_CACHE_KEY, cached, None)  # Cache indefinitely, rely on signals for invalidation
+        # Cache indefinitely, rely on signals for invalidation
+        if not cache.add(SPECTRA_CACHE_KEY, cached, None):
+            # Another process set it first; get the value again
+            cached = cache.get(SPECTRA_CACHE_KEY)
     return cached
 
 
