@@ -15,7 +15,6 @@ from django.db import models
 from django.db.models import Case, CharField, F, IntegerField, QuerySet, Value, When
 from django.db.models.functions import Concat, NullIf
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.text import slugify
 from model_utils import Choices
 from model_utils.managers import QueryManager
@@ -73,17 +72,15 @@ def sorted_ex2em(filterset):
     return sorted(filterset, key=lambda x: _sort(x.subtype))
 
 
-def get_cached_spectra_info() -> dict[str, str]:
-    """Get cached spectra info with version, populating cache if needed.
+def get_cached_spectra_info() -> str:
+    """Get cached spectra info JSON, populating cache if needed.
 
-    Returns a dict with 'data' (JSON string) and 'version' (ETag) keys.
-    The version changes whenever the cache is invalidated and regenerated.
+    Returns a JSON string of spectra data. The cache is invalidated by signals
+    when any related models change. Use with @condition decorator for ETags.
     """
-
     cached = cache.get(SPECTRA_CACHE_KEY)
     if not cached:
-        spectrainfo = json.dumps({"data": {"spectra": get_spectra_list()}})
-        cached = {"data": spectrainfo, "version": timezone.now().isoformat()}
+        cached = json.dumps({"data": {"spectra": get_spectra_list()}})
         # Cache indefinitely, rely on signals for invalidation
         if not cache.add(SPECTRA_CACHE_KEY, cached, None):
             # Another process set it first; get the value again

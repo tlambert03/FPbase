@@ -7,7 +7,6 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.functional import cached_property
 
 from fpbase.cache_utils import OPTICAL_CONFIG_CACHE_KEY
@@ -200,16 +199,15 @@ def get_optical_configs_list() -> list[dict]:
     ]
 
 
-def get_cached_optical_configs() -> dict[str, str]:
-    """Get cached optical configs with version, populating cache if needed.
+def get_cached_optical_configs() -> str:
+    """Get cached optical configs JSON, populating cache if needed.
 
-    Returns a dict with 'data' (JSON string) and 'version' (ETag) keys.
-    The version changes whenever the cache is invalidated and regenerated.
+    Returns a JSON string of optical config data. The cache is invalidated by
+    signals when any related models change. Use with @condition decorator for ETags.
     """
     cached = cache.get(OPTICAL_CONFIG_CACHE_KEY)
     if not cached:
-        data = json.dumps({"data": {"opticalConfigs": get_optical_configs_list()}})
-        cached = {"data": data, "version": timezone.now().isoformat()}
+        cached = json.dumps({"data": {"opticalConfigs": get_optical_configs_list()}})
         # Cache indefinitely, rely on signals for invalidation
         if not cache.add(OPTICAL_CONFIG_CACHE_KEY, cached, None):
             # Another process set it first; get the value again
