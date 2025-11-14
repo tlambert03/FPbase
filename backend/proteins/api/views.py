@@ -27,7 +27,7 @@ from .serializers import (
 )
 
 
-def spectraslugs(request: HttpRequest) -> HttpResponse:
+def spectra_list(request: HttpRequest) -> HttpResponse:
     """Return cached spectra slug list with ETag support.
 
     Uses cache-specific versioning for ETags - the version changes whenever

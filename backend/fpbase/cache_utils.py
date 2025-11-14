@@ -1,9 +1,6 @@
 """Unified cache invalidation for model changes.
 
 This module handles ALL cache invalidation across the application:
-- Model version tracking (for ETag generation)
-- Spectra JSON cache (for /api/proteins/spectraslugs/)
-- Optical config cache (for /api/proteins/ocinfo/)
 
 IMPORTANT: This is the ONLY place where post_save/post_delete signals
 should be connected for cache invalidation purposes.

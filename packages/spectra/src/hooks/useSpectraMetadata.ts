@@ -14,7 +14,7 @@ export function useSpectraMetadata() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["spectraList"],
     queryFn: async () => {
-      const response = await fetch("/api/proteins/spectraslugs/")
+      const response = await fetch("/api/spectra-list/")
       if (!response.ok) {
         throw new Error(`Failed to fetch spectra: ${response.statusText}`)
       }
