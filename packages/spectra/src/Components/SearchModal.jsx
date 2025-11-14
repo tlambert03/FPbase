@@ -151,7 +151,7 @@ const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) 
   const handleOCChange = async ({ value }) => {
     // Ensure ID is a number (GraphQL expects Int!)
     const id = typeof value === "number" ? value : Number.parseInt(value, 10)
-    const { opticalConfig } = await fetchGraphQL(GET_OPTICAL_CONFIG, { variables: { id } })
+    const { opticalConfig } = await fetchGraphQL(GET_OPTICAL_CONFIG, { id })
     const newSpectra = []
     opticalConfig.filters &&
       newSpectra.push(...opticalConfig.filters.map(({ spectrum }) => spectrum.id))
