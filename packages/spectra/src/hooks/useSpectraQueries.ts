@@ -54,6 +54,7 @@ export function useSpectraBatch(ids: string[]) {
     select: (data) => data.map(normalizeSpectrum),
     enabled: ids.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching new batch
   })
 }
 
