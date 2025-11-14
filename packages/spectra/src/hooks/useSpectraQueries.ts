@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query"
-import { fetchAPI, fetchGraphQL } from "../api/client"
-import { batchSpectraQuery, GET_OPTICAL_CONFIG, GET_SPECTRUM, SPECTRA_LIST } from "../api/queries"
-import type { OpticalConfig, OpticalConfigInfo, SpectraListResponse, Spectrum } from "../types"
+import { useQueries, useQuery } from "@tanstack/react-query"
+import { fetchGraphQL } from "../api/client"
+import { GET_OPTICAL_CONFIG, GET_SPECTRUM } from "../api/queries"
+import type { OpticalConfig, Spectrum } from "../types"
 
 /**
  * Normalize spectrum subtype from API
@@ -14,17 +14,6 @@ function normalizeSpectrum<T extends Spectrum | null>(spectrum: T): T {
     ...spectrum,
     subtype: spectrum.subtype === "A_2P" ? "2P" : spectrum.subtype,
   } as T
-}
-
-/**
- * Normalize subtype for any object with a subtype field
- * Used for list responses that don't include full spectrum data
- */
-function normalizeSubtype<T extends { subtype: string }>(item: T): T {
-  return {
-    ...item,
-    subtype: item.subtype === "A_2P" ? "2P" : item.subtype,
-  }
 }
 
 /**
@@ -47,24 +36,35 @@ export function useSpectrum(id: string | null) {
 }
 
 /**
- * Batch fetch multiple spectra by IDs
- * More efficient than individual queries
+ * Batch fetch multiple spectra by IDs using individual queries
+ * This approach provides better caching and handles empty arrays correctly
  */
 export function useSpectraBatch(ids: string[]) {
-  return useQuery({
-    queryKey: ["spectra-batch", ids.sort().join(",")],
-    queryFn: async () => {
-      if (ids.length === 0) return []
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: ["spectrum", id],
+      queryFn: async () => {
+        const data = await fetchGraphQL<{ spectrum: Spectrum }>(GET_SPECTRUM, {
+          id: Number.parseInt(id, 10),
+        })
+        return data.spectrum
+      },
+      select: normalizeSpectrum,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    })),
+    combine: (results) => {
+      // Extract all non-null spectrum data
+      const data = results.map((result) => result.data).filter((s): s is Spectrum => s !== null)
 
-      const query = batchSpectraQuery(ids)
-      const data = await fetchGraphQL<Record<string, Spectrum>>(query, {})
-
-      // Convert object to array
-      return Object.values(data)
+      // Return a stable object shape matching useQuery's return type
+      // This ensures proper re-renders when the data changes
+      return {
+        data,
+        isPending: results.some((result) => result.isPending),
+        isError: results.some((result) => result.isError),
+        error: results.find((result) => result.error)?.error ?? null,
+      }
     },
-    select: (data) => data.map(normalizeSpectrum),
-    enabled: ids.length > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 
@@ -80,36 +80,6 @@ export function useOpticalConfig(id: number | null) {
       return data.opticalConfig
     },
     enabled: !!id,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  })
-}
-
-/**
- * Fetch list of all spectra (for search/autocomplete)
- */
-export function useSpectraList() {
-  return useQuery({
-    queryKey: ["spectra-list"],
-    queryFn: async () => {
-      const data = await fetchGraphQL<SpectraListResponse>(SPECTRA_LIST, {})
-      return data.spectra
-    },
-    select: (data) => data.map(normalizeSubtype),
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  })
-}
-
-/**
- * Fetch optical configs info from REST API
- * Uses REST instead of GraphQL for better caching
- */
-export function useOpticalConfigsInfo() {
-  return useQuery({
-    queryKey: ["optical-configs-info"],
-    queryFn: async () => {
-      const data = await fetchAPI<{ opticalConfigs: OpticalConfigInfo[] }>("/api/proteins/ocinfo/")
-      return data.opticalConfigs
-    },
     staleTime: 10 * 60 * 1000, // 10 minutes
   })
 }

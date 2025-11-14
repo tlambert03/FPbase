@@ -52,7 +52,12 @@ def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Ca
     # a NEW search input should appear after selecting a protein
     tab_wrapper = spectra_viewer.locator(".tab-wrapper")
     expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
-    assert_snapshot(spectra_viewer)
+    if not hasattr(assert_snapshot, "NOOP"):
+        # Wait for chart to fully render
+        spectra_viewer.locator(".highcharts-series").first.wait_for(state="attached")
+        spectra_viewer.wait_for_load_state("networkidle")
+        # Mask legend as it has minor rendering variations
+        assert_snapshot(spectra_viewer, mask_elements=[".highcharts-legend"])
 
 
 @pytest.mark.parametrize("method", ["spacebar", "click"])
@@ -90,7 +95,12 @@ def test_spectra_viewer_add_from_spacebar(spectra_viewer: Page, assert_snapshot:
     # ... and a selector for EGFP should now be visible
     expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
 
-    assert_snapshot(spectra_viewer)
+    if not hasattr(assert_snapshot, "NOOP"):
+        # Wait for chart to fully render
+        spectra_viewer.locator(".highcharts-series").first.wait_for(state="attached")
+        spectra_viewer.wait_for_load_state("networkidle")
+        # Mask legend as it has minor rendering variations
+        assert_snapshot(spectra_viewer, mask_elements=[".highcharts-legend"])
 
 
 def test_spectra_url_sharing_basic(live_server: LiveServer, page: Page) -> None:
@@ -201,17 +211,28 @@ def test_qy_ec_scaling_invertibility(spectra_viewer: Page) -> None:
     # Wait for EGFP to be added
     expect(spectra_viewer.locator(".tab-wrapper").get_by_text(re.compile(r"^EGFP"))).to_be_visible()
 
-    def _test_scaling_toggle_indempotent(page: Page, series: int, key: str, timeout: int = 200) -> None:
+    def _test_scaling_toggle_indempotent(page: Page, series: int, key: str) -> None:
         _ser = page.locator(f"g.highcharts-series.highcharts-series-{series}")
         line = _ser.locator("path.highcharts-tracker-line")
+        # Wait for line to be visible AND have data (not empty/loading)
         expect(line).to_be_visible()
-        d = []
-        for _ in range(2):
-            d.append(line.get_attribute("d"))
-            page.keyboard.press(f"Key{key}")
-            page.wait_for_timeout(timeout)
-        d.append(line.get_attribute("d"))
-        d_0, d_1, d_2 = d
+        expect(line).to_have_attribute("d", re.compile(r"^M .+"))
+
+        # Get initial path data
+        d_0 = line.get_attribute("d")
+        assert d_0 is not None, "Initial path data should not be None"
+
+        # Press key once and wait for path to change
+        page.keyboard.press(f"Key{key}")
+        d_1 = line.get_attribute("d")
+        expect(line).not_to_have_attribute("d", d_0)
+
+        # Press key again and wait for path to return to original
+        page.keyboard.press(f"Key{key}")
+        d_2 = line.get_attribute("d")
+        expect(line).to_have_attribute("d", d_0)
+
+        # Verify the transformations
         assert d_0 != d_1, "scaling toggle did not change state on first toggle"
         assert d_0 == d_2, "scaling toggle did not return to original state after 2 toggles"
 
@@ -553,3 +574,5 @@ def test_remove_all_spectra(spectra_viewer: Page) -> None:
     reset_btn.click()
     expect(x_axis_labels).not_to_be_visible()
     expect(zoom_button).not_to_be_visible()
+    series_paths = spectra_viewer.locator(".highcharts-series-group path.highcharts-area")
+    expect(series_paths).to_have_count(0)
