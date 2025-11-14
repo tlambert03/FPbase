@@ -36,22 +36,8 @@ export function useSpectrum(id: string | null) {
 }
 
 /**
- * Stable combine function for useSpectraBatch
- * Extracted to avoid unnecessary re-computations per TanStack Query best practices
- */
-function combineSpectraResults(results: ReturnType<typeof useQuery<Spectrum | null>>[]) {
-  return {
-    // Mimic the useQuery return structure for backward compatibility
-    data: results.map((result) => result.data).filter((s): s is Spectrum => s !== null),
-    isPending: results.some((result) => result.isPending),
-    isError: results.some((result) => result.isError),
-    error: results.find((result) => result.error)?.error ?? null,
-  }
-}
-
-/**
- * Fetch multiple spectra by IDs using individual queries
- * Each spectrum gets its own stable query key for optimal caching
+ * Batch fetch multiple spectra by IDs using individual queries
+ * This approach provides better caching and handles empty arrays correctly
  */
 export function useSpectraBatch(ids: string[]) {
   return useQueries({
@@ -66,7 +52,19 @@ export function useSpectraBatch(ids: string[]) {
       select: normalizeSpectrum,
       staleTime: 5 * 60 * 1000, // 5 minutes
     })),
-    combine: combineSpectraResults,
+    combine: (results) => {
+      // Extract all non-null spectrum data
+      const data = results.map((result) => result.data).filter((s): s is Spectrum => s !== null)
+
+      // Return a stable object shape matching useQuery's return type
+      // This ensures proper re-renders when the data changes
+      return {
+        data,
+        isPending: results.some((result) => result.isPending),
+        isError: results.some((result) => result.isError),
+        error: results.find((result) => result.error)?.error ?? null,
+      }
+    },
   })
 }
 

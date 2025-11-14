@@ -210,16 +210,17 @@ def test_qy_ec_scaling_invertibility(spectra_viewer: Page) -> None:
 
         # Get initial path data
         d_0 = line.get_attribute("d")
+        assert d_0 is not None, "Initial path data should not be None"
 
         # Press key once and wait for path to change
         page.keyboard.press(f"Key{key}")
-        expect(line).not_to_have_attribute("d", d_0)
         d_1 = line.get_attribute("d")
+        expect(line).not_to_have_attribute("d", d_0)
 
         # Press key again and wait for path to return to original
         page.keyboard.press(f"Key{key}")
-        expect(line).to_have_attribute("d", d_0)
         d_2 = line.get_attribute("d")
+        expect(line).to_have_attribute("d", d_0)
 
         # Verify the transformations
         assert d_0 != d_1, "scaling toggle did not change state on first toggle"
