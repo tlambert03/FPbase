@@ -5,7 +5,7 @@
      data-fpbase-init="litemol"
      data-pdb-ids='{{pdb_ids_json|safe}}'>
   <div class="col-12 col-md-6 order-2 order-md-1">
-    <div style="height: 400px; background: white;">
+    <div style="height: 98%; background: white; position: relative;">
       <div id="litemol-viewer"></div>
     </div>
   </div>
@@ -25,7 +25,7 @@
     <h5 class='mb-0' id="chem-title"></h5>
     <div class='row'>
         <div class='col-12'>
-          <div class="text-muted" id="pdb-info" style="position: absolute; top:8px">
+          <div class="text-muted" id="pdb-info">
             Deposited: <span id="chem-date"></span>, <span id="chem-authors"></span>
             <a href="" id="chem-pubmed" target="_blank" >{% icon "external-link" class_="ms-2 text-secondary" style='font-size: 0.8rem;' %}</a><br>
             Chromophore{% if protein.chromophore %} ({{protein.chromophore}}){% endif %}: <span id='chem-id'></span><br>

@@ -252,3 +252,111 @@ a {
 .bs-tooltip-end .arrow::before {
   border-right-color: inherit;
 }
+
+// ============================================================================
+// FORM FOCUS STYLING - Match Bootstrap 4 focus appearance
+// ============================================================================
+// Bootstrap 5 changed focus colors to orange by default
+// Override to use primary color (green) like Bootstrap 4
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba($primary, 0.5);
+  box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+}
+
+// ============================================================================
+// BUTTON FOCUS STYLING - Match Bootstrap 4 appearance
+// ============================================================================
+.btn:focus,
+.btn.focus {
+  box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+}
+
+.btn-primary:focus,
+.btn-primary.focus {
+  box-shadow: 0 0 0 0.2rem rgba($primary, 0.5);
+}
+
+// ============================================================================
+// CLOSE BUTTON STYLING - Bootstrap 5 changed close button appearance
+// ============================================================================
+.btn-close {
+  opacity: 0.5;
+
+  &:hover {
+    opacity: 0.75;
+  }
+
+  &:focus {
+    opacity: 1;
+    box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+  }
+}
+
+// ============================================================================
+// ALERT CLOSE BUTTON - Match Bootstrap 4 positioning
+// ============================================================================
+.alert .btn-close {
+  padding: 0.75rem 1.25rem;
+}
+
+// ============================================================================
+// UTILITY CLASS ALIASES - Bootstrap 4 to 5 migration
+// ============================================================================
+// Margin classes
+.ml-0 { @extend .ms-0; }
+.ml-1 { @extend .ms-1; }
+.ml-2 { @extend .ms-2; }
+.ml-3 { @extend .ms-3; }
+.ml-4 { @extend .ms-4; }
+.ml-5 { @extend .ms-5; }
+.ml-auto { @extend .ms-auto; }
+
+.mr-0 { @extend .me-0; }
+.mr-1 { @extend .me-1; }
+.mr-2 { @extend .me-2; }
+.mr-3 { @extend .me-3; }
+.mr-4 { @extend .me-4; }
+.mr-5 { @extend .me-5; }
+.mr-auto { @extend .me-auto; }
+
+// Padding classes
+.pl-0 { @extend .ps-0; }
+.pl-1 { @extend .ps-1; }
+.pl-2 { @extend .ps-2; }
+.pl-3 { @extend .ps-3; }
+.pl-4 { @extend .ps-4; }
+.pl-5 { @extend .ps-5; }
+
+.pr-0 { @extend .pe-0; }
+.pr-1 { @extend .pe-1; }
+.pr-2 { @extend .pe-2; }
+.pr-3 { @extend .pe-3; }
+.pr-4 { @extend .pe-4; }
+.pr-5 { @extend .pe-5; }
+
+// Float classes
+.float-left { @extend .float-start; }
+.float-right { @extend .float-end; }
+.float-sm-left { @extend .float-sm-start; }
+.float-sm-right { @extend .float-sm-end; }
+.float-md-left { @extend .float-md-start; }
+.float-md-right { @extend .float-md-end; }
+.float-lg-left { @extend .float-lg-start; }
+.float-lg-right { @extend .float-lg-end; }
+
+// Text alignment classes
+.text-left { @extend .text-start; }
+.text-right { @extend .text-end; }
+
+// ============================================================================
+// FORM LAYOUT - Bootstrap 4 to 5 migration
+// ============================================================================
+// .form-row was removed in Bootstrap 5
+// Replace with .row (optionally with gutter classes like .g-2 or .g-3)
+.form-row {
+  @extend .row;
+  // Add small gutter like Bootstrap 4 .form-row had
+  --bs-gutter-x: 0.5rem;
+  --bs-gutter-y: 0.5rem;
+}

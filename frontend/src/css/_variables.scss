@@ -104,3 +104,14 @@ $footer-color:#2B8C67;
 
 $tooltip-text: $white;
 $tooltip-color: rgba($footer-background, 0.8);
+
+// Bootstrap 5 focus ring variables
+$focus-ring-width: .25rem;
+$focus-ring-opacity: .25;
+$focus-ring-color: rgba($primary, $focus-ring-opacity);
+$focus-ring-blur: 0;
+$focus-ring-box-shadow: 0 0 $focus-ring-blur $focus-ring-width $focus-ring-color;
+
+// Form focus variables
+$input-focus-border-color: rgba($primary, .5);
+$input-focus-box-shadow: 0 0 0 .2rem rgba($primary, .25);

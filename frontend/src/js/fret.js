@@ -112,12 +112,12 @@ export default function initFRET() {
   })
 
   $("#donor-select").select2({
-    theme: "bootstrap",
+    theme: "bootstrap-5",
     containerCssClass: ":all:",
     width: "auto",
   })
   $("#acceptor-select").select2({
-    theme: "bootstrap",
+    theme: "bootstrap-5",
     containerCssClass: ":all:",
     width: "auto",
   })

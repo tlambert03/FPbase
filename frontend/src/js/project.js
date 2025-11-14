@@ -229,10 +229,10 @@ if (
 ) {
   waitForSelect2(() => {
     $("#proteinSlug").select2({
-      theme: "bootstrap",
+      theme: "bootstrap-5",
       width: "80%",
       ajax: {
-        theme: "bootstrap",
+        theme: "bootstrap-5",
         containerCssClass: ":all:",
         width: "auto",
 
