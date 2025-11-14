@@ -41,7 +41,7 @@ def conditional_cached_json_response(get_cache_func: Callable[[], dict]) -> Call
         headers = {
             "ETag": etag,
             "Vary": "Accept-Encoding",
-            "Cache-Control": "public, max-age=0, must-revalidate",  # don't ask for 10 minutes
+            "Cache-Control": "public, max-age=600, must-revalidate",  # don't ask for 10 minutes
         }
 
         # Check if client's ETag matches current cache version
