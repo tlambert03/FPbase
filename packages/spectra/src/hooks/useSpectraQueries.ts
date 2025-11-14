@@ -17,17 +17,6 @@ function normalizeSpectrum<T extends Spectrum | null>(spectrum: T): T {
 }
 
 /**
- * Normalize subtype for any object with a subtype field
- * Used for list responses that don't include full spectrum data
- */
-function normalizeSubtype<T extends { subtype: string }>(item: T): T {
-  return {
-    ...item,
-    subtype: item.subtype === "A_2P" ? "2P" : item.subtype,
-  }
-}
-
-/**
  * Fetch a single spectrum by ID
  */
 export function useSpectrum(id: string | null) {
