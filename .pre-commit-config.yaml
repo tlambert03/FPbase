@@ -28,19 +28,19 @@ repos:
         args: ["--target-version", "4.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.3
+    rev: v0.14.5
     hooks:
       - id: ruff-check
         args: ["--fix", "--unsafe-fixes"]
       - id: ruff-format
 
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.3.2
+    rev: v2.3.5
     hooks:
       - id: biome-check
 
   - repo: https://github.com/DetachHead/basedpyright-prek-mirror
-    rev: 1.32.1
+    rev: 1.33.0
     hooks:
       - id: basedpyright
         stages: [manual]
