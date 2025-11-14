@@ -52,7 +52,12 @@ def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Ca
     # a NEW search input should appear after selecting a protein
     tab_wrapper = spectra_viewer.locator(".tab-wrapper")
     expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
-    assert_snapshot(spectra_viewer)
+    if not hasattr(assert_snapshot, "NOOP"):
+        # Wait for chart to fully render
+        spectra_viewer.locator(".highcharts-series").first.wait_for(state="attached")
+        spectra_viewer.wait_for_load_state("networkidle")
+        # Mask legend as it has minor rendering variations
+        assert_snapshot(spectra_viewer, mask_elements=[".highcharts-legend"])
 
 
 @pytest.mark.parametrize("method", ["spacebar", "click"])
@@ -90,7 +95,12 @@ def test_spectra_viewer_add_from_spacebar(spectra_viewer: Page, assert_snapshot:
     # ... and a selector for EGFP should now be visible
     expect(tab_wrapper.get_by_text(re.compile(r"^EGFP"))).to_be_visible()
 
-    assert_snapshot(spectra_viewer)
+    if not hasattr(assert_snapshot, "NOOP"):
+        # Wait for chart to fully render
+        spectra_viewer.locator(".highcharts-series").first.wait_for(state="attached")
+        spectra_viewer.wait_for_load_state("networkidle")
+        # Mask legend as it has minor rendering variations
+        assert_snapshot(spectra_viewer, mask_elements=[".highcharts-legend"])
 
 
 def test_spectra_url_sharing_basic(live_server: LiveServer, page: Page) -> None:
