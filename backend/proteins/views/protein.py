@@ -210,8 +210,13 @@ class ProteinDetailView(DetailView):
             "states",
             "excerpts__reference",
             "oser_measurements__reference",
+            "references",  # Additional references
+            "transitions__from_state",
+            "transitions__to_state",
+            "bleach_measurements__reference",
+            "bleach_measurements__state",
         )
-        .select_related("primary_reference")
+        .select_related("primary_reference", "parent_organism", "lineage__parent__protein")
     )
 
     def dispatch(self, *args, **kwargs):
