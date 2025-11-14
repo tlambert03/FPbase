@@ -1,7 +1,7 @@
 
 {% if  ocform.non_field_errors %}
   {% for error in ocform.non_field_errors %}
-  <div class="row mb-3 ml-1 text-danger help-block font-weight-bold small">{{error}}</div>
+  <div class="row mb-3 ms-1 text-danger help-block font-weight-bold small">{{error}}</div>
   {% endfor %}
 {% endif %}
 
@@ -100,7 +100,7 @@
       <label for="id_form-{{ formnum }}-bs_filters" class="col-form-label">
         <small><strong>{{ ocform.bs_filters.label }}</strong></small>
       </label>
-      <div class="custom-control custom-checkbox mr-sm-1 d-inline ml-4">
+      <div class="custom-control custom-checkbox me-sm-1 d-inline ms-4">
         {{ ocform.invert_bs }}
         <label class="custom-control-label small" for="id_optical_configs-{{formnum}}-invert_bs" style='padding-top:2px;'>reflects em.</label>
       </div>

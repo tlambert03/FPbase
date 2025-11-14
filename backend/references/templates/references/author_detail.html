@@ -9,14 +9,13 @@
 
     <div class="alert alert-dismissible alert-info small">
       Please note: due to the ambiguity of author names, it is extremely hard to be confident about authorships.  There may be errors in the names or attributions of these author pages.  Please check the actual publication pages for more accurate information.
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
       </button>
     </div>
 	<div class="author-detail">
 		<h1>{{ author.full_name }}</h1>
 
-    <ol class="pl-4">
+    <ol class="ps-4">
       {% for ref in author.publications.all %}
 
         <li class="mt-2">

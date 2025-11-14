@@ -21,7 +21,7 @@
     {% endif %}
 
 	<div class="small alert alert-info fade show mt-4" role="alert">
-		<div class='h5 text-info'>{% icon "view" class_="mr-2" %} <strong>Thank you for contributing to FPbase!</strong></div>
+		<div class='h5 text-info'>{% icon "view" class_="me-2" %} <strong>Thank you for contributing to FPbase!</strong></div>
 		<p>You are about to suggest changes for the <em>public</em> database (not your private collection).</p>
 
 		{% if not object %}
@@ -67,12 +67,11 @@
         {% endfor %}  <!-- end formset loop  -->
 
 			<div class="small alert alert-info alert-dismissible fade show mt-4" role="alert">
-			  <div class='h5 text-info'>{% icon "info" class_="mr-2" %} <strong>States</strong></div>
+			  <div class='h5 text-info'>{% icon "info" class_="me-2" %} <strong>States</strong></div>
 			  FPbase uses <strong>states</strong> to encapsulate the various fluorescence characteristics that a protein can have.  Even a constitutively active "basic" protein is given a (single) state.  Rather than directly specifying the "type" of protein, FPbase uses the number of states and transitions between them to determine the type of fluorescent protein.<br><br>
 
 			  For <span style='color: green'>photo</span><span style='color: red'>chromic</span> proteins, first declare all states on this form (including dark states), then add state transitions on the main protein page.<br>More info available on the <a href="{% url 'schema' %}" class="alert-link">database model</a> info page.
-			  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-			      <span aria-hidden="true">&times;</span>
+			  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
 			    </button>
 			</div>
 
@@ -95,7 +94,7 @@
 	        {% else %}
 	            <input type="submit" class='btn btn-primary mb-4' value="Save Protein"/>
 	        {% endif %}
-	        <p style='color: gray; font-size: 0.8rem;' class='hidden transition-note'><em>{% icon "exchange" class_="mr-2" %}For <span style='color: green'>photo</span><span style='color: red'>chromic</span> proteins, first declare all states on this form (including dark states), then add state transitions on the main protein page.</em></p>
+	        <p style='color: gray; font-size: 0.8rem;' class='hidden transition-note'><em>{% icon "exchange" class_="me-2" %}For <span style='color: green'>photo</span><span style='color: red'>chromic</span> proteins, first declare all states on this form (including dark states), then add state transitions on the main protein page.</em></p>
 	    </form>
 	</div>
 

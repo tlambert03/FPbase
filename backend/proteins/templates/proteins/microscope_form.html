@@ -28,10 +28,9 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 {% endif %}
 
 <div class="alert alert-info pb-0" role="alert">
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
   </button>
-  <p>{% icon "info" class_="mr-2" %}For more information on {% if object %}updating{%else%}creating{%endif%}
+  <p>{% icon "info" class_="me-2" %}For more information on {% if object %}updating{%else%}creating{%endif%}
     microscope pages, see the <a class="alert-link"
       href="https://help.fpbase.org/tools/microscopes/create-microscope">documentation</a></p>
 </div>
@@ -76,15 +75,15 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
     <div class="card-header">
       <ul class="nav nav-tabs card-header-tabs" id="microscopeFormTabs">
         <li class="nav-item">
-          <a class="nav-link active" id="itemizedoc-tab" data-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc"
+          <a class="nav-link active" id="itemizedoc-tab" data-bs-toggle="tab" href="#itemizedoc" aria-controls="itemizedoc"
             aria-selected="false">{% if object %}Update {% else %}Add {%endif%} Optical Configs</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="bulk-tab" data-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add
+          <a class="nav-link" id="bulk-tab" data-bs-toggle="tab" href="#bulk" aria-controls="bulk" aria-selected="true">Add
             Configs in Bulk</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" id="extra-tab" data-toggle="tab" href="#extra" aria-controls="extra"
+          <a class="nav-link" id="extra-tab" data-bs-toggle="tab" href="#extra" aria-controls="extra"
             aria-selected="true">Extra Components</a>
         </li>
       </ul>
@@ -106,11 +105,10 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
 
           <div class="alert alert-info alert-dismissible mb-0" role="alert">
             <div class="alert-icon" style="font-size: 1.6rem">
-                {% icon "question" class_="float-left mr-3 mt-2" %}
+                {% icon "question" class_="float-start me-3 mt-2" %}
             </div>
             <h4 class="alert-heading mb-3 mt-2"><strong>Adding Optical Configurations in Bulk</strong></h4>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
             </button>
             <p style="font-size: 0.9rem;">
               The following are examples of valid configurations:
@@ -187,7 +185,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
             {% endfor %}
             {% comment %}
             this feature is broken...
-            <a href="#" class='text-primary' data-toggle="modal" data-target="#importModal"><button class='btn btn-sm btn-danger mb-1'>{% icon "download" class_="mr-2" %}Import Commercial Filter</button></a>
+            <a href="#" class='text-primary' data-bs-toggle="modal" data-bs-target="#importModal"><button class='btn btn-sm btn-danger mb-1'>{% icon "download" class_="me-2" %}Import Commercial Filter</button></a>
             {% endcomment %}
           </div>
 
@@ -224,8 +222,8 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
     </button></a>
   {% endif %}
   <input type="submit" class="btn btn-primary mb-2 mt-3" value="Submit" />
-  <div class="text-primary ml-3 hidden" id="spinner" style="top: 5px; position: relative;">
-    {% icon "settings" class_="spinner-icon mr-2" style='font-size: 1.7rem; top: 6px; position: relative;' %}{% if object %}Updating{% else %}Building{% endif %}
+  <div class="text-primary ms-3 hidden" id="spinner" style="top: 5px; position: relative;">
+    {% icon "settings" class_="spinner-icon me-2" style='font-size: 1.7rem; top: 6px; position: relative;' %}{% if object %}Updating{% else %}Building{% endif %}
     your configuration...
   </div>
 </form>
@@ -238,8 +236,7 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="sureModalLabel" style='font-weight: 300'>Are you sure?</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
         </button>
       </div>
       <div class="modal-body">
@@ -247,8 +244,8 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
         for a single channel optical configuration. Is that really what you wanted?
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal" id="nosave">No, Keep Editing</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" id="save">Yes, Save it!</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="nosave">No, Keep Editing</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="save">Yes, Save it!</button>
       </div>
     </div>
   </div>

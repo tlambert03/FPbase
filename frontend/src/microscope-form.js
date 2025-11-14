@@ -20,7 +20,7 @@ function _waitForBootstrap(callback) {
 window.$ = window.jQuery = $
 // select2 JS loaded from CDN in base.html - only import CSS
 import "select2/dist/css/select2.css"
-import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
+import "select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css"
 import "./js/jquery.formset"
 
 // Mark this bundle for Sentry context

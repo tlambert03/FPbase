@@ -13,12 +13,12 @@ $(() => {
   $("#protein-image .glow").fadeIn(2200)
 
   waitForBootstrap(() => {
-    $('[data-toggle="tooltip"]').tooltip({
+    $('[data-bs-toggle="tooltip"]').tooltip({
       trigger: "hover",
       delay: { show: 200 },
     })
 
-    $('[data-toggle="popover"]').popover({ html: true })
+    $('[data-bs-toggle="popover"]').popover({ html: true })
     $(".popover-dismiss").popover({ trigger: "focus" })
   })
 })
