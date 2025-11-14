@@ -116,4 +116,75 @@ export const tokens = {
 	},
 }
 
+/**
+ * Get MUI theme configuration object
+ *
+ * Returns a configuration object that can be passed to MUI's createTheme().
+ * This ensures all React packages use consistent theme settings without
+ * duplicating the configuration code.
+ *
+ * @param {('light'|'dark')} mode - The theme mode (default: 'light')
+ * @returns {object} MUI theme configuration object
+ *
+ * @example
+ * import { createTheme } from '@mui/material/styles'
+ * import { getMuiThemeConfig } from './tokens.js'
+ *
+ * const theme = createTheme(getMuiThemeConfig('light'))
+ */
+export function getMuiThemeConfig(mode = "light") {
+	const modeTokens = tokens.modes[mode]
+
+	return {
+		palette: {
+			mode,
+			primary: {
+				main: tokens.colors.primary,
+				dark: tokens.colors.primaryDark,
+				light: tokens.colors.primaryLight,
+			},
+			secondary: {
+				main: tokens.colors.secondary,
+			},
+			success: {
+				main: tokens.colors.success,
+			},
+			error: {
+				main: tokens.colors.danger,
+			},
+			warning: {
+				main: tokens.colors.warning,
+			},
+			info: {
+				main: tokens.colors.info,
+			},
+			background: {
+				default: modeTokens.background,
+				paper: mode === "light" ? "#ffffff" : "#2a2a2a",
+			},
+			text: {
+				primary: modeTokens.text,
+			},
+		},
+		typography: {
+			fontFamily: tokens.typography.fontFamily,
+			h1: { fontWeight: tokens.typography.headingWeight },
+			h2: { fontWeight: tokens.typography.headingWeight },
+			h3: { fontWeight: tokens.typography.headingWeight },
+			h4: { fontWeight: tokens.typography.headingWeight },
+			h5: { fontWeight: tokens.typography.headingWeight },
+			h6: { fontWeight: tokens.typography.headingWeight },
+		},
+		breakpoints: {
+			values: {
+				xs: 0,
+				sm: 768, // Match Bootstrap sm breakpoint
+				md: 960,
+				lg: 1280,
+				xl: 1920,
+			},
+		},
+	}
+}
+
 export default tokens
