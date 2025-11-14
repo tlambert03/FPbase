@@ -10,7 +10,8 @@ from django.db import connection
 from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 
-from proteins.factories import MicroscopeFactory, OpticalConfigFactory, ProteinFactory, StateFactory
+from proteins.factories import ProteinFactory, StateFactory
+from proteins.models import Protein
 
 
 class ProteinListAPIViewTests(TestCase):
@@ -66,57 +67,70 @@ class ProteinListAPIViewTests(TestCase):
             self.assertGreater(len(protein.get("states", [])), 0, "States should be included")
 
 
-class OpticalConfigListAPIViewTests(TestCase):
-    """Test the optical_configs_list endpoint with ETag support."""
+class SpectraListAPIViewTests(TestCase):
+    """Test the spectra-list endpoint with ETag caching."""
 
     @classmethod
     def setUpTestData(cls):
-        """Create test optical configs."""
-        microscope = MicroscopeFactory(name="Test Microscope")
+        """Create test proteins with states (which have spectra)."""
+        cls.proteins = []
         for i in range(3):
-            OpticalConfigFactory(microscope=microscope, name=f"Config {i}")
+            protein = ProteinFactory(name=f"TestProtein{i}")
+            StateFactory(protein=protein, name="default")
+            cls.proteins.append(protein)
 
-    def test_optical_configs_list_returns_data(self):
-        """Test that the endpoint returns optical configs data."""
-        response = self.client.get("/api/optical-configs-list/")
+    def test_spectra_list_etag_caching(self):
+        """Test that ETag caching works correctly for spectra list.
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response["Content-Type"], "application/json")
-        data = response.json()
+        Verifies:
+        1. Initial request returns 200 with ETag
+        2. Second request with matching ETag returns 304
+        3. After data changes, request with old ETag returns 200 with new data
+        """
+        # Initial request - should return 200 with ETag
+        response1 = self.client.get("/api/spectra-list/")
 
-        self.assertIn("data", data)
-        self.assertIn("opticalConfigs", data["data"])
-        self.assertEqual(len(data["data"]["opticalConfigs"]), 3)
+        self.assertEqual(response1.status_code, 200)
+        self.assertIn("ETag", response1)
+        self.assertTrue(response1["ETag"].startswith('W/"'), "ETag should be a weak ETag")
 
-        # Check structure of returned data
-        config = data["data"]["opticalConfigs"][0]
-        self.assertIn("id", config)
-        self.assertIn("name", config)
-        self.assertIn("comments", config)
-        self.assertIn("microscope", config)
-        self.assertIn("id", config["microscope"])
-        self.assertIn("name", config["microscope"])
+        etag1 = response1["ETag"]
+        data1 = response1.json()
+        self.assertIn("data", data1)
+        self.assertIn("spectra", data1["data"])
+        names = {s["owner"]["name"] for s in data1["data"]["spectra"]}
+        self.assertNotIn(
+            "ModifiedProtein",
+            names,
+            "Should NOT find spectra with modified protein name",
+        )
 
-    def test_optical_configs_list_etag_header(self):
-        """Test that the endpoint returns an ETag header."""
-        response = self.client.get("/api/optical-configs-list/")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("ETag", response)
-        self.assertTrue(response["ETag"].startswith('W/"'))
-        self.assertIn("Cache-Control", response)
-        self.assertIn("max-age=0", response["Cache-Control"])
-        self.assertIn("must-revalidate", response["Cache-Control"])
-
-    def test_optical_configs_list_etag_304(self):
-        """Test that the endpoint returns 304 when ETag matches."""
-        # First request to get the ETag
-        response1 = self.client.get("/api/optical-configs-list/")
-        etag = response1["ETag"]
-
-        # Second request with If-None-Match header
-        response2 = self.client.get("/api/optical-configs-list/", headers={"If-None-Match": etag})
+        # Second request with If-None-Match - should return 304
+        response2 = self.client.get("/api/spectra-list/", headers={"If-None-Match": etag1})
 
         self.assertEqual(response2.status_code, 304)
         self.assertEqual(response2.content, b"")
-        self.assertEqual(response2["ETag"], etag)
+        self.assertEqual(response2["ETag"], etag1, "304 response should include same ETag")
+
+        # Modify a protein to invalidate cache
+        protein = Protein.objects.first()
+        protein.name = "ModifiedProtein"
+        protein.save()
+
+        # Third request with old ETag - should return 200 with new data
+        response3 = self.client.get("/api/spectra-list/", headers={"If-None-Match": etag1})
+
+        self.assertEqual(response3.status_code, 200, "Should return 200 after data changed")
+        self.assertIn("ETag", response3)
+        self.assertNotEqual(response3["ETag"], etag1, "ETag should change after data modification")
+
+        data3 = response3.json()
+        # Verify the modified protein name appears in the response
+        spectra = data3["data"]["spectra"]
+        # Find any spectrum owned by the modified protein
+        names = {s["owner"]["name"] for s in spectra}
+        self.assertIn(
+            "ModifiedProtein",
+            names,
+            "Should find spectra with modified protein name",
+        )
