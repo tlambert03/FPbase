@@ -10,7 +10,7 @@ from django.db import connection
 from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 
-from proteins.factories import ProteinFactory, StateFactory
+from proteins.factories import MicroscopeFactory, OpticalConfigFactory, ProteinFactory, StateFactory
 
 
 class ProteinListAPIViewTests(TestCase):
@@ -64,3 +64,58 @@ class ProteinListAPIViewTests(TestCase):
             )
 
             self.assertGreater(len(protein.get("states", [])), 0, "States should be included")
+
+
+class OpticalConfigListAPIViewTests(TestCase):
+    """Test the optical_configs_list endpoint with ETag support."""
+
+    @classmethod
+    def setUpTestData(cls):
+        """Create test optical configs."""
+        microscope = MicroscopeFactory(name="Test Microscope")
+        for i in range(3):
+            OpticalConfigFactory(microscope=microscope, name=f"Config {i}")
+
+    def test_optical_configs_list_returns_data(self):
+        """Test that the endpoint returns optical configs data."""
+        response = self.client.get("/api/optical-configs-list/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/json")
+        data = response.json()
+
+        self.assertIn("data", data)
+        self.assertIn("opticalConfigs", data["data"])
+        self.assertEqual(len(data["data"]["opticalConfigs"]), 3)
+
+        # Check structure of returned data
+        config = data["data"]["opticalConfigs"][0]
+        self.assertIn("id", config)
+        self.assertIn("name", config)
+        self.assertIn("comments", config)
+        self.assertIn("microscope", config)
+        self.assertIn("id", config["microscope"])
+        self.assertIn("name", config["microscope"])
+
+    def test_optical_configs_list_etag_header(self):
+        """Test that the endpoint returns an ETag header."""
+        response = self.client.get("/api/optical-configs-list/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("ETag", response)
+        self.assertTrue(response["ETag"].startswith('W/"'))
+        self.assertIn("Cache-Control", response)
+        self.assertIn("max-age=600", response["Cache-Control"])
+
+    def test_optical_configs_list_etag_304(self):
+        """Test that the endpoint returns 304 when ETag matches."""
+        # First request to get the ETag
+        response1 = self.client.get("/api/optical-configs-list/")
+        etag = response1["ETag"]
+
+        # Second request with If-None-Match header
+        response2 = self.client.get("/api/optical-configs-list/", headers={"If-None-Match": etag})
+
+        self.assertEqual(response2.status_code, 304)
+        self.assertEqual(response2.content, b"")
+        self.assertEqual(response2["ETag"], etag)

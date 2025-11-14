@@ -7,7 +7,10 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.functional import cached_property
+
+from fpbase.cache_utils import OPTICAL_CONFIG_CACHE_KEY
 
 from ..util.efficiency import spectral_product
 from ..util.helpers import shortuuid
@@ -179,12 +182,14 @@ def invert(sp):
     return [[a[0], 1 - a[1]] for a in sp]
 
 
-OC_CACHE_KEY = "optical_config_list"
+def get_cached_optical_configs() -> dict[str, str]:
+    """Get cached optical configs with version, populating cache if needed.
 
-
-def get_cached_optical_configs(timeout=60 * 60):
-    ocinfo = cache.get(OC_CACHE_KEY)
-    if not ocinfo:
+    Returns a dict with 'data' (JSON string) and 'version' (ETag) keys.
+    The version changes whenever the cache is invalidated and regenerated.
+    """
+    cached = cache.get(OPTICAL_CONFIG_CACHE_KEY)
+    if not cached:
         vals = OpticalConfig.objects.all().values("id", "name", "comments", "microscope__id", "microscope__name")
         ocinfo = []
         for val in vals:
@@ -194,9 +199,10 @@ def get_cached_optical_configs(timeout=60 * 60):
             }
             val["microscope"] = scope
             ocinfo.append(val)
-        ocinfo = json.dumps({"data": {"opticalConfigs": ocinfo}})
-        cache.set(OC_CACHE_KEY, ocinfo, timeout)
-    return ocinfo
+        data = json.dumps({"data": {"opticalConfigs": ocinfo}})
+        cached = {"data": data, "version": timezone.now().isoformat()}
+        cache.set(OPTICAL_CONFIG_CACHE_KEY, cached, None)  # Cache indefinitely, rely on signals for invalidation
+    return cached
 
 
 class OpticalConfig(OwnedCollection):
@@ -228,10 +234,6 @@ class OpticalConfig(OwnedCollection):
     class Meta:
         unique_together = (("name", "microscope"),)
         ordering = ["name"]
-
-    def save(self, **kwargs):
-        cache.delete(OC_CACHE_KEY)
-        super().save(**kwargs)
 
     @cached_property
     def ex_filters(self):

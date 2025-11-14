@@ -1,6 +1,4 @@
 import { useQuery } from "@tanstack/react-query"
-import { fetchGraphQL } from "../api/client"
-import { OPTICAL_CONFIG_LIST } from "../api/queries"
 
 interface Microscope {
   id: number
@@ -14,22 +12,29 @@ interface OpticalConfig {
   microscope: Microscope
 }
 
-interface OpticalConfigsResponse {
+interface OpticalConfigsListResponse {
   opticalConfigs: OpticalConfig[]
 }
 
 /**
- * Fetch and cache optical configurations list
- * Replaces useCachedFetch for optical configs with TanStack Query
+ * Fetch and cache optical configurations list from REST endpoint
+ * Uses ETag-based caching for efficient updates
  */
 export function useOpticalConfigs() {
   return useQuery({
     queryKey: ["opticalConfigs"],
     queryFn: async (): Promise<OpticalConfig[]> => {
-      const response = await fetchGraphQL<OpticalConfigsResponse>(OPTICAL_CONFIG_LIST)
-      return response.opticalConfigs
+      const response = await fetch("/api/optical-configs-list/")
+      if (!response.ok) {
+        throw new Error(`Failed to fetch optical configs: ${response.statusText}`)
+      }
+      const json = await response.json()
+      const data = json.data as OpticalConfigsListResponse
+      return data.opticalConfigs
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes (matches old cache duration)
+    staleTime: 10 * 60 * 1000, // 10 minutes (matches cache duration)
     gcTime: 30 * 60 * 1000, // 30 minutes garbage collection
+    refetchOnWindowFocus: false, // Don't refetch on focus
+    refetchOnReconnect: false, // Don't refetch on reconnect
   })
 }

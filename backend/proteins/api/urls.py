@@ -38,5 +38,6 @@ urlpatterns = [
     # non-normal endpoints
     path("proteins/spectraslugs/", RedirectView.as_view(url="/api/spectra-list/", permanent=True)),
     path("spectra-list/", views.spectra_list, name="spectra-list"),
-    path("proteins/ocinfo/", views.ocinfo, name="ocinfo"),
+    path("proteins/ocinfo/", RedirectView.as_view(url="/api/optical-configs-list/", permanent=True)),
+    path("optical-configs-list/", views.optical_configs_list, name="ocinfo"),
 ]
