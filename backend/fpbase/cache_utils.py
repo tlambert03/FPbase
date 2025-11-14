@@ -84,14 +84,9 @@ def _invalidate_on_change(sender: type[Model], **kwargs: Any) -> None:
     """
     model_label = sender._meta.label
 
-    # Always invalidate model version for ETag tracking
     invalidate_model_version(sender)
-
-    # Invalidate spectra cache for models that affect spectra list
     if model_label in SPECTRUM_OWNER_MODELS:
         _invalidate_spectra_cache()
-
-    # Invalidate optical config cache for models that affect optical configs
     if model_label in OPTICAL_CONFIG_MODELS:
         _invalidate_optical_config_cache()
 
@@ -121,4 +116,4 @@ def _register_signal_handlers():
 @receiver(m2m_changed)
 def invalidate_on_m2m_change(sender, instance, **kwargs):
     """Invalidate caches on many-to-many relationship changes."""
-    invalidate_model_version(instance.__class__)
+    _invalidate_on_change(sender=instance.__class__)
