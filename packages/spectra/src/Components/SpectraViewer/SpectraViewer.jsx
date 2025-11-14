@@ -281,17 +281,19 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
               enabled: yAxis.labels.enabled && numSpectra > 0,
             }}
           >
-            {nonExData.map((spectrum) => (
-              <SpectrumSeries
-                exNorm={exNorm}
-                spectrum={spectrum}
-                key={spectrum.id}
-                visible={!hidden.includes(spectrum.id)}
-                ownerInfo={ownerInfo}
-                ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
-                {...chartOptions}
-              />
-            ))}
+            {nonExData
+              .filter((spectrum) => spectrum?.id && spectrum.data)
+              .map((spectrum) => (
+                <SpectrumSeries
+                  exNorm={exNorm}
+                  spectrum={spectrum}
+                  key={spectrum.id}
+                  visible={!hidden.includes(spectrum.id)}
+                  ownerInfo={ownerInfo}
+                  ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
+                  {...chartOptions}
+                />
+              ))}
           </YAxis>
           {/* a second axis for ex data, which may need to be scaled by EC */}
           <YAxis
@@ -313,15 +315,17 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
             {exData.length > 0 && chartOptions.scaleEC && (
               <YAxis.Title style={{ fontSize: "0.65rem" }}>Extinction Coefficient</YAxis.Title>
             )}
-            {exData.map((spectrum) => (
-              <SpectrumSeries
-                spectrum={spectrum}
-                key={spectrum.id}
-                visible={!hidden.includes(spectrum.id)}
-                ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
-                {...chartOptions}
-              />
-            ))}
+            {exData
+              .filter((spectrum) => spectrum?.id && spectrum.data)
+              .map((spectrum) => (
+                <SpectrumSeries
+                  spectrum={spectrum}
+                  key={spectrum.id}
+                  visible={!hidden.includes(spectrum.id)}
+                  ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
+                  {...chartOptions}
+                />
+              ))}
             <MyCredits hide={numSpectra < 1 || chartOptions.simpleMode} />
           </YAxis>
 

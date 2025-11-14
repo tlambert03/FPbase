@@ -2,6 +2,11 @@ const FONTS =
   'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";'
 
 const toolTipRow = (entry) => {
+  // Guard against invalid entry or series (FPBASE-68Q fix)
+  if (!entry || !entry.series || !entry.series.userOptions) {
+    return ""
+  }
+
   return (
     `<tr><td><span style="color:${entry.series.color}">` +
     `&#9673; ` +
@@ -213,11 +218,13 @@ const DEFAULT_OPTIONS = {
         "<td style='text-align: right; line-height: 1.1rem; font-size: 0.75rem; border-bottom: 1px solid #ccc;'>"
       }${this.x}nm</td></tr>`
 
+      // Filter out invalid points before processing (FPBASE-68Q fix)
       if (this.points && this.points.length > 0) {
-        this.points.forEach((entry) => {
+        const validPoints = this.points.filter((entry) => entry?.series?.userOptions)
+        validPoints.forEach((entry) => {
           tooltipHtml += toolTipRow(entry)
         })
-      } else if (this.point) {
+      } else if (this.point?.series?.userOptions) {
         tooltipHtml += toolTipRow(this.point)
       }
 
