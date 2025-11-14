@@ -4,6 +4,7 @@ import logging
 from functools import cached_property
 from typing import Any
 
+import django.forms
 import numpy as np
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
@@ -11,13 +12,15 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.forms import CharField, Textarea
+from django.db.models import Case, CharField, F, IntegerField, QuerySet, Value, When
+from django.db.models.functions import Concat, NullIf
 from django.urls import reverse
 from django.utils.text import slugify
 from model_utils import Choices
 from model_utils.managers import QueryManager
 from model_utils.models import StatusModel, TimeStampedModel
 
+from fpbase.cache_utils import SPECTRA_CACHE_KEY
 from references.models import Reference
 
 from ..util.helpers import spectra_fig, wave_to_hex
@@ -69,15 +72,70 @@ def sorted_ex2em(filterset):
     return sorted(filterset, key=lambda x: _sort(x.subtype))
 
 
-SPECTRA_CACHE_KEY = "spectra_sluglist"
+def get_cached_spectra_info() -> str:
+    """Get cached spectra info JSON, populating cache if needed.
+
+    Returns a JSON string of spectra data. The cache is invalidated by signals
+    when any related models change. Use with @condition decorator for ETags.
+    """
+    cached = cache.get(SPECTRA_CACHE_KEY)
+    if not cached:
+        cached = json.dumps({"data": {"spectra": get_spectra_list()}})
+        # Cache indefinitely, rely on signals for invalidation
+        if not cache.add(SPECTRA_CACHE_KEY, cached, None):
+            # Another process set it first; get the value again
+            cached = cache.get(SPECTRA_CACHE_KEY)
+    return cached
 
 
-def get_cached_spectra_info(timeout=60 * 60):
-    spectrainfo = cache.get(SPECTRA_CACHE_KEY)
-    if not spectrainfo:
-        spectrainfo = json.dumps({"data": {"spectra": Spectrum.objects.sluglist()}})
-        cache.set(SPECTRA_CACHE_KEY, spectrainfo, timeout)
-    return spectrainfo
+def get_spectra_list(query_set: QuerySet | None = None, **filters: str) -> list[dict]:
+    """Fetch spectra with polymorphic owner info in a single optimized query."""
+    if query_set is None:
+        filters.setdefault("status", Spectrum.STATUS.approved)
+        qs = Spectrum.objects.filter(**filters)
+    else:
+        qs = query_set
+
+    owners = ["state", "dye", "filter", "light", "camera"]
+
+    # Helper to create CASE statement for polymorphic owner fields
+    def owner_case(field: str, **owner_fields) -> Case:
+        """Create CASE/WHEN for selecting the right owner field."""
+        whens = []
+        for o in owners:
+            field_expr = owner_fields.get(o) if o in owner_fields else F(f"owner_{o}__{field}")
+            whens.append(When(**{f"owner_{o}_id__isnull": False}, then=field_expr))
+        return Case(*whens, output_field=CharField() if field != "id" else IntegerField())
+
+    # Fetch only needed fields and annotate with owner info
+    qs = (
+        qs.only("id", "category", "subtype", *(f"owner_{o}_id" for o in owners))
+        .select_related("owner_state__protein", "owner_dye", "owner_filter", "owner_light", "owner_camera")
+        .annotate(
+            owner_id=owner_case("id"),
+            owner_slug=owner_case("slug"),
+            owner_name=owner_case(
+                "name",
+                state=Case(
+                    When(owner_state__name="default", then=F("owner_state__protein__name")),
+                    default=Concat(F("owner_state__protein__name"), Value(" ("), F("owner_state__name"), Value(")")),
+                ),
+            ),
+            owner_url=NullIf(owner_case("url", state=F("owner_state__protein__slug")), Value("")),
+        )
+        .order_by("owner_name")
+        .values("id", "category", "subtype", "owner_id", "owner_slug", "owner_name", "owner_url")
+    )
+
+    return [
+        {
+            "id": item["id"],
+            "category": item["category"],
+            "subtype": item["subtype"],
+            "owner": {k: item[f"owner_{k}"] for k in ["id", "slug", "name", "url"]},
+        }
+        for item in qs
+    ]
 
 
 class SpectrumManager(models.Manager):
@@ -101,75 +159,6 @@ class SpectrumManager(models.Manager):
         return (
             self.get_queryset().filter(category=self.DYE).values_list("owner_dye__slug", "owner_dye__name").distinct()
         )
-
-    def sluglist(self, filters: dict | None = None):
-        """probably using this one going forward for spectra page"""
-
-        owners = ["state", "dye", "filter", "light", "camera"]
-        vals = [
-            "id",
-            "category",
-            "subtype",
-            "owner_state__protein__name",
-            "owner_dye__url",
-            "owner_filter__url",
-            "owner_camera__url",
-            "owner_light__url",
-            "owner_state__protein__slug",
-        ]
-        for suffix in ["slug", "id", "name"]:
-            for owner in owners:
-                vals.append(f"owner_{owner}__{suffix}")
-        Q = self.get_queryset()
-        if filters:
-            Q = Q.filter(**filters)
-        Q = Q.values(*vals)
-
-        out = []
-        for v in Q:
-            slug = (
-                v["owner_state__slug"]
-                or v["owner_dye__slug"]
-                or v["owner_filter__slug"]
-                or v["owner_light__slug"]
-                or v["owner_camera__slug"]
-            )
-            name = (
-                v["owner_dye__name"]
-                or v["owner_filter__name"]
-                or v["owner_light__name"]
-                or v["owner_camera__name"]
-                or None
-            )
-            url = (
-                v["owner_dye__url"]
-                or v["owner_filter__url"]
-                or v["owner_state__protein__slug"]
-                or v["owner_light__url"]
-                or v["owner_camera__url"]
-                or None
-            )
-            owner_id = (
-                v["owner_state__id"]
-                or v["owner_dye__id"]
-                or v["owner_filter__id"]
-                or v["owner_light__id"]
-                or v["owner_camera__id"]
-                or None
-            )
-            if not name:
-                prot = v["owner_state__protein__name"]
-                state = v["owner_state__name"]
-                name = prot if state == "default" else f"{prot} ({state})"
-            out.append(
-                {
-                    "id": v["id"],
-                    "category": v["category"],
-                    "subtype": v["subtype"],
-                    "owner": {"slug": slug, "name": name, "id": owner_id, "url": url},
-                }
-            )
-        return sorted(out, key=lambda k: k["owner"]["name"])
 
     # FIXME:  Stupid dumb dumb
     def fluorlist(self, withdyes=True):
@@ -248,8 +237,8 @@ class SpectrumData(ArrayField):
     def formfield(self, **kwargs):
         defaults = {
             "max_length": self.size,
-            "widget": Textarea(attrs={"cols": "102", "rows": "15"}),
-            "form_class": CharField,
+            "widget": django.forms.Textarea(attrs={"cols": "102", "rows": "15"}),
+            "form_class": django.forms.CharField,
         }
         defaults.update(kwargs)
         return models.Field().formfield(**defaults)
@@ -421,7 +410,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         if sum(bool(x) for x in self.owner_set) > 1:
             raise ValidationError("Spectrum must have only one owner!")
         # self.category = self.owner.__class__.__name__.lower()[0]
-        cache.delete(SPECTRA_CACHE_KEY)
+        # Cache invalidation is handled by post_save signal in fpbase.cache_utils
         super().save(*args, **kwargs)
 
     def _norm2one(self):

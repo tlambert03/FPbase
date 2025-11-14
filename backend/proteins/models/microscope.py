@@ -9,6 +9,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils.functional import cached_property
 
+from fpbase.cache_utils import OPTICAL_CONFIG_CACHE_KEY
+
 from ..util.efficiency import spectral_product
 from ..util.helpers import shortuuid
 from .collection import OwnedCollection
@@ -179,24 +181,38 @@ def invert(sp):
     return [[a[0], 1 - a[1]] for a in sp]
 
 
-OC_CACHE_KEY = "optical_config_list"
+def get_optical_configs_list() -> list[dict]:
+    """Fetch optical configs with microscope info in a single optimized query."""
+    vals = OpticalConfig.objects.values("id", "name", "comments", "microscope__id", "microscope__name")
+
+    return [
+        {
+            "id": val["id"],
+            "name": val["name"],
+            "comments": val["comments"],
+            "microscope": {
+                "id": val["microscope__id"],
+                "name": val["microscope__name"],
+            },
+        }
+        for val in vals
+    ]
 
 
-def get_cached_optical_configs(timeout=60 * 60):
-    ocinfo = cache.get(OC_CACHE_KEY)
-    if not ocinfo:
-        vals = OpticalConfig.objects.all().values("id", "name", "comments", "microscope__id", "microscope__name")
-        ocinfo = []
-        for val in vals:
-            scope = {
-                "id": val.pop("microscope__id"),
-                "name": val.pop("microscope__name"),
-            }
-            val["microscope"] = scope
-            ocinfo.append(val)
-        ocinfo = json.dumps({"data": {"opticalConfigs": ocinfo}})
-        cache.set(OC_CACHE_KEY, ocinfo, timeout)
-    return ocinfo
+def get_cached_optical_configs() -> str:
+    """Get cached optical configs JSON, populating cache if needed.
+
+    Returns a JSON string of optical config data. The cache is invalidated by
+    signals when any related models change. Use with @condition decorator for ETags.
+    """
+    cached = cache.get(OPTICAL_CONFIG_CACHE_KEY)
+    if not cached:
+        cached = json.dumps({"data": {"opticalConfigs": get_optical_configs_list()}})
+        # Cache indefinitely, rely on signals for invalidation
+        if not cache.add(OPTICAL_CONFIG_CACHE_KEY, cached, None):
+            # Another process set it first; get the value again
+            cached = cache.get(OPTICAL_CONFIG_CACHE_KEY)
+    return cached
 
 
 class OpticalConfig(OwnedCollection):
@@ -228,10 +244,6 @@ class OpticalConfig(OwnedCollection):
     class Meta:
         unique_together = (("name", "microscope"),)
         ordering = ["name"]
-
-    def save(self, **kwargs):
-        cache.delete(OC_CACHE_KEY)
-        super().save(**kwargs)
 
     @cached_property
     def ex_filters(self):

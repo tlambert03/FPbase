@@ -1,7 +1,8 @@
 from django.db.models import F, Max, Prefetch
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control, cache_page
+from django.views.decorators.http import condition
 from django_filters import rest_framework as filters
 from rest_framework.generics import (
     ListAPIView,
@@ -12,10 +13,12 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.settings import api_settings
 from rest_framework_csv import renderers as r
 
+import proteins.models as pm
+from fpbase.cache_utils import get_model_version
+
 from ..filters import ProteinFilter, SpectrumFilter, StateFilter
-from ..models import Protein, State, StateTransition
 from ..models.microscope import get_cached_optical_configs
-from ..models.spectrum import Spectrum, get_cached_spectra_info
+from ..models.spectrum import get_cached_spectra_info
 from .serializers import (
     BasicProteinSerializer,
     ProteinSerializer,
@@ -27,31 +30,57 @@ from .serializers import (
 )
 
 
-def spectraslugs(request):
-    spectrainfo = get_cached_spectra_info()
-    return HttpResponse(spectrainfo, content_type="application/json")
+def _spectra_etag(request: HttpRequest) -> str:
+    """Compute weak ETag for spectra list based on model versions."""
+    version = get_model_version(pm.Camera, pm.Dye, pm.Filter, pm.Light, pm.Protein, pm.Spectrum, pm.State)
+    return f'W/"{version}"'
 
 
-def ocinfo(request):
-    ocinfo = get_cached_optical_configs()
-    return HttpResponse(ocinfo, content_type="application/json")
+def _optical_configs_etag(request: HttpRequest) -> str:
+    """Compute weak ETag for optical configs list based on model versions."""
+    version = get_model_version(pm.Microscope, pm.OpticalConfig)
+    return f'W/"{version}"'
+
+
+@condition(etag_func=_spectra_etag)
+@cache_control(public=True, max_age=300, must_revalidate=True)
+def spectra_list(request: HttpRequest) -> HttpResponse:
+    """Return cached spectra list with ETag support."""
+    data = get_cached_spectra_info()
+    return HttpResponse(
+        data,
+        content_type="application/json",
+        headers={"Vary": "Accept-Encoding"},
+    )
+
+
+@condition(etag_func=_optical_configs_etag)
+@cache_control(public=True, max_age=300, must_revalidate=True)
+def optical_configs_list(request: HttpRequest) -> HttpResponse:
+    """Return cached optical configs list with ETag support."""
+    data = get_cached_optical_configs()
+    return HttpResponse(
+        data,
+        content_type="application/json",
+        headers={"Vary": "Accept-Encoding"},
+    )
 
 
 class SpectrumList(ListAPIView):
-    queryset = Spectrum.objects.all()
+    queryset = pm.Spectrum.objects.all()
     serializer_class = SpectrumSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = SpectrumFilter
 
 
 class SpectrumDetail(RetrieveAPIView):
-    queryset = Spectrum.objects.prefetch_related("owner_state")
+    queryset = pm.Spectrum.objects.prefetch_related("owner_state")
     permission_classes = (AllowAny,)
     serializer_class = SpectrumSerializer
 
 
 class ProteinListAPIView2(ListAPIView):
-    queryset = Protein.objects.all().prefetch_related("states", "transitions")
+    queryset = pm.Protein.objects.all().prefetch_related("states", "transitions")
     permission_classes = (AllowAny,)
     serializer_class = ProteinSerializer2
     lookup_field = "slug"  # Don't use Protein.id!
@@ -66,12 +95,12 @@ class ProteinListAPIView2(ListAPIView):
 
 class ProteinListAPIView(ListAPIView):
     queryset = (
-        Protein.objects.all()
+        pm.Protein.objects.all()
         .prefetch_related(
             "states__spectra",  # Prefetch spectra for each state to avoid N+1 queries
             Prefetch(
                 "transitions",
-                queryset=StateTransition.objects.select_related("from_state", "to_state"),
+                queryset=pm.StateTransition.objects.select_related("from_state", "to_state"),
             ),
         )
         .select_related(
@@ -93,7 +122,7 @@ class ProteinListAPIView(ListAPIView):
 
 class BasicProteinListAPIView(ProteinListAPIView):
     queryset = (
-        Protein.visible.filter(switch_type=Protein.BASIC)
+        pm.Protein.visible.filter(switch_type=pm.Protein.BASIC)
         .select_related("default_state")
         .annotate(rate=Max(F("default_state__bleach_measurements__rate")))
     )
@@ -102,21 +131,21 @@ class BasicProteinListAPIView(ProteinListAPIView):
 
 
 class ProteinRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Protein.objects.all()
+    queryset = pm.Protein.objects.all()
     permission_classes = (IsAdminUser,)
     serializer_class = ProteinSerializer
     lookup_field = "slug"  # Don't use Protein.id
 
 
 class ProteinRetrieveAPIView(RetrieveAPIView):
-    queryset = Protein.objects.all()
+    queryset = pm.Protein.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = ProteinSerializer
     lookup_field = "slug"  # Don't use Protein.id
 
 
 class StatesListAPIView(ListAPIView):
-    queryset = State.objects.all().select_related("protein")
+    queryset = pm.State.objects.all().select_related("protein")
     permission_classes = (IsAuthenticated,)
     serializer_class = StateSerializer
     lookup_field = "slug"  # Don't use State.id!
@@ -128,7 +157,7 @@ class StatesListAPIView(ListAPIView):
 class ProteinSpectraListAPIView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinSpectraSerializer
-    queryset = Protein.objects.with_spectra().prefetch_related("states")
+    queryset = pm.Protein.objects.with_spectra().prefetch_related("states")
 
 
 class ProteinTableAPIView(ListAPIView):
@@ -139,9 +168,9 @@ class ProteinTableAPIView(ListAPIView):
     """
 
     queryset = (
-        Protein.visible.all()
+        pm.Protein.visible.all()
         .prefetch_related(
-            Prefetch("states", queryset=State.objects.filter(is_dark=False))
+            Prefetch("states", queryset=pm.State.objects.filter(is_dark=False))
         )  # Prefetch only non-dark states
         .select_related("primary_reference")  # Needed for year field
         .order_by("name")
