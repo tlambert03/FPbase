@@ -5,15 +5,13 @@ import "vite/modulepreload-polyfill"
 import "./js/sentry-init.js"
 import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 
-import "./css/litemol/LiteMol-plugin-blue.css"
-
-// Import UMD bundle - it sets window.LiteMol global
-import "./js/pdb/LiteMol-plugin"
-const LiteMol = window.LiteMol
+// Import Mol* (pdbe-molstar) plugin
+import { PDBeMolstarPlugin } from "pdbe-molstar/lib/viewer"
+import "pdbe-molstar/build/pdbe-molstar.css"
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}
-window.FPBASE.currentBundle = "litemol"
+window.FPBASE.currentBundle = "molstar"
 
 // populated by downloadPDBMeta.success
 const pdbInfo = {}
@@ -36,78 +34,6 @@ function loadSmiles(pdbid) {
       <img id="smilesImg" src="${svgUrl}" alt="Chromophore structure diagram (${chromoId})">
     </a>`
   )
-}
-
-/**
- * Fetch PDB structure file from multiple mirror sources with cascading fallback.
- *
- * Tries sources in order of preference:
- * 1. wwPDB (official worldwide PDB, recommended by RCSB docs)
- * 2. RCSB (US mirror, byte-identical to wwPDB)
- * 3. EBI/PDBe (European mirror, compatible format)
- *
- * @param {string} id - PDB identifier (e.g., '6GP0')
- * @returns {Promise<string>} CIF format structure data
- * @throws {Error} If all endpoints fail
- * @see https://www.rcsb.org/docs/programmatic-access/file-download-services
- */
-async function getPDBbinary(id) {
-  const TIMEOUT = 15000 // 15 second timeout per request
-
-  const endpoints = [
-    {
-      name: "wwPDB",
-      url: `https://files.wwpdb.org/download/${id}.cif`,
-    },
-    {
-      name: "RCSB",
-      url: `https://files.rcsb.org/download/${id}.cif`,
-    },
-    {
-      name: "EBI",
-      url: `https://www.ebi.ac.uk/pdbe/static/entry/${id.toLowerCase()}_updated.cif`,
-    },
-  ]
-
-  const errors = []
-
-  // Try each endpoint in sequence
-  for (let i = 0; i < endpoints.length; i++) {
-    const { name, url } = endpoints[i]
-    const isLastEndpoint = i === endpoints.length - 1
-
-    try {
-      const response = await $.ajax({ url, timeout: TIMEOUT })
-      return response
-    } catch (error) {
-      // Track the error
-      errors.push({ endpoint: name, error })
-
-      // Log to Sentry for monitoring
-      if (window.Sentry) {
-        window.Sentry.addBreadcrumb({
-          message: `PDB fetch failed: ${name}`,
-          data: {
-            pdbId: id,
-            endpoint: name,
-            error: error.statusText,
-            attemptNumber: i + 1,
-            totalEndpoints: endpoints.length,
-          },
-          level: "warning",
-        })
-      }
-
-      // If this was the last endpoint, throw with all error details
-      if (isLastEndpoint) {
-        const errorSummary = errors
-          .map((e) => `${e.endpoint}: ${e.error.statusText || "Network error"}`)
-          .join("; ")
-
-        throw new Error(`Failed to fetch PDB ${id} from all sources. Errors: ${errorSummary}`)
-      }
-    }
-  }
 }
 
 /**
@@ -161,88 +87,101 @@ function loadChemInfo(pdbid) {
 }
 
 /**
- * Initialize LiteMol molecular visualization plugin.
+ * Initialize Mol* (pdbe-molstar) molecular visualization plugin.
+ *
+ * CORS & Data Source Notes:
+ * -------------------------
+ * pdbe-molstar's default `moleculeId` option uses EBI's entry-files endpoint
+ * (https://www.ebi.ac.uk/pdbe/entry-files/download/{id}.bcif) which:
+ *   - Returns 404 for many structures
+ *   - Has NO CORS headers (Access-Control-Allow-Origin)
+ *   - Was designed for same-origin usage on EBI's website
+ *
+ * Instead, we use `customData` with RCSB Models Server which provides:
+ *   - Binary CIF (bcif) format for optimal performance
+ *   - Full CORS support (access-control-allow-origin: *)
+ *   - Reliable availability for all PDB structures
+ *   - Source: https://models.rcsb.org/{id}.bcif
+ *
+ * Alternative CORS-enabled endpoints (CIF format):
+ *   - https://files.wwpdb.org/download/{id}.cif
+ *   - https://files.rcsb.org/download/{id}.cif
  *
  * @param {string} selection - CSS selector for the container element
  * @param {jQuery} changer - jQuery object for the PDB selector dropdown
+ * @see https://www.rcsb.org/docs/programmatic-access/file-download-services
  */
-function initLiteMol(selection, changer) {
-  const PluginSpec = LiteMol.Plugin.getDefaultSpecification()
-  const { LayoutRegion } = LiteMol.Bootstrap.Components
-  const { Components } = LiteMol.Plugin
-  PluginSpec.components = [
-    Components.Visualization.HighlightInfo(LayoutRegion.Main, true),
-    Components.Entity.Current("LiteMol", LiteMol.Plugin.VERSION.number)(LayoutRegion.Right, true),
-    Components.Transform.View(LayoutRegion.Right),
-    Components.Context.Overlay(LayoutRegion.Root),
-    Components.Context.BackgroundTasks(LayoutRegion.Main, true),
-  ]
-
-  try {
-    const plugin = LiteMol.Plugin.create({
-      customSpecification: PluginSpec,
-      target: selection,
-      viewportBackground: "#fff",
-      layoutState: {
-        hideControls: true,
-        isExpanded: false,
-      },
-      allowAnalytics: true,
-    })
-
-    // Cache PDB data promises to avoid redundant fetches
-    const dataCache = new Map()
-    let currentRequest = null
-
-    changer.change(async function () {
-      const id = this.value
-      const requestId = Symbol("request")
-      currentRequest = requestId
-
-      // Get or create cached promise
-      if (!dataCache.has(id)) {
-        dataCache.set(id, getPDBbinary(id))
-      }
-
-      plugin.clear()
-
-      try {
-        const data = await dataCache.get(id)
-
-        // Only load if this is still the active request
-        if (currentRequest === requestId) {
-          plugin.loadMolecule({ data, id })
-        }
-      } catch (error) {
-        // Only show error if this is still the active request
-        if (currentRequest === requestId) {
-          $(selection).html(
-            '<span class="text-danger muted">Failed to retrieve molecular structure. Please refresh.</span>'
-          )
-          if (window.Sentry) {
-            window.Sentry.captureException(error, {
-              tags: { pdbId: id, component: "litemol" },
-            })
-          }
-        }
-      }
-    })
-
-    // Close side panel when clicking outside (use namespace to prevent leaks)
-    $("body")
-      .off("click.litemol")
-      .on("click.litemol", (e) => {
-        if ($(".lm-layout-right").length && $(e.target).closest("#litemol-viewer").length === 0) {
-          plugin.setLayoutState({ hideControls: true })
-        }
-      })
-  } catch (err) {
-    if (window.Sentry) {
-      window.Sentry.captureException(err, {
-        tags: { component: "litemol-init" },
-      })
-    }
+function initMolstar(selection, changer) {
+  const viewerContainer = document.querySelector(selection)
+  if (!viewerContainer) {
+    console.error(`Mol* viewer container not found: ${selection}`)
+    return
   }
+
+  // Create plugin instance
+  const plugin = new PDBeMolstarPlugin()
+
+  let currentPluginInstance = null
+
+  changer.change(async function () {
+    const id = this.value
+
+    // Clear previous structure
+    if (currentPluginInstance) {
+      // Clear the container for re-rendering
+      viewerContainer.innerHTML = ""
+    }
+
+    try {
+      // Use RCSB Models Server with bcif format for optimal performance and CORS support
+      // See: https://www.rcsb.org/docs/programmatic-access/file-download-services
+      const url = `https://models.rcsb.org/${id}.bcif`
+
+      // Render the plugin with custom data URL
+      const options = {
+        customData: { url: url, format: "bcif", binary: true },
+        bgColor: { r: 255, g: 255, b: 255 },
+        hideControls: true,
+        sequencePanel: true,
+        hideStructure: ["het", "water", "carbs"],
+      }
+
+      await plugin.render(viewerContainer, options)
+
+      // Hide the axis helper (XYZ indicator) at bottom left
+      plugin.plugin.canvas3d?.setProps({
+        camera: {
+          helper: { axes: { name: "off", params: {} } },
+        },
+      })
+
+      // Monitor layout state changes to enforce controls visibility rules
+      plugin.plugin.layout.events.updated.subscribe(() => {
+        const state = plugin.plugin.layout.state
+
+        // When entering expanded mode, automatically show controls
+        if (state.isExpanded && !state.showControls) {
+          plugin.canvas.toggleControls(true)
+        }
+
+        // When exiting expanded mode, automatically hide controls
+        if (!state.isExpanded && state.showControls) {
+          plugin.canvas.toggleControls(false)
+        }
+      })
+
+      currentPluginInstance = plugin
+    } catch (error) {
+      $(selection).html(
+        '<span class="text-danger muted">Failed to retrieve molecular structure. Please refresh.</span>'
+      )
+      if (window.Sentry) {
+        window.Sentry.captureException(error, {
+          tags: { pdbId: id, component: "molstar" },
+        })
+      }
+    }
+  })
 
   // Update external link and load metadata when selection changes
   changer
@@ -389,7 +328,7 @@ function downloadPDBMeta(pdbIds) {
 }
 
 /**
- * Fetch PDB metadata and initialize LiteMol viewer.
+ * Fetch PDB metadata and initialize Mol* viewer.
  *
  * @param {string[]} pdbIds - Array of PDB identifiers
  */
@@ -425,7 +364,7 @@ async function getPDBinfo(pdbIds) {
       select.append($("<option>", { value: id }).html(displayText))
     })
 
-    initLiteMol("#litemol-viewer", select)
+    initMolstar("#molstar-viewer", select)
   } catch (error) {
     // Log error to Sentry for monitoring
     if (window.Sentry) {
