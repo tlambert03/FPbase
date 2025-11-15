@@ -77,7 +77,7 @@
             {% if not request.get_full_path == "/" %}
             <form class="form-inline nav-search" method="get" action="/search/">
                     <div class='input-group'>
-                      <input class="form-control" type="search" placeholder="Search" id='algolia-search-input' name="q" aria-label="Search" autocomplete="off">
+                      <input class="form-control" type="search" placeholder="Search" id='algolia-search-input' name="q" aria-label="Search" autocomplete="off" data-fpbase-init="autocomplete">
                     </div>
             </form>
             {% endif %}

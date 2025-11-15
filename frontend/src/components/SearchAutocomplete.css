@@ -1,0 +1,172 @@
+/* Container */
+.autocomplete-container {
+  width: 100%;
+  flex: 1;
+}
+
+/* Input styling */
+.algolia-searchbar,
+.algolia-searchbar:focus {
+  border: solid 1px rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 1px 10px rgba(0, 0, 0, 0.2),
+    0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  color: #60a263;
+  font-family: "Raleway", "Helvetica Neue", helvetica, sans-serif;
+  height: 50px;
+  padding-left: 16px;
+  padding-right: 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.algolia-searchbar::placeholder {
+  color: #888;
+  font-size: 1rem;
+}
+
+/* Autocomplete panel */
+.aa-Autocomplete,
+.aa-Form {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .aa-Panel {
+    width: 100%;
+  }
+}
+
+.aa-PanelLayout {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 0px; /* Allow hover effect to full width */
+}
+
+/* Source headers (Proteins, References, etc.) */
+.aa-SourceHeader {
+  display: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  padding: 8px 12px 4px;
+  border-top: 1px solid #eee;
+}
+
+.aa-SourceHeader:first-child {
+  border-top: none;
+}
+
+/* Items */
+.aa-Item {
+  border-bottom: 1px solid #f5f5f5;
+  padding: 6px;
+}
+
+.aa-Item:last-child {
+  border-bottom: none;
+}
+
+.aa-ItemLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+a.aa-ItemLink:hover {
+  text-decoration: none;
+}
+
+/* Item content grid layout - base styles */
+.aa-ItemContent {
+  display: grid;
+}
+
+/* Protein-specific grid layout */
+.aa-ItemContent--protein {
+  grid-template-columns: 32px 1fr minmax(100px, 180px) 46px;
+}
+
+/* Reference-specific layout (no spectra, just icon and text) */
+.aa-ItemContent--reference {
+  grid-template-columns: 32px 1fr;
+}
+
+/* Organism-specific layout (no spectra, just icon and text) */
+.aa-ItemContent--organism {
+  grid-template-columns: 32px 1fr;
+}
+
+.aa-ItemContent:hover {
+  background-color: #f5f5f5;
+}
+.aa-Item[aria-selected="true"] .aa-ItemContent {
+  background-color: #eee;
+}
+
+.aa-ItemIcon {
+  grid-column: 1;
+  border: none;
+  box-shadow: none;
+  width: 32px;
+  height: 32px;
+  opacity: 0.75;
+}
+
+.aa-ItemIcon {
+  background-color: transparent;
+}
+
+.aa-ItemIcon--protein {
+  opacity: 0.9;
+}
+
+.aa-ItemBody {
+  grid-column: 2;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+.aa-ItemTitle {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.aa-ItemTitle em {
+  font-weight: 700;
+  font-style: normal;
+}
+
+.aa-ItemAliases {
+  font-size: 0.75rem;
+  color: #777;
+  margin-top: 1px;
+}
+
+.aa-ItemAliases em {
+  font-weight: 600;
+  font-style: normal;
+}
+
+.aa-ItemInfo {
+  grid-column: 4;
+  font-size: 0.7rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+.aa-ItemSpectra {
+  grid-column: 3;
+  width: 100%;
+  height: 26px;
+  left: 60px;
+  position: relative;
+  object-fit: fill;
+  opacity: 0.7;
+  filter: grayscale(70%);
+}
+
+.aa-Item[aria-selected="true"] .aa-ItemSpectra {
+  opacity: 0.95;
+  filter: grayscale(0%);
+}
