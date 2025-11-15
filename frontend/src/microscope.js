@@ -582,7 +582,7 @@ window.initMicroscope = () => {
     // on page load, setup the chart
     $(() => {
       $("#y-zoom-slider").hide()
-      // $('[data-toggle="popover"]').popover()
+      // $('[data-bs-toggle="popover"]').popover()
 
       const urlParams = getUrlParams()
       options.precision = urlParams.precision || options.precision
@@ -616,9 +616,9 @@ window.initMicroscope = () => {
       }
 
       $.each(userOptions, (key, value) => {
-        let divClasses = value.type === "checkbox" ? "custom-control custom-checkbox" : ""
+        let divClasses = value.type === "checkbox" ? "form-check custom-checkbox" : ""
         divClasses += " mb-1 pb-1"
-        const inputClasses = value.type === "checkbox" ? "custom-control-input" : "pl-1"
+        const inputClasses = value.type === "checkbox" ? "form-check-input" : "ps-1"
         $("#options-form").append(
           $("<div>", { class: divClasses })
             .append(
@@ -672,7 +672,7 @@ window.initMicroscope = () => {
             .append(
               $("<label>", {
                 for: `${key}_input`,
-                class: value.type === "checkbox" ? "custom-control-label" : "ml-2",
+                class: value.type === "checkbox" ? "form-check-label" : "ms-2",
               }).html(value.msg)
             )
         )
@@ -779,7 +779,7 @@ window.initMicroscope = () => {
           containerCssClass: ":all:",
           width: "auto",
         },
-        $("#fluor-select").removeClass("custom-select")
+        $("#fluor-select").removeClass("form-select")
       )
 
       if (typeof scopespectra !== "undefined") {

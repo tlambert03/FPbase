@@ -28,7 +28,7 @@ container-fluid
   <p>This page calculates excitation efficiency and collection efficiency for every probe in the database with each optical configuration saved on this microscope. This info is combined with probe brightness to calculate a "predicted" brightness metric for each fluorophore/optical configuration pair (indicated by the size of the points on the chart).  The table below the chart can be used to explore the data more selectively.  For more information on how each efficiency metric is calculated, see the <a href="{{ HELP_URL }}tools/microscopes/efficiency">documentation</a>.</p>
   {% if needs_update or request.user.is_staff %}
   <div class="alert alert-info hidden" role="alert" id="update-alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
       <span aria-hidden="true">&times;</span>
     </button>
     <h4 class="alert-heading" style="font-weight:400">{% if not needs_update%}(NO) {%endif%}Updates Available!</h4>
@@ -43,22 +43,22 @@ container-fluid
           <input id="request-report" class="btn btn-info" type="submit" value="Update">
         </form>
       </div>
-      <div id="update-progress" class="float-left"></div>
+      <div id="update-progress" class="float-start"></div>
     </div>
   </div>
   {% endif %}
   <p id="status">loading scope report... <img src="{% static 'images/GFP_spinner.gif' %}"></p>
   <div id="report_chart" class="mb-4">
-    <span class="float-right needs-data hidden small text-info mr-5">&darr; click or double-click to hide/show configs</span>
+    <span class="float-end needs-data hidden small text-info me-5">&darr; click or double-click to hide/show configs</span>
     <svg></svg>
   </div>
 </div>
 
 <div class='px-5 needs-data hidden'>
     <form class='form-inline mb-3'>
-      <div class="form-group mt-2 mr-3">
-        <label for="probe_filter" class='pr-2 text-muted font-weight-bold'>Protein collection: </label>
-        <select class="form-control form-control-sm table-filter custom-select" id='probe_filter' data-col='uuid'>
+      <div class="form-group mt-2 me-3">
+        <label for="probe_filter" class='pe-2 text-muted font-weight-bold'>Protein collection: </label>
+        <select class="form-control form-control-sm table-filter form-select" id='probe_filter' data-col='uuid'>
           <option value="">-----</option>
           {% for col in collections %}
             <option value="{{col.id}}" data-ids='{{col.uuids}}'>{{col.name}}</option>
@@ -66,9 +66,9 @@ container-fluid
         </select>
       </div>
 
-      <div class="form-group mt-2 mr-3">
-        <label for="switch_filter" class='pr-2 text-muted font-weight-bold'>Switch Type: </label>
-        <select class="form-control form-control-sm table-filter custom-select" id='switch_filter' data-col='switch_type'>
+      <div class="form-group mt-2 me-3">
+        <label for="switch_filter" class='pe-2 text-muted font-weight-bold'>Switch Type: </label>
+        <select class="form-control form-control-sm table-filter form-select" id='switch_filter' data-col='switch_type'>
           <option value="">All</option>
           <option value="b">Basic</option>
           <option value="pa">Photoactivatable</option>
@@ -77,8 +77,8 @@ container-fluid
         </select>
       </div>
       <div class="form-group mt-2">
-        <label for="agg_filter" class='pr-2 text-muted font-weight-bold'>Oligomerization Type: </label>
-        <select class="form-control form-control-sm table-filter custom-select" id='agg_filter' data-col='agg'>
+        <label for="agg_filter" class='pe-2 text-muted font-weight-bold'>Oligomerization Type: </label>
+        <select class="form-control form-control-sm table-filter form-select" id='agg_filter' data-col='agg'>
           <option value="">All</option>
           <option value="m">Monomers</option>
           <option value="d">Dimers</option>
@@ -89,14 +89,14 @@ container-fluid
 
     </form>
 
-  <form class='mb-3 ml-1'>
+  <form class='mb-3 ms-1'>
     <div class="form-row"><span class="text-muted font-weight-bold">Select Configs: </span><span id='oc-toggles' class="form-row"></span></div>
     <div class="form-row"><span class="text-muted font-weight-bold mt-3">Select Measurement: </span>
       <span id='meas-toggles' class="form-row mt-3"></span>
     </div>
   </form>
 
-  <div class="text-right d-none d-md-block text-muted" style="font-size: 0.7rem; margin-bottom: 2px">accepts comma separated list</div>
+  <div class="text-end d-none d-md-block text-muted" style="font-size: 0.7rem; margin-bottom: 2px">accepts comma separated list</div>
   <table id="report_table" class="table table-striped table-bordered table-sm" width="100%"></table>
 </div>
 

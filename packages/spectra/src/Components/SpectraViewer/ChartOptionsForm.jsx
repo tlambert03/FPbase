@@ -53,7 +53,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             name={
               <span>
                 Show Y Axis
-                <span className="mobile-hide small text-muted ml-3">(Y key)</span>
+                <span className="mobile-hide small text-muted ms-3">(Y key)</span>
               </span>
             }
           />
@@ -63,7 +63,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             name={
               <span>
                 Show X Axis
-                <span className="mobile-hide small text-muted ml-3">(X key)</span>
+                <span className="mobile-hide small text-muted ms-3">(X key)</span>
               </span>
             }
           />
@@ -73,7 +73,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             name={
               <span>
                 Show Grid
-                <span className="mobile-hide small text-muted ml-3">(G key)</span>
+                <span className="mobile-hide small text-muted ms-3">(G key)</span>
               </span>
             }
           />
@@ -83,7 +83,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             name={
               <span>
                 Fill area under curves
-                <span className="mobile-hide small text-muted ml-3">(F key)</span>
+                <span className="mobile-hide small text-muted ms-3">(F key)</span>
               </span>
             }
           />
@@ -95,7 +95,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             name={
               <span>
                 Scale Excitation to Extinction Coefficient
-                <span className="mobile-hide small text-muted ml-3">(E key)</span>
+                <span className="mobile-hide small text-muted ms-3">(E key)</span>
               </span>
             }
           />
@@ -105,7 +105,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             name={
               <span>
                 Scale Emission to Quantum Yield
-                <span className="mobile-hide small text-muted ml-3">(Q key)</span>
+                <span className="mobile-hide small text-muted ms-3">(Q key)</span>
               </span>
             }
           />
@@ -115,7 +115,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             name={
               <span>
                 Show Y value for all spectra on chart hover
-                <span className="mobile-hide small text-muted ml-3">(T key)</span>
+                <span className="mobile-hide small text-muted ms-3">(T key)</span>
               </span>
             }
           />
@@ -135,7 +135,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
                 </MenuItem>
               ))}
             </Select>
-            <span className="mobile-hide small text-muted ml-3">(C key)</span>
+            <span className="mobile-hide small text-muted ms-3">(C key)</span>
           </div>
         </Grid>
       </Grid>

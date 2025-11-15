@@ -550,6 +550,19 @@ wheels = [
 ]
 
 [[package]]
+name = "crispy-bootstrap5"
+version = "0.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-crispy-forms" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/14/8f/dd83bc88f2af7e53dd87e291a30aa01e4664a305f738a2e9e74f7db693e5/crispy-bootstrap5-0.7.tar.gz", hash = "sha256:0745a67199619149b7feca87dab7a45664876ed50fb582b38fd2aeb3f8a8d869", size = 11173, upload-time = "2022-09-28T19:25:39.682Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/ba/46dfe9ad2c63c56f8d3dae6681d590ab3b6c525d46f5b0373e428269f66c/crispy_bootstrap5-0.7-py3-none-any.whl", hash = "sha256:f3ff1ef5cb379fe80b1b02e245008f276444098a4bdb8d855bed84c623798a85", size = 22915, upload-time = "2022-09-28T19:25:38.272Z" },
+]
+
+[[package]]
 name = "cryptography"
 version = "46.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1128,6 +1141,7 @@ dependencies = [
     { name = "argon2-cffi" },
     { name = "biopython" },
     { name = "celery", extra = ["redis"] },
+    { name = "crispy-bootstrap5" },
     { name = "django" },
     { name = "django-allauth", extra = ["socialaccount"] },
     { name = "django-anymail" },
@@ -1234,6 +1248,7 @@ requires-dist = [
     { name = "argon2-cffi", specifier = ">=21.3.0" },
     { name = "biopython", specifier = ">=1.83" },
     { name = "celery", extras = ["redis"], specifier = "==5.5.3" },
+    { name = "crispy-bootstrap5", specifier = ">=0.7" },
     { name = "django", specifier = ">=5.2,<5.3" },
     { name = "django-allauth", extras = ["socialaccount"], specifier = ">=0.70.0" },
     { name = "django-anymail", specifier = "==10.0" },

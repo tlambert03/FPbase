@@ -29,7 +29,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "select2": "^4.0.13",
-    "select2-theme-bootstrap4": "^0.2.0-beta.6"
+    "select2-bootstrap-5-theme": "^1.3.0"
   },
   "devDependencies": {
     "@sentry/cli": "^2.57.0",
@@ -38,7 +38,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.0",
     "autoprefixer": "^10.4.21",
-    "bootstrap": "^4.6.2",
+    "bootstrap": "^5.3.3",
     "cssnano": "^7.1.1",
     "rollup-plugin-visualizer": "^6.0.5",
     "sass": "1.93.2",

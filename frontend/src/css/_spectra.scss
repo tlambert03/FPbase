@@ -112,11 +112,11 @@ h6 {
       padding-bottom: 1.2rem;
       border-bottom: 1px solid #dee2e6;
     }
-    label.custom-control-label {
+    label.form-check-label {
       padding-top: 2px;
     }
     @include media-breakpoint-down(sm) {
-      label.custom-control-label {
+      label.form-check-label {
         padding-top: 4px;
       }
       font-size: 0.7rem;
@@ -645,8 +645,8 @@ span.first-word {
 }
 
 .filters {
-  .custom-control-label::after,
-  .custom-control-label::before {
+  .form-check-label::after,
+  .form-check-label::before {
     @include media-breakpoint-up(md) {
       top: 0;
     }
@@ -695,9 +695,9 @@ $input-height: 1.3rem;
 $input-height-sm: 1.3rem;
 $input-height-lg: 3rem;
 $input-btn-focus-width: 0.2rem;
-$custom-control-indicator-bg: #dee2e6;
-$custom-control-indicator-disabled-bg: #e9ecef;
-$custom-control-description-disabled-color: #868e96;
+$form-check-indicator-bg: #dee2e6;
+$form-check-indicator-disabled-bg: #e9ecef;
+$form-check-description-disabled-color: #868e96;
 
 //
 // These variables can be used to customize the switch component.
@@ -706,10 +706,10 @@ $switch-height: calc(#{$input-height} * 0.8) !default;
 $switch-height-sm: calc(#{$input-height-sm} * 0.8) !default;
 $switch-height-lg: calc(#{$input-height-lg} * 0.8) !default;
 $switch-border-radius: $switch-height !default;
-$switch-bg: $custom-control-indicator-bg !default;
+$switch-bg: $form-check-indicator-bg !default;
 $switch-checked-bg: rgba($info, 0.7) !default;
-$switch-disabled-bg: $custom-control-indicator-disabled-bg !default;
-$switch-disabled-color: $custom-control-description-disabled-color !default;
+$switch-disabled-bg: $form-check-indicator-disabled-bg !default;
+$switch-disabled-color: $form-check-description-disabled-color !default;
 $switch-thumb-bg: $white !default;
 $switch-thumb-border-radius: 50% !default;
 $switch-thumb-padding: 2px !default;

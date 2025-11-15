@@ -40,7 +40,7 @@
         </form>
 
         <div class='col mb-3'>
-          <div class="btn-group float-sm-right pt-2 pt-sm-0 displaybuttons btn-group-toggle" data-toggle="buttons" >
+          <div class="btn-group float-sm-end pt-2 pt-sm-0 displaybuttons btn-group-toggle" data-bs-toggle="buttons" >
             <label class="btn btn-info btn-sm btn-secondary">
               <input type="radio" name="display" id="lbutton" autocomplete="off" value='l'>{% icon "grid" %} display lozenges
             </label>
@@ -57,7 +57,7 @@
 
     </div>
 
-    <div class="protein_results pl-0 pr-0">
+    <div class="protein_results ps-0 pe-0">
         {% if object.proteins.count %}
             <div id="ldisplay" class="{% if request.GET.display == 't' or not request.GET.display %}hidden{% endif %}">
             {% with proteins=object.proteins.all %}

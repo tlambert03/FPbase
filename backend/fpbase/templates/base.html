@@ -110,7 +110,7 @@
           <div class="container">
             {% for message in messages %}
                 <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% else %}info{% endif %}">{{ message|safe }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
@@ -124,14 +124,14 @@
     </div> <!-- /container -->
 
     {% block footer %}
-    <footer class="footer container-fluid pl-0">
+    <footer class="footer container-fluid ps-0">
       <div class="container">
         <div class="row">
-          <div class="col-12 text-right">
+          <div class="col-12 text-end">
 
             <p>©FPbase, <span id='curyear'>2018</span>
               <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" id="licenselink">
-                {% webp_picture 'images/by-sa.png' 'ml-2 mb-1 mt-1' 'BY-SA Creative Commons License' %}</a><br>
+                {% webp_picture 'images/by-sa.png' 'ms-2 mb-1 mt-1' 'BY-SA Creative Commons License' %}</a><br>
             <a href="{% url 'terms' %}">Terms</a> &amp; <a href="{% url 'privacy' %}">Privacy</a><br>
 
             {% block extrafooter %}{% endblock extrafooter %}</p>

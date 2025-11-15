@@ -21,7 +21,7 @@
 
 
     <p style="word-wrap: break-word">
-    <small>{% icon "share-square" class_="mr-2" %}You can share this comparison at: <a href="{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}">{{ request.META.HTTP_HOST }}{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}</a></small></p>
+    <small>{% icon "share-square" class_="me-2" %}You can share this comparison at: <a href="{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}">{{ request.META.HTTP_HOST }}{% url 'proteins:compare' %}{% for protein in proteins %}{{protein.slug}}{% if not forloop.last %},{% endif %}{% endfor %}</a></small></p>
 
       {% if spectra_ids %}
         <div class="spectra mt-3">

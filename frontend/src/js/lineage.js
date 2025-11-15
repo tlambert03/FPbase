@@ -711,7 +711,7 @@ export default function LineageChart(conf) {
       .attr("class", "btn-toolbar lineage-toolbar")
       .attr("role", "toolbar")
       .style("opacity", 0.8)
-    var grp1 = tbar.append("div").attr("class", "btn-group btn-group-sm mr-2").attr("role", "group")
+    var grp1 = tbar.append("div").attr("class", "btn-group btn-group-sm me-2").attr("role", "group")
     grp1
       .append("button")
       .on("click", chart.scaleWidthDown)
@@ -736,7 +736,7 @@ export default function LineageChart(conf) {
       .attr("type", "button")
       .attr("class", "btn btn-outline-dark")
       .html("⇩")
-    var grp2 = tbar.append("div").attr("class", "btn-group btn-group-sm mr-2").attr("role", "group")
+    var grp2 = tbar.append("div").attr("class", "btn-group btn-group-sm me-2").attr("role", "group")
     grp2
       .append("button")
       .on("click", () => {

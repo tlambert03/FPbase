@@ -28,7 +28,7 @@
     <div class="col-md-8">
 
       <div id="graph" class="svg-container mt-6" data-fpbase-init="ichart" data-api-url="{% url 'api:basic-protein-api' %}">
-        <div class="loadinggif ml-3">
+        <div class="loadinggif ms-3">
           loading data...
           <img src="{% static 'images/GFP_spinner.gif' %}" class="pt-4 mb-4">
         </div>
@@ -71,7 +71,7 @@
 		</div>  <!-- end col -->
 
 	</div> <!-- end div.cf -->
-  <p class="small text-muted mt-5 ml-3">This chart presents an interactive graphical display of the fluorescence properties of all "basic" (constitutively fluorescent) proteins in the database. Each fluorescent protein begins plotted with excitation wavelength on the x-axis and emission wavelength on the y-axis. The color hue is based on the emission wavelength of the protein, and color saturation correlates with brightness. Proteins requiring an extrinisc cofactor are shown as squares. Dimeric proteins are indicated with a 2 inside the symbol; tandem dimeric proteins are shown with a t inside the symbol (you may filter by oligomerization with the select menu below the chart). Mouseover each circle to see info on that protein or click on any datapoint to go to that protein page. You can zoom using the mouse scroll wheel and pan by clicking and dragging. Use the filter sliders at the top right to select a subset of fluorescent proteins based on certain criteria. Use the X and Y axis toggle boxes to change what is plotted on each axis.</p>
+  <p class="small text-muted mt-5 ms-3">This chart presents an interactive graphical display of the fluorescence properties of all "basic" (constitutively fluorescent) proteins in the database. Each fluorescent protein begins plotted with excitation wavelength on the x-axis and emission wavelength on the y-axis. The color hue is based on the emission wavelength of the protein, and color saturation correlates with brightness. Proteins requiring an extrinisc cofactor are shown as squares. Dimeric proteins are indicated with a 2 inside the symbol; tandem dimeric proteins are shown with a t inside the symbol (you may filter by oligomerization with the select menu below the chart). Mouseover each circle to see info on that protein or click on any datapoint to go to that protein page. You can zoom using the mouse scroll wheel and pan by clicking and dragging. Use the filter sliders at the top right to select a subset of fluorescent proteins based on certain criteria. Use the X and Y axis toggle boxes to change what is plotted on each axis.</p>
 </div> <!-- end div.container -->
 
 
@@ -82,7 +82,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel"><strong>Shoot.</strong></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -90,7 +90,7 @@
         We're sorry, there appears to be a problem retreiving protein data!  We've been notified and are working on it.
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

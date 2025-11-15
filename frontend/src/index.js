@@ -14,7 +14,7 @@ import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 import { icon } from "./js/icons.js" // Icon helper for dynamic HTML
 
 import "select2/dist/css/select2.css"
-import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
+import "select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css"
 // NOTE: nouislider CSS moved to d3-charts.js since it's only used on ichart page
 import "./css/style.scss"
 
@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="col-12">
                           <div class="alert alert-warning" role="alert">
                             <h5 class="alert-heading">
-                              ${icon("alert", "mr-2")}
+                              ${icon("alert", "me-2")}
                               Unable to Load 3D Structure Viewer
                             </h5>
                             <p class="mb-2">The molecular structure viewer failed to load. This may be due to a network issue or browser compatibility problem.</p>

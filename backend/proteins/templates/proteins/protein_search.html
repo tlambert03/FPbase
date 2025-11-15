@@ -40,7 +40,7 @@
     <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn">{% icon "filter" %} Add Filter</button>
 
     {% if request.GET %}
-    <div class="btn-group float-sm-right displaybuttons btn-group-toggle mb-3" data-toggle="buttons" >
+    <div class="btn-group float-sm-end displaybuttons btn-group-toggle mb-3" data-bs-toggle="buttons" >
       <label class="btn btn-info btn-sm btn-secondary active">
         <input type="radio" name="display" id="lbutton" autocomplete="off" checked value='l'>{% icon "grid" %} display blocks
       </label>
@@ -59,7 +59,7 @@
                 <h3 style="font-weight: 300">Search Results</h3>
             </div>
             <div class="">
-                <form action='{% url 'proteins:newcollection' %}' method='post' class='float-sm-right'>
+                <form action='{% url 'proteins:newcollection' %}' method='post' class='float-sm-end'>
                     {% csrf_token %}
                     {%for p in filter.qs %}
                         <input type="hidden" name="protein" value="{{ p.pk }}">
@@ -69,7 +69,7 @@
             </div>
         </div>
 
-        <div class="container protein_results pl-0 pr-0">
+        <div class="container protein_results ps-0 pe-0">
             {% if filter.qs %}
                 <div id="ldisplay" {% if request.GET.display == 't' %}class="hidden"{% endif %}>
                 {% with proteins=filter.qs %}
