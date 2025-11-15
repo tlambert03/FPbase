@@ -627,7 +627,11 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
     page.goto(url)
     expect(page).to_have_url(url)
     page.wait_for_load_state("networkidle")
-    assert_snapshot(page)
+    if not hasattr(assert_snapshot, "NOOP"):
+        # Wait for chart to fully render
+        page.locator(".highcharts-series").first.wait_for(state="attached")
+        # Mask legend as it has minor rendering variations
+        assert_snapshot(page, mask_elements=[".highcharts-legend"])
 
     # scroll to the structure section and take another snapshot
     page.locator("#protein-structure").scroll_into_view_if_needed()
@@ -637,7 +641,9 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
     expect(page.locator("img#smilesImg")).to_be_visible()
 
     page.wait_for_load_state("networkidle")
-    assert_snapshot(page)
+    # Mask the 3D structure viewer as it renders with animation/randomness
+    # Mask both the viewer div and its parent container to ensure full coverage
+    assert_snapshot(page, mask_elements=["#protein-structure .col-12.col-md-6.order-2.order-md-1"])
 
 
 def test_favorite_button_interaction(

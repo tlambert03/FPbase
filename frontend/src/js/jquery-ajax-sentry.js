@@ -35,9 +35,13 @@ export function setupAjaxErrorTracking() {
         return
       }
 
+      const url = ajaxSettings.url || "unknown URL"
+      if (url.includes("snapgene.com")) {
+        return
+      }
+
       // Construct error message
       const errorMessage = thrownError || jqXHR.statusText || "Unknown AJAX Error"
-      const url = ajaxSettings.url || "unknown URL"
       const method = ajaxSettings.type || ajaxSettings.method || "GET"
 
       // Create detailed error for Sentry

@@ -262,9 +262,10 @@ export interface SpectraListResponse {
     category: SpectrumCategory
     subtype: SpectrumSubtype
     owner: {
+      id: string
       name: string
       slug: string
-      url: string
+      url: string | null
     }
   }>
 }
