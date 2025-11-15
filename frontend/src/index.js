@@ -20,7 +20,6 @@ import "./css/style.scss"
 
 import "./js/project.js"
 import initSearch from "./js/search_logic.js"
-import "./js/protein_page.js"
 import "./js/favit.js"
 import "./js/jquery.formset.js"
 import "./js/onload.js"

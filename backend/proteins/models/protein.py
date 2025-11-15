@@ -34,7 +34,7 @@ from .mixins import Authorable
 from .spectrum import Spectrum
 
 if TYPE_CHECKING:
-    from proteins.models import State  # noqa: F401
+    from proteins.models import SnapGenePlasmid, State  # noqa: F401
 
 User = get_user_model()
 
@@ -332,6 +332,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         Reference, related_name="proteins", blank=True
     )  # all papers that reference the protein
     # FRET_partner = models.ManyToManyField('self', symmetrical=False, through='FRETpair', blank=True)
+
     default_state_id: int | None
     default_state = models.ForeignKey["State | None"](
         "State",
@@ -340,6 +341,16 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         null=True,
         on_delete=models.SET_NULL,
     )
+
+    if TYPE_CHECKING:
+        snapgene_plasmids = models.ManyToManyField["SnapGenePlasmid", "Protein"]
+    else:
+        snapgene_plasmids = models.ManyToManyField(
+            "SnapGenePlasmid",
+            related_name="proteins",
+            blank=True,
+            help_text="Associated SnapGene plasmids",
+        )
 
     # __original_ipg_id = None
 
