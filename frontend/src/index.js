@@ -92,12 +92,12 @@ document.addEventListener("DOMContentLoaded", () => {
           initSearch(fields, operators, labels)
           break
         }
-        case "litemol": {
-          // Lazy load LiteMol only when the structure section becomes visible
+        case "molstar": {
+          // Lazy load Mol* only when the structure section becomes visible
           const pdbIds = JSON.parse(element.dataset.pdbIds || "[]")
 
           if (!pdbIds || pdbIds.length === 0) {
-            console.warn("LiteMol init: No PDB IDs provided")
+            console.warn("Mol* init: No PDB IDs provided")
             break
           }
 
@@ -106,17 +106,17 @@ document.addEventListener("DOMContentLoaded", () => {
             (entries) => {
               entries.forEach((entry) => {
                 if (entry.isIntersecting) {
-                  // Dynamically import LiteMol bundle only when needed
-                  import("./my-litemol.js")
+                  // Dynamically import Mol* bundle only when needed
+                  import("./my-molstar.js")
                     .then((module) => {
                       const initPDB = module.default
                       initPDB(pdbIds)
                     })
                     .catch((error) => {
-                      console.error("Failed to load LiteMol:", error)
+                      console.error("Failed to load Mol*:", error)
                       if (window.Sentry) {
                         window.Sentry.captureException(error, {
-                          tags: { component: "litemol-lazy-load" },
+                          tags: { component: "molstar-lazy-load" },
                         })
                       }
 

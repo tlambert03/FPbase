@@ -24,6 +24,7 @@
     "d3-zoom": "^3.0.0",
     "highcharts": "^12.4.0",
     "nouislider": "^14.7.0",
+    "pdbe-molstar": "^3.8.0",
     "process": "^0.11.10",
     "progressbar.js": "^1.1.0",
     "react": "^19.2.0",
