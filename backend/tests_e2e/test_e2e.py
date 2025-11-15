@@ -151,7 +151,7 @@ def test_spectrum_submission_tab_switching(
 ) -> None:
     """Test tab switching behavior in spectrum submission form."""
     # Create a protein so owner_state field has options
-    protein = ProteinFactory.create()
+    protein = ProteinFactory.create(name="TabSwitchTestProtein")
 
     url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
     auth_page.goto(url)
@@ -182,6 +182,7 @@ def test_spectrum_submission_tab_switching(
     data_field.fill("[[400,0.1],[401,0.2],[402,0.3],[403,0.5],[404,0.8],[405,1.0]]")
 
     # Visual snapshot: manual tab active with data
+    expect(auth_page.get_by_text("File Upload")).not_to_be_visible()
     assert_snapshot(auth_page)
 
     # Switch back to file tab
@@ -193,6 +194,7 @@ def test_spectrum_submission_tab_switching(
     expect(submit_btn).to_be_visible()
 
     # Visual snapshot: file tab active
+    expect(auth_page.get_by_text("File Upload")).to_be_visible()
     assert_snapshot(auth_page)
 
 
