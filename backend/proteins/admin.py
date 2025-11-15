@@ -27,6 +27,7 @@ from proteins.models import (
     OSERMeasurement,
     Protein,
     ProteinCollection,
+    SnapGenePlasmid,
     Spectrum,
     State,
     StateTransition,
@@ -452,6 +453,7 @@ def approve_protein(modeladmin, request, queryset):
 @admin.register(Protein)
 class ProteinAdmin(CompareVersionAdmin):
     autocomplete_fields = ("parent_organism", "references", "primary_reference")
+    filter_horizontal = ("snapgene_plasmids",)
     list_display = (
         "__str__",
         "created",
@@ -490,6 +492,7 @@ class ProteinAdmin(CompareVersionAdmin):
             },
         ),
         (None, {"fields": (("primary_reference", "references"),)}),
+        (None, {"fields": ("snapgene_plasmids",)}),
         (
             "Change History",
             {
@@ -650,6 +653,23 @@ class ExcerptAdmin(VersionAdmin):
     list_filter = ("status",)
     list_select_related = ("reference", "created_by")
     autocomplete_fields = ("proteins", "reference", "created_by", "updated_by")
+
+
+@admin.register(SnapGenePlasmid)
+class SnapGenePlasmidAdmin(admin.ModelAdmin):
+    model = SnapGenePlasmid
+    list_display = ("name", "plasmid_id", "author", "size", "protein_count")
+    search_fields = ("name", "plasmid_id", "description")
+    list_filter = ("topology", "author")
+    readonly_fields = ("protein_count",)
+
+    @admin.display(description="# Proteins")
+    def protein_count(self, obj):
+        return obj.proteins.count()
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related("proteins")
 
 
 @admin.register(Lineage)

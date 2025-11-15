@@ -438,6 +438,14 @@
         {% if country_code == 'CN' %}
           <li>Search <a href="https://wekwikgene.wllsb.edu.cn/plasmids?search={{ protein.name | urlencode }}" target="_blank" rel="noopener">WeKwikGene</a> for {{ protein.name | safe}}</li>
         {% endif %}
+        {% if protein.snapgene_plasmids.exists %}
+          <li>
+            SnapGene plasmid{% if protein.snapgene_plasmids.count > 1 %}s{% endif %}:
+            {% for plasmid in protein.snapgene_plasmids.all %}
+              <a href="{{ plasmid.url }}" target="_blank" rel="noopener">{{ plasmid.name }}</a>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </li>
+        {% endif %}
       </ul>
     </div>
 
@@ -517,10 +525,6 @@
   {% endif %}
 
   <script type="text/javascript">
-
-    $(function () {
-        initSnapGene("{{protein.name|safe}}", '.external-resources ul')
-    });
 
     $(window).on('load', function() {
       $('.lineage').each(function(i, el) {
