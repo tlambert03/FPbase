@@ -171,7 +171,7 @@ i.arrow {
 .select2-container {
   min-width: 1em !important;
   max-width: 100%;
-  width: 100%;
+  width: 100% !important; // Force full width for Bootstrap 5
 }
 
 ul li.select2-selection__choice,
@@ -193,16 +193,36 @@ ul li.select2-search {
   width: 10px !important;
 }
 
+// Bootstrap 5 theme uses .select2-container--bootstrap-5
+.select2-container--bootstrap-5 .select2-selection--single,
 .select2-container--bootstrap .select2-selection--single {
   padding-left: 0 !important;
+  height: auto !important;
+  min-height: calc(1.5em + 0.75rem + 2px);
 }
 
-
+.select2-container--bootstrap-5 .select2-selection--multiple,
 .select2-container--bootstrap .select2-selection--multiple  {
   line-height: 1rem;
+  min-height: calc(1.5em + 0.75rem + 2px);
   .select2-selection__choice {
     margin: 0.5rem 0 0 0.5rem !important;
   }
+}
+
+// Fix select2 Bootstrap 5 theme width issues
+.select2-container--bootstrap-5 {
+  width: 100% !important;
+
+  .select2-selection {
+    width: 100%;
+  }
+}
+
+// Ensure select2 dropdowns have proper width
+.select2-container--bootstrap-5 .select2-dropdown,
+.select2-container--bootstrap .select2-dropdown {
+  min-width: 100%;
 }
 
 .bleach-form {

@@ -582,7 +582,7 @@ window.initMicroscope = () => {
     // on page load, setup the chart
     $(() => {
       $("#y-zoom-slider").hide()
-      // $('[data-toggle="popover"]').popover()
+      // $('[data-bs-toggle="popover"]').popover()
 
       const urlParams = getUrlParams()
       options.precision = urlParams.precision || options.precision

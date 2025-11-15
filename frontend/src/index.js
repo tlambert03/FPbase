@@ -14,7 +14,7 @@ import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
 import { icon } from "./js/icons.js" // Icon helper for dynamic HTML
 
 import "select2/dist/css/select2.css"
-import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
+import "select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css"
 // NOTE: nouislider CSS moved to d3-charts.js since it's only used on ichart page
 import "./css/style.scss"
 

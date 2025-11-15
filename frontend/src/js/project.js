@@ -610,7 +610,7 @@ function tooltipwrap(chunk, index, skipV2) {
       ind = +index + i + 1
     }
     out +=
-      '<span data-toggle="tooltip" data-placement="top" title="' +
+      '<span data-bs-toggle="tooltip" data-placement="top" title="' +
       chunk[i] +
       " " +
       ind +
@@ -653,7 +653,7 @@ function formatAAseq(elem, breakpoint) {
   elem.show()
   // Wait for Bootstrap to be available before initializing tooltips
   waitForBootstrap(() => {
-    $('[data-toggle="tooltip"]').tooltip({
+    $('[data-bs-toggle="tooltip"]').tooltip({
       trigger: "hover",
       delay: { show: 200 },
     })

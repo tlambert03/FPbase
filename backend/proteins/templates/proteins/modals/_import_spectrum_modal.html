@@ -6,7 +6,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title" id="filterImportTitle"><strong>Import Commercial Filters</strong></h4>
-        <button type="button" class="close importerClose" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close importerClose" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -43,7 +43,7 @@
           <span id="footerSpinner" class="hidden" style='font-size: 1.5rem; margin-right:1rem'>{% icon "spinner" class_="spinner-icon" %}</span>
           <span id="footerSuccess" class="hidden text-success" style='font-size: 1.5rem; margin-right:1rem'>{% icon "check" %}</span>
           <span id="footerFail" class="hidden text-danger" style='font-size: 1.5rem; margin-right:1rem'>{% icon "warning" %}</span>
-          <button type="button" class="btn btn-secondary importerClose" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary importerClose" data-bs-dismiss="modal">Close</button>
         </div>
       {% else %}
       <div class="modal-body">
@@ -55,7 +55,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="importerClose" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button class="importerClose" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
       {% endif %}
     </div>

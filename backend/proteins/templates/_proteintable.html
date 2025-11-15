@@ -32,7 +32,7 @@
   			<th class='hidden switch_type'>Switch Type</th>
         <td class='hidden'>Aliases</td>
         {% if comparison %}
-        <th><span class="d-none d-lg-inline">Compare</span><span class="d-block d-lg-none">{% icon "add" class_="ml-1" %}</span></th>{% endif %}
+        <th><span class="d-none d-lg-inline">Compare</span><span class="d-block d-lg-none">{% icon "add" class_="ms-1" %}</span></th>{% endif %}
 		</tr>
 	</thead>
 	<tbody>
@@ -52,7 +52,7 @@
 						</td>
 						<td class="numeric exmax" style="opacity: 0.7;background: {{state.exhex}}; color:{% if  state.ex_max > 477 and state.ex_max < 590 %}#000{% else %}#eee{% endif %}">{{ state.ex_max | default_if_none:"" }}</td>
 						<td class="numeric" style="opacity: 0.7;background: {{state.emhex}};color:{% if  state.em_max > 477 and state.em_max < 590 %}#000{% else %}#eee{% endif %}">{{ state.em_max | default_if_none:"" }}</td>
-						<td class="numeric pl-2">{{ state.stokes | default:"" }}</td>
+						<td class="numeric ps-2">{{ state.stokes | default:"" }}</td>
 						<td class="numeric">{% if state.ext_coeff %}{{ state.ext_coeff|intcomma}}{%else%}-{%endif%}</td>
 						<td class="numeric">{{ state.qy | default_if_none:"" }}</td>
 						<td class="numeric">{{ state.brightness | default:"" }}</td>

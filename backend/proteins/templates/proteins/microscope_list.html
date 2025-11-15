@@ -48,10 +48,10 @@ collections
 <h3>Example microscopes:</h3>
 <ul class='mb-3'>
   {% for object in example_list %}
-  <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
-                          text-muted ml-2'><small>{{object.description}}</small></span><a
+  <li><a href="{{ object.get_absolute_url }}" class="ms-1">{{object}}</a> <span class='
+                          text-muted ms-2'><small>{{object.description}}</small></span><a
       href="{% url 'proteins:microscope-report' object.id %}" class="text-primary"
-      title='fluorophore efficiency report'>{% icon "table" class_="ml-2" style='margin-bottom: 2px; font-size: 0.8rem;' %}
+      title='fluorophore efficiency report'>{% icon "table" class_="ms-2" style='margin-bottom: 2px; font-size: 0.8rem;' %}
     </a></li>
   {% endfor %}
 </ul>
@@ -62,12 +62,12 @@ collections
 
 <ul class='mb-5'>
   {% for object in object_list %}
-  <li><a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a> <span class='
-              text-muted ml-2'><small>{{object.description}} –
+  <li><a href="{{ object.get_absolute_url }}" class="ms-1">{{object}}</a> <span class='
+              text-muted ms-2'><small>{{object.description}} –
         {{object.created |date:"M d, Y"}}</small></span>{% if request.user.username == owner %}<a
-      href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'>{% icon "wrench" class_="small mr-2 ml-2" style='margin-bottom: 2px' %}</a><a
+      href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'>{% icon "wrench" class_="small me-2 ms-2" style='margin-bottom: 2px' %}</a><a
       href="{% url 'proteins:deletemicroscope' object.id %}" class="text-danger" title='delete microscope'>{% icon "delete" class_="small" style='margin-bottom: 2px' %}</a>{% endif%}
-    <a href="{% url 'proteins:microscope-report' object.id %}" class="text-primary ml-1"
+    <a href="{% url 'proteins:microscope-report' object.id %}" class="text-primary ms-1"
       title='fluorophore efficiency report'>
       {% icon "table" style='margin-bottom: 2px; font-size: 0.8rem;' %}
     </a></li>
@@ -87,12 +87,12 @@ collections
 <ul class='mb-5'>
   {% for object in managing %}
   <li>
-    <a href="{{ object.get_absolute_url }}" class="ml-1">{{object}}</a>
+    <a href="{{ object.get_absolute_url }}" class="ms-1">{{object}}</a>
     <span class='
-                text-muted ml-2'><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>
+                text-muted ms-2'><small>{{object.description}} – {{object.created |date:"M d, Y"}}</small></span>
     {% if request.user.username == owner %}
     <a href="{% url 'proteins:updatemicroscope' object.id %}" class="text-info" title='edit microscope'>
-      {% icon "wrench" class_="mr-2 ml-2" style='margin-bottom: 2px; font-size: 0.8rem;' %}
+      {% icon "wrench" class_="me-2 ms-2" style='margin-bottom: 2px; font-size: 0.8rem;' %}
     </a>
     {% endif%}
     <a href="{% url 'proteins:microscope-report' object.id %}" class="text-primary"

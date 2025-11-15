@@ -1,6 +1,6 @@
 <div class="chartaxis-options">
   <h4> {{ axis|upper }} Axis </h2>
-  <div class="btn-group-vertical btn-group-toggle" data-toggle="buttons" id="{{ axis|upper }}radio">
+  <div class="btn-group-vertical btn-group-toggle" data-bs-toggle="buttons" id="{{ axis|upper }}radio">
     <label class='btn btn-secondary {% if axis == "X" %} active {% endif %}'>
       <input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}em_max" value="ex_max" {% if axis == "X" %} checked {% endif %}>Excitation &lambda;
     </label>

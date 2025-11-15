@@ -1,0 +1,254 @@
+// Bootstrap 5 Migration Fixes
+// This file contains CSS fixes for Bootstrap 4 to 5 migration issues
+
+// ============================================================================
+// LINK UNDERLINES - Bootstrap 5 adds underlines by default
+// ============================================================================
+// Remove underlines from all links except in specific contexts
+a {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+// Keep underlines only in body text content
+.card-body, .modal-body, article, p, .content {
+  a:not(.btn):not([class*="nav-"]):not([class*="dropdown-"]) {
+    text-decoration: underline;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ============================================================================
+// CLEARFIX - Removed in Bootstrap 5, restore functionality
+// ============================================================================
+.clearfix::after {
+  display: block;
+  clear: both;
+  content: "";
+}
+
+// ============================================================================
+// INPUT GROUP - .input-group-append removed in Bootstrap 5
+// ============================================================================
+// Restore .input-group-append behavior for existing markup
+.input-group-append {
+  display: flex;
+  margin-left: -1px;
+
+  .btn {
+    position: relative;
+    z-index: 2;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+}
+
+.input-group-prepend {
+  display: flex;
+  margin-right: -1px;
+
+  .btn, .input-group-text {
+    position: relative;
+    z-index: 2;
+  }
+
+  .input-group-text {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .btn {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+// ============================================================================
+// CUSTOM FORMS - Bootstrap 5 removed .custom-control
+// ============================================================================
+// Map old .custom-control classes to new .form-check classes
+.custom-control {
+  @extend .form-check;
+}
+
+.custom-control-input {
+  @extend .form-check-input;
+}
+
+.custom-control-label {
+  @extend .form-check-label;
+}
+
+.custom-checkbox {
+  @extend .form-check;
+}
+
+.custom-radio {
+  @extend .form-check;
+}
+
+.custom-switch {
+  @extend .form-check;
+  @extend .form-switch;
+}
+
+// ============================================================================
+// FORM SELECT - .custom-select renamed to .form-select
+// ============================================================================
+.custom-select {
+  @extend .form-select;
+}
+
+// ============================================================================
+// BADGE - Bootstrap 5 changed badge styling
+// ============================================================================
+// Restore pill badges
+.badge-pill {
+  @extend .rounded-pill;
+}
+
+// ============================================================================
+// BUTTON BLOCK - .btn-block removed in Bootstrap 5
+// ============================================================================
+// Restore .btn-block functionality
+.btn-block {
+  display: block;
+  width: 100%;
+
+  + .btn-block {
+    margin-top: 0.5rem;
+  }
+}
+
+// ============================================================================
+// FORM CONTROL WIDTHS - Ensure proper widths
+// ============================================================================
+.form-control, .form-select {
+  width: 100%;
+}
+
+// ============================================================================
+// LIST GROUP - Bootstrap 5 changed custom-control in list-group
+// ============================================================================
+.list-group-item {
+  .custom-control,
+  .form-check {
+    display: flex;
+    align-items: center;
+
+    .custom-control-input,
+    .form-check-input {
+      position: static;
+      margin-top: 0;
+      margin-right: 0.5rem;
+      margin-left: 0;
+    }
+
+    .custom-control-label,
+    .form-check-label {
+      flex: 1;
+    }
+  }
+}
+
+// ============================================================================
+// GRID GUTTERS - .no-gutters renamed to .g-0
+// ============================================================================
+.no-gutters {
+  @extend .g-0;
+}
+
+// ============================================================================
+// TEXT UTILITIES
+// ============================================================================
+.text-monospace {
+  @extend .font-monospace;
+}
+
+.font-weight-bold {
+  @extend .fw-bold;
+}
+
+.font-weight-normal {
+  @extend .fw-normal;
+}
+
+.font-weight-light {
+  @extend .fw-light;
+}
+
+.font-italic {
+  @extend .fst-italic;
+}
+
+// ============================================================================
+// MEDIA COMPONENT - Removed in Bootstrap 5, recreate basic functionality
+// ============================================================================
+.media {
+  display: flex;
+  align-items: flex-start;
+}
+
+.media-body {
+  flex: 1;
+}
+
+// ============================================================================
+// CLOSE BUTTON - Bootstrap 5 uses .btn-close
+// ============================================================================
+.close {
+  @extend .btn-close;
+}
+
+// ============================================================================
+// JUMBOTRON - Removed in Bootstrap 5, recreate
+// ============================================================================
+.jumbotron {
+  padding: 2rem 1rem;
+  margin-bottom: 2rem;
+  background-color: #e9ecef;
+  border-radius: 0.3rem;
+
+  @media (min-width: 576px) {
+    padding: 4rem 2rem;
+  }
+}
+
+.jumbotron-fluid {
+  padding-right: 0;
+  padding-left: 0;
+  border-radius: 0;
+}
+
+// ============================================================================
+// TOOLTIP/POPOVER ARROW - Bootstrap 5 changed arrow selectors
+// ============================================================================
+.tooltip .arrow {
+  &::before {
+    border-width: 0.4rem;
+  }
+}
+
+.bs-tooltip-top .arrow::before {
+  border-top-color: inherit;
+}
+
+.bs-tooltip-bottom .arrow::before {
+  border-bottom-color: inherit;
+}
+
+.bs-tooltip-left .arrow::before,
+.bs-tooltip-start .arrow::before {
+  border-left-color: inherit;
+}
+
+.bs-tooltip-right .arrow::before,
+.bs-tooltip-end .arrow::before {
+  border-right-color: inherit;
+}

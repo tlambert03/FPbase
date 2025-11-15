@@ -6,6 +6,7 @@
 
 @import "_variables.scss"; // my overrides
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
+@import "_bootstrap5-fixes.scss"; // Bootstrap 5 migration fixes
 
 // project specific CSS goes here
 

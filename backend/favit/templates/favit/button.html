@@ -1,7 +1,7 @@
 {% load i18n fpbase_tags %}
 {% if authenticated %}
-  <div class="favit{% if undo %} is-favorited{% endif %}" data-toggle="tooltip" data-placement="top" title="{% if undo %}Remove from{% else %}Add to{% endif %} favorites" >
-  	<a class="btn favorite" id="add_remove_favorite" href="" data-action-url="{% url 'favit:add_or_remove' %}" data-model="{{ target_model }}" data-target="target_{{ target_object_id }}">
+  <div class="favit{% if undo %} is-favorited{% endif %}" data-bs-toggle="tooltip" data-placement="top" title="{% if undo %}Remove from{% else %}Add to{% endif %} favorites" >
+  	<a class="btn favorite" id="add_remove_favorite" href="" data-action-url="{% url 'favit:add_or_remove' %}" data-model="{{ target_model }}" data-bs-target="target_{{ target_object_id }}">
   	  <span class="icon-toggle d-none d-sm-inline">
         {% icon "heart" class_="icon-filled" %}
         {% icon "heart-outline" class_="icon-outline" %}
@@ -18,7 +18,7 @@
   </div>
 
 {% else %}
-  <div class="favit" data-toggle="tooltip" data-placement="top" title="Log in to add favorites" >
+  <div class="favit" data-bs-toggle="tooltip" data-placement="top" title="Log in to add favorites" >
   	<a class="btn favorite" href="{% url 'account_login' %}?next={% firstof path '/' %}">
   	  <span class="icon-toggle d-none d-sm-inline">
         {% icon "heart" class_="icon-filled" %}
