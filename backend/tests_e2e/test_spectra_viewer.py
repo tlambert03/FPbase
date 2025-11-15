@@ -211,8 +211,8 @@ def test_qy_ec_scaling_invertibility(spectra_viewer: Page) -> None:
     # Wait for EGFP to be added
     expect(spectra_viewer.locator(".tab-wrapper").get_by_text(re.compile(r"^EGFP"))).to_be_visible()
 
-    def _test_scaling_toggle_indempotent(page: Page, series: int, key: str) -> None:
-        _ser = page.locator(f"g.highcharts-series.highcharts-series-{series}")
+    def _test_scaling_toggle_indempotent(page: Page, subtype: str, key: str) -> None:
+        _ser = page.locator(f"g.highcharts-series.subtype-{subtype}")
         line = _ser.locator("path.highcharts-tracker-line")
         # Wait for line to be visible AND have data (not empty/loading)
         expect(line).to_be_visible()
@@ -236,8 +236,8 @@ def test_qy_ec_scaling_invertibility(spectra_viewer: Page) -> None:
         assert d_0 != d_1, "scaling toggle did not change state on first toggle"
         assert d_0 == d_2, "scaling toggle did not return to original state after 2 toggles"
 
-    _test_scaling_toggle_indempotent(spectra_viewer, series=0, key="Q")
-    _test_scaling_toggle_indempotent(spectra_viewer, series=1, key="E")
+    _test_scaling_toggle_indempotent(spectra_viewer, subtype="EM", key="Q")
+    _test_scaling_toggle_indempotent(spectra_viewer, subtype="EX", key="E")
 
 
 def test_custom_laser_exnorm_persistence(live_server: LiveServer, page: Page) -> None:
