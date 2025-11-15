@@ -347,7 +347,7 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
     # Visual snapshot: FRET calculation complete with chart
     if not hasattr(assert_snapshot, "NOOP"):
         page.wait_for_load_state("networkidle")
-        assert_snapshot(page)
+        assert_snapshot(page, mask_elements=[".highcharts-legend"])
 
 
 def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
@@ -633,7 +633,13 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
         # Wait for chart to fully render
         page.locator(".highcharts-series").first.wait_for(state="attached")
         # Mask legend as it has minor rendering variations
-        assert_snapshot(page, mask_elements=[".highcharts-legend"])
+        assert_snapshot(
+            page,
+            mask_elements=[
+                ".highcharts-legend",
+                "#protein-structure .col-12.col-md-6.order-2.order-md-1",
+            ],
+        )
 
     # scroll to the structure section and take another snapshot
     page.locator("#protein-structure").scroll_into_view_if_needed()
@@ -647,7 +653,7 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
     page.wait_for_load_state("networkidle")
     # Mask the 3D structure viewer as it renders with animation/randomness
     # Mask both the viewer div and its parent container to ensure full coverage
-    assert_snapshot(page, mask_elements=["#protein-structure .col-12.col-md-6.order-2.order-md-1", "#litemol-viewer"])
+    assert_snapshot(page, mask_elements=["#protein-structure .col-12.col-md-6.order-2.order-md-1"])
 
 
 def test_favorite_button_interaction(
