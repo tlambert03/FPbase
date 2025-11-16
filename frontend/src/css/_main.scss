@@ -161,10 +161,35 @@ a.twitter-share-button {
     }
   }
 
+  .container-button,
+  .favit {
+    display: block; // Full width on mobile by default
+    width: 100%;
+
+    a {
+      display: block; // Make link full width
+      width: 100%;
+    }
+
+    @include media-breakpoint-up(sm) {
+      display: inline-block; // Compact on larger screens
+      width: auto;
+
+      a {
+        display: inline;
+        width: auto;
+      }
+    }
+  }
+
   .favit {
     position: relative; // For badge positioning
-    display: inline-flex; // Prevent extra spacing
-    align-items: center;
+
+    @include media-breakpoint-up(sm) {
+      display: inline-flex; // Prevent extra spacing on larger screens
+      align-items: center;
+    }
+
     a {
       padding: 0; // Remove any default button padding
     }
