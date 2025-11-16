@@ -1,12 +1,14 @@
-
-
-
-@import "_options.scss";  // custom bootstrap overrides
+@import "_options.scss"; // custom bootstrap overrides
 
 
 @import "_variables.scss"; // my overrides
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
-@import "_bootstrap5-fixes.scss"; // Bootstrap 5 migration fixes
+
+// Restore BS4 .text-muted color
+.text-muted {
+  --bs-text-opacity: 1;
+  color: #889199 !important;
+}
 
 // project specific CSS goes here
 
@@ -30,7 +32,7 @@
 @import "_algoliasearch.scss";
 
 ////////////////////////////////
-    //Variables//
+//Variables//
 ////////////////////////////////
 
 // Alert colors
@@ -43,7 +45,7 @@ $dark-pink: #eed3d7;
 $red: #b94a48;
 
 ////////////////////////////////
-    //Alerts//
+//Alerts//
 ////////////////////////////////
 
 // bootstrap alert CSS, translated to the django-standard levels of
@@ -59,4 +61,8 @@ $red: #b94a48;
   background-color: $pink;
   border-color: $dark-pink;
   color: $red;
+}
+
+:root {
+  --bs-tertiary-bg: #E9EBEE;
 }

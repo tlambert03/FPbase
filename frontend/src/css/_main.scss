@@ -146,64 +146,30 @@ a.twitter-share-button {
 }
 
 .like_buttons {
-  padding-left: 1rem;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 0.5rem;
-
-  @include media-breakpoint-down(xs) {
-    padding-left: 0rem;
-  }
-
-  > div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
+  align-items: center; // Add this to vertically center icons
   a,
   a.active {
     color: $yellow;
-    font-size: 1.4rem;
-    padding: 0;
+    font-size: 1.8rem;
     box-shadow: none !important;
-
     &:hover {
       color: orange;
     }
   }
 
   .favit {
-    position: relative;
-    display: flex;
-    flex-direction: column;
+    position: relative; // For badge positioning
+    display: inline-flex; // Prevent extra spacing
     align-items: center;
-
-    .favorite,
-    .favorite:active {
-      box-shadow: none !important;
-      @include media-breakpoint-up(sm) {
-        padding: 0;
-      }
+    a {
+      padding: 0; // Remove any default button padding
     }
-
     .badge {
-      position: absolute;
       bottom: -0.7rem;
-      right: -0.3rem;
-      font-size: 0.4rem;
+      right: 0.2rem; // Changed from left to right for better positioning
+      font-size: 0.5rem;
       background: rgba($warning, 0.6);
-      color: $gray-700;
-    }
-  }
-
-  a.btn.favorite,
-  a.btn.favorite.active,
-  a.btn.favorite:focus {
-    @include media-breakpoint-down(xs) {
-      display: block;
-      padding-top: 0.5rem;
+      padding: 0.2em 0.4em; // Ensure badge has some padding
     }
   }
 }

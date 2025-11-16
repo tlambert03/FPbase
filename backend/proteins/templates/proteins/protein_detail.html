@@ -94,26 +94,28 @@
 				</div>
 			{% endif %}
 
-		<div class="clearfix">
-			<div class="like_buttons float-sm-end">
-				<div class="container-button" data-bs-toggle="tooltip" data-placement="top" title="Add to collection">
-					<a class="btn collection-add-button" href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-bs-toggle="modal" data-bs-target="#collectionModal">
-					  {% icon "collection" class_="d-none d-sm-inline" %}
-					  	<a class='collection-add-button d-block d-sm-none' href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-bs-toggle="modal" data-bs-target="#collectionModal" style="text-decoration: none;"><button type="button" class="btn btn-info btn-block">{% icon "collection" class_="me-2" %}Add to collection</button>
-					  	</a>
-					</a>
-				</div>
-				{% favorite_button protein %}
-			</div>
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div class='protein-blurb flex-grow-1'>
+          {% if protein.blurb %}
+            {{ protein.blurb | safe }}
+          {% else %}
+            {{ protein.description | safe }}
+          {% endif %}
+        </div>
 
-			<div class='protein-blurb'>
-        {% if  protein.blurb %}
-          {{ protein.blurb | safe }}
-        {% else %}
-          {{ protein.description | safe }}
-        {% endif %}
+        <div class="like_buttons flex-shrink-0 d-flex">
+          <a class="btn collection-add-button"
+            href="#"
+            data-action-url="{% url 'proteins:add_to_collection'
+        %}?id={{ protein.id }}"
+            data-bs-toggle="modal"
+            data-bs-target="#collectionModal"
+            title="Add to collection">
+            {% icon "collection" %}
+          </a>
+          {% favorite_button protein %}
+        </div>
       </div>
-		</div>
 
     {% if protein.lineage %}
        <div class="lineage mb-0" data-slug='{{protein.slug}}'></div>
