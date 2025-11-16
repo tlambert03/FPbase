@@ -182,6 +182,8 @@ function handle_comparison_button(e) {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      "X-Requested-With": "XMLHttpRequest",
     },
     body: formData,
   })
@@ -455,6 +457,8 @@ $("#proteinform #id_name").change(function () {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      "X-Requested-With": "XMLHttpRequest",
     },
     body: formData,
   })
@@ -493,6 +497,8 @@ $("#spectrum-submit-form #id_owner").change(function () {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      "X-Requested-With": "XMLHttpRequest",
     },
     body: formData,
   })
@@ -692,6 +698,8 @@ $("#refModalForm").submit(function (e) {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      "X-Requested-With": "XMLHttpRequest",
     },
     body: form.serialize(),
   })
@@ -718,6 +726,8 @@ $("#excerptModalForm")
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        "X-Requested-With": "XMLHttpRequest",
       },
       body: form.serialize(),
     })
@@ -781,6 +791,8 @@ $("#transitionForm").submit(function (e) {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      "X-Requested-With": "XMLHttpRequest",
     },
     body: form.serialize(),
     cache: "no-store",
@@ -808,6 +820,8 @@ $("#adminApprove, #adminRevert").submit(function (e) {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      "X-Requested-With": "XMLHttpRequest",
     },
     body: form.serialize(),
   })
@@ -838,6 +852,8 @@ $(document).ready(() => {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        "X-Requested-With": "XMLHttpRequest",
       },
       body: formData,
     })
@@ -870,6 +886,8 @@ $(document).ready(() => {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        "X-Requested-With": "XMLHttpRequest",
       },
       body: formData,
     })
@@ -921,6 +939,8 @@ $(document).ready(() => {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        "X-Requested-With": "XMLHttpRequest",
       },
       body: data,
       cache: "no-store",
@@ -958,6 +978,8 @@ $(() => {
             method: "POST",
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
+              // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+              "X-Requested-With": "XMLHttpRequest",
             },
             body: form.serialize(),
           })

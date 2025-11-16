@@ -299,6 +299,8 @@ function downloadPDBMeta(pdbIds) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      "X-Requested-With": "XMLHttpRequest",
     },
     body: JSON.stringify({
       query: `{

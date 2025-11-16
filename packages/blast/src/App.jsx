@@ -68,6 +68,8 @@ function App() {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        "X-Requested-With": "XMLHttpRequest",
       },
       body: `${$(e.target).serialize()}&binary=${bin}`,
     })
