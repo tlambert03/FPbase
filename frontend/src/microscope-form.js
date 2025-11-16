@@ -94,12 +94,16 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
   $("#footerSuccess").hide()
   const form = $(this).closest("form")
   const brand = form.data("brand")
-  $.ajax({
-    type: "POST",
-    url: form.attr("data-action-url"),
-    data: form.serialize(),
-    dataType: "json",
-    success: (data) => {
+
+  fetch(form.attr("data-action-url"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: form.serialize(),
+  })
+    .then((response) => response.json())
+    .then((data) => {
       if (data.status) {
         const newdata = JSON.parse(data.spectra_options)
         $('.data-selector[data-category="f"]').append(
@@ -123,11 +127,11 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
         $("#footerFail").show()
         $("#footerSuccess").hide()
       }
-    },
-  }).then((_d) => {
-    $("#footerSpinner").hide()
-    // $('#importModal').modal('hide')
-  })
+    })
+    .finally(() => {
+      $("#footerSpinner").hide()
+      // $('#importModal').modal('hide')
+    })
 })
 
 $(".importerClose").click(() => {

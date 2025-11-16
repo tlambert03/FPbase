@@ -171,21 +171,26 @@ function populate_comparison_tab(comparison_set) {
 function handle_comparison_button(e) {
   var button = $(this)
   e.preventDefault()
-  $.ajax({
-    // create an AJAX call...
-    data: {
-      object: button.data("object"),
-      csrfmiddlewaretoken: window.CSRF_TOKEN,
-      operation: button.data("op"),
+
+  const formData = new URLSearchParams({
+    object: button.data("object"),
+    csrfmiddlewaretoken: window.CSRF_TOKEN,
+    operation: button.data("op"),
+  })
+
+  fetch(button.attr("data-action-url"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
     },
-    type: "POST",
-    url: button.attr("data-action-url"),
-    dataType: "json",
-    success: (response) => {
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((response) => {
       // on success..
       populate_comparison_tab(response.comparison_set)
-    },
-  })
+    })
+
   if ($(this).data("op") === "remove") {
     $(this).closest("li").remove()
   } else if ($(this).data("op") === "clear") {
@@ -405,10 +410,10 @@ $("#id_ipg_id").change(function () {
   const ipg_uri =
     "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=ipg&retmode=json&id="
   const fpbase_params = "&tool=fpbase&email=talley.lambert+fpbase@gmail.com"
-  $.ajax({
-    url: ipg_uri + ipg_id + fpbase_params,
-    context: document.body,
-    success: (data) => {
+
+  fetch(ipg_uri + ipg_id + fpbase_params)
+    .then((response) => response.json())
+    .then((data) => {
       if (!("result" in data)) {
         reset_ipgid(
           'NCBI <a href="https://www.ncbi.nlm.nih.gov/ipg/docs/about/">Identical Protein Group ID</a>'
@@ -417,10 +422,10 @@ $("#id_ipg_id").change(function () {
         const accession = data.result[ipg_id].accession
         const title = data.result[ipg_id].title
         $("#hint_id_ipg_id").html(`IPG name: ${title}`)
-        $.ajax({
-          url: protein_uri + accession + fpbase_params,
-          context: document.body,
-          success: (data2) => {
+
+        fetch(protein_uri + accession + fpbase_params)
+          .then((response) => response.text())
+          .then((data2) => {
             var lines = data2.split("\n")
             var seq = ""
             for (let i = 0; i < lines.length; i++) {
@@ -431,27 +436,30 @@ $("#id_ipg_id").change(function () {
             $("#id_seq").val(seq)
             //$("#id_seq").prop('disabled', true);
             //$("#hint_id_seq").html('Sequence input disabled when IPG ID provided')
-          },
-          error: (_data) => {
+          })
+          .catch((_error) => {
             reset_ipgid("Unrecognized IPG ID")
-          },
-        })
+          })
       }
-    },
-    error: (_data) => {
+    })
+    .catch((_error) => {
       reset_ipgid("Unrecognized IPG ID")
-    },
-  })
+    })
 })
 
 $("#proteinform #id_name").change(function () {
   var form = $(this).closest("form")
-  $.ajax({
+  const formData = form.find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']").serialize()
+
+  fetch(form.data("validate-proteinname-url"), {
     method: "POST",
-    url: form.data("validate-proteinname-url"),
-    data: form.find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']").serialize(),
-    dataType: "json",
-    success: (data) => {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
       if (data.is_taken) {
         const namelink = `<a href="${data.url}" style="text-decoration: underline;">${data.name}</a>`
         const message = `<strong>${namelink} already exists in the database.</strong>`
@@ -474,18 +482,22 @@ $("#proteinform #id_name").change(function () {
           $("#div_id_name").removeClass("has-danger")
         }
       }
-    },
-  })
+    })
 })
 
 $("#spectrum-submit-form #id_owner").change(function () {
   var form = $(this).closest("form")
-  $.ajax({
+  const formData = form.find("#id_owner, [name='csrfmiddlewaretoken']").serialize()
+
+  fetch(form.data("validate-owner-url"), {
     method: "POST",
-    url: form.data("validate-owner-url"),
-    data: form.find("#id_owner, [name='csrfmiddlewaretoken']").serialize(),
-    dataType: "json",
-    success: (data) => {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
       if (data.similars.length) {
         let str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
         $.each(data.similars, (index, val) => {
@@ -508,8 +520,7 @@ $("#spectrum-submit-form #id_owner").change(function () {
       } else {
         $("#hint_id_owner").html("Owner of the spectrum")
       }
-    },
-  })
+    })
 })
 
 // auto populate PMID after DOI input
@@ -524,10 +535,9 @@ $('input[id*="reference_doi"]').change(function () {
   // searchurl = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term="
   // searchurl += doi + "[doi]&retmode=json"
 
-  $.ajax({
-    url: searchurl,
-    context: document.body,
-    success: (data) => {
+  fetch(searchurl)
+    .then((response) => response.json())
+    .then((data) => {
       if (data.status === "ok") {
         const year = data.message.issued["date-parts"]["0"]["0"]
         const author = data.message.author["0"].family
@@ -537,11 +547,10 @@ $('input[id*="reference_doi"]').change(function () {
       } else {
         small.html("DOI not found at Crossref")
       }
-    },
-    error: (_data) => {
+    })
+    .catch((_error) => {
       small.html("DOI not found at Crossref")
-    },
-  })
+    })
 })
 
 // // auto populate DOI after PMID input
@@ -676,19 +685,22 @@ $(window).resize(() => {
 })
 
 $("#refModalForm").submit(function (e) {
+  e.preventDefault() // avoid to execute the actual submit of the form.
   var form = $(this).closest("form")
-  $.ajax({
-    type: "POST",
-    url: form.attr("data-action-url"),
-    data: form.serialize(),
-    dataType: "json",
-    success: (data) => {
+
+  fetch(form.attr("data-action-url"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: form.serialize(),
+  })
+    .then((response) => response.json())
+    .then((data) => {
       if (data.status === "success") {
         window.location.reload()
       }
-    },
-  })
-  e.preventDefault() // avoid to execute the actual submit of the form.
+    })
 })
 
 $("#excerptModalForm")
@@ -702,20 +714,22 @@ $("#excerptModalForm")
     if ($submitBtn.prop("disabled")) return
     $submitBtn.prop("disabled", true)
 
-    $.ajax({
-      type: "POST",
-      url: form.attr("data-action-url"),
-      data: form.serialize(),
-      dataType: "json",
-      success: (data) => {
+    fetch(form.attr("data-action-url"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: form.serialize(),
+    })
+      .then((response) => response.json())
+      .then((data) => {
         if (data.status === "success") {
           window.location.reload()
         }
-      },
-      error: () => {
+      })
+      .catch(() => {
         $submitBtn.prop("disabled", false) // Re-enable on error
-      },
-    })
+      })
   })
 
 function register_transition_form() {
@@ -734,12 +748,12 @@ function register_transition_form() {
 // This function is for showing the modal
 $(() => {
   $("#show_transition_modal").click(function () {
-    $.ajax({
-      type: "GET",
-      url: $(this).attr("data-action-url"),
-      data: {},
-      cache: false,
-      success: (data, _status) => {
+    fetch($(this).attr("data-action-url"), {
+      method: "GET",
+      cache: "no-store",
+    })
+      .then((response) => response.text())
+      .then((data) => {
         $("#transitionForm").html(data)
 
         // Use Bootstrap's shown.bs.modal event to ensure modal is fully visible
@@ -752,44 +766,55 @@ $(() => {
         })
         // Now show the modal (which will trigger the event above)
         $modal.modal()
-      },
-      error: (_xhr, status, error) => {
-        console.error("Transition form AJAX error:", status, error)
-      },
-    })
+      })
+      .catch((error) => {
+        console.error("Transition form fetch error:", error)
+      })
   })
 })
 
 $("#transitionForm").submit(function (e) {
-  var form = $(this).closest("form")
-  $.ajax({
-    type: "POST",
-    url: form.attr("data-action-url"),
-    data: form.serialize(),
-    cache: false,
-    success: (_data, _status) => {
-      window.location.reload()
-    },
-    error: (data, _status, _error) => {
-      $("#transitionForm").html(data.responseText)
-      register_transition_form()
-    },
-  })
   e.preventDefault() // avoid to execute the actual submit of the form.
+  var form = $(this).closest("form")
+
+  fetch(form.attr("data-action-url"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: form.serialize(),
+    cache: "no-store",
+  })
+    .then((response) => {
+      if (response.ok) {
+        window.location.reload()
+      } else {
+        return response.text().then((text) => {
+          $("#transitionForm").html(text)
+          register_transition_form()
+        })
+      }
+    })
+    .catch((error) => {
+      console.error("Transition form submit error:", error)
+    })
 })
 
 $("#adminApprove, #adminRevert").submit(function (e) {
-  var form = $(this).closest("form")
-  $.ajax({
-    type: "POST",
-    url: form.attr("data-action-url"),
-    data: form.serialize(),
-    dataType: "json",
-    success: (_data) => {
-      window.location = form.data("success")
-    },
-  })
   e.preventDefault() // avoid to execute the actual submit of the form.
+  var form = $(this).closest("form")
+
+  fetch(form.attr("data-action-url"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: form.serialize(),
+  })
+    .then((response) => response.json())
+    .then((_data) => {
+      window.location = form.data("success")
+    })
 })
 
 /////////////////// END PROTEIN DETAIL PAGE //////////////////////
@@ -802,15 +827,22 @@ $(document).ready(() => {
     var button = $(this)
     var wrapper = button.closest(".object-flag-wrapper")
 
-    $.post({
-      url: button.data("action-url"),
-      data: {
-        flagged: button.data("flagged"),
-        target_model: button.data("model"),
-        target_id: button.data("id"),
-        csrfmiddlewaretoken: window.CSRF_TOKEN,
+    const formData = new URLSearchParams({
+      flagged: button.data("flagged"),
+      target_model: button.data("model"),
+      target_id: button.data("id"),
+      csrfmiddlewaretoken: window.CSRF_TOKEN,
+    })
+
+    fetch(button.data("action-url"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      success: (response) => {
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((response) => {
         if (response.status === "flagged") {
           button.data("flagged", 1)
           wrapper.addClass("is-flagged")
@@ -820,37 +852,43 @@ $(document).ready(() => {
           wrapper.removeClass("is-flagged")
           button.data("original-title", "Flag this excerpt for review")
         }
-      },
-    })
+      })
   })
 
   $(".btn.collection-remove").click(function (e) {
+    e.preventDefault()
     var button = $(this)
     button.prop("disabled", true)
-    $.ajax({
-      url: button.attr("data-action-url"),
-      type: "POST",
-      data: {
-        target_protein: button.data("object"),
-        target_collection: button.data("collection"),
-        csrfmiddlewaretoken: window.CSRF_TOKEN,
+
+    const formData = new URLSearchParams({
+      target_protein: button.data("object"),
+      target_collection: button.data("collection"),
+      csrfmiddlewaretoken: window.CSRF_TOKEN,
+    })
+
+    fetch(button.attr("data-action-url"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      success: (response) => {
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((response) => {
         if (response.status === "deleted") {
           button.closest("tr").remove()
         }
-      },
-    })
-    e.preventDefault()
+      })
   })
 
   $(".collection-add-button").click(function (e) {
-    //var button = $(this)
-    $.ajax({
-      type: "GET",
-      url: $(this).attr("data-action-url"),
-      dataType: "json",
-      success: (data, _status) => {
+    e.preventDefault()
+
+    fetch($(this).attr("data-action-url"), {
+      method: "GET",
+    })
+      .then((response) => response.json())
+      .then((data) => {
         if ("members" in data) {
           const members = JSON.parse(data.members)
           if (members.length) {
@@ -871,23 +909,24 @@ $(document).ready(() => {
           $("#collectionSelection").prepend(data.widget)
           $("#collectionModal").modal()
         }
-      },
-    })
-    e.preventDefault()
+      })
   })
 
   $("#collectionForm").submit(function (e) {
+    e.preventDefault() // avoid to execute the actual submit of the form.
     var form = $(this).closest("form")
     const data = form.serialize()
-    $.ajax({
-      type: "POST",
-      url: form.attr("data-action-url"),
-      data,
-      cache: false,
-      success: (_data, _status) => {},
+
+    fetch(form.attr("data-action-url"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: data,
+      cache: "no-store",
     })
+
     $("#collectionModal").modal("hide")
-    e.preventDefault() // avoid to execute the actual submit of the form.
   })
 })
 
@@ -902,27 +941,32 @@ $(() => {
     })
 
   $("#taxonomyModalForm").submit(function (e) {
+    e.preventDefault()
     const form = $(this)
     const tax_id = form.find('input[name="taxonomy_id"]').val()
     const tax_uri =
       "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&retmode=json&id="
-    $.ajax({
-      url: tax_uri + tax_id,
-      success: (data) => {
+
+    fetch(tax_uri + tax_id)
+      .then((response) => response.json())
+      .then((data) => {
         if ("scientificname" in data.result[data.result.uids[0]]) {
           // successful fetch from NCBI
           const sci_name = data.result[data.result.uids[0]].scientificname
-          $.ajax({
-            type: "POST",
-            url: form.attr("data-action-url"),
-            data: form.serialize(),
-            dataType: "json",
-            success: (_data) => {
+
+          fetch(form.attr("data-action-url"), {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: form.serialize(),
+          })
+            .then((response) => response.json())
+            .then((_data) => {
               $(`<option value="${tax_id}">${sci_name} </option>`).appendTo("#id_parent_organism")
               $(`#id_parent_organism option[value="${tax_id}"]`).prop("selected", true)
               $("#organismModal").modal("hide")
-            },
-          })
+            })
         } else {
           $("#id_taxonomy_id").addClass("is-invalid")
           $("#div_id_taxonomy_id").addClass("has-danger")
@@ -931,9 +975,7 @@ $(() => {
             .addClass("text-danger font-weight-bold")
             .removeClass("text-muted")
         }
-      },
-      error: (_data) => {},
-    })
-    e.preventDefault()
+      })
+      .catch((_error) => {})
   })
 })

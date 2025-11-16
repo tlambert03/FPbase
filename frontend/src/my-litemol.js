@@ -77,8 +77,19 @@ async function getPDBbinary(id) {
     const isLastEndpoint = i === endpoints.length - 1
 
     try {
-      const response = await $.ajax({ url, timeout: TIMEOUT })
-      return response
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), TIMEOUT)
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        throw new Error(response.statusText || `HTTP ${response.status}`)
+      }
+
+      return await response.text()
     } catch (error) {
       // Track the error
       errors.push({ endpoint: name, error })
@@ -90,7 +101,7 @@ async function getPDBbinary(id) {
           data: {
             pdbId: id,
             endpoint: name,
-            error: error.statusText,
+            error: error.message,
             attemptNumber: i + 1,
             totalEndpoints: endpoints.length,
           },
@@ -101,7 +112,7 @@ async function getPDBbinary(id) {
       // If this was the last endpoint, throw with all error details
       if (isLastEndpoint) {
         const errorSummary = errors
-          .map((e) => `${e.endpoint}: ${e.error.statusText || "Network error"}`)
+          .map((e) => `${e.endpoint}: ${e.error.message || "Network error"}`)
           .join("; ")
 
         throw new Error(`Failed to fetch PDB ${id} from all sources. Errors: ${errorSummary}`)
@@ -284,10 +295,12 @@ function downloadPDBMeta(pdbIds) {
     console.warn("Cache read failed:", error)
   }
 
-  return $.post({
-    url: "https://data.rcsb.org/graphql",
-    contentType: "application/json",
-    data: JSON.stringify({
+  return fetch("https://data.rcsb.org/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
       query: `{
         entries(entry_ids:${pdbIds}) {
           entry { id }
@@ -329,7 +342,9 @@ function downloadPDBMeta(pdbIds) {
         }
       }`,
     }),
-  }).then((response) => {
+  })
+    .then((response) => response.json())
+    .then((response) => {
     // GraphQL always returns 200 OK, check for errors in response body
     if (response.errors) {
       const errorMsg = response.errors.map((e) => e.message).join("; ")

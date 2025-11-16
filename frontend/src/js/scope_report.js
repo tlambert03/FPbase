@@ -354,15 +354,21 @@ $.fn.extend({
     function check_status(next) {
       next = next || interval
       if (JOB_ID !== null) {
-        $.post({
-          url: "",
-          data: {
-            action: "check",
-            job_id: JOB_ID,
-            csrfmiddlewaretoken: CSRF_TOKEN,
+        const formData = new URLSearchParams({
+          action: "check",
+          job_id: JOB_ID,
+          csrfmiddlewaretoken: CSRF_TOKEN,
+        })
+
+        fetch("", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
           },
-          dataType: "json",
-          success: (data) => {
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
             if (data.ready || data.info === undefined || data.info === null) {
               // job went to completion
               line.animate(1, { duration: 200 }, () => {
@@ -385,8 +391,7 @@ $.fn.extend({
               setTimeout(check_status, nextCheck)
               //window.CHECKER = setInterval(check_status, interval);
             }
-          },
-        })
+          })
       }
     }
 
@@ -400,17 +405,24 @@ $.fn.extend({
       if ($("#request-report").hasClass("cancel")) {
         action = "cancel"
       }
-      $.post({
-        url: "",
-        data: {
-          action: action,
-          scope_id: SCOPE_ID,
-          csrfmiddlewaretoken: CSRF_TOKEN,
-          job_id: JOB_ID,
-          outdated: JSON.stringify(OUTDATED),
+
+      const formData = new URLSearchParams({
+        action: action,
+        scope_id: SCOPE_ID,
+        csrfmiddlewaretoken: CSRF_TOKEN,
+        job_id: JOB_ID,
+        outdated: JSON.stringify(OUTDATED),
+      })
+
+      fetch("", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        dataType: "json",
-        success: (data) => {
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
           if (data.canceled) {
             line.animate(0, { duration: 200 })
             JOB_ID = null
@@ -430,8 +442,8 @@ $.fn.extend({
             LAST_TIME = Date.now()
             setTimeout(check_status, 250, interval - 250)
           }
-        },
-        error: (_req, _status, _err) => {
+        })
+        .catch((_error) => {
           $("#alert-msg").text(
             "Sorry!  There was an unexpected error on the server.  Please try again in a few minutes, or contact us if the problem persists."
           )
@@ -447,8 +459,7 @@ $.fn.extend({
             $("#update-alert").addClass("alert-info")
             $("#request-report").removeClass("btn-danger")
           }, 20000)
-        },
-      })
+        })
     })
 
     $(document).ready(() => {

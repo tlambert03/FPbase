@@ -64,16 +64,24 @@ function App() {
     const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
     setBinary(bin)
 
-    $.post("", `${$(e.target).serialize()}&binary=${bin}`, (data) => {
-      if (data.status === 200) {
-        setResults(data.blastResult)
-      } else if (data.status === 500) {
-        console.error(data.error)
-        alert(
-          "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
-        )
-      }
+    fetch("", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `${$(e.target).serialize()}&binary=${bin}`,
     })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === 200) {
+          setResults(data.blastResult)
+        } else if (data.status === 500) {
+          console.error(data.error)
+          alert(
+            "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
+          )
+        }
+      })
   }
 
   function handleChangeReport(index) {
