@@ -555,7 +555,7 @@ def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: C
     assert_snapshot(page)
 
     # Click on table display button by clicking its label
-    page.locator("label:has(#tbutton)").click()
+    page.locator('label[for="tbutton"]').click()
     table = page.locator("#tdisplay")
     expect(table).to_be_visible()
 

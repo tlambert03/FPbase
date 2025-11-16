@@ -40,13 +40,12 @@
     <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn">{% icon "filter" %} Add Filter</button>
 
     {% if request.GET %}
-    <div class="btn-group float-sm-end displaybuttons btn-group-toggle mb-3" data-bs-toggle="buttons" >
-      <label class="btn btn-info btn-sm btn-secondary active">
-        <input type="radio" name="display" id="lbutton" autocomplete="off" checked value='l'>{% icon "grid" %} display blocks
-      </label>
-      <label class="btn btn-info btn-sm btn-secondary">
-        <input type="radio" name="display" id="tbutton" autocomplete="off" value='t'>{% icon "table" %} display table
-      </label>
+    <div class="btn-group float-sm-end displaybuttons mb-3" role="group">
+      <input type="radio" class="btn-check" name="display" id="lbutton" autocomplete="off" checked value='l'>
+      <label class="btn btn-outline-info btn-sm" for="lbutton">{% icon "grid" %} display blocks</label>
+
+      <input type="radio" class="btn-check" name="display" id="tbutton" autocomplete="off" value='t'>
+      <label class="btn btn-outline-info btn-sm" for="tbutton">{% icon "table" %} display table</label>
     </div>
     </div>
     {% endif %}
