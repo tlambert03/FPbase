@@ -20,11 +20,11 @@
     text-align: center;
     word-wrap: break-word;
 
-    @include media-breakpoint-down(md) {
+    @include media-breakpoint-down(lg) {
       font-size: 3rem;
     }
 
-    @include media-breakpoint-down(sm) {
+    @include media-breakpoint-down(md) {
       font-size: 2.4rem;
     }
   }
@@ -153,7 +153,7 @@
     margin-bottom: 0rem !important;
   }
 
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
 
     table {
       width: 100%;

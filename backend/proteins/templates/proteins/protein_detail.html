@@ -221,8 +221,8 @@
 					</tbody>
 				</table>
 			</div>
-			<div class="align-self-end text-sm-right mt-1">
-				<div class="align-self-end text-sm-right mt-1">
+			<div class="align-self-end text-sm-end mt-1">
+				<div class="align-self-end text-sm-end mt-1">
 					<a href="#" class='text-info' data-bs-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
 						<small class="d-none d-sm-inline">Edit state transitions</small>
 						<button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none">{% icon "exchange" class_="me-2" %}Edit state transitions</button>
@@ -232,7 +232,7 @@
 		</div>
 		{% endif %}
     {% if protein.states.count > 1 and protein.transitions.count == 0 %}
-      <div class="align-self-end text-sm-right mt-1">
+      <div class="align-self-end text-sm-end mt-1">
         <a href="#" class='text-info' data-bs-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
           <small class="d-none d-sm-inline">Edit state transitions</small>
           <button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none">{% icon "exchange" class_="me-2" %}Edit state transitions</button>
@@ -452,7 +452,7 @@
     </div>
 
 
-		<div class="text-start text-md-right mt-3">
+		<div class="text-start text-md-end mt-3">
       <a href="{% url 'proteins:protein-history' slug=protein.slug %}" class="text-muted">Change history</a>
 			 <p>Something missing or incorrect?
         <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary d-none d-sm-inline'>Submit a change</a>

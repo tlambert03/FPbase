@@ -70,10 +70,13 @@ i.arrow {
 .button-row {
 	margin-top:0.5rem;
 }
-@include media-breakpoint-down(xs) {
-	.query-row:nth-child(even) {
-		background: $gray-300;
-		border-radius: 3px;
+.query-row:nth-child(even) {
+	background: $gray-300; // Mobile-first default
+	border-radius: 3px;
+
+	@include media-breakpoint-up(sm) {
+		background: transparent;
+		border-radius: 0;
 	}
 }
 

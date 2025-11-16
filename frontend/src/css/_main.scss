@@ -104,15 +104,19 @@ a.twitter-share-button {
   box-shadow: 0px 1px 5px rgba($info, 0.8) !important;
 }
 
-@include media-breakpoint-down(xs) {
-  .btn-block-xs {
-    display: block;
-    width: 100%;
-    margin-top: 0.5rem;
+.btn-block-xs {
+  display: block; // Mobile-first default
+  width: 100%;
+  margin-top: 0.5rem;
+
+  @include media-breakpoint-up(sm) {
+    display: inline-block;
+    width: auto;
+    margin-top: 0;
   }
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
   .btn-block-sm {
     display: block;
     width: 100%;
@@ -121,14 +125,14 @@ a.twitter-share-button {
 }
 
 .modal-lg {
-  max-width: 85%;
+  max-width: 100%; // Mobile-first default
 
   .container {
     padding: 0 2.5rem 0 2rem;
   }
 
-  @include media-breakpoint-down(xs) {
-    max-width: 100%;
+  @include media-breakpoint-up(sm) {
+    max-width: 85%;
   }
 }
 
@@ -296,7 +300,7 @@ select[readonly].select2-hidden-accessible+.select2-container {
 }
 
 .small-sm {
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     font-size: small !important;
   }
 }

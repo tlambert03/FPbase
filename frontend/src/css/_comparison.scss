@@ -2,7 +2,7 @@
 $comparison-width: 275px;
 
 #comparison-slider{
-  //@include media-breakpoint-down(sm) { display: none;}
+  //@include media-breakpoint-down(md) { display: none;}
   position: fixed;
   background: rgba(0, 0, 0, 0.85);
   color: #EEE;
