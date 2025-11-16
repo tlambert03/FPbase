@@ -111,7 +111,6 @@
             {% for message in messages %}
                 <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% else %}info{% endif %}">{{ message|safe }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
                 </button>
               </div>
             {% endfor %}

@@ -32,7 +32,6 @@
       </ul>
     </p>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
       </button>
   </div>
   {% endif %}
@@ -452,7 +451,6 @@
         '<strong>Data loaded for editing:</strong> The processed spectrum data has been loaded into the manual entry field. ' +
         'You can now modify individual data points if needed.' +
         '<button type="button" class="btn-close" data-bs-dismiss="alert">' +
-        '<span aria-hidden="true">&times;</span></button></div>';
 
       // Remove any existing notices first
       $("#spectrum-submit-form .alert-info, #file-processed-indicator").remove();
@@ -508,7 +506,6 @@
     }
 
     errorHtml += '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">';
-    errorHtml += '<span aria-hidden="true">&times;</span></button></div>';
 
     // Insert error message at the top of the form
     $('#spectrum-submit-form').prepend(errorHtml);
