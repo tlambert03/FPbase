@@ -500,11 +500,13 @@ export default function FPPropChart() {
       })
 
       $("#Xradio label").click((event) => {
-        currentX = $(event.currentTarget).children("input").val()
+        const inputId = $(event.currentTarget).attr("for")
+        currentX = $(`#${inputId}`).val()
         plot()
       })
       $("#Yradio label").click((event) => {
-        currentY = $(event.currentTarget).children("input").val()
+        const inputId = $(event.currentTarget).attr("for")
+        currentY = $(`#${inputId}`).val()
         plot()
       })
     }

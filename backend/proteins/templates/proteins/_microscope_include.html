@@ -26,13 +26,12 @@
         <span class='text-info' id="share-button" data-bs-toggle="tooltip" data-bs-placement="right" title="Share current configuration" data-bs-toggle="modal" data-bs-target="#shareModal">{% icon "share-square" %}</span>
         <span class="pin-wrapper rotate-90" id="stickyPin" data-bs-toggle="tooltip" data-bs-placement="right" title="Keep spectra graph on top when scrolling">{% icon "thumbtack" %}</span>
       </div>
-      <div class="btn-group btn-group-xs btn-group-toggle scale-btns" data-bs-toggle="buttons">
-        <label class="btn btn-info active">
-          <input type="radio" name="yscale" id="setLinearScale" autocomplete="off" checked value='linear'> linear
-        </label>
-        <label class="btn btn-info">
-          <input type="radio" name="yscale" id="setLogScale" autocomplete="off" value='log'> log
-        </label>
+      <div class="btn-group btn-group-xs scale-btns" role="group">
+        <input type="radio" class="btn-check" name="yscale" id="setLinearScale" autocomplete="off" checked value='linear'>
+        <label class="btn btn-outline-info" for="setLinearScale">linear</label>
+
+        <input type="radio" class="btn-check" name="yscale" id="setLogScale" autocomplete="off" value='log'>
+        <label class="btn btn-outline-info" for="setLogScale">log</label>
       </div>
       <div class="float-end me-2"><button class='btn btn-xs btn-info resetXdomain'>Reset Zoom</button></div>
     </div>

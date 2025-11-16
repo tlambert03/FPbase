@@ -131,8 +131,9 @@ circle {
         display: none;
 }
 
-#Yradio {
+#Yradio, #Xradio {
 	position: relative;
+
 }
 
 .noUi-slider{
@@ -177,7 +178,7 @@ circle {
     text-align: center;
     display: inline;
     position: absolute;
-    bottom:10px;
+    bottom:20px;
     font-size: 0.7rem;
     font-weight: 500;
     color: $gray-700;
@@ -194,13 +195,8 @@ circle {
   }
   .btn {
     outline: none;
-    border: none !important;
-    -webkit-box-shadow: none !important;
-    -moz-box-shadow: none !important;
-    box-shadow: none !important;
-    margin:0;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 400;
     @include media-breakpoint-down(xl){
       font-size: 0.75rem;
     }

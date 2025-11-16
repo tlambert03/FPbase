@@ -40,13 +40,12 @@
         </form>
 
         <div class='col mb-3'>
-          <div class="btn-group float-sm-end pt-2 pt-sm-0 displaybuttons btn-group-toggle" data-bs-toggle="buttons" >
-            <label class="btn btn-info btn-sm btn-secondary">
-              <input type="radio" name="display" id="lbutton" autocomplete="off" value='l'>{% icon "grid" %} display lozenges
-            </label>
-            <label class="btn btn-info btn-sm btn-secondary active">
-              <input type="radio" name="display" id="tbutton" autocomplete="off" checked value='t'>{% icon "table" %} display table
-            </label>
+          <div class="btn-group float-sm-end pt-2 pt-sm-0 displaybuttons" role="group">
+            <input type="radio" class="btn-check" name="display" id="lbutton" autocomplete="off" value='l'>
+            <label class="btn btn-outline-info btn-sm" for="lbutton">{% icon "grid" %} display lozenges</label>
+
+            <input type="radio" class="btn-check" name="display" id="tbutton" autocomplete="off" checked value='t'>
+            <label class="btn btn-outline-info btn-sm" for="tbutton">{% icon "table" %} display table</label>
           </div>
 
         </div>

@@ -1,19 +1,34 @@
 <div class="chartaxis-options">
   <h4> {{ axis|upper }} Axis </h2>
-  <div class="btn-group-vertical btn-group-toggle" data-bs-toggle="buttons" id="{{ axis|upper }}radio">
-    <label class='btn btn-secondary {% if axis == "X" %} active {% endif %}'>
-      <input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}em_max" value="ex_max" {% if axis == "X" %} checked {% endif %}>Excitation &lambda;
-    </label>
-    <label class='btn btn-secondary {% if axis == "Y" %} active {% endif %}'>
-      <input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}ex_max" value="em_max" {% if axis == "Y" %} checked {% endif %}>Emission &lambda;
-    </label>
-    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}stokes" value="stokes">Stokes Shift</label>
-    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}ext_coeff" value="ext_coeff">EC</label>
-    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}qy" value="qy">QY</label>
-    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}brightness" value="brightness">Brightness</label>
-    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}pka" value="pka">pKa</label>
-    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}bleach" value="bleach">Stability</label>
-    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}maturation" value="maturation">Maturation</label>
-    <label class="btn btn-secondary"><input type="radio" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}lifetime" value="lifetime">Lifetime</label>
+  <div class="btn-group-vertical" role="group" id="{{ axis|upper }}radio">
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}em_max" value="ex_max" {% if axis == "X" %} checked {% endif %}>
+    <label class='btn btn-outline-secondary' for='{{ axis|upper }}em_max'>Excitation &lambda;</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}ex_max" value="em_max" {% if axis == "Y" %} checked {% endif %}>
+    <label class='btn btn-outline-secondary' for='{{ axis|upper }}ex_max'>Emission &lambda;</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}stokes" value="stokes">
+    <label class="btn btn-outline-secondary" for="{{ axis|upper }}stokes">Stokes Shift</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}ext_coeff" value="ext_coeff">
+    <label class="btn btn-outline-secondary" for="{{ axis|upper }}ext_coeff">EC</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}qy" value="qy">
+    <label class="btn btn-outline-secondary" for="{{ axis|upper }}qy">QY</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}brightness" value="brightness">
+    <label class="btn btn-outline-secondary" for="{{ axis|upper }}brightness">Brightness</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}pka" value="pka">
+    <label class="btn btn-outline-secondary" for="{{ axis|upper }}pka">pKa</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}bleach" value="bleach">
+    <label class="btn btn-outline-secondary" for="{{ axis|upper }}bleach">Stability</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}maturation" value="maturation">
+    <label class="btn btn-outline-secondary" for="{{ axis|upper }}maturation">Maturation</label>
+
+    <input type="radio" class="btn-check" name="{{ axis|upper }}radio" autocomplete="off" id="{{ axis|upper }}lifetime" value="lifetime">
+    <label class="btn btn-outline-secondary" for="{{ axis|upper }}lifetime">Lifetime</label>
   </div>
 </div>
