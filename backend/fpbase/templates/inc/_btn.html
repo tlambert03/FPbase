@@ -43,7 +43,7 @@ Examples:
 {% load fpbase_tags %}
 
 <button type="{{ type|default:'button' }}"
-        class="btn{% if outline %} btn-outline-{{ variant|default:'primary' }}{% else %} btn-{{ variant|default:'primary' }}{% endif %}{% if size %} btn-{{ size }}{% endif %}{% if block %} btn-block{% endif %}{% if block_xs %} btn-block-xs{% endif %}{% if circle %} btn-circle{% endif %}{% if hide_sm_up %} d-block d-sm-none{% endif %}{% if hide_xs %}{% if hide_xs_inline %} d-none d-sm-inline{% else %} d-none d-sm-block{% endif %}{% endif %}{% if class %} {{ class }}{% endif %}"
+        class="btn{% if outline %} btn-outline-{{ variant|default:'primary' }}{% else %} btn-{{ variant|default:'primary' }}{% endif %}{% if size %} btn-{{ size }}{% endif %}{% if block == True %} btn-block{% endif %}{% if block_xs == True %} btn-block-xs{% endif %}{% if circle == True %} btn-circle{% endif %}{% if hide_sm_up == True %} d-block d-sm-none{% endif %}{% if hide_xs == True %}{% if hide_xs_inline|default:True %} d-none d-sm-inline{% else %} d-none d-sm-block{% endif %}{% endif %}{% if class %} {{ class }}{% endif %}"
         {% if id %}id="{{ id }}"{% endif %}
         {% if disabled %}disabled{% endif %}
         {% if data_toggle %}data-toggle="{{ data_toggle }}"{% endif %}

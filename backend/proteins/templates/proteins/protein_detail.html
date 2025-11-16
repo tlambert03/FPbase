@@ -99,7 +99,7 @@
 				<div class="container-button" data-toggle="tooltip" data-placement="top" title="Add to collection">
 					<a class="btn collection-add-button" href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal">
 					  {% icon "collection" class_="d-none d-sm-inline" %}
-					  	<a class='collection-add-button d-block d-sm-none' href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal" style="text-decoration: none;"><button type="button" class="btn btn-info btn-block">{% icon "collection" class_="mr-2" %}Add to collection</button>
+					  	<a class='collection-add-button d-block d-sm-none' href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-toggle="modal" data-target="#collectionModal" style="text-decoration: none;">{% include 'inc/_btn.html' with icon="collection" text="Add to collection" variant="info" block=True %}
 					  	</a>
 					</a>
 				</div>
@@ -223,7 +223,7 @@
 				<div class="align-self-end text-sm-right mt-1">
 					<a href="#" class='text-info' data-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
 						<small class="d-none d-sm-inline">Edit state transitions</small>
-						<button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none">{% icon "exchange" class_="mr-2" %}Edit state transitions</button>
+						{% include 'inc/_btn.html' with icon="exchange" text="Edit state transitions" variant="info" block=True hide_sm_up=True class="mt-3" %}
 					</a>
 				</div>
 			</div>
@@ -233,7 +233,7 @@
       <div class="align-self-end text-sm-right mt-1">
         <a href="#" class='text-info' data-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
           <small class="d-none d-sm-inline">Edit state transitions</small>
-          <button type="button" class="btn btn-info btn-block mt-3 d-block d-sm-none">{% icon "exchange" class_="mr-2" %}Edit state transitions</button>
+          {% include 'inc/_btn.html' with icon="exchange" text="Edit state transitions" variant="info" block=True hide_sm_up=True class="mt-3" %}
         </a>
       </div>
     {% endif %}
@@ -403,7 +403,7 @@
         <p class='text-muted'>No excerpts have been added for {{protein.name | safe }}<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
       {% endif %}
-      <button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#excerptModal">{% icon "quote" class_="mr-2" %}Add an excerpt</button>
+      {% include 'inc/_btn.html' with icon="quote" text="Add an excerpt" variant="secondary" size="sm" class="mt-1" data_toggle="modal" data_target="#excerptModal" %}
     </div>
 
 
@@ -424,7 +424,7 @@
 				{% else %}
 				    <p style='color: #888;'>No additional references have been added.<p>
 				{% endif %}
-				<button type="button" class='btn btn-sm btn-secondary mt-1' data-toggle="modal" data-target="#referenceModal">{% icon "collection" class_="mr-2" %}Add a reference</button>
+				{% include 'inc/_btn.html' with icon="collection" text="Add a reference" variant="secondary" size="sm" class="mt-1" data_toggle="modal" data_target="#referenceModal" %}
 			</ol>
 		</div>
 
@@ -454,7 +454,7 @@
       <a href="{% url 'proteins:protein-history' slug=protein.slug %}" class="text-muted">Change history</a>
 			 <p>Something missing or incorrect?
         <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary d-none d-sm-inline'>Submit a change</a>
-        <a role="button" href="{% url 'proteins:update' slug=protein.slug %}" class="btn btn-info btn-block mt-2 mb-3 d-block d-sm-none text-white">{% icon "upload" class_="mr-2" %}Submit a change</a>
+        <a role="button" href="{% url 'proteins:update' slug=protein.slug %}" class="d-block d-sm-none" style="text-decoration: none;">{% include 'inc/_btn.html' with icon="upload" text="Submit a change" variant="info" block=True class="mt-2 mb-3 text-white" %}</a>
        </p>
 		</div>
 
