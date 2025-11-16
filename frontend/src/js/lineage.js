@@ -812,7 +812,7 @@ function createMutationSearch(selection) {
   var searchDiv = wrapperDiv.append("div").attr("class", "input-group col-12 col-lg-8 mb-2")
   searchDiv
     .append("div")
-    .attr("class", "input-group-prepend")
+    .attr("class", "")
     .append("span")
     .attr("class", "input-group-text")
     .text("Search")
@@ -825,7 +825,7 @@ function createMutationSearch(selection) {
     .attr("placeholder", "Mutations (e.g. A206K) separated by spaces")
     .attr("id", "mutation-search-input")
 
-  var btngroup = searchDiv.append("div").attr("class", "input-group-append")
+  var btngroup = searchDiv.append("div").attr("class", "")
 
   var anyallgroup = btngroup
     .append("div")
@@ -855,14 +855,14 @@ function createMutationSearch(selection) {
   var rightdiv = wrapperDiv.append("div").attr("class", "input-group col-12 col-lg-4 mb-2")
   rightdiv
     .append("div")
-    .attr("class", "input-group-prepend")
+    .attr("class", "")
     .append("span")
     .attr("class", "input-group-text")
     .text("Relative to")
 
   var relativetogroup = rightdiv
     .append("div")
-    .attr("class", "btn-group-toggle btn-group input-group-append")
+    .attr("class", "btn-group-toggle btn-group ")
     .attr("data-toggle", "buttons")
 
   relativetogroup

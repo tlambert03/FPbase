@@ -909,7 +909,7 @@ window.initMicroscope = () => {
               .parent()
               .append(
                 $("<div>", {
-                  class: "input-group-append item-link",
+                  class: " item-link",
                   title: "visit item page",
                 }).append(
                   $("<a>", {

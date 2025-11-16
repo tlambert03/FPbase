@@ -5,27 +5,23 @@
      data-fpbase-init="litemol"
      data-pdb-ids='{{pdb_ids_json|safe}}'>
   <div class="col-12 col-md-6 order-2 order-md-1">
-    <div style="height: 400px; background: white;">
+    <div style="height: 98%; background: white; position: relative;">
       <div id="litemol-viewer"></div>
     </div>
   </div>
   <div class='col-12 col-md-6 mt-2 order-1 order-md-2'>
-    <div class="form-group mb-2">
+    <div class="mb-2">
       <div class="input-group mb-0">
-        <div class="input-group-prepend">
-          <label class="input-group-text" for="pdb_select">PDB ID</label>
-        </div>
+        <label class="input-group-text" for="pdb_select">PDB ID</label>
         <select class="form-select" id="pdb_select">
         </select>
-        <div class="input-group-append">
-          <a href="https://www.rcsb.org/structure/{{protein.pdb.0}}" target="_blank" rel="noopener" id="pdb-out-link"><button class="btn btn-outline-info" type="button">{% icon "external-link" %}</button></a>
-        </div>
+        <a href="https://www.rcsb.org/structure/{{protein.pdb.0}}" target="_blank" rel="noopener" id="pdb-out-link"><button class="btn btn-outline-info" type="button">{% icon "external-link" %}</button></a>
       </div>
     </div>
     <h5 class='mb-0' id="chem-title"></h5>
     <div class='row'>
         <div class='col-12'>
-          <div class="text-muted" id="pdb-info" style="position: absolute; top:8px">
+          <div class="text-muted" id="pdb-info">
             Deposited: <span id="chem-date"></span>, <span id="chem-authors"></span>
             <a href="" id="chem-pubmed" target="_blank" >{% icon "external-link" class_="ms-2 text-secondary" style='font-size: 0.8rem;' %}</a><br>
             Chromophore{% if protein.chromophore %} ({{protein.chromophore}}){% endif %}: <span id='chem-id'></span><br>

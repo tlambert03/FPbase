@@ -476,7 +476,7 @@ export default function initFRET() {
           class: "input-group input-group-sm d-flex justify-content-center pb-3",
         })
           .append(
-            $("<div>", { class: "input-group-prepend" }).append(
+            $("<div>", { class: "" }).append(
               $("<span>", { class: "input-group-text", id: "minQYA" }).html("min QY<sub>A</sub>")
             )
           )
@@ -504,7 +504,7 @@ export default function initFRET() {
           class: "input-group input-group-sm d-flex justify-content-center pb-3",
         })
           .append(
-            $("<div>", { class: "input-group-prepend" }).append(
+            $("<div>", { class: "" }).append(
               $("<span>", {
                 class: "input-group-text",
                 id: "minLambdaSepLab",

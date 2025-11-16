@@ -147,13 +147,19 @@ a.twitter-share-button {
 
 .like_buttons {
   padding-left: 1rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.5rem;
 
   @include media-breakpoint-down(xs) {
     padding-left: 0rem;
   }
 
-  div {
-    display: inline;
+  > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   a,
@@ -169,6 +175,11 @@ a.twitter-share-button {
   }
 
   .favit {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
     .favorite,
     .favorite:active {
       box-shadow: none !important;
@@ -178,9 +189,9 @@ a.twitter-share-button {
     }
 
     .badge {
-      position: relative;
+      position: absolute;
       bottom: -0.7rem;
-      right: 0.7rem;
+      right: -0.3rem;
       font-size: 0.4rem;
       background: rgba($warning, 0.6);
       color: $gray-700;
