@@ -150,7 +150,20 @@ a.twitter-share-button {
 }
 
 .like_buttons {
+  // remove box shadow, even on hover AND clicked
+
+
+
+
   align-items: center;
+  .btn {
+    padding: 0.4rem;
+    box-shadow: none !important;
+  }
+  div {
+    padding: 0;
+    margin: 0;
+  }
   a,
   a.active {
     color: $yellow;

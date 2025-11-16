@@ -73,15 +73,15 @@
 
       <div class="form-inline row mt-2" id='toggle_alls'>
         <p class="offset-5 offset-sm-6 form-group col-3 d-inline text-end">toggle all:</p>
-        <div class="col-1 form-check custom-checkbox">
+        <div class="col-1 form-check ">
           <input class="toggleall form-check-input" id="toggle_all_ex" type="checkbox" id="inlineCheckbox1" value="ex" checked>
           <label class="form-check-label" for="toggle_all_ex"><span class="d-none d-sm-inline">e</span>x</label>
         </div>
-        <div class="col-1 form-check custom-checkbox">
+        <div class="col-1 form-check ">
           <input class="toggleall form-check-input" id="toggle_all_em" type="checkbox" id="inlineCheckbox2" value="em" checked>
           <label class="form-check-label" for="toggle_all_em"><span class="d-none d-sm-inline">e</span>m</label>
         </div>
-        <div class="col-1 form-check custom-checkbox">
+        <div class="col-1 form-check ">
           <input class="toggleall form-check-input" id="toggle_all_2p" type="checkbox" id="inlineCheckbox3" value="2p">
           <label class="form-check-label" for="toggle_all_2p">2<span class="d-none d-sm-inline">p</span></label>
         </div>
@@ -138,7 +138,7 @@
 
     <div class="tab-pane" id="helptab">
       <div class="container mt-3">
-        <p class='text-justify'>Add items to the spectra viewer by clicking the corresponding <strong class='text-info'>add...</strong> button for the type of item you would like to add (e.g. fluorescent protein, filter, etc...).  Remove items by clicking the red <span class='text-danger'><strong>&times;</strong></span> button next to the item you wish to remove.  Add chroma/semrock filters to the viewer by using the "import commercial filter" buttons. Scale excitation spectra to EC or emission spectra to QY using the corresponding options in the options tab (note, not all dyes have EC/QY information and some will disappear from the graph).  If you add a custom laser in the excitation/light tab, you can scale all emission spectra to their relative excitation at that particular laser line.  If you add at least one fluorophore and one emission filter, you can use the collection efficiency tab to evaluate how well each emission filter collects emission from each probe (and evaluate potential bleedthrough).</p>
+        <p>Add items to the spectra viewer by clicking the corresponding <strong class='text-info'>add...</strong> button for the type of item you would like to add (e.g. fluorescent protein, filter, etc...).  Remove items by clicking the red <span class='text-danger'><strong>&times;</strong></span> button next to the item you wish to remove.  Add chroma/semrock filters to the viewer by using the "import commercial filter" buttons. Scale excitation spectra to EC or emission spectra to QY using the corresponding options in the options tab (note, not all dyes have EC/QY information and some will disappear from the graph).  If you add a custom laser in the excitation/light tab, you can scale all emission spectra to their relative excitation at that particular laser line.  If you add at least one fluorophore and one emission filter, you can use the collection efficiency tab to evaluate how well each emission filter collects emission from each probe (and evaluate potential bleedthrough).</p>
         <h5 class=' pb-2'>{% icon "keyboard" class_="me-2" %}<strong>Keyboard Shortcuts</strong></h5>
         <div class="container">
           <dl class="row g-0">

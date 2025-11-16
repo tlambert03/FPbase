@@ -13,9 +13,7 @@
         <p class='mt-4' id="currentmemberships"></p>
     		<form id="collectionForm" class='mt-4 mb-2' data-action-url="{% url 'proteins:add_to_collection' %}">
           <div class="input-group" id="collectionSelection">
-              <div class="input-group-append">
-                <button class="btn btn-info" type="submit" >Add</button>
-              </div>
+              <button class="btn btn-info" type="submit" >Add</button>
           </div>
           <input type="hidden" name="protein" class='hidden' value="{{ protein.id }}">
           {% csrf_token %}

@@ -8,7 +8,7 @@
 
 <p>This page lists potential inconsistencies in the database, uncovered by automated data-validation routines.  These may be mismatch between the format of the data and the FPbase "convention", inconsistencies with external databases (such as GenBank), or inconsistencies between different fields in the database that capture similar information (switch type and transitions, or lineage mutations and sequence).  Not all items are necessarily problematic, but this is a good place to begin looking for things to clean up.  If you'd rather fill in missing information in the database, <a href="{%url 'proteins:problems-gaps' %}">start here</a>.</p>
 
-<h4 class='font-weight-bold'>Lineage Problems</h4>
+<h4 class='fw-bold'>Lineage Problems</h4>
 <p class='text-muted'>Either a mutation string problem, misalignment, or doesn't yield the child sequence.</p>
 <div>
   <ul class="row">
@@ -21,7 +21,7 @@
 </div>
 
 
-<h4 class='font-weight-bold'>Sequences that do not match GenBank</h4>
+<h4 class='fw-bold'>Sequences that do not match GenBank</h4>
 <p class='text-muted'>These sequences do not exactly match the sequence for the corresponding genbank ID.  Sometimes this is just because the genbank sequence has slight N/C terminal differences, or perhaps a His tag.  Sometimes it indicates a problem with our sequence, and sometimes Genbank is wrong!  The gray text shows the mutation from the FPbase sequence to the Genbank sequence.  N- and C- terminal mismatches are less of a concern than internal single point mutations.  If you uncover an inconsistency in the literature (e.g. between the paper and the GenBank sequence) please <a href="{% url 'contact' %}">let us know!</a></p>
 <div>
   <ul class="row">
@@ -33,7 +33,7 @@
   </ul>
 </div>
 
-<h4 class='font-weight-bold'>Sequences that do not start with methionine</h4>
+<h4 class='fw-bold'>Sequences that do not start with methionine</h4>
 <p class='text-muted'>Everything should start with Met.  Cross check sequences with original publication and clean up.</p>
 <div>
   <ul class="row">
@@ -45,7 +45,7 @@
   </ul>
 </div>
 
-<h4 class='font-weight-bold'>Sequences containing His tag</h4>
+<h4 class='fw-bold'>Sequences containing His tag</h4>
 <p class='text-muted'>Usually, these sequences were pulled from PDB.  Cross-check with originally publication, and remove His tag and any C- N- terminal linkers</p>
 <div>
   <ul class="row">
@@ -58,7 +58,7 @@
 </div>
 
 
-<h4 class='font-weight-bold'>Proteins whose states/transitions are inconsistent with their switch type</h4>
+<h4 class='fw-bold'>Proteins whose states/transitions are inconsistent with their switch type</h4>
 <p class='text-muted'>This may indicate a mis-categorized switch type, or it may indicated that the states and transitions of the protein are not yet completed or accurate.  See the <a href="https://help.fpbase.org/glossary#switch-type">documentation</a> for a review on how FPbase categorizes switching types.</p>
 <div>
   <ul class="row">
@@ -71,7 +71,7 @@
 </div>
 
 
-<h4 class='font-weight-bold'>Possibly miscategorized as "basic"</h4>
+<h4 class='fw-bold'>Possibly miscategorized as "basic"</h4>
 <p class='text-muted'>Proteins whose names (or publication titles) suggest that they may be switchable/convertable, but have only a single fluorescent state.</p>
 <div>
   <ul class="row">

@@ -11,9 +11,7 @@
   <div class="row">
     <div class="col-12 col-md-6">
       <div class="input-group input-group-sm mb-3">
-        <div class="input-group-prepend">
-          <label class="input-group-text" for="proteinSlug">Protein</label>
-        </div>
+        <label class="input-group-text" for="proteinSlug">Protein</label>
         <select class="form-select" id="proteinSlug">
           {% if protein %}
             <option value='{{protein.slug}}'>{{protein.name|safe}}</option>
@@ -25,9 +23,7 @@
     </div>
     <div class="col-12 col-md-6">
       <div class="input-group input-group-sm mb-3">
-        <div class="input-group-prepend">
-          <label class="input-group-text" for="fileTypeSelect">Image Format</label>
-        </div>
+        <label class="input-group-text" for="fileTypeSelect">Image Format</label>
         <select class="form-select form-select-sm" id="fileTypeSelect">
           <option value='svg'>SVG</option>
           <option value='png'>PNG</option>
@@ -39,37 +35,37 @@
   </div>
   <div class="row mb-3">
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="form-check custom-checkbox">
+      <div class="form-check ">
         <input type="checkbox" class="form-check-input" id="showName">
         <label class="form-check-label" for="showName">Show Name</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="form-check custom-checkbox">
+      <div class="form-check ">
         <input type="checkbox" class="form-check-input" id="xAxis" checked>
         <label class="form-check-label" for="xAxis">Show X Labels</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="form-check custom-checkbox">
+      <div class="form-check ">
         <input type="checkbox" class="form-check-input" id="yAxis">
         <label class="form-check-label" for="yAxis">Show Y Labels</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="form-check custom-checkbox">
+      <div class="form-check ">
         <input type="checkbox" class="form-check-input" id="grid">
         <label class="form-check-label" for="grid">Show Grid</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="form-check custom-checkbox">
+      <div class="form-check ">
         <input type="checkbox" class="form-check-input" id="areaFill" checked>
         <label class="form-check-label" for="areaFill">Fill Area Under Curve</label>
       </div>
     </div>
     <div class="col-12 col-md-6 col-lg-4">
-      <div class="form-check custom-checkbox">
+      <div class="form-check ">
         <input type="checkbox" class="form-check-input" id="transCheck" checked>
         <label class="form-check-label" for="transCheck">Transparent Background</label>
       </div>
@@ -78,43 +74,31 @@
   <div class="row mb-3">
     <div class="col-12 col-md-4 order-1 col-lg-3 col-xl-2">
       <div class="input-group input-group-sm mb-3">
-        <div class="input-group-prepend">
-          <span class="input-group-text">Min &lambda;</span>
-        </div>
+        <span class="input-group-text">Min &lambda;</span>
         <input class="form-control min-range wave-range" type="number" value="350" step="10" min="200" max="1600" id="minXRange">
-        <div class="input-group-append">
-          <span class="input-group-text">nm</span>
-        </div>
+        <span class="input-group-text">nm</span>
       </div>
     </div>
     <div class="col-12 col-md-4 order-2 order-md-3 order-lg-2 col-lg-3 col-xl-2">
       <div class="input-group input-group-sm mb-3">
-        <div class="input-group-prepend">
-          <span class="input-group-text">Max &lambda;</span>
-        </div>
+        <span class="input-group-text">Max &lambda;</span>
         <input class="form-control max-range wave-range" type="number" value="750" step="10" min="200" max="1600" id="maxXRange">
-        <div class="input-group-append">
-          <span class="input-group-text">nm</span>
-        </div>
+        <span class="input-group-text">nm</span>
       </div>
     </div>
     <div class="col-12 col-md-8 order-3 order-md-2 order-lg-3 col-lg-3 col-xl-4">
       <div class="input-group input-group-sm mb-3">
-        <div class="input-group-prepend">
-          <span class="input-group-text">Opacity</span>
-        </div>
+        <span class="input-group-text">Opacity</span>
         <input type="range" class="form-range form-control" min=".05" max="1" step="0.05" value="0.5" id="opacitySlider">
       </div>
     </div>
     <div class="col-12 col-md-8 order-4 col-lg-3 col-xl-4">
       <div class="input-group input-group-sm mb-3">
-        <div class="input-group-prepend">
-          <span class="input-group-text">Line Width</span>
-        </div>
+        <span class="input-group-text">Line Width</span>
         <input type="range" class="form-range form-control" value="1" min="0" max="8" step="1" id="lineWidthSlider">
       </div>
     </div>
   </div>
 </form>
 
-<p class='small text-muted font-italic text-center'>If you have matplotlib experience, you may also try any of the kwargs parameters for <a rel="nofollow" href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html">pyplot.plot</a> or <a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.fill_between.html" rel="nofollow">pyplot.fill_between</a> (for area plots).</p>
+<p class='small text-muted fst-italic text-center'>If you have matplotlib experience, you may also try any of the kwargs parameters for <a rel="nofollow" href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.plot.html">pyplot.plot</a> or <a href="https://matplotlib.org/api/_as_gen/matplotlib.pyplot.fill_between.html" rel="nofollow">pyplot.fill_between</a> (for area plots).</p>
