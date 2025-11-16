@@ -96,7 +96,7 @@
 
       <div class="d-sm-flex justify-content-between align-items-start gap-2">
         <div class="like_buttons flex-shrink-0 d-sm-flex order-sm-2 mb-3 mb-sm-0">
-          <div class="container-button mb-2 mb-sm-0" data-bs-toggle="tooltip" data-placement="top" title="Add to collection">
+          <div class="container-button mb-2 mb-sm-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to collection">
             <a class="btn collection-add-button" href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-bs-toggle="modal" data-bs-target="#collectionModal">
               {% icon "collection" class_="d-none d-sm-inline" %}
             </a>
@@ -124,11 +124,11 @@
 		  {% if protein.has_spectra %}
 		  <div id="spectra">
 		    <div class="spectra-overlay-div">
-		      <span data-bs-toggle="tooltip" data-placement="top" title="Download spectra as csv"><a
+		      <span data-bs-toggle="tooltip" data-bs-placement="top" title="Download spectra as csv"><a
 		          href="{% url 'proteins:spectra_csv' %}?q={{spectra_ids}}" class='text-secondary spectra-overlay-link'>{% icon "download" %}</a></span>
-		      <span data-bs-toggle="tooltip" data-placement="top" title="Generate spectra image/url" class='ms-2'><a href="#"
+		      <span data-bs-toggle="tooltip" data-bs-placement="top" title="Generate spectra image/url" class='ms-2'><a href="#"
 		          class='text-secondary spectra-overlay-link' data-bs-toggle="modal" data-bs-target="#spectraURLModal">{% icon "link" %}</a></span>
-		      <span data-bs-toggle="tooltip" data-placement="top" title="Add another spectrum" class='ms-2'><a
+		      <span data-bs-toggle="tooltip" data-bs-placement="top" title="Add another spectrum" class='ms-2'><a
 		          href="{% url 'proteins:submit-spectra' slug=protein.slug %}" class='text-secondary spectra-overlay-link'>{% icon "chart" %}<sup>+</sup></a></span>
 		    </div>
 
@@ -184,8 +184,8 @@
 
     <h3 class="fpbase-id">
       <button type="button" class="btn btn-link p-0" tabindex="0" data-bs-toggle="popover"
-        data-trigger="focus" data-placement="right"
-        data-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>">
+        data-bs-trigger="focus" data-bs-placement="right"
+        data-bs-content="The FPbase ID is a unique, immutable identifier assigned to each protein in the database.  When linking to this protein, it is best to link to the FPbase ID instead of the slug: <a href='{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}'>{{ ABSOLUTE_ROOT }}{% url 'proteins:protein-detail' protein.uuid %}</a>">
           {% icon "info" class_="ms-1 me-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}
       </button>
       FPbase ID: <span style="font-weight:400;">
@@ -289,9 +289,9 @@
 				  <h3 class='d-inline'>{{ protein.name | safe }} Sequence</h3>
             {% if protein.seq %}
               {% if protein.seq_validated %}
-                <span id='seq-badge' data-bs-toggle="tooltip" data-placement="right" title="This sequence has been moderated, and matches the original publication">{% icon "check" title="sequence validated" %}</span>
+                <span id='seq-badge' data-bs-toggle="tooltip" data-bs-placement="right" title="This sequence has been moderated, and matches the original publication">{% icon "check" title="sequence validated" %}</span>
               {% else %}
-                <button type="button" class="btn btn-link p-0" tabindex="0" data-bs-toggle="popover" data-trigger="focus" title="Warning" data-placement="right" data-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error.">{% icon "alert" class_="ms-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;' %}</button>
+                <button type="button" class="btn btn-link p-0" tabindex="0" data-bs-toggle="popover" data-bs-trigger="focus" title="Warning" data-bs-placement="right" data-bs-content="Note: We cannot guarantee that all sequences are 100% accurate.  Please validate externally before cloning, and consider <a href='{% url 'proteins:update' slug=protein.slug %}' class='text-secondary'>updating this page</a> if you find an error.">{% icon "alert" class_="ms-2 text-muted" style='font-size: 0.75rem; position: relative; top: -2px; cursor: pointer;' %}</button>
               {% endif %}
             {% endif %}
         </div>
@@ -379,7 +379,7 @@
     {% endif %}
 
     <div class="excerpts">
-      <h3>Excerpts <button type="button" class="btn btn-link p-0" tabindex="0" data-bs-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info" class_="ms-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</button></h3>
+      <h3>Excerpts <button type="button" class="btn btn-link p-0" tabindex="0" data-bs-toggle="popover" data-bs-trigger="focus" title="Excerpts" data-bs-placement="right" data-bs-content="Excerpts are snippets from publications that capture <strong>key</strong> information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info" class_="ms-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</button></h3>
       {% if excerpts %}
         {% for excerpt in excerpts  %}
           {% if excerpt.status != 'rejected' %}

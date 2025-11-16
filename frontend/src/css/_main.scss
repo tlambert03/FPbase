@@ -162,12 +162,17 @@ a.twitter-share-button {
     margin: 0;
   }
   a,
+  a.btn,
   a.active {
     color: $yellow;
     font-size: 1.5rem;
     box-shadow: none !important;
+    border: none !important;
     &:hover {
       color: orange;
+    }
+    &:active {
+      color: rgb(211, 137, 0);
     }
   }
 
@@ -462,23 +467,16 @@ pre .mismatch {
 // Flag button opacity states
 a.object-flag {
   opacity: 0.3;
+  outline: 0;
+  box-shadow: none;
+  border: none !important;
 
   &:hover {
     opacity: 1;
   }
-
-  &:focus {
-    box-shadow: none;
-  }
-
   &:active {
-    box-shadow: none;
-    outline: 0;
-  }
-
-  &:active:focus {
-    box-shadow: none;
-    outline: 0;
+    box-shadow: none !important;
+    opacity: 0.7;
   }
 }
 
