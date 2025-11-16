@@ -92,7 +92,7 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
   function queryRow(id) {
     var out =
       '\
-      <div class="form-row query-row" id="query-row-' +
+      <div class="row g-2 query-row" id="query-row-' +
       id +
       '">\
           <div class="col-sm-4 names-col d-flex justify-content-between align-items-start">\
