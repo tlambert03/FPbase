@@ -347,7 +347,7 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
     # Visual snapshot: FRET calculation complete with chart
     if not hasattr(assert_snapshot, "NOOP"):
         page.wait_for_load_state("networkidle")
-        assert_snapshot(page)
+        assert_snapshot(page, mask_elements=[".highcharts-legend"])
 
 
 def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
@@ -633,7 +633,13 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
         # Wait for chart to fully render
         page.locator(".highcharts-series").first.wait_for(state="attached")
         # Mask legend as it has minor rendering variations
-        assert_snapshot(page, mask_elements=[".highcharts-legend"])
+        assert_snapshot(
+            page,
+            mask_elements=[
+                ".highcharts-legend",
+                "#protein-structure .col-12.col-md-6.order-2.order-md-1",
+            ],
+        )
 
     # scroll to the structure section and take another snapshot
     page.locator("#protein-structure").scroll_into_view_if_needed()
@@ -641,6 +647,8 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
     expect(chem_title).to_be_visible()
     expect(chem_title).to_contain_text("Crystal structure of enhanced Green Fluorescent Protein")
     expect(page.locator("img#smilesImg")).to_be_visible()
+
+    expect(page.locator("#litemol-viewer canvas")).to_be_visible()
 
     page.wait_for_load_state("networkidle")
     # Mask the 3D structure viewer as it renders with animation/randomness

@@ -1,0 +1,55 @@
+<!--
+Reusable button component for Bootstrap 4 buttons
+
+Required parameters:
+  - text: Button text content (can be empty for icon-only buttons)
+
+Optional parameters:
+  - type: Button type attribute (default: "button")
+  - variant: Bootstrap button variant (default: "primary")
+    Options: primary, secondary, info, danger, warning, success, light, dark, link
+  - outline: Use outline variant (default: False)
+  - size: Button size (default: "")
+    Options: sm, lg, "" (empty for default)
+  - block: Make button full width (default: False)
+  - block_xs: Make button full width on xs screens only (default: False)
+  - circle: Apply btn-circle class for icon-only circular buttons (default: False)
+  - icon: Icon name to include before text (default: "")
+  - icon_class: Additional classes for the icon (default: "")
+  - icon_after: Show icon after text instead of before (default: False)
+  - class: Additional CSS classes (default: "")
+  - id: Button ID attribute (default: "")
+  - disabled: Disable the button (default: False)
+  - attrs: Additional HTML attributes as a string (default: "")
+  - hide_sm_up: Hide on sm screens and up (d-block d-sm-none) (default: False)
+  - hide_xs: Hide on xs screens (d-none d-sm-inline or d-none d-sm-block) (default: False)
+  - hide_xs_inline: Use d-none d-sm-inline when hide_xs=True (default: True)
+
+Data attributes (for modals, AJAX, etc.):
+  - data_toggle: data-toggle attribute (default: "")
+  - data_target: data-target attribute (default: "")
+  - data_dismiss: data-dismiss attribute (default: "")
+  - data_*: Pass any data-* attribute via the attrs parameter
+
+Examples:
+  {% include '_button.html' with text="Submit" variant="primary" type="submit" %}
+  {% include '_button.html' with text="Cancel" variant="danger" size="sm" %}
+  {% include '_button.html' with icon="add" text="Add Item" variant="info" %}
+  {% include '_button.html' with icon="close" variant="secondary" data_dismiss="modal" %}
+  {% include '_button.html' with text="Delete" variant="danger" size="sm" block_xs=True %}
+  {% include '_button.html' with icon="info-i" variant="info" circle=True data_toggle="modal" data_target="#myModal" %}
+-->
+{% load fpbase_tags %}
+
+<button type="{{ type|default:'button' }}"
+        class="btn{% if outline %} btn-outline-{{ variant|default:'primary' }}{% else %} btn-{{ variant|default:'primary' }}{% endif %}{% if size %} btn-{{ size }}{% endif %}{% if block %} btn-block{% endif %}{% if block_xs %} btn-block-xs{% endif %}{% if circle %} btn-circle{% endif %}{% if hide_sm_up %} d-block d-sm-none{% endif %}{% if hide_xs %}{% if hide_xs_inline %} d-none d-sm-inline{% else %} d-none d-sm-block{% endif %}{% endif %}{% if class %} {{ class }}{% endif %}"
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if data_toggle %}data-toggle="{{ data_toggle }}"{% endif %}
+        {% if data_target %}data-target="{{ data_target }}"{% endif %}
+        {% if data_dismiss %}data-dismiss="{{ data_dismiss }}"{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {%- if icon and not icon_after -%}{% icon icon class_=icon_class %}{%- if text %} {% endif -%}{%- endif -%}
+    {{- text|safe -}}
+    {%- if icon and icon_after %} {% icon icon class_=icon_class -%}{%- endif -%}
+</button>

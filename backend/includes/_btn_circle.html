@@ -1,0 +1,46 @@
+<!--
+Reusable circular icon button component (simplified version of _button.html for icon-only buttons)
+
+Required parameters:
+  - icon: Icon name to display
+
+Optional parameters:
+  - variant: Bootstrap button variant (default: "info")
+    Options: primary, secondary, info, danger, warning, success, light, dark
+  - outline: Use outline variant (default: True for circle buttons)
+  - size: Button size (default: "sm")
+    Options: sm, lg, "" (empty for default)
+  - type: Button type attribute (default: "button")
+  - class: Additional CSS classes (default: "")
+  - id: Button ID attribute (default: "")
+  - disabled: Disable the button (default: False)
+  - attrs: Additional HTML attributes as a string (default: "")
+  - title: Tooltip/title attribute (default: "")
+  - aria_label: aria-label attribute (default: "")
+
+Data attributes (for modals, AJAX, etc.):
+  - data_toggle: data-toggle attribute (default: "")
+  - data_target: data-target attribute (default: "")
+  - data_dismiss: data-dismiss attribute (default: "")
+  - data_*: Pass any data-* attribute via the attrs parameter
+
+Examples:
+  {% include '_btn_circle.html' with icon="add" %}
+  {% include '_btn_circle.html' with icon="info-i" data_toggle="modal" data_target="#myModal" %}
+  {% include '_btn_circle.html' with icon="close" variant="danger" title="Close" %}
+  {% include '_btn_circle.html' with icon="add" variant="info" outline=False %}
+-->
+{% load fpbase_tags %}
+
+<button type="{{ type|default:'button' }}"
+        class="btn{% if outline|default:True %} btn-outline-{{ variant|default:'info' }}{% else %} btn-{{ variant|default:'info' }}{% endif %} btn-{{ size|default:'sm' }} btn-circle{% if class %} {{ class }}{% endif %}"
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if title %}title="{{ title }}"{% endif %}
+        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if data_toggle %}data-toggle="{{ data_toggle }}"{% endif %}
+        {% if data_target %}data-target="{{ data_target }}"{% endif %}
+        {% if data_dismiss %}data-dismiss="{{ data_dismiss }}"{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {%- icon icon -%}
+</button>
