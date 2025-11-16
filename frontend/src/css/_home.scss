@@ -22,7 +22,7 @@
 /* Padding for spacing */
 .cover-container {
   padding: 1.5rem;
-  @media (max-width: 750px) {
+  @include media-breakpoint-down(md) {
     position: relative;
     top: -7vh;
   }
@@ -32,7 +32,7 @@
   display: block;
   position: relative;
   height: 420px;
-  @media (max-width: 750px) {
+  @include media-breakpoint-down(md) {
     display: none;
   }
   @include media-breakpoint-down(lg) {

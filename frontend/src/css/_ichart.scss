@@ -151,7 +151,7 @@ circle {
     @include media-breakpoint-down(lg){
       font-size: 0.6rem;
     }
-    @include media-breakpoint-down(lg){
+    @include media-breakpoint-down(md){
       font-size: 0.8rem;
     }
     &:after{  // adds arrows
@@ -207,7 +207,7 @@ circle {
     @include media-breakpoint-down(lg){
       font-size: 0.6rem;
     }
-    @include media-breakpoint-down(lg){
+    @include media-breakpoint-down(md){
       font-size: 0.8rem;
     }
     @include button-variant($chart-theme, $chart-theme);
