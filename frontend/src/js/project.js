@@ -895,7 +895,7 @@ $(document).ready(() => {
 
 $(() => {
   $("#id_parent_organism")
-    .siblings(".")
+    .parent()
     .find(".select-add-button")
     .click(() => {
       $("#organismModal").modal()

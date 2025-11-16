@@ -4,7 +4,7 @@
 @import url('https://fonts.googleapis.com/css?family=Raleway:100,500,600');
 
 // Override Bootstrap 5's color contrast calculation to preserve white text on buttons
-$min-contrast-ratio: 3.5 !default;
+$min-contrast-ratio: 3 !default;
 // Bootstrap 5 link underline - maintain BS4 behavior
 $link-decoration: none !default;
 

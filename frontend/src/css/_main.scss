@@ -146,11 +146,11 @@ a.twitter-share-button {
 }
 
 .like_buttons {
-  align-items: center; // Add this to vertically center icons
+  align-items: center;
   a,
   a.active {
     color: $yellow;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     box-shadow: none !important;
     &:hover {
       color: orange;
