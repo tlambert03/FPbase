@@ -345,62 +345,62 @@ function downloadPDBMeta(pdbIds) {
   })
     .then((response) => response.json())
     .then((response) => {
-    // GraphQL always returns 200 OK, check for errors in response body
-    if (response.errors) {
-      const errorMsg = response.errors.map((e) => e.message).join("; ")
-      throw new Error(`GraphQL errors: ${errorMsg}`)
-    }
-
-    if (!response.data?.entries) {
-      throw new Error("No data returned from GraphQL API")
-    }
-    const { data } = response
-    const fetchedData = {}
-
-    data.entries.forEach((entry) => {
-      const entryId = entry.entry.id
-      pdbInfo[entryId] = entry
-      fetchedData[entryId] = entry
-
-      // Extract chromophore (largest component by molecular weight)
-      let chromo = null
-      if (entry.polymer_entities?.length > 0) {
-        chromo = entry.polymer_entities[0].chem_comp_nstd_monomers
-      } else if (entry.nonpolymer_entities?.length > 0) {
-        chromo = entry.nonpolymer_entities[0].nonpolymer_comp
+      // GraphQL always returns 200 OK, check for errors in response body
+      if (response.errors) {
+        const errorMsg = response.errors.map((e) => e.message).join("; ")
+        throw new Error(`GraphQL errors: ${errorMsg}`)
       }
 
-      if (Array.isArray(chromo) && chromo.length > 0) {
-        chromo = chromo.reduce((a, b) =>
-          a.chem_comp.formula_weight > b.chem_comp.formula_weight ? a : b
+      if (!response.data?.entries) {
+        throw new Error("No data returned from GraphQL API")
+      }
+      const { data } = response
+      const fetchedData = {}
+
+      data.entries.forEach((entry) => {
+        const entryId = entry.entry.id
+        pdbInfo[entryId] = entry
+        fetchedData[entryId] = entry
+
+        // Extract chromophore (largest component by molecular weight)
+        let chromo = null
+        if (entry.polymer_entities?.length > 0) {
+          chromo = entry.polymer_entities[0].chem_comp_nstd_monomers
+        } else if (entry.nonpolymer_entities?.length > 0) {
+          chromo = entry.nonpolymer_entities[0].nonpolymer_comp
+        }
+
+        if (Array.isArray(chromo) && chromo.length > 0) {
+          chromo = chromo.reduce((a, b) =>
+            a.chem_comp.formula_weight > b.chem_comp.formula_weight ? a : b
+          )
+        }
+
+        if (chromo?.chem_comp) {
+          pdbInfo[entryId].chromophore = { ...chromo.chem_comp }
+        }
+
+        // Extract resolution if available
+        const resolutions = entry.rcsb_entry_info?.resolution_combined
+        if (resolutions?.length > 0) {
+          pdbInfo[entryId].resolution = resolutions[0]
+        }
+      })
+
+      // Cache the successful result
+      try {
+        localStorage.setItem(
+          cacheKey,
+          JSON.stringify({
+            timestamp: Date.now(),
+            data: fetchedData,
+          })
         )
-      }
-
-      if (chromo?.chem_comp) {
-        pdbInfo[entryId].chromophore = { ...chromo.chem_comp }
-      }
-
-      // Extract resolution if available
-      const resolutions = entry.rcsb_entry_info?.resolution_combined
-      if (resolutions?.length > 0) {
-        pdbInfo[entryId].resolution = resolutions[0]
+      } catch (error) {
+        // Ignore cache write errors (quota exceeded, etc.)
+        console.warn("Cache write failed:", error)
       }
     })
-
-    // Cache the successful result
-    try {
-      localStorage.setItem(
-        cacheKey,
-        JSON.stringify({
-          timestamp: Date.now(),
-          data: fetchedData,
-        })
-      )
-    } catch (error) {
-      // Ignore cache write errors (quota exceeded, etc.)
-      console.warn("Cache write failed:", error)
-    }
-  })
 }
 
 /**
