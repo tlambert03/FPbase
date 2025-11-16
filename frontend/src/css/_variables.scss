@@ -7,6 +7,14 @@
 $min-contrast-ratio: 3 !default;
 // Bootstrap 5 link underline - maintain BS4 behavior
 $link-decoration: none !default;
+// Preserve BS4 container max-width (BS5 added xxl breakpoint with 1320px max-width)
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1140px  // Override BS5's 1320px to preserve BS4 behavior
+) !default;
 
 //
 // Color system
