@@ -1,4 +1,4 @@
-<!--
+{% comment %}
 Reusable circular icon button component (simplified version of _button.html for icon-only buttons)
 
 Required parameters:
@@ -29,7 +29,7 @@ Examples:
   {% include '_btn_circle.html' with icon="info-i" data_toggle="modal" data_target="#myModal" %}
   {% include '_btn_circle.html' with icon="close" variant="danger" title="Close" %}
   {% include '_btn_circle.html' with icon="add" variant="info" outline=False %}
--->
+{% endcomment %}
 {% load fpbase_tags %}
 
 <button type="{{ type|default:'button' }}"
@@ -41,6 +41,4 @@ Examples:
         {% if data_toggle %}data-toggle="{{ data_toggle }}"{% endif %}
         {% if data_target %}data-target="{{ data_target }}"{% endif %}
         {% if data_dismiss %}data-dismiss="{{ data_dismiss }}"{% endif %}
-        {% if attrs %}{{ attrs|safe }}{% endif %}>
-    {%- icon icon -%}
-</button>
+        {% if attrs %}{{ attrs|safe }}{% endif %}>{% icon icon %}</button>

@@ -1,4 +1,4 @@
-<!--
+{% comment %}
 Reusable button component for Bootstrap 4 buttons
 
 Required parameters:
@@ -38,7 +38,8 @@ Examples:
   {% include '_button.html' with icon="close" variant="secondary" data_dismiss="modal" %}
   {% include '_button.html' with text="Delete" variant="danger" size="sm" block_xs=True %}
   {% include '_button.html' with icon="info-i" variant="info" circle=True data_toggle="modal" data_target="#myModal" %}
--->
+{% endcomment %}
+
 {% load fpbase_tags %}
 
 <button type="{{ type|default:'button' }}"
@@ -48,8 +49,4 @@ Examples:
         {% if data_toggle %}data-toggle="{{ data_toggle }}"{% endif %}
         {% if data_target %}data-target="{{ data_target }}"{% endif %}
         {% if data_dismiss %}data-dismiss="{{ data_dismiss }}"{% endif %}
-        {% if attrs %}{{ attrs|safe }}{% endif %}>
-    {%- if icon and not icon_after -%}{% icon icon class_=icon_class %}{%- if text %} {% endif -%}{%- endif -%}
-    {{- text|safe -}}
-    {%- if icon and icon_after %} {% icon icon class_=icon_class -%}{%- endif -%}
-</button>
+        {% if attrs %}{{ attrs|safe }}{% endif %}>{% if icon and not icon_after %}{% icon icon class_=icon_class %}{% if text %} {% endif %}{% endif %}{{ text|safe }}{% if icon and icon_after %} {% icon icon class_=icon_class %}{% endif %}</button>
