@@ -152,9 +152,6 @@ a.twitter-share-button {
 .like_buttons {
   // remove box shadow, even on hover AND clicked
 
-
-
-
   align-items: center;
   .btn {
     padding: 0.4rem;
@@ -215,6 +212,19 @@ a.twitter-share-button {
     }
   }
 }
+
+.fav-count {
+    font-size: .8em;
+    position: relative;
+    margin-left: 4px;
+}
+
+// Favorite button uses unified icon-dual-toggle pattern from _main.scss
+.icon-toggle {
+    @extend .icon-dual-toggle;
+    // No additional styling needed - inherits from unified pattern
+}
+
 
 .tooltip {
   .tooltip-inner {

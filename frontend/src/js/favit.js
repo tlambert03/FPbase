@@ -1,5 +1,7 @@
 $(document).ready(() => {
   $("#add_remove_favorite").click(function (e) {
+    e.preventDefault()
+
     var $obj = $(this)
     var $favit = $obj.closest(".favit")
     $obj.prop("disabled", true)
@@ -8,7 +10,7 @@ $(document).ready(() => {
       type: "POST",
       data: {
         target_model: $obj.data("model"),
-        target_object_id: $obj.data("target").split("_")[1],
+        target_object_id: $obj.data("bsTarget").split("_")[1],
         csrfmiddlewaretoken: window.CSRF_TOKEN,
       },
       success: (response) => {
@@ -31,10 +33,10 @@ $(document).ready(() => {
         $obj.prop("disabled", false)
       },
     })
-    e.preventDefault() // avoid to execute the actual submit of the form.
   })
 
-  $(".btn.unfave").click(function () {
+  $(".btn.unfave").click(function (e) {
+    e.preventDefault() // Prevent default FIRST
     var $obj = $(this)
     $obj.prop("disabled", true)
     $.ajax({
@@ -54,6 +56,5 @@ $(document).ready(() => {
         $obj.prop("disabled", false)
       },
     })
-    e.preventDefault() // avoid to execute the actual submit of the form.
   })
 })
