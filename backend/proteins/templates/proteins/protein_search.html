@@ -29,7 +29,7 @@
 <p class="text-muted">Add additional rows to refine your search.  Each row is considered as an 'AND' clause in the search.  If a given search parameter is unknown for a protein in the database, that protein will be excluded from the results. If you find that you are not getting results, relax your query.</p>
 <p class='text-muted'>Note: organic dyes are not yet searchable in the database, but spectra for a selection of organic dyes are available on the <a href="{% url 'proteins:spectra' %}">spectra page</a>.</p>
 
-<div class="hidden" id="crispy-form">
+<div class="d-none" id="crispy-form">
  {{ filter.form |crispy }}
 </div>
 
@@ -71,12 +71,12 @@
 
         <div class="container protein_results ps-0 pe-0">
             {% if filter.qs %}
-                <div id="ldisplay" {% if request.GET.display == 't' %}class="hidden"{% endif %}>
+                <div id="ldisplay" {% if request.GET.display == 't' %}class="d-none"{% endif %}>
                 {% with proteins=filter.qs %}
                     {% include '_proteinlozenges.html' %}
                 {% endwith %}
                 </div>
-                <div id="tdisplay" class="{% if request.GET.display == 'l' or not request.GET.display %}hidden{% endif %}">
+                <div id="tdisplay" class="{% if request.GET.display == 'l' or not request.GET.display %}d-none{% endif %}">
                 {% with proteins=filter.qs %}
                     <div class="table-responsive">
                       {% include '_proteintable.html' %}
@@ -87,12 +87,12 @@
                 {% if filter.recs %}
                     <p>There were no exact results, but the following proteins were similar to your query:</p>
 
-                    <div id="ldisplay" {% if request.GET.display == 't' %}class="hidden"{% endif %}>
+                    <div id="ldisplay" {% if request.GET.display == 't' %}class="d-none"{% endif %}>
                     {% with proteins=filter.recs %}
                         {% include '_proteinlozenges.html' %}
                     {% endwith %}
                     </div>
-                    <div id="tdisplay" class="{% if request.GET.display == 'l' or not request.GET.display %}hidden{% endif %}">
+                    <div id="tdisplay" class="{% if request.GET.display == 'l' or not request.GET.display %}d-none{% endif %}">
                     {% with proteins=filter.recs %}
                         <div class="table-responsive">
                           {% include '_proteintable.html' %}

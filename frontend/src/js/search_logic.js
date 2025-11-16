@@ -69,13 +69,13 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
     }
 
     // hide the current input field by putting it in the hidden #crispy-form
-    // FIXME: change this to a variable selector
     var inputcol = row.find(".input-col")
     let value
     if (keepValue) {
       value = inputcol.find("input").val()
     }
-    inputcol.find(".form-group").appendTo("#crispy-form")
+    // Move all children back to crispy-form to ensure clean slate
+    inputcol.children().appendTo("#crispy-form")
 
     // grab the form div that we want to put here
     var formdiv = $(`#div_id_${name}`)
@@ -237,6 +237,10 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
         $(`#${value}button`).click()
         continue
       }
+      // Skip empty values
+      if (!value) {
+        continue
+      }
       let filter, operator
       if (key in fields) {
         filter = key
@@ -281,8 +285,8 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
 
     $(".displaybuttons input").change(function () {
       const display_type = $(this).val()
-      $(`#${display_type}display`).removeClass("hidden")
-      $(`#${display_type}display`).siblings("div").addClass("hidden")
+      $(`#${display_type}display`).removeClass("d-none")
+      $(`#${display_type}display`).siblings("div").addClass("d-none")
     })
 
     // Mark the form as ready for E2E tests

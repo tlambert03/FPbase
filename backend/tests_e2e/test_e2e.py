@@ -491,13 +491,13 @@ def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: C
         pytest.skip("Skipping microscope create test on non-chromium browser due to flakiness.")
 
     protein = ProteinFactory.create(
-        name="SearchTestGFP",
+        name="TestSearchGFP",
         seq=SEQ,
         default_state__ex_max=488,
         default_state__em_max=525,
     )
     protein = ProteinFactory.create(
-        name="SearchTestGFP2",
+        name="TestSearchGFP2",
         seq=SEQ + "AA",
         default_state__ex_max=600,
         default_state__em_max=650,
@@ -509,29 +509,49 @@ def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: C
     # Wait for search form to be ready (initSearch has completed)
     expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
     expect(page.locator("#filter-select-0")).to_be_visible()
+    query_rows = page.locator("#query_builder .query-row")
+
     assert_snapshot(page)
+
+    # make sure the form only has 2 rows:
+    expect(query_rows).to_have_count(1)
 
     # First filter: Sequence cDNA contains
     page.locator("#filter-select-0").select_option("seq")
     page.locator("#query-row-0 .operator-select").select_option("cdna_contains")
     page.locator("#id_seq__cdna_contains").fill(CDNA)
+    expect(query_rows).to_have_count(1)
+
+    # make sure each query_row.input_col has only one input element
+    for row in query_rows.all():
+        expect(row.locator(".input-col")).to_have_count(1)
+        expect(row.locator(".input-col input")).to_have_count(1)
 
     # Add second filter row
     page.locator("#add-row-btn").click()
+    expect(query_rows).to_have_count(2)
 
     # Second filter: Name starts with (row 1 doesn't have "contains" option)
     page.locator("#filter-select-1").select_option("name")
     page.locator("#query-row-1 .operator-select").select_option("istartswith")
     page.locator("#id_name__istartswith").fill(protein.name[:6])
+    expect(query_rows).to_have_count(2)
+    # make sure each query_row.input_col has only one input element
+    for row in query_rows.all():
+        expect(row.locator(".input-col")).to_have_count(1)
+        expect(row.locator(".input-col input")).to_have_count(1)
 
     # Submit search
     page.locator('button[type="submit"]').first.click()
+
+    expect(query_rows).to_have_count(2)
 
     # Wait for results page to load and JS to initialize
     expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
 
     lozenges = page.locator("#ldisplay")
     expect(lozenges).to_be_visible()
+    expect(lozenges.locator(".protein_result_item")).to_have_count(2)
     assert_snapshot(page)
 
     # Click on table display button by clicking its label
