@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ast
+
 from django import forms
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
@@ -247,16 +249,24 @@ class ModernSpectrumForm(forms.ModelForm):
         """Save spectrum with appropriate owner."""
         # Map spectral_data field to model's data field
         if "spectral_data" in self.cleaned_data:
-            self.instance.data = self.cleaned_data["spectral_data"]
+            data = self.cleaned_data["spectral_data"]
+            # Convert string to list if needed
+            if isinstance(data, str):
+                data = ast.literal_eval(data)
+            self.instance.data = data
 
         cat = self.cleaned_data.get("category")
         if cat != Spectrum.PROTEIN:
             owner_model = apps.get_model("proteins", self.OWNER_LOOKUP[cat][1])
             owner_name = self.cleaned_data.get("owner")
-            owner_obj, created = owner_model.objects.get_or_create(name=owner_name, defaults={"created_by": self.user})
-            if not created:
+            # Only set created_by if user is authenticated
+            defaults = {"created_by": self.user} if self.user.is_authenticated else {}
+            owner_obj, created = owner_model.objects.get_or_create(name=owner_name, defaults=defaults)
+            if not created and self.user.is_authenticated:
                 owner_obj.updated_by = self.user
                 owner_obj.save()
             setattr(self.instance, self.OWNER_LOOKUP[cat][0], owner_obj)
-        self.instance.created_by = self.user
+        # Only set created_by if user is authenticated
+        if self.user.is_authenticated:
+            self.instance.created_by = self.user
         return super().save(commit=commit)

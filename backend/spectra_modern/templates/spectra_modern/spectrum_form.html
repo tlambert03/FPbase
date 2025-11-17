@@ -7,6 +7,9 @@
 
 {% block extra_css %}
   {# Tom-Select styles are loaded via Vite bundle #}
+  <style>
+    [x-cloak] { display: none  !important; }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -47,7 +50,10 @@
     <form method="post" enctype="multipart/form-data" id="spectrum-form"
           data-preview-url="{{ preview_url }}"
           data-state-search-url="{{ state_autocomplete_url }}"
-          data-validate-owner-url="{{ validate_owner_url }}">
+          data-validate-owner-url="{{ validate_owner_url }}"
+          x-data="spectrumForm()"
+          @submit.prevent="handleSubmit"
+          x-ref="form">
       {% csrf_token %}
 
       {# Non-field errors #}
@@ -78,13 +84,18 @@
       {# Owner fields row #}
       <div class="row">
         {# Protein state field (shown only for protein category) #}
-        <div class="col-sm-6 col-xs-12" id="protein-owner-field" style="display: none;">
+        <div class="col-sm-6 col-xs-12" x-show="showProteinOwner()" x-ref="proteinOwnerField">
           <div class="form-group">
             <label for="{{ form.owner_state.id_for_label }}" class="font-weight-bold">
               Protein
-              <span class="text-danger owner-required">*</span>
+              <span class="text-danger">*</span>
             </label>
-            {{ form.owner_state }}
+            <select name="{{ form.owner_state.name }}"
+                    id="{{ form.owner_state.id_for_label }}"
+                    class="form-control"
+                    x-ref="ownerStateSelect">
+              <option value="">---------</option>
+            </select>
             {% if form.owner_state.help_text %}
               <small class="form-text text-muted">{{ form.owner_state.help_text }}</small>
             {% endif %}
@@ -95,13 +106,16 @@
         </div>
 
         {# Generic owner field (shown for non-protein categories) #}
-        <div class="col-sm-6 col-xs-12" id="other-owner-field">
+        <div class="col-sm-6 col-xs-12" x-show="showOtherOwner()">
           <div class="form-group">
             <label for="{{ form.owner.id_for_label }}" class="font-weight-bold">
-              <span id="owner-type-label">Owner</span> Name
-              <span class="text-danger owner-required">*</span>
+              <span x-text="ownerTypeLabel()">Owner</span> Name
+              <span class="text-danger">*</span>
             </label>
-            {{ form.owner }}
+            <input type="text" name="{{ form.owner.name }}"
+                   id="{{ form.owner.id_for_label }}"
+                   class="form-control"
+                   x-ref="ownerInput">
             {% if form.owner.help_text %}
               <small class="form-text text-muted">{{ form.owner.help_text }}</small>
             {% endif %}
@@ -177,7 +191,7 @@
       </div>
 
       {# pH and Solvent row (shown only for biological spectra) #}
-      <div class="row" id="bio-fields-row" style="display: none;">
+      <div class="row" x-show="showBioFields()">
         <div class="col-md-6 col-sm-12">
           <div class="form-group">
             <label for="{{ form.ph.id_for_label }}">{{ form.ph.label }}</label>
@@ -230,14 +244,14 @@
       </div>
 
       {# Submit button #}
-      <button type="submit" class="btn btn-primary" id="submit-btn">
+      <button type="submit" class="btn btn-primary"
+              x-text="submitButtonText()"
+              :disabled="submitting">
         Preview Spectrum
       </button>
-    </form>
-  </div>
 
-  {# Spectrum Preview Section #}
-  <div id="spectrum-preview-section" style="display: none;" class="mt-4">
+      {# Spectrum Preview Section - INSIDE the form so it has access to Alpine refs #}
+      <div id="spectrum-preview-section" x-show="hasPreview()" x-cloak x-ref="previewSection" class="mt-4" style="display: none;">
     <div class="card">
       <div class="card-header">
         <h5 class="mb-0">
@@ -245,21 +259,21 @@
         </h5>
       </div>
       <div class="card-body">
-        <div id="spectrum-preview-message" class="alert alert-info mb-3"></div>
+        <div x-ref="previewMessage" class="alert alert-info mb-3"></div>
 
         {# Spectrum visualization #}
-        <div id="spectrum-preview-chart" class="mb-3 text-center"></div>
+        <div id="spectrum-preview-chart" x-ref="previewChart" class="mb-3 text-center"></div>
 
         {# Spectrum data summary #}
-        <div id="spectrum-preview-info" class="row">
+        <div class="row">
           <div class="col-md-4">
-            <strong>Peak Wavelength:</strong> <span id="preview-peak-wave"></span> nm
+            <strong>Peak Wavelength:</strong> <span x-ref="previewPeakWave"></span> nm
           </div>
           <div class="col-md-4">
-            <strong>Range:</strong> <span id="preview-wave-range"></span> nm
+            <strong>Range:</strong> <span x-ref="previewWaveRange"></span> nm
           </div>
           <div class="col-md-4">
-            <strong>Data Points:</strong> <span id="preview-data-points"></span>
+            <strong>Data Points:</strong> <span x-ref="previewDataPoints"></span>
           </div>
         </div>
 
@@ -273,15 +287,17 @@
         </div>
 
         <div class="d-flex justify-content-between mt-3">
-          <button type="button" class="btn btn-secondary" id="edit-data-btn">
+          <button type="button" class="btn btn-secondary" @click="hidePreview">
             {% icon "edit" class_="mr-2" %}Edit Data
           </button>
-          <button type="button" class="btn btn-success" id="submit-final-btn">
+          <button type="button" class="btn btn-success" @click="$refs.form.submit()">
             {% icon "check" class_="mr-2" %}Looks Good - Submit Spectrum
           </button>
         </div>
       </div>
     </div>
+  </div>
+    </form>
   </div>
 
   <p class='mt-3 small'>

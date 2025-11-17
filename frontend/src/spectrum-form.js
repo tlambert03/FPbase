@@ -1,15 +1,13 @@
 /**
- * Progressive enhancement for modern spectrum submission form
+ * Modern spectrum submission form with Alpine.js and Tom-Select
  *
- * Uses Tom-Select for autocomplete (modern Select2 alternative)
- * and vanilla JS for form state management.
+ * Alpine.js handles reactive state management and form logic
+ * Tom-Select provides the autocomplete widget
  */
 
 import "tom-select/dist/css/tom-select.bootstrap4.css"
+import Alpine from "@alpinejs/csp"
 import TomSelect from "tom-select"
-
-// State
-let currentPreviewData = null
 
 // Configuration for valid subtypes per category
 const VALID_SUBTYPES = {
@@ -21,474 +19,339 @@ const VALID_SUBTYPES = {
   "": [],
 }
 
-// DOM elements (will be initialized on DOMContentLoaded)
-let elements = {}
+// Register Alpine component
+Alpine.data("spectrumForm", () => ({
+  // State
+  category: "",
+  subtype: "",
+  previewData: null,
+  submitting: false,
+  tomSelectInstance: null,
 
-/**
- * Get CSRF token from cookie
- */
-function getCsrfToken() {
-  const name = "csrftoken"
-  const cookies = document.cookie.split(";")
-  for (const cookie of cookies) {
-    const trimmed = cookie.trim()
-    if (trimmed.startsWith(`${name}=`)) {
-      return decodeURIComponent(trimmed.substring(name.length + 1))
-    }
-  }
-  return null
-}
+  // Initialize
+  init() {
+    // Get select elements by ID
+    const categorySelect = document.getElementById("id_category")
+    const subtypeSelect = document.getElementById("id_subtype")
 
-/**
- * Initialize DOM element references
- */
-function initElements() {
-  elements = {
-    form: document.getElementById("spectrum-form"),
-    categoryField: document.getElementById("id_category"),
-    subtypeField: document.getElementById("id_subtype"),
-    proteinOwnerField: document.getElementById("protein-owner-field"),
-    otherOwnerField: document.getElementById("other-owner-field"),
-    ownerStateSelect: document.getElementById("id_owner_state"),
-    ownerInput: document.getElementById("id_owner"),
-    ownerTypeLabel: document.getElementById("owner-type-label"),
-    bioFieldsRow: document.getElementById("bio-fields-row"),
-    phField: document.getElementById("id_ph"),
-    solventField: document.getElementById("id_solvent"),
-    fileInput: document.getElementById("id_file"),
-    dataInput: document.getElementById("id_spectral_data"),
-    submitBtn: document.getElementById("submit-btn"),
-    clearStateBtn: document.getElementById("clear-state-btn"),
-    formSection: document.getElementById("spectrum-form-section"),
-    previewSection: document.getElementById("spectrum-preview-section"),
-    previewMessage: document.getElementById("spectrum-preview-message"),
-    previewChart: document.getElementById("spectrum-preview-chart"),
-    previewPeakWave: document.getElementById("preview-peak-wave"),
-    previewWaveRange: document.getElementById("preview-wave-range"),
-    previewDataPoints: document.getElementById("preview-data-points"),
-    editDataBtn: document.getElementById("edit-data-btn"),
-    submitFinalBtn: document.getElementById("submit-final-btn"),
-    fileTab: document.getElementById("file-tab"),
-    manualTab: document.getElementById("manual-tab"),
-  }
-}
-
-/**
- * Store original subtype options
- */
-let originalSubtypeOptions = null
-function storeOriginalSubtypes() {
-  if (originalSubtypeOptions) return
-
-  originalSubtypeOptions = {}
-  const options = elements.subtypeField.querySelectorAll("option")
-  options.forEach((opt) => {
-    if (opt.value) {
-      originalSubtypeOptions[opt.value] = opt.textContent
-    }
-  })
-}
-
-/**
- * Handle category selection changes
- */
-function handleCategoryChange() {
-  const category = elements.categoryField.value
-
-  // Update subtype options
-  updateSubtypeOptions(category)
-
-  // Update owner field visibility and labels
-  updateOwnerFields(category)
-
-  // Show/hide bio fields (pH, solvent)
-  updateBioFields(category)
-}
-
-/**
- * Update subtype dropdown based on selected category
- */
-function updateSubtypeOptions(category) {
-  storeOriginalSubtypes()
-
-  // Remove all options except empty
-  const options = Array.from(elements.subtypeField.querySelectorAll("option"))
-  options.forEach((opt) => {
-    if (opt.value) opt.remove()
-  })
-
-  // Add valid options for this category
-  const validOptions = VALID_SUBTYPES[category] || []
-  validOptions.forEach((value) => {
-    if (originalSubtypeOptions[value]) {
-      const option = document.createElement("option")
-      option.value = value
-      option.textContent = originalSubtypeOptions[value]
-      elements.subtypeField.appendChild(option)
-    }
-  })
-
-  // Auto-select if only one option
-  if (validOptions.length === 1) {
-    elements.subtypeField.value = validOptions[0]
-  } else {
-    elements.subtypeField.value = ""
-  }
-}
-
-/**
- * Update owner field visibility and labels
- */
-function updateOwnerFields(category) {
-  const categoryText =
-    elements.categoryField.options[elements.categoryField.selectedIndex]?.text || "Owner"
-
-  if (category === "p") {
-    // Protein category
-    elements.proteinOwnerField.style.display = "block"
-    elements.ownerStateSelect.required = true
-    elements.otherOwnerField.style.display = "none"
-    elements.ownerInput.required = false
-
-    // Initialize Tom-Select when field becomes visible
-    initStateAutocomplete()
-  } else {
-    // Other categories
-    elements.proteinOwnerField.style.display = "none"
-    elements.ownerStateSelect.required = false
-    elements.otherOwnerField.style.display = "block"
-    elements.ownerInput.required = true
-    elements.ownerTypeLabel.textContent = categoryText
-  }
-}
-
-/**
- * Update bio fields visibility (pH, solvent)
- */
-function updateBioFields(category) {
-  const showBioFields = category === "d" || category === "p"
-
-  if (showBioFields) {
-    elements.bioFieldsRow.style.display = ""
-  } else {
-    elements.bioFieldsRow.style.display = "none"
-    elements.phField.value = ""
-    elements.solventField.value = ""
-  }
-}
-
-/**
- * Update submit button text based on data presence
- */
-function updateSubmitButton() {
-  const activeTab = document.querySelector("#data-source-tabs .nav-link.active")
-  const isFileTab = activeTab?.id === "file-tab"
-  const hasData = isFileTab ? elements.fileInput.value : elements.dataInput.value.trim()
-
-  elements.submitBtn.textContent = hasData ? "Preview Spectrum" : "Submit"
-}
-
-/**
- * Handle form submission
- */
-function handleFormSubmit(e) {
-  e.preventDefault()
-
-  if (elements.previewSection.style.display !== "none") {
-    // Preview already shown, submit the form
-    submitFinalSpectrum()
-  } else {
-    // Show preview first
-    showSpectrumPreview()
-  }
-}
-
-/**
- * Show spectrum preview via AJAX
- */
-async function showSpectrumPreview() {
-  const originalText = elements.submitBtn.textContent
-  elements.submitBtn.disabled = true
-  elements.submitBtn.textContent = "Processing..."
-
-  try {
-    // Prepare form data
-    const formData = new FormData(elements.form)
-
-    // Determine active tab and set data source
-    const activeTab = document.querySelector("#data-source-tabs .nav-link.active")
-    const isManualTab = activeTab?.id === "manual-tab"
-
-    if (isManualTab) {
-      formData.delete("file")
-      formData.append("data_source", "manual")
-    } else {
-      formData.set("spectral_data", "")
-      formData.append("data_source", "file")
+    // Store original subtype options
+    this.originalSubtypes = {}
+    if (subtypeSelect) {
+      Array.from(subtypeSelect.options).forEach((opt) => {
+        if (opt.value) {
+          this.originalSubtypes[opt.value] = opt.textContent
+        }
+      })
     }
 
-    // Get preview URL from form data attribute
-    const previewUrl = elements.form.dataset.previewUrl
-
-    // Make request
-    const response = await fetch(previewUrl, {
-      method: "POST",
-      headers: {
-        "X-CSRFToken": getCsrfToken(),
-        "X-Requested-With": "XMLHttpRequest",
-      },
-      body: formData,
+    // Watch category changes to update UI
+    this.$watch("category", (value) => {
+      this.updateSubtypeOptions(value)
+      this.updateOwnerFields(value)
     })
 
-    const data = await response.json()
-
-    if (response.ok && data.success) {
-      currentPreviewData = data.preview
-      displaySpectrumPreview(data)
-    } else {
-      showError(data.error || "Failed to generate preview", data.details, data.form_errors)
+    // Set up two-way binding for category select
+    if (categorySelect) {
+      this.category = categorySelect.value
+      categorySelect.addEventListener("change", (e) => {
+        this.category = e.target.value
+      })
     }
-  } catch (error) {
-    showError("Network error", error.message)
-  } finally {
-    elements.submitBtn.disabled = false
-    elements.submitBtn.textContent = originalText
-  }
-}
 
-/**
- * Display spectrum preview
- */
-function displaySpectrumPreview(response) {
-  const preview = response.preview
-
-  // Clear any previous errors
-  const alerts = elements.form.querySelectorAll(".alert-danger")
-  for (const alert of alerts) {
-    alert.remove()
-  }
-
-  // Update preview content
-  elements.previewMessage.textContent = response.message
-  elements.previewPeakWave.textContent = preview.peak_wave || "N/A"
-  elements.previewWaveRange.textContent = `${preview.min_wave}-${preview.max_wave}`
-  elements.previewDataPoints.textContent = preview.data_points
-
-  // Display SVG chart
-  elements.previewChart.innerHTML = preview.svg
-  const svg = elements.previewChart.querySelector("svg")
-  if (svg) {
-    svg.style.maxWidth = "100%"
-    svg.style.height = "auto"
-    svg.style.display = "block"
-    svg.style.margin = "0 auto"
-  }
-
-  // Show preview, hide form
-  elements.formSection.style.display = "none"
-  elements.previewSection.style.display = "block"
-
-  // Scroll to preview
-  elements.previewSection.scrollIntoView({ behavior: "smooth" })
-}
-
-/**
- * Hide preview and return to editing
- */
-function hidePreview() {
-  if (!currentPreviewData) return
-
-  // Switch to manual tab
-  const manualTab = document.getElementById("manual-tab")
-  if (manualTab) {
-    // Trigger Bootstrap tab
-    if (window.$ && typeof window.$.fn.tab === "function") {
-      window.$(manualTab).tab("show")
-    } else {
-      // Fallback without Bootstrap
-      document.getElementById("file-tab")?.classList.remove("active")
-      manualTab.classList.add("active")
-      document.getElementById("file-panel")?.classList.remove("show", "active")
-      document.getElementById("manual-panel")?.classList.add("show", "active")
+    // Set up two-way binding for subtype select
+    if (subtypeSelect) {
+      this.subtype = subtypeSelect.value
+      subtypeSelect.addEventListener("change", (e) => {
+        this.subtype = e.target.value
+      })
     }
-  }
+  },
 
-  // Clear file input
-  elements.fileInput.value = ""
+  // Computed properties as functions
+  showProteinOwner() {
+    return this.category === "p"
+  },
 
-  // Populate manual data field
-  try {
-    elements.dataInput.value = JSON.stringify(currentPreviewData.raw_data)
-  } catch (e) {
-    showError("Failed to load data for editing", e.message)
-    return
-  }
+  showOtherOwner() {
+    return this.category !== "p"
+  },
 
-  // Show form, hide preview
-  elements.previewSection.style.display = "none"
-  elements.formSection.style.display = "block"
-  currentPreviewData = null
+  showBioFields() {
+    return this.category === "d" || this.category === "p"
+  },
 
-  // Update button
-  updateSubmitButton()
+  ownerTypeLabel() {
+    const select = document.getElementById("id_category")
+    return select?.options[select.selectedIndex]?.text || "Owner"
+  },
 
-  // Focus on data field
-  elements.dataInput.focus()
-}
+  hasPreview() {
+    return this.previewData !== null
+  },
 
-/**
- * Submit final spectrum
- */
-function submitFinalSpectrum() {
-  if (!currentPreviewData) {
-    showError("No preview data available")
-    return
-  }
+  submitButtonText() {
+    if (this.submitting) return "Processing..."
+    const activeTab = document.querySelector("#data-source-tabs .nav-link.active")
+    const isFileTab = activeTab?.id === "file-tab"
+    const fileInput = document.getElementById("id_file")
+    const dataInput = document.getElementById("id_spectral_data")
+    const hasData = isFileTab ? fileInput?.value : dataInput?.value?.trim()
+    return hasData ? "Preview Spectrum" : "Submit"
+  },
 
-  // Add hidden field for data source
-  const activeTab = document.querySelector("#data-source-tabs .nav-link.active")
-  const dataSource = activeTab?.id === "manual-tab" ? "manual" : "file"
+  // Methods
+  updateSubtypeOptions(category) {
+    const validSubtypes = VALID_SUBTYPES[category] || []
+    const subtypeSelect = document.getElementById("id_subtype")
 
-  const input = document.createElement("input")
-  input.type = "hidden"
-  input.name = "data_source"
-  input.value = dataSource
-  elements.form.appendChild(input)
+    if (!subtypeSelect) return
 
-  // Submit form
-  elements.form.submit()
-}
+    // Remove all options except empty
+    Array.from(subtypeSelect.options).forEach((opt) => {
+      if (opt.value !== "") {
+        opt.remove()
+      }
+    })
 
-/**
- * Show error message
- */
-function showError(message, details, formErrors) {
-  let errorHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">'
-  errorHtml += `<strong>Error:</strong> ${message}`
+    // Add back only valid options
+    validSubtypes.forEach((value) => {
+      if (this.originalSubtypes[value]) {
+        const option = document.createElement("option")
+        option.value = value
+        option.textContent = this.originalSubtypes[value]
+        subtypeSelect.appendChild(option)
+      }
+    })
 
-  if (details) {
-    errorHtml += `<br><small>${details}</small>`
-  }
-
-  if (formErrors && Object.keys(formErrors).length > 0) {
-    errorHtml += "<br><br><strong>Form Issues:</strong><ul>"
-    for (const [field, errors] of Object.entries(formErrors)) {
-      errorHtml += `<li><strong>${field}:</strong> ${errors.join(", ")}</li>`
+    // Reset subtype if current value is not valid
+    if (!validSubtypes.includes(this.subtype)) {
+      this.subtype = ""
     }
-    errorHtml += "</ul>"
-  }
+  },
 
-  errorHtml += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'
-  errorHtml += '<span aria-hidden="true">&times;</span></button></div>'
+  updateOwnerFields(category) {
+    if (category === "p") {
+      // Initialize Tom-Select for protein autocomplete
+      this.initTomSelect()
+    }
+  },
 
-  // Insert at top of form
-  elements.form.insertAdjacentHTML("afterbegin", errorHtml)
+  initTomSelect() {
+    const select = this.$refs.ownerStateSelect
+    const searchUrl = this.$el.dataset.stateSearchUrl
 
-  // Scroll to error
-  elements.form.scrollIntoView({ behavior: "smooth", block: "start" })
-}
+    if (!select || !searchUrl || this.tomSelectInstance) return
 
-/**
- * Tom-Select instance (lazily initialized)
- */
-let tomSelectInstance = null
-
-/**
- * Initialize Tom-Select autocomplete for protein state field
- * Much simpler than custom implementation - handles search, keyboard nav, etc.
- */
-function initStateAutocomplete() {
-  const select = elements.ownerStateSelect
-  const searchUrl = elements.form.dataset.stateSearchUrl
-
-  if (!select || !searchUrl || tomSelectInstance) return
-
-  // Initialize Tom-Select with remote data loading
-  tomSelectInstance = new TomSelect(select, {
-    valueField: "id",
-    labelField: "text",
-    searchField: ["text", "protein_name", "state_name"],
-    placeholder: "Type to search proteins...",
-    loadThrottle: 300,
-    maxOptions: 20,
-    plugins: {
-      clear_button: {
-        title: "Clear selection",
+    this.tomSelectInstance = new TomSelect(select, {
+      valueField: "id",
+      labelField: "text",
+      searchField: ["text", "protein_name", "state_name"],
+      placeholder: "Type to search proteins...",
+      loadThrottle: 300,
+      maxOptions: 20,
+      plugins: {
+        clear_button: {
+          title: "Clear selection",
+        },
       },
-    },
-    load: (query, callback) => {
-      if (!query || query.length < 2) {
-        return callback()
+      load: (query, callback) => {
+        if (!query || query.length < 2) {
+          return callback()
+        }
+
+        fetch(`${searchUrl}?q=${encodeURIComponent(query)}`, {
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            callback(data.results || [])
+          })
+          .catch(() => {
+            callback()
+          })
+      },
+      render: {
+        option: (item, escapeHtml) => `<div class="option">${escapeHtml(item.text)}</div>`,
+        item: (item, escapeHtml) => `<div class="item">${escapeHtml(item.text)}</div>`,
+        no_results: () => '<div class="no-results">No proteins found</div>',
+      },
+    })
+  },
+
+  async handleSubmit(event) {
+    event.preventDefault()
+
+    if (this.hasPreview()) {
+      // Already previewed, submit the form natively
+      this.$refs.form.submit()
+      return
+    }
+
+    // Show preview first
+    await this.showPreview()
+  },
+
+  async showPreview() {
+    this.submitting = true
+
+    try {
+      const formData = new FormData(this.$refs.form)
+
+      // Determine active tab and set data source
+      const activeTab = document.querySelector("#data-source-tabs .nav-link.active")
+      const isManualTab = activeTab?.id === "manual-tab"
+
+      if (isManualTab) {
+        formData.delete("file")
+        formData.append("data_source", "manual")
+      } else {
+        formData.set("spectral_data", "")
+        formData.append("data_source", "file")
       }
 
-      fetch(`${searchUrl}?q=${encodeURIComponent(query)}`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
+      const previewUrl = this.$el.dataset.previewUrl
+
+      const response = await fetch(previewUrl, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": this.getCsrfToken(),
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: formData,
       })
-        .then((response) => response.json())
-        .then((data) => {
-          callback(data.results || [])
-        })
-        .catch(() => {
-          callback()
-        })
-    },
-    render: {
-      option: (item, escapeHtml) => `<div class="option">${escapeHtml(item.text)}</div>`,
-      item: (item, escapeHtml) => `<div class="item">${escapeHtml(item.text)}</div>`,
-      no_results: () => '<div class="no-results">No proteins found</div>',
-    },
-  })
-}
 
-/**
- * Initialize all event listeners
- */
-function initEventListeners() {
-  // Category change
-  elements.categoryField.addEventListener("change", handleCategoryChange)
+      const data = await response.json()
 
-  // Form submission
-  elements.form.addEventListener("submit", handleFormSubmit)
+      if (response.ok && data.success) {
+        this.previewData = data.preview // Set this FIRST to trigger x-show
 
-  // Data input changes
-  elements.fileInput.addEventListener("change", updateSubmitButton)
-  elements.dataInput.addEventListener("input", updateSubmitButton)
+        // Use setTimeout to allow Alpine's reactivity to fully update the DOM
+        setTimeout(() => {
+          this.displayPreview(data)
+        }, 50)
+      } else {
+        this.showError(data.error || "Failed to generate preview", data.details, data.form_errors)
+      }
+    } catch (error) {
+      this.showError(`An unexpected error occurred: ${error.message}`)
+    } finally {
+      this.submitting = false
+    }
+  },
 
-  // Tab changes
-  document.querySelectorAll("#data-source-tabs a[data-toggle='tab']").forEach((tab) => {
-    tab.addEventListener("shown.bs.tab", updateSubmitButton)
-  })
+  displayPreview(response) {
+    // Clear any previous errors
+    const alerts = this.$el.querySelectorAll(".alert-danger")
+    for (const alert of alerts) {
+      alert.remove()
+    }
 
-  // Preview controls
-  elements.editDataBtn.addEventListener("click", hidePreview)
-  elements.submitFinalBtn.addEventListener("click", submitFinalSpectrum)
+    const preview = response.preview
 
-  // Clear state button
-  if (elements.clearStateBtn) {
-    elements.clearStateBtn.addEventListener("click", () => {
-      elements.ownerStateSelect.value = ""
-      const searchInput = document.getElementById("state-search-input")
-      if (searchInput) searchInput.value = ""
-    })
-  }
-}
+    // Add data_source field to form for final submission
+    const activeTab = document.querySelector("#data-source-tabs .nav-link.active")
+    const isManualTab = activeTab?.id === "manual-tab"
+    const dataSource = isManualTab ? "manual" : "file"
 
-/**
- * Initialize on DOM ready
- */
-function init() {
-  initElements()
-  initEventListeners()
+    // Remove any existing data_source hidden input
+    const existingInput = this.$refs.form.querySelector('input[name="data_source"]')
+    if (existingInput) {
+      existingInput.remove()
+    }
 
-  // Trigger initial category change to set up form state
-  // This will initialize Tom-Select if protein category is selected
-  handleCategoryChange()
-  updateSubmitButton()
-}
+    // Add new hidden input with data_source
+    const hiddenInput = document.createElement("input")
+    hiddenInput.type = "hidden"
+    hiddenInput.name = "data_source"
+    hiddenInput.value = dataSource
+    this.$refs.form.appendChild(hiddenInput)
 
-// Run on DOM ready
+    // Use DOM queries since refs might not be available when x-show is false
+    const previewMessage = document.querySelector(
+      "#spectrum-preview-section [x-ref='previewMessage']"
+    )
+    const previewPeakWave = document.querySelector(
+      "#spectrum-preview-section [x-ref='previewPeakWave']"
+    )
+    const previewWaveRange = document.querySelector(
+      "#spectrum-preview-section [x-ref='previewWaveRange']"
+    )
+    const previewDataPoints = document.querySelector(
+      "#spectrum-preview-section [x-ref='previewDataPoints']"
+    )
+    const previewChart = document.querySelector("#spectrum-preview-section [x-ref='previewChart']")
+    const previewSection = document.querySelector("#spectrum-preview-section")
+
+    // Update preview content
+    if (previewMessage) {
+      previewMessage.textContent = response.message
+    }
+    if (previewPeakWave) {
+      previewPeakWave.textContent = preview.peak_wave || "N/A"
+    }
+    if (previewWaveRange) {
+      previewWaveRange.textContent = preview.wave_range || "N/A"
+    }
+    if (previewDataPoints) {
+      previewDataPoints.textContent = preview.data_points || "N/A"
+    }
+
+    // Render chart (backend returns 'svg' field)
+    if (previewChart) {
+      previewChart.innerHTML = preview.svg || ""
+    }
+
+    // Scroll to preview
+    if (previewSection) {
+      previewSection.scrollIntoView({ behavior: "smooth" })
+    }
+  },
+
+  hidePreview() {
+    this.previewData = null
+  },
+
+  showError(message, details, formErrors) {
+    let errorHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">'
+    errorHtml += `<strong>Error:</strong> ${message}`
+
+    if (details) {
+      errorHtml += `<br><small>${details}</small>`
+    }
+
+    if (formErrors && Object.keys(formErrors).length > 0) {
+      errorHtml += "<br><br><strong>Form Issues:</strong><ul>"
+      for (const [field, errors] of Object.entries(formErrors)) {
+        errorHtml += `<li><strong>${field}:</strong> ${errors.join(", ")}</li>`
+      }
+      errorHtml += "</ul>"
+    }
+
+    errorHtml += '<button type="button" class="close" data-dismiss="alert" aria-label="Close">'
+    errorHtml += '<span aria-hidden="true">&times;</span></button></div>'
+
+    this.$el.insertAdjacentHTML("afterbegin", errorHtml)
+    this.$el.scrollIntoView({ behavior: "smooth", block: "start" })
+  },
+
+  getCsrfToken() {
+    const name = "csrftoken"
+    const cookies = document.cookie.split(";")
+    for (const cookie of cookies) {
+      const trimmed = cookie.trim()
+      if (trimmed.startsWith(`${name}=`)) {
+        return decodeURIComponent(trimmed.substring(name.length + 1))
+      }
+    }
+    return null
+  },
+}))
+
+// Start Alpine when DOM is ready
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init)
+  document.addEventListener("DOMContentLoaded", () => {
+    Alpine.start()
+  })
 } else {
-  init()
+  Alpine.start()
 }
