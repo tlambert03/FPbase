@@ -145,6 +145,15 @@ class ModernSpectrumForm(forms.ModelForm):
             if not self.files.get("file"):
                 raise forms.ValidationError("Please select a file to upload.")
 
+        # Validate that owner is provided for non-protein categories
+        category = cleaned_data.get("category")
+        if category == Spectrum.PROTEIN:
+            if not cleaned_data.get("owner_state"):
+                raise forms.ValidationError("Please select a protein.")
+        else:
+            if not cleaned_data.get("owner"):
+                raise forms.ValidationError("Please enter a name for this spectrum.")
+
         return cleaned_data
 
     def clean_file(self):

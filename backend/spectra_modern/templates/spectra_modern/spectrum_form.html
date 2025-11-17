@@ -93,6 +93,7 @@
             <select name="{{ form.owner_state.name }}"
                     id="{{ form.owner_state.id_for_label }}"
                     class="form-control"
+                    :required="showProteinOwner()"
                     x-ref="ownerStateSelect">
               <option value="">---------</option>
             </select>
@@ -115,6 +116,7 @@
             <input type="text" name="{{ form.owner.name }}"
                    id="{{ form.owner.id_for_label }}"
                    class="form-control"
+                   :required="showOtherOwner()"
                    x-ref="ownerInput">
             {% if form.owner.help_text %}
               <small class="form-text text-muted">{{ form.owner.help_text }}</small>
