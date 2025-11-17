@@ -130,7 +130,7 @@ class TestIconTemplateTag:
 
     def test_icon_data_attributes(self):
         """Test that data attributes with underscores are converted to hyphens."""
-        t = Template('{% load fpbase_tags %}{% icon "info" data_toggle="tooltip" %}')
+        t = Template('{% load fpbase_tags %}{% icon "info" data_bs_toggle="tooltip" %}')
         html = t.render(Context({}))
         assert 'data-bs-toggle="tooltip"' in html
 
