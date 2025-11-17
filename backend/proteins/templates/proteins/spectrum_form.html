@@ -132,8 +132,9 @@
   // Create tabs immediately when DOM is ready
   $(document).ready(function() {
     // Find the file and data fields in the crispy form and wrap them with tabs
-    var fileField = $('#id_file').closest('.form-group');
-    var dataField = $('#id_data').closest('.form-group');
+    // Bootstrap 5 crispy-forms uses 'mb-3' class instead of 'form-group'
+    var fileField = $('#id_file').closest('.mb-3');
+    var dataField = $('#id_data').closest('.mb-3');
 
     // Create the tabbed interface
     var tabbedHtml =
@@ -248,8 +249,8 @@
 
         // Show/hide pH and Solvent fields - only for biological spectrum types (Dye, Protein)
         var showBioFields = (categoryValue === 'd' || categoryValue === 'p');
-        var phField = $("#id_ph").closest('.form-group');
-        var solventField = $("#id_solvent").closest('.form-group');
+        var phField = $("#id_ph").closest('.mb-3');
+        var solventField = $("#id_solvent").closest('.mb-3');
 
         if (showBioFields) {
           phField.show();
@@ -426,7 +427,7 @@
       '<strong>File processed:</strong> Your uploaded file has been converted to spectrum data. ' +
       'Click "Edit Data" below to see or modify the data points.' +
       '</div>';
-    $("#id_file").closest('.form-group').after(indicator);
+    $("#id_file").closest('.mb-3').after(indicator);
   }
 
   function hidePreview() {
