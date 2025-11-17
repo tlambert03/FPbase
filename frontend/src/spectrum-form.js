@@ -67,29 +67,29 @@ Alpine.data("spectrumForm", () => ({
     }
   },
 
-  // Computed properties as functions
-  showProteinOwner() {
+  // Computed properties as getters
+  get showProteinOwner() {
     return this.category === "p"
   },
 
-  showOtherOwner() {
+  get showOtherOwner() {
     return this.category !== "p"
   },
 
-  showBioFields() {
+  get showBioFields() {
     return this.category === "d" || this.category === "p"
   },
 
-  ownerTypeLabel() {
+  get ownerTypeLabel() {
     const select = document.getElementById("id_category")
     return select?.options[select.selectedIndex]?.text || "Owner"
   },
 
-  hasPreview() {
+  get hasPreview() {
     return this.previewData !== null
   },
 
-  submitButtonText() {
+  get submitButtonText() {
     if (this.submitting) return "Processing..."
     const activeTab = document.querySelector("#data-source-tabs .nav-link.active")
     const isFileTab = activeTab?.id === "file-tab"
@@ -181,7 +181,7 @@ Alpine.data("spectrumForm", () => ({
   async handleSubmit(event) {
     event.preventDefault()
 
-    if (this.hasPreview()) {
+    if (this.hasPreview) {
       // Already previewed, submit the form natively
       this.$refs.form.submit()
       return
@@ -225,10 +225,10 @@ Alpine.data("spectrumForm", () => ({
       if (response.ok && data.success) {
         this.previewData = data.preview // Set this FIRST to trigger x-show
 
-        // Use setTimeout to allow Alpine's reactivity to fully update the DOM
-        setTimeout(() => {
+        // Use $nextTick to allow Alpine's reactivity to fully update the DOM
+        this.$nextTick(() => {
           this.displayPreview(data)
-        }, 50)
+        })
       } else {
         this.showError(data.error || "Failed to generate preview", data.details, data.form_errors)
       }
@@ -241,70 +241,47 @@ Alpine.data("spectrumForm", () => ({
 
   displayPreview(response) {
     // Clear any previous errors
-    const alerts = this.$el.querySelectorAll(".alert-danger")
-    for (const alert of alerts) {
+    this.$el.querySelectorAll(".alert-danger").forEach((alert) => {
       alert.remove()
-    }
+    })
 
     const preview = response.preview
 
     // Add data_source field to form for final submission
     const activeTab = document.querySelector("#data-source-tabs .nav-link.active")
-    const isManualTab = activeTab?.id === "manual-tab"
-    const dataSource = isManualTab ? "manual" : "file"
+    const dataSource = activeTab?.id === "manual-tab" ? "manual" : "file"
 
-    // Remove any existing data_source hidden input
-    const existingInput = this.$refs.form.querySelector('input[name="data_source"]')
-    if (existingInput) {
-      existingInput.remove()
-    }
-
-    // Add new hidden input with data_source
-    const hiddenInput = document.createElement("input")
-    hiddenInput.type = "hidden"
-    hiddenInput.name = "data_source"
-    hiddenInput.value = dataSource
+    // Remove existing data_source hidden input and add new one
+    this.$refs.form.querySelector('input[name="data_source"]')?.remove()
+    const hiddenInput = Object.assign(document.createElement("input"), {
+      type: "hidden",
+      name: "data_source",
+      value: dataSource,
+    })
     this.$refs.form.appendChild(hiddenInput)
 
-    // Use DOM queries since refs might not be available when x-show is false
-    const previewMessage = document.querySelector(
-      "#spectrum-preview-section [x-ref='previewMessage']"
-    )
-    const previewPeakWave = document.querySelector(
-      "#spectrum-preview-section [x-ref='previewPeakWave']"
-    )
-    const previewWaveRange = document.querySelector(
-      "#spectrum-preview-section [x-ref='previewWaveRange']"
-    )
-    const previewDataPoints = document.querySelector(
-      "#spectrum-preview-section [x-ref='previewDataPoints']"
-    )
-    const previewChart = document.querySelector("#spectrum-preview-section [x-ref='previewChart']")
-    const previewSection = document.querySelector("#spectrum-preview-section")
+    // Helper to query within preview section (refs not available when x-show is false)
+    const $ = (ref) => document.querySelector(`#spectrum-preview-section [x-ref='${ref}']`)
 
     // Update preview content
-    if (previewMessage) {
-      previewMessage.textContent = response.message
-    }
-    if (previewPeakWave) {
-      previewPeakWave.textContent = preview.peak_wave || "N/A"
-    }
-    if (previewWaveRange) {
-      previewWaveRange.textContent = preview.wave_range || "N/A"
-    }
-    if (previewDataPoints) {
-      previewDataPoints.textContent = preview.data_points || "N/A"
+    const elements = {
+      previewMessage: $("previewMessage"),
+      previewPeakWave: $("previewPeakWave"),
+      previewWaveRange: $("previewWaveRange"),
+      previewDataPoints: $("previewDataPoints"),
+      previewChart: $("previewChart"),
     }
 
-    // Render chart (backend returns 'svg' field)
-    if (previewChart) {
-      previewChart.innerHTML = preview.svg || ""
-    }
+    if (elements.previewMessage) elements.previewMessage.textContent = response.message
+    if (elements.previewPeakWave) elements.previewPeakWave.textContent = preview.peak_wave || "N/A"
+    if (elements.previewWaveRange)
+      elements.previewWaveRange.textContent = preview.wave_range || "N/A"
+    if (elements.previewDataPoints)
+      elements.previewDataPoints.textContent = preview.data_points || "N/A"
+    if (elements.previewChart) elements.previewChart.innerHTML = preview.svg || ""
 
     // Scroll to preview
-    if (previewSection) {
-      previewSection.scrollIntoView({ behavior: "smooth" })
-    }
+    document.querySelector("#spectrum-preview-section")?.scrollIntoView({ behavior: "smooth" })
   },
 
   hidePreview() {

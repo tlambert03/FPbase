@@ -67,24 +67,12 @@
       {% endif %}
 
       {# Category field #}
-      <div class="form-group">
-        <label for="{{ form.category.id_for_label }}" class="font-weight-bold">
-          {{ form.category.label }}
-          {% if form.category.field.required %}<span class="text-danger">*</span>{% endif %}
-        </label>
-        {{ form.category }}
-        {% if form.category.help_text %}
-          <small class="form-text text-muted">{{ form.category.help_text }}</small>
-        {% endif %}
-        {% if form.category.errors %}
-          <div class="invalid-feedback d-block">{{ form.category.errors }}</div>
-        {% endif %}
-      </div>
+      {% include "spectra_modern/_form_field.html" with field=form.category label_class="font-weight-bold" %}
 
       {# Owner fields row #}
       <div class="row">
         {# Protein state field (shown only for protein category) #}
-        <div class="col-sm-6 col-xs-12" x-show="showProteinOwner()" x-ref="proteinOwnerField">
+        <div class="col-sm-6 col-xs-12" x-show="showProteinOwner" x-cloak x-ref="proteinOwnerField">
           <div class="form-group">
             <label for="{{ form.owner_state.id_for_label }}" class="font-weight-bold">
               Protein
@@ -93,7 +81,7 @@
             <select name="{{ form.owner_state.name }}"
                     id="{{ form.owner_state.id_for_label }}"
                     class="form-control"
-                    :required="showProteinOwner()"
+                    :required="showProteinOwner"
                     x-ref="ownerStateSelect">
               <option value="">---------</option>
             </select>
@@ -107,16 +95,16 @@
         </div>
 
         {# Generic owner field (shown for non-protein categories) #}
-        <div class="col-sm-6 col-xs-12" x-show="showOtherOwner()">
+        <div class="col-sm-6 col-xs-12" x-show="showOtherOwner" x-cloak>
           <div class="form-group">
             <label for="{{ form.owner.id_for_label }}" class="font-weight-bold">
-              <span x-text="ownerTypeLabel()">Owner</span> Name
+              <span x-text="ownerTypeLabel">Owner</span> Name
               <span class="text-danger">*</span>
             </label>
             <input type="text" name="{{ form.owner.name }}"
                    id="{{ form.owner.id_for_label }}"
                    class="form-control"
-                   :required="showOtherOwner()"
+                   :required="showOtherOwner"
                    x-ref="ownerInput">
             {% if form.owner.help_text %}
               <small class="form-text text-muted">{{ form.owner.help_text }}</small>
@@ -129,19 +117,7 @@
 
         {# Subtype field #}
         <div class="col-sm-6 col-xs-12">
-          <div class="form-group">
-            <label for="{{ form.subtype.id_for_label }}" class="font-weight-bold">
-              {{ form.subtype.label }}
-              {% if form.subtype.field.required %}<span class="text-danger">*</span>{% endif %}
-            </label>
-            {{ form.subtype }}
-            {% if form.subtype.help_text %}
-              <small class="form-text text-muted">{{ form.subtype.help_text }}</small>
-            {% endif %}
-            {% if form.subtype.errors %}
-              <div class="invalid-feedback d-block">{{ form.subtype.errors }}</div>
-            {% endif %}
-          </div>
+          {% include "spectra_modern/_form_field.html" with field=form.subtype label_class="font-weight-bold" %}
         </div>
       </div>
 
@@ -164,74 +140,29 @@
         <div class="tab-content border-left border-right border-bottom p-3" id="data-source-content">
           {# File upload tab #}
           <div class="tab-pane fade show active" id="file-panel" role="tabpanel" aria-labelledby="file-tab">
-            <div class="form-group">
-              <label for="{{ form.file.id_for_label }}">{{ form.file.label }}</label>
-              {{ form.file }}
-              {% if form.file.help_text %}
-                <small class="form-text text-muted">{{ form.file.help_text }}</small>
-              {% endif %}
-              {% if form.file.errors %}
-                <div class="invalid-feedback d-block">{{ form.file.errors }}</div>
-              {% endif %}
-            </div>
+            {% include "spectra_modern/_form_field.html" with field=form.file %}
           </div>
 
           {# Manual data tab #}
           <div class="tab-pane fade" id="manual-panel" role="tabpanel" aria-labelledby="manual-tab">
-            <div class="form-group">
-              <label for="{{ form.spectral_data.id_for_label }}">{{ form.spectral_data.label }}</label>
-              {{ form.spectral_data }}
-              {% if form.spectral_data.help_text %}
-                <small class="form-text text-muted">{{ form.spectral_data.help_text }}</small>
-              {% endif %}
-              {% if form.spectral_data.errors %}
-                <div class="invalid-feedback d-block">{{ form.spectral_data.errors }}</div>
-              {% endif %}
-            </div>
+            {% include "spectra_modern/_form_field.html" with field=form.spectral_data %}
           </div>
         </div>
       </div>
 
       {# pH and Solvent row (shown only for biological spectra) #}
-      <div class="row" x-show="showBioFields()">
+      <div class="row" x-show="showBioFields" x-cloak>
         <div class="col-md-6 col-sm-12">
-          <div class="form-group">
-            <label for="{{ form.ph.id_for_label }}">{{ form.ph.label }}</label>
-            {{ form.ph }}
-            {% if form.ph.help_text %}
-              <small class="form-text text-muted">{{ form.ph.help_text }}</small>
-            {% endif %}
-            {% if form.ph.errors %}
-              <div class="invalid-feedback d-block">{{ form.ph.errors }}</div>
-            {% endif %}
-          </div>
+          {% include "spectra_modern/_form_field.html" with field=form.ph %}
         </div>
         <div class="col-md-6 col-sm-12">
-          <div class="form-group">
-            <label for="{{ form.solvent.id_for_label }}">{{ form.solvent.label }}</label>
-            {{ form.solvent }}
-            {% if form.solvent.help_text %}
-              <small class="form-text text-muted">{{ form.solvent.help_text }}</small>
-            {% endif %}
-            {% if form.solvent.errors %}
-              <div class="invalid-feedback d-block">{{ form.solvent.errors }}</div>
-            {% endif %}
-          </div>
+          {% include "spectra_modern/_form_field.html" with field=form.solvent %}
         </div>
       </div>
 
       {# Source field (optional) #}
       {% if form.source %}
-      <div class="form-group">
-        <label for="{{ form.source.id_for_label }}">{{ form.source.label }}</label>
-        {{ form.source }}
-        {% if form.source.help_text %}
-          <small class="form-text text-muted">{{ form.source.help_text }}</small>
-        {% endif %}
-        {% if form.source.errors %}
-          <div class="invalid-feedback d-block">{{ form.source.errors }}</div>
-        {% endif %}
-      </div>
+        {% include "spectra_modern/_form_field.html" with field=form.source %}
       {% endif %}
 
       {# Confirmation checkbox #}
@@ -247,13 +178,13 @@
 
       {# Submit button #}
       <button type="submit" class="btn btn-primary"
-              x-text="submitButtonText()"
+              x-text="submitButtonText"
               :disabled="submitting">
         Preview Spectrum
       </button>
 
       {# Spectrum Preview Section - INSIDE the form so it has access to Alpine refs #}
-      <div id="spectrum-preview-section" x-show="hasPreview()" x-cloak x-ref="previewSection" class="mt-4" style="display: none;">
+      <div id="spectrum-preview-section" x-show="hasPreview" x-cloak x-ref="previewSection" class="mt-4">
     <div class="card">
       <div class="card-header">
         <h5 class="mb-0">
