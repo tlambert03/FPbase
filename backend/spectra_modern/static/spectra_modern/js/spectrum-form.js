@@ -384,7 +384,8 @@
   }
 
   /**
-   * Simple autocomplete for protein state field
+   * Modern autocomplete for protein state field
+   * Replaces the select with a custom dropdown (similar to Select2 but lighter)
    */
   function initStateAutocomplete() {
     const select = elements.ownerStateSelect;
@@ -392,25 +393,57 @@
 
     if (!select || !searchUrl) return;
 
-    // Add search input above select
-    const wrapper = select.closest(".input-group") || select.parentElement;
-    const searchInput = document.createElement("input");
-    searchInput.type = "text";
-    searchInput.className = "form-control mb-2";
-    searchInput.placeholder = "Type to search proteins...";
-    searchInput.id = "state-search-input";
+    // Get the original input group or parent
+    const originalWrapper = select.closest(".input-group");
+    if (!originalWrapper) return;
 
-    wrapper.insertBefore(searchInput, select);
+    // Hide the original select but keep it for form submission
+    select.style.display = "none";
+
+    // Create custom autocomplete container
+    const autocomplete = document.createElement("div");
+    autocomplete.className = "custom-autocomplete";
+    autocomplete.innerHTML = `
+      <div class="autocomplete-input-wrapper">
+        <input type="text"
+               class="form-control autocomplete-input"
+               placeholder="Type to search proteins..."
+               id="state-search-input"
+               autocomplete="off">
+        <div class="autocomplete-spinner" style="display: none;">
+          <span class="spinner-border spinner-border-sm text-primary"></span>
+        </div>
+      </div>
+      <div class="autocomplete-dropdown" style="display: none;">
+        <div class="autocomplete-results"></div>
+      </div>
+    `;
+
+    // Insert before the input group append (clear button)
+    const appendDiv = originalWrapper.querySelector(".input-group-append");
+    originalWrapper.insertBefore(autocomplete, appendDiv);
+
+    const searchInput = autocomplete.querySelector(".autocomplete-input");
+    const dropdown = autocomplete.querySelector(".autocomplete-dropdown");
+    const resultsContainer = autocomplete.querySelector(".autocomplete-results");
+    const spinner = autocomplete.querySelector(".autocomplete-spinner");
+
+    // Track current selection
+    let selectedIndex = -1;
+    let results = [];
 
     // Debounced search
     let searchTimeout;
-    searchInput.addEventListener("input", (e) => {
+    searchInput.addEventListener("input", async (e) => {
       clearTimeout(searchTimeout);
       const query = e.target.value.trim();
 
       if (query.length < 2) {
+        hideDropdown();
         return;
       }
+
+      spinner.style.display = "block";
 
       searchTimeout = setTimeout(async () => {
         try {
@@ -418,20 +451,133 @@
             headers: { "X-Requested-With": "XMLHttpRequest" },
           });
           const data = await response.json();
+          results = data.results || [];
 
-          // Update select options
-          select.innerHTML = '<option value="">---------</option>';
-          data.results.forEach((result) => {
-            const option = document.createElement("option");
-            option.value = result.id;
-            option.textContent = result.text;
-            select.appendChild(option);
-          });
+          displayResults(results);
+          spinner.style.display = "none";
         } catch (error) {
           console.error("Search failed:", error);
+          spinner.style.display = "none";
+          resultsContainer.innerHTML = '<div class="autocomplete-error">Search failed. Please try again.</div>';
+          showDropdown();
         }
       }, 300);
     });
+
+    // Display results
+    function displayResults(items) {
+      if (items.length === 0) {
+        resultsContainer.innerHTML = '<div class="autocomplete-no-results">No proteins found</div>';
+        showDropdown();
+        return;
+      }
+
+      resultsContainer.innerHTML = items
+        .map(
+          (item, index) => `
+        <div class="autocomplete-result" data-index="${index}" data-value="${item.id}">
+          <div class="result-text">${item.text}</div>
+        </div>
+      `
+        )
+        .join("");
+
+      // Add click handlers
+      resultsContainer.querySelectorAll(".autocomplete-result").forEach((el) => {
+        el.addEventListener("click", () => selectResult(parseInt(el.dataset.index)));
+        el.addEventListener("mouseenter", () => {
+          selectedIndex = parseInt(el.dataset.index);
+          updateHighlight();
+        });
+      });
+
+      selectedIndex = -1;
+      showDropdown();
+    }
+
+    // Select a result
+    function selectResult(index) {
+      if (index < 0 || index >= results.length) return;
+
+      const result = results[index];
+      select.value = result.id;
+      searchInput.value = result.text;
+      hideDropdown();
+
+      // Trigger change event on hidden select
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    // Keyboard navigation
+    searchInput.addEventListener("keydown", (e) => {
+      if (!dropdown.style.display || dropdown.style.display === "none") return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          selectedIndex = Math.min(selectedIndex + 1, results.length - 1);
+          updateHighlight();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          selectedIndex = Math.max(selectedIndex - 1, -1);
+          updateHighlight();
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (selectedIndex >= 0) {
+            selectResult(selectedIndex);
+          }
+          break;
+        case "Escape":
+          e.preventDefault();
+          hideDropdown();
+          break;
+      }
+    });
+
+    // Update visual highlight
+    function updateHighlight() {
+      resultsContainer.querySelectorAll(".autocomplete-result").forEach((el, index) => {
+        if (index === selectedIndex) {
+          el.classList.add("active");
+          el.scrollIntoView({ block: "nearest" });
+        } else {
+          el.classList.remove("active");
+        }
+      });
+    }
+
+    // Show/hide dropdown
+    function showDropdown() {
+      dropdown.style.display = "block";
+    }
+
+    function hideDropdown() {
+      dropdown.style.display = "none";
+      selectedIndex = -1;
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!autocomplete.contains(e.target)) {
+        hideDropdown();
+      }
+    });
+
+    // Update clear button to also clear search input
+    const clearBtn = elements.clearStateBtn;
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        hideDropdown();
+      });
+    }
+
+    // If select already has a value, populate the search input
+    if (select.value && select.selectedOptions[0]) {
+      searchInput.value = select.selectedOptions[0].textContent;
+    }
   }
 
   /**

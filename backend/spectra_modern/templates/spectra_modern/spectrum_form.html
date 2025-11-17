@@ -4,6 +4,10 @@
 {% block title %}Submit a Spectrum to FPbase (Modern){% endblock %}
 {% block meta-description %}Help us build the best open spectra viewer by submitting spectral data to FPbase.{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'spectra_modern/css/spectrum-form.css' %}">
+{% endblock %}
+
 {% block content %}
   {% if protein %}
     <h2>Add a new spectrum for {{ protein }}</h2>
