@@ -13,8 +13,8 @@
         {% csrf_token %}
         <div class="modal-body">
           <p>Enter the <a href="https://www.ncbi.nlm.nih.gov/taxonomy">NCBI Taxonomy ID</a> for the organism you would like to add.</p>
-          <div id="div_id_taxonomy_id" class="form-group">
-            <label for="id_taxonomy_id" class="form-control-label">Taxonomy ID</label>
+          <div id="div_id_taxonomy_id" class="mb-3">
+            <label for="id_taxonomy_id" class="form-label">Taxonomy ID</label>
             <div class="">
               <input type="number" name="taxonomy_id" min="1" max="9999999" class="textinput textInput form-control" id="id_taxonomy_id" required>
             </div>

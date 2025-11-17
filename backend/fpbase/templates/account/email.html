@@ -33,7 +33,7 @@
 </div>
   {% endfor %}
 
-<div class="form-group">
+<div class="mb-3">
       <button class="secondaryAction btn btn-primary" type="submit" name="action_primary" >{% trans 'Make Primary' %}</button>
       <button class="secondaryAction btn btn-primary" type="submit" name="action_send" >{% trans 'Re-send Verification' %}</button>
       <button class="primaryAction btn btn-primary" type="submit" name="action_remove" >{% trans 'Remove' %}</button>
@@ -74,6 +74,6 @@
   }
 })();
 
-$('.form-group').removeClass('row');
+$('.mb-3').removeClass('row');
 </script>
 {% endblock %}

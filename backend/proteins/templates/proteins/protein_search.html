@@ -36,8 +36,8 @@
 <form action="" method="get" class="mb-2">
     <div id="query_builder">Building form... <img width=60 src="{% static 'images/GFP_spinner.gif' %}"></i></div>
     <div class='clearfix button-row'>
-    <button type="submit" class="btn btn-sm btn-primary form-group">{% icon "search" %} Search</button>
-    <button type="button" class="btn btn-sm btn-info form-group" id="add-row-btn">{% icon "filter" %} Add Filter</button>
+    <button type="submit" class="btn btn-sm btn-primary me-2">{% icon "search" %} Search</button>
+    <button type="button" class="btn btn-sm btn-info me-2" id="add-row-btn">{% icon "filter" %} Add Filter</button>
 
     {% if request.GET %}
     <div class="btn-group float-sm-end displaybuttons mb-3" role="group">

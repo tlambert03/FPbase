@@ -28,7 +28,8 @@
 	padding-right: 0.9rem;
 }
 
-.form-group small a{
+// Bootstrap 5: form-group replaced with mb-3
+.mb-3 small a{
 	text-decoration: none;
 	color: inherit;
 	font-weight: 600;
@@ -61,7 +62,8 @@ i.arrow {
 
 .query-row {
 	padding: 0.2rem 0;
-	.form-group{
+	// Bootstrap 5: form-group replaced with mb-3 (or just remove if not needed)
+	.mb-3{
 		margin-top: 0.3rem;;
 		margin-bottom: 0.2rem;
 	}
@@ -183,7 +185,8 @@ ul li.select2-search {
     list-style-type: none;
 }
 
-.form-group .select2-container .select2-selection--single {
+// Bootstrap 5: form-group replaced with mb-3
+.mb-3 .select2-container .select2-selection--single {
   height: 38px !important;
 }
 .form-select-sm .select2-selection--single {
@@ -234,7 +237,8 @@ ul li.select2-search {
   }
 
   .dynamic-form{
-    .form-group span.select2-container:nth-of-type(2){
+    // Bootstrap 5: form-group replaced with mb-3
+    .mb-3 span.select2-container:nth-of-type(2){
       display:none;
     }
   }

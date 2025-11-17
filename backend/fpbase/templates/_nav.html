@@ -75,7 +75,7 @@
             </li>
             {% endif %}
             {% if not request.get_full_path == "/" %}
-            <form class="form-inline nav-search" method="get" action="/search/">
+            <form class="d-flex flex-row align-items-center flex-wrap nav-search" method="get" action="/search/">
                     <div class='input-group'>
                       <input class="form-control" type="search" placeholder="Search" id='algolia-search-input' name="q" aria-label="Search" autocomplete="off">
                     </div>

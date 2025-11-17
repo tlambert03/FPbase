@@ -74,7 +74,8 @@ $(() => {
   }
 })
 
-$(".form-group").removeClass("row")
+// Bootstrap 5: form-group replaced with mb-3
+$(".mb-3").removeClass("row")
 
 //Navbar Scroll Event.
 // comment this out to remove "navbar hiding" when the user scrolls down

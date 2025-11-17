@@ -54,8 +54,8 @@ container-fluid
 </div>
 
 <div class='px-5 needs-data hidden'>
-    <form class='form-inline mb-3'>
-      <div class="form-group mt-2 me-3">
+    <form class='d-flex flex-row align-items-center flex-wrap mb-3'>
+      <div class="mt-2 me-3">
         <label for="probe_filter" class='pe-2 text-muted fw-bold'>Protein collection: </label>
         <select class="form-control form-control-sm table-filter form-select" id='probe_filter' data-col='uuid'>
           <option value="">-----</option>
@@ -65,7 +65,7 @@ container-fluid
         </select>
       </div>
 
-      <div class="form-group mt-2 me-3">
+      <div class="mt-2 me-3">
         <label for="switch_filter" class='pe-2 text-muted fw-bold'>Switch Type: </label>
         <select class="form-control form-control-sm table-filter form-select" id='switch_filter' data-col='switch_type'>
           <option value="">All</option>
@@ -75,7 +75,7 @@ container-fluid
           <option value="pc">Photoconvertible</option>
         </select>
       </div>
-      <div class="form-group mt-2">
+      <div class="mt-2">
         <label for="agg_filter" class='pe-2 text-muted fw-bold'>Oligomerization Type: </label>
         <select class="form-control form-control-sm table-filter form-select" id='agg_filter' data-col='agg'>
           <option value="">All</option>

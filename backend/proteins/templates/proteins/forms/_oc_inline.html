@@ -7,7 +7,7 @@
 
 <div class="row">
   <div class="col-lg-3 col-md-6">
-    <div class="form-group">
+    <div class="mb-3">
         <div id="div_id_optical_configs-{{ formnum }}-name" class="input-group input-group-sm">
           <span class="input-group-text bg-muted fw-bold" id="inputGroup-sizing-sm">{{ ocform.name.label }}</span>
           {{ocform.name}}
@@ -24,7 +24,7 @@
   </div>
 
   <div class="col-lg-3 col-md-6">
-    <div class="form-group">
+    <div class="mb-3">
         <div id="div_id_optical_configs-{{ formnum }}-light" class="input-group input-group-sm">
           <span class="input-group-text bg-muted fw-bold" id="inputGroup-sizing-sm">{{ ocform.light.label }}</span>
           {{ocform.light}}
@@ -41,7 +41,7 @@
   </div>
 
   <div class="col-lg-2 col-md-6">
-    <div class="form-group">
+    <div class="mb-3">
         <div id="div_id_optical_configs-{{ formnum }}-laser" class="input-group input-group-sm">
           <span class="input-group-text bg-muted fw-bold" id="inputGroup-sizing-sm">{{ ocform.laser.label }}</span>
           {{ocform.laser}}
@@ -58,7 +58,7 @@
   </div>
 
   <div class="col-lg-4 col-md-6">
-    <div class="form-group">
+    <div class="mb-3">
         <div id="div_id_optical_configs-{{ formnum }}-camera" class="input-group input-group-sm">
           <span class="input-group-text bg-muted fw-bold" id="inputGroup-sizing-sm">{{ ocform.camera.label }}</span>
           {{ocform.camera}}
@@ -78,8 +78,8 @@
 
 <div class="row">
   <div class="col-lg-4 col-md-6 oc-filter-group">
-    <div id="div_id_optical_configs-{{ formnum }}-ex_filters" class="form-group">
-      <label for="id_form-{{ formnum }}-ex_filters" class="col-form-label">
+    <div id="div_id_optical_configs-{{ formnum }}-ex_filters" class="mb-3">
+      <label for="id_form-{{ formnum }}-ex_filters" class="form-label">
         <small><strong>{{ ocform.ex_filters.label }}</strong></small>
       </label>
       <div class="">
@@ -88,8 +88,8 @@
     </div>
   </div>
   <div class="col-lg-4 col-md-6 oc-filter-group">
-    <div id="div_id_optical_configs-{{ formnum }}-bs_filters" class="form-group">
-      <label for="id_form-{{ formnum }}-bs_filters" class="col-form-label">
+    <div id="div_id_optical_configs-{{ formnum }}-bs_filters" class="mb-3">
+      <label for="id_form-{{ formnum }}-bs_filters" class="form-label">
         <small><strong>{{ ocform.bs_filters.label }}</strong></small>
       </label>
       <div class="form-check  me-sm-1 d-inline ms-4">
@@ -102,8 +102,8 @@
     </div>
   </div>
   <div class="col-lg-4 col-md-6 oc-filter-group">
-    <div id="div_id_optical_configs-{{ formnum }}-em_filters" class="form-group">
-      <label for="id_form-{{ formnum }}-em_filters" class="col-form-label">
+    <div id="div_id_optical_configs-{{ formnum }}-em_filters" class="mb-3">
+      <label for="id_form-{{ formnum }}-em_filters" class="form-label">
         <small><strong>{{ ocform.em_filters.label }}</strong></small>
       </label>
       <div class="">
@@ -117,8 +117,8 @@
 
 <div class="row">
   <div class="col-lg-8 col-md-6">
-    <div class="form-group">
-      <label for="id_optical_configs-{{ formnum }}-comments"><small><strong>{{ ocform.comments.label }}</strong></small></label>
+    <div class="mb-3">
+      <label for="id_optical_configs-{{ formnum }}-comments" class="form-label"><small><strong>{{ ocform.comments.label }}</strong></small></label>
       {{ocform.comments}}
       {% if  ocform.comments.errors %}
         {% for error in ocform.comments.errors %}
@@ -132,8 +132,8 @@
   </div>
 
   <div class="col-lg-4 col-md-6 oc-filter-group">
-    <div id="div_id_optical_configs-{{ formnum }}-ref_em_filters" class="form-group">
-      <label for="id_form-{{ formnum }}-ref_em_filters" class="col-form-label">
+    <div id="div_id_optical_configs-{{ formnum }}-ref_em_filters" class="mb-3">
+      <label for="id_form-{{ formnum }}-ref_em_filters" class="form-label">
         <small class='text-muted'><strong>{{ ocform.ref_em_filters.label }}</strong></small>
       </label>
       <div class="">

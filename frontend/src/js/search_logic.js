@@ -96,8 +96,8 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
       id +
       '">\
           <div class="col-sm-4 names-col d-flex justify-content-between align-items-start">\
-          <button type="button" class="btn btn-danger remove-row-btn form-group me-2" ><strong>&times;</strong></button>\
-                  <div class="form-group" style="width:100%;"><select class="form-control filter-select" id="filter-select-' +
+          <button type="button" class="btn btn-danger remove-row-btn me-2" ><strong>&times;</strong></button>\
+                  <div class="mb-3" style="width:100%;"><select class="form-control filter-select" id="filter-select-' +
       id +
       '">' +
       name_options() +
@@ -105,11 +105,11 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
               </div>\
           </div>\
           <div class="col-sm-4 operator-col">\
-              <div class="form-group"><select class="form-control operator-select">\
+              <div class="mb-3"><select class="form-control operator-select">\
               </select></div>\
           </div>\
           <div class="col-sm-4">\
-                  <div class="form-group input-col"></div>\
+                  <div class="mb-3 input-col"></div>\
           </div>\
       </div>'
     return out
@@ -186,7 +186,7 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
     enableOperator(filterName, operatorSelect.val())
     updateOperators(filterName, operatorSelect)
 
-    const inputfield = thisrow.find(".input-col").find(".form-group")
+    const inputfield = thisrow.find(".input-col").find(".mb-3")
     inputfield.appendTo("#crispy-form")
 
     thisrow.remove()

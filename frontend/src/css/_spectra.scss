@@ -130,9 +130,10 @@ h6 {
       }
     }
   }
-  .form-inline label {
-    display: inline;
-  }
+  // Bootstrap 5: form-inline removed, using flexbox utilities instead
+  // .form-inline label {
+  //   display: inline;
+  // }
 }
 
 /* hides NVD3 gridlines */
@@ -563,7 +564,7 @@ table.spectra-form {
 #optionstab {
   #options-form {
     font-size: 0.95rem;
-    .form-row {
+    .row {
       margin-bottom: 0.4rem;
     }
   }
