@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load fpbase_tags static %}
+{% load django_vite %}
 
 {% block title %}Submit a Spectrum to FPbase (Modern){% endblock %}
 {% block meta-description %}Help us build the best open spectra viewer by submitting spectral data to FPbase.{% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'spectra_modern/css/spectrum-form.css' %}">
+  {# Tom-Select styles are loaded via Vite bundle #}
 {% endblock %}
 
 {% block content %}
@@ -83,14 +84,7 @@
               Protein
               <span class="text-danger owner-required">*</span>
             </label>
-            <div class="input-group">
-              {{ form.owner_state }}
-              <div class="input-group-append">
-                <button type="button" class="btn btn-outline-secondary" id="clear-state-btn" title="Clear selection">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-            </div>
+            {{ form.owner_state }}
             {% if form.owner_state.help_text %}
               <small class="form-text text-muted">{{ form.owner_state.help_text }}</small>
             {% endif %}
@@ -297,5 +291,6 @@
 {% endblock content %}
 
 {% block javascript %}
-  <script src="{% static 'spectra_modern/js/spectrum-form.js' %}"></script>
+  {# Modern spectrum form bundle (includes Tom-Select + form logic) #}
+  {% vite_asset 'src/spectrum-form.js' %}
 {% endblock javascript %}
