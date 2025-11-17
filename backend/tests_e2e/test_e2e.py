@@ -437,10 +437,10 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
         page.wait_for_load_state("networkidle")
         assert_snapshot(page)
 
-    # Click X-axis radio button for quantum yield (wrapped in Bootstrap label)
-    page.locator("//label[input[@id='Xqy']]").click()
-    # Click Y-axis radio button for extinction coefficient (wrapped in Bootstrap label)
-    page.locator("//label[input[@id='Yext_coeff']]").click()
+    # Click X-axis radio button for quantum yield (Bootstrap 5 uses label with 'for' attribute)
+    page.locator("label[for='Xqy']").click()
+    # Click Y-axis radio button for extinction coefficient (Bootstrap 5 uses label with 'for' attribute)
+    page.locator("label[for='Yext_coeff']").click()
 
 
 @pytest.mark.parametrize("viewname", ["microscope-embed", "microscope-detail", "microscope-report"])
