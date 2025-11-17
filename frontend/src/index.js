@@ -8,6 +8,9 @@
 // Vite modulepreload polyfill (must be first)
 import "vite/modulepreload-polyfill"
 
+// React Fast Refresh preamble (must be before any React imports)
+import "@vitejs/plugin-react/preamble"
+
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 import "./js/ajax-sentry.js" // Track jQuery AJAX errors
@@ -25,7 +28,7 @@ import "./js/jquery.formset.js"
 import "./js/onload.js"
 
 // D3 and chart components removed - now lazy-loaded via d3-charts.js
-import initAutocomplete from "./js/algolia.js"
+import { initAutocomplete } from "./utils/initAutocomplete.js"
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}
@@ -74,17 +77,17 @@ window.dispatchEvent(
 
 // Initialize autocomplete search when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize autocomplete if search input exists
-  if (document.getElementById("algolia-search-input")) {
-    initAutocomplete()
-  }
-
   // Auto-initialization: Look for elements with data-fpbase-init attribute
   document.querySelectorAll("[data-fpbase-init]").forEach((element) => {
     const initType = element.dataset.fpbaseInit
 
     try {
       switch (initType) {
+        case "autocomplete": {
+          // Initialize Algolia autocomplete search
+          initAutocomplete()
+          break
+        }
         case "search": {
           const fields = JSON.parse(element.dataset.filterFields || "{}")
           const operators = JSON.parse(element.dataset.filterOperators || "{}")
