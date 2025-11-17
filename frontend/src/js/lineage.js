@@ -534,18 +534,19 @@ export default function LineageChart(conf) {
           } else if (this.classList.contains("mut-all")) {
             any = false
           } else {
-            any = d3.select("#anytoggle").node().closest("label").classList.contains("active")
+            // Bootstrap 5: label is sibling of input, not parent
+            any = d3.select("#anytoggle").node().nextElementSibling.classList.contains("active")
           }
           if (this.classList.contains("mut-parent")) {
             relparent = true
           } else if (this.classList.contains("mut-root")) {
             relparent = false
           } else {
+            // Bootstrap 5: label is sibling of input, not parent
             relparent = d3
               .select("#parenttoggle")
               .node()
-              .closest("label")
-              .classList.contains("active")
+              .nextElementSibling.classList.contains("active")
           }
 
           var val = (d3.select("#mutation-search-input").node().value || "")
@@ -809,13 +810,9 @@ function addDrawDropShadow(svg, dropShadow) {
 
 function createMutationSearch(selection) {
   var wrapperDiv = selection.append("div").append("div").attr("class", "row")
-  var searchDiv = wrapperDiv.append("div").attr("class", "input-group col-12 col-lg-8 mb-2")
-  searchDiv
-    .append("div")
-    .attr("class", "")
-    .append("span")
-    .attr("class", "input-group-text")
-    .text("Search")
+  var searchDivCol = wrapperDiv.append("div").attr("class", "col-12 col-lg-8")
+  var searchDiv = searchDivCol.append("div").attr("class", "input-group mb-2")
+  searchDiv.append("span").attr("class", "input-group-text").text("Search")
 
   searchDiv
     .append("input")
@@ -825,9 +822,7 @@ function createMutationSearch(selection) {
     .attr("placeholder", "Mutations (e.g. A206K) separated by spaces")
     .attr("id", "mutation-search-input")
 
-  var btngroup = searchDiv.append("div").attr("class", "")
-
-  var anyallgroup = btngroup.append("div").attr("class", "btn-group").attr("role", "group")
+  var anyallgroup = searchDiv.append("div").attr("class", "btn-group").attr("role", "group")
 
   anyallgroup
     .append("input")
@@ -858,13 +853,9 @@ function createMutationSearch(selection) {
     .attr("for", "anytoggle")
     .text("any")
 
-  var rightdiv = wrapperDiv.append("div").attr("class", "input-group col-12 col-lg-4 mb-2")
-  rightdiv
-    .append("div")
-    .attr("class", "")
-    .append("span")
-    .attr("class", "input-group-text")
-    .text("Relative to")
+  var rightdivCol = wrapperDiv.append("div").attr("class", "col-12 col-lg-4")
+  var rightdiv = rightdivCol.append("div").attr("class", "input-group mb-2")
+  rightdiv.append("span").attr("class", "input-group-text").text("Relative to")
 
   var relativetogroup = rightdiv.append("div").attr("class", "btn-group").attr("role", "group")
 

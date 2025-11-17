@@ -3,26 +3,6 @@
   margin-right: 0;
 }
 
-// .stateform_block{
-// 	padding:1.3rem;
-// 	border-radius : 0.5rem 0 0 0.5rem;
-// 	background-color: #eee;
-// 	margin-bottom: 1rem;
-// 	margin-right: 0;
-// }
-
-// .state-delete-button {
-// 	border-radius : 0 0.5rem 0.5rem 0;
-// 	border: 0px;
-// 	margin-bottom: 1rem;
-// 	font-weight: 700;
-// 	font-size:1.4rem;
-// 	@include button-variant(lighten($danger,10), $white, lighten($danger,10));
-// 	&:hover{
-// 		background-color:$green;
-// 	}
-// 	//display: inline;
-// }
 
 .formset_div {
   padding-right: 0.9rem;
@@ -223,29 +203,13 @@ ul li.select2-search {
     }
   }
 
-  // First select2 in input group should have left border radius
-  >.select2-container--bootstrap-5:first-child,
-  >.select2-container--bootstrap:first-child {
-    .select2-selection {
-      border-top-left-radius: 0.375rem;
-      border-bottom-left-radius: 0.375rem;
-    }
-  }
-
-  // Last select2 in input group should have right border radius
-  >.select2-container--bootstrap-5:last-child,
-  >.select2-container--bootstrap:last-child {
-    .select2-selection {
-      border-top-right-radius: 0.375rem;
-      border-bottom-right-radius: 0.375rem;
-    }
-  }
-
-  // Select2 between input-group-text elements
-  .input-group-text+.select2-container--bootstrap-5,
-  .input-group-text+.select2-container--bootstrap {
-    .select2-selection {
-      border-left: 0;
+  // Fix btn-group inside input-group (Bootstrap 5)
+  > .btn-group {
+    // First button in btn-group should have no left border radius (connect to previous element)
+    > .btn:first-of-type,
+    > label.btn:first-of-type {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
     }
   }
 }
