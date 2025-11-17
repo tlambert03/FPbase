@@ -1,7 +1,7 @@
 /**
- * Global AJAX Error Tracking for Sentry
+ * Fetch Error Tracking for Sentry
  *
- * This module provides centralized error tracking for both jQuery AJAX and fetch requests.
+ * This module provides centralized error tracking for fetch requests.
  * It automatically captures failed requests and reports them to Sentry with full context.
  *
  * Automatically tracks:
@@ -11,8 +11,7 @@
  * - Parse errors
  *
  * Usage:
- *   jQuery AJAX: Automatically tracked via global handler (legacy code)
- *   fetch: Use fetchWithSentry() instead of fetch()
+ *   Use fetchWithSentry() instead of fetch()
  *
  * Noise reduction hooks:
  *   - Set skipSentry: true in options to skip reporting
@@ -21,18 +20,13 @@
 
 import * as Sentry from "@sentry/browser"
 
-const $ = window.jQuery // jQuery loaded from CDN
-
 /**
  * Determine if an error should be reported to Sentry
  * Override this function to customize filtering logic
  */
-export function shouldReportError(url, status, _method) {
+export function shouldReportError(_url, status, _method) {
   // Don't report user aborts
   if (status === 0) return false
-
-  // Don't report known external service errors
-  if (url.includes("snapgene.com")) return false
 
   // Add more filtering rules here as needed
   // Example: Don't report 404s for optional resources
@@ -41,83 +35,6 @@ export function shouldReportError(url, status, _method) {
   // if (_method === 'GET' && status === 404) return false
 
   return true
-}
-
-/**
- * Setup global jQuery AJAX error tracking
- */
-export function setupAjaxErrorTracking() {
-  // Ensure jQuery and ajaxError are available before setting up
-  const setupWhenReady = () => {
-    if (typeof $ === "undefined" || typeof $.fn.ajaxError === "undefined") {
-      setTimeout(setupWhenReady, 50)
-      return
-    }
-
-    // Track all AJAX errors globally
-    $(document).ajaxError((_event, jqXHR, ajaxSettings, thrownError) => {
-      const url = ajaxSettings.url || "unknown URL"
-      const method = ajaxSettings.type || ajaxSettings.method || "GET"
-
-      // Apply filtering logic
-      if (!shouldReportError(url, jqXHR.status, method)) {
-        return
-      }
-
-      // Don't report if explicitly disabled
-      if (ajaxSettings.skipSentry) {
-        return
-      }
-
-      // Construct error message
-      const errorMessage = thrownError || jqXHR.statusText || "Unknown AJAX Error"
-
-      // Create detailed error for Sentry
-      const error = new Error(`AJAX ${method} ${url} failed: ${errorMessage}`)
-      error.name = "AjaxError"
-
-      // Capture to Sentry with full context
-      Sentry.captureException(error, {
-        level: jqXHR.status >= 500 ? "error" : "warning",
-        tags: {
-          ajax_url: url,
-          ajax_method: method,
-          http_status: jqXHR.status || "unknown",
-          error_type: "ajax",
-        },
-        contexts: {
-          ajax: {
-            url,
-            method,
-            status: jqXHR.status,
-            statusText: jqXHR.statusText,
-            responseText: jqXHR.responseText ? jqXHR.responseText.substring(0, 1000) : undefined,
-            readyState: jqXHR.readyState,
-            settings: {
-              contentType: ajaxSettings.contentType,
-              dataType: ajaxSettings.dataType,
-              async: ajaxSettings.async,
-              timeout: ajaxSettings.timeout,
-            },
-          },
-        },
-        fingerprint: ["ajax", method, url, String(jqXHR.status)],
-      })
-
-      // Log to console for debugging
-      if (process.env.NODE_ENV !== "production") {
-        console.error("AJAX Error:", {
-          url,
-          method,
-          status: jqXHR.status,
-          error: errorMessage,
-          response: jqXHR.responseText,
-        })
-      }
-    })
-  }
-
-  setupWhenReady()
 }
 
 /**
@@ -251,12 +168,7 @@ export async function fetchWithSentry(url, options = {}) {
   }
 }
 
-// Auto-setup jQuery tracking on import
-setupAjaxErrorTracking()
-
 // Export fetchWithSentry to global window object for use in inline scripts
 if (typeof window !== "undefined") {
   window.fetchWithSentry = fetchWithSentry
 }
-
-export default fetchWithSentry
