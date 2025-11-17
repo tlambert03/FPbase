@@ -1,12 +1,16 @@
 {% comment %}
 Reusable form field template include
 Usage: {% include "spectra_modern/_form_field.html" with field=form.field_name %}
+
+Optional parameters:
+  - label_class: CSS class(es) for the label
+  - show_required: Force showing the required asterisk (useful for conditionally visible required fields)
 {% endcomment %}
 
 <div class="form-group">
   <label for="{{ field.id_for_label }}"{% if label_class %} class="{{ label_class }}"{% endif %}>
     {{ field.label }}
-    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+    {% if field.field.required or show_required %}<span class="text-danger">*</span>{% endif %}
   </label>
   {{ field }}
   {% if field.help_text %}

@@ -71,27 +71,8 @@
 
       {# Owner fields row #}
       <div class="row">
-        {# Protein state field (shown only for protein category) #}
         <div class="col-sm-6 col-xs-12" x-show="showProteinOwner" x-cloak x-ref="proteinOwnerField">
-          <div class="form-group">
-            <label for="{{ form.owner_state.id_for_label }}" class="font-weight-bold">
-              Protein
-              <span class="text-danger">*</span>
-            </label>
-            <select name="{{ form.owner_state.name }}"
-                    id="{{ form.owner_state.id_for_label }}"
-                    class="form-control"
-                    :required="showProteinOwner"
-                    x-ref="ownerStateSelect">
-              <option value="">---------</option>
-            </select>
-            {% if form.owner_state.help_text %}
-              <small class="form-text text-muted">{{ form.owner_state.help_text }}</small>
-            {% endif %}
-            {% if form.owner_state.errors %}
-              <div class="invalid-feedback d-block">{{ form.owner_state.errors }}</div>
-            {% endif %}
-          </div>
+          {% include "spectra_modern/_form_field.html" with field=form.owner_state label_class="font-weight-bold" show_required=True %}
         </div>
 
         {# Generic owner field (shown for non-protein categories) #}

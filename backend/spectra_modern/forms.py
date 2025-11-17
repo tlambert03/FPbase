@@ -14,6 +14,7 @@ from proteins.models import Fluorophore, Spectrum, State
 from proteins.util.helpers import zip_wave_data
 from proteins.util.importers import text_to_spectra
 from proteins.validators import validate_spectrum
+from spectra_modern.widgets import StateAutocompleteWidget
 
 
 class SpectrumFormField(forms.CharField):
@@ -63,12 +64,7 @@ class ModernSpectrumForm(forms.ModelForm):
         required=False,
         label="Protein",
         queryset=State.objects.select_related("protein"),
-        widget=forms.Select(
-            attrs={
-                "data-autocomplete-url": "",  # Will be set in template
-                "data-category": "protein",
-            }
-        ),
+        widget=StateAutocompleteWidget(attrs={"x-ref": "ownerStateSelect"}),
     )
 
     # Generic owner name field (for non-protein categories)

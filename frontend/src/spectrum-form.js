@@ -7,7 +7,7 @@
 
 import "tom-select/dist/css/tom-select.bootstrap4.css"
 import Alpine from "@alpinejs/csp"
-import TomSelect from "tom-select"
+import { createAutocompleteSelect } from "./lib/autocomplete-select.js"
 
 // Configuration for valid subtypes per category
 const VALID_SUBTYPES = {
@@ -142,39 +142,11 @@ Alpine.data("spectrumForm", () => ({
 
     if (!select || !searchUrl || this.tomSelectInstance) return
 
-    this.tomSelectInstance = new TomSelect(select, {
-      valueField: "id",
-      labelField: "text",
-      searchField: ["text", "protein_name", "state_name"],
+    this.tomSelectInstance = createAutocompleteSelect(select, {
+      searchUrl,
+      searchFields: ["text", "protein_name", "state_name"],
       placeholder: "Type to search proteins...",
-      loadThrottle: 300,
-      maxOptions: 20,
-      plugins: {
-        clear_button: {
-          title: "Clear selection",
-        },
-      },
-      load: (query, callback) => {
-        if (!query || query.length < 2) {
-          return callback()
-        }
-
-        fetch(`${searchUrl}?q=${encodeURIComponent(query)}`, {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            callback(data.results || [])
-          })
-          .catch(() => {
-            callback()
-          })
-      },
-      render: {
-        option: (item, escapeHtml) => `<div class="option">${escapeHtml(item.text)}</div>`,
-        item: (item, escapeHtml) => `<div class="item">${escapeHtml(item.text)}</div>`,
-        no_results: () => '<div class="no-results">No proteins found</div>',
-      },
+      noResultsText: "No proteins found",
     })
   },
 
