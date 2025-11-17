@@ -278,15 +278,17 @@ class SimilarSpectrumOwnersViewTests(TestCase):
         names = [s["name"] for s in data["similars"]]
         self.assertIn(self.dyes[0].name, names)
 
-    def test_similar_spectrum_owners_requires_ajax(self):
-        """Test that the endpoint requires an AJAX request."""
+    def test_similar_spectrum_owners_works_without_ajax_header(self):
+        """Test that the endpoint works without the X-Requested-With header."""
         response = self.client.post(
             "/ajax/validate_spectrumownername/",
             {"owner": "Test"},
         )
 
-        # Should return 405 Method Not Allowed for non-AJAX requests
-        self.assertEqual(response.status_code, 405)
+        # Should work fine without AJAX header (JSON-only endpoint)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("similars", data)
 
     def test_similar_spectrum_owners_limits_to_four_results(self):
         """Test that the endpoint limits results to 4 items."""

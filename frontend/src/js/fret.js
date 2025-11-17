@@ -1,5 +1,6 @@
 import Highcharts from "highcharts"
 import "highcharts/modules/no-data-to-display"
+import { fetchWithSentry } from "./ajax-sentry"
 import { icon } from "./icons.js"
 
 const $ = window.jQuery // jQuery loaded from CDN
@@ -126,8 +127,17 @@ export default function initFRET() {
     var dfd = $.Deferred()
     // download if not already downloaded
     if (!(slug in localData)) {
-      $.getJSON(`/spectra/${slug}`)
-        .done((d) => {
+      fetchWithSentry(`/spectra/${slug}`, {
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          }
+          return response.json()
+        })
+        .then((d) => {
           for (let n = 0; n < d.spectra.length; n++) {
             if (d.spectra[n].type !== "2p") {
               d.spectra[n] = padDataLimits(d.spectra[n])
@@ -136,8 +146,9 @@ export default function initFRET() {
           localData[slug] = d.spectra
           dfd.resolve(localData[slug])
         })
-        .fail((d) => {
-          dfd.reject(d.status)
+        .catch((error) => {
+          console.error(`Failed to get spectra for ${slug}:`, error)
+          dfd.reject(0)
         })
     } else {
       // otherwise pull from local dict
@@ -412,9 +423,12 @@ export default function initFRET() {
 
   $(document).ready(() => {
     var getData = (data, callback, settings) => {
-      $.get({
-        url: "",
-        success: function (d) {
+      fetchWithSentry("", {
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+        .then((response) => response.json())
+        .then((d) => {
           if (d.data === null) {
             setTimeout(getData.bind(this, data, callback, settings), 1500)
           } else {
@@ -424,8 +438,10 @@ export default function initFRET() {
               recordsFiltered: d.data.length,
             })
           }
-        },
-      })
+        })
+        .catch((error) => {
+          console.error("Failed to get FRET data:", error)
+        })
     }
 
     var fretTable = $("#fret_report").DataTable({

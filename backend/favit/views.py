@@ -2,9 +2,9 @@ import logging
 
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseBadRequest, HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponseBadRequest, JsonResponse
 
-from fpbase.util import is_ajax, uncache_protein_page
+from fpbase.util import uncache_protein_page
 
 from .models import Favorite
 
@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def add_or_remove(request):
-    if not is_ajax(request):
-        return HttpResponseNotAllowed([])
     user = request.user
     try:
         app_model = request.POST["target_model"]
@@ -46,9 +44,6 @@ def add_or_remove(request):
 
 @login_required
 def remove(request):
-    if not is_ajax(request):
-        return HttpResponseNotAllowed([])
-
     user = request.user
 
     try:

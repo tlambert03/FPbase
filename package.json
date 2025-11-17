@@ -6,7 +6,7 @@
     "start": "pnpm dev",
     "build": "pnpm -r --parallel build",
     "heroku-postbuild": "CI=true pnpm --filter fpbase build",
-    "heroku-cleanup": "rm -rf node_modules _resources .github backend/tests backend/tests_e2e",
+    "heroku-cleanup": "rm -rf node_modules _resources .github .claude .github backend/tests backend/tests_e2e",
     "clean": "rm -rf node_modules && pnpm -r exec -- rm -rf node_modules && pnpm -r run clean",
     "format": "biome format --write",
     "check": "biome check --write",
