@@ -49,18 +49,28 @@
     window.FPBASE.loadD3Charts()
       .then(({ LineageChart }) => {
         $('.lineage').each(function(i, el){
-          $.getJSON("{% url 'proteins:get-org-lineage' object.pk %}", function(data){
-            if(!$.isEmptyObject(data)){
-              $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
-              var chart = LineageChart({
-                withToolbar: true,
-                withSearch: true,
-                withTopScroll: true,
-              }).data(data);
-              d3.select(el).call(chart);
-              chart.duration(100);
-            }
+          window.fetchWithSentry("{% url 'proteins:get-org-lineage' object.pk %}", {
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
           })
+            .then((response) => response.json())
+            .then((data) => {
+              if(!$.isEmptyObject(data)){
+                $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
+                var chart = LineageChart({
+                  withToolbar: true,
+                  withSearch: true,
+                  withTopScroll: true,
+                }).data(data);
+                d3.select(el).call(chart);
+                chart.duration(100);
+              }
+            })
+            .catch((error) => {
+              console.error("Failed to load lineage data:", error);
+              $(el).html('<div class="alert alert-danger">Failed to load lineage data. Please refresh the page.</div>');
+            });
         });
       })
       .catch(function(error){
