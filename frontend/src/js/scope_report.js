@@ -1,4 +1,5 @@
 import Highcharts from "highcharts"
+import { fetchWithSentry } from "./ajax-sentry"
 
 const $ = window.jQuery // jQuery loaded from CDN
 
@@ -106,226 +107,238 @@ $.fn.extend({
     }
 
     function updateData() {
-      $.get(`${window.location}json/`, (d) => {
-        $("#update-alert").show()
-        if (!d.report?.length) {
-          $("#status").html('<p class="mt-5">No data yet.  Please update scope report.</p>')
-          $("#status").show()
-          $(".needs-data").hide()
-          $("#report_chart").height(0)
-          return
-        }
-
-        FLUORS = d.fluors
-        REPORT = d.report
-        $("#report_chart").height(750)
-
-        updateChart(REPORT)
-
-        $("#status").hide()
-        $(".needs-data").show()
-
-        var colHeaders = ["ex_eff", "ex_eff_broad", "em_eff", "brightness"]
-        var colTitles = [
-          { title: "Fluor", class: "fluor", width: 180, targets: 0 },
-          {
-            title: "EC",
-            class: "col_ext_coeff",
-            visible: localStorage.getItem(`${SCOPE_ID}ext_coeff_checkbox`) === "true",
-          },
-          {
-            title: "QY",
-            class: "col_qy",
-            visible: localStorage.getItem(`${SCOPE_ID}qy_checkbox`) === "true",
-          },
-          { title: "Ex Max", class: "col_ex_max", visible: false },
-          { title: "Em Max", class: "col_em_max", visible: false },
-          { title: "Agg", class: "col_agg", visible: false },
-          { title: "Switch Type", class: "col_switch_type", visible: false },
-          { title: "UUID", class: "col_uuid", visible: false },
-        ]
-        var ocNames = []
-        var fluorData = {}
-
-        d.report.sort(compare)
-        // d.report is an array, where each item is an object corresponding to a different OC
-        for (let i = d.report.length - 1; i >= 0; i--) {
-          const values = d.report[i].values // the array of values for this OC
-          const thisOC = d.report[i].key // the name of this thisOC
-          ocNames.push(thisOC)
-
-          for (let x = 0; x < colHeaders.length; x++) {
-            const cls = `${slugify(`col_${thisOC}`)} col_${colHeaders[x]}`
-            const vis =
-              localStorage.getItem(`${SCOPE_ID + slugify(thisOC)}_checkbox`) !== "false" &&
-              $(`#${colHeaders[x]}_checkbox`).prop("checked")
-            colTitles.push({
-              title: `${thisOC} ${titleCase(colHeaders[x])}`,
-              class: cls,
-              visible: vis,
-            })
+      fetchWithSentry(`${window.location}json/`, {
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+        .then((response) => response.json())
+        .then((d) => {
+          $("#update-alert").show()
+          if (!d.report?.length) {
+            $("#status").html('<p class="mt-5">No data yet.  Please update scope report.</p>')
+            $("#status").show()
+            $(".needs-data").hide()
+            $("#report_chart").height(0)
+            return
           }
 
-          for (let r = values.length - 1; r >= 0; r--) {
-            //extract the values for this OC / Fluor combination
-            const thisFluor = values[r].fluor_slug
-            if (fluorData[thisFluor] === undefined) {
-              fluorData[thisFluor] = { name: values[r].fluor }
+          FLUORS = d.fluors
+          REPORT = d.report
+          $("#report_chart").height(750)
+
+          updateChart(REPORT)
+
+          $("#status").hide()
+          $(".needs-data").show()
+
+          var colHeaders = ["ex_eff", "ex_eff_broad", "em_eff", "brightness"]
+          var colTitles = [
+            { title: "Fluor", class: "fluor", width: 180, targets: 0 },
+            {
+              title: "EC",
+              class: "col_ext_coeff",
+              visible: localStorage.getItem(`${SCOPE_ID}ext_coeff_checkbox`) === "true",
+            },
+            {
+              title: "QY",
+              class: "col_qy",
+              visible: localStorage.getItem(`${SCOPE_ID}qy_checkbox`) === "true",
+            },
+            { title: "Ex Max", class: "col_ex_max", visible: false },
+            { title: "Em Max", class: "col_em_max", visible: false },
+            { title: "Agg", class: "col_agg", visible: false },
+            { title: "Switch Type", class: "col_switch_type", visible: false },
+            { title: "UUID", class: "col_uuid", visible: false },
+          ]
+          var ocNames = []
+          var fluorData = {}
+
+          d.report.sort(compare)
+          // d.report is an array, where each item is an object corresponding to a different OC
+          for (let i = d.report.length - 1; i >= 0; i--) {
+            const values = d.report[i].values // the array of values for this OC
+            const thisOC = d.report[i].key // the name of this thisOC
+            ocNames.push(thisOC)
+
+            for (let x = 0; x < colHeaders.length; x++) {
+              const cls = `${slugify(`col_${thisOC}`)} col_${colHeaders[x]}`
+              const vis =
+                localStorage.getItem(`${SCOPE_ID + slugify(thisOC)}_checkbox`) !== "false" &&
+                $(`#${colHeaders[x]}_checkbox`).prop("checked")
+              colTitles.push({
+                title: `${thisOC} ${titleCase(colHeaders[x])}`,
+                class: cls,
+                visible: vis,
+              })
             }
 
-            if (fluorData[thisFluor][thisOC] === undefined) {
-              fluorData[thisFluor][thisOC] = []
-            }
+            for (let r = values.length - 1; r >= 0; r--) {
+              //extract the values for this OC / Fluor combination
+              const thisFluor = values[r].fluor_slug
+              if (fluorData[thisFluor] === undefined) {
+                fluorData[thisFluor] = { name: values[r].fluor }
+              }
 
-            for (let h = 0; h < colHeaders.length; h++) {
-              if (values[r][colHeaders[h]] !== null) {
-                fluorData[thisFluor][thisOC].push(values[r][colHeaders[h]])
-              } else {
-                fluorData[thisFluor][thisOC].push("-")
+              if (fluorData[thisFluor][thisOC] === undefined) {
+                fluorData[thisFluor][thisOC] = []
+              }
+
+              for (let h = 0; h < colHeaders.length; h++) {
+                if (values[r][colHeaders[h]] !== null) {
+                  fluorData[thisFluor][thisOC].push(values[r][colHeaders[h]])
+                } else {
+                  fluorData[thisFluor][thisOC].push("-")
+                }
               }
             }
           }
-        }
 
-        // change object into array for Datatables
-        var dataRows = []
+          // change object into array for Datatables
+          var dataRows = []
 
-        var empty = []
-        for (let x = colHeaders.length - 1; x >= 0; x--) {
-          empty.push("-")
-        }
-
-        for (var fluor in fluorData) {
-          // skip loop if the property is from prototype
-          if (!Object.hasOwn(fluorData, fluor)) continue
-
-          let fluorlink = fluorData[fluor].name
-          if (FLUORS[fluor].type === "p") {
-            //var fluorlink = '<a href="/protein/'+ FLUORS[fluor].slug.split("_")[0] + '">' + fluorlink + '</a>'
-            fluorlink =
-              '<a target="_blank" href="' +
-              SCOPE_URL +
-              "?p=" +
-              FLUORS[fluor].slug +
-              '">' +
-              fluorlink +
-              "</a>"
+          var empty = []
+          for (let x = colHeaders.length - 1; x >= 0; x--) {
+            empty.push("-")
           }
-          let f = [
-            fluorlink,
-            FLUORS[fluor].ext_coeff || "-",
-            FLUORS[fluor].qy || "-",
-            FLUORS[fluor].ex_max,
-            FLUORS[fluor].em_max,
-            FLUORS[fluor].agg,
-            FLUORS[fluor].switch_type,
-            FLUORS[fluor].uuid,
-          ]
-          for (let o = 0; o < ocNames.length; o++) {
-            if (Object.hasOwn(fluorData[fluor], ocNames[o])) {
-              f = f.concat(fluorData[fluor][ocNames[o]])
-            } else {
-              f = f.concat(empty)
+
+          for (var fluor in fluorData) {
+            // skip loop if the property is from prototype
+            if (!Object.hasOwn(fluorData, fluor)) continue
+
+            let fluorlink = fluorData[fluor].name
+            if (FLUORS[fluor].type === "p") {
+              //var fluorlink = '<a href="/protein/'+ FLUORS[fluor].slug.split("_")[0] + '">' + fluorlink + '</a>'
+              fluorlink =
+                '<a target="_blank" href="' +
+                SCOPE_URL +
+                "?p=" +
+                FLUORS[fluor].slug +
+                '">' +
+                fluorlink +
+                "</a>"
             }
+            let f = [
+              fluorlink,
+              FLUORS[fluor].ext_coeff || "-",
+              FLUORS[fluor].qy || "-",
+              FLUORS[fluor].ex_max,
+              FLUORS[fluor].em_max,
+              FLUORS[fluor].agg,
+              FLUORS[fluor].switch_type,
+              FLUORS[fluor].uuid,
+            ]
+            for (let o = 0; o < ocNames.length; o++) {
+              if (Object.hasOwn(fluorData[fluor], ocNames[o])) {
+                f = f.concat(fluorData[fluor][ocNames[o]])
+              } else {
+                f = f.concat(empty)
+              }
+            }
+            dataRows.push(f)
           }
-          dataRows.push(f)
-        }
-        $("#oc-toggles").empty()
-        for (let o = 0; o < ocNames.length; o++) {
-          const ischecked =
-            localStorage.getItem(`${SCOPE_ID + slugify(ocNames[o])}_checkbox`) !== "false"
-          const el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
-            .append(
-              $("<input>", {
-                class: "custom-control-input toggle-vis",
-                type: "checkbox",
-                id: `${slugify(ocNames[o])}_checkbox`,
-                value: slugify(ocNames[o]),
-                checked: ischecked,
-              })
-            )
-            .append(
-              $("<label>", {
-                class: "custom-control-label",
-                for: `${slugify(ocNames[o])}_checkbox`,
-              }).text(ocNames[o])
-            )
+          $("#oc-toggles").empty()
+          for (let o = 0; o < ocNames.length; o++) {
+            const ischecked =
+              localStorage.getItem(`${SCOPE_ID + slugify(ocNames[o])}_checkbox`) !== "false"
+            const el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
+              .append(
+                $("<input>", {
+                  class: "custom-control-input toggle-vis",
+                  type: "checkbox",
+                  id: `${slugify(ocNames[o])}_checkbox`,
+                  value: slugify(ocNames[o]),
+                  checked: ischecked,
+                })
+              )
+              .append(
+                $("<label>", {
+                  class: "custom-control-label",
+                  for: `${slugify(ocNames[o])}_checkbox`,
+                }).text(ocNames[o])
+              )
 
-          el.appendTo($("#oc-toggles"))
-        }
+            el.appendTo($("#oc-toggles"))
+          }
 
-        var buttonCommon = {
-          init: (_api, node, _config) => {
-            $(node).removeClass("btn-secondary")
-          },
-          className: "btn-sm btn-primary",
-          exportOptions: {
-            format: {
-              body: (data, _row, column, node) => {
-                switch (column) {
-                  case 0:
-                    if (data.startsWith("<a")) {
-                      return node.childNodes[0].innerHTML
-                    }
-                    return data
-                  default:
-                    if (data === "-") {
-                      return ""
-                    }
-                    return data
-                }
+          var buttonCommon = {
+            init: (_api, node, _config) => {
+              $(node).removeClass("btn-secondary")
+            },
+            className: "btn-sm btn-primary",
+            exportOptions: {
+              format: {
+                body: (data, _row, column, node) => {
+                  switch (column) {
+                    case 0:
+                      if (data.startsWith("<a")) {
+                        return node.childNodes[0].innerHTML
+                      }
+                      return data
+                    default:
+                      if (data === "-") {
+                        return ""
+                      }
+                      return data
+                  }
+                },
               },
             },
-          },
-        }
+          }
 
-        colTitles = colTitles.map((d) => {
-          d.orderSequence = ["desc", "asc"]
-          return d
-        })
+          colTitles = colTitles.map((d) => {
+            d.orderSequence = ["desc", "asc"]
+            return d
+          })
 
-        dt = $("#report_table").DataTable({
-          retrieve: true,
-          scrollX: "100%",
-          fixedColumns: true,
-          columns: colTitles,
-          orderSequence: ["desc", "ascending"],
-          dom:
-            "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row mt-2 small text-small'<'col-sm-12 col-md-3 d-none d-md-block'B><'col-xs-12 col-sm-5 col-md-4'i><'col-xs-12 col-sm-7 col-md-5'p>>",
-          buttons: [
-            $.extend(true, {}, buttonCommon, {
-              extend: "copyHtml5",
-            }),
-            $.extend(true, {}, buttonCommon, {
-              extend: "excelHtml5",
-            }),
-            $.extend(true, {}, buttonCommon, {
-              extend: "csvHtml5",
-            }),
-            {
-              text: "JSON",
-              className: "btn-sm btn-primary json-button",
-              action: (_e, _dt, _node, _config) => {
-                $.fn.dataTable.fileSave(
-                  new Blob([JSON.stringify(d.report)]),
-                  `report_${SCOPE_ID}.json`
-                )
+          dt = $("#report_table").DataTable({
+            retrieve: true,
+            scrollX: "100%",
+            fixedColumns: true,
+            columns: colTitles,
+            orderSequence: ["desc", "ascending"],
+            dom:
+              "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+              "<'row'<'col-sm-12'tr>>" +
+              "<'row mt-2 small text-small'<'col-sm-12 col-md-3 d-none d-md-block'B><'col-xs-12 col-sm-5 col-md-4'i><'col-xs-12 col-sm-7 col-md-5'p>>",
+            buttons: [
+              $.extend(true, {}, buttonCommon, {
+                extend: "copyHtml5",
+              }),
+              $.extend(true, {}, buttonCommon, {
+                extend: "excelHtml5",
+              }),
+              $.extend(true, {}, buttonCommon, {
+                extend: "csvHtml5",
+              }),
+              {
+                text: "JSON",
+                className: "btn-sm btn-primary json-button",
+                action: (_e, _dt, _node, _config) => {
+                  $.fn.dataTable.fileSave(
+                    new Blob([JSON.stringify(d.report)]),
+                    `report_${SCOPE_ID}.json`
+                  )
+                },
               },
-            },
-          ],
-        })
+            ],
+          })
 
-        dt.clear()
-        dt.rows.add(dataRows)
-        dt.draw()
+          dt.clear()
+          dt.rows.add(dataRows)
+          dt.draw()
 
-        $("#report_table_filter input").on("keyup", function () {
-          var rx = this.value.replace(/,\s*$/g, "").replace(/,\s*/g, "|.*")
-          dt.search(rx, true).draw()
+          $("#report_table_filter input").on("keyup", function () {
+            var rx = this.value.replace(/,\s*$/g, "").replace(/,\s*/g, "|.*")
+            dt.search(rx, true).draw()
+          })
         })
-      })
+        .catch((error) => {
+          console.error("Failed to update scope report data:", error)
+          $("#status").html(
+            '<p class="mt-5 text-danger">Failed to load data. Please try again.</p>'
+          )
+          $("#status").show()
+        })
     }
 
     let line
@@ -354,15 +367,23 @@ $.fn.extend({
     function check_status(next) {
       next = next || interval
       if (JOB_ID !== null) {
-        $.post({
-          url: "",
-          data: {
-            action: "check",
-            job_id: JOB_ID,
-            csrfmiddlewaretoken: CSRF_TOKEN,
+        const formData = new URLSearchParams({
+          action: "check",
+          job_id: JOB_ID,
+          csrfmiddlewaretoken: CSRF_TOKEN,
+        })
+
+        fetchWithSentry("", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+            "X-Requested-With": "XMLHttpRequest",
           },
-          dataType: "json",
-          success: (data) => {
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
             if (data.ready || data.info === undefined || data.info === null) {
               // job went to completion
               line.animate(1, { duration: 200 }, () => {
@@ -385,8 +406,7 @@ $.fn.extend({
               setTimeout(check_status, nextCheck)
               //window.CHECKER = setInterval(check_status, interval);
             }
-          },
-        })
+          })
       }
     }
 
@@ -400,17 +420,26 @@ $.fn.extend({
       if ($("#request-report").hasClass("cancel")) {
         action = "cancel"
       }
-      $.post({
-        url: "",
-        data: {
-          action: action,
-          scope_id: SCOPE_ID,
-          csrfmiddlewaretoken: CSRF_TOKEN,
-          job_id: JOB_ID,
-          outdated: JSON.stringify(OUTDATED),
+
+      const formData = new URLSearchParams({
+        action: action,
+        scope_id: SCOPE_ID,
+        csrfmiddlewaretoken: CSRF_TOKEN,
+        job_id: JOB_ID,
+        outdated: JSON.stringify(OUTDATED),
+      })
+
+      fetchWithSentry("", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+          "X-Requested-With": "XMLHttpRequest",
         },
-        dataType: "json",
-        success: (data) => {
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
           if (data.canceled) {
             line.animate(0, { duration: 200 })
             JOB_ID = null
@@ -430,8 +459,8 @@ $.fn.extend({
             LAST_TIME = Date.now()
             setTimeout(check_status, 250, interval - 250)
           }
-        },
-        error: (_req, _status, _err) => {
+        })
+        .catch((_error) => {
           $("#alert-msg").text(
             "Sorry!  There was an unexpected error on the server.  Please try again in a few minutes, or contact us if the problem persists."
           )
@@ -447,8 +476,7 @@ $.fn.extend({
             $("#update-alert").addClass("alert-info")
             $("#request-report").removeClass("btn-danger")
           }, 20000)
-        },
-      })
+        })
     })
 
     $(document).ready(() => {

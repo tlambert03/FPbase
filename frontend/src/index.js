@@ -10,7 +10,7 @@ import "vite/modulepreload-polyfill"
 
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
-import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
+import "./js/ajax-sentry.js" // Track jQuery AJAX errors
 import { icon } from "./js/icons.js" // Icon helper for dynamic HTML
 
 import "select2/dist/css/select2.css"

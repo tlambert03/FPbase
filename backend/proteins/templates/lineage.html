@@ -41,17 +41,27 @@
       .then(({ LineageChart }) => {
         $('.lineage').each(function(i, el){
           $(el).html('<p>loading lineage info... <img src="' + '{% static 'images/GFP_spinner.gif' %}' + '">');
-          $.getJSON("/ajax" + window.location.pathname + window.location.search, function(data){
-            $(el).empty();
-            var chart = LineageChart({
-              withSearch: true,
-              withToolbar: true,
-              withTopScroll: true,
-            }).data(data);
-            chart.heightScalar(52);
-            d3.select(el).call(chart);
-            chart.duration(100);
+          window.fetchWithSentry("/ajax" + window.location.pathname + window.location.search, {
+            headers: {
+              "X-Requested-With": "XMLHttpRequest",
+            },
           })
+            .then((response) => response.json())
+            .then((data) => {
+              $(el).empty();
+              var chart = LineageChart({
+                withSearch: true,
+                withToolbar: true,
+                withTopScroll: true,
+              }).data(data);
+              chart.heightScalar(52);
+              d3.select(el).call(chart);
+              chart.duration(100);
+            })
+            .catch((error) => {
+              console.error("Failed to load lineage data:", error);
+              $(el).html('<div class="alert alert-danger">Failed to load lineage data. Please refresh the page.</div>');
+            });
         });
       })
       .catch(function(error){

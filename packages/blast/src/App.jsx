@@ -1,5 +1,6 @@
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material"
 import { useState } from "react"
+import { fetchWithSentry } from "../../../frontend/src/js/ajax-sentry"
 
 const $ = window.jQuery
 
@@ -64,16 +65,26 @@ function App() {
     const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
     setBinary(bin)
 
-    $.post("", `${$(e.target).serialize()}&binary=${bin}`, (data) => {
-      if (data.status === 200) {
-        setResults(data.blastResult)
-      } else if (data.status === 500) {
-        console.error(data.error)
-        alert(
-          "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
-        )
-      }
+    fetchWithSentry("", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: `${$(e.target).serialize()}&binary=${bin}`,
     })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === 200) {
+          setResults(data.blastResult)
+        } else if (data.status === 500) {
+          console.error(data.error)
+          alert(
+            "There was an error processing your input.  Please double check that it is an amino acid or nucleotide sequence, or multiple sequences in FASTA format"
+          )
+        }
+      })
   }
 
   function handleChangeReport(index) {
