@@ -160,8 +160,18 @@ window.initMicroscope = () => {
       const dfd = $.Deferred()
       // download if not already downloaded
       if (!(slug in localData)) {
-        $.getJSON(`/spectra/${slug}`)
-          .done((d) => {
+        window
+          .fetchWithSentry(`/spectra/${slug}`, {
+            // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+          })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            }
+            return response.json()
+          })
+          .then((d) => {
             for (let n = 0; n < d.spectra.length; n++) {
               d.spectra[n] = padDataLimits(d.spectra[n])
               d.spectra[n].exNormed = 1
@@ -180,8 +190,9 @@ window.initMicroscope = () => {
             localData[slug] = d.spectra
             dfd.resolve(localData[slug])
           })
-          .fail((d) => {
-            dfd.reject(d.status)
+          .catch((error) => {
+            console.error(`Failed to get spectra for ${slug}:`, error)
+            dfd.reject(0)
           })
       } else {
         // otherwise pull from local dict

@@ -534,23 +534,33 @@
         function initLineage() {
           window.FPBASE.loadD3Charts()
             .then(({ LineageChart }) => {
-              $.getJSON('/ajax/lineage/' + slug + '/', function(data) {
-                window._lastLineageData = data;
-                if (!data.children || data.children.length === 0){
-                  return
-                }
-                var linchart = LineageChart({slug: slug}).data(data);
-                var lineage = d3.select(el);
-                lineage.call(linchart);
-                linchart.duration(200);
-                if (slug && $('.lineage-wrapper')){
-                  var node = d3.select("#node_" + slug);
-                  if (!node.empty()) {
-                    var slugpos = node.datum().y;
-                    $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
+              window.fetchWithSentry('/ajax/lineage/' + slug + '/', {
+                headers: {
+                  "X-Requested-With": "XMLHttpRequest",
+                },
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  window._lastLineageData = data;
+                  if (!data.children || data.children.length === 0){
+                    return
                   }
-                }
-              });
+                  var linchart = LineageChart({slug: slug}).data(data);
+                  var lineage = d3.select(el);
+                  lineage.call(linchart);
+                  linchart.duration(200);
+                  if (slug && $('.lineage-wrapper')){
+                    var node = d3.select("#node_" + slug);
+                    if (!node.empty()) {
+                      var slugpos = node.datum().y;
+                      $('.lineage-wrapper').scrollLeft(slugpos - ((window.innerWidth - 30) / 3));
+                    }
+                  }
+                })
+                .catch((error) => {
+                  console.error("Failed to load lineage data:", error);
+                  $(el).html('<div class="alert alert-danger">Failed to load lineage data. Please refresh the page.</div>');
+                });
             })
             .catch(function(error){
               console.error("Error loading D3 charts:", error);

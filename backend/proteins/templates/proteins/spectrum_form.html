@@ -98,7 +98,10 @@
 
 <script>
 
-  // Configure jQuery to include CSRF token in AJAX requests
+  // fetchWithSentry is available globally from the ajax-sentry module loaded in the main bundle
+  // It wraps native fetch() with Sentry error tracking
+
+  // Get CSRF token from cookie for fetch requests
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -115,14 +118,6 @@
   }
 
   const csrftoken = getCookie('csrftoken');
-
-  $.ajaxSetup({
-    beforeSend: function(xhr, settings) {
-      if (!(/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type)) && !this.crossDomain) {
-        xhr.setRequestHeader("X-CSRFToken", csrftoken);
-      }
-    }
-  });
 
   // Helper to wait for Bootstrap plugins to be available
   function waitForBootstrap(callback) {
@@ -335,14 +330,32 @@
       formData.append('data_source', 'file');
     }
 
-    // Send AJAX request for preview
-    $.ajax({
-      url: "{% url 'proteins:spectrum_preview' %}",
-      type: 'POST',
-      data: formData,
-      processData: false,
-      contentType: false,
-      success: function(response) {
+    // Send fetch request for preview
+    fetchWithSentry("{% url 'proteins:spectrum_preview' %}", {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: formData,
+    })
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return response.text().then(text => {
+            let errorData = {};
+            try {
+              errorData = JSON.parse(text);
+            } catch(e) {
+              // Ignore parse errors
+            }
+            throw errorData;
+          });
+        }
+      })
+      .then(response => {
         if (response.success) {
           // Always update currentPreviewData with the latest preview
           currentPreviewData = response.preview;
@@ -350,24 +363,16 @@
         } else {
           showError(response.error || 'Failed to generate preview', response.details, response.form_errors);
         }
-      },
-      error: function(xhr) {
-        var response = {};
-        try {
-          response = JSON.parse(xhr.responseText || '{}');
-        } catch(e) {
-          // Ignore parse errors
-        }
-        var errorMsg = response.error || 'Failed to generate preview';
-        var details = response.details || '';
-        var formErrors = response.form_errors || {};
-
+      })
+      .catch(error => {
+        var errorMsg = error.error || 'Failed to generate preview';
+        var details = error.details || '';
+        var formErrors = error.form_errors || {};
         showError(errorMsg, details, formErrors);
-      },
-      complete: function() {
+      })
+      .finally(() => {
         submitBtn.prop('disabled', false).val(originalText);
-      }
-    });
+      });
   }
 
   function displaySpectrumPreview(response) {

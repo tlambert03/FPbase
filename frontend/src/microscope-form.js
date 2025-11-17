@@ -3,7 +3,8 @@ import "vite/modulepreload-polyfill"
 
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
-import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
+import "./js/ajax-sentry.js" // Track jQuery AJAX errors
+import { fetchWithSentry } from "./js/ajax-sentry"
 
 const $ = window.jQuery // jQuery loaded from CDN
 
@@ -94,12 +95,18 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
   $("#footerSuccess").hide()
   const form = $(this).closest("form")
   const brand = form.data("brand")
-  $.ajax({
-    type: "POST",
-    url: form.attr("data-action-url"),
-    data: form.serialize(),
-    dataType: "json",
-    success: (data) => {
+
+  fetchWithSentry(form.attr("data-action-url"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      "X-Requested-With": "XMLHttpRequest",
+    },
+    body: form.serialize(),
+  })
+    .then((response) => response.json())
+    .then((data) => {
       if (data.status) {
         const newdata = JSON.parse(data.spectra_options)
         $('.data-selector[data-category="f"]').append(
@@ -123,11 +130,11 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
         $("#footerFail").show()
         $("#footerSuccess").hide()
       }
-    },
-  }).then((_d) => {
-    $("#footerSpinner").hide()
-    // $('#importModal').modal('hide')
-  })
+    })
+    .finally(() => {
+      $("#footerSpinner").hide()
+      // $('#importModal').modal('hide')
+    })
 })
 
 $(".importerClose").click(() => {
