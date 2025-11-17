@@ -61,11 +61,11 @@ $(document).on("hidden.bs.modal", "#sureModal", () => {
 })
 
 $("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2({
-  theme: "bootstrap",
+  theme: "bootstrap-5",
   containerCssClass: ":all:",
   placeholder: "---------",
   allowClear: true,
-  width: "auto",
+  width: "resolve",
 })
 
 $(() => {

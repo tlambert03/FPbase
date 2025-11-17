@@ -411,7 +411,7 @@ class LineageForm(forms.ModelForm):
         widget=autocomplete.ModelSelect2(
             url="proteins:lineage-autocomplete",
             attrs={
-                "data-theme": "bootstrap",
+                "data-theme": "bootstrap-5",
                 "data-width": "100%",
                 "data-placeholder": "----------",
             },
@@ -558,7 +558,7 @@ class protBleachItem(forms.ModelForm):
             url="proteins:state-autocomplete",
             attrs={
                 "class": "form-select",
-                "data-theme": "bootstrap",
+                "data-theme": "bootstrap-5",
                 "data-width": "100%",
                 "data-placeholder": "----------",
             },

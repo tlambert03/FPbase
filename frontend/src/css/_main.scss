@@ -153,14 +153,17 @@ a.twitter-share-button {
   // remove box shadow, even on hover AND clicked
 
   align-items: center;
+
   .btn {
     padding: 0.4rem;
     box-shadow: none !important;
   }
+
   div {
     padding: 0;
     margin: 0;
   }
+
   a,
   a.btn,
   a.active {
@@ -168,9 +171,11 @@ a.twitter-share-button {
     font-size: 1.5rem;
     box-shadow: none !important;
     border: none !important;
+
     &:hover {
       color: orange;
     }
+
     &:active {
       color: rgb(211, 137, 0);
     }
@@ -208,6 +213,7 @@ a.twitter-share-button {
     a {
       padding: 0; // Remove any default button padding
     }
+
     .badge {
       bottom: -0.7rem;
       right: 0.2rem; // Changed from left to right for better positioning
@@ -219,15 +225,15 @@ a.twitter-share-button {
 }
 
 .fav-count {
-    font-size: .8em;
-    position: relative;
-    margin-left: 4px;
+  font-size: .8em;
+  position: relative;
+  margin-left: 4px;
 }
 
 // Favorite button uses unified icon-dual-toggle pattern from _main.scss
 .icon-toggle {
-    @extend .icon-dual-toggle;
-    // No additional styling needed - inherits from unified pattern
+  @extend .icon-dual-toggle;
+  // No additional styling needed - inherits from unified pattern
 }
 
 
@@ -413,6 +419,7 @@ pre .mismatch {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -431,22 +438,22 @@ pre .mismatch {
 
   // Default state: show outline, hide filled
   // Use !important to override .svg-inline-icon
-  > svg.icon-outline {
+  >svg.icon-outline {
     display: inline-block !important;
   }
 
-  > svg.icon-filled {
+  >svg.icon-filled {
     display: none !important;
   }
 
   // Toggled state: hide outline, show filled
   // Support multiple state classes for different contexts
   :where(.is-toggled, .is-favorited, .is-flagged) & {
-    > svg.icon-outline {
+    >svg.icon-outline {
       display: none !important;
     }
 
-    > svg.icon-filled {
+    >svg.icon-filled {
       display: inline-block !important;
     }
   }
@@ -474,6 +481,7 @@ a.object-flag {
   &:hover {
     opacity: 1;
   }
+
   &:active {
     box-shadow: none !important;
     opacity: 0.7;

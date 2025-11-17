@@ -315,7 +315,7 @@ class MultipleFilterField(forms.ModelMultipleChoiceField):
             widget=autocomplete.ModelSelect2Multiple(
                 url="proteins:filter-autocomplete",
                 attrs={
-                    "data-theme": "bootstrap",
+                    "data-theme": "bootstrap-5",
                     "data-width": "100%",
                     "data-placeholder": "----------",
                 },

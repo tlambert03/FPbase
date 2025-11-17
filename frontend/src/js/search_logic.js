@@ -95,8 +95,8 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
       <div class="row g-2 query-row" id="query-row-' +
       id +
       '">\
-          <div class="col-sm-4 names-col d-flex justify-content-between align-items-start">\
-          <button type="button" class="btn btn-danger remove-row-btn me-2" ><strong>&times;</strong></button>\
+          <div class="col-sm-4 names-col d-flex justify-content-between align-items-center">\
+          <button type="button" class="btn btn-close remove-row-btn me-2 mb-3" ></button>\
                   <div class="mb-3" style="width:100%;"><select class="form-control filter-select" id="filter-select-' +
       id +
       '">' +

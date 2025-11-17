@@ -36,35 +36,42 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
 
 <div class="container" style="padding-top:1rem">
   <div class="row">
-    <div class="input-group input-group mb-3 col-12 col-md-4 col-sm-6">
-      <label class="input-group-text text-white bg-info" for="donor-select">Donor</label>
-      <select class="data-selector fluor-selector" id="donor-select" tabindex="-1" aria-hidden="true">
-        <option value="">-----</option>
-        {% for probe in probeslugs %}
-        <option value="{{ probe.slug }}">{{ probe.name }}</option>
-        {% endfor %}
-      </select>
+    <div class="col-12 col-md-4 col-sm-6">
+      <div class="input-group mb-3">
+        <label class="input-group-text text-white bg-info" for="donor-select">Donor</label>
+        <select class="data-selector fluor-selector" id="donor-select" tabindex="-1" aria-hidden="true">
+          <option value="">-----</option>
+          {% for probe in probeslugs %}
+          <option value="{{ probe.slug }}">{{ probe.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
-    <div class="input-group input-group mb-3 col-12 col-md-4 col-sm-6">
-      <label class="input-group-text text-white bg-info" for="acceptor-select">Acceptor</label>
-      <select class="data-selector fluor-selector" id="acceptor-select" tabindex="-1" aria-hidden="true">
-        <option value="">-----</option>
-        {% for probe in probeslugs %}
-        <option value="{{ probe.slug }}">{{ probe.name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <div class="input-group input-group mb-3 col-12 col-md-2 col-sm-6">
-      <label class="input-group-text text-white bg-info fst-italic" for="acceptor-select">𝓃</label>
-      <input type="text" class="form-control" id="ni-input" value=1.33>
-    </div>
-
-    <div class="input-group input-group mb-3 col-12 col-md-2 col-sm-6">
-      <label class="input-group-text text-white bg-info fst-italic" for="acceptor-select">&kappa;<sup>2</sup></label>
-      <input type="text" class="form-control" id="k2-input" value=0.6667>
+    <div class="col-12 col-md-4 col-sm-6">
+      <div class="input-group mb-3">
+        <label class="input-group-text text-white bg-info" for="acceptor-select">Acceptor</label>
+        <select class="data-selector fluor-selector" id="acceptor-select" tabindex="-1" aria-hidden="true">
+          <option value="">-----</option>
+          {% for probe in probeslugs %}
+          <option value="{{ probe.slug }}">{{ probe.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
 
+    <div class="col-12 col-md-2 col-sm-6">
+      <div class="input-group mb-3">
+        <label class="input-group-text text-white bg-info fst-italic" for="ni-input">𝓃</label>
+        <input type="text" class="form-control" id="ni-input" value=1.33>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-2 col-sm-6">
+      <div class="input-group mb-3">
+        <label class="input-group-text text-white bg-info fst-italic" for="k2-input">&kappa;<sup>2</sup></label>
+        <input type="text" class="form-control" id="k2-input" value=0.6667>
+      </div>
+    </div>
 
   </div>
   <div class="row">

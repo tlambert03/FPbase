@@ -1,6 +1,6 @@
-.state-col{
-	padding-right:0;
-	margin-right:0;
+.state-col {
+  padding-right: 0;
+  margin-right: 0;
 }
 
 // .stateform_block{
@@ -25,98 +25,109 @@
 // }
 
 .formset_div {
-	padding-right: 0.9rem;
+  padding-right: 0.9rem;
 }
 
 // Bootstrap 5: form-group replaced with mb-3
-.mb-3 small a{
-	text-decoration: none;
-	color: inherit;
-	font-weight: 600;
-	&:hover {
-		color: $primary;
-	}
+.mb-3 small a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 600;
+
+  &:hover {
+    color: $primary;
+  }
 }
 
 span.invalid-feedback {
   display: block;
 }
 
-textarea#id_seq, .spectrum-field textarea{
-	font-size:0.8rem;
+textarea#id_seq,
+.spectrum-field textarea {
+  font-size: 0.8rem;
 }
 
 i.arrow {
-    border: solid black;
-    border-width: 0 3px 3px 0;
-    display: inline-block;
-    padding: 3px;
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
 }
 
 // fix for corner radius on collection form
-.input-group-append .btn{
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
+.input-group-append .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
 
 .query-row {
-	padding: 0.2rem 0;
-	// Bootstrap 5: form-group replaced with mb-3 (or just remove if not needed)
-	.mb-3{
-		margin-top: 0.3rem;;
-		margin-bottom: 0.2rem;
-	}
+  padding: 0.2rem 0;
+
+  // Bootstrap 5: form-group replaced with mb-3 (or just remove if not needed)
+  .mb-3 {
+    margin-top: 0.3rem;
+    ;
+    margin-bottom: 0.2rem;
+  }
 }
 
 .button-row {
-	margin-top:0.5rem;
+  margin-top: 0.5rem;
 }
+
 .query-row:nth-child(even) {
-	background: $gray-300; // Mobile-first default
-	border-radius: 3px;
+  background: $gray-300; // Mobile-first default
+  border-radius: 3px;
 
-	@include media-breakpoint-up(sm) {
-		background: transparent;
-		border-radius: 0;
-	}
+  @include media-breakpoint-up(sm) {
+    background: transparent;
+    border-radius: 0;
+  }
 }
 
 
-.formset_div{
-	background: lighten($gray-200,1);
-	//@include gradient-y($start-color: #F3F3F3, $end-color: rgba($primary, 0.15), $start-percent: 0%, $end-percent: 100%)
-	border-radius: 0.4rem;
-	padding: 1rem 1.5rem 0.5rem 0.5rem;
-	margin: 1rem 0;
-	position: relative;
-	.bleach-delete-button, .state-delete-button{
-		position: absolute;
-		top: 0.2rem;
-		right: 1.35rem;
-		font-weight: 700;
-		font-size:25px;
-		background: none;
-		border: none;
-		color: $gray-600;
-		box-shadow: none;
-		&:hover{
-			color: $gray-900;
-			text-decoration: none;
-		}
-		&:active, &:focus{
-			color: darken($red, 20);
-		}
-	}
-	.bleach-delete-button{
-		right: 0.8rem;
-	}
+.formset_div {
+  background: lighten($gray-200, 1);
+  //@include gradient-y($start-color: #F3F3F3, $end-color: rgba($primary, 0.15), $start-percent: 0%, $end-percent: 100%)
+  border-radius: 0.4rem;
+  padding: 1rem 1.5rem 0.5rem 0.5rem;
+  margin: 1rem 0;
+  position: relative;
+
+  .bleach-delete-button,
+  .state-delete-button {
+    position: absolute;
+    top: 0.2rem;
+    right: 1.35rem;
+    font-weight: 700;
+    font-size: 25px;
+    background: none;
+    border: none;
+    color: $gray-600;
+    box-shadow: none;
+
+    &:hover {
+      color: $gray-900;
+      text-decoration: none;
+    }
+
+    &:active,
+    &:focus {
+      color: darken($red, 20);
+    }
+  }
+
+  .bleach-delete-button {
+    right: 0.8rem;
+  }
 }
 
 
 
-.formset_div:has(> .bleach-delete-button){
-	background-color: red;
+.formset_div:has(> .bleach-delete-button) {
+  background-color: red;
 }
 
 // adds a little arrow to the right of something...
@@ -162,14 +173,15 @@ i.arrow {
 
 #microscopeFormTabs {
   font-size: 0.80rem;
+
   @include media-breakpoint-up(md) {
-      font-size: 1rem;
+    font-size: 1rem;
   }
 }
 
 /* dal bootstrap css fix */
 #microscopeform .select2-container {
-    width: 100% !important;
+  width: 100% !important;
 }
 
 // select2 widgets
@@ -181,14 +193,11 @@ i.arrow {
 
 ul li.select2-selection__choice,
 ul li.select2-search {
-    /* Cancel out django's style */
-    list-style-type: none;
+  /* Cancel out django's style */
+  list-style-type: none;
 }
 
-// Bootstrap 5: form-group replaced with mb-3
-.mb-3 .select2-container .select2-selection--single {
-  height: 38px !important;
-}
+
 .form-select-sm .select2-selection--single {
   //height: 28px;
   //height: calc(2.25rem + 2px) !important;
@@ -199,36 +208,46 @@ ul li.select2-search {
   width: 10px !important;
 }
 
-// Bootstrap 5 theme uses .select2-container--bootstrap-5
-.select2-container--bootstrap-5 .select2-selection--single,
-.select2-container--bootstrap .select2-selection--single {
-  padding-left: 0 !important;
-  height: auto !important;
-  min-height: calc(1.5em + 0.75rem + 2px);
-}
 
-.select2-container--bootstrap-5 .select2-selection--multiple,
-.select2-container--bootstrap .select2-selection--multiple  {
-  line-height: 1rem;
-  min-height: calc(1.5em + 0.75rem + 2px);
-  .select2-selection__choice {
-    margin: 0.5rem 0 0 0.5rem !important;
+// Fix Select2 in Bootstrap 5 input groups
+.input-group {
+
+  .select2-container--bootstrap-5,
+  .select2-container--bootstrap {
+    flex: 1 1 auto;
+    width: 1% !important; // Override select2's width calculation
+
+    .select2-selection {
+      height: 100%;
+      border-radius: 0;
+    }
   }
-}
 
-// Fix select2 Bootstrap 5 theme width issues
-.select2-container--bootstrap-5 {
-  width: 100% !important;
-
-  .select2-selection {
-    width: 100%;
+  // First select2 in input group should have left border radius
+  >.select2-container--bootstrap-5:first-child,
+  >.select2-container--bootstrap:first-child {
+    .select2-selection {
+      border-top-left-radius: 0.375rem;
+      border-bottom-left-radius: 0.375rem;
+    }
   }
-}
 
-// Ensure select2 dropdowns have proper width
-.select2-container--bootstrap-5 .select2-dropdown,
-.select2-container--bootstrap .select2-dropdown {
-  min-width: 100%;
+  // Last select2 in input group should have right border radius
+  >.select2-container--bootstrap-5:last-child,
+  >.select2-container--bootstrap:last-child {
+    .select2-selection {
+      border-top-right-radius: 0.375rem;
+      border-bottom-right-radius: 0.375rem;
+    }
+  }
+
+  // Select2 between input-group-text elements
+  .input-group-text+.select2-container--bootstrap-5,
+  .input-group-text+.select2-container--bootstrap {
+    .select2-selection {
+      border-left: 0;
+    }
+  }
 }
 
 .bleach-form {
@@ -236,52 +255,53 @@ ul li.select2-search {
     display: none;
   }
 
-  .dynamic-form{
+  .dynamic-form {
+
     // Bootstrap 5: form-group replaced with mb-3
-    .mb-3 span.select2-container:nth-of-type(2){
-      display:none;
+    .mb-3 span.select2-container:nth-of-type(2) {
+      display: none;
     }
   }
 }
 
 .microscope-form {
-    .oc-delete-button{
-      font-size: 2rem;
-      color: #999;
-      position: relative;
-      top: -20px;
-      right: 3px;
-      width: 1px;
-    }
-    .oc-delete-button:hover{
-      text-decoration: none;
-    }
-  /*  .dynamic-oc-forms .dynamic-form:last-of-type .oc-delete-button{
-      display:none;
-    }*/
+  .oc-delete-button {
+    font-size: 2rem;
+    color: #999;
+    position: relative;
+    top: -20px;
+    right: 3px;
+    width: 1px;
+  }
 
-    .dynamic-oc-forms{
-      .oc-filter-group span.select2-container:nth-of-type(2){
-        display:none;
-      }
-      .col-form-label {
-        padding-top: 0;
-      }
-    }
+  .oc-delete-button:hover {
+    text-decoration: none;
+  }
 
-
-    .select2-selection__choice{
-      font-size: small;
-    }
-
-    .oc-filter-group .select2-selection--multiple .select2-selection__clear{
+  .dynamic-oc-forms {
+    .oc-filter-group span.select2-container:nth-of-type(2) {
       display: none;
     }
 
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        display: none;
-        -webkit-appearance: none;
-        margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+    .col-form-label {
+      padding-top: 0;
     }
+  }
+
+
+  .select2-selection__choice {
+    font-size: small;
+  }
+
+  .oc-filter-group .select2-selection--multiple .select2-selection__clear {
+    display: none;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    display: none;
+    -webkit-appearance: none;
+    margin: 0;
+    /* <-- Apparently some margin are still there even though it's hidden */
+  }
 }

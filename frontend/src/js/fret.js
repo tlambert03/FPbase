@@ -113,14 +113,14 @@ export default function initFRET() {
   })
 
   $("#donor-select").select2({
-    theme: "bootstrap",
+    theme: "bootstrap-5",
     containerCssClass: ":all:",
-    width: "auto",
+    width: "resolve",
   })
   $("#acceptor-select").select2({
-    theme: "bootstrap",
+    theme: "bootstrap-5",
     containerCssClass: ":all:",
-    width: "auto",
+    width: "resolve",
   })
 
   function getData(slug) {

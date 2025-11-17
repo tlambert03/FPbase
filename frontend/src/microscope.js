@@ -786,9 +786,9 @@ window.initMicroscope = () => {
 
       $("#fluor-select").select2(
         {
-          theme: "bootstrap",
+          theme: "bootstrap-5",
           containerCssClass: ":all:",
-          width: "auto",
+          width: "resolve",
         },
         $("#fluor-select").removeClass("form-select")
       )
