@@ -116,6 +116,7 @@ urlpatterns = [  # noqa: RUF005
     # custom apps
     path("", include("proteins.urls")),  # NOTE: without $
     path("reference/", include("references.urls")),  # NOTE: without $
+    path("spectra-modern/", include("spectra_modern.urls")),  # Modern spectrum submission
     path(
         "references/",
         cache_page(60 * 30)(ReferenceListView.as_view()),

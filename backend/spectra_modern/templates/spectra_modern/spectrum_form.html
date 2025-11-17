@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+{% load fpbase_tags static %}
+
+{% block title %}Submit a Spectrum to FPbase (Modern){% endblock %}
+{% block meta-description %}Help us build the best open spectra viewer by submitting spectral data to FPbase.{% endblock %}
+
+{% block content %}
+  {% if protein %}
+    <h2>Add a new spectrum for {{ protein }}</h2>
+  {% else %}
+    <h2>Add a new spectrum to the database</h2>
+  {% endif %}
+
+  <p>The easiest way to format spectra for upload is to create a two-column CSV or TSV file, where the first column contains the wavelength and the second column contains the spectrum values (ex/em/transmission, etc). Any additional columns will be ignored. <a href='https://automeris.io/WebPlotDigitizer/'>WebPlotDigitizer</a> can be used to extract a CSV file of spectral data from an image or PDF that can be imported here.</p>
+
+  <p>Data may also be entered below as a (python style) list: <code>[[wavelength, value], [wavelength, value], ...]</code></p>
+
+  {% if not protein %}
+  <div class="alert alert-info alert-dismissible fade show mt-4" role="alert">
+    <div class='h5 text-info'>{% icon "info" class_="mr-2" %} <strong>Guidelines</strong></div>
+    <p><small>Please note: there are currently no "private" spectra collections on FPbase, so all spectra are visible to everyone. Therefore, please observe the following guidelines when uploading spectra:</small>
+      <ul>
+        <li><strong>Use good naming conventions</strong>: Be specific and include manufacturer and part numbers where applicable. For filters, this may include the bandcenter and wavelength range. Do <em>not</em> name filters after a fluorophore they are often used with.
+          <ul style='font-style: italic'>
+            <li>Bad: FITC em</li>
+            <li>Good: Chroma ET525/50m</li>
+          </ul>
+        </li>
+        <li><strong>Avoid duplicates:</strong> Please try to verify that the spectrum is not already in the database. After entering the name, you will be alerted if there is a pre-existing spectrum with a similar name (underscoring the importance of good naming convention).</li>
+        <li><strong>You cannot (yet) delete/edit:</strong> So double check before you upload. But don't worry! If you make a mistake and need something deleted or renamed, just <a href="{% url 'contact' %}">contact us!</a>.</li>
+        <li><strong>Please do not upload artificial, generated, or "expected" spectra</strong>. This part of the database is intended only for <em>real</em> data.</li>
+      </ul>
+    </p>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  {% endif %}
+
+  {# Main form section #}
+  <div id="spectrum-form-section">
+    <form method="post" enctype="multipart/form-data" id="spectrum-form"
+          data-preview-url="{{ preview_url }}"
+          data-state-search-url="{{ state_autocomplete_url }}"
+          data-validate-owner-url="{{ validate_owner_url }}">
+      {% csrf_token %}
+
+      {# Non-field errors #}
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{ form.non_field_errors }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      {% endif %}
+
+      {# Category field #}
+      <div class="form-group">
+        <label for="{{ form.category.id_for_label }}" class="font-weight-bold">
+          {{ form.category.label }}
+          {% if form.category.field.required %}<span class="text-danger">*</span>{% endif %}
+        </label>
+        {{ form.category }}
+        {% if form.category.help_text %}
+          <small class="form-text text-muted">{{ form.category.help_text }}</small>
+        {% endif %}
+        {% if form.category.errors %}
+          <div class="invalid-feedback d-block">{{ form.category.errors }}</div>
+        {% endif %}
+      </div>
+
+      {# Owner fields row #}
+      <div class="row">
+        {# Protein state field (shown only for protein category) #}
+        <div class="col-sm-6 col-xs-12" id="protein-owner-field" style="display: none;">
+          <div class="form-group">
+            <label for="{{ form.owner_state.id_for_label }}" class="font-weight-bold">
+              Protein
+              <span class="text-danger owner-required">*</span>
+            </label>
+            <div class="input-group">
+              {{ form.owner_state }}
+              <div class="input-group-append">
+                <button type="button" class="btn btn-outline-secondary" id="clear-state-btn" title="Clear selection">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+            </div>
+            {% if form.owner_state.help_text %}
+              <small class="form-text text-muted">{{ form.owner_state.help_text }}</small>
+            {% endif %}
+            {% if form.owner_state.errors %}
+              <div class="invalid-feedback d-block">{{ form.owner_state.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Generic owner field (shown for non-protein categories) #}
+        <div class="col-sm-6 col-xs-12" id="other-owner-field">
+          <div class="form-group">
+            <label for="{{ form.owner.id_for_label }}" class="font-weight-bold">
+              <span id="owner-type-label">Owner</span> Name
+              <span class="text-danger owner-required">*</span>
+            </label>
+            {{ form.owner }}
+            {% if form.owner.help_text %}
+              <small class="form-text text-muted">{{ form.owner.help_text }}</small>
+            {% endif %}
+            {% if form.owner.errors %}
+              <div class="invalid-feedback d-block">{{ form.owner.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        {# Subtype field #}
+        <div class="col-sm-6 col-xs-12">
+          <div class="form-group">
+            <label for="{{ form.subtype.id_for_label }}" class="font-weight-bold">
+              {{ form.subtype.label }}
+              {% if form.subtype.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.subtype }}
+            {% if form.subtype.help_text %}
+              <small class="form-text text-muted">{{ form.subtype.help_text }}</small>
+            {% endif %}
+            {% if form.subtype.errors %}
+              <div class="invalid-feedback d-block">{{ form.subtype.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {# Data source tabs #}
+      <div class="form-group mt-4">
+        <label class="font-weight-bold">Spectrum Data Source <span class="text-danger">*</span></label>
+        <ul class="nav nav-tabs" id="data-source-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="file-tab" data-toggle="tab" href="#file-panel" role="tab" aria-controls="file-panel" aria-selected="true">
+              {% icon "upload" class_="mr-2" %}Upload File
+            </a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="manual-tab" data-toggle="tab" href="#manual-panel" role="tab" aria-controls="manual-panel" aria-selected="false">
+              {% icon "edit" class_="mr-2" %}Enter Data Manually
+            </a>
+          </li>
+        </ul>
+
+        <div class="tab-content border-left border-right border-bottom p-3" id="data-source-content">
+          {# File upload tab #}
+          <div class="tab-pane fade show active" id="file-panel" role="tabpanel" aria-labelledby="file-tab">
+            <div class="form-group">
+              <label for="{{ form.file.id_for_label }}">{{ form.file.label }}</label>
+              {{ form.file }}
+              {% if form.file.help_text %}
+                <small class="form-text text-muted">{{ form.file.help_text }}</small>
+              {% endif %}
+              {% if form.file.errors %}
+                <div class="invalid-feedback d-block">{{ form.file.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          {# Manual data tab #}
+          <div class="tab-pane fade" id="manual-panel" role="tabpanel" aria-labelledby="manual-tab">
+            <div class="form-group">
+              <label for="{{ form.spectral_data.id_for_label }}">{{ form.spectral_data.label }}</label>
+              {{ form.spectral_data }}
+              {% if form.spectral_data.help_text %}
+                <small class="form-text text-muted">{{ form.spectral_data.help_text }}</small>
+              {% endif %}
+              {% if form.spectral_data.errors %}
+                <div class="invalid-feedback d-block">{{ form.spectral_data.errors }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# pH and Solvent row (shown only for biological spectra) #}
+      <div class="row" id="bio-fields-row" style="display: none;">
+        <div class="col-md-6 col-sm-12">
+          <div class="form-group">
+            <label for="{{ form.ph.id_for_label }}">{{ form.ph.label }}</label>
+            {{ form.ph }}
+            {% if form.ph.help_text %}
+              <small class="form-text text-muted">{{ form.ph.help_text }}</small>
+            {% endif %}
+            {% if form.ph.errors %}
+              <div class="invalid-feedback d-block">{{ form.ph.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-md-6 col-sm-12">
+          <div class="form-group">
+            <label for="{{ form.solvent.id_for_label }}">{{ form.solvent.label }}</label>
+            {{ form.solvent }}
+            {% if form.solvent.help_text %}
+              <small class="form-text text-muted">{{ form.solvent.help_text }}</small>
+            {% endif %}
+            {% if form.solvent.errors %}
+              <div class="invalid-feedback d-block">{{ form.solvent.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {# Source field (optional) #}
+      {% if form.source %}
+      <div class="form-group">
+        <label for="{{ form.source.id_for_label }}">{{ form.source.label }}</label>
+        {{ form.source }}
+        {% if form.source.help_text %}
+          <small class="form-text text-muted">{{ form.source.help_text }}</small>
+        {% endif %}
+        {% if form.source.errors %}
+          <div class="invalid-feedback d-block">{{ form.source.errors }}</div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {# Confirmation checkbox #}
+      <div class="form-group form-check">
+        {{ form.confirmation }}
+        <label class="form-check-label" for="{{ form.confirmation.id_for_label }}">
+          {{ form.confirmation.label|safe }}
+        </label>
+        {% if form.confirmation.errors %}
+          <div class="invalid-feedback d-block">{{ form.confirmation.errors }}</div>
+        {% endif %}
+      </div>
+
+      {# Submit button #}
+      <button type="submit" class="btn btn-primary" id="submit-btn">
+        Preview Spectrum
+      </button>
+    </form>
+  </div>
+
+  {# Spectrum Preview Section #}
+  <div id="spectrum-preview-section" style="display: none;" class="mt-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          {% icon "view" class_="mr-2" %}Spectrum Preview
+        </h5>
+      </div>
+      <div class="card-body">
+        <div id="spectrum-preview-message" class="alert alert-info mb-3"></div>
+
+        {# Spectrum visualization #}
+        <div id="spectrum-preview-chart" class="mb-3 text-center"></div>
+
+        {# Spectrum data summary #}
+        <div id="spectrum-preview-info" class="row">
+          <div class="col-md-4">
+            <strong>Peak Wavelength:</strong> <span id="preview-peak-wave"></span> nm
+          </div>
+          <div class="col-md-4">
+            <strong>Range:</strong> <span id="preview-wave-range"></span> nm
+          </div>
+          <div class="col-md-4">
+            <strong>Data Points:</strong> <span id="preview-data-points"></span>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <div class="alert alert-warning">
+            <strong>{% icon "alert" class_="mr-2" %}Please Review:</strong>
+            The spectrum data above shows how your spectrum will appear after processing.
+            If this doesn't look correct, please check your data or
+            <strong><a href="{% url 'contact' %}" target="_blank">contact us</a></strong> for assistance with data formatting.
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+          <button type="button" class="btn btn-secondary" id="edit-data-btn">
+            {% icon "edit" class_="mr-2" %}Edit Data
+          </button>
+          <button type="button" class="btn btn-success" id="submit-final-btn">
+            {% icon "check" class_="mr-2" %}Looks Good - Submit Spectrum
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class='mt-3 small'>
+    <em>If you are adding different spectra for the same item (e.g. ex/em spectra for a dye or protein) you must choose the same "Dye/Protein Name" both times. Currently, this must be done sequentially (submit the form and come back and submit again for the other spectrum). If you run into difficulties importing spectra, please <a href="{% url 'contact' %}">let us know!</a></em>
+  </p>
+
+{% endblock content %}
+
+{% block javascript %}
+  <script src="{% static 'spectra_modern/js/spectrum-form.js' %}"></script>
+{% endblock javascript %}

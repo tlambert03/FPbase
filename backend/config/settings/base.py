@@ -90,6 +90,7 @@ LOCAL_APPS = [
     "proteins.apps.ProteinsConfig",
     "references.apps.ReferencesConfig",
     "favit",
+    "spectra_modern.apps.SpectraModernConfig",  # Modern spectrum submission (proof of concept)
 ]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

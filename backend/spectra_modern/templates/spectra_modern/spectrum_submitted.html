@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load fpbase_tags %}
+
+{% block title %}Spectrum Submitted{% endblock %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-body text-center">
+            <h2 class="text-success mb-4">
+              {% icon "check" class_="mr-2" %}
+              Spectrum Submitted Successfully!
+            </h2>
+
+            {% if spectrum_name %}
+              <p class="lead">
+                Thank you for submitting <strong>{{ spectrum_name }}</strong> to FPbase.
+              </p>
+            {% else %}
+              <p class="lead">
+                Thank you for your spectrum submission!
+              </p>
+            {% endif %}
+
+            <div class="alert alert-info mt-4">
+              <h5>What happens next?</h5>
+              <p class="mb-0">
+                Your spectrum will be reviewed by our team before being published to the database.
+                You will receive an email notification once it has been approved.
+              </p>
+            </div>
+
+            <div class="mt-4">
+              <a href="{% url 'spectra_modern:submit' %}" class="btn btn-primary mr-2">
+                Submit Another Spectrum
+              </a>
+              <a href="/" class="btn btn-secondary">
+                Return to Home
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
