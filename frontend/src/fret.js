@@ -3,7 +3,7 @@ import "vite/modulepreload-polyfill"
 
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
-import "./js/ajax-sentry.js" // Track jQuery AJAX errors
+import "./js/ajax-sentry.js" // Track AJAX and fetch errors
 
 // FRET calculator functionality with Highcharts
 import initFRET from "./js/fret.js"
