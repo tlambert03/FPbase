@@ -1,3 +1,4 @@
+import { fetchWithSentry } from "./ajax-sentry"
 import { icon } from "./icons.js"
 
 const $ = window.jQuery // jQuery loaded from CDN
@@ -178,7 +179,7 @@ function handle_comparison_button(e) {
     operation: button.data("op"),
   })
 
-  fetch(button.attr("data-action-url"), {
+  fetchWithSentry(button.attr("data-action-url"), {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -211,9 +212,14 @@ $(".comparison-btn").on("click", handle_comparison_button)
 
 $(() => {
   if (document.getElementById("comparison-slider")) {
-    $.getJSON("/ajax/comparison/").then((d) => {
-      populate_comparison_tab(d.comparison_set)
+    fetchWithSentry("/ajax/comparison/", {
+      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
+      headers: { "X-Requested-With": "XMLHttpRequest" },
     })
+      .then((response) => response.json())
+      .then((d) => {
+        populate_comparison_tab(d.comparison_set)
+      })
   }
 })
 
@@ -413,7 +419,7 @@ $("#id_ipg_id").change(function () {
     "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=ipg&retmode=json&id="
   const fpbase_params = "&tool=fpbase&email=talley.lambert+fpbase@gmail.com"
 
-  fetch(ipg_uri + ipg_id + fpbase_params)
+  fetchWithSentry(ipg_uri + ipg_id + fpbase_params)
     .then((response) => response.json())
     .then((data) => {
       if (!("result" in data)) {
@@ -425,7 +431,7 @@ $("#id_ipg_id").change(function () {
         const title = data.result[ipg_id].title
         $("#hint_id_ipg_id").html(`IPG name: ${title}`)
 
-        fetch(protein_uri + accession + fpbase_params)
+        fetchWithSentry(protein_uri + accession + fpbase_params)
           .then((response) => response.text())
           .then((data2) => {
             var lines = data2.split("\n")
@@ -453,7 +459,7 @@ $("#proteinform #id_name").change(function () {
   var form = $(this).closest("form")
   const formData = form.find("#id_slug:hidden, #id_name, [name='csrfmiddlewaretoken']").serialize()
 
-  fetch(form.data("validate-proteinname-url"), {
+  fetchWithSentry(form.data("validate-proteinname-url"), {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -493,7 +499,7 @@ $("#spectrum-submit-form #id_owner").change(function () {
   var form = $(this).closest("form")
   const formData = form.find("#id_owner, [name='csrfmiddlewaretoken']").serialize()
 
-  fetch(form.data("validate-owner-url"), {
+  fetchWithSentry(form.data("validate-owner-url"), {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -541,7 +547,7 @@ $('input[id*="reference_doi"]').change(function () {
   // searchurl = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term="
   // searchurl += doi + "[doi]&retmode=json"
 
-  fetch(searchurl)
+  fetchWithSentry(searchurl)
     .then((response) => response.json())
     .then((data) => {
       if (data.status === "ok") {
@@ -694,7 +700,7 @@ $("#refModalForm").submit(function (e) {
   e.preventDefault() // avoid to execute the actual submit of the form.
   var form = $(this).closest("form")
 
-  fetch(form.attr("data-action-url"), {
+  fetchWithSentry(form.attr("data-action-url"), {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -722,7 +728,7 @@ $("#excerptModalForm")
     if ($submitBtn.prop("disabled")) return
     $submitBtn.prop("disabled", true)
 
-    fetch(form.attr("data-action-url"), {
+    fetchWithSentry(form.attr("data-action-url"), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -758,7 +764,7 @@ function register_transition_form() {
 // This function is for showing the modal
 $(() => {
   $("#show_transition_modal").click(function () {
-    fetch($(this).attr("data-action-url"), {
+    fetchWithSentry($(this).attr("data-action-url"), {
       method: "GET",
       cache: "no-store",
     })
@@ -787,7 +793,7 @@ $("#transitionForm").submit(function (e) {
   e.preventDefault() // avoid to execute the actual submit of the form.
   var form = $(this).closest("form")
 
-  fetch(form.attr("data-action-url"), {
+  fetchWithSentry(form.attr("data-action-url"), {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -816,7 +822,7 @@ $("#adminApprove, #adminRevert").submit(function (e) {
   e.preventDefault() // avoid to execute the actual submit of the form.
   var form = $(this).closest("form")
 
-  fetch(form.attr("data-action-url"), {
+  fetchWithSentry(form.attr("data-action-url"), {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -848,7 +854,7 @@ $(document).ready(() => {
       csrfmiddlewaretoken: window.CSRF_TOKEN,
     })
 
-    fetch(button.data("action-url"), {
+    fetchWithSentry(button.data("action-url"), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -882,7 +888,7 @@ $(document).ready(() => {
       csrfmiddlewaretoken: window.CSRF_TOKEN,
     })
 
-    fetch(button.attr("data-action-url"), {
+    fetchWithSentry(button.attr("data-action-url"), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -902,7 +908,7 @@ $(document).ready(() => {
   $(".collection-add-button").click(function (e) {
     e.preventDefault()
 
-    fetch($(this).attr("data-action-url"), {
+    fetchWithSentry($(this).attr("data-action-url"), {
       method: "GET",
     })
       .then((response) => response.json())
@@ -935,7 +941,7 @@ $(document).ready(() => {
     var form = $(this).closest("form")
     const data = form.serialize()
 
-    fetch(form.attr("data-action-url"), {
+    fetchWithSentry(form.attr("data-action-url"), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -967,14 +973,14 @@ $(() => {
     const tax_uri =
       "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&retmode=json&id="
 
-    fetch(tax_uri + tax_id)
+    fetchWithSentry(tax_uri + tax_id)
       .then((response) => response.json())
       .then((data) => {
         if ("scientificname" in data.result[data.result.uids[0]]) {
           // successful fetch from NCBI
           const sci_name = data.result[data.result.uids[0]].scientificname
 
-          fetch(form.attr("data-action-url"), {
+          fetchWithSentry(form.attr("data-action-url"), {
             method: "POST",
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",

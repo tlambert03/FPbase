@@ -1,3 +1,5 @@
+import { fetchWithSentry } from "./ajax-sentry"
+
 $(document).ready(() => {
   $("#add_remove_favorite").click(function (e) {
     e.preventDefault() // avoid to execute the actual submit of the form.
@@ -11,7 +13,7 @@ $(document).ready(() => {
       csrfmiddlewaretoken: window.CSRF_TOKEN,
     })
 
-    fetch($obj.attr("data-action-url"), {
+    fetchWithSentry($obj.attr("data-action-url"), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -51,7 +53,7 @@ $(document).ready(() => {
       csrfmiddlewaretoken: window.CSRF_TOKEN,
     })
 
-    fetch($obj.attr("data-action-url"), {
+    fetchWithSentry($obj.attr("data-action-url"), {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

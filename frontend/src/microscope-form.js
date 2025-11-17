@@ -3,7 +3,8 @@ import "vite/modulepreload-polyfill"
 
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
-import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
+import "./js/ajax-sentry.js" // Track jQuery AJAX errors
+import { fetchWithSentry } from "./js/ajax-sentry"
 
 const $ = window.jQuery // jQuery loaded from CDN
 
@@ -95,7 +96,7 @@ $("#chromaImportForm, #semrockImportForm").submit(function (e) {
   const form = $(this).closest("form")
   const brand = form.data("brand")
 
-  fetch(form.attr("data-action-url"), {
+  fetchWithSentry(form.attr("data-action-url"), {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",

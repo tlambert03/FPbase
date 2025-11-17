@@ -1,5 +1,6 @@
 import { Box, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from "@mui/material"
 import { useState } from "react"
+import { fetchWithSentry } from "../../../frontend/src/js/ajax-sentry"
 
 const $ = window.jQuery
 
@@ -64,7 +65,7 @@ function App() {
     const bin = notDNA.test(seqLetters) ? "blastp" : "blastx"
     setBinary(bin)
 
-    fetch("", {
+    fetchWithSentry("", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

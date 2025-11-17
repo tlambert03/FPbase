@@ -99,6 +99,9 @@
 
 <script>
 
+  // fetchWithSentry is available globally from the ajax-sentry module loaded in the main bundle
+  // It wraps native fetch() with Sentry error tracking
+
   // Get CSRF token from cookie for fetch requests
   function getCookie(name) {
     let cookieValue = null;
@@ -329,7 +332,7 @@
     }
 
     // Send fetch request for preview
-    fetch("{% url 'proteins:spectrum_preview' %}", {
+    fetchWithSentry("{% url 'proteins:spectrum_preview' %}", {
       method: 'POST',
       headers: {
         'X-CSRFToken': csrftoken,

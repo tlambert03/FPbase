@@ -3,7 +3,8 @@ import "vite/modulepreload-polyfill"
 
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
-import "./js/jquery-ajax-sentry.js" // Track jQuery AJAX errors
+import "./js/ajax-sentry.js" // Track jQuery AJAX errors
+import { fetchWithSentry } from "./js/ajax-sentry"
 
 import "./css/litemol/LiteMol-plugin-blue.css"
 
@@ -80,7 +81,7 @@ async function getPDBbinary(id) {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), TIMEOUT)
 
-      const response = await fetch(url, {
+      const response = await fetchWithSentry(url, {
         signal: controller.signal,
       })
       clearTimeout(timeoutId)
@@ -295,7 +296,7 @@ function downloadPDBMeta(pdbIds) {
     console.warn("Cache read failed:", error)
   }
 
-  return fetch("https://data.rcsb.org/graphql", {
+  return fetchWithSentry("https://data.rcsb.org/graphql", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
