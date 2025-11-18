@@ -78,6 +78,7 @@ typing = [
 ]
 dev = [
     { include-group = "typing" },
+    "beautifulsoup4>=4.14.2",
     "django-extensions>=3.2.3",
     "ipython>=8.32.0",
     "pandas>=2.0.3",

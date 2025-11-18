@@ -18,7 +18,7 @@ from proteins.models import (
 )
 from proteins.validators import protein_sequence_validator, validate_doi
 from references.models import Reference  # breaks application modularity
-from tomcomplete import ModelSelect2
+from tomcomplete import AutocompleteSelect
 
 
 def popover_html(label, content, side="right"):
@@ -408,7 +408,7 @@ class LineageForm(forms.ModelForm):
         help_text="Direct evolutionary ancestor (must have ancestor of its own to appear)",
         required=False,
         queryset=Lineage.objects.all().prefetch_related("protein"),
-        widget=ModelSelect2(
+        widget=AutocompleteSelect(
             url="proteins:lineage-autocomplete",
             attrs={
                 "data-theme": "bootstrap",
@@ -554,7 +554,7 @@ class protBleachItem(forms.ModelForm):
         label="Protein (State)",
         help_text="If protein not in list, submit a new protein first",
         queryset=State.objects.all(),
-        widget=ModelSelect2(
+        widget=AutocompleteSelect(
             url="proteins:state-autocomplete",
             attrs={
                 "class": "custom-select",

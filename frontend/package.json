@@ -29,7 +29,8 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "select2": "^4.0.13",
-    "select2-theme-bootstrap4": "^0.2.0-beta.6"
+    "select2-theme-bootstrap4": "^0.2.0-beta.6",
+    "tom-select": "^2.4.3"
   },
   "devDependencies": {
     "@sentry/cli": "^2.57.0",

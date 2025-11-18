@@ -2,8 +2,6 @@ from tomcomplete import Select2QuerySetView
 
 from ..models import Filter, Lineage, Protein, State
 
-# from django.contrib.postgres.search import TrigramSimilarity
-
 
 class ProteinAutocomplete(Select2QuerySetView):
     def get_results(self, context):

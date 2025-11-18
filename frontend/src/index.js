@@ -249,3 +249,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })
 })
+
+// src/main.js
+import { initAutocomplete as initTomAutocomplete } from "./js/tomcomplete.js"
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("select[data-autocomplete-url]").forEach(initTomAutocomplete)
+})
