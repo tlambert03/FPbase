@@ -1,5 +1,4 @@
 import reversion
-from dal import autocomplete
 from django.core.mail import mail_managers
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.utils.html import strip_tags
@@ -8,6 +7,7 @@ from django.views.generic import DetailView, ListView
 from fpbase.util import is_ajax
 from proteins.models import Excerpt
 from proteins.util.helpers import link_excerpts
+from tomcomplete import Select2QuerySetView
 
 from .models import Author, Reference
 
@@ -52,7 +52,7 @@ class ReferenceDetailView(DetailView):
         return data
 
 
-class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
+class ReferenceAutocomplete(Select2QuerySetView):
     def get_results(self, context):
         """Return data for the 'results' key of the response."""
         return [

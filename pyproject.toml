@@ -105,7 +105,7 @@ filterwarnings = [
 
 # ==== Coverage ====
 [tool.coverage.run]
-source = ["fpbase", "proteins", "references", "fpseq", "favit"]
+source = ["fpbase", "proteins", "references", "fpseq", "favit", "tomcomplete"]
 omit = ["*/migrations/*", "*/tests/*", "proteins/management/**"]
 
 

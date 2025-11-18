@@ -1,10 +1,11 @@
 import re
 
-from dal import autocomplete
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.forms.models import inlineformset_factory
+
+from tomcomplete import ModelSelect2Multiple
 
 from ..models import (
     Camera,
@@ -312,7 +313,7 @@ class MultipleFilterField(forms.ModelMultipleChoiceField):
             label=label,
             queryset=Filter.objects.all(),
             required=False,
-            widget=autocomplete.ModelSelect2Multiple(
+            widget=ModelSelect2Multiple(
                 url="proteins:filter-autocomplete",
                 attrs={
                     "data-theme": "bootstrap",

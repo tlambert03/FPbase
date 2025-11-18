@@ -1,6 +1,5 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Div, Field, Layout, Submit
-from dal import autocomplete
 from django import forms
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
@@ -12,6 +11,7 @@ from proteins.models import Fluorophore, Spectrum, State
 from proteins.util.helpers import zip_wave_data
 from proteins.util.importers import text_to_spectra
 from proteins.validators import validate_spectrum
+from tomcomplete import ModelSelect2
 
 
 class SpectrumFormField(forms.CharField):
@@ -39,7 +39,7 @@ class SpectrumForm(forms.ModelForm):
         required=False,
         label=mark_safe('Protein<span class="asteriskField">*</span>'),
         queryset=State.objects.select_related("protein"),
-        widget=autocomplete.ModelSelect2(
+        widget=ModelSelect2(
             url="proteins:state-autocomplete",
             attrs={"data-theme": "bootstrap", "data-width": "100%"},
         ),
