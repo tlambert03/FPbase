@@ -35,7 +35,6 @@ dependencies = [
     'graphene>=3.2.2',
     'habanero>=1.2.3',
     'matplotlib>=3.7.1',
-    'maxminddb>=2.5.1',
     'numpy>=1.26.3',
     'Pillow>=10.0.0',
     'psycopg2>=2.9.11; platform_system == "Linux"',
