@@ -371,3 +371,128 @@ def create_egfp() -> Protein:
     )
 
     return egfp
+
+
+def create_rich_microscope() -> Microscope:
+    """Create a reproducible microscope with 3 ex filters, 3 dichroics, 3 em filters, and 3 optical configs.
+
+    Returns a fully configured Microscope with:
+    - 3 excitation filters (BP): 390/40 (DAPI), 470/40 (GFP), 560/40 (mCherry)
+    - 3 dichroic filters (BS): 425LP, 510LP, 590LP
+    - 3 emission filters (BP): 450/50 (DAPI), 525/50 (GFP), 630/75 (mCherry)
+    - 3 optical configs: DAPI, GFP, mCherry
+    - 1 light source
+    - 1 camera
+    """
+    microscope = MicroscopeFactory.create(name="TestRichMicroscope")
+
+    # # Create light source
+    # light = LightFactory.create(name="X-Cite 120")
+    # microscope.extra_lights.add(light)
+
+    # # Create camera
+    # camera = CameraFactory.create(name="Prime BSI")
+    # microscope.extra_cameras.add(camera)
+
+    # Create 3 excitation filters (bandpass)
+    # Spectra are automatically created by the factory using the bandcenter/bandwidth
+    ex_dapi = FilterFactory.create(
+        name="ET390/40x",
+        bandcenter=390,
+        bandwidth=40,
+        subtype=Filter.BP,
+    )
+
+    ex_gfp = FilterFactory.create(
+        name="ET470/40x",
+        slug="et470-40x",
+        bandcenter=470,
+        bandwidth=40,
+        subtype=Filter.BP,
+    )
+
+    ex_mcherry = FilterFactory.create(
+        name="ET560/40x",
+        bandcenter=560,
+        bandwidth=40,
+        subtype=Filter.BP,
+    )
+
+    # Create 3 dichroic filters (beamsplitters)
+    # Spectra are automatically created by the factory using the edge
+    bs_dapi = FilterFactory.create(
+        name="T425lpxr",
+        edge=425,
+        subtype=Filter.LP,
+    )
+
+    bs_gfp = FilterFactory.create(
+        name="T500lpxr",
+        edge=500,
+        subtype=Filter.LP,
+    )
+
+    bs_mcherry = FilterFactory.create(
+        name="T590lpxr",
+        slug="t590lpxr",
+        edge=590,
+        subtype=Filter.LP,
+    )
+
+    # Create 3 emission filters (bandpass)
+    em_dapi = FilterFactory.create(
+        name="ET450/50m",
+        slug="et450-50m",
+        bandcenter=450,
+        bandwidth=50,
+        subtype=Filter.BP,
+    )
+
+    em_gfp = FilterFactory.create(
+        name="ET525/50m",
+        slug="et525-50m",
+        bandcenter=525,
+        bandwidth=50,
+        subtype=Filter.BP,
+    )
+
+    em_mcherry = FilterFactory.create(
+        name="ET630/75m",
+        slug="et630-75m",
+        bandcenter=630,
+        bandwidth=75,
+        subtype=Filter.BP,
+    )
+
+    # Create 3 optical configurations
+    config_dapi = OpticalConfigFactory.create(
+        name="DAPI",
+        microscope=microscope,
+        # light=light,
+        # camera=camera,
+    )
+    FilterPlacementFactory.create(filter=ex_dapi, config=config_dapi, path=FilterPlacement.EX)
+    FilterPlacementFactory.create(filter=bs_dapi, config=config_dapi, path=FilterPlacement.BS)
+    FilterPlacementFactory.create(filter=em_dapi, config=config_dapi, path=FilterPlacement.EM)
+
+    config_gfp = OpticalConfigFactory.create(
+        name="GFP",
+        microscope=microscope,
+        # light=light,
+        # camera=camera,
+    )
+    FilterPlacementFactory.create(filter=ex_gfp, config=config_gfp, path=FilterPlacement.EX)
+    FilterPlacementFactory.create(filter=bs_gfp, config=config_gfp, path=FilterPlacement.BS)
+    FilterPlacementFactory.create(filter=em_gfp, config=config_gfp, path=FilterPlacement.EM)
+
+    config_mcherry = OpticalConfigFactory.create(
+        name="mCherry",
+        microscope=microscope,
+        # light=light,
+        # camera=camera,
+    )
+    FilterPlacementFactory.create(filter=ex_mcherry, config=config_mcherry, path=FilterPlacement.EX)
+    FilterPlacementFactory.create(filter=bs_mcherry, config=config_mcherry, path=FilterPlacement.BS)
+    FilterPlacementFactory.create(filter=em_mcherry, config=config_mcherry, path=FilterPlacement.EM)
+
+    return microscope
