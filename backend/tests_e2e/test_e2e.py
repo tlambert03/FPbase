@@ -19,10 +19,9 @@ from playwright.sync_api import expect
 from favit.models import Favorite
 from proteins.factories import (
     FilterFactory,
-    MicroscopeFactory,
-    OpticalConfigWithFiltersFactory,
     ProteinFactory,
     create_egfp,
+    create_rich_microscope,
 )
 from proteins.models import Filter, Microscope, Protein, Spectrum
 from proteins.util.blast import _get_binary
@@ -287,9 +286,7 @@ def test_microscope_create(
 def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test microscope page with fluorophore selection and config switching."""
     protein = ProteinFactory.create()
-    microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
-    # Only need 2 configs to test switching between them
-    OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
+    microscope = create_rich_microscope()
 
     page.goto(f"{live_server.url}{reverse('proteins:microscopes')}")
     page.get_by_role("link", name=microscope.name).click()
@@ -301,7 +298,7 @@ def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, a
 
     # Switch optical config - select by label (TestOC1 is the second config created)
     config_select = page.locator("#config-select")
-    config_select.select_option(label="TestOC1")
+    config_select.select_option(label="GFP")
 
 
 def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
@@ -347,7 +344,7 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
     # Visual snapshot: FRET calculation complete with chart
     if not hasattr(assert_snapshot, "NOOP"):
         page.wait_for_load_state("networkidle")
-        assert_snapshot(page, mask_elements=[".highcharts-legend"])
+        assert_snapshot(page)
 
 
 def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
@@ -446,8 +443,7 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
 @pytest.mark.parametrize("viewname", ["microscope-embed", "microscope-detail", "microscope-report"])
 def test_microscope_views(live_server: LiveServer, page: Page, viewname: str, assert_snapshot: Callable) -> None:
     """Test embedded microscope viewer with chart rendering."""
-    microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
-    OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
+    microscope = create_rich_microscope()
 
     url = f"{live_server.url}{reverse(f'proteins:{viewname}', args=(microscope.id,))}"
     page.goto(url)

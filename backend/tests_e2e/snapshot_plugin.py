@@ -11,6 +11,7 @@ import os
 import shutil
 import sys
 from contextlib import suppress
+from copy import copy
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -18,6 +19,8 @@ import pytest
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+DEFAULT_MASK_SELECTORS = [".highcharts-legend", "img[src*='GFP_spinner']"]
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -125,7 +128,7 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
     global_snapshot_threshold = pytestconfig.getoption("--snapshot-threshold", 0.1)
     min_percent_diff = pytestconfig.getoption("--min-percent-diff", 0)
 
-    mask_selectors: list[str] = []
+    mask_selectors: list[str] = copy(DEFAULT_MASK_SELECTORS)
     update_snapshot = pytestconfig.getoption("--update-snapshots", False)
 
     # for automatically naming multiple assertions
