@@ -40,9 +40,11 @@
     <style>#logolink {opacity: 0.6;}#logolink:hover {opacity: 1;}#logolink a:hover {text-decoration: none;}</style>
   </head>
   <body>
-    <div class="container spectrumpage microscopepage">
-      <div id="logolink" class='mt-2 d-flex justify-content-end'><a href="{{ request.scheme }}://{{ request.get_host }}" target="_blank">{% include "_logo_prestyled.html" %}</a><br></div>
-      <h4 class='text-center mb-3' style="font-weight: 500;">{{microscope}}</h4>
+    <div class="container-fluid spectrumpage microscopepage">
+      <div class="container">
+        <div id="logolink" class='mt-2 d-flex justify-content-end'><a href="{{ request.scheme }}://{{ request.get_host }}" target="_blank">{% include "_logo_prestyled.html" %}</a><br></div>
+        <h4 class='text-center mb-3' style="font-weight: 500;">{{microscope}}</h4>
+      </div>
       {% include 'proteins/_microscope_include.html' with embeddable=False %}
     </div>
 

@@ -593,7 +593,6 @@ window.initMicroscope = () => {
     // on page load, setup the chart
     $(() => {
       $("#y-zoom-slider").hide()
-      // $('[data-bs-toggle="popover"]').popover()
 
       const urlParams = getUrlParams()
       options.precision = urlParams.precision || options.precision
@@ -909,31 +908,17 @@ window.initMicroscope = () => {
 
       // Remove the previous item fom the list
       removeItem(focusedItem)
-      $(this).siblings(".item-link").remove()
 
       // Add the new item to the data (unless it's blank)
       // then update the chart
       if (slug != null && slug !== 0) {
         addItem(slug).then(() => {
+          // Update the fluorophore link
+          const fluorLink = $("#fluor-link")
           if (localData[slug][0].url) {
-            $(this)
-              .parent()
-              .append(
-                $("<div>", {
-                  class: " item-link",
-                  title: "visit item page",
-                }).append(
-                  $("<a>", {
-                    class: "item-link",
-                    href: localData[slug][0].url,
-                    target: "_blank",
-                  }).append(
-                    $("<button>", { class: "btn btn-info", type: "button" }).html(
-                      $("#linkSVG").html()
-                    )
-                  )
-                )
-              )
+            fluorLink.attr("href", localData[slug][0].url).removeClass("d-none")
+          } else {
+            fluorLink.addClass("d-none")
           }
 
           // if the slug has a two-2 item...
@@ -956,6 +941,8 @@ window.initMicroscope = () => {
           refreshChart()
         })
       } else {
+        // Hide the link when no fluorophore is selected
+        $("#fluor-link").addClass("d-none")
         refreshChart()
       }
 

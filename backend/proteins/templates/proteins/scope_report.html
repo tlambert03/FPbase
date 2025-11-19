@@ -27,7 +27,7 @@ container-fluid
   <h3 style="font-weight:200">Microscope efficiency report for {{object}}</h3>
   <p>This page calculates excitation efficiency and collection efficiency for every probe in the database with each optical configuration saved on this microscope. This info is combined with probe brightness to calculate a "predicted" brightness metric for each fluorophore/optical configuration pair (indicated by the size of the points on the chart).  The table below the chart can be used to explore the data more selectively.  For more information on how each efficiency metric is calculated, see the <a href="{{ HELP_URL }}tools/microscopes/efficiency">documentation</a>.</p>
   {% if needs_update or request.user.is_staff %}
-  <div class="alert alert-info alert-dismissable" role="alert" id="update-alert">
+  <div class="alert alert-info alert-dismissible fade show" role="alert" id="update-alert">
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     <h4 class="alert-heading" style="font-weight:400">{% if not needs_update%}(NO) {%endif%}Updates Available!</h4>
     {% if outdated|length %}
