@@ -43,7 +43,7 @@
 			{% endif %}
 
 			{% if similar.exists %}
-				<p class='text-center text-muted'>
+				<p class='text-center text-muted mb-0'>
 					similar:
 				{% for p in similar.all  %}
 					<a href="{{p.get_absolute_url}}">{{p}}</a>{% if not forloop.last %},{% endif %}
@@ -95,7 +95,7 @@
 			{% endif %}
 
       <div class="d-sm-flex justify-content-between align-items-start gap-2">
-        <div class="like_buttons flex-shrink-0 d-sm-flex order-sm-2 mb-3 mb-sm-0">
+        <div class="like_buttons flex-shrink-0 d-sm-flex order-sm-2 mb-3 mb-sm-0 mt-3">
           <div class="container-button mb-2 mb-sm-0" data-bs-toggle="tooltip" data-bs-placement="top" title="Add to collection">
             <a class="btn collection-add-button" href="#" data-action-url="{% url 'proteins:add_to_collection' %}?id={{ protein.id }}" data-bs-toggle="modal" data-bs-target="#collectionModal">
               {% icon "collection" class_="d-none d-sm-inline" %}

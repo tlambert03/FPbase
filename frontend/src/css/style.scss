@@ -65,3 +65,7 @@ $red: #b94a48;
 :root {
   --bs-tertiary-bg: #E9EBEE;
 }
+
+.btn {
+  --bs-btn-box-shadow: none !important;
+}

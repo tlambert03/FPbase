@@ -237,27 +237,13 @@ a.twitter-share-button {
 }
 
 
+
+
 .tooltip {
   .tooltip-inner {
     color: $tooltip-text;
-    background-color: $tooltip-color;
   }
 
-  &.bs-tooltip-top .arrow:before {
-    border-top-color: $tooltip-color !important;
-  }
-
-  &.bs-tooltip-right .arrow:before {
-    border-right-color: $tooltip-color !important;
-  }
-
-  &.bs-tooltip-left .arrow:before {
-    border-left-color: $tooltip-color !important;
-  }
-
-  &.bs-tooltip-bottom .arrow:before {
-    border-bottom-color: $tooltip-color !important;
-  }
 }
 
 a:focus {
@@ -341,6 +327,7 @@ a:focus {
 .form-control:disabled,
 .form-control[readonly] {
   cursor: not-allowed;
+  background-color: #e9ecef;
 }
 
 select[readonly].select2-hidden-accessible+.select2-container {
