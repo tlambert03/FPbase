@@ -668,9 +668,12 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
     expect(chem_title).to_contain_text("Crystal structure of enhanced Green Fluorescent Protein")
     expect(page.locator("img#smilesImg")).to_be_visible()
 
-    expect(page.locator("#litemol-viewer canvas")).to_be_visible()
-
+    canvas = page.locator("#litemol-viewer canvas")
+    # scroll into view
+    canvas.scroll_into_view_if_needed()
     page.wait_for_load_state("networkidle")
+    expect(canvas).to_be_visible()
+
     # Mask the 3D structure viewer as it renders with animation/randomness
     # Mask both the viewer div and its parent container to ensure full coverage
     assert_snapshot(page, mask_elements=["#protein-structure .col-12.col-md-6.order-2.order-md-1"])
