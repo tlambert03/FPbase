@@ -51,7 +51,6 @@ dependencies = [
     "structlog>=24.1.0",
     "whitenoise[brotli]>=6.11.0",
     "django-vite>=3.1.0",
-    "dropbox>=12.0.2", # for heroku-scheduler database backups
     "crispy-bootstrap5>=0.7",
 ]
 
