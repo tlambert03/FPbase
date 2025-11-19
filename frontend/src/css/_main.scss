@@ -491,3 +491,8 @@ a.object-flag {
 .object-flag-wrapper.is-flagged a.object-flag {
   opacity: 1;
 }
+
+// fix bs5 form-range height 1.5rem
+.input-group input.form-range {
+  height: auto;
+}

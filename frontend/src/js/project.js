@@ -74,9 +74,6 @@ $(() => {
   }
 })
 
-// Bootstrap 5: form-group replaced with mb-3
-$(".mb-3").removeClass("row")
-
 //Navbar Scroll Event.
 // comment this out to remove "navbar hiding" when the user scrolls down
 // var lastScrollTop = 0;
@@ -244,12 +241,8 @@ if (
   waitForSelect2(() => {
     $("#proteinSlug").select2({
       theme: "bootstrap-5",
-      width: "80%",
       ajax: {
         theme: "bootstrap-5",
-        containerCssClass: ":all:",
-        width: "resolve",
-
         url: "/autocomplete-protein",
         dataType: "json",
         cache: true,
