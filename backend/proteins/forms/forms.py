@@ -23,7 +23,7 @@ from references.models import Reference  # breaks application modularity
 
 def popover_html(label, content, side="right"):
     return (
-        '<label data-toggle="tooltip" style="padding-'
+        '<label data-bs-toggle="tooltip" style="padding-'
         + side
         + ': 1rem;" data-placement="'
         + side
@@ -411,7 +411,7 @@ class LineageForm(forms.ModelForm):
         widget=autocomplete.ModelSelect2(
             url="proteins:lineage-autocomplete",
             attrs={
-                "data-theme": "bootstrap",
+                "data-theme": "bootstrap-5",
                 "data-width": "100%",
                 "data-placeholder": "----------",
             },
@@ -557,8 +557,8 @@ class protBleachItem(forms.ModelForm):
         widget=autocomplete.ModelSelect2(
             url="proteins:state-autocomplete",
             attrs={
-                "class": "custom-select",
-                "data-theme": "bootstrap",
+                "class": "form-select",
+                "data-theme": "bootstrap-5",
                 "data-width": "100%",
                 "data-placeholder": "----------",
             },

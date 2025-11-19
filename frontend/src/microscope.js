@@ -593,7 +593,6 @@ window.initMicroscope = () => {
     // on page load, setup the chart
     $(() => {
       $("#y-zoom-slider").hide()
-      // $('[data-toggle="popover"]').popover()
 
       const urlParams = getUrlParams()
       options.precision = urlParams.precision || options.precision
@@ -627,9 +626,9 @@ window.initMicroscope = () => {
       }
 
       $.each(userOptions, (key, value) => {
-        let divClasses = value.type === "checkbox" ? "custom-control custom-checkbox" : ""
+        let divClasses = value.type === "checkbox" ? "form-check custom-checkbox" : ""
         divClasses += " mb-1 pb-1"
-        const inputClasses = value.type === "checkbox" ? "custom-control-input" : "pl-1"
+        const inputClasses = value.type === "checkbox" ? "form-check-input" : "ps-1"
         $("#options-form").append(
           $("<div>", { class: divClasses })
             .append(
@@ -683,7 +682,7 @@ window.initMicroscope = () => {
             .append(
               $("<label>", {
                 for: `${key}_input`,
-                class: value.type === "checkbox" ? "custom-control-label" : "ml-2",
+                class: value.type === "checkbox" ? "form-check-label" : "ms-2",
               }).html(value.msg)
             )
         )
@@ -786,11 +785,11 @@ window.initMicroscope = () => {
 
       $("#fluor-select").select2(
         {
-          theme: "bootstrap",
+          theme: "bootstrap-5",
           containerCssClass: ":all:",
-          width: "auto",
+          width: "resolve",
         },
-        $("#fluor-select").removeClass("custom-select")
+        $("#fluor-select").removeClass("form-select")
       )
 
       if (typeof scopespectra !== "undefined") {
@@ -909,31 +908,17 @@ window.initMicroscope = () => {
 
       // Remove the previous item fom the list
       removeItem(focusedItem)
-      $(this).siblings(".item-link").remove()
 
       // Add the new item to the data (unless it's blank)
       // then update the chart
       if (slug != null && slug !== 0) {
         addItem(slug).then(() => {
+          // Update the fluorophore link
+          const fluorLink = $("#fluor-link")
           if (localData[slug][0].url) {
-            $(this)
-              .parent()
-              .append(
-                $("<div>", {
-                  class: "input-group-append item-link",
-                  title: "visit item page",
-                }).append(
-                  $("<a>", {
-                    class: "item-link",
-                    href: localData[slug][0].url,
-                    target: "_blank",
-                  }).append(
-                    $("<button>", { class: "btn btn-info", type: "button" }).html(
-                      $("#linkSVG").html()
-                    )
-                  )
-                )
-              )
+            fluorLink.attr("href", localData[slug][0].url).removeClass("d-none")
+          } else {
+            fluorLink.addClass("d-none")
           }
 
           // if the slug has a two-2 item...
@@ -956,6 +941,8 @@ window.initMicroscope = () => {
           refreshChart()
         })
       } else {
+        // Hide the link when no fluorophore is selected
+        $("#fluor-link").addClass("d-none")
         refreshChart()
       }
 

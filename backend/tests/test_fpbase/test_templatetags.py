@@ -26,9 +26,9 @@ class TestIconTemplateTag:
 
     def test_icon_with_class(self):
         """Test icon rendering with additional CSS class."""
-        t = Template('{% load fpbase_tags %}{% icon "info" class_="mr-2" %}')
+        t = Template('{% load fpbase_tags %}{% icon "info" class_="me-2" %}')
         html = t.render(Context({}))
-        assert 'class="mr-2' in html
+        assert 'class="me-2' in html
         assert "<svg" in html
 
     def test_icon_with_style(self):
@@ -45,9 +45,9 @@ class TestIconTemplateTag:
 
     def test_icon_multiple_attributes(self):
         """Test icon rendering with multiple attributes."""
-        t = Template('{% load fpbase_tags %}{% icon "warning" class_="mr-2" style="color: red;" aria_hidden="true" %}')
+        t = Template('{% load fpbase_tags %}{% icon "warning" class_="me-2" style="color: red;" aria_hidden="true" %}')
         html = t.render(Context({}))
-        assert 'class="mr-2' in html
+        assert 'class="me-2' in html
         assert 'style="color: red;"' in html
         assert 'aria-hidden="true"' in html
         assert "<svg" in html
@@ -61,7 +61,7 @@ class TestIconTemplateTag:
     def test_icon_xss_protection_class(self):
         """Test that class_ parameter is escaped to prevent XSS."""
         t = Template('{% load fpbase_tags %}{% icon "info" class_=malicious %}')
-        html = t.render(Context({"malicious": 'mr-2" onload="alert(1)'}))
+        html = t.render(Context({"malicious": 'me-2" onload="alert(1)'}))
         # The malicious code should be escaped
         assert "onload" not in html or "&quot;" in html
         assert "alert" not in html or "&quot;" in html
@@ -130,9 +130,9 @@ class TestIconTemplateTag:
 
     def test_icon_data_attributes(self):
         """Test that data attributes with underscores are converted to hyphens."""
-        t = Template('{% load fpbase_tags %}{% icon "info" data_toggle="tooltip" %}')
+        t = Template('{% load fpbase_tags %}{% icon "info" data_bs_toggle="tooltip" %}')
         html = t.render(Context({}))
-        assert 'data-toggle="tooltip"' in html
+        assert 'data-bs-toggle="tooltip"' in html
 
     def test_icon_keyboard_renders(self):
         """Test that keyboard icon renders as SVG."""

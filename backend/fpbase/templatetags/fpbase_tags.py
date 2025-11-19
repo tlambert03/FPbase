@@ -36,7 +36,7 @@ def icon(name, class_="", style="", **attrs):
     style : str, optional
         Inline CSS styles, by default ''
     **attrs
-        Additional HTML attributes (e.g., title, data_toggle, aria_hidden)
+        Additional HTML attributes (e.g., title, data_bs_toggle, aria_hidden)
 
     Raises
     ------
@@ -68,6 +68,7 @@ def icon(name, class_="", style="", **attrs):
     for key, value in attrs.items():
         # Convert underscores to hyphens for data attributes (data_toggle -> data-toggle)
         attr_name = key.replace("_", "-")
+
         # Handle boolean attributes
         if isinstance(value, bool):
             if value:

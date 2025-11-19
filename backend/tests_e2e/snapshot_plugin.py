@@ -6,6 +6,7 @@ It's registered in conftest.py via pytest_plugins to make fixtures auto-discover
 
 from __future__ import annotations
 
+import math
 import os
 import shutil
 import sys
@@ -32,6 +33,18 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store_true",
         default=False,
         help="Update visual snapshots instead of comparing (for use with --visual-snapshots)",
+    )
+    parser.addoption(
+        "--snapshot-threshold",
+        type=float,
+        default=0.1,
+        help="Threshold for pixel differences in visual snapshot comparisons (default: 0.1)",
+    )
+    parser.addoption(
+        "--min-percent-diff",
+        type=float,
+        default=0,
+        help="Minimum percent pixels allowed to be different before failing a visual snapshot test (default: 0)",
     )
 
 
@@ -109,7 +122,8 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
     assert snapshot_failures_path
 
     # we know this exists because of the default value on ini
-    global_snapshot_threshold = 0.1
+    global_snapshot_threshold = pytestconfig.getoption("--snapshot-threshold", 0.1)
+    min_percent_diff = pytestconfig.getoption("--min-percent-diff", 0)
 
     mask_selectors: list[str] = []
     update_snapshot = pytestconfig.getoption("--update-snapshots", False)
@@ -201,6 +215,11 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
         if mismatch == 0:
             return
 
+        # Calculate percentage
+        mismatch_percentage = (mismatch / math.prod(img_a.size)) * 100
+        if mismatch_percentage <= min_percent_diff:
+            return
+
         # Create new test_results folder
         failure_results_dir.mkdir(parents=True, exist_ok=True)
         img_diff.save(f"{failure_results_dir}/diff_{name}")
@@ -212,15 +231,20 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
             screenshot_file.write_bytes(img)
 
         # Still honor fail_fast if specifically requested
+        msg = (
+            f"{SNAPSHOT_MESSAGE_PREFIX} Snapshots DO NOT match! {name}. "
+            f"Mismatched pixels: {mismatch} ({mismatch_percentage:.2f}%)"
+        )
         if fail_fast:
-            pytest.fail(f"{SNAPSHOT_MESSAGE_PREFIX} Snapshots DO NOT match! {name}")
+            pytest.fail(msg)
 
-        failures.append(f"{SNAPSHOT_MESSAGE_PREFIX} Snapshots DO NOT match! {name}")
+        failures.append(msg)
 
     # Register finalizer to report all failures at the end of the test
     def finalize():
         if failures:
-            pytest.fail("\n".join(failures))
+            first_line = f"{len(failures)} visual snapshot test(s) failed:\n"
+            pytest.fail(first_line + "\n".join(failures))
 
     request.addfinalizer(finalize)
 

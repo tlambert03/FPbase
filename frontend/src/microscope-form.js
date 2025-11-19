@@ -21,7 +21,7 @@ function _waitForBootstrap(callback) {
 window.$ = window.jQuery = $
 // select2 JS loaded from CDN in base.html - only import CSS
 import "select2/dist/css/select2.css"
-import "select2-theme-bootstrap4/dist/select2-bootstrap.css"
+import "select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css"
 import "./js/jquery.formset"
 
 // Mark this bundle for Sentry context
@@ -61,17 +61,19 @@ $(document).on("hidden.bs.modal", "#sureModal", () => {
 })
 
 $("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2({
-  theme: "bootstrap",
+  theme: "bootstrap-5",
   containerCssClass: ":all:",
   placeholder: "---------",
   allowClear: true,
-  width: "auto",
+  width: "resolve",
+  selectionCssClass: "select2--small",
+  dropdownCssClass: "select2--small",
 })
 
 $(() => {
   $(".formset_div").formset({
     addText: "Add Optical Configuration",
-    addCssClass: "btn btn-sm btn-info add-oc-button mb-1 mr-1",
+    addCssClass: "btn btn-sm btn-info add-oc-button mb-1 me-1",
     deleteCssClass: "oc-delete-button",
     deleteText: "&times;",
     processHidden: true,

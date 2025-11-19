@@ -41,7 +41,7 @@ class SpectrumForm(forms.ModelForm):
         queryset=State.objects.select_related("protein"),
         widget=autocomplete.ModelSelect2(
             url="proteins:state-autocomplete",
-            attrs={"data-theme": "bootstrap", "data-width": "100%"},
+            attrs={"data-theme": "bootstrap-5", "data-width": "100%"},
         ),
     )
     owner = forms.CharField(

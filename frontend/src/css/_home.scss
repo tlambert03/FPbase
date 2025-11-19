@@ -6,7 +6,7 @@
   height: 100%; /* For at least Firefox */
   min-height: 100%;
   box-shadow: inset 1rem 1rem 8rem rgba($black,0.15);
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     background-position: 50% calc(50% - 7vh);
   }
 }
@@ -14,7 +14,7 @@
   display: table-cell;
   vertical-align: middle;
   @include gradient-directional(rgba(darken($primary,5%), 1), rgba(lighten($primary, 15%),1), 160deg);
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     @include gradient-directional(rgba(darken($primary,5%), 0.6), rgba(lighten($primary, 15%),0.6), 160deg);
   }
 }
@@ -22,7 +22,7 @@
 /* Padding for spacing */
 .cover-container {
   padding: 1.5rem;
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     position: relative;
     top: -7vh;
   }
@@ -30,12 +30,23 @@
 
 #protein-image{
   display: block;
-  height:420px;
-  @include media-breakpoint-down(sm) {
-    display:none;
-  }
+  position: relative;
+  height: 420px;
   @include media-breakpoint-down(md) {
-    height:340px;
+    display: none;
+  }
+  @include media-breakpoint-down(lg) {
+    height: 340px;
+  }
+
+  // Ensure absolutely positioned images are constrained to container width
+  .no-glow, .glow {
+    width: 100%;
+
+    img, picture {
+      max-width: 100%;
+      height: auto;
+    }
   }
 }
 
@@ -50,7 +61,7 @@ $search-colors: rgba($white,0.4);
     font-weight:100;
     font-size: 2.5rem;
     margin-left:-0.8rem;
-    @include media-breakpoint-down(sm) {
+    @include media-breakpoint-down(md) {
       font-size: 2rem;
       margin-top: 2rem;
     }
@@ -69,15 +80,17 @@ $search-colors: rgba($white,0.4);
       padding-left:1.2rem;
       padding-top: 0.3rem;
       padding-bottom: 0.3rem;
-//      font-weight: 500;
-      @include media-breakpoint-down(xs) {
-        text-align: center;
+      text-align: center; // Mobile-first default
+
+      @include media-breakpoint-up(sm) {
+        text-align: left;
       }
+
       &::placeholder {
-        color: rgba($white,0.5);
-//        font-weight: 300;
-        @include media-breakpoint-down(xs) {
-          color: rgba($white,0.8);
+        color: rgba($white,0.8); // Mobile-first default
+
+        @include media-breakpoint-up(sm) {
+          color: rgba($white,0.5);
         }
       }
     }
@@ -99,19 +112,21 @@ $search-colors: rgba($white,0.4);
     }
   }
   .advanced-search {
-    text-align: right;
-    @include media-breakpoint-down(xs) {
-      text-align: center;
+    text-align: center; // Mobile-first default
+
+    @include media-breakpoint-up(sm) {
+      text-align: right;
     }
+
     a {
-      color: rgba($white, 0.65);
-      font-size: 0.9rem;
-      padding-right: 0.7rem;
+      color: rgba($white,0.8); // Mobile-first default
+      font-size: 1rem;
       line-height: 2rem;
-      @include media-breakpoint-down(xs) {
-        color: rgba($white,0.8);
-        font-size: 1rem;
-        text-align: center;
+
+      @include media-breakpoint-up(sm) {
+        color: rgba($white, 0.65);
+        font-size: 0.9rem;
+        padding-right: 0.7rem;
       }
       &:hover{
         color: rgba(white,0.9);

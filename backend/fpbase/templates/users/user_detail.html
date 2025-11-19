@@ -12,8 +12,8 @@
       <div class='mb-2'>{% avatar user %}</div>
       <ul class="list-unstyled">
         <li>Username: {{ object.username }}</li>
-        <li>Name: {{ object.name | default:'' }} <a class=" ml-2 text-muted small" href="{% url 'users:update' %}" role="button">change</a></li>
-        <li>Email: {{ object.email | default:'' }} <a class=" ml-2 text-muted small" href="{% url 'account_email' %}" role="button">change</a></li>
+        <li>Name: {{ object.name | default:'' }} <a class=" ms-2 text-muted small" href="{% url 'users:update' %}" role="button">change</a></li>
+        <li>Email: {{ object.email | default:'' }} <a class=" ms-2 text-muted small" href="{% url 'account_email' %}" role="button">change</a></li>
       </ul>
     </div>
   </div>

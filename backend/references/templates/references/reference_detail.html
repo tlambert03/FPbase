@@ -24,7 +24,7 @@
 	    <ol class='protein-list'>
 	    	<h5>Secondary Proteins:</h5>
 	    	{% for protein in reference.protein_secondary_reference.all %}
-	    		<li class='mr-1'><a href="{{ protein.get_absolute_url }}">{{ protein.name }}{% if not forloop.last %},{% endif %}</a></li>
+	    		<li class='me-1'><a href="{{ protein.get_absolute_url }}">{{ protein.name }}{% if not forloop.last %},{% endif %}</a></li>
 	    	{% endfor %}
 	    </ol>
 	{% endif %}
@@ -71,11 +71,11 @@
   </table>
 
   <div class="align-self-end mt-0 mb-2 clearfix">
-    <a href="{% url 'bleaching' %}" class='float-left small text-muted mt-1 mb-2 ml-2'>A caution on interpretation of photostability measurements</small></a>
+    <a href="{% url 'bleaching' %}" class='float-start small text-muted mt-1 mb-2 ms-2'>A caution on interpretation of photostability measurements</small></a>
     <a href="{% url 'proteins:bleach-comparison' pk=reference.pk %}" class='text-info'>
       <div class="">
-          <small class="d-none d-sm-inline float-right mt-1">Add photostability measurements</small>
-          <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none">{% icon "clock" class_="mr-2" %}Add photostability measurements</button>
+          <small class="d-none d-sm-inline float-end mt-1">Add photostability measurements</small>
+          <button type="button" class="btn btn-info w-100 mt-3 mb-3 d-block d-sm-none">{% icon "clock" class_="me-2" %}Add photostability measurements</button>
       </div>
     </a>
   </div>
@@ -83,7 +83,7 @@
       <a href="{% url 'proteins:bleach-comparison' pk=reference.pk %}" class='text-info'>
         <div class="mt-4">
             <small class="d-none d-sm-inline mt-1">Add photostability measurements</small>
-            <button type="button" class="btn btn-info btn-block mt-3 mb-3 d-block d-sm-none">{% icon "clock" class_="mr-2" %}Add photostability measurements</button>
+            <button type="button" class="btn btn-info w-100 mt-3 mb-3 d-block d-sm-none">{% icon "clock" class_="me-2" %}Add photostability measurements</button>
         </div>
       </a>
 {% endif %}
@@ -124,7 +124,7 @@
 
 
 <div class="excerpts mt-3">
-  <h3>Excerpts <a tabindex="0" data-toggle="popover" data-trigger="focus" title="Excerpts" data-placement="right" data-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info" class_="ml-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
+  <h3>Excerpts <a tabindex="0" data-bs-toggle="popover" data-bs-trigger="focus" title="Excerpts" data-bs-placement="right" data-bs-content="Excerpts are snippets from publications that capture <strong>key</strong> information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).<hr>If you believe an excerpt is inappropriate or taken out of context, you may flag it for review if you are logged in.">{% icon "info" class_="ms-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
   {% if excerpts %}
     {% for excerpt in excerpts %}
       {% if excerpt.status != 'rejected' %}
@@ -141,7 +141,7 @@
     <p class='text-muted'>No excerpts have been added from this reference.<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about a protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
   {% endif %}
-  <a class='text-info' data-toggle="modal" data-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'>{% icon "quote" class_="mr-2" %}Add an excerpt</button></a>
+  <a class='text-info' data-bs-toggle="modal" data-bs-target="#excerptModal"><button class='btn btn-sm btn-secondary mt-1'>{% icon "quote" class_="me-2" %}Add an excerpt</button></a>
 </div>
 
 {% endblock content %}
@@ -154,8 +154,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title" id="excerptModalLongTitle"><strong>Add an excerpt from {{reference.citation}}</strong></h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
         </button>
       </div>
       {% if user.is_authenticated %}
@@ -164,15 +163,15 @@
         <div class="modal-body">
           <p>The excerpt might summarize the rationale for the a protein introduced in the paper, or capture a property or performance characteristic of the protein that does not easily fit into one of the existing fields.  Keep the message of each excerpt focused; you may add multiple excerpts for a given publication if necessary.<br><br><strong>Note: if the excerpt applies specifically to an individual protein, please enter the excerpt on that protein page instead.</strong></p>
 
-          <div id="div_id_excerpt_content" class="form-group">
-            <label for="id_excerpt_content" class="form-control-label">Excerpt content</label>
+          <div id="div_id_excerpt_content" class="mb-3">
+            <label for="id_excerpt_content" class="form-label">Excerpt content</label>
             <textarea class="form-control" name="excerpt_content" id="id_excerpt_content" rows="3" required="true"></textarea>
             <small class='text-muted'>Please note: inaccurate or inappropriate excerpts will be removed.</small>
           </div>
 
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <button type="submit" class="btn btn-primary">Add excerpt</button>
         </div>
       </form>
@@ -186,7 +185,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
       {% endif %}
     </div>

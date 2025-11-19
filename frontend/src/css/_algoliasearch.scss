@@ -24,7 +24,7 @@
 .cover-container .aa-dropdown-menu {
   overflow-y: auto;
   max-height: 50vh;
-  @include media-breakpoint-down(sm) {max-height: 48vh;}
+  @include media-breakpoint-down(md) {max-height: 48vh;}
 
 }
 

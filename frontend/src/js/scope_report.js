@@ -240,10 +240,10 @@ $.fn.extend({
           for (let o = 0; o < ocNames.length; o++) {
             const ischecked =
               localStorage.getItem(`${SCOPE_ID + slugify(ocNames[o])}_checkbox`) !== "false"
-            const el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
+            const el = $("<div>", { class: "form-check custom-checkbox ms-3" })
               .append(
                 $("<input>", {
-                  class: "custom-control-input toggle-vis",
+                  class: "form-check-input toggle-vis",
                   type: "checkbox",
                   id: `${slugify(ocNames[o])}_checkbox`,
                   value: slugify(ocNames[o]),
@@ -252,7 +252,7 @@ $.fn.extend({
               )
               .append(
                 $("<label>", {
-                  class: "custom-control-label",
+                  class: "form-check-label",
                   for: `${slugify(ocNames[o])}_checkbox`,
                 }).text(ocNames[o])
               )
@@ -719,17 +719,17 @@ $.fn.extend({
           ischecked = ischecked === "true"
         }
 
-        const el = $("<div>", { class: "custom-control custom-checkbox ml-3" })
+        const el = $("<div>", { class: "form-check custom-checkbox ms-3" })
           .append(
             $("<input>", {
-              class: "custom-control-input meas-vis",
+              class: "form-check-input meas-vis",
               type: "checkbox",
               id: id,
               value: measbuttons[o][0],
               checked: ischecked,
             })
           )
-          .append($("<label>", { class: "custom-control-label", for: id }).text(measbuttons[o][1]))
+          .append($("<label>", { class: "form-check-label", for: id }).text(measbuttons[o][1]))
         el.appendTo($("#meas-toggles"))
       }
     })

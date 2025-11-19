@@ -81,7 +81,7 @@ function BlastHitSummary({ data }) {
     <div id={`dln_${accession}`} className="dlfRow mt-4">
       <h5 style={{ fontWeight: "bold", color: "#5b616b" }}>{title}</h5>
       <div className="small">
-        <span className="mr-1 font-weight-bold text-muted">FPbase ID:</span>
+        <span className="me-1 font-weight-bold text-muted">FPbase ID:</span>
         <a
           href={`/protein/${accession}`}
           target="_blank"
@@ -90,8 +90,8 @@ function BlastHitSummary({ data }) {
         >
           {accession}
         </a>
-        <span className="ml-4">
-          <span className="mr-1 font-weight-bold text-muted">Length: </span>
+        <span className="ms-4">
+          <span className="me-1 font-weight-bold text-muted">Length: </span>
           {data.len}
         </span>
       </div>

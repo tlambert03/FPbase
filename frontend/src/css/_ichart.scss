@@ -50,19 +50,21 @@ line.PSFP
 
 .label
 {
+  stroke-width:0.2;
+  font-size: 1.8rem; // Mobile-first default
+  text-rendering: optimizeLegibility;
+
   &.y{
-    transform: rotate(-90deg) translate(0 -0.9rem);
+    transform: rotate(-90deg) translate(0 0.5rem); // Mobile-first default
   }
-	stroke-width:0.2;
-	font-size: 1rem;
-  @include media-breakpoint-down(xs){
-    font-size: 1.5rem;
+
+  @include media-breakpoint-up(sm) {
+    font-size: 1rem;
+
     &.y{
-      transform: rotate(-90deg) translate(0 0.5rem);
+      transform: rotate(-90deg) translate(0 -0.9rem);
     }
   }
-  @include media-breakpoint-down(xs){font-size: 1.8rem;}
-	text-rendering: optimizeLegibility;
 }
 .axis text
 {
@@ -129,8 +131,9 @@ circle {
         display: none;
 }
 
-#Yradio {
+#Yradio, #Xradio {
 	position: relative;
+
 }
 
 .noUi-slider{
@@ -143,13 +146,13 @@ circle {
     font-size: 0.75rem;
     background: white;
     padding: 0.1rem 0.4rem;
-    @include media-breakpoint-down(lg){
+    @include media-breakpoint-down(xl){
       font-size: 0.75rem;
     }
-    @include media-breakpoint-down(md){
+    @include media-breakpoint-down(lg){
       font-size: 0.6rem;
     }
-    @include media-breakpoint-down(sm){
+    @include media-breakpoint-down(md){
       font-size: 0.8rem;
     }
     &:after{  // adds arrows
@@ -175,7 +178,7 @@ circle {
     text-align: center;
     display: inline;
     position: absolute;
-    bottom:10px;
+    bottom:20px;
     font-size: 0.7rem;
     font-weight: 500;
     color: $gray-700;
@@ -192,20 +195,15 @@ circle {
   }
   .btn {
     outline: none;
-    border: none !important;
-    -webkit-box-shadow: none !important;
-    -moz-box-shadow: none !important;
-    box-shadow: none !important;
-    margin:0;
     font-size: 0.9rem;
-    font-weight: 500;
-    @include media-breakpoint-down(lg){
+    font-weight: 400;
+    @include media-breakpoint-down(xl){
       font-size: 0.75rem;
     }
-    @include media-breakpoint-down(md){
+    @include media-breakpoint-down(lg){
       font-size: 0.6rem;
     }
-    @include media-breakpoint-down(sm){
+    @include media-breakpoint-down(md){
       font-size: 0.8rem;
     }
     @include button-variant($chart-theme, $chart-theme);
