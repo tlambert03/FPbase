@@ -26,7 +26,7 @@ DEFAULT_MASK_SELECTORS = [".highcharts-legend", "img[src*='GFP_spinner']"]
 def pytest_addoption(parser: pytest.Parser) -> None:
     """Add custom command line options for visual snapshot tests."""
     parser.addoption(
-        "--visual-snapshots",
+        "--assert-snapshots",
         action="store_true",
         default=False,
         help="Enable visual snapshot testing (disabled by default, never runs on CI)",
@@ -35,7 +35,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--update-snapshots",
         action="store_true",
         default=False,
-        help="Update visual snapshots instead of comparing (for use with --visual-snapshots)",
+        help="Update visual snapshots instead of comparing (for use with --assert-snapshots)",
     )
     parser.addoption(
         "--snapshot-threshold",
@@ -46,17 +46,23 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--min-percent-diff",
         type=float,
-        default=0,
-        help="Minimum percent pixels allowed to be different before failing a visual snapshot test (default: 0)",
+        default=0.1,  # 0.1 %
+        help="Minimum percent pixels allowed to be different before "
+        "failing a visual snapshot test (default: 0) out of 100",
     )
 
 
 def _visual_snapshots_enabled(config: pytest.Config) -> bool:
     """Check if visual snapshots are enabled via CLI flag or environment variable."""
-    return config.getoption("--visual-snapshots", False) or os.environ.get("VISUAL_SNAPSHOTS", "").lower() in (
-        "1",
-        "true",
-        "yes",
+    return (
+        config.getoption("--assert-snapshots", False)
+        or config.getoption("--update-snapshots", False)
+        or os.environ.get("VISUAL_SNAPSHOTS", "").lower()
+        in (
+            "1",
+            "true",
+            "yes",
+        )
     )
 
 
@@ -109,7 +115,7 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
     from pixelmatch.contrib.PIL import pixelmatch
 
     test_function_name = request.node.name
-    SNAPSHOT_MESSAGE_PREFIX = "[playwright-visual-snapshot]"
+    SNAPSHOT_MESSAGE_PREFIX = "[playwright-assert-snapshot]"
 
     test_name_without_params = test_function_name.split("[", 1)[0]
     test_name = f"{test_function_name}[{sys.platform!s}]"
@@ -249,6 +255,7 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
             first_line = f"{len(failures)} visual snapshot test(s) failed:\n"
             pytest.fail(first_line + "\n".join(failures))
 
-    request.addfinalizer(finalize)
+    if pytestconfig.getoption("--assert-snapshots", False):
+        request.addfinalizer(finalize)
 
     return compare

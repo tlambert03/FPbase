@@ -53,10 +53,10 @@ test-py:
     uv run pytest backend/tests_e2e/ -v -n=6
 
 snapshots-update:
-    uv run pytest backend/tests_e2e/ --visual-snapshots -n 4 --update-snapshots
+    uv run pytest backend/tests_e2e/ --assert-snapshots -n 4 --update-snapshots
 
 snapshots-test:
-    uv run pytest backend/tests_e2e/ --visual-snapshots -n 4
+    uv run pytest backend/tests_e2e/ --assert-snapshots -n 4
 
 test: test-py test-e2e
 

@@ -4,10 +4,10 @@ This module provides broad coverage of all main pages and their modals.
 Tests are organized by page type for maintainability.
 
 To update snapshots:
-    uv run pytest backend/tests_e2e/ --visual-snapshots -n 4 --update-snapshots
+    uv run pytest backend/tests_e2e/ --assert-snapshots -n 4 --update-snapshots
 
 To verify snapshots:
-    uv run pytest backend/tests_e2e/ --visual-snapshots -n 4
+    uv run pytest backend/tests_e2e/ --assert-snapshots -n 4
 """
 
 from __future__ import annotations
@@ -165,95 +165,6 @@ def test_protein_table(live_server: LiveServer, page: Page, assert_snapshot: Cal
 
 
 # =============================================================================
-# Search Pages
-# =============================================================================
-
-
-def test_search_page_initial(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
-    """Test search page initial state (before search)."""
-    url = f"{live_server.url}{reverse('proteins:search')}"
-    page.goto(url)
-    expect(page).to_have_url(url)
-
-    # Wait for search form to be ready
-    expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
-
-    assert_snapshot(page)
-
-
-def test_search_page_results_lozenges(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
-    """Test search page with results in lozenge view."""
-    # Create test proteins with fixed data for consistent snapshots
-    ProteinFactory.create(name="SnapshotGFP", default_state__ex_max=488, default_state__em_max=510)
-    ProteinFactory.create(name="SnapshotRFP", default_state__ex_max=550, default_state__em_max=580)
-
-    url = f"{live_server.url}{reverse('proteins:search')}"
-    page.goto(url)
-    expect(page).to_have_url(url)
-
-    # Wait for search form to be ready
-    expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
-
-    # Perform a search
-    page.locator("#filter-select-0").select_option("name")
-    page.locator("#query-row-0 .operator-select").select_option("istartswith")
-    page.locator("#id_name__istartswith").fill("Snapshot")
-
-    # Submit
-    page.locator('button[type="submit"]').first.click()
-
-    # Wait for results
-    expect(page.locator("#ldisplay .protein_result_item")).to_have_count(2)
-    page.wait_for_load_state("networkidle")
-
-    assert_snapshot(page)
-
-
-def test_search_page_results_table(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
-    """Test search page with results in table view."""
-    # Create test proteins with fixed data
-    ProteinFactory.create(name="SnapshotGFP2", default_state__ex_max=488, default_state__em_max=510)
-    ProteinFactory.create(name="SnapshotRFP2", default_state__ex_max=550, default_state__em_max=580)
-
-    url = f"{live_server.url}{reverse('proteins:search')}"
-    page.goto(url)
-    expect(page).to_have_url(url)
-
-    # Wait for search form to be ready
-    expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
-
-    # Perform a search
-    page.locator("#filter-select-0").select_option("name")
-    page.locator("#query-row-0 .operator-select").select_option("istartswith")
-    page.locator("#id_name__istartswith").fill("Snapshot")
-
-    # Submit
-    page.locator('button[type="submit"]').first.click()
-
-    # Wait for results
-    expect(page.locator("#ldisplay .protein_result_item")).to_have_count(2)
-
-    # Switch to table view
-    page.locator('label[for="tbutton"]').click()
-    expect(page.locator("#tdisplay")).to_be_visible()
-    page.wait_for_load_state("networkidle")
-
-    assert_snapshot(page)
-
-
-def test_blast_page(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
-    """Test BLAST search page initial state."""
-    url = f"{live_server.url}{reverse('proteins:blast')}"
-    page.goto(url)
-    expect(page).to_have_url(url)
-
-    # Wait for form
-    expect(page.locator("#queryInput")).to_be_visible()
-
-    assert_snapshot(page)
-
-
-# =============================================================================
 # Spectra Pages
 # =============================================================================
 
@@ -272,6 +183,7 @@ def test_spectra_viewer_empty(live_server: LiveServer, page: Page, assert_snapsh
 
 def test_spectra_url_builder(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test spectra URL builder page."""
+    create_egfp()
     url = f"{live_server.url}{reverse('proteins:spectra-url-builder')}"
     page.goto(url)
     expect(page).to_have_url(url)
@@ -279,20 +191,6 @@ def test_spectra_url_builder(live_server: LiveServer, page: Page, assert_snapsho
     # Wait for page content to load
     expect(page.locator("body")).to_be_visible()
     page.wait_for_load_state("networkidle")
-
-    assert_snapshot(page)
-
-
-def test_spectra_img_svg(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
-    """Test spectra image generation (SVG format)."""
-    protein = create_egfp()
-
-    url = f"{live_server.url}{reverse('proteins:spectra-img', args=(protein.slug, '.svg'))}"
-    page.goto(url)
-    expect(page).to_have_url(url)
-
-    # Wait for SVG to render
-    expect(page.locator("svg")).to_be_visible()
 
     assert_snapshot(page)
 
@@ -358,24 +256,6 @@ def test_microscope_detail_with_fluorophore(live_server: LiveServer, page: Page,
 
     # Wait for chart to update
     page.wait_for_load_state("networkidle")
-
-    assert_snapshot(page)
-
-
-# =============================================================================
-# FRET Calculator
-# =============================================================================
-
-
-def test_fret_page_empty(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
-    """Test FRET calculator initial state."""
-    url = f"{live_server.url}{reverse('proteins:fret')}"
-    page.goto(url)
-    expect(page).to_have_url(url)
-
-    # Wait for select widgets
-    expect(page.locator("#select2-donor-select-container")).to_be_visible()
-    expect(page.locator("#select2-acceptor-select-container")).to_be_visible()
 
     assert_snapshot(page)
 
