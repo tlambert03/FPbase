@@ -176,9 +176,22 @@ ul li.select2-search {
     }
   }
 
-
-  .select2-selection__choice {
-    font-size: small;
+  .select2-selection--multiple{
+    ul.select2-selection__rendered{
+      display: flex;
+    }
+    li {
+      margin: 0.2rem !important;
+    }
+    .select2-selection__choice {
+      font-size: 0.7rem !important;
+      background-color: $gray-200 !important;
+      padding: 0.15em 0.45em !important;
+    }
+    .select2-selection__choice__remove {
+      background-size: 0.5rem !important;
+      padding: 0.1em !important;  // hide little glitch x
+    }
   }
 
   .oc-filter-group .select2-selection--multiple .select2-selection__clear {

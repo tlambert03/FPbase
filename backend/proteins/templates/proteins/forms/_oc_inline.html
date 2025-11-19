@@ -89,12 +89,12 @@
   </div>
   <div class="col-lg-4 col-md-6 oc-filter-group">
     <div id="div_id_optical_configs-{{ formnum }}-bs_filters" class="mb-3">
-      <label for="id_form-{{ formnum }}-bs_filters" class="form-label">
-        <small><strong>{{ ocform.bs_filters.label }}</strong></small>
-      </label>
-      <div class="form-check  me-sm-1 d-inline ms-4">
+      <div class="form-label">
+        <label for="id_form-{{ formnum }}-bs_filters" class="d-inline mb-0">
+          <small><strong>{{ ocform.bs_filters.label }}</strong></small>
+        </label>
         {{ ocform.invert_bs }}
-        <label class="form-check-label small" for="id_optical_configs-{{formnum}}-invert_bs" style='padding-top:2px;'>reflects em.</label>
+        <label class="form-check-label small d-inline ms-1" for="id_optical_configs-{{formnum}}-invert_bs">reflects em.</label>
       </div>
       <div class="">
         {{ocform.bs_filters}}

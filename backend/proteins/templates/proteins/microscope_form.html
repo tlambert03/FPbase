@@ -167,21 +167,19 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
           <div class="dynamic-oc-forms">
             {{ optical_configs.management_form }}
             {% for ocform in optical_configs.forms %}
+              {% if forloop.first %}
+              {{ocform.media}}
+              {% endif %}
 
-            {% if forloop.first %}
-            {{ocform.media}}
-            {% endif %}
-
-            {% for hidden in ocform.hidden_fields %} {{ hidden }} {% endfor %}
-            <div class="row formset_div {% if ocform.errors %}border border-danger{% endif %}">
-              <div class='col config-col'>
-                {% if ocform.instance.pk %}{{ ocform.DELETE }}{% endif %}
-                {% with formnum=forloop.counter0 %}
-                {% include 'proteins/forms/_oc_inline.html' %}
-                {% endwith %}
-
+              {% for hidden in ocform.hidden_fields %} {{ hidden }} {% endfor %}
+              <div class="row formset_div {% if ocform.errors %}border border-danger{% endif %}">
+                <div class='col config-col'>
+                  {% if ocform.instance.pk %}{{ ocform.DELETE }}{% endif %}
+                  {% with formnum=forloop.counter0 %}
+                    {% include 'proteins/forms/_oc_inline.html' %}
+                  {% endwith %}
+                </div>
               </div>
-            </div>
             {% endfor %}
             {% comment %}
             this feature is broken...

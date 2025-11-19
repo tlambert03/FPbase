@@ -318,6 +318,8 @@ class MultipleFilterField(forms.ModelMultipleChoiceField):
                     "data-theme": "bootstrap-5",
                     "data-width": "100%",
                     "data-placeholder": "----------",
+                    "data-selection-css-class": "select2--small",
+                    "data-dropdown-css-class": "select2--small",
                 },
             ),
         )

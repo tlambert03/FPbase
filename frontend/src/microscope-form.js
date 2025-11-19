@@ -66,6 +66,8 @@ $("#id_detector, #id_light_source, #id_extra_cameras, #id_extra_lights").select2
   placeholder: "---------",
   allowClear: true,
   width: "resolve",
+  selectionCssClass: "select2--small",
+  dropdownCssClass: "select2--small",
 })
 
 $(() => {
