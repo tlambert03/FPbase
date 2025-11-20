@@ -20,16 +20,14 @@
 {% block body %}
 <div class="cover-wrapper">
   <div class="cover-wrapper-inner">
-    <nav class="navbar navbar-expand-sm navbar-dark bg-transparent fixed-top">
+    <nav class="navbar navbar-expand-sm bg-transparent fixed-top navbar-dark">
       {% block navcontainer %} {% include "_nav.html" %} {% endblock navcontainer %}
     </nav>
     <noscript>
         <div class="container text-center mt-0 bg-dark text-white pt-3 pb-4"><p><strong>Javascript is disabled!&nbsp;  Many pages and features of FPbase will not work properly</strong></p>
           <form class="input-group home-search" method="get" action="/search/">
             <input type="search" class="form-control" name="name__icontains" placeholder="Protein name, accession, doi, organism, author...">
-            <span class="input-group-append">
-              <button class="btn btn-secondary" type="submit">search</button>
-            </span>
+            <button class="btn btn-secondary" type="submit">search</button>
           </form>
         </div>
     </noscript>
@@ -37,10 +35,10 @@
           <div class="row">
             <div class="col-md-7 mt-lg-5 search-col order-sm-2 search-col">
               <h1 class="cover-heading text-center mb-4">Find a Protein</h1>
-                <form class="input-group" method="get" action="/search/">
-                  <input class="form-control algolia-searchbar" id="algolia-search-input" name="q" type="search" placeholder='Search' autocomplete="off"/>
-                </form>
-                <p class="m-t-4 advanced-search"><a href="{% url 'proteins:search' %}">advanced search</a></p>
+              <form class="input-group" method="get" action="/search/">
+                <input class="form-control algolia-searchbar" id="algolia-search-input" name="q" type="search" placeholder='Search' autocomplete="off"/>
+              </form>
+              <p class="m-t-4 advanced-search"><a href="{% url 'proteins:search' %}">advanced search</a></p>
             </div>
             <div class="col-md-4  order-sm-1" id="protein-image">
               <div style="position: absolute; top:-70px" class="no-glow">
@@ -58,7 +56,7 @@
           {% webp_picture 'images/gfp_white_40.png' 'gfpicon' 'white gfp icon' %}{{stats.proteins}} <a href="{% url 'proteins:table' %}" class='text-white'>Proteins</a>
         </span>
         <span>
-          {% icon "chart" class_="mr-2" %}{{stats.protspectra}} <a href="{% url 'proteins:spectra' %}" class='text-white'>FP Spectra</a>
+          {% icon "chart" class_="me-2" %}{{stats.protspectra}} <a href="{% url 'proteins:spectra' %}" class='text-white'>FP Spectra</a>
         </span>
     </div>
 

@@ -22,13 +22,13 @@
 			color: $info;
 		}
 	}
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     h4 a { font-size: 0.9rem; }
   }
 }
 
 .additional-ref{
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     ol {
       padding: 0 0.5rem 0 1.3rem;
     }

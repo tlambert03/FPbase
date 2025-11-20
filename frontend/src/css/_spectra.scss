@@ -57,10 +57,10 @@ h6 {
     background: white;
     margin: auto;
     width: 100%;
-    @include media-breakpoint-down(lg) {
+    @include media-breakpoint-down(xl) {
       width: 100%;
     }
-    @include media-breakpoint-up(lg) {
+    @include media-breakpoint-up(xl) {
       width: 962px;
     }
     @include media-breakpoint-up(xl) {
@@ -93,7 +93,7 @@ h6 {
     }
   }
 
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(lg) {
     &.container {
       width: 100%;
       max-width: 98%;
@@ -112,25 +112,28 @@ h6 {
       padding-bottom: 1.2rem;
       border-bottom: 1px solid #dee2e6;
     }
-    label.custom-control-label {
+    label.form-check-label {
       padding-top: 2px;
     }
-    @include media-breakpoint-down(sm) {
-      label.custom-control-label {
+    @include media-breakpoint-down(md) {
+      label.form-check-label {
         padding-top: 4px;
       }
       font-size: 0.7rem;
       bottom: 15px;
     }
-    @include media-breakpoint-down(xs) {
-      #toggle_alls p {
-        padding-top: 1rem;
+    #toggle_alls p {
+      padding-top: 1rem; // Mobile-first default
+
+      @include media-breakpoint-up(sm) {
+        padding-top: 0;
       }
     }
   }
-  .form-inline label {
-    display: inline;
-  }
+  // Bootstrap 5: form-inline removed, using flexbox utilities instead
+  // .form-inline label {
+  //   display: inline;
+  // }
 }
 
 /* hides NVD3 gridlines */
@@ -240,7 +243,7 @@ h6 {
   .scale-btns {
     float: right;
     margin-right: 1.2rem;
-    @include media-breakpoint-down(sm) {
+    @include media-breakpoint-down(md) {
       margin-right: 0rem;
     }
     padding-top: 1px;
@@ -330,7 +333,7 @@ h6 {
     font-weight: 100;
   }
 
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     .flip-scroll {
       td {
         height: 38px;
@@ -364,7 +367,7 @@ h6 {
   font-weight: bold;
   color: #cdd;
   z-index: -1;
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     font-size: 0.85rem;
     bottom: 15px;
   }
@@ -376,7 +379,7 @@ h6 {
 
 ul.spectra-tabs {
   a.nav-link {
-    @include media-breakpoint-down(sm) {
+    @include media-breakpoint-down(md) {
       font-size: small;
     }
   }
@@ -530,11 +533,11 @@ table.spectra-form {
   width: 8px;
   height: 90%;
   top: 50px;
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(lg) {
     width: 6px;
     top: 42px;
   }
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     width: 5px;
     top: 38px;
   }
@@ -543,11 +546,11 @@ table.spectra-form {
   width: 20px;
   height: 28px;
   left: -7px;
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(lg) {
     height: 25px;
     left: -8px;
   }
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     height: 20px;
     left: -9px;
   }
@@ -561,7 +564,7 @@ table.spectra-form {
 #optionstab {
   #options-form {
     font-size: 0.95rem;
-    .form-row {
+    .row {
       margin-bottom: 0.4rem;
     }
   }
@@ -610,8 +613,10 @@ table.spectra-form {
   padding-top: 5px;
 }
 .spectra-form .row:nth-child(n + 2) {
-  @include media-breakpoint-down(xs) {
-    border-top: 1px solid #ddd;
+  border-top: 1px solid #ddd; // Mobile-first default
+
+  @include media-breakpoint-up(sm) {
+    border-top: none;
   }
 }
 
@@ -645,8 +650,8 @@ span.first-word {
 }
 
 .filters {
-  .custom-control-label::after,
-  .custom-control-label::before {
+  .form-check-label::after,
+  .form-check-label::before {
     @include media-breakpoint-up(md) {
       top: 0;
     }
@@ -695,9 +700,9 @@ $input-height: 1.3rem;
 $input-height-sm: 1.3rem;
 $input-height-lg: 3rem;
 $input-btn-focus-width: 0.2rem;
-$custom-control-indicator-bg: #dee2e6;
-$custom-control-indicator-disabled-bg: #e9ecef;
-$custom-control-description-disabled-color: #868e96;
+$form-check-indicator-bg: #dee2e6;
+$form-check-indicator-disabled-bg: #e9ecef;
+$form-check-description-disabled-color: #868e96;
 
 //
 // These variables can be used to customize the switch component.
@@ -706,10 +711,10 @@ $switch-height: calc(#{$input-height} * 0.8) !default;
 $switch-height-sm: calc(#{$input-height-sm} * 0.8) !default;
 $switch-height-lg: calc(#{$input-height-lg} * 0.8) !default;
 $switch-border-radius: $switch-height !default;
-$switch-bg: $custom-control-indicator-bg !default;
+$switch-bg: $form-check-indicator-bg !default;
 $switch-checked-bg: rgba($info, 0.7) !default;
-$switch-disabled-bg: $custom-control-indicator-disabled-bg !default;
-$switch-disabled-color: $custom-control-description-disabled-color !default;
+$switch-disabled-bg: $form-check-indicator-disabled-bg !default;
+$switch-disabled-color: $form-check-description-disabled-color !default;
 $switch-thumb-bg: $white !default;
 $switch-thumb-border-radius: 50% !default;
 $switch-thumb-padding: 2px !default;

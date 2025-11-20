@@ -11,7 +11,7 @@
       {% if request.user.is_staff %}
       <form id="adminRevert" style="display:inline; font-weight: bold;" data-action-url="{% url 'proteins:admin_revert_revision' rev=revision.id %}" data-success="{{ protein.get_absolute_url }}">
       {% csrf_token %}
-      <a class="text-secondary ml-3"  href="#" onclick="$(this).closest('form').submit()">Revert to this revision</a>
+      <a class="text-secondary ms-3"  href="#" onclick="$(this).closest('form').submit()">Revert to this revision</a>
       </form>
       {% endif %}
 
@@ -39,18 +39,18 @@
 {% if not protein.status == 'approved' %}
 <div class="alert alert-info clearfix" role="alert">
     <div class="d-inline-block align-middle">
-        <strong>{% icon "info" class_="mr-2" aria_hidden="true" %}</strong>
+        <strong>{% icon "info" class_="me-2" aria_hidden="true" %}</strong>
         This protein has unmoderated changes.
     </div>
 
     <form
         id="adminApprove"
-        class="float-sm-right"
+        class="float-sm-end"
         data-action-url="{% url 'proteins:admin_approve_protein' slug=protein.slug %}"
         data-success="{{ protein.get_absolute_url }}"
     >
         {% csrf_token %}
-        <button type="submit" class="btn btn-info btn-sm btn-block-xs">
+        <button type="submit" class="btn btn-info btn-sm w-100-xs">
             Mark approved
         </button>
     </form>

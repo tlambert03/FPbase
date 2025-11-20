@@ -11,13 +11,15 @@
 		max-width: 1400px;
 		margin: auto;
 	}
-	//@include media-breakpoint-down(md){max-width: map-get($container-max-widths, md);}
+	//@include media-breakpoint-down(lg){max-width: map-get($container-max-widths, md);}
 }
 
 .DTFC_LeftBodyWrapper {
   //border-bottom: 1px solid black;
-  @include media-breakpoint-down(xs){
-    border-right: 1px solid #eee;
+  border-right: 1px solid #eee; // Mobile-first default
+
+  @include media-breakpoint-up(sm) {
+    border-right: none;
   }
 }
 
@@ -52,7 +54,7 @@
   td, th {
     @include media-breakpoint-up(md) { padding-top: 0.35rem; padding-bottom: 0.35rem;}
   }
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(lg) {
     thead {
       padding-left: 1rem;
     }

@@ -69,13 +69,13 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
     }
 
     // hide the current input field by putting it in the hidden #crispy-form
-    // FIXME: change this to a variable selector
     var inputcol = row.find(".input-col")
     let value
     if (keepValue) {
       value = inputcol.find("input").val()
     }
-    inputcol.find(".form-group").appendTo("#crispy-form")
+    // Move all children back to crispy-form to ensure clean slate
+    inputcol.children().appendTo("#crispy-form")
 
     // grab the form div that we want to put here
     var formdiv = $(`#div_id_${name}`)
@@ -92,12 +92,12 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
   function queryRow(id) {
     var out =
       '\
-      <div class="form-row query-row" id="query-row-' +
+      <div class="row g-2 query-row" id="query-row-' +
       id +
       '">\
-          <div class="col-sm-4 names-col d-flex justify-content-between align-items-start">\
-          <button type="button" class="btn btn-danger remove-row-btn form-group mr-2" ><strong>&times;</strong></button>\
-                  <div class="form-group" style="width:100%;"><select class="form-control filter-select" id="filter-select-' +
+          <div class="col-sm-4 names-col d-flex justify-content-between align-items-center">\
+          <button type="button" class="btn btn-close remove-row-btn me-2 mb-3" ></button>\
+                  <div class="mb-3" style="width:100%;"><select class="form-control filter-select" id="filter-select-' +
       id +
       '">' +
       name_options() +
@@ -105,11 +105,11 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
               </div>\
           </div>\
           <div class="col-sm-4 operator-col">\
-              <div class="form-group"><select class="form-control operator-select">\
+              <div class="mb-3"><select class="form-control operator-select">\
               </select></div>\
           </div>\
           <div class="col-sm-4">\
-                  <div class="form-group input-col"></div>\
+                  <div class="mb-3 input-col"></div>\
           </div>\
       </div>'
     return out
@@ -186,7 +186,7 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
     enableOperator(filterName, operatorSelect.val())
     updateOperators(filterName, operatorSelect)
 
-    const inputfield = thisrow.find(".input-col").find(".form-group")
+    const inputfield = thisrow.find(".input-col").find(".mb-3")
     inputfield.appendTo("#crispy-form")
 
     thisrow.remove()
@@ -237,6 +237,10 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
         $(`#${value}button`).click()
         continue
       }
+      // Skip empty values
+      if (!value) {
+        continue
+      }
       let filter, operator
       if (key in fields) {
         filter = key
@@ -281,8 +285,8 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
 
     $(".displaybuttons input").change(function () {
       const display_type = $(this).val()
-      $(`#${display_type}display`).removeClass("hidden")
-      $(`#${display_type}display`).siblings("div").addClass("hidden")
+      $(`#${display_type}display`).removeClass("d-none")
+      $(`#${display_type}display`).siblings("div").addClass("d-none")
     })
 
     // Mark the form as ready for E2E tests

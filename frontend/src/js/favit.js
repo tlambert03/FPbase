@@ -2,14 +2,14 @@ import { fetchWithSentry } from "./ajax-sentry"
 
 $(document).ready(() => {
   $("#add_remove_favorite").click(function (e) {
-    e.preventDefault() // avoid to execute the actual submit of the form.
+    e.preventDefault()
     var $obj = $(this)
     var $favit = $obj.closest(".favit")
     $obj.prop("disabled", true)
 
     const formData = new URLSearchParams({
       target_model: $obj.data("model"),
-      target_object_id: $obj.data("target").split("_")[1],
+      target_object_id: $obj.data("bsTarget").split("_")[1],
       csrfmiddlewaretoken: window.CSRF_TOKEN,
     })
 
@@ -43,7 +43,7 @@ $(document).ready(() => {
   })
 
   $(".btn.unfave").click(function (e) {
-    e.preventDefault() // avoid to execute the actual submit of the form.
+    e.preventDefault()
     var $obj = $(this)
     $obj.prop("disabled", true)
 

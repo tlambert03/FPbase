@@ -36,7 +36,7 @@ from collections import defaultdict
 from contextlib import suppress
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Self, cast
 
 import django.conf
 import pytest
@@ -53,6 +53,7 @@ if TYPE_CHECKING:
 
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, Request, Response, ViewportSize
+    from pytest import FixtureRequest
     from sourcemap.decoder import SourceMapIndex
 
 # Register snapshot plugin to make assert_snapshot fixture available
@@ -253,7 +254,15 @@ IGNORE_PATTERNS = [
 class console_errors_raised:
     """Collects and categorizes browser errors during Playwright test execution."""
 
-    def __init__(self, page: Page, ignore_patterns: list[str] = IGNORE_PATTERNS) -> None:
+    def __init__(
+        self,
+        page: Page,
+        ignore_patterns: list[str] = IGNORE_PATTERNS,
+        *,
+        fixture_request: FixtureRequest | None = None,
+    ) -> None:
+        self._fixture_request = fixture_request
+
         self.console_messages: defaultdict[str, list[ConsoleMessage]] = defaultdict(list)
         self.page_errors: list[Exception] = []
         self.request_failures: list[str] = []
@@ -271,6 +280,13 @@ class console_errors_raised:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
+        # only assert if the test did not already error
+        if self._fixture_request is not None:
+            # check if this test had an error already
+            report = cast("pytest.TestReport", self._fixture_request.node.rep_call)
+            if report.failed:
+                return
+
         self.assert_no_errors()
 
     def _should_ignore(self, *texts: str) -> bool:
@@ -343,9 +359,9 @@ class console_errors_raised:
 
 
 @pytest.fixture
-def assert_no_console_errors(page: Page):
+def assert_no_console_errors(page: Page, request: FixtureRequest) -> Iterator[None]:
     """Fixture that collects console errors and asserts none occurred."""
-    with console_errors_raised(page):
+    with console_errors_raised(page, fixture_request=request):
         yield
 
 
@@ -385,11 +401,11 @@ def auth_context(browser: Browser, auth_session_cookie: dict) -> Iterator[Browse
 
 
 @pytest.fixture
-def auth_page(auth_context: BrowserContext) -> Iterator[Page]:
+def auth_page(auth_context: BrowserContext, request: FixtureRequest) -> Iterator[Page]:
     """Page with authenticated session and console error checking."""
     page = auth_context.new_page()
     page.set_default_timeout(DEFAULT_TIMEOUT)
     page.set_viewport_size(VIEWPORT_SIZE)
-    with console_errors_raised(page):
+    with console_errors_raised(page, fixture_request=request):
         yield page
     page.close()

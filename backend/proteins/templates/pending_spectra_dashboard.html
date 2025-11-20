@@ -213,7 +213,7 @@
             <h1>Pending Spectra Dashboard</h1>
         </div>
         <div class="col-auto">
-            <span class="badge badge-primary badge-pill" style="font-size: 1.2em;">
+            <span class="badge text-bg-primary rounded-pill" style="font-size: 1.2em;">
                 {{ count }} pending
             </span>
         </div>
@@ -288,12 +288,12 @@
 
                 <div class="spectrum-info">
                     <label>Type:</label>
-                    <span class="badge badge-info">{{ spectrum.category }}</span>
+                    <span class="badge badge text-bg-info">{{ spectrum.category }}</span>
                 </div>
 
                 <div class="spectrum-info">
                     <label>Subtype:</label>
-                    <span class="badge badge-secondary">{{ spectrum.subtype }}</span>
+                    <span class="badge badge text-bg-secondary">{{ spectrum.subtype }}</span>
                 </div>
 
                 {% comment %} <div class="spectrum-info">
@@ -528,7 +528,7 @@ function performAction(spectrumIds, action) {
             });
 
             // Update count
-            const countBadge = document.querySelector('.badge-primary');
+            const countBadge = document.querySelector('.badge text-bg-primary');
             const currentCount = parseInt(countBadge.textContent);
             const newCount = currentCount - data.count;
             countBadge.textContent = `${newCount} pending`;
@@ -617,7 +617,7 @@ function undoAction(spectrumIds, savedCards) {
             updateSelection();
 
             // Update count (use server's count for accuracy)
-            const countBadge = document.querySelector('.badge-primary');
+            const countBadge = document.querySelector('.badge text-bg-primary');
             const currentCount = parseInt(countBadge.textContent);
             const newCount = currentCount + data.count;
             countBadge.textContent = `${newCount} pending`;

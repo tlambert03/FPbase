@@ -26,8 +26,13 @@ $logo-color: #efe;
 .navbar {
   @include media-breakpoint-up(md) { height: $navbar-height; }
 
+  --bs-gradient: none;  // Disable Bootstrap 5 gradient background
+
   .dropdown-menu {
       z-index: 1001;
+  }
+  ul {
+    align-items: center;
   }
   transition-duration: 0.3s;
   -webkit-font-smoothing: antialiased !important;
@@ -37,7 +42,7 @@ $logo-color: #efe;
   .navbar-brand{
     padding:0;
     margin-top: -4px;
-    @include media-breakpoint-down(sm) {
+    @include media-breakpoint-down(md) {
       //font-size: 2.3rem;
       line-height: 1.6rem;
       padding-left: 14px;
@@ -49,14 +54,14 @@ $logo-color: #efe;
       font-weight: 100;
       font-family: Raleway, sans-serif !important;
       color: $logo-color;
-      @include media-breakpoint-down(sm) {
+      @include media-breakpoint-down(md) {
         //font-size: 2.3rem;
         line-height: 1.6rem;
       }
       &.brand-FP{
         font-weight: 600;
         margin-left: -0.65rem;
-        @include media-breakpoint-down(sm) { font-size: 2rem }
+        @include media-breakpoint-down(md) { font-size: 2rem }
       }
       &.brand-version{
         font-family: $font-family-sans-serif !important;
@@ -68,7 +73,7 @@ $logo-color: #efe;
         top: 0.2rem;
         margin-left: 0.2rem;
         color: rgba(white,0.8);
-        @include media-breakpoint-down(sm) { font-size: 0.5rem }
+        @include media-breakpoint-down(md) { font-size: 0.5rem }
       }
     }
     .logo-svg{
@@ -77,13 +82,13 @@ $logo-color: #efe;
       fill-rule: evenodd;
       height: 2.5rem;
       padding-top: .9rem;
-      @include media-breakpoint-down(sm) { height: 2.2rem; }
+      @include media-breakpoint-down(md) { height: 2.2rem; }
     }
   }
   .nav-search{
     .input-group {
       width: 170px;
-      @include media-breakpoint-down(sm) {
+      @include media-breakpoint-down(md) {
         width: 100%;
         margin-top: 8px;
       }
@@ -100,9 +105,7 @@ $logo-color: #efe;
         }
       }
     }
-    .input-group-append {
-      margin-left: 0px;
-    }
+
     input{
       background: rgba(white, 0.25);
       border: none;
@@ -111,9 +114,10 @@ $logo-color: #efe;
       font-weight: 600;
       &::placeholder {
         font-weight: 200;
-        color: rgba($white,0.7);
-        @include media-breakpoint-down(xs) {
-          color: rgba($white,0.8);
+        color: rgba($white,0.8); // Mobile-first default
+
+        @include media-breakpoint-up(sm) {
+          color: rgba($white,0.7);
         }
       }
       &:focus{
@@ -121,7 +125,7 @@ $logo-color: #efe;
         color: $gray-800;
       }
       //@include media-breakpoint-up(lg) { margin-left: 1rem; }
-      //@include media-breakpoint-down(md) { width: 170px; }
+      //@include media-breakpoint-down(lg) { width: 170px; }
     }
     button{
       background: rgba(white, 0.15);

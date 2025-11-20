@@ -6,8 +6,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title" id="filterImportTitle"><strong>Import Commercial Filters</strong></h4>
-        <button type="button" class="close importerClose" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+        <button type="button" class="btn-close importerClose" data-bs-dismiss="modal" aria-label="Close">
         </button>
       </div>
       {% if user.is_authenticated %}
@@ -18,9 +17,7 @@
               {% csrf_token %}
               <div class="input-group">
                 <input id="chromaInput" type="text" class="form-control" name="part" placeholder="Chroma Part Number">
-                <span class="input-group-btn input-group-append">
-                  <button type="submit" class="btn btn-info">Fetch</button>
-                </span>
+                <button type="submit" class="btn btn-info">Fetch</button>
               </div>
               <div id="chromaHelp" class="form-text small text-muted">e.g. ET525/50m</div>
 
@@ -31,19 +28,17 @@
               {% csrf_token %}
             <div class="input-group">
               <input id="semrockInput" type="text" class="form-control" name="part" placeholder="Semrock Part Number">
-              <span class="input-group-btn input-group-append">
-                <button type="submit" class="btn btn-info">Fetch</button>
-              </span>
+              <button type="submit" class="btn btn-info">Fetch</button>
             </div>
             <div id="semrockHelp" class="form-text small text-muted">e.g. FF03-525/50</div>
             </form>
-            <p class='mt-4 small font-italic text-muted'>Any generic spectra can also be submitted <a href="{% url 'proteins:submit-spectra' %}">here</a></p>
+            <p class='mt-4 small fst-italic text-muted'>Any generic spectra can also be submitted <a href="{% url 'proteins:submit-spectra' %}">here</a></p>
         </div>
         <div class="modal-footer">
           <span id="footerSpinner" class="hidden" style='font-size: 1.5rem; margin-right:1rem'>{% icon "spinner" class_="spinner-icon" %}</span>
           <span id="footerSuccess" class="hidden text-success" style='font-size: 1.5rem; margin-right:1rem'>{% icon "check" %}</span>
           <span id="footerFail" class="hidden text-danger" style='font-size: 1.5rem; margin-right:1rem'>{% icon "warning" %}</span>
-          <button type="button" class="btn btn-secondary importerClose" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-secondary importerClose" data-bs-dismiss="modal">Close</button>
         </div>
       {% else %}
       <div class="modal-body">
@@ -55,7 +50,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="importerClose" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button class="importerClose" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
       {% endif %}
     </div>

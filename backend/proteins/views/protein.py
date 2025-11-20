@@ -69,7 +69,7 @@ def check_switch_type(object, request):
         disp = dict(Protein.SWITCHING_CHOICES).get(suggested).lower()
         actual = object.get_switch_type_display().lower()
         msg = (
-            "<i class='fa fa-exclamation-circle mr-2'></i><strong>Warning:</strong> "
+            "<i class='fa fa-exclamation-circle me-2'></i><strong>Warning:</strong> "
             + "Based on the number of states and transitions currently assigned "
             + f"to this protein, it appears to be a {disp} protein; "
             + f"however, it has been assigned a switching type of {actual}. "
