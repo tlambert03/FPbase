@@ -113,14 +113,14 @@ export default function initFRET() {
   })
 
   $("#donor-select").select2({
-    theme: "bootstrap",
+    theme: "bootstrap-5",
     containerCssClass: ":all:",
-    width: "auto",
+    width: "resolve",
   })
   $("#acceptor-select").select2({
-    theme: "bootstrap",
+    theme: "bootstrap-5",
     containerCssClass: ":all:",
-    width: "auto",
+    width: "resolve",
   })
 
   function getData(slug) {
@@ -492,7 +492,7 @@ export default function initFRET() {
           class: "input-group input-group-sm d-flex justify-content-center pb-3",
         })
           .append(
-            $("<div>", { class: "input-group-prepend" }).append(
+            $("<div>", { class: "" }).append(
               $("<span>", { class: "input-group-text", id: "minQYA" }).html("min QY<sub>A</sub>")
             )
           )
@@ -520,7 +520,7 @@ export default function initFRET() {
           class: "input-group input-group-sm d-flex justify-content-center pb-3",
         })
           .append(
-            $("<div>", { class: "input-group-prepend" }).append(
+            $("<div>", { class: "" }).append(
               $("<span>", {
                 class: "input-group-text",
                 id: "minLambdaSepLab",

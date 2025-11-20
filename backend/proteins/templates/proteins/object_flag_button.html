@@ -2,14 +2,14 @@
 {% if userauth %}
 <div class="object-flag-wrapper{% if status == 'flagged' %} is-flagged{% endif %}">
   {% if request.user.is_staff or status != 'flagged' %}
-  <a class="btn btn-sm object-flag" style="padding: 0; margin: 0" href='' data-action-url="{% url 'proteins:flag_object' %}" data-id="{{ target_id }}" data-model="{{ target_model }}" data-toggle="tooltip" data-placement="top" data-flagged="{% if status == 'flagged' %}1{% else %}0{% endif %}" title="{% if status == 'flagged' %}Admin: unflag{% else %}Flag this excerpt for review{% endif %}">
+  <a class="btn btn-sm object-flag" style="padding: 0; margin: 0" href='' data-action-url="{% url 'proteins:flag_object' %}" data-id="{{ target_id }}" data-model="{{ target_model }}" data-bs-toggle="tooltip" data-bs-placement="top" data-flagged="{% if status == 'flagged' %}1{% else %}0{% endif %}" title="{% if status == 'flagged' %}Admin: unflag{% else %}Flag this excerpt for review{% endif %}">
     <span class="flag-icon-toggle">
       {% icon "flag" class_="icon-filled" %}
       {% icon "flag-outline" class_="icon-outline" %}
     </span>
   </a>
   {% else %}
-  <span class="flag-icon-toggle" data-toggle="tooltip" data-placement="top" title="This excerpt has been flagged for review">
+  <span class="flag-icon-toggle" data-bs-toggle="tooltip" data-bs-placement="top" title="This excerpt has been flagged for review">
     {% icon "flag" class_="icon-filled" %}
     {% icon "flag-outline" class_="icon-outline" %}
   </span>

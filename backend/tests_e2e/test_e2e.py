@@ -347,7 +347,7 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
     # Visual snapshot: FRET calculation complete with chart
     if not hasattr(assert_snapshot, "NOOP"):
         page.wait_for_load_state("networkidle")
-        assert_snapshot(page)
+        assert_snapshot(page, mask_elements=[".highcharts-legend"])
 
 
 def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
@@ -437,10 +437,10 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
         page.wait_for_load_state("networkidle")
         assert_snapshot(page)
 
-    # Click X-axis radio button for quantum yield (wrapped in Bootstrap label)
-    page.locator("//label[input[@id='Xqy']]").click()
-    # Click Y-axis radio button for extinction coefficient (wrapped in Bootstrap label)
-    page.locator("//label[input[@id='Yext_coeff']]").click()
+    # Click X-axis radio button for quantum yield (Bootstrap 5 uses label with 'for' attribute)
+    page.locator("label[for='Xqy']").click()
+    # Click Y-axis radio button for extinction coefficient (Bootstrap 5 uses label with 'for' attribute)
+    page.locator("label[for='Yext_coeff']").click()
 
 
 @pytest.mark.parametrize("viewname", ["microscope-embed", "microscope-detail", "microscope-report"])
@@ -491,13 +491,13 @@ def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: C
         pytest.skip("Skipping microscope create test on non-chromium browser due to flakiness.")
 
     protein = ProteinFactory.create(
-        name="SearchTestGFP",
+        name="TestSearchGFP",
         seq=SEQ,
         default_state__ex_max=488,
         default_state__em_max=525,
     )
     protein = ProteinFactory.create(
-        name="SearchTestGFP2",
+        name="TestSearchGFP2",
         seq=SEQ + "AA",
         default_state__ex_max=600,
         default_state__em_max=650,
@@ -509,33 +509,53 @@ def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: C
     # Wait for search form to be ready (initSearch has completed)
     expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
     expect(page.locator("#filter-select-0")).to_be_visible()
+    query_rows = page.locator("#query_builder .query-row")
+
     assert_snapshot(page)
+
+    # make sure the form only has 2 rows:
+    expect(query_rows).to_have_count(1)
 
     # First filter: Sequence cDNA contains
     page.locator("#filter-select-0").select_option("seq")
     page.locator("#query-row-0 .operator-select").select_option("cdna_contains")
     page.locator("#id_seq__cdna_contains").fill(CDNA)
+    expect(query_rows).to_have_count(1)
+
+    # make sure each query_row.input_col has only one input element
+    for row in query_rows.all():
+        expect(row.locator(".input-col")).to_have_count(1)
+        expect(row.locator(".input-col input")).to_have_count(1)
 
     # Add second filter row
     page.locator("#add-row-btn").click()
+    expect(query_rows).to_have_count(2)
 
     # Second filter: Name starts with (row 1 doesn't have "contains" option)
     page.locator("#filter-select-1").select_option("name")
     page.locator("#query-row-1 .operator-select").select_option("istartswith")
     page.locator("#id_name__istartswith").fill(protein.name[:6])
+    expect(query_rows).to_have_count(2)
+    # make sure each query_row.input_col has only one input element
+    for row in query_rows.all():
+        expect(row.locator(".input-col")).to_have_count(1)
+        expect(row.locator(".input-col input")).to_have_count(1)
 
     # Submit search
     page.locator('button[type="submit"]').first.click()
+
+    expect(query_rows).to_have_count(2)
 
     # Wait for results page to load and JS to initialize
     expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
 
     lozenges = page.locator("#ldisplay")
     expect(lozenges).to_be_visible()
+    expect(lozenges.locator(".protein_result_item")).to_have_count(2)
     assert_snapshot(page)
 
     # Click on table display button by clicking its label
-    page.locator("label:has(#tbutton)").click()
+    page.locator('label[for="tbutton"]').click()
     table = page.locator("#tdisplay")
     expect(table).to_be_visible()
 
@@ -633,7 +653,13 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
         # Wait for chart to fully render
         page.locator(".highcharts-series").first.wait_for(state="attached")
         # Mask legend as it has minor rendering variations
-        assert_snapshot(page, mask_elements=[".highcharts-legend"])
+        assert_snapshot(
+            page,
+            mask_elements=[
+                ".highcharts-legend",
+                "#protein-structure .col-12.col-md-6.order-2.order-md-1",
+            ],
+        )
 
     # scroll to the structure section and take another snapshot
     page.locator("#protein-structure").scroll_into_view_if_needed()
@@ -642,7 +668,15 @@ def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapsho
     expect(chem_title).to_contain_text("Crystal structure of enhanced Green Fluorescent Protein")
     expect(page.locator("img#smilesImg")).to_be_visible()
 
+    canvas = page.locator("#litemol-viewer canvas")
+    if os.getenv("CI") and (b := page.context.browser) and b.browser_type.name == "firefox":
+        # Firefox on CI has difficulties showing the canvas
+        return
+
+    canvas.scroll_into_view_if_needed()
     page.wait_for_load_state("networkidle")
+    expect(canvas).to_be_visible()
+
     # Mask the 3D structure viewer as it renders with animation/randomness
     # Mask both the viewer div and its parent container to ensure full coverage
     assert_snapshot(page, mask_elements=["#protein-structure .col-12.col-md-6.order-2.order-md-1"])

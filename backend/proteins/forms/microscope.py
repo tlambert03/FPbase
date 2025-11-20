@@ -315,9 +315,11 @@ class MultipleFilterField(forms.ModelMultipleChoiceField):
             widget=autocomplete.ModelSelect2Multiple(
                 url="proteins:filter-autocomplete",
                 attrs={
-                    "data-theme": "bootstrap",
+                    "data-theme": "bootstrap-5",
                     "data-width": "100%",
                     "data-placeholder": "----------",
+                    "data-selection-css-class": "select2--small",
+                    "data-dropdown-css-class": "select2--small",
                 },
             ),
         )
@@ -331,7 +333,7 @@ class OpticalConfigForm(forms.ModelForm):
 
     invert_bs = forms.BooleanField(
         required=False,
-        widget=forms.widgets.CheckboxInput(attrs={"class": "custom-control-input"}),
+        widget=forms.widgets.CheckboxInput(attrs={"class": "form-check-input"}),
     )
 
     def __init__(self, *args, **kwargs):
@@ -384,8 +386,8 @@ class OpticalConfigForm(forms.ModelForm):
         }
         widgets = {
             "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
-            "camera": forms.widgets.Select(attrs={"class": "form-control custom-select"}),
-            "light": forms.widgets.Select(attrs={"class": "form-control custom-select"}),
+            "camera": forms.widgets.Select(attrs={"class": "form-control form-select"}),
+            "light": forms.widgets.Select(attrs={"class": "form-control form-select"}),
             "laser": forms.widgets.NumberInput(attrs={"class": "numberinput form-control"}),
             "comments": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
         }

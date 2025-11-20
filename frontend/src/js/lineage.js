@@ -534,18 +534,19 @@ export default function LineageChart(conf) {
           } else if (this.classList.contains("mut-all")) {
             any = false
           } else {
-            any = d3.select("#anytoggle").node().closest("label").classList.contains("active")
+            // Bootstrap 5: label is sibling of input, not parent
+            any = d3.select("#anytoggle").node().nextElementSibling.classList.contains("active")
           }
           if (this.classList.contains("mut-parent")) {
             relparent = true
           } else if (this.classList.contains("mut-root")) {
             relparent = false
           } else {
+            // Bootstrap 5: label is sibling of input, not parent
             relparent = d3
               .select("#parenttoggle")
               .node()
-              .closest("label")
-              .classList.contains("active")
+              .nextElementSibling.classList.contains("active")
           }
 
           var val = (d3.select("#mutation-search-input").node().value || "")
@@ -711,7 +712,7 @@ export default function LineageChart(conf) {
       .attr("class", "btn-toolbar lineage-toolbar")
       .attr("role", "toolbar")
       .style("opacity", 0.8)
-    var grp1 = tbar.append("div").attr("class", "btn-group btn-group-sm mr-2").attr("role", "group")
+    var grp1 = tbar.append("div").attr("class", "btn-group btn-group-sm me-2").attr("role", "group")
     grp1
       .append("button")
       .on("click", chart.scaleWidthDown)
@@ -736,7 +737,7 @@ export default function LineageChart(conf) {
       .attr("type", "button")
       .attr("class", "btn btn-outline-dark")
       .html("⇩")
-    var grp2 = tbar.append("div").attr("class", "btn-group btn-group-sm mr-2").attr("role", "group")
+    var grp2 = tbar.append("div").attr("class", "btn-group btn-group-sm me-2").attr("role", "group")
     grp2
       .append("button")
       .on("click", () => {
@@ -809,13 +810,9 @@ function addDrawDropShadow(svg, dropShadow) {
 
 function createMutationSearch(selection) {
   var wrapperDiv = selection.append("div").append("div").attr("class", "row")
-  var searchDiv = wrapperDiv.append("div").attr("class", "input-group col-12 col-lg-8 mb-2")
-  searchDiv
-    .append("div")
-    .attr("class", "input-group-prepend")
-    .append("span")
-    .attr("class", "input-group-text")
-    .text("Search")
+  var searchDivCol = wrapperDiv.append("div").attr("class", "col-12 col-lg-8")
+  var searchDiv = searchDivCol.append("div").attr("class", "input-group mb-2")
+  searchDiv.append("span").attr("class", "input-group-text").text("Search")
 
   searchDiv
     .append("input")
@@ -825,64 +822,70 @@ function createMutationSearch(selection) {
     .attr("placeholder", "Mutations (e.g. A206K) separated by spaces")
     .attr("id", "mutation-search-input")
 
-  var btngroup = searchDiv.append("div").attr("class", "input-group-append")
+  var anyallgroup = searchDiv.append("div").attr("class", "btn-group").attr("role", "group")
 
-  var anyallgroup = btngroup
-    .append("div")
-    .attr("class", "btn-group-toggle btn-group")
-    .attr("data-toggle", "buttons")
+  anyallgroup
+    .append("input")
+    .attr("type", "radio")
+    .attr("class", "btn-check")
+    .attr("name", "anyall")
+    .attr("id", "alltoggle")
+    .attr("autocomplete", "off")
+    .attr("checked", true)
 
   anyallgroup
     .append("label")
-    .attr("class", "btn btn-outline-primary update-mutations mut-all active")
+    .attr("class", "btn btn-outline-primary update-mutations mut-all")
+    .attr("for", "alltoggle")
     .text("all")
+
+  anyallgroup
     .append("input")
     .attr("type", "radio")
+    .attr("class", "btn-check")
     .attr("name", "anyall")
-    .attr("id", "alltoggle")
+    .attr("id", "anytoggle")
     .attr("autocomplete", "off")
 
   anyallgroup
     .append("label")
     .attr("class", "btn btn-outline-primary update-mutations mut-any")
+    .attr("for", "anytoggle")
     .text("any")
+
+  var rightdivCol = wrapperDiv.append("div").attr("class", "col-12 col-lg-4")
+  var rightdiv = rightdivCol.append("div").attr("class", "input-group mb-2")
+  rightdiv.append("span").attr("class", "input-group-text").text("Relative to")
+
+  var relativetogroup = rightdiv.append("div").attr("class", "btn-group").attr("role", "group")
+
+  relativetogroup
     .append("input")
     .attr("type", "radio")
-    .attr("name", "anyall")
-    .attr("id", "anytoggle")
+    .attr("class", "btn-check")
+    .attr("name", "parentroot")
+    .attr("id", "roottoggle")
     .attr("autocomplete", "off")
-
-  var rightdiv = wrapperDiv.append("div").attr("class", "input-group col-12 col-lg-4 mb-2")
-  rightdiv
-    .append("div")
-    .attr("class", "input-group-prepend")
-    .append("span")
-    .attr("class", "input-group-text")
-    .text("Relative to")
-
-  var relativetogroup = rightdiv
-    .append("div")
-    .attr("class", "btn-group-toggle btn-group input-group-append")
-    .attr("data-toggle", "buttons")
+    .attr("checked", true)
 
   relativetogroup
     .append("label")
-    .attr("class", "btn btn-outline-primary update-mutations mut-root active")
+    .attr("class", "btn btn-outline-primary update-mutations mut-root")
+    .attr("for", "roottoggle")
     .text("root")
+
+  relativetogroup
     .append("input")
     .attr("type", "radio")
+    .attr("class", "btn-check")
     .attr("name", "parentroot")
-    .attr("id", "roottoggle")
+    .attr("id", "parenttoggle")
     .attr("autocomplete", "off")
 
   relativetogroup
     .append("label")
     .attr("class", "btn btn-outline-primary update-mutations mut-parent")
+    .attr("for", "parenttoggle")
     .text("parent")
-    .append("input")
-    .attr("type", "radio")
-    .attr("name", "parentroot")
-    .attr("id", "parenttoggle")
-    .attr("autocomplete", "off")
 }
 // Force rebuild

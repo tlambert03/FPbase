@@ -8,12 +8,14 @@ from typing import TYPE_CHECKING, cast
 
 import django.forms
 import django.forms.formsets
+import requests
 import reversion
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.mail import mail_admins, mail_managers
 from django.db import transaction
 from django.db.models import Case, Count, F, Func, Prefetch, Q, Value, When
@@ -56,8 +58,6 @@ from ..forms import (
 from ..models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
 
 if TYPE_CHECKING:
-    import maxminddb
-
     from proteins.forms.forms import BaseStateFormSet
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ def check_switch_type(object, request):
         disp = dict(Protein.SWITCHING_CHOICES).get(suggested).lower()
         actual = object.get_switch_type_display().lower()
         msg = (
-            "<i class='fa fa-exclamation-circle mr-2'></i><strong>Warning:</strong> "
+            "<i class='fa fa-exclamation-circle me-2'></i><strong>Warning:</strong> "
             + "Based on the number of states and transitions currently assigned "
             + f"to this protein, it appears to be a {disp} protein; "
             + f"however, it has been assigned a switching type of {actual}. "
@@ -122,82 +122,43 @@ class _RollBackRevisionView(Exception):
         self.response = response
 
 
-def maxmind_db() -> str:
-    """Create and return a temporary file containing the MaxMind database.
-
-    Uses Django cache to store the database path across workers.
-    The file persists on disk but the path is cached for 24 hours.
-    """
-    import io
-    import os
-    import tarfile
-    import tempfile
-
-    import requests
-    from django.conf import settings
-    from django.core.cache import cache
-
-    # Try to get cached path first
-    cache_key = "maxmind_db_path"
-    cached_path = cache.get(cache_key)
-    if cached_path and os.path.exists(cached_path):
-        return cached_path
-
-    # Download and cache the database
-    url = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key={}&suffix=tar.gz"
-    url = url.format(settings.MAXMIND_API_KEY)
-    response = requests.get(url)
-    response.raise_for_status()
-    with tarfile.open(fileobj=io.BytesIO(response.content), mode="r:gz") as tar:
-        for member in tar.getmembers():
-            if member.name.endswith(".mmdb"):
-                mmdb_file = tar.extractfile(member)
-                if mmdb_file is not None:
-                    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mmdb")
-                    tmp.write(mmdb_file.read())
-                    tmp.close()
-                    # Cache the path for 24 hours
-                    cache.set(cache_key, tmp.name, 60 * 60 * 24)
-                    return tmp.name
-    return ""
-
-
-def maxmind_reader() -> "maxminddb.Reader | None":
-    """Get MaxMind database reader.
-
-    Uses Django cache to minimize memory usage. The reader is cached
-    for 1 hour to balance memory usage and performance.
-    """
-    from django.core.cache import cache
-    from maxminddb import open_database
-
-    cache_key = "maxmind_reader"
-    reader = cache.get(cache_key)
-    if reader is not None:
-        return reader
-
-    try:
-        if db := maxmind_db():
-            reader = open_database(db)
-            # Cache reader for 1 hour
-            cache.set(cache_key, reader, 60 * 60)
-            return reader
-    except Exception:
-        pass
-    return None
+def _mask_ip_for_caching(ip: str) -> str:
+    """Mask IP to /16 (IPv4) or /48 (IPv6) for caching."""
+    if not ip or not isinstance(ip, str):
+        return ""
+    if ":" in ip:  # IPv6
+        # Mask to /48 (first 3 groups)
+        parts = ip.split(":")
+        return ":".join(parts[:3]) + "::" if len(parts) >= 3 else ip
+    else:  # IPv4
+        parts = ip.split(".")
+        return f"{parts[0]}.{parts[1]}.0.0" if len(parts) == 4 else ""
 
 
 def get_country_code(request) -> str:
-    # Definitely should be used inside a try/exc block
-    if reader := maxmind_reader():
-        x_forwarded_for = request.headers.get("x-forwarded-for")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0]
-        else:
-            ip = request.META.get("REMOTE_ADDR")
-        if response := reader.get(ip):
-            return str(response["country"]["iso_code"])  # pyright: ignore[reportIndexIssue]
-    return ""
+    """Get country code from IP address using cached API lookup."""
+
+    x_forwarded_for = request.headers.get("x-forwarded-for")
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.META.get("REMOTE_ADDR")
+
+    try:
+        if not (masked_ip := _mask_ip_for_caching(ip)):
+            return ""
+
+        cache_key = f"country_code:{masked_ip}"
+        country_code = cache.get(cache_key)
+        if country_code is not None:
+            return country_code
+
+        response = requests.get(f"https://ipapi.co/{ip}/country/", timeout=2)
+        country_code = response.text.strip()
+        cache.set(cache_key, country_code, 14 * 60 * 60 * 24)  # cache for 14 days
+        return country_code
+    except Exception:
+        return ""
 
 
 class ProteinDetailView(DetailView):

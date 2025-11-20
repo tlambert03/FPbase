@@ -74,8 +74,6 @@ $(() => {
   }
 })
 
-$(".form-group").removeClass("row")
-
 //Navbar Scroll Event.
 // comment this out to remove "navbar hiding" when the user scrolls down
 // var lastScrollTop = 0;
@@ -242,13 +240,9 @@ if (
 ) {
   waitForSelect2(() => {
     $("#proteinSlug").select2({
-      theme: "bootstrap",
-      width: "80%",
+      theme: "bootstrap-5",
       ajax: {
-        theme: "bootstrap",
-        containerCssClass: ":all:",
-        width: "auto",
-
+        theme: "bootstrap-5",
         url: "/autocomplete-protein",
         dataType: "json",
         cache: true,
@@ -631,7 +625,7 @@ function tooltipwrap(chunk, index, skipV2) {
       ind = +index + i + 1
     }
     out +=
-      '<span data-toggle="tooltip" data-placement="top" title="' +
+      '<span data-bs-toggle="tooltip" data-placement="top" title="' +
       chunk[i] +
       " " +
       ind +
@@ -674,7 +668,7 @@ function formatAAseq(elem, breakpoint) {
   elem.show()
   // Wait for Bootstrap to be available before initializing tooltips
   waitForBootstrap(() => {
-    $('[data-toggle="tooltip"]').tooltip({
+    $('[data-bs-toggle="tooltip"]').tooltip({
       trigger: "hover",
       delay: { show: 200 },
     })
@@ -910,6 +904,9 @@ $(document).ready(() => {
 
     fetchWithSentry($(this).attr("data-action-url"), {
       method: "GET",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
     })
       .then((response) => response.json())
       .then((data) => {
@@ -960,7 +957,7 @@ $(document).ready(() => {
 
 $(() => {
   $("#id_parent_organism")
-    .siblings(".input-group-append")
+    .parent()
     .find(".select-add-button")
     .click(() => {
       $("#organismModal").modal()

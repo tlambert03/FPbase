@@ -104,15 +104,19 @@ a.twitter-share-button {
   box-shadow: 0px 1px 5px rgba($info, 0.8) !important;
 }
 
-@include media-breakpoint-down(xs) {
-  .btn-block-xs {
-    display: block;
-    width: 100%;
-    margin-top: 0.5rem;
+.btn-block-xs {
+  display: block; // Mobile-first default
+  width: 100%;
+  margin-top: 0.5rem;
+
+  @include media-breakpoint-up(sm) {
+    display: inline-block;
+    width: auto;
+    margin-top: 0;
   }
 }
 
-@include media-breakpoint-down(sm) {
+@include media-breakpoint-down(md) {
   .btn-block-sm {
     display: block;
     width: 100%;
@@ -121,14 +125,14 @@ a.twitter-share-button {
 }
 
 .modal-lg {
-  max-width: 85%;
+  max-width: 100%; // Mobile-first default
 
   .container {
     padding: 0 2.5rem 0 2rem;
   }
 
-  @include media-breakpoint-down(xs) {
-    max-width: 100%;
+  @include media-breakpoint-up(sm) {
+    max-width: 85%;
   }
 }
 
@@ -146,78 +150,100 @@ a.twitter-share-button {
 }
 
 .like_buttons {
-  padding-left: 1rem;
+  // remove box shadow, even on hover AND clicked
 
-  @include media-breakpoint-down(xs) {
-    padding-left: 0rem;
+  align-items: center;
+
+  .btn {
+    padding: 0.4rem;
+    box-shadow: none !important;
   }
 
   div {
-    display: inline;
+    padding: 0;
+    margin: 0;
   }
 
   a,
+  a.btn,
   a.active {
     color: $yellow;
-    font-size: 1.4rem;
-    padding: 0;
+    font-size: 1.5rem;
     box-shadow: none !important;
+    border: none !important;
 
     &:hover {
       color: orange;
     }
+
+    &:active {
+      color: rgb(211, 137, 0);
+    }
+  }
+
+  .container-button,
+  .favit {
+    display: block; // Full width on mobile by default
+    width: 100%;
+
+    a {
+      display: block; // Make link full width
+      width: 100%;
+    }
+
+    @include media-breakpoint-up(sm) {
+      display: inline-block; // Compact on larger screens
+      width: auto;
+
+      a {
+        display: inline;
+        width: auto;
+      }
+    }
   }
 
   .favit {
-    .favorite,
-    .favorite:active {
-      box-shadow: none !important;
-      @include media-breakpoint-up(sm) {
-        padding: 0;
-      }
+    position: relative; // For badge positioning
+
+    @include media-breakpoint-up(sm) {
+      display: inline-flex; // Prevent extra spacing on larger screens
+      align-items: center;
+    }
+
+    a {
+      padding: 0; // Remove any default button padding
     }
 
     .badge {
-      position: relative;
       bottom: -0.7rem;
-      right: 0.7rem;
-      font-size: 0.4rem;
+      right: 0.2rem; // Changed from left to right for better positioning
+      font-size: 0.5rem;
       background: rgba($warning, 0.6);
-      color: $gray-700;
-    }
-  }
-
-  a.btn.favorite,
-  a.btn.favorite.active,
-  a.btn.favorite:focus {
-    @include media-breakpoint-down(xs) {
-      display: block;
-      padding-top: 0.5rem;
+      padding: 0.2em 0.4em; // Ensure badge has some padding
     }
   }
 }
 
+.fav-count {
+  font-size: .8em;
+  position: relative;
+  margin-left: 4px;
+}
+
+// Favorite button uses unified icon-dual-toggle pattern from _main.scss
+.icon-toggle {
+  @extend .icon-dual-toggle;
+  // No additional styling needed - inherits from unified pattern
+}
+
+
+
+
 .tooltip {
   .tooltip-inner {
     color: $tooltip-text;
-    background-color: $tooltip-color;
   }
 
-  &.bs-tooltip-top .arrow:before {
-    border-top-color: $tooltip-color !important;
-  }
-
-  &.bs-tooltip-right .arrow:before {
-    border-right-color: $tooltip-color !important;
-  }
-
-  &.bs-tooltip-left .arrow:before {
-    border-left-color: $tooltip-color !important;
-  }
-
-  &.bs-tooltip-bottom .arrow:before {
-    border-bottom-color: $tooltip-color !important;
-  }
 }
 
 a:focus {
@@ -301,6 +327,7 @@ a:focus {
 .form-control:disabled,
 .form-control[readonly] {
   cursor: not-allowed;
+  background-color: #e9ecef;
 }
 
 select[readonly].select2-hidden-accessible+.select2-container {
@@ -319,7 +346,7 @@ select[readonly].select2-hidden-accessible+.select2-container {
 }
 
 .small-sm {
-  @include media-breakpoint-down(sm) {
+  @include media-breakpoint-down(md) {
     font-size: small !important;
   }
 }
@@ -379,6 +406,7 @@ pre .mismatch {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -397,22 +425,22 @@ pre .mismatch {
 
   // Default state: show outline, hide filled
   // Use !important to override .svg-inline-icon
-  > svg.icon-outline {
+  >svg.icon-outline {
     display: inline-block !important;
   }
 
-  > svg.icon-filled {
+  >svg.icon-filled {
     display: none !important;
   }
 
   // Toggled state: hide outline, show filled
   // Support multiple state classes for different contexts
   :where(.is-toggled, .is-favorited, .is-flagged) & {
-    > svg.icon-outline {
+    >svg.icon-outline {
       display: none !important;
     }
 
-    > svg.icon-filled {
+    >svg.icon-filled {
       display: inline-block !important;
     }
   }
@@ -433,26 +461,25 @@ pre .mismatch {
 // Flag button opacity states
 a.object-flag {
   opacity: 0.3;
+  outline: 0;
+  box-shadow: none;
+  border: none !important;
 
   &:hover {
     opacity: 1;
   }
 
-  &:focus {
-    box-shadow: none;
-  }
-
   &:active {
-    box-shadow: none;
-    outline: 0;
-  }
-
-  &:active:focus {
-    box-shadow: none;
-    outline: 0;
+    box-shadow: none !important;
+    opacity: 0.7;
   }
 }
 
 .object-flag-wrapper.is-flagged a.object-flag {
   opacity: 1;
+}
+
+// fix bs5 form-range height 1.5rem
+.input-group input.form-range {
+  height: auto;
 }

@@ -136,7 +136,7 @@ def add_to_collection(request):
 
     if request.method == "GET":
         qs = ProteinCollection.objects.filter(owner=request.user)
-        widget = forms.Select(attrs={"class": "form-control custom-select", "id": "collectionSelect"})
+        widget = forms.Select(attrs={"class": "form-control form-select", "id": "collectionSelect"})
         choicefield = forms.ChoiceField(choices=qs.values_list("id", "name"), widget=widget)
 
         members = []

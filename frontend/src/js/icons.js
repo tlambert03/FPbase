@@ -20,7 +20,7 @@ const ICONS = {
 /**
  * Generate an icon SVG element with classes
  * @param {string} name - Icon name (e.g., 'alert', 'view', 'remove')
- * @param {string} classes - CSS classes to apply (e.g., 'mr-2 text-danger')
+ * @param {string} classes - CSS classes to apply (e.g., 'me-2 text-danger')
  * @returns {string} SVG HTML string
  */
 export function icon(name, classes = "") {
