@@ -18,7 +18,7 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
     """
 
     # --- Identification ---
-    common_name = models.CharField(max_length=255, db_index=True)
+    name = models.CharField(max_length=255, db_index=True)
     slug = models.SlugField(unique=True)
 
     # Synonyms allow users to find "FITC" when searching "Fluorescein"
