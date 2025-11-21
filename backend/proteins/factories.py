@@ -210,9 +210,20 @@ class StateFactory(FluorophoreFactory):
     )
 
 
-class DyeFactory(FluorophoreFactory):
+class DyeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "proteins.Dye"
+        django_get_or_create = ("name", "slug")
+
+    name = factory.Sequence(lambda n: f"TestDye{n}")
+    slug = factory.LazyAttribute(lambda o: slugify(o.name))
+    structural_status = "DEFINED"
+    canonical_smiles = ""
+    inchi = ""
+    # Generate a fake but unique InChIKey (format: XXXXXXXXXXXXXX-YYYYYYYYYY-Z, exactly 27 chars)
+    inchikey = factory.Sequence(lambda n: f"TEST{n:06d}ABCD-EFGHIJKLMN-O")
+    molblock = ""
+    chemical_class = ""
 
 
 class ProteinFactory(factory.django.DjangoModelFactory[Protein]):
