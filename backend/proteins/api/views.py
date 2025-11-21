@@ -74,7 +74,7 @@ class SpectrumList(ListAPIView):
 
 
 class SpectrumDetail(RetrieveAPIView):
-    queryset = pm.Spectrum.objects.prefetch_related("owner_state")
+    queryset = pm.Spectrum.objects.prefetch_related("owner_fluor")
     permission_classes = (AllowAny,)
     serializer_class = SpectrumSerializer
 

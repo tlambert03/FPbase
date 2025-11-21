@@ -145,14 +145,14 @@ class Query(graphene.ObjectType):
     dye = graphene.Field(types.Dye, id=graphene.Int(), name=graphene.String())
 
     def resolve_dyes(self, info, **kwargs):
-        return gdo.query(models.Dye.objects.all(), info)
+        return gdo.query(models.DyeState.objects.all(), info)
 
     def resolve_dye(self, info, **kwargs):
         name = kwargs.get("name")
         if name is not None:
             slug = slugify(name)
-            return gdo.query(models.Dye.objects.filter(slug=slug), info).get()
+            return gdo.query(models.DyeState.objects.filter(slug=slug), info).get()
         _id = kwargs.get("id")
         if _id is not None:
-            return gdo.query(models.Dye.objects.filter(id=_id), info).get()
+            return gdo.query(models.DyeState.objects.filter(id=_id), info).get()
         return None

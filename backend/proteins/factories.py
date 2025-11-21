@@ -365,7 +365,7 @@ def create_egfp() -> Protein:
             "DHYQQNTPIGDGPVLLPDNHYLSTQSALSKDPNEKRDHMVLLEFVTAAGITLGMDELYK"
         ),
         seq_validated=True,
-        agg=Protein.MONOMER,
+        agg=Protein.AggChoices.MONOMER,
         pdb=["4EUL", "2Y0G"],
         parent_organism=OrganismFactory(scientific_name="Aequorea victoria", id=6100, division="hydrozoans"),
         primary_reference=ReferenceFactory(doi="10.1016/0378-1119(95)00685-0"),

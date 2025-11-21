@@ -31,11 +31,11 @@ from django.views.generic import (
 
 from fpbase.celery import app
 from fpbase.util import is_ajax
+from proteins.models.dye import DyeState
 
 from ..forms import MicroscopeForm, OpticalConfigFormSet
 from ..models import (
     Camera,
-    Dye,
     Light,
     Microscope,
     OpticalConfig,
@@ -98,7 +98,7 @@ def scope_report_json(request, pk):
     oclist = microscope.optical_configs.values_list("id")
 
     state_ct = ContentType.objects.get_for_model(State)
-    dye_ct = ContentType.objects.get_for_model(Dye)
+    dye_ct = ContentType.objects.get_for_model(DyeState)
 
     effs = list(
         OcFluorEff.objects.exclude(ex_eff=None)
@@ -184,7 +184,7 @@ def scope_report_json(request, pk):
             "uuid",
         )
     }
-    dyes = Dye.objects.with_spectra()
+    dyes = DyeState.objects.with_spectra()
     fluors.update(
         {
             i["slug"]: i
@@ -227,7 +227,7 @@ class ScopeReportView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        probe_count = State.objects.with_spectra().count() + Dye.objects.with_spectra().count()
+        probe_count = State.objects.with_spectra().count() + DyeState.objects.with_spectra().count()
         ids = self.object.optical_configs.all().values_list("id", flat=True)
         effs = OcFluorEff.objects.filter(oc__in=ids)
         context["outdated"] = list(effs.outdated().values_list("id", flat=True))

@@ -80,7 +80,7 @@ class SpectraQueriesTestCase(GraphQLTestCase):
         self.microscope = models.Microscope.objects.create()
         self.protein = models.Protein.objects.create(name="test")
         self.optical_config = models.OpticalConfig.objects.create(microscope=self.microscope)
-        self.dye = models.Dye.objects.get_or_create(name="test-dye", slug="test-dye")[0]
+        self.dye = models.DyeState.objects.get_or_create(name="test-dye", slug="test-dye")[0]
         # Create a DyeState (Fluorophore) for the dye
         from proteins.models.dye import DyeState
 

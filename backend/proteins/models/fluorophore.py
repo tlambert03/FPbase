@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
     from django.db.models.manager import RelatedManager
 
-    from proteins.models import FluorescenceMeasurement, Spectrum  # noqa: F401
+    from proteins.models import Dye, FluorescenceMeasurement, Protein, Spectrum  # noqa: F401
 
 
 class FluorophoreManager[T: models.Model](models.Manager):
@@ -200,3 +200,16 @@ class Fluorophore(AbstractFluorescenceData):
 
     def d3_dicts(self) -> list[dict]:
         return [spect.d3dict() for spect in self.spectra.all()]
+
+    def get_absolute_url(self) -> str | None:
+        # return the absolute url for the protein or dye that owns this fluorophore
+        if owner := self._owner():
+            return owner.get_absolute_url()
+        return None
+
+    def _owner(self) -> "Dye | Protein | None":
+        if hasattr(self, "dye"):
+            return self.dye
+        if hasattr(self, "protein"):
+            return self.protein
+        return None

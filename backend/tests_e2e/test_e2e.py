@@ -114,7 +114,7 @@ def test_spectrum_submission_preview_manual_data(
     auth_page.locator("#id_confirmation").check()
 
     # Select2 autocomplete for protein
-    _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
+    _select2_enter("#div_id_owner_fluor [role='combobox']", protein.name, auth_page)
 
     # Switch to manual data tab and enter data
     auth_page.locator("#manual-tab").click()
@@ -162,7 +162,7 @@ def test_spectrum_submission_tab_switching(
     auth_page.locator("#id_subtype").select_option(Spectrum.EX)
     auth_page.locator("#id_confirmation").check()
 
-    _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
+    _select2_enter("#div_id_owner_fluor [role='combobox']", protein.name, auth_page)
 
     # Test tab switching
     file_tab = auth_page.locator("#file-tab")

@@ -139,7 +139,7 @@ class TestCalculateScopeReport:
         # This is a smoke test to ensure the function signature hasn't changed
         with (
             patch("proteins.models.State") as mock_state,
-            patch("proteins.models.Dye") as mock_dye,
+            patch("proteins.models.DyeState") as mock_dye,
             patch("proteins.models.Microscope") as mock_microscope,
             patch("proteins.models.OcFluorEff") as mock_eff_model,
         ):

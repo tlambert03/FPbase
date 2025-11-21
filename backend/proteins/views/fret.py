@@ -4,8 +4,9 @@ from django.shortcuts import render
 
 from fpbase.celery import app
 from fpbase.util import is_ajax
+from proteins.models.dye import DyeState
 
-from ..models import Dye, State
+from ..models import State
 from ..tasks import calc_fret
 
 
@@ -47,7 +48,7 @@ def fret_chart(request):
     ]
 
     good_dyes = (
-        Dye.objects.exclude(ext_coeff=None).exclude(qy=None).filter(spectra__subtype__in=("ex", "ab"))
+        DyeState.objects.exclude(ext_coeff=None).exclude(qy=None).filter(spectra__subtype__in=("ex", "ab"))
     ).values("slug", "name", "spectra__category", "spectra__subtype")
 
     slugs += [
