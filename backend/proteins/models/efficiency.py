@@ -6,8 +6,9 @@ from django.db import models
 from django.db.models import F, Max, OuterRef, Q, Subquery
 from model_utils.models import TimeStampedModel
 
-from ..util.efficiency import oc_efficiency_report
-from .state import Dye, State
+from proteins.models.dye import Dye as Dye
+from proteins.models.protein import State as State
+from proteins.util.efficiency import oc_efficiency_report
 
 
 class OcFluorEffQuerySet(models.QuerySet):

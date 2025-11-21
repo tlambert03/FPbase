@@ -35,7 +35,7 @@ class MutationSetField(models.CharField):
 
 
 class Lineage(MPTTModel, TimeStampedModel, Authorable):
-    protein = models.OneToOneField("Protein", on_delete=models.CASCADE, related_name="lineage")
+    protein = models.OneToOneField["Protein"]("Protein", on_delete=models.CASCADE, related_name="lineage")
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
     reference = models.ForeignKey(
         Reference,

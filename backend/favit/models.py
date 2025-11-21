@@ -18,7 +18,7 @@ class Favorite(models.Model):
     target = GenericForeignKey("target_content_type", "target_object_id")
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
 
-    objects = FavoriteManager()
+    objects: FavoriteManager = FavoriteManager()
 
     class Meta:
         ordering = ["-timestamp"]

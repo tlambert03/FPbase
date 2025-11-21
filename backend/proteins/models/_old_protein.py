@@ -1,21 +1,20 @@
+import contextlib
 import datetime
 import io
 import json
 import os
+import re
 import sys
-from collections import Counter
-from collections.abc import Sequence
-from random import choice
+from random import choices
 from subprocess import PIPE, run
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
-from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count, F, Func, Q, Value
 from django.urls import reverse
 from django.utils.text import slugify
 from model_utils import Choices
@@ -24,32 +23,24 @@ from model_utils.models import StatusModel, TimeStampedModel
 from reversion.models import Version
 
 from favit.models import Favorite
-from proteins import util
-from proteins.models._sequence_field import SequenceField
-from proteins.models.collection import ProteinCollection
-from proteins.models.fluorophore import Fluorophore
-from proteins.models.mixins import Authorable
-from proteins.models.spectrum import Spectrum
-from proteins.util.helpers import get_base_name, get_color_group, mless, spectra_fig
-from proteins.validators import validate_uniprot
+from fpseq import FPSeq
 from references.models import Reference
 
+from .. import util
+from ..util.helpers import get_base_name, get_color_group, mless, spectra_fig
+from ..validators import protein_sequence_validator, validate_uniprot
+from .collection import ProteinCollection
+from .mixins import Authorable
+from .spectrum import Spectrum
+
 if TYPE_CHECKING:
-    from django.db.models.manager import RelatedManager
-    from reversion.models import VersionQuerySet
+    from proteins.models import SnapGenePlasmid, State  # noqa: F401
 
-    from proteins.models import Lineage, Organism, SnapGenePlasmid  # noqa: F401
-
-
-# this is a hack to allow for reversions of proteins to work with Null chromophores
-# this makes sure that a None value is converted to an empty string
-class _NonNullChar(models.CharField):
-    def to_python(self, value):
-        return "" if value is None else super().to_python(value)
+User = get_user_model()
 
 
-def prot_uuid(k: int = 5, opts: Sequence[str] = "ABCDEFGHJKLMNOPQRSTUVWXYZ123456789") -> str:
-    i = "".join(choice(opts, k=k))
+def prot_uuid(k=5, opts="ABCDEFGHJKLMNOPQRSTUVWXYZ123456789"):
+    i = "".join(choices(opts, k=k))
     try:
         Protein.objects.get(uuid=i)
     except Protein.DoesNotExist:
@@ -58,7 +49,24 @@ def prot_uuid(k: int = 5, opts: Sequence[str] = "ABCDEFGHJKLMNOPQRSTUVWXYZ123456
         return prot_uuid(k, opts)
 
 
-class _ProteinQuerySet(models.QuerySet):
+def findname(name):
+    queries = [
+        {"name__iexact": name},
+        {"aliases__icontains": name},
+        # {'name__icontains': name},
+        {"name__iexact": re.sub(r" \((Before|Planar|wild).*", "", name)},
+        {"aliases__icontains": re.sub(r" \((Before|Planar|wild).*", "", name)},
+        # {'name__icontains': re.sub(r' \((Before|Planar).*', '', name)},
+        {"name__iexact": name.strip("1")},
+        # {'name__icontains': name.strip('1')},
+    ]
+    for query in queries:
+        with contextlib.suppress(Exception):
+            return Protein.objects.get(**query)
+    return None
+
+
+class ProteinQuerySet(models.QuerySet):
     def fasta(self):
         seqs = list(self.exclude(seq__isnull=True).values("uuid", "name", "seq"))
         for s in seqs:
@@ -80,9 +88,44 @@ class _ProteinQuerySet(models.QuerySet):
         return result.stdout, newick
 
 
-class _ProteinManager(models.Manager):
+class ProteinManager(models.Manager):
+    def deep_get(self, name):
+        slug = slugify(name)
+        with contextlib.suppress(Protein.DoesNotExist):
+            return self.get(slug=slug)
+        aliases_lower = Func(Func(F("aliases"), function="unnest"), function="LOWER")
+        remove_space = Func(aliases_lower, Value(" "), Value("-"), function="replace")
+        final = Func(remove_space, Value("."), Value(""), function="replace")
+        D = dict(Protein.objects.annotate(aka=final).values_list("aka", "id"))
+        if slug in D:
+            return self.get(id=D[slug])
+        else:
+            raise Protein.DoesNotExist("Protein matching query does not exist.")
+
     def get_queryset(self):
-        return _ProteinQuerySet(self.model, using=self._db)
+        return ProteinQuerySet(self.model, using=self._db)
+
+    def with_counts(self):
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT p.id, p.name, p.slug, COUNT(*)
+                FROM proteins_protein p, proteins_state s
+                WHERE p.id = s.protein_id
+                GROUP BY p.id, p.name, p.slug
+                ORDER BY COUNT(*) DESC"""
+            )
+            result_list = []
+            for row in cursor.fetchall():
+                p = self.model(id=row[0], name=row[1], slug=row[2])
+                p.num_states = row[3]
+                result_list.append(p)
+        return result_list
+
+    def annotated(self):
+        return self.get_queryset().annotate(Count("states"), Count("transitions"))
 
     def with_spectra(self, twoponly=False):
         qs = self.get_queryset().filter(states__spectra__isnull=False).distinct()
@@ -100,34 +143,89 @@ class _ProteinManager(models.Manager):
         )
 
 
+class SequenceField(models.CharField):
+    def __init__(self, *args, **kwargs):
+        kwargs["max_length"] = 1024
+        kwargs["validators"] = [protein_sequence_validator]
+        super().__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        del kwargs["max_length"]
+        del kwargs["validators"]
+        return name, path, args, kwargs
+
+    def from_db_value(self, value, expression, connection):
+        # Skip validation for database values - they're already validated
+        return FPSeq(value, validate=False) if value else None
+
+    def to_python(self, value):
+        if isinstance(value, FPSeq):
+            return value
+        # New values should still be validated
+        return FPSeq(value, validate=True) if value else None
+
+    def get_prep_value(self, value):
+        return str(value) if value else None
+
+
+# this is a hack to allow for reversions of proteins to work with Null chromophores
+# this makes sure that a None value is converted to an empty string
+class _NonNullChar(models.CharField):
+    def to_python(self, value):
+        return "" if value is None else super().to_python(value)
+
+
 class Protein(Authorable, StatusModel, TimeStampedModel):
     """Protein class to store individual proteins, each with a unique AA sequence and name"""
 
     STATUS = Choices("pending", "approved", "hidden")
 
-    class AggChoices(models.TextChoices):
-        MONOMER = ("m", "Monomer")
-        DIMER = ("d", "Dimer")
-        TANDEM_DIMER = ("td", "Tandem dimer")
-        WEAK_DIMER = ("wd", "Weak dimer")
-        TETRAMER = ("t", "Tetramer")
+    MONOMER = "m"
+    DIMER = "d"
+    TANDEM_DIMER = "td"
+    WEAK_DIMER = "wd"
+    TETRAMER = "t"
+    AGG_CHOICES = (
+        (MONOMER, "Monomer"),
+        (DIMER, "Dimer"),
+        (TANDEM_DIMER, "Tandem dimer"),
+        (WEAK_DIMER, "Weak dimer"),
+        (TETRAMER, "Tetramer"),
+    )
 
-    class SwitchingChoices(models.TextChoices):
-        BASIC = ("b", "Basic")
-        PHOTOACTIVATABLE = ("pa", "Photoactivatable")
-        PHOTOSWITCHABLE = ("ps", "Photoswitchable")
-        PHOTOCONVERTIBLE = ("pc", "Photoconvertible")
-        MULTIPHOTOCHROMIC = ("mp", "Multi-photochromic")
-        TIMER = ("t", "Multistate")
-        OTHER = ("o", "Timer")
+    BASIC = "b"
+    PHOTOACTIVATABLE = "pa"
+    PHOTOSWITCHABLE = "ps"
+    PHOTOCONVERTIBLE = "pc"
+    MULTIPHOTOCHROMIC = "mp"
+    TIMER = "t"
+    OTHER = "o"
+    SWITCHING_CHOICES = (
+        (BASIC, "Basic"),
+        (PHOTOACTIVATABLE, "Photoactivatable"),
+        (PHOTOSWITCHABLE, "Photoswitchable"),
+        (PHOTOCONVERTIBLE, "Photoconvertible"),
+        (MULTIPHOTOCHROMIC, "Multi-photochromic"),  # both convertible and switchable
+        (OTHER, "Multistate"),
+        (TIMER, "Timer"),
+    )
 
-    class CofactorChoices(models.TextChoices):
-        BILIRUBIN = ("br", "Bilirubin")
-        BILIVERDIN = ("bv", "Biliverdin")
-        FLAVIN = ("fl", "Flavin")
-        PHYCOCYANOBILIN = ("pc", "Phycocyanobilin")
-        RIBITYL_LUMAZINE = ("rl", "ribityl-lumazine")
+    BILIRUBIN = "br"
+    BILIVERDIN = "bv"
+    FLAVIN = "fl"
+    PHYCOCYANOBILIN = "pc"
+    RIBITYL_LUMAZINE = "rl"
+    COFACTOR_CHOICES = (
+        (BILIRUBIN, "Bilirubin"),
+        (BILIVERDIN, "Biliverdin"),
+        (FLAVIN, "Flavin"),
+        (PHYCOCYANOBILIN, "Phycocyanobilin"),
+        (RIBITYL_LUMAZINE, "ribityl-lumazine"),
+    )
 
+    # Attributes
+    # uuid        = models.UUIDField(default=uuid_lib.uuid4, editable=False, unique=True)  # for API
     uuid = models.CharField(
         max_length=5,
         default=prot_uuid,
@@ -185,11 +283,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         unique=True,
         verbose_name="IPG ID",
         help_text="Identical Protein Group ID at Pubmed",
-    )
+    )  # identical protein group uid
     mw = models.FloatField(null=True, blank=True, help_text="Molecular Weight")  # molecular weight
     agg = models.CharField(
         max_length=2,
-        choices=AggChoices,
+        choices=AGG_CHOICES,
         blank=True,
         verbose_name="Oligomerization",
         help_text="Oligomerization tendency",
@@ -197,23 +295,22 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     oser = models.FloatField(null=True, blank=True, help_text="OSER score")  # molecular weight
     switch_type = models.CharField(
         max_length=2,
-        choices=SwitchingChoices,
+        choices=SWITCHING_CHOICES,
         blank=True,
-        default=SwitchingChoices.BASIC,
+        default="b",
         verbose_name="Switching Type",
         help_text="Photoswitching type (basic if none)",
     )
     blurb = models.TextField(max_length=512, blank=True, help_text="Brief descriptive blurb")
     cofactor = models.CharField(
         max_length=2,
-        choices=CofactorChoices,
+        choices=COFACTOR_CHOICES,
         blank=True,
         help_text="Required for fluorescence",
     )
 
     # Relations
-    parent_organism_id: int | None
-    parent_organism = models.ForeignKey["Organism"](
+    parent_organism = models.ForeignKey(
         "Organism",
         related_name="proteins",
         verbose_name="Parental organism",
@@ -222,9 +319,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         null=True,
         help_text="Organism from which the protein was engineered",
     )
-
-    primary_reference_id: int | None
-    primary_reference = models.ForeignKey["Reference"](
+    primary_reference = models.ForeignKey(
         Reference,
         related_name="primary_proteins",
         verbose_name="Primary Reference",
@@ -232,8 +327,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         null=True,
         on_delete=models.SET_NULL,
         help_text="Preferably the publication that introduced the protein",
-    )
-    references = models.ManyToManyField(Reference, related_name="proteins", blank=True)
+    )  # usually, the original paper that published the protein
+    references = models.ManyToManyField(
+        Reference, related_name="proteins", blank=True
+    )  # all papers that reference the protein
+    # FRET_partner = models.ManyToManyField('self', symmetrical=False, through='FRETpair', blank=True)
 
     default_state_id: int | None
     default_state = models.ForeignKey["State | None"](
@@ -245,8 +343,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     )
 
     if TYPE_CHECKING:
-        states = RelatedManager["State"]()
-        lineage = RelatedManager["Lineage"]()
         snapgene_plasmids = models.ManyToManyField["SnapGenePlasmid", "Protein"]
     else:
         snapgene_plasmids = models.ManyToManyField(
@@ -256,13 +352,15 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             help_text="Associated SnapGene plasmids",
         )
 
+    # __original_ipg_id = None
+
     # managers
-    objects = _ProteinManager()
+    objects = ProteinManager()
     visible = QueryManager(~Q(status="hidden"))
 
     def mutations_from_root(self):
         try:
-            root = cast("Lineage", self.lineage.get_root())
+            root = self.lineage.get_root()
             if root.protein.seq and self.seq:
                 return root.protein.seq.mutations_to(self.seq)
         except ObjectDoesNotExist:
@@ -283,16 +381,14 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     @property
     def versions(self):
-        version_objects = cast("VersionQuerySet", Version.objects)
-        return version_objects.get_for_object(self)
+        return Version.objects.get_for_object(self)
 
     def last_approved_version(self):
         if self.status == "approved":
             return self
         try:
-            version_objects = cast("VersionQuerySet", Version.objects)
             return (
-                version_objects.get_for_object(self).filter(serialized_data__contains='"status": "approved"').first()
+                Version.objects.get_for_object(self).filter(serialized_data__contains='"status": "approved"').first()
             )
         except Exception:
             return None
@@ -304,7 +400,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     @property
     def em_css(self):
         if self.states.count() > 1:
-            stops = {st.emhex: "" for st in self.states.all()}
+            from collections import OrderedDict
+
+            stops = OrderedDict({st.emhex: "" for st in self.states.all()})
             bgs = []
             stepsize = int(100 / (len(stops) + 1))
             sub = 0
@@ -396,6 +494,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     def clean(self):
         errors = {}
+        # Don't allow basic switch_types to have more than one state.
+        #        if self.switch_type == 'b' and self.states.count() > 1:
+        #            errors.update({'switch_type': 'Basic (non photoconvertible) proteins '
+        #                                          'cannot have more than one state.'})
         if self.pdb:
             self.pdb = list(set(self.pdb))
             for item in self.pdb:
@@ -412,7 +514,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         super().save(*args, **kwargs)
         if self.set_default_state():
             super().save()
+        # self.__original_ipg_id = self.ipg_id
 
+    # Meta
     class Meta:
         ordering = ["name"]
         indexes = [
@@ -441,7 +545,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             return None
 
     def tags(self):
-        tags = [self.switchType(), self._agg(), self.color]
+        tags = [self.get_switch_type_display(), self.get_agg_display(), self.color]
         return [i for i in tags if i]
 
     def date_published(self, norm=False):
@@ -453,6 +557,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def n_faves(self, norm=False):
         nf = Favorite.objects.for_model(Protein).filter(target_object_id=self.id).count()
         if norm:
+            from collections import Counter
+
             mx = Counter(Favorite.objects.for_model(Protein).values_list("target_object_id", flat=True)).most_common(1)
             mx = mx[0][1] if mx else 1
             return nf / mx
@@ -478,10 +584,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             return 0
 
     def switchType(self):
-        return self.SwitchingChoices(self.switch_type).label
+        return self.get_switch_type_display()
 
     def _agg(self):
-        return self.AggChoices(self.agg).label
+        return self.get_agg_display()
 
     def url(self):
         return self.get_absolute_url()
@@ -516,12 +622,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         n = [s.qy for s in self.states.all()]
         return n[0] if len(n) == 1 else n
 
-    def rank(self) -> float:
+    def rank(self):
         # max rank is 1
-        pub_date = self.date_published(norm=True)
-        ga_views = self.ga_views(norm=True)
-        n_faves = self.n_faves(norm=True)
-        return (0.5 * pub_date + 0.6 * ga_views + 1.0 * n_faves) / 2.5
+        return (
+            0.5 * self.date_published(norm=True) + 0.6 * self.ga_views(norm=True) + 1.0 * self.n_faves(norm=True)
+        ) / 2.5
 
     def local_brightness(self):
         if self.states.exists():
@@ -530,38 +635,3 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def first_author(self):
         if self.primary_reference and self.primary_reference.first_author:
             return self.primary_reference.first_author.family
-
-
-class State(Fluorophore):  # TODO: rename to ProteinState
-    DEFAULT_NAME = "default"
-
-    name = models.CharField(max_length=64, default=DEFAULT_NAME)  # required
-    protein_id: int
-    protein = models.ForeignKey["Protein"](
-        Protein,
-        related_name="states",
-        help_text="The protein to which this state belongs",
-        on_delete=models.CASCADE,
-    )
-    maturation = models.FloatField(
-        null=True,
-        blank=True,
-        help_text="Maturation time (min)",  # maturation half-life in min
-        validators=[MinValueValidator(0), MaxValueValidator(1600)],
-    )
-    oc_eff = GenericRelation("OcFluorEff", related_query_name="state")
-
-    if TYPE_CHECKING:
-        transitions = models.ManyToManyField["State", "State"]
-    else:
-        transitions = models.ManyToManyField(
-            "State",
-            related_name="transition_state",
-            verbose_name="State Transitions",
-            blank=True,
-            through="StateTransition",
-        )
-
-    def save(self, *args, **kwargs) -> None:
-        self.entity_type = self.EntityTypes.PROTEIN
-        super().save(*args, **kwargs)

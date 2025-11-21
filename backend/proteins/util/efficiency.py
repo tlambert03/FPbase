@@ -1,6 +1,7 @@
 import numpy as np
 
-from ..models.state import Dye, State
+from proteins.models.dye import Dye as Dye
+from proteins.models.protein import State as State
 
 
 def spectral_product(arrlist):

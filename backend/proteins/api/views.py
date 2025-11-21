@@ -122,7 +122,7 @@ class ProteinListAPIView(ListAPIView):
 
 class BasicProteinListAPIView(ProteinListAPIView):
     queryset = (
-        pm.Protein.visible.filter(switch_type=pm.Protein.BASIC)
+        pm.Protein.visible.filter(switch_type=pm.Protein.SwitchingChoices.BASIC)
         .select_related("default_state")
         .annotate(rate=Max(F("default_state__bleach_measurements__rate")))
     )

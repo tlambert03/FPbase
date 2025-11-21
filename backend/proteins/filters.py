@@ -107,8 +107,8 @@ class ProteinFilter(filters.FilterSet):
     name__icontains = django_filters.CharFilter(
         field_name="name", method="name_or_alias_icontains", lookup_expr="icontains"
     )
-    switch_type__ne = django_filters.ChoiceFilter(choices=Protein.SWITCHING_CHOICES, method="switch_type__notequal")
-    cofactor__ne = django_filters.ChoiceFilter(choices=Protein.COFACTOR_CHOICES, method="cofactor__notequal")
+    switch_type__ne = django_filters.ChoiceFilter(choices=Protein.SwitchingChoices, method="switch_type__notequal")
+    cofactor__ne = django_filters.ChoiceFilter(choices=Protein.CofactorChoices, method="cofactor__notequal")
     parent_organism__ne = django_filters.ModelChoiceFilter(
         queryset=Organism.objects.all(), method="parent_organism__notequal"
     )

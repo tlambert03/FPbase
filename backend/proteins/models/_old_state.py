@@ -22,6 +22,7 @@ class Fluorophore(SpectrumOwner):
         validators=[MinValueValidator(300), MaxValueValidator(1000)],
         db_index=True,
     )
+
     twop_ex_max = models.PositiveSmallIntegerField(
         blank=True,
         null=True,

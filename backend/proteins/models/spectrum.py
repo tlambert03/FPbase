@@ -2,7 +2,7 @@ import ast
 import json
 import logging
 from functools import cached_property
-from typing import Any
+from typing import Any, Literal
 
 import django.forms
 import numpy as np
@@ -535,7 +535,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         d = self.waverange(waverange)
         return np.mean([i[1] for i in d])
 
-    def width(self, height=0.5):
+    def width(self, height=0.5) -> tuple[float, float] | Literal[False]:
         try:
             upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
             downindex = len(self.y) - next(x[0] for x in enumerate(reversed(self.y)) if x[1] > height)
