@@ -225,7 +225,7 @@ class ProteinFactory(factory.django.DjangoModelFactory[Protein]):
     slug = factory.LazyAttribute(lambda o: slugify(o.name))
     seq = factory.LazyFunction(_protein_seq)
     seq_validated = factory.Faker("boolean", chance_of_getting_true=75)
-    agg = factory.fuzzy.FuzzyChoice(Protein.AGG_CHOICES, getter=lambda c: c[0])
+    agg = factory.fuzzy.FuzzyChoice(Protein.AggChoices, getter=lambda c: c[0])
     pdb = factory.LazyFunction(lambda: random.choices(REAL_PDBS, k=random.randint(0, 2)))
     parent_organism = factory.SubFactory(OrganismFactory)
     primary_reference = factory.SubFactory("references.factories.ReferenceFactory")
