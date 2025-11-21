@@ -41,8 +41,13 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
 
     # --- Hierarchy & Ontology ---
     # Handles FITC (Parent) vs 5-FITC (Child) relationship
-    parent_mixture = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="isomers"
+    parent_mixture_id: int | None
+    parent_mixture = models.ForeignKey["Dye | None"](
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="isomers",
     )
 
     # Automated classification (e.g., "Rhodamine", "Cyanine", "BODIPY")
@@ -103,6 +108,13 @@ class DyeState(Fluorophore):
     def save(self, *args, **kwargs):
         self.entity_type = "dye"
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        # For now, return a URL based on the dye slug
+        # TODO: implement proper dye detail view
+        from django.urls import reverse
+
+        return reverse("proteins:spectra") + f"?owner={self.dye.slug}"
 
 
 # This section handles the commercial reality of purchasing dyes.

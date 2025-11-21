@@ -150,8 +150,16 @@ class Camera(DjangoObjectType):
 
 class Dye(DjangoObjectType):
     class Meta:
-        interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.Dye
+        fields = "__all__"
+
+
+class DyeState(DjangoObjectType):
+    """Fluorophore representing a dye in a specific environment."""
+
+    class Meta:
+        interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
+        model = models.dye.DyeState
         fields = "__all__"
 
 
@@ -202,15 +210,13 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
 
     @gdo.resolver_hints(
         select_related=(
-            "owner_state",
-            "owner_dye",
+            "owner_fluor",
             "owner_camera",
             "owner_filter",
             "owner_light",
         ),
         only=(
-            "owner_state",
-            "owner_dye",
+            "owner_fluor",
             "owner_camera",
             "owner_filter",
             "owner_light",

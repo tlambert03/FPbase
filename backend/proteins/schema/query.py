@@ -19,9 +19,7 @@ def get_cached_spectrum(id, timeout=60 * 60 * 24):
             spectrum = (
                 models.Spectrum.objects.filter(id=id)
                 .select_related(
-                    "owner_state",
-                    "owner_state__protein",
-                    "owner_dye",
+                    "owner_fluor",
                     "owner_camera",
                     "owner_filter",
                     "owner_light",

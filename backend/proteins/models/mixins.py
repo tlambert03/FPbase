@@ -16,14 +16,16 @@ class AdminURLMixin:
 
 
 class Authorable(models.Model):
-    created_by = models.ForeignKey(
+    created_by_id: int | None
+    created_by = models.ForeignKey["User | None"](
         User,
         blank=True,
         null=True,
         related_name="%(class)s_author",
         on_delete=models.SET_NULL,
     )
-    updated_by = models.ForeignKey(
+    updated_by_id: int | None
+    updated_by = models.ForeignKey["User | None"](
         User,
         blank=True,
         null=True,

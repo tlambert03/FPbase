@@ -1,5 +1,6 @@
 import json
 import urllib.parse
+from typing import TYPE_CHECKING
 
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
@@ -10,11 +11,10 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 
 from fpbase.cache_utils import OPTICAL_CONFIG_CACHE_KEY
-
-from ..util.efficiency import spectral_product
-from ..util.helpers import shortuuid
-from .collection import OwnedCollection
-from .spectrum import Camera, Filter, Light, sorted_ex2em
+from proteins.models.collection import OwnedCollection
+from proteins.models.spectrum import Camera, Filter, Light, sorted_ex2em
+from proteins.util.efficiency import spectral_product
+from proteins.util.helpers import shortuuid
 
 
 class Microscope(OwnedCollection):
@@ -218,17 +218,32 @@ def get_cached_optical_configs() -> str:
 class OpticalConfig(OwnedCollection):
     """A a single optical configuration comprising a set of filters"""
 
-    microscope = models.ForeignKey("Microscope", related_name="optical_configs", on_delete=models.CASCADE)
+    microscope_id: int
+    microscope = models.ForeignKey["Microscope"](
+        "Microscope",
+        related_name="optical_configs",
+        on_delete=models.CASCADE,
+    )
     comments = models.CharField(max_length=256, blank=True)
-    filters = models.ManyToManyField("Filter", related_name="optical_configs", blank=True, through="FilterPlacement")
-    light = models.ForeignKey(
+    if TYPE_CHECKING:
+        filters = models.ManyToManyField["Filter", "OpticalConfig"]
+    else:
+        filters = models.ManyToManyField(
+            "Filter",
+            related_name="optical_configs",
+            blank=True,
+            through="FilterPlacement",
+        )
+    light_id: int | None
+    light = models.ForeignKey["Light"](
         "Light",
         null=True,
         blank=True,
         related_name="optical_configs",
         on_delete=models.SET_NULL,
     )
-    camera = models.ForeignKey(
+    camera_id: int | None
+    camera = models.ForeignKey["Camera"](
         "Camera",
         null=True,
         blank=True,

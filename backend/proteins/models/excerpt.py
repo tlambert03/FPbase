@@ -1,20 +1,28 @@
+from typing import TYPE_CHECKING
+
 from django.db import models
 from django.db.models import Q
 from model_utils import Choices
 from model_utils.managers import QueryManager
 from model_utils.models import StatusModel, TimeStampedModel
 
+from proteins.models.mixins import Authorable
 from references.models import Reference
 
-from .mixins import Authorable
+if TYPE_CHECKING:
+    from proteins.models import Protein
 
 
 class Excerpt(Authorable, TimeStampedModel, StatusModel):
     STATUS = Choices("approved", "flagged", "rejected")
 
     content = models.TextField(max_length=1200, help_text="Brief excerpt describing this protein")
-    proteins = models.ManyToManyField("Protein", blank=True, related_name="excerpts")
-    reference = models.ForeignKey(
+    if TYPE_CHECKING:
+        proteins: models.ManyToManyField["Protein", "Excerpt"]
+    else:
+        proteins = models.ManyToManyField("Protein", blank=True, related_name="excerpts")
+    reference_id: int | None
+    reference = models.ForeignKey[Reference | None](
         Reference,
         related_name="excerpts",
         null=True,

@@ -29,12 +29,16 @@ class SpectrumSerializer(serializers.ModelSerializer):
         )
 
     def get_protein_name(self, obj):
-        if obj.owner_state:
-            return obj.owner_state.protein.name
+        # Check if owner_fluor is a State (has protein attribute)
+        if obj.owner_fluor and hasattr(obj.owner_fluor, "protein"):
+            return obj.owner_fluor.protein.name
+        return None
 
     def get_protein_slug(self, obj):
-        if obj.owner_state:
-            return obj.owner_state.protein.slug
+        # Check if owner_fluor is a State (has protein attribute)
+        if obj.owner_fluor and hasattr(obj.owner_fluor, "protein"):
+            return obj.owner_fluor.protein.slug
+        return None
 
 
 class StateTransitionSerializer(serializers.ModelSerializer):

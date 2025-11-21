@@ -1,6 +1,6 @@
 # pyright: reportPrivateImportUsage=false
 import random
-from typing import TypeVar, cast
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import factory
 import factory.builder
@@ -9,10 +9,12 @@ import numpy as np
 from django.utils.text import slugify
 
 from fpseq import FPSeq
+from proteins.models import Camera, Filter, FilterPlacement, Light, Microscope, OpticalConfig, Protein, Spectrum, State
 from proteins.util.helpers import wave_to_hex
 from references.factories import ReferenceFactory
 
-from .models import Camera, Filter, FilterPlacement, Light, Microscope, OpticalConfig, Protein, Spectrum, State
+if TYPE_CHECKING:
+    from proteins.models import Fluorophore
 
 T = TypeVar("T")
 
@@ -120,14 +122,14 @@ def _mock_edge_filter(edge, subtype, min_wave=300, max_wave=900, transmission=0.
 def _build_spectral_data(resolver: factory.builder.Resolver):
     subtype = getattr(resolver, "subtype", None)
 
-    if (owner_state := getattr(resolver, "owner_state", None)) is not None:
-        owner_state = cast("State", owner_state)
+    if (owner_fluor := getattr(resolver, "owner_fluor", None)) is not None:
+        owner_fluor = cast("Fluorophore", owner_fluor)
         if subtype == "ex":
-            return _mock_spectrum(owner_state.ex_max, type="ex")
+            return _mock_spectrum(owner_fluor.ex_max, type="ex")
         elif subtype == "em":
-            return _mock_spectrum(owner_state.em_max, type="em")
-        elif subtype == "2p" and owner_state.twop_ex_max:
-            return _mock_spectrum(owner_state.twop_ex_max, type="ex", min_wave=600, max_wave=1100)
+            return _mock_spectrum(owner_fluor.em_max, type="em")
+        elif subtype == "2p" and getattr(owner_fluor, "twop_ex_max", None):
+            return _mock_spectrum(owner_fluor.twop_ex_max, type="ex", min_wave=600, max_wave=1100)
 
     if (owner_filter := getattr(resolver, "owner_filter", None)) is not None:
         owner_filter = cast("Filter", owner_filter)
@@ -192,19 +194,19 @@ class StateFactory(FluorophoreFactory):
 
     ex_spectrum = factory.RelatedFactory(
         "proteins.factories.SpectrumFactory",
-        factory_related_name="owner_state",
+        factory_related_name="owner_fluor",
         subtype="ex",
         category="p",
     )
     em_spectrum = factory.RelatedFactory(
         "proteins.factories.SpectrumFactory",
-        factory_related_name="owner_state",
+        factory_related_name="owner_fluor",
         subtype="em",
         category="p",
     )
     twop_spectrum = factory.RelatedFactory(
         "proteins.factories.SpectrumFactory",
-        factory_related_name="owner_state",
+        factory_related_name="owner_fluor",
         subtype="2p",
         category="p",
     )

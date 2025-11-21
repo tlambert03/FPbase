@@ -28,14 +28,14 @@ class SpectrumFormField(forms.CharField):
 
 class SpectrumForm(forms.ModelForm):
     lookup = {
-        Spectrum.DYE: ("owner_dye", "Dye"),
-        Spectrum.PROTEIN: ("owner_state", "State"),
+        Spectrum.DYE: ("owner_fluor", "DyeState"),
+        Spectrum.PROTEIN: ("owner_fluor", "State"),
         Spectrum.FILTER: ("owner_filter", "Filter"),
         Spectrum.CAMERA: ("owner_camera", "Camera"),
         Spectrum.LIGHT: ("owner_light", "Light"),
     }
 
-    owner_state = forms.ModelChoiceField(
+    owner_fluor = forms.ModelChoiceField(
         required=False,
         label=mark_safe('Protein<span class="asteriskField">*</span>'),
         queryset=State.objects.select_related("protein"),
@@ -77,7 +77,7 @@ class SpectrumForm(forms.ModelForm):
         self.helper.layout = Layout(
             Div("category"),
             Div(
-                Div("owner_state", css_class="col-sm-6 col-xs-12 protein-owner hidden"),
+                Div("owner_fluor", css_class="col-sm-6 col-xs-12 protein-owner hidden"),
                 Div("owner", css_class="col-sm-6 col-xs-12 non-protein-owner"),
                 Div("subtype", css_class="col-sm-6 col-xs-12"),
                 css_class="row",
@@ -103,7 +103,7 @@ class SpectrumForm(forms.ModelForm):
             "ph",
             "source",
             "solvent",
-            "owner_state",
+            "owner_fluor",
             "owner",
         )
         widgets = {"data": forms.Textarea(attrs={"class": "vLargeTextField", "rows": 2})}
@@ -166,19 +166,19 @@ class SpectrumForm(forms.ModelForm):
                 self.data: dict = self.data.copy()
                 self.data["data"] = self.cleaned_data["data"]
 
-    def clean_owner_state(self):
-        owner_state = self.cleaned_data.get("owner_state")
+    def clean_owner_fluor(self):
+        owner_fluor = self.cleaned_data.get("owner_fluor")
         stype = self.cleaned_data.get("subtype")
-        if self.cleaned_data.get("category") == Spectrum.PROTEIN:
-            spectra = Spectrum.objects.all_objects().filter(owner_state=owner_state, subtype=stype)
+        if self.cleaned_data.get("category") in (Spectrum.PROTEIN, Spectrum.DYE):
+            spectra = Spectrum.objects.all_objects().filter(owner_fluor=owner_fluor, subtype=stype)
             if spectra.exists():
                 first = spectra.first()
                 self.add_error(
-                    "owner_state",
+                    "owner_fluor",
                     forms.ValidationError(
                         "%(owner)s already has a%(n)s %(stype)s spectrum %(status)s",
                         params={
-                            "owner": owner_state,
+                            "owner": owner_fluor,
                             "stype": first.get_subtype_display().lower(),
                             "n": "n" if stype != Spectrum.TWOP else "",
                             "status": " (pending)" if first.status == Spectrum.STATUS.pending else "",
@@ -186,7 +186,7 @@ class SpectrumForm(forms.ModelForm):
                         code="owner_exists",
                     ),
                 )
-        return owner_state
+        return owner_fluor
 
     def clean_owner(self):
         # make sure an owner with the same category and name doesn't already exist

@@ -10,7 +10,7 @@ from .validators import cdna_sequence_validator
 class SpectrumFilter(filters.FilterSet):
     class Meta:
         model = Spectrum
-        fields = ("category", "subtype", "id", "owner_state")
+        fields = ("category", "subtype", "id", "owner_fluor")
 
 
 class StateFilter(filters.FilterSet):

@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
+
+if TYPE_CHECKING:
+    from proteins.models import Protein
 
 User = get_user_model()
 
@@ -10,7 +15,8 @@ User = get_user_model()
 class OwnedCollection(TimeStampedModel):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=512, blank=True)
-    owner = models.ForeignKey(
+    owner_id: int | None
+    owner = models.ForeignKey[User | None](
         User,
         blank=True,
         null=True,
@@ -37,7 +43,10 @@ class OwnedCollection(TimeStampedModel):
 
 
 class ProteinCollection(OwnedCollection):
-    proteins = models.ManyToManyField("Protein", related_name="collection_memberships")
+    if TYPE_CHECKING:
+        proteins: models.ManyToManyField["Protein", "ProteinCollection"]
+    else:
+        proteins = models.ManyToManyField("Protein", related_name="collection_memberships")
     private = models.BooleanField(
         default=False,
         verbose_name="Private Collection",

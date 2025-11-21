@@ -1,9 +1,14 @@
+from typing import TYPE_CHECKING
+
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from model_utils.models import TimeStampedModel
 
-from .mixins import Authorable
+from proteins.models.mixins import Authorable
+
+if TYPE_CHECKING:
+    from proteins.models import Protein, State  # noqa F401
 
 
 class StateTransition(Authorable, TimeStampedModel):
@@ -14,21 +19,24 @@ class StateTransition(Authorable, TimeStampedModel):
         help_text="Wavelength required",
         validators=[MinValueValidator(300), MaxValueValidator(1000)],
     )
-    protein = models.ForeignKey(
+    protein_id: int
+    protein = models.ForeignKey["Protein"](
         "Protein",
         related_name="transitions",
         verbose_name="Protein Transitioning",
         help_text="The protein that demonstrates this transition",
         on_delete=models.CASCADE,
     )
-    from_state = models.ForeignKey(
+    from_state_id: int
+    from_state = models.ForeignKey["State"](
         "State",
         related_name="transitions_from",
         verbose_name="From state",
         help_text="The initial state ",
         on_delete=models.CASCADE,
     )
-    to_state = models.ForeignKey(
+    to_state_id: int
+    to_state = models.ForeignKey["State"](
         "State",
         related_name="transitions_to",
         verbose_name="To state",

@@ -5,11 +5,10 @@ from model_utils.models import TimeStampedModel
 from mptt.models import MPTTModel, TreeForeignKey
 
 from fpseq.mutations import MutationSet
+from proteins.models.mixins import Authorable
+from proteins.models.protein import Protein
+from proteins.util.maintain import validate_node
 from references.models import Reference
-
-from ..models.mixins import Authorable
-from ..util.maintain import validate_node
-from .protein import Protein
 
 
 def parse_mutation(mut_string):

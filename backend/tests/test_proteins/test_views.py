@@ -106,7 +106,7 @@ class SpectrumPreviewViewTests(TestCase):
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": (
                 "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
                 "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
@@ -140,7 +140,7 @@ class SpectrumPreviewViewTests(TestCase):
             data={
                 "category": Spectrum.PROTEIN,
                 "subtype": Spectrum.EX,
-                "owner_state": self.state.id,
+                "owner_fluor": self.state.id,
                 "data": "",
                 "data_source": "file",
                 "confirmation": True,
@@ -163,7 +163,7 @@ class SpectrumPreviewViewTests(TestCase):
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": "",  # Empty manual data
             "data_source": "manual",
             "confirmation": True,
@@ -185,7 +185,7 @@ class SpectrumPreviewViewTests(TestCase):
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": "",
             "data_source": "file",
             "confirmation": True,
@@ -207,7 +207,7 @@ class SpectrumPreviewViewTests(TestCase):
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": "invalid data format",  # Invalid spectrum data
             "data_source": "manual",
             "confirmation": True,
@@ -226,7 +226,7 @@ class SpectrumPreviewViewTests(TestCase):
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": (
                 "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
                 "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
@@ -249,7 +249,7 @@ class SpectrumPreviewViewTests(TestCase):
         post_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": "",
             "confirmation": True,
             # No data_source provided

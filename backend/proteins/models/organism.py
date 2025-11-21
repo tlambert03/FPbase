@@ -3,8 +3,7 @@ from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
 from proteins.extrest import entrez
-
-from .mixins import Authorable
+from proteins.models.mixins import Authorable
 
 
 class Organism(Authorable, TimeStampedModel):

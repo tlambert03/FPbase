@@ -13,14 +13,14 @@ def calc_fret():
 def calculate_scope_report(self, scope_id, outdated_ids=None, fluor_collection=None):
     import gc
 
-    from proteins.models import Dye, Microscope, OcFluorEff, State
+    from proteins.models import DyeState, Microscope, OcFluorEff, State
 
     # Initialize state_ids and dye_ids
     if not fluor_collection:
         # Use iterator to avoid loading all objects into memory at once
         # Build list of IDs instead of full objects
         state_ids = list(State.objects.with_spectra().values_list("id", flat=True))
-        dye_ids = list(Dye.objects.with_spectra().values_list("id", flat=True))
+        dye_ids = list(DyeState.objects.with_spectra().values_list("id", flat=True))
     else:
         # fluor_collection is not currently implemented, but initialize to empty lists
         # to prevent potential errors if this parameter is used in the future
@@ -72,7 +72,7 @@ def calculate_scope_report(self, scope_id, outdated_ids=None, fluor_collection=N
         # Process Dye objects in batches
         for start in range(0, len(dye_ids), batch_size):
             batch_ids = dye_ids[start : start + batch_size]
-            for dye in Dye.objects.filter(id__in=batch_ids).iterator():
+            for dye in DyeState.objects.filter(id__in=batch_ids).iterator():
                 i += 1
                 self.update_state(state="PROGRESS", meta={"current": i, "total": total})
                 try:

@@ -35,6 +35,8 @@ from proteins.validators import validate_uniprot
 from references.models import Reference
 
 if TYPE_CHECKING:
+    from typing import Self
+
     from django.db.models.manager import RelatedManager
     from reversion.models import VersionQuerySet
 
@@ -80,7 +82,9 @@ class _ProteinQuerySet(models.QuerySet):
         return result.stdout, newick
 
 
-class _ProteinManager(models.Manager):
+class _ProteinManager[T: models.Model](models.Manager):
+    _queryset_class: type[models.QuerySet[T]]
+
     def get_queryset(self):
         return _ProteinQuerySet(self.model, using=self._db)
 
@@ -257,7 +261,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         )
 
     # managers
-    objects = _ProteinManager()
+    objects: "_ProteinManager[Self]" = _ProteinManager()
     visible = QueryManager(~Q(status="hidden"))
 
     def mutations_from_root(self):
@@ -372,7 +376,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return json.dumps(spectra)
 
     def spectra_img(self, fmt="svg", output=None, **kwargs):
-        spectra = list(Spectrum.objects.filter(owner_state__protein=self).exclude(subtype="2p"))
+        spectra = list(Spectrum.objects.filter(owner_fluor__state__protein=self).exclude(subtype="2p"))
         title = self.name if kwargs.pop("title", False) else None
         if kwargs.get("twitter", False):
             title = self.name
@@ -564,4 +568,10 @@ class State(Fluorophore):  # TODO: rename to ProteinState
 
     def save(self, *args, **kwargs) -> None:
         self.entity_type = self.EntityTypes.PROTEIN
+        # Set label to protein name (used in API/UI for display)
+        if self.protein_id:
+            self.label = self.protein.name
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return self.protein.get_absolute_url()

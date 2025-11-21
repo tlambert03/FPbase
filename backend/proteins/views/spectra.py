@@ -73,7 +73,7 @@ class SpectrumCreateView(CreateView):
         if self.kwargs.get("slug", False):
             with contextlib.suppress(Exception):
                 self.protein = Protein.objects.get(slug=self.kwargs.get("slug"))
-                init["owner_state"] = self.protein.default_state
+                init["owner_fluor"] = self.protein.default_state
                 init["category"] = Spectrum.PROTEIN
 
         return init
@@ -88,7 +88,7 @@ class SpectrumCreateView(CreateView):
 
         if self.kwargs.get("slug", False):
             with contextlib.suppress(Exception):
-                form.fields["owner_state"] = forms.ModelChoiceField(
+                form.fields["owner_fluor"] = forms.ModelChoiceField(
                     required=True,
                     label="Protein (state)",
                     empty_label=None,
@@ -105,7 +105,9 @@ class SpectrumCreateView(CreateView):
         # It should return an HttpResponse.
         response = super().form_valid(form)
         with contextlib.suppress(Exception):
-            uncache_protein_page(self.object.owner_state.protein.slug, self.request)
+            # Uncache if this is a State (Protein) spectrum
+            if hasattr(self.object.owner_fluor, "protein"):
+                uncache_protein_page(self.object.owner_fluor.protein.slug, self.request)
 
         if not self.request.user.is_staff:
             body = f"""
@@ -138,8 +140,7 @@ def spectra_csv(request):
     try:
         idlist = [int(x) for x in request.GET.get("q", "").split(",") if x]
         spectralist = Spectrum.objects.filter(id__in=idlist).select_related(
-            "owner_state__protein",
-            "owner_dye",
+            "owner_fluor",
             "owner_filter",
             "owner_light",
             "owner_camera",
@@ -332,8 +333,7 @@ def pending_spectra_dashboard(request):
         .filter(status=Spectrum.STATUS.pending)
         .select_related(
             "created_by",
-            "owner_state__protein",
-            "owner_dye",
+            "owner_fluor",
             "owner_filter",
             "owner_camera",
             "owner_light",
@@ -401,7 +401,7 @@ def pending_spectrum_action(request):
             spectra = (
                 Spectrum.objects.all_objects()
                 .filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
-                .select_related("owner_state__protein")
+                .select_related("owner_fluor")
             )
 
             if not spectra.exists():
@@ -416,8 +416,9 @@ def pending_spectrum_action(request):
                 # Clear cache for affected protein pages
                 for spectrum in spectra:
                     with contextlib.suppress(Exception):
-                        if spectrum.owner_state:
-                            uncache_protein_page(spectrum.owner_state.protein.slug, request)
+                        # Uncache if this is a State (Protein) spectrum
+                        if spectrum.owner_fluor and hasattr(spectrum.owner_fluor, "protein"):
+                            uncache_protein_page(spectrum.owner_fluor.protein.slug, request)
                 message = f"Accepted {count} spectrum(s)"
 
             elif action == "reject":

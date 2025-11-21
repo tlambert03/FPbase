@@ -110,7 +110,7 @@ class TestCalculateScopeReport:
         """Test that calculate_scope_report uses values_list for memory efficiency."""
         with (
             patch("proteins.models.State") as mock_state,
-            patch("proteins.models.Dye") as mock_dye,
+            patch("proteins.models.DyeState") as mock_dye,
             patch("proteins.models.Microscope") as mock_microscope,
         ):
             # Mock the with_spectra().values_list() chain

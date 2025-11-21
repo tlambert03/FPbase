@@ -21,6 +21,7 @@ from proteins.factories import (
     StateFactory,
 )
 from proteins.models import Spectrum
+from proteins.models.dye import DyeState
 
 User = get_user_model()
 
@@ -40,17 +41,28 @@ class SimilarSpectrumOwnersViewTests(TestCase):
             cls.proteins.append(protein)
             cls.states.append(state)
             # Add spectra to states
-            SpectrumFactory(owner_state=state, category=Spectrum.PROTEIN, subtype=Spectrum.EX)
-            SpectrumFactory(owner_state=state, category=Spectrum.PROTEIN, subtype=Spectrum.EM)
+            SpectrumFactory(owner_fluor=state, category=Spectrum.PROTEIN, subtype=Spectrum.EX)
+            SpectrumFactory(owner_fluor=state, category=Spectrum.PROTEIN, subtype=Spectrum.EM)
 
-        # Create dyes (Fluorophores without protein)
+        # Create dyes - note: DyeState is the fluorophore that owns spectra, not Dye itself
         cls.dyes = []
+        cls.dye_states = []
         for i in range(3):
             dye = DyeFactory(name=f"SimilarDye{i}")
             cls.dyes.append(dye)
-            # Add spectra to dyes
-            SpectrumFactory(owner_dye=dye, category=Spectrum.DYE, subtype=Spectrum.EX)
-            SpectrumFactory(owner_dye=dye, category=Spectrum.DYE, subtype=Spectrum.EM)
+            # Create DyeState as the actual fluorophore owner of spectra
+            dye_state = DyeState.objects.create(
+                dye=dye,
+                name=f"SimilarDye{i} state",
+                slug=f"similardye{i}-state",
+                label=f"SimilarDye{i}",
+                ex_max=488,
+                em_max=520,
+            )
+            cls.dye_states.append(dye_state)
+            # Add spectra to dye states
+            SpectrumFactory(owner_fluor=dye_state, category=Spectrum.DYE, subtype=Spectrum.EX)
+            SpectrumFactory(owner_fluor=dye_state, category=Spectrum.DYE, subtype=Spectrum.EM)
 
         # Create filters (factories automatically create spectrum)
         cls.filters = []
@@ -265,18 +277,18 @@ class SimilarSpectrumOwnersViewTests(TestCase):
         self.assertIn(self.proteins[0].name, names)
 
     def test_similar_spectrum_owners_dye_uses_own_name(self):
-        """Test that Dyes (Fluorophores without protein) use their own name."""
+        """Test that DyeStates (Fluorophores without protein) use their label."""
         response = self.client.post(
             "/ajax/validate_spectrumownername/",
-            {"owner": self.dyes[0].name},
+            {"owner": self.dye_states[0].label},
             headers={"X-Requested-With": "XMLHttpRequest"},
         )
 
         data = response.json()
         self.assertGreater(len(data["similars"]), 0)
-        # At least one should be the dye we searched for
+        # At least one should be the dye state we searched for
         names = [s["name"] for s in data["similars"]]
-        self.assertIn(self.dyes[0].name, names)
+        self.assertIn(self.dye_states[0].label, names)
 
     def test_similar_spectrum_owners_works_without_ajax_header(self):
         """Test that the endpoint works without the X-Requested-With header."""

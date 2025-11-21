@@ -198,37 +198,37 @@ class SpectrumAdmin(VersionAdmin):
     model = Spectrum
     autocomplete_fields = ["reference"]
     list_select_related = (
-        "owner_state__protein",
+        "owner_fluor",
         "owner_filter",
         "owner_camera",
         "owner_light",
-        "owner_dye",
         "created_by",
     )
     list_display = ("__str__", "category", "subtype", "owner", "created_by")
     list_filter = ("status", "created", "category", "subtype")
     readonly_fields = ("owner", "name", "created", "modified", "spectrum_preview")
     search_fields = (
-        "owner_state__protein__name",
+        "owner_fluor__label",
         "owner_filter__name",
         "owner_camera__name",
         "owner_light__name",
-        "owner_dye__name",
     )
 
     def get_fields(self, request, obj=None):
         fields = []
         if not obj or not obj.category:
+            # If no category yet, allow selecting any owner type
             own = [
-                "owner_state",
+                "owner_fluor",
                 "owner_filter",
                 "owner_camera",
                 "owner_light",
-                "owner_dye",
             ]
-        elif obj.category == Spectrum.PROTEIN:
-            own = ["owner_state"]
+        elif obj.category in (Spectrum.PROTEIN, Spectrum.DYE):
+            # Protein and Dye both use owner_fluor (Fluorophore)
+            own = ["owner_fluor"]
         else:
+            # Filter, Camera, Light
             own = ["owner_" + obj.get_category_display().split(" ")[0].lower()]
         fields.extend(own)
         self.autocomplete_fields.extend(own)

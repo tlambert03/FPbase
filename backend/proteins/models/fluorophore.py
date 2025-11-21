@@ -1,13 +1,26 @@
 from typing import TYPE_CHECKING, Literal
 
 from django.db import models
+from django.db.models import QuerySet
 
 from proteins.models.fluorescence_data import AbstractFluorescenceData
 
 if TYPE_CHECKING:
+    from typing import Self
+
     from django.db.models.manager import RelatedManager
 
-    from proteins.models import Spectrum
+    from proteins.models import FluorescenceMeasurement, Spectrum  # noqa: F401
+
+
+class FluorophoreManager[T: models.Model](models.Manager):
+    _queryset_class: type[QuerySet[T]]
+
+    def notdark(self):
+        return self.filter(is_dark=False)
+
+    def with_spectra(self):
+        return self.get_queryset().filter(spectra__isnull=False).distinct()
 
 
 # The Canonical Parent (The Summary)
@@ -18,7 +31,7 @@ class Fluorophore(AbstractFluorescenceData):
 
     While fluorophores support multiple measurements of fluorescence data,
     `Fluorophore` also inherits `AbstractFluorescenceData`, and the values accessible
-    on this instance serve as the canonical (cached, "published", "composited")
+    on this instance serve as the canonical (i.e. "cached", "published", "composited")
     fluorescence properties for this entity.
 
     Contains the 'Accepted/Cached' values for generic querying.
@@ -38,8 +51,12 @@ class Fluorophore(AbstractFluorescenceData):
     # Maps field names to Measurement IDs. e.g., {'ex_max': 102, 'qy': 105}
     source_map = models.JSONField(default=dict, blank=True)
 
+    # Managers
+    objects: "FluorophoreManager[Self]" = FluorophoreManager()
+
     if TYPE_CHECKING:
         spectra = RelatedManager["Spectrum"]()
+        measurements = RelatedManager["FluorescenceMeasurement"]()
 
     class Meta:
         indexes = [
