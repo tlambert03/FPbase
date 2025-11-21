@@ -5,7 +5,7 @@ import os
 import sys
 from collections import Counter
 from collections.abc import Sequence
-from random import choice
+from random import choices
 from subprocess import PIPE, run
 from typing import TYPE_CHECKING, cast
 
@@ -49,7 +49,7 @@ class _NonNullChar(models.CharField):
 
 
 def prot_uuid(k: int = 5, opts: Sequence[str] = "ABCDEFGHJKLMNOPQRSTUVWXYZ123456789") -> str:
-    i = "".join(choice(opts, k=k))
+    i = "".join(choices(opts, k=k))
     try:
         Protein.objects.get(uuid=i)
     except Protein.DoesNotExist:
