@@ -417,6 +417,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         if self.set_default_state():
             super().save()
 
+        # Update label on all states when protein name changes
+        # The label field is cached on Fluorophore for query performance
+        if self.pk:
+            self.states.update(label=self.name)
+
     class Meta:
         ordering = ["name"]
         indexes = [
