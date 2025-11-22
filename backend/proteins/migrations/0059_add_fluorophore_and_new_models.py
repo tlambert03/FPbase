@@ -76,6 +76,8 @@ class Migration(migrations.Migration):
                 "indexes": [
                     models.Index(fields=["ex_max"], name="fluorophore_ex_max_idx"),
                     models.Index(fields=["em_max"], name="fluorophore_em_max_idx"),
+                    models.Index(fields=["label", "entity_type"], name="fluorophore_label_type_idx"),
+                    models.Index(fields=["entity_type", "is_dark"], name="fluorophore_type_dark_idx"),
                 ],
             },
         ),

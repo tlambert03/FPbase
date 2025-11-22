@@ -75,6 +75,8 @@ class Fluorophore(AbstractFluorescenceData):
         indexes = [
             models.Index(fields=["ex_max"]),
             models.Index(fields=["em_max"]),
+            models.Index(fields=["label", "entity_type"]),
+            models.Index(fields=["entity_type", "is_dark"]),
         ]
 
     def __str__(self):
@@ -129,11 +131,12 @@ class Fluorophore(AbstractFluorescenceData):
         self.source_map = new_source_map
 
         # 4. Refresh Label (Hoisting)
-        if hasattr(self, "protein_state"):
-            ps = self.protein_state
+        # Django MTI creates reverse relations with lowercase model names
+        if hasattr(self, "state"):
+            ps = self.state
             self.label = f"{ps.protein.name} ({ps.name})"
-        elif hasattr(self, "dye_state"):
-            ds = self.dye_state
+        elif hasattr(self, "dyestate"):
+            ds = self.dyestate
             self.label = f"{ds.dye.name} ({ds.name})"
 
         self.save()

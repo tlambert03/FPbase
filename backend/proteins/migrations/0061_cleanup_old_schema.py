@@ -1,4 +1,16 @@
 # Generated manually for schema overhaul
+#
+# WARNING: This migration is NOT REVERSIBLE
+# ==========================================
+# This migration drops the old State and Dye tables and removes deprecated fields.
+# Once this migration runs, there is no automated way to reverse it.
+#
+# Rollback procedure:
+# 1. Restore from database backup taken before migration 0059
+# 2. Do NOT use Django's migrate command to reverse - it will not work
+# 3. Manual data recovery may be required if backup is unavailable
+#
+# Always take a full database backup before running this migration in production.
 
 from django.db import migrations, models
 import django.db.models.deletion

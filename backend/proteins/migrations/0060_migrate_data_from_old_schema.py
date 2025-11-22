@@ -1,6 +1,10 @@
 # Generated manually for schema overhaul
 
+import logging
+
 from django.db import migrations
+
+logger = logging.getLogger(__name__)
 
 
 def migrate_state_data(apps, schema_editor):
@@ -50,11 +54,23 @@ def migrate_state_data(apps, schema_editor):
                 continue
 
             # Ensure slug uniqueness by checking if it already exists
+            original_slug = state_slug
             base_slug = state_slug
             counter = 1
             while Fluorophore.objects.filter(slug=state_slug).exists():
                 state_slug = f"{base_slug}-{counter}"
                 counter += 1
+                if counter > 100:
+                    raise ValueError(
+                        f"Could not generate unique slug for State {old_id} "
+                        f"after 100 attempts (original: {original_slug})"
+                    )
+
+            if state_slug != original_slug:
+                logger.warning(
+                    f"Slug collision during State migration: {original_slug} -> {state_slug} "
+                    f"(State ID: {old_id}, Protein: {protein.name})"
+                )
 
             # Create Fluorophore parent (MTI will link automatically)
             fluorophore = Fluorophore.objects.create(
@@ -141,11 +157,23 @@ def migrate_dye_data(apps, schema_editor):
                 dye_slug = slug
 
             # Ensure Dye slug uniqueness
+            original_dye_slug = dye_slug
             base_dye_slug = dye_slug
             counter = 1
             while Dye.objects.filter(slug=dye_slug).exists():
                 dye_slug = f"{base_dye_slug}-{counter}"
                 counter += 1
+                if counter > 100:
+                    raise ValueError(
+                        f"Could not generate unique slug for Dye {old_id} "
+                        f"after 100 attempts (original: {original_dye_slug})"
+                    )
+
+            if dye_slug != original_dye_slug:
+                logger.warning(
+                    f"Slug collision during Dye migration: {original_dye_slug} -> {dye_slug} "
+                    f"(Dye ID: {old_id}, Name: {name})"
+                )
 
             # Old Dye schema doesn't have chemical structure fields
             # Mark all as PROPRIETARY to avoid unique constraint issues
@@ -168,11 +196,23 @@ def migrate_dye_data(apps, schema_editor):
             # Create Fluorophore for this DyeState
             # Ensure unique fluorophore slug
             fluorophore_slug = f"{dye_slug}-default"
+            original_fluor_slug = fluorophore_slug
             base_fluor_slug = fluorophore_slug
             counter = 1
             while Fluorophore.objects.filter(slug=fluorophore_slug).exists():
                 fluorophore_slug = f"{base_fluor_slug}-{counter}"
                 counter += 1
+                if counter > 100:
+                    raise ValueError(
+                        f"Could not generate unique fluorophore slug for Dye {old_id} "
+                        f"after 100 attempts (original: {original_fluor_slug})"
+                    )
+
+            if fluorophore_slug != original_fluor_slug:
+                logger.warning(
+                    f"Fluorophore slug collision during Dye migration: {original_fluor_slug} -> {fluorophore_slug} "
+                    f"(Dye ID: {old_id}, Name: {name})"
+                )
 
             # Don't pass emhex/exhex - the save() method will compute them from wavelengths
             fluorophore = Fluorophore.objects.create(
@@ -334,8 +374,29 @@ def migrate_forward(apps, schema_editor):
 
 
 def migrate_reverse(apps, schema_editor):
-    """Reverse migration - not implemented (too complex)."""
-    raise NotImplementedError("Reversing this migration is not supported")
+    """Reverse migration - not supported.
+
+    This migration performs a one-way data transformation from the old schema
+    (separate State and Dye models) to the new schema (MTI-based Fluorophore hierarchy).
+
+    Reversing this migration would require:
+    1. Decomposing Fluorophore + State back into old State structure
+    2. Decomposing Fluorophore + DyeState back into old Dye structure
+    3. Merging FluorescenceMeasurement data back into parent entities
+    4. Restoring old spectrum ownership relationships
+
+    This is not safely automatable. If you need to rollback this migration:
+    1. Restore from a database backup taken before running this migration
+    2. Do NOT attempt to use Django's reverse migration functionality
+    3. Estimated restore time: 30-60 minutes depending on database size
+
+    See deployment documentation for rollback procedures.
+    """
+    raise RuntimeError(
+        "This migration cannot be reversed. "
+        "Restore from database backup if rollback is needed. "
+        "See migration docstring for details."
+    )
 
 
 class Migration(migrations.Migration):

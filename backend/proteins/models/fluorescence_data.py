@@ -99,5 +99,22 @@ class AbstractFluorescenceData(Authorable, TimeStampedModel, models.Model):
 
     @classmethod
     def get_measurable_fields(cls):
-        """Helper to return list of field names: ['ex_max', 'qy', ...]"""
-        return [f.name for f in cls._meta.fields]
+        """Return only fluorescence property field names.
+
+        Excludes metadata fields like id, created, modified, etc.
+        Only returns fields that represent actual fluorescence measurements.
+        """
+        MEASURABLE = {
+            "ex_max",
+            "em_max",
+            "ext_coeff",
+            "qy",
+            "brightness",
+            "lifetime",
+            "pka",
+            "twop_ex_max",
+            "twop_peakGM",
+            "twop_qy",
+            "is_dark",
+        }
+        return [f.name for f in cls._meta.fields if f.name in MEASURABLE]

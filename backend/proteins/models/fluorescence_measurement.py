@@ -17,8 +17,13 @@ class FluorescenceMeasurement(AbstractFluorescenceData):
     fluorophore = models.ForeignKey["Fluorophore"](
         "Fluorophore", related_name="measurements", on_delete=models.CASCADE
     )
-    reference_id: int
-    reference = models.ForeignKey["Reference"]("references.Reference", on_delete=models.CASCADE)
+    reference_id: int | None
+    reference = models.ForeignKey["Reference | None"](
+        "references.Reference",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     # Metadata specific to the act of measuring
     date_measured = models.DateField(null=True, blank=True)
@@ -27,10 +32,12 @@ class FluorescenceMeasurement(AbstractFluorescenceData):
     # Curator Override
     is_trusted = models.BooleanField(default=False, help_text="If True, this measurement overrides others.")
 
-    def save(self, *args, **kwargs) -> None:
+    def save(self, *args, rebuild_cache: bool = True, **kwargs) -> None:
+        # Allow opt-out of rebuild during bulk operations to avoid N+1 queries
         super().save(*args, **kwargs)
-        # Always keep the parent cache in sync
-        self.fluorophore.rebuild_attributes()
+        # Keep the parent cache in sync unless explicitly disabled
+        if rebuild_cache:
+            self.fluorophore.rebuild_attributes()
 
     def delete(self, *args, **kwargs) -> None:
         f = self.fluorophore
