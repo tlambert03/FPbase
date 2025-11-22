@@ -27,6 +27,7 @@ class OcFluorEffQuerySet(models.QuerySet):
 
 
 class OcFluorEff(TimeStampedModel):
+    oc_id: int
     oc = models.ForeignKey["OpticalConfig"]("OpticalConfig", on_delete=models.CASCADE)
     fluor_id: int
     fluor = models.ForeignKey[Fluorophore](Fluorophore, on_delete=models.CASCADE, related_name="oc_effs")

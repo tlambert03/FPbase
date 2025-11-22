@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import urllib.parse
 from typing import TYPE_CHECKING
@@ -16,6 +18,11 @@ from proteins.models.spectrum import Camera, Filter, Light, sorted_ex2em
 from proteins.util.efficiency import spectral_product
 from proteins.util.helpers import shortuuid
 
+if TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from proteins.models.spectrum import Spectrum
+
 
 class Microscope(OwnedCollection):
     """A microscope or other collection of optical configurations
@@ -28,21 +35,27 @@ class Microscope(OwnedCollection):
     """
 
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
-    extra_lights = models.ManyToManyField("Light", blank=True, related_name="microscopes")
-    extra_cameras = models.ManyToManyField("Camera", blank=True, related_name="microscopes")
+    if TYPE_CHECKING:
+        extra_lights = models.ManyToManyField["Light", "Microscope"]
+        extra_cameras = models.ManyToManyField["Camera", "Microscope"]
+    else:
+        extra_lights = models.ManyToManyField("Light", blank=True, related_name="microscopes")
+        extra_cameras = models.ManyToManyField("Camera", blank=True, related_name="microscopes")
     extra_lasers = ArrayField(
         models.PositiveSmallIntegerField(validators=[MinValueValidator(300), MaxValueValidator(1600)]),
         default=list,
         blank=True,
     )
-    collection = models.ForeignKey(
+    collection_id: int | None
+    collection = models.ForeignKey["ProteinCollection | None"](
         "ProteinCollection",
         blank=True,
         null=True,
         related_name="on_scope",
         on_delete=models.CASCADE,
     )
-    fluors = models.ForeignKey(
+    fluors_id: int | None
+    fluors = models.ForeignKey["FluorophoreCollection | None"](
         "FluorophoreCollection",
         blank=True,
         null=True,
@@ -72,6 +85,9 @@ class Microscope(OwnedCollection):
         default=True,
         help_text="Enable pan and zoom on spectra plot.",
     )
+
+    if TYPE_CHECKING:
+        optical_configs = RelatedManager["OpticalConfig"]()
 
     class Meta:
         ordering = ["created"]
@@ -160,7 +176,7 @@ class Microscope(OwnedCollection):
         )
 
     @cached_property
-    def spectra(self):
+    def spectra(self) -> list[Spectrum]:
         spectra = []
         for f in (
             self.ex_filters,
@@ -226,7 +242,11 @@ class OpticalConfig(OwnedCollection):
     )
     comments = models.CharField(max_length=256, blank=True)
     if TYPE_CHECKING:
+        from proteins.models import OcFluorEff
+
         filters = models.ManyToManyField["Filter", "OpticalConfig"]
+        filterplacement_set: models.QuerySet[FilterPlacement]
+        ocfluoreff_set: models.QuerySet[OcFluorEff]
     else:
         filters = models.ManyToManyField(
             "Filter",
@@ -342,8 +362,10 @@ class FilterPlacement(models.Model):
     BS = "bs"
     PATH_CHOICES = ((EX, "Excitation Path"), (EM, "Emission Path"), (BS, "Both Paths"))
 
-    filter = models.ForeignKey("Filter", on_delete=models.CASCADE)
-    config = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
+    filter_id: int
+    filter = models.ForeignKey[Filter]("Filter", on_delete=models.CASCADE)
+    config_id: int
+    config = models.ForeignKey["OpticalConfig"]("OpticalConfig", on_delete=models.CASCADE)
     path = models.CharField(max_length=2, choices=PATH_CHOICES, verbose_name="Ex/Bs/Em Path")
     # when path == BS, reflects refers to the emission path
     reflects = models.BooleanField(default=False, help_text="Filter reflects emission (if BS or EM filter)")

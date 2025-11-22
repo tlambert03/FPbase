@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import re
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -27,7 +30,11 @@ class Author(TimeStampedModel):
     family = models.CharField(max_length=80)
     given = models.CharField(max_length=80)
     initials = models.CharField(max_length=10)
-    publications = models.ManyToManyField("Reference", through="ReferenceAuthor")
+    if TYPE_CHECKING:
+        publications = models.ManyToManyField["Reference", "Author"]
+        referenceauthor_set: models.QuerySet[ReferenceAuthor]
+    else:
+        publications = models.ManyToManyField("Reference", through="ReferenceAuthor")
 
     @property
     def protein_contributions(self):
@@ -90,17 +97,41 @@ class Reference(TimeStampedModel):
         ],
         help_text="YYYY",
     )
-    authors = models.ManyToManyField("Author", through="ReferenceAuthor")
+    if TYPE_CHECKING:
+        from proteins.models import (
+            BleachMeasurement,
+            Excerpt,
+            FluorescenceMeasurement,
+            Lineage,
+            OSERMeasurement,
+            Protein,
+            Spectrum,
+        )
+
+        authors = models.ManyToManyField["Author", "Reference"]
+        referenceauthor_set: models.QuerySet[ReferenceAuthor]
+        primary_proteins: models.QuerySet[Protein]
+        proteins: models.QuerySet[Protein]
+        excerpts: models.QuerySet[Excerpt]
+        spectra: models.QuerySet[Spectrum]
+        bleach_measurements: models.QuerySet[BleachMeasurement]
+        oser_measurements: models.QuerySet[OSERMeasurement]
+        lineages: models.QuerySet[Lineage]
+        fluorescencemeasurement_set: models.QuerySet[FluorescenceMeasurement]
+    else:
+        authors = models.ManyToManyField("Author", through="ReferenceAuthor")
     summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
 
-    created_by = models.ForeignKey(
+    created_by_id: int | None
+    created_by = models.ForeignKey[User | None](
         User,
         related_name="reference_author",
         blank=True,
         null=True,
         on_delete=models.CASCADE,
     )
-    updated_by = models.ForeignKey(
+    updated_by_id: int | None
+    updated_by = models.ForeignKey[User | None](
         User,
         related_name="reference_modifier",
         blank=True,
@@ -199,8 +230,10 @@ class Reference(TimeStampedModel):
 
 
 class ReferenceAuthor(models.Model):
-    reference = models.ForeignKey(Reference, on_delete=models.CASCADE)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    reference_id: int
+    reference = models.ForeignKey[Reference](Reference, on_delete=models.CASCADE)
+    author_id: int
+    author = models.ForeignKey[Author](Author, on_delete=models.CASCADE)
     author_idx = models.PositiveSmallIntegerField()
 
     class Meta:

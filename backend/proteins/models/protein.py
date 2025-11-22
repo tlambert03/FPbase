@@ -39,7 +39,16 @@ if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
     from reversion.models import VersionQuerySet
 
-    from proteins.models import Lineage, Organism, SnapGenePlasmid  # noqa: F401
+    from proteins.models import (  # noqa: F401
+        BleachMeasurement,
+        Excerpt,
+        Lineage,
+        Organism,
+        OSERMeasurement,
+        ProteinCollection,
+        SnapGenePlasmid,
+        StateTransition,
+    )
 
 
 # this is a hack to allow for reversions of proteins to work with Null chromophores
@@ -216,7 +225,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     # Relations
     parent_organism_id: int | None
-    parent_organism = models.ForeignKey["Organism"](
+    parent_organism = models.ForeignKey["Organism | None"](
         "Organism",
         related_name="proteins",
         verbose_name="Parental organism",
@@ -227,7 +236,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     )
 
     primary_reference_id: int | None
-    primary_reference = models.ForeignKey["Reference"](
+    primary_reference = models.ForeignKey["Reference | None"](
         Reference,
         related_name="primary_proteins",
         verbose_name="Primary Reference",
@@ -236,7 +245,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         on_delete=models.SET_NULL,
         help_text="Preferably the publication that introduced the protein",
     )
-    references = models.ManyToManyField(Reference, related_name="proteins", blank=True)
+    if TYPE_CHECKING:
+        references = models.ManyToManyField["Reference", "Protein"]
+    else:
+        references = models.ManyToManyField(Reference, related_name="proteins", blank=True)
 
     default_state_id: int | None
     default_state = models.ForeignKey["State | None"](
@@ -251,6 +263,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         states = RelatedManager["State"]()
         lineage = RelatedManager["Lineage"]()
         snapgene_plasmids = models.ManyToManyField["SnapGenePlasmid", "Protein"]
+        default_for: models.QuerySet["State"]
+        transitions: models.QuerySet[StateTransition]
+        oser_measurements: models.QuerySet[OSERMeasurement]
+        collection_memberships: models.QuerySet[ProteinCollection]
+        excerpts: models.QuerySet[Excerpt]
     else:
         snapgene_plasmids = models.ManyToManyField(
             "SnapGenePlasmid",
@@ -560,6 +577,10 @@ class State(Fluorophore):  # TODO: rename to ProteinState
 
     if TYPE_CHECKING:
         transitions = models.ManyToManyField["State", "State"]
+        transition_state: models.QuerySet["State"]
+        transitions_from: models.QuerySet[StateTransition]
+        transitions_to: models.QuerySet[StateTransition]
+        bleach_measurements: models.QuerySet[BleachMeasurement]
     else:
         transitions = models.ManyToManyField(
             "State",

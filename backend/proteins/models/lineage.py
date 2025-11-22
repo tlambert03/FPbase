@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -34,9 +38,12 @@ class MutationSetField(models.CharField):
 
 
 class Lineage(MPTTModel, TimeStampedModel, Authorable):
+    protein_id: int
     protein = models.OneToOneField["Protein"]("Protein", on_delete=models.CASCADE, related_name="lineage")
+    parent_id: int | None
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
-    reference = models.ForeignKey(
+    reference_id: int | None
+    reference = models.ForeignKey[Reference | None](
         Reference,
         on_delete=models.CASCADE,
         null=True,
@@ -45,13 +52,18 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
     )
     mutation = MutationSetField(max_length=400, blank=True)
     rootmut = models.CharField(max_length=400, blank=True)
-    root_node = models.ForeignKey(
+    root_node_id: int | None
+    root_node = models.ForeignKey["Lineage | None"](
         "self",
         null=True,
         on_delete=models.CASCADE,
         related_name="descendants",
         verbose_name="Root Node",
     )
+
+    if TYPE_CHECKING:
+        children: models.QuerySet[Lineage]
+        descendants: models.QuerySet[Lineage]
 
     class MPTTMeta:
         order_insertion_by = ["protein"]

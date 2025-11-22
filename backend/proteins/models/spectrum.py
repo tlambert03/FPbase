@@ -61,9 +61,19 @@ class SpectrumOwner(Authorable, TimeStampedModel):
 class Camera(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
 
+    if TYPE_CHECKING:
+        spectrum: "Spectrum"
+        microscopes: models.QuerySet
+        optical_configs: models.QuerySet
+
 
 class Light(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
+
+    if TYPE_CHECKING:
+        spectrum: "Spectrum"
+        microscopes: models.QuerySet
+        optical_configs: models.QuerySet
 
 
 def sorted_ex2em(filterset):
@@ -343,7 +353,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         related_name="spectra",
     )
     owner_filter_id: int | None
-    owner_filter = models.OneToOneField["Filter| None"](
+    owner_filter = models.OneToOneField["Filter | None"](
         "Filter",
         null=True,
         blank=True,
@@ -366,6 +376,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         on_delete=models.CASCADE,
         related_name="spectrum",
     )
+    reference_id: int | None
     reference = models.ForeignKey["Reference | None"](
         Reference,
         null=True,
@@ -652,6 +663,12 @@ class Filter(SpectrumOwner, Product):
     aoi = models.PositiveSmallIntegerField(
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]
     )
+
+    if TYPE_CHECKING:
+        from proteins.models import OpticalConfig
+
+        spectrum: "Spectrum"
+        optical_configs: models.QuerySet[OpticalConfig]
 
     class Meta:
         ordering = ["bandcenter"]

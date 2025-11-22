@@ -1,8 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.signals import user_logged_in
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+
+if TYPE_CHECKING:
+    from favit.models import Favorite
+    from proteins.models import Microscope, OpticalConfig, ProteinCollection
+    from references.models import Reference
 
 
 class User(AbstractUser):
@@ -19,6 +28,15 @@ class User(AbstractUser):
     # around the globe.
     name = models.CharField(_("Name of User"), blank=True, max_length=255)
 
+    if TYPE_CHECKING:
+        logins: models.QuerySet[UserLogin]
+        favorites: models.QuerySet[Favorite]
+        reference_author: models.QuerySet[Reference]
+        reference_modifier: models.QuerySet[Reference]
+        microscopes: models.QuerySet[Microscope]
+        opticalconfigs: models.QuerySet[OpticalConfig]
+        proteincollections: models.QuerySet[ProteinCollection]
+
     def __str__(self):
         return self.username
 
@@ -29,7 +47,8 @@ class User(AbstractUser):
 class UserLogin(models.Model):
     """Represent users' logins, one per record"""
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="logins")
+    user_id: int
+    user = models.ForeignKey[User](User, on_delete=models.CASCADE, related_name="logins")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:

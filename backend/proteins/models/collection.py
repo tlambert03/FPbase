@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
@@ -7,7 +9,7 @@ from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
-    from proteins.models import Protein
+    from proteins.models import Dye, Microscope, Protein  # noqa: F401
 
 User = get_user_model()
 
@@ -44,7 +46,8 @@ class OwnedCollection(TimeStampedModel):
 
 class ProteinCollection(OwnedCollection):
     if TYPE_CHECKING:
-        proteins: models.ManyToManyField["Protein", "ProteinCollection"]
+        proteins: models.ManyToManyField[Protein, ProteinCollection]
+        on_scope: models.QuerySet[Microscope]
     else:
         proteins = models.ManyToManyField("Protein", related_name="collection_memberships")
     private = models.BooleanField(
@@ -61,7 +64,11 @@ class ProteinCollection(OwnedCollection):
 
 
 class FluorophoreCollection(ProteinCollection):
-    dyes = models.ManyToManyField("Dye", blank=True, related_name="collection_memberships")
+    if TYPE_CHECKING:
+        dyes = models.ManyToManyField["Dye", "FluorophoreCollection"]
+        fluor_on_scope: models.QuerySet[Microscope]
+    else:
+        dyes = models.ManyToManyField("Dye", blank=True, related_name="collection_memberships")
 
     def get_absolute_url(self):
         return reverse("proteins:fluor-collection-detail", args=[self.id])

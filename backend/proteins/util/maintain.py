@@ -40,7 +40,7 @@ def suggested_switch_type(protein: Protein) -> str | None:
     else:
         darkstates = protein.states.filter(is_dark=True).count()
     if not n_transitions:
-        return protein.SwitchingChoices.OTHER
+        return str(protein.SwitchingChoices.OTHER)
     elif nstates == 2:
         # 2 transitions with unique from_states
         if hasattr(protein, "nfrom"):
@@ -48,15 +48,15 @@ def suggested_switch_type(protein: Protein) -> str | None:
         else:
             nfrom = len(set(protein.transitions.values_list("from_state", flat=True)))
         if nfrom >= 2:
-            return protein.SwitchingChoices.PHOTOSWITCHABLE
+            return str(protein.SwitchingChoices.PHOTOSWITCHABLE)
         if darkstates == 0:
-            return protein.SwitchingChoices.PHOTOCONVERTIBLE
+            return str(protein.SwitchingChoices.PHOTOCONVERTIBLE)
         if darkstates == 1:
-            return protein.SwitchingChoices.PHOTOACTIVATABLE
+            return str(protein.SwitchingChoices.PHOTOACTIVATABLE)
         if darkstates > 1:
             return None
     elif nstates > 2:
-        return protein.SwitchingChoices.MULTIPHOTOCHROMIC
+        return str(protein.SwitchingChoices.MULTIPHOTOCHROMIC)
 
 
 def validate_switch_type(protein: Protein) -> bool:

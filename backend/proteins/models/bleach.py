@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -92,6 +94,7 @@ class BleachMeasurement(Authorable, TimeStampedModel):
         help_text="protein expressed in living cells",
     )
     cell_type = models.CharField(max_length=60, blank=True, verbose_name="Cell Type", help_text="e.g. HeLa")
+    reference_id: int | None
     reference = models.ForeignKey[Reference | None](
         Reference,
         related_name="bleach_measurements",
@@ -101,6 +104,7 @@ class BleachMeasurement(Authorable, TimeStampedModel):
         on_delete=models.SET_NULL,
         help_text="Reference where the measurement was made",
     )  # usually, the original paper that published the protein
+    state_id: int
     state = models.ForeignKey["State"](
         "State",
         related_name="bleach_measurements",

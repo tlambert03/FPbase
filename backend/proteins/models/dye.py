@@ -8,6 +8,7 @@ from proteins.models.fluorophore import Fluorophore
 from proteins.models.mixins import Authorable, Product
 
 if TYPE_CHECKING:
+    from proteins.models import DyeState, ReactiveDerivative
     from references.models import Reference  # noqa: F401
 
 
@@ -62,6 +63,12 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
         blank=True,
         help_text="Equilibrium constant between non-fluorescent lactone and fluorescent zwitterion.",
     )
+
+    if TYPE_CHECKING:
+        isomers: models.QuerySet["Dye"]
+        states: models.QuerySet[DyeState]
+        derivatives: models.QuerySet[ReactiveDerivative]
+        collection_memberships: models.QuerySet
 
     class Meta:
         # Enforce uniqueness only on defined structures to allow multiple proprietary entries

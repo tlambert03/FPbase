@@ -1,9 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.db import models
 from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
 from proteins.extrest import entrez
 from proteins.models.mixins import Authorable
+
+if TYPE_CHECKING:
+    from proteins.models import Protein
 
 
 class Organism(Authorable, TimeStampedModel):
@@ -19,6 +26,9 @@ class Organism(Authorable, TimeStampedModel):
     species = models.CharField(max_length=128, blank=True)
     genus = models.CharField(max_length=128, blank=True)
     rank = models.CharField(max_length=128, blank=True)
+
+    if TYPE_CHECKING:
+        proteins: models.QuerySet[Protein]
 
     def __str__(self):
         return self.scientific_name
