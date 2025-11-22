@@ -4,14 +4,13 @@ from urllib.parse import quote
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_admins
 from django.db import transaction
-from django.db.models import CharField, Count, F, Q, Value
-from django.db.models.functions import Lower
+from django.db.models import Case, CharField, Count, F, Q, Value, When
+from django.db.models.functions import Cast, Lower
 from django.http import (
     Http404,
     HttpResponseNotAllowed,
@@ -97,50 +96,39 @@ def scope_report_json(request, pk):
     microscope = Microscope.objects.get(id=pk)
     oclist = microscope.optical_configs.values_list("id")
 
-    state_ct = ContentType.objects.get_for_model(State)
-    dye_ct = ContentType.objects.get_for_model(DyeState)
-
+    # Query all efficiency records for this microscope's optical configs
+    # Use Case/When to determine the correct ID field based on entity_type
     effs = list(
         OcFluorEff.objects.exclude(ex_eff=None)
-        .filter(content_type=state_ct, oc__in=oclist)
+        .filter(oc__in=oclist)
+        .select_related("fluor")
         .annotate(
-            fluor_id=F("state__protein__uuid"),
-            fluor_slug=F("state__slug"),
-            type=Value("p", CharField()),
+            # For proteins, use the protein's UUID; for dyes, use the dye's ID (cast to string)
+            owner_id=Case(
+                When(fluor__entity_type="protein", then=F("fluor__state__protein__uuid")),
+                When(fluor__entity_type="dye", then=Cast(F("fluor__dyestate__dye__id"), CharField())),
+                default=Value(None),
+                output_field=CharField(),
+            ),
+            owner_slug=F("fluor__slug"),
+            # Map entity_type to the old 'p'/'d' format
+            type=Case(
+                When(fluor__entity_type="protein", then=Value("p")),
+                When(fluor__entity_type="dye", then=Value("d")),
+                default=Value("p"),
+                output_field=CharField(),
+            ),
         )
         .values(
-            "fluor_id",
+            "owner_id",
             "fluor_name",
-            "fluor_slug",
+            "owner_slug",
             "ex_eff",
             "em_eff",
             "ex_eff_broad",
             "brightness",
             "type",
             "oc__name",
-        )
-    )
-
-    effs.extend(
-        list(
-            OcFluorEff.objects.exclude(ex_eff=None)
-            .filter(content_type=dye_ct, oc__in=oclist)
-            .annotate(
-                fluor_id=F("dye__id"),
-                fluor_slug=F("dye__slug"),
-                type=Value("d", CharField()),
-            )
-            .values(
-                "fluor_id",
-                "fluor_name",
-                "fluor_slug",
-                "ex_eff",
-                "em_eff",
-                "ex_eff_broad",
-                "brightness",
-                "type",
-                "oc__name",
-            )
         )
     )
 
@@ -151,15 +139,15 @@ def scope_report_json(request, pk):
         data[item["oc__name"]].append(
             {
                 "fluor": item["fluor_name"],
-                "fluor_slug": item["fluor_slug"],
-                "fluor_id": item["fluor_id"],
+                "fluor_slug": item["owner_slug"],
+                "fluor_id": item["owner_id"],
                 "ex_eff": item["ex_eff"],
                 "ex_eff_broad": item["ex_eff_broad"],
                 "em_eff": item["em_eff"],
                 "brightness": item["brightness"] or None,
                 "shape": "circle" if item["type"] == "p" else "square",
                 "url": microscope.get_absolute_url()
-                + "?c={}&p={}".format(quote(item["oc__name"]), quote(item["fluor_slug"])),
+                + "?c={}&p={}".format(quote(item["oc__name"]), quote(item["owner_slug"])),
             }
         )
 

@@ -1,8 +1,5 @@
 from typing import TYPE_CHECKING
 
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Max, OuterRef, Q, Subquery
@@ -17,7 +14,7 @@ if TYPE_CHECKING:
 
 class OcFluorEffQuerySet(models.QuerySet):
     def outdated(self):
-        fluor_objs = Fluorophore.objects.filter(id=OuterRef("object_id"))
+        fluor_objs = Fluorophore.objects.filter(id=OuterRef("fluor_id"))
         spectra_mod = fluor_objs.annotate(latest_spec=Max("spectra__modified")).values("latest_spec")[:1]
 
         fluor_mod = fluor_objs.values("modified")[:1]
@@ -31,10 +28,8 @@ class OcFluorEffQuerySet(models.QuerySet):
 
 class OcFluorEff(TimeStampedModel):
     oc = models.ForeignKey["OpticalConfig"]("OpticalConfig", on_delete=models.CASCADE)
-    limit = models.Q(app_label="proteins", model__in=("state", "dyestate"))
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to=limit)
-    object_id = models.PositiveIntegerField()
-    fluor = GenericForeignKey("content_type", "object_id")
+    fluor_id: int
+    fluor = models.ForeignKey[Fluorophore](Fluorophore, on_delete=models.CASCADE, related_name="oc_effs")
     fluor_name = models.CharField(max_length=100, blank=True)
     ex_eff = models.FloatField(
         null=True,
@@ -58,14 +53,7 @@ class OcFluorEff(TimeStampedModel):
     objects = OcFluorEffQuerySet.as_manager()
 
     class Meta:
-        unique_together = ("oc", "content_type", "object_id")
-
-    def clean(self):
-        allowed = list(ContentType.objects.filter(self.limit).values_list("id", "model"))
-        allowed_ids = {item[0] for item in allowed}
-        if self.content_type_id not in allowed_ids:
-            models_list = ", ".join(sorted({item[1] for item in allowed}))
-            raise ValidationError(f"ContentType for OcFluorEff.fluor must be in: {models_list}")
+        unique_together = ("oc", "fluor")
 
     def update_effs(self):
         rep = oc_efficiency_report(self.oc, [self.fluor]).get(self.fluor.slug, {})

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
     from django.db.models.manager import RelatedManager
 
-    from proteins.models import Dye, FluorescenceMeasurement, Protein, Spectrum  # noqa: F401
+    from proteins.models import Dye, FluorescenceMeasurement, OcFluorEff, Protein, Spectrum  # noqa: F401
 
 
 class FluorophoreManager[T: models.Model](models.Manager):
@@ -57,6 +57,7 @@ class Fluorophore(AbstractFluorescenceData):
     if TYPE_CHECKING:
         spectra = RelatedManager["Spectrum"]()
         measurements = RelatedManager["FluorescenceMeasurement"]()
+        oc_effs = RelatedManager["OcFluorEff"]()
 
     class Meta:
         indexes = [

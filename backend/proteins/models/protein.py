@@ -9,7 +9,6 @@ from random import choices
 from subprocess import PIPE, run
 from typing import TYPE_CHECKING, cast
 
-from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -558,7 +557,6 @@ class State(Fluorophore):  # TODO: rename to ProteinState
         help_text="Maturation time (min)",  # maturation half-life in min
         validators=[MinValueValidator(0), MaxValueValidator(1600)],
     )
-    oc_eff = GenericRelation("OcFluorEff", related_query_name="state")
 
     if TYPE_CHECKING:
         transitions = models.ManyToManyField["State", "State"]
