@@ -262,12 +262,12 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     if TYPE_CHECKING:
         states = RelatedManager["State"]()
         lineage = RelatedManager["Lineage"]()
-        snapgene_plasmids = models.ManyToManyField["SnapGenePlasmid", "Protein"]
         default_for: models.QuerySet["State"]
         transitions: models.QuerySet[StateTransition]
         oser_measurements: models.QuerySet[OSERMeasurement]
         collection_memberships: models.QuerySet[ProteinCollection]
         excerpts: models.QuerySet[Excerpt]
+        snapgene_plasmids = models.ManyToManyField["SnapGenePlasmid", "Protein"]
     else:
         snapgene_plasmids = models.ManyToManyField(
             "SnapGenePlasmid",
@@ -581,6 +581,7 @@ class State(Fluorophore):  # TODO: rename to ProteinState
         transitions_from: models.QuerySet[StateTransition]
         transitions_to: models.QuerySet[StateTransition]
         bleach_measurements: models.QuerySet[BleachMeasurement]
+        fluorophore_ptr: Fluorophore  # added by Django MTI
     else:
         transitions = models.ManyToManyField(
             "State",

@@ -26,7 +26,7 @@ from proteins.util.spectra import interp_linear, norm2one, norm2P, step_size
 from references.models import Reference
 
 if TYPE_CHECKING:
-    from proteins.models import Fluorophore  # noqa: F401
+    from proteins.models import Fluorophore
 
 logger = logging.getLogger(__name__)
 
@@ -468,7 +468,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             raise ValidationError(errors)
 
     @property
-    def owner_set(self):
+    def owner_set(self) -> list["Fluorophore | Filter | Light | Camera | None"]:
         return [
             self.owner_fluor,
             self.owner_filter,
@@ -477,12 +477,12 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         ]
 
     @property
-    def owner(self):
+    def owner(self) -> "Fluorophore | Filter | Light | Camera | None":
         return next((x for x in self.owner_set if x), None)
         #  raise AssertionError("No owner is set")
 
     @property
-    def name(self):
+    def name(self) -> str:
         # this method allows the protein name to have changed in the meantime
         if self.owner_fluor:
             # Check if it's a State (ProteinState) by checking for protein attribute

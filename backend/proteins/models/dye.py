@@ -112,6 +112,9 @@ class DyeState(Fluorophore):
         default=False, help_text="If True, this is the default state shown on the dye summary card."
     )
 
+    if TYPE_CHECKING:
+        fluorophore_ptr: Fluorophore  # added by Django MTI
+
     def save(self, *args, **kwargs):
         self.entity_type = "dye"
         super().save(*args, **kwargs)

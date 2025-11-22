@@ -12,10 +12,12 @@ if TYPE_CHECKING:
 
     from proteins.models import (  # noqa: F401
         Dye,
+        DyeState,
         FluorescenceMeasurement,
         OcFluorEff,
         Protein,
         Spectrum,
+        State,
     )
 
 
@@ -65,6 +67,10 @@ class Fluorophore(AbstractFluorescenceData):
         measurements = RelatedManager["FluorescenceMeasurement"]()
         oc_effs = RelatedManager["OcFluorEff"]()
 
+        # these are not *guaranteed* to exist, they come from Django MTI
+        dyestate: "DyeState"
+        state: "State"
+
     class Meta:
         indexes = [
             models.Index(fields=["ex_max"]),
@@ -73,6 +79,13 @@ class Fluorophore(AbstractFluorescenceData):
 
     def __str__(self):
         return self.label
+
+    def as_subclass(self) -> "Self":
+        """Downcast to the specific subclass instance."""
+        for subclass_name in ["dyestate", "state"]:
+            if hasattr(self, subclass_name):
+                return getattr(self, subclass_name)
+        return self  # Fallback to parent if no child found
 
     def rebuild_attributes(self):
         """The Compositing Engine.
