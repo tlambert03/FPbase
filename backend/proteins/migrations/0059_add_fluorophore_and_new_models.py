@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Any
 # Generated manually for schema overhaul
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -10,11 +12,20 @@ import logging
 from django.db import migrations, models
 import django.db.models.deletion
 from django.db import migrations
-
+from django.apps.registry import Apps
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+from django.db.backends.utils import CursorWrapper
 logger = logging.getLogger(__name__)
 
 
-def migrate_state_data(apps, schema_editor):
+def _dictfetchall(cursor: CursorWrapper) -> list[dict[str, Any]]:
+    """Return all rows from a cursor as a dict. Assume the column names are unique."""
+    if not cursor.description:
+        return []
+    columns = (col.name for col in cursor.description)
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Migrate State data from old schema to new Fluorophore + State MTI structure."""
     # Get models from migration state
     Fluorophore = apps.get_model("proteins", "Fluorophore")
@@ -136,7 +147,7 @@ def migrate_state_data(apps, schema_editor):
     print(f"Migrated {State.objects.count()} State records")
 
 
-def migrate_dye_data(apps, schema_editor):
+def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Migrate Dye data from old schema to new Dye container + DyeState structure."""
     Fluorophore = apps.get_model("proteins", "Fluorophore")
     Dye = apps.get_model("proteins", "Dye")
@@ -277,7 +288,7 @@ def migrate_dye_data(apps, schema_editor):
     print(f"Created {DyeState.objects.count()} DyeState records")
 
 
-def update_spectrum_ownership(apps, schema_editor):
+def update_spectrum_ownership(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Update Spectrum foreign keys to point to new Fluorophore records."""
     Spectrum = apps.get_model("proteins", "Spectrum")
     Fluorophore = apps.get_model("proteins", "Fluorophore")
@@ -321,7 +332,7 @@ def update_spectrum_ownership(apps, schema_editor):
         print(f"Updated {dye_count} spectra owned by Dyes")
 
 
-def update_ocfluoreff(apps, schema_editor):
+def update_ocfluoreff(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Update OcFluorEff to use direct FK to Fluorophore."""
     with schema_editor.connection.cursor() as cursor:
         # Update OcFluorEff records that pointed to States via GenericFK
@@ -394,7 +405,7 @@ def populate_emhex_exhex(apps, _schema_editor):
     print(f"Populated emhex/exhex for {len(fluorophores_to_update)} fluorophores")
 
 
-def migrate_forward(apps, schema_editor):
+def migrate_forward(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Run all migration functions."""
     print("Starting data migration from old schema...")
     migrate_state_data(apps, schema_editor)
