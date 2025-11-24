@@ -2,57 +2,35 @@
 
 import django.core.validators
 from django.db import migrations, models
-
 import proteins.models.protein
 import proteins.validators
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0019_auto_20180723_2200"),
+        ('proteins', '0019_auto_20180723_2200'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="protein",
-            name="seq_validated",
-            field=models.BooleanField(default=False, help_text="Sequence has been validated by a moderator"),
+            model_name='protein',
+            name='seq_validated',
+            field=models.BooleanField(default=False, help_text='Sequence has been validated by a moderator'),
         ),
         migrations.AlterField(
-            model_name="filter",
-            name="bandwidth",
-            field=models.PositiveSmallIntegerField(
-                blank=True,
-                null=True,
-                validators=[
-                    django.core.validators.MinValueValidator(0),
-                    django.core.validators.MaxValueValidator(900),
-                ],
-            ),
+            model_name='filter',
+            name='bandwidth',
+            field=models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(900)]),
         ),
         migrations.AlterField(
-            model_name="filter",
-            name="edge",
-            field=models.FloatField(
-                blank=True,
-                null=True,
-                validators=[
-                    django.core.validators.MinValueValidator(300),
-                    django.core.validators.MaxValueValidator(1600),
-                ],
-            ),
+            model_name='filter',
+            name='edge',
+            field=models.FloatField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(300), django.core.validators.MaxValueValidator(1600)]),
         ),
         migrations.AlterField(
-            model_name="protein",
-            name="seq",
-            field=proteins.models.protein.SequenceField(
-                blank=True,
-                help_text="Amino acid sequence (IPG ID is preferred)",
-                max_length=1024,
-                null=True,
-                unique=True,
-                validators=[proteins.validators.protein_sequence_validator],
-                verbose_name="Sequence",
-            ),
+            model_name='protein',
+            name='seq',
+            field=proteins.models.protein.SequenceField(blank=True, help_text='Amino acid sequence (IPG ID is preferred)', max_length=1024, null=True, unique=True, validators=[proteins.validators.protein_sequence_validator], verbose_name='Sequence'),
         ),
     ]

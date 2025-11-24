@@ -4,14 +4,15 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("references", "0003_auto_20180804_0203"),
-        ("proteins", "0026_bleachmeasurement_cell_type"),
+        ('references', '0003_auto_20180804_0203'),
+        ('proteins', '0026_bleachmeasurement_cell_type'),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name="osermeasurement",
-            unique_together={("protein", "reference")},
+            name='osermeasurement',
+            unique_together={('protein', 'reference')},
         ),
     ]

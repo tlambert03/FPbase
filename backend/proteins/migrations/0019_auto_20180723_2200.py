@@ -4,19 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0018_protein_cofactor"),
+        ('proteins', '0018_protein_cofactor'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="protein",
-            name="cofactor",
-            field=models.CharField(
-                blank=True,
-                choices=[("bv", "Biliverdin"), ("fl", "Flavin")],
-                help_text="Required for fluorescence",
-                max_length=2,
-            ),
+            model_name='protein',
+            name='cofactor',
+            field=models.CharField(blank=True, choices=[('bv', 'Biliverdin'), ('fl', 'Flavin')], help_text='Required for fluorescence', max_length=2),
         ),
     ]

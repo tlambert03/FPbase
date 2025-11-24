@@ -4,40 +4,41 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0020_auto_20180729_0234"),
+        ('proteins', '0020_auto_20180729_0234'),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name="fretpair",
+            name='fretpair',
             unique_together=set(),
         ),
         migrations.RemoveField(
-            model_name="fretpair",
-            name="acceptor",
+            model_name='fretpair',
+            name='acceptor',
         ),
         migrations.RemoveField(
-            model_name="fretpair",
-            name="created_by",
+            model_name='fretpair',
+            name='created_by',
         ),
         migrations.RemoveField(
-            model_name="fretpair",
-            name="donor",
+            model_name='fretpair',
+            name='donor',
         ),
         migrations.RemoveField(
-            model_name="fretpair",
-            name="pair_references",
+            model_name='fretpair',
+            name='pair_references',
         ),
         migrations.RemoveField(
-            model_name="fretpair",
-            name="updated_by",
+            model_name='fretpair',
+            name='updated_by',
         ),
         migrations.RemoveField(
-            model_name="protein",
-            name="FRET_partner",
+            model_name='protein',
+            name='FRET_partner',
         ),
         migrations.DeleteModel(
-            name="FRETpair",
+            name='FRETpair',
         ),
     ]

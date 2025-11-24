@@ -4,29 +4,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0038_auto_20181205_2044"),
+        ('proteins', '0038_auto_20181205_2044'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="dye",
-            name="emhex",
+            model_name='dye',
+            name='emhex',
             field=models.CharField(blank=True, max_length=7),
         ),
         migrations.AddField(
-            model_name="dye",
-            name="exhex",
+            model_name='dye',
+            name='exhex',
             field=models.CharField(blank=True, max_length=7),
         ),
         migrations.AddField(
-            model_name="state",
-            name="emhex",
+            model_name='state',
+            name='emhex',
             field=models.CharField(blank=True, max_length=7),
         ),
         migrations.AddField(
-            model_name="state",
-            name="exhex",
+            model_name='state',
+            name='exhex',
             field=models.CharField(blank=True, max_length=7),
         ),
     ]

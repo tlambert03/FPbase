@@ -4,14 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0025_auto_20181011_1715"),
+        ('proteins', '0025_auto_20181011_1715'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="bleachmeasurement",
-            name="cell_type",
-            field=models.CharField(blank=True, help_text="e.g. HeLa", max_length=60, verbose_name="Cell Type"),
+            model_name='bleachmeasurement',
+            name='cell_type',
+            field=models.CharField(blank=True, help_text='e.g. HeLa', max_length=60, verbose_name='Cell Type'),
         ),
     ]

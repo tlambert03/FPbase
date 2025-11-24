@@ -4,14 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0030_lineage"),
+        ('proteins', '0030_lineage'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="excerpt",
-            name="content",
-            field=models.TextField(help_text="Brief excerpt describing this protein", max_length=1200),
+            model_name='excerpt',
+            name='content',
+            field=models.TextField(help_text='Brief excerpt describing this protein', max_length=1200),
         ),
     ]

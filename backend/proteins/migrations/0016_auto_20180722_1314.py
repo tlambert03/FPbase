@@ -4,38 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0015_auto_20180720_1921"),
+        ('proteins', '0015_auto_20180720_1921'),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name="microscope",
-            name="bs_filters",
+            model_name='microscope',
+            name='bs_filters',
         ),
         migrations.RemoveField(
-            model_name="microscope",
-            name="cameras",
+            model_name='microscope',
+            name='cameras',
         ),
         migrations.RemoveField(
-            model_name="microscope",
-            name="em_filters",
+            model_name='microscope',
+            name='em_filters',
         ),
         migrations.RemoveField(
-            model_name="microscope",
-            name="ex_filters",
+            model_name='microscope',
+            name='ex_filters',
         ),
         migrations.RemoveField(
-            model_name="microscope",
-            name="lasers",
+            model_name='microscope',
+            name='lasers',
         ),
         migrations.RemoveField(
-            model_name="microscope",
-            name="lights",
+            model_name='microscope',
+            name='lights',
         ),
         migrations.AddField(
-            model_name="opticalconfig",
-            name="comments",
+            model_name='opticalconfig',
+            name='comments',
             field=models.CharField(blank=True, max_length=256),
         ),
     ]

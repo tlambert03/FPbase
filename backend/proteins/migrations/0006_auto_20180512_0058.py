@@ -4,13 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0005_auto_20180328_1614_squashed_0010_auto_20180501_1547"),
+        ('proteins', '0005_auto_20180328_1614_squashed_0010_auto_20180501_1547'),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name="spectrum",
-            options={"verbose_name_plural": "spectra"},
+            name='spectrum',
+            options={'verbose_name_plural': 'spectra'},
         ),
     ]

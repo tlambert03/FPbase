@@ -4,32 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0008_auto_20180515_1659"),
+        ('proteins', '0008_auto_20180515_1659'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="spectrum",
-            name="subtype",
-            field=models.CharField(
-                choices=[
-                    ("ex", "Excitation"),
-                    ("ab", "Absorption"),
-                    ("em", "Emission"),
-                    ("2p", "Two Photon Absorption"),
-                    ("bp", "Bandpass"),
-                    ("bx", "Bandpass (Excitation)"),
-                    ("bm", "Bandpass (Emission)"),
-                    ("sp", "Shortpass"),
-                    ("lp", "Longpass"),
-                    ("bs", "Beamsplitter"),
-                    ("qe", "Quantum Efficiency"),
-                    ("pd", "Power Distribution"),
-                ],
-                db_index=True,
-                max_length=2,
-                verbose_name="Spectra Subtype",
-            ),
+            model_name='spectrum',
+            name='subtype',
+            field=models.CharField(choices=[('ex', 'Excitation'), ('ab', 'Absorption'), ('em', 'Emission'), ('2p', 'Two Photon Absorption'), ('bp', 'Bandpass'), ('bx', 'Bandpass (Excitation)'), ('bm', 'Bandpass (Emission)'), ('sp', 'Shortpass'), ('lp', 'Longpass'), ('bs', 'Beamsplitter'), ('qe', 'Quantum Efficiency'), ('pd', 'Power Distribution')], db_index=True, max_length=2, verbose_name='Spectra Subtype'),
         ),
     ]

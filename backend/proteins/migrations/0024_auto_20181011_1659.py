@@ -4,19 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0023_spectrum_reference"),
+        ('proteins', '0023_spectrum_reference'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="bleachmeasurement",
-            name="temp",
-            field=models.FloatField(blank=True, null=True, verbose_name="Temp (˚C)"),
+            model_name='bleachmeasurement',
+            name='temp',
+            field=models.FloatField(blank=True, null=True, verbose_name='Temp (˚C)'),
         ),
         migrations.AlterField(
-            model_name="bleachmeasurement",
-            name="units",
-            field=models.CharField(blank=True, help_text="e.g. W/cm2", max_length=100, verbose_name="Power Units"),
+            model_name='bleachmeasurement',
+            name='units',
+            field=models.CharField(blank=True, help_text='e.g. W/cm2', max_length=100, verbose_name='Power Units'),
         ),
     ]

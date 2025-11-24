@@ -4,14 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0043_remove_excerpt_protein"),
+        ('proteins', '0043_remove_excerpt_protein'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="excerpt",
-            name="proteins",
-            field=models.ManyToManyField(blank=True, related_name="excerpts", to="proteins.Protein"),
+            model_name='excerpt',
+            name='proteins',
+            field=models.ManyToManyField(blank=True, related_name='excerpts', to='proteins.Protein'),
         ),
     ]

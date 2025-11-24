@@ -5,18 +5,19 @@ from django.db import migrations
 
 def make_many_exerpts(apps, schema_editor):
     """
-    Adds the Author object in Book.author to the
-    many-to-many relationship in Book.authors
+        Adds the Author object in Book.author to the
+        many-to-many relationship in Book.authors
     """
-    Excerpt = apps.get_model("proteins", "Excerpt")
+    Excerpt = apps.get_model('proteins', 'Excerpt')
 
     for excerpt in Excerpt.objects.all():
         excerpt.proteins.add(excerpt.protein)
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0041_auto_20181216_1743"),
+        ('proteins', '0041_auto_20181216_1743'),
     ]
 
     operations = [

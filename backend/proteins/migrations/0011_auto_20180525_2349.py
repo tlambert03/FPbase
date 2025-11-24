@@ -4,42 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0010_auto_20180525_1840"),
+        ('proteins', '0010_auto_20180525_1840'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="spectrum",
-            name="category",
-            field=models.CharField(
-                choices=[("d", "Dye"), ("p", "Protein"), ("l", "Light Source"), ("f", "Filter"), ("c", "Camera")],
-                db_index=True,
-                max_length=1,
-                verbose_name="Owner Type",
-            ),
+            model_name='spectrum',
+            name='category',
+            field=models.CharField(choices=[('d', 'Dye'), ('p', 'Protein'), ('l', 'Light Source'), ('f', 'Filter'), ('c', 'Camera')], db_index=True, max_length=1, verbose_name='Owner Type'),
         ),
         migrations.AlterField(
-            model_name="spectrum",
-            name="subtype",
-            field=models.CharField(
-                choices=[
-                    ("ex", "Excitation"),
-                    ("ab", "Absorption"),
-                    ("em", "Emission"),
-                    ("2p", "Two Photon Abs"),
-                    ("bp", "Bandpass"),
-                    ("bx", "Bandpass-Ex"),
-                    ("bm", "Bandpass-Em"),
-                    ("sp", "Shortpass"),
-                    ("lp", "Longpass"),
-                    ("bs", "Beamsplitter"),
-                    ("qe", "Quantum Efficiency"),
-                    ("pd", "Power Distribution"),
-                ],
-                db_index=True,
-                max_length=2,
-                verbose_name="Spectrum Subtype",
-            ),
+            model_name='spectrum',
+            name='subtype',
+            field=models.CharField(choices=[('ex', 'Excitation'), ('ab', 'Absorption'), ('em', 'Emission'), ('2p', 'Two Photon Abs'), ('bp', 'Bandpass'), ('bx', 'Bandpass-Ex'), ('bm', 'Bandpass-Em'), ('sp', 'Shortpass'), ('lp', 'Longpass'), ('bs', 'Beamsplitter'), ('qe', 'Quantum Efficiency'), ('pd', 'Power Distribution')], db_index=True, max_length=2, verbose_name='Spectrum Subtype'),
         ),
     ]

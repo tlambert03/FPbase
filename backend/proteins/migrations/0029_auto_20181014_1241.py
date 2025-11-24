@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0028_auto_20181012_2011"),
+        ('proteins', '0028_auto_20181012_2011'),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name="excerpt",
-            options={"ordering": ["reference__year", "created"]},
+            name='excerpt',
+            options={'ordering': ['reference__year', 'created']},
         ),
         migrations.AddField(
-            model_name="protein",
-            name="seq_comment",
-            field=models.CharField(
-                blank=True, help_text="if necessary, comment on source of sequence", max_length=512
-            ),
+            model_name='protein',
+            name='seq_comment',
+            field=models.CharField(blank=True, help_text='if necessary, comment on source of sequence', max_length=512),
         ),
     ]

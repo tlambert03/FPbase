@@ -6,34 +6,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0016_auto_20180722_1314"),
+        ('proteins', '0016_auto_20180722_1314'),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="microscope",
-            name="extra_cameras",
-            field=models.ManyToManyField(blank=True, related_name="microscopes", to="proteins.Camera"),
+            model_name='microscope',
+            name='extra_cameras',
+            field=models.ManyToManyField(blank=True, related_name='microscopes', to='proteins.Camera'),
         ),
         migrations.AddField(
-            model_name="microscope",
-            name="extra_lasers",
-            field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.PositiveSmallIntegerField(
-                    validators=[
-                        django.core.validators.MinValueValidator(300),
-                        django.core.validators.MaxValueValidator(1600),
-                    ]
-                ),
-                blank=True,
-                default=list,
-                size=None,
-            ),
+            model_name='microscope',
+            name='extra_lasers',
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(300), django.core.validators.MaxValueValidator(1600)]), blank=True, default=list, size=None),
         ),
         migrations.AddField(
-            model_name="microscope",
-            name="extra_lights",
-            field=models.ManyToManyField(blank=True, related_name="microscopes", to="proteins.Light"),
+            model_name='microscope',
+            name='extra_lights',
+            field=models.ManyToManyField(blank=True, related_name='microscopes', to='proteins.Light'),
         ),
     ]

@@ -5,13 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [("proteins", "0049_auto_20190323_1947")]
 
     operations = [
         migrations.AddField(
             model_name="spectrum",
             name="source",
-            field=models.CharField(blank=True, help_text="Source of the spectra data", max_length=128),
+            field=models.CharField(
+                blank=True, help_text="Source of the spectra data", max_length=128
+            ),
         ),
         migrations.AlterField(
             model_name="lineage",

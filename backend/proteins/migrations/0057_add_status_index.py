@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
-        ("proteins", "0056_spectrum_spectrum_state_status_idx_and_more"),
-        ("references", "0008_alter_reference_year"),
+        ('proteins', '0056_spectrum_spectrum_state_status_idx_and_more'),
+        ('references', '0008_alter_reference_year'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name="protein",
-            index=models.Index(fields=["status"], name="protein_status_idx"),
+            model_name='protein',
+            index=models.Index(fields=['status'], name='protein_status_idx'),
         ),
     ]
