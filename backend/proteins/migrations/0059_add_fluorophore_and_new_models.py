@@ -21,14 +21,13 @@ def _dictfetchall(cursor: CursorWrapper) -> list[dict[str, Any]]:
     """Return all rows from a cursor as a dict. Assume the column names are unique."""
     if not cursor.description:
         return []
-    columns = (col.name for col in cursor.description)
+    columns = [col.name for col in cursor.description]
     return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
 def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Migrate State data from old schema to new Fluorophore + State MTI structure."""
     # Get models from migration state
-    Fluorophore = apps.get_model("proteins", "Fluorophore")
     State = apps.get_model("proteins", "State")
     Protein = apps.get_model("proteins", "Protein")
     FluorescenceMeasurement = apps.get_model("proteins", "FluorescenceMeasurement")
@@ -42,125 +41,51 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                    maturation, protein_id, created_by_id, updated_by_id
             FROM proteins_state_old
         """)
-
-        for row in cursor.fetchall():
-            (
-                old_id,
-                created,
-                modified,
-                name,
-                slug,
-                is_dark,
-                ex_max,
-                em_max,
-                ext_coeff,
-                qy,
-                brightness,
-                lifetime,
-                pka,
-                twop_ex_max,
-                twop_peak_gm,
-                twop_qy,
-                maturation,
-                protein_id,
-                created_by_id,
-                updated_by_id,
-            ) = row
+        for row in _dictfetchall(cursor):
+            # Extract fields by name (order-independent, safer than positional unpacking)
+            old_id = row["id"]
 
             # Get protein for label
-            try:
-                protein = Protein.objects.get(id=protein_id)
-            except Protein.DoesNotExist:
-                # note, the db doesn't have any cases of this
-                print(f"Warning: Protein {protein_id} not found for State {old_id}, skipping")
-                continue
-
-            # Handle empty/null slugs with guaranteed non-empty fallback
-            if not slug or (isinstance(slug, str) and slug.strip() == ""):
-                # Try protein slug + name, or protein slug, or fallback to state ID
-                if name and name != "default":
-                    state_slug = f"{protein.slug}-{name}" if protein.slug else f"state-{old_id}"
-                else:
-                    state_slug = protein.slug if protein.slug else f"state-{old_id}"
-            else:
-                state_slug = slug
-
-            # Final safety check - ensure slug is not empty
-            if not state_slug or state_slug.strip() == "":
-                state_slug = f"state-{old_id}"
-
-            # Ensure slug uniqueness by checking if it already exists
-            original_slug = state_slug
-            base_slug = state_slug
-            counter = 1
-            while Fluorophore.objects.filter(slug=state_slug).exists():
-                state_slug = f"{base_slug}-{counter}"
-                counter += 1
-                if counter > 100:
-                    raise ValueError(
-                        f"Could not generate unique slug for State {old_id} "
-                        f"after 100 attempts (original: {original_slug})"
-                    )
-
-            if state_slug != original_slug:
-                logger.warning(
-                    "Slug collision during State migration: %s -> %s (State ID: %s, Protein: %s)",
-                    original_slug,
-                    state_slug,
-                    old_id,
-                    protein.name,
-                )
+            protein = Protein.objects.get(id=row["protein_id"])
 
             # Create State (MTI child of Fluorophore)
-            # Django's MTI creates both parent and child records in one operation
+            # Note: Measurable fields (ex_max, em_max, qy, etc.) are left empty here
+            # and will be populated by rebuild_attributes() after creating FluorescenceMeasurement
             state = State.objects.create(
                 id=old_id,  # Preserve old ID for easier FK updates later
-                created=created,
-                modified=modified,
-                name=name,
-                slug=state_slug,
+                created=row["created"],
+                modified=row["modified"],
+                name=row["name"],
+                slug=row["slug"],
                 entity_type="p",
                 owner_name=protein.name,
                 owner_slug=protein.slug,
-                ex_max=ex_max,
-                em_max=em_max,
-                ext_coeff=ext_coeff,
-                qy=qy,
-                brightness=brightness,
-                lifetime=lifetime,
-                pka=pka,
-                twop_ex_max=twop_ex_max,
-                twop_peak_gm=twop_peak_gm,  # Map from SQL result to model field
-                twop_qy=twop_qy,
-                is_dark=is_dark,
-                created_by_id=created_by_id,
-                updated_by_id=updated_by_id,
+                created_by_id=row["created_by_id"],
+                updated_by_id=row["updated_by_id"],
                 # State-specific fields
-                protein_id=protein_id,
-                maturation=maturation,
+                protein_id=protein.id,
+                maturation=row["maturation"],
             )
 
-            # Create FluorescenceMeasurement from old State data if there's any fluorescence data
-            if any([ex_max, em_max, qy, ext_coeff, lifetime, pka, twop_ex_max, twop_peak_gm, twop_qy]):
-                FluorescenceMeasurement.objects.create(
-                    id=old_id,  # Preserve old ID
-                    fluorophore=state,  # State is-a Fluorophore (MTI)
-                    reference_id=protein.primary_reference_id,
-                    ex_max=ex_max,
-                    em_max=em_max,
-                    ext_coeff=ext_coeff,
-                    qy=qy,
-                    brightness=brightness,
-                    lifetime=lifetime,
-                    pka=pka,
-                    twop_ex_max=twop_ex_max,
-                    twop_peak_gm=twop_peak_gm,
-                    twop_qy=twop_qy,
-                    is_dark=is_dark,
-                    is_trusted=True,  # Mark as trusted since it's the original data
-                    created_by_id=created_by_id,
-                    updated_by_id=updated_by_id,
-                )
+            FluorescenceMeasurement.objects.create(
+                id=old_id,  # Preserve old ID
+                fluorophore=state,  # State is-a Fluorophore (MTI)
+                reference_id=protein.primary_reference_id,
+                ex_max=row["ex_max"],
+                em_max=row["em_max"],
+                ext_coeff=row["ext_coeff"],
+                qy=row["qy"],
+                brightness=row["brightness"],
+                lifetime=row["lifetime"],
+                pka=row["pka"],
+                twop_ex_max=row["twop_ex_max"],
+                twop_peak_gm=row["twop_peakGM"],  # Note: SQL column uses twop_peakGM
+                twop_qy=row["twop_qy"],
+                is_dark=row["is_dark"],
+                is_trusted=True,  # Mark as trusted since it's the original data
+                created_by_id=row["created_by_id"],
+                updated_by_id=row["updated_by_id"],
+            )
 
     print(f"Migrated {State.objects.count()} State records")
 
@@ -173,8 +98,7 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                 COALESCE((SELECT MAX(id) FROM proteins_fluorophore), 1)
             )
         """)
-        fluor_seq = cursor.fetchone()[0]
-        print(f"Reset Fluorophore ID sequence to {fluor_seq}")
+        print(f"Reset Fluorophore ID sequence to {cursor.fetchone()[0]}")
 
         cursor.execute("""
             SELECT setval(
@@ -182,13 +106,11 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                 COALESCE((SELECT MAX(id) FROM proteins_fluorescencemeasurement), 1)
             )
         """)
-        meas_seq = cursor.fetchone()[0]
-        print(f"Reset FluorescenceMeasurement ID sequence to {meas_seq}")
+        print(f"Reset FluorescenceMeasurement ID sequence to {cursor.fetchone()[0]}")
 
 
 def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Migrate Dye data from old schema to new Dye container + DyeState structure."""
-    Fluorophore = apps.get_model("proteins", "Fluorophore")
     Dye = apps.get_model("proteins", "Dye")
     DyeState = apps.get_model("proteins", "DyeState")
     FluorescenceMeasurement = apps.get_model("proteins", "FluorescenceMeasurement")
@@ -196,145 +118,56 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
     # Access old Dye data via raw SQL
     with schema_editor.connection.cursor() as cursor:
         cursor.execute("""
-            SELECT id, created, modified, name, slug, is_dark,
+            SELECT created, modified, name, slug, is_dark,
                    ex_max, em_max, ext_coeff, qy, brightness,
                    lifetime, pka, twop_ex_max, "twop_peakGM", twop_qy
             FROM proteins_dye_old
         """)
 
-        for row in cursor.fetchall():
-            (
-                old_id,
-                created,
-                modified,
-                name,
-                slug,
-                is_dark,
-                ex_max,
-                em_max,
-                ext_coeff,
-                qy,
-                brightness,
-                lifetime,
-                pka,
-                twop_ex_max,
-                twop_peak_gm,
-                twop_qy,
-            ) = row
-
-            # Handle empty/null slugs
-            if not slug or slug.strip() == "":
-                dye_slug = f"dye-{old_id}"  # Use old ID as fallback
-            else:
-                dye_slug = slug
-
-            # Ensure Dye slug uniqueness
-            original_dye_slug = dye_slug
-            base_dye_slug = dye_slug
-            counter = 1
-            while Dye.objects.filter(slug=dye_slug).exists():
-                dye_slug = f"{base_dye_slug}-{counter}"
-                counter += 1
-                if counter > 100:
-                    raise ValueError(
-                        f"Could not generate unique slug for Dye {old_id} "
-                        f"after 100 attempts (original: {original_dye_slug})"
-                    )
-
-            if dye_slug != original_dye_slug:
-                logger.warning(
-                    "Slug collision during Dye migration: %s -> %s (Dye ID: %s, Name: %s)",
-                    original_dye_slug,
-                    dye_slug,
-                    old_id,
-                    name,
-                )
-
-            # Old Dye schema doesn't have chemical structure fields
-            # Mark all as PROPRIETARY to avoid unique constraint issues
-            # (Can be updated later with actual chemical data)
-
+        for row in _dictfetchall(cursor):
             # Create Dye container (without fluorescence properties)
             dye = Dye.objects.create(
-                created=created,
-                modified=modified,
-                name=name,
-                slug=dye_slug,
+                created=row["created"],
+                modified=row["modified"],
+                name=row["name"],
+                slug=row["slug"],
             )
 
-            # Create Fluorophore for this DyeState
-            # Ensure unique fluorophore slug
-            fluorophore_slug = f"{dye_slug}-default"
-            original_fluor_slug = fluorophore_slug
-            base_fluor_slug = fluorophore_slug
-            counter = 1
-            while Fluorophore.objects.filter(slug=fluorophore_slug).exists():
-                fluorophore_slug = f"{base_fluor_slug}-{counter}"
-                counter += 1
-                if counter > 100:
-                    raise ValueError(
-                        f"Could not generate unique fluorophore slug for Dye {old_id} "
-                        f"after 100 attempts (original: {original_fluor_slug})"
-                    )
-
-            if fluorophore_slug != original_fluor_slug:
-                logger.warning(
-                    "Fluorophore slug collision during Dye migration: %s -> %s (Dye ID: %s, Name: %s)",
-                    original_fluor_slug,
-                    fluorophore_slug,
-                    old_id,
-                    name,
-                )
-
             # Create DyeState (MTI child of Fluorophore)
-            # Django's MTI creates both parent and child records in one operation
-            # Don't pass emhex/exhex - the save() method will compute them from wavelengths
+            # Note: Measurable fields (ex_max, em_max, qy, etc.) are left empty here
+            # and will be populated by rebuild_attributes() after creating FluorescenceMeasurement
             dyestate = DyeState.objects.create(
-                created=created,
-                modified=modified,
+                created=row["created"],
+                modified=row["modified"],
                 name="default",
-                slug=fluorophore_slug,
+                slug=f"{dye.slug}-default",
                 entity_type="d",
                 owner_name=dye.name,
                 owner_slug=dye.slug,
-                ex_max=ex_max,
-                em_max=em_max,
-                ext_coeff=ext_coeff,
-                qy=qy,
-                brightness=brightness,
-                lifetime=lifetime,
-                pka=pka,
-                twop_ex_max=twop_ex_max,
-                twop_peak_gm=twop_peak_gm,
-                twop_qy=twop_qy,
-                is_dark=is_dark,
-                # DyeState-specific field
                 dye=dye,
+            )
+
+            # Create FluorescenceMeasurement from old Dye data
+            # For dyes, we don't have a primary_reference concept in old schema
+            FluorescenceMeasurement.objects.create(
+                fluorophore=dyestate,  # DyeState is-a Fluorophore (MTI)
+                reference_id=None,
+                ex_max=row["ex_max"],
+                em_max=row["em_max"],
+                ext_coeff=row["ext_coeff"],
+                qy=row["qy"],
+                brightness=row["brightness"],
+                lifetime=row["lifetime"],
+                pka=row["pka"],
+                twop_ex_max=row["twop_ex_max"],
+                twop_peak_gm=row["twop_peakGM"],  # Note: SQL column uses twop_peakGM
+                twop_qy=row["twop_qy"],
+                is_dark=row["is_dark"],
+                is_trusted=True,
             )
 
             dye.default_state = dyestate
             dye.save()
-
-            # Create FluorescenceMeasurement from old Dye data
-            if any([ex_max, em_max, qy, ext_coeff, lifetime, pka]):
-                # For dyes, we don't have a primary_reference concept in old schema
-                # We'll leave reference as None for now
-                FluorescenceMeasurement.objects.create(
-                    fluorophore=dyestate,  # DyeState is-a Fluorophore (MTI)
-                    reference_id=None,
-                    ex_max=ex_max,
-                    em_max=em_max,
-                    ext_coeff=ext_coeff,
-                    qy=qy,
-                    brightness=brightness,
-                    lifetime=lifetime,
-                    pka=pka,
-                    twop_ex_max=twop_ex_max,
-                    twop_peak_gm=twop_peak_gm,
-                    twop_qy=twop_qy,
-                    is_dark=is_dark,
-                    is_trusted=True,
-                )
 
     print(f"Migrated {Dye.objects.count()} Dye records to Dye containers")
     print(f"Created {DyeState.objects.count()} DyeState records")
