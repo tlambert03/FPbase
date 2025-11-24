@@ -52,24 +52,26 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
             # Get protein for label
             try:
                 protein = Protein.objects.get(id=protein_id)
-                label = f"{protein.name} ({name})" if name and name != "default" else protein.name
-                # Handle empty/null slugs with guaranteed non-empty fallback
-                if not slug or (isinstance(slug, str) and slug.strip() == ""):
-                    # Try protein slug + name, or protein slug, or fallback to state ID
-                    if name and name != "default":
-                        state_slug = f"{protein.slug}-{name}" if protein.slug else f"state-{old_id}"
-                    else:
-                        state_slug = protein.slug if protein.slug else f"state-{old_id}"
-                else:
-                    state_slug = slug
-
-                # Final safety check - ensure slug is not empty
-                if not state_slug or state_slug.strip() == "":
-                    state_slug = f"state-{old_id}"
-
             except Protein.DoesNotExist:
+                # note, the db doesn't have any cases of this
                 print(f"Warning: Protein {protein_id} not found for State {old_id}, skipping")
                 continue
+
+            label = f"{protein.name} ({name})" if name and name != "default" else protein.name
+            # Handle empty/null slugs with guaranteed non-empty fallback
+            if not slug or (isinstance(slug, str) and slug.strip() == ""):
+                # Try protein slug + name, or protein slug, or fallback to state ID
+                if name and name != "default":
+                    state_slug = f"{protein.slug}-{name}" if protein.slug else f"state-{old_id}"
+                else:
+                    state_slug = protein.slug if protein.slug else f"state-{old_id}"
+            else:
+                state_slug = slug
+
+            # Final safety check - ensure slug is not empty
+            if not state_slug or state_slug.strip() == "":
+                state_slug = f"state-{old_id}"
+
 
             # Ensure slug uniqueness by checking if it already exists
             original_slug = state_slug
@@ -92,6 +94,7 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
 
             # Create Fluorophore parent (MTI will link automatically)
             fluorophore = Fluorophore.objects.create(
+                id=old_id,  # Preserve old ID for easier FK updates later
                 created=created,
                 modified=modified,
                 label=label,
@@ -120,14 +123,11 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
             """, [fluorophore.pk, name, protein_id, maturation])
 
             # Create FluorescenceMeasurement from old State data if there's any fluorescence data
-            if any([ex_max, em_max, qy, ext_coeff, lifetime, pka]):
-                # Get protein's primary reference (may be None)
-                reference = protein.primary_reference if hasattr(protein, 'primary_reference') else None
-                reference_id = protein.primary_reference_id if hasattr(protein, 'primary_reference_id') else None
-
+            if any([ex_max, em_max, qy, ext_coeff, lifetime, pka, twop_ex_max, twop_peakgm, twop_qy]):
                 FluorescenceMeasurement.objects.create(
+                    id=old_id,  # Preserve old ID
                     fluorophore=fluorophore,
-                    reference_id=reference_id,
+                    reference_id=protein.primary_reference_id,
                     ex_max=ex_max,
                     em_max=em_max,
                     ext_coeff=ext_coeff,
@@ -140,11 +140,30 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                     twop_qy=twop_qy,
                     is_dark=is_dark,
                     is_trusted=True,  # Mark as trusted since it's the original data
-                    
-                    
                 )
 
     print(f"Migrated {State.objects.count()} State records")
+
+    # Reset the Fluorophore and FluorescenceMeasurement ID sequences
+    # to avoid conflicts when creating Dye fluorophores and their measurements
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT setval(
+                pg_get_serial_sequence('proteins_fluorophore', 'id'),
+                COALESCE((SELECT MAX(id) FROM proteins_fluorophore), 1)
+            )
+        """)
+        fluor_seq = cursor.fetchone()[0]
+        print(f"Reset Fluorophore ID sequence to {fluor_seq}")
+
+        cursor.execute("""
+            SELECT setval(
+                pg_get_serial_sequence('proteins_fluorescencemeasurement', 'id'),
+                COALESCE((SELECT MAX(id) FROM proteins_fluorescencemeasurement), 1)
+            )
+        """)
+        meas_seq = cursor.fetchone()[0]
+        print(f"Reset FluorescenceMeasurement ID sequence to {meas_seq}")
 
 
 def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
@@ -203,7 +222,6 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
                 modified=modified,
                 name=name,
                 slug=dye_slug,
-                inchikey="",  # No chemical data in old schema
                 structural_status="PROPRIETARY",  # Safe default for old dyes
 
 
@@ -250,8 +268,6 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
                 twop_peakGM=twop_peakgm,
                 twop_qy=twop_qy,
                 is_dark=is_dark,
-                
-                
             )
 
             # Create DyeState (one per old Dye)
