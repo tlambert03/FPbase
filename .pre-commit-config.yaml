@@ -4,7 +4,7 @@ ci:
   skip: []
   submodules: false
 
-exclude: "^docs/|/migrations/|/migrations_old/"
+exclude: "^docs/|/migrations/"
 default_stages: [pre-commit]
 
 repos:
