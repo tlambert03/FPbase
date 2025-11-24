@@ -21,7 +21,8 @@ from proteins.util.helpers import shortuuid
 if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from proteins.models.spectrum import Spectrum
+    from proteins.models.collection import FluorophoreCollection, ProteinCollection  # noqa: F401
+    from proteins.models.spectrum import D3Dict, Spectrum
 
 
 class Microscope(OwnedCollection):
@@ -36,8 +37,8 @@ class Microscope(OwnedCollection):
 
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
     if TYPE_CHECKING:
-        extra_lights = models.ManyToManyField["Light", "Microscope"]
-        extra_cameras = models.ManyToManyField["Camera", "Microscope"]
+        extra_lights = models.ManyToManyField["Light", "Microscope"]()
+        extra_cameras = models.ManyToManyField["Camera", "Microscope"]()
     else:
         extra_lights = models.ManyToManyField("Light", blank=True, related_name="microscopes")
         extra_cameras = models.ManyToManyField("Camera", blank=True, related_name="microscopes")
@@ -177,19 +178,13 @@ class Microscope(OwnedCollection):
 
     @cached_property
     def spectra(self) -> list[Spectrum]:
-        spectra = []
-        for f in (
-            self.ex_filters,
-            self.em_filters,
-            self.bs_filters,
-            self.lights,
-            self.cameras,
-        ):
-            for i in f.select_related("spectrum"):
-                spectra.append(i.spectrum)
-        return spectra
+        return [
+            obj.spectrum
+            for qs in (self.ex_filters, self.em_filters, self.bs_filters, self.lights, self.cameras)
+            for obj in qs.select_related("spectrum")
+        ]
 
-    def spectra_d3(self):
+    def spectra_d3(self) -> list[D3Dict]:
         return [spec.d3dict() for spec in self.spectra]
 
 
@@ -244,7 +239,7 @@ class OpticalConfig(OwnedCollection):
     if TYPE_CHECKING:
         from proteins.models import OcFluorEff
 
-        filters = models.ManyToManyField["Filter", "OpticalConfig"]
+        filters = models.ManyToManyField["Filter", "OpticalConfig"]()
         filterplacement_set: models.QuerySet[FilterPlacement]
         ocfluoreff_set: models.QuerySet[OcFluorEff]
     else:

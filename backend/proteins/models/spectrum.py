@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import json
 import logging
@@ -26,7 +28,30 @@ from proteins.util.spectra import interp_linear, norm2one, norm2P, step_size
 from references.models import Reference
 
 if TYPE_CHECKING:
+    from typing import NotRequired, TypedDict
+
     from proteins.models import Fluorophore
+
+    class D3Dict(TypedDict):
+        slug: str
+        key: str
+        id: int
+        values: list[dict[str, float]]
+        peak: float | bool
+        minwave: float
+        maxwave: float
+        category: str
+        type: str
+        color: str
+        area: bool
+        url: str | None
+        classed: str
+
+        scalar: NotRequired[float | None]
+        ex_max: NotRequired[float | None]
+        em_max: NotRequired[float | None]
+        twop_qy: NotRequired[float | None]
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +79,7 @@ class SpectrumOwner(Authorable, TimeStampedModel):
     def makeslug(self):
         return slugify(self.name.replace("/", "-"))
 
-    def d3_dicts(self):
+    def d3_dicts(self) -> list[D3Dict]:
         return [spect.d3dict() for spect in self.spectra.all()]
 
 
@@ -62,7 +87,7 @@ class Camera(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
 
     if TYPE_CHECKING:
-        spectrum: "Spectrum"
+        spectrum: Spectrum
         microscopes: models.QuerySet
         optical_configs: models.QuerySet
 
@@ -71,7 +96,7 @@ class Light(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
 
     if TYPE_CHECKING:
-        spectrum: "Spectrum"
+        spectrum: Spectrum
         microscopes: models.QuerySet
         optical_configs: models.QuerySet
 
@@ -196,7 +221,7 @@ class SpectrumManager(models.Manager):
             )
         return sorted(out, key=lambda k: k["name"])
 
-    def filter_owner(self, slug):
+    def filter_owner(self, slug: str) -> QuerySet[Spectrum]:
         qs = self.none()
         A = ("owner_fluor", "owner_filter", "owner_light", "owner_camera")
         for ownerclass in A:
@@ -386,7 +411,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     )
     source = models.CharField(max_length=128, blank=True, help_text="Source of the spectra data")
 
-    objects = SpectrumManager()
+    objects: SpectrumManager = SpectrumManager()
     fluorophores = QueryManager(models.Q(category=DYE) | models.Q(category=PROTEIN))
     proteins = QueryManager(category=PROTEIN)
     dyes = QueryManager(category=DYE)
@@ -468,7 +493,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             raise ValidationError(errors)
 
     @property
-    def owner_set(self) -> list["Fluorophore | Filter | Light | Camera | None"]:
+    def owner_set(self) -> list[Fluorophore | Filter | Light | Camera | None]:
         return [
             self.owner_fluor,
             self.owner_filter,
@@ -477,7 +502,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         ]
 
     @property
-    def owner(self) -> "Fluorophore | Filter | Light | Camera | None":
+    def owner(self) -> Fluorophore | Filter | Light | Camera | None:
         return next((x for x in self.owner_set if x), None)
         #  raise AssertionError("No owner is set")
 
@@ -553,8 +578,8 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         except Exception:
             return False
 
-    def d3dict(self):
-        D = {
+    def d3dict(self) -> D3Dict:
+        D: D3Dict = {
             "slug": self.owner.slug,
             "key": self.name,
             "id": self.id,
@@ -667,7 +692,7 @@ class Filter(SpectrumOwner, Product):
     if TYPE_CHECKING:
         from proteins.models import OpticalConfig
 
-        spectrum: "Spectrum"
+        spectrum: Spectrum
         optical_configs: models.QuerySet[OpticalConfig]
 
     class Meta:

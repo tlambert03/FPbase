@@ -19,6 +19,17 @@ from model_utils.models import TimeStampedModel
 from proteins.extrest import entrez
 from proteins.validators import validate_doi
 
+if TYPE_CHECKING:
+    from proteins.models import (
+        BleachMeasurement,
+        Excerpt,
+        FluorescenceMeasurement,
+        Lineage,
+        OSERMeasurement,
+        Protein,
+        Spectrum,
+    )
+
 User = get_user_model()
 
 
@@ -31,7 +42,7 @@ class Author(TimeStampedModel):
     given = models.CharField(max_length=80)
     initials = models.CharField(max_length=10)
     if TYPE_CHECKING:
-        publications = models.ManyToManyField["Reference", "Author"]
+        publications = models.ManyToManyField["Reference", "Author"]()
         referenceauthor_set: models.QuerySet[ReferenceAuthor]
     else:
         publications = models.ManyToManyField("Reference", through="ReferenceAuthor")
@@ -98,17 +109,7 @@ class Reference(TimeStampedModel):
         help_text="YYYY",
     )
     if TYPE_CHECKING:
-        from proteins.models import (
-            BleachMeasurement,
-            Excerpt,
-            FluorescenceMeasurement,
-            Lineage,
-            OSERMeasurement,
-            Protein,
-            Spectrum,
-        )
-
-        authors = models.ManyToManyField["Author", "Reference"]
+        authors = models.ManyToManyField["Author", "Reference"]()
         referenceauthor_set: models.QuerySet[ReferenceAuthor]
         primary_proteins: models.QuerySet[Protein]
         proteins: models.QuerySet[Protein]

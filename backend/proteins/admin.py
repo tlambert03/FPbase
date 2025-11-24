@@ -15,6 +15,7 @@ from proteins.models import (
     BleachMeasurement,
     Camera,
     Dye,
+    DyeState,
     Excerpt,
     Filter,
     FilterPlacement,
@@ -41,7 +42,7 @@ from proteins.util.maintain import validate_node
 class SpectrumOwner:
     list_display = ("__str__", "spectra", "created_by", "created")
     list_select_related = ("created_by",)
-    list_filter = ("created", "manufacturer")
+    list_filter = ("created",)
     search_fields = ("name",)
 
     def __init__(self, *args, **kwargs):
@@ -165,8 +166,15 @@ class LightAdmin(SpectrumOwner, admin.ModelAdmin):
 
 
 @admin.register(Dye)
-class DyeAdmin(MultipleSpectraOwner, VersionAdmin):
+class DyeAdmin(admin.ModelAdmin):
     model = Dye
+    ordering = ("-created",)
+    list_filter = ("created", "manufacturer")
+
+
+@admin.register(DyeState)
+class DyeStateAdmin(MultipleSpectraOwner, VersionAdmin):
+    model = DyeState
     ordering = ("-created",)
 
 

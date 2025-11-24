@@ -1,24 +1,19 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Final, Literal
 
 from django.db import models
-from django.db.models import QuerySet
 
 from proteins.models.fluorescence_data import AbstractFluorescenceData
 
 if TYPE_CHECKING:
     from typing import Self
 
+    from django.db.models import QuerySet
     from django.db.models.manager import RelatedManager
 
-    from proteins.models import (  # noqa: F401
-        Dye,
-        DyeState,
-        FluorescenceMeasurement,
-        OcFluorEff,
-        Protein,
-        Spectrum,
-        State,
-    )
+    from proteins.models import Dye, DyeState, FluorescenceMeasurement, OcFluorEff, Protein, State  # noqa: F401
+    from proteins.models.spectrum import D3Dict, Spectrum
 
 
 class FluorophoreManager[T: models.Model](models.Manager):
@@ -78,7 +73,7 @@ class Fluorophore(AbstractFluorescenceData):
     source_map = models.JSONField(default=dict, blank=True)
 
     # Managers
-    objects: "FluorophoreManager[Self]" = FluorophoreManager()
+    objects: FluorophoreManager[Self] = FluorophoreManager()
 
     if TYPE_CHECKING:
         spectra = RelatedManager["Spectrum"]()
@@ -86,8 +81,8 @@ class Fluorophore(AbstractFluorescenceData):
         oc_effs = RelatedManager["OcFluorEff"]()
 
         # these are not *guaranteed* to exist, they come from Django MTI
-        dyestate: "DyeState"
-        state: "State"
+        dyestate: DyeState
+        state: State
 
     class Meta:
         indexes = [
@@ -109,7 +104,7 @@ class Fluorophore(AbstractFluorescenceData):
             return self.owner_name
         return f"{self.owner_name} ({self.name})"
 
-    def as_subclass(self) -> "Self":
+    def as_subclass(self) -> Self:
         """Downcast to the specific subclass instance."""
         for subclass_name in ["dyestate", "state"]:
             if hasattr(self, subclass_name):
@@ -165,7 +160,7 @@ class Fluorophore(AbstractFluorescenceData):
         return self.name
 
     @property
-    def abs_spectrum(self) -> "Spectrum | None":
+    def abs_spectrum(self) -> Spectrum | None:
         spect = [f for f in self.spectra.all() if f.subtype == "ab"]
         if len(spect) > 1:
             raise AssertionError(f"multiple ex spectra found for {self}")
@@ -174,7 +169,7 @@ class Fluorophore(AbstractFluorescenceData):
         return None
 
     @property
-    def ex_spectrum(self) -> "Spectrum | None":
+    def ex_spectrum(self) -> Spectrum | None:
         spect = [f for f in self.spectra.all() if f.subtype == "ex"]
         if len(spect) > 1:
             raise AssertionError(f"multiple ex spectra found for {self}")
@@ -183,16 +178,16 @@ class Fluorophore(AbstractFluorescenceData):
         return self.abs_spectrum
 
     @property
-    def em_spectrum(self) -> "Spectrum | None":
+    def em_spectrum(self) -> Spectrum | None:
         spect = [f for f in self.spectra.all() if f.subtype == "em"]
         if len(spect) > 1:
             raise AssertionError(f"multiple em spectra found for {self}")
         if len(spect):
             return spect[0]
-        return self.abs_spectrum
+        return None
 
     @property
-    def twop_spectrum(self) -> "Spectrum | None":
+    def twop_spectrum(self) -> Spectrum | None:
         spect = [f for f in self.spectra.all() if f.subtype == "2p"]
         if len(spect) > 1:
             raise AssertionError("multiple 2p spectra found")
@@ -238,7 +233,7 @@ class Fluorophore(AbstractFluorescenceData):
                 return True
         return False
 
-    def d3_dicts(self) -> list[dict]:
+    def d3_dicts(self) -> list[D3Dict]:
         return [spect.d3dict() for spect in self.spectra.all()]
 
     def get_absolute_url(self) -> str | None:
@@ -247,9 +242,9 @@ class Fluorophore(AbstractFluorescenceData):
             return owner.get_absolute_url()
         return None
 
-    def _owner(self) -> "Dye | Protein | None":
-        if hasattr(self, "dye"):
-            return self.dye
-        if hasattr(self, "protein"):
-            return self.protein
+    def _owner(self) -> Dye | Protein | None:
+        if hasattr(self, "dyestate"):
+            return self.dyestate.dye
+        if hasattr(self, "state"):
+            return self.state.protein
         return None

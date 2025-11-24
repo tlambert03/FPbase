@@ -65,7 +65,7 @@ class ProteinCollection(OwnedCollection):
 
 class FluorophoreCollection(ProteinCollection):
     if TYPE_CHECKING:
-        dyes = models.ManyToManyField["Dye", "FluorophoreCollection"]
+        dyes = models.ManyToManyField["Dye", "FluorophoreCollection"]()
         fluor_on_scope: models.QuerySet[Microscope]
     else:
         dyes = models.ManyToManyField("Dye", blank=True, related_name="collection_memberships")

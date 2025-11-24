@@ -246,7 +246,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         help_text="Preferably the publication that introduced the protein",
     )
     if TYPE_CHECKING:
-        references = models.ManyToManyField["Reference", "Protein"]
+        references = models.ManyToManyField["Reference", "Protein"]()
     else:
         references = models.ManyToManyField(Reference, related_name="proteins", blank=True)
 
@@ -267,7 +267,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         oser_measurements: models.QuerySet[OSERMeasurement]
         collection_memberships: models.QuerySet[ProteinCollection]
         excerpts: models.QuerySet[Excerpt]
-        snapgene_plasmids = models.ManyToManyField["SnapGenePlasmid", "Protein"]
+        snapgene_plasmids = models.ManyToManyField["SnapGenePlasmid", "Protein"]()
     else:
         snapgene_plasmids = models.ManyToManyField(
             "SnapGenePlasmid",
@@ -573,7 +573,7 @@ class State(Fluorophore):  # TODO: rename to ProteinState
     )
 
     if TYPE_CHECKING:
-        transitions = models.ManyToManyField["State", "State"]
+        transitions = models.ManyToManyField["State", "State"]()
         transition_state: models.QuerySet["State"]
         transitions_from: models.QuerySet[StateTransition]
         transitions_to: models.QuerySet[StateTransition]
