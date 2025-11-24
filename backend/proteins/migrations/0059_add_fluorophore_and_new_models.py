@@ -39,15 +39,15 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
             SELECT id, created, modified, name, slug, is_dark,
                    ex_max, em_max, ext_coeff, qy, brightness,
                    lifetime, pka, twop_ex_max, "twop_peakGM", twop_qy,
-                   maturation, protein_id
+                   maturation, protein_id, created_by_id, updated_by_id
             FROM proteins_state_old
         """)
 
         for row in cursor.fetchall():
             (old_id, created, modified, name, slug, is_dark,
              ex_max, em_max, ext_coeff, qy, brightness,
-             lifetime, pka, twop_ex_max, twop_peakgm, twop_qy,
-             maturation, protein_id) = row
+             lifetime, pka, twop_ex_max, twop_peak_gm, twop_qy,
+             maturation, protein_id, created_by_id, updated_by_id) = row
 
             # Get protein for label
             try:
@@ -57,7 +57,6 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                 print(f"Warning: Protein {protein_id} not found for State {old_id}, skipping")
                 continue
 
-            label = f"{protein.name} ({name})" if name and name != "default" else protein.name
             # Handle empty/null slugs with guaranteed non-empty fallback
             if not slug or (isinstance(slug, str) and slug.strip() == ""):
                 # Try protein slug + name, or protein slug, or fallback to state ID
@@ -97,9 +96,11 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                 id=old_id,  # Preserve old ID for easier FK updates later
                 created=created,
                 modified=modified,
-                label=label,
+                name=name,
                 slug=state_slug,
-                entity_type="protein",
+                entity_type="p",
+                owner_name=protein.name,
+                owner_slug=protein.slug,
                 ex_max=ex_max,
                 em_max=em_max,
                 ext_coeff=ext_coeff,
@@ -108,22 +109,22 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                 lifetime=lifetime,
                 pka=pka,
                 twop_ex_max=twop_ex_max,
-                twop_peakGM=twop_peakgm,  # Map from SQL result to model field
+                twop_peak_gm=twop_peak_gm,  # Map from SQL result to model field
                 twop_qy=twop_qy,
                 is_dark=is_dark,
-                
-                
+                created_by_id=created_by_id,
+                updated_by_id=updated_by_id
             )
 
             # Create State (MTI child) pointing to the Fluorophore
             # Use raw SQL to avoid Django MTI trying to update parent with empty values
             cursor.execute("""
-                INSERT INTO proteins_state (fluorophore_ptr_id, name, protein_id, maturation)
-                VALUES (%s, %s, %s, %s)
-            """, [fluorophore.pk, name, protein_id, maturation])
+                INSERT INTO proteins_state (fluorophore_ptr_id, protein_id, maturation)
+                VALUES (%s, %s, %s)
+            """, [fluorophore.pk, protein_id, maturation])
 
             # Create FluorescenceMeasurement from old State data if there's any fluorescence data
-            if any([ex_max, em_max, qy, ext_coeff, lifetime, pka, twop_ex_max, twop_peakgm, twop_qy]):
+            if any([ex_max, em_max, qy, ext_coeff, lifetime, pka, twop_ex_max, twop_peak_gm, twop_qy]):
                 FluorescenceMeasurement.objects.create(
                     id=old_id,  # Preserve old ID
                     fluorophore=fluorophore,
@@ -136,10 +137,12 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                     lifetime=lifetime,
                     pka=pka,
                     twop_ex_max=twop_ex_max,
-                    twop_peakGM=twop_peakgm,
+                    twop_peak_gm=twop_peak_gm,
                     twop_qy=twop_qy,
                     is_dark=is_dark,
                     is_trusted=True,  # Mark as trusted since it's the original data
+                    created_by_id=created_by_id,
+                    updated_by_id=updated_by_id
                 )
 
     print(f"Migrated {State.objects.count()} State records")
@@ -185,7 +188,7 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
         for row in cursor.fetchall():
             (old_id, created, modified, name, slug, is_dark,
              ex_max, em_max, ext_coeff, qy, brightness,
-             lifetime, pka, twop_ex_max, twop_peakgm, twop_qy) = row
+             lifetime, pka, twop_ex_max, twop_peak_gm, twop_qy) = row
 
             # Handle empty/null slugs
             if not slug or slug.strip() == "":
@@ -222,11 +225,6 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
                 modified=modified,
                 name=name,
                 slug=dye_slug,
-                structural_status="PROPRIETARY",  # Safe default for old dyes
-
-
-                # Note: Other fields like smiles, inchi, etc. can be added later
-                # if they exist in the old schema
             )
 
             # Create Fluorophore for this DyeState
@@ -254,9 +252,11 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
             fluorophore = Fluorophore.objects.create(
                 created=created,
                 modified=modified,
-                label=name,
+                name="default",
                 slug=fluorophore_slug,
-                entity_type="dye",
+                entity_type="d",
+                owner_name=dye.name,
+                owner_slug=dye.slug,
                 ex_max=ex_max,
                 em_max=em_max,
                 ext_coeff=ext_coeff,
@@ -265,7 +265,7 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
                 lifetime=lifetime,
                 pka=pka,
                 twop_ex_max=twop_ex_max,
-                twop_peakGM=twop_peakgm,
+                twop_peak_gm=twop_peak_gm,
                 twop_qy=twop_qy,
                 is_dark=is_dark,
             )
@@ -273,9 +273,9 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
             # Create DyeState (one per old Dye)
             # Use raw SQL to avoid Django MTI trying to update parent with empty values
             cursor.execute("""
-                INSERT INTO proteins_dyestate (fluorophore_ptr_id, dye_id, name, solvent, ph, environment, is_reference)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, [fluorophore.pk, dye.pk, "default", "PBS", 7.4, "FREE", True])
+                INSERT INTO proteins_dyestate (fluorophore_ptr_id, dye_id)
+                VALUES (%s, %s)
+            """, [fluorophore.pk, dye.pk])
 
             # Create FluorescenceMeasurement from old Dye data
             if any([ex_max, em_max, qy, ext_coeff, lifetime, pka]):
@@ -292,12 +292,10 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
                     lifetime=lifetime,
                     pka=pka,
                     twop_ex_max=twop_ex_max,
-                    twop_peakGM=twop_peakgm,
+                    twop_peak_gm=twop_peak_gm,
                     twop_qy=twop_qy,
                     is_dark=is_dark,
                     is_trusted=True,
-                    
-                    
                 )
 
     print(f"Migrated {Dye.objects.count()} Dye records to Dye containers")
@@ -458,6 +456,52 @@ def migrate_reverse(_apps, _schema_editor):
     )
 
 
+def abstract_fluorescence_data_fields():
+    """Return fresh field instances for AbstractFluorescenceData.
+    
+    Each model needs its own unique field instances to avoid state conflicts.
+    """
+    return [
+        ("is_dark", models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence")),
+        ("ex_max", models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(300), MaxValueValidator(900)], db_index=True, help_text="Excitation maximum (nm)")),
+        ("em_max", models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(300), MaxValueValidator(1000)], db_index=True, help_text="Emission maximum (nm)")),
+        ("ext_coeff", models.IntegerField(blank=True, null=True, verbose_name="Extinction Coefficient (M-1 cm-1)", validators=[MinValueValidator(0), MaxValueValidator(300000)])),
+        ("qy", models.FloatField(null=True, blank=True, verbose_name="Quantum Yield", validators=[MinValueValidator(0), MaxValueValidator(1)])),
+        ("brightness", models.FloatField(null=True, blank=True, editable=False)),
+        ("lifetime", models.FloatField(null=True, blank=True, help_text="Lifetime (ns)", validators=[MinValueValidator(0), MaxValueValidator(20)])),
+        ("pka", models.FloatField(null=True, blank=True, verbose_name="pKa", validators=[MinValueValidator(2), MaxValueValidator(12)])),
+        ("twop_ex_max", models.PositiveSmallIntegerField(blank=True, null=True, verbose_name="Peak 2P excitation", validators=[MinValueValidator(700), MaxValueValidator(1600)], db_index=True)),
+        ("twop_peak_gm", models.FloatField(null=True, blank=True, verbose_name="Peak 2P cross-section of S0->S1 (GM)", validators=[MinValueValidator(0), MaxValueValidator(200)])),
+        ("twop_qy", models.FloatField(null=True, blank=True, verbose_name="2P Quantum Yield", validators=[MinValueValidator(0), MaxValueValidator(1)])),
+        ("emhex", models.CharField(max_length=7, blank=True)),
+        ("exhex", models.CharField(max_length=7, blank=True)),
+    ]
+
+
+def authorable_mixin_fields():
+    """Return fresh field instances for Authorable mixin."""
+    return [
+        ("created_by_id", models.IntegerField(null=True, blank=True)),
+        ("updated_by_id", models.IntegerField(null=True, blank=True)),
+    ]
+
+
+def timestamped_mixin_fields():
+    """Return fresh field instances for TimeStampedModel mixin."""
+    return [
+        ("created", model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name="created")),
+        ("modified", model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name="modified")),
+    ]
+
+
+def product_mixin_fields():
+    """Return fresh field instances for Product mixin."""
+    return [
+        ("manufacturer", models.CharField(max_length=128, blank=True)),
+        ("part", models.CharField(max_length=128, blank=True)),
+        ("url", models.URLField(blank=True)),
+    ]
+
 class Migration(migrations.Migration):
     dependencies = [
         ("proteins", "0058_snapgeneplasmid_protein_snapgene_plasmids"),
@@ -465,6 +509,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Step 1: move State/Dye tables to _old versions and delete the models.
         migrations.SeparateDatabaseAndState(
             database_operations=[
                 # In the database: copy old tables to _old versions, then drop originals
@@ -491,42 +536,30 @@ class Migration(migrations.Migration):
             ],
         ),
 
-        # Now create all new models
+        # Step 2: Create all new models
+        # Fluorophore is the new "State" base model for MTI
+        # State and DyeState are MTI children of Fluorophore
+        # What was Dye is now is a container model for DyeStates (like Protein for States)
         migrations.CreateModel(
             name="Fluorophore",
             fields=[
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("created", model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name="created")),
-                ("modified", model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name="modified")),
-                # Fluorescence data fields
-                ("ex_max", models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(300), MaxValueValidator(900)], db_index=True, help_text="Excitation maximum (nm)")),
-                ("em_max", models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(300), MaxValueValidator(1000)], db_index=True, help_text="Emission maximum (nm)")),
-                ("emhex", models.CharField(max_length=7, blank=True)),
-                ("exhex", models.CharField(max_length=7, blank=True)),
-                ("ext_coeff", models.IntegerField(blank=True, null=True, verbose_name="Extinction Coefficient (M-1 cm-1)", validators=[MinValueValidator(0), MaxValueValidator(300000)])),
-                ("qy", models.FloatField(null=True, blank=True, verbose_name="Quantum Yield", validators=[MinValueValidator(0), MaxValueValidator(1)])),
-                ("brightness", models.FloatField(null=True, blank=True, editable=False)),
-                ("lifetime", models.FloatField(null=True, blank=True, help_text="Lifetime (ns)", validators=[MinValueValidator(0), MaxValueValidator(20)])),
-                ("pka", models.FloatField(null=True, blank=True, verbose_name="pKa", validators=[MinValueValidator(2), MaxValueValidator(12)])),
-                ("twop_ex_max", models.PositiveSmallIntegerField(blank=True, null=True, verbose_name="Peak 2P excitation", validators=[MinValueValidator(700), MaxValueValidator(1600)], db_index=True)),
-                ("twop_peakGM", models.FloatField(null=True, blank=True, verbose_name="Peak 2P cross-section of S0->S1 (GM)", validators=[MinValueValidator(0), MaxValueValidator(200)])),
-                ("twop_qy", models.FloatField(null=True, blank=True, verbose_name="2P Quantum Yield", validators=[MinValueValidator(0), MaxValueValidator(1)])),
-                ("is_dark", models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence")),
-                # Identity fields
-                ("label", models.CharField(max_length=255, db_index=True)),
-                ("slug", models.SlugField(max_length=100, unique=True)),  # Increased from default 50 to accommodate long dye names
-                ("entity_type", models.CharField(max_length=10, choices=[("protein", "Protein"), ("dye", "Dye")], db_index=True)),
-                # Lineage tracking
+                *timestamped_mixin_fields(),
+                ("name", models.CharField(max_length=100, db_index=True, default="default")),
+                ("slug", models.SlugField(max_length=200, unique=True)),
+                ("entity_type", models.CharField(max_length=2, choices=[("p", "Protein"), ("d", "Dye")], db_index=True)),
+                ("owner_name", models.CharField(max_length=255, db_index=True, blank=True, null=True, help_text="Protein/Dye name (cached for searching)")),
+                ("owner_slug", models.SlugField(max_length=200, blank=True, null=True, help_text="Protein/Dye slug (cached for URLs)")),
+                *abstract_fluorescence_data_fields(),
                 ("source_map", models.JSONField(default=dict, blank=True)),
-                # Author tracking (from Authorable mixin)
-                ("created_by_id", models.IntegerField(null=True, blank=True)),
-                ("updated_by_id", models.IntegerField(null=True, blank=True)),
+                *authorable_mixin_fields(),
+
             ],
             options={
                 "indexes": [
                     models.Index(fields=["ex_max"], name="fluorophore_ex_max_idx"),
                     models.Index(fields=["em_max"], name="fluorophore_em_max_idx"),
-                    models.Index(fields=["label", "entity_type"], name="fluorophore_label_type_idx"),
+                    models.Index(fields=["owner_name"], name="fluorophore_owner_name_idx"),
                     models.Index(fields=["entity_type", "is_dark"], name="fluorophore_type_dark_idx"),
                 ],
             },
@@ -536,32 +569,14 @@ class Migration(migrations.Migration):
             name="FluorescenceMeasurement",
             fields=[
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("created", model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name="created")),
-                ("modified", model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name="modified")),
-                # Fluorescence data fields (same as Fluorophore)
-                ("ex_max", models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(300), MaxValueValidator(900)], db_index=True, help_text="Excitation maximum (nm)")),
-                ("em_max", models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(300), MaxValueValidator(1000)], db_index=True, help_text="Emission maximum (nm)")),
-                ("emhex", models.CharField(max_length=7, blank=True)),
-                ("exhex", models.CharField(max_length=7, blank=True)),
-                ("ext_coeff", models.IntegerField(blank=True, null=True, verbose_name="Extinction Coefficient (M-1 cm-1)", validators=[MinValueValidator(0), MaxValueValidator(300000)])),
-                ("qy", models.FloatField(null=True, blank=True, verbose_name="Quantum Yield", validators=[MinValueValidator(0), MaxValueValidator(1)])),
-                ("brightness", models.FloatField(null=True, blank=True, editable=False)),
-                ("lifetime", models.FloatField(null=True, blank=True, help_text="Lifetime (ns)", validators=[MinValueValidator(0), MaxValueValidator(20)])),
-                ("pka", models.FloatField(null=True, blank=True, verbose_name="pKa", validators=[MinValueValidator(2), MaxValueValidator(12)])),
-                ("twop_ex_max", models.PositiveSmallIntegerField(blank=True, null=True, verbose_name="Peak 2P excitation", validators=[MinValueValidator(700), MaxValueValidator(1600)], db_index=True)),
-                ("twop_peakGM", models.FloatField(null=True, blank=True, verbose_name="Peak 2P cross-section of S0->S1 (GM)", validators=[MinValueValidator(0), MaxValueValidator(200)])),
-                ("twop_qy", models.FloatField(null=True, blank=True, verbose_name="2P Quantum Yield", validators=[MinValueValidator(0), MaxValueValidator(1)])),
-                ("is_dark", models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluorescence")),
-                # Measurement-specific fields
+                *abstract_fluorescence_data_fields(),
                 ("date_measured", models.DateField(null=True, blank=True)),
                 ("conditions", models.TextField(blank=True, help_text="pH, solvent, temp, etc.")),
                 ("is_trusted", models.BooleanField(default=False, help_text="If True, this measurement overrides others.")),
-                # Foreign keys
                 ("fluorophore", models.ForeignKey("Fluorophore", related_name="measurements", on_delete=django.db.models.deletion.CASCADE)),
                 ("reference", models.ForeignKey("references.Reference", on_delete=django.db.models.deletion.CASCADE, null=True, blank=True)),
-                # Author tracking fields
-                ("created_by_id", models.IntegerField(null=True, blank=True)),
-                ("updated_by_id", models.IntegerField(null=True, blank=True)),
+                *authorable_mixin_fields(),
+                *timestamped_mixin_fields(),
             ],
             options={
                 "abstract": False,
@@ -572,47 +587,18 @@ class Migration(migrations.Migration):
             name="Dye",
             fields=[
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("created", model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name="created")),
-                ("modified", model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name="modified")),
                 ("name", models.CharField(max_length=255, db_index=True)),
                 ("slug", models.SlugField(max_length=100, unique=True)),  # Increased from default 50 to accommodate long names
-                ("synonyms", ArrayField(models.CharField(max_length=255), blank=True, default=list)),
-                ("structural_status", models.CharField(max_length=20, choices=[("DEFINED", "Defined Structure"), ("PROPRIETARY", "Proprietary / Unknown Structure")], default="DEFINED")),
-                ("canonical_smiles", models.TextField(blank=True)),
-                ("inchi", models.TextField(blank=True)),
-                ("inchikey", models.CharField(max_length=27, blank=True, db_index=True)),
-                ("molblock", models.TextField(blank=True, help_text="V3000 Molfile for precise rendering")),
-                ("parent_mixture", models.ForeignKey("self", on_delete=django.db.models.deletion.SET_NULL, null=True, blank=True, related_name="isomers")),
-                ("chemical_class", models.CharField(max_length=100, blank=True, db_index=True)),
-                ("equilibrium_constant_klz", models.FloatField(null=True, blank=True, help_text="Equilibrium constant between non-fluorescent lactone and fluorescent zwitterion.")),
-                # Product mixin fields
-                ("manufacturer", models.CharField(max_length=128, blank=True)),
-                ("part", models.CharField(max_length=128, blank=True)),
-                ("url", models.URLField(blank=True)),
-                # Author tracking fields
-                ("created_by_id", models.IntegerField(null=True, blank=True)),
-                ("updated_by_id", models.IntegerField(null=True, blank=True)),
+                *product_mixin_fields(),
+                *authorable_mixin_fields(),
+                *timestamped_mixin_fields(),
             ],
-            options={
-                "constraints": [
-                    models.UniqueConstraint(
-                        fields=["inchikey"],
-                        name="unique_defined_molecule",
-                        condition=models.Q(structural_status="DEFINED"),
-                    )
-                ],
-            },
         ),
 
         migrations.CreateModel(
             name="DyeState",
             fields=[
                 ("fluorophore_ptr", models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to="proteins.fluorophore")),
-                ("name", models.CharField(max_length=255, help_text="e.g., 'Bound to DNA' or 'In Methanol'")),
-                ("solvent", models.CharField(max_length=100, default="PBS")),
-                ("ph", models.FloatField(default=7.4)),
-                ("environment", models.CharField(max_length=20, choices=[], default="FREE")),
-                ("is_reference", models.BooleanField(default=False, help_text="If True, this is the default state shown on the dye summary card.")),
                 ("dye", models.ForeignKey("Dye", on_delete=django.db.models.deletion.CASCADE, related_name="states")),
             ],
             options={
@@ -626,9 +612,9 @@ class Migration(migrations.Migration):
             name="State",
             fields=[
                 ("fluorophore_ptr", models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to="proteins.fluorophore")),
-                ("name", models.CharField(max_length=64, default="default")),
                 ("protein", models.ForeignKey("Protein", related_name="states", help_text="The protein to which this state belongs", on_delete=django.db.models.deletion.CASCADE)),
                 ("maturation", models.FloatField(null=True, blank=True, help_text="Maturation time (min)", validators=[MinValueValidator(0), MaxValueValidator(1600)])),
+                ("transitions", models.ManyToManyField(blank=True, related_name="transition_state", through="proteins.StateTransition", to="proteins.state", verbose_name="State Transitions")),
             ],
             options={
                 "abstract": False,
@@ -662,8 +648,14 @@ class Migration(migrations.Migration):
             ),
         ),
 
+        # Add index for spectrum owner_fluor lookups
+        migrations.AddIndex(
+            model_name="spectrum",
+            index=models.Index(fields=["owner_fluor_id", "status"], name="spectrum_fluor_status_idx"),
+        ),
+
         # ----------------------------------------------
-        
+
         # Perform manual data migration steps
         migrations.RunPython(migrate_forward, migrate_reverse),
 

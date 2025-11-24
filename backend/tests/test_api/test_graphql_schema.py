@@ -85,7 +85,7 @@ class SpectraQueriesTestCase(GraphQLTestCase):
         # Create a DyeState (Fluorophore) for the dye
         from proteins.models.dye import DyeState
 
-        self.dye_state = DyeState.objects.create(dye=self.dye, name="test state", label="test-dye")
+        self.dye_state = DyeState.objects.create(dye=self.dye, name="test state")
         self.spectrum = models.Spectrum.objects.get_or_create(
             category=models.Spectrum.DYE,
             subtype=models.Spectrum.EM,
@@ -169,7 +169,8 @@ class SpectraQueriesTestCase(GraphQLTestCase):
         content = json.loads(response.content)
         last_spectrum = content["data"]["spectra"][-1]
         self.assertEqual(last_spectrum["id"], str(self.spectrum.id))
-        self.assertEqual(last_spectrum["owner"]["name"], self.dye_state.label)
+        # Owner name should be the parent dye's name, not the state's name
+        self.assertEqual(last_spectrum["owner"]["name"], self.dye.name)
 
     def test_protein(self):
         response = self.query(

@@ -123,7 +123,7 @@ class Protein(gdo.OptimizedDjangoObjectType):
 class FluorophoreInterface(graphene.Interface):
     qy = graphene.Float()
     extCoeff = graphene.Float(source="ext_coeff")
-    twopPeakgm = graphene.Float(source="twop_peakGM")
+    twopPeakgm = graphene.Float(source="twop_peak_gm")
     exMax = graphene.Float(source="ex_max")
     emMax = graphene.Float(source="em_max")
 

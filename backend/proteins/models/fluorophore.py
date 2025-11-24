@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Final, Literal
 
 from django.db import models
 from django.db.models import QuerySet
@@ -47,13 +47,31 @@ class Fluorophore(AbstractFluorescenceData):
     """
 
     class EntityTypes(models.TextChoices):
-        PROTEIN = ("protein", "Protein")
-        DYE = ("dye", "Dye")
+        PROTEIN = ("p", "Protein")
+        DYE = ("d", "Dye")
 
-    # Identity (Hoisted for performance)
-    label = models.CharField(max_length=255, db_index=True)
-    slug = models.SlugField(unique=True)
-    entity_type = models.CharField(max_length=10, choices=EntityTypes, db_index=True)
+    # Identity
+    DEFAULT_NAME: Final = "default"
+
+    # State label (distinguishes states within same parent: "default", "red", "green")
+    name = models.CharField(max_length=100, default=DEFAULT_NAME, db_index=True)
+
+    # Cached parent info (denormalized for search performance)
+    owner_name = models.CharField(
+        max_length=255,
+        db_index=True,
+        blank=True,
+        help_text="Protein/Dye name (cached for searching)",
+    )
+    owner_slug = models.SlugField(
+        max_length=200,
+        blank=True,
+        help_text="Protein/Dye slug (cached for URLs)",
+    )
+
+    # Unique identifier (typically {owner_slug}-{state_name})
+    slug = models.SlugField(max_length=200, unique=True)
+    entity_type = models.CharField(max_length=2, choices=EntityTypes, db_index=True)
 
     # Lineage Tracking
     # Maps field names to Measurement IDs. e.g., {'ex_max': 102, 'qy': 105}
@@ -73,14 +91,23 @@ class Fluorophore(AbstractFluorescenceData):
 
     class Meta:
         indexes = [
-            models.Index(fields=["ex_max"]),
-            models.Index(fields=["em_max"]),
-            models.Index(fields=["label", "entity_type"]),
-            models.Index(fields=["entity_type", "is_dark"]),
+            models.Index(fields=["ex_max"], name="fluorophore_ex_max_idx"),
+            models.Index(fields=["em_max"], name="fluorophore_em_max_idx"),
+            models.Index(fields=["owner_name"], name="fluorophore_owner_name_idx"),
+            models.Index(fields=["entity_type", "is_dark"], name="fluorophore_type_dark_idx"),
         ]
 
     def __str__(self):
         return self.label
+
+    @property
+    def label(self) -> str:
+        """Human-readable display name: 'EGFP' or 'mEos3.2 (red)'."""
+        if not self.owner_name:
+            return self.name
+        if self.name == self.DEFAULT_NAME:
+            return self.owner_name
+        return f"{self.owner_name} ({self.name})"
 
     def as_subclass(self) -> "Self":
         """Downcast to the specific subclass instance."""
@@ -129,16 +156,6 @@ class Fluorophore(AbstractFluorescenceData):
             setattr(self, key, val)
 
         self.source_map = new_source_map
-
-        # 4. Refresh Label (Hoisting)
-        # Django MTI creates reverse relations with lowercase model names
-        if hasattr(self, "state"):
-            ps = self.state
-            self.label = f"{ps.protein.name} ({ps.name})"
-        elif hasattr(self, "dyestate"):
-            ds = self.dyestate
-            self.label = f"{ds.dye.name} ({ds.name})"
-
         self.save()
 
     @property

@@ -433,10 +433,10 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         if self.set_default_state():
             super().save()
 
-        # Update label on all states when protein name changes
-        # The label field is cached on Fluorophore for query performance
+        # Update cached owner fields on all states when protein name/slug changes
+        # These fields are cached on Fluorophore for query performance
         if self.pk:
-            self.states.update(label=self.name)
+            self.states.update(owner_name=self.name, owner_slug=self.slug)
 
     class Meta:
         ordering = ["name"]
@@ -558,9 +558,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
 
 class State(Fluorophore):  # TODO: rename to ProteinState
-    DEFAULT_NAME = "default"
-
-    name = models.CharField(max_length=64, default=DEFAULT_NAME)  # required
     protein_id: int
     protein = models.ForeignKey["Protein"](
         Protein,
@@ -593,9 +590,10 @@ class State(Fluorophore):  # TODO: rename to ProteinState
 
     def save(self, *args, **kwargs) -> None:
         self.entity_type = self.EntityTypes.PROTEIN
-        # Set label to protein name (used in API/UI for display)
+        # Cache parent protein info for efficient searching
         if self.protein_id:
-            self.label = self.protein.name
+            self.owner_name = self.protein.name
+            self.owner_slug = self.protein.slug
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

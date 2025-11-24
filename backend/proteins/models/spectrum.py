@@ -125,10 +125,10 @@ def get_spectra_list(query_set: QuerySet | None = None, **filters: str) -> list[
         .annotate(
             owner_id=owner_case("id"),
             owner_slug=owner_case("slug"),
-            # Fluorophore has 'label', others have 'name'
+            # Fluorophore uses cached owner_name, others use direct name field
             owner_name=owner_case(
                 "name",
-                fluor=F("owner_fluor__label"),
+                fluor=F("owner_fluor__owner_name"),
             ),
             # Fluorophore doesn't have URL, others do
             owner_url=owner_case(
@@ -164,7 +164,7 @@ class SpectrumManager(models.Manager):
         return (
             self.get_queryset()
             .exclude(owner_fluor=None)
-            .values_list("owner_fluor__slug", "owner_fluor__label")
+            .values_list("owner_fluor__slug", "owner_fluor__owner_name")
             .distinct()
         )
 
@@ -174,7 +174,7 @@ class SpectrumManager(models.Manager):
             "category",
             "subtype",
             "owner_fluor__slug",
-            "owner_fluor__label",
+            "owner_fluor__owner_name",
         ]
         Q = (
             self.get_queryset()
@@ -191,7 +191,7 @@ class SpectrumManager(models.Manager):
                     "category": v["category"],
                     "subtype": v["subtype"],
                     "slug": v["owner_fluor__slug"],
-                    "name": v["owner_fluor__label"],
+                    "name": v["owner_fluor__owner_name"],
                 }
             )
         return sorted(out, key=lambda k: k["name"])
@@ -205,7 +205,7 @@ class SpectrumManager(models.Manager):
 
     def find_similar_owners(self, query, threshold=0.4):
         A = (
-            "owner_fluor__label",  # Fluorophore.label for both State and DyeState
+            "owner_fluor__owner_name",  # Search on cached parent name (Protein/Dye)
             "owner_filter__name",
             "owner_light__name",
             "owner_camera__name",
@@ -581,7 +581,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             elif self.subtype == self.EM:
                 D.update({"scalar": self.owner.qy, "em_max": self.owner.em_max})
             elif self.subtype == self.TWOP:
-                D.update({"scalar": self.owner.twop_peakGM, "twop_qy": self.owner.twop_qy})
+                D.update({"scalar": self.owner.twop_peak_gm, "twop_qy": self.owner.twop_qy})
         return D
 
     def d3data(self):

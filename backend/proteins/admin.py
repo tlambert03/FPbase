@@ -113,7 +113,7 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
                 "fields": (
                     ("ex_max", "em_max"),
                     ("ext_coeff", "qy"),
-                    ("twop_ex_max", "twop_peakGM", "twop_qy"),
+                    ("twop_ex_max", "twop_peak_gm", "twop_qy"),
                     ("pka", "maturation"),
                     "lifetime",
                     "bleach_links",
@@ -208,7 +208,7 @@ class SpectrumAdmin(VersionAdmin):
     list_filter = ("status", "created", "category", "subtype")
     readonly_fields = ("owner", "name", "created", "modified", "spectrum_preview")
     search_fields = (
-        "owner_fluor__label",
+        "owner_fluor__name",
         "owner_filter__name",
         "owner_camera__name",
         "owner_light__name",
@@ -342,7 +342,7 @@ class StateAdmin(CompareVersionAdmin):
                 "fields": (
                     ("ex_max", "em_max"),
                     ("ext_coeff", "qy"),
-                    ("twop_ex_max", "twop_peakGM", "twop_qy"),
+                    ("twop_ex_max", "twop_peak_gm", "twop_qy"),
                     ("pka", "maturation"),
                     "lifetime",
                 )

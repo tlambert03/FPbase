@@ -219,13 +219,6 @@ class DyeFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: f"TestDye{n}")
     slug = factory.LazyAttribute(lambda o: slugify(o.name))
-    structural_status = "DEFINED"
-    canonical_smiles = ""
-    inchi = ""
-    # Generate a fake but unique InChIKey (format: XXXXXXXXXXXXXX-YYYYYYYYYY-Z, exactly 27 chars)
-    inchikey = factory.Sequence(lambda n: f"TEST{n:06d}ABCD-EFGHIJKLMN-O")
-    molblock = ""
-    chemical_class = ""
 
 
 class ProteinFactory(factory.django.DjangoModelFactory[Protein]):
@@ -380,7 +373,7 @@ def create_egfp() -> Protein:
         default_state__maturation=25,
         default_state__lifetime=2.8,
         default_state__twop_ex_max=927,
-        default_state__twop_peakGM=39.64,
+        default_state__twop_peak_gm=39.64,
     )
 
     return egfp

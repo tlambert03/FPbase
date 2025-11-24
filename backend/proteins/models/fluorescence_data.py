@@ -10,6 +10,7 @@ from proteins.util.helpers import wave_to_hex
 
 class AbstractFluorescenceData(Authorable, TimeStampedModel, models.Model):
     """Defines the physics schema.
+
     Used by both the Measurement (Input) and Fluorophore (Output/Cache).
     """
 
@@ -65,7 +66,7 @@ class AbstractFluorescenceData(Authorable, TimeStampedModel, models.Model):
         validators=[MinValueValidator(700), MaxValueValidator(1600)],
         db_index=True,
     )
-    twop_peakGM = models.FloatField(
+    twop_peak_gm = models.FloatField(
         null=True,
         blank=True,
         verbose_name="Peak 2P cross-section of S0->S1 (GM)",
@@ -113,7 +114,7 @@ class AbstractFluorescenceData(Authorable, TimeStampedModel, models.Model):
             "lifetime",
             "pka",
             "twop_ex_max",
-            "twop_peakGM",
+            "twop_peak_gm",
             "twop_qy",
             "is_dark",
         }

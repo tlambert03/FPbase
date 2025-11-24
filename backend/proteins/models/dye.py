@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from model_utils.models import TimeStampedModel
 
@@ -8,7 +7,7 @@ from proteins.models.fluorophore import Fluorophore
 from proteins.models.mixins import Authorable, Product
 
 if TYPE_CHECKING:
-    from proteins.models import DyeState, ReactiveDerivative
+    from proteins.models import DyeState
     from references.models import Reference  # noqa: F401
 
 
@@ -23,62 +22,70 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
     slug = models.SlugField(unique=True)
 
     # Synonyms allow users to find "FITC" when searching "Fluorescein"
-    synonyms = ArrayField(models.CharField(max_length=255), blank=True, default=list)
+    # synonyms = ArrayField(models.CharField(max_length=255), blank=True, default=list)
 
     # --- Structural Status (The "Regret-Proof" Field) ---
     # Allows entry of proprietary dyes without forcing a fake structure.
-    STRUCTURE_STATUS_CHOICES = [
-        ("DEFINED", "Defined Structure"),
-        ("PROPRIETARY", "Proprietary / Unknown Structure"),
-    ]
-    structural_status = models.CharField(max_length=20, choices=STRUCTURE_STATUS_CHOICES, default="DEFINED")
+    # STRUCTURE_STATUS_CHOICES = [
+    #     ("DEFINED", "Defined Structure"),
+    #     ("PROPRIETARY", "Proprietary / Unknown Structure"),
+    # ]
+    # structural_status = models.CharField(max_length=20, choices=STRUCTURE_STATUS_CHOICES, default="DEFINED")
 
     # --- Chemical Graph Data (Nullable for Proprietary Dyes) ---
     # We prioritize MolBlock for rendering, InChIKey for de-duplication.
-    canonical_smiles = models.TextField(blank=True)
-    inchi = models.TextField(blank=True)
-    inchikey = models.CharField(max_length=27, blank=True, db_index=True)
-    molblock = models.TextField(blank=True, help_text="V3000 Molfile for precise rendering")
+    # canonical_smiles = models.TextField(blank=True)
+    # inchi = models.TextField(blank=True)
+    # inchikey = models.CharField(max_length=27, blank=True, db_index=True)
+    # molblock = models.TextField(blank=True, help_text="V3000 Molfile for precise rendering")
 
     # --- Hierarchy & Ontology ---
     # Handles FITC (Parent) vs 5-FITC (Child) relationship
-    parent_mixture_id: int | None
-    parent_mixture = models.ForeignKey["Dye | None"](
-        "self",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="isomers",
-    )
+    # parent_mixture_id: int | None
+    # parent_mixture = models.ForeignKey["Dye | None"](
+    #     "self",
+    #     on_delete=models.SET_NULL,
+    #     null=True,
+    #     blank=True,
+    #     related_name="isomers",
+    # )
 
     # Automated classification (e.g., "Rhodamine", "Cyanine", "BODIPY")
     # Populated via ClassyFire API or manual curation
-    chemical_class = models.CharField(max_length=100, blank=True, db_index=True)
+    # chemical_class = models.CharField(max_length=100, blank=True, db_index=True)
 
     # --- Intrinsic Physics ---
     # Critical for fluorogenic dyes (JF dyes, SiR-tubulin)
     # Describes the Lactone-Zwitterion equilibrium constant.
-    equilibrium_constant_klz = models.FloatField(
-        null=True,
-        blank=True,
-        help_text="Equilibrium constant between non-fluorescent lactone and fluorescent zwitterion.",
-    )
+    # equilibrium_constant_klz = models.FloatField(
+    #     null=True,
+    #     blank=True,
+    #     help_text="Equilibrium constant between non-fluorescent lactone and fluorescent zwitterion.",
+    # )
 
     if TYPE_CHECKING:
-        isomers: models.QuerySet["Dye"]
-        states: models.QuerySet[DyeState]
-        derivatives: models.QuerySet[ReactiveDerivative]
-        collection_memberships: models.QuerySet
+        states = models.manager.RelatedManager["DyeState"]()
+        # isomers: models.QuerySet["Dye"]
+        # derivatives: models.QuerySet[ReactiveDerivative]
+        # collection_memberships: models.QuerySet
 
     class Meta:
+        ...
         # Enforce uniqueness only on defined structures to allow multiple proprietary entries
-        constraints = [
-            models.UniqueConstraint(
-                fields=["inchikey"],
-                name="unique_defined_molecule",
-                condition=models.Q(structural_status="DEFINED"),
-            )
-        ]
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         fields=["inchikey"],
+        #         name="unique_defined_molecule",
+        #         condition=models.Q(structural_status="DEFINED"),
+        #     )
+        # ]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Update cached owner fields on all states when dye name/slug changes
+        # These fields are cached on Fluorophore for query performance
+        if self.pk:
+            self.states.update(owner_name=self.name, owner_slug=self.slug)
 
     def get_primary_spectrum(self):
         """Returns the 'Reference' DyeState (e.g. Protein-bound) for display cards."""
@@ -89,8 +96,8 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
 # This allows us to store "Alexa 488 in PBS" and "Alexa 488 in Ethanol" as valid,
 # separate datasets.
 class DyeState(Fluorophore):
-    """
-    Represents a SmallMolecule in a specific environmental context.
+    """Represents a SmallMolecule in a specific environmental context.
+
     This holds the actual spectral data.
     """
 
@@ -98,25 +105,29 @@ class DyeState(Fluorophore):
     dye = models.ForeignKey["Dye"](Dye, on_delete=models.CASCADE, related_name="states")
 
     # --- Context ---
-    name = models.CharField(max_length=255, help_text="e.g., 'Bound to DNA' or 'In Methanol'")
-    solvent = models.CharField(max_length=100, default="PBS")
-    ph = models.FloatField(default=7.4)
+    # name = models.CharField(max_length=255, help_text="e.g., 'Bound to DNA' or 'In Methanol'")
+    # solvent = models.CharField(max_length=100, default="PBS")
+    # ph = models.FloatField(default=7.4)
 
     # --- Environmental Categorization ---
     # Helps the UI decide which spectrum to show for a specific query.
-    ENVIRONMENT_CHOICES = []
-    environment = models.CharField(max_length=20, choices=ENVIRONMENT_CHOICES, default="FREE")
+    # ENVIRONMENT_CHOICES = []
+    # environment = models.CharField(max_length=20, choices=ENVIRONMENT_CHOICES, default="FREE")
 
     # --- Logic ---
-    is_reference = models.BooleanField(
-        default=False, help_text="If True, this is the default state shown on the dye summary card."
-    )
+    # is_reference = models.BooleanField(
+    #     default=False, help_text="If True, this is the default state shown on the dye summary card."
+    # )
 
     if TYPE_CHECKING:
         fluorophore_ptr: Fluorophore  # added by Django MTI
 
     def save(self, *args, **kwargs):
-        self.entity_type = "dye"
+        self.entity_type = Fluorophore.EntityTypes.DYE
+        # Cache parent dye info for efficient searching
+        if self.dye_id:
+            self.owner_name = self.dye.name
+            self.owner_slug = self.dye.slug
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -132,45 +143,45 @@ class DyeState(Fluorophore):
 # It separates "Chemist Tools" (Reactive Dyes) from "Biologist Tools" (Antibody Conjugates).
 
 
-class ReactiveDerivative(models.Model):
-    """A sold product derived from the SmallMolecule.
+# class ReactiveDerivative(models.Model):
+#     """A sold product derived from the SmallMolecule.
 
-    e.g., 'Janelia Fluor 549 NHS Ester' or 'JF549-HaloTag Ligand'
-    These are the products users buy to perform conjugation
-    (e.g., NHS esters, Maleimides, HaloTag Ligands).
-    """
+#     e.g., 'Janelia Fluor 549 NHS Ester' or 'JF549-HaloTag Ligand'
+#     These are the products users buy to perform conjugation
+#     (e.g., NHS esters, Maleimides, HaloTag Ligands).
+#     """
 
-    core_dye_id: int
-    core_dye = models.ForeignKey["Dye"](
-        Dye,
-        on_delete=models.CASCADE,
-        related_name="derivatives",
-    )
+#     core_dye_id: int
+#     core_dye = models.ForeignKey["Dye"](
+#         Dye,
+#         on_delete=models.CASCADE,
+#         related_name="derivatives",
+#     )
 
-    # --- Chemistry ---
-    REACTIVE_GROUP_CHOICES = [
-        ("NHS_ESTER", "NHS Ester"),
-        ("HALO_TAG", "HaloTag Ligand"),
-        ("SNAP_TAG", "SNAP-Tag Ligand"),
-        ("CLIP_TAG", "CLIP-Tag Ligand"),
-        ("MALEIMIDE", "Maleimide"),
-        ("AZIDE", "Azide"),
-        ("ALKYNE", "Alkyne"),
-        ("BIOTIN", "Biotin"),
-        ("OTHER", "Other"),
-    ]
-    reactive_group = models.CharField(max_length=10, choices=REACTIVE_GROUP_CHOICES)
+#     # --- Chemistry ---
+#     REACTIVE_GROUP_CHOICES = [
+#         ("NHS_ESTER", "NHS Ester"),
+#         ("HALO_TAG", "HaloTag Ligand"),
+#         ("SNAP_TAG", "SNAP-Tag Ligand"),
+#         ("CLIP_TAG", "CLIP-Tag Ligand"),
+#         ("MALEIMIDE", "Maleimide"),
+#         ("AZIDE", "Azide"),
+#         ("ALKYNE", "Alkyne"),
+#         ("BIOTIN", "Biotin"),
+#         ("OTHER", "Other"),
+#     ]
+#     reactive_group = models.CharField(max_length=10, choices=REACTIVE_GROUP_CHOICES)
 
-    # Specific structure of the linker/handle (distinct from core dye)
-    full_smiles = models.TextField(blank=True, help_text="Structure of the complete reactive molecule")
-    molecular_weight = models.FloatField()
+#     # Specific structure of the linker/handle (distinct from core dye)
+#     full_smiles = models.TextField(blank=True, help_text="Structure of the complete reactive molecule")
+#     molecular_weight = models.FloatField()
 
-    # --- Vendor Info ---
-    vendor = models.CharField(max_length=100)
-    catalog_number = models.CharField(max_length=100)
+#     # --- Vendor Info ---
+#     vendor = models.CharField(max_length=100)
+#     catalog_number = models.CharField(max_length=100)
 
-    def __str__(self) -> str:
-        return f"{self.core_dye.common_name} - {self.reactive_group} ({self.vendor} {self.catalog_number})"
+#     def __str__(self) -> str:
+#         return f"{self.core_dye.common_name} - {self.reactive_group} ({self.vendor} {self.catalog_number})"
 
 
 # Architectural Decision: We do not create a new DyeState or SmallMolecule for every

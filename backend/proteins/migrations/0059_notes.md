@@ -91,7 +91,7 @@ Transforms each old State record into:
   INSERT INTO proteins_state (fluorophore_ptr_id, name, protein_id, maturation)
   VALUES (%s, %s, %s, %s)
   ```
-- PostgreSQL column quoting: `"twop_peakGM"` in SELECT, mapped to lowercase variable in Python
+- PostgreSQL column quoting: `"twop_peak_gm"` in SELECT, mapped to lowercase variable in Python
 - FluorescenceMeasurement created with `reference_id=protein.primary_reference_id` (may be None)
 
 **Migrated:** 1,055 State records
@@ -251,15 +251,15 @@ This bypasses Django's save logic and directly creates the child record.
 
 ### Challenge 2: PostgreSQL Column Case Sensitivity
 
-**Problem:** Column `twop_peakGM` created with mixed case, but unquoted identifiers in SQL become lowercase:
+**Problem:** Column `twop_peak_gm` created with mixed case, but unquoted identifiers in SQL become lowercase:
 ```
-UndefinedColumn: column "twop_peakgm" does not exist
+UndefinedColumn: column "twop_peak_gm" does not exist
 ```
 
 **Solution:** Quote column names in SELECT statements:
 ```python
 cursor.execute("""
-    SELECT ..., "twop_peakGM", ...
+    SELECT ..., "twop_peak_gm", ...
     FROM proteins_state_old
 """)
 ```

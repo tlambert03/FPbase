@@ -55,7 +55,6 @@ class SimilarSpectrumOwnersViewTests(TestCase):
                 dye=dye,
                 name=f"SimilarDye{i} state",
                 slug=f"similardye{i}-state",
-                label=f"SimilarDye{i}",
                 ex_max=488,
                 em_max=520,
             )
