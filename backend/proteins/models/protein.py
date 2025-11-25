@@ -131,8 +131,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         PHOTOSWITCHABLE = ("ps", "Photoswitchable")
         PHOTOCONVERTIBLE = ("pc", "Photoconvertible")
         MULTIPHOTOCHROMIC = ("mp", "Multi-photochromic")
-        TIMER = ("t", "Timer")
         OTHER = ("o", "Multistate")
+        TIMER = ("t", "Timer")
 
     class CofactorChoices(models.TextChoices):
         BILIRUBIN = ("br", "Bilirubin")

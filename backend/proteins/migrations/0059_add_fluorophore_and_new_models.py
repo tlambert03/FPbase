@@ -9,22 +9,27 @@ NON REVERSIBLE.
 5. proteins.OcFluorEff updated to point to new Fluorophore records
 
 """
+
 from __future__ import annotations
 
 import json
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import django.db.models.deletion
 import django.utils.timezone
 import model_utils.fields
-from django.apps.registry import Apps
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import migrations, models
-from django.db.backends.base.schema import BaseDatabaseSchemaEditor
-from django.db.backends.utils import CursorWrapper
+
+if TYPE_CHECKING:
+    from django.apps.registry import Apps
+    from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+    from django.db.backends.utils import CursorWrapper
 
 logger = logging.getLogger(__name__)
+
 
 def _dictfetchall(cursor: CursorWrapper) -> list[dict[str, Any]]:
     """Return all rows from a cursor as a dict. Assume the column names are unique."""
@@ -356,8 +361,7 @@ def populate_emhex_exhex(apps, _schema_editor):
     """
 
     def wave_to_hex(wavelength, gamma=1):
-        """This converts a given wavelength into an approximate RGB value.
-        """
+        """This converts a given wavelength into an approximate RGB value."""
         if not wavelength:
             return "#000"
 
@@ -403,7 +407,6 @@ def populate_emhex_exhex(apps, _schema_editor):
         g *= 255
         b *= 255
         return f"#{int(r):02x}{int(g):02x}{int(b):02x}"
-
 
     Fluorophore = apps.get_model("proteins", "Fluorophore")
 
@@ -582,9 +585,7 @@ def abstract_fluorescence_data_fields():
     return [
         (
             "is_dark",
-            models.BooleanField(
-                default=False, verbose_name="Dark State", help_text="This state does not fluoresce"
-            ),
+            models.BooleanField(default=False, verbose_name="Dark State", help_text="This state does not fluoresce"),
         ),
         (
             "ex_max",
@@ -676,8 +677,26 @@ def abstract_fluorescence_data_fields():
 def authorable_mixin_fields():
     """Return fresh field instances for Authorable mixin."""
     return [
-        ("created_by_id", models.IntegerField(null=True, blank=True)),
-        ("updated_by_id", models.IntegerField(null=True, blank=True)),
+        (
+            "created_by",
+            models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="%(class)s_author",
+                to=settings.AUTH_USER_MODEL,
+            ),
+        ),
+        (
+            "updated_by",
+            models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="%(class)s_modifier",
+                to=settings.AUTH_USER_MODEL,
+            ),
+        ),
     ]
 
 
@@ -759,21 +778,22 @@ class Migration(migrations.Migration):
                 (
                     "owner_name",
                     models.CharField(
-                        max_length=255,
-                        db_index=True,
                         blank=True,
-                        null=True,
+                        db_index=True,
+                        default="",
                         help_text="Protein/Dye name (cached for searching)",
+                        max_length=255,
                     ),
                 ),
                 (
                     "owner_slug",
                     models.SlugField(
-                        max_length=200, blank=True, null=True, help_text="Protein/Dye slug (cached for URLs)"
+                        max_length=200, blank=True, default="", help_text="Protein/Dye slug (cached for URLs)"
                     ),
                 ),
                 *abstract_fluorescence_data_fields(),
                 ("source_map", models.JSONField(default=dict, blank=True)),
+                ("pinned_source_map", models.JSONField(default=dict, blank=True)),
                 *authorable_mixin_fields(),
             ],
             options={
@@ -799,7 +819,9 @@ class Migration(migrations.Migration):
                 (
                     "fluorophore",
                     models.ForeignKey(
-                        "Fluorophore", related_name="measurements", on_delete=django.db.models.deletion.CASCADE
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="measurements",
+                        to="proteins.fluorophore",
                     ),
                 ),
                 (
@@ -820,10 +842,19 @@ class Migration(migrations.Migration):
             fields=[
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("name", models.CharField(max_length=255, db_index=True)),
+                ("slug", models.SlugField(unique=True)),
                 (
-                    "slug",
-                    models.SlugField(max_length=100, unique=True),
-                ),  # Increased from default 50 to accommodate long names
+                    "primary_reference",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="The publication that introduced the dye",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="primary_dyes",
+                        to="references.reference",
+                        verbose_name="Primary Reference",
+                    ),
+                ),
                 *product_mixin_fields(),
                 *authorable_mixin_fields(),
                 *timestamped_mixin_fields(),
@@ -843,7 +874,12 @@ class Migration(migrations.Migration):
                         to="proteins.fluorophore",
                     ),
                 ),
-                ("dye", models.ForeignKey("Dye", on_delete=django.db.models.deletion.CASCADE, related_name="states")),
+                (
+                    "dye",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="states", to="proteins.dye"
+                    ),
+                ),
             ],
             options={
                 "abstract": False,
@@ -879,10 +915,10 @@ class Migration(migrations.Migration):
                 (
                     "protein",
                     models.ForeignKey(
-                        "Protein",
-                        related_name="states",
                         help_text="The protein to which this state belongs",
                         on_delete=django.db.models.deletion.CASCADE,
+                        related_name="states",
+                        to="proteins.protein",
                     ),
                 ),
                 (
@@ -953,14 +989,9 @@ class Migration(migrations.Migration):
             reverse_sql=migrations.RunSQL.noop,
         ),
         # Step 2: Remove old foreign keys from Spectrum
-        migrations.RemoveField(
-            model_name="spectrum",
-            name="owner_state",
-        ),
-        migrations.RemoveField(
-            model_name="spectrum",
-            name="owner_dye",
-        ),
+        migrations.RemoveField(model_name="spectrum", name="owner_state"),
+        migrations.RemoveField(model_name="spectrum", name="owner_dye"),
+        migrations.RemoveIndex(model_name="spectrum", name="spectrum_state_status_idx"),
         # Step 3: Make owner_fluor non-nullable now that all data is migrated
         # First, verify no nulls exist (will fail if there are any)
         migrations.RunSQL(
@@ -999,4 +1030,5 @@ class Migration(migrations.Migration):
                 to="proteins.fluorophore",
             ),
         ),
+        migrations.AlterUniqueTogether(name="ocfluoreff", unique_together={("oc", "fluor")}),
     ]
