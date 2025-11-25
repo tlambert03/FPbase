@@ -587,7 +587,7 @@ def abstract_fluorescence_data_fields():
         (
             "is_dark",
             models.BooleanField(
-                default=False, verbose_name="Dark State", help_text="This state does not fluorescence"
+                default=False, verbose_name="Dark State", help_text="This state does not fluoresce"
             ),
         ),
         (

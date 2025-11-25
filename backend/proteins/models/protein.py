@@ -130,8 +130,8 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         PHOTOSWITCHABLE = ("ps", "Photoswitchable")
         PHOTOCONVERTIBLE = ("pc", "Photoconvertible")
         MULTIPHOTOCHROMIC = ("mp", "Multi-photochromic")
-        TIMER = ("t", "Multistate")
-        OTHER = ("o", "Timer")
+        TIMER = ("t", "Timer")
+        OTHER = ("o", "Multistate")
 
     class CofactorChoices(models.TextChoices):
         BILIRUBIN = ("br", "Bilirubin")
@@ -589,7 +589,7 @@ class State(Fluorophore):  # TODO: rename to ProteinState
         )
 
     def save(self, *args, **kwargs) -> None:
-        self.entity_type = self.EntityTypes.PROTEIN
+        self.entity_type = Fluorophore.EntityTypes.PROTEIN
         # Cache parent protein info for efficient searching
         if self.protein_id:
             self.owner_name = self.protein.name

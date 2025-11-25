@@ -84,7 +84,7 @@ class AbstractFluorescenceData(Authorable, TimeStampedModel, models.Model):
     is_dark = models.BooleanField(
         default=False,
         verbose_name="Dark State",
-        help_text="This state does not fluorescence",
+        help_text="This state does not fluoresce",
     )
 
     class Meta:
