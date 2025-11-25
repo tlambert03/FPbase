@@ -131,6 +131,7 @@ select = [
     "RUF", # Ruff-specific rules
     "LOG", # flake8-logging
     "G",   # flake8-logging-format
+    "TC", # flake8-type-checking
 ]
 ignore = [
     "B905",   # `zip()` without an explicit `strict=` parameter

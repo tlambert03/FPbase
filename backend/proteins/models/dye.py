@@ -9,6 +9,7 @@ from proteins.models.mixins import Authorable, Product
 
 if TYPE_CHECKING:
     from proteins.models import DyeState
+    from references.models import Reference
 
 
 class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecule
@@ -28,6 +29,17 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
+    )
+
+    primary_reference_id: int | None
+    primary_reference: models.ForeignKey["Reference | None"] = models.ForeignKey(
+        "references.Reference",
+        related_name="primary_dyes",
+        verbose_name="Primary Reference",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text="The publication that introduced the dye",
     )
 
     if TYPE_CHECKING:

@@ -6,7 +6,6 @@ import json
 import os
 import sys
 from collections import Counter
-from collections.abc import Sequence
 from random import choices
 from subprocess import PIPE, run
 from typing import TYPE_CHECKING, cast
@@ -36,6 +35,7 @@ from proteins.validators import validate_uniprot
 from references.models import Reference
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from typing import Self
 
     from django.db.models.manager import RelatedManager
@@ -47,7 +47,6 @@ if TYPE_CHECKING:
         Lineage,
         Organism,
         OSERMeasurement,
-        ProteinCollection,
         SnapGenePlasmid,
         StateTransition,
     )

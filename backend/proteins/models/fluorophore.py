@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from django.db.models import QuerySet
     from django.db.models.manager import RelatedManager
 
-    from proteins.models import Dye, DyeState, FluorescenceMeasurement, OcFluorEff, Protein, State  # noqa: F401
+    from proteins.models import Dye, DyeState, FluorescenceMeasurement, OcFluorEff, Protein, State
     from proteins.models.spectrum import D3Dict, Spectrum
 
 
@@ -57,11 +57,13 @@ class Fluorophore(AbstractFluorescenceData):
         max_length=255,
         db_index=True,
         blank=True,
+        default="",
         help_text="Protein/Dye name (cached for searching)",
     )
     owner_slug = models.SlugField(
         max_length=200,
         blank=True,
+        default="",
         help_text="Protein/Dye slug (cached for URLs)",
     )
 
@@ -72,14 +74,17 @@ class Fluorophore(AbstractFluorescenceData):
     # Lineage Tracking
     # Maps field names to Measurement IDs. e.g., {'ex_max': 102, 'qy': 105}
     source_map = models.JSONField(default=dict, blank=True)
+    # Admin override: Per-field pinned measurement IDs that won't be auto-updated.
+    # e.g., {'qy': 105} means qy always comes from measurement 105, ignoring priority rules.
+    pinned_source_map = models.JSONField(default=dict, blank=True)
 
     # Managers
     objects: FluorophoreManager[Self] = FluorophoreManager()
 
     if TYPE_CHECKING:
-        spectra = RelatedManager["Spectrum"]()
-        measurements = RelatedManager["FluorescenceMeasurement"]()
-        oc_effs = RelatedManager["OcFluorEff"]()
+        spectra: RelatedManager[Spectrum]
+        measurements: RelatedManager[FluorescenceMeasurement]
+        oc_effs: RelatedManager[OcFluorEff]
 
         # these are not *guaranteed* to exist, they come from Django MTI
         dyestate: DyeState
@@ -118,42 +123,89 @@ class Fluorophore(AbstractFluorescenceData):
                 return getattr(self, subclass_name)
         return self  # Fallback to parent if no child found
 
-    def rebuild_attributes(self):
+    def rebuild_attributes(self) -> None:
         """The Compositing Engine.
 
         Aggregates all measurements to determine the current canonical values.
+
+        Priority order (highest to lowest):
+        1. Pinned overrides - Admin has explicitly pinned a measurement for a field
+        2. Trusted measurements - is_trusted=True on FluorescenceMeasurement
+        3. Primary reference - Measurement from the owner's primary_reference
+        4. Most recent - Fallback by date_measured (most recent first)
         """
-        # 1. Fetch all measurements, sorted by priority:
-        #    Curator Trusted > Primary Reference > Most Recent Date
-        measurements = self.measurements.select_related("reference").order_by(
-            "-is_trusted",
-            # Assuming you have a helper to check if ref is primary for the owner
-            # This part requires custom logic depending on if self is Protein or Dye
-            # '-is_primary_ref',
-            "-date_measured",
-        )
+        from proteins.models import FluorescenceMeasurement
 
         measurable_fields = AbstractFluorescenceData.get_measurable_fields()
-        new_values = {}
-        new_source_map = {}
+        new_values: dict[str, object] = {}
+        new_source_map: dict[str, int] = {}
 
-        # 2. Waterfall Logic: Find the first non-null value for each field
+        # Get primary reference ID for priority sorting
+        primary_ref_id = self._get_primary_reference_id()
+
+        # 1. Handle pinned fields first (admin overrides)
+        pinned_fields: set[str] = set()
+        for field, measurement_id in self.pinned_source_map.items():
+            if field not in measurable_fields:
+                continue
+            try:
+                measurement = FluorescenceMeasurement.objects.get(id=measurement_id, fluorophore=self)
+                val = getattr(measurement, field)
+                if val is not None:
+                    new_values[field] = val
+                    new_source_map[field] = measurement.id
+                    pinned_fields.add(field)
+            except FluorescenceMeasurement.DoesNotExist:
+                # Pinned measurement no longer exists, skip it
+                pass
+
+        # 2. Fetch all measurements for non-pinned fields
+        measurements = list(self.measurements.select_related("reference").all())
+
+        # Sort by priority: trusted > primary_reference > most recent date
+        def measurement_priority(m: FluorescenceMeasurement) -> tuple[int, int, str]:
+            # Lower tuple = higher priority (sorted ascending)
+            trusted_score = 0 if m.is_trusted else 1
+            primary_score = 0 if primary_ref_id and m.reference_id == primary_ref_id else 1
+            # Use date_measured for sorting, fallback to empty string (sorts last)
+            date_str = m.date_measured.isoformat() if m.date_measured else ""
+            # Negate by reversing string comparison for descending date order
+            return (trusted_score, primary_score, date_str)
+
+        # Sort: trusted first, then primary ref, then most recent date
+        measurements.sort(key=measurement_priority)
+        # Reverse date sorting within groups (we want most recent first)
+        # Re-sort with proper date handling
+        measurements.sort(
+            key=lambda m: (
+                0 if m.is_trusted else 1,
+                0 if primary_ref_id and m.reference_id == primary_ref_id else 1,
+                # Invert date for descending order (most recent first)
+                -(m.date_measured.toordinal() if m.date_measured else 0),
+            )
+        )
+
+        # 3. Waterfall Logic: Find the first non-null value for each non-pinned field
         for field in measurable_fields:
-            found_val = None
-            found_source_id = None
+            if field in pinned_fields:
+                continue  # Already handled above
 
             for m in measurements:
                 val = getattr(m, field)
                 if val is not None:
-                    found_val = val
-                    found_source_id = m.id
+                    new_values[field] = val
+                    new_source_map[field] = m.id
                     break
+            else:
+                # No measurement had a value for this field
+                # Use field default for non-nullable fields (e.g., is_dark)
+                field_obj = self._meta.get_field(field)
+                if field_obj.has_default():
+                    new_values[field] = field_obj.get_default()
+                else:
+                    new_values[field] = None
 
-            new_values[field] = found_val
-            if found_source_id:
-                new_source_map[field] = found_source_id
-
-        # 3. Update Cache
+        # 4. Update cached values
         for key, val in new_values.items():
             setattr(self, key, val)
 
@@ -258,4 +310,10 @@ class Fluorophore(AbstractFluorescenceData):
             return self.dyestate.dye
         if hasattr(self, "state"):
             return self.state.protein
+        return None
+
+    def _get_primary_reference_id(self) -> int | None:
+        """Get the primary reference ID for the owner entity (Protein or Dye)."""
+        if owner := self._owner():
+            return owner.primary_reference_id
         return None
