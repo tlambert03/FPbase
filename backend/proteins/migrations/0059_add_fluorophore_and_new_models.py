@@ -78,8 +78,6 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
             protein = Protein.objects.get(id=row["protein_id"])
 
             # Create State (MTI child of Fluorophore)
-            # Note: Measurable fields (ex_max, em_max, qy, etc.) are left empty here
-            # and will be populated by rebuild_attributes() after creating FluorescenceMeasurement
             state = State.objects.create(
                 id=old_id,  # Preserve old ID for easier FK updates later
                 created=row["created"],
@@ -169,8 +167,6 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> dic
             )
 
             # Create DyeState (MTI child of Fluorophore)
-            # Note: Measurable fields (ex_max, em_max, qy, etc.) are left empty here
-            # and will be populated by rebuild_attributes() after creating FluorescenceMeasurement
             dyestate = DyeState.objects.create(
                 created=row["created"],
                 modified=row["modified"],
