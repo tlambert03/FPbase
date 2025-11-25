@@ -24,6 +24,21 @@ def _dictfetchall(cursor: CursorWrapper) -> list[dict[str, Any]]:
     columns = [col.name for col in cursor.description]
     return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+MEASURABLE_FIELDS = {
+    "ex_max",
+    "em_max",
+    "ext_coeff",
+    "qy",
+    "brightness",
+    "lifetime",
+    "pka",
+    "twop_ex_max",
+    "twop_peakGM",
+    "twop_qy",
+    "is_dark",
+    "emhex",
+    "exhex",
+}
 
 def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Migrate State data from old schema to new Fluorophore + State MTI structure."""
@@ -38,12 +53,15 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
             SELECT id, created, modified, name, slug, is_dark,
                    ex_max, em_max, ext_coeff, qy, brightness,
                    lifetime, pka, twop_ex_max, "twop_peakGM", twop_qy,
-                   maturation, protein_id, created_by_id, updated_by_id
+                   maturation, protein_id, created_by_id, updated_by_id, emhex, exhex
             FROM proteins_state_old
         """)
         for row in _dictfetchall(cursor):
             # Extract fields by name (order-independent, safer than positional unpacking)
             old_id = row["id"]
+
+            measurables = {field: row[field] for field in MEASURABLE_FIELDS}
+            measurables['twop_peak_gm'] = measurables.pop('twop_peakGM')
 
             # Get protein for label
             protein = Protein.objects.get(id=row["protein_id"])
@@ -62,6 +80,7 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                 owner_slug=protein.slug,
                 created_by_id=row["created_by_id"],
                 updated_by_id=row["updated_by_id"],
+                **measurables,
                 # State-specific fields
                 protein_id=protein.id,
                 maturation=row["maturation"],
@@ -71,17 +90,7 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                 id=old_id,  # Preserve old ID
                 fluorophore=state,  # State is-a Fluorophore (MTI)
                 reference_id=protein.primary_reference_id,
-                ex_max=row["ex_max"],
-                em_max=row["em_max"],
-                ext_coeff=row["ext_coeff"],
-                qy=row["qy"],
-                brightness=row["brightness"],
-                lifetime=row["lifetime"],
-                pka=row["pka"],
-                twop_ex_max=row["twop_ex_max"],
-                twop_peak_gm=row["twop_peakGM"],  # Note: SQL column uses twop_peakGM
-                twop_qy=row["twop_qy"],
-                is_dark=row["is_dark"],
+                **measurables,
                 is_trusted=True,  # Mark as trusted since it's the original data
                 created_by_id=row["created_by_id"],
                 updated_by_id=row["updated_by_id"],
@@ -120,17 +129,27 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
         cursor.execute("""
             SELECT created, modified, name, slug, is_dark,
                    ex_max, em_max, ext_coeff, qy, brightness,
-                   lifetime, pka, twop_ex_max, "twop_peakGM", twop_qy
+                   lifetime, pka, twop_ex_max, "twop_peakGM", twop_qy, emhex, exhex,
+                   manufacturer, part, url, created_by_id, updated_by_id
             FROM proteins_dye_old
         """)
 
         for row in _dictfetchall(cursor):
+            measurables = {field: row[field] for field in MEASURABLE_FIELDS}
+            measurables['twop_peak_gm'] = measurables.pop('twop_peakGM')
+
+
             # Create Dye container (without fluorescence properties)
             dye = Dye.objects.create(
                 created=row["created"],
+                created_by_id=row["created_by_id"],
+                updated_by_id=row["updated_by_id"],
                 modified=row["modified"],
                 name=row["name"],
                 slug=row["slug"],
+                manufacturer=row["manufacturer"],
+                part=row["part"],
+                url=row["url"],
             )
 
             # Create DyeState (MTI child of Fluorophore)
@@ -139,9 +158,12 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
             dyestate = DyeState.objects.create(
                 created=row["created"],
                 modified=row["modified"],
+                created_by_id=row["created_by_id"],
+                updated_by_id=row["updated_by_id"],
                 name="default",
                 slug=f"{dye.slug}-default",
                 entity_type="d",
+                **measurables,
                 owner_name=dye.name,
                 owner_slug=dye.slug,
                 dye=dye,
@@ -152,18 +174,10 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
             FluorescenceMeasurement.objects.create(
                 fluorophore=dyestate,  # DyeState is-a Fluorophore (MTI)
                 reference_id=None,
-                ex_max=row["ex_max"],
-                em_max=row["em_max"],
-                ext_coeff=row["ext_coeff"],
-                qy=row["qy"],
-                brightness=row["brightness"],
-                lifetime=row["lifetime"],
-                pka=row["pka"],
-                twop_ex_max=row["twop_ex_max"],
-                twop_peak_gm=row["twop_peakGM"],  # Note: SQL column uses twop_peakGM
-                twop_qy=row["twop_qy"],
-                is_dark=row["is_dark"],
+                **measurables,
                 is_trusted=True,
+                created_by_id=row["created_by_id"],
+                updated_by_id=row["updated_by_id"],
             )
 
             dye.default_state = dyestate
