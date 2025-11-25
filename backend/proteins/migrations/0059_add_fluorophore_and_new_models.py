@@ -397,22 +397,22 @@ def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSche
         cursor.execute("SELECT id, name, slug FROM proteins_protein")
         proteins = {row[0]: (row[1], row[2]) for row in cursor.fetchall()}
 
+        fluor_inserts: list[tuple[str, str, str, str, str, str, str]] = []
+        state_updates: list[tuple[str, str]] = []
+
         # Fetch all existing State version records
         cursor.execute(
             "SELECT id, object_id, revision_id, serialized_data, db, format "
             "FROM reversion_version WHERE content_type_id = %s",
             [state_ct.id],
         )
-
-        fluor_inserts, state_updates = [], []
-
         for row in _dictfetchall(cursor):
-            version_id = row["version_id"]
+            version_id = row["id"]
             object_id = row["object_id"]
             revision_id = row["revision_id"]
             serialized_data = row["serialized_data"]
             db = row["db"]
-            fmt = row["fmt"]
+            fmt = row["format"]
 
             try:
                 data = json.loads(serialized_data)
