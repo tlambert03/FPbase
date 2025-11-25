@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from django.db import models
@@ -5,8 +7,8 @@ from django.db import models
 from proteins.models.fluorescence_data import AbstractFluorescenceData
 
 if TYPE_CHECKING:
-    from proteins.models import Fluorophore  # noqa: F401
-    from references.models import Reference  # noqa: F401
+    from proteins.models import Fluorophore
+    from references.models import Reference
 
 
 # The "evidence"
@@ -14,11 +16,11 @@ class FluorescenceMeasurement(AbstractFluorescenceData):
     """Raw data points from a specific reference."""
 
     fluorophore_id: int
-    fluorophore = models.ForeignKey["Fluorophore"](
+    fluorophore: models.ForeignKey[Fluorophore] = models.ForeignKey(
         "Fluorophore", related_name="measurements", on_delete=models.CASCADE
     )
     reference_id: int | None
-    reference = models.ForeignKey["Reference | None"](
+    reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         "references.Reference",
         on_delete=models.CASCADE,
         null=True,

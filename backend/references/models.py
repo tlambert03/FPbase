@@ -42,7 +42,7 @@ class Author(TimeStampedModel):
     given = models.CharField(max_length=80)
     initials = models.CharField(max_length=10)
     if TYPE_CHECKING:
-        publications = models.ManyToManyField["Reference", "Author"]()
+        publications: models.ManyToManyField[Reference, Author] = models.ManyToManyField()
         referenceauthor_set: models.QuerySet[ReferenceAuthor]
     else:
         publications = models.ManyToManyField("Reference", through="ReferenceAuthor")
@@ -109,7 +109,7 @@ class Reference(TimeStampedModel):
         help_text="YYYY",
     )
     if TYPE_CHECKING:
-        authors = models.ManyToManyField["Author", "Reference"]()
+        authors: models.ManyToManyField[Author, Reference] = models.ManyToManyField()
         referenceauthor_set: models.QuerySet[ReferenceAuthor]
         primary_proteins: models.QuerySet[Protein]
         proteins: models.QuerySet[Protein]
@@ -124,7 +124,7 @@ class Reference(TimeStampedModel):
     summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
 
     created_by_id: int | None
-    created_by = models.ForeignKey[User | None](
+    created_by: models.ForeignKey[User | None] = models.ForeignKey(
         User,
         related_name="reference_author",
         blank=True,
@@ -132,7 +132,7 @@ class Reference(TimeStampedModel):
         on_delete=models.CASCADE,
     )
     updated_by_id: int | None
-    updated_by = models.ForeignKey[User | None](
+    updated_by: models.ForeignKey[User | None] = models.ForeignKey(
         User,
         related_name="reference_modifier",
         blank=True,
@@ -232,9 +232,9 @@ class Reference(TimeStampedModel):
 
 class ReferenceAuthor(models.Model):
     reference_id: int
-    reference = models.ForeignKey[Reference](Reference, on_delete=models.CASCADE)
+    reference: models.ForeignKey[Reference] = models.ForeignKey(Reference, on_delete=models.CASCADE)
     author_id: int
-    author = models.ForeignKey[Author](Author, on_delete=models.CASCADE)
+    author: models.ForeignKey[Author] = models.ForeignKey(Author, on_delete=models.CASCADE)
     author_idx = models.PositiveSmallIntegerField()
 
     class Meta:

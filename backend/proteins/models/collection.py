@@ -9,7 +9,9 @@ from django.urls import reverse
 from model_utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
-    from proteins.models import Dye, Microscope, Protein  # noqa: F401
+    from django.contrib.auth.models import AbstractUser
+
+    from proteins.models import Dye, Microscope, Protein
 
 User = get_user_model()
 
@@ -18,7 +20,7 @@ class OwnedCollection(TimeStampedModel):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=512, blank=True)
     owner_id: int | None
-    owner = models.ForeignKey[User | None](
+    owner: models.ForeignKey[AbstractUser | None] = models.ForeignKey(
         User,
         blank=True,
         null=True,
@@ -65,7 +67,7 @@ class ProteinCollection(OwnedCollection):
 
 class FluorophoreCollection(ProteinCollection):
     if TYPE_CHECKING:
-        dyes = models.ManyToManyField["Dye", "FluorophoreCollection"]()
+        dyes: models.ManyToManyField[Dye, FluorophoreCollection] = models.ManyToManyField()
         fluor_on_scope: models.QuerySet[Microscope]
     else:
         dyes = models.ManyToManyField("Dye", blank=True, related_name="collection_memberships")

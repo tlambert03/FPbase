@@ -8,7 +8,7 @@ from proteins.models.mixins import Authorable
 from references.models import Reference
 
 if TYPE_CHECKING:
-    from proteins.models import Protein  # noqa F401
+    from proteins.models import Protein
 
 
 class OSERMeasurement(Authorable, TimeStampedModel):
@@ -61,7 +61,7 @@ class OSERMeasurement(Authorable, TimeStampedModel):
     temp = models.FloatField(null=True, blank=True, verbose_name="Temperature")
 
     reference_id: int | None
-    reference = models.ForeignKey["Reference | None"](
+    reference: models.ForeignKey["Reference | None"] = models.ForeignKey(
         Reference,
         related_name="oser_measurements",
         verbose_name="Measurement Reference",
@@ -71,7 +71,7 @@ class OSERMeasurement(Authorable, TimeStampedModel):
         help_text="Reference where the measurement was made",
     )  # usually, the original paper that published the protein
     protein_id: int
-    protein = models.ForeignKey["Protein"](
+    protein: models.ForeignKey["Protein"] = models.ForeignKey(
         "Protein",
         related_name="oser_measurements",
         verbose_name="Protein",

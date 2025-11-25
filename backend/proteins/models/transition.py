@@ -8,7 +8,7 @@ from model_utils.models import TimeStampedModel
 from proteins.models.mixins import Authorable
 
 if TYPE_CHECKING:
-    from proteins.models import Protein, State  # noqa F401
+    from proteins.models import Protein, State
 
 
 class StateTransition(Authorable, TimeStampedModel):
@@ -20,7 +20,7 @@ class StateTransition(Authorable, TimeStampedModel):
         validators=[MinValueValidator(300), MaxValueValidator(1000)],
     )
     protein_id: int
-    protein = models.ForeignKey["Protein"](
+    protein: models.ForeignKey["Protein"] = models.ForeignKey(
         "Protein",
         related_name="transitions",
         verbose_name="Protein Transitioning",
@@ -28,7 +28,7 @@ class StateTransition(Authorable, TimeStampedModel):
         on_delete=models.CASCADE,
     )
     from_state_id: int
-    from_state = models.ForeignKey["State"](
+    from_state: models.ForeignKey["State"] = models.ForeignKey(
         "State",
         related_name="transitions_from",
         verbose_name="From state",
@@ -36,7 +36,7 @@ class StateTransition(Authorable, TimeStampedModel):
         on_delete=models.CASCADE,
     )
     to_state_id: int
-    to_state = models.ForeignKey["State"](
+    to_state: models.ForeignKey["State"] = models.ForeignKey(
         "State",
         related_name="transitions_to",
         verbose_name="To state",

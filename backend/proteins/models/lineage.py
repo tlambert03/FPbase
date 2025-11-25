@@ -39,11 +39,13 @@ class MutationSetField(models.CharField):
 
 class Lineage(MPTTModel, TimeStampedModel, Authorable):
     protein_id: int
-    protein = models.OneToOneField["Protein"]("Protein", on_delete=models.CASCADE, related_name="lineage")
+    protein: models.OneToOneField[Protein] = models.OneToOneField(
+        "Protein", on_delete=models.CASCADE, related_name="lineage"
+    )
     parent_id: int | None
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
     reference_id: int | None
-    reference = models.ForeignKey[Reference | None](
+    reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         Reference,
         on_delete=models.CASCADE,
         null=True,
@@ -53,7 +55,7 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
     mutation = MutationSetField(max_length=400, blank=True)
     rootmut = models.CharField(max_length=400, blank=True)
     root_node_id: int | None
-    root_node = models.ForeignKey["Lineage | None"](
+    root_node: models.ForeignKey[Lineage | None] = models.ForeignKey(
         "self",
         null=True,
         on_delete=models.CASCADE,

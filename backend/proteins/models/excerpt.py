@@ -22,7 +22,7 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
     else:
         proteins = models.ManyToManyField("Protein", blank=True, related_name="excerpts")
     reference_id: int | None
-    reference = models.ForeignKey[Reference | None](
+    reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         Reference,
         related_name="excerpts",
         null=True,

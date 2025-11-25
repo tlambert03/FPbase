@@ -17,7 +17,7 @@ class AdminURLMixin:
 
 class Authorable(models.Model):
     created_by_id: int | None
-    created_by = models.ForeignKey["User | None"](
+    created_by: models.ForeignKey["User | None"] = models.ForeignKey(
         User,
         blank=True,
         null=True,
@@ -25,7 +25,7 @@ class Authorable(models.Model):
         on_delete=models.SET_NULL,
     )
     updated_by_id: int | None
-    updated_by = models.ForeignKey["User | None"](
+    updated_by: models.ForeignKey["User | None"] = models.ForeignKey(
         User,
         blank=True,
         null=True,

@@ -21,7 +21,7 @@ from proteins.util.helpers import shortuuid
 if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
-    from proteins.models.collection import FluorophoreCollection, ProteinCollection  # noqa: F401
+    from proteins.models.collection import FluorophoreCollection, ProteinCollection
     from proteins.models.spectrum import D3Dict, Spectrum
 
 
@@ -37,8 +37,8 @@ class Microscope(OwnedCollection):
 
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
     if TYPE_CHECKING:
-        extra_lights = models.ManyToManyField["Light", "Microscope"]()
-        extra_cameras = models.ManyToManyField["Camera", "Microscope"]()
+        extra_lights: models.ManyToManyField[Light, Microscope] = models.ManyToManyField()
+        extra_cameras: models.ManyToManyField[Camera, Microscope] = models.ManyToManyField()
     else:
         extra_lights = models.ManyToManyField("Light", blank=True, related_name="microscopes")
         extra_cameras = models.ManyToManyField("Camera", blank=True, related_name="microscopes")
@@ -48,7 +48,7 @@ class Microscope(OwnedCollection):
         blank=True,
     )
     collection_id: int | None
-    collection = models.ForeignKey["ProteinCollection | None"](
+    collection: models.ForeignKey[ProteinCollection | None] = models.ForeignKey(
         "ProteinCollection",
         blank=True,
         null=True,
@@ -56,7 +56,7 @@ class Microscope(OwnedCollection):
         on_delete=models.CASCADE,
     )
     fluors_id: int | None
-    fluors = models.ForeignKey["FluorophoreCollection | None"](
+    fluors: models.ForeignKey[FluorophoreCollection | None] = models.ForeignKey(
         "FluorophoreCollection",
         blank=True,
         null=True,
@@ -230,7 +230,7 @@ class OpticalConfig(OwnedCollection):
     """A a single optical configuration comprising a set of filters"""
 
     microscope_id: int
-    microscope = models.ForeignKey["Microscope"](
+    microscope: models.ForeignKey[Microscope] = models.ForeignKey(
         "Microscope",
         related_name="optical_configs",
         on_delete=models.CASCADE,
@@ -239,7 +239,7 @@ class OpticalConfig(OwnedCollection):
     if TYPE_CHECKING:
         from proteins.models import OcFluorEff
 
-        filters = models.ManyToManyField["Filter", "OpticalConfig"]()
+        filters: models.ManyToManyField[Filter, OpticalConfig] = models.ManyToManyField()
         filterplacement_set: models.QuerySet[FilterPlacement]
         ocfluoreff_set: models.QuerySet[OcFluorEff]
     else:
@@ -250,7 +250,7 @@ class OpticalConfig(OwnedCollection):
             through="FilterPlacement",
         )
     light_id: int | None
-    light = models.ForeignKey["Light"](
+    light: models.ForeignKey[Light] = models.ForeignKey(
         "Light",
         null=True,
         blank=True,
@@ -258,7 +258,7 @@ class OpticalConfig(OwnedCollection):
         on_delete=models.SET_NULL,
     )
     camera_id: int | None
-    camera = models.ForeignKey["Camera"](
+    camera: models.ForeignKey[Camera] = models.ForeignKey(
         "Camera",
         null=True,
         blank=True,
@@ -358,9 +358,9 @@ class FilterPlacement(models.Model):
     PATH_CHOICES = ((EX, "Excitation Path"), (EM, "Emission Path"), (BS, "Both Paths"))
 
     filter_id: int
-    filter = models.ForeignKey[Filter]("Filter", on_delete=models.CASCADE)
+    filter: models.ForeignKey[Filter] = models.ForeignKey("Filter", on_delete=models.CASCADE)
     config_id: int
-    config = models.ForeignKey["OpticalConfig"]("OpticalConfig", on_delete=models.CASCADE)
+    config: models.ForeignKey[OpticalConfig] = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
     path = models.CharField(max_length=2, choices=PATH_CHOICES, verbose_name="Ex/Bs/Em Path")
     # when path == BS, reflects refers to the emission path
     reflects = models.BooleanField(default=False, help_text="Filter reflects emission (if BS or EM filter)")

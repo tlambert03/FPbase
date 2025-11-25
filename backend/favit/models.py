@@ -11,18 +11,18 @@ from django.utils.translation import gettext_lazy as _
 from .managers import FavoriteManager
 
 if TYPE_CHECKING:
-    from fpbase.users.models import User  # noqa F401
+    from fpbase.users.models import User
 
 
 class Favorite(models.Model):
     user_id: int
-    user = models.ForeignKey["User"](
+    user: models.ForeignKey[User] = models.ForeignKey(
         getattr(settings, "AUTH_USER_MODEL", "auth.User"),
         related_name="favorites",
         on_delete=models.CASCADE,
     )
     target_content_type_id: int
-    target_content_type = models.ForeignKey[ContentType](ContentType, on_delete=models.CASCADE)
+    target_content_type: models.ForeignKey[ContentType] = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     target_object_id = models.PositiveIntegerField()
     target = GenericForeignKey("target_content_type", "target_object_id")
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)

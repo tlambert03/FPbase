@@ -9,7 +9,7 @@ from proteins.models.fluorophore import Fluorophore
 from proteins.util.efficiency import oc_efficiency_report
 
 if TYPE_CHECKING:
-    from proteins.models import OpticalConfig  # noqa F401
+    from proteins.models import OpticalConfig
 
 
 class OcFluorEffQuerySet(models.QuerySet):
@@ -28,9 +28,11 @@ class OcFluorEffQuerySet(models.QuerySet):
 
 class OcFluorEff(TimeStampedModel):
     oc_id: int
-    oc = models.ForeignKey["OpticalConfig"]("OpticalConfig", on_delete=models.CASCADE)
+    oc: models.ForeignKey["OpticalConfig"] = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
     fluor_id: int
-    fluor = models.ForeignKey[Fluorophore](Fluorophore, on_delete=models.CASCADE, related_name="oc_effs")
+    fluor: models.ForeignKey[Fluorophore] = models.ForeignKey(
+        Fluorophore, on_delete=models.CASCADE, related_name="oc_effs"
+    )
     fluor_name = models.CharField(max_length=100, blank=True)
     ex_eff = models.FloatField(
         null=True,

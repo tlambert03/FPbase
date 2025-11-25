@@ -370,7 +370,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     # https://lukeplant.me.uk/blog/posts/avoid-django-genericforeignkey/
     # Fluorophore encompasses both State (ProteinState) and DyeState via MTI
     owner_fluor_id: int | None
-    owner_fluor = models.ForeignKey["Fluorophore | None"](
+    owner_fluor: models.ForeignKey[Fluorophore | None] = models.ForeignKey(
         "Fluorophore",
         null=True,
         blank=True,
@@ -378,7 +378,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         related_name="spectra",
     )
     owner_filter_id: int | None
-    owner_filter = models.OneToOneField["Filter | None"](
+    owner_filter: models.OneToOneField[Filter | None] = models.OneToOneField(
         "Filter",
         null=True,
         blank=True,
@@ -386,7 +386,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         related_name="spectrum",
     )
     owner_light_id: int | None
-    owner_light = models.OneToOneField["Light | None"](
+    owner_light: models.OneToOneField[Light | None] = models.OneToOneField(
         "Light",
         null=True,
         blank=True,
@@ -394,7 +394,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         related_name="spectrum",
     )
     owner_camera_id: int | None
-    owner_camera = models.OneToOneField["Camera | None"](
+    owner_camera: models.OneToOneField[Camera | None] = models.OneToOneField(
         "Camera",
         null=True,
         blank=True,
@@ -402,7 +402,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         related_name="spectrum",
     )
     reference_id: int | None
-    reference = models.ForeignKey["Reference | None"](
+    reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         Reference,
         null=True,
         blank=True,

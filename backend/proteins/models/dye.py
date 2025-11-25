@@ -9,7 +9,6 @@ from proteins.models.mixins import Authorable, Product
 
 if TYPE_CHECKING:
     from proteins.models import DyeState
-    from references.models import Reference  # noqa: F401
 
 
 class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecule
@@ -23,7 +22,7 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
     slug = models.SlugField(unique=True)
 
     default_state_id: int | None
-    default_state = models.ForeignKey["DyeState | None"](
+    default_state: models.ForeignKey["DyeState | None"] = models.ForeignKey(
         "DyeState",
         related_name="default_for",
         blank=True,
@@ -60,7 +59,7 @@ class DyeState(Fluorophore):
     """
 
     dye_id: int
-    dye = models.ForeignKey["Dye"](Dye, on_delete=models.CASCADE, related_name="states")
+    dye: models.ForeignKey["Dye"] = models.ForeignKey(Dye, on_delete=models.CASCADE, related_name="states")
 
     if TYPE_CHECKING:
         fluorophore_ptr: Fluorophore  # added by Django MTI
