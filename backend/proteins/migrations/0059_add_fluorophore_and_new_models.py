@@ -1,5 +1,17 @@
+"""Major data migration to new Fluorophore + Measurement schema.
+
+NON REVERSIBLE.
+
+1. proteins.State becomes MTI child of new proteins.Fluorophore
+2. proteins.Dye becomes container for new proteins.DyeState (MTI child of Fluorophore)
+3. proteins.FluorescenceMeasurement created for each old State and DyeState
+4. proteins.Spectrum ownership updated to point to new Fluorophore records
+5. proteins.OcFluorEff updated to point to new Fluorophore records
+
+"""
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -7,8 +19,6 @@ import django.db.models.deletion
 import django.utils.timezone
 import model_utils.fields
 from django.apps.registry import Apps
-
-# Generated manually for schema overhaul
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import migrations, models
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
@@ -23,6 +33,7 @@ def _dictfetchall(cursor: CursorWrapper) -> list[dict[str, Any]]:
         return []
     columns = [col.name for col in cursor.description]
     return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
 
 MEASURABLE_FIELDS = {
     "ex_max",
@@ -39,6 +50,7 @@ MEASURABLE_FIELDS = {
     "emhex",
     "exhex",
 }
+
 
 def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Migrate State data from old schema to new Fluorophore + State MTI structure."""
@@ -61,7 +73,7 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
             old_id = row["id"]
 
             measurables = {field: row[field] for field in MEASURABLE_FIELDS}
-            measurables['twop_peak_gm'] = measurables.pop('twop_peakGM')
+            measurables["twop_peak_gm"] = measurables.pop("twop_peakGM")
 
             # Get protein for label
             protein = Protein.objects.get(id=row["protein_id"])
@@ -118,16 +130,21 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
         print(f"Reset FluorescenceMeasurement ID sequence to {cursor.fetchone()[0]}")
 
 
-def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
-    """Migrate Dye data from old schema to new Dye container + DyeState structure."""
+def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> dict[int, int]:
+    """Migrate Dye data from old schema to new Dye container + DyeState structure.
+
+    Returns a mapping of old Dye ID → new Fluorophore ID for efficient FK updates.
+    """
     Dye = apps.get_model("proteins", "Dye")
     DyeState = apps.get_model("proteins", "DyeState")
     FluorescenceMeasurement = apps.get_model("proteins", "FluorescenceMeasurement")
 
+    old_to_new_id_map = {}
+
     # Access old Dye data via raw SQL
     with schema_editor.connection.cursor() as cursor:
         cursor.execute("""
-            SELECT created, modified, name, slug, is_dark,
+            SELECT id, created, modified, name, slug, is_dark,
                    ex_max, em_max, ext_coeff, qy, brightness,
                    lifetime, pka, twop_ex_max, "twop_peakGM", twop_qy, emhex, exhex,
                    manufacturer, part, url, created_by_id, updated_by_id
@@ -135,9 +152,9 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
         """)
 
         for row in _dictfetchall(cursor):
+            old_id = row["id"]
             measurables = {field: row[field] for field in MEASURABLE_FIELDS}
-            measurables['twop_peak_gm'] = measurables.pop('twop_peakGM')
-
+            measurables["twop_peak_gm"] = measurables.pop("twop_peakGM")
 
             # Create Dye container (without fluorescence properties)
             dye = Dye.objects.create(
@@ -183,101 +200,150 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> Non
             dye.default_state = dyestate
             dye.save()
 
+            # Store mapping for efficient FK updates
+            old_to_new_id_map[old_id] = dyestate.fluorophore_ptr_id
+
     print(f"Migrated {Dye.objects.count()} Dye records to Dye containers")
     print(f"Created {DyeState.objects.count()} DyeState records")
+    return old_to_new_id_map
 
 
-def update_spectrum_ownership(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
+def update_spectrum_ownership(apps: Apps, schema_editor: BaseDatabaseSchemaEditor, dye_id_map: dict[int, int]) -> None:
     """Update Spectrum foreign keys to point to new Fluorophore records."""
-    apps.get_model("proteins", "Spectrum")
-    apps.get_model("proteins", "Fluorophore")
-
-    # We need to map old State/Dye IDs to new Fluorophore IDs
-    # This is tricky because we need to query the old tables
-
     with schema_editor.connection.cursor() as cursor:
-        # Update spectra that were owned by States
+        # Update spectra owned by States - State ID == Fluorophore ID (preserved)
         cursor.execute("""
-            UPDATE proteins_spectrum s
-            SET owner_fluor_id = (
-                SELECT f.id
-                FROM proteins_fluorophore f
-                JOIN proteins_state ns ON ns.fluorophore_ptr_id = f.id
-                JOIN proteins_state_old os ON os.slug = f.slug
-                WHERE os.id = s.owner_state_id
-            )
-            WHERE s.owner_state_id IS NOT NULL
+            UPDATE proteins_spectrum
+            SET owner_fluor_id = owner_state_id
+            WHERE owner_state_id IS NOT NULL
         """)
-
         state_count = cursor.rowcount
         print(f"Updated {state_count} spectra owned by States")
 
-        # Update spectra that were owned by Dyes
-        # Note: DyeState slug is "{dye_slug}-default", so we need to match carefully
+        # Update spectra owned by Dyes - need mapping from old Dye ID to new Fluorophore ID
+        # Use temp table for the mapping (reuse pattern from OcFluorEff)
         cursor.execute("""
-            UPDATE proteins_spectrum s
-            SET owner_fluor_id = (
-                SELECT f.id
-                FROM proteins_fluorophore f
-                JOIN proteins_dyestate ds ON ds.fluorophore_ptr_id = f.id
-                JOIN proteins_dye d ON d.id = ds.dye_id
-                JOIN proteins_dye_old od ON od.slug = d.slug
-                WHERE od.id = s.owner_dye_id
+            CREATE TEMP TABLE dye_spectrum_mapping (
+                old_id INTEGER PRIMARY KEY,
+                new_id INTEGER NOT NULL
             )
-            WHERE s.owner_dye_id IS NOT NULL
         """)
 
+        if dye_id_map:
+            values = ", ".join(
+                cursor.mogrify("(%s, %s)", (old_id, new_id)).decode() for old_id, new_id in dye_id_map.items()
+            )
+            cursor.execute(f"INSERT INTO dye_spectrum_mapping (old_id, new_id) VALUES {values}")
+
+        cursor.execute("""
+            UPDATE proteins_spectrum s
+            SET owner_fluor_id = m.new_id
+            FROM dye_spectrum_mapping m
+            WHERE s.owner_dye_id = m.old_id
+        """)
         dye_count = cursor.rowcount
         print(f"Updated {dye_count} spectra owned by Dyes")
 
+        cursor.execute("DROP TABLE dye_spectrum_mapping")
 
-def update_ocfluoreff(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
-    """Update OcFluorEff to use direct FK to Fluorophore."""
+
+def update_ocfluoreff(apps: Apps, schema_editor: BaseDatabaseSchemaEditor, dye_id_map: dict[int, int]) -> None:
+    """Update OcFluorEff to use direct FK to Fluorophore.
+
+    Uses efficient bulk updates:
+    - States: Direct assignment (State ID == Fluorophore ID)
+    - Dyes: Temp table JOIN (using provided old_id → new_id mapping)
+    """
     with schema_editor.connection.cursor() as cursor:
-        # Update OcFluorEff records that pointed to States via GenericFK
+        # Increase work_mem for efficient hash joins on large tables
+        cursor.execute("SET LOCAL work_mem = '256MB'")
+
+        # Cache content_type IDs to avoid repeated subqueries
         cursor.execute("""
-            UPDATE proteins_ocfluoreff o
-            SET fluor_id = (
-                SELECT f.id
-                FROM proteins_fluorophore f
-                JOIN proteins_state s ON s.fluorophore_ptr_id = f.id
-                WHERE s.fluorophore_ptr_id IN (
-                    SELECT fluorophore_ptr_id
-                    FROM proteins_state ps
-                    JOIN proteins_state_old os ON os.slug = (
-                        SELECT slug FROM proteins_fluorophore WHERE id = ps.fluorophore_ptr_id
-                    )
-                    WHERE os.id = o.object_id::integer
-                )
-            )
-            WHERE o.content_type_id = (
-                SELECT id FROM django_content_type
-                WHERE app_label = 'proteins' AND model = 'state'
-            )
+            SELECT id FROM django_content_type
+            WHERE app_label = 'proteins' AND model = 'state'
         """)
+        state_ct_id = cursor.fetchone()[0]
+
+        cursor.execute("""
+            SELECT id FROM django_content_type
+            WHERE app_label = 'proteins' AND model = 'dye'
+        """)
+        dye_ct_id = cursor.fetchone()[0]
+
+        # First, clean up orphaned records that point to deleted States/Dyes
+        # These have object_ids that don't exist in the old tables anymore
+        cursor.execute(
+            """
+            DELETE FROM proteins_ocfluoreff o
+            WHERE o.content_type_id = %s
+            AND NOT EXISTS (
+                SELECT 1 FROM proteins_state_old s WHERE s.id = o.object_id
+            )
+        """,
+            [state_ct_id],
+        )
+        orphaned_states = cursor.rowcount
+
+        cursor.execute(
+            """
+            DELETE FROM proteins_ocfluoreff o
+            WHERE o.content_type_id = %s
+            AND NOT EXISTS (
+                SELECT 1 FROM proteins_dye_old d WHERE d.id = o.object_id
+            )
+        """,
+            [dye_ct_id],
+        )
+        orphaned_dyes = cursor.rowcount
+        print(f"Deleted {orphaned_states + orphaned_dyes} orphaned OcFluorEff records")
+
+        # Update OcFluorEff records that pointed to States via GenericFK
+        # Since State IDs were preserved, object_id directly maps to fluor_id
+        cursor.execute(
+            """
+            UPDATE proteins_ocfluoreff
+            SET fluor_id = object_id
+            WHERE content_type_id = %s
+        """,
+            [state_ct_id],
+        )
 
         state_count = cursor.rowcount
         print(f"Updated {state_count} OcFluorEff records that pointed to States")
 
         # Update OcFluorEff records that pointed to Dyes via GenericFK
+        # Use temp table with primary key for efficient hash join
         cursor.execute("""
-            UPDATE proteins_ocfluoreff o
-            SET fluor_id = (
-                SELECT f.id
-                FROM proteins_fluorophore f
-                JOIN proteins_dyestate ds ON ds.fluorophore_ptr_id = f.id
-                JOIN proteins_dye d ON d.id = ds.dye_id
-                JOIN proteins_dye_old od ON od.slug = d.slug
-                WHERE od.id = o.object_id::integer
-            )
-            WHERE o.content_type_id = (
-                SELECT id FROM django_content_type
-                WHERE app_label = 'proteins' AND model = 'dye'
+            CREATE TEMP TABLE dye_id_mapping (
+                old_id INTEGER PRIMARY KEY,
+                new_id INTEGER NOT NULL
             )
         """)
 
+        # Bulk insert using execute with VALUES - faster than executemany
+        if dye_id_map:
+            values = ", ".join(
+                cursor.mogrify("(%s, %s)", (old_id, new_id)).decode() for old_id, new_id in dye_id_map.items()
+            )
+            cursor.execute(f"INSERT INTO dye_id_mapping (old_id, new_id) VALUES {values}")
+
+        cursor.execute(
+            """
+            UPDATE proteins_ocfluoreff o
+            SET fluor_id = m.new_id
+            FROM dye_id_mapping m
+            WHERE o.object_id = m.old_id
+            AND o.content_type_id = %s
+        """,
+            [dye_ct_id],
+        )
+
         dye_count = cursor.rowcount
         print(f"Updated {dye_count} OcFluorEff records that pointed to Dyes")
+
+        # Clean up temp table
+        cursor.execute("DROP TABLE dye_id_mapping")
 
 
 def populate_emhex_exhex(apps, _schema_editor):
@@ -300,14 +366,130 @@ def populate_emhex_exhex(apps, _schema_editor):
     print(f"Populated emhex/exhex for {len(fluorophores_to_update)} fluorophores")
 
 
+def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
+    """Migrate django-reversion State versions to work with new MTI structure.
+
+    Background:
+    -----------
+    State now inherits from Fluorophore via Multi-Table Inheritance (MTI).
+    When reversion reverts a revision, it needs Version records for BOTH the parent
+    (Fluorophore) and child (State) models in the same revision.
+
+    Old State versions stored ALL fields in one record:
+        {"model": "proteins.state", "fields": {"name": "x", "ex_max": 488, "protein": 1, ...}}
+
+    After migration, we need TWO records per revision:
+        1. Fluorophore: {"fields": {"name": "x", "ex_max": 488, ...}}
+        2. State: {"fields": {"fluorophore_ptr": 402, "protein": 1, "maturation": 13.0}}
+
+    Both records share the same revision_id, so revision.revert() restores them together.
+    """
+    ContentType = apps.get_model("contenttypes", "ContentType")
+
+    # Fields that remain on State model; everything else moves to Fluorophore parent
+    state_only_fields = {"protein", "maturation", "transitions"}
+
+    with schema_editor.connection.cursor() as cursor:
+        state_ct = ContentType.objects.get(app_label="proteins", model="state")
+        fluor_ct, _ = ContentType.objects.get_or_create(app_label="proteins", model="fluorophore")
+
+        # Build lookup dict for protein name/slug (used for owner_name/owner_slug)
+        cursor.execute("SELECT id, name, slug FROM proteins_protein")
+        proteins = {row[0]: (row[1], row[2]) for row in cursor.fetchall()}
+
+        # Fetch all existing State version records
+        cursor.execute(
+            "SELECT id, object_id, revision_id, serialized_data, db, format "
+            "FROM reversion_version WHERE content_type_id = %s",
+            [state_ct.id],
+        )
+
+        fluor_inserts, state_updates = [], []
+
+        for row in _dictfetchall(cursor):
+            version_id = row["version_id"]
+            object_id = row["object_id"]
+            revision_id = row["revision_id"]
+            serialized_data = row["serialized_data"]
+            db = row["db"]
+            fmt = row["fmt"]
+
+            try:
+                data = json.loads(serialized_data)
+                if not data:
+                    continue
+                first_record: dict = data[0]
+                # data is a list of versioned objects
+                old_fields = first_record.get("fields", {})
+                pk = first_record.get("pk", object_id)
+
+                # Look up owner (protein) name/slug from the protein FK
+                protein_id = old_fields.get("protein")
+                owner_name, owner_slug = proteins.get(protein_id, ("", ""))
+
+                # Split fields: State-only fields stay on State, rest go to Fluorophore
+                # State needs fluorophore_ptr to link to its MTI parent
+                state_fields = {"fluorophore_ptr": pk}
+                # Fluorophore needs new required fields with sensible defaults
+                fluor_fields = {
+                    "entity_type": "p",
+                    "owner_name": owner_name,
+                    "owner_slug": owner_slug,
+                    "source_map": "{}",
+                }
+
+                for k, v in old_fields.items():
+                    (state_fields if k in state_only_fields else fluor_fields)[k] = v
+
+                # Queue NEW Fluorophore version (same revision_id links them together)
+                fluor_inserts.append(
+                    (
+                        str(object_id),
+                        revision_id,  # Same revision as the State version
+                        fluor_ct.id,
+                        json.dumps([{"model": "proteins.fluorophore", "pk": pk, "fields": fluor_fields}]),
+                        "",  # object_repr - not critical for historical versions
+                        db,
+                        fmt,
+                    )
+                )
+                # Queue UPDATE to existing State version (strip out fields that moved to Fluorophore)
+                state_updates.append(
+                    (
+                        json.dumps([{"model": "proteins.state", "pk": pk, "fields": state_fields}]),
+                        version_id,
+                    )
+                )
+            except (json.JSONDecodeError, KeyError, TypeError):
+                logger.warning(f"Skipping malformed reversion State version ID {row['id']}")
+                continue
+
+        # Bulk insert new Fluorophore versions
+        if fluor_inserts:
+            cursor.executemany(
+                "INSERT INTO reversion_version "
+                "(object_id, revision_id, content_type_id, serialized_data, object_repr, db, format) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                fluor_inserts,
+            )
+        # Bulk update existing State versions to only contain State-specific fields
+        if state_updates:
+            cursor.executemany(
+                "UPDATE reversion_version SET serialized_data = %s WHERE id = %s",
+                state_updates,
+            )
+        print(f"Migrated {len(fluor_inserts)} State versions for MTI")
+
+
 def migrate_forward(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
     """Run all migration functions."""
     print("Starting data migration from old schema...")
     migrate_state_data(apps, schema_editor)
-    migrate_dye_data(apps, schema_editor)
-    update_spectrum_ownership(apps, schema_editor)
-    update_ocfluoreff(apps, schema_editor)
+    dye_id_map = migrate_dye_data(apps, schema_editor)
+    update_spectrum_ownership(apps, schema_editor, dye_id_map)
+    update_ocfluoreff(apps, schema_editor, dye_id_map)
     populate_emhex_exhex(apps, schema_editor)
+    migrate_reversion_state_versions(apps, schema_editor)
     print("Data migration complete!")
 
 
