@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final, Literal
 
 from django.db import models
+from django.utils.text import slugify
 
 from proteins.models.fluorescence_data import AbstractFluorescenceData
 
@@ -94,6 +95,12 @@ class Fluorophore(AbstractFluorescenceData):
 
     def __str__(self):
         return self.label
+
+    def save(self, *args, **kwargs):
+        # Auto-generate slug from owner_slug + state name if not set
+        if not self.slug and self.owner_slug:
+            self.slug = slugify(f"{self.owner_slug}-{self.name}")
+        super().save(*args, **kwargs)
 
     @property
     def label(self) -> str:

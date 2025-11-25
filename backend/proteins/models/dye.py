@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from django.db import models
+from django.utils.text import slugify
 from model_utils.models import TimeStampedModel
 
 from proteins.models.fluorophore import Fluorophore
@@ -37,6 +38,7 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
         abstract = False
 
     def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)  # Always regenerate, like Protein.save()
         super().save(*args, **kwargs)
         # Update cached owner fields on all states when dye name/slug changes
         # These fields are cached on Fluorophore for query performance
