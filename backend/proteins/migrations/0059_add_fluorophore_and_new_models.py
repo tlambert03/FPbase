@@ -263,13 +263,20 @@ def update_ocfluoreff(apps: Apps, schema_editor: BaseDatabaseSchemaEditor, dye_i
             SELECT id FROM django_content_type
             WHERE app_label = 'proteins' AND model = 'state'
         """)
-        state_ct_id = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        if result is None:
+            # No content types exist yet (fresh database), nothing to migrate
+            return
+        state_ct_id = result[0]
 
         cursor.execute("""
             SELECT id FROM django_content_type
             WHERE app_label = 'proteins' AND model = 'dye'
         """)
-        dye_ct_id = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        if result is None:
+            return
+        dye_ct_id = result[0]
 
         # First, clean up orphaned records that point to deleted States/Dyes
         # These have object_ids that don't exist in the old tables anymore
@@ -390,7 +397,11 @@ def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSche
     state_only_fields = {"protein", "maturation", "transitions"}
 
     with schema_editor.connection.cursor() as cursor:
-        state_ct = ContentType.objects.get(app_label="proteins", model="state")
+        try:
+            state_ct = ContentType.objects.get(app_label="proteins", model="state")
+        except ContentType.DoesNotExist:
+            # No content types exist yet (fresh database), nothing to migrate
+            return
         fluor_ct, _ = ContentType.objects.get_or_create(app_label="proteins", model="fluorophore")
 
         # Build lookup dict for protein name/slug (used for owner_name/owner_slug)
