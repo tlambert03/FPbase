@@ -1011,7 +1011,9 @@ class Migration(migrations.Migration):
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
-        # Step 4: Remove GenericForeignKey fields from OcFluorEff
+        # Step 4: Update unique constraint on OcFluorEff
+        migrations.AlterUniqueTogether(name="ocfluoreff", unique_together={("oc", "fluor")}),
+        # Step 5: Remove GenericForeignKey fields from OcFluorEff
         migrations.RemoveField(
             model_name="ocfluoreff",
             name="content_type",
@@ -1020,7 +1022,7 @@ class Migration(migrations.Migration):
             model_name="ocfluoreff",
             name="object_id",
         ),
-        # Step 5: Make fluor FK on OcFluorEff non-nullable
+        # Step 6: Make fluor FK on OcFluorEff non-nullable
         migrations.AlterField(
             model_name="ocfluoreff",
             name="fluor",
@@ -1030,5 +1032,4 @@ class Migration(migrations.Migration):
                 to="proteins.fluorophore",
             ),
         ),
-        migrations.AlterUniqueTogether(name="ocfluoreff", unique_together={("oc", "fluor")}),
     ]
