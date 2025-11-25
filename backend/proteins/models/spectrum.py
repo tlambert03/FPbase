@@ -4,7 +4,7 @@ import ast
 import json
 import logging
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 import django.forms
 import numpy as np
@@ -570,13 +570,13 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         d = self.waverange(waverange)
         return np.mean([i[1] for i in d])
 
-    def width(self, height=0.5) -> tuple[float, float] | Literal[False]:
+    def width(self, height=0.5) -> tuple[float, float] | None:
         try:
             upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
             downindex = len(self.y) - next(x[0] for x in enumerate(reversed(self.y)) if x[1] > height)
             return (self.x[upindex], self.x[downindex])
         except Exception:
-            return False
+            return None
 
     def d3dict(self) -> D3Dict:
         D: D3Dict = {

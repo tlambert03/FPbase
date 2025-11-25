@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final, Literal
+from typing import TYPE_CHECKING, Final
 
 from django.db import models
 from django.utils.text import slugify
@@ -220,11 +220,15 @@ class Fluorophore(AbstractFluorescenceData):
             return True
         return False
 
-    def ex_band(self, height=0.7) -> tuple[float, float] | Literal[False]:
-        return self.ex_spectrum.width(height)
+    def ex_band(self, height=0.7) -> tuple[float, float] | None:
+        if (spect := self.ex_spectrum) is not None:
+            return spect.width(height)
+        return None
 
-    def em_band(self, height=0.7) -> tuple[float, float] | Literal[False]:
-        return self.em_spectrum.width(height)
+    def em_band(self, height=0.7) -> tuple[float, float] | None:
+        if (spect := self.em_spectrum) is not None:
+            return spect.width(height)
+        return None
 
     def within_ex_band(self, value, height=0.7) -> bool:
         if band := self.ex_band(height):
