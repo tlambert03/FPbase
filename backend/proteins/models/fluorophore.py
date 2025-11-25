@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, cast
 
 from django.db import models
 from django.utils.text import slugify
@@ -134,81 +134,49 @@ class Fluorophore(AbstractFluorescenceData):
         3. Primary reference - Measurement from the owner's primary_reference
         4. Most recent - Fallback by date_measured (most recent first)
         """
-        from proteins.models import FluorescenceMeasurement
-
         measurable_fields = AbstractFluorescenceData.get_measurable_fields()
         new_values: dict[str, object] = {}
         new_source_map: dict[str, int] = {}
-
-        # Get primary reference ID for priority sorting
         primary_ref_id = self._get_primary_reference_id()
 
-        # 1. Handle pinned fields first (admin overrides)
-        pinned_fields: set[str] = set()
-        for field, measurement_id in self.pinned_source_map.items():
-            if field not in measurable_fields:
-                continue
-            try:
-                measurement = FluorescenceMeasurement.objects.get(id=measurement_id, fluorophore=self)
-                val = getattr(measurement, field)
-                if val is not None:
-                    new_values[field] = val
-                    new_source_map[field] = measurement.id
-                    pinned_fields.add(field)
-            except FluorescenceMeasurement.DoesNotExist:
-                # Pinned measurement no longer exists, skip it
-                pass
+        # Fetch pinned measurements in one query
+        pinned_source_map = cast("dict[str, int]", self.pinned_source_map)
+        pinned_by_id = {m.id: m for m in self.measurements.filter(id__in=pinned_source_map.values())}
 
-        # 2. Fetch all measurements for non-pinned fields
-        measurements = list(self.measurements.select_related("reference").all())
+        # Handle pinned fields first (admin overrides)
+        pinned_fields: set[str] = set()
+        for field, mid in pinned_source_map.items():
+            if field in measurable_fields and (m := pinned_by_id.get(mid)):
+                if (val := getattr(m, field)) is not None:
+                    new_values[field] = val
+                    new_source_map[field] = m.id
+                    pinned_fields.add(field)
 
         # Sort by priority: trusted > primary_reference > most recent date
-        def measurement_priority(m: FluorescenceMeasurement) -> tuple[int, int, str]:
-            # Lower tuple = higher priority (sorted ascending)
-            trusted_score = 0 if m.is_trusted else 1
-            primary_score = 0 if primary_ref_id and m.reference_id == primary_ref_id else 1
-            # Use date_measured for sorting, fallback to empty string (sorts last)
-            date_str = m.date_measured.isoformat() if m.date_measured else ""
-            # Negate by reversing string comparison for descending date order
-            return (trusted_score, primary_score, date_str)
-
-        # Sort: trusted first, then primary ref, then most recent date
-        measurements.sort(key=measurement_priority)
-        # Reverse date sorting within groups (we want most recent first)
-        # Re-sort with proper date handling
-        measurements.sort(
+        measurements = sorted(
+            self.measurements.all(),
             key=lambda m: (
-                0 if m.is_trusted else 1,
-                0 if primary_ref_id and m.reference_id == primary_ref_id else 1,
-                # Invert date for descending order (most recent first)
+                not m.is_trusted,
+                not (primary_ref_id and m.reference_id == primary_ref_id),
                 -(m.date_measured.toordinal() if m.date_measured else 0),
-            )
+            ),
         )
 
-        # 3. Waterfall Logic: Find the first non-null value for each non-pinned field
+        # Waterfall: first non-null value for each non-pinned field
         for field in measurable_fields:
             if field in pinned_fields:
-                continue  # Already handled above
-
+                continue
             for m in measurements:
-                val = getattr(m, field)
-                if val is not None:
+                if (val := getattr(m, field)) is not None:
                     new_values[field] = val
                     new_source_map[field] = m.id
                     break
             else:
-                # No measurement had a value for this field
-                # Use field default for non-nullable fields (e.g., is_dark)
                 field_obj = self._meta.get_field(field)
-                if field_obj.has_default():
-                    new_values[field] = field_obj.get_default()
-                else:
-                    new_values[field] = None
+                new_values[field] = field_obj.get_default() if field_obj.has_default() else None
 
-        # 4. Update cached values
         for key, val in new_values.items():
             setattr(self, key, val)
-
         self.source_map = new_source_map
         self.save()
 
