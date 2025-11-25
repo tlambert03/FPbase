@@ -250,7 +250,7 @@ class OpticalConfig(OwnedCollection):
             through="FilterPlacement",
         )
     light_id: int | None
-    light: models.ForeignKey[Light] = models.ForeignKey(
+    light: models.ForeignKey[Light | None] = models.ForeignKey(
         "Light",
         null=True,
         blank=True,
@@ -258,7 +258,7 @@ class OpticalConfig(OwnedCollection):
         on_delete=models.SET_NULL,
     )
     camera_id: int | None
-    camera: models.ForeignKey[Camera] = models.ForeignKey(
+    camera: models.ForeignKey[Camera | None] = models.ForeignKey(
         "Camera",
         null=True,
         blank=True,

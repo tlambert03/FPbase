@@ -20,6 +20,8 @@ from proteins.extrest import entrez
 from proteins.validators import validate_doi
 
 if TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractUser
+
     from proteins.models import (
         BleachMeasurement,
         Excerpt,
@@ -124,7 +126,7 @@ class Reference(TimeStampedModel):
     summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
 
     created_by_id: int | None
-    created_by: models.ForeignKey[User | None] = models.ForeignKey(
+    created_by: models.ForeignKey[AbstractUser | None] = models.ForeignKey(
         User,
         related_name="reference_author",
         blank=True,
@@ -132,7 +134,7 @@ class Reference(TimeStampedModel):
         on_delete=models.CASCADE,
     )
     updated_by_id: int | None
-    updated_by: models.ForeignKey[User | None] = models.ForeignKey(
+    updated_by: models.ForeignKey[AbstractUser | None] = models.ForeignKey(
         User,
         related_name="reference_modifier",
         blank=True,
