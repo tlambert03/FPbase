@@ -49,6 +49,17 @@ jobs:
       - name: Run TypeScript type checking
         run: pnpm typecheck
 
+  check-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Check for new migrations
+        run: uv run backend/manage.py makemigrations --check --noinput
+
   test:
     runs-on: ubuntu-latest
     services:

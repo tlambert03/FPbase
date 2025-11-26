@@ -16,7 +16,7 @@ from django.views.generic import DetailView
 from fpbase.util import uncache_protein_page
 from proteins.util.maintain import validate_node
 
-from ..models import Dye, Fluorophore, Lineage, Organism, Protein, Spectrum, State
+from ..models import FluorState, Lineage, Organism, Protein, Spectrum, State
 from ..models.spectrum import Camera, Filter, Light
 
 logger = logging.getLogger(__name__)
@@ -117,18 +117,15 @@ def similar_spectrum_owners(request):
     similars = Spectrum.objects.find_similar_owners(name, 0.3)[:4]
 
     # Group similars by type and fetch with proper prefetching to avoid N+1 queries
-    # State, Dye, Filter, Light, Camera are the possible types
-    state_ids = []
-    dye_ids = []
+    # Fluorophore (State + DyeState), Filter, Light, Camera are the possible types
+    fluor_ids = []
     filter_ids = []
     light_ids = []
     camera_ids = []
 
     for s in similars:
-        if isinstance(s, State):
-            state_ids.append(s.id)
-        elif isinstance(s, Dye):
-            dye_ids.append(s.id)
+        if isinstance(s, FluorState):
+            fluor_ids.append(s.id)
         elif isinstance(s, Filter):
             filter_ids.append(s.id)
         elif isinstance(s, Light):
@@ -137,32 +134,42 @@ def similar_spectrum_owners(request):
             camera_ids.append(s.id)
 
     # Fetch each type with appropriate prefetching
-    # Fluorophores (State, Dye) have 'spectra' (plural), others have 'spectrum' (singular)
-    states = State.objects.filter(id__in=state_ids).select_related("protein").prefetch_related("spectra")
-    dyes = Dye.objects.filter(id__in=dye_ids).prefetch_related("spectra")
+    # For Fluorophores, we need to query State and DyeState separately to get concrete subclasses
+    # (Fluorophore.objects returns base class instances without get_absolute_url)
+    from proteins.models.dye import DyeState
+
+    states = State.objects.filter(id__in=fluor_ids).select_related("protein").prefetch_related("spectra")
+    dye_states = DyeState.objects.filter(id__in=fluor_ids).select_related("dye").prefetch_related("spectra")
     filters = Filter.objects.filter(id__in=filter_ids).select_related("spectrum")
     lights = Light.objects.filter(id__in=light_ids).select_related("spectrum")
     cameras = Camera.objects.filter(id__in=camera_ids).select_related("spectrum")
 
     # Combine all objects maintaining order
+    # For Fluorophores (State/DyeState), use ID-only as key since original `similars` has base "FluorState" class
     similars_dict = {}
-    for item in [*states, *dyes, *filters, *lights, *cameras]:
-        similars_dict[(item.__class__.__name__, item.id)] = item
+    for item in [*states, *dye_states, *filters, *lights, *cameras]:
+        if isinstance(item, FluorState):
+            similars_dict[item.id] = item  # Fluorophores: use ID only
+        else:
+            similars_dict[(item.__class__.__name__, item.id)] = item  # Others: use (class, ID)
 
     similars_optimized = []
     for s in similars:
-        key = (s.__class__.__name__, s.id)
+        if isinstance(s, FluorState):
+            key = s.id  # For Fluorophores, look up by ID only
+        else:
+            key = (s.__class__.__name__, s.id)
         similars_optimized.append(similars_dict.get(key, s))
 
     data = {
         "similars": [
             {
                 "slug": s.slug,
-                "name": s.protein.name if hasattr(s, "protein") else s.name,
+                "name": s.label if isinstance(s, FluorState) else s.name,
                 "url": s.get_absolute_url(),
                 "spectra": (
                     [sp.get_subtype_display() for sp in s.spectra.all()]
-                    if isinstance(s, Fluorophore)
+                    if isinstance(s, FluorState)
                     else [s.spectrum.get_subtype_display()]
                 ),
             }

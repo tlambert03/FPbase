@@ -21,6 +21,7 @@ from proteins.factories import (
     StateFactory,
 )
 from proteins.models import Spectrum
+from proteins.models.dye import DyeState
 
 User = get_user_model()
 
@@ -32,25 +33,35 @@ class SimilarSpectrumOwnersViewTests(TestCase):
     def setUpTestData(cls):
         """Create test data once for all tests in this class."""
         # Create proteins with states - all with similar names so find_similar_owners finds them
+        # Use default_state=None to prevent auto-creation, then create states with name="default"
+        # so that Fluorophore.label returns just the protein name
         cls.proteins = []
         cls.states = []
         for i in range(5):
-            protein = ProteinFactory(name=f"SimilarProtein{i}")
-            state = StateFactory(protein=protein, name=f"state{i}")
+            protein = ProteinFactory(name=f"SimilarProtein{i}", default_state=None)
+            state = StateFactory(protein=protein, name="default")
             cls.proteins.append(protein)
             cls.states.append(state)
-            # Add spectra to states
-            SpectrumFactory(owner_state=state, category=Spectrum.PROTEIN, subtype=Spectrum.EX)
-            SpectrumFactory(owner_state=state, category=Spectrum.PROTEIN, subtype=Spectrum.EM)
 
-        # Create dyes (Fluorophores without protein)
+        # Create dyes - note: DyeState is the fluorophore that owns spectra, not Dye itself
+        # Use default_state=None to prevent auto-creation
         cls.dyes = []
+        cls.dye_states = []
         for i in range(3):
-            dye = DyeFactory(name=f"SimilarDye{i}")
+            dye = DyeFactory(name=f"SimilarDye{i}", default_state=None)
             cls.dyes.append(dye)
-            # Add spectra to dyes
-            SpectrumFactory(owner_dye=dye, category=Spectrum.DYE, subtype=Spectrum.EX)
-            SpectrumFactory(owner_dye=dye, category=Spectrum.DYE, subtype=Spectrum.EM)
+            # Create DyeState with name="default" so label returns just the dye name
+            dye_state = DyeState.objects.create(
+                dye=dye,
+                name="default",
+                slug=f"similardye{i}-default",
+                ex_max=488,
+                em_max=520,
+            )
+            cls.dye_states.append(dye_state)
+            # Add spectra to dye states
+            SpectrumFactory(owner_fluor=dye_state, category=Spectrum.DYE, subtype=Spectrum.EX)
+            SpectrumFactory(owner_fluor=dye_state, category=Spectrum.DYE, subtype=Spectrum.EM)
 
         # Create filters (factories automatically create spectrum)
         cls.filters = []
@@ -265,7 +276,7 @@ class SimilarSpectrumOwnersViewTests(TestCase):
         self.assertIn(self.proteins[0].name, names)
 
     def test_similar_spectrum_owners_dye_uses_own_name(self):
-        """Test that Dyes (Fluorophores without protein) use their own name."""
+        """Test that DyeStates (Fluorophores without protein) use their dye's name."""
         response = self.client.post(
             "/ajax/validate_spectrumownername/",
             {"owner": self.dyes[0].name},
@@ -274,7 +285,7 @@ class SimilarSpectrumOwnersViewTests(TestCase):
 
         data = response.json()
         self.assertGreater(len(data["similars"]), 0)
-        # At least one should be the dye we searched for
+        # At least one should be the dye we searched for (label returns dye name when state name is "default")
         names = [s["name"] for s in data["similars"]]
         self.assertIn(self.dyes[0].name, names)
 

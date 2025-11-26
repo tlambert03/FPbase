@@ -201,15 +201,6 @@ class QueryOptimizationTestCase(GraphQLTestCase):
             + "\n".join(f"{i + 1}. {q['sql'][:200]}..." for i, q in enumerate(context.captured_queries)),
         )
 
-        # For better understanding, print the actual number of queries
-        print(f"\nQuery optimization test: {num_queries} queries executed")
-        if num_queries <= 8:
-            print("✓ Excellent optimization!")
-        elif num_queries <= 15:
-            print("✓ Good optimization (could be better)")
-        else:
-            print("✗ Poor optimization - likely N+1 problem exists")
-
     def test_single_protein_with_transitions(self):
         """
         Test a more focused query for a single protein with transitions.
@@ -266,5 +257,3 @@ class QueryOptimizationTestCase(GraphQLTestCase):
             10,
             f"Single protein query should be highly optimized, got {num_queries} queries",
         )
-
-        print(f"\nSingle protein query: {num_queries} queries executed")

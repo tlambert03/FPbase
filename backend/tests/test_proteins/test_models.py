@@ -21,13 +21,13 @@ class TestProteinModel(TestCase):
         Spectrum.objects.create(
             category=Spectrum.PROTEIN,
             subtype=Spectrum.EX,
-            owner_state=state,
+            owner_fluor=state,
             data=[[431.0, 0.0039], [432.0, 0.0038], [433.0, 0.0042]],
         )
         Spectrum.objects.create(
             category=Spectrum.PROTEIN,
             subtype=Spectrum.EM,
-            owner_state=state,
+            owner_fluor=state,
             data=[[550.0, 0.0012], [551.0, 0.0014], [552.0, 0.0015]],
         )
 

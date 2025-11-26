@@ -245,7 +245,7 @@ class TestSpectrumForm(TestCase):
         form_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": (
                 "[[400, 0.1], [401, 0.2], [402, 0.3], [403, 0.5], [404, 0.8], "
                 "[405, 1.0], [406, 0.8], [407, 0.5], [408, 0.3], [409, 0.1]]"
@@ -261,7 +261,7 @@ class TestSpectrumForm(TestCase):
         form_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": "",  # Empty manual data
             "data_source": "manual",
             "confirmation": True,
@@ -280,7 +280,7 @@ class TestSpectrumForm(TestCase):
         form_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": "",  # Empty manual data
             "data_source": "file",
             "confirmation": True,
@@ -294,7 +294,7 @@ class TestSpectrumForm(TestCase):
         form_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": "",
             "data_source": "file",
             "confirmation": True,
@@ -309,7 +309,7 @@ class TestSpectrumForm(TestCase):
         form_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": "",
             "confirmation": True,
             # No data_source provided - should default to "file"
@@ -329,7 +329,7 @@ class TestSpectrumForm(TestCase):
         form_data = {
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
-            "owner_state": self.state.id,
+            "owner_fluor": self.state.id,
             "data": ("[[400, 0.1], [405, 0.5], [410, 1.0], [415, 0.8], [420, 0.5], [425, 0.3], [430, 0.1]]"),
             "data_source": "manual",
             "confirmation": True,

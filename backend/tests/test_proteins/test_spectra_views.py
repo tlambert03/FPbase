@@ -20,7 +20,7 @@ class SpectraCSVViewTests(TestCase):
         for i in range(10):
             state = StateFactory()
             spectrum = SpectrumFactory(
-                owner_state=state,
+                owner_fluor=state,
                 subtype=Spectrum.EX if i % 2 == 0 else Spectrum.EM,
                 category=Spectrum.PROTEIN,
             )

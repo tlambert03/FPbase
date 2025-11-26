@@ -1,6 +1,8 @@
 import numpy as np
 
-from ..models.state import Dye, State
+from proteins.models.dye import Dye as Dye
+from proteins.models.dye import DyeState
+from proteins.models.protein import State as State
 
 
 def spectral_product(arrlist):
@@ -50,7 +52,7 @@ def oclist_efficiency_report(oclist, fluor_collection=None, include_dyes=True):
     if fluor_collection is None:
         fluor_collection = list(State.objects.with_spectra())
         if include_dyes:
-            fluor_collection += list(Dye.objects.with_spectra())
+            fluor_collection += list(DyeState.objects.with_spectra())
     D = {}
     for oc in oclist:
         D[oc.name] = oc_efficiency_report(oc, fluor_collection)

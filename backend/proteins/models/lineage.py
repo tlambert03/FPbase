@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -5,11 +9,10 @@ from model_utils.models import TimeStampedModel
 from mptt.models import MPTTModel, TreeForeignKey
 
 from fpseq.mutations import MutationSet
+from proteins.models.mixins import Authorable
+from proteins.models.protein import Protein
+from proteins.util.maintain import validate_node
 from references.models import Reference
-
-from ..models.mixins import Authorable
-from ..util.maintain import validate_node
-from .protein import Protein
 
 
 def parse_mutation(mut_string):
@@ -35,9 +38,14 @@ class MutationSetField(models.CharField):
 
 
 class Lineage(MPTTModel, TimeStampedModel, Authorable):
-    protein = models.OneToOneField("Protein", on_delete=models.CASCADE, related_name="lineage")
+    protein_id: int
+    protein: models.OneToOneField[Protein] = models.OneToOneField(
+        "Protein", on_delete=models.CASCADE, related_name="lineage"
+    )
+    parent_id: int | None
     parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
-    reference = models.ForeignKey(
+    reference_id: int | None
+    reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         Reference,
         on_delete=models.CASCADE,
         null=True,
@@ -46,13 +54,18 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
     )
     mutation = MutationSetField(max_length=400, blank=True)
     rootmut = models.CharField(max_length=400, blank=True)
-    root_node = models.ForeignKey(
+    root_node_id: int | None
+    root_node: models.ForeignKey[Lineage | None] = models.ForeignKey(
         "self",
         null=True,
         on_delete=models.CASCADE,
         related_name="descendants",
         verbose_name="Root Node",
     )
+
+    if TYPE_CHECKING:
+        children: models.QuerySet[Lineage]
+        descendants: models.QuerySet[Lineage]
 
     class MPTTMeta:
         order_insertion_by = ["protein"]
