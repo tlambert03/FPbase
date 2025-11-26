@@ -1,36 +1,38 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
+from typing import TYPE_CHECKING
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Max, OuterRef, Q, Subquery
 from model_utils.models import TimeStampedModel
 
-from ..util.efficiency import oc_efficiency_report
-from .state import Dye, State
+from proteins.models.fluorophore import FluorState
+from proteins.util.efficiency import oc_efficiency_report
+
+if TYPE_CHECKING:
+    from proteins.models import OpticalConfig
 
 
 class OcFluorEffQuerySet(models.QuerySet):
     def outdated(self):
-        state_id = ContentType.objects.get(app_label="proteins", model="state").id
-        dye_id = ContentType.objects.get(app_label="proteins", model="dye").id
+        fluor_objs = FluorState.objects.filter(id=OuterRef("fluor_id"))
+        spectra_mod = fluor_objs.annotate(latest_spec=Max("spectra__modified")).values("latest_spec")[:1]
 
-        state_mod = State.objects.filter(id=OuterRef("object_id")).annotate(m=Max("spectra__modified")).values("m")
-        dye_mod = Dye.objects.filter(id=OuterRef("object_id")).annotate(m=Max("spectra__modified")).values("m")
-
-        q = self.filter(content_type=state_id).annotate(fluor_mod=F("state__modified"), spec_mod=Subquery(state_mod))
-        r = self.filter(content_type=dye_id).annotate(fluor_mod=F("dye__modified"), spec_mod=Subquery(dye_mod))
-        return (q | r).filter(
-            Q(modified__lt=F("fluor_mod")) | Q(modified__lt=F("spec_mod")) | Q(modified__lt=F("oc__modified"))
+        fluor_mod = fluor_objs.values("modified")[:1]
+        return self.annotate(
+            fluor_mod=Subquery(fluor_mod),
+            spec_mod=Subquery(spectra_mod),
+        ).filter(
+            Q(modified__lt=F("fluor_mod")) | Q(modified__lt=F("spec_mod")) | Q(modified__lt=F("oc__modified")),
         )
 
 
 class OcFluorEff(TimeStampedModel):
-    oc = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
-    limit = models.Q(app_label="proteins", model="state") | models.Q(app_label="proteins", model="dye")
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, limit_choices_to=limit)
-    object_id = models.PositiveIntegerField()
-    fluor = GenericForeignKey("content_type", "object_id")
+    oc_id: int
+    oc: models.ForeignKey["OpticalConfig"] = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
+    fluor_id: int
+    fluor: models.ForeignKey[FluorState] = models.ForeignKey(
+        FluorState, on_delete=models.CASCADE, related_name="oc_effs"
+    )
     fluor_name = models.CharField(max_length=100, blank=True)
     ex_eff = models.FloatField(
         null=True,
@@ -54,12 +56,7 @@ class OcFluorEff(TimeStampedModel):
     objects = OcFluorEffQuerySet.as_manager()
 
     class Meta:
-        unique_together = ("oc", "content_type", "object_id")
-
-    def clean(self):
-        if self.content_type_id not in ContentType.objects.filter(self.limit).values_list("id", flat=True):
-            mods = ContentType.objects.filter(self.limit).values_list("model", flat=True)
-            raise ValidationError("ContentType for OcFluorEff.fluor must be in: {}".format(",".join(mods)))
+        unique_together = ("oc", "fluor")
 
     def update_effs(self):
         rep = oc_efficiency_report(self.oc, [self.fluor]).get(self.fluor.slug, {})
@@ -70,8 +67,16 @@ class OcFluorEff(TimeStampedModel):
 
     @property
     def outdated(self):
-        # smod = [s.modified for s in self.fluor.spectra.all()]
-        return (self.modified < self.oc.modified) or (self.modified < self.fluor.modified)
+        oc_modified = getattr(self.oc, "modified", None)
+        fluor_modified = getattr(self.fluor, "modified", None)
+        spect_modified = None
+        if hasattr(self.fluor, "spectra"):
+            spect_modified = self.fluor.spectra.aggregate(latest=Max("modified")).get("latest")
+
+        for candidate in (oc_modified, fluor_modified, spect_modified):
+            if candidate and self.modified < candidate:
+                return True
+        return False
 
     def save(self, *args, **kwargs):
         if self.pk is None or self.outdated:

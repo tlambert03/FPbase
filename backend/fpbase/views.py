@@ -149,7 +149,7 @@ class HomeView(TemplateView):
         data = super().get_context_data()
         data["stats"] = {
             "proteins": Protein.objects.count(),
-            "protspectra": Spectrum.objects.exclude(owner_state=None).count(),
+            "protspectra": Spectrum.objects.exclude(owner_fluor=None).count(),
         }
         return data
 

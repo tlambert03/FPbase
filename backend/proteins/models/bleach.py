@@ -1,10 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from model_utils.models import TimeStampedModel
 
+from proteins.models.mixins import Authorable
 from references.models import Reference
 
-from .mixins import Authorable
+if TYPE_CHECKING:
+    from proteins.models import State
 
 
 class BleachMeasurement(Authorable, TimeStampedModel):
@@ -88,7 +94,8 @@ class BleachMeasurement(Authorable, TimeStampedModel):
         help_text="protein expressed in living cells",
     )
     cell_type = models.CharField(max_length=60, blank=True, verbose_name="Cell Type", help_text="e.g. HeLa")
-    reference = models.ForeignKey(
+    reference_id: int | None
+    reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         Reference,
         related_name="bleach_measurements",
         verbose_name="Measurement Reference",
@@ -97,7 +104,8 @@ class BleachMeasurement(Authorable, TimeStampedModel):
         on_delete=models.SET_NULL,
         help_text="Reference where the measurement was made",
     )  # usually, the original paper that published the protein
-    state = models.ForeignKey(
+    state_id: int
+    state: models.ForeignKey[State] = models.ForeignKey(
         "State",
         related_name="bleach_measurements",
         verbose_name="Protein (state)",

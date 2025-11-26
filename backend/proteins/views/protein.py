@@ -66,7 +66,7 @@ logger = logging.getLogger(__name__)
 def check_switch_type(object, request):
     suggested = suggested_switch_type(object)
     if suggested and object.switch_type != suggested:
-        disp = dict(Protein.SWITCHING_CHOICES).get(suggested).lower()
+        disp = dict(Protein.SwitchingChoices).get(suggested).lower()
         actual = object.get_switch_type_display().lower()
         msg = (
             "<i class='fa fa-exclamation-circle me-2'></i><strong>Warning:</strong> "
@@ -648,7 +648,7 @@ def problems_inconsistencies(request):
     for prot in p:
         suggestion = suggested_switch_type(prot)
         if (prot.switch_type or suggestion) and (prot.switch_type != suggestion):
-            bad_switch.append((prot, dict(Protein.SWITCHING_CHOICES).get(suggestion)))
+            bad_switch.append((prot, dict(Protein.SwitchingChoices).get(suggestion)))
 
     return render(
         request,

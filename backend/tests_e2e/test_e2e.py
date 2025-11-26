@@ -18,6 +18,7 @@ from playwright.sync_api import expect
 
 from favit.models import Favorite
 from proteins.factories import (
+    DyeFactory,
     FilterFactory,
     MicroscopeFactory,
     OpticalConfigWithFiltersFactory,
@@ -96,12 +97,28 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert
     assert_snapshot(page)
 
 
+@pytest.mark.parametrize(
+    ("category", "subtype", "owner_name", "uses_select2"),
+    [
+        pytest.param(Spectrum.PROTEIN, Spectrum.EX, "SubmitTestProtein", True, id="protein"),
+        pytest.param(Spectrum.DYE, Spectrum.EM, "SubmitTestDye", False, id="dye"),
+        pytest.param(Spectrum.FILTER, Spectrum.LP, "SubmitTestFilter", False, id="filter"),
+    ],
+)
 def test_spectrum_submission_preview_manual_data(
-    auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
+    auth_page: Page,
+    live_server: LiveServer,
+    assert_snapshot: Callable,
+    category: str,
+    subtype: str,
+    owner_name: str,
+    uses_select2: bool,
 ) -> None:
-    """Test spectrum submission form with manual data preview."""
-    protein = ProteinFactory.create()
-    protein.default_state.ex_spectrum.delete()
+    """Test spectrum submission form with manual data preview for different categories."""
+    # Create owner object if needed (protein requires existing DB entry for Select2)
+    if category == Spectrum.PROTEIN:
+        protein = ProteinFactory.create(name=owner_name)
+        protein.default_state.ex_spectrum.delete()
 
     url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
     auth_page.goto(url)
@@ -109,12 +126,15 @@ def test_spectrum_submission_preview_manual_data(
     # Wait for form to be fully initialized
     expect(auth_page.locator("#spectrum-submit-form[data-form-ready='true']")).to_be_attached()
 
-    auth_page.locator("#id_category").select_option(Spectrum.PROTEIN)
-    auth_page.locator("#id_subtype").select_option(Spectrum.EX)
+    auth_page.locator("#id_category").select_option(category)
+    auth_page.locator("#id_subtype").select_option(subtype)
     auth_page.locator("#id_confirmation").check()
 
-    # Select2 autocomplete for protein
-    _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
+    # Fill owner field - different methods depending on category
+    if uses_select2:
+        _select2_enter("#div_id_owner_fluor [role='combobox']", owner_name, auth_page)
+    else:
+        auth_page.locator("#id_owner").fill(owner_name)
 
     # Switch to manual data tab and enter data
     auth_page.locator("#manual-tab").click()
@@ -162,7 +182,7 @@ def test_spectrum_submission_tab_switching(
     auth_page.locator("#id_subtype").select_option(Spectrum.EX)
     auth_page.locator("#id_confirmation").check()
 
-    _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
+    _select2_enter("#div_id_owner_fluor [role='combobox']", protein.name, auth_page)
 
     # Test tab switching
     file_tab = auth_page.locator("#file-tab")
@@ -313,9 +333,8 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
         default_state__em_max=525,
         default_state__qy=0.8,
     )
-    ProteinFactory(
+    DyeFactory(
         name="acceptor",
-        agg="m",
         default_state__ex_max=525,
         default_state__em_max=550,
         default_state__ext_coeff=55000,

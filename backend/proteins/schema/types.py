@@ -123,7 +123,7 @@ class Protein(gdo.OptimizedDjangoObjectType):
 class FluorophoreInterface(graphene.Interface):
     qy = graphene.Float()
     extCoeff = graphene.Float(source="ext_coeff")
-    twopPeakgm = graphene.Float(source="twop_peakGM")
+    twopPeakgm = graphene.Float(source="twop_peak_gm")
     exMax = graphene.Float(source="ex_max")
     emMax = graphene.Float(source="em_max")
 
@@ -133,6 +133,23 @@ class SpectrumOwnerInterface(graphene.Interface):
     id = graphene.ID()
     typ = graphene.String()
     slug = graphene.String()
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+        from proteins.models import dye as dye_models
+
+        # Check DyeState first since it's a Fluorophore
+        if isinstance(instance, dye_models.DyeState):
+            return DyeState
+        elif isinstance(instance, models.State):
+            return State
+        elif isinstance(instance, models.Camera):
+            return Camera
+        elif isinstance(instance, models.Filter):
+            return Filter
+        elif isinstance(instance, models.Light):
+            return Light
+        return None
 
     def resolve_typ(self, info):
         return self.__class__.__name__.lower()
@@ -147,12 +164,30 @@ class Camera(DjangoObjectType):
         model = models.Camera
         fields = "__all__"
 
+    @classmethod
+    def is_type_of(cls, root, info):
+        return isinstance(root, models.Camera)
+
 
 class Dye(DjangoObjectType):
     class Meta:
-        interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.Dye
         fields = "__all__"
+
+
+class DyeState(DjangoObjectType):
+    """Fluorophore representing a dye in a specific environment."""
+
+    class Meta:
+        interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
+        model = models.dye.DyeState
+        fields = "__all__"
+
+    @classmethod
+    def is_type_of(cls, root, info):
+        from proteins.models import dye as dye_models
+
+        return isinstance(root, dye_models.DyeState)
 
 
 class Filter(DjangoObjectType):
@@ -161,12 +196,20 @@ class Filter(DjangoObjectType):
         model = models.Filter
         fields = "__all__"
 
+    @classmethod
+    def is_type_of(cls, root, info):
+        return isinstance(root, models.Filter)
+
 
 class Light(DjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface,)
         model = models.Light
         fields = "__all__"
+
+    @classmethod
+    def is_type_of(cls, root, info):
+        return isinstance(root, models.Light)
 
 
 class State(gdo.OptimizedDjangoObjectType):
@@ -176,6 +219,10 @@ class State(gdo.OptimizedDjangoObjectType):
         interfaces = (SpectrumOwnerInterface, FluorophoreInterface)
         model = models.State
         fields = "__all__"
+
+    @classmethod
+    def is_type_of(cls, root, info):
+        return isinstance(root, models.State)
 
     @gdo.resolver_hints(select_related=("protein",), only=("protein",))
     def resolve_protein(self, info, **kwargs):
@@ -202,22 +249,32 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
 
     @gdo.resolver_hints(
         select_related=(
-            "owner_state",
-            "owner_dye",
+            "owner_fluor",
             "owner_camera",
             "owner_filter",
             "owner_light",
         ),
         only=(
-            "owner_state",
-            "owner_dye",
+            "owner_fluor",
             "owner_camera",
             "owner_filter",
             "owner_light",
         ),
     )
     def resolve_owner(self, info, **kwargs):
-        return self.owner
+        owner = self.owner
+        if owner is None:
+            return None
+
+        # Handle Django MTI - downcast Fluorophore to its specific subclass
+        # Check if it's a DyeState or State by trying to access the child instance
+        if hasattr(owner, "dyestate"):
+            return owner.dyestate
+        elif hasattr(owner, "state"):
+            return owner.state
+
+        # For non-Fluorophore owners (Camera, Filter, Light), return as-is
+        return owner
 
     def resolve_color(self, info, **kwargs):
         return self.color()

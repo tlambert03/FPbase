@@ -1,8 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
 
+if TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractUser
 User = get_user_model()
 
 
@@ -16,14 +22,16 @@ class AdminURLMixin:
 
 
 class Authorable(models.Model):
-    created_by = models.ForeignKey(
+    created_by_id: int | None
+    created_by: models.ForeignKey[AbstractUser | None] = models.ForeignKey(
         User,
         blank=True,
         null=True,
         related_name="%(class)s_author",
         on_delete=models.SET_NULL,
     )
-    updated_by = models.ForeignKey(
+    updated_by_id: int | None
+    updated_by: models.ForeignKey[AbstractUser | None] = models.ForeignKey(
         User,
         blank=True,
         null=True,

@@ -211,6 +211,7 @@ sentry_sdk.init(
 # Scout APM Configuration
 # ------------------------------------------------------------------------------
 # SCOUT_MONITOR and SCOUT_KEY are automatically set by the Heroku addon
+INSTALLED_APPS += ["scout_apm.django"]
 SCOUT_NAME = "FPbase"
 
 # Structlog Configuration for Production

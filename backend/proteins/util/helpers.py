@@ -342,7 +342,7 @@ def forster_list():
     # Fetch protein IDs first to reduce memory
     protein_ids = list(
         Protein.objects.with_spectra()
-        .filter(agg=Protein.MONOMER, switch_type=Protein.BASIC)
+        .filter(agg=Protein.AggChoices.MONOMER, switch_type=Protein.SwitchingChoices.BASIC)
         .values_list("id", flat=True)
     )
 
