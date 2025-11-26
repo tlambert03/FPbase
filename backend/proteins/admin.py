@@ -199,12 +199,6 @@ class DyeAdmin(admin.ModelAdmin):
     inlines = (DyeStateInline,)
 
 
-@admin.register(DyeState)
-class DyeStateAdmin(MultipleSpectraOwner, VersionAdmin):
-    model = DyeState
-    ordering = ("-created",)
-
-
 @admin.register(Filter)
 class FilterAdmin(SpectrumOwner, VersionAdmin):
     model = Filter
@@ -399,6 +393,49 @@ class StateAdmin(CompareVersionAdmin):
     def protein_link(self, obj):
         url = reverse("admin:proteins_protein_change", args=([obj.protein.pk]))
         return mark_safe(f'<a href="{url}">{obj.protein}</a>')
+
+
+@admin.register(DyeState)
+class DyeStateAdmin(MultipleSpectraOwner, CompareVersionAdmin):
+    # form = StateForm
+    model = State
+    list_select_related = ("dye", "created_by", "updated_by")
+    search_fields = ("dye__name",)
+    list_display = (
+        "__str__",
+        "dye_link",
+        "ex_max",
+        "em_max",
+        "created_by",
+        "updated_by",
+        "modified",
+    )
+    list_filter = ("created", "modified")
+    fieldsets = [
+        (None, {"fields": (("name", "slug", "is_dark"),)}),
+        (
+            None,
+            {
+                "fields": (
+                    ("ex_max", "em_max"),
+                    ("ext_coeff", "qy"),
+                    ("twop_ex_max", "twop_peak_gm", "twop_qy"),
+                    ("pka", "lifetime"),
+                )
+            },
+        ),
+        (
+            None,
+            {
+                "fields": ("spectra",),
+            },
+        ),
+    ]
+
+    @admin.display(description="Dye")
+    def dye_link(self, obj):
+        url = reverse("admin:proteins_dye_change", args=([obj.dye.pk]))
+        return mark_safe(f'<a href="{url}">{obj.dye}</a>')
 
 
 class StateTransitionAdmin(VersionAdmin):
