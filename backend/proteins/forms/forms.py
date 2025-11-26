@@ -439,10 +439,9 @@ class LineageForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         instance = getattr(self, "instance", None)
-        if instance and instance.pk:
-            if instance.protein.seq_validated or instance.children.exists():
-                self.fields["mutation"].widget.attrs["readonly"] = True
-                self.fields["parent"].widget.attrs["readonly"] = True
+        if instance and instance.pk and (instance.protein.seq_validated or instance.children.exists()):
+            self.fields["mutation"].widget.attrs["readonly"] = True
+            self.fields["parent"].widget.attrs["readonly"] = True
 
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -510,7 +509,7 @@ class BleachMeasurementForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs.get("instance", None)
+        instance = kwargs.get("instance")
         if instance:
             kwargs.update(initial={"reference_doi": instance.reference.doi})
         super().__init__(*args, **kwargs)
@@ -605,7 +604,7 @@ class BleachComparisonForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs.get("instance", None)
+        instance = kwargs.get("instance")
         if instance:
             kwargs.update(initial={"reference_doi": instance.reference.doi})
         super().__init__(*args, **kwargs)

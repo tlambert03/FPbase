@@ -49,10 +49,8 @@ def update_comparison(request):
     if request.POST.get("operation") == "add":
         current.add(request.POST.get("object"))
     elif request.POST.get("operation") == "remove":
-        try:
+        with contextlib.suppress(KeyError):
             current.remove(request.POST.get("object"))
-        except KeyError:
-            pass
     elif request.POST.get("operation") == "clear":
         current.clear()
     request.session["comparison"] = list(current)
@@ -155,10 +153,8 @@ def similar_spectrum_owners(request):
 
     similars_optimized = []
     for s in similars:
-        if isinstance(s, FluorState):
-            key = s.id  # For Fluorophores, look up by ID only
-        else:
-            key = (s.__class__.__name__, s.id)
+        # For Fluorophores, look up by ID only
+        key = s.id if isinstance(s, FluorState) else (s.__class__.__name__, s.id)
         similars_optimized.append(similars_dict.get(key, s))
 
     data = {

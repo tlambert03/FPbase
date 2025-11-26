@@ -404,10 +404,7 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
             oc.laser = int(_f)
             oc.save()
         except ValueError:
-            if iexact:
-                filt = Filter.objects.get(part__iexact=_f)
-            else:
-                filt = Filter.objects.get(name__icontains=_f)
+            filt = Filter.objects.get(part__iexact=_f) if iexact else Filter.objects.get(name__icontains=_f)
             fp = FilterPlacement(
                 filter=filt,
                 config=oc,

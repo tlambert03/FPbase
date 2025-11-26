@@ -150,10 +150,7 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
         nonlocal counter
 
         if not name:
-            if counter > 0:
-                name = f"{test_name}_{counter}.png"
-            else:
-                name = f"{test_name}.png"
+            name = f"{test_name}_{counter}.png" if counter > 0 else f"{test_name}.png"
 
         # Use global threshold if no local threshold provided
         if not threshold:

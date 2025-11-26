@@ -145,11 +145,10 @@ class FluorState(AbstractFluorescenceData):
         # Handle pinned fields first (admin overrides)
         pinned_fields: set[str] = set()
         for field, mid in pinned_source_map.items():
-            if field in measurable_fields and (m := pinned_by_id.get(mid)):
-                if (val := getattr(m, field)) is not None:
-                    new_values[field] = val
-                    new_source_map[field] = m.id
-                    pinned_fields.add(field)
+            if field in measurable_fields and (m := pinned_by_id.get(mid)) and (val := getattr(m, field)) is not None:
+                new_values[field] = val
+                new_source_map[field] = m.id
+                pinned_fields.add(field)
 
         # Sort by primary_reference
         measurements = sorted(
@@ -231,9 +230,7 @@ class FluorState(AbstractFluorescenceData):
             return None
 
     def has_spectra(self) -> bool:
-        if any([self.ex_spectrum, self.em_spectrum]):
-            return True
-        return False
+        return bool(any([self.ex_spectrum, self.em_spectrum]))
 
     def ex_band(self, height=0.7) -> tuple[float, float] | None:
         if (spect := self.ex_spectrum) is not None:

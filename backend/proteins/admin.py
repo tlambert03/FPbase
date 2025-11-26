@@ -284,10 +284,7 @@ class SpectrumAdmin(VersionAdmin):
         owner = obj.owner
         # FluorState is a base class - resolve to the actual subclass admin
         if isinstance(owner, FluorState):
-            if owner.entity_type == FluorState.EntityTypes.PROTEIN:
-                model_name = "state"
-            else:
-                model_name = "dyestate"
+            model_name = "state" if owner.entity_type == FluorState.EntityTypes.PROTEIN else "dyestate"
         else:
             model_name = owner._meta.model.__name__.lower()
 

@@ -117,20 +117,14 @@ def getmut(protname2, protname1=None, ref=None):
     from fpseq.mutations import get_mutations
 
     a = getprot(protname2)
-    if protname1:
-        b = getprot(protname1)
-    else:
-        b = a.lineage.parent.protein
+    b = getprot(protname1) if protname1 else a.lineage.parent.protein
     ref = getprot(ref).seq if ref else None
     return get_mutations(b.seq, a.seq, ref)
 
 
 def showalign(protname2, protname1=None):
     a = getprot(protname2)
-    if protname1:
-        b = getprot(protname1)
-    else:
-        b = a.lineage.parent.protein
+    b = getprot(protname1) if protname1 else a.lineage.parent.protein
     print(b.seq.align_to(a.seq))
 
 
@@ -165,7 +159,7 @@ def wave_to_hex(wavelength, gamma=1):
         return "#000"
 
     wavelength = float(wavelength)
-    if 520 <= wavelength:
+    if wavelength >= 520:
         wavelength += 40
 
     if wavelength < 380:
@@ -458,7 +452,7 @@ def spectra_fig(
     if not xlim:
         xlim = (min([s.min_wave for s in spectra]), max([s.max_wave for s in spectra]))
     for spec in spectra:
-        color = spec.color() if not colr else colr
+        color = colr if colr else spec.color()
         if fill:
             alpha = 0.5 if not alph else float(alph)
             ax.fill_between(*list(zip(*spec.data)), color=color, alpha=alpha, url="http://google.com=", **kwargs)

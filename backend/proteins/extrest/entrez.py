@@ -103,7 +103,7 @@ def _get_pmid_info(pmid: str) -> DoiInfo | None:
 
 def _merge_info(dict1: MutableMapping, dict2: MutableMapping, exclude=()) -> MutableMapping:
     """existings values in dict2 will overwrite dict1"""
-    for key in dict1.keys():
+    for key in dict1:
         if key in dict2 and dict2[key] and key not in exclude:
             dict1[key] = dict2[key]
     return dict1

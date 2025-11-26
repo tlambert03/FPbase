@@ -464,17 +464,16 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             self.subtype = self.QE
         if self.category == self.LIGHT:
             self.subtype = self.PD
-        if self.category in self.category_subtypes:
-            if self.subtype not in self.category_subtypes[self.category]:
-                errors.update(
-                    {
-                        "subtype": "{} spectrum subtype must be{} {}".format(
-                            self.get_category_display(),
-                            "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
-                            " ".join(self.category_subtypes[self.category]),
-                        )
-                    }
-                )
+        if self.category in self.category_subtypes and self.subtype not in self.category_subtypes[self.category]:
+            errors.update(
+                {
+                    "subtype": "{} spectrum subtype must be{} {}".format(
+                        self.get_category_display(),
+                        "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
+                        " ".join(self.category_subtypes[self.category]),
+                    )
+                }
+            )
 
         if errors:
             raise ValidationError(errors)
@@ -590,7 +589,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             "category": self.category,
             "type": self.subtype if self.subtype != self.ABS else self.EX,
             "color": self.color(),
-            "area": False if self.subtype in (self.LP, self.BS) else True,
+            "area": self.subtype not in (self.LP, self.BS),
             "url": self.owner.get_absolute_url(),
             "classed": f"category-{self.category} subtype-{self.subtype}",
         }

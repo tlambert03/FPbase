@@ -464,17 +464,16 @@ def add_sentry_context(logger, method_name, event_dict):
     using the ID to find the full exception context in Sentry.
     """
     # Check if sentry_event_id was explicitly passed in extra dict
-    if "sentry_event_id" not in event_dict:
-        # Try to get it from Sentry SDK's last_event_id()
-        # This works if Django/Sentry integration auto-captured an exception
-        if event_dict.get("exc_info") or "exception" in event_dict:
-            try:
-                import sentry_sdk
+    # Try to get it from Sentry SDK's last_event_id()
+    # This works if Django/Sentry integration auto-captured an exception
+    if "sentry_event_id" not in event_dict and (event_dict.get("exc_info") or "exception" in event_dict):
+        try:
+            import sentry_sdk
 
-                if event_id := sentry_sdk.last_event_id():
-                    event_dict["sentry_event_id"] = event_id
-            except (ImportError, AttributeError, Exception):
-                pass  # Sentry not available
+            if event_id := sentry_sdk.last_event_id():
+                event_dict["sentry_event_id"] = event_id
+        except (ImportError, AttributeError, Exception):
+            pass  # Sentry not available
 
     return event_dict
 

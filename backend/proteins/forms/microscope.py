@@ -118,10 +118,7 @@ class MicroscopeForm(forms.ModelForm):
         }
 
     def create_oc(self, name, filters):
-        if len(filters) == 4:
-            bs_em_reflect = not bool(filters.pop())
-        else:
-            bs_em_reflect = False
+        bs_em_reflect = not bool(filters.pop()) if len(filters) == 4 else False
         oc = OpticalConfig.objects.create(name=name, owner=self.user, microscope=self.instance)
 
         _paths = [FilterPlacement.EX, FilterPlacement.BS, FilterPlacement.EM]
@@ -160,9 +157,8 @@ class MicroscopeForm(forms.ModelForm):
         for row in self.cleaned_data["optical_configs"]:
             newoc = self.create_oc(row[0], row[1:])
             if newoc:
-                if self.cleaned_data["light_source"].count() == 1:
-                    if not newoc.laser:
-                        newoc.light = self.cleaned_data["light_source"].first()
+                if self.cleaned_data["light_source"].count() == 1 and not newoc.laser:
+                    newoc.light = self.cleaned_data["light_source"].first()
                 if self.cleaned_data["detector"].count() == 1:
                     newoc.camera = self.cleaned_data["detector"].first()
                 newoc.save()
@@ -337,7 +333,7 @@ class OpticalConfigForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs.get("instance", None)
+        instance = kwargs.get("instance")
         if instance:
             kwargs.update(
                 initial={
@@ -367,12 +363,11 @@ class OpticalConfigForm(forms.ModelForm):
                     if path == "bs":
                         reflects = self.cleaned_data["invert_bs"]
                     oc.add_filter(filt, path, reflects)
-        if self.initial:
-            if self.cleaned_data["invert_bs"] != self.initial.get("invert_bs"):
-                for filt in self.cleaned_data["bs_filters"]:
-                    for fp in oc.filterplacement_set.filter(filter=filt, path=FilterPlacement.BS):
-                        fp.reflects = self.cleaned_data["invert_bs"]
-                        fp.save()
+        if self.initial and self.cleaned_data["invert_bs"] != self.initial.get("invert_bs"):
+            for filt in self.cleaned_data["bs_filters"]:
+                for fp in oc.filterplacement_set.filter(filter=filt, path=FilterPlacement.BS):
+                    fp.reflects = self.cleaned_data["invert_bs"]
+                    fp.save()
         oc.save()
         return oc
 

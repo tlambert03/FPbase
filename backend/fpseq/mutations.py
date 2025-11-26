@@ -171,9 +171,7 @@ class Mutation:
         return f"<Mutation: {self}>"
 
     def __eq__(self, other):
-        if str(self) == str(other):
-            return True
-        return False
+        return str(self) == str(other)
 
     def __hash__(self):
         return hash(str(self))
@@ -230,7 +228,7 @@ class Mutation:
             )
         if self.stop_idx and self.stop_char:
             stoppos = self.stop_idx - idx0
-            if not seq[stoppos] == self.stop_char:
+            if seq[stoppos] != self.stop_char:
                 beg = stoppos - 3
                 beg2 = stoppos + 1
                 end = stoppos + 4
@@ -647,10 +645,7 @@ def rand_mut(seq):
     elif operation in ("ins", "delins"):
         new_chars = "".join(choices(AAs, k=randint(1, 6)))
     if operation in ("del", "ins", "delins"):
-        if operation == "ins":
-            stop_idx = start_idx + 1
-        else:
-            stop_idx = start_idx + randint(1, 6)
+        stop_idx = start_idx + 1 if operation == "ins" else start_idx + randint(1, 6)
         while stop_idx > len(seq) - 2:
             stop_idx = start_idx + randint(0, 6)
         stop_char = seq[stop_idx - 1]

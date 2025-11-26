@@ -1,3 +1,4 @@
+import contextlib
 import json
 from collections import defaultdict
 from urllib.parse import quote
@@ -279,15 +280,13 @@ class MicroscopeCreateView(MicroscopeCreateUpdateMixin, OwnableObject, CreateVie
                 "click the <i class='fas fa-cog mx-1'></i> icon below the graph.",
             )
             if not self.request.user.is_staff:
-                try:
+                with contextlib.suppress(Exception):
                     mail_admins(
                         "Microscope Created",
                         f"User: {self.request.user.username}\nMicroscope: {self.object}"
                         f"\n{self.request.build_absolute_uri(self.object.get_absolute_url())}",
                         fail_silently=True,
                     )
-                except Exception:
-                    pass
         return response
 
     def get_context_data(self, **kwargs):

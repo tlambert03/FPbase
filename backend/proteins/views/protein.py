@@ -139,10 +139,7 @@ def get_country_code(request) -> str:
     """Get country code from IP address using cached API lookup."""
 
     x_forwarded_for = request.headers.get("x-forwarded-for")
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0].strip()
-    else:
-        ip = request.META.get("REMOTE_ADDR")
+    ip = x_forwarded_for.split(",")[0].strip() if x_forwarded_for else request.META.get("REMOTE_ADDR")
 
     try:
         if not (masked_ip := _mask_ip_for_caching(ip)):
@@ -318,70 +315,69 @@ class ProteinCreateUpdateMixin:
                         context |= {"states": states, "lineage": lineage}
                         return self.render_to_response(context)
 
-        with transaction.atomic():
-            with reversion.create_revision():
-                self.object = form.save()
-                self.object.primary_reference = (
-                    Reference.objects.get_or_create(doi=doi.lower())[0]
-                    if (doi := form.cleaned_data.get("reference_doi"))
-                    else None
-                )
+        with transaction.atomic(), reversion.create_revision():
+            self.object = form.save()
+            self.object.primary_reference = (
+                Reference.objects.get_or_create(doi=doi.lower())[0]
+                if (doi := form.cleaned_data.get("reference_doi"))
+                else None
+            )
 
-                states.instance = self.object
-                saved_states = states.save(commit=False)
-                for s in saved_states:
-                    if not s.created_by:
-                        s.created_by = self.request.user
-                    s.updated_by = self.request.user
-                    s.save()
-                for s in states.deleted_objects:
-                    if self.object.default_state == s:
-                        self.object.default_state = None
-                    s.delete()
+            states.instance = self.object
+            saved_states = states.save(commit=False)
+            for s in saved_states:
+                if not s.created_by:
+                    s.created_by = self.request.user
+                s.updated_by = self.request.user
+                s.save()
+            for s in states.deleted_objects:
+                if self.object.default_state == s:
+                    self.object.default_state = None
+                s.delete()
 
-                lineage.instance = self.object
-                for lin in lineage.save(commit=False):
-                    # if the form has been cleared and there are no children,
-                    # let's clean up a little
-                    if not (lin.mutation and lin.parent) and not lin.children.exists():
-                        lin.delete()
-                    else:
-                        if not lin.created_by:
-                            lin.created_by = self.request.user
-                        lin.updated_by = self.request.user
-                        lin.reference = self.object.primary_reference
-                        lin.save()
-                for lin in lineage.deleted_objects:
+            lineage.instance = self.object
+            for lin in lineage.save(commit=False):
+                # if the form has been cleared and there are no children,
+                # let's clean up a little
+                if not (lin.mutation and lin.parent) and not lin.children.exists():
                     lin.delete()
+                else:
+                    if not lin.created_by:
+                        lin.created_by = self.request.user
+                    lin.updated_by = self.request.user
+                    lin.reference = self.object.primary_reference
+                    lin.save()
+            for lin in lineage.deleted_objects:
+                lin.delete()
 
-                if hasattr(self.object, "lineage"):
-                    if not self.object.seq:
-                        seq = self.object.lineage.parent.protein.seq.mutate(self.object.lineage.mutation)
-                        self.object.seq = str(seq)
-                    if not self.object.parent_organism:
-                        self.object.parent_organism = self.object.lineage.root_node.protein.parent_organism
+            if hasattr(self.object, "lineage"):
+                if not self.object.seq:
+                    seq = self.object.lineage.parent.protein.seq.mutate(self.object.lineage.mutation)
+                    self.object.seq = str(seq)
+                if not self.object.parent_organism:
+                    self.object.parent_organism = self.object.lineage.root_node.protein.parent_organism
 
-                comment = f"{self.object} {self.get_form_type()} form."
-                chg_string = "\n".join(get_form_changes(form, states, lineage))
+            comment = f"{self.object} {self.get_form_type()} form."
+            chg_string = "\n".join(get_form_changes(form, states, lineage))
 
-                if not self.request.user.is_staff:
-                    self.object.status = "pending"
-                    msg = f"User: {self.request.user.username}\n"
-                    f"Protein: {self.object}\n\n{chg_string}\n\n"
-                    f"{self.request.build_absolute_uri(self.object.get_absolute_url())}"
-                    mail_managers(comment, msg, fail_silently=True)
-                # else:
-                #     self.object.status = 'approved'
+            if not self.request.user.is_staff:
+                self.object.status = "pending"
+                msg = f"User: {self.request.user.username}\n"
+                f"Protein: {self.object}\n\n{chg_string}\n\n"
+                f"{self.request.build_absolute_uri(self.object.get_absolute_url())}"
+                mail_managers(comment, msg, fail_silently=True)
+            # else:
+            #     self.object.status = 'approved'
 
-                self.object.save()
-                reversion.set_user(self.request.user)
-                reversion.set_comment(chg_string)
-                try:
-                    uncache_protein_page(self.object.slug, self.request)
-                except Exception as e:
-                    logger.error("failed to uncache protein: %s", e)
+            self.object.save()
+            reversion.set_user(self.request.user)
+            reversion.set_comment(chg_string)
+            try:
+                uncache_protein_page(self.object.slug, self.request)
+            except Exception as e:
+                logger.error("failed to uncache protein: %s", e)
 
-                check_switch_type(self.object, self.request)
+            check_switch_type(self.object, self.request)
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -756,26 +752,25 @@ def update_transitions(request, slug=None):
         if not formset.is_valid():
             return render(request, template_name, {"transition_form": formset}, status=422)
 
-        with transaction.atomic():
-            with reversion.create_revision():
-                formset.save()
-                chg_string = "\n".join(get_form_changes(formset))
+        with transaction.atomic(), reversion.create_revision():
+            formset.save()
+            chg_string = "\n".join(get_form_changes(formset))
 
-                if not request.user.is_staff:
-                    obj.status = "pending"
-                    mail_managers(
-                        "Transition updated",
-                        f"User: {request.user.username}\nProtein: {obj}\n\n{chg_string}",
-                        fail_silently=True,
-                    )
-                obj.save()
-                reversion.set_user(request.user)
-                reversion.set_comment(chg_string)
-                try:
-                    uncache_protein_page(slug, request)
-                except Exception as e:
-                    logger.error("failed to uncache protein: %s", e)
-                check_switch_type(obj, request)
+            if not request.user.is_staff:
+                obj.status = "pending"
+                mail_managers(
+                    "Transition updated",
+                    f"User: {request.user.username}\nProtein: {obj}\n\n{chg_string}",
+                    fail_silently=True,
+                )
+            obj.save()
+            reversion.set_user(request.user)
+            reversion.set_comment(chg_string)
+            try:
+                uncache_protein_page(slug, request)
+            except Exception as e:
+                logger.error("failed to uncache protein: %s", e)
+            check_switch_type(obj, request)
         return HttpResponse(status=200)
     else:
         formset = StateTransitionFormSet(instance=obj)
@@ -796,37 +791,36 @@ def protein_bleach_formsets(request, slug):
         if not formset.is_valid():
             return render(request, template_name, {"formset": formset, "protein": protein})
 
-        with transaction.atomic():
-            with reversion.create_revision():
-                saved = formset.save(commit=False)
-                for s in saved:
-                    if not s.created_by:
-                        s.created_by = request.user
-                    s.updated_by = request.user
-                    s.save()
-                for s in formset.deleted_objects:
-                    s.delete()
+        with transaction.atomic(), reversion.create_revision():
+            saved = formset.save(commit=False)
+            for s in saved:
+                if not s.created_by:
+                    s.created_by = request.user
+                s.updated_by = request.user
+                s.save()
+            for s in formset.deleted_objects:
+                s.delete()
 
-                chg_string = "\n".join(get_form_changes(formset))
+            chg_string = "\n".join(get_form_changes(formset))
 
-                if not request.user.is_staff:
-                    protein.status = "pending"
-                    mail_managers(
-                        "BleachMeasurement Added",
-                        f"User: {request.user.username}\nProtein: {protein}\n{chg_string}\n\n"
-                        f"{request.build_absolute_uri(protein.get_absolute_url())}",
-                        fail_silently=True,
-                    )
-                # else:
-                #     protein.status = 'approved'
+            if not request.user.is_staff:
+                protein.status = "pending"
+                mail_managers(
+                    "BleachMeasurement Added",
+                    f"User: {request.user.username}\nProtein: {protein}\n{chg_string}\n\n"
+                    f"{request.build_absolute_uri(protein.get_absolute_url())}",
+                    fail_silently=True,
+                )
+            # else:
+            #     protein.status = 'approved'
 
-                protein.save()
-                reversion.set_user(request.user)
-                reversion.set_comment(chg_string)
-                try:
-                    uncache_protein_page(slug, request)
-                except Exception as e:
-                    logger.error("failed to uncache protein: %s", e)
+            protein.save()
+            reversion.set_user(request.user)
+            reversion.set_comment(chg_string)
+            try:
+                uncache_protein_page(slug, request)
+            except Exception as e:
+                logger.error("failed to uncache protein: %s", e)
         return HttpResponseRedirect(protein.get_absolute_url())
     else:
         formset = BleachMeasurementFormSet(queryset=qs)

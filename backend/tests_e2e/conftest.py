@@ -154,11 +154,7 @@ def _frontend_assets_need_rebuild(manifest_file) -> bool:
     sources = list(frontend_src.rglob("*"))
     packages = Path(__file__).parent.parent.parent / "packages"
     sources += list(packages.rglob("src/**/*"))
-    if any(f.stat().st_mtime > manifest_mtime for f in sources if f.is_file() and not f.name.startswith(".")):
-        return True
-
-    # Everything is up to date
-    return False
+    return bool(any(f.stat().st_mtime > manifest_mtime for f in sources if f.is_file() and not f.name.startswith(".")))
 
 
 # Frontend assets are built in pytest_configure hook (runs before Django import)
@@ -299,10 +295,7 @@ class console_errors_raised:
         if msg.type in {"debug", "log"}:
             print(f"[Console {msg.type}] {msg.text} (at {url})")
             return
-        if msg.type == "error" and "at " in msg.text:
-            text = _apply_source_maps_to_stack(msg.text)
-        else:
-            text = msg.text
+        text = _apply_source_maps_to_stack(msg.text) if msg.type == "error" and "at " in msg.text else msg.text
 
         if not self._should_ignore(text, url):
             # Store message with source-mapped text
