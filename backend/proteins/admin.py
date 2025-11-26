@@ -99,10 +99,8 @@ class OSERInline(admin.StackedInline):
     ]
 
 
-class StateInline(MultipleSpectraOwner, admin.StackedInline):
-    # form = StateForm
-    # formset = StateFormSet
-    model = State
+class FluorStateInline(MultipleSpectraOwner):
+    model = FluorState
     extra = 0
     can_delete = True
     show_change_link = True
@@ -115,9 +113,8 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
                     ("ex_max", "em_max"),
                     ("ext_coeff", "qy"),
                     ("twop_ex_max", "twop_peak_gm", "twop_qy"),
-                    ("pka", "maturation"),
+                    "pka",
                     "lifetime",
-                    "bleach_links",
                     "spectra",
                 )
             },
@@ -132,12 +129,24 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
     ]
     readonly_fields = (
         "slug",
-        "bleach_links",
         "created",
         "created_by",
         "modified",
         "updated_by",
     )
+
+
+class StateInline(FluorStateInline, admin.StackedInline):
+    # form = StateForm
+    # formset = StateFormSet
+    model = State
+    fieldsets = [
+        *FluorStateInline.fieldsets,
+        (None, {"fields": ("bleach_links",)}),
+        (None, {"fields": ("maturation",)}),
+    ]
+
+    readonly_fields = (*FluorStateInline.readonly_fields, "bleach_links")
 
     @admin.display(description="BleachMeasurements")
     def bleach_links(self, obj):
@@ -147,6 +156,10 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
             link = f'<a href="{url}">{bm}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
+
+
+class DyeStateInline(FluorStateInline, admin.StackedInline):
+    model = DyeState
 
 
 class LineageInline(admin.TabularInline):
@@ -168,8 +181,22 @@ class LightAdmin(SpectrumOwner, admin.ModelAdmin):
 @admin.register(Dye)
 class DyeAdmin(admin.ModelAdmin):
     model = Dye
+    list_display = ("__str__", "created_by", "created")
     ordering = ("-created",)
     list_filter = ("created", "manufacturer")
+    fields = (
+        "name",
+        "slug",
+        "manufacturer",
+        "default_state",
+        "primary_reference",
+        "created",
+        "modified",
+        "created_by",
+        "updated_by",
+    )
+    readonly_fields = ("created", "modified")
+    inlines = (DyeStateInline,)
 
 
 @admin.register(DyeState)

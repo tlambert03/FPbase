@@ -48,6 +48,9 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
     class Meta:
         abstract = False
 
+    def __str__(self) -> str:
+        return self.name
+
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)  # Always regenerate, like Protein.save()
         super().save(*args, **kwargs)
