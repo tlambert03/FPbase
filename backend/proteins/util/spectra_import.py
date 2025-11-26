@@ -19,7 +19,9 @@ def get_stype(header):
 
 
 # FIXME: I kind of hate this function...
-def import_spectral_data(waves, data, headers=None, categories=(), stypes=(), owner=None, minmax=None):
+def import_spectral_data(
+    waves, data, headers=None, categories=(), stypes=(), owner=None, minmax=None
+):
     """
     Take a vector of waves and a matrix of data, and import into database
 

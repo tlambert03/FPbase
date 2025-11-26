@@ -22,7 +22,9 @@ class Favorite(models.Model):
         on_delete=models.CASCADE,
     )
     target_content_type_id: int
-    target_content_type: models.ForeignKey[ContentType] = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    target_content_type: models.ForeignKey[ContentType] = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE
+    )
     target_object_id = models.PositiveIntegerField()
     target = GenericForeignKey("target_content_type", "target_object_id")
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)

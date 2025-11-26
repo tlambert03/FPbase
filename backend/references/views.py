@@ -82,11 +82,14 @@ def add_excerpt(request, pk=None):
             content = request.POST.get("excerpt_content")
             if content:
                 # P.references.add(ref)
-                Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
+                Excerpt.objects.create(
+                    reference=ref, content=strip_tags(content), created_by=request.user
+                )
                 if not request.user.is_staff:
                     msg = (
                         f"User: {request.user.username}\nReference: {ref}, {ref.title}"
-                        f"\nExcerpt: {strip_tags(content)}\n{request.build_absolute_uri(ref.get_absolute_url())}"
+                        f"\nExcerpt: {strip_tags(content)}\n"
+                        f"{request.build_absolute_uri(ref.get_absolute_url())}"
                     )
                     mail_managers("Excerpt Added", msg, fail_silently=True)
                 reversion.set_user(request.user)

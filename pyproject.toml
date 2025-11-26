@@ -111,7 +111,7 @@ omit = ["*/migrations/*", "*/tests/*", "proteins/management/**"]
 # ==== ruff ====
 [tool.ruff]
 src = ["backend/"]
-line-length = 119
+line-length = 99
 target-version = "py313"
 exclude = ['*/migrations/*', '*/static/CACHE/*', '.venv']
 fix = true
@@ -119,20 +119,23 @@ unsafe-fixes = true
 
 [tool.ruff.lint]
 select = [
-    "F",   # Pyflakes
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "I",   # isort
-    "UP",  # pyupgrade
-    "YTT", # flake8-2020
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "DJ",  # flake8-django
-    "RUF", # Ruff-specific rules
-    "LOG", # flake8-logging
-    "G",   # flake8-logging-format
-    "TC",  # flake8-type-checking
-    "TID", # flake8-tidy-imports
+    "F",    # Pyflakes
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "I",    # isort
+    "UP",   # pyupgrade
+    "YTT",  # flake8-2020
+    "B",    # flake8-bugbear
+    "ISC",  # string concatenation
+    "C4",   # flake8-comprehensions
+    "DJ",   # flake8-django
+    "RUF",  # Ruff-specific rules
+    "LOG",  # flake8-logging
+    "G",    # flake8-logging-format
+    "TC",   # flake8-type-checking
+    "SIM",  # Common simplification rules
+    "TID",  # flake8-tidy-imports
+    "FURB", # refurb
 ]
 ignore = [
     "B905",   # `zip()` without an explicit `strict=` parameter

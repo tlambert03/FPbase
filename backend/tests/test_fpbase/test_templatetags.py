@@ -45,7 +45,10 @@ class TestIconTemplateTag:
 
     def test_icon_multiple_attributes(self):
         """Test icon rendering with multiple attributes."""
-        t = Template('{% load fpbase_tags %}{% icon "warning" class_="me-2" style="color: red;" aria_hidden="true" %}')
+        t = Template(
+            "{% load fpbase_tags %}"
+            '{% icon "warning" class_="me-2" style="color: red;" aria_hidden="true" %}'
+        )
         html = t.render(Context({}))
         assert 'class="me-2' in html
         assert 'style="color: red;"' in html
@@ -195,8 +198,9 @@ class TestIconTemplateTag:
         # If there are invalid icons, create a helpful error message
         if invalid_icons:
             error_lines = [
-                "Found icon tags with invalid icon names."
-                "Either fix the template or add it to ICON_MAP in scripts/extract_fa_icons.py and re-run it."
+                "Found icon tags with invalid icon names. "
+                "Either fix the template or add it to ICON_MAP in "
+                "scripts/extract_fa_icons.py and re-run it."
             ]
             for item in invalid_icons:
                 error_lines.append(f"  - '{item['icon']}' used in {item['file']}:{item['line']}")
@@ -204,5 +208,6 @@ class TestIconTemplateTag:
 
         # Also verify we found at least some icon usages (sanity check)
         assert len(icon_usages) > 0, (
-            "No {% icon %} tags found in templates. This test may not be searching the correct directory."
+            "No {% icon %} tags found in templates. "
+            "This test may not be searching the correct directory."
         )

@@ -38,7 +38,9 @@ def serialized_proteins_response(queryset, format="json", filename="FPbase_prote
         from django.http import StreamingHttpResponse
         from rest_framework_csv.renderers import CSVStreamingRenderer
 
-        response = StreamingHttpResponse(CSVStreamingRenderer().render(serializer.data), content_type="text/csv")
+        response = StreamingHttpResponse(
+            CSVStreamingRenderer().render(serializer.data), content_type="text/csv"
+        )
         response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
     elif format == "json":
         response = JsonResponse(serializer.data, safe=False)
@@ -88,7 +90,9 @@ class CollectionDetail(DetailView):
         fmt = request.GET.get("format", "").lower()
         if fmt in ("json", "csv"):
             col = self.get_object()
-            return serialized_proteins_response(col.proteins.all(), fmt, filename=slugify(col.name))
+            return serialized_proteins_response(
+                col.proteins.all(), fmt, filename=slugify(col.name)
+            )
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -105,7 +109,11 @@ class CollectionDetail(DetailView):
         return context
 
     def render_to_response(self, *args, **kwargs):
-        if not self.request.user.is_superuser and self.object.private and (self.object.owner != self.request.user):
+        if (
+            not self.request.user.is_superuser
+            and self.object.private
+            and (self.object.owner != self.request.user)
+        ):
             return render(self.request, "proteins/private_collection.html", {"foo": "bar"})
         return super().render_to_response(*args, **kwargs)
 
@@ -135,7 +143,9 @@ def add_to_collection(request):
 
     if request.method == "GET":
         qs = ProteinCollection.objects.filter(owner=request.user)
-        widget = forms.Select(attrs={"class": "form-control form-select", "id": "collectionSelect"})
+        widget = forms.Select(
+            attrs={"class": "form-control form-select", "id": "collectionSelect"}
+        )
         choicefield = forms.ChoiceField(choices=qs.values_list("id", "name"), widget=widget)
 
         members = []
@@ -176,7 +186,9 @@ class CollectionCreateView(OwnableObject, CreateView):
         # be used to make a new collection
         elif self.request.POST.get("dupcollection", False):
             id = self.request.POST.get("dupcollection")
-            kwargs["proteins"] = [p.id for p in ProteinCollection.objects.get(id=id).proteins.all()]
+            kwargs["proteins"] = [
+                p.id for p in ProteinCollection.objects.get(id=id).proteins.all()
+            ]
         return kwargs
 
     def form_valid(self, form):

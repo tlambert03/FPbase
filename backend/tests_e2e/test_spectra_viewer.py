@@ -61,7 +61,9 @@ def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Ca
 
 
 @pytest.mark.parametrize("method", ["spacebar", "click"])
-def test_spectra_viewer_add_from_spacebar(spectra_viewer: Page, assert_snapshot: Callable, method: str) -> None:
+def test_spectra_viewer_add_from_spacebar(
+    spectra_viewer: Page, assert_snapshot: Callable, method: str
+) -> None:
     """Test the spectra viewer page loads without console errors."""
     tab_wrapper = spectra_viewer.locator(".tab-wrapper")
     expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
@@ -209,7 +211,9 @@ def test_qy_ec_scaling_invertibility(spectra_viewer: Page) -> None:
     spectra_viewer.keyboard.press("Enter")
 
     # Wait for EGFP to be added
-    expect(spectra_viewer.locator(".tab-wrapper").get_by_text(re.compile(r"^EGFP"))).to_be_visible()
+    expect(
+        spectra_viewer.locator(".tab-wrapper").get_by_text(re.compile(r"^EGFP"))
+    ).to_be_visible()
 
     def _test_scaling_toggle_indempotent(page: Page, subtype: str, key: str) -> None:
         _ser = page.locator(f"g.highcharts-series.subtype-{subtype}")
@@ -368,9 +372,15 @@ def test_spectra_graph(live_server: LiveServer, page: Page, params: dict) -> Non
         # Verify that x-axis extremes match the parameters
         x_axis_labels = spectra_viewer.locator(".highcharts-xaxis-labels text")
         label_texts = x_axis_labels.all_text_contents()
-        label_values = [int(text) for text in label_texts if text.strip() and text.strip().isdigit()]
-        assert min(label_values) >= params["xMin"], f"Min label {min(label_values)} should be >= {params['xMin']}"
-        assert max(label_values) <= params["xMax"], f"Max label {max(label_values)} should be <= {params['xMax']}"
+        label_values = [
+            int(text) for text in label_texts if text.strip() and text.strip().isdigit()
+        ]
+        assert min(label_values) >= params["xMin"], (
+            f"Min label {min(label_values)} should be >= {params['xMin']}"
+        )
+        assert max(label_values) <= params["xMax"], (
+            f"Max label {max(label_values)} should be <= {params['xMax']}"
+        )
 
 
 def test_subtype_visibility_toggles(spectra_viewer: Page) -> None:
@@ -486,7 +496,9 @@ def test_x_range_pickers(spectra_viewer: Page) -> None:
 
     # Verify chart is still zoomed after reload
     label_texts_after = x_axis_labels.all_text_contents()
-    label_values_after = [int(text) for text in label_texts_after if text.strip() and text.strip().isdigit()]
+    label_values_after = [
+        int(text) for text in label_texts_after if text.strip() and text.strip().isdigit()
+    ]
     min_label_after = min(label_values_after)
     max_label_after = max(label_values_after)
     assert min_label_after >= 400, f"Min label after reload {min_label_after} should be >= 400"
@@ -501,7 +513,9 @@ def test_x_range_pickers(spectra_viewer: Page) -> None:
 
     # verify chart is back to full range
     label_texts_full = x_axis_labels.all_text_contents()
-    label_values_full = [int(text) for text in label_texts_full if text.strip() and text.strip().isdigit()]
+    label_values_full = [
+        int(text) for text in label_texts_full if text.strip() and text.strip().isdigit()
+    ]
     assert min(label_values_full) == 300
     assert max(label_values_full) == 900
 

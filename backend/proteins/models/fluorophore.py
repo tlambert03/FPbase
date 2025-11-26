@@ -141,16 +141,21 @@ class FluorState(AbstractFluorescenceData):
 
         # Fetch pinned measurements in one query
         pinned_source_map = cast("dict[str, int]", self.pinned_source_map)
-        pinned_by_id = {m.id: m for m in self.measurements.filter(id__in=pinned_source_map.values())}
+        pinned_by_id = {
+            m.id: m for m in self.measurements.filter(id__in=pinned_source_map.values())
+        }
 
         # Handle pinned fields first (admin overrides)
         pinned_fields: set[str] = set()
         for field, mid in pinned_source_map.items():
-            if field in measurable_fields and (m := pinned_by_id.get(mid)):
-                if (val := getattr(m, field)) is not None:
-                    new_values[field] = val
-                    new_source_map[field] = m.id
-                    pinned_fields.add(field)
+            if (
+                field in measurable_fields
+                and (m := pinned_by_id.get(mid))
+                and (val := getattr(m, field)) is not None
+            ):
+                new_values[field] = val
+                new_source_map[field] = m.id
+                pinned_fields.add(field)
 
         # Sort by primary_reference
         measurements = sorted(
@@ -236,16 +241,18 @@ class FluorState(AbstractFluorescenceData):
         """Brightness relative to spectral neighbors. 1 = average."""
         if not (self.em_max and self.brightness):
             return 1
-        avg = FluorState.objects.exclude(id=self.id).filter(em_max__around=self.em_max).aggregate(Avg("brightness"))
+        avg = (
+            FluorState.objects.exclude(id=self.id)
+            .filter(em_max__around=self.em_max)
+            .aggregate(Avg("brightness"))
+        )
         try:
             return round(self.brightness / avg["brightness__avg"], 4)
         except TypeError:
             return 1
 
     def has_spectra(self) -> bool:
-        if any([self.ex_spectrum, self.em_spectrum]):
-            return True
-        return False
+        return bool(any([self.ex_spectrum, self.em_spectrum]))
 
     def ex_band(self, height=0.7) -> tuple[float, float] | None:
         if (spect := self.ex_spectrum) is not None:

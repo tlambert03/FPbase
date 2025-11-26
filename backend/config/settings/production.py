@@ -205,7 +205,9 @@ sentry_sdk.init(
     send_default_pii=True,
     release=HEROKU_SLUG_COMMIT,
     traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),  # 10% of all requests
-    profiles_sample_rate=env.float("SENTRY_PROFILES_SAMPLE_RATE", default=0.05),  # 5% of traced requests
+    profiles_sample_rate=env.float(
+        "SENTRY_PROFILES_SAMPLE_RATE", default=0.05
+    ),  # 5% of traced requests
 )
 
 # Scout APM Configuration
@@ -322,7 +324,7 @@ SPECTACULAR_SETTINGS["SERVERS"] = [
 
 # Enable API and GraphQL rate limiting in production
 REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = [
-    "fpbase.views.SameOriginExemptAnonThrottle",  # Custom throttle that exempts same-origin requests
+    "fpbase.views.SameOriginExemptAnonThrottle",  # Custom throttle that exempts same-origin
     "rest_framework.throttling.UserRateThrottle",
 ]
 # NOTE: Rate limiting settings are used by both REST API and GraphQL

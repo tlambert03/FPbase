@@ -284,10 +284,9 @@ class SpectrumAdmin(VersionAdmin):
         owner = obj.owner
         # FluorState is a base class - resolve to the actual subclass admin
         if isinstance(owner, FluorState):
-            if owner.entity_type == FluorState.EntityTypes.PROTEIN:
-                model_name = "state"
-            else:
-                model_name = "dyestate"
+            model_name = (
+                "state" if owner.entity_type == FluorState.EntityTypes.PROTEIN else "dyestate"
+            )
         else:
             model_name = owner._meta.model.__name__.lower()
 
@@ -724,7 +723,9 @@ class LineageAdminForm(forms.ModelForm):
         fields = ("protein", "parent", "mutation", "root_node", "rootmut")
         readonly_fields = "root_node"
 
-    parent = forms.ModelChoiceField(required=False, queryset=Lineage.objects.prefetch_related("protein").all())
+    parent = forms.ModelChoiceField(
+        required=False, queryset=Lineage.objects.prefetch_related("protein").all()
+    )
     root_node = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related("protein").all())
 
 

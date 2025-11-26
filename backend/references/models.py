@@ -60,7 +60,11 @@ class Author(TimeStampedModel):
 
     @property
     def last_authorships(self):
-        return [p.reference for p in self.referenceauthor_set.all() if p.author_idx == p.author_count - 1]
+        return [
+            p.reference
+            for p in self.referenceauthor_set.all()
+            if p.author_idx == p.author_count - 1
+        ]
 
     def save(self, *args, **kwargs):
         self.initials = _name_to_initials(self.initials)
@@ -93,7 +97,9 @@ class Reference(TimeStampedModel):
         verbose_name="DOI",
         validators=[validate_doi],
     )
-    pmid = models.CharField(max_length=15, unique=True, null=True, blank=True, verbose_name="Pubmed ID")
+    pmid = models.CharField(
+        max_length=15, unique=True, null=True, blank=True, verbose_name="Pubmed ID"
+    )
     title = models.CharField(max_length=512, blank=True)
     journal = models.CharField(max_length=512, blank=True)
     pages = models.CharField(max_length=20, blank=True)
@@ -112,7 +118,9 @@ class Reference(TimeStampedModel):
         help_text="YYYY",
     )
 
-    authors: models.ManyToManyField[Author, Reference] = models.ManyToManyField("Author", through="ReferenceAuthor")
+    authors: models.ManyToManyField[Author, Reference] = models.ManyToManyField(
+        "Author", through="ReferenceAuthor"
+    )
     summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
 
     created_by_id: int | None
@@ -235,7 +243,9 @@ class Reference(TimeStampedModel):
 
 class ReferenceAuthor(models.Model):
     reference_id: int
-    reference: models.ForeignKey[Reference] = models.ForeignKey(Reference, on_delete=models.CASCADE)
+    reference: models.ForeignKey[Reference] = models.ForeignKey(
+        Reference, on_delete=models.CASCADE
+    )
     author_id: int
     author: models.ForeignKey[Author] = models.ForeignKey(Author, on_delete=models.CASCADE)
     author_idx = models.PositiveSmallIntegerField()

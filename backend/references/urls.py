@@ -1,6 +1,11 @@
 from django.urls import path, re_path
 
-from references.views import AuthorDetailView, ReferenceAutocomplete, ReferenceDetailView, add_excerpt
+from references.views import (
+    AuthorDetailView,
+    ReferenceAutocomplete,
+    ReferenceDetailView,
+    add_excerpt,
+)
 
 app_name = "references"
 

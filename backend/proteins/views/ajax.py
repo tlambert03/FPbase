@@ -25,7 +25,9 @@ def serialize_comparison(request):
     info = []
     slugs = request.session.get("comparison", [])
     # Prefetch states and their spectra to avoid N+1 queries
-    proteins = Protein.objects.filter(slug__in=slugs).prefetch_related("default_state", "states__spectra")
+    proteins = Protein.objects.filter(slug__in=slugs).prefetch_related(
+        "default_state", "states__spectra"
+    )
     for prot in proteins:
         d = {"name": prot.name, "slug": prot.slug}
         if prot.default_state:
@@ -48,10 +50,8 @@ def update_comparison(request):
     if request.POST.get("operation") == "add":
         current.add(request.POST.get("object"))
     elif request.POST.get("operation") == "remove":
-        try:
+        with contextlib.suppress(KeyError):
             current.remove(request.POST.get("object"))
-        except KeyError:
-            pass
     elif request.POST.get("operation") == "clear":
         current.clear()
     request.session["comparison"] = list(current)
@@ -137,14 +137,21 @@ def similar_spectrum_owners(request):
     # (Fluorophore.objects returns base class instances without get_absolute_url)
     from proteins.models.dye import DyeState
 
-    states = State.objects.filter(id__in=fluor_ids).select_related("protein").prefetch_related("spectra")
-    dye_states = DyeState.objects.filter(id__in=fluor_ids).select_related("dye").prefetch_related("spectra")
+    states = (
+        State.objects.filter(id__in=fluor_ids)
+        .select_related("protein")
+        .prefetch_related("spectra")
+    )
+    dye_states = (
+        DyeState.objects.filter(id__in=fluor_ids).select_related("dye").prefetch_related("spectra")
+    )
     filters = Filter.objects.filter(id__in=filter_ids).select_related("spectrum")
     lights = Light.objects.filter(id__in=light_ids).select_related("spectrum")
     cameras = Camera.objects.filter(id__in=camera_ids).select_related("spectrum")
 
     # Combine all objects maintaining order
-    # For Fluorophores (State/DyeState), use ID-only as key since original `similars` has base "FluorState" class
+    # For Fluorophores (State/DyeState), use ID-only as key since original `similars` has
+    # base "FluorState" class
     similars_dict = {}
     for item in [*states, *dye_states, *filters, *lights, *cameras]:
         if isinstance(item, FluorState):
@@ -154,10 +161,8 @@ def similar_spectrum_owners(request):
 
     similars_optimized = []
     for s in similars:
-        if isinstance(s, FluorState):
-            key = s.id  # For Fluorophores, look up by ID only
-        else:
-            key = (s.__class__.__name__, s.id)
+        # For Fluorophores, look up by ID only
+        key = s.id if isinstance(s, FluorState) else (s.__class__.__name__, s.id)
         similars_optimized.append(similars_dict.get(key, s))
 
     data = {
@@ -245,7 +250,9 @@ def get_lineage(request, slug=None, org=None):
     else:
         ids = Lineage.objects.all().values_list("id", flat=True)
     # cache upfront everything we're going to need
-    stateprefetch = Prefetch("protein__states", queryset=State.objects.order_by("-is_dark", "em_max"))
+    stateprefetch = Prefetch(
+        "protein__states", queryset=State.objects.order_by("-is_dark", "em_max")
+    )
     root_nodes = (
         Lineage.objects.filter(id__in=ids)
         .select_related("protein", "reference", "protein__default_state")

@@ -201,7 +201,9 @@ class SequenceAlignment:
         out = []
         for t, q in zip(a, b):
             out.append(q)
-            out.append("".join(["*" if x != y else (" " if x == " " else "|") for x, y in zip(t, q)]))
+            out.append(
+                "".join(["*" if x != y else (" " if x == " " else "|") for x, y in zip(t, q)])
+            )
             out.append(t + "\n")
         return "\n".join(out)
 

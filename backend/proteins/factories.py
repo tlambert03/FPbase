@@ -34,10 +34,12 @@ T = TypeVar("T")
 _BP_TYPE = {Filter.BP, Filter.BPM, Filter.BPX}
 
 FRUITS = [
-    'Apple', 'Banana', 'Orange', 'Strawberry', 'Mango', 'Grapes', 'Pineapple', 'Watermelon', 'Kiwi',
+    'Apple', 'Banana', 'Orange', 'Strawberry', 'Mango', 'Grapes', 'Pineapple', 'Watermelon',
+    'Kiwi',
     'Pear', 'Cherry', 'Peach', 'Plum', 'Lemon', 'Lime', 'Blueberry', 'Raspberry', 'Blackberry',
     'Pomegranate', 'Coconut', 'Avocado', 'Grapefruit', 'Cantaloupe', 'Fig', 'Guava', 'Honeydew',
-    'Lychee', 'Mandarin', 'Nectarine', 'Passionfruit', 'Papaya', 'Apricot', 'Cranberry', 'Dragonfruit',
+    'Lychee', 'Mandarin', 'Nectarine', 'Passionfruit', 'Papaya', 'Apricot', 'Cranberry',
+    'Dragonfruit',
     'Starfruit', 'Persimmon', 'Rambutan', 'Tangerine', 'Clementine', 'Mulberry', 'Cactus',
     'Quince', 'Date', 'Jackfruit', 'Kumquat', 'Lingonberry', 'Loquat', 'Mangosteen', 'Pitaya',
     'Plantain', 'PricklyPear', 'Tamarind', 'UgliFruit', 'Yuzu', 'Boysenberry', 'Cherimoya',
@@ -265,7 +267,9 @@ class SpectrumFactory(factory.django.DjangoModelFactory):
         model = Spectrum
 
     category = factory.fuzzy.FuzzyChoice(Spectrum.CATEGORIES, getter=lambda c: c[0])
-    subtype = factory.LazyAttribute(lambda o: random.choice(Spectrum.category_subtypes[o.category]))
+    subtype = factory.LazyAttribute(
+        lambda o: random.choice(Spectrum.category_subtypes[o.category])
+    )
     data = factory.LazyAttribute(_build_spectral_data)
 
 
@@ -283,9 +287,15 @@ class FilterFactory(SpectrumOwnerFactory[Filter]):
 
     name = factory.Sequence(lambda n: f"TestFilter{n}")
     subtype = factory.fuzzy.FuzzyChoice(Spectrum.category_subtypes["f"])
-    bandcenter = factory.LazyAttribute(lambda o: random.randint(400, 900) if o.subtype in _BP_TYPE else None)
-    bandwidth = factory.LazyAttribute(lambda o: random.randint(10, 20) if o.subtype in _BP_TYPE else None)
-    edge = factory.LazyAttribute(lambda o: random.randint(400, 900) if o.subtype not in _BP_TYPE else None)
+    bandcenter = factory.LazyAttribute(
+        lambda o: random.randint(400, 900) if o.subtype in _BP_TYPE else None
+    )
+    bandwidth = factory.LazyAttribute(
+        lambda o: random.randint(10, 20) if o.subtype in _BP_TYPE else None
+    )
+    edge = factory.LazyAttribute(
+        lambda o: random.randint(400, 900) if o.subtype not in _BP_TYPE else None
+    )
 
     spectrum = factory.RelatedFactory(
         "proteins.factories.SpectrumFactory",
@@ -382,7 +392,9 @@ def create_egfp() -> Protein:
         seq_validated=True,
         agg=Protein.AggChoices.MONOMER,
         pdb=["4EUL", "2Y0G"],
-        parent_organism=OrganismFactory(scientific_name="Aequorea victoria", id=6100, division="hydrozoans"),
+        parent_organism=OrganismFactory(
+            scientific_name="Aequorea victoria", id=6100, division="hydrozoans"
+        ),
         primary_reference=ReferenceFactory(doi="10.1016/0378-1119(95)00685-0"),
         genbank="AAB02572",
         uniprot="C5MKY7",

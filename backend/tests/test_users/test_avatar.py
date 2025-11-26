@@ -117,7 +117,9 @@ class TestAvatarChange(AvatarTestCase):
         super().setUp()
         # Create two avatars for the user
         self.avatar1 = Avatar.objects.create(
-            user=self.user, primary=True, avatar=SimpleUploadedFile("avatar1.png", b"image1", content_type="image/png")
+            user=self.user,
+            primary=True,
+            avatar=SimpleUploadedFile("avatar1.png", b"image1", content_type="image/png"),
         )
         self.avatar2 = Avatar.objects.create(
             user=self.user,
@@ -161,7 +163,9 @@ class TestAvatarDelete(AvatarTestCase):
     def setUp(self):
         super().setUp()
         self.avatar = Avatar.objects.create(
-            user=self.user, primary=True, avatar=SimpleUploadedFile("avatar.png", b"image", content_type="image/png")
+            user=self.user,
+            primary=True,
+            avatar=SimpleUploadedFile("avatar.png", b"image", content_type="image/png"),
         )
 
     def test_avatar_delete_view_accessible(self):
@@ -194,7 +198,9 @@ class TestAvatarTemplateTag(AvatarTestCase):
     def setUp(self):
         super().setUp()
         self.avatar = Avatar.objects.create(
-            user=self.user, primary=True, avatar=SimpleUploadedFile("avatar.png", b"image", content_type="image/png")
+            user=self.user,
+            primary=True,
+            avatar=SimpleUploadedFile("avatar.png", b"image", content_type="image/png"),
         )
 
     def test_avatar_url_returns_url(self):
@@ -254,7 +260,9 @@ class TestAvatarIntegration(AvatarTestCase):
 
         # 4. Delete avatars
         url = reverse("avatar:delete")
-        response = self.client.post(url, {"choices": [str(avatar1_id), str(avatar2.id)]}, follow=True)
+        response = self.client.post(
+            url, {"choices": [str(avatar1_id), str(avatar2.id)]}, follow=True
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Avatar.objects.filter(user=self.user).count(), 0)
 
@@ -264,12 +272,16 @@ class TestAvatarIntegration(AvatarTestCase):
 
         # Create avatar for user1
         avatar1 = Avatar.objects.create(
-            user=self.user, primary=True, avatar=SimpleUploadedFile("u1.png", b"img1", content_type="image/png")
+            user=self.user,
+            primary=True,
+            avatar=SimpleUploadedFile("u1.png", b"img1", content_type="image/png"),
         )
 
         # Create avatar for user2
         avatar2 = Avatar.objects.create(
-            user=user2, primary=True, avatar=SimpleUploadedFile("u2.png", b"img2", content_type="image/png")
+            user=user2,
+            primary=True,
+            avatar=SimpleUploadedFile("u2.png", b"img2", content_type="image/png"),
         )
 
         self.assertEqual(Avatar.objects.filter(user=self.user).count(), 1)

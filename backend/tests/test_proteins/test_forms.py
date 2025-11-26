@@ -44,21 +44,27 @@ class TestProteinForm(TestCase):
         self.assertTrue("name" in form.errors)
 
     def test_clean_proteinseq_success(self):
-        form = ProteinForm({"name": "New Protein", "seq": "ghilkmfpstwy varndceq", "confirmation": True})
+        form = ProteinForm(
+            {"name": "New Protein", "seq": "ghilkmfpstwy varndceq", "confirmation": True}
+        )
         valid = form.is_valid()
         self.assertTrue(valid, "Form is not valid")
         seq = form.clean_seq()
         self.assertEqual("GHILKMFPSTWYVARNDCEQ", seq)
 
     def test_clean_proteinseq_exists(self):
-        form = ProteinForm({"name": "New Protein", "seq": "ARNDCEQGHILKMFPSTWYV", "confirmation": True})
+        form = ProteinForm(
+            {"name": "New Protein", "seq": "ARNDCEQGHILKMFPSTWYV", "confirmation": True}
+        )
         valid = form.is_valid()
         self.assertFalse(valid)
         self.assertTrue(len(form.errors) == 1)
         self.assertTrue("seq" in form.errors)
 
     def test_clean_proteinseq_invalid(self):
-        form = ProteinForm({"name": "New Protein", "seq": "ARNDCEQGHILKMBZXFPSTWYV", "confirmation": True})
+        form = ProteinForm(
+            {"name": "New Protein", "seq": "ARNDCEQGHILKMBZXFPSTWYV", "confirmation": True}
+        )
         valid = form.is_valid()
         self.assertFalse(valid)
         self.assertTrue(len(form.errors) == 1)
@@ -114,7 +120,9 @@ class TestStateForm(TestCase):
         State.objects.get_or_create(protein=self.t)
 
     def test_clean_state_success(self):
-        form = StateForm({"name": "default", "ex_max": "488", "em_max": "525", "protein": self.t.id})
+        form = StateForm(
+            {"name": "default", "ex_max": "488", "em_max": "525", "protein": self.t.id}
+        )
         valid = form.is_valid()
         self.assertTrue(valid, "Form is not valid")
         self.assertEqual("default", form.cleaned_data["name"])
@@ -273,7 +281,10 @@ class TestSpectrumForm(TestCase):
     def test_spectrum_form_file_data_valid(self):
         """Test form validation with valid file upload and data_source=file"""
         # Create a mock CSV file with consecutive wavelengths for step size = 1
-        file_content = b"400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
+        file_content = (
+            b"400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n"
+            b"405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
+        )
         uploaded_file = SimpleUploadedFile("spectrum.csv", file_content, content_type="text/csv")
 
         form_data = {
@@ -329,7 +340,10 @@ class TestSpectrumForm(TestCase):
             "category": Spectrum.PROTEIN,
             "subtype": Spectrum.EX,
             "owner_fluor": self.state.id,
-            "data": ("[[400, 0.1], [405, 0.5], [410, 1.0], [415, 0.8], [420, 0.5], [425, 0.3], [430, 0.1]]"),
+            "data": (
+                "[[400, 0.1], [405, 0.5], [410, 1.0], [415, 0.8],"
+                " [420, 0.5], [425, 0.3], [430, 0.1]]"
+            ),
             "data_source": "manual",
             "confirmation": True,
         }

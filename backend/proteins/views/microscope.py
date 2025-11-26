@@ -1,3 +1,4 @@
+import contextlib
 import json
 from collections import defaultdict
 from urllib.parse import quote
@@ -53,7 +54,9 @@ def update_scope_report(request):
             if active:
                 for _worker, jobs in active.items():
                     for job in jobs:
-                        if job["name"].endswith("calculate_scope_report") and (scope_id in job["args"]):
+                        if job["name"].endswith("calculate_scope_report") and (
+                            scope_id in job["args"]
+                        ):
                             return JsonResponse({"status": 200, "job": job["id"]})
                     if len(jobs) >= 4:
                         return JsonResponse({"status": 200, "job": None, "waiting": True})
@@ -202,11 +205,15 @@ class ScopeReportView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        probe_count = State.objects.with_spectra().count() + DyeState.objects.with_spectra().count()
+        probe_count = (
+            State.objects.with_spectra().count() + DyeState.objects.with_spectra().count()
+        )
         ids = self.object.optical_configs.all().values_list("id", flat=True)
         effs = OcFluorEff.objects.filter(oc__in=ids)
         context["outdated"] = list(effs.outdated().values_list("id", flat=True))
-        context["needs_update"] = bool(context["outdated"]) or (probe_count * len(ids) > effs.count())
+        context["needs_update"] = bool(context["outdated"]) or (
+            probe_count * len(ids) > effs.count()
+        )
         cols = (
             ProteinCollection.objects.filter(Q(private=False) | Q(owner_id=self.request.user.id))
             .exclude(proteins=None)
@@ -238,7 +245,9 @@ class MicroscopeCreateUpdateMixin:
             return self.render_to_response(context)
 
         # enforce at least one valid optical config
-        ocform_has_forms = any(f.cleaned_data.get("name") for f in ocformset.forms if not f.cleaned_data.get("DELETE"))
+        ocform_has_forms = any(
+            f.cleaned_data.get("name") for f in ocformset.forms if not f.cleaned_data.get("DELETE")
+        )
         if not (ocform_has_forms or form.cleaned_data.get("optical_configs")):
             messages.add_message(
                 self.request,
@@ -279,15 +288,13 @@ class MicroscopeCreateView(MicroscopeCreateUpdateMixin, OwnableObject, CreateVie
                 "click the <i class='fas fa-cog mx-1'></i> icon below the graph.",
             )
             if not self.request.user.is_staff:
-                try:
+                with contextlib.suppress(Exception):
                     mail_admins(
                         "Microscope Created",
                         f"User: {self.request.user.username}\nMicroscope: {self.object}"
                         f"\n{self.request.build_absolute_uri(self.object.get_absolute_url())}",
                         fail_silently=True,
                     )
-                except Exception:
-                    pass
         return response
 
     def get_context_data(self, **kwargs):
@@ -299,7 +306,9 @@ class MicroscopeCreateView(MicroscopeCreateUpdateMixin, OwnableObject, CreateVie
         return data
 
 
-class MicroscopeUpdateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin, OwnableObject, UpdateView):
+class MicroscopeUpdateView(
+    SuccessMessageMixin, MicroscopeCreateUpdateMixin, OwnableObject, UpdateView
+):
     model = Microscope
     form_class = MicroscopeForm
     success_message = "Update successful!"
@@ -318,7 +327,9 @@ class MicroscopeUpdateView(SuccessMessageMixin, MicroscopeCreateUpdateMixin, Own
         if self.request.POST:
             data["optical_configs"] = OpticalConfigFormSet(self.request.POST, instance=self.object)
         else:
-            data["optical_configs"] = OpticalConfigFormSet(instance=self.object, queryset=OpticalConfig.objects.all())
+            data["optical_configs"] = OpticalConfigFormSet(
+                instance=self.object, queryset=OpticalConfig.objects.all()
+            )
         return data
 
 
@@ -363,7 +374,10 @@ class MicroscopeDetailView(DetailView):
         if self.object.collection:
             proteins = self.object.collection.proteins.with_spectra().prefetch_related("states")
             data["probeslugs"] = [
-                {"slug": s.slug, "name": str(s)} for p in proteins for s in p.states.all() if s.spectra
+                {"slug": s.slug, "name": str(s)}
+                for p in proteins
+                for s in p.states.all()
+                if s.spectra
             ]
         else:
             data["probeslugs"] = Spectrum.objects.fluorlist()
@@ -422,7 +436,9 @@ class MicroscopeList(ListView):
             context["owner"] = owner
         context["example_list"] = Microscope.objects.filter(id__in=self.example_ids)
         if self.request.user.is_authenticated:
-            context["managing"] = Microscope.objects.filter(managers__contains=[self.request.user.email])
+            context["managing"] = Microscope.objects.filter(
+                managers__contains=[self.request.user.email]
+            )
         return context
 
 

@@ -105,7 +105,9 @@ class SpectraQueriesTestCase(GraphQLTestCase):
                 body["variables"]["input"] = input_data
             else:
                 body["variables"] = {"input": input_data}
-        return self.client.post(self.GRAPHQL_URL, json.dumps(body), content_type="application/json")
+        return self.client.post(
+            self.GRAPHQL_URL, json.dumps(body), content_type="application/json"
+        )
 
     def test_optical_configs(self):
         response = self.query(

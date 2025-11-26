@@ -149,12 +149,18 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         db_index=True,
         verbose_name="FPbase ID",
     )
-    name = models.CharField(max_length=128, help_text="Name of the fluorescent protein", db_index=True)
-    slug = models.SlugField(max_length=64, unique=True, help_text="URL slug for the protein")  # for generating urls
+    name = models.CharField(
+        max_length=128, help_text="Name of the fluorescent protein", db_index=True
+    )
+    slug = models.SlugField(
+        max_length=64, unique=True, help_text="URL slug for the protein"
+    )  # for generating urls
     base_name = models.CharField(max_length=128)  # easily searchable "family" name
     aliases = ArrayField(models.CharField(max_length=200), blank=True, null=True)
     chromophore = _NonNullChar(max_length=5, blank=True, default="")
-    seq_validated = models.BooleanField(default=False, help_text="Sequence has been validated by a moderator")
+    seq_validated = models.BooleanField(
+        default=False, help_text="Sequence has been validated by a moderator"
+    )
     # seq must be nullable because of uniqueness contraints
     seq = SequenceField(
         unique=True,
@@ -310,7 +316,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         try:
             version_objects = cast("VersionQuerySet", Version.objects)
             return (
-                version_objects.get_for_object(self).filter(serialized_data__contains='"status": "approved"').first()
+                version_objects.get_for_object(self)
+                .filter(serialized_data__contains='"status": "approved"')
+                .first()
             )
         except Exception:
             return None
@@ -390,7 +398,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         return json.dumps(spectra)
 
     def spectra_img(self, fmt="svg", output=None, **kwargs):
-        spectra = list(Spectrum.objects.filter(owner_fluor__state__protein=self).exclude(subtype="2p"))
+        spectra = list(
+            Spectrum.objects.filter(owner_fluor__state__protein=self).exclude(subtype="2p")
+        )
         title = self.name if kwargs.pop("title", False) else None
         if kwargs.get("twitter", False):
             title = self.name
@@ -476,7 +486,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def n_faves(self, norm=False):
         nf = Favorite.objects.for_model(Protein).filter(target_object_id=self.id).count()
         if norm:
-            mx = Counter(Favorite.objects.for_model(Protein).values_list("target_object_id", flat=True)).most_common(1)
+            mx = Counter(
+                Favorite.objects.for_model(Protein).values_list("target_object_id", flat=True)
+            ).most_common(1)
             mx = mx[0][1] if mx else 1
             return nf / mx
         return nf

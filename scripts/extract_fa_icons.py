@@ -87,7 +87,8 @@ def extract_svgs(
 
     Args:
         outdir: destination folder (created if missing) where the selected SVGs will be copied.
-        extract_dir_name: the subfolder name under the temporary directory where the zip will be extracted.
+        extract_dir_name: the subfolder name under the temporary directory where the
+            zip will be extracted.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
@@ -99,8 +100,7 @@ def extract_svgs(
         with requests.get(URL, stream=True) as r:
             r.raise_for_status()
             with open(zip_path, "wb") as f:
-                for chunk in r.iter_content(8192):
-                    f.write(chunk)
+                f.writelines(r.iter_content(8192))
 
         print("Extracting...")
         with zipfile.ZipFile(zip_path) as z:
@@ -112,7 +112,8 @@ def extract_svgs(
             svg_path = next(extract_path.glob("fontawesome-*/svgs/"))
         except StopIteration:
             raise RuntimeError(
-                "Could not find extracted Font Awesome folder. Check the structure of the zip file."
+                "Could not find extracted Font Awesome folder. "
+                "Check the structure of the zip file."
             ) from None
 
         outdir = Path(outdir)
@@ -133,9 +134,14 @@ def extract_svgs(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download Font Awesome and extract selected SVGs.")
+    parser = argparse.ArgumentParser(
+        description="Download Font Awesome and extract selected SVGs."
+    )
     parser.add_argument(
-        "--outdir", "-o", default="backend/fpbase/static/icons", help="Destination folder for copied SVGs"
+        "--outdir",
+        "-o",
+        default="backend/fpbase/static/icons",
+        help="Destination folder for copied SVGs",
     )
     parser.add_argument(
         "--extract-dir-name",
@@ -151,4 +157,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    extract_svgs(outdir=args.outdir, extract_dir_name=args.extract_dir_name, keep_existing=args.keep_existing)
+    extract_svgs(
+        outdir=args.outdir,
+        extract_dir_name=args.extract_dir_name,
+        keep_existing=args.keep_existing,
+    )

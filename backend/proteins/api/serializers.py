@@ -133,7 +133,9 @@ class ProteinSerializer(ModelSerializer):
     # url = serializers.CharField(source='get_absolute_url', read_only=True)
     states = StateSerializer(many=True, read_only=True)
     transitions = StateTransitionSerializer(many=True, read_only=True)
-    doi = serializers.SlugRelatedField(source="primary_reference", slug_field="doi", read_only=True)
+    doi = serializers.SlugRelatedField(
+        source="primary_reference", slug_field="doi", read_only=True
+    )
 
     class Meta:
         model = Protein
@@ -159,7 +161,9 @@ class ProteinSerializer(ModelSerializer):
 class ProteinSerializer2(ModelSerializer):
     states = serializers.SlugRelatedField(many=True, read_only=True, slug_field="slug")
     transitions = serializers.IntegerField(source="transitions.count", read_only=True)
-    doi = serializers.SlugRelatedField(source="primary_reference", slug_field="doi", read_only=True)
+    doi = serializers.SlugRelatedField(
+        source="primary_reference", slug_field="doi", read_only=True
+    )
 
     class Meta:
         model = Protein

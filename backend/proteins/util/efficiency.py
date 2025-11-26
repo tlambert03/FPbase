@@ -81,7 +81,9 @@ def oc_efficiency_report(oc, fluor_collection):
         if fluor.ex_spectrum and oc_ex:
             combospectrum = spectral_product([oc_ex, fluor.ex_spectrum.data])
             D[fluor.slug]["ex"] = round(area(combospectrum) / area(oc_ex), 3)
-            D[fluor.slug]["ex_broad"] = round(area(combospectrum) / area(fluor.ex_spectrum.data), 3)
+            D[fluor.slug]["ex_broad"] = round(
+                area(combospectrum) / area(fluor.ex_spectrum.data), 3
+            )
         if D[fluor.slug].get("em") and D[fluor.slug].get("ex") and fluor.ext_coeff and fluor.qy:
             b = D[fluor.slug]["em"] * D[fluor.slug]["ex"] * fluor.ext_coeff * fluor.qy / 1000
             D[fluor.slug]["bright"] = round(b, 3)

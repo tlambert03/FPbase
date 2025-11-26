@@ -44,7 +44,9 @@ class Microscope(OwnedCollection):
         "Camera", blank=True, related_name="microscopes"
     )
     extra_lasers = ArrayField(
-        models.PositiveSmallIntegerField(validators=[MinValueValidator(300), MaxValueValidator(1600)]),
+        models.PositiveSmallIntegerField(
+            validators=[MinValueValidator(300), MaxValueValidator(1600)]
+        ),
         default=list,
         blank=True,
     )
@@ -181,7 +183,13 @@ class Microscope(OwnedCollection):
     def spectra(self) -> list[Spectrum]:
         return [
             obj.spectrum
-            for qs in (self.ex_filters, self.em_filters, self.bs_filters, self.lights, self.cameras)
+            for qs in (
+                self.ex_filters,
+                self.em_filters,
+                self.bs_filters,
+                self.lights,
+                self.cameras,
+            )
             for obj in qs.select_related("spectrum")
         ]
 
@@ -195,7 +203,9 @@ def invert(sp):
 
 def get_optical_configs_list() -> list[dict]:
     """Fetch optical configs with microscope info in a single optimized query."""
-    vals = OpticalConfig.objects.values("id", "name", "comments", "microscope__id", "microscope__name")
+    vals = OpticalConfig.objects.values(
+        "id", "name", "comments", "microscope__id", "microscope__name"
+    )
 
     return [
         {
@@ -281,7 +291,9 @@ class OpticalConfig(OwnedCollection):
     @cached_property
     def em_filters(self):
         """all filters that have an emission role"""
-        return self.filters.filter(filterplacement__path=FilterPlacement.EM, filterplacement__reflects=False)
+        return self.filters.filter(
+            filterplacement__path=FilterPlacement.EM, filterplacement__reflects=False
+        )
 
     @cached_property
     def bs_filters(self):
@@ -290,7 +302,9 @@ class OpticalConfig(OwnedCollection):
 
     @cached_property
     def ref_em_filters(self):
-        return self.filters.filter(filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True)
+        return self.filters.filter(
+            filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True
+        )
 
     @cached_property
     def ex_spectra(self):
@@ -331,7 +345,9 @@ class OpticalConfig(OwnedCollection):
         return self.filterplacement_set.filter(path=FilterPlacement.BS, reflects=True)
 
     def add_filter(self, filter, path, reflects=False):
-        return FilterPlacement.objects.create(filter=filter, config=self, reflects=reflects, path=path)
+        return FilterPlacement.objects.create(
+            filter=filter, config=self, reflects=reflects, path=path
+        )
 
     def __repr__(self):
         fltrs = sorted_ex2em(self.filters.all())
@@ -358,16 +374,21 @@ class FilterPlacement(models.Model):
     filter_id: int
     filter: models.ForeignKey[Filter] = models.ForeignKey("Filter", on_delete=models.CASCADE)
     config_id: int
-    config: models.ForeignKey[OpticalConfig] = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
+    config: models.ForeignKey[OpticalConfig] = models.ForeignKey(
+        "OpticalConfig", on_delete=models.CASCADE
+    )
     path = models.CharField(max_length=2, choices=PATH_CHOICES, verbose_name="Ex/Bs/Em Path")
     # when path == BS, reflects refers to the emission path
-    reflects = models.BooleanField(default=False, help_text="Filter reflects emission (if BS or EM filter)")
+    reflects = models.BooleanField(
+        default=False, help_text="Filter reflects emission (if BS or EM filter)"
+    )
 
     def __str__(self):
         return self.__repr__().lstrip("<").rstrip(">")
 
     def __repr__(self):
-        return f"<{self.path.title()} Filter: {self.filter.name}{' (reflecting)' if self.reflects else ''}>"
+        reflect = " (reflecting)" if self.reflects else ""
+        return f"<{self.path.title()} Filter: {self.filter.name}{reflect}>"
 
 
 def quick_OC(name, filternames, scope, bs_ex_reflect=True):
@@ -404,10 +425,11 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
             oc.laser = int(_f)
             oc.save()
         except ValueError:
-            if iexact:
-                filt = Filter.objects.get(part__iexact=_f)
-            else:
-                filt = Filter.objects.get(name__icontains=_f)
+            filt = (
+                Filter.objects.get(part__iexact=_f)
+                if iexact
+                else Filter.objects.get(name__icontains=_f)
+            )
             fp = FilterPlacement(
                 filter=filt,
                 config=oc,
@@ -433,7 +455,9 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
                 try:
                     _assign_filt(fname, i, True)
                 except ObjectDoesNotExist:
-                    print(f'Filter name "{fname}" returned multiple hits and exact match not found')
+                    print(
+                        f'Filter name "{fname}" returned multiple hits and exact match not found'
+                    )
                     oc.delete()
                     return None
             except ObjectDoesNotExist:

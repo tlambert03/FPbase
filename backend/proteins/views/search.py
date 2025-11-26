@@ -33,7 +33,11 @@ def protein_search(request):
             except Protein.DoesNotExist:
                 pass
             try:
-                page = Author.objects.filter(family__iexact=query).annotate(nr=Count("publications")).order_by("-nr")
+                page = (
+                    Author.objects.filter(family__iexact=query)
+                    .annotate(nr=Count("publications"))
+                    .order_by("-nr")
+                )
                 if page:
                     return redirect(page.first())
             except Author.DoesNotExist:
@@ -61,7 +65,8 @@ def protein_search(request):
             return redirect("/search/?name__iexact=" + query)
 
         stateprefetch = Prefetch(
-            "states", queryset=State.objects.order_by("-is_dark", "em_max").prefetch_related("spectra")
+            "states",
+            queryset=State.objects.order_by("-is_dark", "em_max").prefetch_related("spectra"),
         )
         f = ProteinFilter(
             request.GET,
@@ -80,7 +85,9 @@ def protein_search(request):
                 name = f.form.data["name__iexact"]
             if name:
                 f.recs = (
-                    Protein.visible.annotate(nstates=Count("states"), similarity=TrigramSimilarity("name", name))
+                    Protein.visible.annotate(
+                        nstates=Count("states"), similarity=TrigramSimilarity("name", name)
+                    )
                     .filter(similarity__gt=0.2)
                     .select_related("default_state", "primary_reference")
                     .prefetch_related(stateprefetch, "transitions")

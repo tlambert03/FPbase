@@ -21,7 +21,8 @@ class SpectrumFormField(forms.CharField):
     def __init__(self, *args, **kwargs):
         if "help_text" not in kwargs:
             kwargs["help_text"] = (
-                "List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]. File data takes precedence."
+                "List of [wavelength, value] pairs, e.g. [[300, 0.5], [301, 0.6],... ]. "
+                "File data takes precedence."
             )
         super().__init__(*args, **kwargs)
 
@@ -47,7 +48,9 @@ class SpectrumForm(forms.ModelForm):
     )
     owner = forms.CharField(
         max_length=100,
-        label=mark_safe('<span class="owner-type">Owner</span> Name<span class="asteriskField">*</span>'),
+        label=mark_safe(
+            '<span class="owner-type">Owner</span> Name<span class="asteriskField">*</span>'
+        ),
         required=False,
         help_text="Name of protein, dye, filter, etc...",
     )
@@ -57,13 +60,16 @@ class SpectrumForm(forms.ModelForm):
     file = forms.FileField(
         required=False,
         label="File Upload",
-        help_text="2 column CSV/TSV file with wavelengths in first column and data in second column",
+        help_text=(
+            "2 column CSV/TSV file with wavelengths in first column and data in second column"
+        ),
     )
     confirmation = forms.BooleanField(
         required=True,
         label=mark_safe(
             "<span class='small'>I understand that I am adding a spectrum to the <em>public</em> "
-            "FPbase spectra database, and confirm that I have verified the validity of the data</span>"
+            "FPbase spectra database, and confirm that I have verified the validity of the "
+            "data</span>"
         ),
     )
 
@@ -153,7 +159,9 @@ class SpectrumForm(forms.ModelForm):
             # Filter, Camera, Light - create owner directly
             owner_model = apps.get_model("proteins", self.lookup[cat][1])
             owner_name = self.cleaned_data.get("owner")
-            owner_obj, created = owner_model.objects.get_or_create(name=owner_name, defaults={"created_by": self.user})
+            owner_obj, created = owner_model.objects.get_or_create(
+                name=owner_name, defaults={"created_by": self.user}
+            )
             if not created:
                 owner_obj.updated_by = self.user
                 owner_obj.save()
@@ -205,7 +213,9 @@ class SpectrumForm(forms.ModelForm):
                             "owner": owner_fluor,
                             "stype": first.get_subtype_display().lower(),
                             "n": "n" if stype != Spectrum.TWOP else "",
-                            "status": " (pending)" if first.status == Spectrum.STATUS.pending else "",
+                            "status": " (pending)"
+                            if first.status == Spectrum.STATUS.pending
+                            else "",
                         },
                         code="owner_exists",
                     ),
@@ -228,7 +238,9 @@ class SpectrumForm(forms.ModelForm):
                 return owner
             dye_state = dye.states.filter(name=FluorState.DEFAULT_NAME).first()
             if dye_state and dye_state.spectra.filter(subtype=stype).exists():
-                stype_display = dye_state.spectra.filter(subtype=stype).first().get_subtype_display()
+                stype_display = (
+                    dye_state.spectra.filter(subtype=stype).first().get_subtype_display()
+                )
                 self.add_error(
                     "owner",
                     forms.ValidationError(

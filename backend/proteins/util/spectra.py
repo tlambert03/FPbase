@@ -26,7 +26,9 @@ def _make_monotonic(x: Iterable, y: Iterable) -> tuple[NDArray, NDArray]:
     return x_out, y
 
 
-def interp_linear(x: ArrayLike, y: ArrayLike, s: int = 1, savgol: bool = False) -> tuple[Iterable, Iterable]:
+def interp_linear(
+    x: ArrayLike, y: ArrayLike, s: int = 1, savgol: bool = False
+) -> tuple[Iterable, Iterable]:
     """Interpolate pair of vectors at integer increments between min(x) and max(x)."""
     x = np.asarray(x)
     y = np.asarray(y)

@@ -356,7 +356,9 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     }
 
     data = SpectrumData()
-    category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True)
+    category = models.CharField(
+        max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True
+    )
     subtype = models.CharField(
         max_length=2,
         choices=SUBTYPE_CHOICES,
@@ -422,7 +424,8 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     class Meta:
         verbose_name_plural = "spectra"
         indexes = [
-            # Composite index for the most common query pattern: filtering by fluorophore and status
+            # Composite index for the most common query pattern:
+            # filtering by fluorophore and status
             models.Index(fields=["owner_fluor_id", "status"], name="spectrum_fluor_status_idx"),
             # Index on status for queries that only filter by approval status
             models.Index(fields=["status"], name="spectrum_status_idx"),
@@ -464,17 +467,19 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             self.subtype = self.QE
         if self.category == self.LIGHT:
             self.subtype = self.PD
-        if self.category in self.category_subtypes:
-            if self.subtype not in self.category_subtypes[self.category]:
-                errors.update(
-                    {
-                        "subtype": "{} spectrum subtype must be{} {}".format(
-                            self.get_category_display(),
-                            "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
-                            " ".join(self.category_subtypes[self.category]),
-                        )
-                    }
-                )
+        if (
+            self.category in self.category_subtypes
+            and self.subtype not in self.category_subtypes[self.category]
+        ):
+            errors.update(
+                {
+                    "subtype": "{} spectrum subtype must be{} {}".format(
+                        self.get_category_display(),
+                        "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
+                        " ".join(self.category_subtypes[self.category]),
+                    )
+                }
+            )
 
         if errors:
             raise ValidationError(errors)
@@ -528,7 +533,9 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     def peak_wave(self):
         try:
             if self.min_wave < 300:
-                return self.x[self.y.index(max([i for n, i in enumerate(self.y) if self.x[n] > 300]))]
+                return self.x[
+                    self.y.index(max([i for n, i in enumerate(self.y) if self.x[n] > 300]))
+                ]
             else:
                 try:
                     # first look for the value 1
@@ -573,7 +580,9 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     def width(self, height=0.5) -> tuple[float, float] | None:
         try:
             upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
-            downindex = len(self.y) - next(x[0] for x in enumerate(reversed(self.y)) if x[1] > height)
+            downindex = len(self.y) - next(
+                x[0] for x in enumerate(reversed(self.y)) if x[1] > height
+            )
             return (self.x[upindex], self.x[downindex])
         except Exception:
             return None
@@ -590,7 +599,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             "category": self.category,
             "type": self.subtype if self.subtype != self.ABS else self.EX,
             "color": self.color(),
-            "area": False if self.subtype in (self.LP, self.BS) else True,
+            "area": self.subtype not in (self.LP, self.BS),
             "url": self.owner.get_absolute_url(),
             "classed": f"category-{self.category} subtype-{self.subtype}",
         }
@@ -684,7 +693,9 @@ class Filter(SpectrumOwner, Product):
         blank=True,
         validators=[MinValueValidator(300), MaxValueValidator(1600)],
     )
-    tavg = models.FloatField(blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(1)])
+    tavg = models.FloatField(
+        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(1)]
+    )
     aoi = models.PositiveSmallIntegerField(
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]
     )

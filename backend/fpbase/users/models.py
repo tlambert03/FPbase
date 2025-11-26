@@ -48,7 +48,9 @@ class UserLogin(models.Model):
     """Represent users' logins, one per record"""
 
     user_id: int
-    user: models.ForeignKey[User] = models.ForeignKey(User, on_delete=models.CASCADE, related_name="logins")
+    user: models.ForeignKey[User] = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="logins"
+    )
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
