@@ -229,8 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
               // Show error modal if available
               const errorModal = document.getElementById("errorModal")
-              if (errorModal && window.$ && window.$.fn.modal) {
-                window.$(errorModal).modal("show")
+              if (errorModal && window.bootstrap?.Modal) {
+                bootstrap.Modal.getOrCreateInstance(errorModal).show()
               }
 
               if (window.Sentry) {

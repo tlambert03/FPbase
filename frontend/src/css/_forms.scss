@@ -80,6 +80,48 @@ i.arrow {
   }
 }
 
+// Transition formset styling
+.trans_formset_div {
+  .formset-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid $gray-300;
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+
+    .transition-col {
+      flex: 1;
+    }
+  }
+
+  .transDelete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin-bottom: 2.25rem; // Align with form inputs (accounting for help text)
+    border-radius: 50%;
+    color: $gray-500;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+
+    &:hover {
+      color: $danger;
+      background-color: rgba($danger, 0.1);
+    }
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+}
+
 
 
 #microscopeFormTabs {

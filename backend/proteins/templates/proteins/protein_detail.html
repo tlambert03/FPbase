@@ -222,7 +222,7 @@
 			</div>
 			<div class="align-self-end text-sm-end mt-1">
 				<div class="align-self-end text-sm-end mt-1">
-					<a href="#" class='text-info' data-bs-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
+					<a href="#" class='text-info' id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
 						<small class="d-none d-sm-inline">Edit state transitions</small>
 						<button type="button" class="btn btn-info w-100 mt-3 d-block d-sm-none">{% icon "exchange" class_="me-2" %}Edit state transitions</button>
 					</a>
@@ -232,7 +232,7 @@
 		{% endif %}
     {% if protein.states.count > 1 and protein.transitions.count == 0 %}
       <div class="align-self-end text-sm-end mt-1">
-        <a href="#" class='text-info' data-bs-toggle="modal" id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
+        <a href="#" class='text-info' id='show_transition_modal' data-action-url="{% url 'proteins:update_transitions' slug=protein.slug %}">
           <small class="d-none d-sm-inline">Edit state transitions</small>
           <button type="button" class="btn btn-info w-100 mt-3 d-block d-sm-none">{% icon "exchange" class_="me-2" %}Edit state transitions</button>
         </a>
