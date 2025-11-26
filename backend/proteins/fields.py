@@ -3,7 +3,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.db.models import Lookup, TextField, fields
 
-from .util.helpers import wave_to_hex
+from proteins.util.helpers import wave_to_hex
 
 
 class Around(Lookup):

@@ -20,11 +20,10 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 
 from fpbase.util import is_ajax, uncache_protein_page
-
-from ..forms import SpectrumForm
-from ..models import Filter, Protein, Spectrum, State
-from ..util.importers import add_filter_to_database
-from ..util.spectra import spectra2csv
+from proteins.forms import SpectrumForm
+from proteins.models import Filter, Protein, Spectrum, State
+from proteins.util.importers import add_filter_to_database
+from proteins.util.spectra import spectra2csv
 
 
 # @cache_page(60 * 10)

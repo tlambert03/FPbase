@@ -119,22 +119,23 @@ unsafe-fixes = true
 
 [tool.ruff.lint]
 select = [
-    "F",   # Pyflakes
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "I",   # isort
-    "UP",  # pyupgrade
-    "YTT", # flake8-2020
-    "B",   # flake8-bugbear
-    "ISC", # string concatenation
-    "C4",  # flake8-comprehensions
-    "DJ",  # flake8-django
-    "RUF", # Ruff-specific rules
-    "LOG", # flake8-logging
-    "G",   # flake8-logging-format
-    "TC",  # flake8-type-checking
-    "SIM", # Common simplification rules
-    "FURB",
+    "F",    # Pyflakes
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "I",    # isort
+    "UP",   # pyupgrade
+    "YTT",  # flake8-2020
+    "B",    # flake8-bugbear
+    "ISC",  # string concatenation
+    "C4",   # flake8-comprehensions
+    "DJ",   # flake8-django
+    "RUF",  # Ruff-specific rules
+    "LOG",  # flake8-logging
+    "G",    # flake8-logging-format
+    "TC",   # flake8-type-checking
+    "SIM",  # Common simplification rules
+    "TID",  # flake8-tidy-imports
+    "FURB", # refurb
 ]
 ignore = [
     "B905",   # `zip()` without an explicit `strict=` parameter
@@ -143,6 +144,9 @@ ignore = [
 ]
 [tool.ruff.lint.per-file-ignores]
 "backend/config/settings/*" = ["F405"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
 
 [tool.django-stubs]
 django_settings_module = "config.settings.test"

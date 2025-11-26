@@ -38,8 +38,8 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
-from .align import align_seqs, parental_numbering
-from .skbio_protein import SkbSequence
+from fpseq.align import align_seqs, parental_numbering
+from fpseq.skbio_protein import SkbSequence
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

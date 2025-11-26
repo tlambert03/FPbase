@@ -1,8 +1,8 @@
-from .align import SequenceAlignment, align_seqs
-from .fpseq import FPSeq, from_fpbase
-from .mutations import Mutation, MutationSet, get_mutations, mutate_sequence
-from .skbio_protein import SkbSequence
-from .util import protein_weight
+from fpseq.align import SequenceAlignment, align_seqs
+from fpseq.fpseq import FPSeq, from_fpbase
+from fpseq.mutations import Mutation, MutationSet, get_mutations, mutate_sequence
+from fpseq.skbio_protein import SkbSequence
+from fpseq.util import protein_weight
 
 __all__ = [
     "FPSeq",

@@ -7,7 +7,7 @@ import requests
 from django.core.validators import URLValidator
 from django.template.defaultfilters import slugify
 
-from ..models import Filter
+from proteins.models import Filter
 
 ############################################
 #       Importing Tools
@@ -269,7 +269,7 @@ def text_to_spectra(text, wavecol=0):
 
 
 def import_chroma_spectra(part=None, url=None, **kwargs):
-    from ..util.spectra_import import import_spectral_data
+    from proteins.util.spectra_import import import_spectral_data
 
     if isinstance(part, str):
         text = fetch_chroma_part(part)
@@ -308,7 +308,7 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
 
 
 def import_semrock_spectra(part=None, **kwargs):
-    from ..util.spectra_import import import_spectral_data
+    from proteins.util.spectra_import import import_spectral_data
 
     if isinstance(part, str):
         part = normalize_semrock_part(part)

@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.forms.models import inlineformset_factory
 
-from ..models import (
+from proteins.models import (
     Camera,
     Filter,
     FilterPlacement,
@@ -15,7 +15,7 @@ from ..models import (
     OpticalConfig,
     ProteinCollection,
 )
-from ..util.importers import (
+from proteins.util.importers import (
     add_filter_to_database,
     check_chroma_for_part,
     check_semrock_for_part,

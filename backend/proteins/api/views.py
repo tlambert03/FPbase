@@ -15,11 +15,7 @@ from rest_framework_csv import renderers as r
 
 import proteins.models as pm
 from fpbase.cache_utils import get_model_version
-
-from ..filters import ProteinFilter, SpectrumFilter, StateFilter
-from ..models.microscope import get_cached_optical_configs
-from ..models.spectrum import get_cached_spectra_info
-from .serializers import (
+from proteins.api.serializers import (
     BasicProteinSerializer,
     ProteinSerializer,
     ProteinSerializer2,
@@ -28,6 +24,9 @@ from .serializers import (
     SpectrumSerializer,
     StateSerializer,
 )
+from proteins.filters import ProteinFilter, SpectrumFilter, StateFilter
+from proteins.models.microscope import get_cached_optical_configs
+from proteins.models.spectrum import get_cached_spectra_info
 
 
 def _spectra_etag(request: HttpRequest) -> str:

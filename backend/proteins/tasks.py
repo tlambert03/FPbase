@@ -1,7 +1,7 @@
 from celery import shared_task
 from sentry_sdk import capture_exception
 
-from .util.helpers import forster_list
+from proteins.util.helpers import forster_list
 
 
 @shared_task

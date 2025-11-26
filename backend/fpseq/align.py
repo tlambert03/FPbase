@@ -9,7 +9,7 @@ from __future__ import annotations
 from Bio import Align
 from Bio.Align import substitution_matrices
 
-from .util import chunked_lines
+from fpseq.util import chunked_lines
 
 
 def align_seqs(query, target, gop=5, gep=1, band_size=0):
@@ -225,7 +225,7 @@ class SequenceAlignment:
         MutationSet
             Set of mutations between sequences
         """
-        from .mutations import MutationSet, _get_aligned_muts
+        from fpseq.mutations import MutationSet, _get_aligned_muts
 
         seq1, seq2 = self
         mutstring = "/".join(_get_aligned_muts(seq1, seq2))

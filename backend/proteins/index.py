@@ -1,7 +1,7 @@
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django.decorators import register
 
-from .models import Organism, Protein
+from proteins.models import Organism, Protein
 
 
 @register(Protein)

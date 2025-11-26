@@ -36,7 +36,7 @@ import numbers
 
 import numpy as np
 
-from .util import chunk_string
+from fpseq.util import chunk_string
 
 
 class classproperty(property):

@@ -12,7 +12,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
-from .factories import UserFactory
+from tests.test_users.factories import UserFactory
 
 User = get_user_model()
 

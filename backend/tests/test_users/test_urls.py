@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import resolve, reverse
 
-from .factories import UserFactory
+from tests.test_users.factories import UserFactory
 
 
 class TestUserURLs(TestCase):

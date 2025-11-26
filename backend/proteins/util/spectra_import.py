@@ -1,8 +1,8 @@
 import numpy as np
 from django.contrib.auth import get_user_model
 
-from ..forms import SpectrumForm
-from .helpers import zip_wave_data
+from proteins.forms import SpectrumForm
+from proteins.util.helpers import zip_wave_data
 
 User = get_user_model()
 
