@@ -241,7 +241,11 @@ class FluorState(AbstractFluorescenceData):
         """Brightness relative to spectral neighbors. 1 = average."""
         if not (self.em_max and self.brightness):
             return 1
-        avg = FluorState.objects.exclude(id=self.id).filter(em_max__around=self.em_max).aggregate(Avg("brightness"))
+        avg = (
+            FluorState.objects.exclude(id=self.id)
+            .filter(em_max__around=self.em_max)
+            .aggregate(Avg("brightness"))
+        )
         try:
             return round(self.brightness / avg["brightness__avg"], 4)
         except TypeError:
