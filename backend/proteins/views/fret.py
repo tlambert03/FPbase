@@ -6,9 +6,8 @@ from django.shortcuts import render
 
 from fpbase.celery import app
 from fpbase.util import is_ajax
-
-from ..models import FluorState
-from ..tasks import calc_fret
+from proteins.models import FluorState
+from proteins.tasks import calc_fret
 
 
 def fret_chart(request):

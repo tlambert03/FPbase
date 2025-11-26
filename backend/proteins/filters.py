@@ -3,8 +3,8 @@ from Bio import Seq
 from django import forms
 from django_filters import rest_framework as filters
 
-from .models import Organism, Protein, Spectrum, State
-from .validators import cdna_sequence_validator
+from proteins.models import Organism, Protein, Spectrum, State
+from proteins.validators import cdna_sequence_validator
 
 
 class SpectrumFilter(filters.FilterSet):

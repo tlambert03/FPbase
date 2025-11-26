@@ -4,11 +4,10 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Count, Prefetch, Q
 from django.shortcuts import redirect, render
 
+from proteins.filters import ProteinFilter
+from proteins.models import Organism, Protein, State
 from proteins.util.helpers import getprot
 from references.models import Author, Reference
-
-from ..filters import ProteinFilter
-from ..models import Organism, Protein, State
 
 
 def protein_search(request):

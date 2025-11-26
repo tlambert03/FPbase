@@ -2,10 +2,10 @@ import json
 
 import requests
 
-from .align import align_seqs, parental_numbering
-from .mutations import get_mutations, mutate_sequence
-from .skbio_protein import SkbSequence
-from .util import protein_weight, slugify
+from fpseq.align import align_seqs, parental_numbering
+from fpseq.mutations import get_mutations, mutate_sequence
+from fpseq.skbio_protein import SkbSequence
+from fpseq.util import protein_weight, slugify
 
 
 def generate_labels(seq, mods=None, zeroindex=1):

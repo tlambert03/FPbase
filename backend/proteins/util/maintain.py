@@ -91,7 +91,7 @@ def check_lineages(qs=None, correct_offset=False):
     good = set()
 
     if not qs:
-        from ..models import Lineage
+        from proteins.models import Lineage
 
         qs = Lineage.objects.all()
 

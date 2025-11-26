@@ -1,7 +1,7 @@
 import graphene
 import graphene_django_optimizer as gdo
 
-from . import models
+from references import models
 
 
 class Author(gdo.OptimizedDjangoObjectType):

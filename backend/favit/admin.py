@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Favorite
+from favit.models import Favorite
 
 
 @admin.register(Favorite)

@@ -1,7 +1,7 @@
 import graphene
 
-from .. import models
-from .types import Protein
+from proteins import models
+from proteins.schema.types import Protein
 
 
 class ProteinNode(Protein):

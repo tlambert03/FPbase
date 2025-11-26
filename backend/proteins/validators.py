@@ -7,8 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 
 from fpseq.mutations import Mutation
-
-from .fields import Spectrum
+from proteins.fields import Spectrum
 
 validate_doi = RegexValidator(r"^10.\d{4,9}/[-._;()/:a-zA-Z0-9]+$", "Not a valid DOI string")
 validate_uniprot = RegexValidator(

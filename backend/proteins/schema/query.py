@@ -5,10 +5,10 @@ from django.utils.text import slugify
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
 
-from .. import models
-from ..filters import ProteinFilter
-from ..models.spectrum import get_spectra_list
-from . import relay, types
+from proteins import models
+from proteins.filters import ProteinFilter
+from proteins.models.spectrum import get_spectra_list
+from proteins.schema import relay, types
 
 
 def get_cached_spectrum(id, timeout=60 * 60 * 24):

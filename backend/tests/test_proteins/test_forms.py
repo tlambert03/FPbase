@@ -4,8 +4,7 @@ from django.test import TestCase
 
 from proteins.forms import CollectionForm, ProteinForm, SpectrumForm, StateForm
 from proteins.models import Protein, Spectrum, State
-
-from ..test_users.factories import UserFactory
+from tests.test_users.factories import UserFactory
 
 User = get_user_model()
 

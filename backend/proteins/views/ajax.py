@@ -14,10 +14,9 @@ from django.views.decorators.cache import cache_page
 from django.views.generic import DetailView
 
 from fpbase.util import uncache_protein_page
+from proteins.models import FluorState, Lineage, Organism, Protein, Spectrum, State
+from proteins.models.spectrum import Camera, Filter, Light
 from proteins.util.maintain import validate_node
-
-from ..models import FluorState, Lineage, Organism, Protein, Spectrum, State
-from ..models.spectrum import Camera, Filter, Light
 
 logger = logging.getLogger(__name__)
 

@@ -4,9 +4,8 @@ from django.apps import apps
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, JsonResponse
 
+from favit.models import Favorite
 from fpbase.util import uncache_protein_page
-
-from .models import Favorite
 
 logger = logging.getLogger(__name__)
 

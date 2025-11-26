@@ -2,7 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 
-from . import views
+from proteins.api import views
 
 app_name = "api"
 

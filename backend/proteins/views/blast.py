@@ -3,8 +3,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from fpbase.util import is_ajax
-
-from ..util.blast import blast
+from proteins.util.blast import blast
 
 
 @ensure_csrf_cookie

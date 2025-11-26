@@ -41,12 +41,7 @@ from reversion.models import Revision, Version
 from fpbase.util import is_ajax, uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
 from proteins.extrest.ga import cached_ga_popular
-from proteins.util.helpers import link_excerpts, most_favorited
-from proteins.util.maintain import check_lineages, suggested_switch_type
-from proteins.util.spectra import spectra2csv
-from references.models import Reference  # breaks application modularity
-
-from ..forms import (
+from proteins.forms import (
     BleachComparisonForm,
     BleachMeasurementForm,
     LineageFormSet,
@@ -55,7 +50,11 @@ from ..forms import (
     StateTransitionFormSet,
     bleach_items_formset,
 )
-from ..models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
+from proteins.models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
+from proteins.util.helpers import link_excerpts, most_favorited
+from proteins.util.maintain import check_lineages, suggested_switch_type
+from proteins.util.spectra import spectra2csv
+from references.models import Reference  # breaks application modularity
 
 if TYPE_CHECKING:
     from proteins.forms.forms import BaseStateFormSet

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from django.http import HttpResponse
 
-from . import _scipy as scipy
+from proteins.util import _scipy as scipy
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

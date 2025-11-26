@@ -8,8 +8,7 @@ from django.views.generic import DetailView, ListView
 from fpbase.util import is_ajax
 from proteins.models import Excerpt
 from proteins.util.helpers import link_excerpts
-
-from .models import Author, Reference
+from references.models import Author, Reference
 
 
 class AuthorDetailView(DetailView):
