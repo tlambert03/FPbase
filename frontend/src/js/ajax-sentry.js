@@ -28,6 +28,10 @@ export function shouldReportError(_url, status, _method) {
   // Don't report user aborts
   if (status === 0) return false
 
+  // Don't report 503 Service Unavailable
+  // these are transient infrastructure issues that resolve on retry
+  if (status === 503) return false
+
   // Add more filtering rules here as needed
   // Example: Don't report 404s for optional resources
   // if (status === 404 && url.includes('/optional/')) return false
