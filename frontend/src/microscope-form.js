@@ -38,14 +38,18 @@ $("#microscopeform").submit((e) => {
     })
     if (multidichroics.length > 0 || multiex.length > 0) {
       e.preventDefault()
-      $("#sureModal")
-        .one("hidden.bs.modal", () => {
+      const sureModalEl = document.getElementById("sureModal")
+      sureModalEl.addEventListener(
+        "hidden.bs.modal",
+        () => {
           if ($(document.activeElement).attr("id") === "save") {
             confirmError = false
             $("#microscopeform").submit()
           }
-        })
-        .modal()
+        },
+        { once: true }
+      )
+      bootstrap.Modal.getOrCreateInstance(sureModalEl).show()
     }
   } else {
     $("#spinner").css("display", "inline")
