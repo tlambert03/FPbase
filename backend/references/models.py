@@ -43,11 +43,12 @@ class Author(TimeStampedModel):
     family = models.CharField(max_length=80)
     given = models.CharField(max_length=80)
     initials = models.CharField(max_length=10)
+    publications: models.ManyToManyField[Reference, Author] = models.ManyToManyField(
+        "Reference", through="ReferenceAuthor"
+    )
+
     if TYPE_CHECKING:
-        publications: models.ManyToManyField[Reference, Author] = models.ManyToManyField()
         referenceauthor_set: models.QuerySet[ReferenceAuthor]
-    else:
-        publications = models.ManyToManyField("Reference", through="ReferenceAuthor")
 
     @property
     def protein_contributions(self):
@@ -110,19 +111,8 @@ class Reference(TimeStampedModel):
         ],
         help_text="YYYY",
     )
-    if TYPE_CHECKING:
-        authors: models.ManyToManyField[Author, Reference] = models.ManyToManyField()
-        referenceauthor_set: models.QuerySet[ReferenceAuthor]
-        primary_proteins: models.QuerySet[Protein]
-        proteins: models.QuerySet[Protein]
-        excerpts: models.QuerySet[Excerpt]
-        spectra: models.QuerySet[Spectrum]
-        bleach_measurements: models.QuerySet[BleachMeasurement]
-        oser_measurements: models.QuerySet[OSERMeasurement]
-        lineages: models.QuerySet[Lineage]
-        fluorescencemeasurement_set: models.QuerySet[FluorescenceMeasurement]
-    else:
-        authors = models.ManyToManyField("Author", through="ReferenceAuthor")
+
+    authors: models.ManyToManyField[Author, Reference] = models.ManyToManyField("Author", through="ReferenceAuthor")
     summary = models.CharField(max_length=512, blank=True, help_text="Brief summary of findings")
 
     created_by_id: int | None
@@ -141,6 +131,17 @@ class Reference(TimeStampedModel):
         null=True,
         on_delete=models.CASCADE,
     )
+
+    if TYPE_CHECKING:
+        referenceauthor_set: models.QuerySet[ReferenceAuthor]
+        primary_proteins: models.QuerySet[Protein]
+        proteins: models.QuerySet[Protein]
+        excerpts: models.QuerySet[Excerpt]
+        spectra: models.QuerySet[Spectrum]
+        bleach_measurements: models.QuerySet[BleachMeasurement]
+        oser_measurements: models.QuerySet[OSERMeasurement]
+        lineages: models.QuerySet[Lineage]
+        fluorescencemeasurement_set: models.QuerySet[FluorescenceMeasurement]
 
     class Meta:
         ordering = ("date",)

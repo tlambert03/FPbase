@@ -21,6 +21,7 @@ from proteins.util.helpers import shortuuid
 if TYPE_CHECKING:
     from django.db.models.manager import RelatedManager
 
+    from proteins.models import OcFluorEff
     from proteins.models.collection import FluorophoreCollection, ProteinCollection
     from proteins.models.spectrum import D3Dict, Spectrum
 
@@ -36,12 +37,12 @@ class Microscope(OwnedCollection):
     """
 
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
-    if TYPE_CHECKING:
-        extra_lights: models.ManyToManyField[Light, Microscope] = models.ManyToManyField()
-        extra_cameras: models.ManyToManyField[Camera, Microscope] = models.ManyToManyField()
-    else:
-        extra_lights = models.ManyToManyField("Light", blank=True, related_name="microscopes")
-        extra_cameras = models.ManyToManyField("Camera", blank=True, related_name="microscopes")
+    extra_lights: models.ManyToManyField[Light, Microscope] = models.ManyToManyField(
+        "Light", blank=True, related_name="microscopes"
+    )
+    extra_cameras: models.ManyToManyField[Camera, Microscope] = models.ManyToManyField(
+        "Camera", blank=True, related_name="microscopes"
+    )
     extra_lasers = ArrayField(
         models.PositiveSmallIntegerField(validators=[MinValueValidator(300), MaxValueValidator(1600)]),
         default=list,
@@ -237,18 +238,15 @@ class OpticalConfig(OwnedCollection):
     )
     comments = models.CharField(max_length=256, blank=True)
     if TYPE_CHECKING:
-        from proteins.models import OcFluorEff
-
-        filters: models.ManyToManyField[Filter, OpticalConfig] = models.ManyToManyField()
         filterplacement_set: models.QuerySet[FilterPlacement]
         ocfluoreff_set: models.QuerySet[OcFluorEff]
-    else:
-        filters = models.ManyToManyField(
-            "Filter",
-            related_name="optical_configs",
-            blank=True,
-            through="FilterPlacement",
-        )
+
+    filters: models.ManyToManyField[Filter, OpticalConfig] = models.ManyToManyField(
+        "Filter",
+        related_name="optical_configs",
+        blank=True,
+        through="FilterPlacement",
+    )
     light_id: int | None
     light: models.ForeignKey[Light | None] = models.ForeignKey(
         "Light",

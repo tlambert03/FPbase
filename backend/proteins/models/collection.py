@@ -48,10 +48,11 @@ class OwnedCollection(TimeStampedModel):
 
 class ProteinCollection(OwnedCollection):
     if TYPE_CHECKING:
-        proteins: models.ManyToManyField[Protein, ProteinCollection]
         on_scope: models.QuerySet[Microscope]
-    else:
-        proteins = models.ManyToManyField("Protein", related_name="collection_memberships")
+
+    proteins: models.ManyToManyField[Protein, ProteinCollection] = models.ManyToManyField(
+        "Protein", related_name="collection_memberships"
+    )
     private = models.BooleanField(
         default=False,
         verbose_name="Private Collection",
@@ -66,11 +67,12 @@ class ProteinCollection(OwnedCollection):
 
 
 class FluorophoreCollection(ProteinCollection):
+    dyes: models.ManyToManyField[Dye, FluorophoreCollection] = models.ManyToManyField(
+        "Dye", blank=True, related_name="collection_memberships"
+    )
+
     if TYPE_CHECKING:
-        dyes: models.ManyToManyField[Dye, FluorophoreCollection] = models.ManyToManyField()
         fluor_on_scope: models.QuerySet[Microscope]
-    else:
-        dyes = models.ManyToManyField("Dye", blank=True, related_name="collection_memberships")
 
     def get_absolute_url(self):
         return reverse("proteins:fluor-collection-detail", args=[self.id])

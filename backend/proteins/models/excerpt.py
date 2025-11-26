@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from django.db import models
@@ -17,10 +19,9 @@ class Excerpt(Authorable, TimeStampedModel, StatusModel):
     STATUS = Choices("approved", "flagged", "rejected")
 
     content = models.TextField(max_length=1200, help_text="Brief excerpt describing this protein")
-    if TYPE_CHECKING:
-        proteins: models.ManyToManyField["Protein", "Excerpt"]
-    else:
-        proteins = models.ManyToManyField("Protein", blank=True, related_name="excerpts")
+    proteins: models.ManyToManyField[Protein, Excerpt] = models.ManyToManyField(
+        "Protein", blank=True, related_name="excerpts"
+    )
     reference_id: int | None
     reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         Reference,

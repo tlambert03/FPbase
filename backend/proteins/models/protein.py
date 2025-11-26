@@ -246,10 +246,9 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         on_delete=models.SET_NULL,
         help_text="Preferably the publication that introduced the protein",
     )
-    if TYPE_CHECKING:
-        references: models.ManyToManyField[Reference, Protein] = models.ManyToManyField()
-    else:
-        references = models.ManyToManyField(Reference, related_name="proteins", blank=True)
+    references: models.ManyToManyField[Reference, Protein] = models.ManyToManyField(
+        Reference, related_name="proteins", blank=True
+    )
 
     default_state_id: int | None
     default_state: models.ForeignKey[State | None] = models.ForeignKey(
@@ -258,6 +257,12 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
+    )
+    snapgene_plasmids: models.ManyToManyField[SnapGenePlasmid, Protein] = models.ManyToManyField(
+        "SnapGenePlasmid",
+        related_name="proteins",
+        blank=True,
+        help_text="Associated SnapGene plasmids",
     )
 
     if TYPE_CHECKING:
@@ -268,14 +273,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         oser_measurements: models.QuerySet[OSERMeasurement]
         collection_memberships: models.QuerySet[ProteinCollection]
         excerpts: models.QuerySet[Excerpt]
-        snapgene_plasmids: models.ManyToManyField[SnapGenePlasmid, Protein] = models.ManyToManyField()
-    else:
-        snapgene_plasmids = models.ManyToManyField(
-            "SnapGenePlasmid",
-            related_name="proteins",
-            blank=True,
-            help_text="Associated SnapGene plasmids",
-        )
 
     # managers
     objects: _ProteinManager[Self] = _ProteinManager()
@@ -573,21 +570,19 @@ class State(Fluorophore):  # TODO: rename to ProteinState
         validators=[MinValueValidator(0), MaxValueValidator(1600)],
     )
 
+    transitions: models.ManyToManyField[State, State] = models.ManyToManyField(
+        "State",
+        related_name="transition_state",
+        verbose_name="State Transitions",
+        blank=True,
+        through="StateTransition",
+    )
     if TYPE_CHECKING:
-        transitions: models.ManyToManyField[State, State] = models.ManyToManyField()
         transition_state: models.QuerySet[State]
         transitions_from: models.QuerySet[StateTransition]
         transitions_to: models.QuerySet[StateTransition]
         bleach_measurements: models.QuerySet[BleachMeasurement]
         fluorophore_ptr: Fluorophore  # added by Django MTI
-    else:
-        transitions = models.ManyToManyField(
-            "State",
-            related_name="transition_state",
-            verbose_name="State Transitions",
-            blank=True,
-            through="StateTransition",
-        )
 
     def save(self, *args, **kwargs) -> None:
         self.entity_type = Fluorophore.EntityTypes.PROTEIN
