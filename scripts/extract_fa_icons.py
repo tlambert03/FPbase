@@ -100,8 +100,7 @@ def extract_svgs(
         with requests.get(URL, stream=True) as r:
             r.raise_for_status()
             with open(zip_path, "wb") as f:
-                for chunk in r.iter_content(8192):
-                    f.write(chunk)
+                f.writelines(r.iter_content(8192))
 
         print("Extracting...")
         with zipfile.ZipFile(zip_path) as z:

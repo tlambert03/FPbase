@@ -265,10 +265,8 @@ class MicroscopeForm(forms.ModelForm):
                                 [n.strip() for n in brackets.sub("", item).split(",") if n.strip()]
                             )
                         else:
-                            if item.endswith(","):
-                                item = item[:-1]
-                            if item.startswith(","):
-                                item = item[1:]
+                            item = item.removesuffix(",")
+                            item = item.removeprefix(",")
                             splt.extend([n.strip() for n in item.split(",")])
                 else:
                     splt = [i.strip() for i in line.split(",")]
