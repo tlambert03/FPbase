@@ -18,6 +18,7 @@ from playwright.sync_api import expect
 
 from favit.models import Favorite
 from proteins.factories import (
+    DyeFactory,
     FilterFactory,
     MicroscopeFactory,
     OpticalConfigWithFiltersFactory,
@@ -332,9 +333,8 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
         default_state__em_max=525,
         default_state__qy=0.8,
     )
-    ProteinFactory(
+    DyeFactory(
         name="acceptor",
-        agg="m",
         default_state__ex_max=525,
         default_state__em_max=550,
         default_state__ext_coeff=55000,

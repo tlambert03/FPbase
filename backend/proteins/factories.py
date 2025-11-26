@@ -9,7 +9,19 @@ import numpy as np
 from django.utils.text import slugify
 
 from fpseq import FPSeq
-from proteins.models import Camera, Filter, FilterPlacement, Light, Microscope, OpticalConfig, Protein, Spectrum, State
+from proteins.models import (
+    Camera,
+    Dye,
+    DyeState,
+    Filter,
+    FilterPlacement,
+    Light,
+    Microscope,
+    OpticalConfig,
+    Protein,
+    Spectrum,
+    State,
+)
 from proteins.util.helpers import wave_to_hex
 from references.factories import ReferenceFactory
 
@@ -181,17 +193,6 @@ class FluorophoreFactory(SpectrumOwnerFactory):
     exhex = factory.LazyAttribute(lambda o: wave_to_hex(o.ex_max))
     is_dark = False
 
-
-class StateFactory(FluorophoreFactory):
-    class Meta:
-        model = State
-        django_get_or_create = ("name", "slug")
-
-    name = "default"
-    slug = factory.LazyAttribute(lambda o: f"{o.protein.slug}_{slugify(o.name)}")
-    maturation = factory.Faker("pyfloat", min_value=0, max_value=1600)
-    protein = factory.SubFactory("proteins.factories.ProteinFactory", default_state=None)
-
     ex_spectrum = factory.RelatedFactory(
         "proteins.factories.SpectrumFactory",
         factory_related_name="owner_fluor",
@@ -212,13 +213,14 @@ class StateFactory(FluorophoreFactory):
     )
 
 
-class DyeFactory(factory.django.DjangoModelFactory):
+class StateFactory(FluorophoreFactory):
     class Meta:
-        model = "proteins.Dye"
+        model = State
         django_get_or_create = ("name", "slug")
 
-    name = factory.Sequence(lambda n: f"TestDye{n}")
-    slug = factory.LazyAttribute(lambda o: slugify(o.name))
+    slug = factory.LazyAttribute(lambda o: f"{o.protein.slug}_{slugify(o.name)}")
+    maturation = factory.Faker("pyfloat", min_value=0, max_value=1600)
+    protein = factory.SubFactory("proteins.factories.ProteinFactory", default_state=None)
 
 
 class ProteinFactory(factory.django.DjangoModelFactory[Protein]):
@@ -236,6 +238,26 @@ class ProteinFactory(factory.django.DjangoModelFactory[Protein]):
     parent_organism = factory.SubFactory(OrganismFactory)
     primary_reference = factory.SubFactory("references.factories.ReferenceFactory")
     default_state = factory.RelatedFactory(StateFactory, factory_related_name="protein")
+
+
+class DyeStateFactory(FluorophoreFactory):
+    class Meta:
+        model = DyeState
+        django_get_or_create = ("name", "slug")
+
+    slug = factory.LazyAttribute(lambda o: f"{o.dye.slug}_{slugify(o.name)}")
+    dye = factory.SubFactory("proteins.factories.DyeFactory", default_state=None)
+
+
+class DyeFactory(factory.django.DjangoModelFactory[Dye]):
+    class Meta:
+        model = Dye
+        django_get_or_create = ("name", "slug")
+
+    name = factory.Sequence(lambda n: f"TestDye{n}")
+    slug = factory.LazyAttribute(lambda o: slugify(o.name))
+    primary_reference = factory.SubFactory("references.factories.ReferenceFactory")
+    default_state = factory.RelatedFactory(DyeStateFactory, factory_related_name="dye")
 
 
 class SpectrumFactory(factory.django.DjangoModelFactory):
