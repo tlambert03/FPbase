@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import ast
 import json
 import logging
 from functools import cached_property
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import django.forms
 import numpy as np
@@ -13,7 +15,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Case, CharField, F, IntegerField, QuerySet, Value, When
-from django.db.models.functions import Concat, NullIf
 from django.urls import reverse
 from django.utils.text import slugify
 from model_utils import Choices
@@ -21,11 +22,36 @@ from model_utils.managers import QueryManager
 from model_utils.models import StatusModel, TimeStampedModel
 
 from fpbase.cache_utils import SPECTRA_CACHE_KEY
+from proteins.models.mixins import AdminURLMixin, Authorable, Product
+from proteins.util.helpers import spectra_fig, wave_to_hex
+from proteins.util.spectra import interp_linear, norm2one, norm2P, step_size
 from references.models import Reference
 
-from ..util.helpers import spectra_fig, wave_to_hex
-from ..util.spectra import interp_linear, norm2one, norm2P, step_size
-from .mixins import AdminURLMixin, Authorable, Product
+if TYPE_CHECKING:
+    from typing import NotRequired, TypedDict
+
+    from proteins.models import FluorState
+
+    class D3Dict(TypedDict):
+        slug: str
+        key: str
+        id: int
+        values: list[dict[str, float]]
+        peak: float | bool
+        minwave: float
+        maxwave: float
+        category: str
+        type: str
+        color: str
+        area: bool
+        url: str | None
+        classed: str
+
+        scalar: NotRequired[float | None]
+        ex_max: NotRequired[float | None]
+        em_max: NotRequired[float | None]
+        twop_qy: NotRequired[float | None]
+
 
 logger = logging.getLogger(__name__)
 
@@ -53,16 +79,26 @@ class SpectrumOwner(Authorable, TimeStampedModel):
     def makeslug(self):
         return slugify(self.name.replace("/", "-"))
 
-    def d3_dicts(self):
+    def d3_dicts(self) -> list[D3Dict]:
         return [spect.d3dict() for spect in self.spectra.all()]
 
 
 class Camera(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
 
+    if TYPE_CHECKING:
+        spectrum: Spectrum
+        microscopes: models.QuerySet
+        optical_configs: models.QuerySet
+
 
 class Light(SpectrumOwner, Product):
     manufacturer = models.CharField(max_length=128, blank=True)
+
+    if TYPE_CHECKING:
+        spectrum: Spectrum
+        microscopes: models.QuerySet
+        optical_configs: models.QuerySet
 
 
 def sorted_ex2em(filterset):
@@ -96,7 +132,7 @@ def get_spectra_list(query_set: QuerySet | None = None, **filters: str) -> list[
     else:
         qs = query_set
 
-    owners = ["state", "dye", "filter", "light", "camera"]
+    owners = ["fluor", "filter", "light", "camera"]
 
     # Helper to create CASE statement for polymorphic owner fields
     def owner_case(field: str, **owner_fields) -> Case:
@@ -110,18 +146,20 @@ def get_spectra_list(query_set: QuerySet | None = None, **filters: str) -> list[
     # Fetch only needed fields and annotate with owner info
     qs = (
         qs.only("id", "category", "subtype", *(f"owner_{o}_id" for o in owners))
-        .select_related("owner_state__protein", "owner_dye", "owner_filter", "owner_light", "owner_camera")
+        .select_related("owner_fluor", "owner_filter", "owner_light", "owner_camera")
         .annotate(
             owner_id=owner_case("id"),
             owner_slug=owner_case("slug"),
+            # Fluorophore uses cached owner_name, others use direct name field
             owner_name=owner_case(
                 "name",
-                state=Case(
-                    When(owner_state__name="default", then=F("owner_state__protein__name")),
-                    default=Concat(F("owner_state__protein__name"), Value(" ("), F("owner_state__name"), Value(")")),
-                ),
+                fluor=F("owner_fluor__owner_name"),
             ),
-            owner_url=NullIf(owner_case("url", state=F("owner_state__protein__slug")), Value("")),
+            # Fluorophore doesn't have URL, others do
+            owner_url=owner_case(
+                "url",
+                fluor=Value(""),  # Fluorophore has no URL field
+            ),
         )
         .order_by("owner_name")
         .values("id", "category", "subtype", "owner_id", "owner_slug", "owner_name", "owner_url")
@@ -146,69 +184,53 @@ class SpectrumManager(models.Manager):
     def all_objects(self):
         return super().get_queryset()
 
-    def state_slugs(self):
-        L = (
+    def fluor_slugs(self):
+        """Get all fluorophore (State + DyeState) slugs."""
+        return (
             self.get_queryset()
-            .exclude(owner_state=None)
-            .values_list("owner_state__slug", "owner_state__protein__name", "owner_state__name")
+            .exclude(owner_fluor=None)
+            .values_list("owner_fluor__slug", "owner_fluor__owner_name")
             .distinct()
         )
-        return [(slug, prot if state == "default" else f"{prot} ({state})") for slug, prot, state in L]
 
-    def dye_slugs(self):
-        return (
-            self.get_queryset().filter(category=self.DYE).values_list("owner_dye__slug", "owner_dye__name").distinct()
-        )
-
-    # FIXME:  Stupid dumb dumb
-    def fluorlist(self, withdyes=True):
+    def fluorlist(self):
+        """Get list of all fluorophores (States + DyeStates) with spectra."""
         vallist = [
             "category",
             "subtype",
-            "owner_state__protein__name",
-            "owner_state__slug",
-            "owner_state__name",
+            "owner_fluor__slug",
+            "owner_fluor__owner_name",
         ]
-        distinct = ["owner_state__slug"]
-        if withdyes:
-            vallist += ["owner_dye__slug", "owner_dye__name"]
-            distinct += ["owner_dye__slug"]
         Q = (
             self.get_queryset()
             .filter(models.Q(category=Spectrum.DYE) | models.Q(category=Spectrum.PROTEIN))
+            .exclude(owner_fluor=None)
             .values(*vallist)
-            .distinct(*distinct)
+            .distinct("owner_fluor__slug")
         )
 
         out = []
         for v in Q:
-            slug = v.get("owner_state__slug") or v.get("owner_dye__slug")
-            name = v.get("owner_dye__name", None)
-            if not name:
-                prot = v["owner_state__protein__name"]
-                state = v["owner_state__name"]
-                name = prot if state == "default" else f"{prot} ({state})"
             out.append(
                 {
                     "category": v["category"],
                     "subtype": v["subtype"],
-                    "slug": slug,
-                    "name": name,
+                    "slug": v["owner_fluor__slug"],
+                    "name": v["owner_fluor__owner_name"],
                 }
             )
         return sorted(out, key=lambda k: k["name"])
 
-    def filter_owner(self, slug):
+    def filter_owner(self, slug: str) -> QuerySet[Spectrum]:
         qs = self.none()
-        A = ("owner_state", "owner_dye", "owner_filter", "owner_light", "owner_camera")
+        A = ("owner_fluor", "owner_filter", "owner_light", "owner_camera")
         for ownerclass in A:
             qs = qs | self.get_queryset().filter(**{ownerclass + "__slug": slug})
         return qs
 
     def find_similar_owners(self, query, threshold=0.4):
         A = (
-            "owner_state__protein__name",
-            "owner_dye__name",
+            "owner_fluor__owner_name",  # Search on cached parent name (Protein/Dye)
             "owner_filter__name",
             "owner_light__name",
             "owner_camera__name",
@@ -334,7 +356,9 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     }
 
     data = SpectrumData()
-    category = models.CharField(max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True)
+    category = models.CharField(
+        max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True
+    )
     subtype = models.CharField(
         max_length=2,
         choices=SUBTYPE_CHOICES,
@@ -346,30 +370,41 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
 
     # I was swayed to avoid Generic Foreign Keys by this article
     # https://lukeplant.me.uk/blog/posts/avoid-django-genericforeignkey/
-    owner_state = models.ForeignKey("State", null=True, blank=True, on_delete=models.CASCADE, related_name="spectra")
-    owner_dye = models.ForeignKey("Dye", null=True, blank=True, on_delete=models.CASCADE, related_name="spectra")
-    owner_filter = models.OneToOneField(
+    # Fluorophore encompasses both State (ProteinState) and DyeState via MTI
+    owner_fluor_id: int | None
+    owner_fluor: models.ForeignKey[FluorState | None] = models.ForeignKey(
+        "FluorState",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="spectra",
+    )
+    owner_filter_id: int | None
+    owner_filter: models.OneToOneField[Filter | None] = models.OneToOneField(
         "Filter",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
         related_name="spectrum",
     )
-    owner_light = models.OneToOneField(
+    owner_light_id: int | None
+    owner_light: models.OneToOneField[Light | None] = models.OneToOneField(
         "Light",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
         related_name="spectrum",
     )
-    owner_camera = models.OneToOneField(
+    owner_camera_id: int | None
+    owner_camera: models.OneToOneField[Camera | None] = models.OneToOneField(
         "Camera",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
         related_name="spectrum",
     )
-    reference = models.ForeignKey(
+    reference_id: int | None
+    reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         Reference,
         null=True,
         blank=True,
@@ -378,7 +413,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     )
     source = models.CharField(max_length=128, blank=True, help_text="Source of the spectra data")
 
-    objects = SpectrumManager()
+    objects: SpectrumManager = SpectrumManager()
     fluorophores = QueryManager(models.Q(category=DYE) | models.Q(category=PROTEIN))
     proteins = QueryManager(category=PROTEIN)
     dyes = QueryManager(category=DYE)
@@ -389,15 +424,16 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     class Meta:
         verbose_name_plural = "spectra"
         indexes = [
-            # Composite index for the most common query pattern: filtering by state and status
-            models.Index(fields=["owner_state_id", "status"], name="spectrum_state_status_idx"),
+            # Composite index for the most common query pattern:
+            # filtering by fluorophore and status
+            models.Index(fields=["owner_fluor_id", "status"], name="spectrum_fluor_status_idx"),
             # Index on status for queries that only filter by approval status
             models.Index(fields=["status"], name="spectrum_status_idx"),
         ]
 
     def __str__(self):
-        if self.owner_state:
-            return "{} {}".format(self.owner_state if self.owner_state else "unowned", self.subtype)
+        if self.owner_fluor:
+            return f"{self.owner_fluor} {self.subtype}"
         else:
             return self.name
 
@@ -431,17 +467,19 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             self.subtype = self.QE
         if self.category == self.LIGHT:
             self.subtype = self.PD
-        if self.category in self.category_subtypes:
-            if self.subtype not in self.category_subtypes[self.category]:
-                errors.update(
-                    {
-                        "subtype": "{} spectrum subtype must be{} {}".format(
-                            self.get_category_display(),
-                            "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
-                            " ".join(self.category_subtypes[self.category]),
-                        )
-                    }
-                )
+        if (
+            self.category in self.category_subtypes
+            and self.subtype not in self.category_subtypes[self.category]
+        ):
+            errors.update(
+                {
+                    "subtype": "{} spectrum subtype must be{} {}".format(
+                        self.get_category_display(),
+                        "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
+                        " ".join(self.category_subtypes[self.category]),
+                    )
+                }
+            )
 
         if errors:
             raise ValidationError(errors)
@@ -460,30 +498,32 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             raise ValidationError(errors)
 
     @property
-    def owner_set(self):
+    def owner_set(self) -> list[FluorState | Filter | Light | Camera | None]:
         return [
-            self.owner_state,
-            self.owner_dye,
+            self.owner_fluor,
             self.owner_filter,
             self.owner_light,
             self.owner_camera,
         ]
 
     @property
-    def owner(self):
+    def owner(self) -> FluorState | Filter | Light | Camera | None:
         return next((x for x in self.owner_set if x), None)
         #  raise AssertionError("No owner is set")
 
     @property
-    def name(self):
+    def name(self) -> str:
         # this method allows the protein name to have changed in the meantime
-        if self.owner_state:
-            if self.owner_state.name == "default":
-                return f"{self.owner_state.protein} {self.subtype}"
+        if self.owner_fluor:
+            # Check if it's a State (ProteinState) by checking for protein attribute
+            if hasattr(self.owner_fluor, "protein"):
+                if self.owner_fluor.name == "default":
+                    return f"{self.owner_fluor.protein} {self.subtype}"
+                else:
+                    return f"{self.owner_fluor} {self.subtype}"
             else:
-                return f"{self.owner_state} {self.subtype}"
-        elif self.owner_dye:
-            return f"{self.owner} {self.subtype}"
+                # It's a DyeState
+                return f"{self.owner} {self.subtype}"
         elif self.owner_filter:
             return str(self.owner)
         else:
@@ -493,7 +533,9 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     def peak_wave(self):
         try:
             if self.min_wave < 300:
-                return self.x[self.y.index(max([i for n, i in enumerate(self.y) if self.x[n] > 300]))]
+                return self.x[
+                    self.y.index(max([i for n, i in enumerate(self.y) if self.x[n] > 300]))
+                ]
             else:
                 try:
                     # first look for the value 1
@@ -535,16 +577,18 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         d = self.waverange(waverange)
         return np.mean([i[1] for i in d])
 
-    def width(self, height=0.5):
+    def width(self, height=0.5) -> tuple[float, float] | None:
         try:
             upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
-            downindex = len(self.y) - next(x[0] for x in enumerate(reversed(self.y)) if x[1] > height)
+            downindex = len(self.y) - next(
+                x[0] for x in enumerate(reversed(self.y)) if x[1] > height
+            )
             return (self.x[upindex], self.x[downindex])
         except Exception:
-            return False
+            return None
 
-    def d3dict(self):
-        D = {
+    def d3dict(self) -> D3Dict:
+        D: D3Dict = {
             "slug": self.owner.slug,
             "key": self.name,
             "id": self.id,
@@ -555,7 +599,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             "category": self.category,
             "type": self.subtype if self.subtype != self.ABS else self.EX,
             "color": self.color(),
-            "area": False if self.subtype in (self.LP, self.BS) else True,
+            "area": self.subtype not in (self.LP, self.BS),
             "url": self.owner.get_absolute_url(),
             "classed": f"category-{self.category} subtype-{self.subtype}",
         }
@@ -571,7 +615,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             elif self.subtype == self.EM:
                 D.update({"scalar": self.owner.qy, "em_max": self.owner.em_max})
             elif self.subtype == self.TWOP:
-                D.update({"scalar": self.owner.twop_peakGM, "twop_qy": self.owner.twop_qy})
+                D.update({"scalar": self.owner.twop_peak_gm, "twop_qy": self.owner.twop_qy})
         return D
 
     def d3data(self):
@@ -649,10 +693,18 @@ class Filter(SpectrumOwner, Product):
         blank=True,
         validators=[MinValueValidator(300), MaxValueValidator(1600)],
     )
-    tavg = models.FloatField(blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(1)])
+    tavg = models.FloatField(
+        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(1)]
+    )
     aoi = models.PositiveSmallIntegerField(
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]
     )
+
+    if TYPE_CHECKING:
+        from proteins.models import OpticalConfig
+
+        spectrum: Spectrum
+        optical_configs: models.QuerySet[OpticalConfig]
 
     class Meta:
         ordering = ["bandcenter"]

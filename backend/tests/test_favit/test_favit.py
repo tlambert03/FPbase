@@ -69,7 +69,9 @@ class TestFavoriteManager(TestCase):
     def test_get_favorite_returns_favorite_when_exists(self):
         """Test that get_favorite returns favorite when it exists."""
         created_fav = Favorite.objects.create(self.user, self.protein.id, "proteins.Protein")
-        retrieved_fav = Favorite.objects.get_favorite(self.user, self.protein.id, "proteins.Protein")
+        retrieved_fav = Favorite.objects.get_favorite(
+            self.user, self.protein.id, "proteins.Protein"
+        )
 
         assert retrieved_fav is not None
         assert retrieved_fav.id == created_fav.id

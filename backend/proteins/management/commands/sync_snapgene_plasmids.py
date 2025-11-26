@@ -51,7 +51,9 @@ class Command(BaseCommand):
             return
 
         # Sync plasmids to database
-        created_count, updated_count, unchanged_count, removed_count = self._sync_plasmids(plasmid_data)
+        created_count, updated_count, unchanged_count, removed_count = self._sync_plasmids(
+            plasmid_data
+        )
         self.stdout.write(
             self.style.SUCCESS(
                 f"\n✓ Synced plasmids: {created_count} created, {updated_count} updated, "
@@ -93,7 +95,9 @@ class Command(BaseCommand):
                 return []
 
         try:
-            data = json.loads(match.group(1) if match.group(0).startswith("var") else f"[{match.group(1)}]")
+            data = json.loads(
+                match.group(1) if match.group(0).startswith("var") else f"[{match.group(1)}]"
+            )
             # Handle different possible structures
             if isinstance(data, dict) and "sequences" in data:
                 return data["sequences"]
@@ -109,7 +113,9 @@ class Command(BaseCommand):
         """Show preview of plasmids that would be synced."""
         self.stdout.write("\nPreview of plasmids (first 10):")
         for p in plasmids:
-            self.stdout.write(f"  - {p.get('plasmidName', 'Unknown')} ({p.get('plasmidID', 'Unknown')})")
+            self.stdout.write(
+                f"  - {p.get('plasmidName', 'Unknown')} ({p.get('plasmidID', 'Unknown')})"
+            )
 
     def _sync_plasmids(self, plasmid_data: list[dict]) -> tuple[int, int, int, int]:
         """Sync plasmid data using get() then create-only logic.
@@ -132,7 +138,11 @@ class Command(BaseCommand):
             for data in plasmid_data:
                 plasmid_id = data.get("plasmidID")
                 if not plasmid_id:
-                    self.stdout.write(self.style.WARNING("✗ no plasmidID found... has the page structure changed?"))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            "✗ no plasmidID found... has the page structure changed?"
+                        )
+                    )
                     continue
 
                 fetched_plasmid_ids.add(plasmid_id)
@@ -150,14 +160,18 @@ class Command(BaseCommand):
                     SnapGenePlasmid.objects.get(plasmid_id=plasmid_id, **defaults)
                     unchanged_count += 1
                 except SnapGenePlasmid.DoesNotExist:
-                    _, created = SnapGenePlasmid.objects.update_or_create(plasmid_id=plasmid_id, defaults=defaults)
+                    _, created = SnapGenePlasmid.objects.update_or_create(
+                        plasmid_id=plasmid_id, defaults=defaults
+                    )
                     if created:
                         created_count += 1
                     else:
                         updated_count += 1
 
             # Remove plasmids that are no longer on SnapGene's website
-            removed_count, _ = SnapGenePlasmid.objects.exclude(plasmid_id__in=fetched_plasmid_ids).delete()
+            removed_count, _ = SnapGenePlasmid.objects.exclude(
+                plasmid_id__in=fetched_plasmid_ids
+            ).delete()
 
         return created_count, updated_count, unchanged_count, removed_count
 
@@ -175,7 +189,9 @@ class Command(BaseCommand):
                 protein_name = protein.name
 
                 # Pattern to match exact name or plasmid vectors (e.g., pEGFP, pEGFP-N1, pEGFP-C2)
-                is_plasmid_vector = re.compile(rf"^p{re.escape(protein_name)}(-[CN]?\d+)?$", re.IGNORECASE)
+                is_plasmid_vector = re.compile(
+                    rf"^p{re.escape(protein_name)}(-[CN]?\d+)?$", re.IGNORECASE
+                )
                 matching_plasmids = [
                     plasmid
                     for plasmid in SnapGenePlasmid.objects.all()

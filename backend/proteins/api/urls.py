@@ -2,7 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 
-from . import views
+from proteins.api import views
 
 app_name = "api"
 
@@ -38,6 +38,8 @@ urlpatterns = [
     # non-normal endpoints
     path("proteins/spectraslugs/", RedirectView.as_view(url="/api/spectra-list/", permanent=True)),
     path("spectra-list/", views.spectra_list, name="spectra-list"),
-    path("proteins/ocinfo/", RedirectView.as_view(url="/api/optical-configs-list/", permanent=True)),
+    path(
+        "proteins/ocinfo/", RedirectView.as_view(url="/api/optical-configs-list/", permanent=True)
+    ),
     path("optical-configs-list/", views.optical_configs_list, name="ocinfo"),
 ]

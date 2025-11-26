@@ -62,6 +62,7 @@ def _invalidate_optical_config_cache() -> None:
 SPECTRUM_OWNER_MODELS = {
     "proteins.Camera",
     "proteins.Dye",
+    "proteins.DyeState",
     "proteins.Filter",
     "proteins.Light",
     "proteins.Protein",

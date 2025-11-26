@@ -1,6 +1,6 @@
 # pyright: reportPrivateImportUsage=false
 import random
-from typing import TypeVar, cast
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import factory
 import factory.builder
@@ -9,10 +9,24 @@ import numpy as np
 from django.utils.text import slugify
 
 from fpseq import FPSeq
+from proteins.models import (
+    Camera,
+    Dye,
+    DyeState,
+    Filter,
+    FilterPlacement,
+    Light,
+    Microscope,
+    OpticalConfig,
+    Protein,
+    Spectrum,
+    State,
+)
 from proteins.util.helpers import wave_to_hex
 from references.factories import ReferenceFactory
 
-from .models import Camera, Filter, FilterPlacement, Light, Microscope, OpticalConfig, Protein, Spectrum, State
+if TYPE_CHECKING:
+    from proteins.models import FluorState
 
 T = TypeVar("T")
 
@@ -20,10 +34,12 @@ T = TypeVar("T")
 _BP_TYPE = {Filter.BP, Filter.BPM, Filter.BPX}
 
 FRUITS = [
-    'Apple', 'Banana', 'Orange', 'Strawberry', 'Mango', 'Grapes', 'Pineapple', 'Watermelon', 'Kiwi',
+    'Apple', 'Banana', 'Orange', 'Strawberry', 'Mango', 'Grapes', 'Pineapple', 'Watermelon',
+    'Kiwi',
     'Pear', 'Cherry', 'Peach', 'Plum', 'Lemon', 'Lime', 'Blueberry', 'Raspberry', 'Blackberry',
     'Pomegranate', 'Coconut', 'Avocado', 'Grapefruit', 'Cantaloupe', 'Fig', 'Guava', 'Honeydew',
-    'Lychee', 'Mandarin', 'Nectarine', 'Passionfruit', 'Papaya', 'Apricot', 'Cranberry', 'Dragonfruit',
+    'Lychee', 'Mandarin', 'Nectarine', 'Passionfruit', 'Papaya', 'Apricot', 'Cranberry',
+    'Dragonfruit',
     'Starfruit', 'Persimmon', 'Rambutan', 'Tangerine', 'Clementine', 'Mulberry', 'Cactus',
     'Quince', 'Date', 'Jackfruit', 'Kumquat', 'Lingonberry', 'Loquat', 'Mangosteen', 'Pitaya',
     'Plantain', 'PricklyPear', 'Tamarind', 'UgliFruit', 'Yuzu', 'Boysenberry', 'Cherimoya',
@@ -120,14 +136,14 @@ def _mock_edge_filter(edge, subtype, min_wave=300, max_wave=900, transmission=0.
 def _build_spectral_data(resolver: factory.builder.Resolver):
     subtype = getattr(resolver, "subtype", None)
 
-    if (owner_state := getattr(resolver, "owner_state", None)) is not None:
-        owner_state = cast("State", owner_state)
+    if (owner_fluor := getattr(resolver, "owner_fluor", None)) is not None:
+        owner_fluor = cast("FluorState", owner_fluor)
         if subtype == "ex":
-            return _mock_spectrum(owner_state.ex_max, type="ex")
+            return _mock_spectrum(owner_fluor.ex_max, type="ex")
         elif subtype == "em":
-            return _mock_spectrum(owner_state.em_max, type="em")
-        elif subtype == "2p" and owner_state.twop_ex_max:
-            return _mock_spectrum(owner_state.twop_ex_max, type="ex", min_wave=600, max_wave=1100)
+            return _mock_spectrum(owner_fluor.em_max, type="em")
+        elif subtype == "2p" and getattr(owner_fluor, "twop_ex_max", None):
+            return _mock_spectrum(owner_fluor.twop_ex_max, type="ex", min_wave=600, max_wave=1100)
 
     if (owner_filter := getattr(resolver, "owner_filter", None)) is not None:
         owner_filter = cast("Filter", owner_filter)
@@ -179,40 +195,34 @@ class FluorophoreFactory(SpectrumOwnerFactory):
     exhex = factory.LazyAttribute(lambda o: wave_to_hex(o.ex_max))
     is_dark = False
 
+    ex_spectrum = factory.RelatedFactory(
+        "proteins.factories.SpectrumFactory",
+        factory_related_name="owner_fluor",
+        subtype="ex",
+        category="p",
+    )
+    em_spectrum = factory.RelatedFactory(
+        "proteins.factories.SpectrumFactory",
+        factory_related_name="owner_fluor",
+        subtype="em",
+        category="p",
+    )
+    twop_spectrum = factory.RelatedFactory(
+        "proteins.factories.SpectrumFactory",
+        factory_related_name="owner_fluor",
+        subtype="2p",
+        category="p",
+    )
+
 
 class StateFactory(FluorophoreFactory):
     class Meta:
         model = State
         django_get_or_create = ("name", "slug")
 
-    name = "default"
     slug = factory.LazyAttribute(lambda o: f"{o.protein.slug}_{slugify(o.name)}")
     maturation = factory.Faker("pyfloat", min_value=0, max_value=1600)
     protein = factory.SubFactory("proteins.factories.ProteinFactory", default_state=None)
-
-    ex_spectrum = factory.RelatedFactory(
-        "proteins.factories.SpectrumFactory",
-        factory_related_name="owner_state",
-        subtype="ex",
-        category="p",
-    )
-    em_spectrum = factory.RelatedFactory(
-        "proteins.factories.SpectrumFactory",
-        factory_related_name="owner_state",
-        subtype="em",
-        category="p",
-    )
-    twop_spectrum = factory.RelatedFactory(
-        "proteins.factories.SpectrumFactory",
-        factory_related_name="owner_state",
-        subtype="2p",
-        category="p",
-    )
-
-
-class DyeFactory(FluorophoreFactory):
-    class Meta:
-        model = "proteins.Dye"
 
 
 class ProteinFactory(factory.django.DjangoModelFactory[Protein]):
@@ -225,11 +235,31 @@ class ProteinFactory(factory.django.DjangoModelFactory[Protein]):
     slug = factory.LazyAttribute(lambda o: slugify(o.name))
     seq = factory.LazyFunction(_protein_seq)
     seq_validated = factory.Faker("boolean", chance_of_getting_true=75)
-    agg = factory.fuzzy.FuzzyChoice(Protein.AGG_CHOICES, getter=lambda c: c[0])
+    agg = factory.fuzzy.FuzzyChoice(Protein.AggChoices, getter=lambda c: c[0])
     pdb = factory.LazyFunction(lambda: random.choices(REAL_PDBS, k=random.randint(0, 2)))
     parent_organism = factory.SubFactory(OrganismFactory)
     primary_reference = factory.SubFactory("references.factories.ReferenceFactory")
     default_state = factory.RelatedFactory(StateFactory, factory_related_name="protein")
+
+
+class DyeStateFactory(FluorophoreFactory):
+    class Meta:
+        model = DyeState
+        django_get_or_create = ("name", "slug")
+
+    slug = factory.LazyAttribute(lambda o: f"{o.dye.slug}_{slugify(o.name)}")
+    dye = factory.SubFactory("proteins.factories.DyeFactory", default_state=None)
+
+
+class DyeFactory(factory.django.DjangoModelFactory[Dye]):
+    class Meta:
+        model = Dye
+        django_get_or_create = ("name", "slug")
+
+    name = factory.Sequence(lambda n: f"TestDye{n}")
+    slug = factory.LazyAttribute(lambda o: slugify(o.name))
+    primary_reference = factory.SubFactory("references.factories.ReferenceFactory")
+    default_state = factory.RelatedFactory(DyeStateFactory, factory_related_name="dye")
 
 
 class SpectrumFactory(factory.django.DjangoModelFactory):
@@ -237,7 +267,9 @@ class SpectrumFactory(factory.django.DjangoModelFactory):
         model = Spectrum
 
     category = factory.fuzzy.FuzzyChoice(Spectrum.CATEGORIES, getter=lambda c: c[0])
-    subtype = factory.LazyAttribute(lambda o: random.choice(Spectrum.category_subtypes[o.category]))
+    subtype = factory.LazyAttribute(
+        lambda o: random.choice(Spectrum.category_subtypes[o.category])
+    )
     data = factory.LazyAttribute(_build_spectral_data)
 
 
@@ -255,9 +287,15 @@ class FilterFactory(SpectrumOwnerFactory[Filter]):
 
     name = factory.Sequence(lambda n: f"TestFilter{n}")
     subtype = factory.fuzzy.FuzzyChoice(Spectrum.category_subtypes["f"])
-    bandcenter = factory.LazyAttribute(lambda o: random.randint(400, 900) if o.subtype in _BP_TYPE else None)
-    bandwidth = factory.LazyAttribute(lambda o: random.randint(10, 20) if o.subtype in _BP_TYPE else None)
-    edge = factory.LazyAttribute(lambda o: random.randint(400, 900) if o.subtype not in _BP_TYPE else None)
+    bandcenter = factory.LazyAttribute(
+        lambda o: random.randint(400, 900) if o.subtype in _BP_TYPE else None
+    )
+    bandwidth = factory.LazyAttribute(
+        lambda o: random.randint(10, 20) if o.subtype in _BP_TYPE else None
+    )
+    edge = factory.LazyAttribute(
+        lambda o: random.randint(400, 900) if o.subtype not in _BP_TYPE else None
+    )
 
     spectrum = factory.RelatedFactory(
         "proteins.factories.SpectrumFactory",
@@ -352,9 +390,11 @@ def create_egfp() -> Protein:
             "DHYQQNTPIGDGPVLLPDNHYLSTQSALSKDPNEKRDHMVLLEFVTAAGITLGMDELYK"
         ),
         seq_validated=True,
-        agg=Protein.MONOMER,
+        agg=Protein.AggChoices.MONOMER,
         pdb=["4EUL", "2Y0G"],
-        parent_organism=OrganismFactory(scientific_name="Aequorea victoria", id=6100, division="hydrozoans"),
+        parent_organism=OrganismFactory(
+            scientific_name="Aequorea victoria", id=6100, division="hydrozoans"
+        ),
         primary_reference=ReferenceFactory(doi="10.1016/0378-1119(95)00685-0"),
         genbank="AAB02572",
         uniprot="C5MKY7",
@@ -367,7 +407,7 @@ def create_egfp() -> Protein:
         default_state__maturation=25,
         default_state__lifetime=2.8,
         default_state__twop_ex_max=927,
-        default_state__twop_peakGM=39.64,
+        default_state__twop_peak_gm=39.64,
     )
 
     return egfp

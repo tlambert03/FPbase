@@ -28,7 +28,9 @@ def test_graphql_rate_limiting(monkeypatch):
 
     client = Client()
     query = '{"query": "{ __typename }"}'
-    responses = [client.post("/graphql/", query, content_type="application/json") for _ in range(35)]
+    responses = [
+        client.post("/graphql/", query, content_type="application/json") for _ in range(35)
+    ]
     throttled = [r for r in responses if r.status_code == 429]
     assert len(throttled) >= 5, f"Expected at least 5 throttled requests, got {len(throttled)}"
 
@@ -45,7 +47,9 @@ def test_same_origin_exempt_throttle(monkeypatch):
     )
 
     # Configure throttle rates
-    monkeypatch.setitem(SameOriginExemptAnonThrottle.THROTTLE_RATES, "anon", "5/min")  # Low limit for testing
+    monkeypatch.setitem(
+        SameOriginExemptAnonThrottle.THROTTLE_RATES, "anon", "5/min"
+    )  # Low limit for testing
     monkeypatch.setitem(UserRateThrottle.THROTTLE_RATES, "user", "300/min")
 
     # Clear cache to ensure clean slate
@@ -55,7 +59,9 @@ def test_same_origin_exempt_throttle(monkeypatch):
     query = '{"query": "{ __typename }"}'
 
     # Test 1: Requests WITHOUT referer should be throttled
-    responses_no_referer = [client.post("/graphql/", query, content_type="application/json") for _ in range(10)]
+    responses_no_referer = [
+        client.post("/graphql/", query, content_type="application/json") for _ in range(10)
+    ]
     throttled_no_referer = [r for r in responses_no_referer if r.status_code == 429]
     assert len(throttled_no_referer) >= 5, (
         f"Expected at least 5 throttled requests without referer, got {len(throttled_no_referer)}"
@@ -77,7 +83,8 @@ def test_same_origin_exempt_throttle(monkeypatch):
     ]
     throttled_with_referer = [r for r in responses_with_referer if r.status_code == 429]
     assert len(throttled_with_referer) == 0, (
-        f"Expected 0 throttled requests with same-origin referer, got {len(throttled_with_referer)}"
+        f"Expected 0 throttled requests with same-origin referer, "
+        f"got {len(throttled_with_referer)}"
     )
 
     # Clear cache for next test

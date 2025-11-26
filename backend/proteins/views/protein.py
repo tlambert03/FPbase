@@ -41,12 +41,7 @@ from reversion.models import Revision, Version
 from fpbase.util import is_ajax, uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
 from proteins.extrest.ga import cached_ga_popular
-from proteins.util.helpers import link_excerpts, most_favorited
-from proteins.util.maintain import check_lineages, suggested_switch_type
-from proteins.util.spectra import spectra2csv
-from references.models import Reference  # breaks application modularity
-
-from ..forms import (
+from proteins.forms import (
     BleachComparisonForm,
     BleachMeasurementForm,
     LineageFormSet,
@@ -55,7 +50,11 @@ from ..forms import (
     StateTransitionFormSet,
     bleach_items_formset,
 )
-from ..models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
+from proteins.models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
+from proteins.util.helpers import link_excerpts, most_favorited
+from proteins.util.maintain import check_lineages, suggested_switch_type
+from proteins.util.spectra import spectra2csv
+from references.models import Reference  # breaks application modularity
 
 if TYPE_CHECKING:
     from proteins.forms.forms import BaseStateFormSet
@@ -66,14 +65,14 @@ logger = logging.getLogger(__name__)
 def check_switch_type(object, request):
     suggested = suggested_switch_type(object)
     if suggested and object.switch_type != suggested:
-        disp = dict(Protein.SWITCHING_CHOICES).get(suggested).lower()
+        disp = dict(Protein.SwitchingChoices).get(suggested).lower()
         actual = object.get_switch_type_display().lower()
         msg = (
             "<i class='fa fa-exclamation-circle me-2'></i><strong>Warning:</strong> "
-            + "Based on the number of states and transitions currently assigned "
-            + f"to this protein, it appears to be a {disp} protein; "
-            + f"however, it has been assigned a switching type of {actual}. "
-            + "Please confirm that the switch type, states, and transitions are correct."
+            "Based on the number of states and transitions currently assigned "
+            f"to this protein, it appears to be a {disp} protein; "
+            f"however, it has been assigned a switching type of {actual}. "
+            "Please confirm that the switch type, states, and transitions are correct."
         )
         messages.add_message(request, messages.WARNING, msg)
 
@@ -139,10 +138,11 @@ def get_country_code(request) -> str:
     """Get country code from IP address using cached API lookup."""
 
     x_forwarded_for = request.headers.get("x-forwarded-for")
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0].strip()
-    else:
-        ip = request.META.get("REMOTE_ADDR")
+    ip = (
+        x_forwarded_for.split(",")[0].strip()
+        if x_forwarded_for
+        else request.META.get("REMOTE_ADDR")
+    )
 
     try:
         if not (masked_ip := _mask_ip_for_caching(ip)):
@@ -208,7 +208,11 @@ class ProteinDetailView(DetailView):
                 obj = queryset.get(uuid=self.kwargs.get("slug", "").upper())
             except Protein.DoesNotExist as e:
                 raise Http404("No protein found matching this query") from e
-        if obj.status == "hidden" and obj.created_by != self.request.user and not self.request.user.is_staff:
+        if (
+            obj.status == "hidden"
+            and obj.created_by != self.request.user
+            and not self.request.user.is_staff
+        ):
             raise Http404("No protein found matching this query")
         return obj
 
@@ -249,7 +253,8 @@ class ProteinDetailView(DetailView):
                 messages.add_message(
                     self.request,
                     messages.INFO,
-                    f"The URL {self.request.get_full_path()} was not found.  You have been forwarded here",
+                    f"The URL {self.request.get_full_path()} was not found. "
+                    "You have been forwarded here",
                 )
                 return HttpResponseRedirect(obj.get_absolute_url())
             raise
@@ -262,7 +267,9 @@ class ProteinDetailView(DetailView):
         similar = Protein.visible.filter(name__iexact=f"m{self.object.name}")
         similar = similar | Protein.visible.filter(name__iexact=f"monomeric{self.object.name}")
         similar = similar | Protein.visible.filter(name__iexact=self.object.name.lstrip("m"))
-        similar = similar | Protein.visible.filter(name__iexact=self.object.name.lower().lstrip("td"))
+        similar = similar | Protein.visible.filter(
+            name__iexact=self.object.name.lower().lstrip("td")
+        )
         similar = similar | Protein.visible.filter(name__iexact=f"td{self.object.name}")
         data["similar"] = similar.exclude(id=self.object.id)
         spectra = [sp for state in self.object.states.all() for sp in state.spectra.all()]
@@ -271,7 +278,9 @@ class ProteinDetailView(DetailView):
         data["hidden_spectra"] = ",".join([str(sp.id) for sp in spectra if sp.subtype in ("2p")])
 
         # put links in excerpts
-        data["excerpts"] = link_excerpts(self.object.excerpts.all(), self.object.name, self.object.aliases)
+        data["excerpts"] = link_excerpts(
+            self.object.excerpts.all(), self.object.name, self.object.aliases
+        )
 
         # Add country code to context
         try:
@@ -311,77 +320,80 @@ class ProteinCreateUpdateMixin:
                         prot = Protein.objects.get(seq__iexact=str(seq))
                         msg = mark_safe(
                             f'<a href="{prot.get_absolute_url()}" style="text-decoration: '
-                            + f'underline;">{prot.name}</a> already has the sequence that'
-                            + " would be generated by this parent & mutation"
+                            f'underline;">{prot.name}</a> already has the sequence that'
+                            " would be generated by this parent & mutation"
                         )
                         lform.add_error(None, msg)
                         context |= {"states": states, "lineage": lineage}
                         return self.render_to_response(context)
 
-        with transaction.atomic():
-            with reversion.create_revision():
-                self.object = form.save()
-                self.object.primary_reference = (
-                    Reference.objects.get_or_create(doi=doi.lower())[0]
-                    if (doi := form.cleaned_data.get("reference_doi"))
-                    else None
-                )
+        with transaction.atomic(), reversion.create_revision():
+            self.object = form.save()
+            self.object.primary_reference = (
+                Reference.objects.get_or_create(doi=doi.lower())[0]
+                if (doi := form.cleaned_data.get("reference_doi"))
+                else None
+            )
 
-                states.instance = self.object
-                saved_states = states.save(commit=False)
-                for s in saved_states:
-                    if not s.created_by:
-                        s.created_by = self.request.user
-                    s.updated_by = self.request.user
-                    s.save()
-                for s in states.deleted_objects:
-                    if self.object.default_state == s:
-                        self.object.default_state = None
-                    s.delete()
+            states.instance = self.object
+            saved_states = states.save(commit=False)
+            for s in saved_states:
+                if not s.created_by:
+                    s.created_by = self.request.user
+                s.updated_by = self.request.user
+                s.save()
+            for s in states.deleted_objects:
+                if self.object.default_state == s:
+                    self.object.default_state = None
+                s.delete()
 
-                lineage.instance = self.object
-                for lin in lineage.save(commit=False):
-                    # if the form has been cleared and there are no children,
-                    # let's clean up a little
-                    if not (lin.mutation and lin.parent) and not lin.children.exists():
-                        lin.delete()
-                    else:
-                        if not lin.created_by:
-                            lin.created_by = self.request.user
-                        lin.updated_by = self.request.user
-                        lin.reference = self.object.primary_reference
-                        lin.save()
-                for lin in lineage.deleted_objects:
+            lineage.instance = self.object
+            for lin in lineage.save(commit=False):
+                # if the form has been cleared and there are no children,
+                # let's clean up a little
+                if not (lin.mutation and lin.parent) and not lin.children.exists():
                     lin.delete()
+                else:
+                    if not lin.created_by:
+                        lin.created_by = self.request.user
+                    lin.updated_by = self.request.user
+                    lin.reference = self.object.primary_reference
+                    lin.save()
+            for lin in lineage.deleted_objects:
+                lin.delete()
 
-                if hasattr(self.object, "lineage"):
-                    if not self.object.seq:
-                        seq = self.object.lineage.parent.protein.seq.mutate(self.object.lineage.mutation)
-                        self.object.seq = str(seq)
-                    if not self.object.parent_organism:
-                        self.object.parent_organism = self.object.lineage.root_node.protein.parent_organism
+            if hasattr(self.object, "lineage"):
+                if not self.object.seq:
+                    seq = self.object.lineage.parent.protein.seq.mutate(
+                        self.object.lineage.mutation
+                    )
+                    self.object.seq = str(seq)
+                if not self.object.parent_organism:
+                    self.object.parent_organism = (
+                        self.object.lineage.root_node.protein.parent_organism
+                    )
 
-                comment = f"{self.object} {self.get_form_type()} form."
-                chg_string = "\n".join(get_form_changes(form, states, lineage))
+            comment = f"{self.object} {self.get_form_type()} form."
+            chg_string = "\n".join(get_form_changes(form, states, lineage))
 
-                if not self.request.user.is_staff:
-                    self.object.status = "pending"
-                    msg = f"User: {self.request.user.username}\n"
-                    f"Protein: {self.object}\n\n{chg_string}\n\n"
-                    f"{self.request.build_absolute_uri(self.object.get_absolute_url())}"
-                    mail_managers(comment, msg, fail_silently=True)
-                # else:
-                #     self.object.status = 'approved'
+            if not self.request.user.is_staff:
+                self.object.status = "pending"
+                msg = f"User: {self.request.user.username}\n"
+                f"Protein: {self.object}\n\n{chg_string}\n\n"
+                f"{self.request.build_absolute_uri(self.object.get_absolute_url())}"
+                mail_managers(comment, msg, fail_silently=True)
+            # else:
+            #     self.object.status = 'approved'
 
-                self.object.save()
-                reversion.set_user(self.request.user)
-                reversion.set_comment(chg_string)
-                try:
-                    uncache_protein_page(self.object.slug, self.request)
-                except Exception as e:
-                    logger.error("failed to uncache protein: %s", e)
+            self.object.save()
+            reversion.set_user(self.request.user)
+            reversion.set_comment(chg_string)
+            try:
+                uncache_protein_page(self.object.slug, self.request)
+            except Exception as e:
+                logger.error("failed to uncache protein: %s", e)
 
-                check_switch_type(self.object, self.request)
+            check_switch_type(self.object, self.request)
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -441,7 +453,11 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
                 obj = queryset.get(uuid=self.kwargs.get("slug", "").upper())
             except Protein.DoesNotExist as e:
                 raise Http404("No protein found matching this query") from e
-        if obj.status == "hidden" and obj.created_by != self.request.user and not self.request.user.is_staff:
+        if (
+            obj.status == "hidden"
+            and obj.created_by != self.request.user
+            and not self.request.user.is_staff
+        ):
             raise Http404("No protein found matching this query")
         return obj
 
@@ -468,7 +484,9 @@ class ActivityView(ListView):
         "states",
         queryset=State.objects.prefetch_related("spectra").order_by("-is_dark", "em_max"),
     )
-    queryset = Protein.visible.prefetch_related(stateprefetch, "primary_reference").order_by("-created")[:18]
+    queryset = Protein.visible.prefetch_related(stateprefetch, "primary_reference").order_by(
+        "-created"
+    )[:18]
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -539,7 +557,11 @@ class ComparisonView(base.TemplateView):
             # the page was requested with slugs in the URL, maintain that order
             ids = kwargs.get("proteins", "").split(",")
             p = Case(*[When(slug=slug, then=pos) for pos, slug in enumerate(ids)])
-            prots = Protein.objects.filter(slug__in=ids).prefetch_related("states__spectra").order_by(p)
+            prots = (
+                Protein.objects.filter(slug__in=ids)
+                .prefetch_related("states__spectra")
+                .order_by(p)
+            )
         else:
             # try to use chronological order
             ids = self.request.session.get("comparison", [])
@@ -567,7 +589,9 @@ class ComparisonView(base.TemplateView):
                         head = prots[0].name
                     elif i % 2 == 0:
                         head = prots[1].name
-                    out.append("{:<18.16}{}".format(head if len(head) < 17 else head[:13] + "...", row))
+                    out.append(
+                        "{:<18.16}{}".format(head if len(head) < 17 else head[:13] + "...", row)
+                    )
                 out.append("\n")
                 context["alignment"] = "\n".join(out)
                 context["mutations"] = str(seq_a.seq.mutations_to(seq_b.seq))
@@ -584,7 +608,9 @@ class ComparisonView(base.TemplateView):
             for state in prot.states.all():
                 spectra.extend(state.spectra.all())
         context["spectra_ids"] = ",".join([str(sp.id) for sp in spectra])
-        context["hidden_spectra"] = ",".join([str(sp.id) for sp in spectra if sp.subtype in ("2p")])
+        context["hidden_spectra"] = ",".join(
+            [str(sp.id) for sp in spectra if sp.subtype in ("2p")]
+        )
 
         return context
 
@@ -603,7 +629,9 @@ def problems_gaps(request):
                 .distinct("protein")
                 .values("protein__name", "protein__slug")
             ),
-            "nolineage": Protein.objects.filter(lineage=None).annotate(ns=Count("states__spectra")).order_by("-ns"),
+            "nolineage": Protein.objects.filter(lineage=None)
+            .annotate(ns=Count("states__spectra"))
+            .order_by("-ns"),
             "request": request,
         },
     )
@@ -612,7 +640,10 @@ def problems_gaps(request):
 def problems_inconsistencies(request):
     titles = reduce(
         operator.or_,
-        (Q(primary_reference__title__icontains=item) for item in ["activat", "switch", "convert", "dark", "revers"]),
+        (
+            Q(primary_reference__title__icontains=item)
+            for item in ["activat", "switch", "convert", "dark", "revers"]
+        ),
     )
     names = reduce(
         operator.or_,
@@ -623,7 +654,11 @@ def problems_inconsistencies(request):
     switchers = switchers.annotate(ns=Count("states")).filter(ns=1)
 
     gb_mismatch = []
-    with_genbank = Protein.objects.exclude(genbank=None).exclude(seq=None).values("slug", "name", "genbank", "seq")
+    with_genbank = (
+        Protein.objects.exclude(genbank=None)
+        .exclude(seq=None)
+        .values("slug", "name", "genbank", "seq")
+    )
     gbseqs = get_cached_gbseqs([g["genbank"] for g in with_genbank])
     for item in with_genbank:
         if item["genbank"] in gbseqs:
@@ -648,7 +683,7 @@ def problems_inconsistencies(request):
     for prot in p:
         suggestion = suggested_switch_type(prot)
         if (prot.switch_type or suggestion) and (prot.switch_type != suggestion):
-            bad_switch.append((prot, dict(Protein.SWITCHING_CHOICES).get(suggestion)))
+            bad_switch.append((prot, dict(Protein.SwitchingChoices).get(suggestion)))
 
     return render(
         request,
@@ -675,7 +710,8 @@ def add_reference(request, slug=None):
             if not request.user.is_staff:
                 p.status = "pending"
                 msg = (
-                    f"User: {request.user.username}\nProtein: {p}\nReference: {ref}. {ref.title}\n\n"
+                    f"User: {request.user.username}\nProtein: {p}\n"
+                    f"Reference: {ref}. {ref.title}\n\n"
                     f"{request.build_absolute_uri(p.get_absolute_url())}"
                 )
                 mail_managers("Reference Added", msg, fail_silently=True)
@@ -700,11 +736,14 @@ def add_protein_excerpt(request, slug=None):
             if content:
                 ref, _created = Reference.objects.get_or_create(doi=doi)
                 p.references.add(ref)
-                excerpt = Excerpt.objects.create(reference=ref, content=strip_tags(content), created_by=request.user)
+                excerpt = Excerpt.objects.create(
+                    reference=ref, content=strip_tags(content), created_by=request.user
+                )
                 excerpt.proteins.add(p)
                 if not request.user.is_staff:
                     msg = (
-                        f"User: {request.user.username}\nProtein: {p}\nReference: {ref}, {ref.title}\nExcerpt: "
+                        f"User: {request.user.username}\nProtein: {p}\n"
+                        f"Reference: {ref}, {ref.title}\nExcerpt: "
                         f"{strip_tags(content)}\n{request.build_absolute_uri(p.get_absolute_url())}"
                     )
                     mail_managers("Excerpt Added", msg, fail_silently=True)
@@ -734,7 +773,9 @@ def revert_revision(request, rev=None):
 
     with transaction.atomic():
         revision.revert(delete=True)
-        proteins = {v.object for v in revision.version_set.all() if v.object._meta.model_name == "protein"}
+        proteins = {
+            v.object for v in revision.version_set.all() if v.object._meta.model_name == "protein"
+        }
         if len(proteins) == 1:
             p = proteins.pop()
             with reversion.create_revision():
@@ -756,26 +797,25 @@ def update_transitions(request, slug=None):
         if not formset.is_valid():
             return render(request, template_name, {"transition_form": formset}, status=422)
 
-        with transaction.atomic():
-            with reversion.create_revision():
-                formset.save()
-                chg_string = "\n".join(get_form_changes(formset))
+        with transaction.atomic(), reversion.create_revision():
+            formset.save()
+            chg_string = "\n".join(get_form_changes(formset))
 
-                if not request.user.is_staff:
-                    obj.status = "pending"
-                    mail_managers(
-                        "Transition updated",
-                        f"User: {request.user.username}\nProtein: {obj}\n\n{chg_string}",
-                        fail_silently=True,
-                    )
-                obj.save()
-                reversion.set_user(request.user)
-                reversion.set_comment(chg_string)
-                try:
-                    uncache_protein_page(slug, request)
-                except Exception as e:
-                    logger.error("failed to uncache protein: %s", e)
-                check_switch_type(obj, request)
+            if not request.user.is_staff:
+                obj.status = "pending"
+                mail_managers(
+                    "Transition updated",
+                    f"User: {request.user.username}\nProtein: {obj}\n\n{chg_string}",
+                    fail_silently=True,
+                )
+            obj.save()
+            reversion.set_user(request.user)
+            reversion.set_comment(chg_string)
+            try:
+                uncache_protein_page(slug, request)
+            except Exception as e:
+                logger.error("failed to uncache protein: %s", e)
+            check_switch_type(obj, request)
         return HttpResponse(status=200)
     else:
         formset = StateTransitionFormSet(instance=obj)
@@ -787,7 +827,9 @@ def update_transitions(request, slug=None):
 @login_required
 def protein_bleach_formsets(request, slug):
     template_name = "proteins/protein_bleach_form.html"
-    BleachMeasurementFormSet = modelformset_factory(BleachMeasurement, BleachMeasurementForm, extra=1, can_delete=True)
+    BleachMeasurementFormSet = modelformset_factory(
+        BleachMeasurement, BleachMeasurementForm, extra=1, can_delete=True
+    )
     protein = get_object_or_404(Protein, slug=slug)
     qs = BleachMeasurement.objects.filter(state__protein=protein)
     if request.method == "POST":
@@ -796,37 +838,36 @@ def protein_bleach_formsets(request, slug):
         if not formset.is_valid():
             return render(request, template_name, {"formset": formset, "protein": protein})
 
-        with transaction.atomic():
-            with reversion.create_revision():
-                saved = formset.save(commit=False)
-                for s in saved:
-                    if not s.created_by:
-                        s.created_by = request.user
-                    s.updated_by = request.user
-                    s.save()
-                for s in formset.deleted_objects:
-                    s.delete()
+        with transaction.atomic(), reversion.create_revision():
+            saved = formset.save(commit=False)
+            for s in saved:
+                if not s.created_by:
+                    s.created_by = request.user
+                s.updated_by = request.user
+                s.save()
+            for s in formset.deleted_objects:
+                s.delete()
 
-                chg_string = "\n".join(get_form_changes(formset))
+            chg_string = "\n".join(get_form_changes(formset))
 
-                if not request.user.is_staff:
-                    protein.status = "pending"
-                    mail_managers(
-                        "BleachMeasurement Added",
-                        f"User: {request.user.username}\nProtein: {protein}\n{chg_string}\n\n"
-                        f"{request.build_absolute_uri(protein.get_absolute_url())}",
-                        fail_silently=True,
-                    )
-                # else:
-                #     protein.status = 'approved'
+            if not request.user.is_staff:
+                protein.status = "pending"
+                mail_managers(
+                    "BleachMeasurement Added",
+                    f"User: {request.user.username}\nProtein: {protein}\n{chg_string}\n\n"
+                    f"{request.build_absolute_uri(protein.get_absolute_url())}",
+                    fail_silently=True,
+                )
+            # else:
+            #     protein.status = 'approved'
 
-                protein.save()
-                reversion.set_user(request.user)
-                reversion.set_comment(chg_string)
-                try:
-                    uncache_protein_page(slug, request)
-                except Exception as e:
-                    logger.error("failed to uncache protein: %s", e)
+            protein.save()
+            reversion.set_user(request.user)
+            reversion.set_comment(chg_string)
+            try:
+                uncache_protein_page(slug, request)
+            except Exception as e:
+                logger.error("failed to uncache protein: %s", e)
         return HttpResponseRedirect(protein.get_absolute_url())
     else:
         formset = BleachMeasurementFormSet(queryset=qs)

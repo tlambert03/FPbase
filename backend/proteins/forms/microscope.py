@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.forms.models import inlineformset_factory
 
-from ..models import (
+from proteins.models import (
     Camera,
     Filter,
     FilterPlacement,
@@ -15,7 +15,7 @@ from ..models import (
     OpticalConfig,
     ProteinCollection,
 )
-from ..util.importers import (
+from proteins.util.importers import (
     add_filter_to_database,
     check_chroma_for_part,
     check_semrock_for_part,
@@ -106,22 +106,27 @@ class MicroscopeForm(forms.ModelForm):
         help_texts = {
             "name": "Name of this microscope or set of filter configurations",
             "description": "This text will appear below the name on your microscope page",
-            "managers": "Grant others permission to edit this page (comma separated list of email addresses)",
+            "managers": (
+                "Grant others permission to edit this page "
+                "(comma separated list of email addresses)"
+            ),
             "extra_lasers": "Comma separated list of integers (300-1600)",
-            "collection": "Only show fluorophores from a custom collection (leave blank to allow all proteins)",
+            "collection": (
+                "Only show fluorophores from a custom collection "
+                "(leave blank to allow all proteins)"
+            ),
         }
         widgets = {
             "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
-            "description": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "description": forms.widgets.TextInput(
+                attrs={"class": "textinput textInput form-control"}
+            ),
             "detector": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),
             "light_source": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),
         }
 
     def create_oc(self, name, filters):
-        if len(filters) == 4:
-            bs_em_reflect = not bool(filters.pop())
-        else:
-            bs_em_reflect = False
+        bs_em_reflect = not bool(filters.pop()) if len(filters) == 4 else False
         oc = OpticalConfig.objects.create(name=name, owner=self.user, microscope=self.instance)
 
         _paths = [FilterPlacement.EX, FilterPlacement.BS, FilterPlacement.EM]
@@ -160,9 +165,8 @@ class MicroscopeForm(forms.ModelForm):
         for row in self.cleaned_data["optical_configs"]:
             newoc = self.create_oc(row[0], row[1:])
             if newoc:
-                if self.cleaned_data["light_source"].count() == 1:
-                    if not newoc.laser:
-                        newoc.light = self.cleaned_data["light_source"].first()
+                if self.cleaned_data["light_source"].count() == 1 and not newoc.laser:
+                    newoc.light = self.cleaned_data["light_source"].first()
                 if self.cleaned_data["detector"].count() == 1:
                     newoc.camera = self.cleaned_data["detector"].first()
                 newoc.save()
@@ -257,19 +261,20 @@ class MicroscopeForm(forms.ModelForm):
                     splt = []
                     for item in _splt:
                         if brackets.search(item):
-                            splt.append([n.strip() for n in brackets.sub("", item).split(",") if n.strip()])
+                            splt.append(
+                                [n.strip() for n in brackets.sub("", item).split(",") if n.strip()]
+                            )
                         else:
-                            if item.endswith(","):
-                                item = item[:-1]
-                            if item.startswith(","):
-                                item = item[1:]
+                            item = item.removesuffix(",")
+                            item = item.removeprefix(",")
                             splt.extend([n.strip() for n in item.split(",")])
                 else:
                     splt = [i.strip() for i in line.split(",")]
                 if len(splt) not in (4, 5):
                     self.add_error(
                         "optical_configs",
-                        f"Lines must have 4 or 5 comma-separated fields but this one has {len(splt)}: {line}",
+                        f"Lines must have 4 or 5 comma-separated fields but this one has "
+                        f"{len(splt)}: {line}",
                     )
                 for n, f in enumerate(splt):
                     if n == 0:
@@ -337,7 +342,7 @@ class OpticalConfigForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs.get("instance", None)
+        instance = kwargs.get("instance")
         if instance:
             kwargs.update(
                 initial={
@@ -367,12 +372,11 @@ class OpticalConfigForm(forms.ModelForm):
                     if path == "bs":
                         reflects = self.cleaned_data["invert_bs"]
                     oc.add_filter(filt, path, reflects)
-        if self.initial:
-            if self.cleaned_data["invert_bs"] != self.initial.get("invert_bs"):
-                for filt in self.cleaned_data["bs_filters"]:
-                    for fp in oc.filterplacement_set.filter(filter=filt, path=FilterPlacement.BS):
-                        fp.reflects = self.cleaned_data["invert_bs"]
-                        fp.save()
+        if self.initial and self.cleaned_data["invert_bs"] != self.initial.get("invert_bs"):
+            for filt in self.cleaned_data["bs_filters"]:
+                for fp in oc.filterplacement_set.filter(filter=filt, path=FilterPlacement.BS):
+                    fp.reflects = self.cleaned_data["invert_bs"]
+                    fp.save()
         oc.save()
         return oc
 
@@ -382,14 +386,18 @@ class OpticalConfigForm(forms.ModelForm):
         help_texts = {
             "light": "laser overrides light source",
             "name": "name of this optical config",
-            "comments": "When present, comments will appear below the selected optical configuration",
+            "comments": (
+                "When present, comments will appear below the selected optical configuration"
+            ),
         }
         widgets = {
             "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
             "camera": forms.widgets.Select(attrs={"class": "form-control form-select"}),
             "light": forms.widgets.Select(attrs={"class": "form-control form-select"}),
             "laser": forms.widgets.NumberInput(attrs={"class": "numberinput form-control"}),
-            "comments": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "comments": forms.widgets.TextInput(
+                attrs={"class": "textinput textInput form-control"}
+            ),
         }
 
     def is_valid(self):

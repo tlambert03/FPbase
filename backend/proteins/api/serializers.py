@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from ..models import Protein, Spectrum, State, StateTransition
-from ._tweaks import ModelSerializer
+from proteins.api._tweaks import ModelSerializer
+from proteins.models import FluorState, Protein, Spectrum, State, StateTransition
 
 
 class SpectrumSerializer(serializers.ModelSerializer):
@@ -29,12 +29,16 @@ class SpectrumSerializer(serializers.ModelSerializer):
         )
 
     def get_protein_name(self, obj):
-        if obj.owner_state:
-            return obj.owner_state.protein.name
+        # Check if owner_fluor is a State (has protein attribute)
+        if obj.owner_fluor and obj.owner_fluor.entity_type == FluorState.EntityTypes.PROTEIN:
+            return obj.owner_fluor.protein.name
+        return None
 
     def get_protein_slug(self, obj):
-        if obj.owner_state:
-            return obj.owner_state.protein.slug
+        # Check if owner_fluor is a State (has protein attribute)
+        if obj.owner_fluor and obj.owner_fluor.entity_type == FluorState.EntityTypes.PROTEIN:
+            return obj.owner_fluor.protein.slug
+        return None
 
 
 class StateTransitionSerializer(serializers.ModelSerializer):
@@ -129,7 +133,9 @@ class ProteinSerializer(ModelSerializer):
     # url = serializers.CharField(source='get_absolute_url', read_only=True)
     states = StateSerializer(many=True, read_only=True)
     transitions = StateTransitionSerializer(many=True, read_only=True)
-    doi = serializers.SlugRelatedField(source="primary_reference", slug_field="doi", read_only=True)
+    doi = serializers.SlugRelatedField(
+        source="primary_reference", slug_field="doi", read_only=True
+    )
 
     class Meta:
         model = Protein
@@ -155,7 +161,9 @@ class ProteinSerializer(ModelSerializer):
 class ProteinSerializer2(ModelSerializer):
     states = serializers.SlugRelatedField(many=True, read_only=True, slug_field="slug")
     transitions = serializers.IntegerField(source="transitions.count", read_only=True)
-    doi = serializers.SlugRelatedField(source="primary_reference", slug_field="doi", read_only=True)
+    doi = serializers.SlugRelatedField(
+        source="primary_reference", slug_field="doi", read_only=True
+    )
 
     class Meta:
         model = Protein

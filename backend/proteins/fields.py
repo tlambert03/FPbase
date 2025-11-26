@@ -3,7 +3,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.db.models import Lookup, TextField, fields
 
-from .util.helpers import wave_to_hex
+from proteins.util.helpers import wave_to_hex
 
 
 class Around(Lookup):
@@ -92,7 +92,9 @@ class Spectrum:
     def width(self, height=0.5):
         try:
             upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
-            downindex = len(self.y) - next(x[0] for x in enumerate(reversed(self.y)) if x[1] > height)
+            downindex = len(self.y) - next(
+                x[0] for x in enumerate(reversed(self.y)) if x[1] > height
+            )
             return (self.x[upindex], self.x[downindex])
         except Exception:
             return False

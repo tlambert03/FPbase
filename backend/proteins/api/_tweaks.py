@@ -123,10 +123,14 @@ class SerializerCustomizationMixin:
                 field_name = str(get_field_name(key, field))
                 custom_required_message = self.custom_required_errors.get(key, self.required_error)
                 if custom_required_message:
-                    field.error_messages["required"] = custom_required_message.format(fieldname=field_name)
+                    field.error_messages["required"] = custom_required_message.format(
+                        fieldname=field_name
+                    )
                 custom_blank_message = self.custom_blank_errors.get(key, self.blank_error)
                 if custom_blank_message:
-                    field.error_messages["blank"] = custom_blank_message.format(fieldname=field_name)
+                    field.error_messages["blank"] = custom_blank_message.format(
+                        fieldname=field_name
+                    )
 
     # required fields override
     required_fields = []
@@ -203,7 +207,9 @@ class SerializerCustomizationMixin:
 
         for field in fields:
             # ++ change to the original code from DRF
-            if not self.check_if_needs_serialization(field.field_name, only_fields, include_fields, on_demand_fields):
+            if not self.check_if_needs_serialization(
+                field.field_name, only_fields, include_fields, on_demand_fields
+            ):
                 continue
             # -- change
 

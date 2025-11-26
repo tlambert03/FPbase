@@ -6,6 +6,9 @@ resolution-markers = [
     "python_full_version < '3.14'",
 ]
 
+[manifest]
+overrides = [{ name = "django-stubs", marker = "sys_platform == 'never'" }]
+
 [[package]]
 name = "algoliasearch"
 version = "3.0.0"
@@ -997,7 +1000,7 @@ name = "djangorestframework-stubs"
 version = "3.16.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "django-stubs" },
+    { name = "django-stubs", marker = "sys_platform == 'never'" },
     { name = "requests" },
     { name = "types-pyyaml" },
     { name = "types-requests" },

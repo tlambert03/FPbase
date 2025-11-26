@@ -2,7 +2,7 @@ from django import template
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 
-from ..models import Favorite
+from favit.models import Favorite
 
 register = template.Library()
 

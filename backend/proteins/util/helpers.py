@@ -117,20 +117,14 @@ def getmut(protname2, protname1=None, ref=None):
     from fpseq.mutations import get_mutations
 
     a = getprot(protname2)
-    if protname1:
-        b = getprot(protname1)
-    else:
-        b = a.lineage.parent.protein
+    b = getprot(protname1) if protname1 else a.lineage.parent.protein
     ref = getprot(ref).seq if ref else None
     return get_mutations(b.seq, a.seq, ref)
 
 
 def showalign(protname2, protname1=None):
     a = getprot(protname2)
-    if protname1:
-        b = getprot(protname1)
-    else:
-        b = a.lineage.parent.protein
+    b = getprot(protname1) if protname1 else a.lineage.parent.protein
     print(b.seq.align_to(a.seq))
 
 
@@ -150,7 +144,9 @@ def shortuuid(padding=None):
 
 def zip_wave_data(waves, data, minmax=None):
     minmax = minmax or (150, 1800)
-    return [list(i) for i in zip(waves, data) if (minmax[0] <= i[0] <= minmax[1]) and not isnan(i[1])]
+    return [
+        list(i) for i in zip(waves, data) if (minmax[0] <= i[0] <= minmax[1]) and not isnan(i[1])
+    ]
 
 
 def wave_to_hex(wavelength, gamma=1):
@@ -165,7 +161,7 @@ def wave_to_hex(wavelength, gamma=1):
         return "#000"
 
     wavelength = float(wavelength)
-    if 520 <= wavelength:
+    if wavelength >= 520:
         wavelength += 40
 
     if wavelength < 380:
@@ -301,7 +297,10 @@ def calculate_spectral_overlap(donor, acceptor):
 
     A = accEx.wave_value_pairs()
     D = donEm.wave_value_pairs()
-    overlap = [(pow(wave, 4) * A[wave] * accEC * D[wave] / donCum) for wave in range(startingwave, endingwave + 1)]
+    overlap = [
+        (pow(wave, 4) * A[wave] * accEC * D[wave] / donCum)
+        for wave in range(startingwave, endingwave + 1)
+    ]
 
     return sum(overlap)
 
@@ -331,7 +330,7 @@ def forster_list():
 
     from django.core.cache import cache
 
-    from ..models import Protein
+    from proteins.models import Protein
 
     # Try to get cached results first
     cache_key = "forster_list_results"
@@ -342,7 +341,7 @@ def forster_list():
     # Fetch protein IDs first to reduce memory
     protein_ids = list(
         Protein.objects.with_spectra()
-        .filter(agg=Protein.MONOMER, switch_type=Protein.BASIC)
+        .filter(agg=Protein.AggChoices.MONOMER, switch_type=Protein.SwitchingChoices.BASIC)
         .values_list("id", flat=True)
     )
 
@@ -388,7 +387,9 @@ def forster_list():
                             "acceptor": "<a href='{}'>{}{}</a>".format(
                                 acceptor.get_absolute_url(),
                                 acceptor.name,
-                                f"<sub>{acceptor.cofactor.upper()}</sub>" if acceptor.cofactor else "",
+                                f"<sub>{acceptor.cofactor.upper()}</sub>"
+                                if acceptor.cofactor
+                                else "",
                             ),
                             "donorPeak": donor.default_state.ex_max,
                             "acceptorPeak": acceptor.default_state.ex_max,
@@ -458,10 +459,16 @@ def spectra_fig(
     if not xlim:
         xlim = (min([s.min_wave for s in spectra]), max([s.max_wave for s in spectra]))
     for spec in spectra:
-        color = spec.color() if not colr else colr
+        color = colr if colr else spec.color()
         if fill:
             alpha = 0.5 if not alph else float(alph)
-            ax.fill_between(*list(zip(*spec.data)), color=color, alpha=alpha, url="http://google.com=", **kwargs)
+            ax.fill_between(
+                *list(zip(*spec.data)),
+                color=color,
+                alpha=alpha,
+                url="http://google.com=",
+                **kwargs,
+            )
         else:
             alpha = 1 if not alph else float(alph)
             ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)

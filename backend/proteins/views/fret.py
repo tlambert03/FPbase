@@ -1,12 +1,13 @@
 from django.core.cache import cache
+from django.db.models import Case, F, Value, When
+from django.db.models.functions import Concat
 from django.http import JsonResponse
 from django.shortcuts import render
 
 from fpbase.celery import app
 from fpbase.util import is_ajax
-
-from ..models import Dye, State
-from ..tasks import calc_fret
+from proteins.models import FluorState
+from proteins.tasks import calc_fret
 
 
 def fret_chart(request):
@@ -29,11 +30,20 @@ def fret_chart(request):
                     cache.set("calc_fret_job", job.id)
         return JsonResponse({"data": forster_list})
 
-    slugs = (
-        State.objects.exclude(ext_coeff=None)
+    # Query all fluorophores (States + DyeStates) with required properties
+    # Build display name and sort in the database
+    fluorophores = (
+        FluorState.objects.exclude(ext_coeff=None)
         .exclude(qy=None)
         .filter(spectra__subtype__in=("ex", "ab"))
-        .values("slug", "name", "protein__name", "spectra__category", "spectra__subtype")
+        .annotate(
+            display_name=Case(
+                When(name="default", then=F("owner_name")),
+                default=Concat(F("owner_name"), Value(" ("), F("name"), Value(")")),
+            )
+        )
+        .order_by("display_name")
+        .values("slug", "display_name", "spectra__category", "spectra__subtype")
     )
 
     slugs = [
@@ -41,24 +51,9 @@ def fret_chart(request):
             "slug": x["slug"],
             "category": x["spectra__category"],
             "subtype": x["spectra__subtype"],
-            "name": x["protein__name"] + (f" ({x['name']})" if x["name"] != "default" else ""),
+            "name": x["display_name"],
         }
-        for x in slugs
+        for x in fluorophores
     ]
 
-    good_dyes = (
-        Dye.objects.exclude(ext_coeff=None).exclude(qy=None).filter(spectra__subtype__in=("ex", "ab"))
-    ).values("slug", "name", "spectra__category", "spectra__subtype")
-
-    slugs += [
-        {
-            "slug": x["slug"],
-            "category": x["spectra__category"],
-            "subtype": x["spectra__subtype"],
-            "name": x["name"],
-        }
-        for x in good_dyes
-    ]
-
-    slugs.sort(key=lambda x: x["name"])
     return render(request, template, {"probeslugs": slugs})

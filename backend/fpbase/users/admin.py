@@ -8,7 +8,7 @@ from django.db.models import Count, Exists, OuterRef
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from .models import User
+from fpbase.users.models import User
 
 
 class MyUserChangeForm(UserChangeForm):
@@ -117,7 +117,9 @@ class MyUserAdmin(AuthUserAdmin):
             super()
             .get_queryset(request)
             .prefetch_related("socialaccount_set", "proteincollections", "emailaddress_set")
-            .annotate(verified=Exists(EmailAddress.objects.filter(user_id=OuterRef("id"), verified=True)))
+            .annotate(
+                verified=Exists(EmailAddress.objects.filter(user_id=OuterRef("id"), verified=True))
+            )
             .annotate(
                 _collections=Count("proteincollections"),
                 _microscopes=Count("microscopes"),

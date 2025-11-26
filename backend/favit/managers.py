@@ -112,7 +112,9 @@ class FavoriteManager(models.Manager):
             return None
 
         try:
-            return self.get_query_set().get(user=user, target_content_type=content_type, target_object_id=obj.id)
+            return self.get_query_set().get(
+                user=user, target_content_type=content_type, target_object_id=obj.id
+            )
         except self.model.DoesNotExist:
             return None
 

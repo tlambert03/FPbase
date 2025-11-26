@@ -15,10 +15,11 @@ from proteins.models import (
     BleachMeasurement,
     Camera,
     Dye,
+    DyeState,
     Excerpt,
     Filter,
     FilterPlacement,
-    Fluorophore,
+    FluorState,
     Light,
     Lineage,
     Microscope,
@@ -41,7 +42,7 @@ from proteins.util.maintain import validate_node
 class SpectrumOwner:
     list_display = ("__str__", "spectra", "created_by", "created")
     list_select_related = ("created_by",)
-    list_filter = ("created", "manufacturer")
+    list_filter = ("created",)
     search_fields = ("name",)
 
     def __init__(self, *args, **kwargs):
@@ -56,7 +57,7 @@ class SpectrumOwner:
             return f'<a href="{url}">{sp.get_subtype_display()}{pending}</a>'
 
         links = []
-        if isinstance(obj, Fluorophore):
+        if isinstance(obj, FluorState):
             [links.append(_makelink(sp)) for sp in obj.spectra.all()]
         else:
             links.append(_makelink(obj.spectrum))
@@ -98,10 +99,8 @@ class OSERInline(admin.StackedInline):
     ]
 
 
-class StateInline(MultipleSpectraOwner, admin.StackedInline):
-    # form = StateForm
-    # formset = StateFormSet
-    model = State
+class FluorStateInline(MultipleSpectraOwner):
+    model = FluorState
     extra = 0
     can_delete = True
     show_change_link = True
@@ -113,10 +112,9 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
                 "fields": (
                     ("ex_max", "em_max"),
                     ("ext_coeff", "qy"),
-                    ("twop_ex_max", "twop_peakGM", "twop_qy"),
-                    ("pka", "maturation"),
+                    ("twop_ex_max", "twop_peak_gm", "twop_qy"),
+                    "pka",
                     "lifetime",
-                    "bleach_links",
                     "spectra",
                 )
             },
@@ -131,12 +129,24 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
     ]
     readonly_fields = (
         "slug",
-        "bleach_links",
         "created",
         "created_by",
         "modified",
         "updated_by",
     )
+
+
+class StateInline(FluorStateInline, admin.StackedInline):
+    # form = StateForm
+    # formset = StateFormSet
+    model = State
+    fieldsets = [
+        *FluorStateInline.fieldsets,
+        (None, {"fields": ("bleach_links",)}),
+        (None, {"fields": ("maturation",)}),
+    ]
+
+    readonly_fields = (*FluorStateInline.readonly_fields, "bleach_links")
 
     @admin.display(description="BleachMeasurements")
     def bleach_links(self, obj):
@@ -146,6 +156,10 @@ class StateInline(MultipleSpectraOwner, admin.StackedInline):
             link = f'<a href="{url}">{bm}</a>'
             links.append(link)
         return mark_safe(", ".join(links))
+
+
+class DyeStateInline(FluorStateInline, admin.StackedInline):
+    model = DyeState
 
 
 class LineageInline(admin.TabularInline):
@@ -165,9 +179,24 @@ class LightAdmin(SpectrumOwner, admin.ModelAdmin):
 
 
 @admin.register(Dye)
-class DyeAdmin(MultipleSpectraOwner, VersionAdmin):
+class DyeAdmin(admin.ModelAdmin):
     model = Dye
+    list_display = ("__str__", "created_by", "created")
     ordering = ("-created",)
+    list_filter = ("created", "manufacturer")
+    fields = (
+        "name",
+        "slug",
+        "manufacturer",
+        "default_state",
+        "primary_reference",
+        "created",
+        "modified",
+        "created_by",
+        "updated_by",
+    )
+    readonly_fields = ("created", "modified")
+    inlines = (DyeStateInline,)
 
 
 @admin.register(Filter)
@@ -198,39 +227,42 @@ class SpectrumAdmin(VersionAdmin):
     model = Spectrum
     autocomplete_fields = ["reference"]
     list_select_related = (
-        "owner_state__protein",
+        "owner_fluor",
         "owner_filter",
         "owner_camera",
         "owner_light",
-        "owner_dye",
         "created_by",
     )
     list_display = ("__str__", "category", "subtype", "owner", "created_by")
     list_filter = ("status", "created", "category", "subtype")
     readonly_fields = ("owner", "name", "created", "modified", "spectrum_preview")
     search_fields = (
-        "owner_state__protein__name",
+        "owner_fluor__name",
         "owner_filter__name",
         "owner_camera__name",
         "owner_light__name",
-        "owner_dye__name",
     )
 
     def get_fields(self, request, obj=None):
         fields = []
         if not obj or not obj.category:
+            # If no category yet, allow selecting any owner type
             own = [
-                "owner_state",
+                "owner_fluor",
                 "owner_filter",
                 "owner_camera",
                 "owner_light",
-                "owner_dye",
             ]
-        elif obj.category == Spectrum.PROTEIN:
-            own = ["owner_state"]
+        elif obj.category in (Spectrum.PROTEIN, Spectrum.DYE):
+            # Protein and Dye both use owner_fluor (Fluorophore)
+            own = ["owner_fluor"]
         else:
+            # Filter, Camera, Light
             own = ["owner_" + obj.get_category_display().split(" ")[0].lower()]
         fields.extend(own)
+        # Add clickable link to owner's admin page (for existing objects)
+        if obj and obj.owner:
+            fields.append("owner")
         self.autocomplete_fields.extend(own)
         fields += [
             "category",
@@ -249,11 +281,17 @@ class SpectrumAdmin(VersionAdmin):
 
     @admin.display(description="Owner")
     def owner(self, obj):
-        url = reverse(
-            f"admin:proteins_{obj.owner._meta.model.__name__.lower()}_change",
-            args=(obj.owner.pk,),
-        )
-        link = f'<a href="{url}">{obj.owner}</a>'
+        owner = obj.owner
+        # FluorState is a base class - resolve to the actual subclass admin
+        if isinstance(owner, FluorState):
+            model_name = (
+                "state" if owner.entity_type == FluorState.EntityTypes.PROTEIN else "dyestate"
+            )
+        else:
+            model_name = owner._meta.model.__name__.lower()
+
+        url = reverse(f"admin:proteins_{model_name}_change", args=(owner.pk,))
+        link = f'<a href="{url}">{owner}</a>'
         return mark_safe(link)
 
     @admin.display(description="Spectrum Preview")
@@ -342,7 +380,7 @@ class StateAdmin(CompareVersionAdmin):
                 "fields": (
                     ("ex_max", "em_max"),
                     ("ext_coeff", "qy"),
-                    ("twop_ex_max", "twop_peakGM", "twop_qy"),
+                    ("twop_ex_max", "twop_peak_gm", "twop_qy"),
                     ("pka", "maturation"),
                     "lifetime",
                 )
@@ -354,6 +392,49 @@ class StateAdmin(CompareVersionAdmin):
     def protein_link(self, obj):
         url = reverse("admin:proteins_protein_change", args=([obj.protein.pk]))
         return mark_safe(f'<a href="{url}">{obj.protein}</a>')
+
+
+@admin.register(DyeState)
+class DyeStateAdmin(MultipleSpectraOwner, CompareVersionAdmin):
+    # form = StateForm
+    model = State
+    list_select_related = ("dye", "created_by", "updated_by")
+    search_fields = ("dye__name",)
+    list_display = (
+        "__str__",
+        "dye_link",
+        "ex_max",
+        "em_max",
+        "created_by",
+        "updated_by",
+        "modified",
+    )
+    list_filter = ("created", "modified")
+    fieldsets = [
+        (None, {"fields": (("name", "slug", "is_dark"),)}),
+        (
+            None,
+            {
+                "fields": (
+                    ("ex_max", "em_max"),
+                    ("ext_coeff", "qy"),
+                    ("twop_ex_max", "twop_peak_gm", "twop_qy"),
+                    ("pka", "lifetime"),
+                )
+            },
+        ),
+        (
+            None,
+            {
+                "fields": ("spectra",),
+            },
+        ),
+    ]
+
+    @admin.display(description="Dye")
+    def dye_link(self, obj):
+        url = reverse("admin:proteins_dye_change", args=([obj.dye.pk]))
+        return mark_safe(f'<a href="{url}">{obj.dye}</a>')
 
 
 class StateTransitionAdmin(VersionAdmin):
@@ -642,7 +723,9 @@ class LineageAdminForm(forms.ModelForm):
         fields = ("protein", "parent", "mutation", "root_node", "rootmut")
         readonly_fields = "root_node"
 
-    parent = forms.ModelChoiceField(required=False, queryset=Lineage.objects.prefetch_related("protein").all())
+    parent = forms.ModelChoiceField(
+        required=False, queryset=Lineage.objects.prefetch_related("protein").all()
+    )
     root_node = forms.ModelChoiceField(queryset=Lineage.objects.prefetch_related("protein").all())
 
 

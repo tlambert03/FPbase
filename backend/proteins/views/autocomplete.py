@@ -1,6 +1,6 @@
 from dal import autocomplete
 
-from ..models import Filter, Lineage, Protein, State
+from proteins.models import Filter, Lineage, Protein, State
 
 # from django.contrib.postgres.search import TrigramSimilarity
 
@@ -18,10 +18,11 @@ class ProteinAutocomplete(autocomplete.Select2QuerySetView):
         ]
 
     def get_queryset(self):
-        if self.request.GET.get("type", "") == "spectra":
-            qs = Protein.objects.with_spectra()
-        else:
-            qs = Protein.objects.all()
+        qs = (
+            Protein.objects.with_spectra()
+            if self.request.GET.get("type", "") == "spectra"
+            else Protein.objects.all()
+        )
         if self.q:
             qs = qs.filter(name__icontains=self.q)
         return qs

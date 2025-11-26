@@ -75,7 +75,9 @@ class QueryOptimizationTestCase(GraphQLTestCase):
 
         # Mock the Organism save to avoid calling Entrez API
         with patch.object(
-            models.Organism, "save", lambda self, *args, **kwargs: super(models.Organism, self).save(*args, **kwargs)
+            models.Organism,
+            "save",
+            lambda self, *args, **kwargs: super(models.Organism, self).save(*args, **kwargs),
         ):
             # Create organisms using specific IDs from factories
             self.org1 = factories.OrganismFactory(
@@ -132,7 +134,9 @@ class QueryOptimizationTestCase(GraphQLTestCase):
             body["operation_name"] = op_name
         if variables:
             body["variables"] = variables
-        return self.client.post(self.GRAPHQL_URL, json.dumps(body), content_type="application/json")
+        return self.client.post(
+            self.GRAPHQL_URL, json.dumps(body), content_type="application/json"
+        )
 
     def test_proteins_query_is_optimized(self):
         """
@@ -198,17 +202,10 @@ class QueryOptimizationTestCase(GraphQLTestCase):
             f"Expected optimized query count (<20), but got {num_queries} queries. "
             f"This suggests N+1 query problem is not being solved.\n"
             f"Queries executed:\n"
-            + "\n".join(f"{i + 1}. {q['sql'][:200]}..." for i, q in enumerate(context.captured_queries)),
+            + "\n".join(
+                f"{i + 1}. {q['sql'][:200]}..." for i, q in enumerate(context.captured_queries)
+            ),
         )
-
-        # For better understanding, print the actual number of queries
-        print(f"\nQuery optimization test: {num_queries} queries executed")
-        if num_queries <= 8:
-            print("✓ Excellent optimization!")
-        elif num_queries <= 15:
-            print("✓ Good optimization (could be better)")
-        else:
-            print("✗ Poor optimization - likely N+1 problem exists")
 
     def test_single_protein_with_transitions(self):
         """
@@ -266,5 +263,3 @@ class QueryOptimizationTestCase(GraphQLTestCase):
             10,
             f"Single protein query should be highly optimized, got {num_queries} queries",
         )
-
-        print(f"\nSingle protein query: {num_queries} queries executed")

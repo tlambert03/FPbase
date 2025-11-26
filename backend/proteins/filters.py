@@ -3,14 +3,14 @@ from Bio import Seq
 from django import forms
 from django_filters import rest_framework as filters
 
-from .models import Organism, Protein, Spectrum, State
-from .validators import cdna_sequence_validator
+from proteins.models import Organism, Protein, Spectrum, State
+from proteins.validators import cdna_sequence_validator
 
 
 class SpectrumFilter(filters.FilterSet):
     class Meta:
         model = Spectrum
-        fields = ("category", "subtype", "id", "owner_state")
+        fields = ("category", "subtype", "id", "owner_fluor")
 
 
 class StateFilter(filters.FilterSet):
@@ -107,8 +107,12 @@ class ProteinFilter(filters.FilterSet):
     name__icontains = django_filters.CharFilter(
         field_name="name", method="name_or_alias_icontains", lookup_expr="icontains"
     )
-    switch_type__ne = django_filters.ChoiceFilter(choices=Protein.SWITCHING_CHOICES, method="switch_type__notequal")
-    cofactor__ne = django_filters.ChoiceFilter(choices=Protein.COFACTOR_CHOICES, method="cofactor__notequal")
+    switch_type__ne = django_filters.ChoiceFilter(
+        choices=Protein.SwitchingChoices, method="switch_type__notequal"
+    )
+    cofactor__ne = django_filters.ChoiceFilter(
+        choices=Protein.CofactorChoices, method="cofactor__notequal"
+    )
     parent_organism__ne = django_filters.ModelChoiceFilter(
         queryset=Organism.objects.all(), method="parent_organism__notequal"
     )
@@ -201,7 +205,9 @@ class ProteinFilter(filters.FilterSet):
 
     def get_specbright(self, queryset, name, value):
         qsALL = list(queryset.all())
-        ids = [P.id for P in qsALL if P.default_state and P.default_state.local_brightness == value]
+        ids = [
+            P.id for P in qsALL if P.default_state and P.default_state.local_brightness == value
+        ]
         return queryset.filter(id__in=ids)
 
     def get_specbright_lt(self, queryset, name, value):

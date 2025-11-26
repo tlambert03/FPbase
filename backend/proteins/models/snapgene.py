@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from django.db import models
+
+if TYPE_CHECKING:
+    from proteins.models import Protein
 
 
 class SnapGenePlasmid(models.Model):
@@ -16,6 +21,9 @@ class SnapGenePlasmid(models.Model):
     author = models.CharField(max_length=200, blank=True)
     size = models.IntegerField(null=True, blank=True, help_text="Size in base pairs")
     topology = models.CharField(max_length=50, blank=True)
+
+    if TYPE_CHECKING:
+        proteins: models.QuerySet[Protein]
 
     class Meta:
         ordering = ["name"]

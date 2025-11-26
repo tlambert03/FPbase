@@ -40,7 +40,9 @@ class TestLineageMPTT:
 
         # Create grandchild
         grandchild_protein = Protein.objects.create(name="GrandchildProtein", slug="grandchild")
-        grandchild_lineage = Lineage.objects.create(protein=grandchild_protein, parent=child_lineage)
+        grandchild_lineage = Lineage.objects.create(
+            protein=grandchild_protein, parent=child_lineage
+        )
 
         # Verify multi-level tree
         assert grandchild_lineage.get_root() == root_lineage

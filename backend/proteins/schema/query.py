@@ -5,10 +5,10 @@ from django.utils.text import slugify
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
 
-from .. import models
-from ..filters import ProteinFilter
-from ..models.spectrum import get_spectra_list
-from . import relay, types
+from proteins import models
+from proteins.filters import ProteinFilter
+from proteins.models.spectrum import get_spectra_list
+from proteins.schema import relay, types
 
 
 def get_cached_spectrum(id, timeout=60 * 60 * 24):
@@ -19,9 +19,7 @@ def get_cached_spectrum(id, timeout=60 * 60 * 24):
             spectrum = (
                 models.Spectrum.objects.filter(id=id)
                 .select_related(
-                    "owner_state",
-                    "owner_state__protein",
-                    "owner_dye",
+                    "owner_fluor",
                     "owner_camera",
                     "owner_filter",
                     "owner_light",
@@ -93,7 +91,9 @@ class Query(graphene.ObjectType):
         return None
 
     # spectra = graphene.List(Spectrum)
-    spectra = graphene.List(types.SpectrumInfo, subtype=graphene.String(), category=graphene.String())
+    spectra = graphene.List(
+        types.SpectrumInfo, subtype=graphene.String(), category=graphene.String()
+    )
     spectrum = graphene.Field(types.Spectrum, id=graphene.Int())
 
     def resolve_spectra(self, info, **kwargs):
@@ -146,15 +146,18 @@ class Query(graphene.ObjectType):
     dyes = graphene.List(types.Dye)
     dye = graphene.Field(types.Dye, id=graphene.Int(), name=graphene.String())
 
+    # FIXME:
+    # "dye" is now returning a DyeState, not a Dye... this is backwards compatible
+    # but incorrect and needs to be fixed with a deprecation cycle.
     def resolve_dyes(self, info, **kwargs):
-        return gdo.query(models.Dye.objects.all(), info)
+        return gdo.query(models.DyeState.objects.all(), info)
 
     def resolve_dye(self, info, **kwargs):
         name = kwargs.get("name")
         if name is not None:
             slug = slugify(name)
-            return gdo.query(models.Dye.objects.filter(slug=slug), info).get()
+            return gdo.query(models.DyeState.objects.filter(slug=slug), info).get()
         _id = kwargs.get("id")
         if _id is not None:
-            return gdo.query(models.Dye.objects.filter(id=_id), info).get()
+            return gdo.query(models.DyeState.objects.filter(id=_id), info).get()
         return None

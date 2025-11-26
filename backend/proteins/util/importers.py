@@ -7,7 +7,7 @@ import requests
 from django.core.validators import URLValidator
 from django.template.defaultfilters import slugify
 
-from ..models import Filter
+from proteins.models import Filter
 
 ############################################
 #       Importing Tools
@@ -93,12 +93,11 @@ def fetch_chroma_part(part):
                     for k, v in attrs:
                         if k == "class" and v == "file":
                             self.ready = 1
-            elif self.ready == 1:
-                if tag == "a" and len(attrs):
-                    for k, v in attrs:
-                        if k == "href" and "download?token" in v:
-                            self.url = v
-                            self.ready = 2
+            elif self.ready == 1 and tag == "a" and len(attrs):
+                for k, v in attrs:
+                    if k == "href" and "download?token" in v:
+                        self.url = v
+                        self.ready = 2
 
     part = part.replace("/", "-")
     chroma_url = "https://www.chroma.com/products/parts/"
@@ -133,7 +132,11 @@ def fetch_semrock_part(part):
     try:
         url = (
             "https://www.semrock.com"
-            + (str(response.content).split('" title="Click to Download ASCII')[0].split('href="')[-1])
+            + (
+                str(response.content)
+                .split('" title="Click to Download ASCII')[0]
+                .split('href="')[-1]
+            )
         )
     except Exception as e:
         raise ValueError(f"Could not parse page for semrock part: {part}") from e
@@ -266,7 +269,7 @@ def text_to_spectra(text, wavecol=0):
 
 
 def import_chroma_spectra(part=None, url=None, **kwargs):
-    from ..util.spectra_import import import_spectral_data
+    from proteins.util.spectra_import import import_spectral_data
 
     if isinstance(part, str):
         text = fetch_chroma_part(part)
@@ -305,7 +308,7 @@ def import_chroma_spectra(part=None, url=None, **kwargs):
 
 
 def import_semrock_spectra(part=None, **kwargs):
-    from ..util.spectra_import import import_spectral_data
+    from proteins.util.spectra_import import import_spectral_data
 
     if isinstance(part, str):
         part = normalize_semrock_part(part)

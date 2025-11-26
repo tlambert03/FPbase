@@ -18,6 +18,7 @@ from playwright.sync_api import expect
 
 from favit.models import Favorite
 from proteins.factories import (
+    DyeFactory,
     FilterFactory,
     MicroscopeFactory,
     OpticalConfigWithFiltersFactory,
@@ -36,7 +37,9 @@ if TYPE_CHECKING:
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 # Reverse translation of DGDVNGHKFSVSGEGEGDATYGKLTLKFICT
-CDNA = "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
+CDNA = (
+    "gatggcgatgtgaacggccataaatttagcgtgagcggcgaaggcgaaggcgatgcgacctatggcaaactgaccctgaaatttatttgcacc"
+)
 
 
 def _select2_enter(selector: str, text: str, page: Page) -> None:
@@ -53,7 +56,9 @@ def _select2_enter(selector: str, text: str, page: Page) -> None:
     page.keyboard.press("Enter")
 
 
-def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+def test_main_page_loads_with_assets(
+    live_server: LiveServer, page: Page, assert_snapshot: Callable
+) -> None:
     """Test that the main page loads without errors and CSS/JS assets are applied.
 
     Verifies:
@@ -96,12 +101,28 @@ def test_main_page_loads_with_assets(live_server: LiveServer, page: Page, assert
     assert_snapshot(page)
 
 
+@pytest.mark.parametrize(
+    ("category", "subtype", "owner_name", "uses_select2"),
+    [
+        pytest.param(Spectrum.PROTEIN, Spectrum.EX, "SubmitTestProtein", True, id="protein"),
+        pytest.param(Spectrum.DYE, Spectrum.EM, "SubmitTestDye", False, id="dye"),
+        pytest.param(Spectrum.FILTER, Spectrum.LP, "SubmitTestFilter", False, id="filter"),
+    ],
+)
 def test_spectrum_submission_preview_manual_data(
-    auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
+    auth_page: Page,
+    live_server: LiveServer,
+    assert_snapshot: Callable,
+    category: str,
+    subtype: str,
+    owner_name: str,
+    uses_select2: bool,
 ) -> None:
-    """Test spectrum submission form with manual data preview."""
-    protein = ProteinFactory.create()
-    protein.default_state.ex_spectrum.delete()
+    """Test spectrum submission form with manual data preview for different categories."""
+    # Create owner object if needed (protein requires existing DB entry for Select2)
+    if category == Spectrum.PROTEIN:
+        protein = ProteinFactory.create(name=owner_name)
+        protein.default_state.ex_spectrum.delete()
 
     url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
     auth_page.goto(url)
@@ -109,12 +130,15 @@ def test_spectrum_submission_preview_manual_data(
     # Wait for form to be fully initialized
     expect(auth_page.locator("#spectrum-submit-form[data-form-ready='true']")).to_be_attached()
 
-    auth_page.locator("#id_category").select_option(Spectrum.PROTEIN)
-    auth_page.locator("#id_subtype").select_option(Spectrum.EX)
+    auth_page.locator("#id_category").select_option(category)
+    auth_page.locator("#id_subtype").select_option(subtype)
     auth_page.locator("#id_confirmation").check()
 
-    # Select2 autocomplete for protein
-    _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
+    # Fill owner field - different methods depending on category
+    if uses_select2:
+        _select2_enter("#div_id_owner_fluor [role='combobox']", owner_name, auth_page)
+    else:
+        auth_page.locator("#id_owner").fill(owner_name)
 
     # Switch to manual data tab and enter data
     auth_page.locator("#manual-tab").click()
@@ -162,7 +186,7 @@ def test_spectrum_submission_tab_switching(
     auth_page.locator("#id_subtype").select_option(Spectrum.EX)
     auth_page.locator("#id_confirmation").check()
 
-    _select2_enter("#div_id_owner_state [role='combobox']", protein.name, auth_page)
+    _select2_enter("#div_id_owner_fluor [role='combobox']", protein.name, auth_page)
 
     # Test tab switching
     file_tab = auth_page.locator("#file-tab")
@@ -280,11 +304,15 @@ def test_microscope_create(
     auth_page.locator('input[type="submit"]').click()
     auth_page.wait_for_load_state("networkidle")
     scope = Microscope.objects.last()
-    expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:microscope-detail', args=(scope.id,))}")
+    expect(auth_page).to_have_url(
+        f"{live_server.url}{reverse('proteins:microscope-detail', args=(scope.id,))}"
+    )
     assert_snapshot(auth_page)
 
 
-def test_microscope_page_with_interaction(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+def test_microscope_page_with_interaction(
+    live_server: LiveServer, page: Page, assert_snapshot: Callable
+) -> None:
     """Test microscope page with fluorophore selection and config switching."""
     protein = ProteinFactory.create()
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
@@ -313,9 +341,8 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
         default_state__em_max=525,
         default_state__qy=0.8,
     )
-    ProteinFactory(
+    DyeFactory(
         name="acceptor",
-        agg="m",
         default_state__ex_max=525,
         default_state__em_max=550,
         default_state__ext_coeff=55000,
@@ -350,7 +377,9 @@ def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: C
         assert_snapshot(page, mask_elements=[".highcharts-legend"])
 
 
-def test_collections_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+def test_collections_page_loads(
+    live_server: LiveServer, page: Page, assert_snapshot: Callable
+) -> None:
     """Test collections page loads without errors."""
     url = f"{live_server.url}{reverse('proteins:collections')}"
     page.goto(url)
@@ -381,7 +410,9 @@ def test_problems_gaps_page_loads(live_server: LiveServer, page: Page) -> None:
     expect(page).to_have_url(url)
 
 
-def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+def test_protein_table_page_loads(
+    live_server: LiveServer, page: Page, assert_snapshot: Callable
+) -> None:
     """Test protein table page loads without errors."""
     # Create minimal data - table functionality doesn't require 10 proteins
     ProteinFactory.create_batch(3)
@@ -390,7 +421,9 @@ def test_protein_table_page_loads(live_server: LiveServer, page: Page, assert_sn
     expect(page).to_have_url(url)
 
 
-def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+def test_interactive_chart_page(
+    live_server: LiveServer, page: Page, assert_snapshot: Callable
+) -> None:
     """Test interactive chart page with axis selection."""
     # Create minimal data - chart interaction doesn't require 6 proteins
     ProteinFactory.create(
@@ -439,12 +472,17 @@ def test_interactive_chart_page(live_server: LiveServer, page: Page, assert_snap
 
     # Click X-axis radio button for quantum yield (Bootstrap 5 uses label with 'for' attribute)
     page.locator("label[for='Xqy']").click()
-    # Click Y-axis radio button for extinction coefficient (Bootstrap 5 uses label with 'for' attribute)
+    # Click Y-axis radio button for extinction coefficient
+    # (Bootstrap 5 uses label with 'for' attribute)
     page.locator("label[for='Yext_coeff']").click()
 
 
-@pytest.mark.parametrize("viewname", ["microscope-embed", "microscope-detail", "microscope-report"])
-def test_microscope_views(live_server: LiveServer, page: Page, viewname: str, assert_snapshot: Callable) -> None:
+@pytest.mark.parametrize(
+    "viewname", ["microscope-embed", "microscope-detail", "microscope-report"]
+)
+def test_microscope_views(
+    live_server: LiveServer, page: Page, viewname: str, assert_snapshot: Callable
+) -> None:
     """Test embedded microscope viewer with chart rendering."""
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
     OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
@@ -466,7 +504,9 @@ def test_microscope_views(live_server: LiveServer, page: Page, viewname: str, as
     # assert_snapshot(page)
 
 
-def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
+def test_protein_comparison(
+    live_server: LiveServer, page: Page, assert_snapshot: Callable
+) -> None:
     """Test protein comparison page shows mutations between two proteins."""
     protein1 = ProteinFactory.create(name="GFP1", seq=SEQ)
     protein2 = ProteinFactory.create(name="GFP2", seq=SEQ.replace("ELDG", "ETTG"))
@@ -485,7 +525,9 @@ def test_protein_comparison(live_server: LiveServer, page: Page, assert_snapshot
     assert_snapshot(page.get_by_text("Sequence Comparison").locator("css=+ div").screenshot())
 
 
-def test_advanced_search(live_server: LiveServer, page: Page, assert_snapshot: Callable, browser: Browser) -> None:
+def test_advanced_search(
+    live_server: LiveServer, page: Page, assert_snapshot: Callable, browser: Browser
+) -> None:
     """Test advanced search with multiple filters."""
     if browser.browser_type.name != "chromium":
         pytest.skip("Skipping microscope create test on non-chromium browser due to flakiness.")
@@ -643,7 +685,9 @@ def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot: Call
     assert_snapshot(page)
 
 
-def test_protein_detail_egfp(page: Page, live_server: LiveServer, assert_snapshot: Callable) -> None:
+def test_protein_detail_egfp(
+    page: Page, live_server: LiveServer, assert_snapshot: Callable
+) -> None:
     egfp = create_egfp()
     url = f"{live_server.url}{reverse('proteins:protein-detail', args=(egfp.slug,))}"
     page.goto(url)
@@ -752,7 +796,9 @@ def test_favorite_button_interaction(
         "proteins:microscopes",
     ],
 )
-def test_page_simply_loads_without_errors(live_server: LiveServer, page: Page, viewname: str) -> None:
+def test_page_simply_loads_without_errors(
+    live_server: LiveServer, page: Page, viewname: str
+) -> None:
     """Test that a simple page loads without errors."""
     url = f"{live_server.url}{reverse(viewname)}"
     page.goto(url)

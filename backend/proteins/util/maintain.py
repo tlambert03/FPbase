@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, cast
 
 from fpseq.mutations import Mutation
+from proteins.models.protein import Protein
 
 if TYPE_CHECKING:
     from fpseq import FPSeq
@@ -20,7 +21,7 @@ def check_node_sequence_mutation_consistent(node, correct_offset=False):
         return ms
 
 
-def suggested_switch_type(protein):
+def suggested_switch_type(protein: Protein) -> str | None:
     """return the "apparent" switch type based on states and transitions
     for best performance, pre-annotate the protein with ndark and nfrom:
 
@@ -31,15 +32,14 @@ def suggested_switch_type(protein):
     if not nstates:
         return None
     if nstates == 1:
-        return protein.BASIC
+        return protein.SwitchingChoices.BASIC
     # 2 or more states...
     n_transitions = protein.transitions.count()
-    if hasattr(protein, "ndark"):
-        darkstates = protein.ndark
-    else:
-        darkstates = protein.states.filter(is_dark=True).count()
+    darkstates = (
+        protein.ndark if hasattr(protein, "ndark") else protein.states.filter(is_dark=True).count()
+    )
     if not n_transitions:
-        return protein.OTHER
+        return str(protein.SwitchingChoices.OTHER)
     elif nstates == 2:
         # 2 transitions with unique from_states
         if hasattr(protein, "nfrom"):
@@ -47,18 +47,18 @@ def suggested_switch_type(protein):
         else:
             nfrom = len(set(protein.transitions.values_list("from_state", flat=True)))
         if nfrom >= 2:
-            return protein.PHOTOSWITCHABLE
+            return str(protein.SwitchingChoices.PHOTOSWITCHABLE)
         if darkstates == 0:
-            return protein.PHOTOCONVERTIBLE
+            return str(protein.SwitchingChoices.PHOTOCONVERTIBLE)
         if darkstates == 1:
-            return protein.PHOTOACTIVATABLE
+            return str(protein.SwitchingChoices.PHOTOACTIVATABLE)
         if darkstates > 1:
             return None
     elif nstates > 2:
-        return protein.MULTIPHOTOCHROMIC
+        return str(protein.SwitchingChoices.MULTIPHOTOCHROMIC)
 
 
-def validate_switch_type(protein):
+def validate_switch_type(protein: Protein) -> bool:
     """returns False if the protein has an unusual switch type
     for its states & transitions.
     """
@@ -76,7 +76,7 @@ def validate_node(node: "Lineage") -> list[str]:
             if ms:
                 errors.append(
                     f"{node.parent.protein} + {node.mutation} does not match "
-                    + f"the current {node.protein} sequence (Δ: {ms})"
+                    f"the current {node.protein} sequence (Δ: {ms})"
                 )
     except Mutation.SequenceMismatch as e:
         errors.append(str(e).replace("parent", node.parent.protein.name))
@@ -90,7 +90,7 @@ def check_lineages(qs=None, correct_offset=False):
     good = set()
 
     if not qs:
-        from ..models import Lineage
+        from proteins.models import Lineage
 
         qs = Lineage.objects.all()
 

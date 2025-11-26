@@ -1,7 +1,7 @@
 from algoliasearch_django import AlgoliaIndex
 from algoliasearch_django.decorators import register
 
-from .models import Reference
+from references.models import Reference
 
 
 @register(Reference)

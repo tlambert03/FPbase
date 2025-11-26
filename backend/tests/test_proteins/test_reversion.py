@@ -66,7 +66,9 @@ class TestReversionCompareAdmin(TestCase):
 
     def setUp(self):
         """Create a superuser for admin access."""
-        self.user = User.objects.create_superuser(username="admin", email="admin@test.com", password="password")
+        self.user = User.objects.create_superuser(
+            username="admin", email="admin@test.com", password="password"
+        )
         self.client.login(username="admin", password="password")
 
     def test_admin_history_view_accessible(self):

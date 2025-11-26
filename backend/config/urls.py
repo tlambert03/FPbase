@@ -71,7 +71,6 @@ urlpatterns = [  # noqa: RUF005
         TemplateView.as_view(template_name="pages/bleaching.html"),
         name="bleaching",
     ),
-    # path('mutations/', TemplateView.as_view(template_name='pages/mutations.html'), name='mutations'),
     path(
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),

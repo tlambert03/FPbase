@@ -15,11 +15,7 @@ from rest_framework_csv import renderers as r
 
 import proteins.models as pm
 from fpbase.cache_utils import get_model_version
-
-from ..filters import ProteinFilter, SpectrumFilter, StateFilter
-from ..models.microscope import get_cached_optical_configs
-from ..models.spectrum import get_cached_spectra_info
-from .serializers import (
+from proteins.api.serializers import (
     BasicProteinSerializer,
     ProteinSerializer,
     ProteinSerializer2,
@@ -28,11 +24,16 @@ from .serializers import (
     SpectrumSerializer,
     StateSerializer,
 )
+from proteins.filters import ProteinFilter, SpectrumFilter, StateFilter
+from proteins.models.microscope import get_cached_optical_configs
+from proteins.models.spectrum import get_cached_spectra_info
 
 
 def _spectra_etag(request: HttpRequest) -> str:
     """Compute weak ETag for spectra list based on model versions."""
-    version = get_model_version(pm.Camera, pm.Dye, pm.Filter, pm.Light, pm.Protein, pm.Spectrum, pm.State)
+    version = get_model_version(
+        pm.Camera, pm.Dye, pm.Filter, pm.Light, pm.Protein, pm.Spectrum, pm.State
+    )
     return f'W/"{version}"'
 
 
@@ -74,7 +75,7 @@ class SpectrumList(ListAPIView):
 
 
 class SpectrumDetail(RetrieveAPIView):
-    queryset = pm.Spectrum.objects.prefetch_related("owner_state")
+    queryset = pm.Spectrum.objects.prefetch_related("owner_fluor")
     permission_classes = (AllowAny,)
     serializer_class = SpectrumSerializer
 
@@ -122,7 +123,7 @@ class ProteinListAPIView(ListAPIView):
 
 class BasicProteinListAPIView(ProteinListAPIView):
     queryset = (
-        pm.Protein.visible.filter(switch_type=pm.Protein.BASIC)
+        pm.Protein.visible.filter(switch_type=pm.Protein.SwitchingChoices.BASIC)
         .select_related("default_state")
         .annotate(rate=Max(F("default_state__bleach_measurements__rate")))
     )

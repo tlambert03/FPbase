@@ -50,9 +50,9 @@ def _parse_crossref(doidict: dict) -> DoiInfo:
     }
     if title := out["title"]:
         out["title"] = title[0]
-    dp = doidict.get("published-online", doidict.get("published-print", doidict.get("issued", {}))).get(
-        "date-parts", [None]
-    )[0]
+    dp = doidict.get(
+        "published-online", doidict.get("published-print", doidict.get("issued", {}))
+    ).get("date-parts", [None])[0]
     dp.append(1) if dp and len(dp) == 1 else None
     dp.append(1) if dp and len(dp) == 2 else None
     out["date"] = datetime.date(*dp) if dp and all(dp) else None
@@ -103,7 +103,7 @@ def _get_pmid_info(pmid: str) -> DoiInfo | None:
 
 def _merge_info(dict1: MutableMapping, dict2: MutableMapping, exclude=()) -> MutableMapping:
     """existings values in dict2 will overwrite dict1"""
-    for key in dict1.keys():
+    for key in dict1:
         if key in dict2 and dict2[key] and key not in exclude:
             dict1[key] = dict2[key]
     return dict1
@@ -183,7 +183,10 @@ def _fetch_gb_seqs(gbids):
                 "Invalid GenBank accession '%s' in database. "
                 "This entry must be updated with a valid accession number. ",
                 id,
-                extra={"accession": id, "reason": "deprecated_gi_number" if id.isdigit() else "unrecognized_format"},
+                extra={
+                    "accession": id,
+                    "reason": "deprecated_gi_number" if id.isdigit() else "unrecognized_format",
+                },
             )
 
     records = {}
@@ -191,7 +194,10 @@ def _fetch_gb_seqs(gbids):
         try:
             with Entrez.efetch(db="nuccore", id=nucs, rettype="fasta", retmode="text") as handle:
                 records.update(
-                    {x.id.split(".")[0]: str(x.translate().seq).strip("*") for x in SeqIO.parse(handle, "fasta")}
+                    {
+                        x.id.split(".")[0]: str(x.translate().seq).strip("*")
+                        for x in SeqIO.parse(handle, "fasta")
+                    }
                 )
         except Exception as e:
             logger.error(
@@ -202,7 +208,12 @@ def _fetch_gb_seqs(gbids):
     if len(prots):
         try:
             with Entrez.efetch(db="protein", id=prots, rettype="fasta", retmode="text") as handle:
-                records.update({x.id.split(".")[0]: str(x.seq).strip("*") for x in SeqIO.parse(handle, "fasta")})
+                records.update(
+                    {
+                        x.id.split(".")[0]: str(x.seq).strip("*")
+                        for x in SeqIO.parse(handle, "fasta")
+                    }
+                )
         except Exception as e:
             logger.error(
                 "Failed to fetch protein sequences from NCBI. Error: %s",
@@ -249,7 +260,9 @@ def _parse_gbnuc_record(record):
     if annotations:
         refs = annotations.get("references")
         if refs:
-            D["pmids"] = [getattr(r, "pubmed_id", None) for r in refs if getattr(r, "pubmed_id", False)]
+            D["pmids"] = [
+                getattr(r, "pubmed_id", None) for r in refs if getattr(r, "pubmed_id", False)
+            ]
         D["organism"] = annotations.get("organism", None)
         nuc = annotations.get("accessions", [])
         if len(nuc):

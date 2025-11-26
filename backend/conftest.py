@@ -61,8 +61,12 @@ def mock_ncbi_api_calls():
         }
 
     # Use unittest.mock.patch for session-scoped mocking
-    patcher1 = unittest.mock.patch("proteins.extrest.entrez.doi_lookup", side_effect=mock_doi_lookup)
-    patcher2 = unittest.mock.patch("proteins.extrest.entrez.get_organism_info", side_effect=mock_get_organism_info)
+    patcher1 = unittest.mock.patch(
+        "proteins.extrest.entrez.doi_lookup", side_effect=mock_doi_lookup
+    )
+    patcher2 = unittest.mock.patch(
+        "proteins.extrest.entrez.get_organism_info", side_effect=mock_get_organism_info
+    )
 
     patcher1.start()
     patcher2.start()

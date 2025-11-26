@@ -12,10 +12,12 @@ for production use cases.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # ============================================================================
 # scipy.signal replacements
@@ -166,7 +168,9 @@ class _CubicSpline:
             A[i, i - 1] = h[i - 1]
             A[i, i] = 2 * (h[i - 1] + h[i])
             A[i, i + 1] = h[i]
-            b[i] = 3 * ((self.y[i + 1] - self.y[i]) / h[i] - (self.y[i] - self.y[i - 1]) / h[i - 1])
+            b[i] = 3 * (
+                (self.y[i + 1] - self.y[i]) / h[i] - (self.y[i] - self.y[i - 1]) / h[i - 1]
+            )
 
         # Solve for second derivatives
         self.c = np.linalg.solve(A, b)
@@ -206,7 +210,9 @@ class _CubicSpline:
                 # Compute spline value
                 dx = xi - self.x[j]
                 a = self.y[j]
-                b_coef = (self.y[j + 1] - self.y[j]) / self.h[j] - self.h[j] * (2 * self.c[j] + self.c[j + 1]) / 3
+                b_coef = (self.y[j + 1] - self.y[j]) / self.h[j] - self.h[j] * (
+                    2 * self.c[j] + self.c[j + 1]
+                ) / 3
                 d_coef = (self.c[j + 1] - self.c[j]) / (3 * self.h[j])
 
                 result[idx] = a + b_coef * dx + self.c[j] * dx**2 + d_coef * dx**3

@@ -20,11 +20,10 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 
 from fpbase.util import is_ajax, uncache_protein_page
-
-from ..forms import SpectrumForm
-from ..models import Filter, Protein, Spectrum, State
-from ..util.importers import add_filter_to_database
-from ..util.spectra import spectra2csv
+from proteins.forms import SpectrumForm
+from proteins.models import Filter, Protein, Spectrum, State
+from proteins.util.importers import add_filter_to_database
+from proteins.util.spectra import spectra2csv
 
 
 # @cache_page(60 * 10)
@@ -73,7 +72,7 @@ class SpectrumCreateView(CreateView):
         if self.kwargs.get("slug", False):
             with contextlib.suppress(Exception):
                 self.protein = Protein.objects.get(slug=self.kwargs.get("slug"))
-                init["owner_state"] = self.protein.default_state
+                init["owner_fluor"] = self.protein.default_state
                 init["category"] = Spectrum.PROTEIN
 
         return init
@@ -88,7 +87,7 @@ class SpectrumCreateView(CreateView):
 
         if self.kwargs.get("slug", False):
             with contextlib.suppress(Exception):
-                form.fields["owner_state"] = forms.ModelChoiceField(
+                form.fields["owner_fluor"] = forms.ModelChoiceField(
                     required=True,
                     label="Protein (state)",
                     empty_label=None,
@@ -105,7 +104,9 @@ class SpectrumCreateView(CreateView):
         # It should return an HttpResponse.
         response = super().form_valid(form)
         with contextlib.suppress(Exception):
-            uncache_protein_page(self.object.owner_state.protein.slug, self.request)
+            # Uncache if this is a State (Protein) spectrum
+            if hasattr(self.object.owner_fluor, "protein"):
+                uncache_protein_page(self.object.owner_fluor.protein.slug, self.request)
 
         if not self.request.user.is_staff:
             body = f"""
@@ -138,8 +139,7 @@ def spectra_csv(request):
     try:
         idlist = [int(x) for x in request.GET.get("q", "").split(",") if x]
         spectralist = Spectrum.objects.filter(id__in=idlist).select_related(
-            "owner_state__protein",
-            "owner_dye",
+            "owner_fluor",
             "owner_filter",
             "owner_light",
             "owner_camera",
@@ -212,7 +212,9 @@ def spectrum_preview(request) -> JsonResponse:
             return JsonResponse(
                 {
                     "error": f"Data processing failed: {e!s}",
-                    "details": "The spectrum data could not be normalized. Please check your data format.",
+                    "details": (
+                        "The spectrum data could not be normalized. Please check your data format."
+                    ),
                 },
                 status=400,
             )
@@ -332,8 +334,7 @@ def pending_spectra_dashboard(request):
         .filter(status=Spectrum.STATUS.pending)
         .select_related(
             "created_by",
-            "owner_state__protein",
-            "owner_dye",
+            "owner_fluor",
             "owner_filter",
             "owner_camera",
             "owner_light",
@@ -347,7 +348,9 @@ def pending_spectra_dashboard(request):
         svg_preview = None
         if spectrum.data is not None:
             try:
-                buffer = spectrum.spectrum_img(fmt="svg", xlabels=True, ylabels=True, figsize=(10, 3))
+                buffer = spectrum.spectrum_img(
+                    fmt="svg", xlabels=True, ylabels=True, figsize=(10, 3)
+                )
                 svg_preview = buffer.getvalue().decode("utf-8")
             except Exception:
                 svg_preview = None
@@ -386,13 +389,17 @@ def pending_spectrum_action(request):
         action = request.POST.get("action")
 
         if not spectrum_ids or not action:
-            return JsonResponse({"success": False, "error": "Missing spectrum_ids or action"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "Missing spectrum_ids or action"}, status=400
+            )
 
         # For revert (undo), we need to find spectra regardless of status
         if action == "revert":
             spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids)
             if not spectra.exists():
-                return JsonResponse({"success": False, "error": "No spectra found with provided IDs"}, status=404)
+                return JsonResponse(
+                    {"success": False, "error": "No spectra found with provided IDs"}, status=404
+                )
             count = spectra.count()
             spectra.update(status=Spectrum.STATUS.pending)
             message = f"Reverted {count} spectrum(s) to pending"
@@ -401,12 +408,13 @@ def pending_spectrum_action(request):
             spectra = (
                 Spectrum.objects.all_objects()
                 .filter(id__in=spectrum_ids, status=Spectrum.STATUS.pending)
-                .select_related("owner_state__protein")
+                .select_related("owner_fluor")
             )
 
             if not spectra.exists():
                 return JsonResponse(
-                    {"success": False, "error": "No pending spectra found with provided IDs"}, status=404
+                    {"success": False, "error": "No pending spectra found with provided IDs"},
+                    status=404,
                 )
 
             count = spectra.count()
@@ -416,8 +424,9 @@ def pending_spectrum_action(request):
                 # Clear cache for affected protein pages
                 for spectrum in spectra:
                     with contextlib.suppress(Exception):
-                        if spectrum.owner_state:
-                            uncache_protein_page(spectrum.owner_state.protein.slug, request)
+                        # Uncache if this is a State (Protein) spectrum
+                        if spectrum.owner_fluor and hasattr(spectrum.owner_fluor, "protein"):
+                            uncache_protein_page(spectrum.owner_fluor.protein.slug, request)
                 message = f"Accepted {count} spectrum(s)"
 
             elif action == "reject":
@@ -429,7 +438,9 @@ def pending_spectrum_action(request):
                 message = f"Deleted {count} spectrum(s)"
 
             else:
-                return JsonResponse({"success": False, "error": f"Unknown action: {action}"}, status=400)
+                return JsonResponse(
+                    {"success": False, "error": f"Unknown action: {action}"}, status=400
+                )
 
         return JsonResponse({"success": True, "message": message, "count": count})
 

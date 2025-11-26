@@ -52,7 +52,15 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Browser, BrowserContext, ConsoleMessage, Page, Request, Response, ViewportSize
+    from playwright.sync_api import (
+        Browser,
+        BrowserContext,
+        ConsoleMessage,
+        Page,
+        Request,
+        Response,
+        ViewportSize,
+    )
     from pytest import FixtureRequest
     from sourcemap.decoder import SourceMapIndex
 
@@ -118,7 +126,10 @@ def pytest_configure(config: pytest.Config) -> None:
                 env={**os.environ, "TEST_BUILD": "1"},
             )
             if result.returncode != 0:
-                print(_color_text(f"❌ Build failed with exit code {result.returncode}", RED), flush=True)
+                print(
+                    _color_text(f"❌ Build failed with exit code {result.returncode}", RED),
+                    flush=True,
+                )
                 print(f"STDOUT: {result.stdout}", flush=True)
                 print(f"STDERR: {result.stderr}", flush=True)
                 raise RuntimeError(f"Frontend build failed: {result.stderr}")
@@ -154,11 +165,13 @@ def _frontend_assets_need_rebuild(manifest_file) -> bool:
     sources = list(frontend_src.rglob("*"))
     packages = Path(__file__).parent.parent.parent / "packages"
     sources += list(packages.rglob("src/**/*"))
-    if any(f.stat().st_mtime > manifest_mtime for f in sources if f.is_file() and not f.name.startswith(".")):
-        return True
-
-    # Everything is up to date
-    return False
+    return bool(
+        any(
+            f.stat().st_mtime > manifest_mtime
+            for f in sources
+            if f.is_file() and not f.name.startswith(".")
+        )
+    )
 
 
 # Frontend assets are built in pytest_configure hook (runs before Django import)
@@ -199,7 +212,9 @@ def _apply_source_maps_to_stack(stack_trace: str) -> str:
         if bundle_name not in _SOURCE_MAP_CACHE and bundle_path.exists():
             try:
                 content = bundle_path.read_text()
-                sm_match = re.search(r"//# sourceMappingURL=data:[^,]+,(.+)$", content, re.MULTILINE)
+                sm_match = re.search(
+                    r"//# sourceMappingURL=data:[^,]+,(.+)$", content, re.MULTILINE
+                )
                 if sm_match:
                     sm_json = base64.b64decode(sm_match.group(1)).decode()
                     _SOURCE_MAP_CACHE[bundle_name] = load_sourcemap(sm_json)
@@ -267,7 +282,9 @@ class console_errors_raised:
         self.page_errors: list[Exception] = []
         self.request_failures: list[str] = []
         self.http_errors: list[str] = []
-        self._compiled_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in ignore_patterns]
+        self._compiled_patterns = [
+            re.compile(pattern, re.IGNORECASE) for pattern in ignore_patterns
+        ]
 
         # Attach all event listeners
         page.on("console", self.on_console)
@@ -291,7 +308,9 @@ class console_errors_raised:
 
     def _should_ignore(self, *texts: str) -> bool:
         """Check if any text matches any ignore pattern (case-insensitive)."""
-        return any(pattern.search(text) for pattern in self._compiled_patterns for text in texts if text)
+        return any(
+            pattern.search(text) for pattern in self._compiled_patterns for text in texts if text
+        )
 
     def on_console(self, msg: ConsoleMessage) -> None:
         """Collect console messages unless they match ignore patterns."""
@@ -299,10 +318,11 @@ class console_errors_raised:
         if msg.type in {"debug", "log"}:
             print(f"[Console {msg.type}] {msg.text} (at {url})")
             return
-        if msg.type == "error" and "at " in msg.text:
-            text = _apply_source_maps_to_stack(msg.text)
-        else:
-            text = msg.text
+        text = (
+            _apply_source_maps_to_stack(msg.text)
+            if msg.type == "error" and "at " in msg.text
+            else msg.text
+        )
 
         if not self._should_ignore(text, url):
             # Store message with source-mapped text
@@ -316,7 +336,9 @@ class console_errors_raised:
             # Apply source maps to stack traces in page errors
             if hasattr(error, "stack") and error.stack:
                 # Create a wrapper since error.stack is read-only
-                mapped_error = SimpleNamespace(stack=_apply_source_maps_to_stack(error.stack), message=str(error))
+                mapped_error = SimpleNamespace(
+                    stack=_apply_source_maps_to_stack(error.stack), message=str(error)
+                )
                 self.page_errors.append(mapped_error)
             else:
                 self.page_errors.append(error)
@@ -342,7 +364,9 @@ class console_errors_raised:
         """Fail the test if any errors were collected."""
         # Critical: uncaught page errors fail immediately
         if self.page_errors:
-            error_details = "\n".join(f"  - {textwrap.indent(err.stack, '    ')}" for err in self.page_errors)
+            error_details = "\n".join(
+                f"  - {textwrap.indent(err.stack, '    ')}" for err in self.page_errors
+            )
             pytest.fail(f"Uncaught page errors detected:\n{error_details}", pytrace=False)
 
         # Collect other error types
@@ -369,7 +393,9 @@ def assert_no_console_errors(page: Page, request: FixtureRequest) -> Iterator[No
 def auth_user() -> AbstractUser:
     """Create authenticated user with verified email."""
     User = get_user_model()
-    user = User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
+    user = User.objects.create_user(
+        username="testuser", email="test@example.com", password="testpass123"
+    )
     EmailAddress.objects.create(user=user, email=user.email, verified=True, primary=True)
     return user
 

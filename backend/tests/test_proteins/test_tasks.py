@@ -4,7 +4,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, StateFactory
+from proteins.factories import (
+    DyeStateFactory,
+    MicroscopeFactory,
+    OpticalConfigWithFiltersFactory,
+    StateFactory,
+)
 from proteins.models import OcFluorEff
 from proteins.tasks import calc_fret, calculate_scope_report
 
@@ -76,6 +81,57 @@ class TestCalculateScopeReportIntegration:
         eff_count = OcFluorEff.objects.filter(oc=optical_config).count()
         assert eff_count > 0
 
+    def test_calculate_scope_report_creates_efficiency_records_for_dyes(self):
+        """Test that calculate_scope_report creates OcFluorEff records for DyeStates.
+
+        This exercises the DyeState code path which uses a different ID mapping
+        than State (protein fluorophores).
+        """
+        microscope = MicroscopeFactory()
+        optical_config = OpticalConfigWithFiltersFactory(microscope=microscope)
+        dye_state = DyeStateFactory()
+
+        # Ensure the dye state has spectra (required for with_spectra() filter)
+        assert dye_state.has_spectra()
+
+        # No OcFluorEff records should exist yet
+        assert OcFluorEff.objects.count() == 0
+
+        # Mock the task's update_state to avoid issues
+        with patch.object(calculate_scope_report, "update_state"):
+            calculate_scope_report.run(scope_id=microscope.id)
+
+        # OcFluorEff records should now exist for the dye state
+        assert OcFluorEff.objects.count() > 0
+        eff = OcFluorEff.objects.filter(oc=optical_config, fluor=dye_state).first()
+        assert eff is not None, "OcFluorEff record should exist for dye state"
+
+    def test_calculate_scope_report_with_both_states_and_dyes(self):
+        """Test that calculate_scope_report handles both State and DyeState.
+
+        This validates the migration's handling of mixed fluorophore types.
+        """
+        microscope = MicroscopeFactory()
+        optical_config = OpticalConfigWithFiltersFactory(microscope=microscope)
+
+        # Create both a protein state and a dye state
+        state = StateFactory()
+        dye_state = DyeStateFactory()
+
+        assert state.has_spectra()
+        assert dye_state.has_spectra()
+
+        # Run the task
+        with patch.object(calculate_scope_report, "update_state"):
+            calculate_scope_report.run(scope_id=microscope.id)
+
+        # Should have created OcFluorEff records for both
+        state_eff = OcFluorEff.objects.filter(oc=optical_config, fluor=state).first()
+        dye_eff = OcFluorEff.objects.filter(oc=optical_config, fluor=dye_state).first()
+
+        assert state_eff is not None, "OcFluorEff should exist for protein state"
+        assert dye_eff is not None, "OcFluorEff should exist for dye state"
+
 
 @pytest.mark.django_db
 class TestCalculateScopeReport:
@@ -110,7 +166,7 @@ class TestCalculateScopeReport:
         """Test that calculate_scope_report uses values_list for memory efficiency."""
         with (
             patch("proteins.models.State") as mock_state,
-            patch("proteins.models.Dye") as mock_dye,
+            patch("proteins.models.DyeState") as mock_dye,
             patch("proteins.models.Microscope") as mock_microscope,
         ):
             # Mock the with_spectra().values_list() chain
@@ -139,7 +195,7 @@ class TestCalculateScopeReport:
         # This is a smoke test to ensure the function signature hasn't changed
         with (
             patch("proteins.models.State") as mock_state,
-            patch("proteins.models.Dye") as mock_dye,
+            patch("proteins.models.DyeState") as mock_dye,
             patch("proteins.models.Microscope") as mock_microscope,
             patch("proteins.models.OcFluorEff") as mock_eff_model,
         ):

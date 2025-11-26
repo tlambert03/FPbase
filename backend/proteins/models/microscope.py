@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import json
 import urllib.parse
+from typing import TYPE_CHECKING
 
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
@@ -10,11 +13,17 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 
 from fpbase.cache_utils import OPTICAL_CONFIG_CACHE_KEY
+from proteins.models.collection import OwnedCollection
+from proteins.models.spectrum import Camera, Filter, Light, sorted_ex2em
+from proteins.util.efficiency import spectral_product
+from proteins.util.helpers import shortuuid
 
-from ..util.efficiency import spectral_product
-from ..util.helpers import shortuuid
-from .collection import OwnedCollection
-from .spectrum import Camera, Filter, Light, sorted_ex2em
+if TYPE_CHECKING:
+    from django.db.models.manager import RelatedManager
+
+    from proteins.models import OcFluorEff
+    from proteins.models.collection import FluorophoreCollection, ProteinCollection
+    from proteins.models.spectrum import D3Dict, Spectrum
 
 
 class Microscope(OwnedCollection):
@@ -28,21 +37,29 @@ class Microscope(OwnedCollection):
     """
 
     id = models.CharField(primary_key=True, max_length=22, default=shortuuid, editable=False)
-    extra_lights = models.ManyToManyField("Light", blank=True, related_name="microscopes")
-    extra_cameras = models.ManyToManyField("Camera", blank=True, related_name="microscopes")
+    extra_lights: models.ManyToManyField[Light, Microscope] = models.ManyToManyField(
+        "Light", blank=True, related_name="microscopes"
+    )
+    extra_cameras: models.ManyToManyField[Camera, Microscope] = models.ManyToManyField(
+        "Camera", blank=True, related_name="microscopes"
+    )
     extra_lasers = ArrayField(
-        models.PositiveSmallIntegerField(validators=[MinValueValidator(300), MaxValueValidator(1600)]),
+        models.PositiveSmallIntegerField(
+            validators=[MinValueValidator(300), MaxValueValidator(1600)]
+        ),
         default=list,
         blank=True,
     )
-    collection = models.ForeignKey(
+    collection_id: int | None
+    collection: models.ForeignKey[ProteinCollection | None] = models.ForeignKey(
         "ProteinCollection",
         blank=True,
         null=True,
         related_name="on_scope",
         on_delete=models.CASCADE,
     )
-    fluors = models.ForeignKey(
+    fluors_id: int | None
+    fluors: models.ForeignKey[FluorophoreCollection | None] = models.ForeignKey(
         "FluorophoreCollection",
         blank=True,
         null=True,
@@ -72,6 +89,9 @@ class Microscope(OwnedCollection):
         default=True,
         help_text="Enable pan and zoom on spectra plot.",
     )
+
+    if TYPE_CHECKING:
+        optical_configs = RelatedManager["OpticalConfig"]()
 
     class Meta:
         ordering = ["created"]
@@ -160,20 +180,20 @@ class Microscope(OwnedCollection):
         )
 
     @cached_property
-    def spectra(self):
-        spectra = []
-        for f in (
-            self.ex_filters,
-            self.em_filters,
-            self.bs_filters,
-            self.lights,
-            self.cameras,
-        ):
-            for i in f.select_related("spectrum"):
-                spectra.append(i.spectrum)
-        return spectra
+    def spectra(self) -> list[Spectrum]:
+        return [
+            obj.spectrum
+            for qs in (
+                self.ex_filters,
+                self.em_filters,
+                self.bs_filters,
+                self.lights,
+                self.cameras,
+            )
+            for obj in qs.select_related("spectrum")
+        ]
 
-    def spectra_d3(self):
+    def spectra_d3(self) -> list[D3Dict]:
         return [spec.d3dict() for spec in self.spectra]
 
 
@@ -183,7 +203,9 @@ def invert(sp):
 
 def get_optical_configs_list() -> list[dict]:
     """Fetch optical configs with microscope info in a single optimized query."""
-    vals = OpticalConfig.objects.values("id", "name", "comments", "microscope__id", "microscope__name")
+    vals = OpticalConfig.objects.values(
+        "id", "name", "comments", "microscope__id", "microscope__name"
+    )
 
     return [
         {
@@ -218,17 +240,33 @@ def get_cached_optical_configs() -> str:
 class OpticalConfig(OwnedCollection):
     """A a single optical configuration comprising a set of filters"""
 
-    microscope = models.ForeignKey("Microscope", related_name="optical_configs", on_delete=models.CASCADE)
+    microscope_id: int
+    microscope: models.ForeignKey[Microscope] = models.ForeignKey(
+        "Microscope",
+        related_name="optical_configs",
+        on_delete=models.CASCADE,
+    )
     comments = models.CharField(max_length=256, blank=True)
-    filters = models.ManyToManyField("Filter", related_name="optical_configs", blank=True, through="FilterPlacement")
-    light = models.ForeignKey(
+    if TYPE_CHECKING:
+        filterplacement_set: models.QuerySet[FilterPlacement]
+        ocfluoreff_set: models.QuerySet[OcFluorEff]
+
+    filters: models.ManyToManyField[Filter, OpticalConfig] = models.ManyToManyField(
+        "Filter",
+        related_name="optical_configs",
+        blank=True,
+        through="FilterPlacement",
+    )
+    light_id: int | None
+    light: models.ForeignKey[Light | None] = models.ForeignKey(
         "Light",
         null=True,
         blank=True,
         related_name="optical_configs",
         on_delete=models.SET_NULL,
     )
-    camera = models.ForeignKey(
+    camera_id: int | None
+    camera: models.ForeignKey[Camera | None] = models.ForeignKey(
         "Camera",
         null=True,
         blank=True,
@@ -253,7 +291,9 @@ class OpticalConfig(OwnedCollection):
     @cached_property
     def em_filters(self):
         """all filters that have an emission role"""
-        return self.filters.filter(filterplacement__path=FilterPlacement.EM, filterplacement__reflects=False)
+        return self.filters.filter(
+            filterplacement__path=FilterPlacement.EM, filterplacement__reflects=False
+        )
 
     @cached_property
     def bs_filters(self):
@@ -262,7 +302,9 @@ class OpticalConfig(OwnedCollection):
 
     @cached_property
     def ref_em_filters(self):
-        return self.filters.filter(filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True)
+        return self.filters.filter(
+            filterplacement__path=FilterPlacement.EM, filterplacement__reflects=True
+        )
 
     @cached_property
     def ex_spectra(self):
@@ -303,7 +345,9 @@ class OpticalConfig(OwnedCollection):
         return self.filterplacement_set.filter(path=FilterPlacement.BS, reflects=True)
 
     def add_filter(self, filter, path, reflects=False):
-        return FilterPlacement.objects.create(filter=filter, config=self, reflects=reflects, path=path)
+        return FilterPlacement.objects.create(
+            filter=filter, config=self, reflects=reflects, path=path
+        )
 
     def __repr__(self):
         fltrs = sorted_ex2em(self.filters.all())
@@ -327,17 +371,24 @@ class FilterPlacement(models.Model):
     BS = "bs"
     PATH_CHOICES = ((EX, "Excitation Path"), (EM, "Emission Path"), (BS, "Both Paths"))
 
-    filter = models.ForeignKey("Filter", on_delete=models.CASCADE)
-    config = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
+    filter_id: int
+    filter: models.ForeignKey[Filter] = models.ForeignKey("Filter", on_delete=models.CASCADE)
+    config_id: int
+    config: models.ForeignKey[OpticalConfig] = models.ForeignKey(
+        "OpticalConfig", on_delete=models.CASCADE
+    )
     path = models.CharField(max_length=2, choices=PATH_CHOICES, verbose_name="Ex/Bs/Em Path")
     # when path == BS, reflects refers to the emission path
-    reflects = models.BooleanField(default=False, help_text="Filter reflects emission (if BS or EM filter)")
+    reflects = models.BooleanField(
+        default=False, help_text="Filter reflects emission (if BS or EM filter)"
+    )
 
     def __str__(self):
         return self.__repr__().lstrip("<").rstrip(">")
 
     def __repr__(self):
-        return f"<{self.path.title()} Filter: {self.filter.name}{' (reflecting)' if self.reflects else ''}>"
+        reflect = " (reflecting)" if self.reflects else ""
+        return f"<{self.path.title()} Filter: {self.filter.name}{reflect}>"
 
 
 def quick_OC(name, filternames, scope, bs_ex_reflect=True):
@@ -374,10 +425,11 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
             oc.laser = int(_f)
             oc.save()
         except ValueError:
-            if iexact:
-                filt = Filter.objects.get(part__iexact=_f)
-            else:
-                filt = Filter.objects.get(name__icontains=_f)
+            filt = (
+                Filter.objects.get(part__iexact=_f)
+                if iexact
+                else Filter.objects.get(name__icontains=_f)
+            )
             fp = FilterPlacement(
                 filter=filt,
                 config=oc,
@@ -403,7 +455,9 @@ def quick_OC(name, filternames, scope, bs_ex_reflect=True):
                 try:
                     _assign_filt(fname, i, True)
                 except ObjectDoesNotExist:
-                    print(f'Filter name "{fname}" returned multiple hits and exact match not found')
+                    print(
+                        f'Filter name "{fname}" returned multiple hits and exact match not found'
+                    )
                     oc.delete()
                     return None
             except ObjectDoesNotExist:
