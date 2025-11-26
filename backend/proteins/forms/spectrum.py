@@ -134,6 +134,11 @@ class SpectrumForm(forms.ModelForm):
         return cleaned_data
 
     def save(self, commit=True):
+        # Set spectrum data from form - data is now a property, not a model field,
+        # so ModelForm won't automatically set it on the instance
+        if self.cleaned_data.get("data"):
+            self.instance.data = self.cleaned_data["data"]
+
         cat = self.cleaned_data.get("category")
         if cat == Spectrum.DYE:
             # Dyes require special handling: create Dye first, then DyeState

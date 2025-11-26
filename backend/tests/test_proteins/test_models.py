@@ -62,13 +62,3 @@ class TestProteinModel(TestCase):
         # The cached property should be invalidated and return the new values
         assert spectrum.y == new_y, f"Expected {new_y}, got {spectrum.y}"
         assert spectrum.y != original_y
-
-    def test_spectrum_x_cache_invalidation(self):
-        """Ensure cached x property is invalidated when change_x is called."""
-        spectrum = Spectrum.objects.first()
-        original_x = spectrum.x.copy()
-        new_x = [500.0, 501.0, 502.0]
-        spectrum.change_x(new_x)
-        # The cached property should be invalidated and return the new values
-        assert spectrum.x == new_x, f"Expected {new_x}, got {spectrum.x}"
-        assert spectrum.x != original_x

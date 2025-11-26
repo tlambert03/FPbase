@@ -6,7 +6,6 @@ import logging
 from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
-import django.forms
 import numpy as np
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
@@ -24,7 +23,7 @@ from model_utils.models import StatusModel, TimeStampedModel
 from fpbase.cache_utils import SPECTRA_CACHE_KEY
 from proteins.models.mixins import AdminURLMixin, Authorable, Product
 from proteins.util.helpers import spectra_fig, wave_to_hex
-from proteins.util.spectra import interp_linear, norm2one, norm2P, step_size
+from proteins.util.spectra import interp_linear, norm2one, norm2P
 from references.models import Reference
 
 if TYPE_CHECKING:
@@ -251,56 +250,9 @@ class SpectrumManager(models.Manager):
 
 
 class SpectrumData(ArrayField):
-    def __init__(self, base_field=None, size=None, **kwargs):
-        if not base_field:
-            base_field = ArrayField(models.FloatField(max_length=10), size=2)
-        super().__init__(base_field, size, **kwargs)
+    """Legacy field class - kept for migration compatibility only."""
 
-    def formfield(self, **kwargs):
-        defaults = {
-            "max_length": self.size,
-            "widget": django.forms.Textarea(attrs={"cols": "102", "rows": "15"}),
-            "form_class": django.forms.CharField,
-        }
-        defaults.update(kwargs)
-        return models.Field().formfield(**defaults)
-
-    def to_python(self, value):
-        if not value:
-            return None
-        if isinstance(value, list):
-            return value
-        if isinstance(value, str):
-            try:
-                return ast.literal_eval(value)
-            except Exception as e:
-                raise ValidationError("Invalid input for spectrum data") from e
-
-    def value_to_string(self, obj):
-        return json.dumps(self.value_from_object(obj))
-
-    def clean(self, value, model_instance):
-        if not value:
-            return None
-        value = super().clean(value, model_instance)
-        step = step_size(value)
-        if step > 10 and len(value) < 10:
-            raise ValidationError("insufficient data")
-        if step != 1:
-            try:
-                # TODO:  better choice of interpolation
-                value = [list(i) for i in zip(*interp_linear(*zip(*value)))]
-            except ValueError as e:
-                raise ValidationError(f"could not properly interpolate data: {e}") from e
-        return value
-
-    def validate(self, value, model_instance):
-        super().validate(value, model_instance)
-        for elem in value:
-            if len(elem) != 2:
-                raise ValidationError("All elements in Spectrum list must have two items")
-            if not all(isinstance(n, int | float) for n in elem):
-                raise ValidationError("All items in Spectrum list elements must be numbers")
+    pass
 
 
 class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
@@ -355,7 +307,23 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         LIGHT: [PD],
     }
 
-    data = SpectrumData()
+    # Optimized storage: Y values only (wavelengths derived from min/max_wave)
+    # Y values stored as float32 binary for ~75% space savings vs legacy format
+    min_wave = models.SmallIntegerField(help_text="Minimum wavelength in nm (inclusive)")
+    max_wave = models.SmallIntegerField(help_text="Maximum wavelength in nm (inclusive)")
+    y_values = models.BinaryField(
+        help_text="Y values as float32 binary array, one value per nm from min to max wave",
+    )
+    scale_factor = models.FloatField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Physical scaling constant. Meaning depends on subtype: "
+            "EX/ABS=extinction coeff (M^-1 cm^-1), EM=quantum yield, "
+            "2P=peak cross-section (GM), filters/cameras=1.0"
+        ),
+    )
+
     category = models.CharField(
         max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True
     )
@@ -484,19 +452,6 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         if errors:
             raise ValidationError(errors)
 
-        if self.data:
-            if self.category == self.PROTEIN:
-                self._norm2one()
-            elif (max(self.y) > 1.5) or (max(self.y) < 0.1):
-                if self.category in (self.FILTER, self.CAMERA) and (10 < max(self.y) < 101):
-                    # assume 100% scale
-                    self.change_y([round(yy / 100, 4) for yy in self.y])
-                else:
-                    self._norm2one()
-
-        if errors:
-            raise ValidationError(errors)
-
     @property
     def owner_set(self) -> list[FluorState | Filter | Light | Camera | None]:
         return [
@@ -547,14 +502,6 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             return False
 
     @property
-    def min_wave(self):
-        return self.data[0][0]
-
-    @property
-    def max_wave(self):
-        return self.data[-1][0]
-
-    @property
     def step(self):
         s = set()
         for i in range(len(self.x) - 1):
@@ -563,15 +510,17 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             return False
         return next(iter(s))
 
-    def scaled_data(self, scale):
-        return [[n[0], n[1] * scale] for n in self.data]
+    def scaled_data(self, scale: float) -> list[list[float]]:
+        """Return spectrum data with Y values multiplied by scale."""
+        return [[w, y * scale] for w, y in zip(self.x, self.y)]
 
     def color(self):
         return wave_to_hex(self.peak_wave)
 
-    def waverange(self, waverange):
+    def waverange(self, waverange: tuple[float, float]) -> list[list[float]]:
+        """Return spectrum data within the specified wavelength range."""
         assert len(waverange) == 2, "waverange argument must be an iterable of len 2"
-        return [d for d in self.data if waverange[0] <= d[0] <= waverange[1]]
+        return [[w, y] for w, y in zip(self.x, self.y) if waverange[0] <= w <= waverange[1]]
 
     def avg(self, waverange):
         d = self.waverange(waverange)
@@ -611,54 +560,145 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
 
         if self.category in (self.PROTEIN, self.DYE):
             if self.subtype == self.EX or self.subtype == self.ABS:
-                D.update({"scalar": self.owner.ext_coeff, "ex_max": self.owner.ex_max})
+                # Use scale_factor if available, fall back to owner's ext_coeff
+                scalar = self.scale_factor if self.scale_factor else self.owner.ext_coeff
+                D.update({"scalar": scalar, "ex_max": self.owner.ex_max})
             elif self.subtype == self.EM:
-                D.update({"scalar": self.owner.qy, "em_max": self.owner.em_max})
+                # Use scale_factor if available, fall back to owner's qy
+                scalar = self.scale_factor if self.scale_factor else self.owner.qy
+                D.update({"scalar": scalar, "em_max": self.owner.em_max})
             elif self.subtype == self.TWOP:
-                D.update({"scalar": self.owner.twop_peak_gm, "twop_qy": self.owner.twop_qy})
+                # Use scale_factor if available, fall back to owner's twop_peak_gm
+                scalar = self.scale_factor if self.scale_factor else self.owner.twop_peak_gm
+                D.update({"scalar": scalar, "twop_qy": self.owner.twop_qy})
         return D
 
-    def d3data(self):
-        return [{"x": elem[0], "y": elem[1]} for elem in self.data]
+    def d3data(self) -> list[dict[str, float]]:
+        """Return spectrum data in D3.js format."""
+        return [{"x": w, "y": y} for w, y in zip(self.x, self.y)]
 
-    def wave_value_pairs(self):
-        output = {}
-        # arrayLength = len(self.data)
-        for elem in self.data:
-            output[elem[0]] = elem[1]
-        return output
+    def wave_value_pairs(self) -> dict[int, float]:
+        """Return spectrum data as a wavelength -> value dict."""
+        return dict(zip(self.x, self.y))
+
+    def get_data_pairs(self) -> list[list[float]]:
+        """Return spectrum data as [[wavelength, value], ...] pairs."""
+        return [[float(w), y] for w, y in zip(self.x, self.y)]
+
+    @property
+    def data(self) -> list[list[float]]:
+        """Return spectrum data as [[wavelength, value], ...] pairs.
+
+        This property provides backward compatibility with code that
+        expects the legacy data format.
+        """
+        return self.get_data_pairs()
+
+    @data.setter
+    def data(self, value: list[list[float]] | str | None) -> None:
+        """Set spectrum data from [[wavelength, value], ...] pairs.
+
+        This setter provides backward compatibility with code that
+        sets data in the legacy format. Accepts either a list or a
+        JSON/Python string representation.
+        """
+        if value is None:
+            return
+        # Handle string input (e.g., from form fields)
+        if isinstance(value, str):
+            try:
+                value = ast.literal_eval(value)
+            except (ValueError, SyntaxError):
+                return
+        if not value or len(value) == 0:
+            return
+        wavelengths = [point[0] for point in value]
+        y_values = [point[1] for point in value]
+        self.set_spectrum_data(wavelengths, y_values)
 
     @cached_property
-    def x(self):
-        """Extract x values from data. Cached to avoid repeated allocations."""
-        return [i[0] for i in self.data]
+    def x(self) -> list[int]:
+        """Wavelength values in nm. Derived from min_wave/max_wave."""
+        return list(range(self.min_wave, self.max_wave + 1))
 
     @cached_property
-    def y(self):
-        """Extract y values from data. Cached to avoid repeated allocations."""
-        return [i[1] for i in self.data]
+    def y(self) -> list[float]:
+        """Y values (intensity/transmission). Decoded from binary storage."""
+        return self._decode_y_values()
 
-    def change_x(self, value):
-        if not isinstance(value, list):
-            raise TypeError("X values must be a python list")
-        if len(value) != len(self.data):
-            raise ValueError("Error: array length must match existing data")
-        # Clear cached property before modifying data
-        if "x" in self.__dict__:
-            del self.__dict__["x"]
-        for i in range(len(value)):
-            self.data[i][0] = value[i]
+    def _decode_y_values(self) -> list[float]:
+        """Decode float32 binary data to list of floats."""
+        if not self.y_values:
+            return []
+        # Handle memoryview from database
+        data = bytes(self.y_values) if isinstance(self.y_values, memoryview) else self.y_values
+        return np.frombuffer(data, dtype="<f4").tolist()
 
-    def change_y(self, value):
+    @staticmethod
+    def _encode_y_values(y_list: list[float]) -> bytes:
+        """Encode list of floats to float32 binary data."""
+        return np.asarray(y_list, dtype="<f4").tobytes()
+
+    def set_spectrum_data(
+        self,
+        wavelengths: list[int | float],
+        y_values: list[float],
+        scale_factor: float | None = None,
+    ) -> None:
+        """Set spectrum data using the new optimized storage format.
+
+        Parameters
+        ----------
+        wavelengths
+            Wavelength values in nm. Will be interpolated to 1nm steps if needed.
+        y_values
+            Y values (intensity/transmission/cross-section).
+        scale_factor
+            Physical scaling constant. If provided, y_values are assumed to be
+            in absolute units and will be normalized by this value.
+            If None, y_values are assumed to already be normalized.
+        """
+        # Clear cached properties
+        for prop in ("x", "y"):
+            if prop in self.__dict__:
+                del self.__dict__[prop]
+
+        # Interpolate to 1nm steps if needed
+        if len(wavelengths) > 1:
+            steps = {wavelengths[i + 1] - wavelengths[i] for i in range(len(wavelengths) - 1)}
+            if steps != {1} and steps != {1.0}:
+                interp_x, interp_y = interp_linear(wavelengths, y_values)
+                wavelengths = list(interp_x)
+                y_values = list(interp_y)
+
+        self.min_wave = int(min(wavelengths))
+        self.max_wave = int(max(wavelengths))
+
+        # Normalize if scale_factor provided
+        if scale_factor is not None and scale_factor != 0:
+            y_values = [v / scale_factor for v in y_values]
+            self.scale_factor = scale_factor
+        elif scale_factor is not None:
+            self.scale_factor = scale_factor
+
+        self.y_values = self._encode_y_values(y_values)
+
+    def change_y(self, value: list[float]) -> None:
+        """Change Y values in place."""
         if not isinstance(value, list):
             raise TypeError("Y values must be a python list")
-        if len(value) != len(self.data):
-            raise ValueError("Error: array length must match existing data")
+
+        expected_len = self.max_wave - self.min_wave + 1
+        if len(value) != expected_len:
+            raise ValueError(
+                f"Error: array length {len(value)} must match expected {expected_len}"
+            )
+
         # Clear cached property before modifying data
         if "y" in self.__dict__:
             del self.__dict__["y"]
-        for i in range(len(value)):
-            self.data[i][1] = value[i]
+
+        self.y_values = self._encode_y_values(value)
 
     def spectrum_img(self, fmt="svg", **kwargs: Any):
         """Generate a static image of this spectrum using matplotlib."""
