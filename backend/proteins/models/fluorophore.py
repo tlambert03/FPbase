@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Final, cast
 
 from django.db import models
+from django.db.models import Avg
 from django.utils.text import slugify
 
 from proteins.models.fluorescence_data import AbstractFluorescenceData
@@ -229,6 +230,17 @@ class FluorState(AbstractFluorescenceData):
             return self.em_max - self.ex_max
         except TypeError:
             return None
+
+    @property
+    def local_brightness(self) -> float:
+        """Brightness relative to spectral neighbors. 1 = average."""
+        if not (self.em_max and self.brightness):
+            return 1
+        avg = FluorState.objects.exclude(id=self.id).filter(em_max__around=self.em_max).aggregate(Avg("brightness"))
+        try:
+            return round(self.brightness / avg["brightness__avg"], 4)
+        except TypeError:
+            return 1
 
     def has_spectra(self) -> bool:
         if any([self.ex_spectrum, self.em_spectrum]):
