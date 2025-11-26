@@ -11,42 +11,29 @@ from django.core.mail import mail_admins
 from django.db import transaction
 from django.db.models import Case, CharField, Count, F, Q, Value, When
 from django.db.models.functions import Cast, Lower
-from django.http import (
-    Http404,
-    HttpResponseNotAllowed,
-    HttpResponseRedirect,
-    JsonResponse,
-)
+from django.http import Http404, HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
 from django.urls import resolve, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
-from django.views.generic import (
-    CreateView,
-    DeleteView,
-    DetailView,
-    ListView,
-    UpdateView,
-)
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from fpbase.celery import app
 from fpbase.util import is_ajax
-from proteins.models.dye import DyeState
-
-from ..forms import MicroscopeForm, OpticalConfigFormSet
-from ..models import (
+from proteins.forms import MicroscopeForm, OpticalConfigFormSet
+from proteins.models import (
     Camera,
+    DyeState,
+    Fluorophore,
     Light,
     Microscope,
+    OcFluorEff,
     OpticalConfig,
     ProteinCollection,
     Spectrum,
     State,
 )
-
-# from ..util.efficiency import microscope_efficiency_report
-from ..models.efficiency import OcFluorEff
-from ..tasks import calculate_scope_report
-from .mixins import OwnableObject
+from proteins.tasks import calculate_scope_report
+from proteins.views.mixins import OwnableObject
 
 
 def update_scope_report(request):
@@ -105,19 +92,19 @@ def scope_report_json(request, pk):
         .annotate(
             # For proteins, use the protein's UUID; for dyes, use the dye's ID (cast to string)
             owner_id=Case(
-                When(fluor__entity_type="protein", then=F("fluor__state__protein__uuid")),
-                When(fluor__entity_type="dye", then=Cast(F("fluor__dyestate__dye__id"), CharField())),
+                When(
+                    fluor__entity_type=Fluorophore.EntityTypes.PROTEIN,
+                    then=F("fluor__state__protein__uuid"),
+                ),
+                When(
+                    fluor__entity_type=Fluorophore.EntityTypes.DYE,
+                    then=Cast(F("fluor__dyestate__dye__id"), CharField()),
+                ),
                 default=Value(None),
                 output_field=CharField(),
             ),
             owner_slug=F("fluor__slug"),
-            # Map entity_type to the old 'p'/'d' format
-            type=Case(
-                When(fluor__entity_type="protein", then=Value("p")),
-                When(fluor__entity_type="dye", then=Value("d")),
-                default=Value("p"),
-                output_field=CharField(),
-            ),
+            type=F("fluor__entity_type"),
         )
         .values(
             "owner_id",
