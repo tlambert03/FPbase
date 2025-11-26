@@ -252,7 +252,10 @@ class SpectrumManager(models.Manager):
 class SpectrumData(ArrayField):
     """Legacy field class - kept for migration compatibility only."""
 
-    pass
+    def __init__(self, base_field=None, size=None, **kwargs):
+        if not base_field:
+            base_field = ArrayField(models.FloatField(max_length=10), size=2)
+        super().__init__(base_field, size, **kwargs)
 
 
 class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
