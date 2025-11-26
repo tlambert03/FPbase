@@ -36,7 +36,7 @@ if TYPE_CHECKING:
         key: str
         id: int
         values: list[dict[str, float]]
-        peak: float | bool
+        peak: int | None
         minwave: float
         maxwave: float
         category: str
@@ -326,6 +326,11 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             "2P=peak cross-section (GM), filters/cameras=1.0"
         ),
     )
+    peak_wave = models.SmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Wavelength of peak intensity in nm",
+    )
 
     category = models.CharField(
         max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True
@@ -400,6 +405,46 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             models.Index(fields=["owner_fluor_id", "status"], name="spectrum_fluor_status_idx"),
             # Index on status for queries that only filter by approval status
             models.Index(fields=["status"], name="spectrum_status_idx"),
+            # Covering index for metadata-only queries
+            models.Index(fields=["status", "category", "subtype"], name="spectrum_metadata_idx"),
+            # Partial index for approved fluorophore spectra (most common query)
+            models.Index(
+                fields=["owner_fluor_id"],
+                name="spectrum_approved_fluor_idx",
+                condition=models.Q(status="approved", owner_fluor_id__isnull=False),
+            ),
+        ]
+        constraints = [
+            # Ensure exactly one owner is set
+            models.CheckConstraint(
+                name="spectrum_single_owner",
+                condition=(
+                    models.Q(
+                        owner_fluor__isnull=False,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_fluor__isnull=True,
+                        owner_filter__isnull=False,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_fluor__isnull=True,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=False,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_fluor__isnull=True,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=False,
+                    )
+                ),
+            ),
         ]
 
     def __str__(self):
@@ -487,22 +532,23 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         else:
             return str(self.owner)
 
-    @property
-    def peak_wave(self):
+    def compute_peak_wave(self) -> int | None:
+        """Compute peak wavelength from spectrum data."""
         try:
             if self.min_wave < 300:
                 return self.x[
                     self.y.index(max([i for n, i in enumerate(self.y) if self.x[n] > 300]))
                 ]
             else:
-                try:
-                    # first look for the value 1
-                    # this is to avoid false 2P peaks
-                    return self.x[self.y.index(1)]
-                except ValueError:
-                    return self.x[self.y.index(max(self.y))]
-        except ValueError:
-            return False
+                # First look for Y ≈ 1.0 (the normalized peak) to avoid false 2P peaks
+                y_arr = np.asarray(self.y)
+                close_to_one = np.where(np.isclose(y_arr, 1.0, atol=1e-6))[0]
+                if len(close_to_one) > 0:
+                    return self.x[close_to_one[0]]
+                # Fall back to absolute max
+                return self.x[int(np.argmax(y_arr))]
+        except (ValueError, IndexError):
+            return None
 
     @property
     def step(self):
@@ -685,6 +731,9 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             self.scale_factor = scale_factor
 
         self.y_values = self._encode_y_values(y_values)
+
+        # Compute and store peak_wave
+        self.peak_wave = self.compute_peak_wave()
 
     def change_y(self, value: list[float]) -> None:
         """Change Y values in place."""
