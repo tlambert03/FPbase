@@ -1,7 +1,5 @@
 """Tests for Fluorophore.rebuild_attributes() compositing logic."""
 
-from datetime import date
-
 import pytest
 
 from proteins.models import Dye, DyeState, Protein, State
@@ -78,10 +76,10 @@ class TestRebuildAttributesBasicWaterfall:
     def test_multiple_measurements_first_value_wins(self, state: State):
         """When multiple measurements exist, first non-null value wins."""
         # Measurement with partial data (no qy)
-        m1 = FM(fluorophore=state, ex_max=488, em_max=509, qy=None, date_measured=date(2020, 1, 1))
+        m1 = FM(fluorophore=state, ex_max=488, em_max=509, qy=None)
         m1.save(rebuild_cache=False)
         # Measurement with different values
-        m2 = FM(fluorophore=state, ex_max=500, em_max=520, qy=0.5, date_measured=date(2019, 1, 1))
+        m2 = FM(fluorophore=state, ex_max=500, em_max=520, qy=0.5)
         m2.save(rebuild_cache=False)
 
         state.rebuild_attributes()
@@ -95,9 +93,9 @@ class TestRebuildAttributesBasicWaterfall:
 
     def test_source_map_tracks_measurement_ids(self, state: State):
         """source_map should track which measurement each field came from."""
-        m1 = FM(fluorophore=state, ex_max=488, qy=None, date_measured=date(2020, 1, 1))
+        m1 = FM(fluorophore=state, ex_max=488, qy=None)
         m1.save(rebuild_cache=False)
-        m2 = FM(fluorophore=state, ex_max=None, qy=0.5, date_measured=date(2019, 1, 1))
+        m2 = FM(fluorophore=state, ex_max=None, qy=0.5)
         m2.save(rebuild_cache=False)
 
         state.rebuild_attributes()
@@ -113,10 +111,10 @@ class TestRebuildAttributesTrustedPriority:
     def test_trusted_measurement_overrides_recent(self, state: State):
         """A trusted measurement should override a more recent one."""
         # Recent but not trusted
-        m1 = FM(fluorophore=state, ex_max=500, em_max=520, is_trusted=False, date_measured=date(2023, 1, 1))
+        m1 = FM(fluorophore=state, ex_max=500, em_max=520, is_trusted=False)
         m1.save(rebuild_cache=False)
         # Older but trusted
-        m2 = FM(fluorophore=state, ex_max=488, em_max=509, is_trusted=True, date_measured=date(2010, 1, 1))
+        m2 = FM(fluorophore=state, ex_max=488, em_max=509, is_trusted=True)
         m2.save(rebuild_cache=False)
 
         state.rebuild_attributes()
@@ -142,7 +140,6 @@ class TestRebuildAttributesPrimaryReferencePriority:
             reference=other_ref,
             ex_max=500,
             em_max=520,
-            date_measured=date(2023, 1, 1),
         )
         m1.save(rebuild_cache=False)
         # Older but from primary reference
@@ -151,7 +148,6 @@ class TestRebuildAttributesPrimaryReferencePriority:
             reference=primary_ref,
             ex_max=488,
             em_max=509,
-            date_measured=date(2010, 1, 1),
         )
         m2.save(rebuild_cache=False)
 
@@ -174,7 +170,6 @@ class TestRebuildAttributesPrimaryReferencePriority:
             reference=other_ref,
             ex_max=600,
             em_max=650,
-            date_measured=date(2023, 1, 1),
         )
         m1.save(rebuild_cache=False)
         # From primary reference
@@ -183,7 +178,6 @@ class TestRebuildAttributesPrimaryReferencePriority:
             reference=primary_ref,
             ex_max=550,
             em_max=580,
-            date_measured=date(2010, 1, 1),
         )
         m2.save(rebuild_cache=False)
 
@@ -209,7 +203,6 @@ class TestRebuildAttributesPriorityOrder:
             ex_max=488,
             em_max=509,
             is_trusted=False,
-            date_measured=date(2020, 1, 1),
         )
         m1.save(rebuild_cache=False)
         # Trusted but not from primary reference
@@ -218,7 +211,6 @@ class TestRebuildAttributesPriorityOrder:
             ex_max=500,
             em_max=520,
             is_trusted=True,
-            date_measured=date(2010, 1, 1),
         )
         m2.save(rebuild_cache=False)
 
@@ -228,20 +220,6 @@ class TestRebuildAttributesPriorityOrder:
         # Trusted measurement wins over primary reference
         assert state_with_ref.ex_max == 500
         assert state_with_ref.em_max == 520
-
-    def test_date_priority_when_equal_trust_and_ref(self, state: State):
-        """When trust and reference status are equal, more recent date wins."""
-        m1 = FM(fluorophore=state, ex_max=488, em_max=509, date_measured=date(2020, 6, 1))
-        m1.save(rebuild_cache=False)
-        m2 = FM(fluorophore=state, ex_max=500, em_max=520, date_measured=date(2023, 6, 1))
-        m2.save(rebuild_cache=False)
-
-        state.rebuild_attributes()
-        state.refresh_from_db()
-
-        # More recent date wins
-        assert state.ex_max == 500
-        assert state.em_max == 520
 
 
 class TestRebuildAttributesPinnedFields:
@@ -259,7 +237,6 @@ class TestRebuildAttributesPinnedFields:
             em_max=509,
             qy=0.67,
             is_trusted=True,
-            date_measured=date(2020, 1, 1),
         )
         m_trusted.save(rebuild_cache=False)
         # Older, not trusted, not primary - lowest normal priority
@@ -269,7 +246,6 @@ class TestRebuildAttributesPinnedFields:
             em_max=520,
             qy=0.50,
             is_trusted=False,
-            date_measured=date(2010, 1, 1),
         )
         m_pinned.save(rebuild_cache=False)
 
@@ -291,9 +267,9 @@ class TestRebuildAttributesPinnedFields:
 
     def test_pinned_field_with_null_value_is_skipped(self, state: State):
         """If a pinned measurement has null for the pinned field, skip it."""
-        m1 = FM(fluorophore=state, ex_max=488, qy=0.67, date_measured=date(2020, 1, 1))
+        m1 = FM(fluorophore=state, ex_max=488, qy=0.67)
         m1.save(rebuild_cache=False)
-        m2 = FM(fluorophore=state, ex_max=500, qy=None, date_measured=date(2010, 1, 1))
+        m2 = FM(fluorophore=state, ex_max=500, qy=None)
         m2.save(rebuild_cache=False)
 
         # Pin qy to m2, but m2 has null qy
@@ -309,7 +285,7 @@ class TestRebuildAttributesPinnedFields:
 
     def test_pinned_nonexistent_measurement_is_ignored(self, state: State):
         """If pinned measurement doesn't exist, ignore and use waterfall."""
-        m = FM(fluorophore=state, qy=0.67, date_measured=date(2020, 1, 1))
+        m = FM(fluorophore=state, qy=0.67)
         m.save(rebuild_cache=False)
 
         # Pin to a non-existent measurement ID
@@ -372,12 +348,12 @@ class TestRebuildAttributesAutoTrigger:
 
     def test_measurement_delete_triggers_rebuild(self, state: State):
         """Deleting a measurement should trigger rebuild_attributes."""
-        m1 = FM(fluorophore=state, ex_max=488, em_max=509, date_measured=date(2023, 1, 1))
+        m1 = FM(fluorophore=state, ex_max=488, em_max=509)
         m1.save()
         state.refresh_from_db()
         assert state.ex_max == 488
 
-        m2 = FM(fluorophore=state, ex_max=500, em_max=520, date_measured=date(2020, 1, 1))
+        m2 = FM(fluorophore=state, ex_max=500, em_max=520)
         m2.save()
         state.refresh_from_db()
         # Still 488 because more recent

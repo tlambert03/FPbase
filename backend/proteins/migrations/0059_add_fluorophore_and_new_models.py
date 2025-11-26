@@ -810,7 +810,6 @@ class Migration(migrations.Migration):
             fields=[
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 *abstract_fluorescence_data_fields(),
-                ("date_measured", models.DateField(null=True, blank=True)),
                 ("conditions", models.TextField(blank=True, help_text="pH, solvent, temp, etc.")),
                 (
                     "is_trusted",

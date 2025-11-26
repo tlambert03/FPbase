@@ -28,7 +28,6 @@ class FluorescenceMeasurement(AbstractFluorescenceData):
     )
 
     # Metadata specific to the act of measuring
-    date_measured = models.DateField(null=True, blank=True)
     conditions = models.TextField(blank=True, help_text="pH, solvent, temp, etc.")
 
     # Curator Override
