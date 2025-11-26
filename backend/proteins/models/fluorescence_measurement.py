@@ -30,9 +30,6 @@ class FluorescenceMeasurement(AbstractFluorescenceData):
     # Metadata specific to the act of measuring
     conditions = models.TextField(blank=True, help_text="pH, solvent, temp, etc.")
 
-    # Curator Override
-    is_trusted = models.BooleanField(default=False, help_text="If True, this measurement overrides others.")
-
     def save(self, *args, rebuild_cache: bool = True, **kwargs) -> None:
         # Allow opt-out of rebuild during bulk operations to avoid N+1 queries
         super().save(*args, **kwargs)

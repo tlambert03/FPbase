@@ -105,7 +105,6 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
                 fluorophore=state,  # State is-a Fluorophore (MTI)
                 reference_id=protein.primary_reference_id,
                 **measurables,
-                is_trusted=True,  # Mark as trusted since it's the original data
                 created_by_id=row["created_by_id"],
                 updated_by_id=row["updated_by_id"],
             )
@@ -192,7 +191,6 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> dic
                 fluorophore=dyestate,  # DyeState is-a Fluorophore (MTI)
                 reference_id=None,
                 **measurables,
-                is_trusted=True,
                 created_by_id=row["created_by_id"],
                 updated_by_id=row["updated_by_id"],
             )
@@ -811,10 +809,6 @@ class Migration(migrations.Migration):
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 *abstract_fluorescence_data_fields(),
                 ("conditions", models.TextField(blank=True, help_text="pH, solvent, temp, etc.")),
-                (
-                    "is_trusted",
-                    models.BooleanField(default=False, help_text="If True, this measurement overrides others."),
-                ),
                 (
                     "fluorophore",
                     models.ForeignKey(

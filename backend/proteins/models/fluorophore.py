@@ -130,9 +130,8 @@ class Fluorophore(AbstractFluorescenceData):
 
         Priority order (highest to lowest):
         1. Pinned overrides - Admin has explicitly pinned a measurement for a field
-        2. Trusted measurements - is_trusted=True on FluorescenceMeasurement
-        3. Primary reference - Measurement from the owner's primary_reference
-        4. others
+        2. Primary reference - Measurement from the owner's primary_reference
+        3. Others
         """
         measurable_fields = AbstractFluorescenceData.get_measurable_fields()
         new_values: dict[str, object] = {}
@@ -152,13 +151,10 @@ class Fluorophore(AbstractFluorescenceData):
                     new_source_map[field] = m.id
                     pinned_fields.add(field)
 
-        # Sort by priority: trusted > primary_reference
+        # Sort by primary_reference
         measurements = sorted(
             self.measurements.all(),
-            key=lambda m: (
-                not m.is_trusted,
-                not (primary_ref_id and m.reference_id == primary_ref_id),
-            ),
+            key=lambda m: (not (primary_ref_id and m.reference_id == primary_ref_id),),
         )
 
         # Waterfall: first non-null value for each non-pinned field

@@ -105,26 +105,6 @@ class TestRebuildAttributesBasicWaterfall:
         assert state.source_map["qy"] == m2.id
 
 
-class TestRebuildAttributesTrustedPriority:
-    """Test that is_trusted=True measurements take highest priority."""
-
-    def test_trusted_measurement_overrides_recent(self, state: State):
-        """A trusted measurement should override a more recent one."""
-        # Recent but not trusted
-        m1 = FM(fluorophore=state, ex_max=500, em_max=520, is_trusted=False)
-        m1.save(rebuild_cache=False)
-        # Older but trusted
-        m2 = FM(fluorophore=state, ex_max=488, em_max=509, is_trusted=True)
-        m2.save(rebuild_cache=False)
-
-        state.rebuild_attributes()
-        state.refresh_from_db()
-
-        # Trusted measurement wins
-        assert state.ex_max == 488
-        assert state.em_max == 509
-
-
 class TestRebuildAttributesPrimaryReferencePriority:
     """Test that primary reference measurements take priority over non-primary."""
 
@@ -189,63 +169,28 @@ class TestRebuildAttributesPrimaryReferencePriority:
         assert dyestate_with_ref.em_max == 580
 
 
-class TestRebuildAttributesPriorityOrder:
-    """Test the complete priority order: trusted > primary_ref > date."""
-
-    def test_trusted_beats_primary_ref(self, state_with_ref: State):
-        """is_trusted should override even primary reference."""
-        primary_ref = state_with_ref.protein.primary_reference
-
-        # From primary reference but not trusted
-        m1 = FM(
-            fluorophore=state_with_ref,
-            reference=primary_ref,
-            ex_max=488,
-            em_max=509,
-            is_trusted=False,
-        )
-        m1.save(rebuild_cache=False)
-        # Trusted but not from primary reference
-        m2 = FM(
-            fluorophore=state_with_ref,
-            ex_max=500,
-            em_max=520,
-            is_trusted=True,
-        )
-        m2.save(rebuild_cache=False)
-
-        state_with_ref.rebuild_attributes()
-        state_with_ref.refresh_from_db()
-
-        # Trusted measurement wins over primary reference
-        assert state_with_ref.ex_max == 500
-        assert state_with_ref.em_max == 520
-
-
 class TestRebuildAttributesPinnedFields:
     """Test that pinned_source_map provides per-field override."""
 
     def test_pinned_field_overrides_all_priorities(self, state_with_ref: State):
-        """A pinned field should override even trusted measurements."""
+        """A pinned field should override other measurements."""
         primary_ref = state_with_ref.protein.primary_reference
 
-        # Trusted measurement from primary reference - highest normal priority
-        m_trusted = FM(
+        # measurement from primary reference - highest normal priority
+        m_primary = FM(
             fluorophore=state_with_ref,
             reference=primary_ref,
             ex_max=488,
             em_max=509,
             qy=0.67,
-            is_trusted=True,
         )
-        m_trusted.save(rebuild_cache=False)
-        # Older, not trusted, not primary - lowest normal priority
+        m_primary.save(rebuild_cache=False)
+        # Older, not primary - lowest normal priority
         m_pinned = FM(
             fluorophore=state_with_ref,
             ex_max=500,
             em_max=520,
             qy=0.50,
-            is_trusted=False,
         )
         m_pinned.save(rebuild_cache=False)
 
@@ -256,14 +201,14 @@ class TestRebuildAttributesPinnedFields:
         state_with_ref.rebuild_attributes()
         state_with_ref.refresh_from_db()
 
-        # ex_max and em_max should come from trusted measurement
+        # ex_max and em_max should come from primary measurement
         assert state_with_ref.ex_max == 488
         assert state_with_ref.em_max == 509
         # qy should come from the pinned measurement
         assert state_with_ref.qy == 0.50
         # source_map should reflect the pinned override
         assert state_with_ref.source_map["qy"] == m_pinned.id
-        assert state_with_ref.source_map["ex_max"] == m_trusted.id
+        assert state_with_ref.source_map["ex_max"] == m_primary.id
 
     def test_pinned_field_with_null_value_is_skipped(self, state: State):
         """If a pinned measurement has null for the pinned field, skip it."""
