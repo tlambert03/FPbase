@@ -15,20 +15,26 @@ if TYPE_CHECKING:
 class OcFluorEffQuerySet(models.QuerySet):
     def outdated(self):
         fluor_objs = FluorState.objects.filter(id=OuterRef("fluor_id"))
-        spectra_mod = fluor_objs.annotate(latest_spec=Max("spectra__modified")).values("latest_spec")[:1]
+        spectra_mod = fluor_objs.annotate(latest_spec=Max("spectra__modified")).values(
+            "latest_spec"
+        )[:1]
 
         fluor_mod = fluor_objs.values("modified")[:1]
         return self.annotate(
             fluor_mod=Subquery(fluor_mod),
             spec_mod=Subquery(spectra_mod),
         ).filter(
-            Q(modified__lt=F("fluor_mod")) | Q(modified__lt=F("spec_mod")) | Q(modified__lt=F("oc__modified")),
+            Q(modified__lt=F("fluor_mod"))
+            | Q(modified__lt=F("spec_mod"))
+            | Q(modified__lt=F("oc__modified")),
         )
 
 
 class OcFluorEff(TimeStampedModel):
     oc_id: int
-    oc: models.ForeignKey["OpticalConfig"] = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
+    oc: models.ForeignKey["OpticalConfig"] = models.ForeignKey(
+        "OpticalConfig", on_delete=models.CASCADE
+    )
     fluor_id: int
     fluor: models.ForeignKey[FluorState] = models.ForeignKey(
         FluorState, on_delete=models.CASCADE, related_name="oc_effs"

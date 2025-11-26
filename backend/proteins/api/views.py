@@ -32,7 +32,9 @@ from .serializers import (
 
 def _spectra_etag(request: HttpRequest) -> str:
     """Compute weak ETag for spectra list based on model versions."""
-    version = get_model_version(pm.Camera, pm.Dye, pm.Filter, pm.Light, pm.Protein, pm.Spectrum, pm.State)
+    version = get_model_version(
+        pm.Camera, pm.Dye, pm.Filter, pm.Light, pm.Protein, pm.Spectrum, pm.State
+    )
     return f'W/"{version}"'
 
 

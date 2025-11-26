@@ -129,7 +129,9 @@ class Mutation:
         if self.operation == "sub" and (stop_char or self.stop_idx):
             raise ValueError("Substitution mutations cannot specify a range (or a stop_char/idx)")
         if stop_idx and (int(stop_idx) < int(start_idx)):
-            raise ValueError(f"Stop position ({stop_idx}) must be greater than start position ({start_idx})")
+            raise ValueError(
+                f"Stop position ({stop_idx}) must be greater than start position ({start_idx})"
+            )
         if self.operation.endswith("ins"):
             if not (stop_char and self.stop_idx):
                 print(stop_char)
@@ -183,7 +185,9 @@ class Mutation:
         # self._assert_position_consistency(seq, idx0)
         startpos = self.start_idx - idx0
         if startpos > len(seq):  # allowing one extra position for extensions
-            raise IndexError(f"Starting position {self.start_idx} is outside of sequence with length {len(seq)}")
+            raise IndexError(
+                f"Starting position {self.start_idx} is outside of sequence with length {len(seq)}"
+            )
         if self.operation == "sub":
             end = startpos + 1
             return (seq[:startpos] + self.new_chars + seq[end:], 0)
@@ -246,7 +250,10 @@ class Mutation:
         if not m:
             raise ValueError(f"Mutation code invalid: {mutstring}")
         if len(m) > 1:
-            raise ValueError("Multiple mutation codes found. For multiple mutations, create a MutationSet instead")
+            raise ValueError(
+                "Multiple mutation codes found. For multiple mutations, "
+                "create a MutationSet instead"
+            )
         return m[0]
 
 
@@ -269,7 +276,9 @@ def _get_aligned_muts(AQS, ATS, gapchars="-.", zeroindex=1):
         if extension:
             out.append(f"*{ins_start_idx + 1}{insertions[0]}ext{insertions[1:]}")
         else:
-            out.append(f"{ins_start_char}{ins_start_idx}_{before}{ins_start_idx + 1}ins{insertions}")
+            out.append(
+                f"{ins_start_char}{ins_start_idx}_{before}{ins_start_idx + 1}ins{insertions}"
+            )
 
     def clear_deletions(delstart, numdel, delins, idx):
         string = "{}{}del".format(delstart, f"_{lastchar + str(idx - 1)}" if numdel > 1 else "")
@@ -364,7 +373,9 @@ class MutationSet:
                         mut.stop_label = position_labels[mut.stop_idx - 1]
                 else:
                     try:
-                        mut.start_label = str(len(position_labels) - mut.start_idx + int(position_labels[-1]))
+                        mut.start_label = str(
+                            len(position_labels) - mut.start_idx + int(position_labels[-1])
+                        )
                     except Exception:
                         mut.start_label = str(mut.start_idx)
 
@@ -543,7 +554,9 @@ class MutationSet:
             try:
                 otherm = MutationSet(other).muts
             except Exception as e:
-                raise ValueError(f"Could not compare MutationSet object with other: {other}") from e
+                raise ValueError(
+                    f"Could not compare MutationSet object with other: {other}"
+                ) from e
         if not otherm:
             raise ValueError(f"operation not valid between type MutationSet and {type(other)}")
         else:

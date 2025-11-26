@@ -111,7 +111,7 @@ omit = ["*/migrations/*", "*/tests/*", "proteins/management/**"]
 # ==== ruff ====
 [tool.ruff]
 src = ["backend/"]
-line-length = 119
+line-length = 99
 target-version = "py313"
 exclude = ['*/migrations/*', '*/static/CACHE/*', '.venv']
 fix = true

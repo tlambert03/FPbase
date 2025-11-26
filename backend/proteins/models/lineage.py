@@ -43,7 +43,9 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         "Protein", on_delete=models.CASCADE, related_name="lineage"
     )
     parent_id: int | None
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
     reference_id: int | None
     reference: models.ForeignKey[Reference | None] = models.ForeignKey(
         Reference,
@@ -119,7 +121,9 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
                 if not isinstance(root, Protein):
                     root = self.get_root().protein
                 if root.seq:
-                    return self.parent.protein.seq.mutations_to(self.protein.seq, reference=root.seq)
+                    return self.parent.protein.seq.mutations_to(
+                        self.protein.seq, reference=root.seq
+                    )
             else:
                 ms = self.parent.protein.seq.mutations_to(self.protein.seq)
         return ms

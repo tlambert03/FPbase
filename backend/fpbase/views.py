@@ -35,7 +35,8 @@ class SameOriginExemptAnonThrottle(AnonRateThrottle):
         # Check if this is a same-origin request by comparing the referer with the host
         referer = request.headers.get("referer", "")
 
-        # If the referer contains our host (accounting for port differences), it's a same-origin request
+        # If the referer contains our host (accounting for port differences), it's a
+        # same-origin request
         # Note: This checks for the host in the referer URL (e.g., "https://www.fpbase.org/...")
         # We strip the port from host comparison to handle localhost:8000 vs fpbase.org
         if referer:

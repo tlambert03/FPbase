@@ -32,7 +32,8 @@ def get_client() -> "BetaAnalyticsDataClient":
         "token_uri": "https://oauth2.googleapis.com/token",
         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
         "client_x509_cert_url": (
-            "https://www.googleapis.com/robot/v1/metadata/x509/" + settings.GOOGLE_API_CLIENT_EMAIL.replace("@", "%40")
+            "https://www.googleapis.com/robot/v1/metadata/x509/"
+            + settings.GOOGLE_API_CLIENT_EMAIL.replace("@", "%40")
         ),
         "universe_domain": "googleapis.com",
     }
@@ -55,7 +56,9 @@ def cached_ga_popular(max_age=60 * 60 * 24):
     return results
 
 
-def ga_popular_proteins(client: BetaAnalyticsDataClient, days: int = 30) -> list[tuple[str, str, float]]:
+def ga_popular_proteins(
+    client: BetaAnalyticsDataClient, days: int = 30
+) -> list[tuple[str, str, float]]:
     """Return a list of proteins with their page views in the last `days` days.
 
     Returns a list of tuples, each containing: `(protein slug, protein name, view percentage)`
@@ -97,7 +100,10 @@ def ga_popular_proteins(client: BetaAnalyticsDataClient, days: int = 30) -> list
 
     total_views = sum(slug2count.values())
     with_percent = sorted(
-        ((slug, slug2name.get(slug, slug), 100 * count / total_views) for slug, count in slug2count.items()),
+        (
+            (slug, slug2name.get(slug, slug), 100 * count / total_views)
+            for slug, count in slug2count.items()
+        ),
         key=lambda x: x[2],
         reverse=True,
     )

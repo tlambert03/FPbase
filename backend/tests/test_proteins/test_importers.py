@@ -132,10 +132,15 @@ class TestTextToSpectra(TestCase):
 
     def test_actual_production_format(self):
         """Test exact format from production test suite."""
-        csv = "400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
+        csv = (
+            "400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n"
+            "405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
+        )
 
         waves, data, _headers = text_to_spectra(csv)
-        self.assertEqual(waves, [400.0, 401.0, 402.0, 403.0, 404.0, 405.0, 406.0, 407.0, 408.0, 409.0])
+        self.assertEqual(
+            waves, [400.0, 401.0, 402.0, 403.0, 404.0, 405.0, 406.0, 407.0, 408.0, 409.0]
+        )
         self.assertEqual(len(data[0]), 10)
         self.assertEqual(data[0][0], 0.1)
         self.assertEqual(data[0][-1], 0.1)

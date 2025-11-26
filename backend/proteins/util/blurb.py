@@ -72,7 +72,9 @@ def long_blurb(self, withbright=False, withbleach=False):
             elif M >= 90:
                 mature = ""
         if mature:
-            blurb += "It is reported to be a {} {}".format(mature, self.get_agg_display().lower() or "protein")
+            blurb += "It is reported to be a {} {}".format(
+                mature, self.get_agg_display().lower() or "protein"
+            )
 
         acid = None
         A = self.default_state.pka
@@ -97,6 +99,8 @@ def long_blurb(self, withbright=False, withbleach=False):
         if self.get_agg_display():
             blurb += f"It is reported to be a {self.get_agg_display().lower()}."
     if self.cofactor:
-        blurb += f" It requires the cofactor {self.get_cofactor_display().lower()} for fluorescence."
+        blurb += (
+            f" It requires the cofactor {self.get_cofactor_display().lower()} for fluorescence."
+        )
 
     return blurb.strip()

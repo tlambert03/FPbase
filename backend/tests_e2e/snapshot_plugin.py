@@ -44,13 +44,18 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--min-percent-diff",
         type=float,
         default=0,
-        help="Minimum percent pixels allowed to be different before failing a visual snapshot test (default: 0)",
+        help=(
+            "Minimum percent pixels allowed to be different before failing "
+            "a visual snapshot test (default: 0)"
+        ),
     )
 
 
 def _visual_snapshots_enabled(config: pytest.Config) -> bool:
     """Check if visual snapshots are enabled via CLI flag or environment variable."""
-    return config.getoption("--visual-snapshots", False) or os.environ.get("VISUAL_SNAPSHOTS", "").lower() in (
+    return config.getoption("--visual-snapshots", False) or os.environ.get(
+        "VISUAL_SNAPSHOTS", ""
+    ).lower() in (
         "1",
         "true",
         "yes",
@@ -68,7 +73,8 @@ def _cleanup_snapshot_failures(pytestconfig: pytest.Config):
     """
     Clean up snapshot failures directory once at the beginning of test session.
 
-    The snapshot storage path is relative to each test folder, modeling after the React snapshot locations
+    The snapshot storage path is relative to each test folder, modeling after the React
+    snapshot locations
     """
 
     root_dir = Path(pytestconfig.rootpath)  # type: ignore[attr-defined]
@@ -78,7 +84,8 @@ def _cleanup_snapshot_failures(pytestconfig: pytest.Config):
 
     SnapshotPaths.failures_path = root_dir / "snapshot_failures"
 
-    # Clean up the entire failures directory at session start so past failures don't clutter the result
+    # Clean up the entire failures directory at session start so past failures don't
+    # clutter the result
     if SnapshotPaths.failures_path.exists():
         shutil.rmtree(SnapshotPaths.failures_path, ignore_errors=True)
 
@@ -164,7 +171,11 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
                 all_mask_selectors.extend(mask_elements)
 
             # Convert selectors to locators
-            masks = _create_locators_from_selectors(img_or_page, all_mask_selectors) if all_mask_selectors else []
+            masks = (
+                _create_locators_from_selectors(img_or_page, all_mask_selectors)
+                if all_mask_selectors
+                else []
+            )
 
             img = img_or_page.screenshot(
                 animations="disabled",
@@ -180,7 +191,9 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
         test_file_name_without_extension = current_test_file_path.stem
 
         # Created a nested folder to store screenshots: snapshot/test_file_name/test_name/
-        test_file_snapshot_dir = snapshots_path / test_file_name_without_extension / test_name_without_params
+        test_file_snapshot_dir = (
+            snapshots_path / test_file_name_without_extension / test_name_without_params
+        )
         test_file_snapshot_dir.mkdir(parents=True, exist_ok=True)
 
         screenshot_file = test_file_snapshot_dir / name
@@ -194,13 +207,17 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
 
         if update_snapshot:
             screenshot_file.write_bytes(img)
-            failures.append(f"{SNAPSHOT_MESSAGE_PREFIX} Snapshots updated. Please review images. {screenshot_file}")
+            failures.append(
+                f"{SNAPSHOT_MESSAGE_PREFIX} Snapshots updated. Please review images. "
+                f"{screenshot_file}"
+            )
             return
 
         if not screenshot_file.exists():
             screenshot_file.write_bytes(img)
             failures.append(
-                f"{SNAPSHOT_MESSAGE_PREFIX} New snapshot(s) created. Please review images. {screenshot_file}"
+                f"{SNAPSHOT_MESSAGE_PREFIX} New snapshot(s) created. Please review images. "
+                f"{screenshot_file}"
             )
             return
 

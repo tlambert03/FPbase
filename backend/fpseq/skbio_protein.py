@@ -138,7 +138,8 @@ class SkbSequence:
         if isinstance(other, SkbSequence):
             if type(other) is not type(self):
                 raise TypeError(
-                    f"Cannot use {self.__class__.__name__} and {other.__class__.__name__} together with `{method}`"
+                    f"Cannot use {self.__class__.__name__} and "
+                    f"{other.__class__.__name__} together with `{method}`"
                 )
             else:
                 return other
@@ -214,9 +215,14 @@ class SkbSequence:
         elif isinstance(indexable, str | bool):
             raise IndexError(f"Cannot index with {type(indexable).__name__} type: {indexable!r}")
 
-        if isinstance(indexable, np.ndarray) and indexable.dtype == bool and len(indexable) != len(self):
+        if (
+            isinstance(indexable, np.ndarray)
+            and indexable.dtype == bool
+            and len(indexable) != len(self)
+        ):
             raise IndexError(
-                f"An boolean vector index must be the same length as the sequence ({len(self)}, not {len(indexable)})."
+                f"An boolean vector index must be the same length as the sequence "
+                f"({len(self)}, not {len(indexable)})."
             )
 
         if isinstance(indexable, np.ndarray) and indexable.size == 0:
@@ -270,7 +276,8 @@ class SkbSequence:
     def _validate(self):
         """https://github.com/biocore/scikit-bio/blob/0.5.4/skbio/sequence/_grammared_sequence.py#L340"""
         invalid_characters = (
-            np.bincount(self._bytes, minlength=self._number_of_extended_ascii_codes) * self._validation_mask
+            np.bincount(self._bytes, minlength=self._number_of_extended_ascii_codes)
+            * self._validation_mask
         )
         if np.any(invalid_characters):
             bad = list(np.where(invalid_characters > 0)[0].astype(np.uint8).view("|S1"))

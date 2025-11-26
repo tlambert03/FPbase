@@ -106,13 +106,21 @@ class MicroscopeForm(forms.ModelForm):
         help_texts = {
             "name": "Name of this microscope or set of filter configurations",
             "description": "This text will appear below the name on your microscope page",
-            "managers": "Grant others permission to edit this page (comma separated list of email addresses)",
+            "managers": (
+                "Grant others permission to edit this page "
+                "(comma separated list of email addresses)"
+            ),
             "extra_lasers": "Comma separated list of integers (300-1600)",
-            "collection": "Only show fluorophores from a custom collection (leave blank to allow all proteins)",
+            "collection": (
+                "Only show fluorophores from a custom collection "
+                "(leave blank to allow all proteins)"
+            ),
         }
         widgets = {
             "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
-            "description": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "description": forms.widgets.TextInput(
+                attrs={"class": "textinput textInput form-control"}
+            ),
             "detector": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),
             "light_source": forms.widgets.Select(attrs={"class": "selectmultiple form-control"}),
         }
@@ -253,7 +261,9 @@ class MicroscopeForm(forms.ModelForm):
                     splt = []
                     for item in _splt:
                         if brackets.search(item):
-                            splt.append([n.strip() for n in brackets.sub("", item).split(",") if n.strip()])
+                            splt.append(
+                                [n.strip() for n in brackets.sub("", item).split(",") if n.strip()]
+                            )
                         else:
                             if item.endswith(","):
                                 item = item[:-1]
@@ -265,7 +275,8 @@ class MicroscopeForm(forms.ModelForm):
                 if len(splt) not in (4, 5):
                     self.add_error(
                         "optical_configs",
-                        f"Lines must have 4 or 5 comma-separated fields but this one has {len(splt)}: {line}",
+                        f"Lines must have 4 or 5 comma-separated fields but this one has "
+                        f"{len(splt)}: {line}",
                     )
                 for n, f in enumerate(splt):
                     if n == 0:
@@ -377,14 +388,18 @@ class OpticalConfigForm(forms.ModelForm):
         help_texts = {
             "light": "laser overrides light source",
             "name": "name of this optical config",
-            "comments": "When present, comments will appear below the selected optical configuration",
+            "comments": (
+                "When present, comments will appear below the selected optical configuration"
+            ),
         }
         widgets = {
             "name": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
             "camera": forms.widgets.Select(attrs={"class": "form-control form-select"}),
             "light": forms.widgets.Select(attrs={"class": "form-control form-select"}),
             "laser": forms.widgets.NumberInput(attrs={"class": "numberinput form-control"}),
-            "comments": forms.widgets.TextInput(attrs={"class": "textinput textInput form-control"}),
+            "comments": forms.widgets.TextInput(
+                attrs={"class": "textinput textInput form-control"}
+            ),
         }
 
     def is_valid(self):

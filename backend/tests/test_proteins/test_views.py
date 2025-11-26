@@ -8,7 +8,12 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from proteins.factories import DyeStateFactory, MicroscopeFactory, OpticalConfigWithFiltersFactory, StateFactory
+from proteins.factories import (
+    DyeStateFactory,
+    MicroscopeFactory,
+    OpticalConfigWithFiltersFactory,
+    StateFactory,
+)
 from proteins.models import OcFluorEff, Protein, Spectrum, State
 from proteins.tasks import calculate_scope_report
 
@@ -135,7 +140,10 @@ class SpectrumPreviewViewTests(TestCase):
         self.client.login(username="testuser", password="testpass")
 
         # Create a mock CSV file with consecutive wavelengths
-        file_content = b"400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
+        file_content = (
+            b"400,0.1\n401,0.2\n402,0.3\n403,0.5\n404,0.8\n"
+            b"405,1.0\n406,0.8\n407,0.5\n408,0.3\n409,0.1"
+        )
         uploaded_file = SimpleUploadedFile("spectrum.csv", file_content, content_type="text/csv")
 
         # Use multipart form data for file upload
@@ -398,7 +406,9 @@ class TestScopeReportJson:
         OcFluorEff.objects.bulk_create(
             [
                 OcFluorEff(oc=oc, fluor=state, fluor_name=str(state), ex_eff=0.8, em_eff=0.7),
-                OcFluorEff(oc=oc, fluor=dye_state, fluor_name=str(dye_state), ex_eff=0.9, em_eff=0.6),
+                OcFluorEff(
+                    oc=oc, fluor=dye_state, fluor_name=str(dye_state), ex_eff=0.9, em_eff=0.6
+                ),
             ]
         )
 

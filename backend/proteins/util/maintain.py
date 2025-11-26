@@ -35,7 +35,9 @@ def suggested_switch_type(protein: Protein) -> str | None:
         return protein.SwitchingChoices.BASIC
     # 2 or more states...
     n_transitions = protein.transitions.count()
-    darkstates = protein.ndark if hasattr(protein, "ndark") else protein.states.filter(is_dark=True).count()
+    darkstates = (
+        protein.ndark if hasattr(protein, "ndark") else protein.states.filter(is_dark=True).count()
+    )
     if not n_transitions:
         return str(protein.SwitchingChoices.OTHER)
     elif nstates == 2:

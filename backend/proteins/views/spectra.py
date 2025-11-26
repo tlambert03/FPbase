@@ -213,7 +213,9 @@ def spectrum_preview(request) -> JsonResponse:
             return JsonResponse(
                 {
                     "error": f"Data processing failed: {e!s}",
-                    "details": "The spectrum data could not be normalized. Please check your data format.",
+                    "details": (
+                        "The spectrum data could not be normalized. Please check your data format."
+                    ),
                 },
                 status=400,
             )
@@ -347,7 +349,9 @@ def pending_spectra_dashboard(request):
         svg_preview = None
         if spectrum.data is not None:
             try:
-                buffer = spectrum.spectrum_img(fmt="svg", xlabels=True, ylabels=True, figsize=(10, 3))
+                buffer = spectrum.spectrum_img(
+                    fmt="svg", xlabels=True, ylabels=True, figsize=(10, 3)
+                )
                 svg_preview = buffer.getvalue().decode("utf-8")
             except Exception:
                 svg_preview = None
@@ -386,13 +390,17 @@ def pending_spectrum_action(request):
         action = request.POST.get("action")
 
         if not spectrum_ids or not action:
-            return JsonResponse({"success": False, "error": "Missing spectrum_ids or action"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "Missing spectrum_ids or action"}, status=400
+            )
 
         # For revert (undo), we need to find spectra regardless of status
         if action == "revert":
             spectra = Spectrum.objects.all_objects().filter(id__in=spectrum_ids)
             if not spectra.exists():
-                return JsonResponse({"success": False, "error": "No spectra found with provided IDs"}, status=404)
+                return JsonResponse(
+                    {"success": False, "error": "No spectra found with provided IDs"}, status=404
+                )
             count = spectra.count()
             spectra.update(status=Spectrum.STATUS.pending)
             message = f"Reverted {count} spectrum(s) to pending"
@@ -406,7 +414,8 @@ def pending_spectrum_action(request):
 
             if not spectra.exists():
                 return JsonResponse(
-                    {"success": False, "error": "No pending spectra found with provided IDs"}, status=404
+                    {"success": False, "error": "No pending spectra found with provided IDs"},
+                    status=404,
                 )
 
             count = spectra.count()
@@ -430,7 +439,9 @@ def pending_spectrum_action(request):
                 message = f"Deleted {count} spectrum(s)"
 
             else:
-                return JsonResponse({"success": False, "error": f"Unknown action: {action}"}, status=400)
+                return JsonResponse(
+                    {"success": False, "error": f"Unknown action: {action}"}, status=400
+                )
 
         return JsonResponse({"success": True, "message": message, "count": count})
 

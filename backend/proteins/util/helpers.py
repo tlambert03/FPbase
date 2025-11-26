@@ -144,7 +144,9 @@ def shortuuid(padding=None):
 
 def zip_wave_data(waves, data, minmax=None):
     minmax = minmax or (150, 1800)
-    return [list(i) for i in zip(waves, data) if (minmax[0] <= i[0] <= minmax[1]) and not isnan(i[1])]
+    return [
+        list(i) for i in zip(waves, data) if (minmax[0] <= i[0] <= minmax[1]) and not isnan(i[1])
+    ]
 
 
 def wave_to_hex(wavelength, gamma=1):
@@ -295,7 +297,10 @@ def calculate_spectral_overlap(donor, acceptor):
 
     A = accEx.wave_value_pairs()
     D = donEm.wave_value_pairs()
-    overlap = [(pow(wave, 4) * A[wave] * accEC * D[wave] / donCum) for wave in range(startingwave, endingwave + 1)]
+    overlap = [
+        (pow(wave, 4) * A[wave] * accEC * D[wave] / donCum)
+        for wave in range(startingwave, endingwave + 1)
+    ]
 
     return sum(overlap)
 
@@ -382,7 +387,9 @@ def forster_list():
                             "acceptor": "<a href='{}'>{}{}</a>".format(
                                 acceptor.get_absolute_url(),
                                 acceptor.name,
-                                f"<sub>{acceptor.cofactor.upper()}</sub>" if acceptor.cofactor else "",
+                                f"<sub>{acceptor.cofactor.upper()}</sub>"
+                                if acceptor.cofactor
+                                else "",
                             ),
                             "donorPeak": donor.default_state.ex_max,
                             "acceptorPeak": acceptor.default_state.ex_max,
@@ -455,7 +462,13 @@ def spectra_fig(
         color = colr if colr else spec.color()
         if fill:
             alpha = 0.5 if not alph else float(alph)
-            ax.fill_between(*list(zip(*spec.data)), color=color, alpha=alpha, url="http://google.com=", **kwargs)
+            ax.fill_between(
+                *list(zip(*spec.data)),
+                color=color,
+                alpha=alpha,
+                url="http://google.com=",
+                **kwargs,
+            )
         else:
             alpha = 1 if not alph else float(alph)
             ax.plot(*list(zip(*spec.data)), alpha=alpha, color=spec.color(), **kwargs)

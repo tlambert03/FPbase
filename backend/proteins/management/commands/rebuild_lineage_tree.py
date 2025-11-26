@@ -41,11 +41,17 @@ class Command(BaseCommand):
                 )
 
         if corrupt_nodes:
-            self.stdout.write(self.style.WARNING(f"\nFound {len(corrupt_nodes)} nodes with tree_id inconsistencies:"))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"\nFound {len(corrupt_nodes)} nodes with tree_id inconsistencies:"
+                )
+            )
             for node in corrupt_nodes[:10]:  # Show first 10
                 self.stdout.write(self.style.WARNING(node))
             if len(corrupt_nodes) > 10:
-                self.stdout.write(self.style.WARNING(f"    ... and {len(corrupt_nodes) - 10} more"))
+                self.stdout.write(
+                    self.style.WARNING(f"    ... and {len(corrupt_nodes) - 10} more")
+                )
         else:
             self.stdout.write(self.style.SUCCESS("\n  No tree_id inconsistencies detected."))
 
@@ -68,7 +74,9 @@ class Command(BaseCommand):
             self.stdout.write(f"  Trees after:  {new_num_trees}")
 
             if corrupt_nodes:
-                self.stdout.write(self.style.SUCCESS(f"\n  Fixed {len(corrupt_nodes)} tree_id inconsistencies"))
+                self.stdout.write(
+                    self.style.SUCCESS(f"\n  Fixed {len(corrupt_nodes)} tree_id inconsistencies")
+                )
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"\n✗ Rebuild failed: {e}"))

@@ -285,7 +285,8 @@ class SimilarSpectrumOwnersViewTests(TestCase):
 
         data = response.json()
         self.assertGreater(len(data["similars"]), 0)
-        # At least one should be the dye we searched for (label returns dye name when state name is "default")
+        # At least one should be the dye we searched for
+        # (label returns dye name when state name is "default")
         names = [s["name"] for s in data["similars"]]
         self.assertIn(self.dyes[0].name, names)
 

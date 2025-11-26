@@ -74,7 +74,9 @@ class DyeState(FluorState):
     """
 
     dye_id: int
-    dye: models.ForeignKey["Dye"] = models.ForeignKey(Dye, on_delete=models.CASCADE, related_name="states")
+    dye: models.ForeignKey["Dye"] = models.ForeignKey(
+        Dye, on_delete=models.CASCADE, related_name="states"
+    )
 
     if TYPE_CHECKING:
         fluorophore_ptr: FluorState  # added by Django MTI

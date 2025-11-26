@@ -29,7 +29,9 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default="w)CU)uzJ<JMlkGTrfz?:)W>]EG!PFngIv
 EMAIL_PORT = 1025
 
 EMAIL_HOST = "localhost"
-EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = env(
+    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
 
 if env("MAILGUN_API_KEY", default=False) and env("MAILGUN_DOMAIN", default=False):
     INSTALLED_APPS += [

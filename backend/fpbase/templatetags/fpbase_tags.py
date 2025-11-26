@@ -13,7 +13,8 @@ _ICON_CACHE: dict[str, str] = {}
 ICON_DIR = Path(__file__).parent.parent / "static" / "icons"
 if not ICON_DIR.exists():
     raise RuntimeError(
-        f"Icon directory does not exist: {ICON_DIR}. Please run 'python scripts/extract_fa_icons.py' to generate it."
+        f"Icon directory does not exist: {ICON_DIR}. Please run "
+        "'python scripts/extract_fa_icons.py' to generate it."
     )
 
 

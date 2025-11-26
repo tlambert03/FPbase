@@ -4,7 +4,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from proteins.factories import DyeStateFactory, MicroscopeFactory, OpticalConfigWithFiltersFactory, StateFactory
+from proteins.factories import (
+    DyeStateFactory,
+    MicroscopeFactory,
+    OpticalConfigWithFiltersFactory,
+    StateFactory,
+)
 from proteins.models import OcFluorEff
 from proteins.tasks import calc_fret, calculate_scope_report
 

@@ -91,7 +91,9 @@ class Query(graphene.ObjectType):
         return None
 
     # spectra = graphene.List(Spectrum)
-    spectra = graphene.List(types.SpectrumInfo, subtype=graphene.String(), category=graphene.String())
+    spectra = graphene.List(
+        types.SpectrumInfo, subtype=graphene.String(), category=graphene.String()
+    )
     spectrum = graphene.Field(types.Spectrum, id=graphene.Int())
 
     def resolve_spectra(self, info, **kwargs):

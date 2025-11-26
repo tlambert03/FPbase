@@ -57,7 +57,9 @@ def protein_sequence_validator(seq):
     badletters = [letter for letter in seq if letter not in IUPAC_PROTEIN_LETTERS]
     if len(badletters):
         badletters = set(badletters)
-        raise ValidationError(f"Invalid letter(s) found in amino acid sequence: {''.join(badletters)}")
+        raise ValidationError(
+            f"Invalid letter(s) found in amino acid sequence: {''.join(badletters)}"
+        )
 
 
 def validate_spectrum(value):
