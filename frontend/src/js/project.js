@@ -767,15 +767,19 @@ $(() => {
         $("#transitionForm").html(data)
 
         // Use Bootstrap's shown.bs.modal event to ensure modal is fully visible
-        const $modal = $("#transitionModal")
+        const transitionModalEl = document.getElementById("transitionModal")
         // Remove any previous handlers to avoid duplicates
-        $modal.off("shown.bs.modal")
+        $(transitionModalEl).off("shown.bs.modal")
         // Register formset AFTER modal is fully shown
-        $modal.one("shown.bs.modal", () => {
-          register_transition_form()
-        })
+        transitionModalEl.addEventListener(
+          "shown.bs.modal",
+          () => {
+            register_transition_form()
+          },
+          { once: true }
+        )
         // Now show the modal (which will trigger the event above)
-        $modal.modal()
+        bootstrap.Modal.getOrCreateInstance(transitionModalEl).show()
       })
       .catch((error) => {
         console.error("Transition form fetch error:", error)
@@ -928,7 +932,7 @@ $(document).ready(() => {
         if (!$("#collectionSelect").length) {
           // only retrieve once
           $("#collectionSelection").prepend(data.widget)
-          $("#collectionModal").modal()
+          bootstrap.Modal.getOrCreateInstance(document.getElementById("collectionModal")).show()
         }
       })
   })
@@ -949,7 +953,7 @@ $(document).ready(() => {
       cache: "no-store",
     })
 
-    $("#collectionModal").modal("hide")
+    bootstrap.Modal.getOrCreateInstance(document.getElementById("collectionModal")).hide()
   })
 })
 
@@ -960,7 +964,7 @@ $(() => {
     .parent()
     .find(".select-add-button")
     .click(() => {
-      $("#organismModal").modal()
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("organismModal")).show()
     })
 
   $("#taxonomyModalForm").submit(function (e) {
@@ -990,7 +994,7 @@ $(() => {
             .then((_data) => {
               $(`<option value="${tax_id}">${sci_name} </option>`).appendTo("#id_parent_organism")
               $(`#id_parent_organism option[value="${tax_id}"]`).prop("selected", true)
-              $("#organismModal").modal("hide")
+              bootstrap.Modal.getOrCreateInstance(document.getElementById("organismModal")).hide()
             })
         } else {
           $("#id_taxonomy_id").addClass("is-invalid")
