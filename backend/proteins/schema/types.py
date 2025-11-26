@@ -5,9 +5,8 @@ from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectType
 
+from proteins import models
 from references.schema import Reference
-
-from .. import models
 
 
 def nullable_enum_from_field(_model, _field):

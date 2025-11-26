@@ -24,10 +24,9 @@ from django.views.generic import (
 )
 
 from fpbase.util import is_ajax
-
-from ..forms import CollectionForm
-from ..models import Protein, ProteinCollection, State, StateTransition
-from .mixins import OwnableObject
+from proteins.forms import CollectionForm
+from proteins.models import Protein, ProteinCollection, State, StateTransition
+from proteins.views.mixins import OwnableObject
 
 
 def serialized_proteins_response(queryset, format="json", filename="FPbase_proteins"):

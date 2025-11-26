@@ -8,7 +8,7 @@ from django.db.models import Count, Exists, OuterRef
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from .models import User
+from fpbase.users.models import User
 
 
 class MyUserChangeForm(UserChangeForm):

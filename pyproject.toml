@@ -131,7 +131,8 @@ select = [
     "RUF", # Ruff-specific rules
     "LOG", # flake8-logging
     "G",   # flake8-logging-format
-    "TC", # flake8-type-checking
+    "TC",  # flake8-type-checking
+    "TID", # flake8-tidy-imports
 ]
 ignore = [
     "B905",   # `zip()` without an explicit `strict=` parameter
@@ -140,6 +141,9 @@ ignore = [
 ]
 [tool.ruff.lint.per-file-ignores]
 "backend/config/settings/*" = ["F405"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
 
 [tool.django-stubs]
 django_settings_module = "config.settings.test"

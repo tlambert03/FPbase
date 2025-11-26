@@ -1,6 +1,6 @@
 from dal import autocomplete
 
-from ..models import Filter, Lineage, Protein, State
+from proteins.models import Filter, Lineage, Protein, State
 
 # from django.contrib.postgres.search import TrigramSimilarity
 

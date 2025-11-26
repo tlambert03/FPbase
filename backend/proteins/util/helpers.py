@@ -331,7 +331,7 @@ def forster_list():
 
     from django.core.cache import cache
 
-    from ..models import Protein
+    from proteins.models import Protein
 
     # Try to get cached results first
     cache_key = "forster_list_results"

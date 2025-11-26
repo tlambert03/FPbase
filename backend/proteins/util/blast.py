@@ -9,7 +9,7 @@ from pathlib import Path
 from shutil import copyfileobj
 from subprocess import run
 
-from ..models import Protein
+from proteins.models import Protein
 
 ROOT = Path(__file__).parent.parent.parent
 BIN_DIR = ROOT / "bin"

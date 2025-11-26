@@ -1,8 +1,7 @@
 from django.test import TestCase
 
 from fpbase.users.admin import MyUserCreationForm
-
-from .factories import UserFactory
+from tests.test_users.factories import UserFactory
 
 
 class TestMyUserCreationForm(TestCase):
