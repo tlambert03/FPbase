@@ -266,6 +266,9 @@ class SpectrumAdmin(VersionAdmin):
             # Filter, Camera, Light
             own = ["owner_" + obj.get_category_display().split(" ")[0].lower()]
         fields.extend(own)
+        # Add clickable link to owner's admin page (for existing objects)
+        if obj and obj.owner:
+            fields.append("owner")
         self.autocomplete_fields.extend(own)
         fields += [
             "category",
@@ -284,11 +287,18 @@ class SpectrumAdmin(VersionAdmin):
 
     @admin.display(description="Owner")
     def owner(self, obj):
-        url = reverse(
-            f"admin:proteins_{obj.owner._meta.model.__name__.lower()}_change",
-            args=(obj.owner.pk,),
-        )
-        link = f'<a href="{url}">{obj.owner}</a>'
+        owner = obj.owner
+        # FluorState is a base class - resolve to the actual subclass admin
+        if isinstance(owner, FluorState):
+            if owner.entity_type == FluorState.EntityTypes.PROTEIN:
+                model_name = "state"
+            else:
+                model_name = "dyestate"
+        else:
+            model_name = owner._meta.model.__name__.lower()
+
+        url = reverse(f"admin:proteins_{model_name}_change", args=(owner.pk,))
+        link = f'<a href="{url}">{owner}</a>'
         return mark_safe(link)
 
     @admin.display(description="Spectrum Preview")
