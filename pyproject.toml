@@ -126,12 +126,14 @@ select = [
     "UP",  # pyupgrade
     "YTT", # flake8-2020
     "B",   # flake8-bugbear
+    "ISC", # string concatenation
     "C4",  # flake8-comprehensions
     "DJ",  # flake8-django
     "RUF", # Ruff-specific rules
     "LOG", # flake8-logging
     "G",   # flake8-logging-format
-    "TC", # flake8-type-checking
+    "TC",  # flake8-type-checking
+    # "SIM", # Common simplification rules
 ]
 ignore = [
     "B905",   # `zip()` without an explicit `strict=` parameter

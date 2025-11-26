@@ -77,7 +77,7 @@ def validate_node(node: "Lineage") -> list[str]:
             if ms:
                 errors.append(
                     f"{node.parent.protein} + {node.mutation} does not match "
-                    + f"the current {node.protein} sequence (Δ: {ms})"
+                    f"the current {node.protein} sequence (Δ: {ms})"
                 )
     except Mutation.SequenceMismatch as e:
         errors.append(str(e).replace("parent", node.parent.protein.name))
