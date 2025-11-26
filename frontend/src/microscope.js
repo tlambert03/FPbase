@@ -851,8 +851,8 @@ window.initMicroscope = () => {
 
       $(".switchmodal").click((e) => {
         e.preventDefault()
-        $("#settingsModal").modal("hide")
-        $("#embedModal").modal("show")
+        bootstrap.Modal.getOrCreateInstance(document.getElementById("settingsModal")).hide()
+        bootstrap.Modal.getOrCreateInstance(document.getElementById("embedModal")).show()
       })
     })
 
@@ -2021,7 +2021,7 @@ window.initMicroscope = () => {
       const link = build_current_uri()
       $("#shareLink").val(link)
       $("#mailLink").attr("href", $("#mailLink").data("mailinfo") + encodeURIComponent(link))
-      $("#shareModal").modal("show")
+      bootstrap.Modal.getOrCreateInstance(document.getElementById("shareModal")).show()
     })
   })() // End of inner IIFE
 }
