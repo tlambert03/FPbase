@@ -27,7 +27,7 @@ from favit.models import Favorite
 from proteins import util
 from proteins.models._sequence_field import SequenceField
 from proteins.models.collection import ProteinCollection
-from proteins.models.fluorophore import Fluorophore
+from proteins.models.fluorophore import FluorState
 from proteins.models.mixins import Authorable
 from proteins.models.spectrum import Spectrum
 from proteins.util.helpers import get_base_name, get_color_group, mless, spectra_fig
@@ -555,7 +555,7 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             return self.primary_reference.first_author.family
 
 
-class State(Fluorophore):  # TODO: rename to ProteinState
+class State(FluorState):  # TODO: rename to ProteinState
     protein_id: int
     protein: models.ForeignKey[Protein] = models.ForeignKey(
         Protein,
@@ -582,10 +582,10 @@ class State(Fluorophore):  # TODO: rename to ProteinState
         transitions_from: models.QuerySet[StateTransition]
         transitions_to: models.QuerySet[StateTransition]
         bleach_measurements: models.QuerySet[BleachMeasurement]
-        fluorophore_ptr: Fluorophore  # added by Django MTI
+        fluorophore_ptr: FluorState  # added by Django MTI
 
     def save(self, *args, **kwargs) -> None:
-        self.entity_type = Fluorophore.EntityTypes.PROTEIN
+        self.entity_type = FluorState.EntityTypes.PROTEIN
         # Cache parent protein info for efficient searching
         if self.protein_id:
             self.owner_name = self.protein.name

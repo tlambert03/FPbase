@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from proteins.models.spectrum import D3Dict, Spectrum
 
 
-class FluorophoreManager[T: models.Model](models.Manager):
+class FluorStateManager[T: models.Model](models.Manager):
     _queryset_class: type[QuerySet[T]]
 
     def notdark(self):
@@ -28,7 +28,7 @@ class FluorophoreManager[T: models.Model](models.Manager):
 
 
 # The Canonical Parent (The Summary)
-class Fluorophore(AbstractFluorescenceData):
+class FluorState(AbstractFluorescenceData):
     """The database table for 'Things That Glow'.
 
     Polymorphic Fluorophore Parent.
@@ -79,7 +79,7 @@ class Fluorophore(AbstractFluorescenceData):
     pinned_source_map = models.JSONField(default=dict, blank=True)
 
     # Managers
-    objects: FluorophoreManager[Self] = FluorophoreManager()
+    objects: FluorStateManager[Self] = FluorStateManager()
 
     if TYPE_CHECKING:
         spectra: RelatedManager[Spectrum]
@@ -92,10 +92,10 @@ class Fluorophore(AbstractFluorescenceData):
 
     class Meta:
         indexes = [
-            models.Index(fields=["ex_max"], name="fluorophore_ex_max_idx"),
-            models.Index(fields=["em_max"], name="fluorophore_em_max_idx"),
-            models.Index(fields=["owner_name"], name="fluorophore_owner_name_idx"),
-            models.Index(fields=["entity_type", "is_dark"], name="fluorophore_type_dark_idx"),
+            models.Index(fields=["ex_max"], name="fluorstate_ex_max_idx"),
+            models.Index(fields=["em_max"], name="fluorstate_em_max_idx"),
+            models.Index(fields=["owner_name"], name="fluorstate_owner_name_idx"),
+            models.Index(fields=["entity_type", "is_dark"], name="fluorstate_type_dark_idx"),
         ]
 
     def __str__(self):

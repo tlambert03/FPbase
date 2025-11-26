@@ -16,7 +16,7 @@ from django.views.generic import DetailView
 from fpbase.util import uncache_protein_page
 from proteins.util.maintain import validate_node
 
-from ..models import Fluorophore, Lineage, Organism, Protein, Spectrum, State
+from ..models import FluorState, Lineage, Organism, Protein, Spectrum, State
 from ..models.spectrum import Camera, Filter, Light
 
 logger = logging.getLogger(__name__)
@@ -124,7 +124,7 @@ def similar_spectrum_owners(request):
     camera_ids = []
 
     for s in similars:
-        if isinstance(s, Fluorophore):
+        if isinstance(s, FluorState):
             fluor_ids.append(s.id)
         elif isinstance(s, Filter):
             filter_ids.append(s.id)
@@ -145,17 +145,17 @@ def similar_spectrum_owners(request):
     cameras = Camera.objects.filter(id__in=camera_ids).select_related("spectrum")
 
     # Combine all objects maintaining order
-    # For Fluorophores (State/DyeState), use ID-only as key since original `similars` has base "Fluorophore" class
+    # For Fluorophores (State/DyeState), use ID-only as key since original `similars` has base "FluorState" class
     similars_dict = {}
     for item in [*states, *dye_states, *filters, *lights, *cameras]:
-        if isinstance(item, Fluorophore):
+        if isinstance(item, FluorState):
             similars_dict[item.id] = item  # Fluorophores: use ID only
         else:
             similars_dict[(item.__class__.__name__, item.id)] = item  # Others: use (class, ID)
 
     similars_optimized = []
     for s in similars:
-        if isinstance(s, Fluorophore):
+        if isinstance(s, FluorState):
             key = s.id  # For Fluorophores, look up by ID only
         else:
             key = (s.__class__.__name__, s.id)
@@ -165,11 +165,11 @@ def similar_spectrum_owners(request):
         "similars": [
             {
                 "slug": s.slug,
-                "name": s.label if isinstance(s, Fluorophore) else s.name,
+                "name": s.label if isinstance(s, FluorState) else s.name,
                 "url": s.get_absolute_url(),
                 "spectra": (
                     [sp.get_subtype_display() for sp in s.spectra.all()]
-                    if isinstance(s, Fluorophore)
+                    if isinstance(s, FluorState)
                     else [s.spectrum.get_subtype_display()]
                 ),
             }

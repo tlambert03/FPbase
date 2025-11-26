@@ -58,7 +58,7 @@ jobs:
         with:
           enable-cache: true
       - name: Check for new migrations
-        run: uv run backend/manage.py makemigrations --check
+        run: uv run backend/manage.py makemigrations --check --noinput
 
   test:
     runs-on: ubuntu-latest

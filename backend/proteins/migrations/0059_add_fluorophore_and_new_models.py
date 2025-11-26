@@ -1,12 +1,12 @@
-"""Major data migration to new Fluorophore + Measurement schema.
+"""Major data migration to new FluorState + Measurement schema.
 
 NON REVERSIBLE.
 
-1. proteins.State becomes MTI child of new proteins.Fluorophore
-2. proteins.Dye becomes container for new proteins.DyeState (MTI child of Fluorophore)
+1. proteins.State becomes MTI child of new proteins.FluorState
+2. proteins.Dye becomes container for new proteins.DyeState (MTI child of FluorState)
 3. proteins.FluorescenceMeasurement created for each old State and DyeState
-4. proteins.Spectrum ownership updated to point to new Fluorophore records
-5. proteins.OcFluorEff updated to point to new Fluorophore records
+4. proteins.Spectrum ownership updated to point to new FluorState records
+5. proteins.OcFluorEff updated to point to new FluorState records
 
 """
 
@@ -57,7 +57,7 @@ MEASURABLE_FIELDS = {
 
 
 def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
-    """Migrate State data from old schema to new Fluorophore + State MTI structure."""
+    """Migrate State data from old schema to new FluorState + State MTI structure."""
     # Get models from migration state
     State = apps.get_model("proteins", "State")
     Protein = apps.get_model("proteins", "Protein")
@@ -82,7 +82,7 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
             # Get protein for label
             protein = Protein.objects.get(id=row["protein_id"])
 
-            # Create State (MTI child of Fluorophore)
+            # Create State (MTI child of FluorState)
             state = State.objects.create(
                 id=old_id,  # Preserve old ID for easier FK updates later
                 created=row["created"],
@@ -102,7 +102,7 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
 
             FluorescenceMeasurement.objects.create(
                 id=old_id,  # Preserve old ID
-                fluorophore=state,  # State is-a Fluorophore (MTI)
+                state=state,  # State is-a FluorState (MTI)
                 reference_id=protein.primary_reference_id,
                 **measurables,
                 created_by_id=row["created_by_id"],
@@ -111,16 +111,16 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
 
     print(f"Migrated {State.objects.count()} State records")
 
-    # Reset the Fluorophore and FluorescenceMeasurement ID sequences
-    # to avoid conflicts when creating Dye fluorophores and their measurements
+    # Reset the FluoroState and FluorescenceMeasurement ID sequences
+    # to avoid conflicts when creating DyeStates and their measurements
     with schema_editor.connection.cursor() as cursor:
         cursor.execute("""
             SELECT setval(
-                pg_get_serial_sequence('proteins_fluorophore', 'id'),
-                COALESCE((SELECT MAX(id) FROM proteins_fluorophore), 1)
+                pg_get_serial_sequence('proteins_fluorstate', 'id'),
+                COALESCE((SELECT MAX(id) FROM proteins_fluorstate), 1)
             )
         """)
-        print(f"Reset Fluorophore ID sequence to {cursor.fetchone()[0]}")
+        print(f"Reset FluoroState ID sequence to {cursor.fetchone()[0]}")
 
         cursor.execute("""
             SELECT setval(
@@ -134,7 +134,7 @@ def migrate_state_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> N
 def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> dict[int, int]:
     """Migrate Dye data from old schema to new Dye container + DyeState structure.
 
-    Returns a mapping of old Dye ID → new Fluorophore ID for efficient FK updates.
+    Returns a mapping of old Dye ID → new FluoroState ID for efficient FK updates.
     """
     Dye = apps.get_model("proteins", "Dye")
     DyeState = apps.get_model("proteins", "DyeState")
@@ -170,7 +170,7 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> dic
                 url=row["url"],
             )
 
-            # Create DyeState (MTI child of Fluorophore)
+            # Create DyeState (MTI child of FluoroState)
             dyestate = DyeState.objects.create(
                 created=row["created"],
                 modified=row["modified"],
@@ -188,7 +188,7 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> dic
             # Create FluorescenceMeasurement from old Dye data
             # For dyes, we don't have a primary_reference concept in old schema
             FluorescenceMeasurement.objects.create(
-                fluorophore=dyestate,  # DyeState is-a Fluorophore (MTI)
+                state=dyestate,  # DyeState is-a FluorState (MTI)
                 reference_id=None,
                 **measurables,
                 created_by_id=row["created_by_id"],
@@ -199,7 +199,7 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> dic
             dye.save()
 
             # Store mapping for efficient FK updates
-            old_to_new_id_map[old_id] = dyestate.fluorophore_ptr_id
+            old_to_new_id_map[old_id] = dyestate.fluorstate_ptr_id
 
     print(f"Migrated {Dye.objects.count()} Dye records to Dye containers")
     print(f"Created {DyeState.objects.count()} DyeState records")
@@ -207,9 +207,9 @@ def migrate_dye_data(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> dic
 
 
 def update_spectrum_ownership(apps: Apps, schema_editor: BaseDatabaseSchemaEditor, dye_id_map: dict[int, int]) -> None:
-    """Update Spectrum foreign keys to point to new Fluorophore records."""
+    """Update Spectrum foreign keys to point to new FluoroState records."""
     with schema_editor.connection.cursor() as cursor:
-        # Update spectra owned by States - State ID == Fluorophore ID (preserved)
+        # Update spectra owned by States - State ID == FluoroState ID (preserved)
         cursor.execute("""
             UPDATE proteins_spectrum
             SET owner_fluor_id = owner_state_id
@@ -218,7 +218,7 @@ def update_spectrum_ownership(apps: Apps, schema_editor: BaseDatabaseSchemaEdito
         state_count = cursor.rowcount
         print(f"Updated {state_count} spectra owned by States")
 
-        # Update spectra owned by Dyes - need mapping from old Dye ID to new Fluorophore ID
+        # Update spectra owned by Dyes - need mapping from old Dye ID to new FluoroState ID
         # Use temp table for the mapping (reuse pattern from OcFluorEff)
         cursor.execute("""
             CREATE TEMP TABLE dye_spectrum_mapping (
@@ -246,10 +246,10 @@ def update_spectrum_ownership(apps: Apps, schema_editor: BaseDatabaseSchemaEdito
 
 
 def update_ocfluoreff(apps: Apps, schema_editor: BaseDatabaseSchemaEditor, dye_id_map: dict[int, int]) -> None:
-    """Update OcFluorEff to use direct FK to Fluorophore.
+    """Update OcFluorEff to use direct FK to FluoroState.
 
     Uses efficient bulk updates:
-    - States: Direct assignment (State ID == Fluorophore ID)
+    - States: Direct assignment (State ID == FluoroState ID)
     - Dyes: Temp table JOIN (using provided old_id → new_id mapping)
     """
     with schema_editor.connection.cursor() as cursor:
@@ -352,7 +352,7 @@ def update_ocfluoreff(apps: Apps, schema_editor: BaseDatabaseSchemaEditor, dye_i
 
 
 def populate_emhex_exhex(apps, _schema_editor):
-    """Populate emhex/exhex for all Fluorophore objects.
+    """Populate emhex/exhex for all FluorState objects.
 
     The historical models don't include the save() logic from AbstractFluorescenceData,
     so we need to manually calculate these fields after creating the objects.
@@ -406,16 +406,16 @@ def populate_emhex_exhex(apps, _schema_editor):
         b *= 255
         return f"#{int(r):02x}{int(g):02x}{int(b):02x}"
 
-    Fluorophore = apps.get_model("proteins", "Fluorophore")
+    FluorState = apps.get_model("proteins", "FluorState")
 
-    fluorophores_to_update = []
-    for fluor in Fluorophore.objects.all():
+    fluorstates_to_update = []
+    for fluor in FluorState.objects.all():
         fluor.emhex = "#000" if fluor.is_dark else wave_to_hex(fluor.em_max)
         fluor.exhex = wave_to_hex(fluor.ex_max)
-        fluorophores_to_update.append(fluor)
+        fluorstates_to_update.append(fluor)
 
-    Fluorophore.objects.bulk_update(fluorophores_to_update, ["emhex", "exhex"], batch_size=500)
-    print(f"Populated emhex/exhex for {len(fluorophores_to_update)} fluorophores")
+    FluorState.objects.bulk_update(fluorstates_to_update, ["emhex", "exhex"], batch_size=500)
+    print(f"Populated emhex/exhex for {len(fluorstates_to_update)} FluorState records")
 
 
 def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSchemaEditor) -> None:
@@ -423,22 +423,22 @@ def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSche
 
     Background:
     -----------
-    State now inherits from Fluorophore via Multi-Table Inheritance (MTI).
+    State now inherits from FluorState via Multi-Table Inheritance (MTI).
     When reversion reverts a revision, it needs Version records for BOTH the parent
-    (Fluorophore) and child (State) models in the same revision.
+    (FluorState) and child (State) models in the same revision.
 
     Old State versions stored ALL fields in one record:
         {"model": "proteins.state", "fields": {"name": "x", "ex_max": 488, "protein": 1, ...}}
 
     After migration, we need TWO records per revision:
-        1. Fluorophore: {"fields": {"name": "x", "ex_max": 488, ...}}
-        2. State: {"fields": {"fluorophore_ptr": 402, "protein": 1, "maturation": 13.0}}
+        1. FluorState: {"fields": {"name": "x", "ex_max": 488, ...}}
+        2. State: {"fields": {"fluorstate_ptr": 402, "protein": 1, "maturation": 13.0}}
 
     Both records share the same revision_id, so revision.revert() restores them together.
     """
     ContentType = apps.get_model("contenttypes", "ContentType")
 
-    # Fields that remain on State model; everything else moves to Fluorophore parent
+    # Fields that remain on State model; everything else moves to FluorState parent
     state_only_fields = {"protein", "maturation", "transitions"}
 
     with schema_editor.connection.cursor() as cursor:
@@ -447,7 +447,7 @@ def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSche
         except ContentType.DoesNotExist:
             # No content types exist yet (fresh database), nothing to migrate
             return
-        fluor_ct, _ = ContentType.objects.get_or_create(app_label="proteins", model="fluorophore")
+        fluor_ct, _ = ContentType.objects.get_or_create(app_label="proteins", model="fluorstate")
 
         # Build lookup dict for protein name/slug (used for owner_name/owner_slug)
         cursor.execute("SELECT id, name, slug FROM proteins_protein")
@@ -483,10 +483,10 @@ def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSche
                 protein_id = old_fields.get("protein")
                 owner_name, owner_slug = proteins.get(protein_id, ("", ""))
 
-                # Split fields: State-only fields stay on State, rest go to Fluorophore
-                # State needs fluorophore_ptr to link to its MTI parent
-                state_fields = {"fluorophore_ptr": pk}
-                # Fluorophore needs new required fields with sensible defaults
+                # Split fields: State-only fields stay on State, rest go to FluorState
+                # State needs fluorstate_ptr to link to its MTI parent
+                state_fields = {"fluorstate_ptr": pk}
+                # FluorState needs new required fields with sensible defaults
                 fluor_fields = {
                     "entity_type": "p",
                     "owner_name": owner_name,
@@ -497,19 +497,19 @@ def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSche
                 for k, v in old_fields.items():
                     (state_fields if k in state_only_fields else fluor_fields)[k] = v
 
-                # Queue NEW Fluorophore version (same revision_id links them together)
+                # Queue NEW FluorState version (same revision_id links them together)
                 fluor_inserts.append(
                     (
                         str(object_id),
                         revision_id,  # Same revision as the State version
                         fluor_ct.id,
-                        json.dumps([{"model": "proteins.fluorophore", "pk": pk, "fields": fluor_fields}]),
+                        json.dumps([{"model": "proteins.fluorstate", "pk": pk, "fields": fluor_fields}]),
                         "",  # object_repr - not critical for historical versions
                         db,
                         fmt,
                     )
                 )
-                # Queue UPDATE to existing State version (strip out fields that moved to Fluorophore)
+                # Queue UPDATE to existing State version (strip out fields that moved to FluorState)
                 state_updates.append(
                     (
                         json.dumps([{"model": "proteins.state", "pk": pk, "fields": state_fields}]),
@@ -520,7 +520,7 @@ def migrate_reversion_state_versions(apps: Apps, schema_editor: BaseDatabaseSche
                 logger.warning(f"Skipping malformed reversion State version ID {row['id']}")
                 continue
 
-        # Bulk insert new Fluorophore versions
+        # Bulk insert new FluorState versions
         if fluor_inserts:
             cursor.executemany(
                 "INSERT INTO reversion_version "
@@ -553,11 +553,11 @@ def migrate_reverse(_apps, _schema_editor):
     """Reverse migration - not supported.
 
     This migration performs a one-way data transformation from the old schema
-    (separate State and Dye models) to the new schema (MTI-based Fluorophore hierarchy).
+    (separate State and Dye models) to the new schema (MTI-based FluorState hierarchy).
 
     Reversing this migration would require:
-    1. Decomposing Fluorophore + State back into old State structure
-    2. Decomposing Fluorophore + DyeState back into old Dye structure
+    1. Decomposing FluorState + State back into old State structure
+    2. Decomposing FluorState + DyeState back into old Dye structure
     3. Merging FluorescenceMeasurement data back into parent entities
     4. Restoring old spectrum ownership relationships
 
@@ -759,11 +759,11 @@ class Migration(migrations.Migration):
             ],
         ),
         # Step 2: Create all new models
-        # Fluorophore is the new "State" base model for MTI
-        # State and DyeState are MTI children of Fluorophore
+        # FluorState is the new "State" base model for MTI
+        # State and DyeState are MTI children of FluorState
         # What was Dye is now is a container model for DyeStates (like Protein for States)
         migrations.CreateModel(
-            name="Fluorophore",
+            name="FluorState",
             fields=[
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 *timestamped_mixin_fields(),
@@ -796,10 +796,10 @@ class Migration(migrations.Migration):
             ],
             options={
                 "indexes": [
-                    models.Index(fields=["ex_max"], name="fluorophore_ex_max_idx"),
-                    models.Index(fields=["em_max"], name="fluorophore_em_max_idx"),
-                    models.Index(fields=["owner_name"], name="fluorophore_owner_name_idx"),
-                    models.Index(fields=["entity_type", "is_dark"], name="fluorophore_type_dark_idx"),
+                    models.Index(fields=["ex_max"], name="fluorstate_ex_max_idx"),
+                    models.Index(fields=["em_max"], name="fluorstate_em_max_idx"),
+                    models.Index(fields=["owner_name"], name="fluorstate_owner_name_idx"),
+                    models.Index(fields=["entity_type", "is_dark"], name="fluorstate_type_dark_idx"),
                 ],
             },
         ),
@@ -810,11 +810,11 @@ class Migration(migrations.Migration):
                 *abstract_fluorescence_data_fields(),
                 ("conditions", models.TextField(blank=True, help_text="pH, solvent, temp, etc.")),
                 (
-                    "fluorophore",
+                    "state",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="measurements",
-                        to="proteins.fluorophore",
+                        to="proteins.fluorstate",
                     ),
                 ),
                 (
@@ -857,14 +857,14 @@ class Migration(migrations.Migration):
             name="DyeState",
             fields=[
                 (
-                    "fluorophore_ptr",
+                    "fluorstate_ptr",
                     models.OneToOneField(
                         auto_created=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         parent_link=True,
                         primary_key=True,
                         serialize=False,
-                        to="proteins.fluorophore",
+                        to="proteins.fluorstate",
                     ),
                 ),
                 (
@@ -877,7 +877,7 @@ class Migration(migrations.Migration):
             options={
                 "abstract": False,
             },
-            bases=("proteins.fluorophore",),
+            bases=("proteins.fluorstate",),
         ),
         migrations.AddField(
             model_name="dye",
@@ -890,19 +890,19 @@ class Migration(migrations.Migration):
                 to="proteins.DyeState",
             ),
         ),
-        # Re-create State model as MTI child of Fluorophore
+        # Re-create State model as MTI child of FluorState
         migrations.CreateModel(
             name="State",
             fields=[
                 (
-                    "fluorophore_ptr",
+                    "fluorstate_ptr",
                     models.OneToOneField(
                         auto_created=True,
                         on_delete=django.db.models.deletion.CASCADE,
                         parent_link=True,
                         primary_key=True,
                         serialize=False,
-                        to="proteins.fluorophore",
+                        to="proteins.fluorstate",
                     ),
                 ),
                 (
@@ -937,7 +937,7 @@ class Migration(migrations.Migration):
             options={
                 "abstract": False,
             },
-            bases=("proteins.fluorophore",),
+            bases=("proteins.fluorstate",),
         ),
         # Add owner_fluor to Spectrum (nullable for now)
         migrations.AddField(
@@ -948,7 +948,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="spectra",
-                to="proteins.fluorophore",
+                to="proteins.fluorstate",
             ),
         ),
         # Add fluor FK to OcFluorEff (nullable for now)
@@ -960,7 +960,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="oc_effs",
-                to="proteins.fluorophore",
+                to="proteins.fluorstate",
             ),
         ),
         # Add index for spectrum owner_fluor lookups
@@ -1022,7 +1022,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="oc_effs",
-                to="proteins.fluorophore",
+                to="proteins.fluorstate",
             ),
         ),
     ]

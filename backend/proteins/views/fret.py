@@ -7,7 +7,7 @@ from django.shortcuts import render
 from fpbase.celery import app
 from fpbase.util import is_ajax
 
-from ..models import Fluorophore
+from ..models import FluorState
 from ..tasks import calc_fret
 
 
@@ -34,7 +34,7 @@ def fret_chart(request):
     # Query all fluorophores (States + DyeStates) with required properties
     # Build display name and sort in the database
     fluorophores = (
-        Fluorophore.objects.exclude(ext_coeff=None)
+        FluorState.objects.exclude(ext_coeff=None)
         .exclude(qy=None)
         .filter(spectra__subtype__in=("ex", "ab"))
         .annotate(

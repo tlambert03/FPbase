@@ -26,7 +26,7 @@ from proteins.util.helpers import wave_to_hex
 from references.factories import ReferenceFactory
 
 if TYPE_CHECKING:
-    from proteins.models import Fluorophore
+    from proteins.models import FluorState
 
 T = TypeVar("T")
 
@@ -135,7 +135,7 @@ def _build_spectral_data(resolver: factory.builder.Resolver):
     subtype = getattr(resolver, "subtype", None)
 
     if (owner_fluor := getattr(resolver, "owner_fluor", None)) is not None:
-        owner_fluor = cast("Fluorophore", owner_fluor)
+        owner_fluor = cast("FluorState", owner_fluor)
         if subtype == "ex":
             return _mock_spectrum(owner_fluor.ex_max, type="ex")
         elif subtype == "em":

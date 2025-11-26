@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from proteins.api._tweaks import ModelSerializer
-from proteins.models import Fluorophore, Protein, Spectrum, State, StateTransition
+from proteins.models import FluorState, Protein, Spectrum, State, StateTransition
 
 
 class SpectrumSerializer(serializers.ModelSerializer):
@@ -30,13 +30,13 @@ class SpectrumSerializer(serializers.ModelSerializer):
 
     def get_protein_name(self, obj):
         # Check if owner_fluor is a State (has protein attribute)
-        if obj.owner_fluor and obj.owner_fluor.entity_type == Fluorophore.EntityTypes.PROTEIN:
+        if obj.owner_fluor and obj.owner_fluor.entity_type == FluorState.EntityTypes.PROTEIN:
             return obj.owner_fluor.protein.name
         return None
 
     def get_protein_slug(self, obj):
         # Check if owner_fluor is a State (has protein attribute)
-        if obj.owner_fluor and obj.owner_fluor.entity_type == Fluorophore.EntityTypes.PROTEIN:
+        if obj.owner_fluor and obj.owner_fluor.entity_type == FluorState.EntityTypes.PROTEIN:
             return obj.owner_fluor.protein.slug
         return None
 

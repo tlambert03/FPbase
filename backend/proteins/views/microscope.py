@@ -23,7 +23,7 @@ from proteins.forms import MicroscopeForm, OpticalConfigFormSet
 from proteins.models import (
     Camera,
     DyeState,
-    Fluorophore,
+    FluorState,
     Light,
     Microscope,
     OcFluorEff,
@@ -93,11 +93,11 @@ def scope_report_json(request, pk):
             # For proteins, use the protein's UUID; for dyes, use the dye's ID (cast to string)
             owner_id=Case(
                 When(
-                    fluor__entity_type=Fluorophore.EntityTypes.PROTEIN,
+                    fluor__entity_type=FluorState.EntityTypes.PROTEIN,
                     then=F("fluor__state__protein__uuid"),
                 ),
                 When(
-                    fluor__entity_type=Fluorophore.EntityTypes.DYE,
+                    fluor__entity_type=FluorState.EntityTypes.DYE,
                     then=Cast(F("fluor__dyestate__dye__id"), CharField()),
                 ),
                 default=Value(None),

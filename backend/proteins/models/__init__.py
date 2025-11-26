@@ -4,7 +4,7 @@ from .dye import Dye, DyeState
 from .efficiency import OcFluorEff
 from .excerpt import Excerpt
 from .fluorescence_measurement import FluorescenceMeasurement
-from .fluorophore import Fluorophore
+from .fluorophore import FluorState
 from .lineage import Lineage
 from .microscope import FilterPlacement, Microscope, OpticalConfig
 from .organism import Organism
@@ -22,8 +22,8 @@ __all__ = [
     "Excerpt",
     "Filter",
     "FilterPlacement",
+    "FluorState",
     "FluorescenceMeasurement",
-    "Fluorophore",
     "Light",
     "Lineage",
     "Microscope",

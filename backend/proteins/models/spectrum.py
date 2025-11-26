@@ -30,7 +30,7 @@ from references.models import Reference
 if TYPE_CHECKING:
     from typing import NotRequired, TypedDict
 
-    from proteins.models import Fluorophore
+    from proteins.models import FluorState
 
     class D3Dict(TypedDict):
         slug: str
@@ -370,8 +370,8 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     # https://lukeplant.me.uk/blog/posts/avoid-django-genericforeignkey/
     # Fluorophore encompasses both State (ProteinState) and DyeState via MTI
     owner_fluor_id: int | None
-    owner_fluor: models.ForeignKey[Fluorophore | None] = models.ForeignKey(
-        "Fluorophore",
+    owner_fluor: models.ForeignKey[FluorState | None] = models.ForeignKey(
+        "FluorState",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
@@ -493,7 +493,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             raise ValidationError(errors)
 
     @property
-    def owner_set(self) -> list[Fluorophore | Filter | Light | Camera | None]:
+    def owner_set(self) -> list[FluorState | Filter | Light | Camera | None]:
         return [
             self.owner_fluor,
             self.owner_filter,
@@ -502,7 +502,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         ]
 
     @property
-    def owner(self) -> Fluorophore | Filter | Light | Camera | None:
+    def owner(self) -> FluorState | Filter | Light | Camera | None:
         return next((x for x in self.owner_set if x), None)
         #  raise AssertionError("No owner is set")
 

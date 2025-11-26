@@ -19,7 +19,7 @@ from proteins.models import (
     Excerpt,
     Filter,
     FilterPlacement,
-    Fluorophore,
+    FluorState,
     Light,
     Lineage,
     Microscope,
@@ -57,7 +57,7 @@ class SpectrumOwner:
             return f'<a href="{url}">{sp.get_subtype_display()}{pending}</a>'
 
         links = []
-        if isinstance(obj, Fluorophore):
+        if isinstance(obj, FluorState):
             [links.append(_makelink(sp)) for sp in obj.spectra.all()]
         else:
             links.append(_makelink(obj.spectrum))

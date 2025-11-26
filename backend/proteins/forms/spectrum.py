@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 
-from proteins.models import Dye, DyeState, Fluorophore, Spectrum, State
+from proteins.models import Dye, DyeState, FluorState, Spectrum, State
 from proteins.util.helpers import zip_wave_data
 from proteins.util.importers import text_to_spectra
 from proteins.validators import validate_spectrum
@@ -145,7 +145,7 @@ class SpectrumForm(forms.ModelForm):
             # Get or create the default DyeState for this dye
             dye_state, _ = DyeState.objects.get_or_create(
                 dye=dye,
-                name=Fluorophore.DEFAULT_NAME,
+                name=FluorState.DEFAULT_NAME,
                 defaults={"created_by": self.user},
             )
             self.instance.owner_fluor = dye_state
@@ -226,7 +226,7 @@ class SpectrumForm(forms.ModelForm):
                 dye = Dye.objects.get(slug=slugify(owner))
             except Dye.DoesNotExist:
                 return owner
-            dye_state = dye.states.filter(name=Fluorophore.DEFAULT_NAME).first()
+            dye_state = dye.states.filter(name=FluorState.DEFAULT_NAME).first()
             if dye_state and dye_state.spectra.filter(subtype=stype).exists():
                 stype_display = dye_state.spectra.filter(subtype=stype).first().get_subtype_display()
                 self.add_error(

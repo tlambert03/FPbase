@@ -7,7 +7,7 @@ from django.db import models
 from proteins.models.fluorescence_data import AbstractFluorescenceData
 
 if TYPE_CHECKING:
-    from proteins.models import Fluorophore
+    from proteins.models import FluorState
     from references.models import Reference
 
 
@@ -15,9 +15,9 @@ if TYPE_CHECKING:
 class FluorescenceMeasurement(AbstractFluorescenceData):
     """Raw data points from a specific reference."""
 
-    fluorophore_id: int
-    fluorophore: models.ForeignKey[Fluorophore] = models.ForeignKey(
-        "Fluorophore", related_name="measurements", on_delete=models.CASCADE
+    state_id: int
+    state: models.ForeignKey[FluorState] = models.ForeignKey(
+        "FluorState", related_name="measurements", on_delete=models.CASCADE
     )
     reference_id: int | None
     reference: models.ForeignKey[Reference | None] = models.ForeignKey(
@@ -35,10 +35,10 @@ class FluorescenceMeasurement(AbstractFluorescenceData):
         super().save(*args, **kwargs)
         # Keep the parent cache in sync unless explicitly disabled
         if rebuild_cache:
-            self.fluorophore.rebuild_attributes()
+            self.state.rebuild_attributes()
 
     def delete(self, *args, **kwargs) -> None:
-        f = self.fluorophore
+        f = self.state
         super().delete(*args, **kwargs)
         # Always keep the parent cache in sync
         f.rebuild_attributes()

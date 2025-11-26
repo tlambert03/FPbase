@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import F, Max, OuterRef, Q, Subquery
 from model_utils.models import TimeStampedModel
 
-from proteins.models.fluorophore import Fluorophore
+from proteins.models.fluorophore import FluorState
 from proteins.util.efficiency import oc_efficiency_report
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class OcFluorEffQuerySet(models.QuerySet):
     def outdated(self):
-        fluor_objs = Fluorophore.objects.filter(id=OuterRef("fluor_id"))
+        fluor_objs = FluorState.objects.filter(id=OuterRef("fluor_id"))
         spectra_mod = fluor_objs.annotate(latest_spec=Max("spectra__modified")).values("latest_spec")[:1]
 
         fluor_mod = fluor_objs.values("modified")[:1]
@@ -30,8 +30,8 @@ class OcFluorEff(TimeStampedModel):
     oc_id: int
     oc: models.ForeignKey["OpticalConfig"] = models.ForeignKey("OpticalConfig", on_delete=models.CASCADE)
     fluor_id: int
-    fluor: models.ForeignKey[Fluorophore] = models.ForeignKey(
-        Fluorophore, on_delete=models.CASCADE, related_name="oc_effs"
+    fluor: models.ForeignKey[FluorState] = models.ForeignKey(
+        FluorState, on_delete=models.CASCADE, related_name="oc_effs"
     )
     fluor_name = models.CharField(max_length=100, blank=True)
     ex_eff = models.FloatField(

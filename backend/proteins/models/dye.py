@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.text import slugify
 from model_utils.models import TimeStampedModel
 
-from proteins.models.fluorophore import Fluorophore
+from proteins.models.fluorophore import FluorState
 from proteins.models.mixins import Authorable, Product
 
 if TYPE_CHECKING:
@@ -64,7 +64,7 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
 # Instead of storing spectral data directly in the SmallMolecule, we link it here.
 # This allows us to store "Alexa 488 in PBS" and "Alexa 488 in Ethanol" as valid,
 # separate datasets.
-class DyeState(Fluorophore):
+class DyeState(FluorState):
     """Represents a SmallMolecule in a specific environmental context.
 
     This holds the actual spectral data.
@@ -74,10 +74,10 @@ class DyeState(Fluorophore):
     dye: models.ForeignKey["Dye"] = models.ForeignKey(Dye, on_delete=models.CASCADE, related_name="states")
 
     if TYPE_CHECKING:
-        fluorophore_ptr: Fluorophore  # added by Django MTI
+        fluorophore_ptr: FluorState  # added by Django MTI
 
     def save(self, *args, **kwargs):
-        self.entity_type = Fluorophore.EntityTypes.DYE
+        self.entity_type = FluorState.EntityTypes.DYE
         # Cache parent dye info for efficient searching
         if self.dye_id:
             self.owner_name = self.dye.name

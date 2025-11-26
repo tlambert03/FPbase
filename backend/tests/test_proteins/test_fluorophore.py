@@ -64,7 +64,7 @@ class TestRebuildAttributesBasicWaterfall:
 
     def test_single_measurement_sets_values(self, state: State):
         """A single measurement should populate the fluorophore."""
-        m = FM(fluorophore=state, ex_max=488, em_max=509, qy=0.67)
+        m = FM(state=state, ex_max=488, em_max=509, qy=0.67)
         m.save(rebuild_cache=False)
         state.rebuild_attributes()
         state.refresh_from_db()
@@ -76,10 +76,10 @@ class TestRebuildAttributesBasicWaterfall:
     def test_multiple_measurements_first_value_wins(self, state: State):
         """When multiple measurements exist, first non-null value wins."""
         # Measurement with partial data (no qy)
-        m1 = FM(fluorophore=state, ex_max=488, em_max=509, qy=None)
+        m1 = FM(state=state, ex_max=488, em_max=509, qy=None)
         m1.save(rebuild_cache=False)
         # Measurement with different values
-        m2 = FM(fluorophore=state, ex_max=500, em_max=520, qy=0.5)
+        m2 = FM(state=state, ex_max=500, em_max=520, qy=0.5)
         m2.save(rebuild_cache=False)
 
         state.rebuild_attributes()
@@ -93,9 +93,9 @@ class TestRebuildAttributesBasicWaterfall:
 
     def test_source_map_tracks_measurement_ids(self, state: State):
         """source_map should track which measurement each field came from."""
-        m1 = FM(fluorophore=state, ex_max=488, qy=None)
+        m1 = FM(state=state, ex_max=488, qy=None)
         m1.save(rebuild_cache=False)
-        m2 = FM(fluorophore=state, ex_max=None, qy=0.5)
+        m2 = FM(state=state, ex_max=None, qy=0.5)
         m2.save(rebuild_cache=False)
 
         state.rebuild_attributes()
@@ -116,7 +116,7 @@ class TestRebuildAttributesPrimaryReferencePriority:
 
         # Recent but not from primary reference
         m1 = FM(
-            fluorophore=state_with_ref,
+            state=state_with_ref,
             reference=other_ref,
             ex_max=500,
             em_max=520,
@@ -124,7 +124,7 @@ class TestRebuildAttributesPrimaryReferencePriority:
         m1.save(rebuild_cache=False)
         # Older but from primary reference
         m2 = FM(
-            fluorophore=state_with_ref,
+            state=state_with_ref,
             reference=primary_ref,
             ex_max=488,
             em_max=509,
@@ -146,7 +146,7 @@ class TestRebuildAttributesPrimaryReferencePriority:
 
         # Not from primary reference
         m1 = FM(
-            fluorophore=dyestate_with_ref,
+            state=dyestate_with_ref,
             reference=other_ref,
             ex_max=600,
             em_max=650,
@@ -154,7 +154,7 @@ class TestRebuildAttributesPrimaryReferencePriority:
         m1.save(rebuild_cache=False)
         # From primary reference
         m2 = FM(
-            fluorophore=dyestate_with_ref,
+            state=dyestate_with_ref,
             reference=primary_ref,
             ex_max=550,
             em_max=580,
@@ -178,7 +178,7 @@ class TestRebuildAttributesPinnedFields:
 
         # measurement from primary reference - highest normal priority
         m_primary = FM(
-            fluorophore=state_with_ref,
+            state=state_with_ref,
             reference=primary_ref,
             ex_max=488,
             em_max=509,
@@ -187,7 +187,7 @@ class TestRebuildAttributesPinnedFields:
         m_primary.save(rebuild_cache=False)
         # Older, not primary - lowest normal priority
         m_pinned = FM(
-            fluorophore=state_with_ref,
+            state=state_with_ref,
             ex_max=500,
             em_max=520,
             qy=0.50,
@@ -212,9 +212,9 @@ class TestRebuildAttributesPinnedFields:
 
     def test_pinned_field_with_null_value_is_skipped(self, state: State):
         """If a pinned measurement has null for the pinned field, skip it."""
-        m1 = FM(fluorophore=state, ex_max=488, qy=0.67)
+        m1 = FM(state=state, ex_max=488, qy=0.67)
         m1.save(rebuild_cache=False)
-        m2 = FM(fluorophore=state, ex_max=500, qy=None)
+        m2 = FM(state=state, ex_max=500, qy=None)
         m2.save(rebuild_cache=False)
 
         # Pin qy to m2, but m2 has null qy
@@ -230,7 +230,7 @@ class TestRebuildAttributesPinnedFields:
 
     def test_pinned_nonexistent_measurement_is_ignored(self, state: State):
         """If pinned measurement doesn't exist, ignore and use waterfall."""
-        m = FM(fluorophore=state, qy=0.67)
+        m = FM(state=state, qy=0.67)
         m.save(rebuild_cache=False)
 
         # Pin to a non-existent measurement ID
@@ -248,9 +248,9 @@ class TestRebuildAttributesPinnedFields:
         state1 = State.objects.create(protein=protein, name="state1")
         state2 = State.objects.create(protein=protein, name="state2")
 
-        m1 = FM(fluorophore=state1, qy=0.67)
+        m1 = FM(state=state1, qy=0.67)
         m1.save(rebuild_cache=False)
-        m_other = FM(fluorophore=state2, qy=0.50)
+        m_other = FM(state=state2, qy=0.50)
         m_other.save(rebuild_cache=False)
 
         # Try to pin state1's qy to state2's measurement
@@ -284,7 +284,7 @@ class TestRebuildAttributesAutoTrigger:
     def test_measurement_save_triggers_rebuild(self, state: State):
         """Creating a measurement should trigger rebuild_attributes."""
         # Create measurement - should auto-trigger rebuild (rebuild_cache=True by default)
-        m = FM(fluorophore=state, ex_max=488, em_max=509)
+        m = FM(state=state, ex_max=488, em_max=509)
         m.save()
         state.refresh_from_db()
 
@@ -293,12 +293,12 @@ class TestRebuildAttributesAutoTrigger:
 
     def test_measurement_delete_triggers_rebuild(self, state: State):
         """Deleting a measurement should trigger rebuild_attributes."""
-        m1 = FM(fluorophore=state, ex_max=488, em_max=509)
+        m1 = FM(state=state, ex_max=488, em_max=509)
         m1.save()
         state.refresh_from_db()
         assert state.ex_max == 488
 
-        m2 = FM(fluorophore=state, ex_max=500, em_max=520)
+        m2 = FM(state=state, ex_max=500, em_max=520)
         m2.save()
         state.refresh_from_db()
         # Still 488 because more recent
@@ -314,7 +314,7 @@ class TestRebuildAttributesAutoTrigger:
 
     def test_rebuild_cache_false_skips_rebuild(self, state: State):
         """rebuild_cache=False should skip the rebuild."""
-        m = FM(fluorophore=state, ex_max=488)
+        m = FM(state=state, ex_max=488)
         m.save(rebuild_cache=False)
         state.refresh_from_db()
 
