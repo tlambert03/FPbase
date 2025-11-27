@@ -21,6 +21,23 @@
 import * as Sentry from "@sentry/browser"
 
 /**
+ * Create URLSearchParams from an object, filtering out undefined/null values.
+ * This mimics jQuery's $.param() behavior which skips undefined keys.
+ *
+ * @param {object} obj - Object to convert to URLSearchParams
+ * @returns {URLSearchParams} - URLSearchParams with undefined/null values filtered out
+ */
+export function createFormData(obj) {
+  const filtered = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined && value !== null) {
+      filtered[key] = value
+    }
+  }
+  return new URLSearchParams(filtered)
+}
+
+/**
  * Determine if an error should be reported to Sentry
  * Override this function to customize filtering logic
  */
