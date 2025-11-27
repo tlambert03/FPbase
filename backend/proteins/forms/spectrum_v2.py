@@ -95,6 +95,19 @@ def _validate_spectrum_json(raw: str | bytes) -> list[SpectrumJSONData]:
         if "owner" not in spec or not spec.get("owner", "").strip():
             raise forms.ValidationError(f"Spectrum {i + 1} is missing owner.")
 
+    # Check for duplicate spectra within this submission
+    # Use (category, owner, subtype) as the unique key
+    seen = {}
+    for i, spec in enumerate(spectra):
+        key = (spec["category"], spec["owner"].strip().lower(), spec["subtype"])
+        if key in seen:
+            first_idx = seen[key]
+            raise forms.ValidationError(
+                f"Duplicate spectrum detected: Spectra {first_idx + 1} and {i + 1} have the same "
+                f"owner ({spec['owner']}), category, and subtype ({spec['subtype']})."
+            )
+        seen[key] = i
+
     return spectra
 
 

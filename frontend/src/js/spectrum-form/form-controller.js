@@ -641,6 +641,45 @@ function processSpectrum(spectrum, index) {
 // Form State Management
 // ============================================================================
 
+/**
+ * Check for duplicate spectra within the form (same category, owner, subtype)
+ * @param {Array} spectra - Array of spectrum objects
+ * @returns {Array<{indices: number[], key: string}>} Array of duplicate groups
+ */
+function checkForDuplicatesInForm(spectra) {
+  const seen = new Map()
+  const duplicates = []
+
+  for (let i = 0; i < spectra.length; i++) {
+    const s = spectra[i]
+    if (!s.category || !s.subtype || !s.owner.trim()) continue
+
+    // Create key: category + owner (case-insensitive) + subtype
+    const key = `${s.category}|${s.owner.trim().toLowerCase()}|${s.subtype}`
+
+    if (seen.has(key)) {
+      const firstIndex = seen.get(key)
+      // Check if we already have a duplicate entry for this key
+      const existing = duplicates.find((d) => d.key === key)
+      if (existing) {
+        existing.indices.push(i)
+      } else {
+        duplicates.push({
+          key,
+          indices: [firstIndex, i],
+          owner: s.owner,
+          category: s.category,
+          subtype: s.subtype,
+        })
+      }
+    } else {
+      seen.set(key, i)
+    }
+  }
+
+  return duplicates
+}
+
 function updateFormState(el, state) {
   const validSpectra = state.spectra.filter(
     (s) => s.processed?.length > 0 && s.category && s.subtype && s.owner.trim()
@@ -661,15 +700,24 @@ function updateFormState(el, state) {
 
   el.spectraJson.value = JSON.stringify(spectraJson)
 
+  // Check for duplicates within this form submission
+  const duplicatesInForm = checkForDuplicatesInForm(state.spectra)
+  const hasDuplicatesInForm = duplicatesInForm.length > 0
+
   // Track missing fields per spectrum
   const missing = { owners: [], categories: [], subtypes: [] }
+
+  // Mark which spectra are duplicates
+  const duplicateIndices = new Set(duplicatesInForm.flatMap((d) => d.indices))
+
   for (const [i, s] of state.spectra.entries()) {
     const hasOwner = s.owner.trim() !== ""
     const hasCategory = s.category !== ""
     const hasSubtype = s.subtype !== ""
     const isComplete = hasOwner && hasCategory && hasSubtype
+    const isDuplicate = duplicateIndices.has(i)
 
-    updateStatusIcon(i, isComplete, s.hasExactMatch)
+    updateStatusIcon(i, isComplete, s.hasExactMatch, isDuplicate)
     updateFieldLabels(i, { hasOwner, hasCategory, hasSubtype })
 
     if (!hasCategory) missing.categories.push(s.columnName)
@@ -683,7 +731,7 @@ function updateFormState(el, state) {
   const hasValidReference = !hasReference || CONFIG.doiPattern.test(el.referenceInput.value.trim())
   const hasSourceOrRef = hasSource || hasReference
 
-  // Check for exact matches (blocks submission)
+  // Check for exact matches in database (blocks submission)
   const hasAnyExactMatch = state.spectra.some((s) => s.hasExactMatch)
 
   // Update submit button
@@ -694,13 +742,22 @@ function updateFormState(el, state) {
     allComplete &&
     hasSourceOrRef &&
     hasValidReference &&
-    !hasAnyExactMatch
+    !hasAnyExactMatch &&
+    !hasDuplicatesInForm
   el.submitBtn.disabled = !isValid
 
-  updateValidationMessage(el, state, missing, hasSourceOrRef, hasValidReference, hasAnyExactMatch)
+  updateValidationMessage(
+    el,
+    state,
+    missing,
+    hasSourceOrRef,
+    hasValidReference,
+    hasAnyExactMatch,
+    duplicatesInForm
+  )
 }
 
-function updateStatusIcon(index, isComplete, hasExactMatch) {
+function updateStatusIcon(index, isComplete, hasExactMatch, isDuplicate = false) {
   const cardHeader = document.querySelector(`#spectrum-card-${index} .card-header`)
   let statusIcon = document.getElementById(`status-icon-${index}`)
 
@@ -714,6 +771,8 @@ function updateStatusIcon(index, isComplete, hasExactMatch) {
   if (statusIcon) {
     if (hasExactMatch) {
       statusIcon.innerHTML = '<span class="text-danger">✕</span> '
+    } else if (isDuplicate) {
+      statusIcon.innerHTML = '<span class="text-danger">⚠️</span> '
     } else {
       const icon = isComplete ? "✅" : "⚠️"
       const color = isComplete ? "text-success" : "text-warning"
@@ -738,7 +797,8 @@ function updateValidationMessage(
   missing,
   hasSourceOrRef,
   hasValidReference,
-  hasAnyExactMatch
+  hasAnyExactMatch,
+  duplicatesInForm
 ) {
   let messageEl = document.getElementById("validation-message")
   if (!messageEl) {
@@ -762,6 +822,16 @@ function updateValidationMessage(
       .join(", ")
     issues.push(
       `🚫 <strong>Exact match found:</strong> Cannot submit duplicate spectra: ${exactMatchNames}`
+    )
+  }
+
+  if (duplicatesInForm.length > 0) {
+    const dupMessages = duplicatesInForm.map((dup) => {
+      const spectraNums = dup.indices.map((i) => i + 1).join(", ")
+      return `Spectra ${spectraNums}: ${escapeHtml(dup.owner)} (${dup.subtype})`
+    })
+    issues.push(
+      `🚫 <strong>Duplicate spectra in form:</strong> The following spectra have identical owner, category, and subtype:<br>${dupMessages.join("<br>")}`
     )
   }
 
