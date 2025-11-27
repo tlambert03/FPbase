@@ -7,6 +7,7 @@
 
 import { renderColumnPicker } from "./column-picker.js"
 import { extractSpectrum, parseCSV } from "./csv-parser.js"
+import { checkSimilarOwners } from "./duplicate-checker.js"
 import { interpolateToOneNm, normalize2P, normalizeSpectrum } from "./normalization.js"
 import { createSpectrumChart } from "./spectrum-chart.js"
 
@@ -150,6 +151,9 @@ function processSelectedColumns(el, state) {
   el.spectraPreview.style.display = "block"
   el.spectraPreview.innerHTML = ""
 
+  // Add Step 3 instructions
+  el.spectraPreview.appendChild(createStep3Instructions())
+
   for (let i = 0; i < state.dataCols.length; i++) {
     const dataColIndex = state.dataCols[i]
     const columnName = state.parsedCSV.headers[dataColIndex]
@@ -173,6 +177,7 @@ function processSelectedColumns(el, state) {
       ph: null,
       solvent: "",
       manualPeakWave: null,
+      hasExactMatch: false,
     }
 
     const card = createSpectrumCard(el, state, spectrum, i)
@@ -262,12 +267,15 @@ function buildCardHTML(spectrum, index, { shouldNormalize, showBioFields, useAut
             Owner <span class="text-danger">*</span>
           </label>
           <input type="text" class="form-control form-control-sm" id="owner-input-${index}"
-                 placeholder="Name of dye, filter, etc." required
+                 placeholder="${spectrum.category ? "Name of dye, filter, etc." : "Select a category first"}" required
+                 ${spectrum.category ? "" : "disabled"}
                  style="${useAutocomplete ? "display: none;" : ""}">
           <select class="form-select form-select-sm" id="owner-select-${index}"
+                  ${spectrum.category ? "" : "disabled"}
                   style="${useAutocomplete ? "" : "display: none;"}">
             <option value="">Select a protein...</option>
           </select>
+          <div class="alert alert-warning small mt-2 mb-0 d-none" id="owner-warning-${index}"></div>
         </div>
       </div>
 
@@ -357,7 +365,7 @@ function attachCardEventHandlers(el, state, spectrum, index) {
     initOwnerSelect2(spectrum.category)
   }
 
-  categorySelect?.addEventListener("change", (e) => {
+  categorySelect?.addEventListener("change", async (e) => {
     const newCategory = e.target.value
     spectrum.category = newCategory
 
@@ -373,6 +381,14 @@ function attachCardEventHandlers(el, state, spectrum, index) {
     // Toggle owner input/select visibility
     if (ownerInput) ownerInput.style.display = useAutocomplete ? "none" : ""
     if (ownerSelect) ownerSelect.style.display = useAutocomplete ? "" : "none"
+
+    // Enable/disable owner fields based on category selection
+    const hasCategory = !!newCategory
+    if (ownerInput) {
+      ownerInput.disabled = !hasCategory
+      ownerInput.placeholder = hasCategory ? "Name of dye, filter, etc." : "Select a category first"
+    }
+    if (ownerSelect) ownerSelect.disabled = !hasCategory
 
     // Reset owner when switching modes
     spectrum.owner = ""
@@ -391,21 +407,77 @@ function attachCardEventHandlers(el, state, spectrum, index) {
     updateCardVisibility(index, { shouldNorm, showBio })
     updateScaleFactorUnits(index, spectrum.subtype)
 
+    // Re-check duplicates with new category
+    const warningEl = document.getElementById(`owner-warning-${index}`)
+    if (spectrum.owner && warningEl) {
+      spectrum.hasExactMatch = await checkSimilarOwners(
+        spectrum.owner,
+        spectrum.category,
+        spectrum.subtype,
+        warningEl
+      )
+    } else {
+      spectrum.hasExactMatch = false
+      // Clear warning when owner is empty
+      if (warningEl) {
+        warningEl.innerHTML = ""
+        warningEl.classList.add("d-none")
+      }
+    }
+
     spectrum.manualPeakWave = null
     processSpectrum(spectrum, index)
     updateFormState(el, state)
   })
 
-  subtypeSelect?.addEventListener("change", (e) => {
+  subtypeSelect?.addEventListener("change", async (e) => {
     spectrum.subtype = e.target.value
     spectrum.manualPeakWave = null
     updateScaleFactorUnits(index, spectrum.subtype)
+
+    // Re-check duplicates with new subtype (important for dyes)
+    const warningEl = document.getElementById(`owner-warning-${index}`)
+    if (spectrum.owner && warningEl) {
+      spectrum.hasExactMatch = await checkSimilarOwners(
+        spectrum.owner,
+        spectrum.category,
+        spectrum.subtype,
+        warningEl
+      )
+    } else {
+      spectrum.hasExactMatch = false
+      // Clear warning when owner is empty
+      if (warningEl) {
+        warningEl.innerHTML = ""
+        warningEl.classList.add("d-none")
+      }
+    }
+
     processSpectrum(spectrum, index)
     updateFormState(el, state)
   })
 
-  ownerInput?.addEventListener("input", (e) => {
+  ownerInput?.addEventListener("input", async (e) => {
     spectrum.owner = e.target.value.trim()
+
+    // Check for duplicates as user types
+    const warningEl = document.getElementById(`owner-warning-${index}`)
+    if (warningEl && spectrum.category && spectrum.subtype && spectrum.owner) {
+      spectrum.hasExactMatch = await checkSimilarOwners(
+        spectrum.owner,
+        spectrum.category,
+        spectrum.subtype,
+        warningEl
+      )
+    } else {
+      spectrum.hasExactMatch = false
+      // Clear warning when owner is empty
+      if (warningEl) {
+        warningEl.innerHTML = ""
+        warningEl.classList.add("d-none")
+      }
+    }
+
     updateFormState(el, state)
   })
 
@@ -561,7 +633,7 @@ function updateFormState(el, state) {
     const hasSubtype = s.subtype !== ""
     const isComplete = hasOwner && hasCategory && hasSubtype
 
-    updateStatusIcon(i, isComplete)
+    updateStatusIcon(i, isComplete, s.hasExactMatch)
     updateFieldLabels(i, { hasOwner, hasCategory, hasSubtype })
 
     if (!hasCategory) missing.categories.push(s.columnName)
@@ -575,16 +647,24 @@ function updateFormState(el, state) {
   const hasValidReference = !hasReference || CONFIG.doiPattern.test(el.referenceInput.value.trim())
   const hasSourceOrRef = hasSource || hasReference
 
+  // Check for exact matches (blocks submission)
+  const hasAnyExactMatch = state.spectra.some((s) => s.hasExactMatch)
+
   // Update submit button
   const allComplete =
     missing.owners.length === 0 && missing.categories.length === 0 && missing.subtypes.length === 0
-  const isValid = state.spectra.length > 0 && allComplete && hasSourceOrRef && hasValidReference
+  const isValid =
+    state.spectra.length > 0 &&
+    allComplete &&
+    hasSourceOrRef &&
+    hasValidReference &&
+    !hasAnyExactMatch
   el.submitBtn.disabled = !isValid
 
-  updateValidationMessage(el, state, missing, hasSourceOrRef, hasValidReference)
+  updateValidationMessage(el, state, missing, hasSourceOrRef, hasValidReference, hasAnyExactMatch)
 }
 
-function updateStatusIcon(index, isComplete) {
+function updateStatusIcon(index, isComplete, hasExactMatch) {
   const cardHeader = document.querySelector(`#spectrum-card-${index} .card-header`)
   let statusIcon = document.getElementById(`status-icon-${index}`)
 
@@ -596,9 +676,13 @@ function updateStatusIcon(index, isComplete) {
   }
 
   if (statusIcon) {
-    const icon = isComplete ? "✓" : "!"
-    const color = isComplete ? "text-success" : "text-warning"
-    statusIcon.innerHTML = `<span class="${color}">${icon}</span> `
+    if (hasExactMatch) {
+      statusIcon.innerHTML = '<span class="text-danger">✕</span> '
+    } else {
+      const icon = isComplete ? "✓" : "!"
+      const color = isComplete ? "text-success" : "text-warning"
+      statusIcon.innerHTML = `<span class="${color}">${icon}</span> `
+    }
   }
 }
 
@@ -612,7 +696,14 @@ function updateFieldLabels(index, { hasOwner, hasCategory, hasSubtype }) {
   if (subtypeLabel) subtypeLabel.style.fontWeight = hasSubtype ? "normal" : "bold"
 }
 
-function updateValidationMessage(el, state, missing, hasSourceOrRef, hasValidReference) {
+function updateValidationMessage(
+  el,
+  state,
+  missing,
+  hasSourceOrRef,
+  hasValidReference,
+  hasAnyExactMatch
+) {
   let messageEl = document.getElementById("validation-message")
   if (!messageEl) {
     messageEl = document.createElement("div")
@@ -627,6 +718,16 @@ function updateValidationMessage(el, state, missing, hasSourceOrRef, hasValidRef
   }
 
   const issues = []
+
+  if (hasAnyExactMatch) {
+    const exactMatchNames = state.spectra
+      .filter((s) => s.hasExactMatch)
+      .map((s) => `"${escapeHtml(s.columnName)}"`)
+      .join(", ")
+    issues.push(
+      `🚫 <strong>Exact match found:</strong> Cannot submit duplicate spectra: ${exactMatchNames}`
+    )
+  }
 
   if (missing.categories.length > 0) {
     const n = missing.categories.length
@@ -676,6 +777,18 @@ function updateValidationMessage(el, state, missing, hasSourceOrRef, hasValidRef
 // ============================================================================
 // Utilities
 // ============================================================================
+
+function createStep3Instructions() {
+  const div = document.createElement("div")
+  div.className = "alert alert-info mb-3"
+  div.innerHTML = `
+    <strong>Step 3: Configure each spectrum</strong><br>
+    <span class="text-primary"><i class="bi bi-1-circle me-1"></i>Select a <strong>Category</strong> and <strong>Subtype</strong> for each spectrum</span><br>
+    <span class="text-info"><i class="bi bi-2-circle me-1"></i>Enter the <strong>Owner</strong> (protein, dye, filter name, etc.)</span><br>
+    <span class="text-muted"><i class="bi bi-3-circle me-1"></i>Optionally click the chart to adjust peak location</span>
+  `
+  return div
+}
 
 function buildCategoryOptions(selectedValue) {
   const placeholder = `<option value=""${!selectedValue ? " selected" : ""}>-----</option>`

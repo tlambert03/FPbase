@@ -20,7 +20,7 @@ export function renderColumnPicker(container, parsedCSV, onColumnsSelected) {
   container.style.display = "block"
 
   // Instructions
-  container.appendChild(createInstructions())
+  container.appendChild(createStep2Instructions())
 
   // Status badges
   const statusDiv = createStatusBadges()
@@ -53,7 +53,7 @@ export function renderColumnPicker(container, parsedCSV, onColumnsSelected) {
   container.appendChild(buttonDiv)
 }
 
-function createInstructions() {
+function createStep2Instructions() {
   const div = document.createElement("div")
   div.className = "alert alert-info mb-3"
   div.innerHTML = `

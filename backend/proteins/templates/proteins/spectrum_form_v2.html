@@ -41,7 +41,7 @@
     </a>
   </p>
 
-  <div class="alert alert-info alert-dismissible fade show" role="alert">
+  <div class="alert alert-info show" role="alert">
     <div class="h5 text-info mb-2">{% icon "info" class_="me-2" %}<strong>How it works</strong></div>
     <ol class="mb-0">
       <li><strong>Upload a file</strong> &ndash; Any CSV or TSV file with spectrum data</li>
@@ -49,7 +49,6 @@
       <li><strong>Configure each spectrum</strong> &ndash; Set category, owner, and subtype for each</li>
       <li><strong>Submit</strong> &ndash; Add to the database for everyone to use</li>
     </ol>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
 
   <form method="post" enctype="multipart/form-data" id="spectrum-form-v2" class="mt-4">
@@ -82,6 +81,7 @@
           <label for="id_source" class="form-label">Source</label>
           <input type="text" name="source" id="id_source" class="form-control"
                  placeholder="e.g., manufacturer website, personal communication">
+          <div class="form-text">Please let us know where you sourced this data</div>
         </div>
         <div class="col-md-6">
           <label for="id_reference" class="form-label">Primary Reference (DOI)</label>
@@ -131,7 +131,7 @@
 
   <p class="mt-4 small text-muted">
     <em>
-      Need help? Check out the <a href="{% url 'contact' %}">contact page</a> or
+      Need help? <a href="{% url 'contact' %}">Contact us</a> or
       <a href="{% url 'proteins:submit-spectra' %}">use the classic form</a>.
     </em>
   </p>

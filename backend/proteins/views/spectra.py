@@ -162,12 +162,10 @@ class SpectrumCreateViewV2(CreateView):
 
     def get_initial(self):
         init = super().get_initial()
-        # Pre-fill protein if coming from protein page
+        # Store protein for context if coming from protein page
         if self.kwargs.get("slug"):
             with contextlib.suppress(Exception):
                 self.protein = Protein.objects.get(slug=self.kwargs.get("slug"))
-                init["owner_fluor"] = self.protein.default_state
-                init["category"] = Spectrum.PROTEIN
         return init
 
     def form_valid(self, form):
@@ -213,9 +211,6 @@ class SpectrumCreateViewV2(CreateView):
         context = super().get_context_data(**kwargs)
         if hasattr(self, "protein"):
             context["protein"] = self.protein
-        # Provide subtype choices for JavaScript
-        context["subtype_choices"] = Spectrum.SUBTYPE_CHOICES
-        context["category_choices"] = Spectrum.CATEGORIES
         return context
 
 

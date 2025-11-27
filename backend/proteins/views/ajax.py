@@ -114,7 +114,6 @@ def approve_protein(request, slug=None):
 def similar_spectrum_owners(request):
     name = request.POST.get("owner", None)
     similars = Spectrum.objects.find_similar_owners(name, 0.3)[:4]
-
     # Group similars by type and fetch with proper prefetching to avoid N+1 queries
     # Fluorophore (State + DyeState), Filter, Light, Camera are the possible types
     fluor_ids = []
@@ -175,6 +174,11 @@ def similar_spectrum_owners(request):
                     [sp.get_subtype_display() for sp in s.spectra.all()]
                     if isinstance(s, FluorState)
                     else [s.spectrum.get_subtype_display()]
+                ),
+                "spectrum_ids": (
+                    [sp.id for sp in s.spectra.all()]
+                    if isinstance(s, FluorState)
+                    else [s.spectrum.id]
                 ),
             }
             for s in similars_optimized
