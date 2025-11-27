@@ -65,6 +65,25 @@ urlpatterns = [
         name="submit-spectra",
     ),
     path("spectra/submitted/", views.spectrum_submitted, name="spectrum_submitted"),
+    # V2 spectrum submission form (enhanced with client-side processing)
+    # NOTE: Must come BEFORE the slug pattern below to avoid v2 being matched as a slug
+    path(
+        "spectra/submit/v2/",
+        (
+            login_required(
+                views.SpectrumCreateViewV2.as_view(),
+                message="You must be logged in to submit spectra",
+            )
+            if CONTRIBS_OPEN
+            else disabled
+        ),
+        name="submit-spectra-v2",
+    ),
+    path(
+        "spectra/submitted/v2/",
+        views.spectrum_submitted_v2,
+        name="spectrum_submitted_v2",
+    ),
     re_path(
         r"^spectra/submit/(?P<slug>[-\w]+)/$",
         (

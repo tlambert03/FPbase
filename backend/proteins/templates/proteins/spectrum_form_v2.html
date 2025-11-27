@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load fpbase_tags %}
+{% load crispy_forms_tags django_vite static %}
+
+{% block title %}Submit Spectra to FPbase (New Form){% endblock %}
+{% block meta-description %}Upload spectrum data to FPbase with interactive preview and multi-column support.{% endblock %}
+
+{% block extrahead %}
+<style>
+  .hidden { display: none !important; }
+  .column-header { cursor: pointer; }
+  .column-header:hover { background-color: #f8f9fa; }
+  #column-picker-container table th { user-select: none; }
+  .spectrum-card .card-header { background-color: #f8f9fa; }
+  /* Hide spinner arrows on scale factor inputs */
+  input.no-spinners::-webkit-outer-spin-button,
+  input.no-spinners::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input.no-spinners[type=number] {
+    -moz-appearance: textfield;
+  }
+  /* Lighter placeholder text */
+  .form-control::placeholder,
+  input::placeholder {
+    color: #adb5bd !important;
+    opacity: 1 !important;
+  }
+  .form-control::-webkit-input-placeholder { color: #adb5bd !important; }
+  .form-control::-moz-placeholder { color: #adb5bd !important; }
+  .form-control:-ms-input-placeholder { color: #adb5bd !important; }
+</style>
+{% endblock extrahead %}
+
+{% block content %}
+  <h2>{% icon "upload" class_="me-2" %}Submit Spectra to the Database</h2>
+  <p class="text-muted mb-4">
+    <a href="{% url 'proteins:submit-spectra' %}" class="small">
+      {% icon "undo" class_="me-1" %}Use classic form
+    </a>
+  </p>
+
+  <div class="alert alert-info alert-dismissible fade show" role="alert">
+    <div class="h5 text-info mb-2">{% icon "info" class_="me-2" %}<strong>How it works</strong></div>
+    <ol class="mb-0">
+      <li><strong>Upload a file</strong> &ndash; Any CSV or TSV file with spectrum data</li>
+      <li><strong>Select columns</strong> &ndash; Click to choose which columns contain wavelength and spectrum values</li>
+      <li><strong>Configure each spectrum</strong> &ndash; Set category, owner, and subtype for each</li>
+      <li><strong>Submit</strong> &ndash; Add to the database for everyone to use</li>
+    </ol>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="spectrum-form-v2" class="mt-4">
+    {% csrf_token %}
+
+    <!-- File Upload -->
+    <div class="mb-3">
+      <label for="id_file" class="form-label">
+        {% icon "upload" class_="me-1" %}Spectrum File
+      </label>
+      <input type="file" name="file" id="id_file" class="form-control"
+             accept=".csv,.tsv,.txt">
+      <div class="form-text">
+        Upload a CSV or TSV file with spectrum data. Any column layout is accepted.
+      </div>
+    </div>
+
+    <!-- Column Picker (populated by JavaScript) -->
+    <div id="column-picker-container" class="mb-4" style="display: none;"></div>
+
+    <!-- Spectra Preview Cards (populated by JavaScript) -->
+    <div id="spectra-preview-container" class="mb-4" style="display: none;"></div>
+
+    <!-- Global Source Fields -->
+    <div id="global-source-fields" class="mb-4" style="display: none;">
+      <h5 class="mb-3">Source Information</h5>
+      <p class="text-muted small mb-3">At least one of Source or Primary Reference is required.</p>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label for="id_source" class="form-label">Source</label>
+          <input type="text" name="source" id="id_source" class="form-control"
+                 placeholder="e.g., manufacturer website, personal communication">
+        </div>
+        <div class="col-md-6">
+          <label for="id_reference" class="form-label">Primary Reference (DOI)</label>
+          <input type="text" name="primary_reference" id="id_reference" class="form-control"
+                 placeholder="e.g., 10.1234/example.doi" pattern="^10\.\d{4,}/[^\s]+$">
+          <div class="form-text">Enter a valid DOI (e.g., 10.1234/example)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden JSON field for processed spectra -->
+    <input type="hidden" name="spectra_json" id="id_spectra_json" value="[]">
+
+    <!-- Confirmation -->
+    <div class="mb-4" id="confirmation-section" style="display: none;">
+      <div class="form-check">
+        <input type="checkbox" name="confirmation" id="id_confirmation"
+               class="form-check-input" required>
+        <label for="id_confirmation" class="form-check-label small">
+          I understand that I am adding spectrum data to the <em>public</em> FPbase
+          spectra database, and confirm that I have verified the validity of the data.
+        </label>
+      </div>
+    </div>
+
+    <!-- Form Errors -->
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        <strong>{% icon "alert" class_="me-2" %}Please correct the errors below:</strong>
+        <ul class="mb-0 mt-2">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <li>{% if field != '__all__' %}<strong>{{ field }}:</strong> {% endif %}{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <!-- Submit Button -->
+    <div class="d-grid gap-2 d-md-flex">
+      <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" disabled>
+        {% icon "upload" class_="me-2" %}Submit Spectra
+      </button>
+    </div>
+  </form>
+
+  <p class="mt-4 small text-muted">
+    <em>
+      Need help? Check out the <a href="{% url 'contact' %}">contact page</a> or
+      <a href="{% url 'proteins:submit-spectra' %}">use the classic form</a>.
+    </em>
+  </p>
+{% endblock content %}
+
+{% block javascript %}
+{% vite_asset 'src/spectrum-form-v2.js' %}
+{% endblock javascript %}

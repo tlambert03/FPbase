@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load fpbase_tags %}
+
+{% block title %}Spectra Submitted - FPbase{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <div class="mb-4">
+        {% icon "success" class_="text-success" style="font-size: 4rem;" %}
+      </div>
+
+      <h2 class="mb-3">Thank You!</h2>
+
+      {% if spectrum_count == 1 %}
+        <p class="lead">
+          Your spectrum has been submitted successfully.
+        </p>
+      {% else %}
+        <p class="lead">
+          {{ spectrum_count }} spectra have been submitted successfully.
+        </p>
+      {% endif %}
+
+      {% if spectrum_names %}
+        <div class="alert alert-info mt-3">
+          <strong>Submitted spectra:</strong>
+          <ul class="mb-0 mt-2 text-start">
+            {% for name in spectrum_names %}
+              <li>{{ name }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <p class="text-muted">
+        {% if not user.is_staff %}
+          Your submission will be reviewed by our team before being published.
+          This usually takes 1-2 business days.
+        {% else %}
+          Your spectra have been approved and are now live on the site.
+        {% endif %}
+      </p>
+
+      <div class="mt-4">
+        <a href="{% url 'proteins:submit-spectra-v2' %}" class="btn btn-primary me-2">
+          {% icon "upload" class_="me-1" %}Submit More Spectra
+        </a>
+        <a href="{% url 'proteins:spectra' %}" class="btn btn-outline-secondary">
+          {% icon "view" class_="me-1" %}View Spectra Viewer
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
