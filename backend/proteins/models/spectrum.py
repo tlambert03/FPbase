@@ -592,7 +592,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     def _decode_y_values(self) -> np.ndarray:
         """Decode float32 binary data to list of floats."""
         if not self.y_values:
-            return []
+            raise ValueError("No Y values stored in spectrum")
         # Handle memoryview from database
         data = bytes(self.y_values) if isinstance(self.y_values, memoryview) else self.y_values
         return np.frombuffer(data, dtype="<f4")
