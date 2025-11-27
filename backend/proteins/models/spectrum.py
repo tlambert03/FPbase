@@ -24,11 +24,11 @@ from model_utils.models import StatusModel, TimeStampedModel
 from fpbase.cache_utils import SPECTRA_CACHE_KEY
 from proteins.models.mixins import AdminURLMixin, Authorable, Product
 from proteins.util.helpers import spectra_fig, wave_to_hex
-from proteins.util.spectra import interp_linear, norm2one, norm2P
+from proteins.util.spectra import interp_linear
 from references.models import Reference
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Iterator, Sequence
     from typing import NotRequired, TypedDict
 
     from proteins.models import FluorState
@@ -395,13 +395,13 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.owner_fluor:
             return f"{self.owner_fluor} {self.subtype}"
         else:
             return self.name
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         # Auto-set subtype if not provided and only one valid option exists
         valid_subtypes = self.category_subtypes.get(self.category, [])
         if not self.subtype and len(valid_subtypes) == 1:
@@ -409,23 +409,12 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
 
         # Compute peak_wave from spectrum data if not already set
         if self.peak_wave is None:
-            self.peak_wave = self.compute_peak_wave()
+            self.peak_wave = self._compute_peak_wave()
 
         # Cache invalidation is handled by post_save signal in fpbase.cache_utils
         super().save(*args, **kwargs)
 
-    def _norm2one(self):
-        try:
-            if self.subtype == self.TWOP:
-                y, self._peakval2p, maxi = norm2P(self.y)
-                self._peakwave2p = self.x[maxi]
-                self.change_y(y)
-            else:
-                self.change_y(norm2one(self.y))
-        except Exception:
-            logger.exception("Error normalizing spectrum data")
-
-    def clean(self):
+    def clean(self) -> None:
         # Validate subtype is appropriate for category
         valid_subtypes = self.category_subtypes.get(self.category, [])
         if self.subtype and self.subtype not in valid_subtypes:
@@ -437,12 +426,13 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
 
         # Validate y_values length matches wavelength range (1nm spacing)
         # y_values is float32 binary (4 bytes per value)
-        expected_len = self.max_wave - self.min_wave + 1
-        actual_len = len(self.y_values) // 4
-        if actual_len != expected_len:
-            raise ValidationError(
-                f"y_values length ({actual_len}) must match wavelength range ({expected_len})"
-            )
+        if self.y_values and self.min_wave is not None and self.max_wave is not None:
+            expected_len = self.max_wave - self.min_wave + 1
+            actual_len = len(self.y_values) // 4
+            if actual_len != expected_len:
+                raise ValidationError(
+                    f"y_values length ({actual_len}) must match wavelength range ({expected_len})"
+                )
 
     @property
     def owner(self) -> FluorState | Filter | Light | Camera:
@@ -456,7 +446,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             return f"{self.owner_fluor.owner_name} {self.subtype}"
         return str(self.owner)
 
-    def compute_peak_wave(self) -> int | None:
+    def _compute_peak_wave(self) -> int | None:
         """Compute peak wavelength from spectrum data."""
         try:
             if self.min_wave < 300:
@@ -475,41 +465,46 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             return None
 
     @property
-    def step(self):
-        s = set()
-        for i in range(len(self.x) - 1):
-            s.add(self.x[i + 1] - self.x[i])
-        if len(s) > 1:  # multiple step sizes
-            return False
-        return next(iter(s))
+    def step(self) -> int:
+        return 1
 
-    def scaled_data(self, scale: float) -> list[list[float]]:
+    def scaled_data(self, scale: float) -> list[tuple[float, float]]:
         """Return spectrum data with Y values multiplied by scale."""
-        return [[w, y * scale] for w, y in zip(self.x, self.y)]
+        return [(w, y * scale) for w, y in zip(self.x, self.y)]
 
-    def color(self):
+    def color(self) -> str:
         return wave_to_hex(self.peak_wave)
 
-    def waverange(self, waverange: tuple[float, float]) -> list[list[float]]:
+    def waverange(self, waverange: tuple[float, float]) -> list[tuple[int, float]]:
         """Return spectrum data within the specified wavelength range."""
-        assert len(waverange) == 2, "waverange argument must be an iterable of len 2"
-        return [[w, y] for w, y in zip(self.x, self.y) if waverange[0] <= w <= waverange[1]]
+        start = max(self.min_wave, int(waverange[0]))
+        end = min(self.max_wave, int(waverange[1]))
+        start_idx = start - self.min_wave
+        end_idx = end - self.min_wave + 1
+        return list(zip(range(start, end + 1), self.y[start_idx:end_idx]))
 
-    def avg(self, waverange):
-        d = self.waverange(waverange)
-        return np.mean([i[1] for i in d])
+    def avg(self, waverange: tuple[float, float]) -> float:
+        """Return average Y value within the specified wavelength range."""
+        start = max(self.min_wave, int(waverange[0]))
+        end = min(self.max_wave, int(waverange[1]))
+        start_idx = start - self.min_wave
+        end_idx = end - self.min_wave + 1
+        return np.mean(self.y[start_idx:end_idx]).item()
 
-    def width(self, height=0.5) -> tuple[float, float] | None:
-        try:
-            upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
-            downindex = len(self.y) - next(
-                x[0] for x in enumerate(reversed(self.y)) if x[1] > height
-            )
-            return (self.x[upindex], self.x[downindex])
-        except Exception:
+    def width(self, height: float = 0.5) -> tuple[int, int] | None:
+        """Return (min_wave, max_wave) where Y exceeds height threshold."""
+        above = np.where(np.array(self.y) > height)[0]
+        if len(above) == 0:
             return None
+        return (self.min_wave + above[0], self.min_wave + above[-1])
 
     def d3dict(self) -> D3Dict:
+        if self.category == self.CAMERA:
+            color = "url(#crosshatch)"
+        elif self.category == self.LIGHT:
+            color = "url(#wavecolor_gradient)"
+        else:
+            color = self.color()
         D: D3Dict = {
             "slug": self.owner.slug,
             "key": self.name,
@@ -520,52 +515,47 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             "maxwave": self.max_wave,
             "category": self.category,
             "type": self.subtype if self.subtype != self.ABS else self.EX,
-            "color": self.color(),
+            "color": color,
             "area": self.subtype not in (self.LP, self.BS),
             "url": self.owner.get_absolute_url(),
             "classed": f"category-{self.category} subtype-{self.subtype}",
         }
 
-        if self.category == self.CAMERA:
-            D["color"] = "url(#crosshatch)"
-        elif self.category == self.LIGHT:
-            D["color"] = "url(#wavecolor_gradient)"
-
         if self.category in (self.PROTEIN, self.DYE):
-            if self.subtype == self.EX or self.subtype == self.ABS:
-                # Use scale_factor if available, fall back to owner's ext_coeff
-                scalar = self.scale_factor if self.scale_factor else self.owner.ext_coeff
-                D.update({"scalar": scalar, "ex_max": self.owner.ex_max})
-            elif self.subtype == self.EM:
-                # Use scale_factor if available, fall back to owner's qy
-                scalar = self.scale_factor if self.scale_factor else self.owner.qy
-                D.update({"scalar": scalar, "em_max": self.owner.em_max})
-            elif self.subtype == self.TWOP:
-                # Use scale_factor if available, fall back to owner's twop_peak_gm
-                scalar = self.scale_factor if self.scale_factor else self.owner.twop_peak_gm
-                D.update({"scalar": scalar, "twop_qy": self.owner.twop_qy})
+            # Map subtype to (fallback_scalar_attr, extra_key, extra_attr)
+            subtype_map = {
+                self.EX: ("ext_coeff", "ex_max"),
+                self.ABS: ("ext_coeff", "ex_max"),
+                self.EM: ("qy", "em_max"),
+                self.TWOP: ("twop_peak_gm", "twop_qy"),
+            }
+            if self.subtype in subtype_map:
+                fallback, attr = subtype_map[self.subtype]
+                scalar = self.scale_factor or getattr(self.owner, fallback)
+                D.update({"scalar": scalar, attr: getattr(self.owner, attr)})
         return D
+
+    def _iter_coords(self) -> Iterator[tuple[int, float]]:
+        """Generator yielding (wavelength, value) pairs."""
+        for i, y in enumerate(self.y):
+            yield (self.min_wave + i, y)
 
     def d3data(self) -> list[dict[str, float]]:
         """Return spectrum data in D3.js format."""
-        return [{"x": w, "y": y} for w, y in zip(self.x, self.y)]
+        return [{"x": x, "y": y} for x, y in self._iter_coords()]
 
     def wave_value_pairs(self) -> dict[int, float]:
         """Return spectrum data as a wavelength -> value dict."""
-        return dict(zip(self.x, self.y))
-
-    def get_data_pairs(self) -> list[list[float]]:
-        """Return spectrum data as [[wavelength, value], ...] pairs."""
-        return [[float(w), y] for w, y in zip(self.x, self.y)]
+        return dict(self._iter_coords())
 
     @property
-    def data(self) -> list[list[float]]:
+    def data(self) -> list[tuple[float, float]]:
         """Return spectrum data as [[wavelength, value], ...] pairs.
 
         This property provides backward compatibility with code that
         expects the legacy data format.
         """
-        return self.get_data_pairs()
+        return list(self._iter_coords())
 
     @data.setter
     def data(self, value: list[list[float]] | str | None) -> None:
@@ -587,7 +577,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             return
         wavelengths = [point[0] for point in value]
         y_values = [point[1] for point in value]
-        self.set_spectrum_data(wavelengths, y_values)
+        self._set_spectrum_data(wavelengths, y_values)
 
     @cached_property
     def x(self) -> list[int]:
@@ -597,22 +587,22 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     @cached_property
     def y(self) -> list[float]:
         """Y values (intensity/transmission). Decoded from binary storage."""
-        return self._decode_y_values()
+        return self._decode_y_values().tolist()
 
-    def _decode_y_values(self) -> list[float]:
+    def _decode_y_values(self) -> np.ndarray:
         """Decode float32 binary data to list of floats."""
         if not self.y_values:
             return []
         # Handle memoryview from database
         data = bytes(self.y_values) if isinstance(self.y_values, memoryview) else self.y_values
-        return np.frombuffer(data, dtype="<f4").tolist()
+        return np.frombuffer(data, dtype="<f4")
 
     @staticmethod
     def _encode_y_values(y_list: list[float]) -> bytes:
         """Encode list of floats to float32 binary data."""
         return np.asarray(y_list, dtype="<f4").tobytes()
 
-    def set_spectrum_data(
+    def _set_spectrum_data(
         self,
         wavelengths: list[int | float],
         y_values: list[float],
