@@ -44,7 +44,10 @@ def update_scope_report(request):
     if request.POST.get("action") == "update":
         outdated = request.POST.get("outdated")
         if outdated:
-            outdated = json.loads(outdated)
+            try:
+                outdated = json.loads(outdated)
+            except json.JSONDecodeError:
+                outdated = None
         if scope_id:
             try:
                 # this is throwing connection resets
