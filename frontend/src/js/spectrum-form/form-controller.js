@@ -5,6 +5,19 @@
  * file upload → column selection → per-spectrum metadata → submission
  */
 
+/**
+ * @typedef {Object} SpectrumJSON
+ * @property {Array<[number, number]>} data - Array of [wavelength, value] pairs
+ * @property {string} category - Category code (d=dye, p=protein, f=filter, c=camera, l=light)
+ * @property {string} owner - Owner name (protein/dye/filter name)
+ * @property {string} subtype - Subtype code (ex, ab, em, 2p, bp, etc.)
+ * @property {number|null} scale_factor - Scale factor at peak wavelength
+ * @property {number|null} ph - pH value (for bio categories only)
+ * @property {string|null} solvent - Solvent name (for bio categories only)
+ * @property {number|null} peak_wave - Peak wavelength in nm
+ * @property {string} column_name - Original column name from CSV
+ */
+
 import { renderColumnPicker } from "./column-picker.js"
 import { extractSpectrum, parseCSV } from "./csv-parser.js"
 import { checkSimilarOwners } from "./duplicate-checker.js"
@@ -633,6 +646,7 @@ function updateFormState(el, state) {
     (s) => s.processed?.length > 0 && s.category && s.subtype && s.owner.trim()
   )
 
+  /** @type {SpectrumJSON[]} */
   const spectraJson = validSpectra.map((s) => ({
     data: s.processed,
     category: s.category,

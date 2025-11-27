@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from django import forms
 from django.apps import apps
@@ -14,6 +14,88 @@ from proteins.models import Dye, DyeState, FluorState, Spectrum, State
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
+
+
+class SpectrumJSONData(TypedDict):
+    """Type definition for spectrum JSON data from frontend.
+
+    Must match the SpectrumJSON typedef in form-controller.js.
+
+    All fields are always present in the dict. Fields marked with | None
+    can have null values when not applicable (e.g., ph/solvent for non-bio
+    categories, scale_factor when not provided, peak_wave when not found).
+    """
+
+    # Required string/list fields (never None)
+    data: list[list[float]]
+    category: str
+    owner: str
+    subtype: str
+    column_name: str
+
+    # Always present but can be None
+    scale_factor: float | None
+    ph: float | None
+    solvent: str | None
+    peak_wave: int | None
+
+
+def _validate_spectrum_json(raw: str | bytes) -> list[SpectrumJSONData]:
+    if not raw or raw == "[]":
+        raise forms.ValidationError("No spectrum data provided.")
+
+    try:
+        spectra = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise forms.ValidationError(f"Invalid JSON: {e}") from e
+
+    if not isinstance(spectra, list) or len(spectra) == 0:
+        raise forms.ValidationError("Expected a non-empty array of spectra.")
+
+    valid_subtypes = dict(Spectrum.SUBTYPE_CHOICES)
+    valid_categories = dict(Spectrum.CATEGORIES)
+
+    for i, spec in enumerate(spectra):
+        if not isinstance(spec, dict):
+            raise forms.ValidationError(f"Spectrum {i + 1} is not a valid object.")
+
+        # Validate data
+        if "data" not in spec:
+            raise forms.ValidationError(f"Spectrum {i + 1} is missing 'data' field.")
+
+        data = spec["data"]
+        if not isinstance(data, list) or len(data) < 2:
+            raise forms.ValidationError(f"Spectrum {i + 1} must have at least 2 data points.")
+
+        for j, point in enumerate(data):
+            if not isinstance(point, list) or len(point) != 2:
+                raise forms.ValidationError(
+                    f"Spectrum {i + 1}, point {j + 1}: must be [wavelength, value]."
+                )
+            if not all(isinstance(v, (int, float)) for v in point):
+                raise forms.ValidationError(
+                    f"Spectrum {i + 1}, point {j + 1}: values must be numbers."
+                )
+
+        # Validate category
+        if "category" not in spec or not spec["category"]:
+            raise forms.ValidationError(f"Spectrum {i + 1} is missing category.")
+        if spec["category"] not in valid_categories:
+            raise forms.ValidationError(
+                f"Spectrum {i + 1} has invalid category: {spec['category']}"
+            )
+
+        # Validate subtype
+        if "subtype" not in spec or not spec["subtype"]:
+            raise forms.ValidationError(f"Spectrum {i + 1} is missing subtype.")
+        if spec["subtype"] not in valid_subtypes:
+            raise forms.ValidationError(f"Spectrum {i + 1} has invalid subtype: {spec['subtype']}")
+
+        # Validate owner
+        if "owner" not in spec or not spec.get("owner", "").strip():
+            raise forms.ValidationError(f"Spectrum {i + 1} is missing owner.")
+
+    return spectra
 
 
 class SpectrumFormV2(forms.Form):
@@ -72,66 +154,10 @@ class SpectrumFormV2(forms.Form):
         self.user: User | None = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-    def clean_spectra_json(self) -> list[dict]:
+    def clean_spectra_json(self) -> list[SpectrumJSONData]:
         """Parse and validate the JSON array of processed spectra."""
         raw = self.cleaned_data.get("spectra_json", "")
-        if not raw or raw == "[]":
-            raise forms.ValidationError("No spectrum data provided.")
-
-        try:
-            spectra = json.loads(raw)
-        except json.JSONDecodeError as e:
-            raise forms.ValidationError(f"Invalid JSON: {e}") from e
-
-        if not isinstance(spectra, list) or len(spectra) == 0:
-            raise forms.ValidationError("Expected a non-empty array of spectra.")
-
-        valid_subtypes = dict(Spectrum.SUBTYPE_CHOICES)
-        valid_categories = dict(Spectrum.CATEGORIES)
-
-        for i, spec in enumerate(spectra):
-            if not isinstance(spec, dict):
-                raise forms.ValidationError(f"Spectrum {i + 1} is not a valid object.")
-
-            # Validate data
-            if "data" not in spec:
-                raise forms.ValidationError(f"Spectrum {i + 1} is missing 'data' field.")
-
-            data = spec["data"]
-            if not isinstance(data, list) or len(data) < 2:
-                raise forms.ValidationError(f"Spectrum {i + 1} must have at least 2 data points.")
-
-            for j, point in enumerate(data):
-                if not isinstance(point, list) or len(point) != 2:
-                    raise forms.ValidationError(
-                        f"Spectrum {i + 1}, point {j + 1}: must be [wavelength, value]."
-                    )
-                if not all(isinstance(v, (int, float)) for v in point):
-                    raise forms.ValidationError(
-                        f"Spectrum {i + 1}, point {j + 1}: values must be numbers."
-                    )
-
-            # Validate category
-            if "category" not in spec or not spec["category"]:
-                raise forms.ValidationError(f"Spectrum {i + 1} is missing category.")
-            if spec["category"] not in valid_categories:
-                raise forms.ValidationError(
-                    f"Spectrum {i + 1} has invalid category: {spec['category']}"
-                )
-
-            # Validate subtype
-            if "subtype" not in spec or not spec["subtype"]:
-                raise forms.ValidationError(f"Spectrum {i + 1} is missing subtype.")
-            if spec["subtype"] not in valid_subtypes:
-                raise forms.ValidationError(
-                    f"Spectrum {i + 1} has invalid subtype: {spec['subtype']}"
-                )
-
-            # Validate owner
-            if "owner" not in spec or not spec.get("owner", "").strip():
-                raise forms.ValidationError(f"Spectrum {i + 1} is missing owner.")
-
-        return spectra
+        return _validate_spectrum_json(raw)
 
     def clean(self):
         """Validate that at least one of source or primary_reference is provided."""
