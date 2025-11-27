@@ -192,9 +192,13 @@ class SpectrumFormV2(forms.Form):
         if category == Spectrum.PROTEIN:
             if not cleaned_data.get("owner_fluor"):
                 self.add_error("owner_fluor", "Please select a protein state.")
-        elif category in (Spectrum.DYE, Spectrum.FILTER, Spectrum.CAMERA, Spectrum.LIGHT):
-            if not cleaned_data.get("owner"):
-                self.add_error("owner", "Please enter the owner name.")
+        elif category in (
+            Spectrum.DYE,
+            Spectrum.FILTER,
+            Spectrum.CAMERA,
+            Spectrum.LIGHT,
+        ) and not cleaned_data.get("owner"):
+            self.add_error("owner", "Please enter the owner name.")
 
         return cleaned_data
 

@@ -171,7 +171,9 @@ export function initSpectrumForm() {
    */
   function processSelectedColumns() {
     // Clear previous spectra
-    state.spectra.forEach((s) => s.chartController?.destroy())
+    state.spectra.forEach((s) => {
+      s.chartController?.destroy()
+    })
     state.spectra = []
 
     // Hide column picker, show preview container

@@ -192,8 +192,12 @@ function clearColumnHighlight(allThs, allTds, colIndex, columnCount) {
  * Clear all column highlights.
  */
 function clearAllHighlights(allThs, allTds) {
-  allThs.forEach((th) => th.classList.remove("table-primary", "table-info"))
-  allTds.forEach((td) => td.classList.remove("table-primary", "table-info"))
+  allThs.forEach((th) => {
+    th.classList.remove("table-primary", "table-info")
+  })
+  allTds.forEach((td) => {
+    td.classList.remove("table-primary", "table-info")
+  })
 }
 
 /**
