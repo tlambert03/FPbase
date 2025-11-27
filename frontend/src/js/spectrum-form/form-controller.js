@@ -585,6 +585,7 @@ function processSpectrum(spectrum, index) {
   const chartOptions = {
     name: spectrum.columnName,
     normalized: shouldNormalize,
+    rawData: shouldNormalize ? spectrum.interpolated : null,
     onClick: shouldNormalize
       ? (wavelength) => {
           spectrum.manualPeakWave = Math.round(wavelength)
@@ -593,11 +594,25 @@ function processSpectrum(spectrum, index) {
       : null,
   }
 
+  // Track whether we had a click handler before
+  const hadClickHandler = spectrum._hadClickHandler ?? false
+  const hasClickHandler = chartOptions.onClick !== null
+  spectrum._hadClickHandler = hasClickHandler
+
+  // Recreate chart if click handler state changed, otherwise just update
   if (!spectrum.chartController && chartContainer) {
+    spectrum.chartController = createSpectrumChart(chartContainer, processedData, chartOptions)
+  } else if (spectrum.chartController && hadClickHandler !== hasClickHandler) {
+    // Click handler state changed - need to recreate chart
+    spectrum.chartController.destroy()
     spectrum.chartController = createSpectrumChart(chartContainer, processedData, chartOptions)
   } else if (spectrum.chartController) {
     spectrum.chartController.updateData(processedData, spectrum.columnName)
-    spectrum.chartController.updateYAxis(processedData, shouldNormalize)
+    spectrum.chartController.updateYAxis(
+      processedData,
+      shouldNormalize,
+      shouldNormalize ? spectrum.interpolated : null
+    )
   }
 
   if (spectrum.chartController) {

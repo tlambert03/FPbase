@@ -625,7 +625,7 @@ def test_form_ready_for_submission(spectrum_form_page: Page, sample_csv_file: Pa
 
 
 def test_status_indicators_update(spectrum_form_page: Page, sample_csv_file: Path) -> None:
-    """Test that status indicators (✓/!) update as fields are filled."""
+    """Test that status indicators (✅/⚠️) update as fields are filled."""
     page = spectrum_form_page
     _upload_csv_file(page, sample_csv_file)
     _select_columns(page, wavelength_col=0, data_cols=[1])
@@ -633,8 +633,8 @@ def test_status_indicators_update(spectrum_form_page: Page, sample_csv_file: Pat
     card = page.locator(".spectrum-card").first
     status_icon = card.locator('[id^="status-icon-"]')
 
-    # Initially should show warning
-    expect(status_icon).to_contain_text("!")
+    # Initially should show warning emoji
+    expect(status_icon).to_contain_text("⚠️")
 
     # Fill required fields
     category_select = card.locator('[id^="category-select-"]')
@@ -645,8 +645,8 @@ def test_status_indicators_update(spectrum_form_page: Page, sample_csv_file: Pat
     subtype_select.select_option("bp")
     owner_input.fill("Test Filter")
 
-    # Should now show checkmark
-    expect(status_icon).to_contain_text("✓")
+    # Should now show checkmark emoji
+    expect(status_icon).to_contain_text("✅")
 
 
 # --- Label Bold State Tests ---
