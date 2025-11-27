@@ -512,13 +512,13 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         except Exception:
             return 0
 
-    def switchType(self):
-        return self.SwitchingChoices(self.switch_type).label
+    def switchType(self) -> str | None:
+        return self.SwitchingChoices(self.switch_type).label if self.switch_type else None
 
-    def _agg(self):
-        return self.AggChoices(self.agg).label
+    def _agg(self) -> str | None:
+        return self.AggChoices(self.agg).label if self.agg else None
 
-    def url(self):
+    def url(self) -> str:
         return self.get_absolute_url()
 
     def ex(self):
