@@ -272,6 +272,7 @@ class Migration(migrations.Migration):
                     | models.Q(owner_fluor__isnull=True, owner_filter__isnull=True, owner_light__isnull=False, owner_camera__isnull=True)
                     | models.Q(owner_fluor__isnull=True, owner_filter__isnull=True, owner_light__isnull=True, owner_camera__isnull=False)
                 ),
+                violation_error_message='Spectrum must have exactly one owner (fluor, filter, light, or camera)'
             ),
         ),
         # Step 6: Add covering index for metadata-only queries

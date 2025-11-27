@@ -55,58 +55,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SpectrumOwner(Authorable, TimeStampedModel):
-    name = models.CharField(max_length=100)  # required
-    slug = models.SlugField(
-        max_length=128, unique=True, help_text="Unique slug for the %(class)"
-    )  # calculated at save
-
-    class Meta:
-        abstract = True
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__}: {self.slug}>"
-
-    def save(self, *args, **kwargs):
-        self.slug = self.makeslug()
-        super().save(*args, **kwargs)
-
-    def makeslug(self):
-        return slugify(self.name.replace("/", "-"))
-
-    def d3_dicts(self) -> list[D3Dict]:
-        return [spect.d3dict() for spect in self.spectra.all()]
-
-
-class Camera(SpectrumOwner, Product):
-    manufacturer = models.CharField(max_length=128, blank=True)
-
-    if TYPE_CHECKING:
-        spectrum: Spectrum
-        microscopes: models.QuerySet
-        optical_configs: models.QuerySet
-
-
-class Light(SpectrumOwner, Product):
-    manufacturer = models.CharField(max_length=128, blank=True)
-
-    if TYPE_CHECKING:
-        spectrum: Spectrum
-        microscopes: models.QuerySet
-        optical_configs: models.QuerySet
-
-
-def sorted_ex2em(filterset):
-    def _sort(stype):
-        return Spectrum.category_subtypes[Spectrum.FILTER].index(stype)
-
-    return sorted(filterset, key=lambda x: _sort(x.subtype))
-
-
 def get_cached_spectra_info() -> str:
     """Get cached spectra info JSON, populating cache if needed.
 
@@ -228,19 +176,19 @@ class SpectrumManager(models.Manager):
         return qs
 
     def find_similar_owners(self, query, threshold=0.4):
-        A = (
-            "owner_fluor__owner_name",  # Search on cached parent name (Protein/Dye)
+        owner_name_paths = (
+            "owner_fluor__owner_name",
             "owner_filter__name",
             "owner_light__name",
             "owner_camera__name",
         )
         qs_list = []
-        for ownerclass in A:
+        for owner_path in owner_name_paths:
             for s in (
-                Spectrum.objects.annotate(similarity=TrigramSimilarity(ownerclass, query))
+                Spectrum.objects.annotate(similarity=TrigramSimilarity(owner_path, query))
                 .filter(similarity__gt=threshold)
-                .order_by("-similarity", ownerclass)
-                .distinct("similarity", ownerclass)
+                .order_by("-similarity", owner_path)
+                .distinct("similarity", owner_path)
             ):
                 qs_list.append((s.similarity, s.owner))
         if qs_list:
@@ -512,7 +460,6 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     @property
     def owner(self) -> FluorState | Filter | Light | Camera | None:
         return next((x for x in self.owner_set if x), None)
-        #  raise AssertionError("No owner is set")
 
     @property
     def name(self) -> str:
@@ -761,6 +708,56 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
 
     def get_absolute_url(self):
         return reverse("proteins:spectra") + f"?s={self.id}"
+
+
+# ###########################################################################
+# Spectrum Owner Classes
+# ###########################################################################
+
+
+class SpectrumOwner(Authorable, TimeStampedModel):
+    name = models.CharField(max_length=100)  # required
+    slug = models.SlugField(
+        max_length=128, unique=True, help_text="Unique slug for the %(class)"
+    )  # calculated at save
+
+    class Meta:
+        abstract = True
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}: {self.slug}>"
+
+    def save(self, *args, **kwargs):
+        self.slug = self.makeslug()
+        super().save(*args, **kwargs)
+
+    def makeslug(self):
+        return slugify(self.name.replace("/", "-"))
+
+    def d3_dicts(self) -> list[D3Dict]:
+        return [spect.d3dict() for spect in self.spectra.all()]
+
+
+class Camera(SpectrumOwner, Product):
+    manufacturer = models.CharField(max_length=128, blank=True)
+
+    if TYPE_CHECKING:
+        spectrum: Spectrum
+        microscopes: models.QuerySet
+        optical_configs: models.QuerySet
+
+
+class Light(SpectrumOwner, Product):
+    manufacturer = models.CharField(max_length=128, blank=True)
+
+    if TYPE_CHECKING:
+        spectrum: Spectrum
+        microscopes: models.QuerySet
+        optical_configs: models.QuerySet
 
 
 class Filter(SpectrumOwner, Product):
