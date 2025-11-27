@@ -1,5 +1,5 @@
 import Highcharts from "highcharts"
-import { fetchWithSentry } from "./ajax-sentry"
+import { createFormData, fetchWithSentry } from "./ajax-sentry"
 
 const $ = window.jQuery // jQuery loaded from CDN
 
@@ -36,10 +36,7 @@ $.fn.extend({
     var SCOPE_ID = config.scopeID
     var SCOPE_URL = config.scopeURL
     var JOB_ID = null
-    var OUTDATED
-    if (config.outdated.length) {
-      OUTDATED = config.outdated
-    }
+    var OUTDATED = config.outdated || []
     var interval = config.interval || 3500
     var FLUORS
     var REPORT
@@ -367,7 +364,7 @@ $.fn.extend({
     function check_status(next) {
       next = next || interval
       if (JOB_ID !== null) {
-        const formData = new URLSearchParams({
+        const formData = createFormData({
           action: "check",
           job_id: JOB_ID,
           csrfmiddlewaretoken: CSRF_TOKEN,
@@ -421,12 +418,12 @@ $.fn.extend({
         action = "cancel"
       }
 
-      const formData = new URLSearchParams({
+      const formData = createFormData({
         action: action,
         scope_id: SCOPE_ID,
         csrfmiddlewaretoken: CSRF_TOKEN,
         job_id: JOB_ID,
-        outdated: JSON.stringify(OUTDATED),
+        outdated: OUTDATED.length ? JSON.stringify(OUTDATED) : null,
       })
 
       fetchWithSentry("", {
