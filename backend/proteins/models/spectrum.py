@@ -366,6 +366,9 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             # Ensure exactly one owner is set
             models.CheckConstraint(
                 name="spectrum_single_owner",
+                violation_error_message=(
+                    "Spectrum must have exactly one owner (fluor, filter, light, or camera)"
+                ),
                 condition=(
                     models.Q(
                         owner_fluor__isnull=False,
