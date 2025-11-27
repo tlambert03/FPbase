@@ -674,3 +674,72 @@ def test_labels_bold_when_empty(spectrum_form_page: Page, sample_csv_file: Path)
     # Subtype label should be bold (not yet selected for multi-option categories)
     subtype_label = card.locator('[id^="subtype-label-"]')
     expect(subtype_label).to_have_css("font-weight", "700")
+
+
+# --- European CSV Format Tests ---
+
+
+@pytest.fixture
+def european_csv_file() -> Iterator[Path]:
+    """Create a temporary European-format CSV file (semicolon delimiter, comma decimal)."""
+    content = """Wavelength;Relative intensity
+476,0599976;11,14449883
+476,9599915;5,403448582
+478,0299988;2,37003231
+479,1699982;1,089500189
+480,1300049;0,500396013
+481,2699966;0,294151127
+482,2299957;0,173027024
+483,3699951;0,102012008
+484,3300018;0,077506006
+485,4699936;0,06600528
+486,4300003;0,054604368
+487,5699921;0,046903752
+488,5300064;0,044503561
+489,6699982;0,048103846
+490,6300049;0,062004961
+491,6199951;0,098407871
+492,7699966;0,202816248
+493,7299957;0,519941568
+494,8699951;1,0
+496,0100021;0,873469949
+497,1500015;0,461537003
+498,1100006;0,293451279
+499,25;0,200416033
+500,2099991;0,143111453
+"""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        f.write(content)
+        path = Path(f.name)
+    yield path
+    path.unlink(missing_ok=True)
+
+
+def test_european_csv_format_parsing(spectrum_form_page: Page, european_csv_file: Path) -> None:
+    """Test that European CSV format (semicolon delimiter, comma decimal) is parsed correctly."""
+    page = spectrum_form_page
+    _upload_csv_file(page, european_csv_file)
+
+    # Column picker should be visible
+    column_picker = page.locator("#column-picker-container")
+    expect(column_picker).to_be_visible()
+
+    # Should show both column headers
+    headers = column_picker.locator("th.column-header")
+    expect(headers).to_have_count(2)  # Wavelength + Relative intensity
+
+    # Check that numeric values are displayed in the table
+    # (not "-" which indicates parsing failure)
+    # The table should show numeric values with 4 decimal places
+    first_cell = column_picker.locator("table tbody tr").first.locator("td").first
+    cell_text = first_cell.text_content()
+
+    # Should be a number around 476.06, not "-" (which indicates NaN)
+    assert cell_text != "-", "First cell should contain a numeric value, not '-'"
+    assert "476." in cell_text, f"First cell should contain wavelength ~476, got: {cell_text}"
+
+    # Verify we can select columns and continue
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+
+    # Spectrum card should appear
+    expect(page.locator(".spectrum-card")).to_have_count(1)

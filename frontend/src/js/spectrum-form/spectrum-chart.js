@@ -70,7 +70,6 @@ export function createSpectrumChart(container, data, options = {}) {
     },
     tooltip: {
       shared: true,
-      valueDecimals: 4,
       headerFormat: "<b>{point.x} nm</b><br/>",
       pointFormat: "{series.name}: {point.y}",
     },

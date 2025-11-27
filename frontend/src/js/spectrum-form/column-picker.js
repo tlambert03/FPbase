@@ -4,7 +4,7 @@
  * Interactive table for selecting wavelength and data columns from parsed CSV.
  */
 
-const PREVIEW_ROWS = 10
+const PREVIEW_ROWS = 8
 
 /**
  * Render the column picker UI.
