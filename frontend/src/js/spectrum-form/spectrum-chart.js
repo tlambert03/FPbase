@@ -18,7 +18,7 @@ import Highcharts from "highcharts"
  * @returns {object} Chart controller with update methods
  */
 export function createSpectrumChart(container, data, options = {}) {
-  const { name = "Spectrum", color = "#0d6efd", onClick } = options
+  const { name = "Spectrum", color = "#0d6efd", onClick, normalized = true } = options
 
   const containerId = typeof container === "string" ? container : container.id
   const containerEl = typeof container === "string" ? document.getElementById(container) : container
@@ -38,6 +38,9 @@ export function createSpectrumChart(container, data, options = {}) {
     }
   }
 
+  // Calculate y-axis config based on normalized flag
+  const yAxisConfig = getYAxisConfig(data, normalized)
+
   const chart = Highcharts.chart(containerId, {
     chart: {
       type: "area",
@@ -56,18 +59,7 @@ export function createSpectrumChart(container, data, options = {}) {
       gridLineWidth: 0,
       plotLines: [],
     },
-    yAxis: {
-      title: { text: "Relative Intensity" },
-      min: 0,
-      max: 1.05,
-      labels: {
-        formatter() {
-          return `${Math.round(this.value * 100)}%`
-        },
-      },
-      gridLineWidth: 1,
-      gridLineColor: "#e0e0e0",
-    },
+    yAxis: yAxisConfig,
     tooltip: {
       shared: true,
       headerFormat: "<b>{point.x} nm</b><br/>",
@@ -103,6 +95,11 @@ export function createSpectrumChart(container, data, options = {}) {
       chart.xAxis[0].setExtremes(Math.min(...newWavelengths) - 10, Math.max(...newWavelengths) + 10)
     },
 
+    updateYAxis(newData, isNormalized) {
+      const yAxisConfig = getYAxisConfig(newData, isNormalized)
+      chart.yAxis[0].update(yAxisConfig, true)
+    },
+
     setPeakMarker(wavelength) {
       chart.xAxis[0].removePlotLine("peak-marker")
 
@@ -131,5 +128,49 @@ export function createSpectrumChart(container, data, options = {}) {
     destroy() {
       chart?.destroy()
     },
+  }
+}
+
+/**
+ * Get y-axis configuration based on data and normalization state.
+ *
+ * @param {number[][]} data - Array of [wavelength, value] pairs
+ * @param {boolean} normalized - Whether data is normalized
+ * @returns {object} Highcharts y-axis configuration
+ */
+function getYAxisConfig(data, normalized) {
+  if (normalized) {
+    return {
+      title: { text: "Relative Intensity" },
+      min: 0,
+      max: 1.05,
+      labels: {
+        formatter() {
+          return `${Math.round(this.value * 100)}%`
+        },
+      },
+      gridLineWidth: 1,
+      gridLineColor: "#e0e0e0",
+    }
+  }
+
+  // For absolute values, auto-scale based on data
+  const yValues = data.map(([, y]) => y)
+  const maxY = Math.max(...yValues)
+  const minY = Math.min(...yValues)
+  const range = maxY - minY
+  const padding = range * 0.05 // 5% padding
+
+  return {
+    title: { text: "Intensity" },
+    min: Math.max(0, minY - padding),
+    max: maxY + padding,
+    labels: {
+      formatter() {
+        return this.value.toFixed(2)
+      },
+    },
+    gridLineWidth: 1,
+    gridLineColor: "#e0e0e0",
   }
 }

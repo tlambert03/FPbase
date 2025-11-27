@@ -205,7 +205,8 @@ function createSpectrumCard(el, state, spectrum, index) {
     Math.round(spectrum.raw[spectrum.raw.length - 1][0]),
   ]
 
-  const shouldNormalize = !NO_NORMALIZE_CATEGORIES.has(spectrum.category)
+  // Only normalize if category is selected AND not in NO_NORMALIZE_CATEGORIES
+  const shouldNormalize = spectrum.category && !NO_NORMALIZE_CATEGORIES.has(spectrum.category)
   const showBioFields = BIO_CATEGORIES.has(spectrum.category)
   const useAutocomplete = spectrum.category in AUTOCOMPLETE_URLS
 
@@ -542,7 +543,8 @@ function updateScaleFactorUnits(index, subtype) {
 // ============================================================================
 
 function processSpectrum(spectrum, index) {
-  const shouldNormalize = !NO_NORMALIZE_CATEGORIES.has(spectrum.category)
+  // Only normalize if category is selected AND not in NO_NORMALIZE_CATEGORIES
+  const shouldNormalize = spectrum.category && !NO_NORMALIZE_CATEGORIES.has(spectrum.category)
   let processedData
   let peakWave = null
 
@@ -560,25 +562,29 @@ function processSpectrum(spectrum, index) {
     processedData = result.normalized
     peakWave = result.peakWave
   } else {
-    // For filters/cameras: convert percentage if needed
-    const maxVal = Math.max(...spectrum.interpolated.map(([, y]) => y))
-    processedData =
-      maxVal > 1 ? spectrum.interpolated.map(([x, y]) => [x, y / 100]) : spectrum.interpolated
+    // Use absolute values (no normalization)
+    processedData = spectrum.interpolated
   }
 
   spectrum.processed = processedData
 
-  // Update peak badge
+  // Update peak badge visibility and value
   const peakBadge = document.getElementById(`peak-badge-${index}`)
   if (peakBadge) {
-    peakBadge.textContent = peakWave !== null ? `Peak: ${peakWave} nm` : "No peak"
-    peakBadge.className = `badge ${peakWave !== null ? "bg-primary" : "bg-secondary"}`
+    if (shouldNormalize) {
+      peakBadge.style.display = ""
+      peakBadge.textContent = peakWave !== null ? `Peak: ${peakWave} nm` : "No peak"
+      peakBadge.className = `badge ${peakWave !== null ? "bg-primary" : "bg-secondary"}`
+    } else {
+      peakBadge.style.display = "none"
+    }
   }
 
   // Create or update chart
   const chartContainer = document.getElementById(`chart-container-${index}`)
   const chartOptions = {
     name: spectrum.columnName,
+    normalized: shouldNormalize,
     onClick: shouldNormalize
       ? (wavelength) => {
           spectrum.manualPeakWave = Math.round(wavelength)
@@ -591,10 +597,11 @@ function processSpectrum(spectrum, index) {
     spectrum.chartController = createSpectrumChart(chartContainer, processedData, chartOptions)
   } else if (spectrum.chartController) {
     spectrum.chartController.updateData(processedData, spectrum.columnName)
+    spectrum.chartController.updateYAxis(processedData, shouldNormalize)
   }
 
   if (spectrum.chartController) {
-    if (peakWave !== null) {
+    if (shouldNormalize && peakWave !== null) {
       spectrum.chartController.setPeakMarker(peakWave)
     } else {
       spectrum.chartController.clearAnnotations()
@@ -679,7 +686,7 @@ function updateStatusIcon(index, isComplete, hasExactMatch) {
     if (hasExactMatch) {
       statusIcon.innerHTML = '<span class="text-danger">✕</span> '
     } else {
-      const icon = isComplete ? "✓" : "!"
+      const icon = isComplete ? "✅" : "⚠️"
       const color = isComplete ? "text-success" : "text-warning"
       statusIcon.innerHTML = `<span class="${color}">${icon}</span> `
     }
