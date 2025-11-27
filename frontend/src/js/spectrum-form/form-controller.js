@@ -522,8 +522,14 @@ function attachCardEventHandlers(el, state, spectrum, index) {
     updateFormState(el, state)
 
     if (state.spectra.length === 0) {
+      // Reset to column picker view
+      el.spectraPreview.style.display = "none"
+      el.spectraPreview.innerHTML = ""
       el.globalSourceFields.style.display = "none"
       el.confirmationSection.style.display = "none"
+      el.columnPicker.style.display = "block"
+      // Clear file input so same file can be re-selected
+      el.fileInput.value = ""
     }
   })
 }

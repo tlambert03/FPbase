@@ -374,17 +374,29 @@ def test_remove_spectrum(spectrum_form_page: Page, sample_csv_file: Path) -> Non
     expect(page.locator(".spectrum-card")).to_have_count(1)
 
 
-def test_remove_all_spectra_hides_source_fields(
+def test_remove_all_spectra_resets_to_column_picker(
     spectrum_form_page: Page, sample_csv_file: Path
 ) -> None:
-    """Removing all spectra hides the source fields."""
+    """Removing all spectra resets UI to column picker and allows re-upload."""
     page = spectrum_form_page
     _upload_csv(page, sample_csv_file)
     _select_columns(page, wavelength_col=0, data_cols=[1])
 
+    # Verify we're in spectrum card view
     expect(page.locator("#global-source-fields")).to_be_visible()
+    expect(page.locator("#column-picker-container")).not_to_be_visible()
+
+    # Remove the only card
     page.locator('[id^="remove-btn-"]').first.click()
+
+    # Should reset to column picker view
     expect(page.locator("#global-source-fields")).not_to_be_visible()
+    expect(page.locator("#spectra-preview-container")).not_to_be_visible()
+    expect(page.locator("#column-picker-container")).to_be_visible()
+
+    # Should be able to re-upload the same file
+    _upload_csv(page, sample_csv_file)
+    expect(page.locator("#column-picker-container th.column-header")).to_have_count(4)
 
 
 def test_status_indicators_update(spectrum_form_page: Page, sample_csv_file: Path) -> None:
