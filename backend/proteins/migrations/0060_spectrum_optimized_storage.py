@@ -69,8 +69,9 @@ def migrate_spectrum_data(apps, schema_editor):
 
     for offset in range(0, total, batch_size):
         spectra = list(
-            Spectrum.objects.select_related("owner_fluor")
-            .order_by("id")[offset : offset + batch_size]
+            Spectrum.objects.select_related("owner_fluor").order_by("id")[
+                offset : offset + batch_size
+            ]
         )
 
         for spectrum in spectra:
@@ -207,7 +208,9 @@ class Migration(migrations.Migration):
             field=models.BinaryField(
                 blank=True,
                 null=True,
-                help_text="Y values as float32 binary array, one value per nm from min to max wave",
+                help_text=(
+                    "Y values as float32 binary array, one value per nm from min to max wave"
+                ),
             ),
         ),
         ConditionalAddField(
@@ -253,7 +256,9 @@ class Migration(migrations.Migration):
             model_name="spectrum",
             name="y_values",
             field=models.BinaryField(
-                help_text="Y values as float32 binary array, one value per nm from min to max wave",
+                help_text=(
+                    "Y values as float32 binary array, one value per nm from min to max wave"
+                ),
             ),
         ),
         # Step 4: Remove the legacy data field
@@ -267,12 +272,51 @@ class Migration(migrations.Migration):
             constraint=models.CheckConstraint(
                 name="spectrum_single_owner",
                 condition=(
-                    models.Q(owner_fluor__isnull=False, owner_filter__isnull=True, owner_light__isnull=True, owner_camera__isnull=True)
-                    | models.Q(owner_fluor__isnull=True, owner_filter__isnull=False, owner_light__isnull=True, owner_camera__isnull=True)
-                    | models.Q(owner_fluor__isnull=True, owner_filter__isnull=True, owner_light__isnull=False, owner_camera__isnull=True)
-                    | models.Q(owner_fluor__isnull=True, owner_filter__isnull=True, owner_light__isnull=True, owner_camera__isnull=False)
+                    models.Q(
+                        owner_fluor__isnull=False,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_fluor__isnull=True,
+                        owner_filter__isnull=False,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_fluor__isnull=True,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=False,
+                        owner_camera__isnull=True,
+                    )
+                    | models.Q(
+                        owner_fluor__isnull=True,
+                        owner_filter__isnull=True,
+                        owner_light__isnull=True,
+                        owner_camera__isnull=False,
+                    )
                 ),
-                violation_error_message='Spectrum must have exactly one owner (fluor, filter, light, or camera)'
+                violation_error_message=(
+                    "Spectrum must have exactly one owner (fluor, filter, light, or camera)"
+                ),
+            ),
+        ),
+        ConditionalAddConstraint(
+            model_name="spectrum",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    models.Q(("category", "d"), ("subtype__in", ["ex", "ab", "em", "2p"])),
+                    models.Q(("category", "p"), ("subtype__in", ["ex", "ab", "em", "2p"])),
+                    models.Q(
+                        ("category", "f"), ("subtype__in", ["sp", "bx", "bs", "bp", "bm", "lp"])
+                    ),
+                    models.Q(("category", "c"), ("subtype", "qe")),
+                    models.Q(("category", "l"), ("subtype", "pd")),
+                    _connector="OR",
+                ),
+                name="spectrum_valid_category_subtype",
+                violation_error_message="Subtype is not valid for the spectrum category",
             ),
         ),
         # Step 6: Add covering index for metadata-only queries

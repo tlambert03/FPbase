@@ -3,7 +3,8 @@ from __future__ import annotations
 import ast
 import json
 import logging
-from functools import cached_property
+import operator
+from functools import cached_property, reduce
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -27,6 +28,7 @@ from proteins.util.spectra import interp_linear, norm2one, norm2P
 from references.models import Reference
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from typing import NotRequired, TypedDict
 
     from proteins.models import FluorState
@@ -206,6 +208,12 @@ class SpectrumData(ArrayField):
         super().__init__(base_field, size, **kwargs)
 
 
+def _exactly_one_of(fields: Sequence[str]) -> models.Q:
+    """Return Q condition ensuring exactly one of the given fields is set (not null)."""
+    conditions = (models.Q(**{f"{f}__isnull": f != field for f in fields}) for field in fields)
+    return reduce(operator.or_, conditions)
+
+
 class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     STATUS = Choices("approved", "pending", "rejected")
 
@@ -369,31 +377,20 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
                 violation_error_message=(
                     "Spectrum must have exactly one owner (fluor, filter, light, or camera)"
                 ),
+                condition=_exactly_one_of(
+                    ["owner_fluor", "owner_filter", "owner_light", "owner_camera"]
+                ),
+            ),
+            # Ensure subtype is valid for category
+            models.CheckConstraint(
+                name="spectrum_valid_category_subtype",
+                violation_error_message="Subtype is not valid for the spectrum category",
                 condition=(
-                    models.Q(
-                        owner_fluor__isnull=False,
-                        owner_filter__isnull=True,
-                        owner_light__isnull=True,
-                        owner_camera__isnull=True,
-                    )
-                    | models.Q(
-                        owner_fluor__isnull=True,
-                        owner_filter__isnull=False,
-                        owner_light__isnull=True,
-                        owner_camera__isnull=True,
-                    )
-                    | models.Q(
-                        owner_fluor__isnull=True,
-                        owner_filter__isnull=True,
-                        owner_light__isnull=False,
-                        owner_camera__isnull=True,
-                    )
-                    | models.Q(
-                        owner_fluor__isnull=True,
-                        owner_filter__isnull=True,
-                        owner_light__isnull=True,
-                        owner_camera__isnull=False,
-                    )
+                    models.Q(category="d", subtype__in=["ex", "ab", "em", "2p"])
+                    | models.Q(category="p", subtype__in=["ex", "ab", "em", "2p"])
+                    | models.Q(category="f", subtype__in=["sp", "bx", "bs", "bp", "bm", "lp"])
+                    | models.Q(category="c", subtype="qe")
+                    | models.Q(category="l", subtype="pd")
                 ),
             ),
         ]
@@ -405,14 +402,15 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             return self.name
 
     def save(self, *args, **kwargs):
-        # FIXME: figure out why self.full_clean() throws validation error with
-        # 'data cannot be null' ... even if data is provided...
-        self.full_clean()
-        if not any(self.owner_set):
-            raise ValidationError("Spectrum must have an owner!")
-        if sum(bool(x) for x in self.owner_set) > 1:
-            raise ValidationError("Spectrum must have only one owner!")
-        # self.category = self.owner.__class__.__name__.lower()[0]
+        # Auto-set subtype if not provided and only one valid option exists
+        valid_subtypes = self.category_subtypes.get(self.category, [])
+        if not self.subtype and len(valid_subtypes) == 1:
+            self.subtype = valid_subtypes[0]
+
+        # Compute peak_wave from spectrum data if not already set
+        if self.peak_wave is None:
+            self.peak_wave = self.compute_peak_wave()
+
         # Cache invalidation is handled by post_save signal in fpbase.cache_utils
         super().save(*args, **kwargs)
 
@@ -428,59 +426,35 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             logger.exception("Error normalizing spectrum data")
 
     def clean(self):
-        # model-wide validation after individual fields have been cleaned
-        errors = {}
-        if self.category == self.CAMERA:
-            self.subtype = self.QE
-        if self.category == self.LIGHT:
-            self.subtype = self.PD
-        if (
-            self.category in self.category_subtypes
-            and self.subtype not in self.category_subtypes[self.category]
-        ):
-            errors.update(
-                {
-                    "subtype": "{} spectrum subtype must be{} {}".format(
-                        self.get_category_display(),
-                        "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
-                        " ".join(self.category_subtypes[self.category]),
-                    )
-                }
+        # Validate subtype is appropriate for category
+        valid_subtypes = self.category_subtypes.get(self.category, [])
+        if self.subtype and self.subtype not in valid_subtypes:
+            valid_str = ", ".join(valid_subtypes)
+            cat = self.get_category_display()
+            raise ValidationError(
+                {"subtype": f"{cat} spectrum subtype must be one of: {valid_str}"}
             )
 
-        if errors:
-            raise ValidationError(errors)
+        # Validate y_values length matches wavelength range (1nm spacing)
+        # y_values is float32 binary (4 bytes per value)
+        expected_len = self.max_wave - self.min_wave + 1
+        actual_len = len(self.y_values) // 4
+        if actual_len != expected_len:
+            raise ValidationError(
+                f"y_values length ({actual_len}) must match wavelength range ({expected_len})"
+            )
 
     @property
-    def owner_set(self) -> list[FluorState | Filter | Light | Camera | None]:
-        return [
-            self.owner_fluor,
-            self.owner_filter,
-            self.owner_light,
-            self.owner_camera,
-        ]
-
-    @property
-    def owner(self) -> FluorState | Filter | Light | Camera | None:
-        return next((x for x in self.owner_set if x), None)
+    def owner(self) -> FluorState | Filter | Light | Camera:
+        owners = (self.owner_fluor, self.owner_filter, self.owner_light, self.owner_camera)
+        return next(x for x in owners if x is not None)
 
     @property
     def name(self) -> str:
-        # this method allows the protein name to have changed in the meantime
+        # owner fluors can have multiple spectra, so include subtype
         if self.owner_fluor:
-            # Check if it's a State (ProteinState) by checking for protein attribute
-            if hasattr(self.owner_fluor, "protein"):
-                if self.owner_fluor.name == "default":
-                    return f"{self.owner_fluor.protein} {self.subtype}"
-                else:
-                    return f"{self.owner_fluor} {self.subtype}"
-            else:
-                # It's a DyeState
-                return f"{self.owner} {self.subtype}"
-        elif self.owner_filter:
-            return str(self.owner)
-        else:
-            return str(self.owner)
+            return f"{self.owner_fluor.owner_name} {self.subtype}"
+        return str(self.owner)
 
     def compute_peak_wave(self) -> int | None:
         """Compute peak wavelength from spectrum data."""
@@ -681,9 +655,6 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             self.scale_factor = scale_factor
 
         self.y_values = self._encode_y_values(y_values)
-
-        # Compute and store peak_wave
-        self.peak_wave = self.compute_peak_wave()
 
     def change_y(self, value: list[float]) -> None:
         """Change Y values in place."""
