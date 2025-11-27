@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from proteins.models import Dye, DyeState, FluorState, Spectrum, State
+from references.models import Reference
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
@@ -260,7 +261,13 @@ class SpectrumFormV2(forms.Form):
         """
         spectra_data = self.cleaned_data["spectra_json"]
         source = self.cleaned_data.get("source", "")
-        reference = self.cleaned_data.get("primary_reference", "")
+
+        # Convert DOI string to Reference instance if provided
+        reference_doi = self.cleaned_data.get("primary_reference", "").strip()
+        reference = None
+        if reference_doi:
+            reference, _ = Reference.objects.get_or_create(doi=reference_doi)
+
         created_spectra = []
 
         for spec_data in spectra_data:
@@ -281,7 +288,7 @@ class SpectrumFormV2(forms.Form):
                 ph=spec_data.get("ph"),
                 solvent=spec_data.get("solvent") or "",
                 source=source,
-                primary_reference=reference,
+                reference=reference,
                 created_by=self.user,
                 status=Spectrum.STATUS.approved
                 if self.user and self.user.is_staff
