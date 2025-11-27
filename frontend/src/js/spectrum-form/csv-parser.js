@@ -1,84 +1,48 @@
 /**
- * CSV/TSV Parser Module
+ * CSV/TSV Parser
  *
- * Parses text files with automatic delimiter and decimal format detection.
- * Supports both European (;/,) and US (,/.) formats.
+ * Parses spectral data files with automatic delimiter and decimal format detection.
+ * Supports European (semicolon/comma) and US (comma/period) formats.
  */
 
 /**
- * Parse CSV/TSV text into a structured result.
+ * Parse CSV/TSV text into structured data.
  *
  * @param {string} text - Raw file content
- * @returns {{ headers: string[] | null, rows: number[][], delimiter: string, hasHeaders: boolean }}
+ * @returns {{ headers: string[], rows: number[][], delimiter: string, hasHeaders: boolean }}
  */
 export function parseCSV(text) {
-  // Normalize line endings
-  text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+  const lines = normalized.split("\n").filter((line) => line.trim())
 
-  // Auto-detect delimiter by counting occurrences in first few lines
-  const sampleLines = text.split("\n").slice(0, 10).join("\n")
-  const delimiter = detectDelimiter(sampleLines)
-  const decimalChar = delimiter === ";" ? "," : "."
-
-  // Split into lines and parse
-  const lines = text.split("\n").filter((line) => line.trim())
   if (lines.length === 0) {
     throw new Error("File is empty")
   }
 
-  // Parse all rows (as strings first)
-  const rawRows = lines.map((line) => splitLine(line, delimiter))
+  const sampleText = lines.slice(0, 10).join("\n")
+  const delimiter = detectDelimiter(sampleText)
+  const decimalChar = delimiter === ";" ? "," : "."
 
-  // Validate all rows have same column count
-  const columnCounts = new Set(rawRows.map((r) => r.length))
-  if (columnCounts.size > 1) {
-    // Filter out rows with different lengths (likely trailing data)
-    const mostCommon = [...columnCounts].reduce((a, b) =>
-      rawRows.filter((r) => r.length === a).length > rawRows.filter((r) => r.length === b).length
-        ? a
-        : b
-    )
-    // Keep only rows with the most common length
-    const filteredRows = rawRows.filter((r) => r.length === mostCommon)
-    if (filteredRows.length < 2) {
-      throw new Error("Inconsistent column counts in file")
-    }
-    rawRows.length = 0
-    rawRows.push(...filteredRows)
-  }
+  let rawRows = lines.map((line) => splitLine(line, delimiter))
 
-  // Detect if first row is headers
+  // Normalize to most common column count (handles trailing data)
+  rawRows = normalizeRowLengths(rawRows)
+
   const hasHeaders = detectHeaders(rawRows[0], decimalChar)
+  const headers = hasHeaders ? rawRows[0] : rawRows[0].map((_, i) => `Column ${i + 1}`)
+  const dataRows = hasHeaders ? rawRows.slice(1) : rawRows
 
-  // Extract headers and data rows
-  let headers = null
-  let dataRows = rawRows
-  if (hasHeaders) {
-    headers = rawRows[0]
-    dataRows = rawRows.slice(1)
-  } else {
-    // Generate generic headers
-    headers = rawRows[0].map((_, i) => `Column ${i + 1}`)
-  }
+  const rows = dataRows
+    .map((row) => row.map((cell) => parseNumber(cell, decimalChar)))
+    .filter((row) => row.some((v) => !Number.isNaN(v)))
 
-  // Parse data rows to numbers
-  const rows = dataRows.map((row) => row.map((cell) => parseNumber(cell, decimalChar)))
-
-  // Filter out rows with all NaN
-  const validRows = rows.filter((row) => row.some((v) => !Number.isNaN(v)))
-
-  return {
-    headers,
-    rows: validRows,
-    delimiter,
-    hasHeaders,
-  }
+  return { headers, rows, delimiter, hasHeaders }
 }
 
 /**
  * Extract spectrum data from parsed CSV.
  *
- * @param {{ rows: number[][], headers: string[] }} parsed - Parsed CSV result
+ * @param {{ rows: number[][] }} parsed - Parsed CSV result
  * @param {number} waveColIndex - Index of wavelength column
  * @param {number} dataColIndex - Index of data column
  * @returns {number[][]} Array of [wavelength, value] pairs sorted by wavelength
@@ -90,27 +54,17 @@ export function extractSpectrum(parsed, waveColIndex, dataColIndex) {
     const wavelength = row[waveColIndex]
     const value = row[dataColIndex]
 
-    // Skip if either value is NaN
-    if (Number.isNaN(wavelength) || Number.isNaN(value)) {
-      continue
-    }
-
-    // Skip if wavelength is outside reasonable range
-    if (wavelength < 150 || wavelength > 1800) {
-      continue
-    }
+    if (Number.isNaN(wavelength) || Number.isNaN(value)) continue
+    if (wavelength < 150 || wavelength > 1800) continue
 
     data.push([wavelength, value])
   }
 
-  // Sort by wavelength
-  data.sort((a, b) => a[0] - b[0])
-
-  return data
+  return data.sort((a, b) => a[0] - b[0])
 }
 
 /**
- * Detect the most likely delimiter in the text.
+ * Detect the most likely delimiter by counting occurrences.
  */
 function detectDelimiter(text) {
   const counts = {
@@ -119,31 +73,20 @@ function detectDelimiter(text) {
     ",": (text.match(/,/g) || []).length,
   }
 
-  // Tab has priority if present
-  if (counts["\t"] > 0) {
-    return "\t"
-  }
-
-  // Semicolon typically indicates European format
-  if (counts[";"] > counts[","]) {
-    return ";"
-  }
-
-  // Default to comma
+  if (counts["\t"] > 0) return "\t"
+  if (counts[";"] > counts[","]) return ";"
   return ","
 }
 
 /**
- * Split a line by delimiter, handling quoted fields.
+ * Split a line by delimiter, respecting quoted fields.
  */
 function splitLine(line, delimiter) {
   const result = []
   let current = ""
   let inQuotes = false
 
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-
+  for (const char of line) {
     if (char === '"') {
       inQuotes = !inQuotes
     } else if (char === delimiter && !inQuotes) {
@@ -159,20 +102,39 @@ function splitLine(line, delimiter) {
 }
 
 /**
- * Detect if a row looks like headers (contains non-numeric values).
+ * Normalize rows to the most common column count.
  */
-function detectHeaders(row, decimalChar) {
-  // If any cell can't be parsed as a number, it's likely a header
-  for (const cell of row) {
-    const trimmed = cell.trim()
-    if (!trimmed) continue
+function normalizeRowLengths(rows) {
+  const countFrequency = new Map()
+  for (const row of rows) {
+    countFrequency.set(row.length, (countFrequency.get(row.length) || 0) + 1)
+  }
 
-    const parsed = parseNumber(trimmed, decimalChar)
-    if (Number.isNaN(parsed)) {
-      return true
+  let mostCommonLength = 0
+  let maxFreq = 0
+  for (const [length, freq] of countFrequency) {
+    if (freq > maxFreq) {
+      maxFreq = freq
+      mostCommonLength = length
     }
   }
-  return false
+
+  const filtered = rows.filter((r) => r.length === mostCommonLength)
+  if (filtered.length < 2) {
+    throw new Error("Inconsistent column counts in file")
+  }
+
+  return filtered
+}
+
+/**
+ * Detect if the first row contains headers (non-numeric values).
+ */
+function detectHeaders(row, decimalChar) {
+  return row.some((cell) => {
+    const trimmed = cell.trim()
+    return trimmed && Number.isNaN(parseNumber(trimmed, decimalChar))
+  })
 }
 
 /**
@@ -184,14 +146,11 @@ function parseNumber(str, decimalChar) {
   let normalized = str.trim()
   if (!normalized) return NaN
 
-  // Handle European format (comma as decimal)
   if (decimalChar === ",") {
-    // Remove dots (thousands separator)
-    normalized = normalized.replace(/\./g, "")
-    // Convert comma to dot (decimal)
-    normalized = normalized.replace(",", ".")
+    // European: dots are thousands, commas are decimals
+    normalized = normalized.replace(/\./g, "").replace(",", ".")
   } else {
-    // Remove commas (thousands separator in US format)
+    // US: commas are thousands
     normalized = normalized.replace(/,/g, "")
   }
 

@@ -1,58 +1,89 @@
 /**
- * Column Picker UI Module
+ * Column Picker UI
  *
- * Renders a table showing parsed CSV data and allows users to select
- * which columns contain wavelength and spectrum data.
+ * Interactive table for selecting wavelength and data columns from parsed CSV.
  */
+
+const PREVIEW_ROWS = 10
 
 /**
  * Render the column picker UI.
  *
  * @param {HTMLElement} container - Container element
  * @param {{ headers: string[], rows: number[][] }} parsedCSV - Parsed CSV data
- * @param {function} onColumnsSelected - Callback when columns are selected
- *        Signature: (wavelengthColIndex, dataColIndices[]) => void
+ * @param {function} onColumnsSelected - Callback: (wavelengthColIndex, dataColIndices[]) => void
  */
 export function renderColumnPicker(container, parsedCSV, onColumnsSelected) {
-  const state = {
-    wavelengthCol: null,
-    dataCols: [], // Array of indices for multi-select
-  }
+  const state = { wavelengthCol: null, dataCols: [] }
 
-  // Clear container
   container.innerHTML = ""
   container.style.display = "block"
 
   // Instructions
-  const instructions = document.createElement("div")
-  instructions.className = "alert alert-info mb-3"
-  instructions.innerHTML = `
+  container.appendChild(createInstructions())
+
+  // Status badges
+  const statusDiv = createStatusBadges()
+  container.appendChild(statusDiv)
+
+  // Table
+  const { table, updateHighlights } = createPreviewTable(parsedCSV, (colIndex) => {
+    handleColumnClick(colIndex, state)
+    updateHighlights(state)
+    updateStatusBadges(state, parsedCSV.headers)
+    continueBtn.disabled = !(state.wavelengthCol !== null && state.dataCols.length > 0)
+  })
+  container.appendChild(table)
+
+  // Continue button
+  const buttonDiv = document.createElement("div")
+  buttonDiv.className = "mt-3"
+  const continueBtn = document.createElement("button")
+  continueBtn.type = "button"
+  continueBtn.className = "btn btn-primary"
+  continueBtn.id = "continue-btn"
+  continueBtn.disabled = true
+  continueBtn.textContent = "Continue with Selected Columns"
+  continueBtn.addEventListener("click", () => {
+    if (state.wavelengthCol !== null && state.dataCols.length > 0) {
+      onColumnsSelected(state.wavelengthCol, state.dataCols)
+    }
+  })
+  buttonDiv.appendChild(continueBtn)
+  container.appendChild(buttonDiv)
+}
+
+function createInstructions() {
+  const div = document.createElement("div")
+  div.className = "alert alert-info mb-3"
+  div.innerHTML = `
     <strong>Step 2: Select columns</strong><br>
     <span class="text-primary"><i class="bi bi-1-circle me-1"></i>Click a column header to mark it as <strong>Wavelength</strong></span><br>
     <span class="text-info"><i class="bi bi-2-circle me-1"></i>Then click one or more columns to mark them as <strong>Spectrum Data</strong></span>
   `
-  container.appendChild(instructions)
+  return div
+}
 
-  // Status badges
-  const statusDiv = document.createElement("div")
-  statusDiv.className = "mb-3"
-  statusDiv.innerHTML = `
+function createStatusBadges() {
+  const div = document.createElement("div")
+  div.className = "mb-3"
+  div.innerHTML = `
     <span class="badge bg-info me-2" id="wave-status">Wavelength: Not selected</span>
     <span id="data-badges"><span class="badge bg-info">Data: Not selected</span></span>
   `
-  container.appendChild(statusDiv)
+  return div
+}
 
-  // Table wrapper
-  const tableWrapper = document.createElement("div")
-  tableWrapper.className = "table-responsive"
-  tableWrapper.style.maxHeight = "400px"
-  tableWrapper.style.overflow = "auto"
+function createPreviewTable(parsedCSV, onColumnClick) {
+  const wrapper = document.createElement("div")
+  wrapper.className = "table-responsive"
+  wrapper.style.maxHeight = "400px"
+  wrapper.style.overflow = "auto"
 
-  // Create table
   const table = document.createElement("table")
   table.className = "table table-sm table-bordered table-hover"
 
-  // Header row
+  // Header
   const thead = document.createElement("thead")
   thead.className = "sticky-top bg-light"
   const headerRow = document.createElement("tr")
@@ -67,108 +98,87 @@ export function renderColumnPicker(container, parsedCSV, onColumnsSelected) {
       <div class="fw-bold">${escapeHtml(header)}</div>
       <small class="text-muted">Col ${index + 1}</small>
     `
-
-    th.addEventListener("click", () => {
-      handleColumnClick(index, state, parsedCSV.headers, table, onColumnsSelected)
-      updateStatusBadges(state, parsedCSV.headers)
-    })
-
+    th.addEventListener("click", () => onColumnClick(index))
     headerRow.appendChild(th)
   })
 
   thead.appendChild(headerRow)
   table.appendChild(thead)
 
-  // Data rows (show first 10 for preview)
+  // Body
   const tbody = document.createElement("tbody")
-  const previewRows = parsedCSV.rows.slice(0, 10)
+  const previewRows = parsedCSV.rows.slice(0, PREVIEW_ROWS)
 
-  previewRows.forEach((row) => {
+  for (const row of previewRows) {
     const tr = document.createElement("tr")
-    row.forEach((cell) => {
+    for (const cell of row) {
       const td = document.createElement("td")
       td.className = "text-end"
       td.textContent = typeof cell === "number" && !Number.isNaN(cell) ? cell.toFixed(4) : "-"
       tr.appendChild(td)
-    })
+    }
     tbody.appendChild(tr)
-  })
+  }
 
-  // Add "more rows" indicator
-  if (parsedCSV.rows.length > 10) {
+  if (parsedCSV.rows.length > PREVIEW_ROWS) {
     const tr = document.createElement("tr")
     const td = document.createElement("td")
     td.colSpan = parsedCSV.headers.length
     td.className = "text-center text-muted fst-italic"
-    td.textContent = `... and ${parsedCSV.rows.length - 10} more rows`
+    td.textContent = `... and ${parsedCSV.rows.length - PREVIEW_ROWS} more rows`
     tr.appendChild(td)
     tbody.appendChild(tr)
   }
 
   table.appendChild(tbody)
-  tableWrapper.appendChild(table)
-  container.appendChild(tableWrapper)
+  wrapper.appendChild(table)
 
-  // Continue button (hidden until valid selection)
-  const buttonDiv = document.createElement("div")
-  buttonDiv.className = "mt-3"
-  buttonDiv.innerHTML = `
-    <button type="button" class="btn btn-primary" id="continue-btn" disabled>
-      Continue with Selected Columns
-    </button>
-  `
-  container.appendChild(buttonDiv)
+  const updateHighlights = (state) => {
+    const allThs = table.querySelectorAll("thead th")
+    const allTds = table.querySelectorAll("tbody td")
+    const columnCount = parsedCSV.headers.length
 
-  const continueBtn = document.getElementById("continue-btn")
-  continueBtn.addEventListener("click", () => {
-    if (state.wavelengthCol !== null && state.dataCols.length > 0) {
-      onColumnsSelected(state.wavelengthCol, state.dataCols)
+    // Clear all highlights
+    for (const th of allThs) {
+      th.classList.remove("table-primary", "table-info")
     }
-  })
-}
+    for (const td of allTds) {
+      td.classList.remove("table-primary", "table-info")
+    }
 
-/**
- * Handle column header click.
- */
-function handleColumnClick(index, state, headers, table, _onColumnsSelected) {
-  const allThs = table.querySelectorAll("thead th")
-  const allTds = table.querySelectorAll("tbody td")
-  const columnCount = headers.length
+    // Apply wavelength highlight
+    if (state.wavelengthCol !== null) {
+      highlightColumn(allThs, allTds, state.wavelengthCol, columnCount, "table-primary")
+    }
 
-  if (state.wavelengthCol === null) {
-    // First click: select wavelength column
-    state.wavelengthCol = index
-    highlightColumn(allThs, allTds, index, columnCount, "wavelength")
-  } else if (state.wavelengthCol === index) {
-    // Clicking on wavelength column again: deselect it
-    state.wavelengthCol = null
-    state.dataCols = []
-    clearAllHighlights(allThs, allTds)
-  } else if (state.dataCols.includes(index)) {
-    // Clicking on already selected data column: deselect it
-    state.dataCols = state.dataCols.filter((i) => i !== index)
-    clearColumnHighlight(allThs, allTds, index, columnCount)
-  } else {
-    // Click on a new column: add as data column
-    state.dataCols.push(index)
-    highlightColumn(allThs, allTds, index, columnCount, "data")
+    // Apply data column highlights
+    for (const colIndex of state.dataCols) {
+      highlightColumn(allThs, allTds, colIndex, columnCount, "table-info")
+    }
   }
 
-  // Update continue button state
-  const continueBtn = document.getElementById("continue-btn")
-  continueBtn.disabled = !(state.wavelengthCol !== null && state.dataCols.length > 0)
+  return { table: wrapper, updateHighlights }
 }
 
-/**
- * Highlight a column with the specified type.
- */
-function highlightColumn(allThs, allTds, colIndex, columnCount, type) {
-  const className = type === "wavelength" ? "table-primary" : "table-info"
+function handleColumnClick(index, state) {
+  if (state.wavelengthCol === null) {
+    // First click: set wavelength column
+    state.wavelengthCol = index
+  } else if (state.wavelengthCol === index) {
+    // Click on wavelength: deselect everything
+    state.wavelengthCol = null
+    state.dataCols = []
+  } else if (state.dataCols.includes(index)) {
+    // Click on selected data column: deselect it
+    state.dataCols = state.dataCols.filter((i) => i !== index)
+  } else {
+    // Click on new column: add as data column
+    state.dataCols.push(index)
+  }
+}
 
-  // Highlight header
+function highlightColumn(allThs, allTds, colIndex, columnCount, className) {
   allThs[colIndex].classList.add(className)
-
-  // Highlight all cells in column
   allTds.forEach((td, i) => {
     if (i % columnCount === colIndex) {
       td.classList.add(className)
@@ -176,62 +186,27 @@ function highlightColumn(allThs, allTds, colIndex, columnCount, type) {
   })
 }
 
-/**
- * Clear highlight from a specific column.
- */
-function clearColumnHighlight(allThs, allTds, colIndex, columnCount) {
-  allThs[colIndex].classList.remove("table-primary", "table-info")
-  allTds.forEach((td, i) => {
-    if (i % columnCount === colIndex) {
-      td.classList.remove("table-primary", "table-info")
-    }
-  })
-}
-
-/**
- * Clear all column highlights.
- */
-function clearAllHighlights(allThs, allTds) {
-  allThs.forEach((th) => {
-    th.classList.remove("table-primary", "table-info")
-  })
-  allTds.forEach((td) => {
-    td.classList.remove("table-primary", "table-info")
-  })
-}
-
-/**
- * Update the status badges.
- */
 function updateStatusBadges(state, headers) {
   const waveStatus = document.getElementById("wave-status")
-  const _dataStatus = document.getElementById("data-status")
+  const dataBadges = document.getElementById("data-badges")
 
   if (state.wavelengthCol !== null) {
     waveStatus.textContent = `Wavelength: ${headers[state.wavelengthCol]}`
-    waveStatus.classList.remove("bg-info")
-    waveStatus.classList.add("bg-primary")
+    waveStatus.className = "badge bg-primary me-2"
   } else {
     waveStatus.textContent = "Wavelength: Not selected"
-    waveStatus.classList.remove("bg-primary")
-    waveStatus.classList.add("bg-info")
+    waveStatus.className = "badge bg-info me-2"
   }
 
-  const dataBadges = document.getElementById("data-badges")
   if (state.dataCols.length > 0) {
-    // Create individual badge for each data column
-    const badges = state.dataCols
+    dataBadges.innerHTML = state.dataCols
       .map((i) => `<span class="badge bg-secondary me-1">${escapeHtml(headers[i])}</span>`)
       .join("")
-    dataBadges.innerHTML = badges
   } else {
     dataBadges.innerHTML = `<span class="badge bg-info">Data: Not selected</span>`
   }
 }
 
-/**
- * Escape HTML to prevent XSS.
- */
 function escapeHtml(str) {
   const div = document.createElement("div")
   div.textContent = str
