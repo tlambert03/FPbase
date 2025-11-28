@@ -60,7 +60,7 @@ def european_csv_file() -> Iterator[Path]:
 @pytest.fixture
 def spectrum_form_page(live_server: LiveServer, auth_page: Page) -> Iterator[Page]:
     """Navigate to the spectrum form page."""
-    url = f"{live_server.url}{reverse('proteins:submit-spectra-v2')}"
+    url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
     auth_page.goto(url)
     expect(auth_page.locator("#spectrum-form-v2")).to_be_visible()
     yield auth_page
@@ -111,7 +111,7 @@ def _fill_source(page: Page, source: str) -> None:
 
 def test_spectrum_form_page_requires_auth(live_server: LiveServer, page: Page) -> None:
     """Unauthenticated users are redirected to login."""
-    url = f"{live_server.url}{reverse('proteins:submit-spectra-v2')}"
+    url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
     page.goto(url)
     expect(page).to_have_url(re.compile(r".*/accounts/login/.*"))
 
@@ -433,7 +433,7 @@ def test_submit_filter_spectrum_with_source(
     page.locator("#submit-btn").click()
 
     # Should redirect to success page
-    expect(page).to_have_url(re.compile(r".*/spectra/submitted/v2/"))
+    expect(page).to_have_url(re.compile(r".*/spectra/submitted/"))
     expect(page.locator("body")).to_contain_text("Thank You!")
 
     # Verify spectrum was created in database
@@ -463,7 +463,7 @@ def test_submit_spectrum_with_doi_reference(
     page.locator("#submit-btn").click()
 
     # Should redirect to success page
-    expect(page).to_have_url(re.compile(r".*/spectra/submitted/v2/"))
+    expect(page).to_have_url(re.compile(r".*/spectra/submitted/"))
 
     # Verify spectrum was created with reference
     spectrum = Spectrum.objects.all_objects().filter(owner_light__name="E2E Test Light").first()
@@ -487,7 +487,7 @@ def test_submit_multiple_spectra(spectrum_form_page: Page, sample_csv_file: Path
     page.locator("#id_confirmation").check()
     page.locator("#submit-btn").click()
 
-    expect(page).to_have_url(re.compile(r".*/spectra/submitted/v2/"))
+    expect(page).to_have_url(re.compile(r".*/spectra/submitted/"))
 
     # Verify both spectra were created
     spectra = Spectrum.objects.all_objects().filter(source="E2E Multi Test")

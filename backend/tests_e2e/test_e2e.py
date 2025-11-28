@@ -124,7 +124,7 @@ def test_spectrum_submission_preview_manual_data(
         protein = ProteinFactory.create(name=owner_name)
         protein.default_state.ex_spectrum.delete()
 
-    url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
+    url = f"{live_server.url}{reverse('proteins:submit-spectra-legacy')}"
     auth_page.goto(url)
     expect(auth_page).to_have_url(url)
     # Wait for form to be fully initialized
@@ -167,7 +167,9 @@ def test_spectrum_submission_preview_manual_data(
 
     # submit it!
     auth_page.get_by_text("Submit Spectrum").click()
-    expect(auth_page).to_have_url(f"{live_server.url}{reverse('proteins:spectrum_submitted')}")
+    expect(auth_page).to_have_url(
+        f"{live_server.url}{reverse('proteins:spectrum_submitted_legacy')}"
+    )
 
 
 def test_spectrum_submission_tab_switching(
@@ -177,7 +179,7 @@ def test_spectrum_submission_tab_switching(
     # Create a protein so owner_state field has options
     protein = ProteinFactory.create(name="TabSwitchTestProtein")
 
-    url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
+    url = f"{live_server.url}{reverse('proteins:submit-spectra-legacy')}"
     auth_page.goto(url)
     expect(auth_page).to_have_url(url)
 

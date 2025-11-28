@@ -66,7 +66,7 @@ class SpectrumCreateView(CreateView):
     form_class = SpectrumForm
 
     def get_success_url(self, **kwargs):
-        return reverse_lazy("proteins:spectrum_submitted")
+        return reverse_lazy("proteins:spectrum_submitted_legacy")
 
     def get_initial(self):
         init = super().get_initial()
@@ -151,7 +151,7 @@ class SpectrumCreateViewV2(CreateView):
     template_name = "proteins/spectrum_form_v2.html"
 
     def get_success_url(self, **kwargs):
-        return reverse_lazy("proteins:spectrum_submitted_v2")
+        return reverse_lazy("proteins:spectrum_submitted")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
