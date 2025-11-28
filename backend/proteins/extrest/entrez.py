@@ -8,6 +8,7 @@ import re
 import time
 from collections.abc import MutableMapping, Sequence
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
+from urllib.parse import quote
 
 import requests
 from Bio import Entrez, SeqIO
@@ -111,11 +112,18 @@ def _merge_info(dict1: MutableMapping, dict2: MutableMapping, exclude=()) -> Mut
 
 
 def is_valid_doi(doi: str) -> bool:
-    """Super minimal check if DOI exists via Crossref API"""
+    """Check if DOI exists via Crossref API."""
+    if not doi or len(doi) > 200:
+        return False
     try:
-        requests.head(f"https://api.crossref.org/works/{doi}", timeout=5).raise_for_status()
-        return True
-    except Exception:
+        encoded_doi = quote(doi, safe="")
+        resp = requests.head(
+            f"https://api.crossref.org/works/{encoded_doi}",
+            timeout=3,
+            allow_redirects=True,
+        )
+        return resp.status_code == 200
+    except requests.RequestException:
         return False
 
 

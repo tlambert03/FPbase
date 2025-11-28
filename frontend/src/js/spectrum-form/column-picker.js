@@ -12,8 +12,11 @@ const PREVIEW_ROWS = 9
  * @param {HTMLElement} container - Container element
  * @param {{ headers: string[], rows: number[][] }} parsedCSV - Parsed CSV data
  * @param {function} onColumnsSelected - Callback: (wavelengthColIndex, dataColIndices[]) => void
+ * @param {Object} [options] - Options
+ * @param {number} [options.maxColumns] - Maximum number of data columns that can be selected
  */
-export function renderColumnPicker(container, parsedCSV, onColumnsSelected) {
+export function renderColumnPicker(container, parsedCSV, onColumnsSelected, options = {}) {
+  const { maxColumns = Infinity } = options
   const state = { wavelengthCol: null, dataCols: [] }
 
   container.innerHTML = ""
@@ -28,9 +31,9 @@ export function renderColumnPicker(container, parsedCSV, onColumnsSelected) {
 
   // Table
   const { table, updateHighlights } = createPreviewTable(parsedCSV, (colIndex) => {
-    handleColumnClick(colIndex, state)
+    handleColumnClick(colIndex, state, maxColumns)
     updateHighlights(state)
-    updateStatusBadges(state, parsedCSV.headers)
+    updateStatusBadges(state, parsedCSV.headers, maxColumns)
     continueBtn.disabled = !(state.wavelengthCol !== null && state.dataCols.length > 0)
   })
   container.appendChild(table)
@@ -160,7 +163,7 @@ function createPreviewTable(parsedCSV, onColumnClick) {
   return { table: wrapper, updateHighlights }
 }
 
-function handleColumnClick(index, state) {
+function handleColumnClick(index, state, maxColumns) {
   if (state.wavelengthCol === null) {
     // First click: set wavelength column
     state.wavelengthCol = index
@@ -171,10 +174,11 @@ function handleColumnClick(index, state) {
   } else if (state.dataCols.includes(index)) {
     // Click on selected data column: deselect it
     state.dataCols = state.dataCols.filter((i) => i !== index)
-  } else {
-    // Click on new column: add as data column
+  } else if (state.dataCols.length < maxColumns) {
+    // Click on new column: add as data column (if under limit)
     state.dataCols.push(index)
   }
+  // If at maxColumns limit, clicking a new column does nothing
 }
 
 function highlightColumn(allThs, allTds, colIndex, columnCount, className) {
@@ -186,7 +190,7 @@ function highlightColumn(allThs, allTds, colIndex, columnCount, className) {
   })
 }
 
-function updateStatusBadges(state, headers) {
+function updateStatusBadges(state, headers, maxColumns) {
   const waveStatus = document.getElementById("wave-status")
   const dataBadges = document.getElementById("data-badges")
 
@@ -199,9 +203,14 @@ function updateStatusBadges(state, headers) {
   }
 
   if (state.dataCols.length > 0) {
-    dataBadges.innerHTML = state.dataCols
-      .map((i) => `<span class="badge bg-secondary me-1">${escapeHtml(headers[i])}</span>`)
-      .join("")
+    const limitText =
+      maxColumns < Infinity
+        ? ` <small class="opacity-75">(${state.dataCols.length}/${maxColumns})</small>`
+        : ""
+    dataBadges.innerHTML =
+      state.dataCols
+        .map((i) => `<span class="badge bg-secondary me-1">${escapeHtml(headers[i])}</span>`)
+        .join("") + limitText
   } else {
     dataBadges.innerHTML = `<span class="badge bg-info">Data: Not selected</span>`
   }

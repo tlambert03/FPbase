@@ -460,10 +460,15 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
     def _compute_peak_wave(self) -> int | None:
         """Compute peak wavelength from spectrum data."""
         try:
+            if not self.y:
+                return None
             if self.min_wave < 300:
-                return self.x[
-                    self.y.index(max([i for n, i in enumerate(self.y) if self.x[n] > 300]))
-                ]
+                # Find max Y where wavelength > 300
+                valid_values = [i for n, i in enumerate(self.y) if self.x[n] > 300]
+                if not valid_values:
+                    return None
+                max_val = max(valid_values)
+                return self.x[self.y.index(max_val)]
             else:
                 # First look for Y ≈ 1.0 (the normalized peak) to avoid false 2P peaks
                 y_arr = np.asarray(self.y)

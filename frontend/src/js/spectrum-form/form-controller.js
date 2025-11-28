@@ -57,6 +57,9 @@ import { createSpectrumChart } from "./spectrum-chart.js"
 const CONFIG = {
   peakSearchRadius: 20, // nm around click for peak search
   doiPattern: /^10\.\d{4,}\/[^\s]+$/,
+  // Must match backend/proteins/forms/spectrum_v2.py limits
+  maxSpectraPerSubmission: 20,
+  maxDataPointsPerSpectrum: 2000,
 }
 
 /** Subtypes available for fluorophore spectra (proteins and dyes) */
@@ -186,11 +189,16 @@ function setupEventListeners(el, state) {
       const text = await file.text()
       state.parsedCSV = parseCSV(text)
 
-      renderColumnPicker(el.columnPicker, state.parsedCSV, (waveCol, dataCols) => {
-        state.wavelengthCol = waveCol
-        state.dataCols = dataCols
-        processSelectedColumns(el, state)
-      })
+      renderColumnPicker(
+        el.columnPicker,
+        state.parsedCSV,
+        (waveCol, dataCols) => {
+          state.wavelengthCol = waveCol
+          state.dataCols = dataCols
+          processSelectedColumns(el, state)
+        },
+        { maxColumns: CONFIG.maxSpectraPerSubmission }
+      )
     } catch (error) {
       el.columnPicker.innerHTML = ""
       el.columnPicker.style.display = "block"
@@ -245,6 +253,16 @@ function processSelectedColumns(el, state) {
 
     if (rawData.length < 2) {
       showAlert(el.spectraPreview, `Column "${columnName}" has insufficient data points`, "warning")
+      continue
+    }
+
+    if (rawData.length > CONFIG.maxDataPointsPerSpectrum) {
+      showAlert(
+        el.spectraPreview,
+        `Column "${columnName}" has too many data points (${rawData.length}). ` +
+          `Maximum ${CONFIG.maxDataPointsPerSpectrum}.`,
+        "danger"
+      )
       continue
     }
 

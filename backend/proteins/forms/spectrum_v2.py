@@ -43,6 +43,10 @@ class SpectrumJSONData(TypedDict):
     peak_wave: int | None
 
 
+MAX_SPECTRA_PER_SUBMISSION = 20
+MAX_DATA_POINTS_PER_SPECTRUM = 2000
+
+
 def _validate_spectrum_json(raw: str | bytes) -> list[SpectrumJSONData]:
     if not raw or raw == "[]":
         raise forms.ValidationError("No spectrum data provided.")
@@ -54,6 +58,12 @@ def _validate_spectrum_json(raw: str | bytes) -> list[SpectrumJSONData]:
 
     if not isinstance(spectra, list) or len(spectra) == 0:
         raise forms.ValidationError("Expected a non-empty array of spectra.")
+
+    if len(spectra) > MAX_SPECTRA_PER_SUBMISSION:
+        raise forms.ValidationError(
+            f"Too many spectra ({len(spectra)}). "
+            f"Maximum {MAX_SPECTRA_PER_SUBMISSION} per submission."
+        )
 
     valid_subtypes = dict(Spectrum.SUBTYPE_CHOICES)
     valid_categories = dict(Spectrum.CATEGORIES)
@@ -69,6 +79,12 @@ def _validate_spectrum_json(raw: str | bytes) -> list[SpectrumJSONData]:
         data = spec["data"]
         if not isinstance(data, list) or len(data) < 2:
             raise forms.ValidationError(f"Spectrum {i + 1} must have at least 2 data points.")
+
+        if len(data) > MAX_DATA_POINTS_PER_SPECTRUM:
+            raise forms.ValidationError(
+                f"Spectrum {i + 1} has too many data points ({len(data)}). "
+                f"Maximum {MAX_DATA_POINTS_PER_SPECTRUM}."
+            )
 
         for j, point in enumerate(data):
             if not isinstance(point, list) or len(point) != 2:
