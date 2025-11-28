@@ -58,7 +58,7 @@ export function normalizeSpectrum(data, options = {}) {
   const peakWave = data[peakIndex][0]
   const normalized = data.map(([wave, value]) => [
     wave,
-    roundTo4(peakValue > 0 ? Math.max(value / peakValue, 0) : 0),
+    roundToFloat32(peakValue > 0 ? Math.max(value / peakValue, 0) : 0),
   ])
 
   return { normalized, peakWave, peakValue }
@@ -123,7 +123,7 @@ export function normalize2P(data, options = {}) {
   const peakWave = data[peakIndex][0]
   const normalized = data.map(([wave, value]) => [
     wave,
-    roundTo4(peakValue > 0 ? Math.max(value / peakValue, 0) : 0),
+    roundToFloat32(peakValue > 0 ? Math.max(value / peakValue, 0) : 0),
   ])
 
   return { normalized, peakWave, peakValue }
@@ -182,6 +182,15 @@ function linearInterpolate(sortedData, x) {
   return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0)
 }
 
-function roundTo4(value) {
-  return Math.round(value * 10000) / 10000
+/**
+ * Round to float32 precision (~7 significant digits) and trim trailing zeros.
+ * Float32 has ~7 decimal digits of precision.
+ */
+function roundToFloat32(value) {
+  // Use Math.fround to get float32 precision, then round to 7 significant figures
+  const f32 = Math.fround(value)
+  if (f32 === 0) return 0
+  const magnitude = Math.floor(Math.log10(Math.abs(f32)))
+  const scale = 10 ** (6 - magnitude) // 7 significant digits
+  return Math.round(f32 * scale) / scale
 }
