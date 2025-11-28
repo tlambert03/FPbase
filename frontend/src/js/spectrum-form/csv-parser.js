@@ -95,6 +95,9 @@ export function parseCSV(text) {
 /**
  * Extract spectrum data from parsed CSV.
  *
+ * Handles sparse columns where data may start/end at different wavelengths.
+ * Trims leading/trailing empty values and zeros from the spectrum.
+ *
  * @param {{ rows: number[][] }} parsed - Parsed CSV result
  * @param {number} waveColIndex - Index of wavelength column
  * @param {number} dataColIndex - Index of data column
@@ -105,13 +108,34 @@ export function extractSpectrum(parsed, waveColIndex, dataColIndex) {
 
   for (const row of parsed.rows) {
     const wavelength = row[waveColIndex]
-    const value = row[dataColIndex]
+    const rawValue = row[dataColIndex]
 
-    if (Number.isNaN(wavelength) || Number.isNaN(value)) continue
+    // Skip if wavelength is invalid
+    if (typeof wavelength !== "number" || Number.isNaN(wavelength)) continue
     if (wavelength < 150 || wavelength > 1800) continue
+
+    // Skip empty/undefined/null values (handles sparse columns)
+    if (rawValue == null || rawValue === "") continue
+
+    // Ensure value is a number
+    const value = typeof rawValue === "number" ? rawValue : parseFloat(rawValue)
+    if (Number.isNaN(value)) continue
 
     data.push([wavelength, value])
   }
 
-  return data.sort((a, b) => a[0] - b[0])
+  // Sort by wavelength
+  data.sort((a, b) => a[0] - b[0])
+
+  // Trim leading zeros (values exactly 0.0)
+  while (data.length > 0 && data[0][1] === 0) {
+    data.shift()
+  }
+
+  // Trim trailing zeros (values exactly 0.0)
+  while (data.length > 0 && data[data.length - 1][1] === 0) {
+    data.pop()
+  }
+
+  return data
 }

@@ -316,11 +316,6 @@ function buildCardHTML(spectrum, index, { shouldNormalize, showFluor, useAutocom
   const categoryOptions = buildCategoryOptions(spectrum.category)
   const subtypeOptions = buildSubtypeOptions(spectrum.category, spectrum.subtype)
   const scaleUnits = SCALE_UNITS[spectrum.subtype] || ""
-  const [minWave, maxWave] = [
-    Math.round(spectrum.raw[0][0]),
-    Math.round(spectrum.raw[spectrum.raw.length - 1][0]),
-  ]
-
   const hasCategory = !!spectrum.category
   const ownerPlaceholder = hasCategory ? "Name of dye, filter, etc." : "Select a category first"
 
