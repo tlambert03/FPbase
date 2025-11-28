@@ -22,14 +22,14 @@ const SUBTYPE_DISPLAY_NAMES = {
  * Check for similar spectrum owners and show warnings.
  *
  * @param {string} ownerName - The owner name to check
- * @param {string} category - The spectrum category (e.g., "D" for dye, "F" for filter)
- * @param {string} subtype - The spectrum subtype (e.g., "AB", "EM", "EX")
+ * @param {string} category - The spectrum category code (d=dye, p=protein, f=filter, c=camera, l=light)
+ * @param {string} subtype - The spectrum subtype code (ex, ab, em, 2p, bp, etc.)
  * @param {HTMLElement} warningContainer - Element to display warnings
  * @returns {Promise<boolean>} True if exact match found (blocks submission), false otherwise
  */
 export async function checkSimilarOwners(ownerName, category, subtype, warningContainer) {
   // Proteins use Select2 autocomplete - no duplicate checking needed
-  if (!ownerName?.trim() || category === "P") {
+  if (!ownerName?.trim() || category === "p") {
     warningContainer.innerHTML = ""
     warningContainer.classList.add("d-none")
     return false
@@ -102,7 +102,7 @@ export async function checkSimilarOwners(ownerName, category, subtype, warningCo
  * For others: show all similar names (they only have one spectrum per owner)
  */
 function filterSimilarsByCategory(similars, category, subtype) {
-  if (category === "D") {
+  if (category === "d") {
     // Dye: only warn if similar dye has the same subtype
     // Backend returns display names, so convert code to display name
     const subtypeDisplayName = SUBTYPE_DISPLAY_NAMES[subtype.toLowerCase()]
