@@ -47,6 +47,16 @@ export function parseCSV(text) {
   // Extract headers from schema
   const headers = schema.cols.map((col) => col.name)
 
+  // Validate: must have at least 2 columns
+  if (headers.length < 2) {
+    const detectedDelim =
+      schema.col === "\t" ? "tab" : schema.col === "," ? "comma" : JSON.stringify(schema.col)
+    throw new Error(
+      `File must have at least 2 columns (wavelength and data). ` +
+        `Only 1 column was detected (delimiter: ${detectedDelim}).`
+    )
+  }
+
   // Convert objects to arrays matching header order
   const rows = objRows.map((obj) => headers.map((header) => obj[header]))
 
@@ -55,6 +65,23 @@ export function parseCSV(text) {
 
   if (validRows.length === 0) {
     throw new Error("No valid numeric data found in file")
+  }
+
+  // Validate: check that we have wavelength-like data in at least one column
+  const hasWavelengthColumn = headers.some((_, colIndex) => {
+    const colValues = validRows.map((row) => row[colIndex]).filter((v) => typeof v === "number")
+    if (colValues.length < 3) return false
+    // Check if values are in plausible wavelength range (150-1800nm)
+    const inRange = colValues.filter((v) => v >= 150 && v <= 1800)
+    return inRange.length >= colValues.length * 0.5 // At least 50% in range
+  })
+
+  if (!hasWavelengthColumn) {
+    throw new Error(
+      "Could not find a wavelength column. " +
+        "Expected numeric values in the 150-1800nm range. " +
+        "Check that your file format is correct."
+    )
   }
 
   return {

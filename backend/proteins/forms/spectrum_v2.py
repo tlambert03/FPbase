@@ -10,6 +10,7 @@ from django.apps import apps
 from django.db import transaction
 from django.utils.text import slugify
 
+from proteins.extrest.entrez import is_valid_doi
 from proteins.models import Dye, DyeState, FluorState, Spectrum, State
 from references.models import Reference
 
@@ -140,7 +141,7 @@ class SpectrumFormV2(forms.Form):
     file = forms.FileField(
         required=False,
         label="Spectrum File",
-        help_text="Upload CSV or TSV file. Any column layout is accepted.",
+        help_text="Upload CSV or TSV file.",
     )
 
     # Shared source fields
@@ -173,13 +174,27 @@ class SpectrumFormV2(forms.Form):
         raw = self.cleaned_data.get("spectra_json", "")
         return _validate_spectrum_json(raw)
 
+    def clean_primary_reference(self) -> str:
+        """Validate that the DOI is resolvable if provided."""
+        doi = self.cleaned_data.get("primary_reference", "").strip()
+        if doi and not is_valid_doi(doi):
+            raise forms.ValidationError(
+                f"Could not find a reference for DOI: {doi}. Please check that it is correct."
+            )
+
+        return doi
+
     def clean(self):
         """Validate that at least one of source or primary_reference is provided."""
         cleaned_data = super().clean()
         source = cleaned_data.get("source", "").strip()
         reference = cleaned_data.get("primary_reference", "").strip()
 
-        if not source and not reference:
+        # Check if user attempted to provide a reference (even if it failed validation)
+        # by looking at the raw data, not just cleaned_data
+        attempted_reference = self.data.get("primary_reference", "").strip()
+
+        if not source and not reference and not attempted_reference:
             raise forms.ValidationError(
                 "Please provide at least one of Source or Primary Reference."
             )

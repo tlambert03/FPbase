@@ -5,13 +5,11 @@ import logging
 import traceback
 from textwrap import dedent
 
-# from django.views.decorators.cache import cache_page
-# from django.views.decorators.vary import vary_on_cookie
 from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import permission_required
 from django.core.mail import EmailMessage
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
@@ -27,8 +25,6 @@ from proteins.util.importers import add_filter_to_database
 from proteins.util.spectra import spectra2csv
 
 
-# @cache_page(60 * 10)
-# @vary_on_cookie
 def protein_spectra(request, slug=None):
     """renders html for protein spectra page"""
     template = "spectra.html"
@@ -201,9 +197,6 @@ class SpectrumCreateViewV2(CreateView):
                 to=[a[1] for a in settings.ADMINS],
                 headers={"X-Mailgun-Track": "no"},
             ).send()
-
-        # Redirect to success URL (can't use super() since we're not calling form.save() normally)
-        from django.http import HttpResponseRedirect
 
         return HttpResponseRedirect(self.get_success_url())
 

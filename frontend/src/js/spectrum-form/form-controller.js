@@ -97,6 +97,7 @@ export function initSpectrumForm() {
     confirmationSection: document.getElementById("confirmation-section"),
     sourceInput: document.getElementById("id_source"),
     referenceInput: document.getElementById("id_reference"),
+    confirmationCheckbox: document.getElementById("id_confirmation"),
   }
 
   const state = {
@@ -107,6 +108,9 @@ export function initSpectrumForm() {
   }
 
   setupEventListeners(elements, state)
+
+  // Restore state from spectra_json if present (e.g., after form validation error)
+  restoreStateFromJson(elements, state)
 }
 
 // ============================================================================
@@ -123,9 +127,31 @@ function setupEventListeners(el, state) {
 
   el.sourceInput?.addEventListener("input", () => updateFormState(el, state))
 
+  el.confirmationCheckbox?.addEventListener("change", () => updateFormState(el, state))
+
   el.fileInput?.addEventListener("change", async (e) => {
     const file = e.target.files[0]
     if (!file) return
+
+    // Reset UI state
+    el.spectraPreview.style.display = "none"
+    el.spectraPreview.innerHTML = ""
+    el.globalSourceFields.style.display = "none"
+    el.confirmationSection.style.display = "none"
+    el.submitBtn.disabled = true
+
+    // Clear any previous errors/messages
+    document.getElementById("form-errors")?.remove()
+    document.getElementById("validation-message")?.remove()
+
+    // Clean up previous spectra charts
+    for (const s of state.spectra) {
+      s.chartController?.destroy()
+    }
+    state.spectra = []
+    state.parsedCSV = null
+    state.wavelengthCol = null
+    state.dataCols = []
 
     try {
       const text = await file.text()
@@ -136,15 +162,13 @@ function setupEventListeners(el, state) {
         state.dataCols = dataCols
         processSelectedColumns(el, state)
       })
-
-      // Reset UI until columns are selected
-      el.spectraPreview.style.display = "none"
-      el.spectraPreview.innerHTML = ""
-      el.globalSourceFields.style.display = "none"
-      el.confirmationSection.style.display = "none"
-      el.submitBtn.disabled = true
     } catch (error) {
-      showAlert(el.columnPicker, `Error parsing file: ${error.message}`, "danger")
+      // Show error in the column picker container area
+      el.columnPicker.innerHTML = ""
+      el.columnPicker.style.display = "block"
+      showAlert(el.columnPicker, `Error reading file: ${error.message}`, "danger")
+      // Clear file input so user can try again with same file
+      el.fileInput.value = ""
     }
   })
 }
@@ -195,7 +219,7 @@ function processSelectedColumns(el, state) {
 
     const card = createSpectrumCard(el, state, spectrum, i)
     el.spectraPreview.appendChild(card)
-    processSpectrum(spectrum, i)
+    processSpectrum(spectrum, i, el, state)
     state.spectra.push(spectrum)
   }
 
@@ -281,10 +305,12 @@ function buildCardHTML(spectrum, index, { shouldNormalize, showBioFields, useAut
             Owner <span class="text-danger">*</span>
           </label>
           <input type="text" class="form-control form-control-sm" id="owner-input-${index}"
-                 placeholder="${spectrum.category ? "Name of dye, filter, etc." : "Select a category first"}" required
+                 placeholder="${spectrum.category ? "Name of dye, filter, etc." : "Select a category first"}"
+                 ${useAutocomplete ? "" : "required"}
                  ${spectrum.category ? "" : "disabled"}
                  style="${useAutocomplete ? "display: none;" : ""}">
           <select class="form-select form-select-sm" id="owner-select-${index}"
+                  ${useAutocomplete ? "required" : ""}
                   ${spectrum.category ? "" : "disabled"}
                   style="${useAutocomplete ? "" : "display: none;"}">
             <option value="">Select a protein...</option>
@@ -346,7 +372,7 @@ function attachCardEventHandlers(el, state, spectrum, index) {
   const removeBtn = document.getElementById(`remove-btn-${index}`)
 
   // Select2 initialization for protein autocomplete
-  const initOwnerSelect2 = (category) => {
+  const initOwnerSelect2 = (category, initialValue = null) => {
     const url = AUTOCOMPLETE_URLS[category]
     if (!url || !window.$ || !ownerSelect) return
 
@@ -373,10 +399,30 @@ function attachCardEventHandlers(el, state, spectrum, index) {
       spectrum.owner = selected?.[0]?.text || ""
       updateFormState(el, state)
     })
+
+    // Pre-populate Select2 with initial value if provided
+    if (initialValue) {
+      const option = new Option(initialValue, initialValue, true, true)
+      $(ownerSelect).append(option).trigger("change")
+    }
   }
 
+  // Populate owner field based on category type
   if (spectrum.category in AUTOCOMPLETE_URLS) {
-    initOwnerSelect2(spectrum.category)
+    initOwnerSelect2(spectrum.category, spectrum.owner)
+  } else if (ownerInput && spectrum.owner) {
+    ownerInput.value = spectrum.owner
+  }
+
+  // Populate optional fields if they have saved values
+  if (scaleFactorInput && spectrum.scaleFactor != null) {
+    scaleFactorInput.value = spectrum.scaleFactor
+  }
+  if (phInput && spectrum.ph != null) {
+    phInput.value = spectrum.ph
+  }
+  if (solventInput && spectrum.solvent) {
+    solventInput.value = spectrum.solvent
   }
 
   categorySelect?.addEventListener("change", async (e) => {
@@ -392,9 +438,15 @@ function attachCardEventHandlers(el, state, spectrum, index) {
     const showBio = BIO_CATEGORIES.has(newCategory)
     const useAutocomplete = newCategory in AUTOCOMPLETE_URLS
 
-    // Toggle owner input/select visibility
-    if (ownerInput) ownerInput.style.display = useAutocomplete ? "none" : ""
-    if (ownerSelect) ownerSelect.style.display = useAutocomplete ? "" : "none"
+    // Toggle owner input/select visibility and required attribute
+    if (ownerInput) {
+      ownerInput.style.display = useAutocomplete ? "none" : ""
+      ownerInput.required = !useAutocomplete
+    }
+    if (ownerSelect) {
+      ownerSelect.style.display = useAutocomplete ? "" : "none"
+      ownerSelect.required = useAutocomplete
+    }
 
     // Enable/disable owner fields based on category selection
     const hasCategory = !!newCategory
@@ -440,7 +492,7 @@ function attachCardEventHandlers(el, state, spectrum, index) {
     }
 
     spectrum.manualPeakWave = null
-    processSpectrum(spectrum, index)
+    processSpectrum(spectrum, index, el, state)
     updateFormState(el, state)
   })
 
@@ -467,7 +519,7 @@ function attachCardEventHandlers(el, state, spectrum, index) {
       }
     }
 
-    processSpectrum(spectrum, index)
+    processSpectrum(spectrum, index, el, state)
     updateFormState(el, state)
   })
 
@@ -561,7 +613,7 @@ function updateScaleFactorUnits(index, subtype) {
 // Spectrum Processing
 // ============================================================================
 
-function processSpectrum(spectrum, index) {
+function processSpectrum(spectrum, index, el = null, state = null) {
   // Only normalize if category is selected AND not in NO_NORMALIZE_CATEGORIES
   const shouldNormalize = spectrum.category && !NO_NORMALIZE_CATEGORIES.has(spectrum.category)
   let processedData
@@ -579,7 +631,8 @@ function processSpectrum(spectrum, index) {
     const normFn = spectrum.subtype === "2p" ? normalize2P : normalizeSpectrum
     const result = normFn(spectrum.interpolated, options)
     processedData = result.normalized
-    peakWave = result.peakWave
+    // Use manualPeakWave if set (e.g., from restored state), otherwise use computed peak
+    peakWave = spectrum.manualPeakWave ?? result.peakWave
   } else {
     // Use absolute values (no normalization)
     processedData = spectrum.interpolated
@@ -608,7 +661,11 @@ function processSpectrum(spectrum, index) {
     onClick: shouldNormalize
       ? (wavelength) => {
           spectrum.manualPeakWave = Math.round(wavelength)
-          processSpectrum(spectrum, index)
+          processSpectrum(spectrum, index, el, state)
+          // Update form state to persist the new peak in the hidden JSON field
+          if (el && state) {
+            updateFormState(el, state)
+          }
         }
       : null,
   }
@@ -700,7 +757,8 @@ function updateFormState(el, state) {
     scale_factor: s.scaleFactor,
     ph: BIO_CATEGORIES.has(s.category) ? s.ph : null,
     solvent: BIO_CATEGORIES.has(s.category) ? s.solvent : null,
-    peak_wave: getPeakWave(s.processed),
+    // Use manually selected peak if set, otherwise compute from data
+    peak_wave: s.manualPeakWave ?? getPeakWave(s.processed),
     column_name: s.columnName,
   }))
 
@@ -726,9 +784,10 @@ function updateFormState(el, state) {
     updateStatusIcon(i, isComplete, s.hasExactMatch, isDuplicate)
     updateFieldLabels(i, { hasOwner, hasCategory, hasSubtype })
 
-    if (!hasCategory) missing.categories.push(s.columnName)
-    else if (!hasSubtype) missing.subtypes.push(s.columnName)
-    if (!hasOwner) missing.owners.push(s.columnName)
+    const spectrumLabel = `Spectrum ${i + 1}`
+    if (!hasCategory) missing.categories.push(spectrumLabel)
+    else if (!hasSubtype) missing.subtypes.push(spectrumLabel)
+    if (!hasOwner) missing.owners.push(spectrumLabel)
   }
 
   // Check source/reference validation
@@ -740,6 +799,9 @@ function updateFormState(el, state) {
   // Check for exact matches in database (blocks submission)
   const hasAnyExactMatch = state.spectra.some((s) => s.hasExactMatch)
 
+  // Check confirmation checkbox
+  const isConfirmed = el.confirmationCheckbox?.checked ?? false
+
   // Update submit button
   const allComplete =
     missing.owners.length === 0 && missing.categories.length === 0 && missing.subtypes.length === 0
@@ -749,7 +811,8 @@ function updateFormState(el, state) {
     hasSourceOrRef &&
     hasValidReference &&
     !hasAnyExactMatch &&
-    !hasDuplicatesInForm
+    !hasDuplicatesInForm &&
+    isConfirmed
   el.submitBtn.disabled = !isValid
 
   updateValidationMessage(
@@ -759,7 +822,8 @@ function updateFormState(el, state) {
     hasSourceOrRef,
     hasValidReference,
     hasAnyExactMatch,
-    duplicatesInForm
+    duplicatesInForm,
+    isConfirmed
   )
 }
 
@@ -804,7 +868,8 @@ function updateValidationMessage(
   hasSourceOrRef,
   hasValidReference,
   hasAnyExactMatch,
-  duplicatesInForm
+  duplicatesInForm,
+  isConfirmed
 ) {
   let messageEl = document.getElementById("validation-message")
   if (!messageEl) {
@@ -861,7 +926,7 @@ function updateValidationMessage(
     const n = missing.owners.length
     const names = missing.owners.map((name) => `"${escapeHtml(name)}"`).join(", ")
     issues.push(
-      `<strong>${n}</strong> ${n === 1 ? "spectrum needs" : "spectra need"} an owner: ${names}`
+      `<strong>${n}</strong> ${n === 1 ? "spectrum needs" : "spectra need"} an owner name: ${names}`
     )
   }
 
@@ -871,6 +936,10 @@ function updateValidationMessage(
     )
   } else if (!hasValidReference) {
     issues.push("Primary Reference must be a valid DOI (e.g., 10.1234/example)")
+  }
+
+  if (!isConfirmed) {
+    issues.push("Please check the confirmation box to verify data validity")
   }
 
   if (issues.length > 0) {
@@ -955,4 +1024,66 @@ function escapeHtml(str) {
   const div = document.createElement("div")
   div.textContent = str
   return div.innerHTML
+}
+
+// ============================================================================
+// State Restoration (for form validation errors)
+// ============================================================================
+
+/**
+ * Restore UI state from spectra_json hidden field.
+ * This is called on page load to restore state after a form validation error.
+ */
+function restoreStateFromJson(el, state) {
+  const jsonValue = el.spectraJson?.value?.trim()
+  if (!jsonValue) return
+  console.log("Restoring spectra from saved JSON data...", state)
+  let spectraData
+  try {
+    spectraData = JSON.parse(jsonValue)
+  } catch {
+    return // Invalid JSON, nothing to restore
+  }
+
+  if (!Array.isArray(spectraData) || spectraData.length === 0) return
+
+  // Rebuild UI from saved spectra data
+  el.spectraPreview.style.display = "block"
+  el.spectraPreview.innerHTML = ""
+  el.spectraPreview.appendChild(createStep3Instructions())
+
+  for (let i = 0; i < spectraData.length; i++) {
+    const specData = spectraData[i]
+
+    // Reconstruct spectrum object from saved data
+    const spectrum = {
+      columnName: specData.column_name || `Spectrum ${i + 1}`,
+      raw: specData.data, // Use saved data as raw (already processed)
+      interpolated: specData.data,
+      processed: specData.data,
+      chartController: null,
+      category: specData.category || "",
+      owner: specData.owner || "",
+      subtype: specData.subtype || "",
+      scaleFactor: specData.scale_factor,
+      ph: specData.ph,
+      solvent: specData.solvent || "",
+      manualPeakWave: specData.peak_wave,
+      hasExactMatch: false,
+    }
+
+    const card = createSpectrumCard(el, state, spectrum, i)
+    el.spectraPreview.appendChild(card)
+
+    // Create chart for this spectrum
+    processSpectrum(spectrum, i, el, state)
+    state.spectra.push(spectrum)
+  }
+
+  // Show source fields and confirmation section
+  el.globalSourceFields.style.display = "block"
+  el.confirmationSection.style.display = "block"
+
+  // Update form state to reflect restored data
+  updateFormState(el, state)
 }

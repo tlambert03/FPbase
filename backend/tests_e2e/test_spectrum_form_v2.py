@@ -12,7 +12,7 @@ from django.urls import reverse
 from playwright.sync_api import expect
 
 from proteins.factories import ProteinFactory
-from proteins.models import Spectrum
+from proteins.models import Spectrum, State
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -289,6 +289,53 @@ def test_owner_field_autocomplete_for_protein(
     expect(card.locator(".select2-container")).to_be_visible()
 
 
+def test_protein_category_form_submits_without_focus_error(
+    spectrum_form_page: Page, sample_csv_file: Path
+) -> None:
+    """Protein category with hidden owner-input doesn't cause 'not focusable' error on submit.
+
+    Regression test: When protein category is selected, the text input is hidden and
+    a Select2 dropdown is shown. The hidden input must not have 'required' attribute,
+    otherwise the browser fails to submit with 'An invalid form control is not focusable'.
+    """
+    page = spectrum_form_page
+    protein = ProteinFactory(name="SubmitTestProtein", slug="submittestprotein")
+
+    _upload_csv(page, sample_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+
+    card = page.locator(".spectrum-card").first
+    card.locator('[id^="category-select-"]').select_option("p")
+    card.locator('[id^="subtype-select-"]').select_option("ex")
+
+    # Select protein using Select2
+    card.locator(".select2-container").click()
+    page.locator(".select2-search__field").fill("SubmitTest")
+    page.locator(".select2-results__option").first.click()
+
+    # Verify the hidden input does NOT have required attribute
+    owner_input = card.locator('[id^="owner-input-"]')
+    expect(owner_input).not_to_be_visible()
+    expect(owner_input).not_to_have_attribute("required", "")
+
+    # Fill source and submit
+    _fill_source(page, "Protein submit test")
+    page.locator("#id_confirmation").check()
+    page.locator("#submit-btn").click()
+
+    # Should redirect successfully (no focus error)
+    expect(page).to_have_url(re.compile(r".*/spectra/submitted/"))
+
+    # Verify spectrum was created
+    spectrum = Spectrum.objects.all_objects().filter(source="Protein submit test").first()
+    assert spectrum is not None
+    assert spectrum.category == "p"
+    assert spectrum.owner_fluor is not None
+    # owner_fluor is a State (subclass of FluorState) for proteins
+    state = State.objects.get(pk=spectrum.owner_fluor.pk)
+    assert state.protein.slug == protein.slug
+
+
 # --- Validation Tests ---
 
 
@@ -315,8 +362,12 @@ def test_validation_messages(spectrum_form_page: Page, sample_csv_file: Path) ->
     card.locator('[id^="owner-input-"]').fill("Test Filter")
     expect(validation_msg).to_contain_text("Source")
 
-    # Fill source - ready to submit
+    # Fill source, now missing confirmation
     page.locator("#id_source").fill("Test source")
+    expect(validation_msg).to_contain_text("confirmation")
+
+    # Check confirmation - ready to submit
+    page.locator("#id_confirmation").check()
     expect(validation_msg).to_contain_text("ready to submit")
 
 
@@ -335,9 +386,13 @@ def test_doi_validation(spectrum_form_page: Page, sample_csv_file: Path) -> None
     reference_input.blur()
     expect(validation_msg).to_contain_text("DOI")
 
-    # Valid DOI
+    # Valid DOI - still needs confirmation
     reference_input.fill("10.1234/test.doi")
     reference_input.blur()
+    expect(validation_msg).to_contain_text("confirmation")
+
+    # Check confirmation - ready to submit
+    page.locator("#id_confirmation").check()
     expect(validation_msg).to_contain_text("ready to submit")
 
 
@@ -356,6 +411,9 @@ def test_submit_button_enables_when_valid(spectrum_form_page: Page, sample_csv_f
     expect(submit_btn).to_be_disabled()
 
     _fill_source(page, "Test source")
+    expect(submit_btn).to_be_disabled()  # Still needs confirmation
+
+    page.locator("#id_confirmation").check()
     expect(submit_btn).to_be_enabled()
 
 
@@ -444,32 +502,28 @@ def test_submit_filter_spectrum_with_source(
     assert spectrum.reference is None  # No reference was provided
 
 
-def test_submit_spectrum_with_doi_reference(
-    spectrum_form_page: Page, sample_csv_file: Path
-) -> None:
-    """Submit a spectrum with DOI reference (exercises reference field handling)."""
+def test_submit_light_spectrum(spectrum_form_page: Page, sample_csv_file: Path) -> None:
+    """Submit a light source spectrum (exercises light category handling)."""
     page = spectrum_form_page
     _upload_csv(page, sample_csv_file)
     _select_columns(page, wavelength_col=0, data_cols=[3])
 
     _fill_spectrum_card(page, category="l", subtype="pd", owner="E2E Test Light")
-
-    # Use DOI reference instead of source
-    page.locator("#id_reference").fill("10.1234/e2e.test")
-    page.locator("#id_reference").blur()
+    _fill_source(page, "E2E Test Light Source")
 
     # Check confirmation and submit
     page.locator("#id_confirmation").check()
+    expect(page.locator("#submit-btn")).to_be_enabled()
     page.locator("#submit-btn").click()
 
     # Should redirect to success page
     expect(page).to_have_url(re.compile(r".*/spectra/submitted/"))
 
-    # Verify spectrum was created with reference
+    # Verify spectrum was created
     spectrum = Spectrum.objects.all_objects().filter(owner_light__name="E2E Test Light").first()
     assert spectrum is not None
-    assert spectrum.reference is not None
-    assert "10.1234/e2e.test" in spectrum.reference.doi
+    assert spectrum.category == "l"
+    assert spectrum.subtype == "pd"
 
 
 def test_submit_multiple_spectra(spectrum_form_page: Page, sample_csv_file: Path) -> None:

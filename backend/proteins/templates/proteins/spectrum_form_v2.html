@@ -51,6 +51,20 @@
     </ol>
   </div>
 
+  <!-- Form Errors -->
+  {% if form.errors %}
+    <div class="alert alert-danger" id="form-errors" role="alert">
+      <strong>{% icon "alert" class_="me-2" %}Please correct the errors below:</strong>
+      <ul class="mb-0 mt-2">
+        {% for field, errors in form.errors.items %}
+          {% for error in errors %}
+            <li>{% if field != '__all__' %}<strong>{{ field }}:</strong> {% endif %}{{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
   <form method="post" enctype="multipart/form-data" id="spectrum-form-v2" class="mt-4">
     {% csrf_token %}
 
@@ -62,7 +76,7 @@
       <input type="file" name="file" id="id_file" class="form-control"
              accept=".csv,.tsv,.txt">
       <div class="form-text">
-        Upload a CSV or TSV file with spectrum data. Any column layout is accepted.
+        Upload a CSV or TSV file with spectrum data.
       </div>
     </div>
 
@@ -80,26 +94,29 @@
         <div class="col-md-6">
           <label for="id_source" class="form-label">Source</label>
           <input type="text" name="source" id="id_source" class="form-control"
-                 placeholder="e.g., manufacturer website, personal communication">
+                 placeholder="e.g., manufacturer website, personal communication"
+                 value="{{ form.source.value|default:'' }}">
           <div class="form-text">Please let us know where you sourced this data</div>
         </div>
         <div class="col-md-6">
           <label for="id_reference" class="form-label">Primary Reference (DOI)</label>
           <input type="text" name="primary_reference" id="id_reference" class="form-control"
-                 placeholder="e.g., 10.1234/example.doi" pattern="^10\.\d{4,}/[^\s]+$">
+                 placeholder="e.g., 10.1234/example.doi" pattern="^10\.\d{4,}/[^\s]+$"
+                 value="{{ form.primary_reference.value|default:'' }}">
           <div class="form-text">Enter a valid DOI (e.g., 10.1234/example)</div>
         </div>
       </div>
     </div>
 
     <!-- Hidden JSON field for processed spectra -->
-    <input type="hidden" name="spectra_json" id="id_spectra_json" value="[]">
+    <input type="hidden" name="spectra_json" id="id_spectra_json"
+           value="{{ form.spectra_json.value|default:'[]' }}">
 
     <!-- Confirmation -->
     <div class="mb-4" id="confirmation-section" style="display: none;">
       <div class="form-check">
         <input type="checkbox" name="confirmation" id="id_confirmation"
-               class="form-check-input" required>
+               class="form-check-input" required {% if form.confirmation.value %}checked{% endif %}>
         <label for="id_confirmation" class="form-check-label small">
           I understand that I am adding spectrum data to the <em>public</em> FPbase
           spectra database, and confirm that I have verified the validity of the data.
@@ -107,19 +124,7 @@
       </div>
     </div>
 
-    <!-- Form Errors -->
-    {% if form.errors %}
-      <div class="alert alert-danger">
-        <strong>{% icon "alert" class_="me-2" %}Please correct the errors below:</strong>
-        <ul class="mb-0 mt-2">
-          {% for field, errors in form.errors.items %}
-            {% for error in errors %}
-              <li>{% if field != '__all__' %}<strong>{{ field }}:</strong> {% endif %}{{ error }}</li>
-            {% endfor %}
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+
 
     <!-- Submit Button -->
     <div class="d-grid gap-2 d-md-flex">
