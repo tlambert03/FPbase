@@ -4,7 +4,7 @@
  * Interactive table for selecting wavelength and data columns from parsed CSV.
  */
 
-const PREVIEW_ROWS = 8
+const PREVIEW_ROWS = 9
 
 /**
  * Render the column picker UI.
@@ -77,7 +77,7 @@ function createStatusBadges() {
 function createPreviewTable(parsedCSV, onColumnClick) {
   const wrapper = document.createElement("div")
   wrapper.className = "table-responsive"
-  wrapper.style.maxHeight = "400px"
+  wrapper.style.maxHeight = "420px"
   wrapper.style.overflow = "auto"
 
   const table = document.createElement("table")
@@ -124,7 +124,7 @@ function createPreviewTable(parsedCSV, onColumnClick) {
     const tr = document.createElement("tr")
     const td = document.createElement("td")
     td.colSpan = parsedCSV.headers.length
-    td.className = "text-center text-muted fst-italic"
+    td.className = "text-muted fst-italic"
     td.textContent = `... and ${parsedCSV.rows.length - PREVIEW_ROWS} more rows`
     tr.appendChild(td)
     tbody.appendChild(tr)

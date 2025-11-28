@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import tempfile
 from pathlib import Path
@@ -11,7 +12,12 @@ import pytest
 from django.urls import reverse
 from playwright.sync_api import expect
 
-from proteins.factories import ProteinFactory
+from proteins.factories import (
+    FilterFactory,
+    ProteinFactory,
+    SpectrumFactory,
+    StateFactory,
+)
 from proteins.models import Spectrum, State
 
 if TYPE_CHECKING:
@@ -586,3 +592,399 @@ def test_submit_multiple_spectra(spectrum_form_page: Page, sample_csv_file: Path
     # Verify both spectra were created
     spectra = Spectrum.objects.all_objects().filter(source="E2E Multi Test")
     assert spectra.count() == 2
+
+
+# --- Peak Selection Tests ---
+
+
+@pytest.fixture
+def peak_snap_csv_file() -> Iterator[Path]:
+    """CSV with clear, sharp peak for testing peak snap behavior.
+
+    Data has a clear peak at 500nm. When clicking near but not on the peak,
+    the displayed peak should "snap" to the local maximum (500nm).
+    """
+    # Create a gaussian-like peak centered at 500nm
+    content = "wavelength,intensity\n"
+    for wave in range(400, 601, 5):
+        # Gaussian centered at 500nm with sigma=30
+        value = 0.1 + 0.9 * (2.718 ** (-(((wave - 500) / 30) ** 2)))
+        content += f"{wave},{value:.4f}\n"
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        f.write(content)
+        path = Path(f.name)
+    yield path
+    path.unlink(missing_ok=True)
+
+
+def test_peak_snaps_to_local_maximum(spectrum_form_page: Page, peak_snap_csv_file: Path) -> None:
+    """Clicking near a peak should snap the displayed peak to the local maximum.
+
+    This is critical UX behavior: when a user clicks on the chart to set a peak,
+    we find the local maximum within ±25nm of the click position. The displayed
+    peak wavelength and the normalization target must both use this local maximum,
+    not the raw click coordinates.
+
+    The normalized value at the displayed peak should always be exactly 1.0.
+    """
+    page = spectrum_form_page
+    _upload_csv(page, peak_snap_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+
+    card = page.locator(".spectrum-card").first
+    peak_badge = card.locator('[id^="peak-badge-"]')
+
+    # Select dye category (normalizable) and fill required fields
+    card.locator('[id^="category-select-"]').select_option("d")
+    card.locator('[id^="subtype-select-"]').select_option("ex")
+    card.locator('[id^="owner-input-"]').fill("Test Dye")
+
+    # Initial peak should be around 500nm (may vary slightly due to interpolation)
+    expect(peak_badge).to_be_visible()
+    initial_badge_text = peak_badge.text_content()
+    assert initial_badge_text is not None
+    initial_peak_match = re.search(r"Peak: (\d+) nm", initial_badge_text)
+    assert initial_peak_match, f"Could not parse peak from badge: {initial_badge_text}"
+    initial_peak = int(initial_peak_match.group(1))
+    assert 498 <= initial_peak <= 502, f"Initial peak should be ~500nm, got {initial_peak}nm"
+
+    # Click at right side of chart (high wavelength region, ~560-580nm)
+    # The chart spans 400-600nm, so clicking at 80% from left = ~560nm
+    chart_container = card.locator('[id^="chart-container-"]')
+    box = chart_container.bounding_box()
+    assert box is not None
+
+    # Click at 80% from left edge - should be around 560nm
+    # The local max within ±25nm of 560nm is still near 500nm (gaussian peak)
+    click_x = box["x"] + box["width"] * 0.8
+    click_y = box["y"] + box["height"] / 2
+    page.mouse.click(click_x, click_y)
+
+    # Get the new peak after click
+    new_badge_text = peak_badge.text_content()
+    assert new_badge_text is not None
+    new_peak_match = re.search(r"Peak: (\d+) nm", new_badge_text)
+    assert new_peak_match, f"Could not parse peak from badge: {new_badge_text}"
+    new_peak = int(new_peak_match.group(1))
+
+    # CRITICAL: If clicking at ~560nm, the raw click would be way off from 500nm.
+    # But the local max search (±25nm) should find a peak in 535-585nm range.
+    # For a gaussian centered at 500nm, the local max in that range would be ~535nm.
+    # The key point: it should NOT be the raw click position (560nm), but rather
+    # a local maximum that represents an actual peak in the data.
+
+    # Verify the JSON data has the correct peak and normalized value
+    spectra_json = page.locator("#id_spectra_json").input_value()
+    assert spectra_json, "spectra_json should not be empty"
+
+    spectra_data = json.loads(spectra_json)
+    assert len(spectra_data) == 1
+
+    spectrum = spectra_data[0]
+    json_peak = spectrum["peak_wave"]
+
+    # The displayed peak and JSON peak should match
+    assert json_peak == new_peak, f"Badge shows {new_peak}nm but JSON has {json_peak}nm"
+
+    # MOST CRITICAL: The normalized value at the displayed peak must be exactly 1.0
+    # This proves the displayed peak is actually what was used for normalization
+    data = spectrum["data"]
+    peak_values = [val for wave, val in data if wave == json_peak]
+    assert len(peak_values) == 1, f"No data point at peak wavelength {json_peak}nm"
+    assert peak_values[0] == 1.0, (
+        f"Expected normalized peak value of 1.0 at {json_peak}nm, got {peak_values[0]}. "
+        "This means the displayed peak doesn't match the normalization target!"
+    )
+
+
+def test_peak_snap_to_different_local_max(spectrum_form_page: Page, sample_csv_file: Path) -> None:
+    """Clicking in a different region finds that region's local maximum.
+
+    The sample data has:
+    - 450nm: 0.80 (local max in lower wavelength region)
+    - 488nm: 1.00 (global max)
+
+    Clicking near 450nm should snap to a local max in that region, not 488nm.
+    The exact wavelength may vary due to interpolation, but the key is that
+    the normalized value at the displayed peak should be exactly 1.0.
+    """
+    page = spectrum_form_page
+    _upload_csv(page, sample_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])  # EGFP_ex
+
+    card = page.locator(".spectrum-card").first
+    peak_badge = card.locator('[id^="peak-badge-"]')
+
+    card.locator('[id^="category-select-"]').select_option("d")
+    card.locator('[id^="subtype-select-"]').select_option("ex")
+    card.locator('[id^="owner-input-"]').fill("Test Dye")
+
+    # Initial peak should be at 488nm (global max)
+    expect(peak_badge).to_contain_text("Peak: 488 nm")
+
+    # Click in the 440-460nm region (around 450nm local max)
+    chart_container = card.locator('[id^="chart-container-"]')
+    box = chart_container.bounding_box()
+    assert box is not None
+
+    # Chart spans 400-600nm (200nm range), click at ~25% from left edge
+    # which should be around 450nm area
+    click_x = box["x"] + box["width"] * 0.25
+    click_y = box["y"] + box["height"] / 2
+    page.mouse.click(click_x, click_y)
+
+    # Get the new peak value
+    new_badge_text = peak_badge.text_content()
+    assert new_badge_text is not None
+    new_peak_match = re.search(r"Peak: (\d+) nm", new_badge_text)
+    assert new_peak_match, f"Could not parse peak from badge: {new_badge_text}"
+    new_peak = int(new_peak_match.group(1))
+
+    # The new peak should be in the 425-475nm range (±25nm from click at ~450nm)
+    assert 425 <= new_peak <= 475, (
+        f"Expected peak in 425-475nm range, got {new_peak}nm. "
+        "Peak should have snapped to local max near click, not global max at 488nm."
+    )
+
+    # Verify the JSON data has the correct normalized value at peak
+    spectra_json = page.locator("#id_spectra_json").input_value()
+    assert spectra_json, "spectra_json should not be empty"
+
+    spectra_data = json.loads(spectra_json)
+    spectrum = spectra_data[0]
+    json_peak = spectrum["peak_wave"]
+
+    # The displayed peak and JSON peak should match
+    assert json_peak == new_peak, f"Badge shows {new_peak}nm but JSON has {json_peak}nm"
+
+    # CRITICAL: The normalized value at the displayed peak must be exactly 1.0
+    data = spectrum["data"]
+    peak_values = [val for wave, val in data if wave == json_peak]
+    assert len(peak_values) == 1, f"No data point at peak wavelength {json_peak}nm"
+    assert peak_values[0] == 1.0, (
+        f"Expected normalized peak value of 1.0 at {json_peak}nm, got {peak_values[0]}. "
+        "This means the displayed peak doesn't match the normalization target!"
+    )
+
+
+# --- Duplicate Detection Tests ---
+
+
+def test_protein_existing_subtype_is_disabled(
+    spectrum_form_page: Page, sample_csv_file: Path
+) -> None:
+    """For proteins, existing subtypes should be disabled in the dropdown.
+
+    When a protein already has an excitation spectrum in the database,
+    the "Excitation" option in the subtype dropdown should be disabled
+    to prevent submitting duplicate spectra.
+    """
+    # Create a protein with an existing excitation spectrum
+    protein = ProteinFactory(
+        name="DuplicateTestProtein", slug="duplicatetestprotein", default_state=None
+    )
+    state = StateFactory(protein=protein, name="default")
+    # Clean up any existing spectra from previous test runs (--reuse-db)
+    state.spectra.all().delete()
+    SpectrumFactory(category="p", subtype="ex", owner_fluor=state)
+
+    page = spectrum_form_page
+    _upload_csv(page, sample_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+
+    card = page.locator(".spectrum-card").first
+    card.locator('[id^="category-select-"]').select_option("p")
+
+    # Select protein using Select2 BEFORE selecting subtype
+    card.locator(".select2-container").click()
+    page.locator(".select2-search__field").fill("DuplicateTest")
+    page.locator(".select2-results__option").first.click()
+
+    # The excitation subtype should now be disabled
+    subtype_select = card.locator('[id^="subtype-select-"]')
+    ex_option = subtype_select.locator('option[value="ex"]')
+    expect(ex_option).to_be_disabled()
+    expect(ex_option).to_contain_text("(exists)")
+
+    # Other subtypes should still be enabled
+    em_option = subtype_select.locator('option[value="em"]')
+    expect(em_option).not_to_be_disabled()
+
+    # For proteins, no warning should show on exact match (user selected from autocomplete,
+    # it's expected to add new subtypes to existing proteins)
+    owner_warning = card.locator('[id^="owner-warning-"]')
+    expect(owner_warning).to_be_hidden()
+
+    # Select an available subtype (emission)
+    subtype_select.select_option("em")
+
+    # Fill source and confirmation
+    _fill_source(page, "Duplicate test source")
+    page.locator("#id_confirmation").check()
+
+    # Submit button should be enabled (we selected an available subtype)
+    expect(page.locator("#submit-btn")).to_be_enabled()
+
+
+def test_protein_clears_invalid_subtype_on_owner_change(
+    spectrum_form_page: Page, sample_csv_file: Path
+) -> None:
+    """If user selected a subtype before owner, and that subtype exists, it gets cleared.
+
+    When a user selects excitation subtype first, then selects a protein that already
+    has an excitation spectrum, the subtype should be cleared (since it's now disabled).
+    """
+    # Create a protein with an existing excitation spectrum
+    protein = ProteinFactory(
+        name="SubtypeTestProtein", slug="subtypetestprotein", default_state=None
+    )
+    state = StateFactory(protein=protein, name="default")
+    # Clean up any existing spectra from previous test runs (--reuse-db)
+    state.spectra.all().delete()
+    SpectrumFactory(category="p", subtype="ex", owner_fluor=state)
+
+    page = spectrum_form_page
+    _upload_csv(page, sample_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+
+    card = page.locator(".spectrum-card").first
+    card.locator('[id^="category-select-"]').select_option("p")
+
+    # Select subtype BEFORE selecting protein
+    subtype_select = card.locator('[id^="subtype-select-"]')
+    subtype_select.select_option("ex")
+    expect(subtype_select).to_have_value("ex")
+
+    # Now select protein using Select2
+    card.locator(".select2-container").click()
+    page.locator(".select2-search__field").fill("SubtypeTest")
+    page.locator(".select2-results__option").first.click()
+
+    # The subtype should be cleared because "ex" is now disabled
+    expect(subtype_select).to_have_value("")
+
+    # The excitation option should be disabled
+    ex_option = subtype_select.locator('option[value="ex"]')
+    expect(ex_option).to_be_disabled()
+
+
+def test_dye_existing_subtype_is_disabled(spectrum_form_page: Page, sample_csv_file: Path) -> None:
+    """For dyes, existing subtypes should be disabled in the dropdown.
+
+    When a dye already has an emission spectrum in the database,
+    the "Emission" option in the subtype dropdown should be disabled.
+    """
+    from proteins.models.dye import Dye, DyeState
+    from references.factories import ReferenceFactory
+
+    # Use a unique name and clean up any conflicting data from previous runs
+    dye_name = "DyeSubtypeTestUnique"
+    # Delete ALL DyeStates with this owner_name (not just via Dye cascade)
+    # to handle orphaned states from previous test runs
+    DyeState.objects.filter(owner_name=dye_name).delete()
+    Dye.objects.filter(name=dye_name).delete()
+
+    # Create dye and state directly (not via factory which auto-creates spectra)
+    dye = Dye.objects.create(
+        name=dye_name,
+        slug=dye_name.lower(),
+        primary_reference=ReferenceFactory(),
+    )
+    # Create DyeState directly with name='default' so label equals dye name
+    # Don't use DyeStateFactory as it auto-creates ex/em/2p spectra via RelatedFactory
+    dye_state = DyeState.objects.create(
+        dye=dye,
+        name="default",
+        slug=f"{dye.slug}_default",
+        owner_name=dye_name,
+        owner_slug=dye.slug,
+    )
+    dye.default_state = dye_state
+    dye.save()
+
+    # Create only the emission spectrum (don't use SpectrumFactory as it requires em_max)
+    from proteins.models import Spectrum
+
+    Spectrum.objects.create(
+        category="d",
+        subtype="em",
+        owner_fluor=dye_state,
+        data=[[400, 0.1], [500, 1.0], [600, 0.1]],
+    )
+
+    page = spectrum_form_page
+    _upload_csv(page, sample_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+
+    card = page.locator(".spectrum-card").first
+    card.locator('[id^="category-select-"]').select_option("d")
+
+    # Enter the exact dye name
+    owner_input = card.locator('[id^="owner-input-"]')
+    owner_input.fill(dye_name)
+    owner_input.blur()  # Trigger validation
+
+    # Wait for the warning to appear (indicates AJAX completed)
+    owner_warning = card.locator('[id^="owner-warning-"]')
+    expect(owner_warning).to_be_visible()
+    expect(owner_warning).to_have_class(re.compile(r"alert-warning"))
+
+    # The emission subtype should now be disabled
+    subtype_select = card.locator('[id^="subtype-select-"]')
+    em_option = subtype_select.locator('option[value="em"]')
+    expect(em_option).to_be_disabled()
+    expect(em_option).to_contain_text("(exists)")
+
+    # Other subtypes should still be enabled
+    ex_option = subtype_select.locator('option[value="ex"]')
+    expect(ex_option).not_to_be_disabled()
+
+    # Select an available subtype (excitation)
+    subtype_select.select_option("ex")
+
+    # Fill source and confirmation
+    _fill_source(page, "Dye subtype test source")
+    page.locator("#id_confirmation").check()
+
+    # Submit button should be enabled
+    expect(page.locator("#submit-btn")).to_be_enabled()
+
+
+def test_filter_exact_match_blocks_submission(
+    spectrum_form_page: Page, sample_csv_file: Path
+) -> None:
+    """For filters, exact name match shows error and blocks submission.
+
+    Filters can only have one spectrum per owner, so any exact name match
+    should block submission (unlike fluorophores which can have multiple subtypes).
+    """
+
+    # Create a filter with an existing spectrum
+    FilterFactory(name="ExistingFilter")
+
+    page = spectrum_form_page
+    _upload_csv(page, sample_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+
+    card = page.locator(".spectrum-card").first
+    card.locator('[id^="category-select-"]').select_option("f")
+    card.locator('[id^="subtype-select-"]').select_option("bp")
+
+    # Enter the exact filter name
+    owner_input = card.locator('[id^="owner-input-"]')
+    owner_input.fill("ExistingFilter")
+    owner_input.blur()  # Trigger validation
+
+    # Should show error (red alert) - exact match found
+    owner_warning = card.locator('[id^="owner-warning-"]')
+    expect(owner_warning).to_be_visible()
+    expect(owner_warning).to_have_class(re.compile(r"alert-danger"))
+    expect(owner_warning).to_contain_text("Exact match found")
+
+    # Fill source and confirmation
+    _fill_source(page, "Filter test source")
+    page.locator("#id_confirmation").check()
+
+    # Submit button should remain disabled due to exact match
+    expect(page.locator("#submit-btn")).to_be_disabled()

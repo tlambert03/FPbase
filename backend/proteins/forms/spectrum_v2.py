@@ -36,6 +36,7 @@ class SpectrumJSONData(TypedDict):
     column_name: str
 
     # Always present but can be None
+    owner_slug: str | None  # Protein slug for autocomplete categories
     scale_factor: float | None
     ph: float | None
     solvent: str | None
@@ -201,8 +202,13 @@ class SpectrumFormV2(forms.Form):
 
         return cleaned_data
 
-    def _get_or_create_owner(self, category: str, owner_name: str):
+    def _get_or_create_owner(self, category: str, owner_name: str, owner_slug: str | None = None):
         """Get or create owner objects based on category.
+
+        Args:
+            category: The spectrum category (protein, dye, filter, etc.)
+            owner_name: Display name of the owner
+            owner_slug: For proteins, this is the Protein.slug from Select2 autocomplete
 
         Returns:
             Tuple of (owner_fluor, owner_filter, owner_camera, owner_light)
@@ -210,24 +216,20 @@ class SpectrumFormV2(forms.Form):
         owner_fluor = owner_filter = owner_camera = owner_light = None
 
         if category == Spectrum.PROTEIN:
-            # Look up protein state by name
-            try:
-                owner_fluor = State.objects.select_related("protein").get(
-                    protein__name__iexact=owner_name
+            # For proteins, owner_slug is the Protein.slug from Select2 autocomplete
+            if not owner_slug:
+                raise forms.ValidationError(
+                    f"Protein '{owner_name}' must be selected from the autocomplete dropdown."
                 )
+            try:
+                owner_fluor = State.objects.select_related("protein").get(protein__slug=owner_slug)
             except State.DoesNotExist:
-                # Try by slug
-                try:
-                    owner_fluor = State.objects.select_related("protein").get(
-                        protein__slug=slugify(owner_name)
-                    )
-                except State.DoesNotExist:
-                    raise forms.ValidationError(f"Protein not found: {owner_name}") from None
+                raise forms.ValidationError(f"Protein not found: {owner_name}") from None
             except State.MultipleObjectsReturned:
                 # Get the default state
                 owner_fluor = (
                     State.objects.select_related("protein")
-                    .filter(protein__name__iexact=owner_name)
+                    .filter(protein__slug=owner_slug)
                     .first()
                 )
 
@@ -288,9 +290,10 @@ class SpectrumFormV2(forms.Form):
         for spec_data in spectra_data:
             category = spec_data["category"]
             owner_name = spec_data["owner"]
+            owner_slug = spec_data.get("owner_slug")
 
             owner_fluor, owner_filter, owner_camera, owner_light = self._get_or_create_owner(
-                category, owner_name
+                category, owner_name, owner_slug
             )
 
             spectrum = Spectrum(

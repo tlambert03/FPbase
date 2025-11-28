@@ -393,6 +393,17 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
                     | models.Q(category="l", subtype="pd")
                 ),
             ),
+            # Ensure unique (owner, subtype) combination
+            models.UniqueConstraint(
+                name="spectrum_unique_owner_subtype",
+                fields=[
+                    "owner_fluor",
+                    "owner_filter",
+                    "owner_light",
+                    "owner_camera",
+                    "subtype",
+                ],
+            ),
         ]
 
     def __str__(self) -> str:

@@ -22,6 +22,7 @@ import { createSpectrumChart } from "./spectrum-chart.js"
  * @property {Array<[number, number]>} data - Array of [wavelength, value] pairs
  * @property {string} category - Category code (d=dye, p=protein, f=filter, c=camera, l=light)
  * @property {string} owner - Owner name (protein/dye/filter name)
+ * @property {string|null} owner_slug - Protein.slug for protein category (from autocomplete)
  * @property {string} subtype - Subtype code (ex, ab, em, 2p, bp, etc.)
  * @property {number|null} scale_factor - Scale factor at peak wavelength
  * @property {number|null} ph - pH value (for fluorophore categories only)
@@ -46,6 +47,7 @@ import { createSpectrumChart } from "./spectrum-chart.js"
  * @property {string} solvent - Solvent name
  * @property {number|null} manualPeakWave - User-selected peak wavelength
  * @property {boolean} hasExactMatch - Whether an exact match exists in database
+ * @property {string|null} ownerSlug - Protein.slug for protein category (from autocomplete)
  */
 
 // ============================================================================
@@ -53,7 +55,7 @@ import { createSpectrumChart } from "./spectrum-chart.js"
 // ============================================================================
 
 const CONFIG = {
-  peakSearchRadius: 25, // nm around click for peak search
+  peakSearchRadius: 20, // nm around click for peak search
   doiPattern: /^10\.\d{4,}\/[^\s]+$/,
 }
 
@@ -273,6 +275,7 @@ function createSpectrumObject(columnName, rawData) {
     chartController: null,
     category: "",
     owner: "",
+    ownerSlug: null,
     subtype: "",
     scaleFactor: null,
     ph: null,
@@ -369,26 +372,37 @@ function buildCardHTML(spectrum, index, { shouldNormalize, showFluor, useAutocom
 
       <div class="row mb-3 optional-fields-${index}"
            style="${shouldNormalize || showFluor ? "" : "display: none;"}">
-        <div class="col-md-4" id="scale-factor-container-${index}"
+        <div class="col-md-6" id="scale-factor-container-${index}"
              style="${shouldNormalize ? "" : "display: none;"}">
           <label class="form-label">Scale Factor <small class="text-muted">(optional)</small></label>
           <div class="d-flex align-items-center gap-2">
             <input type="number" class="form-control form-control-sm no-spinners flex-grow-1"
                    id="scale-factor-${index}" step="any">
+            <button type="button" class="btn btn-sm btn-outline-secondary p-1 lh-1"
+                    id="scale-factor-from-peak-${index}"
+                    data-bs-toggle="tooltip"
+                    data-bs-trigger="hover"
+                    data-bs-title="Use raw value at peak"
+                    data-bs-delay='{"show": 200, "hide": 0}'
+                    style="display: none;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M8 4a.5.5 0 0 1 .5.5v5.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293V4.5A.5.5 0 0 1 8 4"/>
+              </svg>
+            </button>
             <small class="text-muted text-nowrap flex-shrink-0"
                    id="scale-factor-units-${index}">${scaleUnits}</small>
           </div>
-          <div class="form-text small">Absolute magnitude at peak wavelength</div>
-        </div>
-        <div class="col-md-4 fluor-field-${index}" style="${showFluor ? "" : "display: none;"}">
-          <label class="form-label">pH <small class="text-muted">(optional)</small></label>
-          <input type="number" class="form-control form-control-sm" id="ph-input-${index}"
-                 step="0.1" min="0" max="14" placeholder="e.g., 7.4">
+          <div class="form-text small text-muted">Absolute magnitude at peak wavelength (if relevant)</div>
         </div>
         <div class="col-md-4 fluor-field-${index}" style="${showFluor ? "" : "display: none;"}">
           <label class="form-label">Solvent <small class="text-muted">(optional)</small></label>
           <input type="text" class="form-control form-control-sm" id="solvent-input-${index}"
                  placeholder="e.g., PBS, DMSO">
+        </div>
+        <div class="col-md-2 fluor-field-${index}" style="${showFluor ? "" : "display: none;"}">
+          <label class="form-label">pH <small class="text-muted">(optional)</small></label>
+          <input type="number" class="form-control form-control-sm" id="ph-input-${index}"
+                 step="0.1" min="0" max="14" placeholder="e.g., 7.4">
         </div>
       </div>
 
@@ -399,8 +413,7 @@ function buildCardHTML(spectrum, index, { shouldNormalize, showFluor, useAutocom
         <em>Click on the chart to set peak location (searches ±${CONFIG.peakSearchRadius}nm)</em>
       </div>
 
-      <div class="mt-2 d-flex justify-content-between align-items-center">
-        <span class="text-muted small">${spectrum.raw.length} points | ${minWave}-${maxWave} nm</span>
+      <div class="mt-2 d-flex align-items-center justify-content-end">
         <button type="button" class="btn btn-sm btn-outline-danger" id="remove-btn-${index}">
           Remove
         </button>
@@ -452,6 +465,24 @@ function attachCardEventHandlers(el, state, spectrum, index) {
     updateFormState(el, state)
   })
 
+  // Scale factor from peak button handler
+  const scaleFromPeakBtn = document.getElementById(`scale-factor-from-peak-${index}`)
+  if (scaleFromPeakBtn && window.bootstrap?.Tooltip) {
+    new window.bootstrap.Tooltip(scaleFromPeakBtn)
+  }
+  scaleFromPeakBtn?.addEventListener("click", () => {
+    const peakWave = spectrum.manualPeakWave ?? getPeakWave(spectrum.processed)
+    if (peakWave == null) return
+
+    // Find the raw Y value at the peak wavelength from interpolated data
+    const rawValue = getRawValueAtWavelength(spectrum.interpolated, peakWave)
+    if (rawValue != null) {
+      spectrum.scaleFactor = rawValue
+      scaleFactorInput.value = rawValue
+      updateFormState(el, state)
+    }
+  })
+
   phInput?.addEventListener("change", (e) => {
     const val = parseFloat(e.target.value)
     spectrum.ph = Number.isNaN(val) ? null : val
@@ -481,7 +512,11 @@ function restoreCardInputValues(spectrum, index, el, state) {
 
   // Initialize Select2 or populate text input based on category
   if (spectrum.category in AUTOCOMPLETE_URLS) {
-    initOwnerSelect2(ownerSelect, spectrum.category, spectrum.owner, spectrum, el, state)
+    // Pass {slug, text} object if ownerSlug is available, otherwise just the text
+    const initialValue = spectrum.ownerSlug
+      ? { slug: spectrum.ownerSlug, text: spectrum.owner }
+      : spectrum.owner
+    initOwnerSelect2(ownerSelect, spectrum.category, initialValue, spectrum, index, el, state)
   } else if (ownerInput && spectrum.owner) {
     ownerInput.value = spectrum.owner
   }
@@ -525,7 +560,7 @@ async function handleCategoryChange(newCategory, spectrum, index, el, state, ele
 
   // Initialize or destroy Select2 based on category
   if (flags.useAutocomplete) {
-    initOwnerSelect2(ownerSelect, newCategory, null, spectrum, el, state)
+    initOwnerSelect2(ownerSelect, newCategory, null, spectrum, index, el, state)
   } else {
     destroySelect2(ownerSelect)
   }
@@ -626,7 +661,7 @@ function destroySelect2(selectEl) {
 /**
  * Initialize Select2 for protein autocomplete.
  */
-function initOwnerSelect2(ownerSelect, category, initialValue, spectrum, el, state) {
+function initOwnerSelect2(ownerSelect, category, initialValue, spectrum, index, el, state) {
   const url = AUTOCOMPLETE_URLS[category]
   if (!url || !window.$ || !ownerSelect) return
 
@@ -646,37 +681,98 @@ function initOwnerSelect2(ownerSelect, category, initialValue, spectrum, el, sta
     },
   })
 
-  $(ownerSelect).on("select2:select select2:clear", () => {
+  $(ownerSelect).on("select2:select select2:clear", async () => {
     const selected = $(ownerSelect).select2("data")
     spectrum.owner = selected?.[0]?.text || ""
+    // This is confusing, but autocomplete.py DOES return the slug under the "id" key
+    spectrum.ownerSlug = selected?.[0]?.id || null
+    await updateOwnerWarning(spectrum, index)
     updateFormState(el, state)
   })
 
   // Pre-populate Select2 with initial value if provided
+  // initialValue can be {slug, text} object or just a string (text only)
   if (initialValue) {
-    const option = new Option(initialValue, initialValue, true, true)
+    const slug = typeof initialValue === "object" ? initialValue.slug : initialValue
+    const text = typeof initialValue === "object" ? initialValue.text : initialValue
+    const option = new Option(text, slug, true, true)
     $(ownerSelect).append(option).trigger("change")
+    // Set ownerSlug from the initial value
+    spectrum.ownerSlug = slug
   }
 }
 
 /**
  * Update the owner warning based on current spectrum state.
+ * For fluorophores (proteins/dyes), disables subtypes that already exist.
+ * For non-fluorophores (filter/camera/light), blocks exact matches entirely.
  */
 async function updateOwnerWarning(spectrum, index) {
   const warningEl = document.getElementById(`owner-warning-${index}`)
+  const subtypeSelect = document.getElementById(`subtype-select-${index}`)
   if (!warningEl) return
 
-  if (spectrum.owner && spectrum.category && spectrum.subtype) {
-    spectrum.hasExactMatch = await checkSimilarOwners(
-      spectrum.owner,
-      spectrum.category,
-      spectrum.subtype,
-      warningEl
-    )
+  // Reset state
+  spectrum.existingSubtypes = []
+  spectrum.hasExactMatch = false
+
+  if (spectrum.owner && spectrum.category) {
+    const isFluorophore = FLUOR_CATEGORIES.has(spectrum.category)
+    const isProtein = spectrum.category === "p"
+    const result = await checkSimilarOwners(spectrum.owner, spectrum.category, warningEl, {
+      blockOnExactMatch: !isFluorophore,
+      // For proteins, suppress warning on exact match - user selected from autocomplete
+      // and is expected to add new subtypes to existing proteins
+      suppressWarningOnExactMatch: isProtein,
+    })
+
+    if (isFluorophore) {
+      // For fluorophores, disable subtypes that already exist
+      if (subtypeSelect) {
+        spectrum.existingSubtypes = result.existingSubtypes
+        updateSubtypeOptions(subtypeSelect, result.existingSubtypes, spectrum)
+      }
+    } else {
+      // For non-fluorophores (filter/camera/light), each owner can only have one spectrum
+      // If there's an exact match, it's always a duplicate
+      spectrum.hasExactMatch = result.hasExactMatch
+    }
   } else {
-    spectrum.hasExactMatch = false
     warningEl.innerHTML = ""
     warningEl.classList.add("d-none")
+    // Re-enable all subtypes when owner is cleared
+    if (subtypeSelect) {
+      updateSubtypeOptions(subtypeSelect, [], spectrum)
+    }
+  }
+}
+
+/**
+ * Update subtype dropdown to disable options that already exist.
+ *
+ * @param {HTMLSelectElement} subtypeSelect - The subtype dropdown element
+ * @param {string[]} existingSubtypes - Array of subtype codes that already exist
+ * @param {object} spectrum - The spectrum state object
+ */
+function updateSubtypeOptions(subtypeSelect, existingSubtypes, spectrum) {
+  const existingSet = new Set(existingSubtypes)
+
+  for (const option of subtypeSelect.options) {
+    if (!option.value) continue // Skip placeholder option
+    const isDisabled = existingSet.has(option.value)
+    option.disabled = isDisabled
+    // Add visual indicator for disabled options
+    if (isDisabled && !option.text.includes("(exists)")) {
+      option.text = `${option.text} (exists)`
+    } else if (!isDisabled && option.text.includes(" (exists)")) {
+      option.text = option.text.replace(" (exists)", "")
+    }
+  }
+
+  // If current selection is now disabled, clear it
+  if (spectrum.subtype && existingSet.has(spectrum.subtype)) {
+    spectrum.subtype = ""
+    subtypeSelect.value = ""
   }
 }
 
@@ -728,8 +824,12 @@ function processSpectrum(spectrum, index, el, state) {
     const normFn = spectrum.subtype === "2p" ? normalize2P : normalizeSpectrum
     const result = normFn(spectrum.interpolated, options)
     processedData = result.normalized
-    // Use manualPeakWave if set (e.g., from restored state), otherwise use computed peak
-    peakWave = spectrum.manualPeakWave ?? result.peakWave
+    // Always use the peak found by normalization (the local max within search range)
+    peakWave = result.peakWave
+    // Update manualPeakWave to the actual peak found (snaps click to local max)
+    if (spectrum.manualPeakWave != null) {
+      spectrum.manualPeakWave = result.peakWave
+    }
   } else {
     // Use absolute values (no normalization)
     processedData = spectrum.interpolated
@@ -746,14 +846,21 @@ function processSpectrum(spectrum, index, el, state) {
 
 function updatePeakBadge(index, shouldNormalize, peakWave) {
   const peakBadge = document.getElementById(`peak-badge-${index}`)
-  if (!peakBadge) return
+  const scaleFromPeakBtn = document.getElementById(`scale-factor-from-peak-${index}`)
 
-  if (shouldNormalize) {
-    peakBadge.style.display = ""
-    peakBadge.textContent = peakWave !== null ? `Peak: ${peakWave} nm` : "No peak"
-    peakBadge.className = `badge ${peakWave !== null ? "bg-primary" : "bg-secondary"}`
-  } else {
-    peakBadge.style.display = "none"
+  if (peakBadge) {
+    if (shouldNormalize) {
+      peakBadge.style.display = ""
+      peakBadge.textContent = peakWave !== null ? `Peak: ${peakWave} nm` : "No peak"
+      peakBadge.className = `badge ${peakWave !== null ? "bg-primary" : "bg-secondary"}`
+    } else {
+      peakBadge.style.display = "none"
+    }
+  }
+
+  // Show/hide the "use raw value at peak" button
+  if (scaleFromPeakBtn) {
+    scaleFromPeakBtn.style.display = shouldNormalize && peakWave !== null ? "" : "none"
   }
 }
 
@@ -854,6 +961,7 @@ function updateFormState(el, state) {
     data: s.processed,
     category: s.category,
     owner: s.owner,
+    owner_slug: s.ownerSlug,
     subtype: s.subtype,
     scale_factor: s.scaleFactor,
     ph: FLUOR_CATEGORIES.has(s.category) ? s.ph : null,
@@ -1084,6 +1192,7 @@ function restoreStateFromJson(el, state) {
       chartController: null,
       category: specData.category || "",
       owner: specData.owner || "",
+      ownerSlug: specData.owner_slug || null,
       subtype: specData.subtype || "",
       scaleFactor: specData.scale_factor,
       ph: specData.ph,
@@ -1159,6 +1268,23 @@ function getPeakWave(data) {
     }
   }
   return peakWave
+}
+
+/**
+ * Get the Y value at a specific wavelength from spectrum data.
+ * @param {Array<[number, number]>} data - Array of [wavelength, value] pairs
+ * @param {number} wavelength - The wavelength to look up
+ * @returns {number|null} The Y value at the wavelength, or null if not found
+ */
+function getRawValueAtWavelength(data, wavelength) {
+  if (!data?.length) return null
+  // Data is interpolated to 1nm, so we can do a direct lookup
+  for (const [wave, val] of data) {
+    if (Math.round(wave) === Math.round(wavelength)) {
+      return val
+    }
+  }
+  return null
 }
 
 function showAlert(container, message, type = "info") {
