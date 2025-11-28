@@ -11,6 +11,11 @@
   {% else %}
     <h2>Add a new spectrum to the database</h2>
   {% endif %}
+  <p class="text-muted mb-4">
+    <a href="{% url 'proteins:submit-spectra' %}" class="small">
+      {% icon "upload" class_="me-1" %}Try the new form
+    </a>
+  </p>
   <p>The easiest way to format spectra for upload is to create a two-column CSV or TSV file, where the first column contains the wavelength and the second column contains the spectrum values (ex/em/transmission, etc).  Any additional columns will be ignored.  <a href='https://automeris.io/WebPlotDigitizer/'>WebPlotDigitizer</a> can be used to extract a CSV file of spectral data from an image or PDF that can be imported here.</p>
 
   <p>Data may also be entered below as a (python style) list: <code>[[wavelength, value], [wavelength, value], ...]</code></p>

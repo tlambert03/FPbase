@@ -36,7 +36,7 @@
 {% block content %}
   <h2>{% icon "upload" class_="me-2" %}Submit Spectra to the Database</h2>
   <p class="text-muted mb-4">
-    <a href="{% url 'proteins:submit-spectra' %}" class="small">
+    <a href="{% url 'proteins:submit-spectra-legacy' %}" class="small">
       {% icon "undo" class_="me-1" %}Use classic form
     </a>
   </p>
@@ -132,7 +132,7 @@
   <p class="mt-4 small text-muted">
     <em>
       Need help? <a href="{% url 'contact' %}">Contact us</a> or
-      <a href="{% url 'proteins:submit-spectra' %}">use the classic form</a>.
+      <a href="{% url 'proteins:submit-spectra-legacy' %}">use the classic form</a>.
     </em>
   </p>
 {% endblock content %}
