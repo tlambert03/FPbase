@@ -1304,6 +1304,9 @@ function showAlert(container, message, type = "info") {
   const alert = document.createElement("div")
   alert.className = `alert alert-${type} alert-dismissible fade show`
   alert.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`
+  // add link to contact form
+  alert.innerHTML +=
+    '<br><small class="text-muted">If you think your CSV format should work, <a href="/contact" target="_blank" rel="noopener">contact us</a></small>.'
   container.prepend(alert)
 }
 
