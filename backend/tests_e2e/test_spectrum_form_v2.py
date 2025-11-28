@@ -472,6 +472,46 @@ def test_status_indicators_update(spectrum_form_page: Page, sample_csv_file: Pat
     expect(status_icon).to_contain_text("✅")
 
 
+def test_chart_click_sets_peak_wavelength(spectrum_form_page: Page, sample_csv_file: Path) -> None:
+    """Clicking chart updates peak wavelength.
+
+    For normalizable categories (dye, protein, light), clicking on the chart
+    sets a manual peak wavelength. The peak badge should update to reflect
+    the new peak location.
+    """
+    page = spectrum_form_page
+    _upload_csv(page, sample_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])  # EGFP_ex column
+
+    card = page.locator(".spectrum-card").first
+    peak_badge = card.locator('[id^="peak-badge-"]')
+
+    # Select dye category (normalizable, shows peak badge)
+    card.locator('[id^="category-select-"]').select_option("d")
+    card.locator('[id^="subtype-select-"]').select_option("ex")
+
+    # Initial peak should be at 488nm (max value in sample data)
+    expect(peak_badge).to_be_visible()
+    expect(peak_badge).to_contain_text("Peak: 488 nm")
+
+    # Click on the left side of the chart to set a new peak
+    # The chart spans wavelengths 400-600nm
+    chart_container = card.locator('[id^="chart-container-"]')
+    box = chart_container.bounding_box()
+    assert box is not None
+
+    # Click at ~20% from left edge (should be around 440nm area)
+    click_x = box["x"] + box["width"] * 0.2
+    click_y = box["y"] + box["height"] / 2
+    page.mouse.click(click_x, click_y)
+
+    # Peak should change from the initial 488nm to something in the 400-480nm range
+    # The exact value depends on chart rendering, so we just verify it changed
+    expect(peak_badge).not_to_contain_text("Peak: 488 nm")
+    # Verify it's showing a valid peak (not "No peak" or "--")
+    expect(peak_badge).to_contain_text(re.compile(r"Peak: \d+ nm"))
+
+
 # --- Form Submission Tests ---
 
 
