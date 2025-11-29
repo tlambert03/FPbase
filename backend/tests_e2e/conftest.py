@@ -247,9 +247,11 @@ def _apply_source_maps_to_stack(stack_trace: str) -> str:
 
 
 IGNORE_PATTERNS = [
-    "autocomplete-state",  # Autocomplete requests cancelled
     "Content Security Policy",  # Webkit Content Security Policy reports
     "ERR_ABORTED",  # Navigation aborts (PDF downloads, autocomplete)
+    "Load request cancelled",  # WebKit (Linux): requests cancelled during teardown
+    "NS_BINDING_ABORTED",  # Firefox: requests cancelled during teardown
+    r" - cancelled$",  # WebKit (macOS): requests cancelled during teardown
     "Frame load interrupted",  # WebKit: PDF downloads interrupt navigation
     "googletagmanager.com",
     "recaptcha",  # Test key returns 401
