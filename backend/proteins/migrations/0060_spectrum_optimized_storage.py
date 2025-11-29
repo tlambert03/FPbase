@@ -319,6 +319,20 @@ class Migration(migrations.Migration):
                 violation_error_message="Subtype is not valid for the spectrum category",
             ),
         ),
+        # Ensure unique (owner, subtype) combination
+        ConditionalAddConstraint(
+            model_name="spectrum",
+            constraint=models.UniqueConstraint(
+                name="spectrum_unique_owner_subtype",
+                fields=[
+                    "owner_fluor",
+                    "owner_filter",
+                    "owner_light",
+                    "owner_camera",
+                    "subtype",
+                ],
+            ),
+        ),
         # Step 6: Add covering index for metadata-only queries
         ConditionalAddIndex(
             model_name="spectrum",

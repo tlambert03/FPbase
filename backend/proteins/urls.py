@@ -65,6 +65,19 @@ urlpatterns = [
         ),
         name="submit-spectra",
     ),
+    # Slug-based submission uses legacy form (pre-selects the protein)
+    re_path(
+        r"^spectra/submit/(?P<slug>[-\w]+)/$",
+        (
+            login_required(
+                views.SpectrumCreateView.as_view(),
+                message="You must be logged in to submit spectra",
+            )
+            if CONTRIBS_OPEN
+            else disabled
+        ),
+        name="submit-spectra",
+    ),
     path(
         "spectra/submitted/",
         views.spectrum_submitted_v2,
