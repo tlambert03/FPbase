@@ -14,16 +14,18 @@ from django.utils.functional import cached_property
 
 from fpbase.cache_utils import OPTICAL_CONFIG_CACHE_KEY
 from proteins.models.collection import OwnedCollection
-from proteins.models.spectrum import Camera, Filter, Light, sorted_ex2em
+from proteins.models.spectrum import Camera, Filter, Light, Spectrum
 from proteins.util.efficiency import spectral_product
 from proteins.util.helpers import shortuuid
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from django.db.models.manager import RelatedManager
 
     from proteins.models import OcFluorEff
     from proteins.models.collection import FluorophoreCollection, ProteinCollection
-    from proteins.models.spectrum import D3Dict, Spectrum
+    from proteins.models.spectrum import D3Dict
 
 
 class Microscope(OwnedCollection):
@@ -237,6 +239,13 @@ def get_cached_optical_configs() -> str:
     return cached
 
 
+def _sorted_ex2em(filterset: Iterable[Filter]) -> list[Filter]:
+    def _sort(stype):
+        return Spectrum.category_subtypes[Spectrum.FILTER].index(stype)
+
+    return sorted(filterset, key=lambda x: _sort(x.subtype))
+
+
 class OpticalConfig(OwnedCollection):
     """A a single optical configuration comprising a set of filters"""
 
@@ -350,7 +359,7 @@ class OpticalConfig(OwnedCollection):
         )
 
     def __repr__(self):
-        fltrs = sorted_ex2em(self.filters.all())
+        fltrs = _sorted_ex2em(self.filters.all())
         return f"<{self.__class__.__name__}: {', '.join([f.name for f in fltrs])}>"
 
     def __str__(self):

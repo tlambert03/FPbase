@@ -3,10 +3,10 @@ from __future__ import annotations
 import ast
 import json
 import logging
-from functools import cached_property
+import operator
+from functools import cached_property, reduce
 from typing import TYPE_CHECKING, Any
 
-import django.forms
 import numpy as np
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
@@ -24,10 +24,11 @@ from model_utils.models import StatusModel, TimeStampedModel
 from fpbase.cache_utils import SPECTRA_CACHE_KEY
 from proteins.models.mixins import AdminURLMixin, Authorable, Product
 from proteins.util.helpers import spectra_fig, wave_to_hex
-from proteins.util.spectra import interp_linear, norm2one, norm2P, step_size
+from proteins.util.spectra import interp_linear
 from references.models import Reference
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
     from typing import NotRequired, TypedDict
 
     from proteins.models import FluorState
@@ -37,7 +38,7 @@ if TYPE_CHECKING:
         key: str
         id: int
         values: list[dict[str, float]]
-        peak: float | bool
+        peak: int | None
         minwave: float
         maxwave: float
         category: str
@@ -54,58 +55,6 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-
-
-class SpectrumOwner(Authorable, TimeStampedModel):
-    name = models.CharField(max_length=100)  # required
-    slug = models.SlugField(
-        max_length=128, unique=True, help_text="Unique slug for the %(class)"
-    )  # calculated at save
-
-    class Meta:
-        abstract = True
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__}: {self.slug}>"
-
-    def save(self, *args, **kwargs):
-        self.slug = self.makeslug()
-        super().save(*args, **kwargs)
-
-    def makeslug(self):
-        return slugify(self.name.replace("/", "-"))
-
-    def d3_dicts(self) -> list[D3Dict]:
-        return [spect.d3dict() for spect in self.spectra.all()]
-
-
-class Camera(SpectrumOwner, Product):
-    manufacturer = models.CharField(max_length=128, blank=True)
-
-    if TYPE_CHECKING:
-        spectrum: Spectrum
-        microscopes: models.QuerySet
-        optical_configs: models.QuerySet
-
-
-class Light(SpectrumOwner, Product):
-    manufacturer = models.CharField(max_length=128, blank=True)
-
-    if TYPE_CHECKING:
-        spectrum: Spectrum
-        microscopes: models.QuerySet
-        optical_configs: models.QuerySet
-
-
-def sorted_ex2em(filterset):
-    def _sort(stype):
-        return Spectrum.category_subtypes[Spectrum.FILTER].index(stype)
-
-    return sorted(filterset, key=lambda x: _sort(x.subtype))
 
 
 def get_cached_spectra_info() -> str:
@@ -229,19 +178,19 @@ class SpectrumManager(models.Manager):
         return qs
 
     def find_similar_owners(self, query, threshold=0.4):
-        A = (
-            "owner_fluor__owner_name",  # Search on cached parent name (Protein/Dye)
+        owner_name_paths = (
+            "owner_fluor__owner_name",
             "owner_filter__name",
             "owner_light__name",
             "owner_camera__name",
         )
         qs_list = []
-        for ownerclass in A:
+        for owner_path in owner_name_paths:
             for s in (
-                Spectrum.objects.annotate(similarity=TrigramSimilarity(ownerclass, query))
+                Spectrum.objects.annotate(similarity=TrigramSimilarity(owner_path, query))
                 .filter(similarity__gt=threshold)
-                .order_by("-similarity", ownerclass)
-                .distinct("similarity", ownerclass)
+                .order_by("-similarity", owner_path)
+                .distinct("similarity", owner_path)
             ):
                 qs_list.append((s.similarity, s.owner))
         if qs_list:
@@ -251,56 +200,18 @@ class SpectrumManager(models.Manager):
 
 
 class SpectrumData(ArrayField):
+    """Legacy field class - kept for migration compatibility only."""
+
     def __init__(self, base_field=None, size=None, **kwargs):
         if not base_field:
             base_field = ArrayField(models.FloatField(max_length=10), size=2)
         super().__init__(base_field, size, **kwargs)
 
-    def formfield(self, **kwargs):
-        defaults = {
-            "max_length": self.size,
-            "widget": django.forms.Textarea(attrs={"cols": "102", "rows": "15"}),
-            "form_class": django.forms.CharField,
-        }
-        defaults.update(kwargs)
-        return models.Field().formfield(**defaults)
 
-    def to_python(self, value):
-        if not value:
-            return None
-        if isinstance(value, list):
-            return value
-        if isinstance(value, str):
-            try:
-                return ast.literal_eval(value)
-            except Exception as e:
-                raise ValidationError("Invalid input for spectrum data") from e
-
-    def value_to_string(self, obj):
-        return json.dumps(self.value_from_object(obj))
-
-    def clean(self, value, model_instance):
-        if not value:
-            return None
-        value = super().clean(value, model_instance)
-        step = step_size(value)
-        if step > 10 and len(value) < 10:
-            raise ValidationError("insufficient data")
-        if step != 1:
-            try:
-                # TODO:  better choice of interpolation
-                value = [list(i) for i in zip(*interp_linear(*zip(*value)))]
-            except ValueError as e:
-                raise ValidationError(f"could not properly interpolate data: {e}") from e
-        return value
-
-    def validate(self, value, model_instance):
-        super().validate(value, model_instance)
-        for elem in value:
-            if len(elem) != 2:
-                raise ValidationError("All elements in Spectrum list must have two items")
-            if not all(isinstance(n, int | float) for n in elem):
-                raise ValidationError("All items in Spectrum list elements must be numbers")
+def _exactly_one_of(fields: Sequence[str]) -> models.Q:
+    """Return Q condition ensuring exactly one of the given fields is set (not null)."""
+    conditions = (models.Q(**{f"{f}__isnull": f != field for f in fields}) for field in fields)
+    return reduce(operator.or_, conditions)
 
 
 class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
@@ -355,7 +266,28 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         LIGHT: [PD],
     }
 
-    data = SpectrumData()
+    # Optimized storage: Y values only (wavelengths derived from min/max_wave)
+    # Y values stored as float32 binary for ~75% space savings vs legacy format
+    min_wave = models.SmallIntegerField(help_text="Minimum wavelength in nm (inclusive)")
+    max_wave = models.SmallIntegerField(help_text="Maximum wavelength in nm (inclusive)")
+    y_values = models.BinaryField(
+        help_text="Y values as float32 binary array, one value per nm from min to max wave",
+    )
+    scale_factor = models.FloatField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Physical scaling constant. Meaning depends on subtype: "
+            "EX/ABS=extinction coeff (M^-1 cm^-1), EM=quantum yield, "
+            "2P=peak cross-section (GM), filters/cameras=1.0"
+        ),
+    )
+    peak_wave = models.SmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Wavelength of peak intensity in nm",
+    )
+
     category = models.CharField(
         max_length=1, choices=CATEGORIES, verbose_name="Spectrum Type", db_index=True
     )
@@ -429,165 +361,166 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             models.Index(fields=["owner_fluor_id", "status"], name="spectrum_fluor_status_idx"),
             # Index on status for queries that only filter by approval status
             models.Index(fields=["status"], name="spectrum_status_idx"),
+            # Covering index for metadata-only queries
+            models.Index(fields=["status", "category", "subtype"], name="spectrum_metadata_idx"),
+            # Partial index for approved fluorophore spectra (most common query)
+            models.Index(
+                fields=["owner_fluor_id"],
+                name="spectrum_approved_fluor_idx",
+                condition=models.Q(status="approved", owner_fluor_id__isnull=False),
+            ),
+        ]
+        constraints = [
+            # Ensure exactly one owner is set
+            models.CheckConstraint(
+                name="spectrum_single_owner",
+                violation_error_message=(
+                    "Spectrum must have exactly one owner (fluor, filter, light, or camera)"
+                ),
+                condition=_exactly_one_of(
+                    ["owner_fluor", "owner_filter", "owner_light", "owner_camera"]
+                ),
+            ),
+            # Ensure subtype is valid for category
+            models.CheckConstraint(
+                name="spectrum_valid_category_subtype",
+                violation_error_message="Subtype is not valid for the spectrum category",
+                condition=(
+                    models.Q(category="d", subtype__in=["ex", "ab", "em", "2p"])
+                    | models.Q(category="p", subtype__in=["ex", "ab", "em", "2p"])
+                    | models.Q(category="f", subtype__in=["sp", "bx", "bs", "bp", "bm", "lp"])
+                    | models.Q(category="c", subtype="qe")
+                    | models.Q(category="l", subtype="pd")
+                ),
+            ),
+            # Ensure unique (owner, subtype) combination
+            models.UniqueConstraint(
+                name="spectrum_unique_owner_subtype",
+                fields=[
+                    "owner_fluor",
+                    "owner_filter",
+                    "owner_light",
+                    "owner_camera",
+                    "subtype",
+                ],
+            ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.owner_fluor:
             return f"{self.owner_fluor} {self.subtype}"
         else:
             return self.name
 
-    def save(self, *args, **kwargs):
-        # FIXME: figure out why self.full_clean() throws validation error with
-        # 'data cannot be null' ... even if data is provided...
-        self.full_clean()
-        if not any(self.owner_set):
-            raise ValidationError("Spectrum must have an owner!")
-        if sum(bool(x) for x in self.owner_set) > 1:
-            raise ValidationError("Spectrum must have only one owner!")
-        # self.category = self.owner.__class__.__name__.lower()[0]
+    def save(self, *args, **kwargs) -> None:
+        # Auto-set subtype if not provided and only one valid option exists
+        valid_subtypes = self.category_subtypes.get(self.category, [])
+        if not self.subtype and len(valid_subtypes) == 1:
+            self.subtype = valid_subtypes[0]
+
+        # Compute peak_wave from spectrum data if not already set
+        if self.peak_wave is None:
+            self.peak_wave = self._compute_peak_wave()
+
         # Cache invalidation is handled by post_save signal in fpbase.cache_utils
         super().save(*args, **kwargs)
 
-    def _norm2one(self):
-        try:
-            if self.subtype == self.TWOP:
-                y, self._peakval2p, maxi = norm2P(self.y)
-                self._peakwave2p = self.x[maxi]
-                self.change_y(y)
-            else:
-                self.change_y(norm2one(self.y))
-        except Exception:
-            logger.exception("Error normalizing spectrum data")
-
-    def clean(self):
-        # model-wide validation after individual fields have been cleaned
-        errors = {}
-        if self.category == self.CAMERA:
-            self.subtype = self.QE
-        if self.category == self.LIGHT:
-            self.subtype = self.PD
-        if (
-            self.category in self.category_subtypes
-            and self.subtype not in self.category_subtypes[self.category]
-        ):
-            errors.update(
-                {
-                    "subtype": "{} spectrum subtype must be{} {}".format(
-                        self.get_category_display(),
-                        "" if len(self.category_subtypes[self.category]) > 1 else "  one of:",
-                        " ".join(self.category_subtypes[self.category]),
-                    )
-                }
+    def clean(self) -> None:
+        # Validate subtype is appropriate for category
+        valid_subtypes = self.category_subtypes.get(self.category, [])
+        if self.subtype and self.subtype not in valid_subtypes:
+            valid_str = ", ".join(valid_subtypes)
+            cat = self.get_category_display()
+            raise ValidationError(
+                {"subtype": f"{cat} spectrum subtype must be one of: {valid_str}"}
             )
 
-        if errors:
-            raise ValidationError(errors)
-
-        if self.data:
-            if self.category == self.PROTEIN:
-                self._norm2one()
-            elif (max(self.y) > 1.5) or (max(self.y) < 0.1):
-                if self.category in (self.FILTER, self.CAMERA) and (10 < max(self.y) < 101):
-                    # assume 100% scale
-                    self.change_y([round(yy / 100, 4) for yy in self.y])
-                else:
-                    self._norm2one()
-
-        if errors:
-            raise ValidationError(errors)
+        # Validate y_values length matches wavelength range (1nm spacing)
+        # y_values is float32 binary (4 bytes per value)
+        if self.y_values and self.min_wave is not None and self.max_wave is not None:
+            expected_len = self.max_wave - self.min_wave + 1
+            actual_len = len(self.y_values) // 4
+            if actual_len != expected_len:
+                raise ValidationError(
+                    f"y_values length ({actual_len}) must match wavelength range ({expected_len})"
+                )
 
     @property
-    def owner_set(self) -> list[FluorState | Filter | Light | Camera | None]:
-        return [
-            self.owner_fluor,
-            self.owner_filter,
-            self.owner_light,
-            self.owner_camera,
-        ]
-
-    @property
-    def owner(self) -> FluorState | Filter | Light | Camera | None:
-        return next((x for x in self.owner_set if x), None)
-        #  raise AssertionError("No owner is set")
+    def owner(self) -> FluorState | Filter | Light | Camera:
+        owners = (self.owner_fluor, self.owner_filter, self.owner_light, self.owner_camera)
+        return next(x for x in owners if x is not None)
 
     @property
     def name(self) -> str:
-        # this method allows the protein name to have changed in the meantime
+        # owner fluors can have multiple spectra, so include subtype
         if self.owner_fluor:
-            # Check if it's a State (ProteinState) by checking for protein attribute
-            if hasattr(self.owner_fluor, "protein"):
-                if self.owner_fluor.name == "default":
-                    return f"{self.owner_fluor.protein} {self.subtype}"
-                else:
-                    return f"{self.owner_fluor} {self.subtype}"
-            else:
-                # It's a DyeState
-                return f"{self.owner} {self.subtype}"
-        elif self.owner_filter:
-            return str(self.owner)
-        else:
-            return str(self.owner)
+            return f"{self.owner_fluor.owner_name} {self.subtype}"
+        return str(self.owner)
 
-    @property
-    def peak_wave(self):
+    def _compute_peak_wave(self) -> int | None:
+        """Compute peak wavelength from spectrum data."""
         try:
+            if not self.y:
+                return None
             if self.min_wave < 300:
-                return self.x[
-                    self.y.index(max([i for n, i in enumerate(self.y) if self.x[n] > 300]))
-                ]
+                # Find max Y where wavelength > 300
+                valid_values = [i for n, i in enumerate(self.y) if self.x[n] > 300]
+                if not valid_values:
+                    return None
+                max_val = max(valid_values)
+                return self.x[self.y.index(max_val)]
             else:
-                try:
-                    # first look for the value 1
-                    # this is to avoid false 2P peaks
-                    return self.x[self.y.index(1)]
-                except ValueError:
-                    return self.x[self.y.index(max(self.y))]
-        except ValueError:
-            return False
-
-    @property
-    def min_wave(self):
-        return self.data[0][0]
-
-    @property
-    def max_wave(self):
-        return self.data[-1][0]
-
-    @property
-    def step(self):
-        s = set()
-        for i in range(len(self.x) - 1):
-            s.add(self.x[i + 1] - self.x[i])
-        if len(s) > 1:  # multiple step sizes
-            return False
-        return next(iter(s))
-
-    def scaled_data(self, scale):
-        return [[n[0], n[1] * scale] for n in self.data]
-
-    def color(self):
-        return wave_to_hex(self.peak_wave)
-
-    def waverange(self, waverange):
-        assert len(waverange) == 2, "waverange argument must be an iterable of len 2"
-        return [d for d in self.data if waverange[0] <= d[0] <= waverange[1]]
-
-    def avg(self, waverange):
-        d = self.waverange(waverange)
-        return np.mean([i[1] for i in d])
-
-    def width(self, height=0.5) -> tuple[float, float] | None:
-        try:
-            upindex = next(x[0] for x in enumerate(self.y) if x[1] > height)
-            downindex = len(self.y) - next(
-                x[0] for x in enumerate(reversed(self.y)) if x[1] > height
-            )
-            return (self.x[upindex], self.x[downindex])
-        except Exception:
+                # First look for Y ≈ 1.0 (the normalized peak) to avoid false 2P peaks
+                y_arr = np.asarray(self.y)
+                close_to_one = np.where(np.isclose(y_arr, 1.0, atol=1e-6))[0]
+                if len(close_to_one) > 0:
+                    return self.x[close_to_one[0]]
+                # Fall back to absolute max
+                return self.x[int(np.argmax(y_arr))]
+        except (ValueError, IndexError):
             return None
 
+    @property
+    def step(self) -> int:
+        return 1
+
+    def scaled_data(self, scale: float) -> list[tuple[float, float]]:
+        """Return spectrum data with Y values multiplied by scale."""
+        return [(w, y * scale) for w, y in zip(self.x, self.y)]
+
+    def color(self) -> str:
+        return wave_to_hex(self.peak_wave)
+
+    def waverange(self, waverange: tuple[float, float]) -> list[tuple[int, float]]:
+        """Return spectrum data within the specified wavelength range."""
+        start = max(self.min_wave, int(waverange[0]))
+        end = min(self.max_wave, int(waverange[1]))
+        start_idx = start - self.min_wave
+        end_idx = end - self.min_wave + 1
+        return list(zip(range(start, end + 1), self.y[start_idx:end_idx]))
+
+    def avg(self, waverange: tuple[float, float]) -> float:
+        """Return average Y value within the specified wavelength range."""
+        start = max(self.min_wave, int(waverange[0]))
+        end = min(self.max_wave, int(waverange[1]))
+        start_idx = start - self.min_wave
+        end_idx = end - self.min_wave + 1
+        return np.mean(self.y[start_idx:end_idx]).item()
+
+    def width(self, height: float = 0.5) -> tuple[int, int] | None:
+        """Return (min_wave, max_wave) where Y exceeds height threshold."""
+        above = np.where(np.array(self.y) > height)[0]
+        if len(above) == 0:
+            return None
+        return (self.min_wave + above[0], self.min_wave + above[-1])
+
     def d3dict(self) -> D3Dict:
+        if self.category == self.CAMERA:
+            color = "url(#crosshatch)"
+        elif self.category == self.LIGHT:
+            color = "url(#wavecolor_gradient)"
+        else:
+            color = self.color()
         D: D3Dict = {
             "slug": self.owner.slug,
             "key": self.name,
@@ -598,67 +531,153 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             "maxwave": self.max_wave,
             "category": self.category,
             "type": self.subtype if self.subtype != self.ABS else self.EX,
-            "color": self.color(),
+            "color": color,
             "area": self.subtype not in (self.LP, self.BS),
             "url": self.owner.get_absolute_url(),
             "classed": f"category-{self.category} subtype-{self.subtype}",
         }
 
-        if self.category == self.CAMERA:
-            D["color"] = "url(#crosshatch)"
-        elif self.category == self.LIGHT:
-            D["color"] = "url(#wavecolor_gradient)"
-
         if self.category in (self.PROTEIN, self.DYE):
-            if self.subtype == self.EX or self.subtype == self.ABS:
-                D.update({"scalar": self.owner.ext_coeff, "ex_max": self.owner.ex_max})
-            elif self.subtype == self.EM:
-                D.update({"scalar": self.owner.qy, "em_max": self.owner.em_max})
-            elif self.subtype == self.TWOP:
-                D.update({"scalar": self.owner.twop_peak_gm, "twop_qy": self.owner.twop_qy})
+            # Map subtype to (fallback_scalar_attr, extra_key, extra_attr)
+            subtype_map = {
+                self.EX: ("ext_coeff", "ex_max"),
+                self.ABS: ("ext_coeff", "ex_max"),
+                self.EM: ("qy", "em_max"),
+                self.TWOP: ("twop_peak_gm", "twop_qy"),
+            }
+            if self.subtype in subtype_map:
+                fallback, attr = subtype_map[self.subtype]
+                scalar = self.scale_factor or getattr(self.owner, fallback)
+                D.update({"scalar": scalar, attr: getattr(self.owner, attr)})
         return D
 
-    def d3data(self):
-        return [{"x": elem[0], "y": elem[1]} for elem in self.data]
+    def _iter_coords(self) -> Iterator[tuple[int, float]]:
+        """Generator yielding (wavelength, value) pairs."""
+        for i, y in enumerate(self.y):
+            yield (self.min_wave + i, y)
 
-    def wave_value_pairs(self):
-        output = {}
-        # arrayLength = len(self.data)
-        for elem in self.data:
-            output[elem[0]] = elem[1]
-        return output
+    def d3data(self) -> list[dict[str, float]]:
+        """Return spectrum data in D3.js format."""
+        return [{"x": x, "y": y} for x, y in self._iter_coords()]
+
+    def wave_value_pairs(self) -> dict[int, float]:
+        """Return spectrum data as a wavelength -> value dict."""
+        return dict(self._iter_coords())
+
+    @property
+    def data(self) -> list[tuple[float, float]]:
+        """Return spectrum data as [[wavelength, value], ...] pairs.
+
+        This property provides backward compatibility with code that
+        expects the legacy data format.
+        """
+        return list(self._iter_coords())
+
+    @data.setter
+    def data(self, value: list[list[float]] | str | None) -> None:
+        """Set spectrum data from [[wavelength, value], ...] pairs.
+
+        This setter provides backward compatibility with code that
+        sets data in the legacy format. Accepts either a list or a
+        JSON/Python string representation.
+        """
+        if value is None:
+            return
+        # Handle string input (e.g., from form fields)
+        if isinstance(value, str):
+            try:
+                value = ast.literal_eval(value)
+            except (ValueError, SyntaxError):
+                return
+        if not value or len(value) == 0:
+            return
+        wavelengths = [point[0] for point in value]
+        y_values = [point[1] for point in value]
+        self._set_spectrum_data(wavelengths, y_values)
 
     @cached_property
-    def x(self):
-        """Extract x values from data. Cached to avoid repeated allocations."""
-        return [i[0] for i in self.data]
+    def x(self) -> list[int]:
+        """Wavelength values in nm. Derived from min_wave/max_wave."""
+        return list(range(self.min_wave, self.max_wave + 1))
 
     @cached_property
-    def y(self):
-        """Extract y values from data. Cached to avoid repeated allocations."""
-        return [i[1] for i in self.data]
+    def y(self) -> list[float]:
+        """Y values (intensity/transmission). Decoded from binary storage."""
+        return self._decode_y_values().tolist()
 
-    def change_x(self, value):
-        if not isinstance(value, list):
-            raise TypeError("X values must be a python list")
-        if len(value) != len(self.data):
-            raise ValueError("Error: array length must match existing data")
-        # Clear cached property before modifying data
-        if "x" in self.__dict__:
-            del self.__dict__["x"]
-        for i in range(len(value)):
-            self.data[i][0] = value[i]
+    def _decode_y_values(self) -> np.ndarray:
+        """Decode float32 binary data to list of floats."""
+        if not self.y_values:
+            raise ValueError("No Y values stored in spectrum")
+        # Handle memoryview from database
+        data = bytes(self.y_values) if isinstance(self.y_values, memoryview) else self.y_values
+        return np.frombuffer(data, dtype="<f4")
 
-    def change_y(self, value):
+    @staticmethod
+    def _encode_y_values(y_list: list[float]) -> bytes:
+        """Encode list of floats to float32 binary data."""
+        return np.asarray(y_list, dtype="<f4").tobytes()
+
+    def _set_spectrum_data(
+        self,
+        wavelengths: list[int | float],
+        y_values: list[float],
+        scale_factor: float | None = None,
+    ) -> None:
+        """Set spectrum data using the new optimized storage format.
+
+        Parameters
+        ----------
+        wavelengths
+            Wavelength values in nm. Will be interpolated to 1nm steps if needed.
+        y_values
+            Y values (intensity/transmission/cross-section).
+        scale_factor
+            Physical scaling constant. If provided, y_values are assumed to be
+            in absolute units and will be normalized by this value.
+            If None, y_values are assumed to already be normalized.
+        """
+        # Clear cached properties
+        for prop in ("x", "y"):
+            if prop in self.__dict__:
+                del self.__dict__[prop]
+
+        # Interpolate to 1nm steps if needed
+        if len(wavelengths) > 1:
+            steps = {wavelengths[i + 1] - wavelengths[i] for i in range(len(wavelengths) - 1)}
+            if steps != {1} and steps != {1.0}:
+                interp_x, interp_y = interp_linear(wavelengths, y_values)
+                wavelengths = list(interp_x)
+                y_values = list(interp_y)
+
+        self.min_wave = int(min(wavelengths))
+        self.max_wave = int(max(wavelengths))
+
+        # Normalize if scale_factor provided
+        if scale_factor is not None and scale_factor != 0:
+            y_values = [v / scale_factor for v in y_values]
+            self.scale_factor = scale_factor
+        elif scale_factor is not None:
+            self.scale_factor = scale_factor
+
+        self.y_values = self._encode_y_values(y_values)
+
+    def change_y(self, value: list[float]) -> None:
+        """Change Y values in place."""
         if not isinstance(value, list):
             raise TypeError("Y values must be a python list")
-        if len(value) != len(self.data):
-            raise ValueError("Error: array length must match existing data")
+
+        expected_len = self.max_wave - self.min_wave + 1
+        if len(value) != expected_len:
+            raise ValueError(
+                f"Error: array length {len(value)} must match expected {expected_len}"
+            )
+
         # Clear cached property before modifying data
         if "y" in self.__dict__:
             del self.__dict__["y"]
-        for i in range(len(value)):
-            self.data[i][1] = value[i]
+
+        self.y_values = self._encode_y_values(value)
 
     def spectrum_img(self, fmt="svg", **kwargs: Any):
         """Generate a static image of this spectrum using matplotlib."""
@@ -669,6 +688,56 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
 
     def get_absolute_url(self):
         return reverse("proteins:spectra") + f"?s={self.id}"
+
+
+# ###########################################################################
+# Spectrum Owner Classes
+# ###########################################################################
+
+
+class SpectrumOwner(Authorable, TimeStampedModel):
+    name = models.CharField(max_length=100)  # required
+    slug = models.SlugField(
+        max_length=128, unique=True, help_text="Unique slug for the %(class)"
+    )  # calculated at save
+
+    class Meta:
+        abstract = True
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}: {self.slug}>"
+
+    def save(self, *args, **kwargs):
+        self.slug = self.makeslug()
+        super().save(*args, **kwargs)
+
+    def makeslug(self):
+        return slugify(self.name.replace("/", "-"))
+
+    def d3_dicts(self) -> list[D3Dict]:
+        return [spect.d3dict() for spect in self.spectra.all()]
+
+
+class Camera(SpectrumOwner, Product):
+    manufacturer = models.CharField(max_length=128, blank=True)
+
+    if TYPE_CHECKING:
+        spectrum: Spectrum
+        microscopes: models.QuerySet
+        optical_configs: models.QuerySet
+
+
+class Light(SpectrumOwner, Product):
+    manufacturer = models.CharField(max_length=128, blank=True)
+
+    if TYPE_CHECKING:
+        spectrum: Spectrum
+        microscopes: models.QuerySet
+        optical_configs: models.QuerySet
 
 
 class Filter(SpectrumOwner, Product):

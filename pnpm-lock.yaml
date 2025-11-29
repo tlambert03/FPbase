@@ -89,6 +89,9 @@ importers:
       select2-bootstrap-5-theme:
         specifier: ^1.3.0
         version: 1.3.0(@popperjs/core@2.11.8)
+      udsv:
+        specifier: ^0.7.3
+        version: 0.7.3
     devDependencies:
       '@sentry/cli':
         specifier: ^2.57.0
@@ -3160,6 +3163,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  udsv@0.7.3:
+    resolution: {integrity: sha512-RLDImCO8M0DQmMi9V9YRjoecAc8+GiylpZico6ZuibPvRGRj3LGI1YPYLzBrnQTSax0metXnDoBFg/1zSgGIhg==}
+
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
@@ -6099,6 +6105,8 @@ snapshots:
   type-fest@4.41.0: {}
 
   typescript@5.9.3: {}
+
+  udsv@0.7.3: {}
 
   undici-types@7.16.0: {}
 

@@ -8,7 +8,9 @@ import re
 import time
 from collections.abc import MutableMapping, Sequence
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
+from urllib.parse import quote
 
+import requests
 from Bio import Entrez, SeqIO
 from django.core.cache import cache
 from habanero import Crossref
@@ -107,6 +109,22 @@ def _merge_info(dict1: MutableMapping, dict2: MutableMapping, exclude=()) -> Mut
         if key in dict2 and dict2[key] and key not in exclude:
             dict1[key] = dict2[key]
     return dict1
+
+
+def is_valid_doi(doi: str) -> bool:
+    """Check if DOI exists via Crossref API."""
+    if not doi or len(doi) > 200:
+        return False
+    try:
+        encoded_doi = quote(doi, safe="")
+        resp = requests.head(
+            f"https://api.crossref.org/works/{encoded_doi}",
+            timeout=3,
+            allow_redirects=True,
+        )
+        return resp.status_code == 200
+    except requests.RequestException:
+        return False
 
 
 def doi_lookup(doi: str) -> DoiInfo:

@@ -241,10 +241,17 @@ class SpectrumOwnerUnion(graphene.Union):
 class Spectrum(gdo.OptimizedDjangoObjectType):
     class Meta:
         model = models.Spectrum
-        fields = "__all__"
+        # Exclude y_values (BinaryField) - exposed via data property instead
+        exclude = ("y_values",)
 
     owner = graphene.Field(SpectrumOwnerInterface)
     color = graphene.String()
+    # Expose spectrum data as list of [wavelength, value] pairs
+    # maintains compatibility with API
+    data = graphene.List(graphene.List(graphene.Float))
+
+    def resolve_data(self, info, **kwargs):
+        return self.data
 
     @gdo.resolver_hints(
         select_related=(

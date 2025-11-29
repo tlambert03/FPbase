@@ -52,21 +52,41 @@ urlpatterns = [
         views.problems_inconsistencies,
         name="problems-inconsistencies",
     ),
+    # V2 spectrum submission form (enhanced with client-side processing)
     path(
         "spectra/submit/",
         (
             login_required(
-                views.SpectrumCreateView.as_view(),
-                message="You must be logged in to submit a new spectrum",
+                views.SpectrumCreateViewV2.as_view(),
+                message="You must be logged in to submit spectra",
             )
             if CONTRIBS_OPEN
             else disabled
         ),
         name="submit-spectra",
     ),
-    path("spectra/submitted/", views.spectrum_submitted, name="spectrum_submitted"),
+    # Slug-based submission uses legacy form (pre-selects the protein)
     re_path(
         r"^spectra/submit/(?P<slug>[-\w]+)/$",
+        (
+            login_required(
+                views.SpectrumCreateView.as_view(),
+                message="You must be logged in to submit spectra",
+            )
+            if CONTRIBS_OPEN
+            else disabled
+        ),
+        name="submit-spectra",
+    ),
+    path(
+        "spectra/submitted/",
+        views.spectrum_submitted_v2,
+        name="spectrum_submitted",
+    ),
+    # Legacy spectrum submission form
+    # NOTE: Must come BEFORE the slug pattern below to avoid "legacy" being matched as a slug
+    path(
+        "spectra/submit/legacy/",
         (
             login_required(
                 views.SpectrumCreateView.as_view(),
@@ -75,7 +95,24 @@ urlpatterns = [
             if CONTRIBS_OPEN
             else disabled
         ),
-        name="submit-spectra",
+        name="submit-spectra-legacy",
+    ),
+    path(
+        "spectra/submitted/legacy/",
+        views.spectrum_submitted,
+        name="spectrum_submitted_legacy",
+    ),
+    re_path(
+        r"^spectra/submit/legacy/(?P<slug>[-\w]+)/$",
+        (
+            login_required(
+                views.SpectrumCreateView.as_view(),
+                message="You must be logged in to submit a new spectrum",
+            )
+            if CONTRIBS_OPEN
+            else disabled
+        ),
+        name="submit-spectra-legacy",
     ),
     re_path(r"^spectra/(?P<slug>[-\w]+)", views.protein_spectra, name="spectra"),
     path("spectra/", views.protein_spectra, name="spectra"),

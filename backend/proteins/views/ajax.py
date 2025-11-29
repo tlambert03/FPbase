@@ -114,7 +114,6 @@ def approve_protein(request, slug=None):
 def similar_spectrum_owners(request):
     name = request.POST.get("owner", None)
     similars = Spectrum.objects.find_similar_owners(name, 0.3)[:4]
-
     # Group similars by type and fetch with proper prefetching to avoid N+1 queries
     # Fluorophore (State + DyeState), Filter, Light, Camera are the possible types
     fluor_ids = []
@@ -165,16 +164,36 @@ def similar_spectrum_owners(request):
         key = s.id if isinstance(s, FluorState) else (s.__class__.__name__, s.id)
         similars_optimized.append(similars_dict.get(key, s))
 
+    def get_category_code(obj):
+        """Get category code for a spectrum owner (matches frontend category codes)."""
+        if isinstance(obj, State):
+            return "p"
+        if isinstance(obj, DyeState):
+            return "d"
+        if isinstance(obj, Filter):
+            return "f"
+        if isinstance(obj, Light):
+            return "l"
+        if isinstance(obj, Camera):
+            return "c"
+        return ""
+
     data = {
         "similars": [
             {
                 "slug": s.slug,
                 "name": s.label if isinstance(s, FluorState) else s.name,
                 "url": s.get_absolute_url(),
+                "category": get_category_code(s),
                 "spectra": (
                     [sp.get_subtype_display() for sp in s.spectra.all()]
                     if isinstance(s, FluorState)
                     else [s.spectrum.get_subtype_display()]
+                ),
+                "spectrum_ids": (
+                    [sp.id for sp in s.spectra.all()]
+                    if isinstance(s, FluorState)
+                    else [s.spectrum.id]
                 ),
             }
             for s in similars_optimized

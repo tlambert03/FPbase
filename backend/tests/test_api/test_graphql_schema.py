@@ -86,12 +86,12 @@ class SpectraQueriesTestCase(GraphQLTestCase):
         from proteins.models.dye import DyeState
 
         self.dye_state = DyeState.objects.create(dye=self.dye, name="test state")
-        self.spectrum = models.Spectrum.objects.get_or_create(
+        self.spectrum = models.Spectrum.objects.create(
             category=models.Spectrum.DYE,
             subtype=models.Spectrum.EM,
             owner_fluor=self.dye_state,
-            data=[[0, 1], [1, 1]],
-        )[0]
+            data=[[400, 0.5], [401, 1.0], [402, 0.5]],
+        )
 
     def query(self, query, op_name=None, input_data=None, variables=None):
         body = {"query": query}

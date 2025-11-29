@@ -50,6 +50,7 @@ export default defineConfig(({ mode }) => {
           proteinTable: path.resolve(__dirname, "src/protein-table.js"),
           scopeReport: path.resolve(__dirname, "src/scope-report.js"),
           fret: path.resolve(__dirname, "src/fret.js"),
+          spectrumFormV2: path.resolve(__dirname, "src/spectrum-form-v2.js"),
         },
 
         // Let Vite handle code splitting automatically

@@ -5,13 +5,11 @@ import logging
 import traceback
 from textwrap import dedent
 
-# from django.views.decorators.cache import cache_page
-# from django.views.decorators.vary import vary_on_cookie
 from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import permission_required
 from django.core.mail import EmailMessage
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
@@ -21,13 +19,12 @@ from django.views.generic import CreateView
 
 from fpbase.util import is_ajax, uncache_protein_page
 from proteins.forms import SpectrumForm
+from proteins.forms.spectrum_v2 import SpectrumFormV2
 from proteins.models import Filter, Protein, Spectrum, State
 from proteins.util.importers import add_filter_to_database
 from proteins.util.spectra import spectra2csv
 
 
-# @cache_page(60 * 10)
-# @vary_on_cookie
 def protein_spectra(request, slug=None):
     """renders html for protein spectra page"""
     template = "spectra.html"
@@ -65,7 +62,7 @@ class SpectrumCreateView(CreateView):
     form_class = SpectrumForm
 
     def get_success_url(self, **kwargs):
-        return reverse_lazy("proteins:spectrum_submitted")
+        return reverse_lazy("proteins:spectrum_submitted_legacy")
 
     def get_initial(self):
         init = super().get_initial()
@@ -133,6 +130,90 @@ class SpectrumCreateView(CreateView):
         if hasattr(self, "protein"):
             context["protein"] = self.protein
         return context
+
+
+class SpectrumCreateViewV2(CreateView):
+    """Enhanced spectrum submission view with client-side processing.
+
+    This view handles the new spectrum submission form that supports:
+    - Multi-column CSV/TSV file uploads
+    - Client-side column selection and data processing
+    - Interactive preview with range selectors
+    - Batch submission of multiple spectra
+    """
+
+    model = Spectrum
+    form_class = SpectrumFormV2
+    template_name = "proteins/spectrum_form_v2.html"
+
+    def get_success_url(self, **kwargs):
+        return reverse_lazy("proteins:spectrum_submitted")
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Remove 'instance' - SpectrumFormV2 is a Form, not ModelForm
+        kwargs.pop("instance", None)
+        kwargs["user"] = self.request.user if self.request.user.is_authenticated else None
+        return kwargs
+
+    def get_initial(self):
+        init = super().get_initial()
+        # Store protein for context if coming from protein page
+        if self.kwargs.get("slug"):
+            with contextlib.suppress(Exception):
+                self.protein = Protein.objects.get(slug=self.kwargs.get("slug"))
+        return init
+
+    def form_valid(self, form):
+        # Save all spectra (form.save() returns a list)
+        created_spectra = form.save()
+
+        # Store info in session for thank-you page
+        self.request.session["spectrum_count"] = len(created_spectra)
+        self.request.session["spectrum_names"] = [s.name for s in created_spectra]
+
+        # Uncache affected protein pages
+        for spectrum in created_spectra:
+            with contextlib.suppress(Exception):
+                if spectrum.owner_fluor and hasattr(spectrum.owner_fluor, "protein"):
+                    uncache_protein_page(spectrum.owner_fluor.protein.slug, self.request)
+
+        # Send email notification for non-staff users
+        if not self.request.user.is_staff:
+            body = f"""
+            New spectra submitted to FPbase (V2 form).
+
+            User: {self.request.user}
+            Count: {len(created_spectra)}
+            Spectra:
+            """
+            for spectrum in created_spectra:
+                admin_url = self.request.build_absolute_uri(spectrum.get_admin_url())
+                body += f"\n  - {spectrum.name}: {admin_url}"
+
+            EmailMessage(
+                subject=f"[FPbase] {len(created_spectra)} spectrum(s) need validation",
+                body=dedent(body),
+                to=[a[1] for a in settings.ADMINS],
+                headers={"X-Mailgun-Track": "no"},
+            ).send()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if hasattr(self, "protein"):
+            context["protein"] = self.protein
+        return context
+
+
+def spectrum_submitted_v2(request):
+    """Thank you page after V2 form submission."""
+    context = {
+        "spectrum_count": request.session.get("spectrum_count", 0),
+        "spectrum_names": request.session.get("spectrum_names", []),
+    }
+    return render(request, "spectrum_submitted_v2.html", context)
 
 
 def spectra_csv(request):
