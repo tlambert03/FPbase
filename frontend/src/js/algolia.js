@@ -198,17 +198,13 @@ export default async function initAutocomplete() {
         {
           sourceId: "proteins",
           async getItems() {
-            const { results } = await searchClient.search({
-              requests: [
-                {
-                  indexName: window.FPBASE.ALGOLIA.proteinIndex,
-                  query: truncatedQuery,
-                  params: {
-                    hitsPerPage: 5,
-                  },
-                },
-              ],
-            })
+            const { results } = await searchClient.search([
+              {
+                indexName: window.FPBASE.ALGOLIA.proteinIndex,
+                query: truncatedQuery,
+                hitsPerPage: 5,
+              },
+            ])
             return results[0].hits
           },
           templates: {
@@ -256,17 +252,13 @@ export default async function initAutocomplete() {
         {
           sourceId: "references",
           async getItems() {
-            const { results } = await searchClient.search({
-              requests: [
-                {
-                  indexName: window.FPBASE.ALGOLIA.referenceIndex,
-                  query: truncatedQuery,
-                  params: {
-                    hitsPerPage: 3,
-                  },
-                },
-              ],
-            })
+            const { results } = await searchClient.search([
+              {
+                indexName: window.FPBASE.ALGOLIA.referenceIndex,
+                query: truncatedQuery,
+                hitsPerPage: 3,
+              },
+            ])
             return results[0].hits
           },
           templates: {
@@ -285,17 +277,13 @@ export default async function initAutocomplete() {
         {
           sourceId: "organisms",
           async getItems() {
-            const { results } = await searchClient.search({
-              requests: [
-                {
-                  indexName: window.FPBASE.ALGOLIA.organismIndex,
-                  query: truncatedQuery,
-                  params: {
-                    hitsPerPage: 2,
-                  },
-                },
-              ],
-            })
+            const { results } = await searchClient.search([
+              {
+                indexName: window.FPBASE.ALGOLIA.organismIndex,
+                query: truncatedQuery,
+                hitsPerPage: 2,
+              },
+            ])
             return results[0].hits
           },
           templates: {
