@@ -1,11 +1,12 @@
-const $ = window.jQuery // jQuery loaded from CDN
+import { autocomplete } from "@algolia/autocomplete-js"
+import "@algolia/autocomplete-theme-classic"
 
 // Algolia has a 512 byte limit for query strings
 // Use 500 to be safe (accounting for multi-byte characters)
 const MAX_QUERY_LENGTH = 500
 
 function checkObject(val, prop, str) {
-  var propDict = {
+  const propDict = {
     genbank: "GenBank",
     pdb: "PDB",
     uuid: "FPbase ID",
@@ -54,13 +55,13 @@ function highlightHits(high) {
 
 function highlightRefHits(high) {
   function recurseMatches(obj) {
-    var results = {}
+    const results = {}
 
     function innerRecurse(obj, _key) {
       if (_key !== undefined) {
         obj = obj[_key]
       }
-      for (var key in obj) {
+      for (const key in obj) {
         if (Object.hasOwn(obj, key)) {
           if (obj[key].constructor === Array) {
             innerRecurse(obj, key)
@@ -87,7 +88,7 @@ function highlightRefHits(high) {
     return `${str.split(" ").splice(0, no_words).join(" ")} ...`
   }
 
-  var results = recurseMatches(high)
+  const results = recurseMatches(high)
 
   if (Object.hasOwn(results, "prot_primary")) {
     delete results.prot_secondary
@@ -136,7 +137,6 @@ function highlightRefHits(high) {
           break
         }
       }
-    } else {
     }
   }
   return str
@@ -146,26 +146,8 @@ function highlightRefHits(high) {
 let isInitialized = false
 
 /**
- * Wait for autocomplete.js library to be available
- * @param {number} maxWaitMs - Maximum time to wait in milliseconds
- * @returns {Promise<boolean>} - Resolves to true if available, false if timeout
- */
-async function waitForAutocomplete(maxWaitMs = 2000) {
-  const startTime = Date.now()
-  const checkInterval = 50
-
-  while (Date.now() - startTime < maxWaitMs) {
-    if (typeof $.fn.autocomplete !== "undefined") {
-      return true
-    }
-    await new Promise((resolve) => setTimeout(resolve, checkInterval))
-  }
-  return false
-}
-
-/**
  * Initialize Algolia autocomplete search
- * Must be called after DOM is ready and autocomplete.js is loaded
+ * Must be called after DOM is ready
  */
 export default async function initAutocomplete() {
   // Prevent double initialization
@@ -174,183 +156,188 @@ export default async function initAutocomplete() {
   }
 
   // Wait for search input to be available in DOM
-  const $searchInput = $("#algolia-search-input")
-  if (!$searchInput.length) {
+  const searchInput = document.getElementById("algolia-search-input")
+  if (!searchInput) {
     console.warn("Algolia search input not found in DOM")
-    return
-  }
-
-  // Wait for autocomplete.js library (loaded from CDN with defer)
-  const autocompleteAvailable = await waitForAutocomplete()
-  if (!autocompleteAvailable) {
-    console.error("Autocomplete plugin failed to load after 2 seconds")
-    if (window.Sentry) {
-      Sentry.captureMessage("Autocomplete CDN script failed to load", "warning")
-    }
     return
   }
 
   // Mark as initialized before async import
   isInitialized = true
 
-  const { default: algoliasearch } = await import("algoliasearch")
+  const algoliasearch = await import("algoliasearch/lite")
 
-  var algoliaClient = algoliasearch(window.FPBASE.ALGOLIA.appID, window.FPBASE.ALGOLIA.publicKey)
-  var proteinIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.proteinIndex)
-  var organismIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.organismIndex)
-  var referenceIndex = algoliaClient.initIndex(window.FPBASE.ALGOLIA.referenceIndex)
+  const searchClient = algoliasearch.default(
+    window.FPBASE.ALGOLIA.appID,
+    window.FPBASE.ALGOLIA.publicKey
+  )
 
-  function empty(context) {
-    if (Object.hasOwn(context, "query")) {
-      const p = context.query.trim().replace(/\s/g, "%20")
-      return (
-        '<div class="empty"><span class="nohits"></span>No results... try the <a href="/search/?name__icontains=' +
-        p +
-        '">advanced search</a></div>'
-      )
-    } else {
-      return '<div class="empty"><span class="nohits"></span>No results... try the <a href="/search/">advanced search</a></div>'
-    }
-  }
+  // Create a container div and replace the input
+  const container = document.createElement("div")
+  container.id = "autocomplete-container"
+  searchInput.parentNode.replaceChild(container, searchInput)
 
-  // Helper function to truncate queries that exceed Algolia's limit
-  function createLimitedSource(index, options) {
-    const originalSource = $.fn.autocomplete.sources.hits(index, options)
-    return (query, callback) => {
-      // Truncate query if it exceeds the limit
+  // Initialize autocomplete
+  autocomplete({
+    container: "#autocomplete-container",
+    placeholder: "Search",
+    autoselect: true,
+    openOnFocus: false,
+    detachedMediaQuery: "none", // Keep dropdown attached
+    getSources({ query }) {
+      // Truncate query if it exceeds Algolia's limit
       const truncatedQuery =
         query.length > MAX_QUERY_LENGTH ? query.substring(0, MAX_QUERY_LENGTH) : query
-      return originalSource(truncatedQuery, callback)
-    }
-  }
 
-  // Initialize autocomplete on the search input
-  $searchInput
-    .autocomplete(
-      {
-        getRankingInfo: false,
-        minLength: 3,
-        autoselect: true,
-        autoselectOnBlur: window.mobilecheck(),
-        templates: {
-          empty: empty,
-        },
-      },
-      [
+      if (truncatedQuery.length < 3) {
+        return []
+      }
+
+      return [
+        // Proteins source
         {
-          // add {attributesToRetrieve: }
-          source: createLimitedSource(proteinIndex, {
-            hitsPerPage: 5,
-          }),
-          displayKey: "name",
+          sourceId: "proteins",
+          async getItems() {
+            const { results } = await searchClient.search({
+              requests: [
+                {
+                  indexName: window.FPBASE.ALGOLIA.proteinIndex,
+                  query: truncatedQuery,
+                  params: {
+                    hitsPerPage: 5,
+                  },
+                },
+              ],
+            })
+            return results[0].hits
+          },
           templates: {
-            suggestion: (suggestion) => {
+            item({ item, html }) {
               let col
-              if (suggestion.switchType && suggestion.switchType !== "Basic") {
+              if (item.switchType && item.switchType !== "Basic") {
                 col = "rainbow"
-              } else if (suggestion.color && !suggestion.color.includes("Stokes")) {
-                col = suggestion.color.toLowerCase().replace(/ |\//g, "_")
+              } else if (item.color && !item.color.includes("Stokes")) {
+                col = item.color.toLowerCase().replace(/ |\//g, "_")
               } else {
                 col = "gray50"
               }
-              var str =
-                "<img class='type protein' src='" +
-                window.FPBASE.imageDir +
-                "gfp_" +
-                col +
-                "_40.png'>"
-              str = str + suggestion._highlightResult.name.value
-              if (suggestion.img_url) {
-                str = `${str}<img class='spectra' src=${suggestion.img_url}>`
+              const imgSrc = `${window.FPBASE.imageDir}gfp_${col}_40.png`
+              let content = `<img class='type protein' src='${imgSrc}'>`
+              content += item._highlightResult.name.value
+              if (item.img_url) {
+                content += `<img class='spectra' src='${item.img_url}'>`
               }
-              str = str + highlightHits(suggestion._highlightResult)
-              var info = ""
-              if (suggestion.switchType === "Basic") {
-                if (suggestion.ex && suggestion.em) {
-                  info = `${suggestion.ex}/${suggestion.em}`
-                } else {
-                  info = ""
+              content += highlightHits(item._highlightResult)
+              let info = ""
+              if (item.switchType === "Basic") {
+                if (item.ex && item.em) {
+                  info = `${item.ex}/${item.em}`
                 }
-              } else if (suggestion.switchType) {
-                info = {
-                  photoswitchable: "PS",
-                  photoactivatable: "PA",
-                  photoconvertible: "PC",
-                  "multi-photochromic": "MPC",
-                  multistate: "MS",
-                  timer: "Time",
-                }[suggestion.switchType.toLowerCase()]
+              } else if (item.switchType) {
+                info =
+                  {
+                    photoswitchable: "PS",
+                    photoactivatable: "PA",
+                    photoconvertible: "PC",
+                    "multi-photochromic": "MPC",
+                    multistate: "MS",
+                    timer: "Time",
+                  }[item.switchType.toLowerCase()] || ""
               }
-              str = `${str}<span class='info'>${info}</span>`
-              return `<a href='${suggestion.url}'><div>${str}</div></a>`
+              content += `<span class='info'>${info}</span>`
+              return html`<a href="${item.url}"><div>${html([content])}</div></a>`
             },
           },
+          onSelect({ item }) {
+            window.location.assign(item.url)
+          },
         },
+        // References source
         {
-          source: createLimitedSource(referenceIndex, {
-            hitsPerPage: 3,
-          }),
-          displayKey: "citation",
+          sourceId: "references",
+          async getItems() {
+            const { results } = await searchClient.search({
+              requests: [
+                {
+                  indexName: window.FPBASE.ALGOLIA.referenceIndex,
+                  query: truncatedQuery,
+                  params: {
+                    hitsPerPage: 3,
+                  },
+                },
+              ],
+            })
+            return results[0].hits
+          },
           templates: {
-            suggestion: (suggestion) => {
-              var str = suggestion._highlightResult.citation.value
-              str = `${str}<img class='type' src='${window.FPBASE.imageDir}ref.png'>`
-              str = str + highlightRefHits(suggestion._highlightResult)
-              return `<a href='${suggestion.url}'><div>${str}</div></a>`
+            item({ item, html }) {
+              let content = item._highlightResult.citation.value
+              content += `<img class='type' src='${window.FPBASE.imageDir}ref.png'>`
+              content += highlightRefHits(item._highlightResult)
+              return html`<a href="${item.url}"><div>${html([content])}</div></a>`
             },
           },
+          onSelect({ item }) {
+            window.location.assign(item.url)
+          },
         },
+        // Organisms source
         {
-          source: createLimitedSource(organismIndex, {
-            hitsPerPage: 2,
-          }),
-          displayKey: "scientific_name",
+          sourceId: "organisms",
+          async getItems() {
+            const { results } = await searchClient.search({
+              requests: [
+                {
+                  indexName: window.FPBASE.ALGOLIA.organismIndex,
+                  query: truncatedQuery,
+                  params: {
+                    hitsPerPage: 2,
+                  },
+                },
+              ],
+            })
+            return results[0].hits
+          },
           templates: {
-            suggestion: (suggestion) => {
-              var str = suggestion._highlightResult.scientific_name.value
-              str =
-                str +
-                "<img class='type' src='" +
-                window.FPBASE.imageDir +
-                "organism_icon.png" +
-                "'>"
-              return `<a href='${suggestion.url}'><div>${str}</div></a>`
+            item({ item, html }) {
+              let content = item._highlightResult.scientific_name.value
+              content += `<img class='type' src='${window.FPBASE.imageDir}organism_icon.png'>`
+              return html`<a href="${item.url}"><div>${html([content])}</div></a>`
             },
           },
+          onSelect({ item }) {
+            window.location.assign(item.url)
+          },
         },
+        // Advanced search footer
         {
-          source: (query, callback) => {
-            callback([
+          sourceId: "advanced-search",
+          getItems() {
+            return [
               {
-                query: query,
-                url: `/search/?q=${encodeURI(query)}`,
+                query: truncatedQuery,
+                url: `/search/?q=${encodeURI(truncatedQuery)}`,
               },
-            ])
+            ]
           },
           templates: {
-            suggestion: (suggestion) =>
-              '<div class="search-footer"><a class="asearch" href="' +
-              suggestion.url +
-              '">Advanced search for: <em>' +
-              suggestion.query +
-              '</em></a><div class="branding">search powered by <a href="https://algolia.com"><img src="' +
-              window.FPBASE.imageDir +
-              'logo-algolia-nebula-blue-full.svg" /></a></div></div>',
+            item({ item, html }) {
+              const content =
+                '<div class="search-footer"><a class="asearch" href="' +
+                item.url +
+                '">Advanced search for: <em>' +
+                item.query +
+                '</em></a><div class="branding">search powered by <a href="https://algolia.com"><img src="' +
+                window.FPBASE.imageDir +
+                'logo-algolia-nebula-blue-full.svg" /></a></div></div>'
+              return html([content])
+            },
+          },
+          onSelect({ item }) {
+            window.location.assign(item.url)
           },
         },
       ]
-    )
-    .on("autocomplete:selected", (_event, suggestion, _dataset, context) => {
-      if (context.selectionMethod === "click") {
-        return
-      }
-      // Change the page, for example, on other events
-      window.location.assign(suggestion.url)
-    })
-
-  const $hintInput = $searchInput.parent().find(".aa-hint")
-  if ($hintInput.length) {
-    $hintInput.attr("name", "search-hint")
-    $hintInput.attr("id", "algolia-search-hint")
-  }
+    },
+  })
 }
