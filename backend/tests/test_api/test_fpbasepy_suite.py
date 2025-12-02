@@ -75,7 +75,8 @@ def test_fpbasepy_upstream_suite(live_server, tmp_path, seed_fpbasepy_data):
 
     # Clone and install
     subprocess.run(["git", "clone", "--depth=1", FPBASEPY_REPO, str(repo)], check=True)
-    subprocess.run(["uv", "sync", "--extra", "test", "-q"], cwd=repo, check=True)
+    env = {k: v for k, v in os.environ.items() if k != "UV_FROZEN"}
+    subprocess.run(["uv", "sync", "--extra", "test", "-q"], cwd=repo, env=env, check=True)
 
     # Patch URL to point at live server
     (repo / "tests" / "conftest.py").write_text(f"""\
