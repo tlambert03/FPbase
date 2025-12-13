@@ -986,3 +986,444 @@ def protein_history(request, slug):
             "request": request,
         },
     )
+
+
+def _get_protein_changes(protein):
+    """
+    Compare a pending protein with its last approved version and return structured changes.
+
+    Returns a dict with categories of changes:
+    - protein_fields: Direct protein field changes
+    - states: State additions/removals/modifications
+    - transitions: StateTransition changes
+    - oser: OSER measurement changes
+    - lineage: Lineage changes
+    - references: Reference changes
+    """
+    from reversion.models import Version
+
+    changes = {
+        "protein_fields": {},
+        "states": {"added": [], "removed": [], "modified": {}},
+        "spectra": {"added": [], "removed": [], "modified": {}},
+        "transitions": {"added": [], "removed": [], "modified": {}},
+        "oser": {"added": [], "removed": [], "modified": {}},
+        "lineage": {},
+        "references": {"added": [], "removed": []},
+        "bleach": {"added": [], "removed": [], "modified": {}},
+    }
+
+    # Get last approved version
+    last_approved_version = protein.last_approved_version()
+    if not last_approved_version:
+        # No approved version - this is a new protein submission
+        changes["is_new"] = True
+        return changes
+
+    changes["is_new"] = False
+
+    # Handle Version object vs Protein instance
+    if isinstance(last_approved_version, Version):
+        # Use field_dict to avoid transaction issues with old_object()
+        old_data = last_approved_version.field_dict
+        use_field_dict = True
+    else:
+        # It's already a Protein instance (when status == "approved")
+        old_data = last_approved_version
+        use_field_dict = False
+
+    # Compare protein-level fields
+    field_map = {
+        "name": "Name",
+        "seq": "Sequence",
+        "chromophore": "Chromophore",
+        "aliases": "Aliases",
+        "pdb": "PDB IDs",
+        "genbank": "GenBank",
+        "uniprot": "UniProt",
+        "ipg_id": "IPG ID",
+        "mw": "Molecular Weight",
+        "agg": "Oligomerization",
+        "oser": "OSER",
+        "switch_type": "Switching Type",
+        "blurb": "Description",
+        "cofactor": "Cofactor",
+        "seq_validated": "Sequence Validated",
+        "seq_comment": "Sequence Comment",
+        "parent_organism_id": "Parent Organism",
+        "primary_reference_id": "Primary Reference",
+        "default_state_id": "Default State",
+    }
+
+    for field, label in field_map.items():
+        if use_field_dict:
+            old_val = old_data.get(field)
+        else:
+            old_val = getattr(old_data, field, None)
+        new_val = getattr(protein, field, None)
+
+        # Special handling for different field types
+        if field == "seq":
+            if old_val != new_val:
+                if old_val and new_val:
+                    # Show mutations
+                    mutations = old_val.mutations_to(new_val) if hasattr(old_val, "mutations_to") else None
+                    changes["protein_fields"][label] = {
+                        "old": str(old_val)[:50] + "..." if len(str(old_val)) > 50 else str(old_val),
+                        "new": str(new_val)[:50] + "..." if len(str(new_val)) > 50 else str(new_val),
+                        "mutations": str(mutations) if mutations else None,
+                    }
+                else:
+                    changes["protein_fields"][label] = {
+                        "old": str(old_val) if old_val else None,
+                        "new": str(new_val) if new_val else None,
+                    }
+        elif field == "agg":
+            if old_val != new_val:
+                # Get display values for choice fields
+                if use_field_dict:
+                    old_display = dict(Protein.AGG_CHOICES).get(old_val, old_val) if old_val else None
+                else:
+                    old_display = old_data.get_agg_display() if old_val else None
+                new_display = protein.get_agg_display() if new_val else None
+                if old_display != new_display:
+                    changes["protein_fields"][label] = {"old": old_display, "new": new_display}
+        elif field == "switch_type":
+            if old_val != new_val:
+                if use_field_dict:
+                    old_display = dict(Protein.SWITCHING_CHOICES).get(old_val, old_val) if old_val else None
+                else:
+                    old_display = old_data.get_switch_type_display() if old_val else None
+                new_display = protein.get_switch_type_display() if new_val else None
+                if old_display != new_display:
+                    changes["protein_fields"][label] = {"old": old_display, "new": new_display}
+        elif field == "cofactor":
+            if old_val != new_val:
+                if use_field_dict:
+                    old_display = dict(Protein.COFACTOR_CHOICES).get(old_val, old_val) if old_val else None
+                else:
+                    old_display = old_data.get_cofactor_display() if old_val else None
+                new_display = protein.get_cofactor_display() if new_val else None
+                if old_display != new_display:
+                    changes["protein_fields"][label] = {"old": old_display, "new": new_display}
+        elif field == "parent_organism_id":
+            if old_val != new_val:
+                if use_field_dict:
+                    # For field_dict, just show the ID
+                    old_org_str = f"Organism ID: {old_val}" if old_val else None
+                else:
+                    old_org = old_data.parent_organism if old_val else None
+                    old_org_str = str(old_org) if old_org else None
+                new_org = protein.parent_organism if new_val else None
+                changes["protein_fields"][label] = {
+                    "old": old_org_str,
+                    "new": str(new_org) if new_org else None,
+                }
+        elif field in ["primary_reference_id", "default_state_id"]:
+            # Skip these for now - we'll handle them separately if needed
+            continue
+        else:
+            if old_val != new_val:
+                changes["protein_fields"][label] = {"old": old_val, "new": new_val}
+
+    # Skip related object comparisons when using field_dict (to avoid transaction issues)
+    if use_field_dict:
+        # Clean up empty sections
+        changes = {k: v for k, v in changes.items() if v and (not isinstance(v, dict) or any(v.values()))}
+        return changes
+
+    # Compare states (only when we have a Protein instance)
+    old_states = {s.id: s for s in old_data.states.all()}
+    new_states = {s.id: s for s in protein.states.all()}
+
+    # Find added states (states that exist now but didn't before)
+    for state_id, state in new_states.items():
+        if state_id not in old_states:
+            # Check if this is truly new or just has a new ID
+            # Match by unique fields: name, ex_max, em_max, ext_coeff, qy
+            is_truly_new = True
+            for old_state in old_states.values():
+                if (
+                    old_state.name == state.name
+                    and old_state.ex_max == state.ex_max
+                    and old_state.em_max == state.em_max
+                    and old_state.ext_coeff == state.ext_coeff
+                    and old_state.qy == state.qy
+                ):
+                    is_truly_new = False
+                    break
+
+            if is_truly_new:
+                changes["states"]["added"].append(
+                    {
+                        "name": str(state),
+                        "ex_max": state.ex_max,
+                        "em_max": state.em_max,
+                        "ext_coeff": state.ext_coeff,
+                        "qy": state.qy,
+                    }
+                )
+
+    # Find removed states
+    for state_id, old_state in old_states.items():
+        if state_id not in new_states:
+            # Check if truly removed or just has new ID
+            is_truly_removed = True
+            for state in new_states.values():
+                if (
+                    old_state.name == state.name
+                    and old_state.ex_max == state.ex_max
+                    and old_state.em_max == state.em_max
+                    and old_state.ext_coeff == state.ext_coeff
+                    and old_state.qy == state.qy
+                ):
+                    is_truly_removed = False
+                    break
+
+            if is_truly_removed:
+                changes["states"]["removed"].append(
+                    {
+                        "name": str(old_state),
+                        "ex_max": old_state.ex_max,
+                        "em_max": old_state.em_max,
+                    }
+                )
+
+    # Compare modified states (match by ID or by unique fields)
+    state_field_map = {
+        "name": "Name",
+        "ex_max": "Ex max",
+        "em_max": "Em max",
+        "ext_coeff": "Extinction Coefficient",
+        "qy": "Quantum Yield",
+        "pka": "pKa",
+        "maturation": "Maturation",
+        "lifetime": "Lifetime",
+        "is_dark": "Is Dark",
+        "twop_ex_max": "2P Ex max",
+        "twop_peakGM": "2P Peak GM",
+        "twop_qy": "2P QY",
+    }
+
+    for state_id in set(old_states.keys()) & set(new_states.keys()):
+        old_state = old_states[state_id]
+        new_state = new_states[state_id]
+        state_changes = {}
+
+        for field, label in state_field_map.items():
+            old_val = getattr(old_state, field, None)
+            new_val = getattr(new_state, field, None)
+            if old_val != new_val:
+                state_changes[label] = {"old": old_val, "new": new_val}
+
+        if state_changes:
+            changes["states"]["modified"][str(new_state)] = state_changes
+
+    # Compare references
+    old_refs = set(old_data.references.values_list("id", flat=True))
+    new_refs = set(protein.references.values_list("id", flat=True))
+
+    added_refs = new_refs - old_refs
+    removed_refs = old_refs - new_refs
+
+    if added_refs:
+        from references.models import Reference
+
+        for ref_id in added_refs:
+            ref = Reference.objects.get(id=ref_id)
+            changes["references"]["added"].append(str(ref.citation))
+
+    if removed_refs:
+        from references.models import Reference
+
+        for ref_id in removed_refs:
+            ref = Reference.objects.get(id=ref_id)
+            changes["references"]["removed"].append(str(ref.citation))
+
+    # Compare lineage
+    try:
+        old_lineage = old_data.lineage
+        new_lineage = protein.lineage
+        lineage_fields = {"parent": "Parent", "mutation": "Mutation", "reference": "Reference"}
+
+        for field, label in lineage_fields.items():
+            old_val = getattr(old_lineage, field, None)
+            new_val = getattr(new_lineage, field, None)
+            if old_val != new_val:
+                changes["lineage"][label] = {
+                    "old": str(old_val) if old_val else None,
+                    "new": str(new_val) if new_val else None,
+                }
+    except Exception:
+        # No lineage or error comparing
+        pass
+
+    # Compare OSER measurements
+    old_osers = {o.id: o for o in old_data.oser_measurements.all()}
+    new_osers = {o.id: o for o in protein.oser_measurements.all()}
+
+    for oser_id in set(new_osers.keys()) - set(old_osers.keys()):
+        oser = new_osers[oser_id]
+        changes["oser"]["added"].append(str(oser))
+
+    for oser_id in set(old_osers.keys()) - set(new_osers.keys()):
+        oser = old_osers[oser_id]
+        changes["oser"]["removed"].append(str(oser))
+
+    # Compare transitions
+    old_transitions = {t.id: t for t in old_data.transitions.all()}
+    new_transitions = {t.id: t for t in protein.transitions.all()}
+
+    for trans_id in set(new_transitions.keys()) - set(old_transitions.keys()):
+        trans = new_transitions[trans_id]
+        changes["transitions"]["added"].append(str(trans))
+
+    for trans_id in set(old_transitions.keys()) - set(new_transitions.keys()):
+        trans = old_transitions[trans_id]
+        changes["transitions"]["removed"].append(str(trans))
+
+    # Clean up empty sections
+    changes = {k: v for k, v in changes.items() if v and (not isinstance(v, dict) or any(v.values()))}
+
+    return changes
+
+
+@staff_member_required
+def pending_proteins_dashboard(request):
+    """Dashboard for reviewing pending protein submissions and changes."""
+    from collections import Counter
+
+    from favit.models import Favorite
+    from proteins.extrest.ga import cached_ga_popular
+
+    # Get all pending proteins
+    pending_proteins = (
+        Protein.objects.filter(status="pending")
+        .select_related(
+            "created_by",
+            "updated_by",
+            "parent_organism",
+            "primary_reference",
+            "default_state",
+        )
+        .prefetch_related(
+            "states",
+            "states__spectra",
+            "states__bleach_measurements",
+            "transitions",
+            "oser_measurements",
+            "references",
+        )
+        .order_by("-modified")
+    )
+
+    # Get view data (from Google Analytics)
+    view_data = {}
+    try:
+        ga_data = cached_ga_popular()
+        # Use month data for view counts
+        for slug, _name, views in ga_data.get("month", []):
+            view_data[slug] = views
+    except Exception as e:
+        logger.warning(f"Could not fetch GA data: {e}")
+
+    # Get favorite counts
+    favorite_data = {}
+    try:
+        fave_qs = Favorite.objects.for_model(Protein)
+        fave_counts = Counter(fave_qs.values_list("target_object_id", flat=True))
+        favorite_data = dict(fave_counts)
+    except Exception as e:
+        logger.warning(f"Could not fetch favorite data: {e}")
+
+    proteins_data = []
+    for protein in pending_proteins:
+        # Get changes for this protein
+        changes = _get_protein_changes(protein)
+
+        # Only include proteins that have changes (or are new)
+        if changes.get("is_new") or any(v for k, v in changes.items() if k != "is_new"):
+            proteins_data.append(
+                {
+                    "id": protein.id,
+                    "slug": protein.slug,
+                    "name": protein.name,
+                    "uuid": protein.uuid,
+                    "created": protein.created,
+                    "modified": protein.modified,
+                    "created_by": protein.created_by,
+                    "updated_by": protein.updated_by,
+                    "created_by_email": protein.created_by.email if protein.created_by else None,
+                    "is_new": changes.get("is_new", False),
+                    "changes": changes,
+                    "admin_url": f"/admin/proteins/protein/{protein.id}/change/",
+                    "detail_url": protein.get_absolute_url(),
+                    "view_count": view_data.get(protein.slug, 0),
+                    "favorite_count": favorite_data.get(protein.id, 0),
+                    # Add ISO format for JavaScript sorting
+                    "created_iso": protein.created.isoformat() if protein.created else "",
+                    "modified_iso": protein.modified.isoformat() if protein.modified else "",
+                }
+            )
+
+    context = {
+        "proteins": proteins_data,
+        "count": len(proteins_data),
+    }
+
+    return render(request, "pending_proteins_dashboard.html", context)
+
+
+@staff_member_required
+@reversion.create_revision()
+def pending_protein_action(request):
+    """Handle actions (approve/reject) on pending proteins."""
+    from django.http import JsonResponse
+
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "POST required"}, status=405)
+
+    try:
+        protein_ids = request.POST.getlist("protein_ids[]")
+        action = request.POST.get("action")
+
+        if not protein_ids or not action:
+            return JsonResponse({"success": False, "error": "Missing protein_ids or action"}, status=400)
+
+        proteins = Protein.objects.filter(id__in=protein_ids, status="pending")
+
+        if not proteins.exists():
+            return JsonResponse({"success": False, "error": "No pending proteins found with provided IDs"}, status=404)
+
+        count = proteins.count()
+
+        if action == "approve":
+            # Set revision comment
+            reversion.set_comment(f"Approved {count} protein(s) via moderation dashboard")
+            reversion.set_user(request.user)
+
+            proteins.update(status="approved")
+            # Clear cache for affected protein pages
+            for protein in proteins:
+                with contextlib.suppress(Exception):
+                    uncache_protein_page(protein.slug, request)
+            message = f"Approved {count} protein(s)"
+
+        elif action == "reject":
+            # Set revision comment
+            reversion.set_comment(f"Rejected {count} protein(s) via moderation dashboard")
+            reversion.set_user(request.user)
+
+            # For reject, we might want to revert to last approved version
+            # or just mark as hidden. Let's mark as hidden for now.
+            proteins.update(status="hidden")
+            message = f"Rejected (hidden) {count} protein(s)"
+
+        else:
+            return JsonResponse({"success": False, "error": f"Unknown action: {action}"}, status=400)
+
+        return JsonResponse({"success": True, "message": message, "count": count})
+
+    except Exception as e:
+        logger.exception("Error in pending_protein_action: %s", e)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
