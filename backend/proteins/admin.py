@@ -222,9 +222,54 @@ class CameraAdmin(SpectrumOwner, VersionAdmin):
     ordering = ("-created",)
 
 
+class SpectrumAdminForm(forms.ModelForm):
+    """Custom form to handle the Spectrum.data property in admin."""
+
+    data = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 10, "cols": 80}),
+        required=False,
+        help_text="Spectrum data as [[wavelength, value], ...] pairs",
+    )
+
+    class Meta:
+        model = Spectrum
+        fields = [
+            "category",
+            "subtype",
+            "ph",
+            "solvent",
+            "owner_fluor",
+            "owner_filter",
+            "owner_light",
+            "owner_camera",
+            "reference",
+            "source",
+            "status",
+            "created_by",
+            "updated_by",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            # Populate the data field from the property
+            self.fields["data"].initial = self.instance.data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Set data via the property setter if provided
+        data_value = self.cleaned_data.get("data")
+        if data_value:
+            instance.data = data_value
+        if commit:
+            instance.save()
+        return instance
+
+
 @admin.register(Spectrum)
 class SpectrumAdmin(VersionAdmin):
     model = Spectrum
+    form = SpectrumAdminForm
     autocomplete_fields = ["reference"]
     list_select_related = (
         "owner_fluor",
