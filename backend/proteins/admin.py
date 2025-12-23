@@ -225,7 +225,7 @@ class CameraAdmin(SpectrumOwner, VersionAdmin):
 class SpectrumAdminForm(forms.ModelForm):
     """Custom form to handle the Spectrum.data property in admin."""
 
-    data = forms.CharField(
+    data = forms.CharField(  # type: ignore[assignment]
         widget=forms.Textarea(attrs={"rows": 10, "cols": 80}),
         required=False,
         help_text="Spectrum data as [[wavelength, value], ...] pairs",
