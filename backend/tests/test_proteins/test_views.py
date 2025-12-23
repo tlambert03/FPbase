@@ -465,3 +465,56 @@ class TestScopeReportJson:
         # Verify fluors dict contains our fluorophores
         assert state.slug in data["fluors"], f"State {state.slug} missing from fluors"
         assert dye_state.slug in data["fluors"], f"DyeState {dye_state.slug} missing from fluors"
+
+
+class TestProteinSubmitMultiState(TestCase):
+    """Regression tests for FPBASE-6H7: protein submission with multiple states."""
+
+    def setUp(self) -> None:
+        self.admin_user = User.objects.create_superuser(
+            username="admin", email="admin@example.com", password="password"
+        )
+
+    def test_protein_submit_with_two_states(self):
+        """Test protein submission with multiple states doesn't raise ValueError.
+
+        Regression test for FPBASE-6H7: When a protein has 2+ states but no transitions,
+        the check_switch_type function is called and previously crashed with ValueError
+        due to incorrect dict(Protein.SwitchingChoices) usage.
+        """
+        self.client.login(username="admin", password="password")
+        initial_count = Protein.objects.count()
+
+        # Submit protein with 2 states (no transitions) - triggers check_switch_type
+        # with suggested switch_type='o' (OTHER)
+        response = self.client.post(
+            reverse("proteins:submit"),
+            data={
+                "name": "MultiStateProtein",
+                "reference_doi": "10.1038/nmeth.2413",
+                # Two states, no transitions = triggers 'OTHER' suggestion
+                "states-0-name": "on",
+                "states-0-ex_max": 488,
+                "states-0-em_max": 525,
+                "states-1-name": "off",
+                "states-1-ex_max": 400,
+                "states-1-em_max": 450,
+                "confirmation": True,
+                "lineage-TOTAL_FORMS": 1,
+                "lineage-INITIAL_FORMS": 0,
+                "lineage-MIN_NUM_FORMS": 0,
+                "lineage-MAX_NUM_FORMS": 1,
+                "states-TOTAL_FORMS": 2,
+                "states-INITIAL_FORMS": 0,
+                "states-MIN_NUM_FORMS": 0,
+                "states-MAX_NUM_FORMS": 1000,
+            },
+        )
+
+        # Should redirect to protein detail (success), not error
+        assert response.status_code == 302
+        assert Protein.objects.count() == initial_count + 1
+
+        new_prot = cast("Protein", Protein.objects.get(name="MultiStateProtein"))
+        assert response.url == new_prot.get_absolute_url()
+        assert new_prot.states.count() == 2
