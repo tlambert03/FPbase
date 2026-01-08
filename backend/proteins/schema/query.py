@@ -143,12 +143,9 @@ class Query(graphene.ObjectType):
             return gdo.query(models.OpticalConfig.objects.filter(id=_id), info).get()
         return None
 
-    dyes = graphene.List(types.Dye)
-    dye = graphene.Field(types.Dye, id=graphene.Int(), name=graphene.String())
+    dyes = graphene.List(types.DyeState)
+    dye = graphene.Field(types.DyeState, id=graphene.Int(), name=graphene.String())
 
-    # FIXME:
-    # "dye" is now returning a DyeState, not a Dye... this is backwards compatible
-    # but incorrect and needs to be fixed with a deprecation cycle.
     def resolve_dyes(self, info, **kwargs):
         return gdo.query(models.DyeState.objects.all(), info)
 
