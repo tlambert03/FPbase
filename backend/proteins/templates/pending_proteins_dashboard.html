@@ -1,0 +1,792 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Pending Proteins Dashboard - FPbase Admin{% endblock %}
+
+{% block extrahead %}
+<style>
+:root {
+    --toast-bg-success: #28a745;
+    --toast-bg-warning: #ffc107;
+    --toast-bg-error: #dc3545;
+    --toast-text-light: white;
+    --toast-text-dark: #333;
+}
+
+.protein-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s;
+}
+
+.protein-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.protein-card.selected {
+    border-color: #007bff;
+    background-color: #f0f8ff;
+}
+
+.protein-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.protein-header h4 {
+    margin: 0;
+    flex-grow: 1;
+}
+
+.protein-info {
+    margin-bottom: 15px;
+}
+
+.protein-info label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.badge-new {
+    background-color: #17a2b8;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.badge-modified {
+    background-color: #ffc107;
+    color: #333;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.changes-section {
+    margin-top: 15px;
+}
+
+.change-category {
+    margin-bottom: 15px;
+    border-left: 3px solid #007bff;
+    padding-left: 10px;
+}
+
+.change-category-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.change-category-title:hover {
+    color: #007bff;
+}
+
+.change-category-title .toggle-icon {
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+.change-category-title.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.change-category-content {
+    margin-top: 8px;
+}
+
+.change-category-content.collapsed {
+    display: none;
+}
+
+.change-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.change-item:last-child {
+    border-bottom: none;
+}
+
+.change-field {
+    font-weight: 600;
+    color: #333;
+}
+
+.change-old {
+    color: #dc3545;
+    text-decoration: line-through;
+}
+
+.change-new {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.change-added {
+    color: #28a745;
+}
+
+.change-removed {
+    color: #dc3545;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.action-buttons .btn {
+    font-size: 0.85rem;
+}
+
+.bulk-actions {
+    position: sticky;
+    top: 70px;
+    background: #fff;
+    padding: 15px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 100;
+    display: none;
+}
+
+.bulk-actions.show {
+    display: block;
+}
+
+.checkbox-large {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+/* Toast Notifications */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notification-toast {
+    background: var(--toast-bg-success);
+    color: var(--toast-text-light);
+    padding: 12px 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s ease-out forwards;
+    white-space: nowrap;
+    min-width: fit-content;
+    font-size: 14px;
+}
+
+.notification-toast.warning {
+    background: var(--toast-bg-warning);
+    color: var(--toast-text-dark);
+}
+
+.notification-toast.error {
+    background: var(--toast-bg-error);
+}
+
+.notification-toast.slide-out {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.state-item {
+    background: #f8f9fa;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+    border-left: 3px solid #6c757d;
+}
+
+.nested-change {
+    margin-left: 15px;
+    padding-left: 10px;
+    border-left: 2px solid #dee2e6;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Pending Proteins Dashboard</h1>
+            <p class="text-muted">Review and moderate protein submissions and changes</p>
+        </div>
+        <div class="col-auto">
+            <span class="badge badge-primary badge-pill" style="font-size: 1.2em;">
+                {{ count }} pending
+            </span>
+        </div>
+    </div>
+
+    {% if count == 0 %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> No pending proteins! Great job.
+    </div>
+    {% else %}
+
+    <!-- Sort Controls -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="form-inline">
+                <label for="sort-select" class="mr-2"><strong>Sort by:</strong></label>
+                <select id="sort-select" class="form-control mr-2" onchange="sortProteins()">
+                    <option value="modified-desc">Most Recently Updated</option>
+                    <option value="modified-asc">Least Recently Updated</option>
+                    <option value="created-desc">Newest</option>
+                    <option value="created-asc">Oldest</option>
+                    <option value="views-desc">Most Viewed</option>
+                    <option value="views-asc">Least Viewed</option>
+                    <option value="favorites-desc">Most Favorited</option>
+                    <option value="favorites-asc">Least Favorited</option>
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar (shown when items are selected) -->
+    <div id="bulk-actions-bar" class="bulk-actions">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong><span id="selected-count">0</span> proteins selected</strong>
+            </div>
+            <div class="action-buttons">
+                <button type="button" class="btn btn-success" onclick="bulkAction('approve')">
+                    <i class="fas fa-check"></i> Approve Selected
+                </button>
+                <button type="button" class="btn btn-danger" onclick="bulkAction('reject')">
+                    <i class="fas fa-times"></i> Reject Selected
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="clearSelection()">
+                    <i class="fas fa-undo"></i> Clear Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Select All -->
+    <div class="mb-3">
+        <label>
+            <input type="checkbox" id="select-all" class="checkbox-large" onchange="toggleSelectAll(this)">
+            <strong>Select All</strong>
+        </label>
+    </div>
+
+    <!-- Protein Cards -->
+    <div id="proteins-container">
+    {% for protein in proteins %}
+    <div class="protein-card"
+         data-protein-id="{{ protein.id }}"
+         data-name="{{ protein.name }}"
+         data-modified="{{ protein.modified_iso }}"
+         data-created="{{ protein.created_iso }}"
+         data-views="{{ protein.view_count }}"
+         data-favorites="{{ protein.favorite_count }}">
+        <div class="protein-header">
+            <input type="checkbox" class="protein-checkbox checkbox-large" data-protein-id="{{ protein.id }}" onchange="updateSelection()">
+            <h4 onclick="this.previousElementSibling.click()" style="cursor: pointer;">
+                {{ protein.name }}
+                {% if protein.is_new %}
+                <span class="badge-new">NEW SUBMISSION</span>
+                {% else %}
+                <span class="badge-modified">MODIFIED</span>
+                {% endif %}
+            </h4>
+            <a href="{{ protein.detail_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-eye"></i> View
+            </a>
+            <a href="{{ protein.admin_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-cog"></i> Admin
+            </a>
+        </div>
+
+        <div class="protein-info">
+            <div><label>UUID:</label> <span>{{ protein.uuid }}</span></div>
+            <div><label>Slug:</label> <span>{{ protein.slug }}</span></div>
+            <div><label>Modified:</label> <span>{{ protein.modified|date:"Y-m-d H:i" }}</span></div>
+            {% if protein.updated_by %}
+            <div><label>Updated by:</label> <span>{{ protein.updated_by.username }}</span></div>
+            {% endif %}
+            {% if protein.created_by_email %}
+            <div><label>Submitter:</label> <span>{{ protein.created_by.username }} &lt;{{ protein.created_by_email }}&gt;</span></div>
+            {% endif %}
+        </div>
+
+        {% if not protein.is_new %}
+        <div class="changes-section">
+            <h5>Changes:</h5>
+
+            {% if protein.changes.protein_fields %}
+            <div class="change-category">
+                <div class="change-category-title" onclick="toggleCategory(this)">
+                    <span class="toggle-icon">▼</span> Protein Fields ({{ protein.changes.protein_fields|length }})
+                </div>
+                <div class="change-category-content">
+                    {% for field, change in protein.changes.protein_fields.items %}
+                    <div class="change-item">
+                        <span class="change-field">{{ field }}:</span>
+                        {% if change.mutations %}
+                        <div class="nested-change">
+                            <div><span class="change-old">{{ change.old }}</span></div>
+                            <div><span class="change-new">{{ change.new }}</span></div>
+                            <div><strong>Mutations:</strong> {{ change.mutations }}</div>
+                        </div>
+                        {% else %}
+                        <span class="change-old">{{ change.old|default:"(empty)" }}</span>
+                        →
+                        <span class="change-new">{{ change.new|default:"(empty)" }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if protein.changes.states %}
+            <div class="change-category">
+                <div class="change-category-title" onclick="toggleCategory(this)">
+                    <span class="toggle-icon">▼</span> States
+                    {% if protein.changes.states.added %}<span class="change-added">(+{{ protein.changes.states.added|length }})</span>{% endif %}
+                    {% if protein.changes.states.removed %}<span class="change-removed">(-{{ protein.changes.states.removed|length }})</span>{% endif %}
+                    {% if protein.changes.states.modified %}<span class="badge-modified">(~{{ protein.changes.states.modified|length }})</span>{% endif %}
+                </div>
+                <div class="change-category-content">
+                    {% if protein.changes.states.added %}
+                    <h6 class="change-added">Added States:</h6>
+                    {% for state in protein.changes.states.added %}
+                    <div class="state-item">
+                        <strong>{{ state.name }}</strong>
+                        <div class="nested-change">
+                            {% if state.ex_max %}<div>Ex: {{ state.ex_max }} nm</div>{% endif %}
+                            {% if state.em_max %}<div>Em: {{ state.em_max }} nm</div>{% endif %}
+                            {% if state.ext_coeff %}<div>EC: {{ state.ext_coeff }}</div>{% endif %}
+                            {% if state.qy %}<div>QY: {{ state.qy }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if protein.changes.states.removed %}
+                    <h6 class="change-removed">Removed States:</h6>
+                    {% for state in protein.changes.states.removed %}
+                    <div class="state-item">
+                        <strong class="change-removed">{{ state.name }}</strong>
+                        <div class="nested-change">
+                            {% if state.ex_max %}<div>Ex: {{ state.ex_max }} nm</div>{% endif %}
+                            {% if state.em_max %}<div>Em: {{ state.em_max }} nm</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    {% if protein.changes.states.modified %}
+                    <h6>Modified States:</h6>
+                    {% for state_name, changes in protein.changes.states.modified.items %}
+                    <div class="state-item">
+                        <strong>{{ state_name }}</strong>
+                        <div class="nested-change">
+                            {% for field, change in changes.items %}
+                            <div class="change-item">
+                                <span class="change-field">{{ field }}:</span>
+                                <span class="change-old">{{ change.old|default:"(empty)" }}</span>
+                                →
+                                <span class="change-new">{{ change.new|default:"(empty)" }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if protein.changes.references %}
+            <div class="change-category">
+                <div class="change-category-title" onclick="toggleCategory(this)">
+                    <span class="toggle-icon">▼</span> References
+                    {% if protein.changes.references.added %}<span class="change-added">(+{{ protein.changes.references.added|length }})</span>{% endif %}
+                    {% if protein.changes.references.removed %}<span class="change-removed">(-{{ protein.changes.references.removed|length }})</span>{% endif %}
+                </div>
+                <div class="change-category-content">
+                    {% if protein.changes.references.added %}
+                    <h6 class="change-added">Added References:</h6>
+                    {% for ref in protein.changes.references.added %}
+                    <div class="change-item change-added">{{ ref }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if protein.changes.references.removed %}
+                    <h6 class="change-removed">Removed References:</h6>
+                    {% for ref in protein.changes.references.removed %}
+                    <div class="change-item change-removed">{{ ref }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if protein.changes.lineage %}
+            <div class="change-category">
+                <div class="change-category-title" onclick="toggleCategory(this)">
+                    <span class="toggle-icon">▼</span> Lineage ({{ protein.changes.lineage|length }})
+                </div>
+                <div class="change-category-content">
+                    {% for field, change in protein.changes.lineage.items %}
+                    <div class="change-item">
+                        <span class="change-field">{{ field }}:</span>
+                        <span class="change-old">{{ change.old|default:"(empty)" }}</span>
+                        →
+                        <span class="change-new">{{ change.new|default:"(empty)" }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if protein.changes.transitions %}
+            <div class="change-category">
+                <div class="change-category-title" onclick="toggleCategory(this)">
+                    <span class="toggle-icon">▼</span> Transitions
+                    {% if protein.changes.transitions.added %}<span class="change-added">(+{{ protein.changes.transitions.added|length }})</span>{% endif %}
+                    {% if protein.changes.transitions.removed %}<span class="change-removed">(-{{ protein.changes.transitions.removed|length }})</span>{% endif %}
+                </div>
+                <div class="change-category-content">
+                    {% if protein.changes.transitions.added %}
+                    <h6 class="change-added">Added:</h6>
+                    {% for trans in protein.changes.transitions.added %}
+                    <div class="change-item change-added">{{ trans }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if protein.changes.transitions.removed %}
+                    <h6 class="change-removed">Removed:</h6>
+                    {% for trans in protein.changes.transitions.removed %}
+                    <div class="change-item change-removed">{{ trans }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if protein.changes.oser %}
+            <div class="change-category">
+                <div class="change-category-title" onclick="toggleCategory(this)">
+                    <span class="toggle-icon">▼</span> OSER Measurements
+                    {% if protein.changes.oser.added %}<span class="change-added">(+{{ protein.changes.oser.added|length }})</span>{% endif %}
+                    {% if protein.changes.oser.removed %}<span class="change-removed">(-{{ protein.changes.oser.removed|length }})</span>{% endif %}
+                </div>
+                <div class="change-category-content">
+                    {% if protein.changes.oser.added %}
+                    <h6 class="change-added">Added:</h6>
+                    {% for oser in protein.changes.oser.added %}
+                    <div class="change-item change-added">{{ oser }}</div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if protein.changes.oser.removed %}
+                    <h6 class="change-removed">Removed:</h6>
+                    {% for oser in protein.changes.oser.removed %}
+                    <div class="change-item change-removed">{{ oser }}</div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> This is a new protein submission. Review all fields in the admin panel before approving.
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button type="button" class="btn btn-success btn-sm" onclick="singleAction({{ protein.id }}, 'approve')">
+                <i class="fas fa-check"></i> Approve
+            </button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="singleAction({{ protein.id }}, 'reject')">
+                <i class="fas fa-times"></i> Reject (Hide)
+            </button>
+            {% if protein.created_by_email %}
+            <a href="mailto:{{ protein.created_by_email }}?subject=Regarding%20your%20FPBase%20protein%20submission%3A%20{{ protein.name|urlencode }}" class="btn btn-info btn-sm">
+                <i class="fas fa-envelope"></i> Email
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    </div> <!-- end proteins-container -->
+    {% endif %}
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+// CSRF token for AJAX requests
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// Sort proteins function
+function sortProteins() {
+    const sortValue = document.getElementById('sort-select').value;
+    const [sortBy, direction] = sortValue.split('-');
+    const container = document.getElementById('proteins-container');
+    const cards = Array.from(container.querySelectorAll('.protein-card'));
+
+    cards.sort((a, b) => {
+        let aVal, bVal;
+
+        switch(sortBy) {
+            case 'name':
+                aVal = a.dataset.name.toLowerCase();
+                bVal = b.dataset.name.toLowerCase();
+                break;
+            case 'modified':
+                aVal = new Date(a.dataset.modified);
+                bVal = new Date(b.dataset.modified);
+                break;
+            case 'created':
+                aVal = new Date(a.dataset.created);
+                bVal = new Date(b.dataset.created);
+                break;
+            case 'views':
+                aVal = parseFloat(a.dataset.views) || 0;
+                bVal = parseFloat(b.dataset.views) || 0;
+                break;
+            case 'favorites':
+                aVal = parseInt(a.dataset.favorites) || 0;
+                bVal = parseInt(b.dataset.favorites) || 0;
+                break;
+        }
+
+        // Sort based on direction
+        if (direction === 'asc') {
+            if (aVal < bVal) return -1;
+            if (aVal > bVal) return 1;
+            return 0;
+        } else {
+            if (aVal > bVal) return -1;
+            if (aVal < bVal) return 1;
+            return 0;
+        }
+    });
+
+    // Re-append cards in sorted order
+    cards.forEach(card => container.appendChild(card));
+}
+
+// Toast notification system
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `notification-toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        toast.classList.add('slide-out');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+
+// Toggle change category visibility
+function toggleCategory(element) {
+    element.classList.toggle('collapsed');
+    const content = element.nextElementSibling;
+    content.classList.toggle('collapsed');
+}
+
+// Get selected protein IDs
+function getSelectedIds() {
+    const checkboxes = document.querySelectorAll('.protein-checkbox:checked');
+    return Array.from(checkboxes).map(cb => cb.dataset.proteinId);
+}
+
+// Update selection UI
+function updateSelection() {
+    const selectedIds = getSelectedIds();
+    const count = selectedIds.length;
+
+    document.getElementById('selected-count').textContent = count;
+
+    if (count > 0) {
+        document.getElementById('bulk-actions-bar').classList.add('show');
+    } else {
+        document.getElementById('bulk-actions-bar').classList.remove('show');
+    }
+
+    // Update card styling
+    document.querySelectorAll('.protein-card').forEach(card => {
+        const checkbox = card.querySelector('.protein-checkbox');
+        if (checkbox.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+
+    // Update select-all checkbox
+    const allCheckboxes = document.querySelectorAll('.protein-checkbox');
+    const selectAllCheckbox = document.getElementById('select-all');
+    selectAllCheckbox.checked = allCheckboxes.length > 0 && selectedIds.length === allCheckboxes.length;
+}
+
+// Toggle select all
+function toggleSelectAll(checkbox) {
+    document.querySelectorAll('.protein-checkbox').forEach(cb => {
+        cb.checked = checkbox.checked;
+    });
+    updateSelection();
+}
+
+// Clear selection
+function clearSelection() {
+    document.querySelectorAll('.protein-checkbox').forEach(cb => {
+        cb.checked = false;
+    });
+    document.getElementById('select-all').checked = false;
+    updateSelection();
+}
+
+// Perform action on single protein
+function singleAction(proteinId, action) {
+    if (action === 'reject') {
+        if (!confirm('Are you sure you want to reject (hide) this protein? This will set its status to "hidden".')) {
+            return;
+        }
+    }
+
+    performAction([proteinId], action);
+}
+
+// Perform bulk action
+function bulkAction(action) {
+    const selectedIds = getSelectedIds();
+
+    if (selectedIds.length === 0) {
+        showToast('Please select at least one protein.', 'warning');
+        return;
+    }
+
+    if (action === 'reject') {
+        if (!confirm(`Are you sure you want to reject (hide) ${selectedIds.length} protein(s)?`)) {
+            return;
+        }
+    }
+
+    performAction(selectedIds, action);
+}
+
+// Perform action via AJAX
+function performAction(proteinIds, action) {
+    const formData = new FormData();
+    proteinIds.forEach(id => formData.append('protein_ids[]', id));
+    formData.append('action', action);
+
+    fetch('{% url "proteins:pending_protein_action" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove processed proteins from DOM
+            proteinIds.forEach(id => {
+                const card = document.querySelector(`.protein-card[data-protein-id="${id}"]`);
+                if (card) card.remove();
+            });
+
+            // Update count
+            const countBadge = document.querySelector('.badge-primary');
+            const currentCount = parseInt(countBadge.textContent);
+            const newCount = currentCount - data.count;
+            countBadge.textContent = `${newCount} pending`;
+
+            clearSelection();
+
+            // Show success message if no more pending
+            if (newCount === 0) {
+                document.querySelector('.container-fluid').innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> No pending proteins! Great job.
+                    </div>
+                `;
+            }
+
+            showToast(data.message, 'success');
+        } else {
+            showToast('Error: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showToast('An error occurred: ' + error, 'error');
+        console.error('Error:', error);
+    });
+}
+</script>
+{% endblock %}
