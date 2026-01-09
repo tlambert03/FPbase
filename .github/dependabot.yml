@@ -9,6 +9,10 @@ updates:
     # Every weekday
     schedule:
       interval: 'monthly'
+    groups:
+      actions:
+        patterns:
+          - "*"
 
   # Enable version updates for Python/Pip - Production
   - package-ecosystem: 'uv'
