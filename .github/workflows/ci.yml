@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
@@ -36,7 +36,7 @@ jobs:
   typing-typescript:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
@@ -70,7 +70,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: astral-sh/setup-uv@v7
         with:
@@ -113,7 +113,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: astral-sh/setup-uv@v7
         with:
@@ -141,7 +141,7 @@ jobs:
       - name: Test
         run: uv run --no-sync pytest backend/tests_e2e/ --create-db --migrations -v --browser ${{ matrix.browser }} --cov --cov-report=xml --tracing=retain-on-failure
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
           name: playwright-traces-${{ matrix.browser }}
