@@ -26,8 +26,6 @@ of your existing third party accounts. {% endblocktrans %}</p>
         <a href="{% provider_login_url 'google' %}" class="btn btn-google mt-2 w-100">{% icon "google" %} &nbsp; Log in with Google</a>
       {% elif provider.id == "orcid" %}
         <a href="{% provider_login_url 'orcid' %}" class="btn btn-orcid mt-2 w-100">{% icon "orcid" %} &nbsp; Log in with ORCID</a>
-      {% elif provider.id == "twitter" %}
-        <a href="{% provider_login_url 'twitter'%}" class="btn btn-twitter mt-2 w-100">{% icon "twitter" %} &nbsp; Log in with X</a>
       {% endif %}
     {% endfor %}
 

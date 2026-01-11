@@ -71,7 +71,6 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",  # registration
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
-    "allauth.socialaccount.providers.twitter",
     "django_recaptcha",
     "django_filters",
     "reversion",
