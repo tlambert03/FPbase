@@ -383,4 +383,3 @@ test_fix*.bin
 __snapshots__/
 snapshot_failures/
 frontend/stats.html
-twitter_only_users.csv
