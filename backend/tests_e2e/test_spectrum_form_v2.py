@@ -64,6 +64,28 @@ def european_csv_file() -> Iterator[Path]:
 
 
 @pytest.fixture
+def percentage_filter_csv_file() -> Iterator[Path]:
+    """CSV with filter transmission in 0-100% range (not 0-1)."""
+    content = """wavelength,Filter_BP630
+400,0.001
+500,0.002
+600,5.5
+610,34.0
+620,85.0
+630,99.2
+640,92.0
+650,50.0
+660,3.0
+700,0.001
+"""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
+        f.write(content)
+        path = Path(f.name)
+    yield path
+    path.unlink(missing_ok=True)
+
+
+@pytest.fixture
 def spectrum_form_page(live_server: LiveServer, auth_page: Page) -> Iterator[Page]:
     """Navigate to the spectrum form page."""
     url = f"{live_server.url}{reverse('proteins:submit-spectra')}"
@@ -546,6 +568,29 @@ def test_submit_filter_spectrum_with_source(
     assert spectrum.category == "f"
     assert spectrum.subtype == "bp"
     assert spectrum.reference is None  # No reference was provided
+
+
+def test_submit_filter_percentage_data_normalized_to_fraction(
+    spectrum_form_page: Page, percentage_filter_csv_file: Path
+) -> None:
+    """Filter data in 0-100% range is converted to 0-1 fraction on submission."""
+    page = spectrum_form_page
+    _upload_csv(page, percentage_filter_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+
+    _fill_spectrum_card(page, category="f", subtype="bp", owner="E2E Pct Filter")
+    _fill_source(page, "E2E Pct Filter Source")
+
+    page.locator("#id_confirmation").check()
+    page.locator("#submit-btn").click()
+
+    expect(page).to_have_url(re.compile(r".*/spectra/submitted/"))
+
+    spectrum = Spectrum.objects.all_objects().filter(source="E2E Pct Filter Source").first()
+    assert spectrum is not None
+    max_val = max(v for _, v in spectrum.data)
+    assert max_val <= 1.0, f"Filter data should be 0-1 fraction, got max={max_val}"
+    assert max_val > 0.9, f"Expected max near 0.99, got {max_val}"
 
 
 def test_submit_light_spectrum(spectrum_form_page: Page, sample_csv_file: Path) -> None:
