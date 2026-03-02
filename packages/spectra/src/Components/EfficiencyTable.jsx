@@ -190,9 +190,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
   const handleExportCSV = () => {
     const csvContent = [
       // Header row
-      columns
-        .map((col) => col.header)
-        .join(","),
+      columns.map((col) => col.header).join(","),
       // Data rows
       ...sortedRows.map((row) => columns.map((col) => row[col.accessorKey] || "").join(",")),
     ].join("\n")
