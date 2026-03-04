@@ -528,7 +528,7 @@ function performAction(spectrumIds, action) {
             });
 
             // Update count
-            const countBadge = document.querySelector('.badge text-bg-primary');
+            const countBadge = document.querySelector('.badge.text-bg-primary');
             const currentCount = parseInt(countBadge.textContent);
             const newCount = currentCount - data.count;
             countBadge.textContent = `${newCount} pending`;
@@ -617,7 +617,7 @@ function undoAction(spectrumIds, savedCards) {
             updateSelection();
 
             // Update count (use server's count for accuracy)
-            const countBadge = document.querySelector('.badge text-bg-primary');
+            const countBadge = document.querySelector('.badge.text-bg-primary');
             const currentCount = parseInt(countBadge.textContent);
             const newCount = currentCount + data.count;
             countBadge.textContent = `${newCount} pending`;
