@@ -16,7 +16,6 @@ import "highcharts/modules/exporting"
 import "highcharts/modules/offline-exporting"
 import "highcharts/modules/pattern-fill"
 import "highcharts/modules/export-data"
-import "highcharts/modules/boost"
 import LinearProgress from "@mui/material/LinearProgress"
 import { defaultChartOptions } from "../../defaults"
 import useSpectraData from "../../hooks/useSpectraData"
@@ -47,7 +46,6 @@ const {
   exporting: _exporting,
   legend: _legend,
   tooltip: _tooltip,
-  boost: _boost,
 } = DEFAULT_OPTIONS
 
 const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContainer({
