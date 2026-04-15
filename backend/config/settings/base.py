@@ -301,6 +301,10 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 
 ACCOUNT_FORMS = {"signup": "fpbase.forms.CustomSignupForm"}
 
+# Surface CSRF failure reasons (NO_REFERER / BAD_REFERER / BAD_TOKEN /
+# BAD_ORIGIN) to logs/Sentry instead of hiding them behind an opaque 403 page.
+CSRF_FAILURE_VIEW = "fpbase.views.csrf_failure"
+
 # Custom user app defaults
 # Select the correct user model
 AUTH_USER_MODEL = "users.User"

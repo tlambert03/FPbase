@@ -128,6 +128,11 @@ DEFAULT_FROM_EMAIL = env("DJANGO_DEFAULT_FROM_EMAIL", default="FPbase <noreply@m
 EMAIL_SUBJECT_PREFIX = env("DJANGO_EMAIL_SUBJECT_PREFIX", default="[FPbase]")
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 
+# Build allauth links (confirmation, password reset, etc.) as https:// from the
+# start, instead of relying on SECURE_SSL_REDIRECT to upgrade an http:// link.
+# Removes a redirect hop that some email scanners/proxies mishandle.
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+
 # Anymail with Mailgun
 INSTALLED_APPS += [
     "anymail",
@@ -136,6 +141,12 @@ ANYMAIL = {
     "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
     "MAILGUN_SENDER_DOMAIN": env("MAILGUN_DOMAIN"),
     # "SENDGRID_API_KEY": env('SENDGRID_API_KEY'),
+    # Disable Mailgun click/open tracking for every message sent through
+    # Anymail. Click tracking rewrites links through email.mg.fpbase.org
+    "SEND_DEFAULTS": {
+        "track_clicks": False,
+        "track_opens": False,
+    },
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 # EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"

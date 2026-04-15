@@ -15,10 +15,20 @@
 
 <p>{% blocktrans with confirmation.email_address.email as email %}Please confirm that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user {{ user_display }}.{% endblocktrans %}</p>
 
-<form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+<form id="confirm-email-form" method="post" action="{% url 'account_confirm_email' confirmation.key %}">
 {% csrf_token %}
     <button class="btn btn-primary" type="submit">{% trans 'Confirm' %}</button>
 </form>
+<script>
+    // Auto-submit the confirmation form so users don't have to click a second
+    // button after clicking the link in their email. Keeping the submit as a
+    // POST (rather than setting ACCOUNT_CONFIRM_EMAIL_ON_GET=True) preserves
+    // HTTP semantics: link prefetchers and email scanners issue GETs and will
+    // not trigger the state change. See allauth docs on ACCOUNT_CONFIRM_EMAIL_ON_GET.
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("confirm-email-form").submit();
+    });
+</script>
 
 {% else %}
 

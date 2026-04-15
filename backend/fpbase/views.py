@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.csrf import csrf_failure as default_csrf_failure
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from graphene_django.views import GraphQLView
@@ -183,3 +184,25 @@ def server_error(request, *args, **argv):
         },
         status=500,
     )
+
+
+def csrf_failure(request, reason=""):
+    """Log CSRF failures with their reason before delegating to Django's default.
+
+    Django's default view only renders an opaque 403 page; we want the specific
+    reason (REASON_NO_REFERER, REASON_BAD_REFERER, REASON_BAD_TOKEN,
+    REASON_BAD_ORIGIN, etc.) surfaced to Sentry so we can diagnose 403s without
+    having to reproduce them.
+    """
+    logger.warning(
+        "CSRF failure",
+        extra={
+            "path": request.path,
+            "method": request.method,
+            "reason": reason,
+            "referer": request.headers.get("referer"),
+            "origin": request.headers.get("origin"),
+            "user_agent": request.headers.get("user-agent"),
+        },
+    )
+    return default_csrf_failure(request, reason=reason)
