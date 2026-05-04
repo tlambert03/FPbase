@@ -459,7 +459,7 @@ def spectra_fig(
     if not xlim:
         xlim = (min([s.min_wave for s in spectra]), max([s.max_wave for s in spectra]))
     for spec in spectra:
-        color = colr if colr else spec.color()
+        color = colr or spec.color()
         if fill:
             alpha = 0.5 if not alph else float(alph)
             ax.fill_between(
