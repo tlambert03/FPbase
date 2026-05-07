@@ -53,14 +53,14 @@ export default function initFRET() {
     },
     tooltip: {
       shared: !window.mobilecheck(),
-      valueDecimals: 1,
-      valueSuffix: "%",
-      valueFormatter: (value) => {
-        if (value !== null && value !== undefined) {
-          return `${Math.round(value * 1000) / 10}%`
-        } else {
-          return "--"
+      formatter: function () {
+        const points = this.points || [this.point]
+        let html = `<b>${this.x} nm</b><br/>`
+        for (const p of points) {
+          const pct = Math.round(p.y * 1000) / 10
+          html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${pct}%</b><br/>`
         }
+        return html
       },
     },
     legend: {
