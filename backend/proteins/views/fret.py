@@ -15,19 +15,19 @@ def fret_chart(request):
     template = "fret.html"
 
     if is_ajax(request):
-        forster_list = cache.get("forster_list")
+        forster_list = cache.get("forster_list_v2")
         if not forster_list:
-            job = cache.get("calc_fret_job")
-            if cache.get("calc_fret_job"):
+            job = cache.get("calc_fret_job_v2")
+            if cache.get("calc_fret_job_v2"):
                 result = app.AsyncResult(job)
                 if result.ready():
                     forster_list = result.get()
-                    cache.set("forster_list", forster_list, 60 * 60 * 24)
-                    cache.delete("calc_fret_job")
+                    cache.set("forster_list_v2", forster_list, 60 * 60 * 24)
+                    cache.delete("calc_fret_job_v2")
             else:
                 job = calc_fret.delay()
                 if job:
-                    cache.set("calc_fret_job", job.id)
+                    cache.set("calc_fret_job_v2", job.id)
         return JsonResponse({"data": forster_list})
 
     # Query all fluorophores (States + DyeStates) with required properties

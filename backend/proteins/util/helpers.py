@@ -281,21 +281,22 @@ def get_base_name(name):
 
 
 def calculate_spectral_overlap(donor, acceptor):
-    accEx = acceptor.default_state.ex_spectrum
+    # FRET depends on acceptor absorption, not emission/excitation. Prefer the
+    # absorption spectrum; fall back to excitation only when no absorption exists.
+    accAbs = acceptor.default_state.abs_spectrum or acceptor.default_state.ex_spectrum
     accEC = acceptor.default_state.ext_coeff
     donEm = donor.default_state.em_spectrum
-    # donQY  = donor.default_state.qy
     donCum = sum(donEm.y)
 
-    minAcc = accEx.min_wave
-    maxAcc = accEx.max_wave
+    minAcc = accAbs.min_wave
+    maxAcc = accAbs.max_wave
     minEm = donEm.min_wave
     maxEm = donEm.max_wave
 
     startingwave = int(max(minAcc, minEm))
     endingwave = int(min(maxAcc, maxEm))
 
-    A = accEx.wave_value_pairs()
+    A = accAbs.wave_value_pairs()
     D = donEm.wave_value_pairs()
     overlap = [
         (pow(wave, 4) * A[wave] * accEC * D[wave] / donCum)
@@ -333,7 +334,7 @@ def forster_list():
     from proteins.models import Protein
 
     # Try to get cached results first
-    cache_key = "forster_list_results"
+    cache_key = "forster_list_results_v2"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
