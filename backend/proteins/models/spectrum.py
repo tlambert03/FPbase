@@ -43,6 +43,7 @@ if TYPE_CHECKING:
         maxwave: float
         category: str
         type: str
+        subtype: str
         color: str
         area: bool
         url: str | None
@@ -530,7 +531,10 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             "minwave": self.min_wave,
             "maxwave": self.max_wave,
             "category": self.category,
+            # `type` collapses absorption into excitation for legacy display callers
+            # that draw both with the same styling. `subtype` preserves the true value.
             "type": self.subtype if self.subtype != self.ABS else self.EX,
+            "subtype": self.subtype,
             "color": color,
             "area": self.subtype not in (self.LP, self.BS),
             "url": self.owner.get_absolute_url(),
