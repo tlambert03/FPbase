@@ -12,6 +12,7 @@ from reversion_compare.admin import CompareVersionAdmin
 
 from fpbase.util import uncache_protein_page
 from proteins.models import (
+    BleachCurve,
     BleachMeasurement,
     Camera,
     Dye,
@@ -22,10 +23,12 @@ from proteins.models import (
     FluorState,
     Light,
     Lineage,
+    MaturationCurve,
     Microscope,
     OpticalConfig,
     Organism,
     OSERMeasurement,
+    PKACurve,
     Protein,
     ProteinCollection,
     SnapGenePlasmid,
@@ -398,6 +401,7 @@ class BleachMeasurementAdmin(VersionAdmin):
     model = BleachMeasurement
     autocomplete_fields = ("state", "reference")
     list_select_related = ("state", "state__protein")
+    search_fields = ("state__protein__name",)
 
 
 @admin.register(State)
@@ -892,3 +896,72 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
             qs = qs.exclude(id=obj.id)
         form.base_fields["parent"].queryset = qs
         return form
+
+
+# ############ CURVE ADMINS ###############
+
+
+class CurveAdmin(VersionAdmin):
+    """Base admin for curve models."""
+
+    list_display = ("__str__", "status", "x_min", "x_max", "reference", "modified")
+    list_filter = ("status", "created", "modified")
+    autocomplete_fields = ("reference",)
+    readonly_fields = ("x_min", "x_max", "created", "modified")
+    fieldsets = [
+        (None, {"fields": ("status",)}),
+        ("Data Range", {"fields": (("x_min", "x_max"),), "classes": ("collapse",)}),
+        (
+            "Provenance",
+            {"fields": ("reference", "source", "notes"), "classes": ("collapse",)},
+        ),
+        (
+            "Metadata",
+            {
+                "fields": (("created", "created_by"), ("modified", "updated_by")),
+                "classes": ("collapse",),
+            },
+        ),
+    ]
+
+
+@admin.register(PKACurve)
+class PKACurveAdmin(CurveAdmin):
+    model = PKACurve
+    autocomplete_fields = (*CurveAdmin.autocomplete_fields, "state")
+    list_select_related = ("state", "state__protein", "reference")
+    search_fields = ("state__protein__name",)
+    fieldsets = [
+        (None, {"fields": ("state", "status")}),
+        *CurveAdmin.fieldsets[1:],
+    ]
+
+
+@admin.register(BleachCurve)
+class BleachCurveAdmin(CurveAdmin):
+    model = BleachCurve
+    autocomplete_fields = (*CurveAdmin.autocomplete_fields, "bleach_measurement")
+    list_select_related = (
+        "bleach_measurement",
+        "bleach_measurement__state",
+        "bleach_measurement__state__protein",
+        "reference",
+    )
+    search_fields = ("bleach_measurement__state__protein__name",)
+    fieldsets = [
+        (None, {"fields": ("bleach_measurement", "status")}),
+        *CurveAdmin.fieldsets[1:],
+    ]
+
+
+@admin.register(MaturationCurve)
+class MaturationCurveAdmin(CurveAdmin):
+    model = MaturationCurve
+    autocomplete_fields = (*CurveAdmin.autocomplete_fields, "state")
+    list_select_related = ("state", "state__protein", "reference")
+    search_fields = ("state__protein__name",)
+    list_display = (*CurveAdmin.list_display[:4], "temperature", *CurveAdmin.list_display[4:])
+    fieldsets = [
+        (None, {"fields": ("state", "status", "temperature")}),
+        *CurveAdmin.fieldsets[1:],
+    ]

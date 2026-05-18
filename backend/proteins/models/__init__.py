@@ -1,5 +1,6 @@
 from proteins.models.bleach import BleachMeasurement
 from proteins.models.collection import ProteinCollection
+from proteins.models.curve import BleachCurve, MaturationCurve, PKACurve
 from proteins.models.dye import Dye, DyeState
 from proteins.models.efficiency import OcFluorEff
 from proteins.models.excerpt import Excerpt
@@ -15,6 +16,7 @@ from proteins.models.spectrum import Camera, Filter, Light, Spectrum
 from proteins.models.transition import StateTransition
 
 __all__ = [
+    "BleachCurve",
     "BleachMeasurement",
     "Camera",
     "Dye",
@@ -26,11 +28,13 @@ __all__ = [
     "FluorescenceMeasurement",
     "Light",
     "Lineage",
+    "MaturationCurve",
     "Microscope",
     "OSERMeasurement",
     "OcFluorEff",
     "OpticalConfig",
     "Organism",
+    "PKACurve",
     "Protein",
     "ProteinCollection",
     "SnapGenePlasmid",
