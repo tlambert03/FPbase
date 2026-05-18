@@ -41,7 +41,7 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
         <label class="input-group-text text-white bg-info" for="donor-select">Donor</label>
         <select class="data-selector fluor-selector" id="donor-select" tabindex="-1" aria-hidden="true">
           <option value="">-----</option>
-          {% for probe in probeslugs %}
+          {% for probe in donor_slugs %}
           <option value="{{ probe.slug }}">{{ probe.name }}</option>
           {% endfor %}
         </select>
@@ -52,7 +52,7 @@ Förster Resonance Energy Transfer (FRET) between fluorescent proteins.{% endblo
         <label class="input-group-text text-white bg-info" for="acceptor-select">Acceptor</label>
         <select class="data-selector fluor-selector" id="acceptor-select" tabindex="-1" aria-hidden="true">
           <option value="">-----</option>
-          {% for probe in probeslugs %}
+          {% for probe in acceptor_slugs %}
           <option value="{{ probe.slug }}">{{ probe.name }}</option>
           {% endfor %}
         </select>

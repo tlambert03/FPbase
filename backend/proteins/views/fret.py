@@ -30,11 +30,11 @@ def fret_chart(request):
                     cache.set("calc_fret_job_v2", job.id)
         return JsonResponse({"data": forster_list})
 
-    # Query all fluorophores (States + DyeStates) with required properties
-    # Build display name and sort in the database
-    fluorophores = (
+    # Donors need ext_coeff, qy, and an excitation/absorption spectrum.
+    # Acceptors only need ext_coeff + an absorption (or excitation) spectrum —
+    # dark quenchers like BHQ-10 are legitimate acceptors with no qy.
+    base = (
         FluorState.objects.exclude(ext_coeff=None)
-        .exclude(qy=None)
         .filter(spectra__subtype__in=("ex", "ab"))
         .annotate(
             display_name=Case(
@@ -46,14 +46,22 @@ def fret_chart(request):
         .values("slug", "display_name", "spectra__category", "spectra__subtype")
     )
 
-    slugs = [
-        {
-            "slug": x["slug"],
-            "category": x["spectra__category"],
-            "subtype": x["spectra__subtype"],
-            "name": x["display_name"],
-        }
-        for x in fluorophores
-    ]
+    def _to_slug_dicts(qs):
+        return [
+            {
+                "slug": x["slug"],
+                "category": x["spectra__category"],
+                "subtype": x["spectra__subtype"],
+                "name": x["display_name"],
+            }
+            for x in qs
+        ]
 
-    return render(request, template, {"probeslugs": slugs})
+    donor_slugs = _to_slug_dicts(base.exclude(qy=None))
+    acceptor_slugs = _to_slug_dicts(base)
+
+    return render(
+        request,
+        template,
+        {"donor_slugs": donor_slugs, "acceptor_slugs": acceptor_slugs},
+    )

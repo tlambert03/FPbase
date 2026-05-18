@@ -270,7 +270,8 @@ export default function initFRET() {
     var r = forster_distance(donorEM, acceptorAbs, $("#k2-input").val(), $("#ni-input").val())
     $("#overlapIntgrl").text(Math.round(r[0] * 1e15) / 100)
     $("#r0").text(Math.round(r[1] * 1000) / 100)
-    $("#r0QYA").text(Math.round(r[1] * $("#QYA").text() * 1000) / 100)
+    var qya = parseFloat($("#QYA").text())
+    $("#r0QYA").text(Number.isFinite(qya) ? Math.round(r[1] * qya * 1000) / 100 : "")
   }
 
   function updateChart() {
