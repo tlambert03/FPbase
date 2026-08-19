@@ -380,7 +380,7 @@ GOOGLE_API_PRIVATE_KEY_ID = env("GOOGLE_API_PRIVATE_KEY_ID", default="")
 MAXMIND_API_KEY = env("MAXMIND_API_KEY", default="")
 
 ALGOLIA_SUFFIX = "dev" if (DEBUG or ("staging" in env("SENTRY_PROJECT", default=""))) else "prod"
-ALGOLIA_PUBLIC_KEY = "421b453d4f93e332ebd0c7f3ace29476"
+ALGOLIA_PUBLIC_KEY = env("ALGOLIA_PUBLIC_KEY", default="4c8b117e4653fe576f51829e74030238")
 ALGOLIA = {
     "APPLICATION_ID": "9WAWQMVNTB",
     "API_KEY": env("ALGOLIA_API_KEY", default=""),

@@ -4,6 +4,10 @@ const $ = window.jQuery // jQuery loaded from CDN
 // Use 500 to be safe (accounting for multi-byte characters)
 const MAX_QUERY_LENGTH = 500
 
+// Debounce keystrokes: each dataset issues its own Algolia query, so an
+// undebounced 8-character search costs ~18 search requests instead of 3.
+const SEARCH_DEBOUNCE_MS = 250
+
 function checkObject(val, prop, str) {
   var propDict = {
     genbank: "GenBank",
@@ -242,6 +246,7 @@ export default async function initAutocomplete() {
           source: createLimitedSource(proteinIndex, {
             hitsPerPage: 5,
           }),
+          debounce: SEARCH_DEBOUNCE_MS,
           displayKey: "name",
           templates: {
             suggestion: (suggestion) => {
@@ -290,6 +295,7 @@ export default async function initAutocomplete() {
           source: createLimitedSource(referenceIndex, {
             hitsPerPage: 3,
           }),
+          debounce: SEARCH_DEBOUNCE_MS,
           displayKey: "citation",
           templates: {
             suggestion: (suggestion) => {
@@ -304,6 +310,7 @@ export default async function initAutocomplete() {
           source: createLimitedSource(organismIndex, {
             hitsPerPage: 2,
           }),
+          debounce: SEARCH_DEBOUNCE_MS,
           displayKey: "scientific_name",
           templates: {
             suggestion: (suggestion) => {
