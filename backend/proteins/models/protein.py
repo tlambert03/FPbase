@@ -5,6 +5,7 @@ import io
 import json
 import os
 import sys
+import unicodedata
 from collections import Counter
 from random import choices
 from subprocess import PIPE, run
@@ -69,11 +70,25 @@ def prot_uuid(k: int = 5, opts: Sequence[str] = "ABCDEFGHJKLMNOPQRSTUVWXYZ123456
         return prot_uuid(k, opts)
 
 
+def ascii_name(name: str) -> str:
+    """Best-effort ASCII rendering of `name`, for FASTA headers fed to muscle/blast."""
+    out = []
+    for char in unicodedata.normalize("NFKD", name):
+        if char.isascii():
+            out.append(char)
+        elif unicodedata.category(char).startswith(("P", "Z")):
+            out.append("-")
+        # last word of e.g. "GREEK SMALL LETTER KAPPA" is a decent stand-in
+        elif not unicodedata.combining(char) and (words := unicodedata.name(char, "").split()):
+            out.append(words[-1].lower())
+    return "".join(out)
+
+
 class _ProteinQuerySet(models.QuerySet):
     def fasta(self):
         seqs = list(self.exclude(seq__isnull=True).values("uuid", "name", "seq"))
         for s in seqs:
-            s["name"] = s["name"].replace("\u03b1", "-alpha").replace("β", "-beta")
+            s["name"] = ascii_name(s["name"])
         return io.StringIO("\n".join([">{uuid} {name}\n{seq}".format(**s) for s in seqs]))
 
     def to_tree(self, output="clw"):
@@ -84,7 +99,7 @@ class _ProteinQuerySet(models.QuerySet):
         cmd += ["-maxiters", "2", "-diags", "-quiet", f"-{output}"]
         # make tree
         cmd += ["-cluster", "neighborjoining", "-tree2", "tree.phy"]
-        result = run(cmd, input=fasta.read(), stdout=PIPE, encoding="ascii")
+        result = run(cmd, input=fasta.read(), stdout=PIPE, encoding="utf-8")
         with open("tree.phy") as handle:
             newick = handle.read().replace("\n", "")
         os.remove("tree.phy")
