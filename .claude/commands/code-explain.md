@@ -23,17 +23,18 @@ import ast
 import re
 from typing import Dict, List, Tuple
 
+
 class CodeAnalyzer:
     def analyze_complexity(self, code: str) -> Dict:
         """
         Analyze code complexity and structure
         """
         analysis = {
-            'complexity_score': 0,
-            'concepts': [],
-            'patterns': [],
-            'dependencies': [],
-            'difficulty_level': 'beginner'
+            "complexity_score": 0,
+            "concepts": [],
+            "patterns": [],
+            "dependencies": [],
+            "difficulty_level": "beginner",
         }
 
         # Parse code structure
@@ -41,28 +42,30 @@ class CodeAnalyzer:
             tree = ast.parse(code)
 
             # Analyze complexity metrics
-            analysis['metrics'] = {
-                'lines_of_code': len(code.splitlines()),
-                'cyclomatic_complexity': self._calculate_cyclomatic_complexity(tree),
-                'nesting_depth': self._calculate_max_nesting(tree),
-                'function_count': len([n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]),
-                'class_count': len([n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)])
+            analysis["metrics"] = {
+                "lines_of_code": len(code.splitlines()),
+                "cyclomatic_complexity": self._calculate_cyclomatic_complexity(tree),
+                "nesting_depth": self._calculate_max_nesting(tree),
+                "function_count": len(
+                    [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
+                ),
+                "class_count": len([n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]),
             }
 
             # Identify concepts used
-            analysis['concepts'] = self._identify_concepts(tree)
+            analysis["concepts"] = self._identify_concepts(tree)
 
             # Detect design patterns
-            analysis['patterns'] = self._detect_patterns(tree)
+            analysis["patterns"] = self._detect_patterns(tree)
 
             # Extract dependencies
-            analysis['dependencies'] = self._extract_dependencies(tree)
+            analysis["dependencies"] = self._extract_dependencies(tree)
 
             # Determine difficulty level
-            analysis['difficulty_level'] = self._assess_difficulty(analysis)
+            analysis["difficulty_level"] = self._assess_difficulty(analysis)
 
         except SyntaxError as e:
-            analysis['parse_error'] = str(e)
+            analysis["parse_error"] = str(e)
 
         return analysis
 
@@ -75,31 +78,31 @@ class CodeAnalyzer:
         for node in ast.walk(tree):
             # Async/await
             if isinstance(node, (ast.AsyncFunctionDef, ast.AsyncWith, ast.AsyncFor)):
-                concepts.append('asynchronous programming')
+                concepts.append("asynchronous programming")
 
             # Decorators
             elif isinstance(node, ast.FunctionDef) and node.decorator_list:
-                concepts.append('decorators')
+                concepts.append("decorators")
 
             # Context managers
             elif isinstance(node, ast.With):
-                concepts.append('context managers')
+                concepts.append("context managers")
 
             # Generators
             elif isinstance(node, ast.Yield):
-                concepts.append('generators')
+                concepts.append("generators")
 
             # List/Dict/Set comprehensions
             elif isinstance(node, (ast.ListComp, ast.DictComp, ast.SetComp)):
-                concepts.append('comprehensions')
+                concepts.append("comprehensions")
 
             # Lambda functions
             elif isinstance(node, ast.Lambda):
-                concepts.append('lambda functions')
+                concepts.append("lambda functions")
 
             # Exception handling
             elif isinstance(node, ast.Try):
-                concepts.append('exception handling')
+                concepts.append("exception handling")
 
         return list(set(concepts))
 ```
@@ -119,26 +122,26 @@ class VisualExplainer:
         diagram = "```mermaid\nflowchart TD\n"
 
         # Example: Function call flow
-        if code_structure['type'] == 'function_flow':
+        if code_structure["type"] == "function_flow":
             nodes = []
             edges = []
 
-            for i, func in enumerate(code_structure['functions']):
+            for i, func in enumerate(code_structure["functions"]):
                 node_id = f"F{i}"
                 nodes.append(f"    {node_id}[{func['name']}]")
 
                 # Add function details
-                if func.get('parameters'):
+                if func.get("parameters"):
                     nodes.append(f"    {node_id}_params[/{', '.join(func['parameters'])}/]")
                     edges.append(f"    {node_id}_params --> {node_id}")
 
                 # Add return value
-                if func.get('returns'):
+                if func.get("returns"):
                     nodes.append(f"    {node_id}_return[{func['returns']}]")
                     edges.append(f"    {node_id} --> {node_id}_return")
 
                 # Connect to called functions
-                for called in func.get('calls', []):
+                for called in func.get("calls", []):
                     called_id = f"F{code_structure['function_map'][called]}"
                     edges.append(f"    {node_id} --> {called_id}")
 
@@ -159,23 +162,25 @@ class VisualExplainer:
             diagram += f"    class {cls['name']} {{\n"
 
             # Attributes
-            for attr in cls.get('attributes', []):
-                visibility = '+' if attr['public'] else '-'
+            for attr in cls.get("attributes", []):
+                visibility = "+" if attr["public"] else "-"
                 diagram += f"        {visibility}{attr['name']} : {attr['type']}\n"
 
             # Methods
-            for method in cls.get('methods', []):
-                visibility = '+' if method['public'] else '-'
-                params = ', '.join(method.get('params', []))
-                diagram += f"        {visibility}{method['name']}({params}) : {method['returns']}\n"
+            for method in cls.get("methods", []):
+                visibility = "+" if method["public"] else "-"
+                params = ", ".join(method.get("params", []))
+                diagram += (
+                    f"        {visibility}{method['name']}({params}) : {method['returns']}\n"
+                )
 
             diagram += "    }\n"
 
             # Relationships
-            if cls.get('inherits'):
+            if cls.get("inherits"):
                 diagram += f"    {cls['inherits']} <|-- {cls['name']}\n"
 
-            for composition in cls.get('compositions', []):
+            for composition in cls.get("compositions", []):
                 diagram += f"    {cls['name']} *-- {composition}\n"
 
         diagram += "```"
@@ -281,6 +286,7 @@ def count_up_to(n):
     while i < n:
         yield i  # Produces one value and pauses
         i += 1
+
 
 # Using the generator
 for num in count_up_to(5):
@@ -427,7 +433,9 @@ safe_divide(10, "2")  # Type error
 ```python
 class ValidationError(Exception):
     """Custom exception for validation errors"""
+
     pass
+
 
 def validate_age(age):
     try:
@@ -440,10 +448,11 @@ def validate_age(age):
     except ValueError:
         raise ValidationError("Age must be a number")
 
+
 # Try these examples:
 try:
-    validate_age(25)     # Valid
-    validate_age(-5)     # Negative age
+    validate_age(25)  # Valid
+    validate_age(-5)  # Negative age
     validate_age("abc")  # Not a number
 except ValidationError as e:
     print(f"Validation failed: {e}")
@@ -469,11 +478,13 @@ Try implementing a function that:
 import asyncio
 import time
 
+
 async def slow_operation(name, duration):
     print(f"{name} started...")
     await asyncio.sleep(duration)
     print(f"{name} completed after {duration}s")
     return f"{name} result"
+
 
 async def main():
     # Sequential execution (slow)
@@ -484,12 +495,10 @@ async def main():
 
     # Concurrent execution (fast)
     start = time.time()
-    results = await asyncio.gather(
-        slow_operation("Task 3", 2),
-        slow_operation("Task 4", 2)
-    )
+    results = await asyncio.gather(slow_operation("Task 3", 2), slow_operation("Task 4", 2))
     print(f"Concurrent time: {time.time() - start:.2f}s")
     print(f"Results: {results}")
+
 
 # Run it:
 asyncio.run(main())
@@ -503,10 +512,12 @@ async def fetch_data(url):
     await asyncio.sleep(1)  # Simulate network delay
     return f"Data from {url}"
 
+
 async def process_urls(urls):
     tasks = [fetch_data(url) for url in urls]
     results = await asyncio.gather(*tasks)
     return results
+
 
 # Try with different URLs:
 urls = ["api.example.com/1", "api.example.com/2", "api.example.com/3"]
@@ -646,6 +657,7 @@ class Newsletter:
         for subscriber in self._subscribers:
             subscriber.update(self._latest_article)
 
+
 class EmailSubscriber:
     def __init__(self, email):
         self.email = email
@@ -731,9 +743,12 @@ except Exception as e:
 ```python
 # Bad
 count = 0
+
+
 def increment():
     global count
     count += 1
+
 
 # Good
 class Counter:

@@ -23,17 +23,18 @@ import subprocess
 import re
 from collections import defaultdict
 
+
 class PRAnalyzer:
-    def analyze_changes(self, base_branch='main'):
+    def analyze_changes(self, base_branch="main"):
         """
         Analyze changes between current branch and base
         """
         analysis = {
-            'files_changed': self._get_changed_files(base_branch),
-            'change_statistics': self._get_change_stats(base_branch),
-            'change_categories': self._categorize_changes(base_branch),
-            'potential_impacts': self._assess_impacts(base_branch),
-            'dependencies_affected': self._check_dependencies(base_branch)
+            "files_changed": self._get_changed_files(base_branch),
+            "change_statistics": self._get_change_stats(base_branch),
+            "change_categories": self._categorize_changes(base_branch),
+            "potential_impacts": self._assess_impacts(base_branch),
+            "dependencies_affected": self._check_dependencies(base_branch),
         }
 
         return analysis
@@ -44,14 +45,16 @@ class PRAnalyzer:
         result = subprocess.run(cmd.split(), capture_output=True, text=True)
 
         files = []
-        for line in result.stdout.strip().split('\n'):
+        for line in result.stdout.strip().split("\n"):
             if line:
-                status, filename = line.split('\t', 1)
-                files.append({
-                    'filename': filename,
-                    'status': self._parse_status(status),
-                    'category': self._categorize_file(filename)
-                })
+                status, filename = line.split("\t", 1)
+                files.append(
+                    {
+                        "filename": filename,
+                        "status": self._parse_status(status),
+                        "category": self._categorize_file(filename),
+                    }
+                )
 
         return files
 
@@ -61,36 +64,38 @@ class PRAnalyzer:
         result = subprocess.run(cmd.split(), capture_output=True, text=True)
 
         # Parse output like: "10 files changed, 450 insertions(+), 123 deletions(-)"
-        stats_pattern = r'(\d+) files? changed(?:, (\d+) insertions?\(\+\))?(?:, (\d+) deletions?\(-\))?'
+        stats_pattern = (
+            r"(\d+) files? changed(?:, (\d+) insertions?\(\+\))?(?:, (\d+) deletions?\(-\))?"
+        )
         match = re.search(stats_pattern, result.stdout)
 
         if match:
             files, insertions, deletions = match.groups()
             return {
-                'files_changed': int(files),
-                'insertions': int(insertions or 0),
-                'deletions': int(deletions or 0),
-                'net_change': int(insertions or 0) - int(deletions or 0)
+                "files_changed": int(files),
+                "insertions": int(insertions or 0),
+                "deletions": int(deletions or 0),
+                "net_change": int(insertions or 0) - int(deletions or 0),
             }
 
-        return {'files_changed': 0, 'insertions': 0, 'deletions': 0, 'net_change': 0}
+        return {"files_changed": 0, "insertions": 0, "deletions": 0, "net_change": 0}
 
     def _categorize_file(self, filename):
         """Categorize file by type"""
         categories = {
-            'source': ['.js', '.ts', '.py', '.java', '.go', '.rs'],
-            'test': ['test', 'spec', '.test.', '.spec.'],
-            'config': ['config', '.json', '.yml', '.yaml', '.toml'],
-            'docs': ['.md', 'README', 'CHANGELOG', '.rst'],
-            'styles': ['.css', '.scss', '.less'],
-            'build': ['Makefile', 'Dockerfile', '.gradle', 'pom.xml']
+            "source": [".js", ".ts", ".py", ".java", ".go", ".rs"],
+            "test": ["test", "spec", ".test.", ".spec."],
+            "config": ["config", ".json", ".yml", ".yaml", ".toml"],
+            "docs": [".md", "README", "CHANGELOG", ".rst"],
+            "styles": [".css", ".scss", ".less"],
+            "build": ["Makefile", "Dockerfile", ".gradle", "pom.xml"],
         }
 
         for category, patterns in categories.items():
             if any(pattern in filename for pattern in patterns):
                 return category
 
-        return 'other'
+        return "other"
 ```
 
 ### 2. PR Description Generation
@@ -151,9 +156,10 @@ def generate_pr_description(analysis, commits):
 """
     return description
 
+
 def generate_summary(analysis, commits):
     """Generate executive summary"""
-    stats = analysis['change_statistics']
+    stats = analysis["change_statistics"]
 
     # Extract main purpose from commits
     main_purpose = extract_main_purpose(commits)
@@ -161,28 +167,29 @@ def generate_summary(analysis, commits):
     summary = f"""
 This PR {main_purpose}.
 
-**Impact**: {stats['files_changed']} files changed ({stats['insertions']} additions, {stats['deletions']} deletions)
+**Impact**: {stats["files_changed"]} files changed ({stats["insertions"]} additions, {stats["deletions"]} deletions)
 **Risk Level**: {calculate_risk_level(analysis)}
 **Review Time**: ~{estimate_review_time(stats)} minutes
 """
     return summary
 
+
 def generate_change_list(analysis):
     """Generate categorized change list"""
     changes_by_category = defaultdict(list)
 
-    for file in analysis['files_changed']:
-        changes_by_category[file['category']].append(file)
+    for file in analysis["files_changed"]:
+        changes_by_category[file["category"]].append(file)
 
     change_list = ""
     icons = {
-        'source': '🔧',
-        'test': '✅',
-        'docs': '📝',
-        'config': '⚙️',
-        'styles': '🎨',
-        'build': '🏗️',
-        'other': '📁'
+        "source": "🔧",
+        "test": "✅",
+        "docs": "📝",
+        "config": "⚙️",
+        "styles": "🎨",
+        "build": "🏗️",
+        "other": "📁",
     }
 
     for category, files in changes_by_category.items():
@@ -214,7 +221,7 @@ def generate_review_checklist(analysis):
         "Self-review completed",
         "Comments added for complex logic",
         "No debugging code left",
-        "No sensitive data exposed"
+        "No sensitive data exposed",
     ]
 
     # Add general items
@@ -223,60 +230,70 @@ def generate_review_checklist(analysis):
         checklist.append(f"- [ ] {item}")
 
     # File-specific checks
-    file_types = {file['category'] for file in analysis['files_changed']}
+    file_types = {file["category"] for file in analysis["files_changed"]}
 
-    if 'source' in file_types:
+    if "source" in file_types:
         checklist.append("\n### Code Quality")
-        checklist.extend([
-            "- [ ] No code duplication",
-            "- [ ] Functions are focused and small",
-            "- [ ] Variable names are descriptive",
-            "- [ ] Error handling is comprehensive",
-            "- [ ] No performance bottlenecks introduced"
-        ])
+        checklist.extend(
+            [
+                "- [ ] No code duplication",
+                "- [ ] Functions are focused and small",
+                "- [ ] Variable names are descriptive",
+                "- [ ] Error handling is comprehensive",
+                "- [ ] No performance bottlenecks introduced",
+            ]
+        )
 
-    if 'test' in file_types:
+    if "test" in file_types:
         checklist.append("\n### Testing")
-        checklist.extend([
-            "- [ ] All new code is covered by tests",
-            "- [ ] Tests are meaningful and not just for coverage",
-            "- [ ] Edge cases are tested",
-            "- [ ] Tests follow AAA pattern (Arrange, Act, Assert)",
-            "- [ ] No flaky tests introduced"
-        ])
+        checklist.extend(
+            [
+                "- [ ] All new code is covered by tests",
+                "- [ ] Tests are meaningful and not just for coverage",
+                "- [ ] Edge cases are tested",
+                "- [ ] Tests follow AAA pattern (Arrange, Act, Assert)",
+                "- [ ] No flaky tests introduced",
+            ]
+        )
 
-    if 'config' in file_types:
+    if "config" in file_types:
         checklist.append("\n### Configuration")
-        checklist.extend([
-            "- [ ] No hardcoded values",
-            "- [ ] Environment variables documented",
-            "- [ ] Backwards compatibility maintained",
-            "- [ ] Security implications reviewed",
-            "- [ ] Default values are sensible"
-        ])
+        checklist.extend(
+            [
+                "- [ ] No hardcoded values",
+                "- [ ] Environment variables documented",
+                "- [ ] Backwards compatibility maintained",
+                "- [ ] Security implications reviewed",
+                "- [ ] Default values are sensible",
+            ]
+        )
 
-    if 'docs' in file_types:
+    if "docs" in file_types:
         checklist.append("\n### Documentation")
-        checklist.extend([
-            "- [ ] Documentation is clear and accurate",
-            "- [ ] Examples are provided where helpful",
-            "- [ ] API changes are documented",
-            "- [ ] README updated if necessary",
-            "- [ ] Changelog updated"
-        ])
+        checklist.extend(
+            [
+                "- [ ] Documentation is clear and accurate",
+                "- [ ] Examples are provided where helpful",
+                "- [ ] API changes are documented",
+                "- [ ] README updated if necessary",
+                "- [ ] Changelog updated",
+            ]
+        )
 
     # Security checks
     if has_security_implications(analysis):
         checklist.append("\n### Security")
-        checklist.extend([
-            "- [ ] No SQL injection vulnerabilities",
-            "- [ ] Input validation implemented",
-            "- [ ] Authentication/authorization correct",
-            "- [ ] No sensitive data in logs",
-            "- [ ] Dependencies are secure"
-        ])
+        checklist.extend(
+            [
+                "- [ ] No SQL injection vulnerabilities",
+                "- [ ] Input validation implemented",
+                "- [ ] Authentication/authorization correct",
+                "- [ ] No sensitive data in logs",
+                "- [ ] Dependencies are secure",
+            ]
+        )
 
-    return '\n'.join(checklist)
+    return "\n".join(checklist)
 ```
 
 ### 4. Code Review Automation
@@ -301,7 +318,7 @@ class ReviewBot:
             self._check_todo_comments,
             self._check_hardcoded_values,
             self._check_missing_error_handling,
-            self._check_security_issues
+            self._check_security_issues,
         ]
 
         for check in checks:
@@ -312,18 +329,20 @@ class ReviewBot:
     def _check_console_logs(self, diff):
         """Check for console.log statements"""
         findings = []
-        pattern = r'\+.*console\.(log|debug|info|warn|error)'
+        pattern = r"\+.*console\.(log|debug|info|warn|error)"
 
         for file, content in diff.items():
             matches = re.finditer(pattern, content, re.MULTILINE)
             for match in matches:
-                findings.append({
-                    'type': 'warning',
-                    'file': file,
-                    'line': self._get_line_number(match, content),
-                    'message': 'Console statement found - remove before merging',
-                    'suggestion': 'Use proper logging framework instead'
-                })
+                findings.append(
+                    {
+                        "type": "warning",
+                        "file": file,
+                        "line": self._get_line_number(match, content),
+                        "message": "Console statement found - remove before merging",
+                        "suggestion": "Use proper logging framework instead",
+                    }
+                )
 
         return findings
 
@@ -333,17 +352,19 @@ class ReviewBot:
 
         # Simple heuristic: count lines between function start and end
         for file, content in diff.items():
-            if file.endswith(('.js', '.ts', '.py')):
+            if file.endswith((".js", ".ts", ".py")):
                 functions = self._extract_functions(content)
                 for func in functions:
-                    if func['lines'] > 50:
-                        findings.append({
-                            'type': 'suggestion',
-                            'file': file,
-                            'line': func['start_line'],
-                            'message': f"Function '{func['name']}' is {func['lines']} lines long",
-                            'suggestion': 'Consider breaking into smaller functions'
-                        })
+                    if func["lines"] > 50:
+                        findings.append(
+                            {
+                                "type": "suggestion",
+                                "file": file,
+                                "line": func["start_line"],
+                                "message": f"Function '{func['name']}' is {func['lines']} lines long",
+                                "suggestion": "Consider breaking into smaller functions",
+                            }
+                        )
 
         return findings
 ```
@@ -520,11 +541,11 @@ def calculate_pr_risk(analysis):
     Calculate risk score for PR
     """
     risk_factors = {
-        'size': calculate_size_risk(analysis),
-        'complexity': calculate_complexity_risk(analysis),
-        'test_coverage': calculate_test_risk(analysis),
-        'dependencies': calculate_dependency_risk(analysis),
-        'security': calculate_security_risk(analysis)
+        "size": calculate_size_risk(analysis),
+        "complexity": calculate_complexity_risk(analysis),
+        "test_coverage": calculate_test_risk(analysis),
+        "dependencies": calculate_dependency_risk(analysis),
+        "security": calculate_security_risk(analysis),
     }
 
     overall_risk = sum(risk_factors.values()) / len(risk_factors)
@@ -538,11 +559,11 @@ def calculate_pr_risk(analysis):
 
 | Factor | Score | Details |
 |--------|-------|---------|
-| Size | {risk_factors['size']:.1f}/10 | {get_size_details(analysis)} |
-| Complexity | {risk_factors['complexity']:.1f}/10 | {get_complexity_details(analysis)} |
-| Test Coverage | {risk_factors['test_coverage']:.1f}/10 | {get_test_details(analysis)} |
-| Dependencies | {risk_factors['dependencies']:.1f}/10 | {get_dependency_details(analysis)} |
-| Security | {risk_factors['security']:.1f}/10 | {get_security_details(analysis)} |
+| Size | {risk_factors["size"]:.1f}/10 | {get_size_details(analysis)} |
+| Complexity | {risk_factors["complexity"]:.1f}/10 | {get_complexity_details(analysis)} |
+| Test Coverage | {risk_factors["test_coverage"]:.1f}/10 | {get_test_details(analysis)} |
+| Dependencies | {risk_factors["dependencies"]:.1f}/10 | {get_dependency_details(analysis)} |
+| Security | {risk_factors["security"]:.1f}/10 | {get_security_details(analysis)} |
 
 ### Mitigation Strategies
 
@@ -550,6 +571,7 @@ def calculate_pr_risk(analysis):
 """
 
     return risk_report
+
 
 def get_risk_level(score):
     """Convert score to risk level"""
@@ -573,7 +595,7 @@ def generate_pr_template(pr_type, analysis):
     Generate PR template based on type
     """
     templates = {
-        'feature': f"""
+        "feature": f"""
 ## Feature: {extract_feature_name(analysis)}
 
 ### Description
@@ -598,7 +620,7 @@ So that [benefit]
 ### Testing Strategy
 {generate_test_strategy(analysis)}
 """,
-        'bugfix': f"""
+        "bugfix": f"""
 ## Bug Fix: {extract_bug_description(analysis)}
 
 ### Issue
@@ -623,7 +645,7 @@ So that [benefit]
 2. Apply this fix
 3. Verify issue is resolved
 """,
-        'refactor': f"""
+        "refactor": f"""
 ## Refactoring: {extract_refactor_scope(analysis)}
 
 ### Motivation
@@ -647,10 +669,10 @@ So that [benefit]
 | Complexity | X | Y |
 | Test Coverage | X% | Y% |
 | Performance | Xms | Yms |
-"""
+""",
     }
 
-    return templates.get(pr_type, templates['feature'])
+    return templates.get(pr_type, templates["feature"])
 ```
 
 ### 10. Review Response Templates
@@ -659,11 +681,10 @@ Help with review responses:
 
 ```python
 review_response_templates = {
-    'acknowledge_feedback': """
+    "acknowledge_feedback": """
 Thank you for the thorough review! I'll address these points.
 """,
-
-    'explain_decision': """
+    "explain_decision": """
 Great question! I chose this approach because:
 1. [Reason 1]
 2. [Reason 2]
@@ -674,24 +695,21 @@ Alternative approaches considered:
 
 Happy to discuss further if you have concerns.
 """,
-
-    'request_clarification': """
+    "request_clarification": """
 Thanks for the feedback. Could you clarify what you mean by [specific point]?
 I want to make sure I understand your concern correctly before making changes.
 """,
-
-    'disagree_respectfully': """
+    "disagree_respectfully": """
 I appreciate your perspective on this. I have a slightly different view:
 
 [Your reasoning]
 
 However, I'm open to discussing this further. What do you think about [compromise/middle ground]?
 """,
-
-    'commit_to_change': """
+    "commit_to_change": """
 Good catch! I'll update this to [specific change].
 This should address [concern] while maintaining [other requirement].
-"""
+""",
 }
 ```
 
