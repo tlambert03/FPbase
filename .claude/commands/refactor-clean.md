@@ -101,18 +101,27 @@ class UserManager:
         # Update cache
         pass
 
+
 # AFTER: Each class has one responsibility
 class UserValidator:
-    def validate(self, data): pass
+    def validate(self, data):
+        pass
+
 
 class UserRepository:
-    def save(self, user): pass
+    def save(self, user):
+        pass
+
 
 class EmailService:
-    def send_welcome_email(self, user): pass
+    def send_welcome_email(self, user):
+        pass
+
 
 class UserActivityLogger:
-    def log_creation(self, user): pass
+    def log_creation(self, user):
+        pass
+
 
 class UserService:
     def __init__(self, validator, repository, email_service, logger):
@@ -143,12 +152,16 @@ class DiscountCalculator:
             # More logic
             pass
 
+
 # AFTER: Open for extension, closed for modification
 from abc import ABC, abstractmethod
 
+
 class DiscountStrategy(ABC):
     @abstractmethod
-    def calculate(self, order): pass
+    def calculate(self, order):
+        pass
+
 
 class PercentageDiscount(DiscountStrategy):
     def __init__(self, percentage):
@@ -157,6 +170,7 @@ class PercentageDiscount(DiscountStrategy):
     def calculate(self, order):
         return order.total * self.percentage
 
+
 class FixedDiscount(DiscountStrategy):
     def __init__(self, amount):
         self.amount = amount
@@ -164,11 +178,15 @@ class FixedDiscount(DiscountStrategy):
     def calculate(self, order):
         return self.amount
 
+
 class TieredDiscount(DiscountStrategy):
     def calculate(self, order):
-        if order.total > 1000: return order.total * 0.15
-        if order.total > 500: return order.total * 0.10
+        if order.total > 1000:
+            return order.total * 0.15
+        if order.total > 500:
+            return order.total * 0.10
         return order.total * 0.05
+
 
 class DiscountCalculator:
     def calculate(self, order, strategy: DiscountStrategy):
@@ -303,24 +321,25 @@ func (s *UserService) CreateUser(name string) {
 class OrderSystem:
     def process_order(self, order_data):
         # Validation (100 lines)
-        if not order_data.get('customer_id'):
-            return {'error': 'No customer'}
-        if not order_data.get('items'):
-            return {'error': 'No items'}
+        if not order_data.get("customer_id"):
+            return {"error": "No customer"}
+        if not order_data.get("items"):
+            return {"error": "No items"}
         # Database operations mixed in (150 lines)
-        conn = mysql.connector.connect(host='localhost', user='root')
+        conn = mysql.connector.connect(host="localhost", user="root")
         cursor = conn.cursor()
         cursor.execute("INSERT INTO orders...")
         # Business logic (100 lines)
         total = 0
-        for item in order_data['items']:
-            total += item['price'] * item['quantity']
+        for item in order_data["items"]:
+            total += item["price"] * item["quantity"]
         # Email notifications (80 lines)
-        smtp = smtplib.SMTP('smtp.gmail.com')
+        smtp = smtplib.SMTP("smtp.gmail.com")
         smtp.sendmail(...)
         # Logging and analytics (70 lines)
-        log_file = open('/var/log/orders.log', 'a')
+        log_file = open("/var/log/orders.log", "a")
         log_file.write(f"Order processed: {order_data}")
+
 
 # AFTER: Clean, modular architecture
 # domain/entities.py
@@ -328,11 +347,13 @@ from dataclasses import dataclass
 from typing import List
 from decimal import Decimal
 
+
 @dataclass
 class OrderItem:
     product_id: str
     quantity: int
     price: Decimal
+
 
 @dataclass
 class Order:
@@ -343,15 +364,20 @@ class Order:
     def total(self) -> Decimal:
         return sum(item.price * item.quantity for item in self.items)
 
+
 # domain/repositories.py
 from abc import ABC, abstractmethod
 
+
 class OrderRepository(ABC):
     @abstractmethod
-    def save(self, order: Order) -> str: pass
+    def save(self, order: Order) -> str:
+        pass
 
     @abstractmethod
-    def find_by_id(self, order_id: str) -> Order: pass
+    def find_by_id(self, order_id: str) -> Order:
+        pass
+
 
 # infrastructure/mysql_order_repository.py
 class MySQLOrderRepository(OrderRepository):
@@ -363,9 +389,10 @@ class MySQLOrderRepository(OrderRepository):
             cursor = conn.cursor()
             cursor.execute(
                 "INSERT INTO orders (customer_id, total) VALUES (%s, %s)",
-                (order.customer_id, order.total)
+                (order.customer_id, order.total),
             )
             return cursor.lastrowid
+
 
 # application/validators.py
 class OrderValidator:
@@ -377,6 +404,7 @@ class OrderValidator:
         if order.total <= 0:
             raise ValueError("Order total must be positive")
 
+
 # application/services.py
 class OrderService:
     def __init__(
@@ -384,7 +412,7 @@ class OrderService:
         validator: OrderValidator,
         repository: OrderRepository,
         email_service: EmailService,
-        logger: Logger
+        logger: Logger,
     ):
         self.validator = validator
         self.repository = repository
@@ -721,8 +749,10 @@ Provide the complete refactored code with:
 class OrderValidationError(Exception):
     pass
 
+
 class InsufficientInventoryError(Exception):
     pass
+
 
 # Fail fast with clear messages
 def validate_order(order):
@@ -856,6 +886,7 @@ for item_id, item in item_map.items():
 
 ```python
 from functools import lru_cache
+
 
 @lru_cache(maxsize=128)
 def calculate_expensive_metric(data_id: str) -> float:
