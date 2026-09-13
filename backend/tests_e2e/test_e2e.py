@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
@@ -805,3 +806,34 @@ def test_page_simply_loads_without_errors(
     url = f"{live_server.url}{reverse(viewname)}"
     page.goto(url)
     expect(page).to_have_url(url)
+
+
+def test_search_autocomplete(live_server: LiveServer, page: Page) -> None:
+    """Site search ranks popular proteins first, tolerates typos, and navigates on Enter."""
+    User = get_user_model()
+    egfp = ProteinFactory(name="EGFP", slug="egfp")
+    ProteinFactory(name="EGFP-Q69L", slug="egfp-q69l")
+    ProteinFactory(name="mCherry", slug="mcherry")
+    for i in range(3):
+        user = User.objects.create_user(username=f"searcher{i}", password="pw")
+        Favorite.objects.create(user, egfp.id, "proteins.Protein")
+
+    with patch("proteins.search_index.cached_ga_popular", return_value={"year": []}):
+        page.goto(live_server.url)
+        search = page.locator("#algolia-search-input")
+        first = page.locator(".aa-suggestion").first
+
+        search.fill("egf")
+        expect(first).to_contain_text("EGFP")
+        expect(first).not_to_contain_text("Q69L")
+
+        search.fill("mchery")  # typo
+        expect(first).to_contain_text("mCherry")
+        expect(first.locator("em")).to_have_text("mCherry")
+
+        search.fill("")
+        search.type("egpf")  # transposition
+        expect(first).to_contain_text("EGFP")
+        # the protein page itself is slow on the test server; just check we navigate there
+        with page.expect_request(f"{live_server.url}{egfp.get_absolute_url()}"):
+            page.keyboard.press("Enter")

@@ -50,6 +50,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "node --no-warnings --test src/js/search/engine.test.mjs",
     "clean": "pnpm exec -- rm -rf dist"
   }
 }
