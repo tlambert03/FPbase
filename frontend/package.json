@@ -12,7 +12,6 @@
     "@fpbase/blast": "workspace:*",
     "@fpbase/spectra": "workspace:*",
     "@sentry/browser": "^10.22.0",
-    "algoliasearch": "^3.35.1",
     "autocomplete.js": "^0.36.0",
     "d3-array": "^3.2.4",
     "d3-axis": "^3.0.0",
