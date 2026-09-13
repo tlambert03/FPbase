@@ -48,6 +48,8 @@ jobs:
         run: pnpm install
       - name: Run TypeScript type checking
         run: pnpm typecheck
+      - name: Run frontend unit tests
+        run: pnpm --filter fpbase test
 
   check-migrations:
     runs-on: ubuntu-latest

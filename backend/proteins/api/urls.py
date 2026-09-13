@@ -42,4 +42,5 @@ urlpatterns = [
         "proteins/ocinfo/", RedirectView.as_view(url="/api/optical-configs-list/", permanent=True)
     ),
     path("optical-configs-list/", views.optical_configs_list, name="ocinfo"),
+    path("search-index/", views.search_index, name="search-index"),
 ]

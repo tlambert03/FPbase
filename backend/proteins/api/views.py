@@ -1,5 +1,6 @@
 from django.db.models import F, Max, Prefetch
 from django.http import HttpRequest, HttpResponse
+from django.utils.cache import get_conditional_response
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control, cache_page
 from django.views.decorators.http import condition
@@ -27,6 +28,7 @@ from proteins.api.serializers import (
 from proteins.filters import ProteinFilter, SpectrumFilter, StateFilter
 from proteins.models.microscope import get_cached_optical_configs
 from proteins.models.spectrum import get_cached_spectra_info
+from proteins.search_index import get_search_index
 
 
 def _spectra_etag(request: HttpRequest) -> str:
@@ -65,6 +67,15 @@ def optical_configs_list(request: HttpRequest) -> HttpResponse:
         content_type="application/json",
         headers={"Vary": "Accept-Encoding"},
     )
+
+
+@cache_control(public=True, max_age=60 * 60)
+def search_index(request: HttpRequest) -> HttpResponse:
+    """Return the client-side autocomplete search index with ETag support."""
+    data, etag = get_search_index()
+    if response := get_conditional_response(request, etag=etag):
+        return response
+    return HttpResponse(data, content_type="application/json", headers={"ETag": etag})
 
 
 class SpectrumList(ListAPIView):

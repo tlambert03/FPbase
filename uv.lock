@@ -10,31 +10,6 @@ resolution-markers = [
 overrides = [{ name = "django-stubs", marker = "sys_platform == 'never'" }]
 
 [[package]]
-name = "algoliasearch"
-version = "3.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c3/3a/68b9136bab8d04f837c5b1893be1de2d6403f9cb5f18961194a168e90917/algoliasearch-3.0.0.tar.gz", hash = "sha256:abd9316f81fec1e322db4faf183081383b334188ac8184baab36405533038cdd", size = 21671, upload-time = "2023-02-27T08:58:30.075Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/ca/7c96366ec182272091b422b91042ead48a2fd921808825406f45a2667e9a/algoliasearch-3.0.0-py2.py3-none-any.whl", hash = "sha256:e150a577435f5256a52e5f50c865138df2e434db640b9e71556e84c169a1da52", size = 33390, upload-time = "2023-02-27T08:58:28.003Z" },
-]
-
-[[package]]
-name = "algoliasearch-django"
-version = "3.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "algoliasearch" },
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f4/2d/afab04cee45ab9cb52be683d7a99cd424b9b87facf6f9eed53522b34ace3/algoliasearch-django-3.0.0.tar.gz", hash = "sha256:b6ce1ae8c899503e8a4745fb8fd5b0b9babc79cc706f3bfa6ca8eeefc8d7f568", size = 26686, upload-time = "2023-04-28T07:10:02.158Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/11/53a8c84c18a9967f58ffe98ba0cbef879b75e851597ed868d1c7af25f7cb/algoliasearch_django-3.0.0-py2.py3-none-any.whl", hash = "sha256:500775887261b93e1fe3813983678d04b499d5d043c0f538009ca4a9a84585ef", size = 18811, upload-time = "2023-04-28T07:09:59.385Z" },
-]
-
-[[package]]
 name = "amqp"
 version = "5.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -687,7 +662,7 @@ name = "django-anymail"
 version = "10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography" },
+    { name = "cryptography", marker = "platform_machine != 'arm64' or sys_platform != 'darwin'" },
     { name = "django" },
     { name = "requests" },
     { name = "urllib3" },
@@ -1126,7 +1101,6 @@ name = "fpbase-org"
 version = "1.2.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "algoliasearch-django" },
     { name = "argon2-cffi" },
     { name = "biopython" },
     { name = "celery", extra = ["redis"] },
@@ -1231,7 +1205,6 @@ typing = [
 
 [package.metadata]
 requires-dist = [
-    { name = "algoliasearch-django", specifier = "==3.0.0" },
     { name = "argon2-cffi", specifier = ">=21.3.0" },
     { name = "biopython", specifier = ">=1.83" },
     { name = "celery", extras = ["redis"], specifier = "==5.5.3" },

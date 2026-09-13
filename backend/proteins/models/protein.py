@@ -472,9 +472,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
         return get_history(self, ignoreKeys)
 
-    # ##################################
-    # for algolia index
-
     def is_visible(self):
         return self.status != "hidden"
 

@@ -26,7 +26,6 @@ os.environ.setdefault("MAILGUN_DOMAIN", "mg.fpbase.org")
 os.environ.setdefault("SENTRY_DSN", "https://dummy@sentry.io/0")
 os.environ.setdefault("SENTRY_PROJECT", "local-test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
-os.environ.setdefault("ALGOLIA_API_KEY", "")  # Empty to disable Algolia
 os.environ.setdefault("SCOUT_MONITOR", "False")
 
 from .production import *  # noqa

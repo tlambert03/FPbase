@@ -8,7 +8,6 @@
   <head>
     {% vite_hmr_client %}
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://{{ algolia_app_id|lower }}-dsn.algolia.net" crossorigin>
     {% block ga %}
     {% if not debug %}
         <link rel="preconnect" href="https://www.googletagmanager.com">
@@ -67,13 +66,7 @@
     <script>
       window.FPBASE = window.FPBASE || {};
       window.FPBASE.imageDir = "{% static 'images/' %}";
-      window.FPBASE.ALGOLIA = {
-        'appID': '{{ algolia_app_id }}',
-        'publicKey': '{{ algolia_public_key }}',
-        'proteinIndex': 'Protein_{{ algolia_suffix}}',
-        'organismIndex': 'Organism_{{ algolia_suffix}}',
-        'referenceIndex': 'Reference_{{ algolia_suffix}}',
-      };
+      window.FPBASE.searchIndexURL = "{% url 'api:search-index' %}";
       {% if request.user.is_authenticated %}
       window.FPBASE.user = {
           email: "{{ request.user.email }}",
