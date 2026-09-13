@@ -17,14 +17,14 @@ from django.utils.html import strip_tags
 
 from favit.models import Favorite
 from fpbase.cache_utils import get_model_version
-from proteins.extrest.ga import cached_ga_popular
-from proteins.models import Organism, Protein, Spectrum, State
+from proteins.extrest.ga import cached_ga_popular, cached_ga_spectra_views
+from proteins.models import Dye, DyeState, Organism, Protein, Spectrum, State
 from proteins.util.helpers import get_color_group
 from references.models import Reference
 
 logger = logging.getLogger(__name__)
 
-SEARCH_INDEX_VERSION = 1
+SEARCH_INDEX_VERSION = 2
 CACHE_TTL = 60 * 60 * 24  # also bounds how stale popularity can get
 
 # Popularity is log-scaled into [0, 1]: the most popular protein is 1, and each
@@ -51,6 +51,15 @@ def _ga_view_shares() -> dict[str, float]:
     except Exception:
         # no credentials (dev/test) or GA outage: fall back to favorites only
         logger.warning("Could not fetch Google Analytics popularity", exc_info=True)
+        return {}
+
+
+def _ga_spectrum_views() -> dict[int, int]:
+    """Spectra viewer page views over the last year, keyed by spectrum ID."""
+    try:
+        return cached_ga_spectra_views()
+    except Exception:
+        logger.warning("Could not fetch Google Analytics spectra views", exc_info=True)
         return {}
 
 
@@ -180,6 +189,46 @@ def _organism_records() -> list[dict]:
     ]
 
 
+def _dye_records() -> list[dict]:
+    """Dyes have no detail page, so they link to their spectra in the spectra viewer."""
+    spectra: dict[int, list[int]] = defaultdict(list)
+    for spectrum_id, state_id in (
+        Spectrum.objects.filter(
+            owner_fluor__dyestate__isnull=False, subtype__in=("ex", "em", "ab")
+        )
+        .order_by("id")
+        .values_list("id", "owner_fluor_id")
+    ):
+        spectra[state_id].append(spectrum_id)
+    # use the default state if it has spectra, otherwise the first state that does
+    default_state = dict(Dye.objects.values_list("id", "default_state_id"))
+    chosen: dict[int, tuple] = {}
+    for row in DyeState.objects.order_by("id").values_list(
+        "id", "dye_id", "dye__name", "ex_max", "em_max", "emhex"
+    ):
+        state_id, dye_id = row[:2]
+        if spectra[state_id] and (dye_id not in chosen or state_id == default_state[dye_id]):
+            chosen[dye_id] = row
+    views = _ga_spectrum_views()
+    pop = _log_popularity(
+        {dye_id: max(views.get(s, 0) for s in spectra[row[0]]) for dye_id, row in chosen.items()}
+    )
+    viewer = reverse("proteins:spectra")
+    return [
+        _compact(
+            {
+                "name": html.unescape(name),
+                "url": f"{viewer}?s={','.join(map(str, spectra[state_id]))}",
+                "ex": ex,
+                "em": em,
+                "color": emhex if em else None,  # emhex is a placeholder without em_max
+                "p": pop.get(dye_id, 0),
+            }
+        )
+        for dye_id, (state_id, _, name, ex, em, emhex) in chosen.items()
+    ]
+
+
 def build_search_index() -> dict[str, Any]:
     proteins = list(
         Protein.objects.exclude(status=Protein.STATUS.hidden).only(
@@ -193,12 +242,13 @@ def build_search_index() -> dict[str, Any]:
         "proteins": _protein_records(proteins, pop),
         "references": _reference_records(pop),
         "organisms": _organism_records(),
+        "dyes": _dye_records(),
     }
 
 
 def get_search_index() -> tuple[bytes, str]:
     """Return the serialized search index and its ETag, rebuilding if models changed."""
-    version = get_model_version(Protein, State, Reference, Organism)
+    version = get_model_version(Protein, State, Reference, Organism, Dye, DyeState, Spectrum)
     key = f"search_index:{SEARCH_INDEX_VERSION}:{version}"
     if (hit := cache.get(key)) is None:
         data = json.dumps(build_search_index(), separators=(",", ":")).encode()

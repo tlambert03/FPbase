@@ -76,8 +76,11 @@ OPTICAL_CONFIG_MODELS = {
 }
 # models whose versions key the autocomplete search index (see proteins.search_index)
 SEARCH_INDEX_MODELS = {
+    "proteins.Dye",
+    "proteins.DyeState",
     "proteins.Organism",
     "proteins.Protein",
+    "proteins.Spectrum",
     "proteins.State",
     "references.Reference",
 }

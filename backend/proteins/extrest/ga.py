@@ -1,3 +1,5 @@
+import re
+from collections import Counter
 from contextlib import suppress
 
 from django.conf import settings
@@ -109,3 +111,40 @@ def ga_popular_proteins(
     )
 
     return with_percent
+
+
+def cached_ga_spectra_views(max_age=60 * 60 * 24) -> dict[int, int]:
+    results = cache.get("ga_spectra_views")
+    if results is None:
+        results = ga_spectra_views(get_client())
+        cache.set("ga_spectra_views", results, max_age)
+    return results
+
+
+def ga_spectra_views(client: BetaAnalyticsDataClient, days: int = 365) -> dict[int, int]:
+    """Return spectra viewer page views per spectrum ID in the last `days` days.
+
+    Counts views of `/spectra/?s=<id>,<id>,...` URLs (typically shared links), crediting
+    every spectrum ID in the URL.
+    """
+    request = RunReportRequest(
+        property=f"properties/{PROPERTY_ID}",
+        date_ranges=[DateRange(start_date=f"{days}daysAgo", end_date="today")],
+        dimensions=[Dimension(name="pagePathPlusQueryString")],
+        metrics=[Metric(name="screenPageViews")],
+        dimension_filter=FilterExpression(
+            filter=Filter(
+                field_name="pagePathPlusQueryString",
+                string_filter=Filter.StringFilter(
+                    match_type=Filter.StringFilter.MatchType.BEGINS_WITH, value="/spectra/?"
+                ),
+            )
+        ),
+        limit=100_000,
+    )
+    views: Counter[int] = Counter()
+    for row in client.run_report(request).rows:
+        if match := re.search(r"[?&]s=([^&]*)", row.dimension_values[0].value):
+            for spectrum_id in {int(x) for x in match.group(1).split(",") if x.isdigit()}:
+                views[spectrum_id] += int(row.metric_values[0].value)
+    return dict(views)

@@ -84,9 +84,7 @@ test("no match returns nothing, partial matches need half the words", () => {
 
 test("matchedValues reports the non-name fields that matched", () => {
   const [hit] = index.search("wtgfp", 1)
-  assert.deepEqual(index.matchedValues(hit, "wtgfp", ["name"]), [
-    { key: "aliases", value: "wtGFP" },
-  ])
+  assert.deepEqual(index.matchedValues(hit, ["name"]), [{ key: "aliases", value: "wtGFP" }])
 })
 
 test("highlight escapes html and marks matches", () => {
@@ -95,4 +93,34 @@ test("highlight escapes html and marks matches", () => {
   assert.equal(highlight("<b>x</b>", "b"), "&lt;<em>b</em>&gt;x&lt;/<em>b</em>&gt;")
   assert.equal(highlight("Ñeon", "neon"), "<em>Ñeon</em>")
   assert.equal(highlight("mCherry", "mchery"), "<em>mCherry</em>")
+})
+
+const DYES = new SearchIndex(
+  [
+    { name: "Alexa Fluor 488", p: 1 },
+    { name: "Alexa Fluor 647", p: 0.95 },
+    { name: "Alexa Fluor 430", p: 0.3 },
+    { name: "CF647", p: 0.4 },
+    { name: "Brilliant Violet 421", p: 0.5 },
+  ],
+  [{ key: "name", weight: 1 }],
+  { synonyms: { af: "alexa fluor", bv: "brilliant violet" } }
+)
+const dyes = (query) => DYES.search(query, 3).map((h) => h.record.name)
+
+test("letters glued to digits are split when nothing else matches", () => {
+  assert.equal(dyes("alexa488")[0], "Alexa Fluor 488")
+  assert.deepEqual(names("qqq123"), [])
+})
+
+test("synonyms expand abbreviations, alone or before digits", () => {
+  assert.equal(dyes("af647")[0], "Alexa Fluor 647")
+  assert.equal(dyes("af 488")[0], "Alexa Fluor 488")
+  assert.equal(dyes("bv421")[0], "Brilliant Violet 421")
+  assert.equal(dyes("cf647")[0], "CF647")
+})
+
+test("hits carry the expanded tokens for highlighting", () => {
+  const [hit] = DYES.search("af647", 1)
+  assert.equal(highlight(hit.record.name, hit.tokens), "<em>Alexa</em> <em>Fluor</em> <em>647</em>")
 })

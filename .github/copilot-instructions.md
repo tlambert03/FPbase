@@ -74,7 +74,7 @@ Core models in `models/`:
 
 ### Search & Indexing
 - The navbar autocomplete searches in the browser (`frontend/src/js/search/`)
-- Its index (proteins, references, organisms + popularity) is built by `proteins/search_index.py`,
+- Its index (proteins, dyes, references, organisms + popularity) is built by `proteins/search_index.py`,
   cached, and rebuilt when those models change (see `fpbase/cache_utils.py`)
 
 ## API Patterns

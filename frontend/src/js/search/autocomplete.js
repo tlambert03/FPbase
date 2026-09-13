@@ -14,13 +14,17 @@ const PROTEIN_FIELDS = [
 const REFERENCE_FIELDS = [
   { key: "primary", weight: 1 },
   { key: "citation", weight: 0.95 },
-  { key: "title", weight: 0.7 },
+  { key: "title", weight: 0.7, typos: false },
   { key: "doi", weight: 0.9, id: true },
   { key: "pmid", weight: 0.9, id: true },
   { key: "secondary", weight: 0.6 },
 ]
 // organisms only match whole words by prefix: substrings and short typos are noise here
 const ORGANISM_OPTIONS = { minInfix: Infinity, minTypo1: 5, fallback: false }
+// abbreviations whose expansion isn't already part of the dye names (JF646, BUV395 are)
+const DYE_OPTIONS = {
+  synonyms: { af: "alexa fluor", bv: "brilliant violet", sb: "super bright" },
+}
 
 const PROTEIN_HINT_LABELS = {
   aliases: "aka",
@@ -48,6 +52,26 @@ const SWITCH_ABBREVIATIONS = {
 let indexesPromise = null
 let indexes = null
 
+// Search analytics: one GA4 `search` event per search, sent when a result is picked, the
+// advanced search is used, or the search is abandoned (blur, or leaving the page).
+let typedQuery = "" // the query as typed (arrow keys replace the input's value)
+let tracked = false
+const resultCounts = {} // dataset -> {query, n}
+
+function trackSearch(params) {
+  if (tracked || typedQuery.length < 3) return
+  tracked = true
+  const count = Object.values(resultCounts)
+    .filter((c) => c.query === typedQuery)
+    .reduce((n, c) => n + c.n, 0)
+  window.gtag?.("event", "search", {
+    search_term: typedQuery,
+    result_count: count,
+    transport_type: "beacon",
+    ...params,
+  })
+}
+
 /** Fetch the search index (browser-cached, see /api/search-index/) and build the indexes. */
 function loadIndexes() {
   indexesPromise ||= fetch(window.FPBASE.searchIndexURL)
@@ -60,6 +84,7 @@ function loadIndexes() {
         proteins: new SearchIndex(data.proteins, PROTEIN_FIELDS),
         references: new SearchIndex(data.references, REFERENCE_FIELDS),
         organisms: new SearchIndex(data.organisms, [{ key: "name", weight: 1 }], ORGANISM_OPTIONS),
+        dyes: new SearchIndex(data.dyes, [{ key: "name", weight: 1 }], DYE_OPTIONS),
       }
     })
     .catch((error) => {
@@ -70,16 +95,43 @@ function loadIndexes() {
   return indexesPromise
 }
 
+const LIMITS = { proteins: 5, dyes: 3, references: 3, organisms: 2 }
+let lastResults = { query: null, results: {} }
+
+/** Search every section at once, hiding sections that only have typo matches
+ * when another section has a real match ("cy5": the dye, not CyPet). */
+function resultsFor(query) {
+  if (lastResults.query !== query) {
+    const results = {}
+    for (const [name, limit] of Object.entries(LIMITS)) {
+      results[name] = indexes[name].search(query, limit)
+    }
+    const hits = Object.values(results)
+    if (hits.some((section) => section.some((h) => !h.fuzzy))) {
+      for (const [name, section] of Object.entries(results)) {
+        if (section.every((h) => h.fuzzy)) results[name] = []
+      }
+    }
+    lastResults = { query, results }
+  }
+  return lastResults.results
+}
+
 // autocomplete.js JSON-serializes every suggestion into the DOM, so suggestions are
-// rendered here and only small {url, display, html} objects are handed over.
-function source(name, limit, render, displayKey) {
+// rendered here and only small objects are handed over.
+function source(name, type, render, displayKey) {
   const run = (query, callback) => {
     const index = indexes[name]
+    const hits = resultsFor(query)[name]
+    typedQuery = query.trim()
+    resultCounts[name] = { query: typedQuery, n: hits.length }
     callback(
-      index.search(query, limit).map((hit) => ({
+      hits.map((hit, i) => ({
         url: hit.record.url,
         display: hit.record[displayKey],
-        html: render({ ...hit, index, query }),
+        html: render({ ...hit, index }),
+        type,
+        rank: i + 1,
       }))
     )
   }
@@ -95,9 +147,9 @@ function source(name, limit, render, displayKey) {
 
 function hints(hit, exclude = []) {
   const byKey = {}
-  for (const { key, value } of hit.index.matchedValues(hit, hit.query, exclude)) {
+  for (const { key, value } of hit.index.matchedValues(hit, exclude)) {
     byKey[key] ??= []
-    byKey[key].push(highlight(value, hit.query))
+    byKey[key].push(highlight(value, hit.tokens))
   }
   return byKey
 }
@@ -111,7 +163,7 @@ function proteinSuggestion(hit) {
     col = p.color.toLowerCase().replace(/ |\//g, "_")
   }
   let str = `<img class='type protein' src='${window.FPBASE.imageDir}gfp_${col}_40.png'>`
-  str += highlight(p.name, hit.query)
+  str += highlight(p.name, hit.tokens)
   if (p.spectra) {
     const src = `/spectra_img/${encodeURIComponent(p.slug)}.png?xlabels=0&xlim=400,800`
     str += `<img class='spectra' src='${src}'>`
@@ -133,7 +185,7 @@ function proteinSuggestion(hit) {
 
 function referenceSuggestion(hit) {
   const ref = hit.record
-  let str = highlight(ref.citation, hit.query)
+  let str = highlight(ref.citation, hit.tokens)
   str += `<img class='type' src='${window.FPBASE.imageDir}ref.png'>`
   const matched = hints(hit, ["citation"])
   if (matched.primary) delete matched.secondary
@@ -147,8 +199,25 @@ function referenceSuggestion(hit) {
 
 function organismSuggestion(hit) {
   const org = hit.record
-  const str = `${highlight(org.name, hit.query)}<img class='type' src='${window.FPBASE.imageDir}organism_icon.png'>`
+  const str = `${highlight(org.name, hit.tokens)}<img class='type' src='${window.FPBASE.imageDir}organism_icon.png'>`
   return `<a href='${escapeHtml(org.url)}'><div>${str}</div></a>`
+}
+
+// a small aromatic ring, filled with the dye's emission color
+function dyeIcon(color) {
+  const fill = /^#[0-9a-f]{3,6}$/i.test(color ?? "") ? color : "#bbb"
+  return (
+    `<svg class='type dye' viewBox='0 0 24 24' aria-hidden='true'>` +
+    `<path d='M12 2.5 20.2 7.25v9.5L12 21.5 3.8 16.75v-9.5Z' fill='${fill}' stroke='#444' stroke-opacity='.6' stroke-width='1.5'/>` +
+    `<circle cx='12' cy='12' r='4.2' fill='none' stroke='#444' stroke-opacity='.6' stroke-width='1.3'/></svg>`
+  )
+}
+
+function dyeSuggestion(hit) {
+  const dye = hit.record
+  let str = dyeIcon(dye.color) + highlight(dye.name, hit.tokens)
+  if (dye.ex && dye.em) str += `<span class='info'>${escapeHtml(`${dye.ex}/${dye.em}`)}</span>`
+  return `<a href='${escapeHtml(dye.url)}'><div>${str}</div></a>`
 }
 
 function empty({ query }) {
@@ -222,25 +291,33 @@ export default async function initAutocomplete() {
         },
       },
       [
+        // sections without hits render nothing, so e.g. a dye search shows only dyes
         {
-          source: source("proteins", 5, proteinSuggestion, "name"),
+          source: source("proteins", "protein", proteinSuggestion, "name"),
           displayKey: "display",
           templates: { suggestion: (suggestion) => suggestion.html },
         },
         {
-          source: source("references", 3, referenceSuggestion, "citation"),
+          source: source("dyes", "dye", dyeSuggestion, "name"),
           displayKey: "display",
           templates: { suggestion: (suggestion) => suggestion.html },
         },
         {
-          source: source("organisms", 2, organismSuggestion, "name"),
+          source: source("references", "reference", referenceSuggestion, "citation"),
+          displayKey: "display",
+          templates: { suggestion: (suggestion) => suggestion.html },
+        },
+        {
+          source: source("organisms", "organism", organismSuggestion, "name"),
           displayKey: "display",
           templates: { suggestion: (suggestion) => suggestion.html },
         },
         {
           source: (query, callback) => {
             const footer = () =>
-              callback([{ query, url: `/search/?q=${encodeURIComponent(query)}` }])
+              callback([
+                { query, url: `/search/?q=${encodeURIComponent(query)}`, type: "advanced" },
+              ])
             // render after the other datasets so autoselect picks a real result
             if (indexes) footer()
             else loadIndexes().then(footer, footer)
@@ -254,12 +331,22 @@ export default async function initAutocomplete() {
       ]
     )
     .on("autocomplete:selected", (_event, suggestion, _dataset, context) => {
+      trackSearch({ result_type: suggestion.type, result_rank: suggestion.rank ?? 0 })
       if (context.selectionMethod === "click") {
         return
       }
       // Change the page, for example, on other events
       window.location.assign(suggestion.url)
     })
+
+  $searchInput.on("input", () => {
+    tracked = false
+    if ($searchInput.val().trim().length < 3) typedQuery = ""
+  })
+  $searchInput.on("blur", () => trackSearch({ result_type: "none" }))
+  // Enter without a highlighted suggestion submits the form to the advanced search
+  $searchInput.closest("form").on("submit", () => trackSearch({ result_type: "advanced" }))
+  window.addEventListener("pagehide", () => trackSearch({ result_type: "none" }))
 
   const $hintInput = $searchInput.parent().find(".aa-hint")
   if ($hintInput.length) {

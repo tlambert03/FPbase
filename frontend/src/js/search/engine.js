@@ -56,7 +56,11 @@ export const DEFAULTS = {
   minTypo2: 8,
   optionalWords: ["protein"],
   fallback: true, // if nothing matches every query word, allow partial matches
+  synonyms: {}, // abbreviation -> words, also as a prefix of digits ("af647")
 }
+
+const ALPHA_THEN_DIGIT = /^([a-z]+)(\d.*)$/
+const LETTER_DIGIT_BOUNDARY = /(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])/
 
 // match type of query token `t` against indexed word `w`
 function matchWord(t, w, isId, o) {
@@ -78,49 +82,78 @@ function matchWord(t, w, isId, o) {
 export class SearchIndex {
   /**
    * @param {object[]} records - must have a numeric popularity `p` in [0, 1]
-   * @param {{key: string, weight: number, id?: boolean}[]} fields - searchable
-   *   fields; values may be strings or arrays of strings. `id` fields only
-   *   match exactly or by prefix (no substrings or typos).
+   * @param {{key: string, weight: number, id?: boolean, typos?: boolean}[]} fields -
+   *   searchable fields; values may be strings or arrays of strings. `id` fields only
+   *   match exactly or by prefix (no substrings or typos); `typos: false` disables
+   *   typo matching (e.g. for long prose).
    * @param {object} [options] - overrides for `DEFAULTS`
    */
   constructor(records, fields, options = {}) {
     this.o = { ...DEFAULTS, ...options, quality: { ...DEFAULTS.quality, ...options.quality } }
     this.docs = records.map((record) => {
       const values = []
-      for (const { key, weight, id = false } of fields) {
+      for (const { key, weight, id = false, typos = true } of fields) {
         const raw = record[key]
         for (const value of Array.isArray(raw) ? raw : [raw]) {
           if (value === undefined || value === null || value === "") continue
           const words = tokenize(value)
-          values.push({ key, weight, id, value: String(value), words, compact: words.join("") })
+          values.push({
+            key,
+            weight,
+            id,
+            typos,
+            value: String(value),
+            words,
+            compact: words.join(""),
+          })
         }
       }
       return { record, values, pop: record.p || 0 }
     })
   }
 
-  /** @returns {{record: object, score: number}[]} best matches, highest score first */
+  /**
+   * @returns {{record: object, score: number, tokens: string[]}[]} best matches,
+   *   highest score first. `tokens` are the query words actually matched (after
+   *   synonyms and splitting), for highlighting.
+   */
   search(query, limit = 5) {
-    let hits = this._search(query, false)
-    if (!hits.length && this.o.fallback) hits = this._search(query, true)
+    const tokens = this._expand(tokenize(query))
+    let hits = this._search(tokens, false)
+    if (!hits.length) {
+      // letters glued to digits ("alexa488" -> "alexa 488")
+      const split = tokens.flatMap((t) => t.split(LETTER_DIGIT_BOUNDARY))
+      if (split.length > tokens.length) hits = this._search(split, false)
+    }
+    if (!hits.length && this.o.fallback) hits = this._search(tokens, true)
     return hits.slice(0, limit)
   }
 
-  _search(query, partial) {
+  _expand(tokens) {
+    const { synonyms } = this.o
+    return tokens.flatMap((t) => {
+      if (synonyms[t]) return tokenize(synonyms[t])
+      const m = t.match(ALPHA_THEN_DIGIT)
+      return m && synonyms[m[1]] ? [...tokenize(synonyms[m[1]]), m[2]] : [t]
+    })
+  }
+
+  _search(allTokens, partial) {
     const o = this.o
-    let tokens = tokenize(query)
-    const qc = tokens.join("")
+    const qc = allTokens.join("")
     if (!qc) return []
-    const required = tokens.filter((t) => !o.optionalWords.includes(t))
-    if (required.length) tokens = required
+    const required = allTokens.filter((t) => !o.optionalWords.includes(t))
+    const tokens = required.length ? required : allTokens
     const memos = tokens.map(() => new Map())
     const hits = []
     for (const doc of this.docs) {
       let tokenSum = 0
       let matched = 0
+      let typoOnly = false // some query word only matched with a typo
       tokens.forEach((t, ti) => {
         const memo = memos[ti]
         let best = 0
+        let bestIsTypo = false
         for (const f of doc.values) {
           for (const w of f.words) {
             const key = f.id ? `#${w}` : w
@@ -129,7 +162,12 @@ export class SearchIndex {
               m = matchWord(t, w, f.id, o)
               memo.set(key, m)
             }
-            if (m) best = Math.max(best, o.quality[m] * f.weight)
+            if (m?.startsWith("typo") && !f.typos) continue
+            const q = m ? o.quality[m] * f.weight : 0
+            if (q > best) {
+              best = q
+              bestIsTypo = m.startsWith("typo")
+            }
           }
           // in multi-word queries, words may be glued together in the field ("neon green")
           if (!best && tokens.length > 1 && !f.id && f.compact.includes(t)) {
@@ -137,6 +175,7 @@ export class SearchIndex {
           }
         }
         if (best) matched++
+        if (bestIsTypo) typoOnly = true
         tokenSum += best
       })
       // whole-field matches use the query with separators removed ("td tomato")
@@ -155,15 +194,22 @@ export class SearchIndex {
       if (!allMatched && !(partial && matched >= tokens.length / 2)) continue
       let text = (o.tokenWeight * tokenSum) / tokens.length + fieldBonus + o.coverage * coverage
       if (!allMatched) text *= matched / tokens.length
-      hits.push({ record: doc.record, score: text + o.popularity * doc.pop, doc })
+      hits.push({
+        record: doc.record,
+        score: text + o.popularity * doc.pop,
+        doc,
+        tokens: allTokens,
+        // weak match: relies on a typo or on only some of the query words
+        fuzzy: !allMatched || (typoOnly && !fieldBonus && !coverage),
+      })
     }
     hits.sort((a, b) => b.score - a.score)
     return hits
   }
 
-  /** Values of non-`exclude` fields that match the query, e.g. to show "aka: sfGFP". */
-  matchedValues(hit, query, exclude = []) {
-    const tokens = tokenize(query)
+  /** Values of non-`exclude` fields that matched `hit`, e.g. to show "aka: sfGFP". */
+  matchedValues(hit, exclude = []) {
+    const { tokens } = hit
     const qc = tokens.join("")
     const out = []
     for (const f of hit.doc.values) {
@@ -178,7 +224,7 @@ export class SearchIndex {
 const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }
 export const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => HTML_ESCAPES[c])
 
-/** HTML-escape `value`, wrapping the parts that match `query` in <em>. */
+/** HTML-escape `value`, wrapping the parts that match `query` (a string or tokens) in <em>. */
 export function highlight(value, query, options = {}) {
   const o = { ...DEFAULTS, ...options }
   const text = String(value ?? "")
@@ -196,7 +242,7 @@ export function highlight(value, query, options = {}) {
     for (let i = map[start]; i < map[end]; i++) marked[i] = true
   }
   const words = [...norm.matchAll(/[a-z0-9\u0370-\u03ff]+/g)]
-  for (const t of tokenize(query)) {
+  for (const t of Array.isArray(query) ? query : tokenize(query)) {
     let found = false
     for (let i = norm.indexOf(t); i >= 0; i = norm.indexOf(t, i + 1)) {
       mark(i, i + t.length)

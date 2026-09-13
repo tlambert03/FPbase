@@ -818,7 +818,10 @@ def test_search_autocomplete(live_server: LiveServer, page: Page) -> None:
         user = User.objects.create_user(username=f"searcher{i}", password="pw")
         Favorite.objects.create(user, egfp.id, "proteins.Protein")
 
-    with patch("proteins.search_index.cached_ga_popular", return_value={"year": []}):
+    with (
+        patch("proteins.search_index.cached_ga_popular", return_value={"year": []}),
+        patch("proteins.search_index.cached_ga_spectra_views", return_value={}),
+    ):
         page.goto(live_server.url)
         search = page.locator("#algolia-search-input")
         first = page.locator(".aa-suggestion").first
@@ -837,3 +840,41 @@ def test_search_autocomplete(live_server: LiveServer, page: Page) -> None:
         # the protein page itself is slow on the test server; just check we navigate there
         with page.expect_request(f"{live_server.url}{egfp.get_absolute_url()}"):
             page.keyboard.press("Enter")
+
+
+def test_search_autocomplete_dyes_and_analytics(live_server: LiveServer, page: Page) -> None:
+    """Dyes are searchable (link to the spectra viewer) and each search sends one GA event."""
+    dye = DyeFactory(name="Alexa Fluor 488")
+    ProteinFactory(name="mCherry", slug="mcherry")
+    events: list = []
+    page.route(re.compile(r"googletagmanager|google-analytics"), lambda route: route.abort())
+    page.expose_binding("reportGA", lambda _source, args: events.append(args))
+    page.add_init_script(
+        "window.dataLayer = []; const push = dataLayer.push.bind(dataLayer);"
+        "dataLayer.push = (...a) => {"
+        "  a.forEach((x) => reportGA(Array.from(x))); return push(...a) }"
+    )
+
+    with (
+        patch("proteins.search_index.cached_ga_popular", return_value={"year": []}),
+        patch("proteins.search_index.cached_ga_spectra_views", return_value={}),
+    ):
+        page.goto(live_server.url)
+        search = page.locator("#algolia-search-input")
+        search.type("alexa488")  # letters glued to digits
+        first = page.locator(".aa-suggestion").first
+        expect(first).to_contain_text(dye.name)
+        expect(first.locator("svg.dye")).to_be_visible()
+        with page.expect_request(re.compile(r"/spectra/\?s=\d+")):
+            page.keyboard.press("Enter")
+
+    searches = [e[2] for e in events if e[:2] == ["event", "search"]]
+    assert searches == [
+        {
+            "search_term": "alexa488",
+            "result_count": 1,
+            "result_type": "dye",
+            "result_rank": 1,
+            "transport_type": "beacon",
+        }
+    ]

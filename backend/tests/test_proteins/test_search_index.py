@@ -6,8 +6,9 @@ from django.core.cache import cache
 
 from favit.models import Favorite
 from proteins import search_index
-from proteins.factories import ProteinFactory
-from proteins.models import Protein
+from proteins.extrest.ga import ga_spectra_views
+from proteins.factories import DyeFactory, ProteinFactory
+from proteins.models import Protein, Spectrum
 
 URL = "/api/search-index/"
 
@@ -16,6 +17,7 @@ URL = "/api/search-index/"
 def _clear_cache(monkeypatch: pytest.MonkeyPatch):
     cache.clear()
     monkeypatch.setattr(search_index, "cached_ga_popular", lambda: {"year": []})
+    monkeypatch.setattr(search_index, "cached_ga_spectra_views", dict)
     yield
     cache.clear()
 
@@ -81,7 +83,9 @@ def test_search_index_ga_failure_falls_back(client, monkeypatch: pytest.MonkeyPa
         raise ValueError("no credentials")
 
     monkeypatch.setattr(search_index, "cached_ga_popular", boom)
+    monkeypatch.setattr(search_index, "cached_ga_spectra_views", boom)
     ProteinFactory()
+    DyeFactory()
     assert client.get(URL).status_code == 200
 
 
@@ -107,3 +111,43 @@ def test_search_index_query_count(django_assert_max_num_queries) -> None:
         ProteinFactory()
     with django_assert_max_num_queries(12):
         search_index.build_search_index()
+
+
+@pytest.mark.django_db
+def test_search_index_dyes(client, monkeypatch: pytest.MonkeyPatch) -> None:
+    popular, obscure = DyeFactory(name="Alexa Fluor 488"), DyeFactory(name="Obscure Dye")
+    ex_em = set(
+        Spectrum.objects.filter(
+            owner_fluor__dyestate__dye=popular, subtype__in=("ex", "em")
+        ).values_list("id", flat=True)
+    )
+    monkeypatch.setattr(search_index, "cached_ga_spectra_views", lambda: {min(ex_em): 50})
+
+    dyes = {d["name"]: d for d in client.get(URL).json()["dyes"]}
+    rec = dyes[popular.name]
+    path, ids = rec["url"].split("?s=")
+    assert path == "/spectra/"
+    assert {int(i) for i in ids.split(",")} == ex_em  # 2p spectra are left out
+    assert rec["p"] == 1
+    assert dyes[obscure.name].get("p", 0) < 1
+
+
+class _Value:
+    def __init__(self, value: str) -> None:
+        self.value = value
+
+
+class _Row:
+    def __init__(self, path: str, views: int) -> None:
+        self.dimension_values = [_Value(path)]
+        self.metric_values = [_Value(str(views))]
+
+
+def test_ga_spectra_views_parses_viewer_urls() -> None:
+    rows = [
+        _Row("/spectra/?s=17,18,$cl0_488&showY=0", 10),
+        _Row("/spectra/?xMin=400&s=18,18", 5),
+        _Row("/spectra/?showY=1", 99),
+    ]
+    client = type("Client", (), {"run_report": lambda self, req: type("R", (), {"rows": rows})})()
+    assert ga_spectra_views(client) == {17: 10, 18: 15}
