@@ -18,4 +18,4 @@ const SpectraViewerContainer: FC<SpectraViewerContainerProps> =
 // biome-ignore lint/suspicious/noExplicitAny: Legacy component, will be typed properly when migrated
 const SpectraViewer: FC<any> = SpectraViewerComponent
 
-export { SpectraViewerContainer, SpectraViewer, ChartOptionsForm }
+export { ChartOptionsForm, SpectraViewer, SpectraViewerContainer }
