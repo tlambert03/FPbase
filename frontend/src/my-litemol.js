@@ -10,6 +10,7 @@ import "./css/litemol/LiteMol-plugin-blue.css"
 
 // Import UMD bundle - it sets window.LiteMol global
 import "./js/pdb/LiteMol-plugin"
+
 const LiteMol = window.LiteMol
 
 // Mark this bundle for Sentry context
