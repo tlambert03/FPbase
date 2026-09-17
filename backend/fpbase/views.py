@@ -19,7 +19,28 @@ from proteins.models import Protein, Spectrum
 logger = logging.getLogger(__name__)
 
 
-class SameOriginExemptAnonThrottle(AnonRateThrottle):
+class CloudflareIdentMixin:
+    """Identify clients by the IP Cloudflare reports, rather than X-Forwarded-For.
+
+    Behind Cloudflare, X-Forwarded-For is "<client>, <edge ip>", and the edge IP
+    varies per request, so DRF's default ident fragments one client into many buckets.
+    """
+
+    def get_ident(self, request):
+        return request.headers.get("cf-connecting-ip") or super().get_ident(request)
+
+
+class ExpensiveListAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
+    """Stricter anonymous limit for list endpoints that serialize the whole database.
+
+    Deliberately has no same-origin exemption: the referer is trivially spoofed,
+    and the FPbase frontend does not use these endpoints.
+    """
+
+    scope = "anon_list"
+
+
+class SameOriginExemptAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
     """
     Throttle class that exempts same-origin requests from rate limiting.
 

@@ -10,12 +10,15 @@ from rest_framework.generics import (
     RetrieveAPIView,
     RetrieveUpdateDestroyAPIView,
 )
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework_csv import renderers as r
 
 import proteins.models as pm
 from fpbase.cache_utils import get_model_version
+from fpbase.views import ExpensiveListAnonThrottle
 from proteins.api.serializers import (
     BasicProteinSerializer,
     ProteinSerializer,
@@ -105,6 +108,20 @@ class ProteinListAPIView2(ListAPIView):
         return super().dispatch(*args, **kwargs)
 
 
+class OptionalLimitOffsetPagination(LimitOffsetPagination):
+    """Honor ?limit=&offset= when given, keeping the response a bare list.
+
+    Without `limit` the full list is returned, as it always has been.  Clients that
+    page until they receive an empty list will now actually terminate.
+    """
+
+    default_limit = None
+    max_limit = 1000
+
+    def get_paginated_response(self, data):
+        return Response(data)
+
+
 class ProteinListAPIView(ListAPIView):
     queryset = (
         pm.Protein.objects.all()
@@ -125,6 +142,8 @@ class ProteinListAPIView(ListAPIView):
     lookup_field = "slug"  # Don't use Protein.id!
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProteinFilter
+    pagination_class = OptionalLimitOffsetPagination
+    throttle_classes = [ExpensiveListAnonThrottle, *api_settings.DEFAULT_THROTTLE_CLASSES]  # pyright: ignore[reportAssignmentType]
     renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]  # pyright: ignore[reportAssignmentType]
 
     @method_decorator(cache_page(60 * 10))

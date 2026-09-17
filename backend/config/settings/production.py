@@ -342,4 +342,5 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = [
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
     "anon": "60/min",  # Generous limit for unauthenticated API/GraphQL users (external only)
     "user": "300/min",  # 10x higher for authenticated users
+    "anon_list": "20/min",  # expensive list endpoints (see ExpensiveListAnonThrottle)
 }

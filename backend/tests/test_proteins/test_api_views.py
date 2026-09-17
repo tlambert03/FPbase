@@ -6,6 +6,7 @@ These tests ensure the API endpoints perform efficiently and avoid N+1 query iss
 
 from __future__ import annotations
 
+import pytest
 from django.db import connection
 from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
@@ -134,3 +135,18 @@ class SpectraListAPIViewTests(TestCase):
             names,
             "Should find spectra with modified protein name",
         )
+
+
+@pytest.mark.django_db
+def test_protein_list_api_limit_offset(client):
+    """limit/offset slice the (still bare) list; paging past the end gives []."""
+    for _ in range(5):
+        ProteinFactory()
+
+    def get(query: str) -> list:
+        return client.get(f"/api/proteins/?format=json{query}").json()
+
+    everything = get("")
+    assert len(everything) == 5
+    assert get("&limit=2&offset=1") == everything[1:3]
+    assert get("&limit=2&offset=1000") == []
