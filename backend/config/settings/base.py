@@ -324,6 +324,8 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # throttling is only enabled in production (None means "no limit")
+    "DEFAULT_THROTTLE_RATES": {"anon": None, "user": None, "anon_list": None},
 }
 
 # By Default swagger ui is available only to admin user(s). You can change permission
