@@ -1,10 +1,12 @@
 from django.db.models import F, Max, Prefetch
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.urls import reverse
 from django.utils.cache import get_conditional_response
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control, cache_page
 from django.views.decorators.http import condition
 from django_filters import rest_framework as filters
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import (
     ListAPIView,
     RetrieveAPIView,
@@ -28,7 +30,7 @@ from proteins.api.serializers import (
     SpectrumSerializer,
     StateSerializer,
 )
-from proteins.filters import ProteinFilter, SpectrumFilter, StateFilter
+from proteins.filters import ProteinAPIFilter, SpectrumFilter, StateFilter
 from proteins.models.microscope import get_cached_optical_configs
 from proteins.models.spectrum import get_cached_spectra_info
 from proteins.search_index import get_search_index
@@ -81,10 +83,55 @@ def search_index(request: HttpRequest) -> HttpResponse:
     return HttpResponse(data, content_type="application/json", headers={"ETag": etag})
 
 
+def api_not_found(request: HttpRequest) -> JsonResponse:
+    """JSON 404 for unknown API paths, pointing scripts at the real API."""
+    proteins = request.build_absolute_uri(reverse("api:protein-api"))
+    return JsonResponse(
+        {
+            "detail": f"No API endpoint at {request.path}",
+            "docs": request.build_absolute_uri(reverse("api:api")),
+            "proteins": proteins,
+            "examples": [
+                f"{proteins}mcherry/?format=json",
+                f"{proteins}?name=mCherry&format=json",
+            ],
+            "graphql": request.build_absolute_uri("/graphql/"),
+        },
+        status=404,
+    )
+
+
+# query params that are not filters.  `display` is added to search page URLs, which
+# the API docs tell users to copy.
+NON_FILTER_PARAMS = {api_settings.URL_FORMAT_OVERRIDE, "display"}
+
+
+class StrictDjangoFilterBackend(filters.DjangoFilterBackend):
+    """Reject unknown query params, instead of ignoring them.
+
+    An ignored param (`?search=`, `?page=`) means an unfiltered response: the client
+    guessing at our API gets the whole database, every time.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        allowed = {*self.get_filterset_class(view, queryset).base_filters, *NON_FILTER_PARAMS}
+        if paginator := view.paginator:
+            allowed |= {paginator.limit_query_param, paginator.offset_query_param}
+        if unknown := sorted(set(request.query_params) - allowed):
+            raise ValidationError(
+                {
+                    "detail": f"Unknown query parameter(s): {', '.join(unknown)}",
+                    "valid_parameters": sorted(allowed - {"display"}),
+                    "docs": request.build_absolute_uri(reverse("api:api")),
+                }
+            )
+        return super().filter_queryset(request, queryset, view)
+
+
 class SpectrumList(ListAPIView):
     queryset = pm.Spectrum.objects.all()
     serializer_class = SpectrumSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = SpectrumFilter
 
 
@@ -99,8 +146,8 @@ class ProteinListAPIView2(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinSerializer2
     lookup_field = "slug"  # Don't use Protein.id!
-    filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = ProteinFilter
+    filter_backends = (StrictDjangoFilterBackend,)
+    filterset_class = ProteinAPIFilter
     renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]  # pyright: ignore[reportAssignmentType]
 
     @method_decorator(cache_page(60 * 10))
@@ -140,8 +187,8 @@ class ProteinListAPIView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinSerializer
     lookup_field = "slug"  # Don't use Protein.id!
-    filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = ProteinFilter
+    filter_backends = (StrictDjangoFilterBackend,)
+    filterset_class = ProteinAPIFilter
     pagination_class = OptionalLimitOffsetPagination
     throttle_classes = [ExpensiveListAnonThrottle, *api_settings.DEFAULT_THROTTLE_CLASSES]  # pyright: ignore[reportAssignmentType]
     renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]  # pyright: ignore[reportAssignmentType]
@@ -169,10 +216,19 @@ class ProteinRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
 
 class ProteinRetrieveAPIView(RetrieveAPIView):
-    queryset = pm.Protein.objects.all()
+    queryset = ProteinListAPIView.queryset
     permission_classes = (AllowAny,)
     serializer_class = ProteinSerializer
     lookup_field = "slug"  # Don't use Protein.id
+
+    @method_decorator(cache_page(60 * 10))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get_object(self):
+        # slugs are lowercase, but clients tend to ask for `/api/proteins/mCherry/`
+        self.kwargs["slug"] = self.kwargs["slug"].lower()
+        return super().get_object()
 
 
 class StatesListAPIView(ListAPIView):
@@ -181,7 +237,7 @@ class StatesListAPIView(ListAPIView):
     serializer_class = StateSerializer
     lookup_field = "slug"  # Don't use State.id!
     renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]  # pyright: ignore[reportAssignmentType]
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = StateFilter
 
 
@@ -208,8 +264,8 @@ class ProteinTableAPIView(ListAPIView):
     )
     permission_classes = (AllowAny,)
     serializer_class = ProteinTableSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
-    filterset_class = ProteinFilter
+    filter_backends = (StrictDjangoFilterBackend,)
+    filterset_class = ProteinAPIFilter
 
     @method_decorator(cache_control(public=True, max_age=600))
     @method_decorator(cache_page(60 * 10))

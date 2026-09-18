@@ -29,18 +29,14 @@ urlpatterns = [
         name="basic-protein-api",
     ),
     path("proteins/states/", views.StatesListAPIView.as_view(), name="states-api"),
-    # /proteins/:slug/
-    # re_path(
-    #     r"^(?P<slug>[-\w]+)/$",
-    #     views.ProteinRetrieveAPIView.as_view(),
-    #     name="protein-api",
-    # ),
     # non-normal endpoints
     path("proteins/spectraslugs/", RedirectView.as_view(url="/api/spectra-list/", permanent=True)),
     path("spectra-list/", views.spectra_list, name="spectra-list"),
     path(
         "proteins/ocinfo/", RedirectView.as_view(url="/api/optical-configs-list/", permanent=True)
     ),
+    # must come after all other proteins/ routes, which would also match as a slug
+    path("proteins/<slug:slug>/", views.ProteinRetrieveAPIView.as_view(), name="protein-detail"),
     path("optical-configs-list/", views.optical_configs_list, name="ocinfo"),
     path("search-index/", views.search_index, name="search-index"),
 ]

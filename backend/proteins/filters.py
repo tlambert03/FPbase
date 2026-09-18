@@ -222,3 +222,10 @@ class ProteinFilter(filters.FilterSet):
 
     def translate_cdna(self, queryset, name, value):
         return queryset.filter(seq__icontains=Seq.translate(value))
+
+
+class ProteinAPIFilter(ProteinFilter):
+    """ProteinFilter for the REST API (kept out of the search form and GraphQL)."""
+
+    # a bare `?name=` is what most API clients guess first
+    name = django_filters.CharFilter(field_name="name", lookup_expr="iexact")

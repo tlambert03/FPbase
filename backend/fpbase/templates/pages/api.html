@@ -39,6 +39,8 @@ you will now be searching using the protein api.  To retrieve the results in JSO
 <dl class="row">
 	<dt class="col-sm-4"><code>{% url 'api:protein-api' %}</code></dt>
 	<dd class="col-sm-8">Main protein list api</dd>
+	<dt class="col-sm-4"><code>{% url 'api:protein-detail' slug='mcherry' %}</code></dt>
+	<dd class="col-sm-8">A single protein, by slug (the last part of the protein's page URL)</dd>
 	<dt class="col-sm-4"><code>{% url 'api:basic-protein-api' %}</code></dt>
 	<dd class="col-sm-8">Dedicated api for 'basic' (non-switchable) proteins that delivers a flat dictionary of attributes (default state is assumed)</dd>
 
@@ -49,7 +51,9 @@ you will now be searching using the protein api.  To retrieve the results in JSO
 
 <h3><strong>Searchable Fields</strong></h3>
 
-The following field name and lookups can be used.  Fieldnames and lookups must be separated by a double-underscore "<code>__</code>".  For example: <code>name__icontains</code>.  See below for an explanation of each lookup operator.
+The following field name and lookups can be used.  Fieldnames and lookups must be separated by a double-underscore "<code>__</code>".  For example: <code>name__icontains</code>.  The <code>exact</code> lookup is the exception: use the bare field name, for example <code>agg=m</code>.  As a shortcut, <code>name=mCherry</code> is the same as <code>name__iexact=mCherry</code>.  See below for an explanation of each lookup operator.
+
+<p>Unrecognized query parameters return a <code>400</code> error listing the valid ones (rather than being ignored).  Use <code>limit</code> and <code>offset</code> to page through results.</p>
 <p><table class="table table-bordered small" style='font-family: monospace,monospace; line-height: 0.8rem;'>
 	<tr>
 		<th>field</th>
