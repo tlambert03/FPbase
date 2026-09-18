@@ -150,3 +150,72 @@ def test_protein_list_api_limit_offset(client):
     assert len(everything) == 5
     assert get("&limit=2&offset=1") == everything[1:3]
     assert get("&limit=2&offset=1000") == []
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("url", ["/api/proteins/", "/api/proteins/table-data/"])
+def test_unknown_query_params_rejected(client, url):
+    """Guessed params are a 400 naming the valid ones, not an unfiltered dump."""
+    ProteinFactory()
+
+    response = client.get(f"{url}?format=json&search=mCherry&page=2")
+    assert response.status_code == 400
+    error = response.json()
+    assert "page, search" in error["detail"]
+    assert "name__icontains" in error["valid_parameters"]
+    assert error["docs"].endswith("/api/")
+
+    assert client.get(f"{url}?format=json").status_code == 200
+
+
+@pytest.mark.django_db
+def test_protein_list_api_non_filter_params_allowed(client):
+    """Search page URLs (which carry `display`) can be pasted into the API, per the docs."""
+    ProteinFactory(name="KnownProtein")
+    url = "/api/proteins/?format=json&name__icontains=known&display=t&limit=5&offset=0"
+    response = client.get(url)
+    assert response.status_code == 200
+    assert [p["name"] for p in response.json()] == ["KnownProtein"]
+
+
+@pytest.mark.django_db
+def test_protein_list_api_name_alias(client):
+    """A bare `name=` is a case-insensitive exact match."""
+    ProteinFactory(name="AliasProtein")
+    ProteinFactory(name="AliasProtein2")
+    response = client.get("/api/proteins/?format=json&name=aliasprotein")
+    assert [p["name"] for p in response.json()] == ["AliasProtein"]
+
+
+@pytest.mark.django_db
+def test_protein_detail_api(client, django_assert_max_num_queries):
+    """A single protein by slug (in any case), in a fixed number of queries."""
+    protein = ProteinFactory(name="DetailProtein")
+    StateFactory(protein=protein, name="state1")
+    StateFactory(protein=protein, name="state2")
+
+    with django_assert_max_num_queries(6):
+        response = client.get("/api/proteins/DetailProtein/?format=json")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["slug"] == "detailprotein"
+    assert {"state1", "state2"} <= {state["name"] for state in data["states"]}
+
+    # sibling routes are not swallowed by the slug route
+    assert isinstance(client.get("/api/proteins/basic/?format=json").json(), list)
+    assert client.get("/api/proteins/no-such-protein/?format=json").status_code == 404
+
+
+@pytest.mark.django_db
+def test_unknown_api_path_is_json_404(client):
+    response = client.get("/api/no/such/endpoint/")
+    assert response.status_code == 404
+    assert response.json()["proteins"].endswith("/api/proteins/")
+
+    # paths without a trailing slash still get the APPEND_SLASH redirect
+    response = client.get("/api/proteins")
+    assert response.status_code == 301
+    assert response["Location"] == "/api/proteins/"
+
+    # routes declared after the api include are not shadowed
+    assert client.get("/api/schema/").status_code != 404
