@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     'argon2-cffi>=21.3.0',
-    'biopython>=1.86,<1.87',                        # NOTE: 1.87+ warns on import because structlog-sentry ships a stray pyproject.toml in site-packages
+    'biopython>=1.88',
     'celery[redis]==5.6.3',
     'django-allauth[socialaccount]>=0.70.0',
     'django-anymail==15.0',                         # NOTE: 15.1+ emits a DeprecationWarning for every fail_silently=True
