@@ -9,12 +9,17 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 import logging
+import warnings
 from pathlib import Path
 
 import environ
 import structlog
 from corsheaders.defaults import default_headers
 from structlog_sentry import SentryProcessor
+
+# structlog-sentry (<=2.2.1) mistakenly installs its pyproject.toml into site-packages,
+# which makes biopython (>=1.87) think it is being imported from its own source tree.
+warnings.filterwarnings("ignore", message="You may be importing Biopython from inside")
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 APPS_DIR = ROOT_DIR / "fpbase"
