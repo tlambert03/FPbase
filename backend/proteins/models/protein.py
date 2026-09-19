@@ -11,6 +11,7 @@ from random import choices
 from subprocess import PIPE, run
 from typing import TYPE_CHECKING, cast
 
+import reversion
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -39,6 +40,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Self
 
+    from django.contrib.auth.models import AbstractUser
     from django.db.models.manager import RelatedManager
     from reversion.models import VersionQuerySet
 
@@ -324,6 +326,18 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def versions(self):
         version_objects = cast("VersionQuerySet", Version.objects)
         return version_objects.get_for_object(self)
+
+    def approve(self, user: AbstractUser) -> None:
+        """Mark as approved, recording a reversion snapshot of the approved record.
+
+        Always approve through this rather than `queryset.update()`: the snapshot is what
+        later pending edits get compared to, and `save()` triggers cache invalidation.
+        """
+        with reversion.create_revision():
+            reversion.set_user(user)
+            reversion.set_comment(f"{user} approved current version")
+            self.status = self.STATUS.approved
+            self.save()
 
     def last_approved_version(self):
         if self.status == "approved":

@@ -1,5 +1,6 @@
 """Basic tests for django-reversion integration."""
 
+import pytest
 import reversion
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -82,3 +83,44 @@ class TestReversionCompareAdmin(TestCase):
 
         assert response.status_code == 200, "History view should be accessible"
         assert b"TestProtein" in response.content, "Protein name should appear in history"
+
+
+@pytest.mark.django_db
+def test_admin_approve_action_writes_snapshot(client) -> None:
+    """Bulk-approving in the admin must leave an "approved" reversion snapshot."""
+    admin = User.objects.create_superuser(username="admin", password="password")
+    client.force_login(admin)
+    with reversion.create_revision():
+        protein = Protein.objects.create(name="PendingFP", status=Protein.STATUS.pending)
+    before = protein.status_changed
+
+    response = client.post(
+        reverse("admin:proteins_protein_changelist"),
+        {"action": "approve_protein", "_selected_action": [protein.pk]},
+    )
+    assert response.status_code == 302
+
+    protein.refresh_from_db()
+    assert protein.status == Protein.STATUS.approved
+    assert protein.status_changed > before
+    snapshot = Version.objects.get_for_object(protein).first()  # newest
+    assert snapshot.field_dict["status"] == Protein.STATUS.approved
+    assert snapshot.revision.user == admin
+    assert "approved" in snapshot.revision.comment
+
+
+@pytest.mark.django_db
+def test_ajax_approve_writes_snapshot(client) -> None:
+    staff = User.objects.create_user(username="staff", password="password", is_staff=True)
+    client.force_login(staff)
+    with reversion.create_revision():
+        protein = Protein.objects.create(name="PendingFP", status=Protein.STATUS.pending)
+
+    response = client.post(reverse("proteins:admin_approve_protein", args=[protein.slug]))
+    assert response.status_code == 200
+
+    protein.refresh_from_db()
+    assert protein.status == Protein.STATUS.approved
+    snapshot = Version.objects.get_for_object(protein).first()  # newest
+    assert snapshot.field_dict["status"] == Protein.STATUS.approved
+    assert snapshot.revision.user == staff

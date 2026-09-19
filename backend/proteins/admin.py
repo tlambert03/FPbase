@@ -572,8 +572,10 @@ class OrganismAdmin(CompareVersionAdmin):
 
 @admin.action(description="Mark selected proteins as approved")
 def approve_protein(modeladmin, request, queryset):
-    # note, this will fail if the list is ordered by numproteins
-    queryset.update(status=Protein.STATUS.approved)
+    # not queryset.update(): that writes no reversion snapshot and sends no post_save
+    for protein in queryset.exclude(status=Protein.STATUS.approved):
+        protein.approve(request.user)
+        uncache_protein_page(protein.slug, request)
 
 
 @admin.register(Protein)
