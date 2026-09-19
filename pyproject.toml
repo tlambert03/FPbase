@@ -6,20 +6,20 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     'argon2-cffi>=21.3.0',
-    'biopython>=1.83',
-    'celery[redis]==5.5.3',
+    'biopython>=1.86,<1.87',                        # NOTE: 1.87+ warns on import because structlog-sentry ships a stray pyproject.toml in site-packages
+    'celery[redis]==5.6.3',
     'django-allauth[socialaccount]>=0.70.0',
-    'django-anymail==10.0',
-    'django-autocomplete-light>=3.11.0',
+    'django-anymail==15.0',                         # NOTE: 15.1+ emits a DeprecationWarning for every fail_silently=True
+    'django-autocomplete-light>=3.12.1,<4',         # NOTE: 4.x/5.x is a major rewrite (removed legacy static)
     'django-avatar>=8.0.1',
     'django-cors-headers>=4.2.0',
-    'django-crispy-forms==1.13.0',                  # NOTE: there's an issue with 1.14 and bootstrap4 forms not having form-control class
+    'django-crispy-forms==1.13.0',                  # NOTE: 2.x (w/ newer crispy-bootstrap5) renames help-text ids `hint_id_x` -> `id_x_helptext`, which project.js targets
     'django-environ>=0.10.0',
     'django-filter>=23.3',
     'django-model-utils>=5.0.0',
     'django-mptt>=0.18.0',
     'django-recaptcha>=3.0.0',
-    'django-redis>=6.0.0',
+    'django-redis>=6.0.0,<7',
     'django-reversion-compare>=0.19.0',
     'django-reversion>=6.0.0',
     'django>=5.2,<5.3',
@@ -32,17 +32,17 @@ dependencies = [
     'graphene-django-optimizer>=0.10.0',
     'graphene-django>=3.2.3',
     'graphene>=3.2.2',
-    'habanero>=1.2.3',
+    'habanero>=2.4.0,<2.9',                         # NOTE: 2.9 swaps httpx for the very new httpx2
     'matplotlib>=3.7.1',
     'numpy>=1.26.3',
     'Pillow>=10.0.0',
     'psycopg2>=2.9.11; platform_system == "Linux"',
-    'python-slugify>=8.0.1',
+    'python-slugify>=8.0.4,<9',                     # NOTE: generates DB slugs. audit output before bumping
     'redis==5.0.4',
     'sentry-sdk>=2.8',
     "django-storages[boto3]>=1.13.2",
     "django-structlog>=8.1.0",
-    "gunicorn>=20.1.0",
+    "gunicorn>=25.3.0,<26",                          # NOTE: 26.x is churning (HTTP/2, parser rewrites)
     "requests>=2.32.5",
     "scout-apm>=3.4.0",
     "structlog-sentry>=2.1.0",
@@ -185,3 +185,5 @@ reportOperatorIssue = false
 
 [tool.uv]
 override-dependencies = ["django-stubs ; sys_platform == 'never'"]
+# billiard 4.3 defaults to the "spawn" start method on macOS, which breaks celery's prefork pool
+constraint-dependencies = ["billiard<4.3"]

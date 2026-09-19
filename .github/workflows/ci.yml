@@ -26,8 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v7
+        uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
       - name: Run basedpyright
@@ -36,11 +36,11 @@ jobs:
   typing-typescript:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           run_install: false
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           cache: "pnpm"
@@ -55,8 +55,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v7
+        uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
       - name: Check for new migrations
@@ -72,18 +72,18 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v10.1.0
         with:
           version: latest
           enable-cache: true
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           run_install: false
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           cache: "pnpm"
@@ -97,7 +97,7 @@ jobs:
           uv run --no-sync pytest -n auto -v --cov --cov-report=xml
 
       - name: coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -115,19 +115,19 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v10.1.0
         with:
           version: latest
           enable-cache: true
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           run_install: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           cache: "pnpm"
@@ -143,13 +143,13 @@ jobs:
       - name: Test
         run: uv run --no-sync pytest backend/tests_e2e/ --create-db --migrations -v --browser ${{ matrix.browser }} --cov --cov-report=xml --tracing=retain-on-failure
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
           name: playwright-traces-${{ matrix.browser }}
           path: test-results/
 
       - name: coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
