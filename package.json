@@ -16,10 +16,10 @@
     "typecheck:tsc": "pnpm --filter @fpbase/spectra exec tsc --noEmit"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.5",
-    "@playwright/test": "^1.56.1",
-    "concurrently": "^8.2.0",
-    "playwright": "^1.56.1"
+    "@biomejs/biome": "^2.5.12",
+    "@playwright/test": "^1.63.0",
+    "concurrently": "^9.2.4",
+    "playwright": "^1.63.0"
   },
   "workspaces": [
     "packages/*",
@@ -33,5 +33,5 @@
   "engines": {
     "node": "22.x"
   },
-  "packageManager": "pnpm@10.23.0"
+  "packageManager": "pnpm@10.34.5"
 }

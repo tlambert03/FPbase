@@ -643,8 +643,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         """
         # Clear cached properties
         for prop in ("x", "y"):
-            if prop in self.__dict__:
-                del self.__dict__[prop]
+            vars(self).pop(prop, None)
 
         # Interpolate to 1nm steps if needed
         if len(wavelengths) > 1:
@@ -678,8 +677,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             )
 
         # Clear cached property before modifying data
-        if "y" in self.__dict__:
-            del self.__dict__["y"]
+        vars(self).pop("y", None)
 
         self.y_values = self._encode_y_values(value)
 
