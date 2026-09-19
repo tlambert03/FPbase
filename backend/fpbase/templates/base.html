@@ -9,7 +9,7 @@
     {% vite_hmr_client %}
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     {% block ga %}
-    {% if not debug %}
+    {% if google_analytics_id %}
         <link rel="preconnect" href="https://www.googletagmanager.com">
         {% include "_ga.html" %}
       {% endif %}

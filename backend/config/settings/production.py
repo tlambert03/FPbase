@@ -201,6 +201,10 @@ CACHES = {
 CELERY_BROKER_TRANSPORT_OPTIONS = {"ssl": {"ssl_cert_reqs": ssl.CERT_NONE}}
 CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 
+# Google Analytics
+# only set here, so that dev/test/CI never report to the live GA property
+GOOGLE_ANALYTICS_ID = env("GOOGLE_ANALYTICS_ID", default="G-C8W3G31KL6")
+
 # Sentry Configuration
 
 SENTRY_DSN = env("SENTRY_DSN")
