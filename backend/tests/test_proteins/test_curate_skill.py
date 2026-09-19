@@ -11,7 +11,7 @@ from django.contrib.auth import get_user_model
 from reversion.models import Revision, Version
 
 from proteins.factories import SpectrumFactory
-from proteins.models import Protein, Spectrum, State, StateTransition
+from proteins.models import Lineage, Protein, Spectrum, State, StateTransition
 from references.models import Reference
 
 SCRIPTS = Path(__file__).parents[3] / ".claude/skills/curate-submissions/scripts"
@@ -307,3 +307,31 @@ def test_triage_names_added_reference(old_edited_protein: Protein, submitter: Us
     assert added["doi"] == ref.doi
     assert row["editors"] == ["submitter"]
     assert [c["doi"] for c in row["cited"]] == [ref.doi]
+
+
+def test_lineage_fix_must_reproduce_sequence(staff: User, submitter: User) -> None:
+    parent_seq = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTT"
+    parent = Protein.objects.create(name="ParentFP", seq=parent_seq, status="approved")
+    Lineage.objects.create(protein=parent)
+    child_seq = parent_seq.replace("MVSKGEE", "MVSRGDE")  # K4R/E6D
+    with reversion.create_revision():
+        reversion.set_user(submitter)
+        child = Protein.objects.create(name="ChildFP", seq=child_seq, status="pending")
+        Lineage.objects.create(protein=child, parent=parent.lineage, mutation="K4R")  # incomplete
+
+    result = apply({**decision(child, "approve"), "lineage_mutation": "K4R/E6A"})  # wrong
+    assert not result["ok"] and "does not give this sequence" in result["error"]
+    child.refresh_from_db()
+    assert child.status == "pending"
+
+    result = apply(
+        {
+            **decision(child, "approve"),
+            "lineage_mutation": "K4R/E6D",
+            "protein_edits": {"name": "ChildFP2"},
+        }
+    )
+    assert result["ok"], result
+    child.refresh_from_db()
+    assert (child.status, child.name, child.slug) == ("approved", "ChildFP2", "childfp2")
+    assert str(child.lineage.mutation) == "K4R/E6D"

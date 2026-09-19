@@ -115,14 +115,7 @@ whole articles into context; then read the passages around each hit.
    `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:<doi>&format=json&resultType=core`.
    An abstract alone rarely verifies a submission, but quote it. Preprints: bioRxiv
    connector `get_preprint`.
-3. Sequences — the most decisive checks, do them whenever possible:
-   - accession in `fields.genbank`: `…/efetch.fcgi?db=protein&id=<acc>&rettype=fasta&retmode=text`
-     and compare with `fields.seq` (identical / list differences). UniProt:
-     `https://rest.uniprot.org/uniprotkb/<acc>.fasta`.
-   - `lineage`: get the parent's sequence from `https://www.fpbase.org/api/proteins/?slug=<parent>&format=json`
-     and diff it position-by-position against `fields.seq`; the differences must equal
-     `lineage.mutation` exactly (FPbase numbers mutations on the parent's own sequence).
-   - cloning primers quoted in Methods can confirm the N-/C-terminus when nothing else does.
+3. Sequences: see "Checking a sequence" below — do it for every record that has one.
 4. Not openly available → **HOLD**, naming the file to drop (see "Follow-up"). Do not use
    Sci-Hub or other pirate mirrors.
 
@@ -130,6 +123,37 @@ Properties are often only in supplementary tables, which PMC full text usually o
 the main text doesn't contain a value, that is "unverified", not "wrong".
 
 Never state that a paper says something you did not read in the fetched text. Quote it.
+
+## Checking a sequence
+
+How Talley checks one. Three independent sources; get every one that exists:
+
+1. **The paper**: a printed sequence or alignment (main text, figure, SI).
+2. **A database**: GenBank/UniProt/PDB accession, from `fields` or named in the paper.
+   - protein accession: `…/efetch.fcgi?db=protein&id=<acc>&rettype=fasta&retmode=text`
+   - nucleotide accession: `…/efetch.fcgi?db=nuccore&id=<acc>&rettype=fasta_cds_aa&retmode=text`
+   - UniProt `https://rest.uniprot.org/uniprotkb/<acc>.fasta` · PDB `https://www.rcsb.org/fasta/entry/<ID>`
+     (PDB chains carry expression tags and show the chromophore as `X`: compare around them).
+3. **Explicit mutations in the paper** ("CyOFP1/N177S"): parent + mutations must give the
+   sequence. `triage` computes this as `lineage_matches_seq` from the record's own lineage;
+   check that the paper states the same mutations (its numbering may be offset from FPbase's,
+   which numbers on the parent's actual sequence — e.g. paper L93M = FPbase L94M).
+
+Outcomes:
+- **All three agree** → excellent; say so in the queue line ("seq = paper = GenBank = parent+mutations").
+  Two agreeing with the third unavailable is fine; say which were checked.
+- **parent + mutations ≠ sequence** → flag it. Work out the real difference between parent and
+  child. If the paper/database confirm the *sequence*, the lineage string is what's wrong:
+  fix it with `lineage_mutation` (DO fix+approve). Word it as "lineage string omits C134W
+  (sequence has it)" — never "lacks C134W", which reads as if the protein lacks the mutation.
+  If instead the sequence looks wrong → ASK/HOLD.
+- **sequence ≠ database sequence** → flag it, never approve silently. List the differences.
+  If it is explainable and the record should stand (tag, linker, codon-optimised variant,
+  database entry is a different construct), approve with a note for users via
+  `protein_edits: {"seq_comment": "differs from GenBank X at …: <why>"}` (shown on the protein
+  page). If unexplained → ASK with the differences listed.
+- **No source at all** → say "sequence unverified" in the queue line; that alone is an ASK for
+  a new protein, not a DO.
 
 ## Verdict rules
 
@@ -139,7 +163,8 @@ sequence match), or there is no net change. For a `references.added` edit the ba
 paper exists and is about this protein (names it, or is clearly its characterization).
 
 **DO fix+approve** when the submission is right except for values you can correct from the
-same source with a quote: approve with `state_edits` / `protein_edits`.
+same source with a quote: approve with `state_edits` / `protein_edits` (incl. `name`,
+`seq_comment`) / `lineage_mutation`.
 
 **DO undo** when an edit replaced a value with one the sources contradict, or added a
 reference that has nothing to do with the protein: approve with the *pre-pending* values put
@@ -175,13 +200,15 @@ Filters/cameras/lights can't be checked against literature: shape-check them, th
    "reason": "lifetime 1.8 ns = Table 1 of 10.1038/…",
    "state_edits": {"default": {"ext_coeff": 86100}},
    "protein_edits": {"agg": "m"},
+   "lineage_mutation": "K69E/C134W/M205I",
    "remove_references": ["10.1234/unrelated"]},
   {"kind": "spectrum", "id": 1234, "action": "reject", "reason": "flat line, no data"}
 ]
 ```
 
-The three `*_edits` keys are optional and only valid with `approve`; only data fields can
-be edited (the script rejects anything else). `reason` becomes the reversion comment: short
+The edit keys are optional and only valid with `approve`; only data fields can be edited
+(the script rejects anything else), and `lineage_mutation` is refused unless parent + that
+string reproduces the record's sequence exactly. `reason` becomes the reversion comment: short
 and factual.
 
 ## The queue (the only thing Talley reads)

@@ -10,6 +10,7 @@
 #    # "fix+approve" sets verified values; "undo edit" puts the pre-pending values back.
 #    "state_edits": {<state name>: {<field>: <value>}},
 #    "protein_edits": {<field>: <value>},
+#    "lineage_mutation": "K69E/C134W/M205I",  # only accepted if parent + it == seq
 #    "remove_references": [<doi>, ...]}
 #   {"kind": "spectrum", "id": ..., "action": "approve"|"reject", "reason": ...}
 import contextlib
@@ -27,7 +28,7 @@ from proteins.models import Protein, Spectrum
 TAG = "[curate-submissions]"
 # the only fields a decision may edit (never status, slug, ownership, ...)
 PROTEIN_EDITABLE = {
-    "aliases", "seq", "seq_comment", "pdb", "genbank", "uniprot", "ipg_id", "mw", "agg",
+    "name", "aliases", "seq", "seq_comment", "pdb", "genbank", "uniprot", "ipg_id", "mw", "agg",
     "oser", "switch_type", "blurb", "cofactor", "chromophore", "parent_organism_id",
 }  # fmt: skip
 STATE_EDITABLE = {
@@ -105,6 +106,12 @@ def approve_protein(p, user, reason, d):
             set_fields(state, values, STATE_EDITABLE)
             state.save()
         set_fields(p, d.get("protein_edits", {}), PROTEIN_EDITABLE)
+        if mutation := d.get("lineage_mutation"):
+            lineage = p.lineage
+            if str(lineage.parent.protein.seq.mutate(mutation)) != str(p.seq):
+                raise Skip(f"{lineage.parent.protein} + {mutation} does not give this sequence")
+            lineage.mutation = mutation
+            lineage.save()
         for doi in d.get("remove_references", []):
             ref = p.references.get(doi=doi.lower())
             if ref.id == p.primary_reference_id:
