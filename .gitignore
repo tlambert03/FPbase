@@ -383,3 +383,6 @@ test_fix*.bin
 __snapshots__/
 snapshot_failures/
 frontend/stats.html
+
+# working files for the curate-submissions skill
+.curation/
