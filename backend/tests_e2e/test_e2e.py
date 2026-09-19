@@ -882,3 +882,77 @@ def test_search_autocomplete_dyes_and_analytics(
             "transport_type": "beacon",
         }
     ]
+
+
+def _mock_ncbi_eutils(page: Page, ipg_result: dict | None, fasta: str = "") -> None:
+    """Fulfill the NCBI eutils requests that the protein form makes from the browser."""
+
+    def handle(route) -> None:
+        if "esummary.fcgi" in route.request.url:
+            route.fulfill(json={"result": ipg_result} if ipg_result else {})
+        else:
+            route.fulfill(body=fasta, content_type="text/plain")
+
+    page.route(re.compile(r"eutils\.ncbi\.nlm\.nih\.gov"), handle)
+
+
+def test_protein_form_ipg_lookup_updates_hints(auth_page: Page, live_server: LiveServer) -> None:
+    """IPG ID lookup writes the IPG name into the field's help text and fills the sequence."""
+    ipg = {"12345": {"accession": "ABC123.1", "title": "mock fluorescent protein"}}
+    _mock_ncbi_eutils(auth_page, ipg, fasta=f">ABC123.1 mock\n{SEQ[:40]}\n{SEQ[40:]}\n")
+    auth_page.goto(f"{live_server.url}{reverse('proteins:submit')}")
+
+    ipg_field = auth_page.locator("#id_ipg_id")
+    ipg_field.fill("12345")
+    ipg_field.blur()
+    expect(auth_page.locator("#div_id_ipg_id")).to_contain_text(
+        "IPG name: mock fluorescent protein"
+    )
+    expect(auth_page.locator("#id_seq")).to_have_value(SEQ)
+
+
+def test_protein_form_unknown_ipg_resets_hints(auth_page: Page, live_server: LiveServer) -> None:
+    """An unrecognized IPG ID restores the help text of the IPG and sequence fields."""
+    _mock_ncbi_eutils(auth_page, None)
+    auth_page.goto(f"{live_server.url}{reverse('proteins:submit')}")
+    expect(auth_page.locator("#div_id_seq")).not_to_contain_text("IPG ID is preferred")
+
+    ipg_field = auth_page.locator("#id_ipg_id")
+    ipg_field.fill("999")
+    ipg_field.blur()
+    expect(auth_page.locator("#div_id_seq")).to_contain_text("(IPG ID is preferred)")
+    expect(auth_page.locator("#div_id_ipg_id")).to_contain_text("Identical Protein Group ID")
+
+
+def test_protein_form_warns_on_existing_name(auth_page: Page, live_server: LiveServer) -> None:
+    """Entering the name of an existing protein shows an inline error under the field."""
+    ProteinFactory.create(name="AlreadyTakenFP")
+    auth_page.goto(f"{live_server.url}{reverse('proteins:submit')}")
+
+    name_field = auth_page.locator("#id_name")
+    name_field.fill("AlreadyTakenFP")
+    name_field.blur()
+    error = auth_page.locator("#div_id_name").get_by_text("already exists in the database")
+    expect(error).to_be_visible()
+    expect(name_field).to_have_class(re.compile(r"\bis-invalid\b"))
+
+    name_field.fill("SomethingBrandNewFP")
+    name_field.blur()
+    expect(auth_page.locator("#div_id_name")).not_to_contain_text("already exists")
+
+
+def test_legacy_spectrum_form_warns_on_similar_owner(
+    auth_page: Page, live_server: LiveServer
+) -> None:
+    """Typing an owner name close to an existing one lists the similar owners in the help text."""
+    FilterFactory.create(name="Chroma ET525/50m", subtype=Spectrum.BP)
+    auth_page.goto(f"{live_server.url}{reverse('proteins:submit-spectra-legacy')}")
+    expect(auth_page.locator("#spectrum-submit-form[data-form-ready='true']")).to_be_attached()
+
+    auth_page.locator("#id_category").select_option(Spectrum.FILTER)
+    owner_field = auth_page.locator("#id_owner")
+    owner_field.fill("Chroma ET525/50")
+    owner_field.blur()
+    hint = auth_page.locator("#div_id_owner")
+    expect(hint).to_contain_text("Avoid duplicates")
+    expect(hint).to_contain_text("Chroma ET525/50m")
