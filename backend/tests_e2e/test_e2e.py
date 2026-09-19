@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Browser, Page
+    from pytest_django.fixtures import SettingsWrapper
     from pytest_django.live_server_helper import LiveServer
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
@@ -842,11 +843,14 @@ def test_search_autocomplete(live_server: LiveServer, page: Page) -> None:
             page.keyboard.press("Enter")
 
 
-def test_search_autocomplete_dyes_and_analytics(live_server: LiveServer, page: Page) -> None:
+def test_search_autocomplete_dyes_and_analytics(
+    live_server: LiveServer, page: Page, settings: SettingsWrapper
+) -> None:
     """Dyes are searchable (link to the spectra viewer) and each search sends one GA event."""
     dye = DyeFactory(name="Alexa Fluor 488")
     ProteinFactory(name="mCherry", slug="mcherry")
     events: list = []
+    settings.GOOGLE_ANALYTICS_ID = "G-TEST"  # render the (otherwise absent) GA snippet
     page.route(re.compile(r"googletagmanager|google-analytics"), lambda route: route.abort())
     page.expose_binding("reportGA", lambda _source, args: events.append(args))
     page.add_init_script(

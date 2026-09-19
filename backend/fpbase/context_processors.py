@@ -4,6 +4,7 @@ from django.conf import settings
 def api_keys(request):
     return {
         "sentry_dsn": getattr(settings, "SENTRY_DSN", ""),
+        "google_analytics_id": getattr(settings, "GOOGLE_ANALYTICS_ID", ""),
     }
 
 
