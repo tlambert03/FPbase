@@ -13,7 +13,7 @@ dependencies = [
     'django-autocomplete-light>=3.12.1,<4',         # NOTE: 4.x/5.x is a major rewrite (removed legacy static)
     'django-avatar>=8.0.1',
     'django-cors-headers>=4.2.0',
-    'django-crispy-forms==1.13.0',                  # NOTE: 2.x (w/ newer crispy-bootstrap5) renames help-text ids `hint_id_x` -> `id_x_helptext`, which project.js targets
+    'django-crispy-forms>=2.6',
     'django-environ>=0.10.0',
     'django-filter>=23.3',
     'django-model-utils>=5.0.0',
@@ -49,7 +49,7 @@ dependencies = [
     "structlog>=24.1.0",
     "whitenoise[brotli]>=6.11.0",
     "django-vite>=3.1.0",
-    "crispy-bootstrap5>=0.7",
+    "crispy-bootstrap5>=2026.3",
 ]
 
 
