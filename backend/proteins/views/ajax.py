@@ -3,7 +3,6 @@ import html
 import logging
 from collections import defaultdict
 
-import reversion
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.mail import mail_managers
@@ -99,13 +98,9 @@ def approve_protein(request, slug=None):
         with contextlib.suppress(Exception):
             if p.versions.first().field_dict["status"] == "pending":
                 p.versions.first().delete()
-        with reversion.create_revision():
-            reversion.set_user(request.user)
-            reversion.set_comment(f"{request.user} approved current version")
-            p.status = "approved"
-            p.save()
-            with contextlib.suppress(Exception):
-                uncache_protein_page(p.slug, request)
+        p.approve(request.user)
+        with contextlib.suppress(Exception):
+            uncache_protein_page(p.slug, request)
         return JsonResponse({})
     except Exception as e:
         logger.error(e)
