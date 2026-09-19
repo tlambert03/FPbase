@@ -378,9 +378,11 @@ class ProteinCreateUpdateMixin:
 
             if not self.request.user.is_staff:
                 self.object.status = "pending"
-                msg = f"User: {self.request.user.username}\n"
-                f"Protein: {self.object}\n\n{chg_string}\n\n"
-                f"{self.request.build_absolute_uri(self.object.get_absolute_url())}"
+                msg = (
+                    f"User: {self.request.user.username}\n"
+                    f"Protein: {self.object}\n\n{chg_string}\n\n"
+                    f"{self.request.build_absolute_uri(self.object.get_absolute_url())}"
+                )
                 mail_managers(comment, msg, fail_silently=True)
             # else:
             #     self.object.status = 'approved'
