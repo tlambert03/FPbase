@@ -28,8 +28,9 @@ from proteins.models import Protein, Spectrum
 TAG = "[curate-submissions]"
 # the only fields a decision may edit (never status, slug, ownership, ...)
 PROTEIN_EDITABLE = {
-    "name", "aliases", "seq", "seq_comment", "pdb", "genbank", "uniprot", "ipg_id", "mw", "agg",
-    "oser", "switch_type", "blurb", "cofactor", "chromophore", "parent_organism_id",
+    "name", "aliases", "seq", "seq_validated", "seq_comment", "pdb", "genbank", "uniprot",
+    "ipg_id", "mw", "agg", "oser", "switch_type", "blurb", "cofactor", "chromophore",
+    "parent_organism_id",
 }  # fmt: skip
 STATE_EDITABLE = {
     "name", "ex_max", "em_max", "ext_coeff", "qy", "pka", "lifetime", "maturation",

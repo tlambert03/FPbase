@@ -328,10 +328,11 @@ def test_lineage_fix_must_reproduce_sequence(staff: User, submitter: User) -> No
         {
             **decision(child, "approve"),
             "lineage_mutation": "K4R/E6D",
-            "protein_edits": {"name": "ChildFP2"},
+            "protein_edits": {"name": "ChildFP2", "seq_validated": True},
         }
     )
     assert result["ok"], result
     child.refresh_from_db()
     assert (child.status, child.name, child.slug) == ("approved", "ChildFP2", "childfp2")
+    assert child.seq_validated
     assert str(child.lineage.mutation) == "K4R/E6D"

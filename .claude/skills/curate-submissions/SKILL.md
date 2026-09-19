@@ -140,8 +140,12 @@ How Talley checks one. Three independent sources; get every one that exists:
    which numbers on the parent's actual sequence — e.g. paper L93M = FPbase L94M).
 
 Outcomes:
-- **All three agree** → excellent; say so in the queue line ("seq = paper = GenBank = parent+mutations").
-  Two agreeing with the third unavailable is fine; say which were checked.
+- **All three agree** → excellent; say so in the queue line ("seq = paper = GenBank =
+  parent+mutations ✓✓✓") and mark the sequence validated in the same decision:
+  `protein_edits: {"seq_validated": true}`. Only when you actually compared all three — it
+  locks the sequence field on the public edit form.
+- Two agreeing with the third unavailable is fine for approving, but is NOT validated; say
+  which two were checked.
 - **parent + mutations ≠ sequence** → flag it. Work out the real difference between parent and
   child. If the paper/database confirm the *sequence*, the lineage string is what's wrong:
   fix it with `lineage_mutation` (DO fix+approve). Word it as "lineage string omits C134W
