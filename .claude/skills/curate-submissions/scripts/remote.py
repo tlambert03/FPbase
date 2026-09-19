@@ -34,7 +34,9 @@ def run_remote(script: str, params: dict) -> dict:
             (HERE / script).read_text(),
         ]
     )
-    cmd = ["heroku", "run", "--no-tty", "--exit-code", "-a", APP, "--", "python", "-"]
+    # --no-notify: otherwise the CLI pops a desktop "dyno is up" notification on every call
+    cmd = ["heroku", "run", "--no-tty", "--no-notify", "--exit-code", "-a", APP, "--"]
+    cmd += ["python", "-"]
     try:
         proc = subprocess.run(cmd, input=source, capture_output=True, text=True, timeout=TIMEOUT)
     except subprocess.TimeoutExpired as e:
