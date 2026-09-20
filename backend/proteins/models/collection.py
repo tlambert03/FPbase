@@ -30,7 +30,7 @@ class OwnedCollection(TimeStampedModel):
     managers = ArrayField(models.EmailField(), default=list, blank=True)
 
     def has_change_permission(self, request, obj=None):
-        allowed = self.managers
+        allowed = [*self.managers]
         if self.owner:
             allowed += [self.owner.email]
         allowed += list(User.objects.filter(is_superuser=True).values_list("email", flat=True))
@@ -58,6 +58,9 @@ class ProteinCollection(OwnedCollection):
         verbose_name="Private Collection",
         help_text="Private collections can not be seen by or shared with other users",
     )
+
+    def can_view(self, user) -> bool:
+        return not self.private or user.is_superuser or self.owner == user
 
     def get_absolute_url(self):
         return reverse("proteins:collection-detail", args=[self.id])
