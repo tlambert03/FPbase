@@ -29,7 +29,7 @@ from favit.models import Favorite
 from proteins import util
 from proteins.models._sequence_field import SequenceField
 from proteins.models.collection import ProteinCollection
-from proteins.models.fluorophore import FluorState
+from proteins.models.fluorophore import FluorState, primary_reference_changed
 from proteins.models.mixins import Authorable
 from proteins.models.spectrum import Spectrum
 from proteins.util.helpers import get_base_name, get_color_group, mless, spectra_fig
@@ -466,9 +466,13 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         self.base_name = self._base_name
+        ref_changed = primary_reference_changed(self)
         super().save(*args, **kwargs)
         if self.set_default_state():
             super().save()
+        if ref_changed:
+            for state in self.states.all():
+                state.rebuild_attributes()
 
         # Update cached owner fields on all states when protein name/slug changes
         # These fields are cached on Fluorophore for query performance
