@@ -28,11 +28,13 @@ def _text(x: str | bytes | None) -> str:
     return x.decode(errors="replace") if isinstance(x, bytes) else (x or "")
 
 
-def run_remote(script: str, params: dict) -> dict:
+def run_remote(script: str, params: dict, *, write: bool = False) -> dict:
     b64 = base64.b64encode(json.dumps(params).encode()).decode()
     source = "\n".join(
         [
             (HERE / "_bootstrap.py").read_text(),
+            # everything except `apply` runs in a session where Postgres refuses writes
+            "" if write else "read_only()",
             f"import base64; PARAMS = json.loads(base64.b64decode('{b64}'))",
             (HERE / script).read_text(),
         ]
@@ -109,7 +111,7 @@ def main() -> None:
             "commit": args.commit,
             "moderator": args.moderator,
         }
-        result = run_remote("apply_decisions.py", params)
+        result = run_remote("apply_decisions.py", params, write=True)
 
     text = json.dumps(result, indent=2)
     if args.output:

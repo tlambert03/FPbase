@@ -11,6 +11,13 @@ import django
 
 django.setup()
 
+from django.db import connection  # noqa: E402
+
+
+def read_only():
+    """Make Postgres refuse every write for the rest of this session."""
+    connection.cursor().execute("SET default_transaction_read_only = on")
+
 
 def emit(obj):
     """Print the result between markers so remote.py can ignore dyno log noise."""
