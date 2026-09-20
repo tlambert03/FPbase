@@ -34,6 +34,7 @@ from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
+from django.views.decorators.http import require_POST
 from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, base
 from reversion.models import Revision, Version
@@ -761,18 +762,7 @@ def add_protein_excerpt(request, slug=None):
         return JsonResponse({"status": "failed", "msg": e})
 
 
-@staff_member_required
-def revert_version(request, ver=None):
-    with contextlib.suppress(Exception):
-        version = Version.objects.get(id=ver)
-        version.revision.revert(delete=True)
-        return JsonResponse({})
-
-
-@staff_member_required
-def revert_revision(request, rev=None):
-    revision = get_object_or_404(Revision, id=rev)
-
+def _revert_to_revision(request, revision: Revision) -> JsonResponse:
     with transaction.atomic():
         revision.revert(delete=True)
         proteins = {
@@ -788,6 +778,19 @@ def revert_revision(request, rev=None):
                     uncache_protein_page(p.slug, request)
 
     return JsonResponse({"status": 200})
+
+
+@require_POST
+@staff_member_required
+def revert_version(request, ver=None):
+    version = get_object_or_404(Version.objects.select_related("revision"), id=ver)
+    return _revert_to_revision(request, version.revision)
+
+
+@require_POST
+@staff_member_required
+def revert_revision(request, rev=None):
+    return _revert_to_revision(request, get_object_or_404(Revision, id=rev))
 
 
 @login_required
