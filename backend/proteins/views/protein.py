@@ -29,7 +29,6 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
@@ -39,7 +38,7 @@ from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, base
 from reversion.models import Revision, Version
 
-from fpbase.util import is_ajax, uncache_protein_page
+from fpbase.util import is_ajax, protein_page_key_prefix, uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
 from proteins.extrest.ga import cached_ga_popular
 from proteins.forms import (
@@ -184,13 +183,14 @@ class ProteinDetailView(DetailView):
         .select_related("primary_reference")
     )
 
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
-    # Only enable caching in production (when DEBUG=False)
-    if not settings.DEBUG:
-        dispatch = method_decorator(cache_page(60 * 30))(dispatch)
-        dispatch = method_decorator(vary_on_cookie)(dispatch)
+    def dispatch(self, request, *args, **kwargs):
+        # Only enable caching in production (when DEBUG=False)
+        if settings.DEBUG:
+            return super().dispatch(request, *args, **kwargs)
+        # the key prefix is per-protein, so that uncache_protein_page can drop all of them
+        key_prefix = protein_page_key_prefix(kwargs["slug"])
+        cached = cache_page(60 * 30, key_prefix=key_prefix)(super().dispatch)
+        return vary_on_cookie(cached)(request, *args, **kwargs)
 
     def version_view(self, request, version, *args, **kwargs):
         try:
