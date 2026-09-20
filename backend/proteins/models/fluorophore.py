@@ -19,6 +19,17 @@ if TYPE_CHECKING:
     from proteins.models.spectrum import D3Dict, Spectrum
 
 
+def primary_reference_changed(owner: Protein | Dye) -> bool:
+    """Whether `owner` is about to be saved with a different primary reference.
+
+    Measurements from the primary reference take priority in `rebuild_attributes`.
+    """
+    if owner._state.adding:
+        return False
+    saved = type(owner)._base_manager.filter(pk=owner.pk)
+    return not saved.filter(primary_reference=owner.primary_reference_id).exists()
+
+
 class FluorStateManager[T: models.Model](models.Manager):
     _queryset_class: type[QuerySet[T]]
 

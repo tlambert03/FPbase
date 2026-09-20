@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.text import slugify
 from model_utils.models import TimeStampedModel
 
-from proteins.models.fluorophore import FluorState
+from proteins.models.fluorophore import FluorState, primary_reference_changed
 from proteins.models.mixins import Authorable, Product
 
 if TYPE_CHECKING:
@@ -53,7 +53,11 @@ class Dye(Authorable, TimeStampedModel, Product):  # TODO: rename to SmallMolecu
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)  # Always regenerate, like Protein.save()
+        ref_changed = primary_reference_changed(self)
         super().save(*args, **kwargs)
+        if ref_changed:
+            for state in self.states.all():
+                state.rebuild_attributes()
         # Update cached owner fields on all states when dye name/slug changes
         # These fields are cached on Fluorophore for query performance
         if self.pk:

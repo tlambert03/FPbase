@@ -384,3 +384,21 @@ def test_deleting_state_with_measurements(state: State):
     state.delete()
     assert not State.objects.filter(id=state.id).exists()
     assert not FM.objects.exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("owner_fixture", ["state_with_ref", "dyestate_with_ref"])
+def test_changing_primary_reference_triggers_rebuild(owner_fixture: str, request):
+    fluor_state = request.getfixturevalue(owner_fixture)
+    owner = fluor_state.protein if isinstance(fluor_state, State) else fluor_state.dye
+    other = Reference(doi="10.1234/other", year=2021)
+    other.save(skipdoi=True)
+    FM.objects.create(state=fluor_state, reference=owner.primary_reference, ex_max=488)
+    FM.objects.create(state=fluor_state, reference=other, ex_max=500)
+    fluor_state.refresh_from_db()
+    assert fluor_state.ex_max == 488
+
+    owner.primary_reference = other
+    owner.save()
+    fluor_state.refresh_from_db()
+    assert fluor_state.ex_max == 500
