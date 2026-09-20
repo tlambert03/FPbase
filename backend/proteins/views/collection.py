@@ -87,13 +87,15 @@ class CollectionDetail(DetailView):
     )
 
     def get(self, request, *args, **kwargs):
+        self.object = col = self.get_object()
+        if not col.can_view(request.user):
+            return render(request, "proteins/private_collection.html", status=403)
         fmt = request.GET.get("format", "").lower()
         if fmt in ("json", "csv"):
-            col = self.get_object()
             return serialized_proteins_response(
                 col.proteins.all(), fmt, filename=slugify(col.name)
             )
-        return super().get(request, *args, **kwargs)
+        return self.render_to_response(self.get_context_data(object=col))
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -107,15 +109,6 @@ class CollectionDetail(DetailView):
 
         context["spectra_ids"] = ",".join([str(i) for i in _ids])
         return context
-
-    def render_to_response(self, *args, **kwargs):
-        if (
-            not self.request.user.is_superuser
-            and self.object.private
-            and (self.object.owner != self.request.user)
-        ):
-            return render(self.request, "proteins/private_collection.html", {"foo": "bar"})
-        return super().render_to_response(*args, **kwargs)
 
 
 @login_required
@@ -162,6 +155,11 @@ def add_to_collection(request):
     elif request.method == "POST":
         try:
             collection = ProteinCollection.objects.get(id=request.POST.get("collectionChoice"))
+        except (ProteinCollection.DoesNotExist, ValueError):
+            return JsonResponse({"status": "error"})
+        if not collection.has_change_permission(request):
+            raise PermissionDenied
+        try:
             collection.proteins.add(int(request.POST.get("protein")))
             status = "success"
         except Exception:
@@ -186,9 +184,10 @@ class CollectionCreateView(OwnableObject, CreateView):
         # be used to make a new collection
         elif self.request.POST.get("dupcollection", False):
             id = self.request.POST.get("dupcollection")
-            kwargs["proteins"] = [
-                p.id for p in ProteinCollection.objects.get(id=id).proteins.all()
-            ]
+            col = get_object_or_404(ProteinCollection, id=id)
+            if not col.can_view(self.request.user):
+                raise PermissionDenied
+            kwargs["proteins"] = [p.id for p in col.proteins.all()]
         return kwargs
 
     def form_valid(self, form):
