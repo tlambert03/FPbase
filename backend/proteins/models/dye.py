@@ -81,6 +81,9 @@ class DyeState(FluorState):
     if TYPE_CHECKING:
         fluorophore_ptr: FluorState  # added by Django MTI
 
+    def _owner(self) -> Dye:
+        return self.dye
+
     def save(self, *args, **kwargs):
         self.entity_type = FluorState.EntityTypes.DYE
         # Cache parent dye info for efficient searching

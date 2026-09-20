@@ -622,6 +622,10 @@ class State(FluorState):  # TODO: rename to ProteinState
         bleach_measurements: models.QuerySet[BleachMeasurement]
         fluorophore_ptr: FluorState  # added by Django MTI
 
+    def _owner(self) -> Protein:
+        # (the in-memory protein: it may carry a not-yet-saved primary_reference)
+        return self.protein
+
     def save(self, *args, **kwargs) -> None:
         self.entity_type = FluorState.EntityTypes.PROTEIN
         # Cache parent protein info for efficient searching
