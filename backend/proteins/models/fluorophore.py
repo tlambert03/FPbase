@@ -9,6 +9,7 @@ from django.utils.text import slugify
 from proteins.models.fluorescence_data import AbstractFluorescenceData
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from typing import Self
 
     from django.db.models import QuerySet
@@ -102,11 +103,66 @@ class FluorState(AbstractFluorescenceData):
     def __str__(self):
         return self.label
 
-    def save(self, *args, **kwargs):
+    @classmethod
+    def from_db(cls, db, field_names, values) -> Self:
+        instance = super().from_db(db, field_names, values)
+        instance._loaded_values = instance._measurable_values()
+        return instance
+
+    def _measurable_values(self) -> dict[str, object]:
+        # (deferred fields are absent from __dict__; don't trigger a query for them)
+        return {f: self.__dict__[f] for f in self._written_through_fields() if f in self.__dict__}
+
+    @classmethod
+    def _written_through_fields(cls) -> list[str]:
+        # brightness is derived from ext_coeff and qy when a measurement is saved
+        return [f for f in cls.get_measurable_fields() if f != "brightness"]
+
+    def save(self, *args, write_through: bool = True, **kwargs):
         # Auto-generate slug from owner_slug + state name if not set
         if not self.slug and self.owner_slug:
             self.slug = slugify(f"{self.owner_slug}-{self.name}")
         super().save(*args, **kwargs)
+        if write_through:
+            # only fields that the caller changed: a state that is merely out of date
+            # with respect to its measurements must not be written back over them
+            loaded = getattr(self, "_loaded_values", None)
+            current = self._measurable_values()
+            edited = [f for f, v in current.items() if loaded is None or loaded.get(f, v) != v]
+            self.write_through(edited)
+        self._loaded_values = self._measurable_values()
+
+    def write_through(self, fields: Iterable[str] | None = None) -> list[str]:
+        """Record values set directly on this state as a measurement, and rebuild.
+
+        Measurements are the source of truth, so a value that lives only on the state
+        would be lost by the next `rebuild_attributes`. Any of `fields` (default: all)
+        that differ from what the measurements say are attributed to the owner's
+        primary reference. Returns the names of the fields that were written.
+        """
+        if fields is None:
+            fields = self._written_through_fields()
+        if not (fields := list(fields)):
+            return []
+        composite, _ = self._composite()
+        if not (fields := [f for f in fields if getattr(self, f) != composite[f]]):
+            return []
+
+        ref_id = self._get_primary_reference_id()
+        measurement = self.measurements.filter(reference_id=ref_id).first()
+        if measurement is None:
+            author = self.updated_by or self.created_by
+            measurement = self.measurements.model(
+                state=self, reference_id=ref_id, created_by=author
+            )
+        for field in fields:
+            setattr(measurement, field, getattr(self, field))
+            # a direct edit supersedes a pin on that field
+            self.pinned_source_map.pop(field, None)
+        measurement.updated_by = self.updated_by
+        measurement.save(rebuild_cache=False)
+        self.rebuild_attributes()
+        return fields
 
     @property
     def label(self) -> str:
@@ -125,9 +181,18 @@ class FluorState(AbstractFluorescenceData):
         return self  # Fallback to parent if no child found
 
     def rebuild_attributes(self) -> None:
+        """Set the canonical values (and `source_map`) from the measurements."""
+        new_values, new_source_map = self._composite()
+        for key, val in new_values.items():
+            setattr(self, key, val)
+        self.source_map = new_source_map
+        self.save(write_through=False)
+
+    def _composite(self) -> tuple[dict[str, object], dict[str, int]]:
         """The Compositing Engine.
 
         Aggregates all measurements to determine the current canonical values.
+        Returns `(values, source_map)`.
 
         Priority order (highest to lowest):
         1. Pinned overrides - Admin has explicitly pinned a measurement for a field
@@ -160,7 +225,8 @@ class FluorState(AbstractFluorescenceData):
         # Sort by primary_reference
         measurements = sorted(
             self.measurements.all(),
-            key=lambda m: (not (primary_ref_id and m.reference_id == primary_ref_id),),
+            # (an owner without a primary reference prefers unattributed measurements)
+            key=lambda m: m.reference_id != primary_ref_id,
         )
 
         # Waterfall: first non-null value for each non-pinned field
@@ -176,10 +242,7 @@ class FluorState(AbstractFluorescenceData):
                 field_obj = self._meta.get_field(field)
                 new_values[field] = field_obj.get_default() if field_obj.has_default() else None
 
-        for key, val in new_values.items():
-            setattr(self, key, val)
-        self.source_map = new_source_map
-        self.save()
+        return new_values, new_source_map
 
     @property
     def fluor_name(self) -> str:

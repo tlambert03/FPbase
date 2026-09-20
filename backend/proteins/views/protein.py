@@ -770,6 +770,10 @@ def _revert_to_revision(request, revision: Revision) -> JsonResponse:
         }
         if len(proteins) == 1:
             p = proteins.pop()
+            # revert() restores rows without calling save(): record the restored values
+            # as measurements, or the next rebuild_attributes() would undo the revert
+            for state in p.states.all():
+                state.write_through()
             with reversion.create_revision():
                 reversion.set_user(request.user)
                 reversion.set_comment(f"Reverted to revision dated {revision.date_created}")
