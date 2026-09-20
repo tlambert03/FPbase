@@ -55,7 +55,7 @@ def test_accepting_spectrum_updates_cached_spectra_list(client) -> None:
     spectrum = SpectrumFactory(
         owner_fluor=StateFactory(),
         category=Spectrum.PROTEIN,
-        subtype=Spectrum.EX,
+        subtype=Spectrum.ABS,  # StateFactory already makes ex/em/2p
         status=Spectrum.STATUS.pending,
     )
     cache.clear()
