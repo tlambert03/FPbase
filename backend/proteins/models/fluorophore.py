@@ -126,9 +126,16 @@ class FluorState(AbstractFluorescenceData):
         if write_through:
             # only fields that the caller changed: a state that is merely out of date
             # with respect to its measurements must not be written back over them
+            # (a field that was deferred when loaded is only present if it was assigned)
             loaded = getattr(self, "_loaded_values", None)
             current = self._measurable_values()
-            edited = [f for f, v in current.items() if loaded is None or loaded.get(f, v) != v]
+            edited = [
+                f
+                for f, v in current.items()
+                if loaded is None or f not in loaded or loaded[f] != v
+            ]
+            if (update_fields := kwargs.get("update_fields")) is not None:
+                edited = [f for f in edited if f in update_fields]
             self.write_through(edited)
         self._loaded_values = self._measurable_values()
 
