@@ -473,6 +473,18 @@ def _set_status(spectra: QuerySet[Spectrum], status: str) -> list[Spectrum]:
     return changed
 
 
+def _accept_conflicts(spectra: QuerySet[Spectrum]) -> set[str]:
+    """Names of fluorophore spectra that can't be approved: one approved per (fluor, subtype)."""
+    conflicts: set[str] = set()
+    seen: set[tuple[int, str]] = set()
+    for spectrum in spectra.exclude(owner_fluor=None):
+        key = (spectrum.owner_fluor_id, spectrum.subtype)
+        if key in seen or Spectrum.objects.filter(owner_fluor=key[0], subtype=key[1]).exists():
+            conflicts.add(str(spectrum))
+        seen.add(key)
+    return conflicts
+
+
 @permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
 @require_POST
 def pending_spectrum_action(request):
@@ -513,6 +525,13 @@ def pending_spectrum_action(request):
             count = spectra.count()
 
             if action == "accept":
+                if conflicts := _accept_conflicts(spectra):
+                    names = ", ".join(sorted(conflicts))
+                    error = (
+                        f"Already has an approved spectrum of this type: {names}. "
+                        "Delete the approved spectrum first (or accept only one duplicate)."
+                    )
+                    return JsonResponse({"success": False, "error": error}, status=409)
                 accepted = _set_status(spectra, Spectrum.STATUS.approved)
                 # Clear cache for affected protein pages
                 for spectrum in accepted:

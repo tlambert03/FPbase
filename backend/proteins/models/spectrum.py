@@ -394,16 +394,16 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
                     | models.Q(category="l", subtype="pd")
                 ),
             ),
-            # Ensure unique (owner, subtype) combination
+            # One *approved* spectrum per (fluorophore, subtype); pending/rejected
+            # submissions may coexist with it until a moderator sorts them out.
+            # (filter/light/camera owners are already unique via OneToOneField)
             models.UniqueConstraint(
-                name="spectrum_unique_owner_subtype",
-                fields=[
-                    "owner_fluor",
-                    "owner_filter",
-                    "owner_light",
-                    "owner_camera",
-                    "subtype",
-                ],
+                name="spectrum_unique_approved_fluor_subtype",
+                fields=["owner_fluor", "subtype"],
+                condition=models.Q(status="approved"),
+                violation_error_message=(
+                    "This fluorophore already has an approved spectrum of this type"
+                ),
             ),
         ]
 

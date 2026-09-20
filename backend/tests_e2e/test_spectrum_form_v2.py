@@ -334,7 +334,8 @@ def test_protein_category_form_submits_without_focus_error(
 
     card = page.locator(".spectrum-card").first
     card.locator('[id^="category-select-"]').select_option("p")
-    card.locator('[id^="subtype-select-"]').select_option("ex")
+    # (ProteinFactory already makes approved ex/em/2p spectra)
+    card.locator('[id^="subtype-select-"]').select_option("ab")
 
     # Select protein using Select2
     card.locator(".select2-container").click()
