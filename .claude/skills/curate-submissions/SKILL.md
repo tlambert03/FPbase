@@ -3,7 +3,7 @@ name: curate-submissions
 description: Work through pending FPbase submissions (proteins + spectra) and hand Talley a one-line-per-item decision queue.
 argument-hint: "[N | slug ... | spectra | followup | 'email text to check']"
 disable-model-invocation: true
-allowed-tools: Bash(python3 .claude/skills/curate-submissions/scripts/remote.py triage *), Bash(python3 .claude/skills/curate-submissions/scripts/remote.py fetch *)
+allowed-tools: Bash(python3 .claude/skills/curate-submissions/scripts/remote.py triage *), Bash(python3 .claude/skills/curate-submissions/scripts/remote.py fetch *), Bash(python3 .claude/skills/curate-submissions/scripts/remote.py provenance *), Bash(python3 .claude/skills/curate-submissions/scripts/remote.py audit *)
 ---
 
 # Curate pending FPbase submissions
@@ -42,6 +42,7 @@ python3 $R triage --slugs a b
 python3 $R fetch --slugs a b -o .curation/<date>/detail.json  # full records (new proteins)
 python3 $R fetch --kind spectra -o ...
 python3 $R audit --top 200 -o ...                             # health of the most-viewed pages
+python3 $R provenance jrgeco1a --around 1044 -o ...           # who set each value, when; spectra
 python3 $R apply decisions.json --moderator talley            # DRY RUN (rolled back)
 python3 $R apply decisions.json --moderator talley --commit   # writes to production
 ```
@@ -216,6 +217,17 @@ duplicate, an incomplete-but-correct new record. Recommend an answer.
 **HOLD** when the needed text is not reachable or the submitter must supply something
 (sequence, source for a value). Draft the email to the submitter in `details.md`.
 
+**Peaks: the paper beats the spectrum.** An excitation/emission/2P maximum stated in a paper
+(text or table) has strong priority over one derived from spectrum data, FPbase's or anyone
+else's. Differences of a few nm between the two are normal and are not an error in either.
+When a submitted peak disagrees with the paper, run `provenance`: if the submitted number
+equals a spectrum's raw `peak_wave` and the paper's value lies inside `plateau_98pct`, the
+data cannot distinguish them → DO fix to the paper's value (jRGECO1a: raw 1044 was a
+one-point spike on a plateau spanning 1043–1061; the paper says 1056). Prefer the derived
+value only when the paper's is very suspicious — outside the plateau by a wide margin,
+identical to a neighbouring column/protein, or a laser line or filter centre quoted as a
+maximum (488, 561) — and then it is an ASK, with both numbers and where each comes from.
+
 Unit traps: `ext_coeff` is M⁻¹cm⁻¹ (not mM⁻¹cm⁻¹), `qy` is 0–1 (not %), `lifetime` ns,
 `maturation` minutes. Values often live only in supplementary tables, which PMC omits:
 "not in the main text" means unverified, not wrong.
@@ -270,7 +282,7 @@ HOLD
 
 FYI  tdKatushka2's 2P values predate this edit (not reviewed)
 
-Reply: "ok" · "ok 6k 7y" · "ok, drop 4" · "5?" (show details for 5)
+Reply: "ok" · "ok 6k 7y" · "ok, drop 4" · "5?" (where did line 5's values come from)
 ```
 
 - One line per item, ≤ ~120 characters: name · rank and views · action · the single decisive
@@ -299,6 +311,34 @@ sequences with their accessions locally ("Checking a sequence"); a UniProt entry
 FYI lines or, if Talley asks for an audit, as a queue: only contradictions (lineage ≠
 sequence, sequence ≠ database, dead accession) are worth a line — gaps like a missing
 lifetime are not errors.
+
+## "N?" — provenance of a queue line
+
+When Talley replies with a line number and a question mark ("9?"), he wants to know **where
+the values in question came from**, not a longer version of the evidence. Run
+`python3 $R provenance <slug> --around <wavelengths in question> -o …` (read-only) and tell
+the story of the specific fields, in this order:
+
+1. **Timeline** of each field in question: who set it, when, old → new, from `history`
+   (plus `protein_history`). `first_snapshot: true` and values that appear without a user
+   action mean "first seen here" (imports and migrations write no snapshot), not "made by".
+2. **Where the number probably came from.** Check it against, in turn: the cited papers
+   (quote); FPbase's own spectra for that state — `peak_wave` (raw maximum, which is what
+   the protein page displays), `smoothed_peak`, `plateau_98pct`, `scale_factor`; sibling
+   proteins/columns in the same table (a neighbour's value is a common slip). Users often
+   copy `peak_wave` / `scale_factor` off the FPbase page into the state fields.
+3. **Who**: `editors` gives username, email, name, join date. Compare with the paper's author
+   list (Europe PMC `authorString`) — is the editor an author, the same lab (email domain),
+   or unrelated? Say "cannot tell" when you can't. Emails stay in `.curation/` and in the
+   conversation; never put them in commits, SKILL.md or reversion comments.
+4. **What it means**: one sentence, then the same one-line choice as before.
+
+Known history worth recognising:
+- Until 2025-10 a local script (`import2P`, 2018) set `twop_ex_max` / `twop_peak_gm` from the
+  raw maximum of Drobizhev's 2P spectra, which is why e.g. tdKatushka2 reads 1114 / 72.58 where
+  the paper's table says 1100 / 71.5. Those values predate any pending edit.
+- No live code derives a state's `ex_max` / `em_max` / `twop_ex_max` from spectra, and
+  `Spectrum.peak_wave` is an unsmoothed maximum: on a flat or noisy top it lands on a spike.
 
 ## Follow-up
 

@@ -2,6 +2,7 @@
 # READ-ONLY.  Deterministic triage of every pending protein: what is the NET change
 # between the record as it was before it went pending and the record today?
 # No literature, no judgement -- just "what did the submission actually touch".
+import contextlib
 import json
 from datetime import timedelta
 
@@ -34,6 +35,9 @@ def norm(v):
     # "", None, [] and "[]" all mean "empty"; floats stored as strings in old snapshots
     if v in ("", None, [], "[]", "{}", {}):
         return None
+    if isinstance(v, str) and v.startswith("["):  # ArrayFields are serialized as JSON strings
+        with contextlib.suppress(ValueError):
+            v = json.loads(v)
     if isinstance(v, list):
         return sorted(map(str, v))
     try:

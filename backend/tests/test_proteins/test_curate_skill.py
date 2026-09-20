@@ -371,3 +371,42 @@ def test_audit_reports_gaps_and_consistency(old_edited_protein: Protein) -> None
     assert row["seq"] is None and not row["seq_validated"]
     assert "ext_coeff" in row["missing"] and "ex_max" not in row["missing"]
     assert row["lineage_matches_seq"] is None  # no lineage: nothing to check
+
+
+def test_triage_ignores_reordered_array(staff: User, submitter: User) -> None:
+    with reversion.create_revision():
+        reversion.set_user(staff)
+        p = Protein.objects.create(name="ArrayFP", pdb=["2Q57", "2WSO"], status="approved")
+    long_ago = p.created - timedelta(days=900)
+    Protein.objects.filter(id=p.id).update(created=long_ago)
+    Revision.objects.filter(id=Revision.objects.latest("id").id).update(date_created=long_ago)
+    p.refresh_from_db()
+    with reversion.create_revision():
+        reversion.set_user(submitter)
+        p.pdb = ["2WSO", "2Q57"]  # same ids, other order
+        p.status = "pending"
+        p.save()
+    (row,) = run_script("triage_pending.py", {})
+    assert row["changes"] == {}, row["changes"]
+
+
+def test_provenance_traces_values_and_spots_noise_spike(old_edited_protein: Protein) -> None:
+    state = old_edited_protein.states.get()
+    # normalized flat-topped spectrum: smooth maximum (0.97) at 520, and a one-point noise
+    # spike at 508 that is the global maximum (1.0) -- like jRGECO1a's 2P spectrum
+    data = [[w, 0.97 * (1 - ((w - 520) / 60) ** 2)] for w in range(460, 581)]
+    data[508 - 460][1] = 1.0
+    SpectrumFactory(owner_fluor=state, category=Spectrum.PROTEIN, subtype=Spectrum.EX, data=data)
+
+    out = run_script("provenance.py", {"slug": old_edited_protein.slug, "around": [508]})
+    (st,) = out["states"]
+    changed = [h for h in st["history"] if "ex_max" in h["changes"] and not h["first_snapshot"]]
+    assert [(h["user"], h["changes"]["ex_max"]) for h in changed] == [
+        ("submitter", ["488", "600"])
+    ]
+    (sp,) = st["spectra"]
+    assert sp["peak_wave"] == 508  # raw argmax lands on the spike
+    assert abs(sp["smoothed_peak"] - 520) <= 2
+    assert sp["plateau_98pct"] == [508, 508]  # the spike stands alone: nothing else within 2%
+    assert 508 in {int(k) for k in sp["windows"][508]}
+    assert set(out["editors"]) == {"staff", "submitter"}

@@ -77,6 +77,11 @@ def main() -> None:
     audit.add_argument("--slugs", nargs="+")
     audit.add_argument("-o", "--output", type=Path)
 
+    prov = sub.add_parser("provenance", help="who set each value, and when (read-only)")
+    prov.add_argument("slug")
+    prov.add_argument("--around", type=int, nargs="+", help="print spectrum data around these nm")
+    prov.add_argument("-o", "--output", type=Path)
+
     apply = sub.add_parser("apply", help="apply a decisions file (dry run by default)")
     apply.add_argument("decisions", type=Path)
     apply.add_argument("--commit", action="store_true", help="actually write to production")
@@ -91,6 +96,8 @@ def main() -> None:
     elif args.cmd == "audit":
         slugs = args.slugs or list(load_views())[: args.top or 100]
         result = annotate(run_remote("audit_proteins.py", {"slugs": slugs}), load_views())
+    elif args.cmd == "provenance":
+        result = run_remote("provenance.py", {"slug": args.slug, "around": args.around})
     elif args.cmd == "fetch":
         params = {k: getattr(args, k) for k in ("kind", "limit", "offset", "slugs", "summary")}
         result = run_remote("fetch_pending.py", params)

@@ -3,7 +3,7 @@
 # PARAMS: kind ("proteins"|"spectra"|"all"), limit, offset, slugs, summary
 from datetime import timedelta
 
-from proteins.models import Protein, Spectrum
+from proteins.models import BleachMeasurement, Protein, Spectrum
 
 # same keys that views.protein_history ignores
 IGNORE_KEYS = [
@@ -111,6 +111,17 @@ def protein_info(p):
                 "created_by": e.created_by and e.created_by.username,
             }
             for e in p.excerpts.all()
+        ],
+        "bleach_measurements": [
+            {
+                **fields(b, skip=("created_by", "updated_by")),
+                "state": b.state.name,
+                "doi": b.reference and b.reference.doi,
+                "created_by": b.created_by and b.created_by.username,
+            }
+            for b in BleachMeasurement.objects.filter(state__protein=p).select_related(
+                "state", "reference", "created_by"
+            )
         ],
     }
 
