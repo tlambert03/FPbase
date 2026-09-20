@@ -213,7 +213,7 @@
             <h1>Pending Spectra Dashboard</h1>
         </div>
         <div class="col-auto">
-            <span class="badge text-bg-primary rounded-pill" style="font-size: 1.2em;">
+            <span id="pending-count" class="badge text-bg-primary rounded-pill" style="font-size: 1.2em;">
                 {{ count }} pending
             </span>
         </div>
@@ -528,7 +528,7 @@ function performAction(spectrumIds, action) {
             });
 
             // Update count
-            const countBadge = document.querySelector('.badge text-bg-primary');
+            const countBadge = document.getElementById('pending-count');
             const currentCount = parseInt(countBadge.textContent);
             const newCount = currentCount - data.count;
             countBadge.textContent = `${newCount} pending`;
@@ -617,7 +617,7 @@ function undoAction(spectrumIds, savedCards) {
             updateSelection();
 
             // Update count (use server's count for accuracy)
-            const countBadge = document.querySelector('.badge text-bg-primary');
+            const countBadge = document.getElementById('pending-count');
             const currentCount = parseInt(countBadge.textContent);
             const newCount = currentCount + data.count;
             countBadge.textContent = `${newCount} pending`;
