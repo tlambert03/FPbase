@@ -51,7 +51,15 @@ from proteins.forms import (
     StateTransitionFormSet,
     bleach_items_formset,
 )
-from proteins.models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
+from proteins.models import (
+    BleachMeasurement,
+    Excerpt,
+    FluorState,
+    Organism,
+    Protein,
+    Spectrum,
+    State,
+)
 from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
 from proteins.util.spectra import spectra2csv
@@ -765,15 +773,20 @@ def add_protein_excerpt(request, slug=None):
 def _revert_to_revision(request, revision: Revision) -> JsonResponse:
     with transaction.atomic():
         revision.revert(delete=True)
+        # revert() restores rows without calling save(): record the restored values as
+        # measurements, or the next rebuild_attributes() would undo the revert
+        state_ids = {
+            v.object_id
+            for v in revision.version_set.select_related("content_type")
+            if issubclass(v.content_type.model_class(), FluorState)
+        }
+        for state in FluorState.objects.filter(pk__in=state_ids):
+            state.as_subclass().write_through()
         proteins = {
             v.object for v in revision.version_set.all() if v.object._meta.model_name == "protein"
         }
         if len(proteins) == 1:
             p = proteins.pop()
-            # revert() restores rows without calling save(): record the restored values
-            # as measurements, or the next rebuild_attributes() would undo the revert
-            for state in p.states.all():
-                state.write_through()
             with reversion.create_revision():
                 reversion.set_user(request.user)
                 reversion.set_comment(f"Reverted to revision dated {revision.date_created}")

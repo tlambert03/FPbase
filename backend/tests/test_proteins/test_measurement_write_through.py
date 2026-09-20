@@ -195,24 +195,58 @@ def test_protein_form_submission_and_edit(client):
     assert state.measurements.count() == 1
 
 
-def test_revision_rollback_survives_rebuild(client, protein: Protein):
-    with reversion.create_revision():
-        protein.save()
-        state = State.objects.create(protein=protein, name="default", ex_max=488)
-    with reversion.create_revision():
-        state.ex_max = 500
-        state.save()
-
-    # (reversion restores rows with save_base(), bypassing State.save)
+def _revert(client, revision) -> None:
+    # (reversion restores rows with save_base(), bypassing FluorState.save)
     client.force_login(UserFactory(is_staff=True))
-    revision = Version.objects.get_for_object(state).last().revision
     url = reverse("proteins:admin_revert_revision", args=[revision.id])
     assert client.post(url).status_code == 200
 
+
+def test_rollback_of_state_only_revision_survives_rebuild(client, state: State):
+    with reversion.create_revision():
+        state.save()
+    with reversion.create_revision():
+        state.ex_max = 500
+        state.save()
+    oldest = Version.objects.get_for_object(state).order_by("revision__date_created")[0]
+    models = {v.content_type.model for v in oldest.revision.version_set.all()}
+    assert "protein" not in models  # only the state was saved in that revision
+
+    _revert(client, oldest.revision)
     state = State.objects.get(id=state.id)
     assert state.ex_max == 488
     state.rebuild_attributes()
     assert State.objects.get(id=state.id).ex_max == 488
+
+
+def test_rollback_of_dye_state_survives_rebuild(client):
+    dye = Dye.objects.create(name="TestDye")
+    with reversion.create_revision():
+        dye_state = DyeState.objects.create(dye=dye, name="default", ex_max=550)
+    with reversion.create_revision():
+        dye_state.ex_max = 560
+        dye_state.save()
+    oldest = Version.objects.get_for_object(dye_state).order_by("revision__date_created")[0]
+
+    _revert(client, oldest.revision)
+    dye_state.rebuild_attributes()
+    assert DyeState.objects.get(id=dye_state.id).ex_max == 550
+
+
+def test_edit_of_a_deferred_field_is_written_through(state: State):
+    partial = State.objects.only("id", "name", "protein").get(id=state.id)
+    partial.ex_max = 499
+    partial.save()
+    state.rebuild_attributes()
+    assert State.objects.get(id=state.id).ex_max == 499
+
+
+def test_update_fields_limits_write_through(state: State):
+    state = State.objects.get(id=state.id)
+    state.ex_max, state.qy = 499, 0.1
+    state.save(update_fields=["ex_max"])
+    m = state.measurements.get()
+    assert (m.ex_max, m.qy) == (499, 0.6)
 
 
 def test_sync_measurements_command(protein: Protein, capsys):
