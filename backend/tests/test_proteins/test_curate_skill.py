@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -336,3 +337,37 @@ def test_lineage_fix_must_reproduce_sequence(staff: User, submitter: User) -> No
     assert (child.status, child.name, child.slug) == ("approved", "ChildFP2", "childfp2")
     assert child.seq_validated
     assert str(child.lineage.mutation) == "K4R/E6D"
+
+
+def test_views_parse_and_rank() -> None:
+    sys.path.insert(0, str(SCRIPTS))
+    from views import annotate, parse_report  # local helper, not a Django module
+
+    def row(path: str, n: int) -> dict:
+        return {"dimension_values": [{"value": path}], "metric_values": [{"value": str(n)}]}
+
+    report = {
+        "rows": [
+            row("/protein/mcherry/", 100),
+            row("/protein/mCherry/", 5),  # same page, different case
+            row("/protein/mcherry/history/", 50),  # not the detail page
+            row("/protein/egfp/", 200),
+        ]
+    }
+    views = parse_report(report)
+    assert views == {"egfp": 200, "mcherry": 105}
+
+    rows = annotate([{"slug": "mcherry"}, {"slug": "brand-new"}, {"slug": "egfp"}], views)
+    assert [(r["slug"], r["views_365d"], r["rank"]) for r in rows] == [
+        ("egfp", 200, 1),
+        ("mcherry", 105, 2),
+        ("brand-new", 0, None),
+    ]
+
+
+def test_audit_reports_gaps_and_consistency(old_edited_protein: Protein) -> None:
+    (row,) = run_script("audit_proteins.py", {"slugs": [old_edited_protein.slug]})
+    assert row["status"] == "pending"
+    assert row["seq"] is None and not row["seq_validated"]
+    assert "ext_coeff" in row["missing"] and "ex_max" not in row["missing"]
+    assert row["lineage_matches_seq"] is None  # no lineage: nothing to check

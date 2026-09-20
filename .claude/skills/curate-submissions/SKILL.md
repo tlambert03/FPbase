@@ -24,6 +24,9 @@ Be decisive. The test for DO is "shown the evidence, would Talley say yes within
 seconds?" — not "is there zero conceivable doubt". Hedging everything into ASK/HOLD just
 hands the work back.
 
+Attention goes where readers are: pending records are public (the page shows the current,
+unreviewed data), so work is ordered by page views, not by what is easiest — see "Priority".
+
 Arguments (`$ARGUMENTS`): a number = how many items beyond the zero-reading ones (default
 15); slugs = just those; `spectra`; `followup`; pasted email text → "Emails".
 
@@ -38,6 +41,7 @@ python3 $R triage -o .curation/<date>/triage.json           # net change of EVER
 python3 $R triage --slugs a b
 python3 $R fetch --slugs a b -o .curation/<date>/detail.json  # full records (new proteins)
 python3 $R fetch --kind spectra -o ...
+python3 $R audit --top 200 -o ...                             # health of the most-viewed pages
 python3 $R apply decisions.json --moderator talley            # DRY RUN (rolled back)
 python3 $R apply decisions.json --moderator talley --commit   # writes to production
 ```
@@ -54,13 +58,14 @@ python3 $R apply decisions.json --moderator talley --commit   # writes to produc
 
 1. **Triage** the whole backlog (one call). Drop anything in `.curation/log.jsonl` logged as
    ASK/HOLD with the same `modified` — it is still waiting on Talley.
-2. **Order the work cheapest-first** and take the batch from the top:
-   1. `changes == {}` → DO approve. Nothing to read.
-   2. only `lineage*` changes and `lineage_matches_seq` is true → DO approve. The script
-      already proved parent + mutations reproduces the sequence.
-   3. one-fact edits: only `references.added`, or one or two `state[...]` values.
-   4. `kind: new`, **grouped by `primary_doi`** so each paper is read once.
-   5. mixed edits; `baseline: null`.
+2. **Pick the batch by priority** (`triage` output is already sorted most-viewed first):
+   1. everything that needs no reading, whatever its traffic — it is free:
+      `changes == {}` → DO approve; only `lineage*` changes with `lineage_matches_seq` true
+      → DO approve (the script proved parent + mutations reproduces the sequence).
+   2. then straight down the list by `views_365d`, edits and new submissions alike.
+   3. for every paper you open, also take the other pending proteins that cite it
+      (`primary_doi` / `cited`), however low their traffic: the second one is nearly free.
+   `baseline: null` records can't be isolated → HOLD unless obviously fine as a whole.
 3. **Verify** only what the item changed (next section), against the literature.
 4. **Write `decisions.json`**, dry-run it, and check every `data_diff` is exactly what you
    intended. A failed or surprising dry run turns a DO into an ASK/HOLD — never show a DO
@@ -70,6 +75,30 @@ python3 $R apply decisions.json --moderator talley --commit   # writes to produc
    changed, then `--commit`. Report one line: what was committed, what failed.
 7. Append one line per item to `.curation/log.jsonl`:
    `{"date", "slug"|"spectrum_id", "modified", "verdict", "action", "reason"}`.
+
+## Priority
+
+Traffic is very concentrated (2025–26: the top 100 protein pages got 58 % of views, the top
+500 got 86 %), and a pending edit is already live on the page. An unchecked value on a page
+with 27,000 views a year matters far more than a new protein nobody has opened.
+
+`.curation/analytics/protein_views.json` holds views per slug for the last 365 days;
+`triage` adds `views_365d` and the site-wide `rank` to every row and sorts by it. Refresh the
+file when it is missing or its `fetched` date is more than 30 days old:
+
+1. Analytics connector: `get_account_summaries` → the property named "FPbase"; then
+   `run_report` with `date_ranges: [{"start_date": "365daysAgo", "end_date": "yesterday"}]`,
+   `dimensions: ["pagePath"]`, `metrics: ["screenPageViews"]`, `limit: 2000`, ordered by
+   `screenPageViews` descending, and `dimension_filter` = `pagePath` string_filter
+   `{"match_type": "FULL_REGEXP", "value": "^/protein/[^/]+/$"}`.
+2. The result is too large to read and gets saved to a file; don't read it. Run
+   `python3 .claude/skills/curate-submissions/scripts/views.py ingest <that file>`.
+
+No analytics connector → say so, and fall back to cheapest-first (one-fact edits, then new
+submissions grouped by paper).
+
+Show the priority in every queue line so Talley sees what his attention buys:
+`Superfolder GFP  #5 · 27k/yr`. Rank and views describe the page, not the confidence.
 
 ## What is under review: the net change, nothing else
 
@@ -227,7 +256,7 @@ DO — on "ok"
                   AausGFP, CFP4, DsRed2, mCerulean, tdTomato
  2  ×4            approve       added ref Viola 2025 (10.1242/jcs.263858) discusses each
                   mScarlet3, mScarlet-I, mBaoJin, StayGold-E138D
- 3  FusionRed     approve       lifetime 1.8 ns ✓ Table 1, 10.1038/nmeth.xxxx
+ 3  FusionRed  #212 · 1.1k/yr   approve   lifetime 1.8 ns ✓ Table 1, 10.1038/nmeth.xxxx
  4  PENELOPE      fix+approve   EC 36,565 → 86,100 (Table 1); ex/em/QY/pKa ✓
  5  Citrine       undo          added ref 10.1234/… never mentions Citrine
 
@@ -244,7 +273,9 @@ FYI  tdKatushka2's 2P values predate this edit (not reviewed)
 Reply: "ok" · "ok 6k 7y" · "ok, drop 4" · "5?" (show details for 5)
 ```
 
-- One line per item, ≤ ~110 characters: name · action · the single decisive fact. No quotes,
+- One line per item, ≤ ~120 characters: name · rank and views · action · the single decisive
+  fact. Within DO / ASK / HOLD, list most-viewed first. For a grouped line give the highest
+  rank in the group. No quotes,
   no hedging words, no "unsure because".
 - Group identical cases — same verdict for the same reason, e.g. one paper added to four
   proteins — into one numbered line ("×4") with the names on an indented second line, so
@@ -257,6 +288,17 @@ Reply: "ok" · "ok 6k 7y" · "ok, drop 4" · "5?" (show details for 5)
 claim with a **direct quote you actually read** plus where it is (table/page/section, DOI),
 the dry-run `data_diff`, and for HOLD the drafted email. Never state what a paper says
 without having read it in the fetched text. This file can be long; the queue cannot.
+
+## Audit (optional, secondary to the pending queue)
+
+`python3 $R audit --top 200 -o .curation/audit/top.json` — read-only health check of the
+most-viewed pages whatever their status: missing core values, spectra, `seq_validated`,
+whether parent + lineage reproduces the sequence, accessions. It reads no literature. Compare
+sequences with their accessions locally ("Checking a sequence"); a UniProt entry can be
+`Inactive`/deleted (check `https://rest.uniprot.org/uniprotkb/<acc>.json`). Report findings as
+FYI lines or, if Talley asks for an audit, as a queue: only contradictions (lineage ≠
+sequence, sequence ≠ database, dead accession) are worth a line — gaps like a missing
+lifetime are not errors.
 
 ## Follow-up
 

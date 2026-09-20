@@ -16,6 +16,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent))
+from views import annotate, load_views
+
 HERE = Path(__file__).parent
 APP = os.environ.get("FPBASE_HEROKU_APP", "fpbase")
 TIMEOUT = int(os.environ.get("FPBASE_REMOTE_TIMEOUT", "300"))
@@ -69,6 +72,11 @@ def main() -> None:
     triage.add_argument("--slugs", nargs="+")
     triage.add_argument("-o", "--output", type=Path)
 
+    audit = sub.add_parser("audit", help="machine-checkable health of proteins (read-only)")
+    audit.add_argument("--top", type=int, help="the N most-viewed protein pages")
+    audit.add_argument("--slugs", nargs="+")
+    audit.add_argument("-o", "--output", type=Path)
+
     apply = sub.add_parser("apply", help="apply a decisions file (dry run by default)")
     apply.add_argument("decisions", type=Path)
     apply.add_argument("--commit", action="store_true", help="actually write to production")
@@ -78,6 +86,11 @@ def main() -> None:
     args = parser.parse_args()
     if args.cmd == "triage":
         result = run_remote("triage_pending.py", {"slugs": args.slugs})
+        # most-viewed first (no-op until `views.py ingest` has been run)
+        result = annotate(result, load_views())
+    elif args.cmd == "audit":
+        slugs = args.slugs or list(load_views())[: args.top or 100]
+        result = annotate(run_remote("audit_proteins.py", {"slugs": slugs}), load_views())
     elif args.cmd == "fetch":
         params = {k: getattr(args, k) for k in ("kind", "limit", "offset", "slugs", "summary")}
         result = run_remote("fetch_pending.py", params)
