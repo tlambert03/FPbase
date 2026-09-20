@@ -5,9 +5,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import Client
 from django.urls import reverse
 
-from proteins.factories import MicroscopeFactory
+from proteins.factories import MicroscopeFactory, OpticalConfigWithFiltersFactory, StateFactory
+from tests.test_users.factories import UserFactory
 
 AJAX = {"HTTP_X_REQUESTED_WITH": "XMLHttpRequest"}
 
@@ -25,6 +27,12 @@ def delay():
     with patch("proteins.views.microscope.calculate_scope_report.delay") as delay:
         delay.return_value.id = "real-job-id"
         yield delay
+
+
+@pytest.fixture
+def client(client, db):
+    client.force_login(UserFactory())
+    return client
 
 
 def _post(client, scope, **data):
@@ -83,3 +91,25 @@ def test_report_post_unknown_microscope_404(client, celery_app, delay):
     response = client.post(url, {"action": "update"}, **AJAX)
     assert response.status_code == 404
     delay.assert_not_called()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("action", ["update", "check", "cancel"])
+def test_report_post_requires_login(celery_app, delay, action):
+    response = _post(Client(), MicroscopeFactory(), action=action, job_id="anything")
+    assert response.status_code == 403
+    delay.assert_not_called()
+    celery_app.AsyncResult.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_update_button_only_shown_when_logged_in(client):
+    scope = MicroscopeFactory()
+    OpticalConfigWithFiltersFactory(microscope=scope)
+    StateFactory()  # a fluorophore with spectra, so the report needs an update
+    url = reverse("proteins:microscope-report", args=[scope.id])
+    assert b'id="request-report"' in client.get(url).content
+
+    content = Client().get(url).content
+    assert b'id="request-report"' not in content
+    assert b"Sign in</a> to update it" in content

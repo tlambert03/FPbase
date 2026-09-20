@@ -215,6 +215,8 @@ class ScopeReportView(DetailView):
     queryset = Microscope.objects.all()
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            raise PermissionDenied
         if is_ajax(request):
             return update_scope_report(request, self.get_object().id)
         return HttpResponseNotAllowed([])
