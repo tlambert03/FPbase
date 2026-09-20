@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.core import signing
 from django.core.exceptions import PermissionDenied
 from django.core.mail import mail_admins
 from django.db import transaction
@@ -37,9 +38,20 @@ from proteins.tasks import calculate_scope_report
 from proteins.views.mixins import OwnableObject
 
 
-def update_scope_report(request):
-    job_id = request.POST.get("job_id")
-    scope_id = request.POST.get("scope_id")
+def _job_salt(scope_id: str) -> str:
+    return f"scope-report-job:{scope_id}"
+
+
+def _load_job_id(token: str | None, scope_id: str) -> str | None:
+    """Return the celery job id from a token issued for this microscope, else None."""
+    try:
+        return signing.loads(token or "", salt=_job_salt(scope_id))
+    except signing.BadSignature:
+        return None
+
+
+def update_scope_report(request, scope_id: str):
+    job_id = _load_job_id(request.POST.get("job_id"), scope_id)
 
     if request.POST.get("action") == "update":
         outdated = request.POST.get("outdated")
@@ -48,23 +60,24 @@ def update_scope_report(request):
                 outdated = json.loads(outdated)
             except json.JSONDecodeError:
                 outdated = None
-        if scope_id:
-            try:
-                # this is throwing connection resets
-                active = app.control.inspect().active()
-            except Exception:
-                active = None
-            if active:
-                for _worker, jobs in active.items():
-                    for job in jobs:
-                        if job["name"].endswith("calculate_scope_report") and (
-                            scope_id in job["args"]
-                        ):
-                            return JsonResponse({"status": 200, "job": job["id"]})
-                    if len(jobs) >= 4:
-                        return JsonResponse({"status": 200, "job": None, "waiting": True})
-            job_id = calculate_scope_report.delay(scope_id, outdated_ids=outdated).id
-            return JsonResponse({"status": 200, "job": job_id})
+        try:
+            # this is throwing connection resets
+            active = app.control.inspect().active()
+        except Exception:
+            active = None
+        if active:
+            for _worker, jobs in active.items():
+                for job in jobs:
+                    if job["name"].endswith("calculate_scope_report") and (
+                        scope_id in job["args"]
+                    ):
+                        token = signing.dumps(job["id"], salt=_job_salt(scope_id))
+                        return JsonResponse({"status": 200, "job": token})
+                if len(jobs) >= 4:
+                    return JsonResponse({"status": 200, "job": None, "waiting": True})
+        job_id = calculate_scope_report.delay(scope_id, outdated_ids=outdated).id
+        token = signing.dumps(job_id, salt=_job_salt(scope_id))
+        return JsonResponse({"status": 200, "job": token})
     elif request.POST.get("action") == "check":
         if job_id:
             result = app.AsyncResult(job_id)
@@ -203,7 +216,7 @@ class ScopeReportView(DetailView):
 
     def post(self, request, *args, **kwargs):
         if is_ajax(request):
-            return update_scope_report(request)
+            return update_scope_report(request, self.get_object().id)
         return HttpResponseNotAllowed([])
 
     def get_context_data(self, **kwargs):
