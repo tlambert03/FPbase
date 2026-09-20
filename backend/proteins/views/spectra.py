@@ -15,6 +15,7 @@ from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 
@@ -410,6 +411,7 @@ def filter_import(request, brand):
 
 
 @permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
+@ensure_csrf_cookie  # the page's JS reads the token from the cookie
 def pending_spectra_dashboard(request):
     """Dashboard for reviewing pending spectra submissions."""
     pending_spectra = (
