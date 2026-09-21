@@ -317,6 +317,10 @@
 
     // Get form data
     var formData = new FormData($("#spectrum-submit-form")[0]);
+    // FormData skips disabled fields (e.g. category is locked when the protein is preselected)
+    $("#spectrum-submit-form :disabled[name]:not([type='submit'])").each(function () {
+      formData.set(this.name, $(this).val());
+    });
 
     // Determine data source based on active tab
     var activeTab = $("#data-source-tabs .nav-link.active").attr("id");

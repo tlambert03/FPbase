@@ -174,6 +174,32 @@ def test_spectrum_submission_preview_manual_data(
     )
 
 
+def test_spectrum_submission_preview_with_preselected_protein(
+    auth_page: Page, live_server: LiveServer
+) -> None:
+    """Preview works when the protein slug is in the URL (category field is disabled)."""
+    protein = ProteinFactory.create(name="PreselectedProtein")
+    protein.default_state.ex_spectrum.delete()
+
+    url = f"{live_server.url}{reverse('proteins:submit-spectra', args=(protein.slug,))}"
+    auth_page.goto(url)
+    expect(auth_page.locator("#spectrum-submit-form[data-form-ready='true']")).to_be_attached()
+    expect(auth_page.locator("#id_category")).to_be_disabled()
+
+    auth_page.locator("#id_subtype").select_option(Spectrum.EX)
+    auth_page.locator("#id_confirmation").check()
+    auth_page.locator("#manual-tab").click()
+    auth_page.locator("#id_data").fill("[[500,0.1],[505,0.5],[510,0.8],[515,0.6],[520,0.3]]")
+
+    auth_page.locator('input[type="submit"]').click()
+    expect(auth_page.locator("#spectrum-preview-section")).to_be_visible(timeout=10000)
+
+    auth_page.get_by_text("Submit Spectrum").click()
+    expect(auth_page).to_have_url(
+        f"{live_server.url}{reverse('proteins:spectrum_submitted_legacy')}"
+    )
+
+
 def test_spectrum_submission_tab_switching(
     auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
 ) -> None:
