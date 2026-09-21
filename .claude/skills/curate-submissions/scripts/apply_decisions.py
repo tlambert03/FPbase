@@ -11,6 +11,7 @@
 #    "state_edits": {<state name>: {<field>: <value>}},
 #    "protein_edits": {<field>: <value>},
 #    "lineage_mutation": "K69E/C134W/M205I",  # only accepted if parent + it == seq
+#    "primary_doi": "10.1126/...",  # e.g. preprint -> published; old one stays as a reference
 #    "remove_references": [<doi>, ...]}
 #   {"kind": "spectrum", "id": ..., "action": "approve"|"reject", "reason": ...}
 import contextlib
@@ -23,7 +24,8 @@ from django.http import HttpRequest
 from reversion.models import Revision
 
 from fpbase.util import uncache_protein_page
-from proteins.models import Protein, Spectrum
+from proteins.models import Lineage, Protein, Spectrum
+from references.models import Reference
 
 TAG = "[curate-submissions]"
 # the only fields a decision may edit (never status, slug, ownership, ...)
@@ -107,6 +109,14 @@ def approve_protein(p, user, reason, d):
             set_fields(state, values, STATE_EDITABLE)
             state.save()
         set_fields(p, d.get("protein_edits", {}), PROTEIN_EDITABLE)
+        if doi := d.get("primary_doi"):
+            # same call the public form makes (looks the DOI up on first use)
+            old, new = p.primary_reference, Reference.objects.get_or_create(doi=doi.lower())[0]
+            if old != new:
+                p.primary_reference = new
+                if old:
+                    p.references.add(old)
+                Lineage.objects.filter(protein=p, reference=old).update(reference=new)
         if mutation := d.get("lineage_mutation"):
             lineage = p.lineage
             if str(lineage.parent.protein.seq.mutate(mutation)) != str(p.seq):

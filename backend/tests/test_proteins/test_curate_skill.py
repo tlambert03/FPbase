@@ -410,3 +410,21 @@ def test_provenance_traces_values_and_spots_noise_spike(old_edited_protein: Prot
     assert sp["plateau_98pct"] == [508, 508]  # the spike stands alone: nothing else within 2%
     assert 508 in {int(k) for k in sp["windows"][508]}
     assert set(out["editors"]) == {"staff", "submitter"}
+
+
+def test_primary_doi_replaces_preprint_and_keeps_it(new_protein: Protein) -> None:
+    preprint = Reference(doi="10.1101/2024.01.01.000001", year=2024)
+    preprint.save(skipdoi=True)
+    published = Reference(doi="10.1126/sciadv.test123", year=2025)
+    published.save(skipdoi=True)  # pre-created, so get_or_create makes no network lookup
+    new_protein.primary_reference = preprint
+    new_protein.save()
+    lineage = Lineage.objects.create(protein=new_protein, reference=preprint)
+
+    result = apply({**decision(new_protein, "approve"), "primary_doi": "10.1126/SCIADV.test123"})
+    assert result["ok"], result
+    new_protein.refresh_from_db()
+    lineage.refresh_from_db()
+    assert new_protein.primary_reference == published
+    assert list(new_protein.references.all()) == [preprint]
+    assert lineage.reference == published
