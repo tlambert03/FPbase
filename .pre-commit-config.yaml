@@ -28,7 +28,7 @@ repos:
         args: ["--target-version", "4.2"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.6
+    rev: v0.16.8
     hooks:
       - id: ruff-check
         args: ["--fix", "--unsafe-fixes"]
@@ -36,12 +36,12 @@ repos:
         types_or: [python, pyi, jupyter]  # markdown formatting requires preview mode
 
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.5.12
+    rev: v2.5.14
     hooks:
       - id: biome-check
 
   - repo: https://github.com/DetachHead/basedpyright-prek-mirror
-    rev: 1.39.10
+    rev: 1.40.1
     hooks:
       - id: basedpyright
         stages: [manual]
