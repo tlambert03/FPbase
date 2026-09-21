@@ -49,6 +49,19 @@ def lineage_info(lin):
     }
 
 
+def measurement_info(m):
+    keep = ("ex_max", "em_max", "ext_coeff", "qy", "pka", "lifetime", "twop_ex_max",
+            "twop_peak_gm", "twop_qy", "is_dark")  # fmt: skip
+    return {
+        "id": m.id,
+        "doi": m.reference and m.reference.doi,
+        "values": {k: getattr(m, k) for k in keep if getattr(m, k) not in (None, False)},
+        "conditions": m.conditions,
+        "created_by": m.created_by and m.created_by.username,
+        "modified": m.modified,
+    }
+
+
 def never_approved(p):
     # `status_changed` only moves when status changes, so if it still equals `created` the
     # protein has never left "pending".  (Don't use reversion for this: admin bulk-approval
@@ -99,7 +112,18 @@ def protein_info(p):
         "parent_organism": str(p.parent_organism) if p.parent_organism else None,
         "primary_reference": ref_info(p.primary_reference),
         "references": [ref_info(r) for r in p.references.all()],
-        "states": [fields(s) for s in p.states.all()],
+        # the state is the composite shown on the page; `measurements` say which paper
+        # each value is attributed to
+        "states": [
+            {
+                **fields(s),
+                "measurements": [
+                    measurement_info(m)
+                    for m in s.measurements.select_related("reference", "created_by")
+                ],
+            }
+            for s in p.states.all()
+        ],
         "transitions": [str(t) for t in p.transitions.all()],
         "lineage": lineage_info(p.lineage) if hasattr(p, "lineage") else None,
         "excerpts": [

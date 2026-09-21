@@ -209,6 +209,26 @@ Outcomes:
 - **No source at all** → say "sequence unverified" in the queue line; that alone is an ASK for
   a new protein, not a DO.
 
+## Measurements: where values live
+
+A state's fluorescence values (ex/em max, EC, QY, pKa, lifetime, 2P, `is_dark`) are a
+composite of **measurements**: one row per paper that reported them. The state is only the
+public-facing consensus; never edit those fields on the state. Composite priority: a pinned
+row, then the **primary reference's row**, then the others (first non-null wins).
+
+- **The primary reference is canonical** for every value it actually reports, even if a
+  later paper says otherwise. A later paper's value is recorded on its own row and never
+  overrides the primary's.
+- A value belongs on the row of the paper that reported it. Before accepting anything on
+  the primary's row, check the primary paper really reports it (text, table, source data).
+  Many don't: the 2025 migration attributed every existing value to the primary reference,
+  and a direct edit is attributed to it too (write-through, #436).
+- Source unknown → a row with `"doi": null` (honest, and it only fills gaps).
+- Fixing a value = correcting the row that holds it, or moving it to the right paper's row
+  (set it on the right row, set it to null on the wrong one). `fetch` / `provenance` show
+  every row with its DOI.
+- Not measurements (edit directly): state `name` and `maturation`; all protein fields.
+
 ## Verdict rules
 
 **DO approve** when every changed value was found in a cited source (ex/em max ±3 nm, other
@@ -217,12 +237,13 @@ sequence match), or there is no net change. For a `references.added` edit the ba
 paper exists and is about this protein (names it, or is clearly its characterization).
 
 **DO fix+approve** when the submission is right except for values you can correct from the
-same source with a quote: approve with `state_edits` / `protein_edits` (incl. `name`,
-`seq_comment`) / `lineage_mutation`.
+same source with a quote: approve with `measurements` (fluorescence values, on the row of
+the paper that reports them) / `protein_edits` (incl. `name`, `seq_comment`) /
+`state_edits` (state `name`, `maturation`) / `lineage_mutation` / `primary_doi`.
 
 **DO undo** when an edit replaced a value with one the sources contradict, or added a
 reference that has nothing to do with the protein: approve with the *pre-pending* values put
-back (`protein_edits` / `state_edits` / `remove_references`, taken from `changes[...][0]`).
+back (`measurements` / `protein_edits` / `remove_references`, taken from `changes[...][0]`).
 Prefer this to `"action": "reject"`: a reject on an edit is a reversion revert, which the
 script refuses whenever it would touch more than the submission (old snapshots predate
 schema changes) or undo a staff revision.
@@ -242,7 +263,7 @@ duplicate, an incomplete-but-correct new record. Recommend an answer.
 else's. Differences of a few nm between the two are normal and are not an error in either.
 When a submitted peak disagrees with the paper, run `provenance`: if the submitted number
 equals a spectrum's raw `peak_wave` and the paper's value lies inside `plateau_98pct`, the
-data cannot distinguish them → DO fix to the paper's value (jRGECO1a: raw 1044 was a
+data cannot distinguish them → DO put the paper's value on that paper's row (jRGECO1a: raw 1044 was a
 one-point spike on a plateau spanning 1043–1061; the paper says 1056). Prefer the derived
 value only when the paper's is very suspicious — outside the plateau by a wide margin,
 identical to a neighbouring column/protein, or a laser line or filter centre quoted as a
@@ -263,7 +284,8 @@ Filters/cameras/lights can't be checked against literature: shape-check them, th
 [
   {"kind": "protein", "slug": "foo", "action": "approve", "expect_modified": "<modified from triage>",
    "reason": "lifetime 1.8 ns = Table 1 of 10.1038/…",
-   "state_edits": {"default": {"ext_coeff": 86100}},
+   "measurements": [{"state": "default", "doi": "10.1073/pnas.2504748122", "values": {"ext_coeff": 86100}}],
+   "state_edits": {"default": {"maturation": 36}},
    "protein_edits": {"agg": "m"},
    "lineage_mutation": "K69E/C134W/M205I",
    "remove_references": ["10.1234/unrelated"]},
@@ -272,8 +294,9 @@ Filters/cameras/lights can't be checked against literature: shape-check them, th
 ```
 
 The edit keys are optional and only valid with `approve`; only data fields can be edited
-(the script rejects anything else), and `lineage_mutation` is refused unless parent + that
-string reproduces the record's sequence exactly. `reason` becomes the reversion comment: short
+(the script rejects anything else, including fluorescence values in `state_edits`), and
+`lineage_mutation` is refused unless parent + that string reproduces the record's sequence
+exactly. `"doi": null` in `measurements` = source unknown; a value of null clears it. `reason` becomes the reversion comment: short
 and factual.
 
 ## The queue (the only thing the moderator reads)

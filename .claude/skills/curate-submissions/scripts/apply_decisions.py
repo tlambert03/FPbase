@@ -4,11 +4,18 @@
 # views.protein.revert_revision and views.spectra.pending_spectrum_action.
 #
 # PARAMS: commit (bool), moderator (staff username), decisions: list of
-#   {"kind": "protein", "slug": ..., "action": "approve"|"reject",
+#   {"kind": "protein", "slug": ..., "action": "approve"|"reject"|"correct",
+#    # "correct": the same edits on a record of any status, without changing its status
 #    "expect_modified": <"modified" from fetch/triage>, "reason": ...,
 #    # optional moderator corrections, approve only, saved in the approval's revision.
 #    # "fix+approve" sets verified values; "undo edit" puts the pre-pending values back.
-#    "state_edits": {<state name>: {<field>: <value>}},
+#    # fluorescence values live on measurements (what one paper reported); the state is
+#    # the composite shown on the page.  Put each value on the row of the paper that
+#    # reported it; "doi": null = source unknown.  A value of null clears the field; a
+#    # row left empty is deleted.  The state is rebuilt from its measurements.
+#    "measurements": [{"state": <name>, "doi": <doi or null>, "values": {<field>: <value>},
+#                      "conditions": <optional text>}],
+#    "state_edits": {<state name>: {<field>: <value>}},  # only name / maturation
 #    "protein_edits": {<field>: <value>},
 #    "lineage_mutation": "K69E/C134W/M205I",  # only accepted if parent + it == seq
 #    "primary_doi": "10.1126/...",  # e.g. preprint -> published; old one stays as a reference
@@ -24,7 +31,7 @@ from django.http import HttpRequest
 from reversion.models import Revision
 
 from fpbase.util import uncache_protein_page
-from proteins.models import Lineage, Protein, Spectrum
+from proteins.models import Lineage, Protein, Spectrum, State
 from references.models import Reference
 
 TAG = "[curate-submissions]"
@@ -34,10 +41,8 @@ PROTEIN_EDITABLE = {
     "ipg_id", "mw", "agg", "oser", "switch_type", "blurb", "cofactor", "chromophore",
     "parent_organism_id",
 }  # fmt: skip
-STATE_EDITABLE = {
-    "name", "ex_max", "em_max", "ext_coeff", "qy", "pka", "lifetime", "maturation",
-    "twop_ex_max", "twop_peak_gm", "twop_qy", "is_dark",
-}  # fmt: skip
+STATE_EDITABLE = {"name", "maturation"}  # not measurements
+MEASURED = set(State._written_through_fields())
 
 
 class Skip(Exception):
@@ -52,6 +57,11 @@ def snapshot(p):
     snap = {f"protein.{k}": v for k, v in fields(p).items() if k not in skip}
     for s in p.states.all():
         snap.update({f"state[{s.name}].{k}": v for k, v in fields(s).items() if k not in skip})
+        for m in s.measurements.select_related("reference"):
+            doi = m.reference.doi if m.reference else "no reference"
+            snap.update(
+                {f"measurement[{s.name} | {doi}].{k}": getattr(m, k) for k in sorted(MEASURED)}
+            )
     snap["references"] = sorted(p.references.values_list("doi", flat=True))
     snap["transitions"] = sorted(str(t) for t in p.transitions.all())
     if hasattr(p, "lineage"):
@@ -90,20 +100,44 @@ def collateral(diff, allowed):
 
 def set_fields(obj, values, editable):
     for field, value in values.items():
+        if field in MEASURED and field not in editable:
+            raise Skip(f"{field!r} is a measurement: use `measurements`, not a state edit")
         if field not in editable:
             raise Skip(f"{field!r} is not an editable field")
         setattr(obj, field, value)
 
 
-def approve_protein(p, user, reason, d):
-    # get rid of previous unapproved version (as in views.ajax.approve_protein)
-    with contextlib.suppress(Exception):
-        if p.versions.first().field_dict["status"] == "pending":
-            p.versions.first().delete()
+def set_measurement(p, user, m):
+    """Create/update the measurement for (state, reference); the state rebuilds itself."""
+    state = p.states.get(name=m["state"])
+    # same call the public form makes for a DOI (looks it up on first use)
+    ref = Reference.objects.get_or_create(doi=m["doi"].lower())[0] if m.get("doi") else None
+    meas = state.measurements.filter(reference=ref).first()
+    if meas is None:
+        meas = state.measurements.model(state=state, reference=ref, created_by=user)
+    set_fields(meas, m["values"], MEASURED)
+    if "conditions" in m:
+        meas.conditions = m["conditions"]
+    meas.updated_by = user
+    if any(getattr(meas, f) not in (None, False) for f in MEASURED):
+        meas.save()
+    elif meas.pk:
+        meas.delete()
+
+
+def approve_protein(p, user, reason, d, approve=True):
+    if approve:
+        # get rid of previous unapproved version (as in views.ajax.approve_protein)
+        with contextlib.suppress(Exception):
+            if p.versions.first().field_dict["status"] == "pending":
+                p.versions.first().delete()
     with reversion.create_revision():
         reversion.set_user(user)
-        reversion.set_comment(f"{user} approved current version {TAG} {reason}")
+        what = "approved current version" if approve else "corrected"
+        reversion.set_comment(f"{user} {what} {TAG} {reason}")
         # moderator corrections, saved in the same revision as the approval
+        for m in d.get("measurements", []):
+            set_measurement(p, user, m)
         for state_name, values in d.get("state_edits", {}).items():
             state = p.states.get(name=state_name)
             set_fields(state, values, STATE_EDITABLE)
@@ -128,7 +162,8 @@ def approve_protein(p, user, reason, d):
             if ref.id == p.primary_reference_id:
                 raise Skip(f"{doi} is the primary reference")
             p.references.remove(ref)
-        p.status = "approved"
+        if approve:
+            p.status = "approved"
         p.save()
 
 
@@ -178,7 +213,7 @@ def apply_one(d, user):
         return {"result": sp.status, "uncache": getattr(sp.owner_fluor, "owner_slug", None)}
 
     p = Protein.objects.get(slug=d["slug"])
-    if p.status != "pending":
+    if p.status != "pending" and d["action"] != "correct":
         raise Skip(f"status is {p.status!r}, not pending")
     if str(p.modified) != d["expect_modified"]:
         raise Skip(f"modified since fetch ({p.modified})")
@@ -189,6 +224,9 @@ def apply_one(d, user):
     if d["action"] == "approve":
         approve_protein(p, user, reason, d)
         result = "approved"
+    elif d["action"] == "correct":
+        approve_protein(p, user, reason, d, approve=False)
+        result = f"corrected ({p.status})"
     elif d["action"] == "reject":
         result = reject_protein(p, user, reason)
     else:

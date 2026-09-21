@@ -96,21 +96,51 @@ def test_approve_keeps_edit(edited_protein: Protein) -> None:
     assert edited_protein.states.get().ex_max == 600
 
 
-def test_approve_with_state_edits(edited_protein: Protein) -> None:
-    edits = {"default": {"ext_coeff": 86100, "is_dark": True}}
-    result = apply({**decision(edited_protein, "approve"), "state_edits": edits})
+def test_measurements_go_on_the_reporting_papers_row(edited_protein: Protein) -> None:
+    primary = Reference(doi="10.1234/primary", year=2016)
+    primary.save(skipdoi=True)
+    later = Reference(doi="10.1234/later", year=2019)
+    later.save(skipdoi=True)
+    edited_protein.primary_reference = primary
+    edited_protein.save()
+    measurements = [
+        # the primary paper's value is canonical ...
+        {"state": "default", "doi": primary.doi, "values": {"ext_coeff": 53300}},
+        # ... a later paper's different value is recorded, but does not override it
+        {"state": "default", "doi": later.doi, "values": {"ext_coeff": 63554, "lifetime": 3.1}},
+        # an accepted value whose source is unknown
+        {"state": "default", "doi": None, "values": {"pka": 6.3}},
+    ]
+    result = apply({**decision(edited_protein, "approve"), "measurements": measurements})
     assert result["ok"], result
-    assert result["data_diff"]["state[default].ext_coeff"] == [None, 86100]
     state = edited_protein.states.get()
-    assert (state.ext_coeff, state.is_dark, state.ex_max) == (86100, True, 600)
+    assert (state.ext_coeff, state.lifetime, state.pka) == (53300, 3.1, 6.3)
+    rows = {m.reference and m.reference.doi: m for m in state.measurements.all()}
+    assert (rows[primary.doi].ext_coeff, rows[later.doi].ext_coeff) == (53300, 63554)
+    assert result["data_diff"]["measurement[default | 10.1234/later].ext_coeff"] == [None, 63554]
 
-    bad = {"default": {"ext_coef": 1}}
+    # clearing a row's last value deletes it, and the state falls back to the others
     edited_protein.status = "pending"
     edited_protein.save()
-    result = apply({**decision(edited_protein, "approve"), "state_edits": bad})
-    assert not result["ok"]
+    clear = [{"state": "default", "doi": primary.doi, "values": {"ext_coeff": None}}]
+    assert apply({**decision(edited_protein, "approve"), "measurements": clear})["ok"]
+    state = edited_protein.states.get()
+    assert state.ext_coeff == 63554
+    assert not state.measurements.filter(reference=primary).exists()
+
+
+def test_state_edits_refuse_measurements(edited_protein: Protein) -> None:
+    edits = {"default": {"ext_coeff": 86100}}
+    result = apply({**decision(edited_protein, "approve"), "state_edits": edits})
+    assert not result["ok"] and "use `measurements`" in result["error"]
     edited_protein.refresh_from_db()
     assert edited_protein.status == "pending"
+
+    result = apply(
+        {**decision(edited_protein, "approve"), "state_edits": {"default": {"name": "on"}}}
+    )
+    assert result["ok"], result
+    assert edited_protein.states.get().name == "on"
 
 
 def test_approve_undoing_the_edit(edited_protein: Protein) -> None:
@@ -122,7 +152,7 @@ def test_approve_undoing_the_edit(edited_protein: Protein) -> None:
         {
             **decision(edited_protein, "approve"),
             "protein_edits": {"agg": "m"},
-            "state_edits": {"default": {"ex_max": 488}},
+            "measurements": [{"state": "default", "doi": None, "values": {"ex_max": 488}}],
             "remove_references": [ref.doi],
         }
     )
@@ -428,3 +458,15 @@ def test_primary_doi_replaces_preprint_and_keeps_it(new_protein: Protein) -> Non
     assert new_protein.primary_reference == published
     assert list(new_protein.references.all()) == [preprint]
     assert lineage.reference == published
+
+
+def test_correct_edits_an_approved_record_without_changing_status(edited_protein: Protein) -> None:
+    edited_protein.status = "approved"
+    edited_protein.save()
+    moves = [{"state": "default", "doi": None, "values": {"lifetime": 2.5}}]
+    result = apply({**decision(edited_protein, "correct"), "measurements": moves})
+    assert result["ok"], result
+    edited_protein.refresh_from_db()
+    assert edited_protein.status == "approved"
+    assert edited_protein.states.get().lifetime == 2.5
+    assert "approve" not in apply({**decision(edited_protein, "approve")}).get("result", "")

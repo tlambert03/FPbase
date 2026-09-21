@@ -64,6 +64,19 @@ def field_history(versions_by_model, fields, editors):
     return out
 
 
+def measurement_info(m):
+    keep = ("ex_max", "em_max", "ext_coeff", "qy", "pka", "lifetime", "twop_ex_max",
+            "twop_peak_gm", "twop_qy", "is_dark")  # fmt: skip
+    return {
+        "id": m.id,
+        "doi": m.reference and m.reference.doi,
+        "values": {k: getattr(m, k) for k in keep if getattr(m, k) not in (None, False)},
+        "conditions": m.conditions,
+        "created_by": m.created_by and m.created_by.username,
+        "modified": m.modified,
+    }
+
+
 def smoothed_peak(data, near, window=11, reach=40):
     """Maximum of a moving average within `reach` nm of the raw peak `near`.
 
@@ -131,6 +144,7 @@ out = {
     "slug": p.slug,
     "name": p.name,
     "status": p.status,
+    "modified": p.modified,  # pass as expect_modified to `apply`
     "created": p.created,
     "status_changed": p.status_changed,
     "protein_history": field_history([(Protein, p.pk)], PROTEIN_FIELDS, editors),
@@ -140,6 +154,10 @@ out = {
             "now": {f: getattr(s, f) for f in STATE_FIELDS},
             # spectral fields live on State in old snapshots and on FluorState in newer ones
             "history": field_history([(State, s.pk), (FLUOR_STATE, s.pk)], STATE_FIELDS, editors),
+            "measurements": [
+                measurement_info(m)
+                for m in s.measurements.select_related("reference", "created_by")
+            ],
             "spectra": [
                 spectrum_info(sp, around)
                 for sp in Spectrum.objects.all_objects().filter(owner_fluor_id=s.pk)
