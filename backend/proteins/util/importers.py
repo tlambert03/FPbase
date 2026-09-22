@@ -245,8 +245,8 @@ def text_to_spectra(text, wavecol=0):
 
     Returns:
         tuple: (waves, outdata, headers).  waves is 1D, outdata is MxN, where M
-            is the number of data columns and N is the number of wavelenghts.
-            headers is 1D of length M, containing titles of data colums
+            is the number of data columns and N is the number of wavelengths.
+            headers is 1D of length M, containing titles of data columns
     """
     headers, data = read_csv_text(text)
 

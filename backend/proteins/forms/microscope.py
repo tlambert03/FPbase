@@ -306,7 +306,7 @@ class MicroscopeForm(forms.ModelForm):
             except Exception:
                 self.add_error(
                     "optical_configs",
-                    f"Uknown error parsing line #{linenum + 1}: {line}",
+                    f"Unknown error parsing line #{linenum + 1}: {line}",
                 )
         return cleaned
 
