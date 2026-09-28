@@ -226,12 +226,6 @@ sentry_sdk.init(
     ),  # 5% of traced requests
 )
 
-# Scout APM Configuration
-# ------------------------------------------------------------------------------
-# SCOUT_MONITOR and SCOUT_KEY are automatically set by the Heroku addon
-INSTALLED_APPS += ["scout_apm.django"]
-SCOUT_NAME = "FPbase"
-
 # Structlog Configuration for Production
 # Uses JSON output for the log aggregator (Axiom, via a Heroku log drain)
 # Base structlog configuration is in base.py - no need to reconfigure here
