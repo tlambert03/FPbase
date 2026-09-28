@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.conf import settings
@@ -162,7 +163,31 @@ class RateLimitedGraphQLView(GraphQLView):
 
             return response
 
-        return super().dispatch(request, *args, **kwargs)
+        response = super().dispatch(request, *args, **kwargs)
+        if response.status_code == 400 and not self.batch:
+            self._log_bad_request(request, response)
+        return response
+
+    def _log_bad_request(self, request, response) -> None:
+        # the access log lines don't say why a query was rejected: log the errors and query
+        try:
+            errors = [e.get("message") for e in json.loads(response.content)["errors"]]
+        except (ValueError, KeyError, TypeError, AttributeError):
+            errors = []
+        try:
+            body = json.loads(request.body) if request.method == "POST" else {}
+        except ValueError:
+            body = {}
+        body = body if isinstance(body, dict) else {}
+        query = request.GET.get("query") or body.get("query") or ""
+        logger.warning(
+            "GraphQL bad request",
+            extra={
+                "errors": errors[:5],
+                "operation_name": request.GET.get("operationName") or body.get("operationName"),
+                "query": str(query)[:500],
+            },
+        )
 
 
 class HomeView(TemplateView):

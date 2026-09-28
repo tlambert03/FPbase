@@ -8,7 +8,8 @@ from django.urls import reverse
 from reversion import is_registered
 from reversion.models import Version
 
-from proteins.models import Protein, State
+from proteins.factories import ProteinFactory, StateFactory
+from proteins.models import FluorState, Protein, State
 
 User = get_user_model()
 
@@ -124,3 +125,23 @@ def test_ajax_approve_writes_snapshot(client) -> None:
     snapshot = Version.objects.get_for_object(protein).first()  # newest
     assert snapshot.field_dict["status"] == Protein.STATUS.approved
     assert snapshot.revision.user == staff
+
+
+@pytest.mark.django_db
+def test_version_view_when_old_state_slug_was_taken(client):
+    """Viewing an old version whose state slug now belongs to another state (FPBASE-5S3)."""
+    protein = ProteinFactory(name="SlugProtein")
+    state = StateFactory(protein=protein, name="default", slug="old-slug")
+    with reversion.create_revision():
+        reversion.add_to_revision(protein)
+        reversion.add_to_revision(state)
+        reversion.add_to_revision(FluorState.objects.get(pk=state.pk))
+    version = Version.objects.get_for_object(protein).first()
+
+    state.slug = "new-slug"
+    state.save()
+    StateFactory(protein=ProteinFactory(name="OtherProtein"), name="default", slug="old-slug")
+
+    response = client.get(f"/protein/{protein.slug}/ver/{version.id}")
+    assert response.status_code == 200
+    assert State.objects.get(pk=state.pk).slug == "new-slug"

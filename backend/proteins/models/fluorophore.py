@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Final, cast
 
 from django.db import models
 from django.db.models import Avg
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from django.utils.text import slugify
 
 from proteins.models.fluorescence_data import AbstractFluorescenceData
@@ -380,3 +382,12 @@ class FluorState(AbstractFluorescenceData):
         if owner := self._owner():
             return owner.primary_reference_id
         return None
+
+
+@receiver(pre_save, sender=FluorState)
+def _keep_slug_on_revert(sender, instance: FluorState, raw: bool, **kwargs) -> None:
+    # reversion restores rows with a raw save, carrying the slug the state had back then,
+    # which another state may since have taken (FPBASE-5S3). The slug is derived from the
+    # owner and state names, so keep the current one.
+    if raw and (current := sender._base_manager.filter(pk=instance.pk).first()):
+        instance.slug = current.slug
