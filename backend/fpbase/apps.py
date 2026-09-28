@@ -11,6 +11,7 @@ class FPbaseConfig(AppConfig):
 
     def ready(self):
         """Import signal handlers when Django starts."""
+        from fpbase import request_logging  # noqa: F401
         from fpbase.cache_utils import _register_signal_handlers
 
         _register_signal_handlers()

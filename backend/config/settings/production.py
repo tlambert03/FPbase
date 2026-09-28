@@ -9,6 +9,7 @@ Production settings for FPbase project.
 
 """
 
+import logging
 import re
 import ssl
 
@@ -232,7 +233,7 @@ INSTALLED_APPS += ["scout_apm.django"]
 SCOUT_NAME = "FPbase"
 
 # Structlog Configuration for Production
-# Uses JSON output for log aggregation systems like Logtail
+# Uses JSON output for the log aggregator (Axiom, via a Heroku log drain)
 # Base structlog configuration is in base.py - no need to reconfigure here
 
 LOGGING = {
@@ -311,7 +312,7 @@ LOGGING = {
             "level": "ERROR",
             "propagate": False,
         },
-        # django-structlog request logging
+        # django-structlog request logging: one `request_finished` line per request
         "django_structlog": {
             "handlers": ["console"],
             "level": "INFO",
@@ -325,6 +326,8 @@ LOGGING = {
         },
     },
 }
+# `request_started` only duplicates `request_finished` (see fpbase/request_logging.py)
+DJANGO_STRUCTLOG_STATUS_START_LOG_LEVEL = logging.DEBUG
 
 
 # Custom Admin URL, use {% url 'admin:index' %}

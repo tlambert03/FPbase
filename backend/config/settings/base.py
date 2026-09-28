@@ -461,7 +461,7 @@ def add_sentry_context(logger, method_name, event_dict):
            )
        ```
 
-    The sentry_event_id field allows searching Logtail for the log, then
+    The sentry_event_id field allows finding the log line in Axiom, then
     using the ID to find the full exception context in Sentry.
     """
     # Check if sentry_event_id was explicitly passed in extra dict
