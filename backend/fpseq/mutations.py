@@ -465,7 +465,7 @@ class MutationSet:
         self.muts = set(newgroups)
 
     def _consecutive_groups(self):
-        """returns a list of np.arrays containin adjacent Mutation objects"""
+        """returns a list of np.arrays containing adjacent Mutation objects"""
         msl = list(self)
         g = np.split(msl, np.where(np.diff([m.start_idx for m in msl]) != 1)[0] + 1)
         return g
