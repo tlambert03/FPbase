@@ -97,7 +97,7 @@
     <dt class="col-sm-3">From (State)</dt>
     <dd class="col-sm-9">The initial state required for this transition to occur</dd>
     <dt class="col-sm-3">To (State)</dt>
-    <dd class="col-sm-9">The resulting state, after transition has occured</dd>
+    <dd class="col-sm-9">The resulting state, after transition has occurred</dd>
     <dt class="col-sm-3">Transition Wavelength</dt>
     <dd class="col-sm-9">The wavelength of light that drives this particular state transition</dd>
   </dl>
@@ -105,7 +105,7 @@
   <hr>
 
   <h3 class='strong mb-3'>Bleach Measurement</h3>
-  <p>We believe that reported measurements of photostability often lack sufficient information for making comparisons across experiments.  The goal of the bleach measurement object in the database is to encapsulate more information about a bleaching measurment.  We hope to add a bleach-measurement protocol in the future with the hopes of potentially to collect user-contributed data, with a common baseline for comparison.  Of course, <a href="{% url 'contact' %}">suggestions</a> are always welcome!</p>
+  <p>We believe that reported measurements of photostability often lack sufficient information for making comparisons across experiments.  The goal of the bleach measurement object in the database is to encapsulate more information about a bleaching measurement.  We hope to add a bleach-measurement protocol in the future with the hopes of potentially to collect user-contributed data, with a common baseline for comparison.  Of course, <a href="{% url 'contact' %}">suggestions</a> are always welcome!</p>
   <dl class="row">
     <dt class="col-sm-3">Imaging Modality</dt>
     <dd class="col-sm-9">Type of microscope or other equipment used for this measurement (e.g. widefield or confocal microscopy, protein solution in cuvette, etc...)</dd>
@@ -114,7 +114,7 @@
     <dt class="col-sm-3">Illumination Units</dt>
     <dd class="col-sm-9">The illumination power units reported.  We believe that illumination power should always be reported in units of energy-per-unit-area (e.g. W/cm2, a.k.a intensity).  Photobleaching characteristics are famously complicated and non-linear, and likely vary as the illumination intensity brings the fluorophore population closer to ground state depletion.  By knowing the local intensity of illumination, we can make a more-informed calculation about the potential for ground-state depletion.  Unfortunately, illumination power is often reported only in units of energy (W, or J/s).  Without knowing more about the area over which that energy was distributed, we can say nothing about the local intensity that the fluorophore experienced.  This makes it much harder to compare bleaching measurements.  (For instance, 1mW focused into a diffraction limited spot on a point-scanning confocal will bleach an FP in a much shorter period of time than 1mW spread over a large field of view with a low-magnfication objective.)</dd>
     <dt class="col-sm-3">Bleaching Half-life</dt>
-    <dd class="col-sm-9">The duration of time (not frames) required to reach half the intitial fluorescence intensity.</dd>
+    <dd class="col-sm-9">The duration of time (not frames) required to reach half the initial fluorescence intensity.</dd>
     <dt class="col-sm-3">Fusion Protein</dt>
     <dd class="col-sm-9">If applicable, the protein to which the fluorescent protein was fused when the measurement was made.  Bleaching characteristics can often be affected by local environment (such as an FP integrated into tightly folded histones vs soluble fluorescent protein)</dd>
     <dt class="col-sm-3">Reference</dt>
@@ -146,7 +146,7 @@
   <h3 class='strong mb-3'>Reference</h3>
   <dl class="row">
     <dt class="col-sm-3">DOI</dt>
-    <dd class="col-sm-9">The digitial object identifier (DOI) is a persistent identifier used to uniquely identify objects such as referenes.  In FPbase, all references must have a DOI, which will be used to retrieve additional reference properties (title, journal, authors, etc...).  </dd>
+    <dd class="col-sm-9">The digital object identifier (DOI) is a persistent identifier used to uniquely identify objects such as references.  In FPbase, all references must have a DOI, which will be used to retrieve additional reference properties (title, journal, authors, etc...).  </dd>
   </dl>
 
 </div>
