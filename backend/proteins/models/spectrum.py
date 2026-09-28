@@ -15,6 +15,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Case, CharField, F, IntegerField, QuerySet, Value, When
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.text import slugify
 from model_utils import Choices
@@ -810,3 +812,16 @@ class Filter(SpectrumOwner, Product):
             except Exception:
                 pass
         super().save(*args, **kwargs)
+
+
+@receiver(post_delete, sender=Spectrum)
+def _delete_spectrumless_owner(sender, instance: Spectrum, **kwargs) -> None:
+    # a filter, light or camera is only its spectrum: left without one, it breaks every
+    # microscope that uses it (FPBASE-5E6)
+    for model, owner_id in (
+        (Filter, instance.owner_filter_id),
+        (Light, instance.owner_light_id),
+        (Camera, instance.owner_camera_id),
+    ):
+        if owner_id is not None:
+            model.objects.filter(pk=owner_id).delete()
