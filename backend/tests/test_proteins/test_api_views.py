@@ -188,6 +188,31 @@ def test_protein_list_api_name_alias(client):
 
 
 @pytest.mark.django_db
+def test_protein_list_api_pdb_alias(client):
+    """A bare `pdb=` matches proteins with that PDB ID, in any case."""
+    ProteinFactory(name="PdbProtein", pdb=["5WJ2", "2IB5"])
+    ProteinFactory(name="OtherProtein", pdb=["3ADF"])
+    for query in ("pdb=5WJ2", "pdb=5wj2", "pdb=2ib5,5WJ2"):
+        response = client.get(f"/api/proteins/?format=json&{query}")
+        assert [p["name"] for p in response.json()] == ["PdbProtein"], query
+
+
+@pytest.mark.django_db
+def test_spectrum_detail_api_names_protein(client):
+    """A protein state's spectrum reports its protein (FPBASE-6HV)."""
+    protein = ProteinFactory(name="SpecProtein")
+    state = StateFactory(protein=protein, name="default")
+    spectrum = state.spectra.first()
+    assert spectrum is not None
+
+    response = client.get(f"/api/spectrum/{spectrum.id}/?format=json")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["protein_name"] == "SpecProtein"
+    assert data["protein_slug"] == protein.slug
+
+
+@pytest.mark.django_db
 def test_protein_detail_api(client, django_assert_max_num_queries):
     """A single protein by slug (in any case), in a fixed number of queries."""
     protein = ProteinFactory(name="DetailProtein")

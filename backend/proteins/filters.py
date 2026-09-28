@@ -229,3 +229,8 @@ class ProteinAPIFilter(ProteinFilter):
 
     # a bare `?name=` is what most API clients guess first
     name = django_filters.CharFilter(field_name="name", lookup_expr="iexact")
+    # likewise a bare `?pdb=`; PDB IDs are case-insensitive, and stored upper case
+    pdb = CharArrayFilter(field_name="pdb", method="pdb_contains")
+
+    def pdb_contains(self, queryset, name, value):
+        return queryset.filter(pdb__contains=[v.strip().upper() for v in value])
