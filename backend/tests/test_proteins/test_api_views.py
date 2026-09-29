@@ -266,16 +266,35 @@ def test_protein_spectra_api_filters(client):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "query",
-    ["search=guess", "q=guess", "pdb_id=1ABC", "pdb__icontains=1abc", "pdb__iexact=1ABC"],
-)
-def test_protein_list_api_guessed_param_aliases(client, query):
-    """Commonly guessed params filter, rather than 400."""
-    ProteinFactory(name="GuessProtein", pdb=["1ABC"])
-    ProteinFactory(name="OtherProtein", pdb=["2DEF"])
-    response = client.get(f"/api/proteins/?format=json&{query}")
+def test_protein_list_api_search_alias(client):
+    """`search=` is a name/alias search, as the conventional name for one."""
+    ProteinFactory(name="GuessProtein")
+    ProteinFactory(name="OtherProtein")
+    response = client.get("/api/proteins/?format=json&search=guess")
     assert [p["name"] for p in response.json()] == ["GuessProtein"]
+
+
+@pytest.mark.parametrize(
+    ("param", "hint"),
+    [
+        ("pdb_id", "pdb"),
+        ("pdb__icontains", "pdb__contains"),
+        ("ex_max__gte", "default_state__ex_max__gte"),
+        ("name__contains", "name__icontains"),
+        ("default_state__ex_max__exact", "default_state__ex_max"),
+        ("ex_maxx", "ex_max"),
+        ("q", None),
+        ("find", None),
+    ],
+)
+@pytest.mark.django_db
+def test_unknown_param_did_you_mean(client, param, hint):
+    """A guessed param's 400 names the param it most likely meant, if any."""
+    response = client.get(f"/api/proteins/?format=json&{param}=1")
+    assert response.status_code == 400
+    error = response.json()
+    assert error["did_you_mean"] == ({param: hint} if hint else {})
+    assert (f"Did you mean: {hint} (for {param})" in error["detail"]) == bool(hint)
 
 
 @pytest.mark.django_db

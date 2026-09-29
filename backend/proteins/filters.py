@@ -233,12 +233,9 @@ class ProteinAPIFilter(ProteinFilter):
     name = django_filters.CharFilter(field_name="name", lookup_expr="iexact")
     # likewise a bare `?pdb=`; PDB IDs are case-insensitive, and stored upper case
     pdb = CharArrayFilter(field_name="pdb", method="pdb_contains")
-    # other names clients commonly guess (from the API's 400 logs)
+    # the conventional name for a free-text search (as in DRF's SearchFilter)
     search = django_filters.CharFilter(method="name_or_alias_icontains")
-    q = django_filters.CharFilter(method="name_or_alias_icontains")
-    pdb_id = CharArrayFilter(field_name="pdb", method="pdb_contains")
-    pdb__icontains = CharArrayFilter(field_name="pdb", method="pdb_contains")
-    pdb__iexact = CharArrayFilter(field_name="pdb", method="pdb_contains")
+    # short names for the default state's peaks
     ex_max = django_filters.NumberFilter(field_name="default_state__ex_max")
     em_max = django_filters.NumberFilter(field_name="default_state__em_max")
 

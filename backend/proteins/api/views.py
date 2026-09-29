@@ -1,3 +1,5 @@
+import difflib
+
 from django.db.models import F, Max, Prefetch
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import reverse
@@ -118,14 +120,38 @@ class StrictDjangoFilterBackend(filters.DjangoFilterBackend):
         if paginator := view.paginator:
             allowed |= {paginator.limit_query_param, paginator.offset_query_param}
         if unknown := sorted(set(request.query_params) - allowed):
+            detail = f"Unknown query parameter(s): {', '.join(unknown)}"
+            hints = {p: s for p in unknown if (s := _suggest_param(p, allowed - {"display"}))}
+            if hints:
+                detail += ". Did you mean: " + ", ".join(
+                    f"{s} (for {p})" for p, s in hints.items()
+                )
             raise ValidationError(
                 {
-                    "detail": f"Unknown query parameter(s): {', '.join(unknown)}",
+                    "detail": detail,
+                    "did_you_mean": hints,
                     "valid_parameters": sorted(allowed - {"display"}),
                     "docs": request.build_absolute_uri(reverse("api:api")),
                 }
             )
         return super().filter_queryset(request, queryset, view)
+
+
+def _suggest_param(param: str, allowed: set[str]) -> str | None:
+    """The valid param a guess most likely meant, e.g. `pdb_id` -> `pdb`."""
+    # a param on a related model: `ex_max__gte` -> `default_state__ex_max__gte`
+    if suffixed := sorted(a for a in allowed if a.endswith(f"__{param}")):
+        return suffixed[0]
+    # an explicit exact lookup, where the bare name is exact: `slug__iexact` -> `slug`
+    field, _, lookup = param.rpartition("__")
+    if lookup in ("exact", "iexact") and field in allowed:
+        return field
+    # same field, other spelling: `pdb_id` -> `pdb`, `name__contains` -> `name__icontains`
+    root = param.split("__")[0].removesuffix("_id")
+    related = [a for a in allowed if a == root or a.startswith(f"{root}__")]
+    # otherwise only a near-typo (`ex_maxx`), so an unrelated guess gets no hint
+    matches = difflib.get_close_matches(param, related, n=1, cutoff=0)
+    return (matches or difflib.get_close_matches(param, allowed, n=1, cutoff=0.8) or [None])[0]
 
 
 class SpectrumList(ListAPIView):
