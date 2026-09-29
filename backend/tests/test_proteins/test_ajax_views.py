@@ -6,9 +6,10 @@ These tests ensure ajax endpoints perform efficiently and avoid N+1 query issues
 
 from __future__ import annotations
 
+import pytest
 from django.contrib.auth import get_user_model
 from django.db import connection
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 
 from proteins.factories import (
@@ -325,3 +326,31 @@ class SimilarSpectrumOwnersViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(len(data["similars"]), 0)
+
+
+@pytest.mark.django_db
+def test_comparison_get_creates_no_session(client):
+    """Every page load GETs the comparison; that alone must not start a session."""
+    response = client.get("/ajax/comparison/")
+    assert response.status_code == 200
+    assert response.json()["comparison_set"] == []
+    assert "sessionid" not in response.cookies
+
+
+@pytest.mark.django_db
+def test_comparison_updates_without_csrf_token():
+    """Logged-out pages are edge-cached, so the embedded CSRF token isn't the visitor's."""
+    client = Client(enforce_csrf_checks=True)
+    protein = ProteinFactory(name="CompareMe")
+
+    def post(**data):
+        response = client.post("/ajax/comparison/", data)
+        assert response.status_code == 200
+        return [p["slug"] for p in response.json()["comparison_set"]]
+
+    assert post(operation="add", object=protein.slug) == [protein.slug]
+    assert "sessionid" in client.cookies
+    assert post(operation="remove", object="not-in-the-list") == [protein.slug]
+    assert post(operation="remove", object=protein.slug) == []
+    post(operation="add", object=protein.slug)
+    assert post(operation="clear") == []
