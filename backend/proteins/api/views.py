@@ -245,6 +245,15 @@ class ProteinSpectraListAPIView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinSpectraSerializer
     queryset = pm.Protein.objects.with_spectra().prefetch_related("states")
+    # without these, every filtered query returned (and serialized) every spectrum
+    filter_backends = (StrictDjangoFilterBackend,)
+    filterset_class = ProteinAPIFilter
+    pagination_class = OptionalLimitOffsetPagination
+    throttle_classes = [ExpensiveListAnonThrottle, *api_settings.DEFAULT_THROTTLE_CLASSES]  # pyright: ignore[reportAssignmentType]
+
+    @method_decorator(cache_page(60 * 10))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 class ProteinTableAPIView(ListAPIView):

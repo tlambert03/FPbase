@@ -1,6 +1,7 @@
 import django_filters
 from Bio import Seq
 from django import forms
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from proteins.models import Organism, Protein, Spectrum, State
@@ -192,7 +193,8 @@ class ProteinFilter(filters.FilterSet):
         }
 
     def name_or_alias_icontains(self, queryset, name, value):
-        return queryset.filter(name__icontains=value) | queryset.filter(aliases__icontains=value)
+        # one filter, not `qs | qs`: combining annotated querysets drops every row
+        return queryset.filter(Q(name__icontains=value) | Q(aliases__icontains=value))
 
     def switch_type__notequal(self, queryset, name, value):
         return queryset.exclude(switch_type=value)
@@ -231,6 +233,14 @@ class ProteinAPIFilter(ProteinFilter):
     name = django_filters.CharFilter(field_name="name", lookup_expr="iexact")
     # likewise a bare `?pdb=`; PDB IDs are case-insensitive, and stored upper case
     pdb = CharArrayFilter(field_name="pdb", method="pdb_contains")
+    # other names clients commonly guess (from the API's 400 logs)
+    search = django_filters.CharFilter(method="name_or_alias_icontains")
+    q = django_filters.CharFilter(method="name_or_alias_icontains")
+    pdb_id = CharArrayFilter(field_name="pdb", method="pdb_contains")
+    pdb__icontains = CharArrayFilter(field_name="pdb", method="pdb_contains")
+    pdb__iexact = CharArrayFilter(field_name="pdb", method="pdb_contains")
+    ex_max = django_filters.NumberFilter(field_name="default_state__ex_max")
+    em_max = django_filters.NumberFilter(field_name="default_state__em_max")
 
     def pdb_contains(self, queryset, name, value):
         return queryset.filter(pdb__contains=[v.strip().upper() for v in value])

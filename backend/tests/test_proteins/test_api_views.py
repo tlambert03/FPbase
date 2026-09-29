@@ -158,10 +158,10 @@ def test_unknown_query_params_rejected(client, url):
     """Guessed params are a 400 naming the valid ones, not an unfiltered dump."""
     ProteinFactory()
 
-    response = client.get(f"{url}?format=json&search=mCherry&page=2")
+    response = client.get(f"{url}?format=json&find=mCherry&page=2")
     assert response.status_code == 400
     error = response.json()
-    assert "page, search" in error["detail"]
+    assert "find, page" in error["detail"]
     assert "name__icontains" in error["valid_parameters"]
     assert error["docs"].endswith("/api/")
 
@@ -244,3 +244,44 @@ def test_unknown_api_path_is_json_404(client):
 
     # routes declared after the api include are not shadowed
     assert client.get("/api/schema/").status_code != 404
+
+
+@pytest.mark.django_db
+def test_protein_spectra_api_filters(client):
+    """Filters narrow /api/proteins/spectra/, instead of being ignored (a full dump)."""
+    for name in ("SpectraOne", "SpectraTwo", "SpectraThree"):
+        StateFactory(protein=ProteinFactory(name=name), name="default")
+
+    def names(query: str) -> list[str]:
+        response = client.get(f"/api/proteins/spectra/?format=json&{query}")
+        assert response.status_code == 200, response.content
+        return sorted(p["name"] for p in response.json())
+
+    assert names("name=spectraone") == ["SpectraOne"]
+    assert names("name__icontains=spectrat") == ["SpectraThree", "SpectraTwo"]
+    assert len(names("limit=2")) == 2
+    assert len(names("")) == 3
+    assert names("slug=spectratwo") == ["SpectraTwo"]
+    assert client.get("/api/proteins/spectra/?format=json&protein=x").status_code == 400
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query",
+    ["search=guess", "q=guess", "pdb_id=1ABC", "pdb__icontains=1abc", "pdb__iexact=1ABC"],
+)
+def test_protein_list_api_guessed_param_aliases(client, query):
+    """Commonly guessed params filter, rather than 400."""
+    ProteinFactory(name="GuessProtein", pdb=["1ABC"])
+    ProteinFactory(name="OtherProtein", pdb=["2DEF"])
+    response = client.get(f"/api/proteins/?format=json&{query}")
+    assert [p["name"] for p in response.json()] == ["GuessProtein"]
+
+
+@pytest.mark.django_db
+def test_protein_list_api_ex_em_max_aliases(client):
+    ProteinFactory(name="Green", default_state__ex_max=488, default_state__em_max=507)
+    ProteinFactory(name="Red", default_state__ex_max=587, default_state__em_max=610)
+    for query in ("ex_max=488", "em_max=507"):
+        response = client.get(f"/api/proteins/?format=json&{query}")
+        assert [p["name"] for p in response.json()] == ["Green"], query
