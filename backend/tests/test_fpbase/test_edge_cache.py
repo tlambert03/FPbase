@@ -16,7 +16,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def enabled(settings):
+def enabled(settings, apply_async):
+    # (`apply_async` is mocked: an eager task would call Cloudflare for real)
     settings.CLOUDFLARE_ZONE_ID = "zone123"
     settings.CLOUDFLARE_PURGE_TOKEN = "secret"
     settings.CANONICAL_URL = "https://www.example.org"
@@ -51,6 +52,10 @@ def test_cdn_headers(client):
     assert response["Cache-Control"] == expected
     response = _graphql_get(client, "{ proteins { name } }")  # (from the server cache)
     assert response["Cache-Control"] == expected
+
+    # a response that sets a cookie is not cached by the CDN
+    assert "csrftoken" not in response.cookies
+    assert "csrftoken" in _graphql_get(client, "{ nope }").cookies
 
     # errors are not for keeping
     response = _graphql_get(client, '{ dye(name: "no such dye") { name } }')
