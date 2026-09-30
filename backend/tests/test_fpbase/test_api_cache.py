@@ -10,7 +10,7 @@ from django.db import connection
 from fpbase import views
 from fpbase.cache_utils import get_data_version
 from proteins.factories import ProteinFactory, StateFactory
-from proteins.models import Protein
+from proteins.models import FluorescenceMeasurement, Protein
 
 pytestmark = pytest.mark.django_db
 
@@ -55,6 +55,18 @@ def test_related_models_change_the_data_version():
     assert get_data_version() != created
 
 
+def test_measurement_edit_changes_the_data_version(client):
+    state = StateFactory(ex_max=488)
+    url = f"/api/proteins/{state.protein.slug}/"
+    assert client.get(url).json()["states"][0]["ex_max"] == 488
+
+    # loaded on its own (as in the admin), its `state` is a FluorState, not a State
+    measurement = FluorescenceMeasurement.objects.get(state=state)
+    measurement.ex_max = 500
+    measurement.save()
+    assert client.get(url).json()["states"][0]["ex_max"] == 500
+
+
 def test_data_version_changes_again_on_commit(django_capture_on_commit_callbacks):
     protein = ProteinFactory()
     with django_capture_on_commit_callbacks(execute=True):
@@ -95,6 +107,13 @@ def test_graphql_errors_and_large_responses_are_not_cached(
         with django_assert_num_queries(1):
             response = _graphql(client, missing)
         assert response.status_code == 200
+        assert "errors" in response.json()
+
+    # pretty-printed: "data" sorts before "errors"
+    for _ in range(2):
+        with django_assert_num_queries(1):
+            response = client.get("/graphql/", {"query": missing, "pretty": "1"})
+        assert response.content.lstrip(b"{ \n").startswith(b'"data"')
         assert "errors" in response.json()
 
     monkeypatch.setattr(views, "GRAPHQL_CACHE_MAX_SIZE", 10)

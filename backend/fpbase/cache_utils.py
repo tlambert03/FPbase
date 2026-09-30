@@ -131,6 +131,9 @@ OPTICAL_CONFIG_MODELS = {
 API_MODELS = {
     "proteins.BleachMeasurement",
     "proteins.Excerpt",
+    # a measurement rebuilds its state as a plain FluorState, not a State or DyeState
+    "proteins.FluorescenceMeasurement",
+    "proteins.FluorState",
     "proteins.Lineage",
     "proteins.OSERMeasurement",
     "proteins.StateTransition",

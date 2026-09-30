@@ -181,10 +181,11 @@ class RateLimitedGraphQLView(GraphQLView):
     def get_response(self, request, data, show_graphiql=False):
         # Every operation is a read (the schema has no mutations) of public data, so
         # a response can be reused until the data changes.
-        if self.batch or show_graphiql:
+        # (pretty-printed JSON has sorted keys, so its errors can't be told by its start)
+        if self.batch or show_graphiql or self.pretty or request.GET.get("pretty"):
             return super().get_response(request, data, show_graphiql)
         query, variables, operation_name, _ = self.get_graphql_params(request, data)
-        params = [query, variables, operation_name, bool(request.GET.get("pretty"))]
+        params = [query, variables, operation_name]
         digest = hashlib.sha256(json.dumps(params, sort_keys=True, default=str).encode())
         key = f"graphql:{get_data_version()}:{digest.hexdigest()}"
         if (cached := cache.get(key)) is not None:
@@ -194,7 +195,7 @@ class RateLimitedGraphQLView(GraphQLView):
             status_code == 200
             and result
             and len(result) <= GRAPHQL_CACHE_MAX_SIZE
-            and not result.lstrip("{ \n").startswith('"errors"')
+            and not result.startswith('{"errors"')
         ):
             cache.set(key, result, DATA_CACHE_TTL)
         return result, status_code
