@@ -22,6 +22,8 @@ from django.utils import timezone
 from django.utils.http import http_date
 from django.views.decorators.cache import cache_page
 
+from fpbase import edge_cache
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -92,10 +94,10 @@ def cache_page_by_data_version(
 ) -> Callable[[Callable[..., HttpResponse]], Callable[..., HttpResponse]]:
     """`cache_page`, with the data version in the key: a change to the data is a miss.
 
-    Clients and the CDN know nothing of the data version, so they are given the
-    shorter `client_max_age`, not the lifetime of the server-side cache entry.
+    Clients know nothing of the data version, so they are given the shorter
+    `client_max_age`, not the lifetime of the server-side cache entry.  (The CDN is
+    told more when it will be purged on a change: see `fpbase.edge_cache`.)
     """
-    cache_control = f"{'public, ' if public else ''}max-age={client_max_age}"
 
     def decorator(view: Callable[..., HttpResponse]) -> Callable[..., HttpResponse]:
         @wraps(view)
@@ -107,7 +109,7 @@ def cache_page_by_data_version(
             if callable(render := getattr(response, "render", None)):
                 render()
             if "max-age" in response.get("Cache-Control", ""):
-                response["Cache-Control"] = cache_control
+                response["Cache-Control"] = edge_cache.cache_control(public, client_max_age)
                 response["Expires"] = http_date(time.time() + client_max_age)
                 del response["Age"]
             return response
@@ -181,6 +183,7 @@ def _invalidate(sender: type[Model]) -> None:
         _invalidate_optical_config_cache()
     if model_label in CACHED_MODELS:
         cache.set(DATA_VERSION_KEY, timezone.now().isoformat(), None)
+        edge_cache.schedule_purge()
 
 
 def _after_commit(func: Callable[[], None]) -> None:
