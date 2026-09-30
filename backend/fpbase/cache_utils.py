@@ -35,21 +35,26 @@ def _model_cache_key(model_class: type[Model]) -> str:
 
 def get_model_version(*model_classes: type[Model]) -> str:
     """Get combined version hash for models."""
-    versions = []
-    for model_class in model_classes:
-        cache_key = _model_cache_key(model_class)
-        if (version := cache.get(cache_key)) is None:
-            version = timezone.now().isoformat()
-            if not cache.add(cache_key, version):
-                # Another process set it first; get the value again
-                version = cache.get(cache_key)
-        versions.append(version)
-    return hashlib.blake2b("".join(versions).encode(), digest_size=16).hexdigest()
+    keys = [_model_cache_key(model_class) for model_class in model_classes]
+    versions = cache.get_many(keys)
+    for key in keys:
+        if versions.get(key) is None:
+            versions[key] = _init_version(key)
+    return hashlib.blake2b("".join(versions[k] for k in keys).encode(), digest_size=16).hexdigest()
+
+
+def _init_version(key: str) -> str:
+    # (no timeout: a version that expires is a version that changes)
+    version = timezone.now().isoformat()
+    if not cache.add(key, version, None):
+        # Another process set it first; get the value again
+        version = cache.get(key)
+    return version
 
 
 def invalidate_model_version(model_class: type[Model]) -> None:
     """Bump the version for a model class."""
-    cache.set(_model_cache_key(model_class), timezone.now().isoformat())
+    cache.set(_model_cache_key(model_class), timezone.now().isoformat(), None)
 
 
 DATA_VERSION_KEY = "data_version"
@@ -61,10 +66,25 @@ DATA_CACHE_TTL = 60 * 60
 def get_data_version() -> str:
     """Version of all the data served by the APIs; changes when any of it changes."""
     if (version := cache.get(DATA_VERSION_KEY)) is None:
-        version = timezone.now().isoformat()
-        if not cache.add(DATA_VERSION_KEY, version, None):
-            version = cache.get(DATA_VERSION_KEY)
+        version = _init_version(DATA_VERSION_KEY)
     return hashlib.blake2b(str(version).encode(), digest_size=8).hexdigest()
+
+
+def get_versioned(key: str) -> tuple[str, Any]:
+    """The data version, and the value cached for `key` if it is of that version.
+
+    One round trip to the cache, where a key containing the version takes two.
+    """
+    found: dict[str, Any] = cache.get_many([DATA_VERSION_KEY, key])
+    if (version := found.get(DATA_VERSION_KEY)) is None:
+        version = _init_version(DATA_VERSION_KEY)
+    cached_version, value = found.get(key) or (None, None)
+    return version, (value if cached_version == version else None)
+
+
+def set_versioned(key: str, version: str, value: Any) -> None:
+    """Cache `value` as computed from the data at `version` (from `get_versioned`)."""
+    cache.set(key, (version, value), DATA_CACHE_TTL)
 
 
 def cache_page_by_data_version(
@@ -163,6 +183,10 @@ def _invalidate(sender: type[Model]) -> None:
         cache.set(DATA_VERSION_KEY, timezone.now().isoformat(), None)
 
 
+def _after_commit(func: Callable[[], None]) -> None:
+    transaction.on_commit(func)
+
+
 def _invalidate_on_change(sender: type[Model], **kwargs: Any) -> None:
     """Unified cache invalidation handler for model changes.
 
@@ -170,12 +194,12 @@ def _invalidate_on_change(sender: type[Model], **kwargs: Any) -> None:
     1. Always invalidates model version (for ETags)
     2. Conditionally invalidates specific JSON caches based on model type
     3. Bumps the data version, if the model is served by the APIs
+
+    Only once the change is committed.  Before that, other requests still read the
+    old rows (and would cache them again); and a change that is rolled back is no
+    change: the protein version pages revert a revision just to render it.
     """
-    _invalidate(sender)
-    if transaction.get_connection().in_atomic_block:
-        # and again once the change is visible to other requests: one that read the
-        # old rows in the meantime has cached them under the new version
-        transaction.on_commit(partial(_invalidate, sender))
+    _after_commit(partial(_invalidate, sender))
 
 
 CACHED_MODELS = SPECTRUM_OWNER_MODELS | OPTICAL_CONFIG_MODELS | SEARCH_INDEX_MODELS | API_MODELS

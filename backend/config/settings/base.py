@@ -332,7 +332,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": (
         "fpbase.views.AnonThrottle",
-        "rest_framework.throttling.UserRateThrottle",
+        "fpbase.views.UserThrottle",
     ),
     # throttling is only enabled in production (None means "no limit")
     "DEFAULT_THROTTLE_RATES": {"anon": None, "user": None, "anon_list": None},

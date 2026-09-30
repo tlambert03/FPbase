@@ -6,11 +6,14 @@ import json
 from contextlib import contextmanager
 
 import pytest
-from django.db import connection
+import reversion
+from django.core.cache import cache
+from django.db import connection, transaction
 from django.test.utils import CaptureQueriesContext
+from reversion.models import Version
 
-from fpbase import views
-from fpbase.cache_utils import get_data_version
+from fpbase import cache_utils, views
+from fpbase.cache_utils import get_data_version, get_model_version
 from proteins.factories import ProteinFactory, StateFactory
 from proteins.models import FluorescenceMeasurement, Protein
 
@@ -79,14 +82,60 @@ def test_measurement_edit_changes_the_data_version(client):
     assert client.get(url).json()["states"][0]["ex_max"] == 500
 
 
-def test_data_version_changes_again_on_commit(django_capture_on_commit_callbacks):
+@pytest.fixture
+def real_on_commit(monkeypatch):
+    """Undo the conftest fixture that invalidates without waiting for a commit."""
+    monkeypatch.setattr(cache_utils, "_after_commit", transaction.on_commit)
+
+
+@pytest.mark.usefixtures("real_on_commit")
+def test_data_version_changes_on_commit_only(django_capture_on_commit_callbacks):
     protein = ProteinFactory()
-    with django_capture_on_commit_callbacks(execute=True):
-        assert connection.in_atomic_block
+    version = get_data_version()
+
+    with (
+        django_capture_on_commit_callbacks(execute=True) as callbacks,
+        pytest.raises(RuntimeError),
+        transaction.atomic(),
+    ):
         protein.save()
-        # a request that read the old row here would cache it under this version
-        uncommitted = get_data_version()
-    assert get_data_version() != uncommitted
+        raise RuntimeError("rolled back")
+    assert not callbacks
+    assert get_data_version() == version
+
+    with django_capture_on_commit_callbacks(execute=True):
+        protein.save()
+        # other requests still read the old row: nothing to invalidate yet
+        assert get_data_version() == version
+    assert get_data_version() != version
+
+
+@pytest.mark.usefixtures("real_on_commit")
+def test_viewing_a_protein_version_keeps_the_data_version(
+    client, django_capture_on_commit_callbacks
+):
+    with reversion.create_revision():
+        protein = ProteinFactory(blurb="Original blurb")
+    with reversion.create_revision():
+        protein.blurb = "Modified blurb"
+        protein.save()
+    first = Version.objects.get_for_object(protein).last()
+    version = get_data_version()
+
+    # the page reverts the revision to render it, and rolls that back
+    with django_capture_on_commit_callbacks(execute=True):
+        response = client.get(f"/protein/{protein.slug}/ver/{first.id}")
+    assert response.status_code == 200
+    assert b"Original blurb" in response.content
+    assert get_data_version() == version
+
+
+def test_model_versions_do_not_expire():
+    version = get_model_version(Protein)
+    # (with the default timeout, the version changed every 5 minutes)
+    key = cache.make_key(cache_utils._model_cache_key(Protein))
+    assert cache._expire_info[key] is None  # (LocMemCache)
+    assert get_model_version(Protein) == version
 
 
 def test_graphql_response_is_cached_until_data_changes(client):
