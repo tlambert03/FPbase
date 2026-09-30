@@ -1,6 +1,5 @@
 import graphene
 import graphene_django_optimizer as gdo
-from django.db.models import Prefetch
 from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectType
@@ -47,7 +46,7 @@ class Organism(gdo.OptimizedDjangoObjectType):
         model = models.Organism
         fields = "__all__"
 
-    @gdo.resolver_hints(select_related=("proteins"), only=("proteins"))
+    @gdo.resolver_hints(model_field="proteins")
     def resolve_proteins(self, info):
         return self.proteins.all()
 
@@ -66,11 +65,11 @@ class StateTransition(gdo.OptimizedDjangoObjectType):
         model = models.StateTransition
         fields = "__all__"
 
-    @gdo.resolver_hints(select_related=("from_state"), only=("from_state"))
+    @gdo.resolver_hints(model_field="from_state")
     def resolve_fromState(self, info):
         return self.from_state
 
-    @gdo.resolver_hints(select_related=("to_state"), only=("to_state"))
+    @gdo.resolver_hints(model_field="to_state")
     def resolve_toState(self, info):
         return self.to_state
 
@@ -84,24 +83,25 @@ class Protein(gdo.OptimizedDjangoObjectType):
     cofactor = nullable_enum_from_field(models.Protein, "cofactor")
     oser = graphene.List(OSERMeasurement)
     transitions = graphene.List(StateTransition)
+    defaultState = graphene.Field(lambda: State)
 
     class Meta:
         model = models.Protein
         exclude = ("status", "status_changed", "uuid", "base_name", "switch_type")
 
-    @gdo.resolver_hints(
-        prefetch_related=lambda info: Prefetch(
-            "transitions",
-            queryset=gdo.query(models.StateTransition.objects.all(), info),
-        )
-    )
+    @gdo.resolver_hints(model_field="transitions")
     def resolve_transitions(self, info, **kwargs):
         return self.transitions.all()
+
+    # (graphene-django's own foreign key resolver runs a query per protein)
+    @gdo.resolver_hints(model_field="default_state")
+    def resolve_defaultState(self, info):
+        return self.default_state
 
     def resolve_switchType(self, info):
         return self.switch_type or None
 
-    @gdo.resolver_hints(prefetch_related=("oser_measurements"))
+    @gdo.resolver_hints(model_field="oser_measurements")
     def resolve_oser(self, info):
         return self.oser_measurements.all()
 
@@ -111,11 +111,11 @@ class Protein(gdo.OptimizedDjangoObjectType):
     def resolve_cofactor(self, info):
         return self.cofactor or None
 
-    @gdo.resolver_hints(select_related=("parent_organism"), only=("parent_organism"))
+    @gdo.resolver_hints(model_field="parent_organism")
     def resolve_parentOrganism(self, info):
         return self.parent_organism
 
-    @gdo.resolver_hints(select_related=("primary_reference"), only=("primary_reference"))
+    @gdo.resolver_hints(model_field="primary_reference")
     def resolve_primaryReference(self, info):
         return self.primary_reference
 
@@ -239,7 +239,7 @@ class State(gdo.OptimizedDjangoObjectType):
     def is_type_of(cls, root, info):
         return isinstance(root, models.State)
 
-    @gdo.resolver_hints(select_related=("protein",), only=("protein",))
+    @gdo.resolver_hints(model_field="protein")
     def resolve_protein(self, info, **kwargs):
         return self.protein
 
@@ -364,7 +364,8 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
 
     @gdo.resolver_hints(select_related=("filter__spectrum",), only=("filter__name",))
     def resolve_spectrum(self, info):
-        return self.filter.spectrum
+        # (a filter may have no spectrum)
+        return getattr(self.filter, "spectrum", None)
 
     @gdo.resolver_hints(select_related=("filter__name",), only=("filter__name",))
     def resolve_name(self, info):
@@ -372,7 +373,8 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
 
     @gdo.resolver_hints(select_related=("filter__spectrum",), only=("filter__spectrum__id",))
     def resolve_spectrumId(self, info):
-        return self.filter.spectrum.id
+        spectrum = getattr(self.filter, "spectrum", None)
+        return spectrum.id if spectrum else None
 
     def resolve_id(self, info):
         return self.filter_id

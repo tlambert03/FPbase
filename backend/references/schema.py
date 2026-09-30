@@ -11,7 +11,7 @@ class Author(gdo.OptimizedDjangoObjectType):
         model = models.Author
         exclude = ("reference_set",)
 
-    @gdo.resolver_hints(select_related=("publications"), only=("publications"))
+    @gdo.resolver_hints(model_field="publications")
     def resolve_publications(self, info):
         return self.publications.all()
 
@@ -23,7 +23,7 @@ class Reference(gdo.OptimizedDjangoObjectType):
         model = models.Reference
         exclude = ("author_set",)
 
-    @gdo.resolver_hints(select_related=("authors"), only=("authors"))
+    @gdo.resolver_hints(model_field="authors")
     def resolve_authors(self, info):
         return self.authors.all()
 
