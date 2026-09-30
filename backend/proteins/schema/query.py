@@ -29,6 +29,10 @@ class Query(graphene.ObjectType):
     # this relay query delivers filterable paginated results
     all_proteins = DjangoFilterConnectionField(relay.ProteinNode, filterset_class=ProteinFilter)
 
+    def resolve_all_proteins(self, info, **kwargs):
+        # (a connection is not optimized automatically, unlike a list of proteins)
+        return gdo.query(models.Protein.objects.all(), info)
+
     microscopes = graphene.List(types.Microscope)
     microscope = graphene.Field(types.Microscope, id=graphene.String())
 
@@ -73,7 +77,7 @@ class Query(graphene.ObjectType):
         if _id is not None:
             try:
                 return gdo.query(models.Protein.objects.filter(uuid=_id), info).get()
-            except models.Spectrum.DoesNotExist:
+            except models.Protein.DoesNotExist:
                 return None
         return None
 
@@ -111,7 +115,9 @@ class Query(graphene.ObjectType):
     states = graphene.List(types.State)
 
     def resolve_states(self, info, **kwargs):
-        return models.State.objects.all()
+        # (ordered: states have no ordering of their own, and an optimized query
+        # returns them in another order than the plain one did)
+        return gdo.query(models.State.objects.order_by("id"), info)
 
     def resolve_state(self, info, **kwargs):
         _id = kwargs.get("id")
