@@ -1,6 +1,9 @@
+import copy
+
 import django_filters
 from Bio import Seq
 from django import forms
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from proteins.models import Organism, Protein, Spectrum, State
@@ -192,7 +195,8 @@ class ProteinFilter(filters.FilterSet):
         }
 
     def name_or_alias_icontains(self, queryset, name, value):
-        return queryset.filter(name__icontains=value) | queryset.filter(aliases__icontains=value)
+        # one filter, not `qs | qs`: combining annotated querysets drops every row
+        return queryset.filter(Q(name__icontains=value) | Q(aliases__icontains=value))
 
     def switch_type__notequal(self, queryset, name, value):
         return queryset.exclude(switch_type=value)
@@ -231,6 +235,19 @@ class ProteinAPIFilter(ProteinFilter):
     name = django_filters.CharFilter(field_name="name", lookup_expr="iexact")
     # likewise a bare `?pdb=`; PDB IDs are case-insensitive, and stored upper case
     pdb = CharArrayFilter(field_name="pdb", method="pdb_contains")
+    # the conventional name for a free-text search (as in DRF's SearchFilter)
+    search = django_filters.CharFilter(method="name_or_alias_icontains")
+    # short names for the default state's peaks
+    ex_max = django_filters.NumberFilter(field_name="default_state__ex_max")
+    em_max = django_filters.NumberFilter(field_name="default_state__em_max")
 
     def pdb_contains(self, queryset, name, value):
         return queryset.filter(pdb__contains=[v.strip().upper() for v in value])
+
+
+# short names for every default-state filter: `ex_max__gte`, `qy__gte`, `em_max__around`
+for _name, _filter in list(ProteinAPIFilter.base_filters.items()):
+    if _name.startswith("default_state__") and "bleach" not in _name:
+        ProteinAPIFilter.base_filters.setdefault(
+            _name.removeprefix("default_state__"), copy.deepcopy(_filter)
+        )

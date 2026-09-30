@@ -8,6 +8,21 @@ if TYPE_CHECKING:
     from _pytest.tmpdir import TempPathFactory
 
 
+@pytest.fixture(autouse=True)
+def _clear_cache():
+    # responses are cached by data version, which a rolled-back test doesn't change
+    from django.core.cache import cache
+
+    cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def _invalidate_caches_without_commit(monkeypatch):
+    # a test's transaction is never committed, so neither would be the cache
+    # invalidation that waits for the commit
+    monkeypatch.setattr("fpbase.cache_utils._after_commit", lambda func: func())
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _mock_blast_db(tmp_path_factory: "TempPathFactory"):
     from proteins.util import blast

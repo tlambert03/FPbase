@@ -4,6 +4,7 @@ from django.db.models import Prefetch
 from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectType
+from graphene_django.utils import bypass_get_queryset
 
 from proteins import models
 from references.schema import Reference
@@ -46,15 +47,23 @@ class Organism(gdo.OptimizedDjangoObjectType):
         model = models.Organism
         fields = "__all__"
 
-    @gdo.resolver_hints(select_related=("proteins"), only=("proteins"))
+    @gdo.resolver_hints(model_field="proteins")
     def resolve_proteins(self, info):
         return self.proteins.all()
 
 
 class OSERMeasurement(gdo.OptimizedDjangoObjectType):
+    reference = graphene.Field(
+        Reference, description=models.OSERMeasurement._meta.get_field("reference").help_text
+    )
+
     class Meta:
         model = models.OSERMeasurement
         fields = "__all__"
+
+    @gdo.resolver_hints(model_field="reference", only=("reference",))
+    def resolve_reference(self, info):
+        return self.reference
 
 
 class StateTransition(gdo.OptimizedDjangoObjectType):
@@ -65,11 +74,11 @@ class StateTransition(gdo.OptimizedDjangoObjectType):
         model = models.StateTransition
         fields = "__all__"
 
-    @gdo.resolver_hints(select_related=("from_state"), only=("from_state"))
+    @gdo.resolver_hints(model_field="from_state", only=("from_state",))
     def resolve_fromState(self, info):
         return self.from_state
 
-    @gdo.resolver_hints(select_related=("to_state"), only=("to_state"))
+    @gdo.resolver_hints(model_field="to_state", only=("to_state",))
     def resolve_toState(self, info):
         return self.to_state
 
@@ -83,26 +92,34 @@ class Protein(gdo.OptimizedDjangoObjectType):
     cofactor = nullable_enum_from_field(models.Protein, "cofactor")
     oser = graphene.List(OSERMeasurement)
     transitions = graphene.List(StateTransition)
+    defaultState = graphene.Field(lambda: State)
 
     class Meta:
         model = models.Protein
         exclude = ("status", "status_changed", "uuid", "base_name", "switch_type")
 
-    @gdo.resolver_hints(
-        prefetch_related=lambda info: Prefetch(
-            "transitions",
-            queryset=gdo.query(models.StateTransition.objects.all(), info),
-        )
-    )
+    @gdo.resolver_hints(model_field="transitions")
     def resolve_transitions(self, info, **kwargs):
         return self.transitions.all()
+
+    # (graphene-django's own foreign key resolver runs a query per protein)
+    @gdo.resolver_hints(model_field="default_state", only=("default_state",))
+    def resolve_defaultState(self, info):
+        return self.default_state
 
     def resolve_switchType(self, info):
         return self.switch_type or None
 
-    @gdo.resolver_hints(prefetch_related=("oser_measurements"))
+    # its own prefetch: one for `oser_measurements` too would clash with `oser`'s
+    @gdo.resolver_hints(
+        prefetch_related=lambda info: Prefetch(
+            "oser_measurements",
+            queryset=models.OSERMeasurement.objects.select_related("reference"),
+            to_attr="_oser",
+        )
+    )
     def resolve_oser(self, info):
-        return self.oser_measurements.all()
+        return self._oser if hasattr(self, "_oser") else self.oser_measurements.all()
 
     def resolve_agg(self, info):
         return self.agg or None
@@ -110,11 +127,11 @@ class Protein(gdo.OptimizedDjangoObjectType):
     def resolve_cofactor(self, info):
         return self.cofactor or None
 
-    @gdo.resolver_hints(select_related=("parent_organism"), only=("parent_organism"))
+    @gdo.resolver_hints(model_field="parent_organism", only=("parent_organism",))
     def resolve_parentOrganism(self, info):
         return self.parent_organism
 
-    @gdo.resolver_hints(select_related=("primary_reference"), only=("primary_reference"))
+    @gdo.resolver_hints(model_field="primary_reference", only=("primary_reference",))
     def resolve_primaryReference(self, info):
         return self.primary_reference
 
@@ -157,6 +174,15 @@ class SpectrumOwnerInterface(graphene.Interface):
         return str(self)
 
 
+@bypass_get_queryset
+def _resolve_approved_spectrum(owner, info):
+    # graphene-django's default one-to-one resolver runs a fresh query per owner
+    # (ignoring any prefetch), which was one query per filter in a microscope query.
+    # Only approved spectra, like `Spectrum.objects`.
+    spectrum = getattr(owner, "spectrum", None)
+    return spectrum if spectrum and spectrum.status == models.Spectrum.STATUS.approved else None
+
+
 class Camera(DjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface,)
@@ -166,6 +192,8 @@ class Camera(DjangoObjectType):
     @classmethod
     def is_type_of(cls, root, info):
         return isinstance(root, models.Camera)
+
+    resolve_spectrum = _resolve_approved_spectrum
 
 
 class Dye(DjangoObjectType):
@@ -199,6 +227,8 @@ class Filter(DjangoObjectType):
     def is_type_of(cls, root, info):
         return isinstance(root, models.Filter)
 
+    resolve_spectrum = _resolve_approved_spectrum
+
 
 class Light(DjangoObjectType):
     class Meta:
@@ -209,6 +239,8 @@ class Light(DjangoObjectType):
     @classmethod
     def is_type_of(cls, root, info):
         return isinstance(root, models.Light)
+
+    resolve_spectrum = _resolve_approved_spectrum
 
 
 class State(gdo.OptimizedDjangoObjectType):
@@ -223,19 +255,26 @@ class State(gdo.OptimizedDjangoObjectType):
     def is_type_of(cls, root, info):
         return isinstance(root, models.State)
 
-    @gdo.resolver_hints(select_related=("protein",), only=("protein",))
+    @gdo.resolver_hints(model_field="protein", only=("protein",))
     def resolve_protein(self, info, **kwargs):
         return self.protein
-
-    # spectra = graphene.List(SpectrumType)
-
-    # def resolve_spectra(self, info, **kwargs):
-    #     return self.spectrumowner.spectra.all()
 
 
 class SpectrumOwnerUnion(graphene.Union):
     class Meta:
         types = (State,)
+
+
+class SpectrumData(graphene.Scalar):
+    """Spectrum data as [[wavelength, value], ...] pairs.
+
+    A scalar rather than `[[Float]]`, which made graphql-core check and serialize
+    every value one at a time: ~10x slower for a microscope with many filters.
+    """
+
+    @staticmethod
+    def serialize(value):
+        return value
 
 
 class Spectrum(gdo.OptimizedDjangoObjectType):
@@ -245,10 +284,11 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
         exclude = ("y_values",)
 
     owner = graphene.Field(SpectrumOwnerInterface)
+    reference = graphene.Field(Reference)
     color = graphene.String()
     # Expose spectrum data as list of [wavelength, value] pairs
     # maintains compatibility with API
-    data = graphene.List(graphene.List(graphene.Float))
+    data = SpectrumData()
 
     def resolve_data(self, info, **kwargs):
         return self.data
@@ -284,6 +324,10 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
 
     def resolve_color(self, info, **kwargs):
         return self.color()
+
+    @gdo.resolver_hints(model_field="reference", only=("reference",))
+    def resolve_reference(self, info):
+        return self.reference
 
 
 class SpectrumOwnerInfo(graphene.ObjectType):
@@ -336,7 +380,8 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
 
     @gdo.resolver_hints(select_related=("filter__spectrum",), only=("filter__name",))
     def resolve_spectrum(self, info):
-        return self.filter.spectrum
+        # (a filter may have no spectrum)
+        return getattr(self.filter, "spectrum", None)
 
     @gdo.resolver_hints(select_related=("filter__name",), only=("filter__name",))
     def resolve_name(self, info):
@@ -344,7 +389,8 @@ class FilterPlacement(gdo.OptimizedDjangoObjectType):
 
     @gdo.resolver_hints(select_related=("filter__spectrum",), only=("filter__spectrum__id",))
     def resolve_spectrumId(self, info):
-        return self.filter.spectrum.id
+        spectrum = getattr(self.filter, "spectrum", None)
+        return spectrum.id if spectrum else None
 
     def resolve_id(self, info):
         return self.filter_id
@@ -391,3 +437,11 @@ class OpticalConfig(gdo.OptimizedDjangoObjectType):
     )
     def resolve_filters(self, info):
         return self.filterplacement_set.all()
+
+    @gdo.resolver_hints(select_related=("camera__spectrum",), only=("camera",))
+    def resolve_camera(self, info):
+        return self.camera
+
+    @gdo.resolver_hints(select_related=("light__spectrum",), only=("light",))
+    def resolve_light(self, info):
+        return self.light

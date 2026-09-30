@@ -75,8 +75,9 @@ def _crossref(doi):
 
 def _doi2pmid(doi: str) -> str | None:
     pubmed_record = Entrez.read(Entrez.esearch(db="pubmed", term=doi))
-    if isinstance(id_list := pubmed_record.get("IdList"), Sequence):
+    if isinstance(id_list := pubmed_record.get("IdList"), Sequence) and id_list:
         return id_list[0]
+    return None
 
 
 def _get_pmid_info(pmid: str) -> DoiInfo | None:
@@ -132,7 +133,7 @@ def doi_lookup(doi: str) -> DoiInfo:
     pmid = _doi2pmid(doi)
     if pmid:
         pinfo = _get_pmid_info(pmid)
-        if pinfo.pop("doi") == doi:
+        if pinfo and pinfo.pop("doi") == doi:
             info = _merge_info(pinfo, info)
             info["pmid"] = pmid
     # get rid of empty values

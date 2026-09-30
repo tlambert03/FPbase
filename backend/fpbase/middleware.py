@@ -36,6 +36,29 @@ class CanonicalDomainMiddleware:
         return self.get_response(request)
 
 
+class ApiTrailingSlashMiddleware:
+    """Serve `/graphql` and `/api/...` paths that lack a trailing slash, without redirecting.
+
+    APPEND_SLASH's 301 costs an API client a second request, and most clients resend
+    a redirected POST as a GET (a GraphQL query then arrives with no body).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path_info
+        # (not for a file-like path such as /api/openapi.json)
+        if (
+            not path.endswith("/")
+            and path.startswith(("/api/", "/graphql"))
+            and "." not in path.rsplit("/", 1)[-1]
+        ):
+            request.path_info += "/"
+            request.path += "/"
+        return self.get_response(request)
+
+
 class BlackListMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response

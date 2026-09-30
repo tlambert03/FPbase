@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 
@@ -10,14 +11,18 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from graphene_django.views import GraphQLView
 from rest_framework import exceptions
-from rest_framework.settings import api_settings
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import last_event_id
 
+from fpbase import edge_cache
+from fpbase.cache_utils import get_versioned, set_versioned
 from fpbase.forms import ContactForm
 from proteins.models import Protein, Spectrum
 
 logger = logging.getLogger(__name__)
+
+# responses larger than this (characters) are not worth their space in the cache
+GRAPHQL_CACHE_MAX_SIZE = 1_000_000
 
 
 class CloudflareIdentMixin:
@@ -29,6 +34,23 @@ class CloudflareIdentMixin:
 
     def get_ident(self, request):
         return request.headers.get("cf-connecting-ip") or super().get_ident(request)
+
+
+class AnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
+    """The default anonymous limit for the REST API."""
+
+
+class UserThrottle(UserRateThrottle):
+    """Limit for logged-in users only.
+
+    DRF's `UserRateThrottle` also counts anonymous clients, by IP: the same thing
+    the anonymous throttles do, at the cost of two more cache round trips.
+    """
+
+    def get_cache_key(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return None
+        return super().get_cache_key(request, view)
 
 
 class ExpensiveListAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
@@ -50,7 +72,8 @@ class SameOriginExemptAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
     throttling external API consumers.
 
     Same-origin is determined by checking if the Referer header matches
-    the request host.
+    the request host.  Scripts send that header too, so only use this on
+    endpoints that the FPbase frontend itself calls.
     """
 
     def allow_request(self, request, view):
@@ -79,14 +102,14 @@ class RateLimitedGraphQLView(GraphQLView):
     GraphQL view with rate limiting using DRF's throttle infrastructure.
 
     Leverages Django REST Framework's battle-tested throttling system:
-    - Uses DEFAULT_THROTTLE_CLASSES from settings (AnonRateThrottle, UserRateThrottle)
+    - Uses the same rates as the REST API (DEFAULT_THROTTLE_RATES in settings)
     - Automatically handles X-Forwarded-For for Heroku deployments
     - Raises DRF's Throttled exception which includes retry-after information
     - Converts the exception to GraphQL error format with proper HTTP headers
     """
 
-    # Use the same throttle classes as the REST API (from settings.REST_FRAMEWORK)
-    throttle_classes = api_settings.DEFAULT_THROTTLE_CLASSES
+    # the spectra viewer and protein pages fetch every spectrum with its own request
+    throttle_classes = [SameOriginExemptAnonThrottle, UserThrottle]
 
     def get_throttles(self):
         """Instantiate and return the list of throttles that this view uses."""
@@ -166,7 +189,41 @@ class RateLimitedGraphQLView(GraphQLView):
         response = super().dispatch(request, *args, **kwargs)
         if response.status_code == 400 and not self.batch:
             self._log_bad_request(request, response)
+        if request.method == "GET" and edge_cache.is_enabled():
+            # a GET can be cached by the CDN, so say whether this one may be
+            cacheable = response.status_code == 200 and getattr(self, "_edge_cacheable", False)
+            response["Cache-Control"] = (
+                edge_cache.cache_control(public=True) if cacheable else "no-store"
+            )
+            if cacheable:
+                # graphene's `ensure_csrf_cookie` adds a Set-Cookie header, and the CDN
+                # does not cache a response that sets a cookie. (The cookie is for
+                # GraphiQL, whose page this is not.)
+                response.cookies.pop(settings.CSRF_COOKIE_NAME, None)
         return response
+
+    def get_response(self, request, data, show_graphiql=False):
+        # Every operation is a read (the schema has no mutations) of public data, so
+        # a response can be reused until the data changes.
+        # (pretty-printed JSON has sorted keys, so its errors can't be told by its start)
+        if self.batch or show_graphiql or self.pretty or request.GET.get("pretty"):
+            return super().get_response(request, data, show_graphiql)
+        query, variables, operation_name, _ = self.get_graphql_params(request, data)
+        params = [query, variables, operation_name]
+        digest = hashlib.sha256(json.dumps(params, sort_keys=True, default=str).encode())
+        key = f"graphql:{digest.hexdigest()}"
+        version, cached = get_versioned(key)
+        if cached is not None:
+            self._edge_cacheable = True
+            return cached, 200
+        result, status_code = super().get_response(request, data, show_graphiql)
+        # (errors are not cached; nor are the largest responses, which the CDN may keep)
+        self._edge_cacheable = bool(
+            status_code == 200 and result and not result.startswith('{"errors"')
+        )
+        if self._edge_cacheable and len(result) <= GRAPHQL_CACHE_MAX_SIZE:
+            set_versioned(key, version, result)
+        return result, status_code
 
     def _log_bad_request(self, request, response) -> None:
         # the access log lines don't say why a query was rejected: log the errors and query

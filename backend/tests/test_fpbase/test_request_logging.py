@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 from django.test import RequestFactory
 from django_structlog import signals
@@ -50,3 +52,39 @@ def test_graphql_bad_request_is_logged(client, caplog) -> None:
     (record,) = [r for r in caplog.records if r.getMessage() == "GraphQL bad request"]
     assert record.query == query
     assert any("notAField" in e for e in record.errors)
+
+
+@pytest.mark.parametrize(
+    ("payload", "expected"),
+    [
+        (
+            {"query": "query getMicroscope($id: String!) { microscope(id: $id) { id } }"},
+            "getMicroscope",
+        ),
+        ({"query": '{ spectra(category: "f") { id } }'}, "spectra"),
+        ({"query": "query { proteins { name } }"}, "proteins"),
+        ({"query": "query A { a } query B { b }", "operationName": "B"}, "B"),
+        ([{"query": "{ a }"}], None),
+    ],
+)
+def test_graphql_operation_is_logged(payload, expected) -> None:
+    request = RequestFactory().post(
+        "/graphql/", json.dumps(payload), content_type="application/json"
+    )
+    log_kwargs: dict = {}
+    signals.bind_extra_request_finished_metadata.send(
+        sender=None, request=request, logger=None, response=None, log_kwargs=log_kwargs
+    )
+    assert log_kwargs["graphql_operation"] == expected
+
+
+def test_non_graphql_request_has_no_operation() -> None:
+    log_kwargs: dict = {}
+    signals.bind_extra_request_finished_metadata.send(
+        sender=None,
+        request=RequestFactory().get("/protein/egfp/"),
+        logger=None,
+        response=None,
+        log_kwargs=log_kwargs,
+    )
+    assert "graphql_operation" not in log_kwargs

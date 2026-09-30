@@ -31,7 +31,7 @@
 
 <p>By replacing <code>/search/</code> in the URL with <code>/api/proteins/</code>:<br>
 <a href='https://www.fpbase.org/api/proteins/?name__icontains=green&amp;default_state__qy__gte=0.7'><code>https://www.fpbase.org/api/proteins/?name__icontains=green&amp;default_state__qy__gte=0.7</code></a><br><br>
-you will now be searching using the protein api.  To retrieve the results in JSON or CSV format, add <code>&amp;format=json</code> (or <code>format=csv</code>) to the URL:<br>
+you will now be searching using the protein api.  Scripts receive JSON by default, while a web browser is shown an HTML page.  To choose the format explicitly, add <code>&amp;format=json</code> (or <code>format=csv</code>) to the URL:<br>
 <a href='https://www.fpbase.org/api/proteins/?name__icontains=green&default_state__qy__gte=0.7&format=json'><code>https://www.fpbase.org/api/proteins/?name__icontains=green&amp;default_state__qy__gte=0.7&amp;format=json</code></a><br></p>
 
 <h3><strong>Entry points</strong></h3>
@@ -40,12 +40,27 @@ you will now be searching using the protein api.  To retrieve the results in JSO
 	<dt class="col-sm-4"><code>{% url 'api:protein-api' %}</code></dt>
 	<dd class="col-sm-8">Main protein list api</dd>
 	<dt class="col-sm-4"><code>{% url 'api:protein-detail' slug='mcherry' %}</code></dt>
-	<dd class="col-sm-8">A single protein, by slug (the last part of the protein's page URL)</dd>
+	<dd class="col-sm-8">A single protein, by slug (the last part of the protein's page URL).  An FPbase ID (<code>/api/proteins/R9NL8/</code>), a name or alias (<code>/api/proteins/mCherry/</code>) or a PDB ID (<code>/api/proteins/2H5Q/</code>) works too; a PDB ID shared by several proteins gives a <code>404</code> naming them.</dd>
 	<dt class="col-sm-4"><code>{% url 'api:basic-protein-api' %}</code></dt>
 	<dd class="col-sm-8">Dedicated api for 'basic' (non-switchable) proteins that delivers a flat dictionary of attributes (default state is assumed)</dd>
 
 	<dt class="col-sm-4"><code>{% url 'api:spectra-api' %}</code></dt>
 	<dd class="col-sm-8">Retrieve protein spectra</dd>
+	<dt class="col-sm-4"><code>{% url 'api-docs' %}</code></dt>
+	<dd class="col-sm-8">Interactive (Swagger) documentation of every endpoint and parameter; the OpenAPI schema is at <code>{% url 'api-openapi-json' %}</code></dd>
+	<dt class="col-sm-4"><code>/graphql/</code></dt>
+	<dd class="col-sm-8">The <a href="/graphql/">GraphQL API</a>, with an interactive explorer.  It covers proteins, dyes, spectra, filters, cameras, light sources, microscopes and references, and lets you ask for exactly the fields you need.  The <a href="https://github.com/tlambert03/fpbasepy">fpbase</a> Python package wraps it.</dd>
+</dl>
+
+<h3><strong>Choosing fields and paging</strong></h3>
+
+<dl class="row">
+	<dt class="col-sm-4"><code>fields=name,slug,states__ex_max</code></dt>
+	<dd class="col-sm-8">Only these fields (nested ones with <code>__</code>).  Smaller responses are faster to fetch and to parse.</dd>
+	<dt class="col-sm-4"><code>include_fields=states__ex_spectrum</code></dt>
+	<dd class="col-sm-8">Add on-demand fields to the full output.  The spectra, <code>states__ex_spectrum</code> and <code>states__em_spectrum</code> (as <code>[[wavelength, value], ...]</code>), are left out unless named here or in <code>fields</code>.</dd>
+	<dt class="col-sm-4"><code>limit=50&amp;offset=100</code></dt>
+	<dd class="col-sm-8">Page through a list.  Without <code>limit</code> (or <code>page</code>) the whole list is returned.  <code>page=3&amp;page_size=50</code> means the same as this example (<code>page_size</code> defaults to 100).</dd>
 </dl>
 
 
@@ -53,7 +68,8 @@ you will now be searching using the protein api.  To retrieve the results in JSO
 
 The following field name and lookups can be used.  Fieldnames and lookups must be separated by a double-underscore "<code>__</code>".  For example: <code>name__icontains</code>.  The <code>exact</code> lookup is the exception: use the bare field name, for example <code>agg=m</code>.  As a shortcut, <code>name=mCherry</code> is the same as <code>name__iexact=mCherry</code>.  See below for an explanation of each lookup operator.
 
-<p>Unrecognized query parameters return a <code>400</code> error listing the valid ones (rather than being ignored).  Use <code>limit</code> and <code>offset</code> to page through results.</p>
+<p>Unrecognized query parameters return a <code>400</code> error listing the valid ones (rather than being ignored).</p>
+<p>The <code>default_state__</code> prefix on the fluorescence fields below may be dropped: <code>ex_max__gte=600</code> is the same as <code>default_state__ex_max__gte=600</code>.  Likewise <code>pdb=2H5Q</code> finds a protein by PDB ID and <code>search=cherry</code> matches names and aliases.</p>
 <p><table class="table table-bordered small" style='font-family: monospace,monospace; line-height: 0.8rem;'>
 	<tr>
 		<th>field</th>

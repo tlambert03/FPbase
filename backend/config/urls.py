@@ -8,7 +8,11 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularJSONAPIView,
+    SpectacularSwaggerView,
+)
 
 import fpbase.views
 from fpbase.sitemaps import (
@@ -108,6 +112,8 @@ urlpatterns = [  # noqa: RUF005
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     # re_path(r"^api-docs/", include_docs_urls(title="FPbase API docs")),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+    # (where clients look for it)
+    path("api/openapi.json", SpectacularJSONAPIView.as_view(), name="api-openapi-json"),
     path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="api-schema"),

@@ -106,6 +106,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "fpbase.middleware.BlackListMiddleware",
+    "fpbase.middleware.ApiTrailingSlashMiddleware",  # before CommonMiddleware (APPEND_SLASH)
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -329,18 +330,24 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": (
+        "fpbase.views.AnonThrottle",
+        "fpbase.views.UserThrottle",
+    ),
     # throttling is only enabled in production (None means "no limit")
     "DEFAULT_THROTTLE_RATES": {"anon": None, "user": None, "anon_list": None},
 }
 
-# By Default swagger ui is available only to admin user(s). You can change permission
-# classes to change that
-# See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
+# https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
 SPECTACULAR_SETTINGS = {
-    "TITLE": "fpbase API",
-    "DESCRIPTION": "Documentation of API endpoints of fpbase",
+    "TITLE": "FPbase REST API",
+    "DESCRIPTION": (
+        "Fluorescent protein data from https://www.fpbase.org. A guide to the filters is "
+        "at https://www.fpbase.org/api/; there is also a GraphQL API at "
+        "https://www.fpbase.org/graphql/ (with an interactive explorer)."
+    ),
     "VERSION": "1.0.0",
-    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
 }
 
 # django-compressor
@@ -353,6 +360,10 @@ ADMIN_URL = r"^admin/"
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
 CANONICAL_URL = env("CANONICAL_URL", default=None)
+# API responses are cached at Cloudflare, and purged when the data changes, only when
+# both are set (see fpbase.edge_cache). The token needs the "Cache Purge" permission.
+CLOUDFLARE_ZONE_ID = env("CLOUDFLARE_ZONE_ID", default="")
+CLOUDFLARE_PURGE_TOKEN = env("CLOUDFLARE_PURGE_TOKEN", default="")
 
 
 # AVATAR CONFIGURATION
