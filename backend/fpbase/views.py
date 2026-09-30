@@ -14,6 +14,7 @@ from rest_framework import exceptions
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import last_event_id
 
+from fpbase import edge_cache
 from fpbase.cache_utils import get_versioned, set_versioned
 from fpbase.forms import ContactForm
 from proteins.models import Protein, Spectrum
@@ -188,6 +189,12 @@ class RateLimitedGraphQLView(GraphQLView):
         response = super().dispatch(request, *args, **kwargs)
         if response.status_code == 400 and not self.batch:
             self._log_bad_request(request, response)
+        if request.method == "GET" and edge_cache.is_enabled():
+            # a GET can be cached by the CDN, so say whether this one may be
+            cacheable = response.status_code == 200 and getattr(self, "_edge_cacheable", False)
+            response["Cache-Control"] = (
+                edge_cache.cache_control(public=True) if cacheable else "no-store"
+            )
         return response
 
     def get_response(self, request, data, show_graphiql=False):
@@ -202,14 +209,14 @@ class RateLimitedGraphQLView(GraphQLView):
         key = f"graphql:{digest.hexdigest()}"
         version, cached = get_versioned(key)
         if cached is not None:
+            self._edge_cacheable = True
             return cached, 200
         result, status_code = super().get_response(request, data, show_graphiql)
-        if (
-            status_code == 200
-            and result
-            and len(result) <= GRAPHQL_CACHE_MAX_SIZE
-            and not result.startswith('{"errors"')
-        ):
+        # (errors are not cached; nor are the largest responses, which the CDN may keep)
+        self._edge_cacheable = bool(
+            status_code == 200 and result and not result.startswith('{"errors"')
+        )
+        if self._edge_cacheable and len(result) <= GRAPHQL_CACHE_MAX_SIZE:
             set_versioned(key, version, result)
         return result, status_code
 

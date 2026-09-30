@@ -358,6 +358,10 @@ ADMIN_URL = r"^admin/"
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#site-id
 SITE_ID = 1
 CANONICAL_URL = env("CANONICAL_URL", default=None)
+# API responses are cached at Cloudflare, and purged when the data changes, only when
+# both are set (see fpbase.edge_cache). The token needs the "Cache Purge" permission.
+CLOUDFLARE_ZONE_ID = env("CLOUDFLARE_ZONE_ID", default="")
+CLOUDFLARE_PURGE_TOKEN = env("CLOUDFLARE_PURGE_TOKEN", default="")
 
 
 # AVATAR CONFIGURATION
