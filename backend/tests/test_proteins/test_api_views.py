@@ -237,13 +237,33 @@ def test_unknown_api_path_is_json_404(client):
     assert response.status_code == 404
     assert response.json()["proteins"].endswith("/api/proteins/")
 
-    # paths without a trailing slash still get the APPEND_SLASH redirect
-    response = client.get("/api/proteins")
-    assert response.status_code == 301
-    assert response["Location"] == "/api/proteins/"
+    # a missing trailing slash is a 404 too, not a redirect to one
+    assert client.get("/api/no/such/endpoint").status_code == 404
 
     # routes declared after the api include are not shadowed
     assert client.get("/api/schema/").status_code != 404
+
+
+@pytest.mark.django_db
+def test_api_paths_without_trailing_slash_are_served(client):
+    ProteinFactory(name="SlashProtein")
+
+    response = client.get("/api/proteins?name=SlashProtein&format=json")
+    assert response.status_code == 200
+    assert [p["slug"] for p in response.json()] == ["slashprotein"]
+    assert client.get("/api/proteins/slashprotein?format=json").json()["name"] == "SlashProtein"
+
+    # a redirected POST would be resent as a GET, without the query
+    response = client.post(
+        "/graphql", {"query": "{ proteins { name } }"}, content_type="application/json"
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]["proteins"] == [{"name": "SlashProtein"}]
+
+    # other pages keep the APPEND_SLASH redirect
+    response = client.get("/about")
+    assert response.status_code == 301
+    assert response["Location"] == "/about/"
 
 
 @pytest.mark.django_db
