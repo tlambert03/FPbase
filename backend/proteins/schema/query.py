@@ -1,6 +1,5 @@
 import graphene
 import graphene_django_optimizer as gdo
-from django.core.cache import cache
 from django.utils.text import slugify
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
@@ -11,25 +10,13 @@ from proteins.models.spectrum import get_spectra_list
 from proteins.schema import relay, types
 
 
-def get_cached_spectrum(id, timeout=60 * 60 * 24):
-    key = f"_spectrum_{id}"
-    spectrum = cache.get(key)
-    if not spectrum:
-        try:
-            spectrum = (
-                models.Spectrum.objects.filter(id=id)
-                .select_related(
-                    "owner_fluor",
-                    "owner_camera",
-                    "owner_filter",
-                    "owner_light",
-                )
-                .get()
-            )
-            cache.set(key, spectrum, timeout)
-        except models.Spectrum.DoesNotExist:
-            return None
-    return spectrum
+def get_spectrum(id):
+    # (not cached here: the GraphQL view caches whole responses)
+    return (
+        models.Spectrum.objects.filter(id=id)
+        .select_related("owner_fluor", "owner_camera", "owner_filter", "owner_light")
+        .first()
+    )
 
 
 def get_requested_fields(info: GraphQLResolveInfo) -> set[str]:
@@ -115,7 +102,7 @@ class Query(graphene.ObjectType):
 
     def resolve_spectrum(self, info, **kwargs):
         _id = kwargs.get("id")
-        return get_cached_spectrum(_id) if _id is not None else None
+        return get_spectrum(_id) if _id is not None else None
 
     # def resolve_spectra(self, info, **kwargs):
     #     return gdo.query(models.Spectrum.objects.all(), info)

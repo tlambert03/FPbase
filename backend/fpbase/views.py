@@ -1,8 +1,10 @@
+import hashlib
 import json
 import logging
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.csrf import csrf_failure as default_csrf_failure
@@ -13,10 +15,14 @@ from rest_framework import exceptions
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import last_event_id
 
+from fpbase.cache_utils import DATA_CACHE_TTL, get_data_version
 from fpbase.forms import ContactForm
 from proteins.models import Protein, Spectrum
 
 logger = logging.getLogger(__name__)
+
+# responses larger than this (characters) are not worth their space in the cache
+GRAPHQL_CACHE_MAX_SIZE = 1_000_000
 
 
 class CloudflareIdentMixin:
@@ -171,6 +177,27 @@ class RateLimitedGraphQLView(GraphQLView):
         if response.status_code == 400 and not self.batch:
             self._log_bad_request(request, response)
         return response
+
+    def get_response(self, request, data, show_graphiql=False):
+        # Every operation is a read (the schema has no mutations) of public data, so
+        # a response can be reused until the data changes.
+        if self.batch or show_graphiql:
+            return super().get_response(request, data, show_graphiql)
+        query, variables, operation_name, _ = self.get_graphql_params(request, data)
+        params = [query, variables, operation_name, bool(request.GET.get("pretty"))]
+        digest = hashlib.sha256(json.dumps(params, sort_keys=True, default=str).encode())
+        key = f"graphql:{get_data_version()}:{digest.hexdigest()}"
+        if (cached := cache.get(key)) is not None:
+            return cached, 200
+        result, status_code = super().get_response(request, data, show_graphiql)
+        if (
+            status_code == 200
+            and result
+            and len(result) <= GRAPHQL_CACHE_MAX_SIZE
+            and not result.lstrip("{ \n").startswith('"errors"')
+        ):
+            cache.set(key, result, DATA_CACHE_TTL)
+        return result, status_code
 
     def _log_bad_request(self, request, response) -> None:
         # the access log lines don't say why a query was rejected: log the errors and query

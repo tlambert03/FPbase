@@ -8,6 +8,14 @@ if TYPE_CHECKING:
     from _pytest.tmpdir import TempPathFactory
 
 
+@pytest.fixture(autouse=True)
+def _clear_cache():
+    # responses are cached by data version, which a rolled-back test doesn't change
+    from django.core.cache import cache
+
+    cache.clear()
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _mock_blast_db(tmp_path_factory: "TempPathFactory"):
     from proteins.util import blast
