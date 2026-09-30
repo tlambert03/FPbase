@@ -367,6 +367,8 @@ class ProteinRetrieveAPIView(RetrieveAPIView):
 
         (Clients try all of these here: `/api/proteins/2IB5/`, `/api/proteins/R9NL8/`.)
         """
+        if "\x00" in key:  # (postgres rejects it)
+            raise NotFound(f"No protein matches {key!r}")
         queryset = self.filter_queryset(self.get_queryset())
         lookups = (
             Q(uuid__iexact=key),
@@ -374,7 +376,10 @@ class ProteinRetrieveAPIView(RetrieveAPIView):
             Q(pdb__contains=[key.upper()]),
         )
         for lookup in lookups:
-            matches = list(queryset.filter(lookup)[:3])
+            # (a name lookup's `icontains` only narrows: the alias must match exactly)
+            candidates = pm.Protein.objects.filter(lookup).only(*pm.PROTEIN_NAME_FIELDS)
+            ids = [p.id for p in candidates if pm.protein_is_named(p, key)]
+            matches = list(queryset.filter(id__in=ids)[:3])
             if len(matches) == 1:
                 return matches[0]
             if matches:

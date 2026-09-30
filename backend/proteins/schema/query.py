@@ -82,7 +82,12 @@ class Query(graphene.ObjectType):
         elif (slug := kwargs.get("slug")) is not None:
             lookup = Q(slug=slug.lower())
         elif (name := kwargs.get("name")) is not None:
-            lookup = Q(name__iexact=name) | Q(aliases__icontains=name)
+            # (icontains narrows to candidates; the alias must then match exactly)
+            candidates = models.Protein.objects.filter(
+                Q(name__iexact=name) | Q(aliases__icontains=name)
+            ).only(*models.PROTEIN_NAME_FIELDS)
+            ids = [p.id for p in candidates if models.protein_is_named(p, name)]
+            lookup = Q(id__in=ids[:1])
         else:
             return None
         return gdo.query(models.Protein.objects.filter(lookup), info).first()

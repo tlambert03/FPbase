@@ -370,6 +370,17 @@ def test_protein_detail_by_other_identifiers(client):
     assert response.status_code == 404
     assert "PDB ID" in response.json()["detail"]
 
+    # an exact alias is found among many partial matches, whatever their order
+    for i in range(30):
+        ProteinFactory(name=f"AAA-LkM-{i}")
+    assert client.get("/api/proteins/lkm/?format=json&fields=slug").json() == {
+        "slug": protein.slug
+    }
+
+    # part of a name or alias is not a match (`cherry` is not PAmCherry1)
+    for key in ("lookup", "km", "ookup%20m", "a%00b"):
+        assert client.get(f"/api/proteins/{key}/?format=json").status_code == 404, key
+
 
 @pytest.mark.django_db
 def test_protein_list_page_and_page_size(client):

@@ -144,7 +144,8 @@ def test_protein_by_slug_or_name(client):
     query = (
         '{ a: protein(slug: "NAMED-PROTEIN") { name } b: protein(name: "named protein") { name }'
         ' c: protein(name: "nmp") { name } d: protein(slug: "nope") { name }'
-        f' e: protein(id: "{protein.uuid}") {{ name }} }}'
+        f' e: protein(id: "{protein.uuid}") {{ name }}'
+        ' f: protein(name: "named") { name } g: protein(name: "nm") { name } }'
     )
     data, _ = _query(client, query)
     assert data == {
@@ -153,4 +154,6 @@ def test_protein_by_slug_or_name(client):
         "c": {"name": "Named Protein"},
         "d": None,
         "e": {"name": "Named Protein"},
+        "f": None,  # (part of the name)
+        "g": None,  # (part of the alias)
     }

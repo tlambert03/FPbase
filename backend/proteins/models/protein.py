@@ -597,6 +597,25 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
             return self.primary_reference.first_author.family
 
 
+PROTEIN_NAME_FIELDS = ("id", "name", "slug", "uuid", "aliases", "pdb")
+
+
+def protein_is_named(protein: Protein, key: str) -> bool:
+    """Whether `key` is the protein's name, an alias, or any other identifier, exactly.
+
+    (An `aliases__icontains` query matches a substring of any alias: it narrows the
+    candidates, and this decides.)
+    """
+    key = key.lower()
+    return key in (
+        protein.name.lower(),
+        protein.slug,
+        protein.uuid.lower(),
+        *(alias.lower() for alias in protein.aliases or []),
+        *(pdb.lower() for pdb in protein.pdb or []),
+    )
+
+
 class State(FluorState):  # TODO: rename to ProteinState
     protein_id: int
     protein: models.ForeignKey[Protein] = models.ForeignKey(
