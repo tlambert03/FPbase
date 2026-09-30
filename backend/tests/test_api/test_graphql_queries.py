@@ -63,6 +63,23 @@ QUERIES = {
         " name defaultState { exMax } states { name spectra { id } } } } } }"
     ),
     "references": "{ references { doi authors { family publications { doi } } } }",
+    # a relation selected with nothing but a nested relation under it: the optimizer
+    # must still fetch the foreign key ("cannot be both deferred and traversed")
+    "only_nested": (
+        "{ proteins { primaryReference { authors { family } }"
+        " parentOrganism { proteins { name } } } }"
+    ),
+    "states_nested": "{ states { protein { primaryReference { authors { family } } } } }",
+    # `oser` and `oserMeasurements` are the same relation twice: two prefetches of it
+    # with different querysets would clash
+    "oser_twice": (
+        "{ proteins { oser { percent } oserMeasurements { percent reference { doi } } } }"
+    ),
+    "oser_twice_connection": (
+        "{ allProteins(first: 50) { edges { node {"
+        " oser { percent } oserMeasurements { percent } } } } }"
+    ),
+    "spectra_reference": "{ states { spectra { id reference { doi } } } }",
     "organisms": "{ organisms { scientificName proteins { name } } }",
 }
 
@@ -96,6 +113,9 @@ def test_relations_in_list_queries(client):
     assert "Author0" in [a["family"] for ref in data["references"] for a in ref["authors"]]
     data, _ = _query(client, QUERIES["organisms"])
     assert [{"name": "Protein0"}] in [o["proteins"] for o in data["organisms"]]
+    data, _ = _query(client, QUERIES["oser_twice"])
+    assert data["proteins"][0]["oser"] == [{"percent": 90.0}]
+    assert data["proteins"][0]["oserMeasurements"][0]["percent"] == 90.0
 
 
 def test_missing_protein_is_null(client):

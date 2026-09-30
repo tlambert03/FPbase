@@ -115,7 +115,9 @@ class Query(graphene.ObjectType):
     states = graphene.List(types.State)
 
     def resolve_states(self, info, **kwargs):
-        return gdo.query(models.State.objects.all(), info)
+        # (ordered: states have no ordering of their own, and an optimized query
+        # returns them in another order than the plain one did)
+        return gdo.query(models.State.objects.order_by("id"), info)
 
     def resolve_state(self, info, **kwargs):
         _id = kwargs.get("id")

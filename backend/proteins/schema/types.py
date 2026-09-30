@@ -1,5 +1,6 @@
 import graphene
 import graphene_django_optimizer as gdo
+from django.db.models import Prefetch
 from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectType
@@ -52,9 +53,17 @@ class Organism(gdo.OptimizedDjangoObjectType):
 
 
 class OSERMeasurement(gdo.OptimizedDjangoObjectType):
+    reference = graphene.Field(
+        Reference, description=models.OSERMeasurement._meta.get_field("reference").help_text
+    )
+
     class Meta:
         model = models.OSERMeasurement
         fields = "__all__"
+
+    @gdo.resolver_hints(model_field="reference", only=("reference",))
+    def resolve_reference(self, info):
+        return self.reference
 
 
 class StateTransition(gdo.OptimizedDjangoObjectType):
@@ -65,11 +74,11 @@ class StateTransition(gdo.OptimizedDjangoObjectType):
         model = models.StateTransition
         fields = "__all__"
 
-    @gdo.resolver_hints(model_field="from_state")
+    @gdo.resolver_hints(model_field="from_state", only=("from_state",))
     def resolve_fromState(self, info):
         return self.from_state
 
-    @gdo.resolver_hints(model_field="to_state")
+    @gdo.resolver_hints(model_field="to_state", only=("to_state",))
     def resolve_toState(self, info):
         return self.to_state
 
@@ -94,16 +103,23 @@ class Protein(gdo.OptimizedDjangoObjectType):
         return self.transitions.all()
 
     # (graphene-django's own foreign key resolver runs a query per protein)
-    @gdo.resolver_hints(model_field="default_state")
+    @gdo.resolver_hints(model_field="default_state", only=("default_state",))
     def resolve_defaultState(self, info):
         return self.default_state
 
     def resolve_switchType(self, info):
         return self.switch_type or None
 
-    @gdo.resolver_hints(model_field="oser_measurements")
+    # its own prefetch: one for `oser_measurements` too would clash with `oser`'s
+    @gdo.resolver_hints(
+        prefetch_related=lambda info: Prefetch(
+            "oser_measurements",
+            queryset=models.OSERMeasurement.objects.select_related("reference"),
+            to_attr="_oser",
+        )
+    )
     def resolve_oser(self, info):
-        return self.oser_measurements.all()
+        return self._oser if hasattr(self, "_oser") else self.oser_measurements.all()
 
     def resolve_agg(self, info):
         return self.agg or None
@@ -111,11 +127,11 @@ class Protein(gdo.OptimizedDjangoObjectType):
     def resolve_cofactor(self, info):
         return self.cofactor or None
 
-    @gdo.resolver_hints(model_field="parent_organism")
+    @gdo.resolver_hints(model_field="parent_organism", only=("parent_organism",))
     def resolve_parentOrganism(self, info):
         return self.parent_organism
 
-    @gdo.resolver_hints(model_field="primary_reference")
+    @gdo.resolver_hints(model_field="primary_reference", only=("primary_reference",))
     def resolve_primaryReference(self, info):
         return self.primary_reference
 
@@ -239,14 +255,9 @@ class State(gdo.OptimizedDjangoObjectType):
     def is_type_of(cls, root, info):
         return isinstance(root, models.State)
 
-    @gdo.resolver_hints(model_field="protein")
+    @gdo.resolver_hints(model_field="protein", only=("protein",))
     def resolve_protein(self, info, **kwargs):
         return self.protein
-
-    # spectra = graphene.List(SpectrumType)
-
-    # def resolve_spectra(self, info, **kwargs):
-    #     return self.spectrumowner.spectra.all()
 
 
 class SpectrumOwnerUnion(graphene.Union):
@@ -273,6 +284,7 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
         exclude = ("y_values",)
 
     owner = graphene.Field(SpectrumOwnerInterface)
+    reference = graphene.Field(Reference)
     color = graphene.String()
     # Expose spectrum data as list of [wavelength, value] pairs
     # maintains compatibility with API
@@ -312,6 +324,10 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
 
     def resolve_color(self, info, **kwargs):
         return self.color()
+
+    @gdo.resolver_hints(model_field="reference", only=("reference",))
+    def resolve_reference(self, info):
+        return self.reference
 
 
 class SpectrumOwnerInfo(graphene.ObjectType):
