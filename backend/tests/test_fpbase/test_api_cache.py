@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+from contextlib import contextmanager
 
 import pytest
 from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from fpbase import views
 from fpbase.cache_utils import get_data_version
@@ -15,12 +17,22 @@ from proteins.models import FluorescenceMeasurement, Protein
 pytestmark = pytest.mark.django_db
 
 
+@contextmanager
+def _assert_num_selects(num: int):
+    # (rather than counting every query: with ATOMIC_REQUESTS, as in CI, each request
+    # also runs SAVEPOINT and RELEASE SAVEPOINT)
+    with CaptureQueriesContext(connection) as ctx:
+        yield
+    selects = [q["sql"] for q in ctx.captured_queries if q["sql"].startswith("SELECT")]
+    assert len(selects) == num, selects
+
+
 def _graphql(client, query: str, **variables):
     body = json.dumps({"query": query, "variables": variables})
     return client.post("/graphql/", body, content_type="application/json")
 
 
-def test_rest_list_is_cached_until_data_changes(client, django_assert_num_queries):
+def test_rest_list_is_cached_until_data_changes(client):
     protein = ProteinFactory(name="OldName")
     url = "/api/proteins/?format=json"
 
@@ -29,7 +41,7 @@ def test_rest_list_is_cached_until_data_changes(client, django_assert_num_querie
     # clients and the CDN can't see the data version: they get a short lifetime
     assert response["Cache-Control"] == "max-age=600"
 
-    with django_assert_num_queries(0):
+    with _assert_num_selects(0):
         cached = client.get(url)
     assert cached.json() == response.json()
     assert cached["Cache-Control"] == "max-age=600"
@@ -77,13 +89,13 @@ def test_data_version_changes_again_on_commit(django_capture_on_commit_callbacks
     assert get_data_version() != uncommitted
 
 
-def test_graphql_response_is_cached_until_data_changes(client, django_assert_num_queries):
+def test_graphql_response_is_cached_until_data_changes(client):
     protein = ProteinFactory(name="OldName")
     query = "query getProtein($id: String!) { protein(id: $id) { name } }"
 
     response = _graphql(client, query, id=protein.uuid)
     assert response.json() == {"data": {"protein": {"name": "OldName"}}}
-    with django_assert_num_queries(0):
+    with _assert_num_selects(0):
         assert _graphql(client, query, id=protein.uuid).json() == response.json()
         # the same query as a GET shares the entry
         get = client.get("/graphql/", {"query": query, "variables": f'{{"id": "{protein.uuid}"}}'})
@@ -98,26 +110,24 @@ def test_graphql_response_is_cached_until_data_changes(client, django_assert_num
     assert _graphql(client, query, id=protein.uuid).json()["data"]["protein"]["name"] == "NewName"
 
 
-def test_graphql_errors_and_large_responses_are_not_cached(
-    client, monkeypatch, django_assert_num_queries
-):
+def test_graphql_errors_and_large_responses_are_not_cached(client, monkeypatch):
     ProteinFactory(name="Appears")
     missing = '{ dye(name: "no such dye") { name } }'
     for _ in range(2):  # (a cached response would run no query)
-        with django_assert_num_queries(1):
+        with _assert_num_selects(1):
             response = _graphql(client, missing)
         assert response.status_code == 200
         assert "errors" in response.json()
 
     # pretty-printed: "data" sorts before "errors"
     for _ in range(2):
-        with django_assert_num_queries(1):
+        with _assert_num_selects(1):
             response = client.get("/graphql/", {"query": missing, "pretty": "1"})
         assert response.content.lstrip(b"{ \n").startswith(b'"data"')
         assert "errors" in response.json()
 
     monkeypatch.setattr(views, "GRAPHQL_CACHE_MAX_SIZE", 10)
     for _ in range(2):
-        with django_assert_num_queries(1):
+        with _assert_num_selects(1):
             response = _graphql(client, "{ proteins { name } }")
         assert response.json() == {"data": {"proteins": [{"name": "Appears"}]}}
