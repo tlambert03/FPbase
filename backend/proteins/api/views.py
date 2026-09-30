@@ -5,7 +5,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils.cache import get_conditional_response
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_control, cache_page
+from django.views.decorators.cache import cache_control
 from django.views.decorators.http import condition
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import ValidationError
@@ -22,7 +22,7 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework_csv import renderers as r
 
 import proteins.models as pm
-from fpbase.cache_utils import get_model_version
+from fpbase.cache_utils import cache_page_by_data_version, get_model_version
 from fpbase.views import ExpensiveListAnonThrottle, SameOriginExemptAnonThrottle
 from proteins.api.serializers import (
     BasicProteinSerializer,
@@ -177,7 +177,7 @@ class ProteinListAPIView2(ListAPIView):
     filterset_class = ProteinAPIFilter
     renderer_classes = [*api_settings.DEFAULT_RENDERER_CLASSES, r.CSVRenderer]  # pyright: ignore[reportAssignmentType]
 
-    @method_decorator(cache_page(60 * 10))
+    @method_decorator(cache_page_by_data_version())
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
@@ -220,7 +220,7 @@ class ProteinListAPIView(ListAPIView):
     throttle_classes = [ExpensiveListAnonThrottle, *api_settings.DEFAULT_THROTTLE_CLASSES]  # pyright: ignore[reportAssignmentType]
     renderer_classes = [*api_settings.DEFAULT_RENDERER_CLASSES, r.CSVRenderer]  # pyright: ignore[reportAssignmentType]
 
-    @method_decorator(cache_page(60 * 10))
+    @method_decorator(cache_page_by_data_version())
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
@@ -248,7 +248,7 @@ class ProteinRetrieveAPIView(RetrieveAPIView):
     serializer_class = ProteinSerializer
     lookup_field = "slug"  # Don't use Protein.id
 
-    @method_decorator(cache_page(60 * 10))
+    @method_decorator(cache_page_by_data_version())
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
@@ -278,7 +278,7 @@ class ProteinSpectraListAPIView(ListAPIView):
     pagination_class = OptionalLimitOffsetPagination
     throttle_classes = [ExpensiveListAnonThrottle, *api_settings.DEFAULT_THROTTLE_CLASSES]  # pyright: ignore[reportAssignmentType]
 
-    @method_decorator(cache_page(60 * 10))
+    @method_decorator(cache_page_by_data_version())
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
@@ -305,7 +305,6 @@ class ProteinTableAPIView(ListAPIView):
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = ProteinAPIFilter
 
-    @method_decorator(cache_control(public=True, max_age=600))
-    @method_decorator(cache_page(60 * 10))
+    @method_decorator(cache_page_by_data_version(public=True))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
