@@ -195,6 +195,11 @@ class RateLimitedGraphQLView(GraphQLView):
             response["Cache-Control"] = (
                 edge_cache.cache_control(public=True) if cacheable else "no-store"
             )
+            if cacheable:
+                # graphene's `ensure_csrf_cookie` adds a Set-Cookie header, and the CDN
+                # does not cache a response that sets a cookie. (The cookie is for
+                # GraphiQL, whose page this is not.)
+                response.cookies.pop(settings.CSRF_COOKIE_NAME, None)
         return response
 
     def get_response(self, request, data, show_graphiql=False):
