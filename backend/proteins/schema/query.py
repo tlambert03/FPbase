@@ -1,5 +1,6 @@
 import graphene
 import graphene_django_optimizer as gdo
+from django.db.models import Q
 from django.utils.text import slugify
 from graphene_django.filter import DjangoFilterConnectionField
 from graphql import FieldNode, GraphQLError, GraphQLResolveInfo
@@ -67,19 +68,29 @@ class Query(graphene.ObjectType):
         return None
 
     proteins = graphene.List(types.Protein)
-    protein = graphene.Field(types.Protein, id=graphene.String())
+    protein = graphene.Field(
+        types.Protein, id=graphene.String(), slug=graphene.String(), name=graphene.String()
+    )
 
     def resolve_proteins(self, info, **kwargs):
         return gdo.query(models.Protein.objects.all(), info)
 
     def resolve_protein(self, info, **kwargs):
-        _id = kwargs.get("id")
-        if _id is not None:
-            try:
-                return gdo.query(models.Protein.objects.filter(uuid=_id), info).get()
-            except models.Protein.DoesNotExist:
-                return None
-        return None
+        # by FPbase ID, slug, or name (or alias): whichever the client has
+        if (_id := kwargs.get("id")) is not None:
+            lookup = Q(uuid=_id)
+        elif (slug := kwargs.get("slug")) is not None:
+            lookup = Q(slug=slug.lower())
+        elif (name := kwargs.get("name")) is not None:
+            # (icontains narrows to candidates; the alias must then match exactly)
+            candidates = models.Protein.objects.filter(
+                Q(name__iexact=name) | Q(aliases__icontains=name)
+            ).only(*models.PROTEIN_NAME_FIELDS)
+            ids = [p.id for p in candidates if models.protein_is_named(p, name)]
+            lookup = Q(id__in=ids[:1])
+        else:
+            return None
+        return gdo.query(models.Protein.objects.filter(lookup), info).first()
 
     # spectra = graphene.List(Spectrum)
     spectra = graphene.List(

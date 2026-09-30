@@ -12,7 +12,7 @@ from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 
 from proteins.factories import ProteinFactory, StateFactory
-from proteins.models import Protein
+from proteins.models import Protein, Spectrum
 
 
 class ProteinListAPIViewTests(TestCase):
@@ -158,10 +158,10 @@ def test_unknown_query_params_rejected(client, url):
     """Guessed params are a 400 naming the valid ones, not an unfiltered dump."""
     ProteinFactory()
 
-    response = client.get(f"{url}?format=json&find=mCherry&page=2")
+    response = client.get(f"{url}?format=json&find=mCherry&per_page=2")
     assert response.status_code == 400
     error = response.json()
-    assert "find, page" in error["detail"]
+    assert "find, per_page" in error["detail"]
     assert "name__icontains" in error["valid_parameters"]
     assert error["docs"].endswith("/api/")
 
@@ -315,7 +315,7 @@ def test_protein_list_api_search_alias(client):
     [
         ("pdb_id", "pdb"),
         ("pdb__icontains", "pdb__contains"),
-        ("ex_max__gte", "default_state__ex_max__gte"),
+        ("ex_max__gt", "ex_max__gte"),
         ("name__contains", "name__icontains"),
         ("default_state__ex_max__exact", "default_state__ex_max"),
         ("ex_maxx", "ex_max"),
@@ -351,3 +351,103 @@ def test_protein_spectra_api_query_count(client, django_assert_max_num_queries):
         response = client.get("/api/proteins/spectra/?format=json")
     assert len(response.json()) == 4
     assert all(p["spectra"] for p in response.json())
+
+
+@pytest.mark.django_db
+def test_protein_detail_by_other_identifiers(client):
+    protein = ProteinFactory(name="Lookup Me", aliases=["LkM"], pdb=["1ABC", "2SHR"])
+    other = ProteinFactory(name="Other", pdb=["2SHR"])
+    for key in (protein.uuid.lower(), "Lookup%20Me", "lkm", "1abc"):
+        response = client.get(f"/api/proteins/{key}/?format=json&fields=slug")
+        assert response.json() == {"slug": protein.slug}, key
+
+    # a PDB ID shared by two proteins: say which, rather than pick one
+    response = client.get("/api/proteins/2SHR/?format=json")
+    assert response.status_code == 404
+    assert other.slug in response.json()["detail"] and "?pdb=2SHR" in response.json()["detail"]
+
+    response = client.get("/api/proteins/no-such-thing/?format=json")
+    assert response.status_code == 404
+    assert "PDB ID" in response.json()["detail"]
+
+    # an exact alias is found among many partial matches, whatever their order
+    for i in range(30):
+        ProteinFactory(name=f"AAA-LkM-{i}")
+    assert client.get("/api/proteins/lkm/?format=json&fields=slug").json() == {
+        "slug": protein.slug
+    }
+
+    # part of a name or alias is not a match (`cherry` is not PAmCherry1)
+    for key in ("lookup", "km", "ookup%20m", "a%00b"):
+        assert client.get(f"/api/proteins/{key}/?format=json").status_code == 404, key
+
+
+@pytest.mark.django_db
+def test_protein_list_page_and_page_size(client):
+    for i in range(7):
+        ProteinFactory(name=f"Page{i}")
+    slugs = [p["slug"] for p in client.get("/api/proteins/?format=json").json()]
+
+    def page(query):
+        return [p["slug"] for p in client.get(f"/api/proteins/?format=json&{query}").json()]
+
+    assert page("page=2&page_size=3") == slugs[3:6]
+    assert page("page=3&page_size=3") == slugs[6:]
+    assert page("page_size=2") == slugs[:2]
+    assert page("page=1") == slugs  # (fewer than the default page size)
+    assert page("page=x&page_size=y") == slugs[:100]  # (garbage is ignored, as for limit)
+
+
+@pytest.mark.django_db
+def test_protein_list_fields_and_include_fields(client):
+    protein = ProteinFactory(name="Fields")
+    state = protein.states.get()
+    spectrum = Spectrum.objects.get(owner_fluor=state, subtype="ex")
+
+    response = client.get("/api/proteins/?format=json&fields=name,states__ex_max")
+    assert response.json() == [{"name": "Fields", "states": [{"ex_max": state.ex_max}]}]
+
+    # spectra are on demand: left out of the full output, unless asked for by name
+    url = "/api/proteins/fields/?format=json"
+    assert "ex_spectrum" not in client.get(url).json()["states"][0]
+    data = [list(p) for p in spectrum.data]
+    response = client.get(f"{url}&include_fields=states__ex_spectrum")
+    assert response.json()["states"][0]["ex_spectrum"] == data
+    assert response.json()["states"][0]["ex_max"] == state.ex_max
+    response = client.get(f"{url}&fields=slug,states__ex_spectrum")
+    assert response.json() == {"slug": "fields", "states": [{"ex_spectrum": data}]}
+
+    # the spectra endpoint builds its output from the states: fine without them
+    response = client.get("/api/proteins/spectra/?format=json&fields=name")
+    assert response.json() == [{"name": "Fields", "spectra": []}]
+    # the table endpoint's serializer cannot choose fields: rejected, not ignored
+    response = client.get("/api/proteins/table-data/?format=json&fields=name")
+    assert response.status_code == 400
+    assert "fields" in response.json()["detail"]
+
+
+@pytest.mark.django_db
+def test_protein_list_short_filter_names(client):
+    ProteinFactory(name="Red", default_state__ex_max=590, default_state__em_max=610)
+    ProteinFactory(name="Green", default_state__ex_max=488, default_state__em_max=510)
+
+    def names(query):
+        return [p["name"] for p in client.get(f"/api/proteins/?format=json&{query}").json()]
+
+    assert names("ex_max__gte=500") == ["Red"]
+    assert names("em_max__range=500,520") == ["Green"]
+    assert names("ex_max__around=590") == ["Red"]
+    assert names("default_state__ex_max__gte=500") == ["Red"]  # (still works)
+
+
+@pytest.mark.django_db
+def test_api_schema_and_docs_are_public(client):
+    assert client.get("/api/schema/").status_code == 200
+    assert client.get("/api/docs/").status_code == 200
+    response = client.get("/api/openapi.json")
+    assert response.status_code == 200
+    schema = response.json()
+    parameters = {p["name"] for p in schema["paths"]["/api/proteins/"]["get"]["parameters"]}
+    assert {"fields", "include_fields", "page", "page_size", "limit", "offset"} <= parameters
+    detail = schema["paths"]["/api/proteins/{slug}/"]["get"]["parameters"]
+    assert "PDB ID" in next(p for p in detail if p["name"] == "slug")["description"]

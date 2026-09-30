@@ -48,7 +48,12 @@ class ApiTrailingSlashMiddleware:
 
     def __call__(self, request):
         path = request.path_info
-        if not path.endswith("/") and path.startswith(("/api/", "/graphql")):
+        # (not for a file-like path such as /api/openapi.json)
+        if (
+            not path.endswith("/")
+            and path.startswith(("/api/", "/graphql"))
+            and "." not in path.rsplit("/", 1)[-1]
+        ):
             request.path_info += "/"
             request.path += "/"
         return self.get_response(request)

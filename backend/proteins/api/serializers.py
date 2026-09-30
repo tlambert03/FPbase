@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from proteins.api._tweaks import ModelSerializer
@@ -28,12 +31,12 @@ class SpectrumSerializer(serializers.ModelSerializer):
             "peak_wave",
         )
 
-    def get_protein_name(self, obj):
+    def get_protein_name(self, obj) -> str | None:
         if obj.owner_fluor and obj.owner_fluor.entity_type == FluorState.EntityTypes.PROTEIN:
             return obj.owner_fluor.owner_name
         return None
 
-    def get_protein_slug(self, obj):
+    def get_protein_slug(self, obj) -> str | None:
         if obj.owner_fluor and obj.owner_fluor.entity_type == FluorState.EntityTypes.PROTEIN:
             return obj.owner_fluor.owner_slug
         return None
@@ -48,7 +51,10 @@ class StateTransitionSerializer(serializers.ModelSerializer):
         fields = ("from_state", "to_state", "trans_wave")
 
 
+@extend_schema_field({"type": "array", "items": {"type": "array", "items": {"type": "number"}}})
 class SpectrumField(serializers.Field):
+    """A spectrum as [[wavelength, value], ...]."""
+
     def to_representation(self, obj):
         return obj.data
 
@@ -80,7 +86,8 @@ class ProteinSpectraSerializer(ModelSerializer):
     def to_representation(self, obj):
         """Move fields from spectra to protein representation."""
         representation = super().to_representation(obj)
-        spectra_repr = representation.pop("states")
+        # (`fields=` may have left the states out)
+        spectra_repr = representation.pop("states", [])
         representation["spectra"] = []
         for spectrum in spectra_repr:
             if spectrum["ex_spectrum"]:
@@ -106,6 +113,8 @@ class ProteinSpectraSerializer(ModelSerializer):
 
 class StateSerializer(ModelSerializer):
     protein = serializers.SlugRelatedField(slug_field="slug", read_only=True)
+    ex_spectrum = SpectrumField(read_only=True)
+    em_spectrum = SpectrumField(read_only=True)
 
     class Meta:
         model = State
@@ -257,7 +266,7 @@ class ProteinTableStateSerializer(serializers.ModelSerializer):
             "is_dark",
         )
 
-    def get_stokes(self, obj):
+    def get_stokes(self, obj) -> int | None:
         """Calculate Stokes shift."""
         if obj.ex_max and obj.em_max:
             return obj.em_max - obj.ex_max
@@ -290,7 +299,7 @@ class ProteinTableSerializer(serializers.ModelSerializer):
             "weight",
         )
 
-    def get_weight(self, obj):
+    def get_weight(self, obj) -> float | None:
         """Get molecular weight from sequence."""
         if obj.seq and obj.seq.weight is not None:
             return round(obj.seq.weight, 2)
